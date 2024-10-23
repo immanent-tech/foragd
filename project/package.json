@@ -1,0 +1,38 @@
+{
+  "name": "go-feed-me",
+  "version": "0.0.0",
+  "description": "A place for all your feeds",
+  "license": "AGPL-3.0-only",
+  "browserslist": "> 0.5%, last 2 versions, not dead",
+  "source": [
+    "./assets/scripts.js",
+    "./assets/styles.scss"
+  ],
+  "targets": {
+    "default": {
+      "distDir": "./static"
+    }
+  },
+  "scripts": {
+    "watch": "parcel watch",
+    "fmt": "prettier --write .",
+    "dev": "parcel build --no-optimize",
+    "build": "parcel build"
+  },
+  "dependencies": {
+    "@tailwindcss/forms": "latest",
+    "@tailwindcss/typography": "latest",
+    "daisyui": "latest",
+    "htmx.org": "latest",
+    "hyperscript.org": "latest",
+    "tailwindcss": "latest",
+    "theme-change": "^2.5.0"
+  },
+  "devDependencies": {
+    "@parcel/transformer-sass": "latest",
+    "autoprefixer": "^10.4.19",
+    "parcel": "^2.12.0",
+    "postcss": "^8.4.38",
+    "prettier": "latest"
+  }
+}

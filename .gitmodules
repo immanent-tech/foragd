@@ -1,0 +1,3 @@
+[submodule "project/templates/components"]
+	path = project/templates/components
+	url = git@github.com:joshuar/go-templ-daisyui.git

@@ -1,0 +1,7 @@
+# Don't include local container storage.
+deployments
+# Include filebeat config.
+!deployments/filebeat/config/*
+# Don't include SQLTools configuration.
+Go Feed Me.session.sql
+.devcontainer/.env

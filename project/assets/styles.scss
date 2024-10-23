@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+// We don't want the drawer to cover the navbar.
+.drawer-side {
+    top: unset;
+}
+

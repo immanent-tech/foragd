@@ -1,0 +1,40 @@
+package partials
+
+import (
+	"github.com/joshuar/go-feed-me/templates/commands"
+	components "github.com/joshuar/go-templ-daisyui"
+)
+
+templ CommandPrevButton() {
+	<div>
+		@components.ButtonTempl(commands.PrevCommand)
+	</div>
+}
+
+templ CommandNextButton() {
+	<div>
+		@components.ButtonTempl(commands.NextCommand)
+	</div>
+}
+
+templ CommandAddButton() {
+	<div>
+		@components.ButtonTempl(commands.AddCommand)
+	</div>
+}
+
+templ BottomNavBarButtons(buttons ...templ.Component) {
+	for _, button := range buttons {
+		@button
+	}
+}
+
+templ BottomNavBar() {
+	@Notifications()
+	@components.BottomNavTempl(components.MD, components.JustifyAround,
+		BottomNavBarButtons(
+			CommandPrevButton(),
+			CommandAddButton(),
+			CommandNextButton(),
+		))
+}

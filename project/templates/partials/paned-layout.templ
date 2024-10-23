@@ -1,0 +1,22 @@
+package partials
+
+templ PanedLayout() {
+	<div class="w-full flex h-svh max-h-svh">
+		<div class="flex h-full flex-1 flex-col">
+			@NavigationHeader()
+			<div class="flex h-full flex-col justify-between overflow-y-scroll">
+				// Column layout items.
+				<div class="flex h-full flex-row justify-between overflow-y-scroll">
+					// Row layout items.
+					@NavigationLargeScreen()
+					<dialog id="command-modal" class="modal"></dialog>
+					<div>
+						<h1 class="text-center text-xl">Content</h1>
+					</div>
+				</div>
+				@NavigationSmallScreen()
+				@NavigationFooter()
+			</div>
+		</div>
+	</div>
+}

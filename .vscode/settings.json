@@ -1,0 +1,77 @@
+{
+  "terminal.integrated.defaultProfile.linux": "fish",
+  "terminal.integrated.cwd": "${workspaceFolder}/project",
+  "editor.formatOnSave": true,
+  "gopls": {
+    "formatting.local": "github.com/joshuar/go-feed-me",
+    "ui.semanticTokens": true,
+    "ui.noSemanticString": true, // delegates string syntax highlighting to vscode
+    "ui.noSemanticNumber": true, // delegates number syntax highlighting to vscode
+    "formatting.gofumpt": true,
+    "ui.diagnostic.analyses": {
+      "fieldalignment": true,
+      "unusedvariable": true
+    }
+  },
+  "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
+  "licenser.license": "AGPLv3",
+  "licenser.useSPDXLicenseFormat": true,
+  "conventionalCommits.scopes": [
+    "server",
+    "css",
+    "vscode",
+    "platform",
+    "go",
+    "devcontainer",
+    "user",
+    "handlers",
+    "model",
+    "git",
+    "templates",
+    "content",
+    "gowebly",
+    "platform/auth0",
+    "resources",
+    "templates/components",
+    "platform/postgres",
+    "git/github",
+    "ci/github"
+  ],
+  "emmet.includeLanguages": {
+    "templ": "html"
+  },
+  "conventionalCommits.lineBreak": "\\n",
+  "go.lintTool": "golangci-lint",
+  "go.lintFlags": ["--fast"],
+  "go.useLanguageServer": true,
+  "[go]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always",
+      "source.fixAll": "always"
+    }
+  },
+  "[go.mod]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always"
+    }
+  },
+  "ltex.language": "en-AU",
+  "[templ]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "a-h.templ"
+  },
+  "tailwindCSS.includeLanguages": {
+    "templ": "html"
+  },
+  "sqltools.connections": [
+    {
+      "previewLimit": 50,
+      "server": "postgres",
+      "port": 5432,
+      "driver": "PostgreSQL",
+      "name": "Go Feed Me",
+      "database": "gofeedme",
+      "username": "gofeedme"
+    }
+  ]
+}
