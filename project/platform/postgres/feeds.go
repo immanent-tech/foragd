@@ -1,17 +1,5 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package postgres
 
@@ -19,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/joshuar/go-feed-me/platform/feeds"
 	"github.com/joshuar/go-feed-me/platform/id"
 )
 
@@ -31,20 +20,20 @@ func (c *Client) getFeedByURL(url string) (*Feed, error) {
 	return &feed, nil
 }
 
-func (c *Client) GetUpdatedFeedURLs(since time.Time) ([]string, error) {
-	var feeds []Feed
+func (c *Client) GetUpdatedFeeds(since time.Time) ([]feeds.Feed, error) {
+	var results []Feed
 
-	if err := c.db.Where("updated_at > ?", since).Find(&feeds).Error; err != nil {
+	if err := c.db.Where("updated_at > ?", since).Find(&results).Error; err != nil {
 		return nil, fmt.Errorf("could not retrieve updated feed list: %w", err)
 	}
 
-	urls := make([]string, len(feeds))
+	updatedFeeds := make([]feeds.Feed, len(results))
 
-	for i, feed := range feeds {
-		urls[i] = feed.URL
+	for i, feed := range results {
+		updatedFeeds[i] = feeds.NewFeed(feed.ID, feed.URL)
 	}
 
-	return urls, nil
+	return updatedFeeds, nil
 }
 
 func newFeedRecord(url string) (*Feed, error) {

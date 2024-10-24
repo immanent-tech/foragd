@@ -1,17 +1,5 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package feeds
 
@@ -23,16 +11,10 @@ import (
 	"github.com/joshuar/go-feed-me/platform/id"
 )
 
-type FeedItem gofeed.Item
-
-//revive:disable:unused-receiver
-func (i *FeedItem) ID() string {
-	feedID, err := id.NewID(id.Item)
-	if err != nil {
-		return ""
-	}
-
-	return feedID
+type FeedItem struct {
+	*gofeed.Item
+	FeedID string `json:"feedID"`
+	ItemID string `json:"itemID"`
 }
 
 func (i *FeedItem) IsNewer(since time.Time) bool {
@@ -41,4 +23,21 @@ func (i *FeedItem) IsNewer(since time.Time) bool {
 	}
 
 	return i.PublishedParsed.After(since)
+}
+
+func NewFeedItem(feedID string, details *gofeed.Item) FeedItem {
+	return FeedItem{
+		FeedID: feedID,
+		ItemID: newItemID(),
+		Item:   details,
+	}
+}
+
+func newItemID() string {
+	feedID, err := id.NewID(id.Item)
+	if err != nil {
+		return ""
+	}
+
+	return feedID
 }

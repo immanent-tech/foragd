@@ -1,17 +1,5 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package elastic
 
@@ -28,7 +16,12 @@ func (c *Client) CacheFeedItems(stream chan feeds.FeedItem) {
 	var items []feeds.FeedItem //nolint:prealloc
 
 	for item := range stream {
-		c.logger.Debug("Adding item", slog.String("name", item.Title))
+		c.logger.Debug("Adding item",
+			slog.String("name", item.Title),
+			slog.String("item_id", item.ItemID),
+			slog.String("feed_id", item.FeedID),
+		)
+
 		items = append(items, item)
 	}
 
@@ -52,13 +45,14 @@ func (c *Client) bulkIndexFeedItemsWorker(ctx context.Context) {
 			for _, item := range items {
 				// data, _ := json.Marshal(op)
 				// fmt.Fprintf(os.Stdout, "%s\n\n", data)
-				itemID := item.ID()
+				itemID := item.ItemID
 				op := types.NewCreateOperation()
 				op.Id_ = &itemID
 
 				if err := bulkOp.CreateOp(*op, item); err != nil {
 					c.logger.Warn("Failed to create index operation for item.",
-						slog.String("guid", item.GUID),
+						slog.String("item_id", item.ItemID),
+						slog.String("feed_id", item.FeedID),
 						slog.Any("error", err))
 				}
 			}

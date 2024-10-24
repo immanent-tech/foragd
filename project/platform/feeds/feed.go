@@ -1,17 +1,5 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package feeds
 
@@ -24,13 +12,15 @@ import (
 
 type Feed struct {
 	*gofeed.Feed
+	FeedID string
+	URL    string
 }
 
 func (f *Feed) GetItemsSince(since time.Time) []FeedItem {
 	var items []FeedItem
 
 	for _, i := range f.Items {
-		item := FeedItem(*i)
+		item := NewFeedItem(f.FeedID, i)
 		if item.IsNewer(since) {
 			items = append(items, item)
 		}
@@ -39,15 +29,22 @@ func (f *Feed) GetItemsSince(since time.Time) []FeedItem {
 	return items
 }
 
-func FetchFeed(url string) (*Feed, error) {
+func (f *Feed) update() error {
 	fp := gofeed.NewParser()
 
-	feed, err := fp.ParseURL(url)
+	details, err := fp.ParseURL(f.URL)
 	if err != nil {
-		return nil, fmt.Errorf("cannot parse feed %s: %w", url, err)
+		return fmt.Errorf("cannot parse feed: %w", err)
 	}
 
-	return &Feed{
-		Feed: feed,
-	}, nil
+	f.Feed = details
+
+	return nil
+}
+
+func NewFeed(id, url string) Feed {
+	return Feed{
+		FeedID: id,
+		URL:    url,
+	}
 }
