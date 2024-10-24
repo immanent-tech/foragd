@@ -33,7 +33,7 @@ func (c *Client) AddSubscription(ctx context.Context, item *model.Subscription) 
 
 	var feed *Feed
 
-	return c.db.Transaction(func(tx *gorm.DB) error {
+	if err = c.db.Transaction(func(tx *gorm.DB) error {
 		// Get any existing feed, or, create a new feed.
 		if feed, err = c.getFeedByURL(item.Link); err != nil {
 			feed, err = newFeedRecord(item.Link)
@@ -60,17 +60,22 @@ func (c *Client) AddSubscription(ctx context.Context, item *model.Subscription) 
 
 		// return nil will commit the whole transaction
 		return nil
-	})
+	}); err != nil {
+		return fmt.Errorf("failed to add subscription: %w", err)
+	}
+
+	return nil
 }
 
 func newSubscriptionRecord(name string) (*Subscription, error) {
-	if subID, err := id.NewID(id.Sub); err != nil {
+	subID, err := id.NewID(id.Sub)
+	if err != nil {
 		return nil, fmt.Errorf("cannot create subscription: %w", err)
-	} else {
-		return &Subscription{
-				ID:   subID,
-				Name: name,
-			},
-			nil
 	}
+
+	return &Subscription{
+			ID:   subID,
+			Name: name,
+		},
+		nil
 }

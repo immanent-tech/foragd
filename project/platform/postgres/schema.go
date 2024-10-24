@@ -25,17 +25,17 @@ import (
 
 // User represents a user in postgres.
 type User struct {
-	Preferences   map[string]any `gorm:"serializer:json;"`
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
-	DeletedAt     gorm.DeletedAt `gorm:"index"`
-	ID            string         `gorm:"primary_key;"`
-	Topics        []Topic        `gorm:"many2many:user_topics;"`
+	Preferences   map[string]any  `gorm:"serializer:json;"`
+	SessionData   *session.Tokens `gorm:"-"`
+	DeletedAt     gorm.DeletedAt  `gorm:"index"`
+	ID            string          `gorm:"primary_key;"`
+	Topics        []Topic         `gorm:"many2many:user_topics;"`
 	Subscriptions []Subscription
 	ReadItems     []ReadItems
 	SavedItems    []SavedItems
 	Notifications []Notification
-	SessionData   *session.Tokens `gorm:"-"`
 }
 
 type Subscription struct {

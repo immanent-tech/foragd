@@ -17,7 +17,6 @@ package postgres
 
 import (
 	"fmt"
-	"log/slog"
 	"time"
 
 	"github.com/joshuar/go-feed-me/platform/id"
@@ -39,12 +38,10 @@ func (c *Client) GetUpdatedFeedURLs(since time.Time) ([]string, error) {
 		return nil, fmt.Errorf("could not retrieve updated feed list: %w", err)
 	}
 
-	c.logger.Debug("Found new feeds.", slog.Int("feed_count", len(feeds)))
+	urls := make([]string, len(feeds))
 
-	var urls []string
-
-	for _, feed := range feeds {
-		urls = append(urls, feed.URL)
+	for i, feed := range feeds {
+		urls[i] = feed.URL
 	}
 
 	return urls, nil
