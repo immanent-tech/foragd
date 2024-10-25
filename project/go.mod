@@ -2,7 +2,7 @@ module github.com/joshuar/go-feed-me
 
 go 1.23.2
 
-replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./templates/components
+replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
 
 require (
 	github.com/a-h/templ v0.2.778

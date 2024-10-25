@@ -1,0 +1,139 @@
+# Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+# SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+components:
+  schemas:
+    Tokens:
+      type: object
+      required:
+        - IDToken
+        - Claims
+        - AccessToken
+      properties:
+        IDToken:
+          x-go-type: '*oidc.IDToken'
+          x-go-type-import:
+            path: github.com/coreos/go-oidc
+        Claims:
+          type: object
+          $ref: '#/components/schemas/Claims'
+        AccessToken:
+          type: string
+    Claims:
+      type: object
+      properties:
+        Subject:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'sub'
+          x-go-type-skip-optional-pointer: true
+        SessionID:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'sid'
+          x-go-type-skip-optional-pointer: true
+        UserName:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'name'
+          x-go-type-skip-optional-pointer: true
+        UserPictureURL:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'picture'
+          x-go-type-skip-optional-pointer: true
+        Issuer:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'iss'
+          x-go-type-skip-optional-pointer: true
+        UserNickName:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'nickname'
+          x-go-type-skip-optional-pointer: true
+        UpdatedAt:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'updated_at'
+          x-go-type-skip-optional-pointer: true
+        Audience:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'aud'
+          x-go-type-skip-optional-pointer: true
+        Expiry:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'exp'
+          x-go-type-skip-optional-pointer: true
+        IssuedAt:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'iat'
+          x-go-type-skip-optional-pointer: true
+    UserSignup:
+      type: object
+      required:
+        - Email
+        - Password
+      properties:
+        Nickname:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty'
+          x-go-type-skip-optional-pointer: true
+        Email:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,email'
+        Password:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+    SearchRequest:
+      type: object
+      required:
+        - Terms
+      properties:
+        Terms:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+    SubscriptionRequest:
+      description: contains details of a new subscription requested by a user
+      type: object
+      required:
+        - Link
+      properties:
+        Link:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,url'
+        Name:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty'
+          x-go-type-skip-optional-pointer: true
+        Topics:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty'
+          x-go-type-skip-optional-pointer: true
+    ItemFilters:
+      description: contains options to filter the list of displayed feed items
+      type: object
+      properties:
+        Query:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        Feeds:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+        Topics:
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true

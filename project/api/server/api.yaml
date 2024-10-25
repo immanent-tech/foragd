@@ -1,0 +1,213 @@
+openapi: '3.0.0'
+info:
+  version: 1.0.0
+  title: Admin API
+  description: The admin-only portion of the API, which has its own separate OpenAPI spec
+paths:
+  /:
+    get:
+      summary: Index
+      operationId: index
+      responses:
+        200:
+          description: Show index page
+          content:
+            text/html:
+
+  /login/{provider}:
+    get:
+      summary: Process a user login with given provider
+      operationId: userLogin
+      tags:
+        - login
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        307:
+          description: Redirect to provider
+        404:
+          description: No provider to satisfy login
+        500:
+          description: Problem with request
+
+  /login/{provider}/callback:
+    get:
+      summary: Callback for login provider
+      operationId: userLoginCallback
+      tags:
+        - login
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        307:
+          description: Redirect to home
+        401:
+          description: Unauthorized
+        404:
+          description: No provider to satisfy login
+        500:
+          description: Problem with request
+
+  /logout/{provider}:
+    get:
+      summary: Logout handler for provider
+      operationId: userLogout
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        307:
+          description: Redirect to provider
+        500:
+          description: Problem with request
+
+  /signup:
+    get:
+      summary: User sign up
+      operationId: signup
+      responses:
+        200:
+          description: Show sign up page
+          content:
+            text/html:
+        400:
+          description: Bad request (not htmx)
+        500:
+          description: Error rendering signup form
+    post:
+      summary: Process sign up request
+      operationId: processSignup
+      requestBody:
+        description: New user information
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '../models/api.yaml#/components/schemas/UserSignup'
+      responses:
+        200:
+          description: Show signup results
+          content:
+            text/html:
+        500:
+          description: Error processing signup
+
+  /signup/validate:
+    post:
+      summary: Validate sign up
+      operationId: validateSignup
+      responses:
+        200:
+          description: Validation completed
+          content:
+            text/html:
+      requestBody:
+        description: Item to validate
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '../models/api.yaml#/components/schemas/UserSignup'
+
+  /home:
+    get:
+      summary: Display user home page
+      operationId: userHome
+      responses:
+        200:
+          description: Show index page
+          content:
+            text/html:
+        401:
+          description: Unauthorized
+        500:
+          description: Problem with request
+  /home/search:
+    post:
+      summary: Issue a user search request
+      operationId: userSearch
+      responses:
+        200:
+          description: Show search results
+          content:
+            text/html:
+        401:
+          description: Unauthorized
+        500:
+          description: Problem with request
+      requestBody:
+        description: User search request
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '../models/api.yaml#/components/schemas/SearchRequest'
+  /home/settings:
+    get:
+      summary: Show user settings modal
+      operationId: userSettings
+      responses:
+        200:
+          description: Show search results
+          content:
+            text/html:
+        401:
+          description: Unauthorized
+        500:
+          description: Problem with request
+  /home/add:
+    get:
+      summary: Show the add item modal
+      operationId: addItem
+      responses:
+        200:
+          description: Show add item modal
+          content:
+            text/html:
+        401:
+          description: Unauthorized
+        500:
+          description: Problem with request
+    post:
+      summary: Add an item
+      operationId: processAddItem
+      responses:
+        200:
+          description: Item added successfully
+        401:
+          description: Unauthorized
+        500:
+          description: Problem with request
+  /home/add/validate:
+    post:
+      summary: Validate item
+      operationId: validateAddItem
+      responses:
+        200:
+          description: Validation completed
+          content:
+            text/html:
+      requestBody:
+        description: Item to validate
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '../models/api.yaml#/components/schemas/UserSignup'
