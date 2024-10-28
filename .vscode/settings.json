@@ -20,20 +20,16 @@
     "server",
     "css",
     "vscode",
-    "platform",
     "go",
     "devcontainer",
     "user",
     "handlers",
-    "model",
     "git",
     "templates",
-    "content",
-    "gowebly",
-    "platform/auth0",
+    "platforms/auth0",
     "resources",
     "templates/components",
-    "platform/postgres",
+    "platforms/postgres",
     "git/github",
     "ci/github",
     "models",
@@ -64,6 +60,9 @@
   },
   "tailwindCSS.includeLanguages": {
     "templ": "html"
+  },
+  "files.associations": {
+    "*.scss": "tailwindcss"
   },
   "sqltools.connections": [
     {
