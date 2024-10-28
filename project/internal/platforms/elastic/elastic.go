@@ -19,7 +19,7 @@ import "errors"
 
 const (
 	userIndex  = ""
-	assetsPath = "platform/elastic/assets"
+	assetsPath = "internal/platforms/elastic/assets"
 )
 
 var ErrNoClient = errors.New("no client")
