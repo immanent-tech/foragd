@@ -34,9 +34,10 @@ var (
 
 func (c *Client) AddUser(_ context.Context, user models.UserDetails) error {
 	newUser := &models.User{
-		ID:          user.UserID(),
 		Preferences: models.NewUserPreferences(),
 	}
+
+	newUser.ID = user.UserID()
 
 	tx := c.db.Create(newUser)
 

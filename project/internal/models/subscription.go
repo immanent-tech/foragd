@@ -16,13 +16,14 @@ func NewSubscription(name, feedID, userID string) (*Subscription, error) {
 		return nil, fmt.Errorf("cannot create subscription: %w", err)
 	}
 
-	return &Subscription{
-			ID:     subID,
-			FeedID: feedID,
-			UserID: userID,
-			Name:   name,
-		},
-		nil
+	sub := &Subscription{
+		FeedID: feedID,
+		UserID: userID,
+		Name:   name,
+	}
+	sub.ID = subID
+
+	return sub, nil
 }
 
 func (f *SubscriptionRequest) Valid(_ context.Context) (bool, ValidationErrors) {

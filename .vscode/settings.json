@@ -35,7 +35,8 @@
     "templates/components",
     "platform/postgres",
     "git/github",
-    "ci/github"
+    "ci/github",
+    "models"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

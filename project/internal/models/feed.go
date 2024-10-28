@@ -44,5 +44,10 @@ func NewFeedFromURL(url string) (*Feed, error) {
 		return nil, fmt.Errorf("cannot create feed: %w", err)
 	}
 
-	return &Feed{ID: feedID, URL: url}, nil
+	feed := &Feed{
+		URL: url,
+	}
+	feed.ID = feedID
+
+	return feed, nil
 }
