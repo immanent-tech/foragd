@@ -1,5 +1,12 @@
 package meta
 
+// Script adds a <script></script> tag to the page, with optional deferloading
+//setting.
 templ Script(deferLoading bool, src string) {
 	<script defer?={ deferLoading } src={ src }></script>
+}
+
+// HtmxExtSSE loads the htmx SSE extension.
+templ HtmxExtSSE() {
+	@Script(false, "https://unpkg.com/htmx-ext-sse@2.2.2/sse.js")
 }
