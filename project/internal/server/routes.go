@@ -99,7 +99,7 @@ func (s Server) UserHome(res http.ResponseWriter, req *http.Request) {
 
 	if authenticated, err := middlewares.IsAuthenticated(req, s.API.pg); !authenticated {
 		logger.Error("Unauthorized.", slog.Any("error", err))
-		res.WriteHeader(http.StatusUnauthorized)
+		http.Redirect(res, req, "/", http.StatusSeeOther)
 		return
 	}
 
