@@ -18,8 +18,11 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/a-h/templ"
+	"github.com/lxzan/gws"
+	"github.com/yassinebenaid/godump"
 
 	components "github.com/joshuar/go-templ-daisyui"
 
@@ -73,7 +76,7 @@ func addItemForm() components.Form {
 }
 
 func AddItem(res http.ResponseWriter, req *http.Request) {
-	if err := renderers.CommandModal(req, res, components.FormTempl(addItemForm())); err != nil {
+	if err := renderers.CommandModal(req, res, addItemForm().Show()); err != nil {
 		logging.FromContext(req.Context()).
 			Warn("Unable to command modal.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
@@ -116,4 +119,57 @@ func UpdateAddItemForm(field string, item *models.SubscriptionRequest, problems 
 	}
 
 	return input
+}
+
+func HomeFeed(res http.ResponseWriter, req *http.Request, websocket *gws.Upgrader) {
+	socket, err := websocket.Upgrade(res, req)
+	if err != nil {
+		return
+	}
+
+	// go func() {
+	// 	<-req.Context().Done()
+	// 	socket.WriteClose(1000, []byte(`closing websocket`))
+	// }()
+
+	go func() {
+		socket.ReadLoop() // Blocking prevents the context from being GC.
+	}()
+
+	for i := range 5 {
+		socket.WriteString(`<div hx-swap-oob="beforeend:#items"><div class="join-item">Button</div></div>`)
+		time.Sleep(time.Second)
+		i++
+	}
+}
+
+const (
+	PingInterval = 5 * time.Second
+	PingWait     = 10 * time.Second
+)
+
+type FeedItemWebsocketHandler struct{}
+
+func (c *FeedItemWebsocketHandler) OnOpen(socket *gws.Conn) {
+	slog.Debug("New connection.")
+	// _ = socket.SetDeadline(time.Now().Add(PingInterval + PingWait))
+}
+
+func (c *FeedItemWebsocketHandler) OnClose(socket *gws.Conn, err error) {
+	slog.Debug("Closing connection.")
+}
+
+func (c *FeedItemWebsocketHandler) OnPing(socket *gws.Conn, payload []byte) {
+	// _ = socket.SetDeadline(time.Now().Add(PingInterval + PingWait))
+	_ = socket.WritePong(nil)
+}
+
+func (c *FeedItemWebsocketHandler) OnPong(socket *gws.Conn, payload []byte) {}
+
+func (c *FeedItemWebsocketHandler) OnMessage(socket *gws.Conn, message *gws.Message) {
+	defer message.Close()
+	godump.Dump(string(message.Bytes()))
+	socket.WriteString(`<div hx-swap-oob="beforeend:#items"><div class="join-item">Button</div></div>`)
+	// socket.WriteMessage(message.Opcode, message.Bytes())
+	// socket.WriteString("hello")
 }
