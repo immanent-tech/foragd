@@ -34,7 +34,10 @@
     "ci/github",
     "models",
     "platforms/elastic",
-    "templates/meta"
+    "templates/meta",
+    "components/layout",
+    "components/image",
+    "assets"
   ],
   "emmet.includeLanguages": {
     "templ": "html"
