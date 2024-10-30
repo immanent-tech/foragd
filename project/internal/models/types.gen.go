@@ -4,23 +4,21 @@
 package models
 
 import (
-	"time"
-
 	"github.com/coreos/go-oidc"
 )
 
 // Claims defines model for Claims.
 type Claims struct {
-	Audience       string    `json:"aud"`
-	Expiry         time.Time `json:"exp"`
-	IssuedAt       time.Time `json:"iat"`
-	Issuer         string    `json:"iss"`
-	SessionID      string    `json:"sid"`
-	Subject        string    `json:"sub"`
-	UpdatedAt      time.Time `json:"updated_at"`
-	UserName       string    `json:"name"`
-	UserNickName   string    `json:"nickname"`
-	UserPictureURL string    `json:"picture"`
+	Audience       string      `json:"aud"`
+	Expiry         int         `json:"exp"`
+	IssuedAt       int         `json:"iat"`
+	Issuer         string      `json:"iss"`
+	SessionID      string      `json:"sid"`
+	Subject        string      `json:"sub"`
+	UpdatedAt      interface{} `json:"updated_at"`
+	UserName       string      `json:"name"`
+	UserNickName   string      `json:"nickname"`
+	UserPictureURL string      `json:"picture"`
 }
 
 // ItemFilters contains options to filter the list of displayed feed items

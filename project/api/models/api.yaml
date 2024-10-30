@@ -53,7 +53,8 @@ components:
             json: 'nickname'
           x-go-type-skip-optional-pointer: true
         UpdatedAt:
-          x-go-type: 'time.Time'
+          # x-go-type: 'time.Time'
+          # type: string
           x-oapi-codegen-extra-tags:
             json: 'updated_at'
           x-go-type-skip-optional-pointer: true
@@ -63,12 +64,14 @@ components:
             json: 'aud'
           x-go-type-skip-optional-pointer: true
         Expiry:
-          x-go-type: 'time.Time'
+          # x-go-type: 'time.Time'
+          type: integer
           x-oapi-codegen-extra-tags:
             json: 'exp'
           x-go-type-skip-optional-pointer: true
         IssuedAt:
-          x-go-type: 'time.Time'
+          # x-go-type: 'time.Time'
+          type: integer
           x-oapi-codegen-extra-tags:
             json: 'iat'
           x-go-type-skip-optional-pointer: true

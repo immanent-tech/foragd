@@ -31,12 +31,19 @@ func Auth0Login(res http.ResponseWriter, req *http.Request, authenticator *auth0
 	state, err := generateRandomState()
 	if err != nil {
 		logging.FromContext(req.Context()).
-			Error("Cannot generate state for session.", slog.Any("error", err))
+			Error("Cannot generate state.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
 
-	session.StoreState(req.Context(), state)
+	if err := session.StoreState(req.Context(), state); err != nil {
+		logging.FromContext(req.Context()).
+			Error("Cannot save state.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
 
 	http.Redirect(res, req, authenticator.AuthCodeURL(state), http.StatusTemporaryRedirect)
 }
@@ -53,6 +60,7 @@ func Auth0Callback(res http.ResponseWriter, req *http.Request, authenticator *au
 		logging.FromContext(req.Context()).
 			Error("Invalid state.", slog.Any("error", err))
 		res.WriteHeader(http.StatusUnauthorized)
+
 		return
 	}
 
@@ -63,8 +71,8 @@ func Auth0Callback(res http.ResponseWriter, req *http.Request, authenticator *au
 		return
 	}
 
-	// Exchange an authorization code for a token.
-	token, err := authenticator.Exchange(req.Context(), code)
+	// Exchange an authorization code for a tokens.
+	tokens, err := authenticator.Exchange(req.Context(), code)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Unauthorized. Invalid token.", slog.Any("error", err))
@@ -72,7 +80,7 @@ func Auth0Callback(res http.ResponseWriter, req *http.Request, authenticator *au
 		return
 	}
 
-	idToken, err := authenticator.VerifyIDToken(req.Context(), token)
+	idToken, err := authenticator.VerifyIDToken(req.Context(), tokens)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Unauthorized. Invalid token.", slog.Any("error", err))
@@ -81,7 +89,7 @@ func Auth0Callback(res http.ResponseWriter, req *http.Request, authenticator *au
 	}
 
 	// Store the user profile in the session.
-	err = session.StoreTokens(req.Context(), idToken, token.AccessToken)
+	err = session.StoreTokens(req.Context(), idToken, tokens.AccessToken)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Unable to store tokens.", slog.Any("error", err))
