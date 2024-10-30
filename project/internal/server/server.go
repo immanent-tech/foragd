@@ -24,11 +24,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/knadh/koanf/v2"
+	"github.com/lxzan/gws"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/postgres"
+	"github.com/joshuar/go-feed-me/internal/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/server/session"
 )
@@ -48,10 +50,11 @@ var (
 )
 
 type API struct {
-	user    *auth0.UserAPI
-	elastic *elastic.Client
-	pg      *postgres.Client
-	auth    *auth0.Authenticator
+	user      *auth0.UserAPI
+	elastic   *elastic.Client
+	pg        *postgres.Client
+	auth      *auth0.Authenticator
+	websocket *gws.Upgrader
 }
 
 type Server struct {
@@ -108,15 +111,18 @@ func NewServer(ctx context.Context) (Server, error) {
 		return svr, fmt.Errorf("failed to initialize the authenticator backend API: %w", err)
 	}
 
+	websocket := handlers.NewWebsocketServer(&handlers.FeedItemWebsocketHandler{})
+
 	// Set up the session manager.
 	session.NewSessionManager(postgresAPI)
 
 	// Add the API to the environment.
 	svr.API = &API{
-		user:    auth0UserAPI,
-		elastic: elasticAPI,
-		pg:      postgresAPI,
-		auth:    auth0API,
+		user:      auth0UserAPI,
+		elastic:   elasticAPI,
+		pg:        postgresAPI,
+		auth:      auth0API,
+		websocket: websocket,
 	}
 
 	return svr, nil
@@ -140,31 +146,36 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	svr.Logger.Debug("Setting up routes...")
 
+	if svr.GetEnvironment() == "development" {
+		router.Mount("/debug", middleware.Profiler())
+	}
+
 	// Login/Logout routes.
 	router.Get("/", wrapper.Index)
-	router.Route("/login", func(r chi.Router) {
-		r.Get("/{provider}", wrapper.UserLogin)
-		r.Get("/{provider}/callback", wrapper.UserLoginCallback)
+	router.Route("/login", func(loginRouter chi.Router) {
+		loginRouter.Get("/{provider}", wrapper.UserLogin)
+		loginRouter.Get("/{provider}/callback", wrapper.UserLoginCallback)
 	})
 	router.Get("/logout/{provider}", wrapper.UserLogout)
 
 	// Sign up routes.
-	router.Route("/signup", func(r chi.Router) {
-		r.Get("/", wrapper.Signup)
-		r.Post("/", wrapper.ProcessSignup)
-		r.Post("/validate", wrapper.ValidateSignup)
+	router.Route("/signup", func(signupRouter chi.Router) {
+		signupRouter.Get("/", wrapper.Signup)
+		signupRouter.Post("/", wrapper.ProcessSignup)
+		signupRouter.Post("/validate", wrapper.ValidateSignup)
 	})
 
 	// User home routes.
-	router.Route("/home", func(r chi.Router) {
-		r.Get("/", wrapper.UserHome)
-		r.Post("/search", wrapper.UserSearch)
-		r.Get("/settings", wrapper.UserSettings)
-		r.Route("/add", func(r chi.Router) {
+	router.Route("/home", func(homeRouter chi.Router) {
+		homeRouter.Get("/", wrapper.UserHome)
+		homeRouter.Post("/search", wrapper.UserSearch)
+		homeRouter.Get("/settings", wrapper.UserSettings)
+		homeRouter.Route("/add", func(r chi.Router) {
 			r.Get("/", wrapper.AddItem)
 			r.Post("/", wrapper.ProcessAddItem)
 			r.Post("/validate", wrapper.ValidateAddItem)
 		})
+		homeRouter.Get("/feed", wrapper.UserHomeFeed)
 	})
 
 	return router
