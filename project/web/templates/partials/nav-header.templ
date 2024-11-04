@@ -25,7 +25,7 @@ templ NavigationHeader() {
 }
 
 templ navBarSearch() {
-	@components.InputTempl(components.NewInput("Search",
+	@components.NewInput("Search",
 		components.AsFormControl(),
 		components.WithInputModifier(components.InputAccent),
 		components.WithInputType(components.InputTypeSearch),
@@ -38,7 +38,7 @@ templ navBarSearch() {
 			"hx-target":    "#search-results",
 			"hx-indicator": ".htmx-indicator",
 		}),
-	))
+	).Show()
 }
 
 templ navBarMenu() {
@@ -62,9 +62,9 @@ templ navBarMenu() {
 					"class":    "dropdown-content bg-base-100 rounded-box justify-start shadow swap-on",
 				}),
 				components.WithItems(
-					components.ButtonTempl(commands.HelpCommand),
-					components.ButtonTempl(commands.ProfileCommand),
-					components.ButtonTempl(commands.SettingsCommand),
+					commands.HelpCommand.Show(),
+					commands.ProfileCommand.Show(),
+					commands.SettingsCommand.Show(),
 				),
 			))
 		</label>

@@ -1,0 +1,25 @@
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import "github.com/joshuar/go-templ-daisyui"
+
+templ ItemList() {
+	<div hx-ext="ws" ws-connect="/home/feed">
+		<div id="filters" hx-swap-oob="morphdom"></div>
+		<div class="join join-vertical" id="items"></div>
+		<form id="filters-control" ws-send>
+			<input name="filter"/>
+		</form>
+	</div>
+}
+
+// FeedItem displays an individual feed item as a card component.
+templ FeedItem(item components.Card) {
+	<div hx-swap-oob="beforeend:#items">
+		<div class="join-item">
+			@item.Show()
+		</div>
+	</div>
+}

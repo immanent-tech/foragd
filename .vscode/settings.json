@@ -37,7 +37,10 @@
     "templates/meta",
     "components/layout",
     "components/image",
-    "assets"
+    "assets",
+    "components/card",
+    "components/table",
+    "components/tabs"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

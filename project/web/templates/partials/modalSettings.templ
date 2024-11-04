@@ -11,17 +11,17 @@ templ SettingsModal() {
 			</div>
 			<div class="join">
 				// Add button.
-				@components.ButtonTempl(components.NewButton("Save", "save",
+				@components.NewButton("Save", "save",
 					components.ButtonAttributes(templ.Attributes{
 						"_": "on click take .modal-open from #command-modal wait 200ms",
 					}),
-				))
+				).Show()
 				// Close button.
-				@components.ButtonTempl(components.NewButton("Close", "close",
+				@components.NewButton("Close", "close",
 					components.ButtonAttributes(templ.Attributes{
 						"_": "on click take .modal-open from #command-modal wait 200ms",
 					}),
-				))
+				).Show()
 			</div>
 		</form>
 	</div>

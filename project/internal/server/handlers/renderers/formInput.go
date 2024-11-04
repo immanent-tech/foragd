@@ -24,7 +24,7 @@ import (
 )
 
 func FormInput(req *http.Request, res http.ResponseWriter, input components.Input) error {
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, components.InputTempl(input)); err != nil {
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, input.Show()); err != nil {
 		return fmt.Errorf("failed to render input: %w", err)
 	}
 

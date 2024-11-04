@@ -7,19 +7,19 @@ import (
 
 templ CommandPrevButton() {
 	<div>
-		@components.ButtonTempl(commands.PrevCommand)
+		@commands.PrevCommand.Show()
 	</div>
 }
 
 templ CommandNextButton() {
 	<div>
-		@components.ButtonTempl(commands.NextCommand)
+		@commands.NextCommand.Show()
 	</div>
 }
 
 templ CommandAddButton() {
 	<div>
-		@components.ButtonTempl(commands.AddCommand)
+		@commands.AddCommand.Show()
 	</div>
 }
 

@@ -19,7 +19,7 @@ templ SearchResultsTempl(results SearchResults) {
 		switch res := result.(type) {
 			case components.Button:
 				<li>
-					@components.ButtonTempl(res)
+					@res.Show()
 				</li>
 		}
 	}

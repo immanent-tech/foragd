@@ -8,8 +8,25 @@ import (
 
 	"github.com/mmcdole/gofeed"
 
+	components "github.com/joshuar/go-templ-daisyui"
+
 	"github.com/joshuar/go-feed-me/internal/id"
 )
+
+// GetImage extracts the item image and creates an image component that can be
+// rendered in a page.
+func (i *FeedItem) GetImage() *components.Image {
+	if i.Image != nil {
+		image := components.NewImage(
+			components.WithURL(i.Image.URL),
+			components.WithAltText(i.Image.Title),
+		)
+
+		return &image
+	}
+
+	return nil
+}
 
 func (i *FeedItem) IsNewer(since time.Time) bool {
 	if i.UpdatedParsed != nil {

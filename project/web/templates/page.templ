@@ -7,8 +7,10 @@ templ PageTempl(data Page, bodyContent ...templ.Component) {
 	<!DOCTYPE html>
 	<html lang="en">
 		@Head(data.CustomHeaders)
-		for _, content := range bodyContent {
-			@content
-		}
+		<body hx-ext="sse">
+			for _, content := range bodyContent {
+				@content
+			}
+		</body>
 	</html>
 }
