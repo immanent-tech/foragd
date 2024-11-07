@@ -3,6 +3,7 @@
   "service": "devcontainer",
   "postCreateCommand": ".devcontainer/postcreate.sh",
   "containerUser": "vscode",
+  "remoteUser": "vscode",
   "containerEnv": {
     "TZ": "${localEnv:TZ:Australia/Brisbane}",
     "DISPLAY": ":0",

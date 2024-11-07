@@ -7,6 +7,8 @@ cd /tmp && curl -sS https://starship.rs/install.sh | sh -s -- -y || exit -1
 mkdir -p ~/.config/fish
 # echo "starship init fish | source" >> ~/.config/fish/config.fish
 
+cd /workspace/project
+
 # Install parceljs.
 npm install --save-dev parcel || exit -1
 

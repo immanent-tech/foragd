@@ -1,28 +1,43 @@
-version: "3.8"
+x-podman:
+  in_pod: false
+volumes:
+  certs:
+  postgres-data:
+  es01-data:
+  es02-data:
+  es03-data:
+  kibana-data:
+  filebeat-registry:
+networks:
+  go-feed-me:
 services:
   devcontainer:
     build:
       dockerfile: Dockerfile
     volumes:
-      - ..:/workspace:cached
+      - ..:/workspace:Z,cached
       - /etc/localtime:/etc/localtime:ro,cached
       - /run/user/1000/podman/podman.sock:/var/run/docker.sock
     command: sleep infinity
     user: vscode
+    userns_mode: keep-id
+    hostname: devcontainer
+    networks:
+      - go-feed-me
 
   setup:
-    environment:
-      ELASTIC_PASSWORD: gofeedme
-      KIBANA_PASSWORD: gofeedme
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
     volumes:
-      - ../deployments/elasticsearch/certs:/usr/share/elasticsearch/config/certs
+      - ../deployments/certs:/usr/share/elasticsearch/config/certs
+    userns_mode: keep-id
+    networks:
+      - go-feed-me
     command: |
       bash -c '
-              if [ x$${ELASTIC_PASSWORD} == x ]; then
+              if [ x$${ELASTIC_PASSWORD:-gofeedme} == x ]; then
           echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
           exit 1;
-        elif [ x$${KIBANA_PASSWORD} == x ]; then
+        elif [ x$${KIBANA_PASSWORD:-gofeedme} == x ]; then
           echo "Set the KIBANA_PASSWORD environment variable in the .env file";
           exit 1;
         fi;
@@ -64,7 +79,7 @@ services:
         echo "Waiting for Elasticsearch availability";
         until curl -s --cacert config/certs/ca/ca.crt https://es01:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:$${ELASTIC_PASSWORD}" -H "Content-Type: application/json" https://es01:9200/_security/user/kibana_system/_password -d "{\"password\":\"$${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;        
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:$${ELASTIC_PASSWORD:-gofeedme}" -H "Content-Type: application/json" https://es01:9200/_security/user/kibana_system/_password -d "{\"password\":\"$${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;        
         echo "All done!";
       '
     healthcheck:
@@ -78,11 +93,13 @@ services:
       setup:
         condition: service_healthy
     hostname: es01
+    userns_mode: keep-id
+    networks:
+      - go-feed-me
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
     volumes:
-      - ../deployments/elasticsearch/certs:/usr/share/elasticsearch/config/certs
-      - ../deployments/elasticsearch/esdata01:/usr/share/elasticsearch/data
-      - ../deployments/elasticsearch/eslogs01:/var/log/elasticsearch
+      - ../deployments/certs:/usr/share/elasticsearch/config/certs
+      - es01-data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
     environment:
@@ -130,10 +147,12 @@ services:
       - es01
     hostname: es02
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
+    userns_mode: keep-id
+    networks:
+      - go-feed-me
     volumes:
-      - ../deployments/elasticsearch/certs:/usr/share/elasticsearch/config/certs
-      - ../deployments/elasticsearch/esdata02:/usr/share/elasticsearch/data
-      - ../deployments/elasticsearch/eslogs02:/var/log/elasticsearch
+      - ../deployments/certs:/usr/share/elasticsearch/config/certs
+      - es02-data:/usr/share/elasticsearch/data
     environment:
       - ES_JAVA_OPTS=-Xms4g -Xmx4g
       - node.name=es02
@@ -177,11 +196,13 @@ services:
     depends_on:
       - es02
     hostname: es03
+    userns_mode: keep-id
+    networks:
+      - go-feed-me
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
     volumes:
-      - ../deployments/elasticsearch/certs:/usr/share/elasticsearch/config/certs
-      - ../deployments/elasticsearch/esdata03:/usr/share/elasticsearch/data
-      - ../deployments/elasticsearch/eslogs03:/var/log/elasticsearch
+      - ../deployments/certs:/usr/share/elasticsearch/config/certs
+      - es03-data:/usr/share/elasticsearch/data
     environment:
       - ES_JAVA_OPTS=-Xms4g -Xmx4g
       - node.name=es03
@@ -230,11 +251,13 @@ services:
       es03:
         condition: service_healthy
     hostname: kibana
+    userns_mode: keep-id
+    networks:
+      - go-feed-me
     image: docker.elastic.co/kibana/kibana:$STACK_VERSION
     volumes:
-      - ../deployments/elasticsearch/certs:/usr/share/kibana/config/certs
-      - ../deployments/elasticsearch/kibanadata:/usr/share/kibana/data
-      - ../deployments/elasticsearch/kibanalogs:/var/log/kibana
+      - ../deployments/certs:/usr/share/kibana/config/certs
+      - kibana-data:/usr/share/kibana/data
     ports:
       - 5601:5601
     environment:
@@ -265,18 +288,24 @@ services:
       es03:
         condition: service_healthy
     hostname: filebeat
+    userns_mode: keep-id
+    networks:
+      - go-feed-me
     image: docker.elastic.co/beats/filebeat:$STACK_VERSION
     restart: always
     volumes:
-      - ../deployments/elasticsearch/certs:/usr/share/filebeat/certs
+      - ../deployments/certs:/usr/share/filebeat/certs
       - ../deployments/filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - ../deployments/filebeat/registry:/usr/share/filebeat/data
+      - filebeat-registry:/usr/share/filebeat/data
       - ../deployments/filebeat/logs:/var/log/filebeat
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock:ro
       - ../deployments/server.log:/var/log/server.log
 
   postgres:
     hostname: postgres
+    userns_mode: keep-id
+    networks:
+      - go-feed-me
     image: docker.io/postgres:$POSTGRES_VERSION
     restart: always
     ports:
@@ -285,7 +314,7 @@ services:
       POSTGRES_USER: $POSTGRES_USER
       POSTGRES_PASSWORD: $POSTGRES_PASSWORD
     volumes:
-      - ../deployments/postgres/data:/var/lib/postgresql/data:Z,U
+      - postgres-data:/var/lib/postgresql/data:Z,U
     labels:
       - co.elastic.logs/module=postgresql
       # - ../deployments/postgres/logs:/var/log/postgresql
