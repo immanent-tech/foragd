@@ -25,6 +25,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/meta"
+	"github.com/joshuar/go-feed-me/web/templates/pages"
 )
 
 func Index(res http.ResponseWriter, req *http.Request) {
@@ -43,7 +44,7 @@ func Index(res http.ResponseWriter, req *http.Request) {
 				meta.Tag("description", "Welcome to Go Feed Me."),
 			},
 		},
-		templates.IndexPage(),
+		pages.IndexPage(),
 	)
 
 	// Render index page template.
