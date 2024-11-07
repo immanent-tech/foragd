@@ -5,7 +5,7 @@ go 1.23.2
 replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
 
 require (
-	github.com/a-h/templ v0.2.778
+	github.com/a-h/templ v0.2.793
 	github.com/air-verse/air v1.61.1
 	github.com/alexedwards/scs/gormstore v0.0.0-20240316134038-7e11d57e8885
 	github.com/alexedwards/scs/v2 v2.8.0
@@ -22,7 +22,7 @@ require (
 	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/providers/env v1.0.0
 	github.com/knadh/koanf/providers/file v1.1.2
-	github.com/knadh/koanf/v2 v2.1.1
+	github.com/knadh/koanf/v2 v2.1.2
 	github.com/lmittmann/tint v1.0.5
 	github.com/matoous/go-nanoid v1.5.1
 	github.com/mattn/go-isatty v0.0.20
@@ -32,9 +32,9 @@ require (
 	github.com/orandin/slog-gorm v1.4.0
 	github.com/reugn/go-quartz v0.13.0
 	github.com/rs/cors v1.11.1
-	github.com/samber/slog-chi v1.11.2
-	github.com/samber/slog-multi v1.2.3
-	github.com/yassinebenaid/godump v0.10.0
+	github.com/samber/slog-chi v1.12.3
+	github.com/samber/slog-multi v1.2.4
+	github.com/yassinebenaid/godump v0.11.0
 	golang.org/x/oauth2 v0.23.0
 	golang.org/x/tools v0.26.0
 	gorm.io/driver/postgres v1.5.9
@@ -75,7 +75,7 @@ require (
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
-	github.com/go-viper/mapstructure/v2 v2.0.0-alpha.1 // indirect
+	github.com/go-viper/mapstructure/v2 v2.2.1 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/goccy/go-json v0.10.3 // indirect
 	github.com/gohugoio/hugo v0.134.3 // indirect
@@ -123,9 +123,9 @@ require (
 	go.lsp.dev/jsonrpc2 v0.10.0 // indirect
 	go.lsp.dev/pkg v0.0.0-20210717090340-384b27a52fb2 // indirect
 	go.lsp.dev/uri v0.3.0 // indirect
-	go.opentelemetry.io/otel v1.28.0 // indirect
-	go.opentelemetry.io/otel/metric v1.28.0 // indirect
-	go.opentelemetry.io/otel/trace v1.28.0 // indirect
+	go.opentelemetry.io/otel v1.29.0 // indirect
+	go.opentelemetry.io/otel/metric v1.29.0 // indirect
+	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/crypto v0.28.0 // indirect
