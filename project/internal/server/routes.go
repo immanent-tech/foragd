@@ -94,11 +94,11 @@ func (s Server) Index(res http.ResponseWriter, req *http.Request) {
 // SignUp serves the user sign up page.
 // GET(/signup)
 func (s Server) Signup(res http.ResponseWriter, req *http.Request) {
-	if !htmx.IsHTMX(req) {
-		s.Logger.Error("Request was not made by htmx.", slog.String("handler", "ValidateSignup"))
-		http.Error(res, "Invalid request", http.StatusBadRequest)
-		return
-	}
+	// if !htmx.IsHTMX(req) {
+	// 	s.Logger.Error("Request was not made by htmx.", slog.String("handler", "ValidateSignup"))
+	// 	http.Error(res, "Invalid request", http.StatusBadRequest)
+	// 	return
+	// }
 
 	ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "Signup")))
 

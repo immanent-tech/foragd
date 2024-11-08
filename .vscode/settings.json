@@ -40,7 +40,9 @@
     "assets",
     "components/card",
     "components/table",
-    "components/tabs"
+    "components/tabs",
+    "templates/pages",
+    "templates/partials"
   ],
   "emmet.includeLanguages": {
     "templ": "html"
