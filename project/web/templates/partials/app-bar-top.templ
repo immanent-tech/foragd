@@ -1,0 +1,56 @@
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import "github.com/joshuar/go-templ-daisyui"
+
+templ AppBarTop() {
+	<div class="navbar bg-base-100">
+		<div class="navbar-start">
+			@appBarTopLeft()
+		</div>
+		<div class="navbar-center">
+			@appBarTopCenter()
+		</div>
+		<div class="navbar-end">
+			@appBarTopRight()
+		</div>
+	</div>
+}
+
+templ appBarTopLeft() {
+	<label for="home-drawer" aria-label="Open Drawer" class="btn btn-square drawer-button">
+		@components.FontAwesomeTempl(components.NewIcon("bars"))
+	</label>
+}
+
+templ appBarTopCenter() {
+	@components.NewInput("Search",
+		components.AsFormControl(),
+		components.WithInputModifier(components.InputAccent),
+		components.WithInputType(components.InputTypeSearch),
+		components.WithInputIcon(components.NewIcon("magnifying-glass"), components.AlignLeft),
+		components.WithPlaceholder("Search anything..."),
+		components.WithInputAttributes(templ.Attributes{
+			"tabindex":     0,
+			"hx-post":      "/home/search",
+			"hx-trigger":   "input changed delay:500ms, SearchRequest",
+			"hx-target":    "#search-results",
+			"hx-indicator": ".htmx-indicator",
+		}),
+	).Show()
+}
+
+templ appBarTopRight() {
+	<details class="dropdown dropdown-bottom dropdown-end [&_.swap-on]:opacity-100 [&_.swap-off]:opacity-0 [&[open]_.swap-off]:opacity-100 [&[open]_.swap-on]:opacity-0">
+		<summary class="swap">
+			@components.FontAwesomeTempl(components.NewIcon("bars", components.WithExtraIconClasses("swap-on")))
+			@components.FontAwesomeTempl(components.NewIcon("xmark", components.WithExtraIconClasses("swap-off")))
+		</summary>
+		<ul class="p-2 menu dropdown-content z-[1] bg-base-200 rounded-box w-52">
+			<li><a>Item 1</a></li>
+			<li><a>Item 2</a></li>
+		</ul>
+	</details>
+}

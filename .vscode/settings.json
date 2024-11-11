@@ -42,7 +42,13 @@
     "components/table",
     "components/tabs",
     "templates/pages",
-    "templates/partials"
+    "templates/partials",
+    "components/tooltip",
+    "components/menu",
+    "components",
+    "modifiers/size",
+    "modifiers/alignment",
+    "modifiers/layout"
   ],
   "emmet.includeLanguages": {
     "templ": "html"
