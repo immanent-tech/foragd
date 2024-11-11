@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-//go:generate stringer -type=CommandID -linecomment -output search_generated.go
+//go:generate go run golang.org/x/tools/cmd/stringer -type=CommandID -linecomment -output search_generated.go
 package search
 
 import (
