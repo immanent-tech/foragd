@@ -7,7 +7,7 @@ paths:
   /:
     get:
       summary: Index
-      operationId: index
+      operationId: getIndex
       responses:
         200:
           description: Show index page
@@ -17,7 +17,7 @@ paths:
   /login/{provider}:
     get:
       summary: Process a user login with given provider
-      operationId: userLogin
+      operationId: getLogin
       tags:
         - login
       parameters:
@@ -37,7 +37,7 @@ paths:
   /login/{provider}/callback:
     get:
       summary: Callback for login provider
-      operationId: userLoginCallback
+      operationId: getLoginCallback
       tags:
         - login
       parameters:
@@ -69,7 +69,7 @@ paths:
   /logout/{provider}:
     get:
       summary: Logout handler for provider
-      operationId: userLogout
+      operationId: getLogout
       parameters:
         - name: provider
           in: path
@@ -85,7 +85,7 @@ paths:
   /signup:
     get:
       summary: User sign up
-      operationId: signup
+      operationId: getSignup
       responses:
         200:
           description: Show sign up page
@@ -97,7 +97,7 @@ paths:
           description: Error rendering signup form
     post:
       summary: Process sign up request
-      operationId: processSignup
+      operationId: postSignup
       requestBody:
         description: New user information
         content:
@@ -115,7 +115,7 @@ paths:
   /signup/validate:
     post:
       summary: Validate sign up
-      operationId: validateSignup
+      operationId: postSignupValidate
       responses:
         200:
           description: Validation completed
@@ -131,7 +131,7 @@ paths:
   /home:
     get:
       summary: Display user home page
-      operationId: userHome
+      operationId: getHome
       responses:
         200:
           description: Show index page
@@ -144,7 +144,7 @@ paths:
   /home/search:
     post:
       summary: Issue a user search request
-      operationId: userSearch
+      operationId: postHomeSearch
       responses:
         200:
           description: Show search results
@@ -163,7 +163,7 @@ paths:
   /home/settings:
     get:
       summary: Show user settings modal
-      operationId: userSettings
+      operationId: getHomeSettings
       responses:
         200:
           description: Show search results
@@ -173,13 +173,13 @@ paths:
           description: Unauthorized
         500:
           description: Problem with request
-  /home/add:
+  /home/subscription/add:
     get:
-      summary: Show the add item modal
-      operationId: addItem
+      summary: Add a new subscription
+      operationId: getSubscriptionAdd
       responses:
         200:
-          description: Show add item modal
+          description: Show the add subscription modal.
           content:
             text/html:
         401:
@@ -187,36 +187,97 @@ paths:
         500:
           description: Problem with request
     post:
-      summary: Add an item
-      operationId: processAddItem
+      summary: Process a new subscription
+      operationId: postSubscriptionAdd
       responses:
         200:
-          description: Item added successfully
+          description: Subscription added successfully
         401:
           description: Unauthorized
         500:
-          description: Problem with request
-  /home/add/validate:
+          description: Problem with subscription
+  /home/subscription/validate:
     post:
-      summary: Validate item
-      operationId: validateAddItem
+      summary: Validate a subscription
+      operationId: postSubscriptionValidate
       responses:
         200:
           description: Validation completed
           content:
             text/html:
       requestBody:
-        description: Item to validate
+        description: Subscription to validate
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '../models/api.yaml#/components/schemas/UserSignup'
-  /home/feed:
+              $ref: '../models/api.yaml#/components/schemas/SubscriptionRequest'
+  /home/subscription/edit/{subID}:
     get:
-      summary: Display feed items
-      operationId: userHomeFeed
+      summary: Edit a new subscription
+      operationId: getSubscriptionEdit
+      parameters:
+        - name: subID
+          in: path
+          required: true
+          schema:
+            type: string
       responses:
         200:
-          description: Items displayed
+          description: Show the edit subscription modal.
           content:
-            text/event-stream:
+            text/html:
+        401:
+          description: Unauthorized
+        500:
+          description: Problem with request
+    post:
+      summary: Process a subscription edit
+      operationId: postSubscriptionEdit
+      parameters:
+        - name: subID
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Subscription edited successfully
+        401:
+          description: Unauthorized
+        500:
+          description: Problem with request
+  /home/feed/{feedID}:
+    get:
+      summary: Display a list of feed items, or all feeds if no ID provided
+      operationId: getHomeFeed
+      parameters:
+        - name: feedID
+          in: path
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of feeds or feed items
+          content:
+            text/html:
+  /home/feed/{feedID}/{itemID}:
+    get:
+      summary: Display a feed item, or all feed items if no ID provided, for a feed
+      operationId: getHomeFeedItem
+      parameters:
+        - name: feedID
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: itemID
+          in: path
+          required: false
+          schema:
+            type: string
+      responses:
+        200:
+          description: List of feed items or a feed item
+          content:
+            text/html:

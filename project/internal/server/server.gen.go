@@ -12,68 +12,77 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// UserLoginCallbackParams defines parameters for UserLoginCallback.
-type UserLoginCallbackParams struct {
+// GetLoginCallbackParams defines parameters for GetLoginCallback.
+type GetLoginCallbackParams struct {
 	Code  string `form:"code" json:"code"`
 	State string `form:"state" json:"state"`
 }
 
-// ValidateAddItemFormdataRequestBody defines body for ValidateAddItem for application/x-www-form-urlencoded ContentType.
-type ValidateAddItemFormdataRequestBody = externalRef0.UserSignup
+// PostHomeSearchFormdataRequestBody defines body for PostHomeSearch for application/x-www-form-urlencoded ContentType.
+type PostHomeSearchFormdataRequestBody = externalRef0.SearchRequest
 
-// UserSearchFormdataRequestBody defines body for UserSearch for application/x-www-form-urlencoded ContentType.
-type UserSearchFormdataRequestBody = externalRef0.SearchRequest
+// PostSubscriptionValidateFormdataRequestBody defines body for PostSubscriptionValidate for application/x-www-form-urlencoded ContentType.
+type PostSubscriptionValidateFormdataRequestBody = externalRef0.SubscriptionRequest
 
-// ProcessSignupMultipartRequestBody defines body for ProcessSignup for multipart/form-data ContentType.
-type ProcessSignupMultipartRequestBody = externalRef0.UserSignup
+// PostSignupMultipartRequestBody defines body for PostSignup for multipart/form-data ContentType.
+type PostSignupMultipartRequestBody = externalRef0.UserSignup
 
-// ValidateSignupFormdataRequestBody defines body for ValidateSignup for application/x-www-form-urlencoded ContentType.
-type ValidateSignupFormdataRequestBody = externalRef0.UserSignup
+// PostSignupValidateFormdataRequestBody defines body for PostSignupValidate for application/x-www-form-urlencoded ContentType.
+type PostSignupValidateFormdataRequestBody = externalRef0.UserSignup
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Index
 	// (GET /)
-	Index(w http.ResponseWriter, r *http.Request)
+	GetIndex(w http.ResponseWriter, r *http.Request)
 	// Display user home page
 	// (GET /home)
-	UserHome(w http.ResponseWriter, r *http.Request)
-	// Show the add item modal
-	// (GET /home/add)
-	AddItem(w http.ResponseWriter, r *http.Request)
-	// Add an item
-	// (POST /home/add)
-	ProcessAddItem(w http.ResponseWriter, r *http.Request)
-	// Validate item
-	// (POST /home/add/validate)
-	ValidateAddItem(w http.ResponseWriter, r *http.Request)
-	// Display feed items
-	// (GET /home/feed)
-	UserHomeFeed(w http.ResponseWriter, r *http.Request)
+	GetHome(w http.ResponseWriter, r *http.Request)
+	// Display a list of feed items, or all feeds if no ID provided
+	// (GET /home/feed/{feedID})
+	GetHomeFeed(w http.ResponseWriter, r *http.Request, feedID string)
+	// Display a feed item, or all feed items if no ID provided, for a feed
+	// (GET /home/feed/{feedID}/{itemID})
+	GetHomeFeedItem(w http.ResponseWriter, r *http.Request, feedID string, itemID string)
 	// Issue a user search request
 	// (POST /home/search)
-	UserSearch(w http.ResponseWriter, r *http.Request)
+	PostHomeSearch(w http.ResponseWriter, r *http.Request)
 	// Show user settings modal
 	// (GET /home/settings)
-	UserSettings(w http.ResponseWriter, r *http.Request)
+	GetHomeSettings(w http.ResponseWriter, r *http.Request)
+	// Add a new subscription
+	// (GET /home/subscription/add)
+	GetSubscriptionAdd(w http.ResponseWriter, r *http.Request)
+	// Process a new subscription
+	// (POST /home/subscription/add)
+	PostSubscriptionAdd(w http.ResponseWriter, r *http.Request)
+	// Edit a new subscription
+	// (GET /home/subscription/edit/{subID})
+	GetSubscriptionEdit(w http.ResponseWriter, r *http.Request, subID string)
+	// Process a subscription edit
+	// (POST /home/subscription/edit/{subID})
+	PostSubscriptionEdit(w http.ResponseWriter, r *http.Request, subID string)
+	// Validate a subscription
+	// (POST /home/subscription/validate)
+	PostSubscriptionValidate(w http.ResponseWriter, r *http.Request)
 	// Process a user login with given provider
 	// (GET /login/{provider})
-	UserLogin(w http.ResponseWriter, r *http.Request, provider string)
+	GetLogin(w http.ResponseWriter, r *http.Request, provider string)
 	// Callback for login provider
 	// (GET /login/{provider}/callback)
-	UserLoginCallback(w http.ResponseWriter, r *http.Request, provider string, params UserLoginCallbackParams)
+	GetLoginCallback(w http.ResponseWriter, r *http.Request, provider string, params GetLoginCallbackParams)
 	// Logout handler for provider
 	// (GET /logout/{provider})
-	UserLogout(w http.ResponseWriter, r *http.Request, provider string)
+	GetLogout(w http.ResponseWriter, r *http.Request, provider string)
 	// User sign up
 	// (GET /signup)
-	Signup(w http.ResponseWriter, r *http.Request)
+	GetSignup(w http.ResponseWriter, r *http.Request)
 	// Process sign up request
 	// (POST /signup)
-	ProcessSignup(w http.ResponseWriter, r *http.Request)
+	PostSignup(w http.ResponseWriter, r *http.Request)
 	// Validate sign up
 	// (POST /signup/validate)
-	ValidateSignup(w http.ResponseWriter, r *http.Request)
+	PostSignupValidate(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -82,85 +91,103 @@ type Unimplemented struct{}
 
 // Index
 // (GET /)
-func (_ Unimplemented) Index(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) GetIndex(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Display user home page
 // (GET /home)
-func (_ Unimplemented) UserHome(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) GetHome(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Show the add item modal
-// (GET /home/add)
-func (_ Unimplemented) AddItem(w http.ResponseWriter, r *http.Request) {
+// Display a list of feed items, or all feeds if no ID provided
+// (GET /home/feed/{feedID})
+func (_ Unimplemented) GetHomeFeed(w http.ResponseWriter, r *http.Request, feedID string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Add an item
-// (POST /home/add)
-func (_ Unimplemented) ProcessAddItem(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Validate item
-// (POST /home/add/validate)
-func (_ Unimplemented) ValidateAddItem(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Display feed items
-// (GET /home/feed)
-func (_ Unimplemented) UserHomeFeed(w http.ResponseWriter, r *http.Request) {
+// Display a feed item, or all feed items if no ID provided, for a feed
+// (GET /home/feed/{feedID}/{itemID})
+func (_ Unimplemented) GetHomeFeedItem(w http.ResponseWriter, r *http.Request, feedID string, itemID string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Issue a user search request
 // (POST /home/search)
-func (_ Unimplemented) UserSearch(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) PostHomeSearch(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Show user settings modal
 // (GET /home/settings)
-func (_ Unimplemented) UserSettings(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) GetHomeSettings(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Add a new subscription
+// (GET /home/subscription/add)
+func (_ Unimplemented) GetSubscriptionAdd(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Process a new subscription
+// (POST /home/subscription/add)
+func (_ Unimplemented) PostSubscriptionAdd(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Edit a new subscription
+// (GET /home/subscription/edit/{subID})
+func (_ Unimplemented) GetSubscriptionEdit(w http.ResponseWriter, r *http.Request, subID string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Process a subscription edit
+// (POST /home/subscription/edit/{subID})
+func (_ Unimplemented) PostSubscriptionEdit(w http.ResponseWriter, r *http.Request, subID string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Validate a subscription
+// (POST /home/subscription/validate)
+func (_ Unimplemented) PostSubscriptionValidate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Process a user login with given provider
 // (GET /login/{provider})
-func (_ Unimplemented) UserLogin(w http.ResponseWriter, r *http.Request, provider string) {
+func (_ Unimplemented) GetLogin(w http.ResponseWriter, r *http.Request, provider string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Callback for login provider
 // (GET /login/{provider}/callback)
-func (_ Unimplemented) UserLoginCallback(w http.ResponseWriter, r *http.Request, provider string, params UserLoginCallbackParams) {
+func (_ Unimplemented) GetLoginCallback(w http.ResponseWriter, r *http.Request, provider string, params GetLoginCallbackParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Logout handler for provider
 // (GET /logout/{provider})
-func (_ Unimplemented) UserLogout(w http.ResponseWriter, r *http.Request, provider string) {
+func (_ Unimplemented) GetLogout(w http.ResponseWriter, r *http.Request, provider string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // User sign up
 // (GET /signup)
-func (_ Unimplemented) Signup(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) GetSignup(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Process sign up request
 // (POST /signup)
-func (_ Unimplemented) ProcessSignup(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) PostSignup(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Validate sign up
 // (POST /signup/validate)
-func (_ Unimplemented) ValidateSignup(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) PostSignupValidate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -173,11 +200,11 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
-// Index operation middleware
-func (siw *ServerInterfaceWrapper) Index(w http.ResponseWriter, r *http.Request) {
+// GetIndex operation middleware
+func (siw *ServerInterfaceWrapper) GetIndex(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.Index(w, r)
+		siw.Handler.GetIndex(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -187,11 +214,11 @@ func (siw *ServerInterfaceWrapper) Index(w http.ResponseWriter, r *http.Request)
 	handler.ServeHTTP(w, r)
 }
 
-// UserHome operation middleware
-func (siw *ServerInterfaceWrapper) UserHome(w http.ResponseWriter, r *http.Request) {
+// GetHome operation middleware
+func (siw *ServerInterfaceWrapper) GetHome(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserHome(w, r)
+		siw.Handler.GetHome(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -201,11 +228,22 @@ func (siw *ServerInterfaceWrapper) UserHome(w http.ResponseWriter, r *http.Reque
 	handler.ServeHTTP(w, r)
 }
 
-// AddItem operation middleware
-func (siw *ServerInterfaceWrapper) AddItem(w http.ResponseWriter, r *http.Request) {
+// GetHomeFeed operation middleware
+func (siw *ServerInterfaceWrapper) GetHomeFeed(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "feedID" -------------
+	var feedID string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feedID", chi.URLParam(r, "feedID"), &feedID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feedID", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AddItem(w, r)
+		siw.Handler.GetHomeFeed(w, r, feedID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -215,11 +253,31 @@ func (siw *ServerInterfaceWrapper) AddItem(w http.ResponseWriter, r *http.Reques
 	handler.ServeHTTP(w, r)
 }
 
-// ProcessAddItem operation middleware
-func (siw *ServerInterfaceWrapper) ProcessAddItem(w http.ResponseWriter, r *http.Request) {
+// GetHomeFeedItem operation middleware
+func (siw *ServerInterfaceWrapper) GetHomeFeedItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "feedID" -------------
+	var feedID string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feedID", chi.URLParam(r, "feedID"), &feedID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feedID", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "itemID" -------------
+	var itemID string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "itemID", chi.URLParam(r, "itemID"), &itemID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemID", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ProcessAddItem(w, r)
+		siw.Handler.GetHomeFeedItem(w, r, feedID, itemID)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -229,11 +287,11 @@ func (siw *ServerInterfaceWrapper) ProcessAddItem(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
-// ValidateAddItem operation middleware
-func (siw *ServerInterfaceWrapper) ValidateAddItem(w http.ResponseWriter, r *http.Request) {
+// PostHomeSearch operation middleware
+func (siw *ServerInterfaceWrapper) PostHomeSearch(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ValidateAddItem(w, r)
+		siw.Handler.PostHomeSearch(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -243,11 +301,11 @@ func (siw *ServerInterfaceWrapper) ValidateAddItem(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
-// UserHomeFeed operation middleware
-func (siw *ServerInterfaceWrapper) UserHomeFeed(w http.ResponseWriter, r *http.Request) {
+// GetHomeSettings operation middleware
+func (siw *ServerInterfaceWrapper) GetHomeSettings(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserHomeFeed(w, r)
+		siw.Handler.GetHomeSettings(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -257,11 +315,11 @@ func (siw *ServerInterfaceWrapper) UserHomeFeed(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
-// UserSearch operation middleware
-func (siw *ServerInterfaceWrapper) UserSearch(w http.ResponseWriter, r *http.Request) {
+// GetSubscriptionAdd operation middleware
+func (siw *ServerInterfaceWrapper) GetSubscriptionAdd(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserSearch(w, r)
+		siw.Handler.GetSubscriptionAdd(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -271,11 +329,11 @@ func (siw *ServerInterfaceWrapper) UserSearch(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
-// UserSettings operation middleware
-func (siw *ServerInterfaceWrapper) UserSettings(w http.ResponseWriter, r *http.Request) {
+// PostSubscriptionAdd operation middleware
+func (siw *ServerInterfaceWrapper) PostSubscriptionAdd(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserSettings(w, r)
+		siw.Handler.PostSubscriptionAdd(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -285,8 +343,72 @@ func (siw *ServerInterfaceWrapper) UserSettings(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
-// UserLogin operation middleware
-func (siw *ServerInterfaceWrapper) UserLogin(w http.ResponseWriter, r *http.Request) {
+// GetSubscriptionEdit operation middleware
+func (siw *ServerInterfaceWrapper) GetSubscriptionEdit(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "subID" -------------
+	var subID string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "subID", chi.URLParam(r, "subID"), &subID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSubscriptionEdit(w, r, subID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostSubscriptionEdit operation middleware
+func (siw *ServerInterfaceWrapper) PostSubscriptionEdit(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "subID" -------------
+	var subID string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "subID", chi.URLParam(r, "subID"), &subID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subID", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostSubscriptionEdit(w, r, subID)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostSubscriptionValidate operation middleware
+func (siw *ServerInterfaceWrapper) PostSubscriptionValidate(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostSubscriptionValidate(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetLogin operation middleware
+func (siw *ServerInterfaceWrapper) GetLogin(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -300,7 +422,7 @@ func (siw *ServerInterfaceWrapper) UserLogin(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserLogin(w, r, provider)
+		siw.Handler.GetLogin(w, r, provider)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -310,8 +432,8 @@ func (siw *ServerInterfaceWrapper) UserLogin(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r)
 }
 
-// UserLoginCallback operation middleware
-func (siw *ServerInterfaceWrapper) UserLoginCallback(w http.ResponseWriter, r *http.Request) {
+// GetLoginCallback operation middleware
+func (siw *ServerInterfaceWrapper) GetLoginCallback(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -325,7 +447,7 @@ func (siw *ServerInterfaceWrapper) UserLoginCallback(w http.ResponseWriter, r *h
 	}
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params UserLoginCallbackParams
+	var params GetLoginCallbackParams
 
 	// ------------- Required query parameter "code" -------------
 
@@ -358,7 +480,7 @@ func (siw *ServerInterfaceWrapper) UserLoginCallback(w http.ResponseWriter, r *h
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserLoginCallback(w, r, provider, params)
+		siw.Handler.GetLoginCallback(w, r, provider, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -368,8 +490,8 @@ func (siw *ServerInterfaceWrapper) UserLoginCallback(w http.ResponseWriter, r *h
 	handler.ServeHTTP(w, r)
 }
 
-// UserLogout operation middleware
-func (siw *ServerInterfaceWrapper) UserLogout(w http.ResponseWriter, r *http.Request) {
+// GetLogout operation middleware
+func (siw *ServerInterfaceWrapper) GetLogout(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -383,7 +505,7 @@ func (siw *ServerInterfaceWrapper) UserLogout(w http.ResponseWriter, r *http.Req
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UserLogout(w, r, provider)
+		siw.Handler.GetLogout(w, r, provider)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -393,11 +515,11 @@ func (siw *ServerInterfaceWrapper) UserLogout(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
-// Signup operation middleware
-func (siw *ServerInterfaceWrapper) Signup(w http.ResponseWriter, r *http.Request) {
+// GetSignup operation middleware
+func (siw *ServerInterfaceWrapper) GetSignup(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.Signup(w, r)
+		siw.Handler.GetSignup(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -407,11 +529,11 @@ func (siw *ServerInterfaceWrapper) Signup(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r)
 }
 
-// ProcessSignup operation middleware
-func (siw *ServerInterfaceWrapper) ProcessSignup(w http.ResponseWriter, r *http.Request) {
+// PostSignup operation middleware
+func (siw *ServerInterfaceWrapper) PostSignup(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ProcessSignup(w, r)
+		siw.Handler.PostSignup(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -421,11 +543,11 @@ func (siw *ServerInterfaceWrapper) ProcessSignup(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
-// ValidateSignup operation middleware
-func (siw *ServerInterfaceWrapper) ValidateSignup(w http.ResponseWriter, r *http.Request) {
+// PostSignupValidate operation middleware
+func (siw *ServerInterfaceWrapper) PostSignupValidate(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ValidateSignup(w, r)
+		siw.Handler.PostSignupValidate(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -549,46 +671,55 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/", wrapper.Index)
+		r.Get(options.BaseURL+"/", wrapper.GetIndex)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home", wrapper.UserHome)
+		r.Get(options.BaseURL+"/home", wrapper.GetHome)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/add", wrapper.AddItem)
+		r.Get(options.BaseURL+"/home/feed/{feedID}", wrapper.GetHomeFeed)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/add", wrapper.ProcessAddItem)
+		r.Get(options.BaseURL+"/home/feed/{feedID}/{itemID}", wrapper.GetHomeFeedItem)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/add/validate", wrapper.ValidateAddItem)
+		r.Post(options.BaseURL+"/home/search", wrapper.PostHomeSearch)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/feed", wrapper.UserHomeFeed)
+		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/search", wrapper.UserSearch)
+		r.Get(options.BaseURL+"/home/subscription/add", wrapper.GetSubscriptionAdd)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/settings", wrapper.UserSettings)
+		r.Post(options.BaseURL+"/home/subscription/add", wrapper.PostSubscriptionAdd)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/login/{provider}", wrapper.UserLogin)
+		r.Get(options.BaseURL+"/home/subscription/edit/{subID}", wrapper.GetSubscriptionEdit)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/login/{provider}/callback", wrapper.UserLoginCallback)
+		r.Post(options.BaseURL+"/home/subscription/edit/{subID}", wrapper.PostSubscriptionEdit)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/logout/{provider}", wrapper.UserLogout)
+		r.Post(options.BaseURL+"/home/subscription/validate", wrapper.PostSubscriptionValidate)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/signup", wrapper.Signup)
+		r.Get(options.BaseURL+"/login/{provider}", wrapper.GetLogin)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/signup", wrapper.ProcessSignup)
+		r.Get(options.BaseURL+"/login/{provider}/callback", wrapper.GetLoginCallback)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/signup/validate", wrapper.ValidateSignup)
+		r.Get(options.BaseURL+"/logout/{provider}", wrapper.GetLogout)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/signup", wrapper.GetSignup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/signup", wrapper.PostSignup)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/signup/validate", wrapper.PostSignupValidate)
 	})
 
 	return r

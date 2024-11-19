@@ -1,17 +1,5 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package server
 
@@ -151,31 +139,39 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	}
 
 	// Login/Logout routes.
-	router.Get("/", wrapper.Index)
+	router.Get("/", wrapper.GetIndex)
 	router.Route("/login", func(loginRouter chi.Router) {
-		loginRouter.Get("/{provider}", wrapper.UserLogin)
-		loginRouter.Get("/{provider}/callback", wrapper.UserLoginCallback)
+		loginRouter.Get("/{provider}", wrapper.GetLogin)
+		loginRouter.Get("/{provider}/callback", wrapper.GetLoginCallback)
 	})
-	router.Get("/logout/{provider}", wrapper.UserLogout)
+	router.Get("/logout/{provider}", wrapper.GetLogout)
 
 	// Sign up routes.
 	router.Route("/signup", func(signupRouter chi.Router) {
-		signupRouter.Get("/", wrapper.Signup)
-		signupRouter.Post("/", wrapper.ProcessSignup)
-		signupRouter.Post("/validate", wrapper.ValidateSignup)
+		signupRouter.Get("/", wrapper.GetSignup)
+		signupRouter.Post("/", wrapper.PostSignup)
+		signupRouter.Post("/validate", wrapper.PostSignupValidate)
 	})
 
-	// User home routes.
+	// /home routes.
 	router.Route("/home", func(homeRouter chi.Router) {
-		homeRouter.Get("/", wrapper.UserHome)
-		homeRouter.Post("/search", wrapper.UserSearch)
-		homeRouter.Get("/settings", wrapper.UserSettings)
-		homeRouter.Route("/add", func(r chi.Router) {
-			r.Get("/", wrapper.AddItem)
-			r.Post("/", wrapper.ProcessAddItem)
-			r.Post("/validate", wrapper.ValidateAddItem)
-		})
-		homeRouter.Get("/feed", wrapper.UserHomeFeed)
+		homeRouter.Get("/", wrapper.GetHome)
+		homeRouter.Post("/search", wrapper.PostHomeSearch)
+		homeRouter.Get("/settings", wrapper.GetHomeSettings)
+	})
+	// /subscription routes.
+	router.Route("/subscription", func(r chi.Router) {
+		r.Get("/add", wrapper.GetSubscriptionAdd)
+		r.Post("/add", wrapper.PostSubscriptionAdd)
+		r.Get("/edit", wrapper.GetSubscriptionEdit)
+		r.Post("/edit", wrapper.PostSubscriptionEdit)
+		r.Post("/validate", wrapper.PostSubscriptionValidate)
+	})
+	// /feed routes
+	router.Route("/feed", func(r chi.Router) {
+		r.Get("/", wrapper.GetHomeFeed)
+		r.Get("/{feedID}", wrapper.GetHomeFeed)
+		r.Get("/{feedID}/{itemID}", wrapper.GetHomeFeedItem)
 	})
 
 	return router

@@ -48,7 +48,12 @@
     "components",
     "modifiers/size",
     "modifiers/alignment",
-    "modifiers/layout"
+    "modifiers/layout",
+    "components/button",
+    "components/icon",
+    "components/modal",
+    "components/input",
+    "components/list"
   ],
   "emmet.includeLanguages": {
     "templ": "html"
@@ -70,7 +75,6 @@
   },
   "ltex.language": "en-AU",
   "[templ]": {
-    "editor.formatOnSave": true,
     "editor.defaultFormatter": "a-h.templ"
   },
   "tailwindCSS.includeLanguages": {
