@@ -1,8 +1,9 @@
 package pages
 
-import components "github.com/joshuar/go-templ-daisyui"
-import "github.com/joshuar/go-feed-me/web/templates"
-
+import (
+	"github.com/joshuar/go-feed-me/web/templates"
+	components "github.com/joshuar/go-templ-daisyui"
+)
 
 templ IndexPage() {
 	<div id="index-hero" class="hero bg-base-200 min-h-screen">
@@ -12,12 +13,12 @@ templ IndexPage() {
 				<p class="py-6">
 					Your new homepage on the internet.
 				</p>
-				<a class="btn btn-primary" href="/login/auth0">Login with Auth0</a>
+				<a class="btn btn-primary" hx-boost="false" href="/login/auth0">Login with Auth0</a>
 				@components.NewButton("Sign-up", "signup",
 					components.WithModifier(components.ButtonSecondary),
 					components.ButtonAttributes(templ.Attributes{
-						"hx-get": "/signup",
-						"hx-target": "#index-hero",
+						"hx-get":      "/signup",
+						"hx-target":   "#index-hero",
 						"hx-push-url": true,
 					}),
 				).Show()
