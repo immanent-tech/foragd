@@ -1,0 +1,27 @@
+[server]
+environment = "development"
+port = 7000
+loglevel = "debug"
+csp = [
+    "default-src 'self' https://dev-zuc8oqf6gd86s4rw.us.auth0.com;",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
+    "font-src 'self' data: https://fonts.gstatic.com;",
+    "script-src 'self' https://unpkg.com 'unsafe-inline' 'unsafe-eval';",
+    "connect-src 'self' ws://localhost:* https://dev-zuc8oqf6gd86s4rw.us.auth0.com;",
+    "img-src 'self' data:;",
+]
+
+[auth0]
+domain = "_ENVIRONMENT_.us.auth0.com"
+clientID = "_CLIENTID_"
+clientSecret = "_CLIENTSECRET_"
+
+[elastic.development]
+caFile = "../deployments/certs/ca/ca.crt"
+# urls = ["https://es01:9200", "https://es02:9200", "https://es03:9200"]
+urls = ["https://es01:9200"]
+user = "elastic"
+pass = "_SECRET_"
+
+[postgres.development]
+dsn = "host=postgres user=gofeedme password=_SECRET_ dbname=gofeedme port=5432 sslmode=disable"
