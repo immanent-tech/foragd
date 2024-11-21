@@ -29,9 +29,9 @@
     "theme-change": "^2.5.0"
   },
   "devDependencies": {
-    "@parcel/transformer-sass": "latest",
+    "@parcel/transformer-sass": "^2.13.0",
     "autoprefixer": "^10.4.19",
-    "parcel": "^2.12.0",
+    "parcel": "^2.13.0",
     "postcss": "^8.4.38",
     "prettier": "latest"
   }
