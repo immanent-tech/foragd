@@ -52,11 +52,11 @@ func (w *GetFeedsWorker) Execute(ctx context.Context, db dbAPI, cache cacheAPI) 
 		functionJobDetail := quartz.NewJobDetail(feedJob, quartz.NewJobKey(feed.URL))
 
 		if err := Schedule(functionJobDetail, quartz.NewSimpleTrigger(time.Minute)); err != nil {
-			return 0, fmt.Errorf("could not schedule job for feed %s: %w", feed, err)
+			return 0, fmt.Errorf("could not schedule job for feed %s: %w", feed.ID, err)
 		}
 
 		if _, err := feedWorker.Execute(ctx, cache); err != nil {
-			return 0, fmt.Errorf("could not execute feed worker %s: %w", feed.URL, err)
+			return 0, fmt.Errorf("could not execute feed worker %s: %w", feed.ID, err)
 		}
 	}
 
@@ -99,10 +99,6 @@ func (w *FeedWorker) Execute(_ context.Context, cacheAPI cacheAPI) (int, error) 
 	// Update lastRun
 	since := w.lastRun
 	w.lastRun = time.Now()
-
-	if err := w.feed.Update(); err != nil {
-		return 0, fmt.Errorf("cannot cache feed: %w", err)
-	}
 
 	itemCh := make(chan models.FeedItem)
 	go cacheAPI.CacheFeedItems(itemCh)

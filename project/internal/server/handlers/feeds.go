@@ -1,17 +1,5 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package handlers
 
@@ -21,104 +9,130 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/lxzan/gws"
 	"github.com/yassinebenaid/godump"
 
 	components "github.com/joshuar/go-templ-daisyui"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/server/handlers/renderers"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
-func addItemForm() components.Form {
-	return components.NewForm("addItem",
-		components.Info("Enter Feed Details."),
-		components.FormAttributes(templ.Attributes{
-			"hx-post": "/home/add",
-		}),
-		components.Inputs(
-			components.NewInput("Name",
-				components.AsFormControl(),
-				components.OptionalInput(),
-				components.WithInputLabel("Name"),
-				components.WithPlaceholder("The Feed"),
-				components.WithInputAttributes(templ.Attributes{
-					"hx-post": "/home/add/validate",
-				}),
-			),
-			components.NewInput("Link",
-				components.AsFormControl(),
-				components.WithInputLabel("Link"),
-				components.WithPlaceholder("https://my.favourite.site/feed.rss"),
-				components.WithInputAttributes(templ.Attributes{
-					"hx-post": "/home/add/validate",
-				}),
-			),
-			components.NewInput("Topics",
-				components.AsFormControl(),
-				components.OptionalInput(),
-				components.WithInputLabel("Topics"),
-				components.WithPlaceholder("CoolStuff, Memes"),
-				components.WithInputAttributes(templ.Attributes{
-					"hx-post": "/home/add/validate",
-				}),
-			),
-		),
-		components.Buttons(
-			components.NewButton("Add", "add",
-				components.ButtonAttributes(templ.Attributes{
-					"_": "on click take .modal-open from #command-modal wait 200ms",
-				}),
-			),
-		),
-	)
-}
+// Feed handles the routes for fetching feed details for a single, or all
+// subscribed feeds.
+func Feed(res http.ResponseWriter, req *http.Request, feedID string, storeAPI dataStore, cacheAPI cache) {
+	logging.LogReq(req, http.StatusAccepted).Info("processing request")
 
-func AddItem(res http.ResponseWriter, req *http.Request) {
-	if err := renderers.CommandModal(req, res, addItemForm().Show()); err != nil {
-		logging.FromContext(req.Context()).
-			Warn("Unable to command modal.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
+	// No feedID, display all subscribed feeds.
+	if feedID == "_all" || feedID == "" {
+		showAllFeeds(res, req, storeAPI)
+	} else {
+		// Display a summary for the specified feed.
+		showFeedSummary(res, req, feedID, cacheAPI)
 	}
 }
 
-func ProcessAddItem(res http.ResponseWriter, req *http.Request, storeAPI dataStore) {
-	item, problems, err := decodeForm[*models.SubscriptionRequest](req)
-	if err != nil && len(problems) == 0 {
-		logging.FromContext(req.Context()).
-			Error("Could not decode submitted signup request.", slog.Any("error", err))
-		Validate(res, req, UpdateAddItemForm)
-		return
-	}
+// showAllFeeds renders a list of subscribed feeds.
+func showAllFeeds(res http.ResponseWriter, req *http.Request, storeAPI dataStore) {
+	var feedCards []templ.Component
 
-	if err := storeAPI.AddSubscription(req.Context(), item); err != nil {
+	feeds, err := storeAPI.GetSubscribedFeeds(req.Context())
+	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not add item.", slog.Any("error", err))
 	}
+
+	// Generate cards for each feed.
+	for _, feed := range feeds {
+		card := components.NewCard(feed.ID,
+			components.WithCardLayout(components.CardLayoutSide),
+			components.WithTitle(feed.Title),
+			components.CardClasses("btn"),
+			components.CardAttributes(templ.Attributes{
+				"hx-target": "#secondaryPane",
+				"hx-get":    "/feed/" + feed.ID,
+			}),
+		)
+
+		if feed.ImageURL != "" {
+			image := components.NewImage(
+				components.WithURL(feed.ImageURL),
+				components.WithAltText(feed.ImageTitle),
+			)
+			card.Image = &image
+		}
+
+		feedCards = append(feedCards, card.Show())
+	}
+
+	// Combine feed cards into a list.
+	cardList := components.NewList(components.ListUnordered,
+		components.WithItems(feedCards...))
+
+	// Render the list of feed cards.
+	if err := htmx.NewResponse().
+		RenderTempl(req.Context(), res, cardList.Show()); err != nil {
+		logging.LogReq(req, http.StatusInternalServerError).Error("showAllFeeds: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
 }
 
-// UpdateAddItemForm takes the user input, validation results and decorates the
-// add item form with the results.
-func UpdateAddItemForm(field string, item *models.SubscriptionRequest, problems models.ValidationErrors) components.Input {
-	form := addItemForm()
-
-	input, _ := form.Inputs.Get(field)
-
-	switch field {
-	case "Name":
-		input.Attributes["value"] = item.Name
-	case "Link":
-		input.Attributes["value"] = item.Link
-	case "Topics":
-		input.Attributes["value"] = item.Topics
+func showFeedSummary(res http.ResponseWriter, req *http.Request, feedID string, cacheAPI cache) {
+	slog.Info("searching...")
+	items, err := cacheAPI.GetFeedItemsSummary(req.Context(), feedID)
+	if err != nil {
+		logging.FromContext(req.Context()).
+			Error("Could not show feed items.", slog.Any("error", err))
 	}
 
-	if issue, found := problems[field]; found {
-		input.Error = issue
+	var itemCards []components.Card
+
+	for _, item := range items {
+		card := components.NewCard(item.ID,
+			components.WithCardLayout(components.CardLayoutSide),
+			components.WithTitle(item.Title),
+			// components.CardClasses("btn"),
+			// components.CardAttributes(templ.Attributes{
+			// 	"hx-target": "#secondaryPane",
+			// 	"hx-get":    "/feed/" + feed.ID,
+			// }),
+		)
+
+		if item.Image.URL != "" {
+			image := components.NewImage(
+				components.WithURL(item.Image.URL),
+				components.WithAltText(item.Image.Title),
+			)
+			card.Image = &image
+		}
+
+		itemCards = append(itemCards, card)
 	}
 
-	return input
+	// Render the list of feed cards.
+	if err := htmx.NewResponse().
+		RenderTempl(req.Context(), res, partials.FeedItemsSummary(itemCards...)); err != nil {
+		logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+}
+
+func showFeed(res http.ResponseWriter, req *http.Request, feedID string, storeAPI dataStore) {
+	subscriptions, err := storeAPI.GetAllSubscriptions(req.Context())
+	if err != nil {
+		logging.FromContext(req.Context()).
+			Error("Could not add item.", slog.Any("error", err))
+	}
+	godump.Dump(subscriptions)
+}
+
+func FeedItem(res http.ResponseWriter, req *http.Request, feedID string, itemID string, storeAPI dataStore) {
+	res.WriteHeader(http.StatusNotImplemented)
 }
 
 func HomeFeed(res http.ResponseWriter, req *http.Request, websocket *gws.Upgrader) {

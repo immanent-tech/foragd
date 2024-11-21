@@ -29,6 +29,7 @@ func (s Server) GetHomeFeed(res http.ResponseWriter, req *http.Request, feedID s
 	}
 
 	ctx := logging.ToContext(req.Context(), logger)
+	logging.LogReq(req, http.StatusAccepted).Info("processing request")
 
 	handlers.Feed(res, req.WithContext(ctx), feedID, s.API.pg, s.API.elastic)
 }

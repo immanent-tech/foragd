@@ -32,9 +32,11 @@ type userStore interface {
 
 type dataStore interface {
 	AddSubscription(ctx context.Context, newSubscription *models.SubscriptionRequest) error
-	GetSubscriptions(ctx context.Context) ([]models.Subscription, error)
+	GetAllSubscriptions(ctx context.Context) ([]models.Subscription, error)
+	GetSubscription(ctx context.Context, subID string) (models.Subscription, error)
+	GetSubscribedFeeds(ctx context.Context) ([]models.APIFeed, error)
 }
 
 type cache interface {
-	GetFeedItems(ctx context.Context, filters models.ItemFilters) ([]models.FeedItem, error)
+	GetFeedItemsSummary(ctx context.Context, feedID string) ([]models.APIFeedItemSummary, error)
 }

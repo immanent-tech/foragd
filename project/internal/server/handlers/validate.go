@@ -30,6 +30,8 @@ import (
 // Validate will read form input, validate the input and render the form input
 // values with updated content, including values and any user-facing validation
 // issues.
+//
+//nolint:lll
 func Validate[T Validator](res http.ResponseWriter, req *http.Request, updater func(field string, item T, problems models.ValidationErrors) components.Input) {
 	trigger, ok := htmx.GetTriggerName(req)
 	if !ok {

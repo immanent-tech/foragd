@@ -4,8 +4,30 @@
 package models
 
 import (
+	"time"
+
 	"github.com/coreos/go-oidc"
+	"github.com/mmcdole/gofeed"
 )
+
+// APIFeed represents a subscribed feed
+type APIFeed struct {
+	Description string `json:"Description,omitempty"`
+	ID          string `json:"ID"`
+	ImageTitle  string `json:"ImageTitle,omitempty"`
+	ImageURL    string `json:"ImageURL,omitempty"`
+	Title       string `json:"Title,omitempty"`
+}
+
+// APIFeedItemSummary represents an item in a feed
+type APIFeedItemSummary struct {
+	Authors     []*gofeed.Person `json:"Authors,omitempty"`
+	Description string           `json:"Description,omitempty"`
+	ID          string           `json:"item_id"`
+	Image       *gofeed.Image    `json:"Image,omitempty"`
+	Timestamp   time.Time        `json:"@timestamp"`
+	Title       string           `json:"Title"`
+}
 
 // Claims defines model for Claims.
 type Claims struct {

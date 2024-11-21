@@ -3,38 +3,9 @@
 
 package partials
 
-import "github.com/joshuar/go-templ-daisyui"
-
 templ Navbar() {
-	@components.NewMenu(
-		components.MenuLayout(components.VerticalLayout),
-		components.MenuClasses("bg-base-200", "w-full"),
-	).Show() {
-		@buttonAddItem()
-		@buttonMarkRead()
-	}
-}
-
-templ buttonAddItem() {
-	@components.NewMenuItem(
-		components.MenuItemTooltip(
-			components.NewTooltip(
-				components.ToolTipAlignment(components.AlignRight),
-				components.Tip("Add Item"),
-			),
-		)).Show(
-		components.FontAwesomeTempl(components.NewIcon("plus")),
-	)
-}
-
-templ buttonMarkRead() {
-	@components.NewMenuItem(
-		components.MenuItemTooltip(
-			components.NewTooltip(
-				components.ToolTipAlignment(components.AlignRight),
-				components.Tip("Mark As Read"),
-			),
-		)).Show(
-		components.FontAwesomeTempl(components.NewIcon("check")),
-	)
+	<div class="grid h-full place-content-center join join-vertical">
+		@buttonAddItemIcon("join-item")
+		// @buttonToggleReadIcon("join-item")
+	</div>
 }

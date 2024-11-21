@@ -6,6 +6,7 @@ package schema
 import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/dynamicmapping"
 )
 
 const (
@@ -20,9 +21,13 @@ const (
 )
 
 func FeedItemsIngestPipeline() putpipeline.Request {
+	useUpdatedAsTimestampDesc := "Use updated date as @timestamp if not nil"
+	usePublishedAsTimestampDesc := "Use published date as @timestamp if not nil"
 	publishedParsedNotNull := "ctx?.updatedParsed != null"
 	publishedParsedNull := "ctx?.updatedParsed == null"
 	targetField := "@timestamp"
+	removeIgnoreMissing := true
+	removeDesc := "Remove deprecated fields"
 
 	return putpipeline.Request{
 		Processors: []types.ProcessorContainer{
@@ -32,6 +37,7 @@ func FeedItemsIngestPipeline() putpipeline.Request {
 					TargetField: &targetField,
 					Formats:     []string{"strict_date_optional_time_nanos", "epoch_millis"},
 					If:          &publishedParsedNotNull,
+					Description: &useUpdatedAsTimestampDesc,
 				},
 			},
 			{
@@ -40,6 +46,14 @@ func FeedItemsIngestPipeline() putpipeline.Request {
 					TargetField: &targetField,
 					Formats:     []string{"strict_date_optional_time_nanos", "epoch_millis"},
 					If:          &publishedParsedNull,
+					Description: &usePublishedAsTimestampDesc,
+				},
+			},
+			{
+				Remove: &types.RemoveProcessor{
+					Field:         []string{"author_names", "author_emails"},
+					IgnoreMissing: &removeIgnoreMissing,
+					Description:   &removeDesc,
 				},
 			},
 		},
@@ -79,29 +93,23 @@ func feeditemsSettingsComponent(ilmPolicyName string) ComponentTemplate {
 
 func feeditemsMapping() *types.TypeMapping {
 	return &types.TypeMapping{
+		Dynamic: &dynamicmapping.False, // Ignore any additional fields in documents not listed in this mapping.
 		Properties: map[string]types.Property{
 			"@timestamp":  types.NewDateNanosProperty(),
-			"feedID":      types.NewKeywordProperty(),
+			"feed_id":     types.NewKeywordProperty(),
+			"item_id":     types.NewKeywordProperty(),
 			"title":       defaultTextFieldMapping(),
 			"description": types.NewTextProperty(), // ? additional config required
 			"content":     types.NewTextProperty(), // ? additional config required
 			// links can be array.
 			"links":           types.NewKeywordProperty(), // ? define analyzer
-			"updated":         types.NewTextProperty(),
 			"updatedParsed":   types.NewDateNanosProperty(),
-			"published":       types.NewTextProperty(),
 			"publishedParsed": types.NewDateNanosProperty(),
-			"author_names":    defaultTextFieldMapping(),
-			"author_emails":   types.NewKeywordProperty(),
 			// authors can be an array.
 			"authors": types.ObjectProperty{
 				Properties: map[string]types.Property{
-					"name": types.TextProperty{
-						CopyTo: []string{"author_names"},
-					},
-					"email": types.KeywordProperty{
-						CopyTo: []string{"author_emails"},
-					},
+					"name":  defaultTextFieldMapping(),
+					"email": defaultTextFieldMapping(),
 				},
 			},
 			"guid": types.NewKeywordProperty(),

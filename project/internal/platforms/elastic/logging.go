@@ -5,6 +5,7 @@
 package elastic
 
 import (
+	"bytes"
 	"io"
 	"log/slog"
 	"net/http"
@@ -26,10 +27,12 @@ func (l *ESLogger) LogRoundTrip(req *http.Request, res *http.Response, _ error, 
 		nRes int64
 	)
 
+	var reqBody bytes.Buffer
+
 	// Count number of bytes in request and response.
 	//
 	if req != nil && req.Body != nil && req.Body != http.NoBody {
-		nReq, _ = io.Copy(io.Discard, req.Body) //nolint:errcheck
+		nReq, _ = io.Copy(&reqBody, req.Body) //nolint:errcheck
 	}
 
 	if res != nil && res.Body != nil && res.Body != http.NoBody {
@@ -45,7 +48,9 @@ func (l *ESLogger) LogRoundTrip(req *http.Request, res *http.Response, _ error, 
 		slog.Int("status_code", res.StatusCode),
 		slog.Duration("duration", dur),
 		slog.Int64("req_bytes", nReq),
-		slog.Int64("res_bytes", nRes))
+		slog.Int64("res_bytes", nRes),
+		// slog.String("body", reqBody.String()),
+	)
 
 	return nil
 }

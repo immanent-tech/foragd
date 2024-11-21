@@ -4,10 +4,12 @@
 package postgres
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
 func (c *Client) getFeedByURL(url string) (*models.Feed, error) {
@@ -27,4 +29,23 @@ func (c *Client) GetUpdatedFeeds(since time.Time) ([]models.Feed, error) {
 	}
 
 	return results, nil
+}
+
+// GetSubscribedFeeds returns all feeds that the current user has subscribed to.
+func (c *Client) GetSubscribedFeeds(ctx context.Context) ([]models.APIFeed, error) {
+	userID, err := session.UserID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to get subscriptions: %w", err)
+	}
+
+	var feeds []models.APIFeed
+
+	results := c.db.Model(&models.Feed{}).
+		Joins("JOIN subscriptions ON subscriptions.feed_id = feeds.id AND subscriptions.user_id = ?", userID).
+		Find(&feeds)
+	if results.Error != nil {
+		return nil, fmt.Errorf("unable to get feed subscriptions: %w", err)
+	}
+
+	return feeds, nil
 }

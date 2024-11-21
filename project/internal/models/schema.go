@@ -14,7 +14,7 @@ type MetaFields struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	DeletedAt gorm.DeletedAt `gorm:"index"`
-	ID        string         `gorm:"primary_key;"`
+	ID        string         `gorm:"primaryKey;"`
 }
 
 // User represents a user in postgres.
@@ -22,7 +22,6 @@ type User struct {
 	MetaFields
 	Preferences   map[string]any `gorm:"serializer:json;"`
 	SessionData   *Tokens        `gorm:"-"`
-	Topics        []Topic        `gorm:"many2many:user_topics;"`
 	Subscriptions []Subscription
 	ReadItems     []ReadItems
 	SavedItems    []SavedItems
@@ -34,20 +33,22 @@ type Subscription struct {
 	Name   string
 	UserID string
 	FeedID string
+	Topics []Topic `gorm:"many2many:subscription_topics;"`
 }
 
 type Topic struct {
 	MetaFields
-	Name  string `gorm:"size:255;unique;index;"`
-	Users []User `gorm:"many2many:user_topics;"`
-	Feeds []Feed `gorm:"many2many:feed_topics;"`
+	Name          string         `gorm:"size:255;unique;index;"`
+	Subscriptions []Subscription `gorm:"many2many:subscription_topics;"`
 }
 
 type Feed struct {
-	*gofeed.Feed `gorm:"-"`
 	MetaFields
+	Title         string
+	Description   string
+	ImageURL      string
+	ImageTitle    string
 	URL           string
-	Topics        []Topic `gorm:"many2many:feed_topics;"`
 	Subscriptions []Subscription
 }
 

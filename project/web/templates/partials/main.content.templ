@@ -1,0 +1,19 @@
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+templ MainContent() {
+	<header>
+		<section class="">
+			<div class="grid grid-cols-2">
+				<!-- Primary Pane -->
+				<div id="primaryPane">
+					@FeedList()
+				</div>
+				<!-- Secondary Pane -->
+				<div id="secondaryPane"></div>
+			</div>
+		</section>
+	</header>
+}

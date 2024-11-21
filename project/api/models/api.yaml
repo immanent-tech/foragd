@@ -140,3 +140,54 @@ components:
           items:
             type: string
           x-go-type-skip-optional-pointer: true
+    APIFeed:
+      description: represents a subscribed feed
+      type: object
+      required:
+        - ID
+      properties:
+        ID:
+          type: string
+        Title:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        Description:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        ImageURL:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        ImageTitle:
+          type: string
+          x-go-type-skip-optional-pointer: true
+    APIFeedItemSummary:
+      description: represents an item in a feed
+      type: object
+      required:
+        - ID
+        - Timestamp
+        - Title
+      properties:
+        Timestamp:
+          x-oapi-codegen-extra-tags:
+            json: '@timestamp'
+          x-go-type: 'time.Time'
+        ID:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'item_id'
+        Title:
+          type: string
+        Description:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        Image:
+          x-go-type: '*gofeed.Image'
+          x-go-type-import:
+            path: github.com/mmcdole/gofeed
+          x-go-type-skip-optional-pointer: true
+        Authors:
+          x-go-type: '[]*gofeed.Person'
+          x-go-type-import:
+            path: github.com/mmcdole/gofeed
+          x-go-type-skip-optional-pointer: true

@@ -7,39 +7,25 @@ import "github.com/joshuar/go-feed-me/web/templates/partials"
 
 templ HomePage() {
 	<div class="drawer w-full flex h-svh max-h-svh">
+		<!-- Navbar -->
 		<input id="home-drawer" type="checkbox" class="drawer-toggle"/>
 		<div class="drawer-side h-full flex-[0.3]">
-			<!-- Navbar -->
-			<div class="grid h-full place-content-center">
-				@partials.Navbar()
-				// <div>
-				// 	<label for="home-drawer" aria-label="close sidebar" class="drawer-overlay">
-				// 		@components.FontAwesomeTempl(components.NewIcon("xmark"))
-				// 	</label>
-				// </div>
-				// <div>
-				// 	<h1 class="text-xl">Left</h1>
-				// 	<h1 class="text-xl">Sidebar</h1>
-				// </div>
-			</div>
+			@partials.Navbar()
 		</div>
+		<!-- Main Content Area-->
 		<div class="drawer-content flex h-full flex-1 flex-col">
-			<!-- Main Content Area-->
 			<div class="flex h-full flex-col justify-between overflow-y-scroll">
+				<!-- Header -->
 				<div class="sticky top-0 w-full">
 					<input id="my-drawer-2" type="checkbox" class="drawer-toggle"/>
 					@partials.AppBarTop()
-					// <!-- Header -->
-					// <div class="bg-orange-500 py-5">
-					// 	<h1 class="text-center text-xl">Header</h1>
-					// </div>
 				</div>
-				<div>
-					<!-- Content -->
-					<h1 class="text-center text-xl">Content</h1>
-				</div>
+				<!-- Modal for commands -->
+				<dialog id="command-modal" class="modal"></dialog>
+				<!-- Content -->
+				@partials.MainContent()
+				<!-- Footer -->
 				<div class="w-full">
-					<!-- Footer -->
 					<div class="bg-yellow-600 py-12">
 						<h1 class="text-center text-xl">Footer</h1>
 					</div>

@@ -21,7 +21,7 @@ templ AppBarTop() {
 
 templ appBarTopLeft() {
 	<label for="home-drawer" aria-label="Open Drawer" class="btn btn-square drawer-button">
-		@components.FontAwesomeTempl(components.NewIcon("bars"))
+		@components.NewIcon("bars").Show()
 	</label>
 }
 
@@ -45,8 +45,8 @@ templ appBarTopCenter() {
 templ appBarTopRight() {
 	<details class="dropdown dropdown-bottom dropdown-end [&_.swap-on]:opacity-100 [&_.swap-off]:opacity-0 [&[open]_.swap-off]:opacity-100 [&[open]_.swap-on]:opacity-0">
 		<summary class="swap">
-			@components.FontAwesomeTempl(components.NewIcon("bars", components.WithExtraIconClasses("swap-on")))
-			@components.FontAwesomeTempl(components.NewIcon("xmark", components.WithExtraIconClasses("swap-off")))
+			@components.NewIcon("bars", components.WithExtraIconClasses("swap-on")).Show()
+			@components.NewIcon("xmark", components.WithExtraIconClasses("swap-off")).Show()
 		</summary>
 		<ul class="p-2 menu dropdown-content z-[1] bg-base-200 rounded-box w-52">
 			<li><a>Item 1</a></li>

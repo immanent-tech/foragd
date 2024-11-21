@@ -49,6 +49,8 @@ func (c *Client) bulkIndexFeedItemsWorker(ctx context.Context) {
 				op := types.NewCreateOperation()
 				op.Id_ = &itemID
 
+				slog.Info("indexing item", slog.Any("item", item))
+
 				if err := bulkOp.CreateOp(*op, item); err != nil {
 					c.logger.Warn("Failed to create index operation for item.",
 						slog.String("item_id", item.ItemID),

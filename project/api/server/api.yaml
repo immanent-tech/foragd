@@ -253,7 +253,7 @@ paths:
       parameters:
         - name: feedID
           in: path
-          required: false
+          required: true
           schema:
             type: string
       responses:
