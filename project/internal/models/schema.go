@@ -43,6 +43,7 @@ type Topic struct {
 }
 
 type Feed struct {
+	LastFetched time.Time
 	MetaFields
 	Title         string
 	Description   string

@@ -71,7 +71,7 @@ func (c *Client) AddSubscription(ctx context.Context, item *models.SubscriptionR
 		}
 		// If there is no existing feed record, create a new one.
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			if err = feed.PopulateFromURL(item.Link); err != nil {
+			if feed, err = models.NewFeedFromURL(item.Link); err != nil {
 				return err
 			}
 			if err := tx.Create(&feed).Error; err != nil {

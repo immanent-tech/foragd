@@ -8,6 +8,7 @@ volumes:
   es03-data:
   kibana-data:
   filebeat-registry:
+  valkey-data:
 networks:
   go-feed-me:
 services:
@@ -79,7 +80,7 @@ services:
         echo "Waiting for Elasticsearch availability";
         until curl -s --cacert config/certs/ca/ca.crt https://es01:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:$${ELASTIC_PASSWORD:-gofeedme}" -H "Content-Type: application/json" https://es01:9200/_security/user/kibana_system/_password -d "{\"password\":\"$${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;        
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:$${ELASTIC_PASSWORD:-gofeedme}" -H "Content-Type: application/json" https://es01:9200/_security/user/kibana_system/_password -d "{\"password\":\"$${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
         echo "All done!";
       '
     healthcheck:
@@ -317,16 +318,18 @@ services:
       - postgres-data:/var/lib/postgresql/data:Z,U
     labels:
       - co.elastic.logs/module=postgresql
-      # - ../deployments/postgres/logs:/var/log/postgresql
-    # command:
-    #   [
-    #     "postgres",
-    #     "-c",
-    #     "logging_collector=on",
-    #     "-c",
-    #     "log_directory=/var/log/postgresql",
-    #     "-c",
-    #     "log_filename=postgresql.log",
-    #     "-c",
-    #     "log_statement=all",
-    #   ]
+
+  valkey:
+    hostname: valkey
+    userns_mode: keep-id
+    networks:
+      - go-feed-me
+    image: docker.io/valkey/valkey:$VALKEY_VERSION
+    restart: always
+    # cap_add:
+    #   - SYS_ADMIN
+    # sysctls:
+    #   - vm.overcommit_memory=1
+    volumes:
+      - valkey-data:/data:Z,U
+    command: valkey-server --bind 0.0.0.0 --protected-mode no --save 60 1 --loglevel warning

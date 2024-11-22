@@ -8,20 +8,46 @@ import (
 	"fmt"
 	"time"
 
+	"gorm.io/gorm"
+
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
-func (c *Client) getFeedByURL(url string) (*models.Feed, error) {
-	var feed models.Feed
-	if err := c.db.First(&feed, "url = ?", url).Error; err != nil {
-		return nil, err
+// GetNewItems fetches a feed from the database, then gets any new items from
+// the feed source that are newer than the last fetched date.
+func (c *Client) GetNewItems(feedID string) ([]models.FeedItem, error) {
+	var feed models.APIFeed
+	var items []models.FeedItem
+
+	if err := c.db.Transaction(func(tx *gorm.DB) error {
+		if err := c.db.Model(&models.Feed{}).First(&feed, "id = ?", feedID).Error; err != nil {
+			return fmt.Errorf("could not retrieve feed: %w", err)
+		}
+
+		items = feed.GetItemsSince(feed.LastFetched)
+
+		if err := c.db.Model(&models.Feed{}).Where("id = ?", feedID).Update("last_fetched", time.Now()).Error; err != nil {
+			return fmt.Errorf("could not update last fetched time: %w", err)
+		}
+
+		return nil
+	}); err != nil {
+		return nil, fmt.Errorf("failed to get new items for feed: %w", err)
 	}
 
-	return &feed, nil
+	return items, nil
 }
 
-func (c *Client) GetUpdatedFeeds(since time.Time) ([]models.Feed, error) {
+// UpdateLastFetched updates the last fetched time for the given feed.
+func (c *Client) UpdateLastFetched(feedID string, lastFetched time.Time) error {
+	if err := c.db.Model(&models.Feed{}).Where("id = ?", feedID).Update("last_fetched", lastFetched).Error; err != nil {
+		return fmt.Errorf("could not update last fetched time: %w", err)
+	}
+	return nil
+}
+
+func (c *Client) GetNewFeeds(since time.Time) ([]models.Feed, error) {
 	var results []models.Feed
 
 	if err := c.db.Where("updated_at > ?", since).Find(&results).Error; err != nil {

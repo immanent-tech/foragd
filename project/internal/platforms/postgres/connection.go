@@ -63,7 +63,7 @@ func (c *Client) NewSessionStorage() scs.Store {
 func Connect(ctx context.Context, config *koanf.Koanf) (*Client, error) {
 	settings := getSettings(config)
 
-	logger := logging.FromContext(ctx).With(slog.String("platform", "postgres"))
+	logger := logging.FromContext(ctx).WithGroup("postgres").With(slog.String("component", "client"))
 
 	gormLogger := sloggorm.New(
 		sloggorm.WithHandler(logger.With(slog.String("component", "gorm")).Handler()),

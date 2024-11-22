@@ -12,11 +12,13 @@ import (
 
 // APIFeed represents a subscribed feed
 type APIFeed struct {
-	Description string `json:"Description,omitempty"`
-	ID          string `json:"ID"`
-	ImageTitle  string `json:"ImageTitle,omitempty"`
-	ImageURL    string `json:"ImageURL,omitempty"`
-	Title       string `json:"Title,omitempty"`
+	Description string    `json:"Description,omitempty"`
+	ID          string    `json:"feed_id"`
+	ImageTitle  string    `json:"image_title"`
+	ImageURL    string    `json:"image_url"`
+	LastFetched time.Time `json:"last_fetched"`
+	Title       string    `json:"Title"`
+	URL         string    `json:"URL"`
 }
 
 // APIFeedItemSummary represents an item in a feed

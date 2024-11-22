@@ -15,7 +15,7 @@ import (
 
 type FeedDetails gofeed.Feed
 
-func (f *Feed) getDetails() (FeedDetails, error) {
+func (f *APIFeed) getDetails() (FeedDetails, error) {
 	fp := gofeed.NewParser()
 
 	details, err := fp.ParseURL(f.URL)
@@ -26,7 +26,7 @@ func (f *Feed) getDetails() (FeedDetails, error) {
 	return FeedDetails(*details), nil
 }
 
-func (f *Feed) GetItemsSince(since time.Time) []FeedItem {
+func (f *APIFeed) GetItemsSince(since time.Time) []FeedItem {
 	var items []FeedItem
 
 	details, err := f.getDetails()
@@ -44,39 +44,34 @@ func (f *Feed) GetItemsSince(since time.Time) []FeedItem {
 	return items
 }
 
-// Update parses the feed using its URL, updating its details and items.
-func (f *Feed) Update() error {
-	details, err := f.getDetails()
-	if err != nil {
-		return fmt.Errorf("cannot update feed: %w", err)
-	}
-
-	f.Description = details.Description
-	f.Title = details.Title
-
-	if details.Image != nil {
-		f.ImageURL = details.Image.URL
-		f.ImageTitle = details.Image.Title
-	}
-
-	return nil
-}
-
-// PopulateFromURL populates the feed details using the given URL as its
-// canonical data source.
-func (f *Feed) PopulateFromURL(url string) error {
+// NewFeedFromURL creates a new feed model from the given URL as its canonical
+// data source.
+func NewFeedFromURL(url string) (*Feed, error) {
 	var err error
 
-	f.URL = url
+	fp := gofeed.NewParser()
 
-	f.ID, err = id.NewID(id.Feed)
+	details, err := fp.ParseURL(url)
 	if err != nil {
-		return fmt.Errorf("cannot create feed id: %w", err)
+		return nil, fmt.Errorf("cannot parse feed: %w", err)
 	}
 
-	if err := f.Update(); err != nil {
-		return fmt.Errorf("cannot get feed details: %w", err)
+	feedID, err := id.NewID(id.Feed)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create feed id: %w", err)
 	}
 
-	return nil
+	feed := &Feed{
+		URL:         url,
+		Title:       details.Title,
+		Description: details.Description,
+	}
+	feed.ID = feedID
+
+	if details.Image != nil {
+		feed.ImageURL = details.Image.URL
+		feed.ImageTitle = details.Image.Title
+	}
+
+	return feed, nil
 }

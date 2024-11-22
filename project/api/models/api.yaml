@@ -145,21 +145,35 @@ components:
       type: object
       required:
         - ID
+        - Title
+        - URL
       properties:
         ID:
           type: string
+          x-oapi-codegen-extra-tags:
+            json: 'feed_id'
         Title:
           type: string
-          x-go-type-skip-optional-pointer: true
+        URL:
+          type: string
         Description:
           type: string
           x-go-type-skip-optional-pointer: true
         ImageURL:
           type: string
           x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: 'image_url'
         ImageTitle:
           type: string
           x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: 'image_title'
+        LastFetched:
+          x-go-type: 'time.Time'
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: 'last_fetched'
     APIFeedItemSummary:
       description: represents an item in a feed
       type: object

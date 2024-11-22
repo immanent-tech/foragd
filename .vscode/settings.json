@@ -53,7 +53,8 @@
     "components/icon",
     "components/modal",
     "components/input",
-    "components/list"
+    "components/list",
+    "platforms/scheduler"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

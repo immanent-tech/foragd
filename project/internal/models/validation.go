@@ -24,6 +24,7 @@ func init() {
 	validate = validator.New(validator.WithRequiredStructEnabled())
 }
 
+//nolint:errorlint
 func validateStruct[T any](obj T) (bool, ValidationErrors) {
 	validationErr := &validator.ValidationErrors{}
 
@@ -32,6 +33,7 @@ func validateStruct[T any](obj T) (bool, ValidationErrors) {
 		if !errors.As(err, validationErr) {
 			return false, map[string]string{"Internal": ErrValidationFailed.Error()}
 		}
+
 		problems := parseValidationErrors(err.(validator.ValidationErrors))
 
 		return false, problems
@@ -45,6 +47,7 @@ func parseValidationErrors(validationErrors validator.ValidationErrors) Validati
 
 	for _, err := range validationErrors {
 		field := err.Field()
+
 		switch err.Tag() {
 		case "required":
 			problems[field] = "This field is required"

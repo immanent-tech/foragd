@@ -47,7 +47,7 @@ func showAllFeeds(res http.ResponseWriter, req *http.Request, storeAPI dataStore
 	for _, feed := range feeds {
 		card := components.NewCard(feed.ID,
 			components.WithCardLayout(components.CardLayoutSide),
-			components.WithTitle(feed.Title),
+			components.WithTitle(feed.Title, components.H2),
 			components.CardClasses("btn"),
 			components.CardAttributes(templ.Attributes{
 				"hx-target": "#secondaryPane",
@@ -81,7 +81,6 @@ func showAllFeeds(res http.ResponseWriter, req *http.Request, storeAPI dataStore
 }
 
 func showFeedSummary(res http.ResponseWriter, req *http.Request, feedID string, cacheAPI cache) {
-	slog.Info("searching...")
 	items, err := cacheAPI.GetFeedItemsSummary(req.Context(), feedID)
 	if err != nil {
 		logging.FromContext(req.Context()).
@@ -93,7 +92,8 @@ func showFeedSummary(res http.ResponseWriter, req *http.Request, feedID string, 
 	for _, item := range items {
 		card := components.NewCard(item.ID,
 			components.WithCardLayout(components.CardLayoutSide),
-			components.WithTitle(item.Title),
+			components.WithTitle(item.Title, components.H2),
+			components.WithCardShadow(components.XL),
 			// components.CardClasses("btn"),
 			// components.CardAttributes(templ.Attributes{
 			// 	"hx-target": "#secondaryPane",
