@@ -30,7 +30,6 @@ require (
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/orandin/slog-gorm v1.4.0
-	github.com/reugn/go-quartz v0.13.0
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-chi v1.12.3
 	github.com/samber/slog-multi v1.2.4
