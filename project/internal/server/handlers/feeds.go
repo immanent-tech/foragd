@@ -142,14 +142,18 @@ func newFeedCard(feed models.APIFeed) components.Card {
 	if feed.ImageURL != nil {
 		image := components.NewImage(
 			components.WithURL(*feed.ImageURL),
-			components.WithAltText(*feed.ImageTitle),
 		)
+
+		if feed.ImageTitle != nil {
+			image.Alt = *feed.ImageTitle
+		}
+
 		card.Image = &image
 	}
 
-	if len(*feed.Categories) > 0 {
+	if len(feed.Categories) > 0 {
 		var categories []components.Badge
-		for _, c := range *feed.Categories {
+		for _, c := range feed.Categories {
 			categories = append(categories, components.NewBadge(c))
 		}
 		card.Badges = categories

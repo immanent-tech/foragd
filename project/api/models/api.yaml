@@ -172,6 +172,7 @@ components:
           x-oapi-codegen-extra-tags:
             json: 'categories'
             gorm: 'type:text[]'
+          x-go-type-skip-optional-pointer: true
         ImageURL:
           type: string
           x-oapi-codegen-extra-tags:

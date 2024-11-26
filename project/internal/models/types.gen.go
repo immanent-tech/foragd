@@ -12,7 +12,7 @@ import (
 
 // APIFeed represents a feed.
 type APIFeed struct {
-	Categories  *[]string `gorm:"type:text[]" json:"categories"`
+	Categories  []string  `gorm:"type:text[]" json:"categories"`
 	Description string    `json:"description"`
 	ID          string    `json:"feed_id"`
 	ImageTitle  *string   `json:"image_title"`
