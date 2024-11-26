@@ -41,7 +41,7 @@ var (
 	ErrInvalidConfig = errors.New("invalid postgres config")
 	ErrSetupFailed   = errors.New("postgres setup failed")
 
-	schemas = [...]any{&models.User{}, &models.Topic{}, &models.Feed{}, &models.ReadItems{}, &models.SavedItems{}, &models.Notification{}, &models.Subscription{}}
+	schemas = [...]any{&models.User{}, &models.Topic{}, &models.Feed{}, &models.Notification{}, &models.Subscription{}}
 )
 
 type Env interface {

@@ -141,11 +141,12 @@ components:
             type: string
           x-go-type-skip-optional-pointer: true
     APIFeed:
-      description: represents a subscribed feed
+      description: represents a feed.
       type: object
       required:
         - ID
         - Title
+        - Description
         - URL
       properties:
         ID:
@@ -154,19 +155,29 @@ components:
             json: 'feed_id'
         Title:
           type: string
+          x-oapi-codegen-extra-tags:
+            json: 'title'
         URL:
           type: string
+          x-oapi-codegen-extra-tags:
+            json: 'url'
         Description:
           type: string
-          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: 'description'
+        Categories:
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            json: 'categories'
+            gorm: 'type:text[]'
         ImageURL:
           type: string
-          x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             json: 'image_url'
         ImageTitle:
           type: string
-          x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             json: 'image_title'
         LastFetched:
@@ -174,13 +185,16 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             json: 'last_fetched'
-    APIFeedItemSummary:
-      description: represents an item in a feed
+    APIItem:
+      description: represents an individual item (e.g., an individual feed item).
       type: object
       required:
-        - ID
         - Timestamp
+        - ID
+        - FeedID
         - Title
+        - Description
+        - URL
       properties:
         Timestamp:
           x-oapi-codegen-extra-tags:
@@ -190,18 +204,41 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             json: 'item_id'
+        FeedID:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'feed_id'
         Title:
           type: string
+          x-oapi-codegen-extra-tags:
+            json: 'title'
         Description:
           type: string
-          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: 'description'
+        URL:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'url'
         Image:
           x-go-type: '*gofeed.Image'
           x-go-type-import:
             path: github.com/mmcdole/gofeed
+          x-oapi-codegen-extra-tags:
+            json: 'image'
           x-go-type-skip-optional-pointer: true
         Authors:
           x-go-type: '[]*gofeed.Person'
           x-go-type-import:
             path: github.com/mmcdole/gofeed
+          x-oapi-codegen-extra-tags:
+            json: 'authors'
+          x-go-type-skip-optional-pointer: true
+        Categories:
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            json: 'categories'
+            gorm: 'type:text[]'
           x-go-type-skip-optional-pointer: true

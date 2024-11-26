@@ -10,25 +10,29 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-// APIFeed represents a subscribed feed
+// APIFeed represents a feed.
 type APIFeed struct {
-	Description string    `json:"Description,omitempty"`
+	Categories  *[]string `gorm:"type:text[]" json:"categories"`
+	Description string    `json:"description"`
 	ID          string    `json:"feed_id"`
-	ImageTitle  string    `json:"image_title"`
-	ImageURL    string    `json:"image_url"`
+	ImageTitle  *string   `json:"image_title"`
+	ImageURL    *string   `json:"image_url"`
 	LastFetched time.Time `json:"last_fetched"`
-	Title       string    `json:"Title"`
-	URL         string    `json:"URL"`
+	Title       string    `json:"title"`
+	URL         string    `json:"url"`
 }
 
-// APIFeedItemSummary represents an item in a feed
-type APIFeedItemSummary struct {
-	Authors     []*gofeed.Person `json:"Authors,omitempty"`
-	Description string           `json:"Description,omitempty"`
+// APIItem represents an individual item (e.g., an individual feed item).
+type APIItem struct {
+	Authors     []*gofeed.Person `json:"authors"`
+	Categories  []string         `gorm:"type:text[]" json:"categories"`
+	Description string           `json:"description"`
+	FeedID      string           `json:"feed_id"`
 	ID          string           `json:"item_id"`
-	Image       *gofeed.Image    `json:"Image,omitempty"`
+	Image       *gofeed.Image    `json:"image"`
 	Timestamp   time.Time        `json:"@timestamp"`
-	Title       string           `json:"Title"`
+	Title       string           `json:"title"`
+	URL         string           `json:"url"`
 }
 
 // Claims defines model for Claims.

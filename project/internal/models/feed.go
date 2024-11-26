@@ -68,9 +68,15 @@ func NewFeedFromURL(url string) (*Feed, error) {
 	}
 	feed.ID = feedID
 
+	if len(details.Categories) > 0 {
+		for _, c := range details.Categories {
+			feed.Categories = append(feed.Categories, &c)
+		}
+	}
+
 	if details.Image != nil {
-		feed.ImageURL = details.Image.URL
-		feed.ImageTitle = details.Image.Title
+		feed.ImageURL = &details.Image.URL
+		feed.ImageTitle = &details.Image.Title
 	}
 
 	return feed, nil

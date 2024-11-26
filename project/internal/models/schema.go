@@ -4,6 +4,7 @@
 package models
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -23,8 +24,8 @@ type User struct {
 	Preferences   map[string]any `gorm:"serializer:json;"`
 	SessionData   *Tokens        `gorm:"-"`
 	Subscriptions []Subscription
-	ReadItems     []ReadItems
-	SavedItems    []SavedItems
+	// ReadItems     []ReadItems
+	// SavedItems    []SavedItems
 	Notifications []Notification
 }
 
@@ -47,29 +48,37 @@ type Feed struct {
 	MetaFields
 	Title         string
 	Description   string
-	ImageURL      string
-	ImageTitle    string
+	ImageURL      *string
+	ImageTitle    *string
+	AuthorName    *string
+	AuthorEmail   *string
+	Copyright     *string
+	Language      *string
+	Generator     *string
+	Type          string
+	Version       string
 	URL           string
+	Categories    []*string `gorm:"type:text[]"`
 	Subscriptions []Subscription
 }
 
 type FeedItem struct {
-	*gofeed.Item `gorm:"-"`
-	FeedID       string `json:"feed_id"`
-	ItemID       string `gorm:"primarykey" json:"item_id"`
+	*gofeed.Item
+	FeedID string `json:"feed_id"`
+	ItemID string `json:"item_id"`
 }
 
-type ReadItems struct {
-	FeedItem
-	MetaFields
-	UserID string
-}
+// type ReadItems struct {
+// 	FeedItem
+// 	MetaFields
+// 	UserID string
+// }
 
-type SavedItems struct {
-	FeedItem
-	MetaFields
-	UserID string
-}
+// type SavedItems struct {
+// 	FeedItem
+// 	MetaFields
+// 	UserID string
+// }
 
 type Notification struct {
 	MetaFields
@@ -77,4 +86,8 @@ type Notification struct {
 	UserID         string
 	NotificationID uint
 	Read           bool
+}
+
+func ToNullString(s string) sql.NullString {
+	return sql.NullString{String: s, Valid: s != ""}
 }

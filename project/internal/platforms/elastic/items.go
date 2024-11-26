@@ -18,10 +18,12 @@ import (
 
 var ErrNoFeedID = errors.New("no feed ID provided")
 
-func queryItemsByFeedID(id string) *types.Query {
+func queryItemsByFeedIDs(feedIDs ...string) *types.Query {
 	return &types.Query{
-		Term: map[string]types.TermQuery{
-			"feed_id": {Value: id},
+		Terms: &types.TermsQuery{
+			TermsQuery: map[string]types.TermsQueryField{
+				"feed_id": feedIDs,
+			},
 		},
 	}
 }
@@ -45,25 +47,25 @@ func getSelectedFields(field ...string) []types.FieldAndFormat {
 	return fields
 }
 
-func (c *Client) GetFeedItemsSummary(ctx context.Context, feedID string) ([]models.APIFeedItemSummary, error) {
-	if feedID == "" {
+func (c *Client) GetFeedItemsSummary(ctx context.Context, feedIDs ...string) ([]models.APIItem, error) {
+	if feedIDs == nil {
 		return nil, ErrNoFeedID
 	}
 
 	req := c.API.Search().
 		Index("feeditems-*").
 		Fields(getSelectedFields("@timestamp", "title", "description", "item_id", "image")...).
-		Query(queryItemsByFeedID(feedID)).
-		Sort(sortFeedItemsByTimestamp())
+		Query(queryItemsByFeedIDs(feedIDs...)).
+		Sort(sortFeedItemsByTimestamp()).Size(20)
 	res, err := req.Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get feed item summaries: %w", err)
 	}
 
-	var items []models.APIFeedItemSummary
+	var items []models.APIItem
 
 	for _, hit := range res.Hits.Hits {
-		var item models.APIFeedItemSummary
+		var item models.APIItem
 
 		if err := json.Unmarshal([]byte(hit.Source_), &item); err != nil {
 			c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
