@@ -91,7 +91,7 @@ func AddItem(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func ProcessAddItem(res http.ResponseWriter, req *http.Request, storeAPI dataStore) {
+func ProcessAddItem(res http.ResponseWriter, req *http.Request, storeAPI dbAPI) {
 	item, problems, err := decodeForm[*models.SubscriptionRequest](req)
 	if err != nil && len(problems) == 0 {
 		logging.FromContext(req.Context()).

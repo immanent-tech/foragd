@@ -170,7 +170,7 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	// /feed routes
 	router.Route("/feed", func(r chi.Router) {
 		r.Get("/{feedID}", wrapper.GetHomeFeed)
-		r.Get("/{feedID}/{itemID}", wrapper.GetHomeFeedItem)
+		r.Get("/{feedID}/item/{itemID}", wrapper.GetHomeFeedItem)
 	})
 
 	return router

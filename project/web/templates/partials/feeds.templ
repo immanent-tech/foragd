@@ -5,25 +5,6 @@ package partials
 
 import "github.com/joshuar/go-templ-daisyui"
 
-// templ ItemList() {
-// 	<div hx-ext="ws" ws-connect="/home/feed">
-// 		<div id="filters" hx-swap-oob="morphdom"></div>
-// 		<div class="join join-vertical" id="items"></div>
-// 		<form id="filters-control" ws-send>
-// 			<input name="filter"/>
-// 		</form>
-// 	</div>
-// }
-
-// FeedItem displays an individual feed item as a card component.
-templ FeedItem(item components.Card) {
-	<div hx-swap-oob="beforeend:#items">
-		<div class="join-item">
-			@item.Show()
-		</div>
-	</div>
-}
-
 // skeletonCard displays a skeleton that can represent a feed card that is
 // loading.
 templ skeletonCard() {
@@ -36,21 +17,12 @@ templ skeletonCard() {
 	</div>
 }
 
-templ FeedList() {
-	<h1 class="text-center text-xl">Feeds</h1>
-	<div hx-get="/feed/_all" hx-trigger="load">
-		<div class="flex w-52 flex-row gap-4">
-			for  range 5 {
-				@skeletonCard()
-			}
-		</div>
-	</div>
+templ ShowCardList(cards ...components.Card) {
+	for _, card := range cards {
+		@card.Show()
+	}
 }
 
-templ FeedItemsSummary(items ...components.Card) {
-	<div class="flex flex-wrap justify-center mt-10">
-		for _, item := range items {
-			@item.Show()
-		}
-	</div>
+templ FeedItemDescription(description string) {
+	@templ.Raw(description)
 }

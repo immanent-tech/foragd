@@ -1,6 +1,7 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+//revive:disable:get-return
 package handlers
 
 import (
@@ -16,63 +17,40 @@ import (
 	components "github.com/joshuar/go-templ-daisyui"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
-// Feed handles the routes for fetching feed details for a single, or all
-// subscribed feeds.
-func Feed(res http.ResponseWriter, req *http.Request, feedID string, storeAPI dataStore, cacheAPI cache) {
+// GetFeedHandler handles /home/feed endpoints.
+func GetFeedHandler(res http.ResponseWriter, req *http.Request, feedID string, db dbAPI, cache cacheAPI) {
 	logging.LogReq(req, http.StatusAccepted).Info("processing request")
 
-	// No feedID, display all subscribed feeds.
 	if feedID == "_all" || feedID == "" {
-		showAllFeeds(res, req, storeAPI)
+		// No feedID given, or special "_all" value requested. Display all
+		// subscribed feeds.
+		showAllFeeds(res, req, db)
 	} else {
 		// Display a summary for the specified feed.
-		showFeedSummary(res, req, feedID, cacheAPI)
+		showItems(res, req, feedID, cache)
 	}
 }
 
-// showAllFeeds renders a list of subscribed feeds.
-func showAllFeeds(res http.ResponseWriter, req *http.Request, storeAPI dataStore) {
-	var feedCards []templ.Component
-
-	feeds, err := storeAPI.GetSubscribedFeeds(req.Context())
+// showAllFeeds shows a list of all subscribed feeds as cards.
+func showAllFeeds(res http.ResponseWriter, req *http.Request, db dbAPI) {
+	var feedCards []components.Card
+	// Get all subscribed feeds.
+	feeds, err := db.GetSubscribedFeeds(req.Context())
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not add item.", slog.Any("error", err))
 	}
-
 	// Generate cards for each feed.
 	for _, feed := range feeds {
-		card := components.NewCard(feed.ID,
-			components.WithCardLayout(components.CardLayoutSide),
-			components.WithTitle(feed.Title, components.H2),
-			components.CardClasses("btn"),
-			components.CardAttributes(templ.Attributes{
-				"hx-target": "#secondaryPane",
-				"hx-get":    "/feed/" + feed.ID,
-			}),
-		)
-
-		if feed.ImageURL != "" {
-			image := components.NewImage(
-				components.WithURL(feed.ImageURL),
-				components.WithAltText(feed.ImageTitle),
-			)
-			card.Image = &image
-		}
-
-		feedCards = append(feedCards, card.Show())
+		feedCards = append(feedCards, newFeedCard(feed))
 	}
-
-	// Combine feed cards into a list.
-	cardList := components.NewList(components.ListUnordered,
-		components.WithItems(feedCards...))
-
 	// Render the list of feed cards.
 	if err := htmx.NewResponse().
-		RenderTempl(req.Context(), res, cardList.Show()); err != nil {
+		RenderTempl(req.Context(), res, partials.ShowCardList(feedCards...)); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("showAllFeeds: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -80,41 +58,35 @@ func showAllFeeds(res http.ResponseWriter, req *http.Request, storeAPI dataStore
 	}
 }
 
-func showFeedSummary(res http.ResponseWriter, req *http.Request, feedID string, cacheAPI cache) {
-	items, err := cacheAPI.GetFeedItemsSummary(req.Context(), feedID)
+// showAllItems shows a list of all items from all subscribed feeds as cards.
+func showAllItems(res http.ResponseWriter, req *http.Request, db dbAPI, cache cacheAPI) {
+	var (
+		itemCards []components.Card
+		feedIDs   []string
+	)
+	// Get all subscribed feeds.
+	feeds, err := db.GetSubscribedFeeds(req.Context())
+	if err != nil {
+		logging.FromContext(req.Context()).
+			Error("Could not add item.", slog.Any("error", err))
+	}
+	// Get a list of the feed IDs.
+	for _, feed := range feeds {
+		feedIDs = append(feedIDs, feed.ID)
+	}
+	// Get all feed items for all subscribed feeds.
+	items, err := cache.GetFeedItemsSummary(req.Context(), feedIDs...)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not show feed items.", slog.Any("error", err))
 	}
-
-	var itemCards []components.Card
-
+	// Create item cards.
 	for _, item := range items {
-		card := components.NewCard(item.ID,
-			components.WithCardLayout(components.CardLayoutSide),
-			components.WithTitle(item.Title, components.H2),
-			components.WithCardShadow(components.XL),
-			// components.CardClasses("btn"),
-			// components.CardAttributes(templ.Attributes{
-			// 	"hx-target": "#secondaryPane",
-			// 	"hx-get":    "/feed/" + feed.ID,
-			// }),
-		)
-
-		if item.Image.URL != "" {
-			image := components.NewImage(
-				components.WithURL(item.Image.URL),
-				components.WithAltText(item.Image.Title),
-			)
-			card.Image = &image
-		}
-
-		itemCards = append(itemCards, card)
+		itemCards = append(itemCards, newItemCard(item))
 	}
-
 	// Render the list of feed cards.
 	if err := htmx.NewResponse().
-		RenderTempl(req.Context(), res, partials.FeedItemsSummary(itemCards...)); err != nil {
+		RenderTempl(req.Context(), res, partials.ShowCardList(itemCards...)); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -122,17 +94,108 @@ func showFeedSummary(res http.ResponseWriter, req *http.Request, feedID string, 
 	}
 }
 
-func showFeed(res http.ResponseWriter, req *http.Request, feedID string, storeAPI dataStore) {
-	subscriptions, err := storeAPI.GetAllSubscriptions(req.Context())
+// showItems shows a list of items for a given feed as cards.
+func showItems(res http.ResponseWriter, req *http.Request, feedID string, cache cacheAPI) {
+	var itemCards []components.Card
+
+	items, err := cache.GetFeedItemsSummary(req.Context(), feedID)
 	if err != nil {
 		logging.FromContext(req.Context()).
-			Error("Could not add item.", slog.Any("error", err))
+			Error("Could not show feed items.", slog.Any("error", err))
 	}
-	godump.Dump(subscriptions)
+
+	for _, item := range items {
+		itemCards = append(itemCards, newItemCard(item))
+	}
+
+	// Render the list of feed cards.
+	if err := htmx.NewResponse().
+		RenderTempl(req.Context(), res, partials.ShowCardList(itemCards...)); err != nil {
+		logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
 }
 
-func FeedItem(res http.ResponseWriter, req *http.Request, feedID string, itemID string, storeAPI dataStore) {
-	res.WriteHeader(http.StatusNotImplemented)
+// func showFeed(res http.ResponseWriter, req *http.Request, feedID string, db dbAPI) {
+// 	subscriptions, err := db.GetAllSubscriptions(req.Context())
+// 	if err != nil {
+// 		logging.FromContext(req.Context()).
+// 			Error("Could not add item.", slog.Any("error", err))
+// 	}
+// 	godump.Dump(subscriptions)
+// }
+
+func newFeedCard(feed models.APIFeed) components.Card {
+	card := components.NewCard(feed.ID,
+		components.WithCardLayout(components.CardLayoutSide),
+		components.WithTitle(feed.Title, components.H2),
+		components.WithCardShadow(components.SM),
+		components.CardAttributes(templ.Attributes{
+			"hx-target": "#secondaryPane",
+			"hx-get":    "/feed/" + feed.ID,
+		}),
+		components.WithBody(templ.Raw(feed.Description)),
+	)
+
+	if feed.ImageURL != nil {
+		image := components.NewImage(
+			components.WithURL(*feed.ImageURL),
+			components.WithAltText(*feed.ImageTitle),
+		)
+		card.Image = &image
+	}
+
+	if len(*feed.Categories) > 0 {
+		var categories []components.Badge
+		for _, c := range *feed.Categories {
+			categories = append(categories, components.NewBadge(c))
+		}
+		card.Badges = categories
+	}
+
+	return card
+}
+
+func newItemCard(item models.APIItem) components.Card {
+	card := components.NewCard(item.ID,
+		components.WithCardLayout(components.CardLayoutSide),
+		components.WithTitle(item.Title, components.H2),
+		components.WithCardShadow(components.XL),
+		// components.WithBody(partials.FeedItemDescription(item.Description)),
+		// components.CardClasses("btn"),
+		// components.CardAttributes(templ.Attributes{
+		// 	"hx-target": "#secondaryPane",
+		// 	"hx-get":    "/feed/" + feed.ID,
+		// }),
+	)
+
+	if item.Image != nil {
+		image := components.NewImage(
+			components.WithURL(item.Image.URL),
+			components.WithAltText(item.Image.Title),
+		)
+		card.Image = &image
+	}
+
+	if len(item.Categories) > 0 {
+		var categories []components.Badge
+		for _, c := range item.Categories {
+			categories = append(categories, components.NewBadge(c))
+		}
+		card.Badges = categories
+	}
+
+	return card
+}
+
+// GetFeedItemHandler handles /home/feed/item endpoints.
+func GetFeedItemHandler(res http.ResponseWriter, req *http.Request, feedID string, itemID string, db dbAPI, cache cacheAPI) {
+	if feedID == "_all" && itemID == "_all" {
+		slog.Info("here")
+		showAllItems(res, req, db, cache)
+	}
 }
 
 func HomeFeed(res http.ResponseWriter, req *http.Request, websocket *gws.Upgrader) {

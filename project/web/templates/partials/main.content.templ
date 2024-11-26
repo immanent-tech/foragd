@@ -5,14 +5,21 @@ package partials
 
 templ MainContent() {
 	<header>
-		<section class="">
-			<div class="grid grid-cols-2">
+		<section>
+			<div class="flex">
 				<!-- Primary Pane -->
-				<div id="primaryPane">
-					@FeedList()
+				<div id="primaryPane" class="basis-1/3 flex flex-col">
+					<div hx-get="/feed/_all" hx-trigger="load">
+						for  range 5 {
+							@skeletonCard()
+						}
+					</div>
 				</div>
+				<div class="divider divider-horizontal"></div>
 				<!-- Secondary Pane -->
-				<div id="secondaryPane"></div>
+				<div id="secondaryPane" class="basis-2/3 flex flex-col">
+					<div hx-get="/feed/_all/item/_all" hx-trigger="load"></div>
+				</div>
 			</div>
 		</section>
 	</header>

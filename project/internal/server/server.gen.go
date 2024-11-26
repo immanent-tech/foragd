@@ -42,7 +42,7 @@ type ServerInterface interface {
 	// (GET /home/feed/{feedID})
 	GetHomeFeed(w http.ResponseWriter, r *http.Request, feedID string)
 	// Display a feed item, or all feed items if no ID provided, for a feed
-	// (GET /home/feed/{feedID}/{itemID})
+	// (GET /home/feed/{feedID}/item/{itemID})
 	GetHomeFeedItem(w http.ResponseWriter, r *http.Request, feedID string, itemID string)
 	// Issue a user search request
 	// (POST /home/search)
@@ -108,7 +108,7 @@ func (_ Unimplemented) GetHomeFeed(w http.ResponseWriter, r *http.Request, feedI
 }
 
 // Display a feed item, or all feed items if no ID provided, for a feed
-// (GET /home/feed/{feedID}/{itemID})
+// (GET /home/feed/{feedID}/item/{itemID})
 func (_ Unimplemented) GetHomeFeedItem(w http.ResponseWriter, r *http.Request, feedID string, itemID string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
@@ -680,7 +680,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/home/feed/{feedID}", wrapper.GetHomeFeed)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/feed/{feedID}/{itemID}", wrapper.GetHomeFeedItem)
+		r.Get(options.BaseURL+"/home/feed/{feedID}/item/{itemID}", wrapper.GetHomeFeedItem)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/home/search", wrapper.PostHomeSearch)

@@ -30,13 +30,13 @@ type userStore interface {
 	GetUser(ctx context.Context) (*models.User, error)
 }
 
-type dataStore interface {
+type dbAPI interface {
 	AddSubscription(ctx context.Context, newSubscription *models.SubscriptionRequest) error
 	GetAllSubscriptions(ctx context.Context) ([]models.Subscription, error)
 	GetSubscription(ctx context.Context, subID string) (models.Subscription, error)
 	GetSubscribedFeeds(ctx context.Context) ([]models.APIFeed, error)
 }
 
-type cache interface {
-	GetFeedItemsSummary(ctx context.Context, feedID string) ([]models.APIFeedItemSummary, error)
+type cacheAPI interface {
+	GetFeedItemsSummary(ctx context.Context, feedIDs ...string) ([]models.APIItem, error)
 }

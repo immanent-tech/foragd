@@ -261,7 +261,7 @@ paths:
           description: List of feeds or feed items
           content:
             text/html:
-  /home/feed/{feedID}/{itemID}:
+  /home/feed/{feedID}/item/{itemID}:
     get:
       summary: Display a feed item, or all feed items if no ID provided, for a feed
       operationId: getHomeFeedItem
