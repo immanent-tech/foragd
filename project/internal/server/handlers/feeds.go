@@ -7,12 +7,9 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/lxzan/gws"
-	"github.com/yassinebenaid/godump"
 
 	components "github.com/joshuar/go-templ-daisyui"
 
@@ -21,25 +18,29 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
+const (
+	paramAll = "_all"
+)
+
 // GetFeedHandler handles /home/feed endpoints.
-func GetFeedHandler(res http.ResponseWriter, req *http.Request, feedID string, db dbAPI, cache cacheAPI) {
+func GetFeedHandler(res http.ResponseWriter, req *http.Request, feedID string, cache models.Cache, db models.DB) {
 	logging.LogReq(req, http.StatusAccepted).Info("processing request")
 
-	if feedID == "_all" || feedID == "" {
+	if feedID == paramAll || feedID == "" {
 		// No feedID given, or special "_all" value requested. Display all
 		// subscribed feeds.
-		showAllFeeds(res, req, db)
+		showAllFeeds(res, req, cache, db)
 	} else {
 		// Display a summary for the specified feed.
-		showItems(res, req, feedID, cache)
+		showItems(res, req, cache, feedID)
 	}
 }
 
 // showAllFeeds shows a list of all subscribed feeds as cards.
-func showAllFeeds(res http.ResponseWriter, req *http.Request, db dbAPI) {
+func showAllFeeds(res http.ResponseWriter, req *http.Request, cache models.Cache, db models.DB) {
 	var feedCards []components.Card
 	// Get all subscribed feeds.
-	feeds, err := db.GetSubscribedFeeds(req.Context())
+	feeds, err := models.GetSubcribedFeeds(req.Context(), cache, db)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not add item.", slog.Any("error", err))
@@ -59,13 +60,13 @@ func showAllFeeds(res http.ResponseWriter, req *http.Request, db dbAPI) {
 }
 
 // showAllItems shows a list of all items from all subscribed feeds as cards.
-func showAllItems(res http.ResponseWriter, req *http.Request, db dbAPI, cache cacheAPI) {
+func showAllItems(res http.ResponseWriter, req *http.Request, cache models.Cache, db models.DB) {
 	var (
 		itemCards []components.Card
 		feedIDs   []string
 	)
 	// Get all subscribed feeds.
-	feeds, err := db.GetSubscribedFeeds(req.Context())
+	feeds, err := models.GetSubcribedFeeds(req.Context(), cache, db)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not add item.", slog.Any("error", err))
@@ -75,7 +76,7 @@ func showAllItems(res http.ResponseWriter, req *http.Request, db dbAPI, cache ca
 		feedIDs = append(feedIDs, feed.ID)
 	}
 	// Get all feed items for all subscribed feeds.
-	items, err := cache.GetFeedItemsSummary(req.Context(), feedIDs...)
+	items, err := cache.GetFeedItems(req.Context(), feedIDs...)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not show feed items.", slog.Any("error", err))
@@ -95,10 +96,10 @@ func showAllItems(res http.ResponseWriter, req *http.Request, db dbAPI, cache ca
 }
 
 // showItems shows a list of items for a given feed as cards.
-func showItems(res http.ResponseWriter, req *http.Request, feedID string, cache cacheAPI) {
+func showItems(res http.ResponseWriter, req *http.Request, cache models.Cache, feedID string) {
 	var itemCards []components.Card
 
-	items, err := cache.GetFeedItemsSummary(req.Context(), feedID)
+	items, err := cache.GetFeedItems(req.Context(), feedID)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not show feed items.", slog.Any("error", err))
@@ -130,7 +131,7 @@ func showItems(res http.ResponseWriter, req *http.Request, feedID string, cache 
 func newFeedCard(feed models.APIFeed) components.Card {
 	card := components.NewCard(feed.ID,
 		components.WithCardLayout(components.CardLayoutSide),
-		components.WithTitle(feed.Title, components.H2),
+		components.WithTitle(feed.Title),
 		components.WithCardShadow(components.SM),
 		components.CardAttributes(templ.Attributes{
 			"hx-target": "#secondaryPane",
@@ -139,13 +140,13 @@ func newFeedCard(feed models.APIFeed) components.Card {
 		components.WithBody(templ.Raw(feed.Description)),
 	)
 
-	if feed.ImageURL != nil {
+	if feed.Image != nil {
 		image := components.NewImage(
-			components.WithURL(*feed.ImageURL),
+			components.WithURL(feed.Image.URL),
 		)
 
-		if feed.ImageTitle != nil {
-			image.Alt = *feed.ImageTitle
+		if feed.Image.Title != "" {
+			image.Alt = feed.Image.Title
 		}
 
 		card.Image = &image
@@ -159,13 +160,15 @@ func newFeedCard(feed models.APIFeed) components.Card {
 		card.Badges = categories
 	}
 
+	// card.Badges = append(card.Badges, components.NewBadge(feed.LastFetched.String()))
+
 	return card
 }
 
 func newItemCard(item models.APIItem) components.Card {
 	card := components.NewCard(item.ID,
 		components.WithCardLayout(components.CardLayoutSide),
-		components.WithTitle(item.Title, components.H2),
+		components.WithTitle(item.Title),
 		components.WithCardShadow(components.XL),
 		// components.WithBody(partials.FeedItemDescription(item.Description)),
 		// components.CardClasses("btn"),
@@ -179,6 +182,7 @@ func newItemCard(item models.APIItem) components.Card {
 		image := components.NewImage(
 			components.WithURL(item.Image.URL),
 			components.WithAltText(item.Image.Title),
+			components.WithImageClasses("max-h-full"),
 		)
 		card.Image = &image
 	}
@@ -195,62 +199,61 @@ func newItemCard(item models.APIItem) components.Card {
 }
 
 // GetFeedItemHandler handles /home/feed/item endpoints.
-func GetFeedItemHandler(res http.ResponseWriter, req *http.Request, feedID string, itemID string, db dbAPI, cache cacheAPI) {
-	if feedID == "_all" && itemID == "_all" {
-		slog.Info("here")
-		showAllItems(res, req, db, cache)
+func GetFeedItemHandler(res http.ResponseWriter, req *http.Request, feedID string, itemID string, cache models.Cache, db models.DB) {
+	if feedID == paramAll && itemID == "_all" {
+		showAllItems(res, req, cache, db)
 	}
 }
 
-func HomeFeed(res http.ResponseWriter, req *http.Request, websocket *gws.Upgrader) {
-	socket, err := websocket.Upgrade(res, req)
-	if err != nil {
-		return
-	}
+// func HomeFeed(res http.ResponseWriter, req *http.Request, websocket *gws.Upgrader) {
+// 	socket, err := websocket.Upgrade(res, req)
+// 	if err != nil {
+// 		return
+// 	}
 
-	// go func() {
-	// 	<-req.Context().Done()
-	// 	socket.WriteClose(1000, []byte(`closing websocket`))
-	// }()
+// 	// go func() {
+// 	// 	<-req.Context().Done()
+// 	// 	socket.WriteClose(1000, []byte(`closing websocket`))
+// 	// }()
 
-	go func() {
-		socket.ReadLoop() // Blocking prevents the context from being GC.
-	}()
+// 	go func() {
+// 		socket.ReadLoop() // Blocking prevents the context from being GC.
+// 	}()
 
-	for i := range 5 {
-		socket.WriteString(`<div hx-swap-oob="beforeend:#items"><div class="join-item">Button</div></div>`)
-		time.Sleep(time.Second)
-		i++
-	}
-}
+// 	for i := range 5 {
+// 		socket.WriteString(`<div hx-swap-oob="beforeend:#items"><div class="join-item">Button</div></div>`)
+// 		time.Sleep(time.Second)
+// 		i++
+// 	}
+// }
 
-const (
-	PingInterval = 5 * time.Second
-	PingWait     = 10 * time.Second
-)
+// const (
+// 	PingInterval = 5 * time.Second
+// 	PingWait     = 10 * time.Second
+// )
 
-type FeedItemWebsocketHandler struct{}
+// type FeedItemWebsocketHandler struct{}
 
-func (c *FeedItemWebsocketHandler) OnOpen(socket *gws.Conn) {
-	slog.Debug("New connection.")
-	// _ = socket.SetDeadline(time.Now().Add(PingInterval + PingWait))
-}
+// func (c *FeedItemWebsocketHandler) OnOpen(socket *gws.Conn) {
+// 	slog.Debug("New connection.")
+// 	// _ = socket.SetDeadline(time.Now().Add(PingInterval + PingWait))
+// }
 
-func (c *FeedItemWebsocketHandler) OnClose(socket *gws.Conn, err error) {
-	slog.Debug("Closing connection.")
-}
+// func (c *FeedItemWebsocketHandler) OnClose(socket *gws.Conn, err error) {
+// 	slog.Debug("Closing connection.")
+// }
 
-func (c *FeedItemWebsocketHandler) OnPing(socket *gws.Conn, payload []byte) {
-	// _ = socket.SetDeadline(time.Now().Add(PingInterval + PingWait))
-	_ = socket.WritePong(nil)
-}
+// func (c *FeedItemWebsocketHandler) OnPing(socket *gws.Conn, payload []byte) {
+// 	// _ = socket.SetDeadline(time.Now().Add(PingInterval + PingWait))
+// 	_ = socket.WritePong(nil)
+// }
 
-func (c *FeedItemWebsocketHandler) OnPong(socket *gws.Conn, payload []byte) {}
+// func (c *FeedItemWebsocketHandler) OnPong(socket *gws.Conn, payload []byte) {}
 
-func (c *FeedItemWebsocketHandler) OnMessage(socket *gws.Conn, message *gws.Message) {
-	defer message.Close()
-	godump.Dump(string(message.Bytes()))
-	socket.WriteString(`<div hx-swap-oob="beforeend:#items"><div class="join-item">Button</div></div>`)
-	// socket.WriteMessage(message.Opcode, message.Bytes())
-	// socket.WriteString("hello")
-}
+// func (c *FeedItemWebsocketHandler) OnMessage(socket *gws.Conn, message *gws.Message) {
+// 	defer message.Close()
+// 	godump.Dump(string(message.Bytes()))
+// 	socket.WriteString(`<div hx-swap-oob="beforeend:#items"><div class="join-item">Button</div></div>`)
+// 	// socket.WriteMessage(message.Opcode, message.Bytes())
+// 	// socket.WriteString("hello")
+// }

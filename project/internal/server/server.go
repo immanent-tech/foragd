@@ -18,7 +18,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/postgres"
-	"github.com/joshuar/go-feed-me/internal/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/server/session"
 )
@@ -99,18 +98,18 @@ func NewServer(ctx context.Context) (Server, error) {
 		return svr, fmt.Errorf("failed to initialize the authenticator backend API: %w", err)
 	}
 
-	websocket := handlers.NewWebsocketServer(&handlers.FeedItemWebsocketHandler{})
+	// websocket := handlers.NewWebsocketServer(&handlers.FeedItemWebsocketHandler{})
 
 	// Set up the session manager.
 	session.NewSessionManager(postgresAPI)
 
 	// Add the API to the environment.
 	svr.API = &API{
-		user:      auth0UserAPI,
-		elastic:   elasticAPI,
-		pg:        postgresAPI,
-		auth:      auth0API,
-		websocket: websocket,
+		user:    auth0UserAPI,
+		elastic: elasticAPI,
+		pg:      postgresAPI,
+		auth:    auth0API,
+		// websocket: websocket,
 	}
 
 	return svr, nil

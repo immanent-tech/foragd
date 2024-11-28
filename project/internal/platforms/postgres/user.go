@@ -19,35 +19,33 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"gorm.io/gorm"
+
+	"github.com/yassinebenaid/godump"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
 var (
-	ErrUserNotCreated = errors.New("no user created")
-	ErrInvalidToken   = errors.New("session data is invalid")
-	ErrUnknownUser    = errors.New("user does not exist")
+	ErrAddUser      = errors.New("error adding user")
+	ErrInvalidToken = errors.New("session data is invalid")
+	ErrUnknownUser  = errors.New("user does not exist")
 )
 
-func (c *Client) AddUser(_ context.Context, user models.UserDetails) error {
-	newUser := &models.User{
-		Preferences: models.NewUserPreferences(),
+func (c *Client) AddUser(_ context.Context, userID string, newUser *models.APIUser) error {
+	user := &models.User{ID: userID}
+
+	result := c.db.Create(&user)
+	if result.Error != nil {
+		return errors.Join(ErrAddUser, result.Error)
 	}
 
-	newUser.ID = user.UserID()
-
-	tx := c.db.Create(newUser)
-
-	if tx.RowsAffected == 0 {
-		return ErrUserNotCreated
-	}
-
-	if tx.Error != nil {
-		return fmt.Errorf("add user: %w", tx.Error)
-	}
+	c.logger.Debug("Added user.",
+		slog.String("id", user.ID),
+	)
 
 	return nil
 }
@@ -60,6 +58,8 @@ func (c *Client) ValidateUser(ctx context.Context) (bool, error) {
 		return false, errors.Join(ErrInvalidToken, err)
 	}
 
+	godump.Dump(tokens)
+
 	tx := c.db.First(&user, "id = ?", tokens.UserID())
 	if tx.Error != nil || errors.Is(tx.Error, gorm.ErrRecordNotFound) {
 		return false, errors.Join(ErrUnknownUser, err)
@@ -68,7 +68,7 @@ func (c *Client) ValidateUser(ctx context.Context) (bool, error) {
 	return true, nil
 }
 
-func (c *Client) GetUser(ctx context.Context) (*models.User, error) {
+func (c *Client) GetUser(ctx context.Context) (*models.UserSession, error) {
 	var user models.User
 
 	tokens, err := session.GetTokens(ctx)
@@ -81,7 +81,8 @@ func (c *Client) GetUser(ctx context.Context) (*models.User, error) {
 		return nil, fmt.Errorf("unable to get user from database: %w", tx.Error)
 	}
 
-	user.SessionData = tokens
-
-	return &user, nil
+	return &models.UserSession{
+		Tokens: tokens,
+		User:   &user,
+	}, nil
 }

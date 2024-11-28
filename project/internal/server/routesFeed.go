@@ -31,7 +31,7 @@ func (s Server) GetHomeFeed(res http.ResponseWriter, req *http.Request, feedID s
 	ctx := logging.ToContext(req.Context(), logger)
 	logging.LogReq(req, http.StatusAccepted).Info("processing request")
 
-	handlers.GetFeedHandler(res, req.WithContext(ctx), feedID, s.API.pg, s.API.elastic)
+	handlers.GetFeedHandler(res, req.WithContext(ctx), feedID, s.API.elastic, s.API.pg)
 }
 
 func (s Server) GetHomeFeedItem(res http.ResponseWriter, req *http.Request, feedID string, itemID string) {
@@ -51,5 +51,5 @@ func (s Server) GetHomeFeedItem(res http.ResponseWriter, req *http.Request, feed
 
 	ctx := logging.ToContext(req.Context(), logger)
 
-	handlers.GetFeedItemHandler(res, req.WithContext(ctx), feedID, itemID, s.API.pg, s.API.elastic)
+	handlers.GetFeedItemHandler(res, req.WithContext(ctx), feedID, itemID, s.API.elastic, s.API.pg)
 }

@@ -4,38 +4,25 @@
 package models
 
 import (
-	"context"
-	"fmt"
+	"errors"
+
+	"github.com/mmcdole/gofeed"
 )
 
-func (s *UserSignup) Valid(_ context.Context) (bool, ValidationErrors) {
-	return validateStruct(s)
+var ErrInvalidID = errors.New("error generating unique ID")
+
+type Feed struct {
+	*gofeed.Feed
+	ID string `json:"feed_id"`
 }
 
-func (s *SearchRequest) Valid(_ context.Context) (bool, ValidationErrors) {
-	return validateStruct(s)
+type Item struct {
+	*gofeed.Item
+	ID     string `json:"item_id"`
+	FeedID string `json:"feed_id"`
 }
 
-func (t *Tokens) UserID() string {
-	return t.IDToken.Subject
-}
-
-func (t *Tokens) Nickname() string {
-	return t.Claims.UserNickName
-}
-
-func (t *Tokens) Email() string {
-	return t.Claims.UserName
-}
-
-func (t *Tokens) DecodeClaims() error {
-	var claims Claims
-
-	if err := t.IDToken.Claims(&claims); err != nil {
-		return fmt.Errorf("cannot decode user claims from ID token: %w", err)
-	}
-
-	t.Claims = claims
-
-	return nil
+type UserSession struct {
+	*Tokens
+	*User
 }

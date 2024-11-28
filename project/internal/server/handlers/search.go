@@ -16,38 +16,32 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
-
-	"github.com/angelofallars/htmx-go"
-
-	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/web/templates/search"
 )
 
 func Search(res http.ResponseWriter, req *http.Request) {
-	searchRequest, problems, err := decodeForm[*models.SearchRequest](req)
-	if err != nil && len(problems) == 0 { // Internal validation error.
-		res.WriteHeader(http.StatusInternalServerError)
-		logging.LogReq(req, http.StatusInternalServerError).Error("Invalid search request.", slog.Any("error", err))
+	res.WriteHeader(http.StatusNotImplemented)
+	// searchRequest, problems, err := decodeForm[*models.SearchRequest](req)
+	// if err != nil && len(problems) == 0 { // Internal validation error.
+	// 	res.WriteHeader(http.StatusInternalServerError)
+	// 	logging.LogReq(req, http.StatusInternalServerError).Error("Invalid search request.", slog.Any("error", err))
 
-		return
-	}
-
-	// if len(problems) > 0 { // Validation errors.
-	// 	showSignupError(req, res, problems)
+	// 	return
 	// }
 
-	results := search.GenerateSearchResults(nil, searchRequest.Terms)
+	// // if len(problems) > 0 { // Validation errors.
+	// // 	showSignupError(req, res, problems)
+	// // }
 
-	if req.FormValue("Terms") != "" {
-		if err := htmx.NewResponse().
-			RenderTempl(req.Context(), res, search.SearchResultsTempl(results)); err != nil {
-			logging.LogReq(req, http.StatusInternalServerError).Error("Cannot render search results.", slog.Any("error", err))
-			res.WriteHeader(http.StatusInternalServerError)
+	// results := search.GenerateSearchResults(nil, searchRequest.Terms)
 
-			return
-		}
-	}
+	// if req.FormValue("Terms") != "" {
+	// 	if err := htmx.NewResponse().
+	// 		RenderTempl(req.Context(), res, search.SearchResultsTempl(results)); err != nil {
+	// 		logging.LogReq(req, http.StatusInternalServerError).Error("Cannot render search results.", slog.Any("error", err))
+	// 		res.WriteHeader(http.StatusInternalServerError)
+
+	// 		return
+	// 	}
+	// }
 }

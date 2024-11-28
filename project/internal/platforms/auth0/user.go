@@ -77,7 +77,7 @@ func NewUserAPI(ctx context.Context, config *koanf.Koanf) (*UserAPI, error) {
 	return api, nil
 }
 
-func (u *UserAPI) Create(ctx context.Context, details *models.UserSignup) (models.UserDetails, error) {
+func (u *UserAPI) Create(ctx context.Context, details *models.APIUser) (string, error) {
 	userData := database.SignupRequest{
 		Connection: UserDBConnection,
 		Nickname:   details.Nickname,
@@ -85,10 +85,10 @@ func (u *UserAPI) Create(ctx context.Context, details *models.UserSignup) (model
 		Password:   details.Password,
 	}
 
-	createdUser, err := u.api.Database.Signup(ctx, userData)
+	user, err := u.api.Database.Signup(ctx, userData)
 	if err != nil {
-		return nil, fmt.Errorf("user creation failed: %w", err)
+		return "", fmt.Errorf("user creation failed: %w", err)
 	}
 
-	return &UserSignup{details: createdUser}, nil
+	return user.ID, nil
 }

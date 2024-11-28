@@ -28,7 +28,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/server/handlers/renderers"
 )
 
-func feedNameInput() components.Input {
+func subscriptionNameInput() components.Input {
 	return components.NewInput("Name",
 		components.AsFormControl(),
 		components.OptionalInput(),
@@ -40,7 +40,7 @@ func feedNameInput() components.Input {
 	)
 }
 
-func feedURLInput() components.Input {
+func subscriptionLinkInput() components.Input {
 	return components.NewInput("Link",
 		components.AsFormControl(),
 		components.WithInputLabel("Link"),
@@ -51,21 +51,9 @@ func feedURLInput() components.Input {
 	)
 }
 
-func feedTopicsInput() components.Input {
-	return components.NewInput("Topics",
-		components.AsFormControl(),
-		components.OptionalInput(),
-		components.WithInputLabel("Topics"),
-		components.WithPlaceholder("CoolStuff, Memes"),
-		components.WithInputAttributes(templ.Attributes{
-			"hx-post": "/subscription/validate",
-		}),
-	)
-}
-
-func feedItemForm(inputs ...components.Input) components.Form {
+func addSubscriptionForm(inputs ...components.Input) components.Form {
 	return components.NewForm("addItem",
-		components.Info("Enter Feed Details."),
+		components.Info("Enter Details."),
 		components.FormAttributes(templ.Attributes{
 			"hx-post": "/subscription/add",
 		}),
@@ -80,9 +68,9 @@ func feedItemForm(inputs ...components.Input) components.Form {
 	)
 }
 
-// AddItem is the handler for adding a new feed (GET /home/add).
-func AddItem(res http.ResponseWriter, req *http.Request) {
-	addItemForm := feedItemForm(feedNameInput(), feedURLInput(), feedTopicsInput())
+// AddSubscriptionHandler is the handler for adding a new feed (GET /home/add).
+func AddSubscriptionHandler(res http.ResponseWriter, req *http.Request) {
+	addItemForm := addSubscriptionForm(subscriptionNameInput(), subscriptionLinkInput())
 
 	if err := renderers.CommandModal(req, res, addItemForm.Show()); err != nil {
 		logging.FromContext(req.Context()).
@@ -91,25 +79,30 @@ func AddItem(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func ProcessAddItem(res http.ResponseWriter, req *http.Request, storeAPI dbAPI) {
-	item, problems, err := decodeForm[*models.SubscriptionRequest](req)
+func ProcessAddSubscriptionForm(res http.ResponseWriter, req *http.Request, cache models.Cache, db models.DB) {
+	newSubscription, problems, err := decodeForm[*models.APISubscription](req)
 	if err != nil && len(problems) == 0 {
 		logging.FromContext(req.Context()).
 			Error("Could not decode submitted add feed request.", slog.Any("error", err))
-		Validate(res, req, UpdateAddItemForm)
+		Validate(res, req, UpdateAddSubscriptionForm)
+		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	if err := storeAPI.AddSubscription(req.Context(), item); err != nil {
+	if err := models.NewSubscription(req.Context(), cache, db, newSubscription); err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not add item.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+
+	res.WriteHeader(http.StatusOK)
 }
 
-// UpdateAddItemForm takes the user input, validation results and decorates the
+// UpdateAddSubscriptionForm takes the user input, validation results and decorates the
 // add item form with the results.
-func UpdateAddItemForm(field string, item *models.SubscriptionRequest, problems models.ValidationErrors) components.Input {
-	form := feedItemForm(feedNameInput(), feedURLInput(), feedTopicsInput())
+func UpdateAddSubscriptionForm(field string, item *models.APISubscription, problems models.ValidationErrors) components.Input {
+	form := addSubscriptionForm(subscriptionNameInput(), subscriptionLinkInput())
 
 	input, _ := form.Inputs.Get(field)
 
@@ -117,9 +110,7 @@ func UpdateAddItemForm(field string, item *models.SubscriptionRequest, problems 
 	case "Name":
 		input.SetValue(item.Name)
 	case "Link":
-		input.SetValue(item.Link)
-	case "Topics":
-		input.SetValue(item.Topics)
+		input.SetValue(item.URL)
 	}
 
 	if issue, found := problems[field]; found {

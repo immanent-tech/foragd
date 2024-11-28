@@ -1,36 +1,52 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package models
 
-type UserDetails interface {
-	UserID() string
-	Nickname() string
-	Email() string
-	// Verified() bool
-}
+import (
+	"context"
+	"errors"
+	"fmt"
+)
+
+var ErrAddUser = errors.New("add subscription failed")
 
 type UserPreferences map[string]any
-
-type UserSession interface {
-	UserDetails
-	IsExpired() bool
-}
 
 func NewUserPreferences() UserPreferences {
 	return map[string]any{
 		"theme": "light",
 	}
+}
+
+func (s *User) Valid(_ context.Context) (bool, ValidationErrors) {
+	return validateStruct(s)
+}
+
+func (s *APIUser) Valid(_ context.Context) (bool, ValidationErrors) {
+	return validateStruct(s)
+}
+
+func (t *Tokens) UserID() string {
+	return t.IDToken.Subject
+}
+
+func (t *Tokens) Nickname() string {
+	return t.Claims.UserNickName
+}
+
+func (t *Tokens) Email() string {
+	return t.Claims.UserName
+}
+
+func (t *Tokens) DecodeClaims() error {
+	var claims Claims
+
+	if err := t.IDToken.Claims(&claims); err != nil {
+		return fmt.Errorf("cannot decode user claims from ID token: %w", err)
+	}
+
+	t.Claims = claims
+
+	return nil
 }

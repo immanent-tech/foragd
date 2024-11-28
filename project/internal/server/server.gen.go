@@ -18,17 +18,14 @@ type GetLoginCallbackParams struct {
 	State string `form:"state" json:"state"`
 }
 
-// PostHomeSearchFormdataRequestBody defines body for PostHomeSearch for application/x-www-form-urlencoded ContentType.
-type PostHomeSearchFormdataRequestBody = externalRef0.SearchRequest
-
 // PostSubscriptionValidateFormdataRequestBody defines body for PostSubscriptionValidate for application/x-www-form-urlencoded ContentType.
-type PostSubscriptionValidateFormdataRequestBody = externalRef0.SubscriptionRequest
+type PostSubscriptionValidateFormdataRequestBody = externalRef0.APISubscription
 
 // PostSignupMultipartRequestBody defines body for PostSignup for multipart/form-data ContentType.
-type PostSignupMultipartRequestBody = externalRef0.UserSignup
+type PostSignupMultipartRequestBody = externalRef0.APIUser
 
 // PostSignupValidateFormdataRequestBody defines body for PostSignupValidate for application/x-www-form-urlencoded ContentType.
-type PostSignupValidateFormdataRequestBody = externalRef0.UserSignup
+type PostSignupValidateFormdataRequestBody = externalRef0.APIUser
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -236,7 +233,7 @@ func (siw *ServerInterfaceWrapper) GetHomeFeed(w http.ResponseWriter, r *http.Re
 	// ------------- Path parameter "feedID" -------------
 	var feedID string
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feedID", chi.URLParam(r, "feedID"), &feedID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "feedID", chi.URLParam(r, "feedID"), &feedID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feedID", Err: err})
 		return

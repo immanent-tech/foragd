@@ -35,8 +35,8 @@ func runServer() error {
 		return fmt.Errorf("could not start: %w", err)
 	}
 
-	scheduler.NewTaskWorker(ctx, svr.Config, svr.StoreAPI(), svr.DataAPI())
-	scheduler.NewTaskScheduler(ctx, svr.Config, svr.StoreAPI())
+	scheduler.NewTaskWorker(ctx, svr.Config, svr.DataAPI(), svr.StoreAPI())
+	scheduler.NewTaskScheduler(ctx, svr.Config, svr.DataAPI())
 
 	// Set up a new chi router.
 	router := chi.NewRouter()

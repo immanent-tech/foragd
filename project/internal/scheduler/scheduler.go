@@ -14,6 +14,7 @@ import (
 	"github.com/knadh/koanf/v2"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 const (
@@ -21,26 +22,37 @@ const (
 	DefaultTaskCron                = "* * * * *"
 )
 
+// DB represents the required methods that the scheduler needs from a database
+// implementation.
+type DB interface {
+	GetFeedLastFetched(ctx context.Context, feedID string) (time.Time, error)
+}
+
+// Cache represents the required methods that the scheduler needs from a cache
+// implementation.
+type Cache interface {
+	GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error)
+	AddFeedItems(ctx context.Context, items ...models.Item) error
+}
+
 type taskScheduler struct {
-	logger          *slog.Logger
-	db              dbAPI
-	lastConfigFetch time.Time
+	logger     *slog.Logger
+	cache      Cache
+	checkpoint time.Time
 }
 
 func (s *taskScheduler) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
-	s.logger.Debug("Fetching new task configs.", slog.Time("last_fetched", s.lastConfigFetch))
-
-	feeds, err := s.db.GetNewFeeds(s.lastConfigFetch)
+	feeds, err := s.cache.GetNewFeedsSince(context.TODO(), s.checkpoint)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve updated feeds: %w", err)
 	}
 
-	s.lastConfigFetch = time.Now()
+	s.checkpoint = time.Now()
 
 	var configs []*asynq.PeriodicTaskConfig
 
 	for _, feed := range feeds {
-		feedTask, err := NewGetFeedItemsTask(feed.ID)
+		feedTask, err := NewGetFeedItemsTask(feed)
 		if err != nil {
 			s.logger.Error("Could not create new GetFeedItems task.",
 				slog.String("feed_id", feed.ID),
@@ -52,17 +64,23 @@ func (s *taskScheduler) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 		configs = append(configs, &asynq.PeriodicTaskConfig{Cronspec: DefaultTaskCron, Task: feedTask})
 	}
 
+	if len(configs) > 0 {
+		s.logger.Debug("Found new feeds.",
+			slog.Int("count", len(configs)),
+		)
+	}
+
 	return configs, nil
 }
 
-func NewTaskScheduler(ctx context.Context, config *koanf.Koanf, db dbAPI) error {
+func NewTaskScheduler(ctx context.Context, config *koanf.Koanf, cache Cache) error {
 	settings := getSettings(config)
 	logger := logging.FromContext(ctx).WithGroup("tasks").With(slog.String("component", "scheduler"))
 
 	manager := &taskScheduler{
-		logger:          logger,
-		db:              db,
-		lastConfigFetch: time.Time{},
+		logger:     logger,
+		cache:      cache,
+		checkpoint: time.Time{},
 	}
 
 	opts := asynq.PeriodicTaskManagerOpts{

@@ -26,8 +26,8 @@ import (
 
 var ErrPutIngestPipeline = errors.New("put ingest pipeline failed")
 
-func (c *Client) PutIngestPipeline(ctx context.Context, pipeline putpipeline.Request) error {
-	resp, err := c.conn.API.Ingest.PutPipeline("feeditems").Request(&pipeline).Do(ctx)
+func (c *Client) PutIngestPipeline(ctx context.Context, name string, pipeline putpipeline.Request) error {
+	resp, err := c.conn.API.Ingest.PutPipeline(name).Request(&pipeline).Do(ctx)
 	c.logger.Log(ctx, LevelTrace, "put ingest pipeline response", slog.Any("response", resp))
 
 	if err != nil {

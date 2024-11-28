@@ -9,26 +9,24 @@ templ HomePage() {
 	<div class="drawer w-full flex h-svh max-h-svh">
 		<!-- Navbar -->
 		<input id="home-drawer" type="checkbox" class="drawer-toggle"/>
-		<div class="drawer-side h-full flex-[0.3]">
+		<div class="drawer-side h-full flex-1/3">
 			@partials.Navbar()
 		</div>
 		<!-- Main Content Area-->
 		<div class="drawer-content flex h-full flex-1 flex-col">
-			<div class="flex h-full flex-col justify-between overflow-y-scroll">
-				<!-- Header -->
-				<div class="sticky top-0 w-full">
-					<input id="my-drawer-2" type="checkbox" class="drawer-toggle"/>
-					@partials.AppBarTop()
-				</div>
-				<!-- Modal for commands -->
-				<dialog id="command-modal" class="modal"></dialog>
-				<!-- Content -->
-				@partials.MainContent()
-				<!-- Footer -->
-				<div class="w-full">
-					<div class="bg-yellow-600 py-12">
-						<h1 class="text-center text-xl">Footer</h1>
-					</div>
+			<!-- Header -->
+			<div class="sticky top-0 w-full">
+				<input id="my-drawer-2" type="checkbox" class="drawer-toggle"/>
+				@partials.AppBarTop()
+			</div>
+			<!-- Modal for commands -->
+			<dialog id="command-modal" class="modal"></dialog>
+			<!-- Content -->
+			@partials.MainContent()
+			<!-- Footer -->
+			<div class="w-full">
+				<div class="bg-yellow-600 py-12">
+					<h1 class="text-center text-xl">Footer</h1>
 				</div>
 			</div>
 			// <div class="sticky top-0 block bg-pink-500 py-5 md:hidden">

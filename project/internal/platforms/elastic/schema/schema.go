@@ -4,15 +4,15 @@
 package schema
 
 import (
-	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
+	"encoding/json"
+
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/dynamicmapping"
 )
 
 const (
-	FeedItemsSchemaID   = "feeditem"
-	feeditemsMappingsID = FeedItemsSchemaID + "_mappings"
-	feeditemsSettingsID = FeedItemsSchemaID + "_settings"
+	FeedSchemaPrefix      = "feed"
+	FeedItemsSchemaPrefix = "feeditem"
 )
 
 const (
@@ -20,73 +20,51 @@ const (
 	timeStampField  = "updatedParsed"
 )
 
-func FeedItemsIngestPipeline() putpipeline.Request {
-	useUpdatedAsTimestampDesc := "Use updated date as @timestamp if not nil"
-	usePublishedAsTimestampDesc := "Use published date as @timestamp if not nil"
-	publishedParsedNotNull := "ctx?.updatedParsed != null"
-	publishedParsedNull := "ctx?.updatedParsed == null"
-	targetField := "@timestamp"
-	removeIgnoreMissing := true
-	removeDesc := "Remove deprecated fields"
-
-	return putpipeline.Request{
-		Processors: []types.ProcessorContainer{
-			{
-				Date: &types.DateProcessor{
-					Field:       "updatedParsed",
-					TargetField: &targetField,
-					Formats:     []string{"strict_date_optional_time_nanos", "epoch_millis"},
-					If:          &publishedParsedNotNull,
-					Description: &useUpdatedAsTimestampDesc,
-				},
-			},
-			{
-				Date: &types.DateProcessor{
-					Field:       "publishedParsed",
-					TargetField: &targetField,
-					Formats:     []string{"strict_date_optional_time_nanos", "epoch_millis"},
-					If:          &publishedParsedNull,
-					Description: &usePublishedAsTimestampDesc,
-				},
-			},
-			{
-				Remove: &types.RemoveProcessor{
-					Field:         []string{"author_names", "author_emails"},
-					IgnoreMissing: &removeIgnoreMissing,
-					Description:   &removeDesc,
-				},
-			},
+// feedMapping defines the Elasticsearch field mapping for feeds-* indices.
+func feedMapping() *types.TypeMapping {
+	return &types.TypeMapping{
+		Meta_: types.Metadata{
+			"version": json.RawMessage(`"v0.0.1"`),
 		},
-	}
-}
-
-func FeeditemsIndexTemplate() IndexTemplate {
-	return IndexTemplate{
-		Name:          FeedItemsSchemaID,
-		IndexPatterns: []string{"feeditems*"},
-		Components:    []ComponentTemplate{feeditemsMappingsComponent(), feeditemsSettingsComponent(FeedItemsSchemaID)},
-		Priority:      defaultPriority,
-	}
-}
-
-func feeditemsMappingsComponent() ComponentTemplate {
-	return ComponentTemplate{
-		Name: feeditemsMappingsID,
-		Template: types.IndexState{
-			Mappings: feeditemsMapping(),
-		},
-	}
-}
-
-func feeditemsSettingsComponent(ilmPolicyName string) ComponentTemplate {
-	return ComponentTemplate{
-		Name: feeditemsSettingsID,
-		Template: types.IndexState{
-			Settings: &types.IndexSettings{
-				Lifecycle: &types.IndexSettingsLifecycle{
-					Name: &ilmPolicyName,
+		Dynamic: &dynamicmapping.False, // Ignore any additional fields in documents not listed in this mapping.
+		Properties: map[string]types.Property{
+			"@timestamp":      types.NewDateNanosProperty(),
+			"feed_id":         types.NewKeywordProperty(),
+			"created_at":      types.NewDateNanosProperty(),
+			"title":           defaultTextFieldMapping(),
+			"description":     types.NewTextProperty(), // ? additional config required
+			"content":         types.NewTextProperty(), // ? additional config required
+			"link":            types.NewKeywordProperty(),
+			"feedLink":        types.NewKeywordProperty(),
+			"links":           types.NewKeywordProperty(),
+			"feedType":        types.NewKeywordProperty(),
+			"feedVersion":     types.NewKeywordProperty(),
+			"updatedParsed":   types.NewDateNanosProperty(),
+			"publishedParsed": types.NewDateNanosProperty(),
+			// authors can be an array.
+			"authors": types.ObjectProperty{
+				Properties: map[string]types.Property{
+					"name":  defaultTextFieldMapping(),
+					"email": defaultTextFieldMapping(),
 				},
 			},
+			"language": defaultTextFieldMapping(),
+			"image": types.ObjectProperty{
+				Properties: map[string]types.Property{
+					"URL":   types.NewKeywordProperty(),
+					"Title": defaultTextFieldMapping(),
+				},
+			},
+			"copyright": defaultTextFieldMapping(),
+			"generator": defaultTextFieldMapping(),
+
+			// categories can be array.
+			"categories": defaultTextFieldMapping(),
+			// enclosures can be array.
+			"dublincoreext": dublinCoreMapping(),
+			"itunesext":     iTunesItemMapping(),
+			"extensions":    types.NewFlattenedProperty(),
+			"custom":        types.NewFlattenedProperty(),
 		},
 	}
 }
@@ -94,6 +72,9 @@ func feeditemsSettingsComponent(ilmPolicyName string) ComponentTemplate {
 func feeditemsMapping() *types.TypeMapping {
 	return &types.TypeMapping{
 		Dynamic: &dynamicmapping.False, // Ignore any additional fields in documents not listed in this mapping.
+		Meta_: types.Metadata{
+			"version": json.RawMessage(`"v0.0.1"`),
+		},
 		Properties: map[string]types.Property{
 			"@timestamp":  types.NewDateNanosProperty(),
 			"feed_id":     types.NewKeywordProperty(),

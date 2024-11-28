@@ -82,8 +82,8 @@ func Signup(res http.ResponseWriter, req *http.Request) {
 }
 
 // ProcessSignup takes the validated user sign up values and creates a new user.
-func ProcessSignup(res http.ResponseWriter, req *http.Request, authAPI authAPI, userAPI userStore) {
-	item, problems, err := decodeForm[*models.UserSignup](req)
+func ProcessSignup(res http.ResponseWriter, req *http.Request, auth models.Auth, db models.DB) {
+	newUser, problems, err := decodeForm[*models.APIUser](req)
 	if err != nil && len(problems) == 0 {
 		logging.FromContext(req.Context()).
 			Error("Could not decode submitted signup request.", slog.Any("error", err))
@@ -92,7 +92,7 @@ func ProcessSignup(res http.ResponseWriter, req *http.Request, authAPI authAPI, 
 	}
 
 	// Create the user in the auth backend.
-	user, err := authAPI.Create(req.Context(), item)
+	userID, err := auth.Create(req.Context(), newUser)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not create user account.", slog.Any("error", err))
@@ -106,8 +106,8 @@ func ProcessSignup(res http.ResponseWriter, req *http.Request, authAPI authAPI, 
 		return
 	}
 
-	// Add the new user to the store.
-	err = userAPI.AddUser(req.Context(), user)
+	// Create new user in the database backend.
+	err = db.AddUser(req.Context(), userID, newUser)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not create user account.", slog.Any("error", err))
@@ -129,7 +129,7 @@ func ProcessSignup(res http.ResponseWriter, req *http.Request, authAPI authAPI, 
 
 // UpdateSignupInput takes the user input, validation results and decorates the
 // sign up form with the results.
-func UpdateSignupInput(field string, item *models.UserSignup, problems models.ValidationErrors) components.Input {
+func UpdateSignupInput(field string, item *models.APIUser, problems models.ValidationErrors) components.Input {
 	form := signUpForm()
 
 	input, _ := form.Inputs.Get(field)

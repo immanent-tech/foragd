@@ -10,53 +10,24 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
-
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
 var ErrNoFeedID = errors.New("no feed ID provided")
 
-func queryItemsByFeedIDs(feedIDs ...string) *types.Query {
-	return &types.Query{
-		Terms: &types.TermsQuery{
-			TermsQuery: map[string]types.TermsQueryField{
-				"feed_id": feedIDs,
-			},
-		},
-	}
-}
-
-func sortFeedItemsByTimestamp() types.SortOptions {
-	return types.SortOptions{
-		SortOptions: map[string]types.FieldSort{
-			"@timestamp": {
-				Order: &sortorder.Desc,
-			},
-		},
-	}
-}
-
-func getSelectedFields(field ...string) []types.FieldAndFormat {
-	fields := make([]types.FieldAndFormat, len(field))
-	for i, name := range field {
-		fields[i] = types.FieldAndFormat{Field: name}
-	}
-
-	return fields
-}
-
-func (c *Client) GetFeedItemsSummary(ctx context.Context, feedIDs ...string) ([]models.APIItem, error) {
+func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.APIItem, error) {
 	if feedIDs == nil {
 		return nil, ErrNoFeedID
 	}
 
-	req := c.API.Search().
-		Index("feeditems-*").
-		Fields(getSelectedFields("@timestamp", "title", "description", "item_id", "image")...).
-		Query(queryItemsByFeedIDs(feedIDs...)).
-		Sort(sortFeedItemsByTimestamp()).Size(20)
+	req := c.NewSearchRequest(
+		IndexPattern(schema.FeedItemsSchemaPrefix+"-*"),
+		WithFields("@timestamp", "title", "description", "item_id", "image"),
+		WithQueryOptions(QueryByFeedIDs(feedIDs...)),
+		WithSortOptions(SortTimestampDesc()),
+	)
+
 	res, err := req.Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get feed item summaries: %w", err)
@@ -77,4 +48,20 @@ func (c *Client) GetFeedItemsSummary(ctx context.Context, feedIDs ...string) ([]
 	}
 
 	return items, nil
+}
+
+func (c *Client) AddFeedItems(ctx context.Context, items ...models.Item) error {
+	for _, item := range items {
+		c.logger.Debug("Adding item",
+			slog.String("name", item.Title),
+			slog.String("item_id", item.ID),
+			slog.String("feed_id", item.FeedID),
+		)
+
+		items = append(items, item)
+	}
+
+	c.feedItemsBulkStream <- items
+
+	return nil
 }

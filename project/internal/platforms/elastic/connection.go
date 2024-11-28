@@ -67,7 +67,8 @@ type Client struct {
 	conn                *elasticsearch.TypedClient
 	API                 *typedapi.API
 	logger              *slog.Logger
-	feedItemsBulkStream chan []models.FeedItem
+	feedItemsBulkStream chan []models.Item
+	feedsBulkStream     chan models.Feed
 }
 
 func Connect(ctx context.Context, config *koanf.Koanf) (*Client, error) {
@@ -77,7 +78,7 @@ func Connect(ctx context.Context, config *koanf.Koanf) (*Client, error) {
 	)
 
 	// Retrieve a logger from the context.
-	logger := logging.FromContext(ctx).With(slog.String("platform", "elastic"))
+	logger := logging.FromContext(ctx).WithGroup("elastic")
 
 	esconfig, err = genConfig(config, logger)
 	if err != nil {
@@ -95,10 +96,16 @@ func Connect(ctx context.Context, config *koanf.Koanf) (*Client, error) {
 		return nil, fmt.Errorf("%w: %w", ErrSetupFailed, err)
 	}
 
-	client.feedItemsBulkStream = make(chan []models.FeedItem)
+	client.feedItemsBulkStream = make(chan []models.Item)
 	go func() {
 		defer close(client.feedItemsBulkStream)
 		client.bulkIndexFeedItemsWorker(ctx)
+	}()
+
+	client.feedsBulkStream = make(chan models.Feed)
+	go func() {
+		defer close(client.feedsBulkStream)
+		client.bulkIndexFeedsWorker(ctx)
 	}()
 
 	return client, nil
@@ -106,21 +113,25 @@ func Connect(ctx context.Context, config *koanf.Koanf) (*Client, error) {
 
 func (c *Client) Setup(ctx context.Context) error {
 	// Get the latest ILM policy for feeditems from file.
-	policy, err := GetILMPolicy(schema.FeedItemsSchemaID)
+	policy, err := GetILMPolicy(schema.FeedItemsSchemaPrefix)
 	if err != nil {
 		return fmt.Errorf("get ILM Policy: %w", err)
 	}
 	// Update the ILM policy for feeditems.
-	if err := c.PutILMPolicy(ctx, schema.FeedItemsSchemaID, policy); err != nil {
+	if err := c.PutILMPolicy(ctx, schema.FeedItemsSchemaPrefix, policy); err != nil {
 		return fmt.Errorf("put ILM policy: %w", err)
+	}
+	// Add ingest pipeline(s).
+	if err := c.PutIngestPipeline(ctx, schema.IngestPipelineID, schema.FeedItemsIngestPipeline()); err != nil {
+		return fmt.Errorf("put ingest pipeline: %w", err)
 	}
 	// Update the feeditems index template.
 	if err := c.PutIndexTemplate(ctx, schema.FeeditemsIndexTemplate()); err != nil {
 		return fmt.Errorf("put index template: %w", err)
 	}
-
-	if err := c.PutIngestPipeline(ctx, schema.FeedItemsIngestPipeline()); err != nil {
-		return fmt.Errorf("put ingest pipeline: %w", err)
+	// Update the feeds index template.
+	if err := c.PutIndexTemplate(ctx, schema.FeedsIndexTemplate()); err != nil {
+		return fmt.Errorf("put index template: %w", err)
 	}
 
 	return nil

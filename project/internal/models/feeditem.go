@@ -4,51 +4,32 @@
 package models
 
 import (
+	"errors"
 	"time"
 
 	"github.com/mmcdole/gofeed"
 
-	components "github.com/joshuar/go-templ-daisyui"
-
 	"github.com/joshuar/go-feed-me/internal/id"
 )
 
-// GetImage extracts the item image and creates an image component that can be
-// rendered in a page.
-func (i *FeedItem) GetImage() *components.Image {
-	if i.Image != nil {
-		image := components.NewImage(
-			components.WithURL(i.Image.URL),
-			components.WithAltText(i.Image.Title),
-		)
-
-		return &image
-	}
-
-	return nil
-}
-
-func (i *FeedItem) IsNewer(since time.Time) bool {
+func (i *Item) isNewer(since time.Time) bool {
 	if i.UpdatedParsed != nil {
-		return i.UpdatedParsed.After(since)
+		return since.After(*i.UpdatedParsed)
 	}
 
-	return i.PublishedParsed.After(since)
+	return since.After(*i.PublishedParsed)
 }
 
-func NewFeedItem(feedID string, details *gofeed.Item) FeedItem {
-	return FeedItem{
-		FeedID: feedID,
-		ItemID: newItemID(),
-		Item:   details,
-	}
-}
+func NewFeedItem(feedID string, details *gofeed.Item) (*Item, error) {
+	var err error
 
-func newItemID() string {
-	feedID, err := id.NewID(id.Item)
+	itemID, err := id.NewID(id.Item)
 	if err != nil {
-		return ""
+		return nil, errors.Join(ErrInvalidID, err)
 	}
 
-	return feedID
+	item := &Item{ID: itemID, FeedID: feedID}
+	item.Item = details
+
+	return item, nil
 }

@@ -6,6 +6,7 @@ package scheduler
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 
@@ -19,18 +20,20 @@ const (
 	TypeGetFeedItems = "feed:getItems"
 )
 
+var ErrTaskFailed = errors.New("task failed")
+
 type TaskRunner struct {
-	db     dbAPI
-	cache  cacheAPI
+	cache  Cache
+	db     DB
 	logger *slog.Logger
 }
 
 type getFeedItemsPayload struct {
-	FeedID string `json:"feed_id"`
+	Feed models.APIFeed `json:"feed"`
 }
 
-func NewGetFeedItemsTask(feedID string) (*asynq.Task, error) {
-	payload, err := json.Marshal(getFeedItemsPayload{FeedID: feedID})
+func NewGetFeedItemsTask(feed models.APIFeed) (*asynq.Task, error) {
+	payload, err := json.Marshal(getFeedItemsPayload{Feed: feed})
 	if err != nil {
 		return nil, fmt.Errorf("could not marshal task payload: %w", err)
 	}
@@ -38,27 +41,30 @@ func NewGetFeedItemsTask(feedID string) (*asynq.Task, error) {
 	return asynq.NewTask(TypeGetFeedItems, payload), nil
 }
 
-func (r *TaskRunner) HandleGetFeedItemsTask(_ context.Context, t *asynq.Task) error {
+func (r *TaskRunner) HandleGetFeedItemsTask(ctx context.Context, t *asynq.Task) error {
 	var payload getFeedItemsPayload
 	if err := json.Unmarshal(t.Payload(), &payload); err != nil {
 		return fmt.Errorf("could not unmarshal task payload: %w", err)
 	}
 
-	itemCh := make(chan models.FeedItem)
-	defer close(itemCh)
-
-	go r.cache.CacheFeedItems(itemCh)
-
-	r.logger.Debug("Getting new items for feed.",
-		slog.String("feed_id", payload.FeedID))
-
-	items, err := r.db.GetNewItems(payload.FeedID)
+	// Get the time the feed items were last fetched.
+	lastFetched, err := r.db.GetFeedLastFetched(ctx, payload.Feed.ID)
 	if err != nil {
-		return fmt.Errorf("could not get new items for feed: %w", err)
+		return errors.Join(ErrTaskFailed, err)
+	}
+	// Get new items since the last fetch.
+	items := payload.Feed.GetItemsSince(ctx, lastFetched)
+	// Cache the new items.
+	if err := r.cache.AddFeedItems(ctx, items...); err != nil {
+		return fmt.Errorf("could not cache feed items: %w", err)
 	}
 
-	for _, item := range items {
-		itemCh <- item
+	if len(items) > 0 {
+		r.logger.Debug("Added new items for feed.",
+			slog.String("feed_id", payload.Feed.ID),
+			slog.String("title", payload.Feed.Title),
+			slog.Int("count", len(items)),
+		)
 	}
 
 	return nil

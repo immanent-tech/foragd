@@ -4,41 +4,42 @@
 package models
 
 import (
-	"fmt"
+	"context"
+	"errors"
 	"log/slog"
 	"time"
 
 	"github.com/mmcdole/gofeed"
 
 	"github.com/joshuar/go-feed-me/internal/id"
+	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
-type FeedDetails gofeed.Feed
+var ErrParseFeed = errors.New("could not parse feed")
 
-func (f *APIFeed) getDetails() (FeedDetails, error) {
-	fp := gofeed.NewParser()
+var parser = gofeed.NewParser()
 
-	details, err := fp.ParseURL(f.URL)
+// GetItemsSince retrieves the feed items that are newer than the given time.
+func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
+	var items []Item
+
+	details, err := parser.ParseURL(f.URL)
 	if err != nil {
-		return FeedDetails{}, fmt.Errorf("cannot parse feed: %w", err)
-	}
-
-	return FeedDetails(*details), nil
-}
-
-func (f *APIFeed) GetItemsSince(since time.Time) []FeedItem {
-	var items []FeedItem
-
-	details, err := f.getDetails()
-	if err != nil {
-		slog.Warn("Problem getting feed details.", slog.Any("error", err))
+		logging.FromContext(ctx).Warn("Problem getting feed details.", slog.Any("error", err))
 	}
 
 	for _, i := range details.Items {
-		item := NewFeedItem(f.ID, i)
-		if item.IsNewer(since) {
-			items = append(items, item)
+		item, err := NewFeedItem(f.ID, i)
+		if err != nil {
+			logging.FromContext(ctx).Warn("Problem creating new item.", slog.Any("error", err))
+			continue
 		}
+
+		if !item.isNewer(since) {
+			continue
+		}
+
+		items = append(items, *item)
 	}
 
 	return items
@@ -49,35 +50,39 @@ func (f *APIFeed) GetItemsSince(since time.Time) []FeedItem {
 func NewFeedFromURL(url string) (*Feed, error) {
 	var err error
 
-	fp := gofeed.NewParser()
-
-	details, err := fp.ParseURL(url)
-	if err != nil {
-		return nil, fmt.Errorf("cannot parse feed: %w", err)
-	}
-
 	feedID, err := id.NewID(id.Feed)
 	if err != nil {
-		return nil, fmt.Errorf("cannot create feed id: %w", err)
+		return nil, errors.Join(ErrInvalidID, err)
 	}
 
-	feed := &Feed{
-		URL:         url,
-		Title:       details.Title,
-		Description: details.Description,
-	}
-	feed.ID = feedID
+	feed := &Feed{ID: feedID}
 
-	if len(details.Categories) > 0 {
-		for _, c := range details.Categories {
-			feed.Categories = append(feed.Categories, &c)
-		}
+	details, err := parser.ParseURL(url)
+	if err != nil {
+		return nil, errors.Join(ErrParseFeed, err)
 	}
 
-	if details.Image != nil {
-		feed.ImageURL = &details.Image.URL
-		feed.ImageTitle = &details.Image.Title
-	}
+	feed.Feed = details
 
 	return feed, nil
 }
+
+func (f *APIFeed) CacheNewItems(ctx context.Context, cache Cache, db DB) error {
+	return nil
+}
+
+// func CacheNewFeedItems(ctx context.Context, cache Cache, db DB, feedID string) error {
+// 	itemCh := make(chan Item)
+// 	defer close(itemCh)
+
+// 	go cache.CacheFeedItems(itemCh)
+
+// 	items, err := cache.GetNewItems(feedID)
+// 	if err != nil {
+// 		return fmt.Errorf("could not get new items for feed: %w", err)
+// 	}
+
+// 	for _, item := range items {
+// 		itemCh <- item
+// 	}
+// }
