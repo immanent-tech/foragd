@@ -24,8 +24,8 @@ import (
 
 func IsAuthenticated(req *http.Request, pgMgr *postgres.Client) (bool, error) {
 	// Ensure there are valid tokens in the session.
-	valid, err := pgMgr.ValidateUser(req.Context())
-	if err != nil || !valid {
+	user, err := pgMgr.GetUser(req.Context())
+	if err != nil || user == nil {
 		return false, fmt.Errorf("user is invalid: %w", err)
 	}
 

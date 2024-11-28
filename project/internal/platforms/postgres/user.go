@@ -23,8 +23,6 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/yassinebenaid/godump"
-
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/server/session"
 )
@@ -48,24 +46,6 @@ func (c *Client) AddUser(_ context.Context, userID string, newUser *models.APIUs
 	)
 
 	return nil
-}
-
-func (c *Client) ValidateUser(ctx context.Context) (bool, error) {
-	var user models.User
-
-	tokens, err := session.GetTokens(ctx)
-	if err != nil {
-		return false, errors.Join(ErrInvalidToken, err)
-	}
-
-	godump.Dump(tokens)
-
-	tx := c.db.First(&user, "id = ?", tokens.UserID())
-	if tx.Error != nil || errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-		return false, errors.Join(ErrUnknownUser, err)
-	}
-
-	return true, nil
 }
 
 func (c *Client) GetUser(ctx context.Context) (*models.UserSession, error) {
