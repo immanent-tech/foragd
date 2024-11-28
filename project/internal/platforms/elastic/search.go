@@ -14,121 +14,116 @@ import (
 
 var ErrSearchFailed = errors.New("search failed")
 
+// QueryOption sets an option on a query object.
 type QueryOption func(*types.Query) *types.Query
 
 // QueryMatchAll adds a "Match All" clause.
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-all-query.html
 func QueryMatchAll() QueryOption {
-	return func(q *types.Query) *types.Query {
-		q.MatchAll = types.NewMatchAllQuery()
-		return q
+	return func(query *types.Query) *types.Query {
+		query.MatchAll = types.NewMatchAllQuery()
+		return query
 	}
 }
 
+// QueryByTerm adds a "Term" query on the given field with the given value.
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
 func QueryByTerm(field string, value any) QueryOption {
-	return func(q *types.Query) *types.Query {
-		q.Term = map[string]types.TermQuery{
+	return func(query *types.Query) *types.Query {
+		query.Term = map[string]types.TermQuery{
 			field: {Value: value},
 		}
 
-		return q
+		return query
 	}
 }
 
 // QueryByFeedIDs adds a "Terms" clause with the given Feed IDs.
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
 func QueryByFeedIDs(feedIDs ...string) QueryOption {
-	return func(q *types.Query) *types.Query {
-		q.Terms = &types.TermsQuery{
+	return func(query *types.Query) *types.Query {
+		query.Terms = &types.TermsQuery{
 			TermsQuery: map[string]types.TermsQueryField{
 				"feed_id": feedIDs,
 			},
 		}
 
-		return q
+		return query
 	}
 }
 
 // QuerySince adds a "Range" query to find documents newer than the given time.
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
 func QuerySince(since time.Time) QueryOption {
-	return func(q *types.Query) *types.Query {
+	return func(query *types.Query) *types.Query {
 		sinceStr := since.String()
-		q.Range = map[string]types.RangeQuery{
+		query.Range = map[string]types.RangeQuery{
 			"@timestamp": types.DateRangeQuery{
 				Gte: &sinceStr,
 			},
 		}
 
-		return q
+		return query
 	}
 }
 
-func QueryOptions(options ...QueryOption) *types.Query {
-	queryOptions := &types.Query{}
-
-	for _, option := range options {
-		queryOptions = option(queryOptions)
-	}
-
-	return queryOptions
-}
-
+// SearchOption applies an option to a search object.
 type SearchOption func(*search.Search) *search.Search
 
 // IndexPattern defines the index pattern the search will use.
 func IndexPattern(pattern string) SearchOption {
-	return func(s *search.Search) *search.Search {
-		s = s.Index(pattern)
-		return s
+	return func(search *search.Search) *search.Search {
+		search = search.Index(pattern)
+		return search
 	}
 }
 
 // WithQueryOptions adds the given query options (conditions) to the search.
 func WithQueryOptions(options ...QueryOption) SearchOption {
-	return func(s *search.Search) *search.Search {
+	return func(search *search.Search) *search.Search {
 		queryOptions := &types.Query{}
 
 		for _, option := range options {
 			queryOptions = option(queryOptions)
 		}
 
-		s.Query(queryOptions)
+		search.Query(queryOptions)
 
-		return s
+		return search
 	}
 }
 
 // WithSortOptions adds the given sorting options to the search.
 func WithSortOptions(options map[string]types.FieldSort) SearchOption {
-	return func(s *search.Search) *search.Search {
-		s = s.Sort(options)
-		return s
+	return func(search *search.Search) *search.Search {
+		search = search.Sort(options)
+		return search
 	}
 }
 
 // WithFields ensures the search will return the given fields in the response.
 func WithFields(fields ...string) SearchOption {
-	return func(s *search.Search) *search.Search {
+	return func(search *search.Search) *search.Search {
 		fieldsReturned := make([]types.FieldAndFormat, len(fields))
 		for i, name := range fields {
 			fieldsReturned[i] = types.FieldAndFormat{Field: name}
 		}
 
-		s.Fields(fieldsReturned...)
+		search.Fields(fieldsReturned...)
 
-		return s
+		return search
 	}
 }
 
 // SearchSize defines the number of results returned.
 func SearchSize(size int) SearchOption {
-	return func(s *search.Search) *search.Search {
-		s = s.Size(size)
-		return s
+	return func(search *search.Search) *search.Search {
+		search = search.Size(size)
+		return search
 	}
 }
 
+// NewSearchRequest creates a new search object with the given options.
 func (c *Client) NewSearchRequest(options ...SearchOption) *search.Search {
 	req := c.API.Search()
 
@@ -139,6 +134,8 @@ func (c *Client) NewSearchRequest(options ...SearchOption) *search.Search {
 	return req
 }
 
+// SortTimestampDesc returns a sort parameter for a search that will sort
+// results by the @timestamp field in descending order.
 func SortTimestampDesc() map[string]types.FieldSort {
 	return map[string]types.FieldSort{
 		"@timestamp": {
