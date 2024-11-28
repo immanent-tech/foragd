@@ -85,10 +85,7 @@ type FeedState struct {
 
 	// LastFetched indicates when the feed was last fetched from its source.
 	LastFetched time.Time `json:"last_fetched,omitempty"`
-
-	// Subscriptions is the list of user subscriptions to this feed.
-	Subscriptions []Subscription `json:"subscriptions,omitempty"`
-	UpdatedAt     time.Time      `json:"updated_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 // SchemaMetadata contains metadata fields for schema objects.

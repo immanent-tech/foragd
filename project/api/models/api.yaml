@@ -125,10 +125,10 @@ components:
               description: indicates when the feed was last fetched from its source.
               x-go-type: time.Time
               x-go-type-skip-optional-pointer: true
-            subscriptions:
-              description: is the list of user subscriptions to this feed.
-              x-go-type: '[]Subscription'
-              x-go-type-skip-optional-pointer: true
+            # subscriptions:
+            #   description: is the list of user subscriptions to this feed.
+            #   x-go-type: '[]Subscription'
+            #   x-go-type-skip-optional-pointer: true
     FeedCommon:
       description: contains common fields for feeds and items.
       type: object
