@@ -31,7 +31,6 @@ import (
 	"github.com/knadh/koanf/v2"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
@@ -64,11 +63,10 @@ var (
 )
 
 type Client struct {
-	conn                *elasticsearch.TypedClient
-	API                 *typedapi.API
-	logger              *slog.Logger
-	feedItemsBulkStream chan []models.Item
-	feedsBulkStream     chan models.Feed
+	conn       *elasticsearch.TypedClient
+	API        *typedapi.API
+	logger     *slog.Logger
+	bulkStream chan []document
 }
 
 func Connect(ctx context.Context, config *koanf.Koanf) (*Client, error) {
@@ -96,16 +94,10 @@ func Connect(ctx context.Context, config *koanf.Koanf) (*Client, error) {
 		return nil, fmt.Errorf("%w: %w", ErrSetupFailed, err)
 	}
 
-	client.feedItemsBulkStream = make(chan []models.Item)
+	client.bulkStream = make(chan []document)
 	go func() {
-		defer close(client.feedItemsBulkStream)
-		client.bulkIndexFeedItemsWorker(ctx)
-	}()
-
-	client.feedsBulkStream = make(chan models.Feed)
-	go func() {
-		defer close(client.feedsBulkStream)
-		client.bulkIndexFeedsWorker(ctx)
+		defer close(client.bulkStream)
+		client.bulkStreamWorker(ctx)
 	}()
 
 	return client, nil

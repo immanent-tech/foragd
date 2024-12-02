@@ -23,7 +23,6 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/cluster/putcomponenttemplate"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/putindextemplate"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
@@ -48,11 +47,13 @@ func (c *Client) PutIndexTemplate(ctx context.Context, template schema.IndexTemp
 	req := &putindextemplate.Request{
 		ComposedOf:    components,
 		IndexPatterns: template.IndexPatterns,
-		DataStream:    types.NewDataStreamVisibility(),
 		Priority:      &template.Priority,
 	}
 	if template.Meta != nil {
 		req.Meta_ = *template.Meta
+	}
+	if template.DataStream != nil {
+		req.DataStream = template.DataStream
 	}
 
 	resp, err := c.API.Indices.PutIndexTemplate(template.Name).Request(req).Do(ctx)

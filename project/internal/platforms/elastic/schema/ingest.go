@@ -13,41 +13,41 @@ const (
 )
 
 func FeedItemsIngestPipeline() putpipeline.Request {
-	useUpdatedAsTimestampDesc := "Use updated date as @timestamp if not nil"
-	usePublishedAsTimestampDesc := "Use published date as @timestamp if not nil"
-	publishedParsedNotNull := "ctx?.updatedParsed != null"
-	publishedParsedNull := "ctx?.updatedParsed == null"
-	targetField := "@timestamp"
-	// removeIgnoreMissing := true
-	// removeDesc := "Remove deprecated fields"
+	// useUpdatedAsTimestampDesc := "Use updated date as @timestamp if not nil"
+	// usePublishedAsTimestampDesc := "Use published date as @timestamp if not nil"
+	// publishedParsedNotNull := "ctx?.updatedParsed != null"
+	// publishedParsedNull := "ctx?.updatedParsed == null"
+	// targetField := "@timestamp"
+	removeIgnoreMissing := true
+	removeDesc := "Remove deprecated and unneeded fields"
 
 	return putpipeline.Request{
 		Processors: []types.ProcessorContainer{
-			{
-				Date: &types.DateProcessor{
-					Field:       "updatedParsed",
-					TargetField: &targetField,
-					Formats:     []string{"strict_date_optional_time_nanos", "epoch_millis"},
-					If:          &publishedParsedNull,
-					Description: &useUpdatedAsTimestampDesc,
-				},
-			},
-			{
-				Date: &types.DateProcessor{
-					Field:       "publishedParsed",
-					TargetField: &targetField,
-					Formats:     []string{"strict_date_optional_time_nanos", "epoch_millis"},
-					If:          &publishedParsedNotNull,
-					Description: &usePublishedAsTimestampDesc,
-				},
-			},
 			// {
-			// 	Remove: &types.RemoveProcessor{
-			// 		Field:         []string{"author_names", "author_emails"},
-			// 		IgnoreMissing: &removeIgnoreMissing,
-			// 		Description:   &removeDesc,
+			// 	Date: &types.DateProcessor{
+			// 		Field:       "updatedParsed",
+			// 		TargetField: &targetField,
+			// 		Formats:     []string{"strict_date_optional_time_nanos", "epoch_millis"},
+			// 		If:          &publishedParsedNull,
+			// 		Description: &useUpdatedAsTimestampDesc,
 			// 	},
 			// },
+			// {
+			// 	Date: &types.DateProcessor{
+			// 		Field:       "publishedParsed",
+			// 		TargetField: &targetField,
+			// 		Formats:     []string{"strict_date_optional_time_nanos", "epoch_millis"},
+			// 		If:          &publishedParsedNotNull,
+			// 		Description: &usePublishedAsTimestampDesc,
+			// 	},
+			// },
+			{
+				Remove: &types.RemoveProcessor{
+					Field:         []string{"author", "published", "updated", "items"},
+					IgnoreMissing: &removeIgnoreMissing,
+					Description:   &removeDesc,
+				},
+			},
 		},
 	}
 }

@@ -5,105 +5,112 @@ package elastic
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
+	"strings"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/bulk"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
-// func (c *Client) CacheFeedItems(stream chan models.Item) {
-// 	var items []models.Item //nolint:prealloc
+type BulkRequest struct {
+	*bulk.Bulk
+}
 
-// 	for item := range stream {
-// 		c.logger.Debug("Adding item",
-// 			slog.String("name", item.Title),
-// 			slog.String("item_id", item.ID),
-// 			slog.String("feed_id", item.FeedID),
-// 		)
+// document represents a single record in elasticsearch.
+type document interface {
+	DocID() string
+}
 
-// 		items = append(items, item)
-// 	}
+func (b *BulkRequest) generateItemCreateOps(documents ...document) error {
+	var errs error
 
-// 	c.feedItemsBulkStream <- items
-// }
+	for _, doc := range documents {
+		err := b.CreateOp(NewCreateOp(doc.DocID()), doc)
+		if err != nil {
+			errs = errors.Join(errs, fmt.Errorf("could not generate create op for %s: %w", doc.DocID(), err))
+			continue
+		}
+	}
 
-func (c *Client) bulkIndexFeedItemsWorker(ctx context.Context) {
+	return errs
+}
+
+// BulkOption sets an option on a bulk request.
+type BulkOption func(*bulk.Bulk) *bulk.Bulk
+
+// WithPipeline defines the ingest pipeline to use on each document.
+func WithPipeline(pipeline string) BulkOption {
+	return func(b *bulk.Bulk) *bulk.Bulk {
+		b = b.Pipeline(pipeline)
+		return b
+	}
+}
+
+// WithIndex defines the index on which the request will operate.
+func WithIndex(index string) BulkOption {
+	return func(b *bulk.Bulk) *bulk.Bulk {
+		b = b.Index(index)
+		return b
+	}
+}
+
+// NewSearchRequest creates a new search object with the given options.
+func (c *Client) NewBulkRequest(options ...BulkOption) *BulkRequest {
+	req := c.API.Bulk()
+
+	for _, option := range options {
+		req = option(req)
+	}
+
+	return &BulkRequest{Bulk: req}
+}
+
+func NewCreateOp(id string) types.CreateOperation {
+	op := types.NewCreateOperation()
+	op.Id_ = &id
+
+	return *op
+}
+
+func (c *Client) bulkStreamWorker(ctx context.Context) {
 	c.logger.Debug("Bulk indexer ready...")
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case items := <-c.feedItemsBulkStream:
+		case items := <-c.bulkStream:
 			if len(items) == 0 {
 				continue
 			}
 
-			bulkOp := c.API.Bulk()
-
-			for _, item := range items {
-				// data, _ := json.Marshal(op)
-				// fmt.Fprintf(os.Stdout, "%s\n\n", data)
-				itemID := item.ID
-				op := types.NewCreateOperation()
-				op.Id_ = &itemID
-
-				slog.Info("indexing item", slog.Any("item", item))
-
-				if err := bulkOp.CreateOp(*op, item); err != nil {
-					c.logger.Warn("Failed to create index operation for item.",
-						slog.String("item_id", item.ID),
-						slog.String("feed_id", item.FeedID),
-						slog.Any("error", err))
-				}
-			}
-
 			go func() {
-				resp, err := bulkOp.Index("feeditems-test").Pipeline(schema.IngestPipelineID).Do(ctx)
-
+				var req *BulkRequest
+				// Create a new bulk request.
 				switch {
-				case err != nil:
-					c.logger.Error("Bulk index failed.",
-						slog.Any("error", err))
-				case resp.Errors:
-					c.logger.Info("Bulk index completed with some errors.",
-						slog.Any("errors", resp.Items),
+				case strings.HasPrefix(items[0].DocID(), "item"):
+					req = c.NewBulkRequest(
+						WithIndex("feeditems-test"),
+						WithPipeline(schema.IngestPipelineID),
+					)
+				case strings.HasPrefix(items[0].DocID(), "feed"):
+					req = c.NewBulkRequest(
+						WithIndex("feeds-test"),
+						WithPipeline(schema.IngestPipelineID),
 					)
 				}
-			}()
-		}
-	}
-}
-
-func (c *Client) bulkIndexFeedsWorker(ctx context.Context) {
-	c.logger.Debug("Bulk indexer ready...")
-
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case feed := <-c.feedsBulkStream:
-
-			bulkOp := c.API.Bulk()
-
-			// data, _ := json.Marshal(op)
-			// fmt.Fprintf(os.Stdout, "%s\n\n", data)
-			feedID := feed.ID
-			op := types.NewCreateOperation()
-			op.Id_ = &feedID
-
-			slog.Info("indexing feed", slog.Any("feed", feed))
-
-			if err := bulkOp.CreateOp(*op, feed); err != nil {
-				c.logger.Warn("Failed to create index operation for item.",
-					slog.String("item_id", feed.ID),
-					slog.Any("error", err))
-			}
-
-			go func() {
-				resp, err := bulkOp.Index("feeds-test").Pipeline(schema.IngestPipelineID).Do(ctx)
-
+				// Add all the items to the bulk request.
+				if err := req.generateItemCreateOps(items...); err != nil {
+					c.logger.Warn("Problems encountered when generating create operations.",
+						slog.Any("error", err))
+				}
+				// Execute the bulk request.
+				resp, err := req.Do(ctx)
+				// Handle response.
 				switch {
 				case err != nil:
 					c.logger.Error("Bulk index failed.",

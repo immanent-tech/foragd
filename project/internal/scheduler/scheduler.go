@@ -26,6 +26,7 @@ const (
 // implementation.
 type DB interface {
 	GetFeedLastFetched(ctx context.Context, feedID string) (time.Time, error)
+	UpdateFeedLastFetched(ctx context.Context, feedID string, lastFetched time.Time) error
 }
 
 // Cache represents the required methods that the scheduler needs from a cache
@@ -36,41 +37,42 @@ type Cache interface {
 }
 
 type taskScheduler struct {
-	logger     *slog.Logger
-	cache      Cache
-	checkpoint time.Time
+	logger      *slog.Logger
+	cache       Cache
+	checkpoint  time.Time
+	taskConfigs []*asynq.PeriodicTaskConfig
 }
 
 func (s *taskScheduler) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
+	s.logger.Debug("Checking for new feeds.",
+		slog.Time("since", s.checkpoint.UTC()))
+
 	feeds, err := s.cache.GetNewFeedsSince(context.TODO(), s.checkpoint)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve updated feeds: %w", err)
 	}
 
-	s.checkpoint = time.Now()
-
-	var configs []*asynq.PeriodicTaskConfig
+	s.checkpoint = time.Now().UTC()
 
 	for _, feed := range feeds {
 		feedTask, err := NewGetFeedItemsTask(feed)
 		if err != nil {
 			s.logger.Error("Could not create new GetFeedItems task.",
 				slog.String("feed_id", feed.ID),
+				slog.String("feed_title", feed.Title),
 				slog.Any("error", err))
 
 			continue
 		}
 
-		configs = append(configs, &asynq.PeriodicTaskConfig{Cronspec: DefaultTaskCron, Task: feedTask})
+		slog.Debug("Adding task for feed.",
+			slog.String("feed_id", feed.ID),
+			slog.String("feed_title", feed.Title))
+
+		s.taskConfigs = append(s.taskConfigs, &asynq.PeriodicTaskConfig{Cronspec: DefaultTaskCron, Task: feedTask})
 	}
 
-	if len(configs) > 0 {
-		s.logger.Debug("Found new feeds.",
-			slog.Int("count", len(configs)),
-		)
-	}
-
-	return configs, nil
+	return s.taskConfigs, nil
 }
 
 func NewTaskScheduler(ctx context.Context, config *koanf.Koanf, cache Cache) error {
@@ -91,7 +93,8 @@ func NewTaskScheduler(ctx context.Context, config *koanf.Koanf, cache Cache) err
 		SyncInterval: DefaultTaskManagerSyncInterval,
 	}
 
-	logger.Debug("Starting task scheduler.", slog.Any("options", opts))
+	logger.Debug("Starting task scheduler.",
+		slog.Duration("sync_interval", opts.SyncInterval))
 
 	scheduler, err := asynq.NewPeriodicTaskManager(opts)
 	if err != nil {

@@ -21,10 +21,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"gorm.io/gorm"
-
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
 var (
@@ -48,21 +45,12 @@ func (c *Client) AddUser(_ context.Context, userID string, newUser *models.APIUs
 	return nil
 }
 
-func (c *Client) GetUser(ctx context.Context) (*models.UserSession, error) {
+func (c *Client) GetUserByID(_ context.Context, userID string) (*models.User, error) {
 	var user models.User
 
-	tokens, err := session.GetTokens(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get user details from session: %w", err)
+	if result := c.db.First(&user, "id = ?", userID); result.Error != nil {
+		return nil, fmt.Errorf("unable to get user from database: %w", result.Error)
 	}
 
-	tx := c.db.First(&user, "id = ?", tokens.UserID())
-	if tx.Error != nil || errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-		return nil, fmt.Errorf("unable to get user from database: %w", tx.Error)
-	}
-
-	return &models.UserSession{
-		Tokens: tokens,
-		User:   &user,
-	}, nil
+	return &user, nil
 }

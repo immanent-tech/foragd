@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	FeedSchemaPrefix      = "feed"
-	FeedItemsSchemaPrefix = "feeditem"
+	FeedSchemaPrefix      = "feeds"
+	FeedItemsSchemaPrefix = "feeditems"
 )
 
 const (
@@ -24,7 +24,8 @@ const (
 func feedMapping() *types.TypeMapping {
 	return &types.TypeMapping{
 		Meta_: types.Metadata{
-			"version": json.RawMessage(`"v0.0.1"`),
+			"version":     json.RawMessage(`"v0.0.1"`),
+			"description": json.RawMessage(`"Field mappings for feeds"`),
 		},
 		Dynamic: &dynamicmapping.False, // Ignore any additional fields in documents not listed in this mapping.
 		Properties: map[string]types.Property{
@@ -51,8 +52,8 @@ func feedMapping() *types.TypeMapping {
 			"language": defaultTextFieldMapping(),
 			"image": types.ObjectProperty{
 				Properties: map[string]types.Property{
-					"URL":   types.NewKeywordProperty(),
-					"Title": defaultTextFieldMapping(),
+					"url":   types.NewKeywordProperty(),
+					"title": defaultTextFieldMapping(),
 				},
 			},
 			"copyright": defaultTextFieldMapping(),
@@ -73,7 +74,8 @@ func feeditemsMapping() *types.TypeMapping {
 	return &types.TypeMapping{
 		Dynamic: &dynamicmapping.False, // Ignore any additional fields in documents not listed in this mapping.
 		Meta_: types.Metadata{
-			"version": json.RawMessage(`"v0.0.1"`),
+			"version":     json.RawMessage(`"v0.0.1"`),
+			"description": json.RawMessage(`"Field mappings for feed items"`),
 		},
 		Properties: map[string]types.Property{
 			"@timestamp":  types.NewDateNanosProperty(),
@@ -96,8 +98,8 @@ func feeditemsMapping() *types.TypeMapping {
 			"guid": types.NewKeywordProperty(),
 			"image": types.ObjectProperty{
 				Properties: map[string]types.Property{
-					"URL":   types.NewKeywordProperty(),
-					"Title": defaultTextFieldMapping(),
+					"url":   types.NewKeywordProperty(),
+					"title": defaultTextFieldMapping(),
 				},
 			},
 			// categories can be array.

@@ -12,14 +12,22 @@ import (
 	"github.com/joshuar/go-feed-me/internal/id"
 )
 
+// isNewer returns a boolean indicating whether this item has been updated or
+// published after the given time.
 func (i *Item) isNewer(since time.Time) bool {
+	var itemTime time.Time
+
 	if i.UpdatedParsed != nil {
-		return since.After(*i.UpdatedParsed)
+		itemTime = *i.UpdatedParsed
+	} else {
+		itemTime = *i.PublishedParsed
 	}
 
-	return since.After(*i.PublishedParsed)
+	return itemTime.After(since)
 }
 
+// NewFeedItem creates a new Feed object from the given item details, using the
+// given feed ID.
 func NewFeedItem(feedID string, details *gofeed.Item) (*Item, error) {
 	var err error
 
@@ -28,8 +36,11 @@ func NewFeedItem(feedID string, details *gofeed.Item) (*Item, error) {
 		return nil, errors.Join(ErrInvalidID, err)
 	}
 
-	item := &Item{ID: itemID, FeedID: feedID}
-	item.Item = details
-
-	return item, nil
+	return &Item{
+			CreatedAt: time.Now().UTC(),
+			ID:        itemID,
+			FeedID:    feedID,
+			Item:      details,
+		},
+		nil
 }

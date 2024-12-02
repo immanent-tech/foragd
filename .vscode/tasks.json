@@ -21,7 +21,21 @@
                 "panel": "dedicated",
                 "showReuseMessage": true,
                 "clear": false
-              },
-        }
+            },
+        },
+        {
+            "label": "Logs: view server log",
+            "type": "shell",
+            "command": "tail -F deployments/server.log",
+            "problemMatcher": [],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": true,
+                "clear": false
+            },
+        },
     ]
 }

@@ -7,8 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/joshuar/go-feed-me/internal/id"
+	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
 var (
@@ -18,40 +20,44 @@ var (
 	ErrSubscriptionInvalid = errors.New("invalid subscription")
 )
 
-func NewSubscription(ctx context.Context, cache Cache, db DB, newSub *APISubscription) error {
-	sub, err := db.GetSubscriptionByURL(ctx, newSub.URL)
-	if err != nil {
-		return errors.Join(ErrAddSubscription, err)
-	}
-
-	if sub.ID != "" {
-		return ErrSubscriptionExists
-	}
-
-	subID, err := id.NewID(id.Sub)
-	if err != nil {
-		return errors.Join(ErrInvalidID, err)
-	}
-
-	sub.ID = subID
-	sub.Name = newSub.Name
-
+func AddNewSubscription(ctx context.Context, userID string, cache Cache, db DB, sub *APISubscription) error {
+	// Get the feed details by the provided feed URL.
 	feed, err := cache.GetFeedByURL(ctx, sub.URL)
 	if err != nil {
 		return errors.Join(ErrAddSubscription, err)
 	}
-
+	// If the feed does not exist, create it.
 	if feed.ID == "" {
-		feed, err := NewFeedFromURL(sub.URL)
+		newFeed, err := NewFeedFromURL(sub.URL)
 		if err != nil {
 			return errors.Join(ErrAddSubscription, err)
 		}
 
-		if err := cache.AddFeed(ctx, *feed); err != nil {
+		logging.FromContext(ctx).Debug("Adding new feed.",
+			slog.String("feed_id", feed.ID),
+			slog.String("title", feed.Title),
+		)
+
+		if err := cache.AddFeeds(ctx, *newFeed); err != nil {
 			return errors.Join(ErrAddSubscription, err)
 		}
 
-		sub.FeedID = feed.ID
+		feed.ID = newFeed.ID
+	}
+
+	// Find a subscription by the provided feed URL.
+	newSub, err := db.FindSubscriptionByFeedID(ctx, feed.ID)
+	if err != nil {
+		return errors.Join(ErrAddSubscription, err)
+	}
+	// If the subscription already exists, nothing to do, exit.
+	if newSub.ID != "" {
+		return ErrSubscriptionExists
+	}
+	// Otherwise, create a new subscription from the proivded details.
+	newSub, err = newSubscription(sub.Name, feed.ID)
+	if err != nil {
+		return errors.Join(ErrAddSubscription, err)
 	}
 
 	if valid, errs := sub.Valid(ctx); !valid {
@@ -63,7 +69,8 @@ func NewSubscription(ctx context.Context, cache Cache, db DB, newSub *APISubscri
 		return err
 	}
 
-	if err := db.AddSubscription(ctx, &sub); err != nil {
+	// Add the new subscription.
+	if err := db.AddSubscription(ctx, userID, newSub); err != nil {
 		return errors.Join(ErrAddSubscription, err)
 	}
 
@@ -96,4 +103,19 @@ func (s *Subscription) Valid(_ context.Context) (bool, ValidationErrors) {
 
 func (s *APISubscription) Valid(_ context.Context) (bool, ValidationErrors) {
 	return validateStruct(s)
+}
+
+func newSubscription(name, feedID string) (*Subscription, error) {
+	// If the subscription does not exist
+	subID, err := id.NewID(id.Sub)
+	if err != nil {
+		return nil, errors.Join(ErrInvalidID, err)
+	}
+
+	return &Subscription{
+			ID:     subID,
+			Name:   name,
+			FeedID: feedID,
+		},
+		nil
 }

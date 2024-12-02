@@ -28,4 +28,5 @@ type IndexTemplate struct {
 	IndexPatterns []string
 	Components    []ComponentTemplate
 	Priority      int64
+	DataStream    *types.DataStreamVisibility
 }

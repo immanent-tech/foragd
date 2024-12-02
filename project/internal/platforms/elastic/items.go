@@ -16,6 +16,8 @@ import (
 
 var ErrNoFeedID = errors.New("no feed ID provided")
 
+var defaultItemFields = []string{"publishedParsed", "updatedParsed", "title", "description", "item_id", "image"}
+
 func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.APIItem, error) {
 	if feedIDs == nil {
 		return nil, ErrNoFeedID
@@ -23,7 +25,7 @@ func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.
 
 	req := c.NewSearchRequest(
 		IndexPattern(schema.FeedItemsSchemaPrefix+"-*"),
-		WithFields("@timestamp", "title", "description", "item_id", "image"),
+		WithFields(defaultItemFields...),
 		WithQueryOptions(QueryByFeedIDs(feedIDs...)),
 		WithSortOptions(SortTimestampDesc()),
 	)
@@ -51,6 +53,8 @@ func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.
 }
 
 func (c *Client) AddFeedItems(ctx context.Context, items ...models.Item) error {
+	var docs []document
+
 	for _, item := range items {
 		c.logger.Debug("Adding item",
 			slog.String("name", item.Title),
@@ -58,10 +62,10 @@ func (c *Client) AddFeedItems(ctx context.Context, items ...models.Item) error {
 			slog.String("feed_id", item.FeedID),
 		)
 
-		items = append(items, item)
+		docs = append(docs, &item)
 	}
 
-	c.feedItemsBulkStream <- items
+	c.bulkStream <- docs
 
 	return nil
 }

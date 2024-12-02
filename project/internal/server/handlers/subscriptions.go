@@ -26,6 +26,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/server/handlers/renderers"
+	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
 func subscriptionNameInput() components.Input {
@@ -41,7 +42,7 @@ func subscriptionNameInput() components.Input {
 }
 
 func subscriptionLinkInput() components.Input {
-	return components.NewInput("Link",
+	return components.NewInput("URL",
 		components.AsFormControl(),
 		components.WithInputLabel("Link"),
 		components.WithPlaceholder("https://my.favourite.site/feed.rss"),
@@ -89,7 +90,15 @@ func ProcessAddSubscriptionForm(res http.ResponseWriter, req *http.Request, cach
 		return
 	}
 
-	if err := models.NewSubscription(req.Context(), cache, db, newSubscription); err != nil {
+	userID, err := session.UserID(req.Context())
+	if err != nil {
+		logging.FromContext(req.Context()).
+			Error("Could not retrieve user ID from session.")
+		res.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if err := models.AddNewSubscription(req.Context(), userID, cache, db, newSubscription); err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not add item.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
@@ -109,7 +118,7 @@ func UpdateAddSubscriptionForm(field string, item *models.APISubscription, probl
 	switch field {
 	case "Name":
 		input.SetValue(item.Name)
-	case "Link":
+	case "URL":
 		input.SetValue(item.URL)
 	}
 

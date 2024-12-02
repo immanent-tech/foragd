@@ -23,7 +23,9 @@ type APIFeed struct {
 	Generator   string           `json:"generator,omitempty"`
 	Image       *gofeed.Image    `json:"image,omitempty"`
 	Language    string           `json:"language,omitempty"`
+	Published   time.Time        `json:"publishedParsed"`
 	Title       string           `json:"title"`
+	Updated     time.Time        `json:"updatedParsed"`
 }
 
 // APIItem defines model for APIItem.
@@ -35,8 +37,9 @@ type APIItem struct {
 	Categories  []string         `json:"categories,omitempty"`
 	Description string           `json:"description"`
 	Image       *gofeed.Image    `json:"image,omitempty"`
-	Timestamp   time.Time        `json:"@timestamp"`
+	Published   time.Time        `json:"publishedParsed"`
 	Title       string           `json:"title"`
+	Updated     time.Time        `json:"updatedParsed"`
 }
 
 // APISubscription represents a subscription object for the API endpoints.
@@ -74,7 +77,9 @@ type FeedCommon struct {
 	Categories  []string         `json:"categories,omitempty"`
 	Description string           `json:"description"`
 	Image       *gofeed.Image    `json:"image,omitempty"`
+	Published   time.Time        `json:"publishedParsed"`
 	Title       string           `json:"title"`
+	Updated     time.Time        `json:"updatedParsed"`
 }
 
 // FeedState defines model for FeedState.

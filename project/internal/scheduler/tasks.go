@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/hibiken/asynq"
 
@@ -47,6 +48,9 @@ func (r *TaskRunner) HandleGetFeedItemsTask(ctx context.Context, t *asynq.Task) 
 		return fmt.Errorf("could not unmarshal task payload: %w", err)
 	}
 
+	slog.Debug("Checking for feed updates.",
+		slog.String("feed_id", payload.Feed.ID))
+
 	// Get the time the feed items were last fetched.
 	lastFetched, err := r.db.GetFeedLastFetched(ctx, payload.Feed.ID)
 	if err != nil {
@@ -65,6 +69,10 @@ func (r *TaskRunner) HandleGetFeedItemsTask(ctx context.Context, t *asynq.Task) 
 			slog.String("title", payload.Feed.Title),
 			slog.Int("count", len(items)),
 		)
+	}
+
+	if err := r.db.UpdateFeedLastFetched(ctx, payload.Feed.ID, time.Now().UTC()); err != nil {
+		return errors.Join(ErrTaskFailed, err)
 	}
 
 	return nil

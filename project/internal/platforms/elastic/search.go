@@ -12,7 +12,10 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 )
 
-var ErrSearchFailed = errors.New("search failed")
+var (
+	ErrSearchFailed = errors.New("search failed")
+	ErrNoHits       = errors.New("no hits found")
+)
 
 // QueryOption sets an option on a query object.
 type QueryOption func(*types.Query) *types.Query
@@ -54,11 +57,17 @@ func QueryByFeedIDs(feedIDs ...string) QueryOption {
 
 // QuerySince adds a "Range" query to find documents newer than the given time.
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
-func QuerySince(since time.Time) QueryOption {
+func QuerySince(field string, since time.Time) QueryOption {
 	return func(query *types.Query) *types.Query {
-		sinceStr := since.String()
+		var sinceStr string
+		if since.IsZero() {
+			sinceStr = "0"
+		} else {
+			sinceStr = since.UTC().Format(time.RFC3339Nano)
+		}
+
 		query.Range = map[string]types.RangeQuery{
-			"@timestamp": types.DateRangeQuery{
+			field: types.DateRangeQuery{
 				Gte: &sinceStr,
 			},
 		}

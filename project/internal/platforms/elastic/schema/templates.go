@@ -3,7 +3,9 @@
 
 package schema
 
-import "github.com/elastic/go-elasticsearch/v8/typedapi/types"
+import (
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+)
 
 func FeedsIndexTemplate() IndexTemplate {
 	return IndexTemplate{
@@ -22,7 +24,7 @@ func FeedsIndexTemplate() IndexTemplate {
 }
 
 func FeeditemsIndexTemplate() IndexTemplate {
-	lifecycleName := FeedSchemaPrefix
+	lifecycleName := FeedItemsSchemaPrefix
 	lifecycle := types.NewIndexSettingsLifecycle()
 	lifecycle.Name = &lifecycleName
 
@@ -45,6 +47,7 @@ func FeeditemsIndexTemplate() IndexTemplate {
 				},
 			},
 		},
-		Priority: defaultPriority,
+		DataStream: types.NewDataStreamVisibility(),
+		Priority:   defaultPriority,
 	}
 }

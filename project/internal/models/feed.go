@@ -17,7 +17,12 @@ import (
 
 var ErrParseFeed = errors.New("could not parse feed")
 
-var parser = gofeed.NewParser()
+var parser *gofeed.Parser
+
+func init() {
+	parser = gofeed.NewParser()
+	parser.UserAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0"
+}
 
 // GetItemsSince retrieves the feed items that are newer than the given time.
 func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
@@ -55,34 +60,19 @@ func NewFeedFromURL(url string) (*Feed, error) {
 		return nil, errors.Join(ErrInvalidID, err)
 	}
 
-	feed := &Feed{ID: feedID}
-
 	details, err := parser.ParseURL(url)
 	if err != nil {
 		return nil, errors.Join(ErrParseFeed, err)
 	}
 
-	feed.Feed = details
-
-	return feed, nil
+	return &Feed{
+			CreatedAt: time.Now().UTC(),
+			ID:        feedID,
+			Feed:      details,
+		},
+		nil
 }
 
 func (f *APIFeed) CacheNewItems(ctx context.Context, cache Cache, db DB) error {
 	return nil
 }
-
-// func CacheNewFeedItems(ctx context.Context, cache Cache, db DB, feedID string) error {
-// 	itemCh := make(chan Item)
-// 	defer close(itemCh)
-
-// 	go cache.CacheFeedItems(itemCh)
-
-// 	items, err := cache.GetNewItems(feedID)
-// 	if err != nil {
-// 		return fmt.Errorf("could not get new items for feed: %w", err)
-// 	}
-
-// 	for _, item := range items {
-// 		itemCh <- item
-// 	}
-// }

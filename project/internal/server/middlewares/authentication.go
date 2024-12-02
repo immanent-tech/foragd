@@ -20,12 +20,13 @@ import (
 	"net/http"
 
 	"github.com/joshuar/go-feed-me/internal/platforms/postgres"
+	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
 func IsAuthenticated(req *http.Request, pgMgr *postgres.Client) (bool, error) {
 	// Ensure there are valid tokens in the session.
-	user, err := pgMgr.GetUser(req.Context())
-	if err != nil || user == nil {
+	valid, err := session.ValidUser(req.Context(), pgMgr)
+	if err != nil || !valid {
 		return false, fmt.Errorf("user is invalid: %w", err)
 	}
 

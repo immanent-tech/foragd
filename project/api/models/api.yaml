@@ -155,6 +155,16 @@ components:
           x-go-type-import:
             path: github.com/mmcdole/gofeed
           x-go-type-skip-optional-pointer: true
+        published:
+          x-oapi-codegen-extra-tags:
+            json: 'publishedParsed'
+          x-go-type: 'time.Time'
+          x-go-type-skip-optional-pointer: true
+        updated:
+          x-oapi-codegen-extra-tags:
+            json: 'updatedParsed'
+          x-go-type: 'time.Time'
+          x-go-type-skip-optional-pointer: true
 
     APIFeed:
       description: represents a feed object for API endpoints.
@@ -212,11 +222,6 @@ components:
         - $ref: '#/components/schemas/FeedCommon'
         - type: object
           properties:
-            timestamp:
-              x-oapi-codegen-extra-tags:
-                json: '@timestamp'
-              x-go-type: 'time.Time'
-              x-go-type-skip-optional-pointer: true
             ID:
               type: string
               x-oapi-codegen-extra-tags:
