@@ -41,7 +41,7 @@ func signUpForm() components.Form {
 				components.OptionalInput(),
 				components.WithInputLabel("Nickname"),
 				components.WithPlaceholder("SomeCoolName"),
-				components.WithInputAttributes(templ.Attributes{
+				components.WithAttributes[components.Input](templ.Attributes{
 					"hx-post": "/signup/validate",
 				}),
 			),
@@ -49,7 +49,7 @@ func signUpForm() components.Form {
 				components.AsFormControl(),
 				components.WithInputLabel("Email"),
 				components.WithPlaceholder("you@yourdomain.com"),
-				components.WithInputAttributes(templ.Attributes{
+				components.WithAttributes[components.Input](templ.Attributes{
 					"hx-post": "/signup/validate",
 				}),
 			),
@@ -57,7 +57,7 @@ func signUpForm() components.Form {
 				components.AsFormControl(),
 				components.WithInputType(components.InputTypePassword),
 				components.WithInputLabel("Password"),
-				components.WithInputAttributes(templ.Attributes{
+				components.WithAttributes[components.Input](templ.Attributes{
 					"hx-post": "/signup/validate",
 				}),
 			),
@@ -136,11 +136,11 @@ func UpdateSignupInput(field string, item *models.APIUser, problems models.Valid
 
 	switch field {
 	case "Email":
-		input.Attributes["value"] = item.Email
+		input.SetAttribute("value", item.Email)
 	case "Password":
-		input.Attributes["value"] = item.Password
+		input.SetAttribute("value", item.Password)
 	case "Nickname":
-		input.Attributes["value"] = item.Nickname
+		input.SetAttribute("value", item.Nickname)
 	}
 
 	if issue, found := problems[field]; found {

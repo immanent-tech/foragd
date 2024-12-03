@@ -133,8 +133,8 @@ func newFeedCard(feed models.APIFeed) components.Card {
 		components.WithCardLayout(components.CardLayoutSide),
 		components.WithTitle(feed.Title),
 		components.WithCardShadow(components.SM),
-		components.CardAttributes(templ.Attributes{
-			"hx-target": "#secondaryPane",
+		components.WithAttributes[components.Card](templ.Attributes{
+			"hx-target": "#content",
 			"hx-get":    "/feed/" + feed.ID,
 		}),
 		components.WithBody(templ.Raw(feed.Description)),
@@ -182,7 +182,7 @@ func newItemCard(item models.APIItem) components.Card {
 		image := components.NewImage(
 			components.WithURL(item.Image.URL),
 			components.WithAltText(item.Image.Title),
-			components.WithImageClasses("max-h-full"),
+			components.WithClasses[components.Image]("max-h-full"),
 		)
 		card.Image = &image
 	}

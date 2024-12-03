@@ -11,8 +11,8 @@ templ buttonAddItemIcon(classes ...string) {
 		components.WithModifier(components.ButtonGhost),
 		components.WithIcon(components.NewIcon("plus"), components.AlignMiddle),
 		components.WithButtonTooltip("Add Item", components.AlignRight),
-		components.WithButtonClasses(classes...),
-		components.ButtonAttributes(templ.Attributes{
+		components.WithClasses[components.Button](classes...),
+		components.WithAttributes[components.Button](templ.Attributes{
 			"hx-get":    "/subscription/add",
 			"hx-target": "#command-modal",
 			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #command-modal",
@@ -25,8 +25,8 @@ templ buttonToggleReadIcon(classes ...string) {
 		components.WithModifier(components.ButtonGhost),
 		components.WithIcon(components.NewIcon("check"), components.AlignMiddle),
 		components.WithButtonTooltip("Toggle Read Status", components.AlignRight),
-		components.WithButtonClasses(classes...),
-		components.ButtonAttributes(templ.Attributes{
+		components.WithClasses[components.Button](classes...),
+		components.WithAttributes[components.Button](templ.Attributes{
 			"hx-get":    "/subscription/add",
 			"hx-target": "#command-modal",
 			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #command-modal",

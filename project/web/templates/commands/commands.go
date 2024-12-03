@@ -24,7 +24,7 @@ import (
 var HelpCommand = components.NewButton("Help", "help",
 	components.WithModifier(components.ButtonGhost),
 	components.WithIcon(components.NewIcon("circle-info"), components.AlignLeft),
-	components.ButtonAttributes(templ.Attributes{
+	components.WithAttributes[components.Button](templ.Attributes{
 		"hx-get": "/home/help",
 		"_":      "on htmx:afterOnLoad wait 10ms then add .modal-open to #command-modal",
 	}),
@@ -33,7 +33,7 @@ var HelpCommand = components.NewButton("Help", "help",
 var SettingsCommand = components.NewButton("Settings", "settings",
 	components.WithModifier(components.ButtonGhost),
 	components.WithIcon(components.NewIcon("cog"), components.AlignLeft),
-	components.ButtonAttributes(templ.Attributes{
+	components.WithAttributes[components.Button](templ.Attributes{
 		"hx-get":    "/home/settings",
 		"hx-target": "#command-modal",
 		"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #command-modal",
@@ -43,7 +43,7 @@ var SettingsCommand = components.NewButton("Settings", "settings",
 var ProfileCommand = components.NewButton("Profile", "profile",
 	components.WithModifier(components.ButtonGhost),
 	components.WithIcon(components.NewIcon("user"), components.AlignLeft),
-	components.ButtonAttributes(templ.Attributes{
+	components.WithAttributes[components.Button](templ.Attributes{
 		"hx-get":    "/home/profile",
 		"hx-target": "#command-modal",
 		"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #command-modal",
@@ -53,7 +53,7 @@ var ProfileCommand = components.NewButton("Profile", "profile",
 var AddCommand = components.NewButton("Add", "add",
 	components.WithModifier(components.ButtonGhost),
 	components.WithIcon(components.NewIcon("plus"), components.AlignLeft),
-	components.ButtonAttributes(templ.Attributes{
+	components.WithAttributes[components.Button](templ.Attributes{
 		"hx-get":    "/home/add",
 		"hx-target": "#command-modal",
 		"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #command-modal",
@@ -63,7 +63,7 @@ var AddCommand = components.NewButton("Add", "add",
 var PrevCommand = components.NewButton("", "prev",
 	components.WithModifier(components.ButtonGhost),
 	components.WithIcon(components.NewIcon("arrow-left"), components.AlignLeft),
-	components.ButtonAttributes(templ.Attributes{
+	components.WithAttributes[components.Button](templ.Attributes{
 		"hx-get": "/home/prev",
 	}),
 )
@@ -71,7 +71,7 @@ var PrevCommand = components.NewButton("", "prev",
 var NextCommand = components.NewButton("", "next",
 	components.WithModifier(components.ButtonGhost),
 	components.WithIcon(components.NewIcon("arrow-right"), components.AlignRight),
-	components.ButtonAttributes(templ.Attributes{
+	components.WithAttributes[components.Button](templ.Attributes{
 		"hx-get": "/home/next",
 	}),
 )

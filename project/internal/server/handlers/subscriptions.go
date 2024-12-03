@@ -35,7 +35,7 @@ func subscriptionNameInput() components.Input {
 		components.OptionalInput(),
 		components.WithInputLabel("Name"),
 		components.WithPlaceholder("The Feed"),
-		components.WithInputAttributes(templ.Attributes{
+		components.WithAttributes[components.Input](templ.Attributes{
 			"hx-post": "/subscription/validate",
 		}),
 	)
@@ -46,7 +46,7 @@ func subscriptionLinkInput() components.Input {
 		components.AsFormControl(),
 		components.WithInputLabel("Link"),
 		components.WithPlaceholder("https://my.favourite.site/feed.rss"),
-		components.WithInputAttributes(templ.Attributes{
+		components.WithAttributes[components.Input](templ.Attributes{
 			"hx-post": "/subscription/validate",
 		}),
 	)
@@ -61,7 +61,8 @@ func addSubscriptionForm(inputs ...components.Input) components.Form {
 		components.Inputs(inputs...),
 		components.Buttons(
 			components.NewButton("Save", "save",
-				components.ButtonAttributes(templ.Attributes{
+				components.WithSize[components.Button](components.LG),
+				components.WithAttributes[components.Button](templ.Attributes{
 					"_": "on click take .modal-open from #command-modal wait 200ms",
 				}),
 			),
