@@ -122,16 +122,14 @@ linters:
 issues:
   exclude-rules:
     - path: '(.+)_test\.go'
-      text: 'copies lock'
-    - path: '(.+)_test\.go'
       linters:
         - funlen
         - varnamelen
         - wsl
         - dupl
   exclude-files:
-    - '(.+)\.gen\.go'
-    - '(.+)_generated.go'
+    - '(.+)\.gen\.go$'
+    - '(.+)_generated.go$'
 
 severity:
   default-severity: '@linter'
@@ -346,6 +344,7 @@ linters-settings:
       - findcall # (not needed) serves as a trivial example and test of the Analysis API.
       - framepointer # (not needed) reports assembly code that clobbers the frame pointer before saving it.
       - structtag # (dupl revive struct-tag) defines an Analyzer that checks struct field tags are well formed.
+      - copylocks
   lll:
     line-length: 140
   nolintlint:

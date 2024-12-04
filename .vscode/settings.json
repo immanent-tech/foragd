@@ -10,7 +10,8 @@
     "formatting.gofumpt": true,
     "ui.diagnostic.analyses": {
       "fieldalignment": true,
-      "unusedvariable": true
+      "unusedvariable": true,
+      "copylocks": false,
     }
   },
   "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
@@ -65,7 +66,9 @@
   },
   "conventionalCommits.lineBreak": "\\n",
   "go.lintTool": "golangci-lint",
-  "go.lintFlags": ["--fast"],
+  "go.lintFlags": [
+    "--fast"
+  ],
   "go.useLanguageServer": true,
   "[go]": {
     "editor.codeActionsOnSave": {
