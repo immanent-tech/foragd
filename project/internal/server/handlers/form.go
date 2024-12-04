@@ -40,7 +40,7 @@ type Validator interface {
 	Valid(ctx context.Context) (bool, models.ValidationErrors)
 }
 
-func decodeForm[T Validator](req *http.Request) (T, models.ValidationErrors, error) {
+func DecodeForm[T Validator](req *http.Request) (T, models.ValidationErrors, error) {
 	var obj T
 	// Parse form values in request.
 	if err := req.ParseForm(); err != nil {
@@ -61,10 +61,10 @@ func decodeForm[T Validator](req *http.Request) (T, models.ValidationErrors, err
 	return obj, nil, nil
 }
 
-func decodeRequest[T Validator](req *http.Request) (T, models.ValidationErrors, error) {
+func DecodeRequest[T Validator](req *http.Request) (T, models.ValidationErrors, error) {
 	var obj T
 	if err := json.NewDecoder(req.Body).Decode(&obj); err != nil {
-		return obj, nil, fmt.Errorf("decode json: %w", err)
+		return obj, nil, fmt.Errorf("decode request: %w", err)
 	}
 
 	if ok, problems := obj.Valid(req.Context()); !ok {

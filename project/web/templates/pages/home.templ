@@ -6,10 +6,10 @@ package pages
 import "github.com/joshuar/go-feed-me/web/templates/partials"
 
 templ HomePage() {
-	<div class="drawer w-full flex h-svh max-h-svh">
+	<div class="drawer lg:drawer-open w-full flex h-svh max-h-svh">
 		<!-- Navbar -->
 		<input id="home-drawer" type="checkbox" class="drawer-toggle"/>
-		<div class="drawer-side h-full flex-1/3">
+		<div class="drawer-side">
 			@partials.Navbar()
 		</div>
 		<!-- Main Content Area-->

@@ -18,7 +18,21 @@ templ skeletonCard() {
 }
 
 templ ShowCardList(cards ...components.Card) {
-	for _, card := range cards {
-		@card.Show()
-	}
+	<div id="content" class="flex flex-col space-y-8">
+		for _, card := range cards {
+			<div>
+				// Render a hidden input for this feed.
+				@components.NewHiddenInput(card.ID(), "feeds", card.ID()).Show()
+				// Render the feed card.
+				@card.Show()
+			</div>
+		}
+	</div>
+}
+
+templ ShowFeeds(cards ...components.Card) {
+	@ShowCardList(cards...)
+}
+
+templ ShowItems(cards ...components.Card) {
 }

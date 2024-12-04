@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -77,7 +78,7 @@ func AddNewSubscription(ctx context.Context, userID string, cache Cache, db DB, 
 	return nil
 }
 
-func GetSubcribedFeeds(ctx context.Context, cache Cache, db DB) ([]APIFeed, error) {
+func GetSubcribedFeeds(ctx context.Context, cache Cache, db DB, feedFilters ...string) ([]APIFeed, error) {
 	// Get user subscriptions
 	subs, err := db.GetAllSubscriptions(ctx)
 	if err != nil {
@@ -85,8 +86,19 @@ func GetSubcribedFeeds(ctx context.Context, cache Cache, db DB) ([]APIFeed, erro
 	}
 
 	var feedIDs []string
-	for _, sub := range subs {
-		feedIDs = append(feedIDs, sub.FeedID)
+
+	if len(feedFilters) > 0 {
+		// If there filters were provided, filter the list of subscriptions.
+		for _, sub := range subs {
+			if slices.Contains(feedFilters, sub.FeedID) {
+				feedIDs = append(feedIDs, sub.FeedID)
+			}
+		}
+	} else {
+		// Otherwise include all subscriptions.
+		for _, sub := range subs {
+			feedIDs = append(feedIDs, sub.FeedID)
+		}
 	}
 
 	feeds, err := cache.GetFeeds(ctx, feedIDs...)

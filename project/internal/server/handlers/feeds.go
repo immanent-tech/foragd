@@ -18,29 +18,11 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
-const (
-	paramAll = "_all"
-)
-
-// GetFeedHandler handles /home/feed endpoints.
-func GetFeedHandler(res http.ResponseWriter, req *http.Request, feedID string, cache models.Cache, db models.DB) {
-	logging.LogReq(req, http.StatusAccepted).Info("processing request")
-
-	if feedID == paramAll || feedID == "" {
-		// No feedID given, or special "_all" value requested. Display all
-		// subscribed feeds.
-		showAllFeeds(res, req, cache, db)
-	} else {
-		// Display a summary for the specified feed.
-		showItems(res, req, cache, feedID)
-	}
-}
-
-// showAllFeeds shows a list of all subscribed feeds as cards.
-func showAllFeeds(res http.ResponseWriter, req *http.Request, cache models.Cache, db models.DB) {
+// ShowFeeds displays the details for the given feeds.
+func ShowFeeds(res http.ResponseWriter, req *http.Request, cache models.Cache, db models.DB, filters *models.Filters) {
 	var feedCards []components.Card
 	// Get all subscribed feeds.
-	feeds, err := models.GetSubcribedFeeds(req.Context(), cache, db)
+	feeds, err := models.GetSubcribedFeeds(req.Context(), cache, db, filters.Feeds...)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not add item.", slog.Any("error", err))
@@ -129,13 +111,15 @@ func showItems(res http.ResponseWriter, req *http.Request, cache models.Cache, f
 // }
 
 func newFeedCard(feed models.APIFeed) components.Card {
-	card := components.NewCard(feed.ID,
+	card := components.NewCard(
 		components.WithCardLayout(components.CardLayoutSide),
 		components.WithTitle(feed.Title),
 		components.WithCardShadow(components.SM),
+		components.WithID[components.Card](feed.ID),
 		components.WithAttributes[components.Card](templ.Attributes{
-			"hx-target": "#content",
-			"hx-get":    "/feed/" + feed.ID,
+			"hx-target":  "#content",
+			"hx-get":     "/list/items",
+			"hx-include": "[id='" + feed.ID + "']",
 		}),
 		components.WithBody(templ.Raw(feed.Description)),
 	)
@@ -166,7 +150,7 @@ func newFeedCard(feed models.APIFeed) components.Card {
 }
 
 func newItemCard(item models.APIItem) components.Card {
-	card := components.NewCard(item.ID,
+	card := components.NewCard(
 		components.WithCardLayout(components.CardLayoutSide),
 		components.WithTitle(item.Title),
 		components.WithCardShadow(components.XL),
@@ -200,9 +184,9 @@ func newItemCard(item models.APIItem) components.Card {
 
 // GetFeedItemHandler handles /home/feed/item endpoints.
 func GetFeedItemHandler(res http.ResponseWriter, req *http.Request, feedID string, itemID string, cache models.Cache, db models.DB) {
-	if feedID == paramAll && itemID == "_all" {
-		showAllItems(res, req, cache, db)
-	}
+	// if feedID == paramAll && itemID == "_all" {
+	// 	showAllItems(res, req, cache, db)
+	// }
 }
 
 // func HomeFeed(res http.ResponseWriter, req *http.Request, websocket *gws.Upgrader) {

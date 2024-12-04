@@ -12,6 +12,12 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// FeedID defines model for FeedID.
+type FeedID = string
+
+// ItemID defines model for ItemID.
+type ItemID = string
+
 // GetLoginCallbackParams defines parameters for GetLoginCallback.
 type GetLoginCallbackParams struct {
 	Code  string `form:"code" json:"code"`
@@ -20,6 +26,12 @@ type GetLoginCallbackParams struct {
 
 // PostSubscriptionValidateFormdataRequestBody defines body for PostSubscriptionValidate for application/x-www-form-urlencoded ContentType.
 type PostSubscriptionValidateFormdataRequestBody = externalRef0.APISubscription
+
+// ListFeedsFormdataRequestBody defines body for ListFeeds for application/x-www-form-urlencoded ContentType.
+type ListFeedsFormdataRequestBody = externalRef0.Filters
+
+// ListItemsFormdataRequestBody defines body for ListItems for application/x-www-form-urlencoded ContentType.
+type ListItemsFormdataRequestBody = externalRef0.Filters
 
 // PostSignupMultipartRequestBody defines body for PostSignup for multipart/form-data ContentType.
 type PostSignupMultipartRequestBody = externalRef0.APIUser
@@ -32,18 +44,15 @@ type ServerInterface interface {
 	// Index
 	// (GET /)
 	GetIndex(w http.ResponseWriter, r *http.Request)
+	// retrieve a feed by ID
+	// (GET /feed/{feed})
+	GetFeed(w http.ResponseWriter, r *http.Request, feed FeedID)
+	// retrieve an item by ID
+	// (GET /feed/{feed}/{item})
+	GetItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
 	// Display user home page
 	// (GET /home)
 	GetHome(w http.ResponseWriter, r *http.Request)
-	// Display a list of feed items, or all feeds if no ID provided
-	// (GET /home/feed/{feedID})
-	GetHomeFeed(w http.ResponseWriter, r *http.Request, feedID string)
-	// Display a feed item, or all feed items if no ID provided, for a feed
-	// (GET /home/feed/{feedID}/item/{itemID})
-	GetHomeFeedItem(w http.ResponseWriter, r *http.Request, feedID string, itemID string)
-	// Issue a user search request
-	// (POST /home/search)
-	PostHomeSearch(w http.ResponseWriter, r *http.Request)
 	// Show user settings modal
 	// (GET /home/settings)
 	GetHomeSettings(w http.ResponseWriter, r *http.Request)
@@ -62,6 +71,12 @@ type ServerInterface interface {
 	// Validate a subscription
 	// (POST /home/subscription/validate)
 	PostSubscriptionValidate(w http.ResponseWriter, r *http.Request)
+	// list feeds filtered by given parameters
+	// (GET /list/feeds)
+	ListFeeds(w http.ResponseWriter, r *http.Request)
+	// list items with filtered by given parameters
+	// (GET /list/items)
+	ListItems(w http.ResponseWriter, r *http.Request)
 	// Process a user login with given provider
 	// (GET /login/{provider})
 	GetLogin(w http.ResponseWriter, r *http.Request, provider string)
@@ -71,6 +86,9 @@ type ServerInterface interface {
 	// Logout handler for provider
 	// (GET /logout/{provider})
 	GetLogout(w http.ResponseWriter, r *http.Request, provider string)
+	// Issue a user search request
+	// (POST /search)
+	Search(w http.ResponseWriter, r *http.Request)
 	// User sign up
 	// (GET /signup)
 	GetSignup(w http.ResponseWriter, r *http.Request)
@@ -92,27 +110,21 @@ func (_ Unimplemented) GetIndex(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// retrieve a feed by ID
+// (GET /feed/{feed})
+func (_ Unimplemented) GetFeed(w http.ResponseWriter, r *http.Request, feed FeedID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// retrieve an item by ID
+// (GET /feed/{feed}/{item})
+func (_ Unimplemented) GetItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Display user home page
 // (GET /home)
 func (_ Unimplemented) GetHome(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Display a list of feed items, or all feeds if no ID provided
-// (GET /home/feed/{feedID})
-func (_ Unimplemented) GetHomeFeed(w http.ResponseWriter, r *http.Request, feedID string) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Display a feed item, or all feed items if no ID provided, for a feed
-// (GET /home/feed/{feedID}/item/{itemID})
-func (_ Unimplemented) GetHomeFeedItem(w http.ResponseWriter, r *http.Request, feedID string, itemID string) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Issue a user search request
-// (POST /home/search)
-func (_ Unimplemented) PostHomeSearch(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -152,6 +164,18 @@ func (_ Unimplemented) PostSubscriptionValidate(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// list feeds filtered by given parameters
+// (GET /list/feeds)
+func (_ Unimplemented) ListFeeds(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// list items with filtered by given parameters
+// (GET /list/items)
+func (_ Unimplemented) ListItems(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Process a user login with given provider
 // (GET /login/{provider})
 func (_ Unimplemented) GetLogin(w http.ResponseWriter, r *http.Request, provider string) {
@@ -167,6 +191,12 @@ func (_ Unimplemented) GetLoginCallback(w http.ResponseWriter, r *http.Request, 
 // Logout handler for provider
 // (GET /logout/{provider})
 func (_ Unimplemented) GetLogout(w http.ResponseWriter, r *http.Request, provider string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Issue a user search request
+// (POST /search)
+func (_ Unimplemented) Search(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -211,84 +241,70 @@ func (siw *ServerInterfaceWrapper) GetIndex(w http.ResponseWriter, r *http.Reque
 	handler.ServeHTTP(w, r)
 }
 
+// GetFeed operation middleware
+func (siw *ServerInterfaceWrapper) GetFeed(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "feed" -------------
+	var feed FeedID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetFeed(w, r, feed)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetItem operation middleware
+func (siw *ServerInterfaceWrapper) GetItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "feed" -------------
+	var feed FeedID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "item" -------------
+	var item ItemID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetItem(w, r, feed, item)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetHome operation middleware
 func (siw *ServerInterfaceWrapper) GetHome(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHome(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// GetHomeFeed operation middleware
-func (siw *ServerInterfaceWrapper) GetHomeFeed(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feedID" -------------
-	var feedID string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feedID", chi.URLParam(r, "feedID"), &feedID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feedID", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetHomeFeed(w, r, feedID)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// GetHomeFeedItem operation middleware
-func (siw *ServerInterfaceWrapper) GetHomeFeedItem(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feedID" -------------
-	var feedID string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feedID", chi.URLParam(r, "feedID"), &feedID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feedID", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "itemID" -------------
-	var itemID string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "itemID", chi.URLParam(r, "itemID"), &itemID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "itemID", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetHomeFeedItem(w, r, feedID, itemID)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// PostHomeSearch operation middleware
-func (siw *ServerInterfaceWrapper) PostHomeSearch(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostHomeSearch(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -404,6 +420,34 @@ func (siw *ServerInterfaceWrapper) PostSubscriptionValidate(w http.ResponseWrite
 	handler.ServeHTTP(w, r)
 }
 
+// ListFeeds operation middleware
+func (siw *ServerInterfaceWrapper) ListFeeds(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListFeeds(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListItems operation middleware
+func (siw *ServerInterfaceWrapper) ListItems(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListItems(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetLogin operation middleware
 func (siw *ServerInterfaceWrapper) GetLogin(w http.ResponseWriter, r *http.Request) {
 
@@ -503,6 +547,20 @@ func (siw *ServerInterfaceWrapper) GetLogout(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetLogout(w, r, provider)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Search operation middleware
+func (siw *ServerInterfaceWrapper) Search(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Search(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -671,16 +729,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/", wrapper.GetIndex)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/feed/{feed}", wrapper.GetFeed)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/feed/{feed}/{item}", wrapper.GetItem)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home", wrapper.GetHome)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/feed/{feedID}", wrapper.GetHomeFeed)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/feed/{feedID}/item/{itemID}", wrapper.GetHomeFeedItem)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/search", wrapper.PostHomeSearch)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)
@@ -701,6 +756,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/home/subscription/validate", wrapper.PostSubscriptionValidate)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/list/feeds", wrapper.ListFeeds)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/list/items", wrapper.ListItems)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/login/{provider}", wrapper.GetLogin)
 	})
 	r.Group(func(r chi.Router) {
@@ -708,6 +769,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/logout/{provider}", wrapper.GetLogout)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/search", wrapper.Search)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/signup", wrapper.GetSignup)

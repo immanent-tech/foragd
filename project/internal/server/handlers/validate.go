@@ -39,7 +39,7 @@ func Validate[T Validator](res http.ResponseWriter, req *http.Request, updater f
 			Warn("No trigger found but validation called?")
 	}
 
-	item, problems, err := decodeForm[T](req)
+	item, problems, err := DecodeForm[T](req)
 	if err != nil && len(problems) == 0 { // Internal validation error.
 		logging.FromContext(req.Context()).
 			Warn("Internal validation error.", slog.Any("error", err))

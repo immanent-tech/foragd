@@ -5,18 +5,6 @@ package partials
 
 templ MainContent() {
 	<div class="flex overflow-y-scroll">
-		<!-- Primary Pane -->
-		<div id="content" class="flex flex-col space-y-8">
-			<div hx-get="/feed/_all" hx-trigger="load">
-				for  range 5 {
-					@skeletonCard()
-				}
-			</div>
-		</div>
-		// <div class="divider divider-horizontal"></div>
-		// <!-- Secondary Pane -->
-		// <div id="secondaryPane" class="basis-2/3 flex flex-col space-y-8">
-		// 	<div hx-get="/feed/_all/item/_all" hx-trigger="load"></div>
-		// </div>
+		<div id="content" hx-get="/list/feeds" hx-trigger="load" class="flex flex-col space-y-8"></div>
 	</div>
 }

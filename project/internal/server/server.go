@@ -152,10 +152,11 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		signupRouter.Post("/validate", wrapper.PostSignupValidate)
 	})
 
+	router.Post("/search", wrapper.Search)
+
 	// /home routes.
 	router.Route("/home", func(homeRouter chi.Router) {
 		homeRouter.Get("/", wrapper.GetHome)
-		homeRouter.Post("/search", wrapper.PostHomeSearch)
 		homeRouter.Get("/settings", wrapper.GetHomeSettings)
 	})
 	// /subscription routes.
@@ -166,10 +167,17 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		r.Post("/edit", wrapper.PostSubscriptionEdit)
 		r.Post("/validate", wrapper.PostSubscriptionValidate)
 	})
+
+	// /list routes
+	router.Route("/list", func(r chi.Router) {
+		r.Get("/feeds", wrapper.ListFeeds)
+		r.Get("/items", wrapper.ListItems)
+	})
+
 	// /feed routes
 	router.Route("/feed", func(r chi.Router) {
-		r.Get("/{feedID}", wrapper.GetHomeFeed)
-		r.Get("/{feedID}/item/{itemID}", wrapper.GetHomeFeedItem)
+		r.Get("/{feed}", wrapper.GetFeed)
+		r.Get("/{feed}/{item}", wrapper.GetItem)
 	})
 
 	return router

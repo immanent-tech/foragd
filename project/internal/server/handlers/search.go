@@ -16,10 +16,35 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
+
+	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
+
+	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 func Search(res http.ResponseWriter, req *http.Request) {
+	filters, problems, err := DecodeRequest[*models.Filters](req)
+
+	if err != nil && len(problems) == 0 {
+		logging.FromContext(req.Context()).
+			Error("Could not decode filters.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
+
+	if len(problems) > 0 {
+		logging.FromContext(req.Context()).
+			Debug("Problems were encountered when decoding filters.", slog.Any("problems", problems))
+	}
+
+	url, triggered := htmx.GetCurrentURL(req)
+	spew.Dump(url, triggered, filters)
+
 	res.WriteHeader(http.StatusNotImplemented)
 	// searchRequest, problems, err := decodeForm[*models.SearchRequest](req)
 	// if err != nil && len(problems) == 0 { // Internal validation error.

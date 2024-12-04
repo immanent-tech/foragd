@@ -93,6 +93,13 @@ type FeedState struct {
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
+// Filters contains any filter options for display.
+type Filters struct {
+	Feeds      []string `form:"feeds" json:"feeds"`
+	Items      []string `form:"items" json:"items"`
+	Categories []string `form:"categories" json:"categories"`
+}
+
 // SchemaMetadata contains metadata fields for schema objects.
 type SchemaMetadata struct {
 	CreatedAt time.Time `json:"created_at"`

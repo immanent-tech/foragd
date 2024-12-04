@@ -36,7 +36,8 @@ func signUpForm() components.Form {
 			"hx-post": "/signup",
 		}),
 		components.Inputs(
-			components.NewInput("Nickname",
+			components.NewInput(
+				components.WithID[components.Input]("Nickname"),
 				components.AsFormControl(),
 				components.OptionalInput(),
 				components.WithInputLabel("Nickname"),
@@ -45,7 +46,8 @@ func signUpForm() components.Form {
 					"hx-post": "/signup/validate",
 				}),
 			),
-			components.NewInput("Email",
+			components.NewInput(
+				components.WithID[components.Input]("Email"),
 				components.AsFormControl(),
 				components.WithInputLabel("Email"),
 				components.WithPlaceholder("you@yourdomain.com"),
@@ -53,7 +55,8 @@ func signUpForm() components.Form {
 					"hx-post": "/signup/validate",
 				}),
 			),
-			components.NewInput("Password",
+			components.NewInput(
+				components.WithID[components.Input]("Password"),
 				components.AsFormControl(),
 				components.WithInputType(components.InputTypePassword),
 				components.WithInputLabel("Password"),
@@ -83,7 +86,7 @@ func Signup(res http.ResponseWriter, req *http.Request) {
 
 // ProcessSignup takes the validated user sign up values and creates a new user.
 func ProcessSignup(res http.ResponseWriter, req *http.Request, auth models.Auth, db models.DB) {
-	newUser, problems, err := decodeForm[*models.APIUser](req)
+	newUser, problems, err := DecodeForm[*models.APIUser](req)
 	if err != nil && len(problems) == 0 {
 		logging.FromContext(req.Context()).
 			Error("Could not decode submitted signup request.", slog.Any("error", err))

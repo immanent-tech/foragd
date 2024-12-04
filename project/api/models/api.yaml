@@ -310,3 +310,31 @@ components:
           x-oapi-codegen-extra-tags:
             json: 'iat'
           x-go-type-skip-optional-pointer: true
+    Filters:
+      description: contains any filter options for display.
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            json: 'categories'
+            form: 'categories'
+          x-go-type-skip-optional-pointer: true
+        Feeds:
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            json: 'feeds'
+            form: 'feeds'
+          x-go-type-skip-optional-pointer: true
+        Items:
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            json: 'items'
+            form: 'items'
+          x-go-type-skip-optional-pointer: true

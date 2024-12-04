@@ -30,7 +30,8 @@ import (
 )
 
 func subscriptionNameInput() components.Input {
-	return components.NewInput("Name",
+	return components.NewInput(
+		components.WithID[components.Input]("Name"),
 		components.AsFormControl(),
 		components.OptionalInput(),
 		components.WithInputLabel("Name"),
@@ -42,7 +43,8 @@ func subscriptionNameInput() components.Input {
 }
 
 func subscriptionLinkInput() components.Input {
-	return components.NewInput("URL",
+	return components.NewInput(
+		components.WithID[components.Input]("URL"),
 		components.AsFormControl(),
 		components.WithInputLabel("Link"),
 		components.WithPlaceholder("https://my.favourite.site/feed.rss"),
@@ -82,7 +84,7 @@ func AddSubscriptionHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func ProcessAddSubscriptionForm(res http.ResponseWriter, req *http.Request, cache models.Cache, db models.DB) {
-	newSubscription, problems, err := decodeForm[*models.APISubscription](req)
+	newSubscription, problems, err := DecodeForm[*models.APISubscription](req)
 	if err != nil && len(problems) == 0 {
 		logging.FromContext(req.Context()).
 			Error("Could not decode submitted add feed request.", slog.Any("error", err))
