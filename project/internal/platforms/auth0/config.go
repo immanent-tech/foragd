@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/knadh/koanf/parsers/toml"
 	"github.com/knadh/koanf/providers/env"
@@ -21,20 +22,21 @@ const (
 )
 
 // Default config values.
-var config = &Config{}
-
-var ErrLoadConfig = errors.New("error loading config")
+var (
+	config        = &Config{}
+	ErrLoadConfig = errors.New("error loading config")
+)
 
 // Config structure.
 type Config struct {
-	Domain       string `toml:"auth0.domain"`
-	ClientID     string `toml:"auth0.client_id"`
-	ClientSecret string `toml:"auth0.client_secret"`
+	Domain       string `toml:"domain"`
+	ClientID     string `toml:"client_id"`
+	ClientSecret string `toml:"client_secret"`
 }
 
 var configSrc = koanf.New(".")
 
-func loadConfig() error {
+var loadConfig = sync.OnceValue(func() error {
 	// Load config file
 	if err := configSrc.Load(file.Provider(Auth0ConfigFile), toml.Parser()); err != nil {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
@@ -47,9 +49,9 @@ func loadConfig() error {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 	// Unmarshal config, overwriting defaults.
-	if err := configSrc.Unmarshal(Auth0ConfigPrefix, config); err != nil {
+	if err := configSrc.UnmarshalWithConf(Auth0ConfigPrefix, config, koanf.UnmarshalConf{Tag: "toml"}); err != nil {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 
 	return nil
-}
+})

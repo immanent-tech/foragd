@@ -30,8 +30,8 @@ var ErrLoadConfig = errors.New("error loading config")
 
 // Config structure.
 type Config struct {
-	RedisServer string `toml:"scheduler.redis.server"`
-	RedisPort   int    `toml:"scheduler.redis.port"`
+	RedisServer string `toml:"redis.server"`
+	RedisPort   int    `toml:"redis.port"`
 }
 
 var configSrc = koanf.New(".")
@@ -49,7 +49,7 @@ func loadConfig() error {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 	// Unmarshal config, overwriting defaults.
-	if err := configSrc.Unmarshal(SchedulerConfigPrefix, config); err != nil {
+	if err := configSrc.UnmarshalWithConf(SchedulerConfigPrefix, config, koanf.UnmarshalConf{Tag: "toml"}); err != nil {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 

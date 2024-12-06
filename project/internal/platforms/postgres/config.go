@@ -31,7 +31,7 @@ var ErrLoadConfig = errors.New("error loading config")
 
 // Config contains the server configuration options.
 type Config struct {
-	DSN string `toml:"postgres.dsn"`
+	DSN string `toml:"dsn"`
 }
 
 var configSrc = koanf.New(".")
@@ -47,7 +47,7 @@ func loadConfig() error {
 			strings.TrimPrefix(s, PostgresConfigEnvPrefix)), "_", ".", -1)
 	}), nil)
 	// Unmarshal config, overwriting defaults.
-	if err := configSrc.Unmarshal("postgres", config); err != nil {
+	if err := configSrc.UnmarshalWithConf("postgres", config, koanf.UnmarshalConf{Tag: "toml"}); err != nil {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 

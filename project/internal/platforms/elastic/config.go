@@ -46,17 +46,17 @@ var (
 // DevelopmentConfig are the configuration options for elastic in production
 // deployments.
 type DevelopmentConfig struct {
-	CAFile   string   `toml:"elastic.development.ca_file"`
-	Username string   `toml:"elastic.development.username"`
-	Password string   `toml:"elastic.development.password"`
-	URLs     []string `toml:"elastic.development.urls"`
+	CAFile   string   `toml:"ca_file"`
+	Username string   `toml:"username"`
+	Password string   `toml:"password"`
+	URLs     []string `toml:"urls"`
 }
 
 // ProductionConfig are the configuration options for elastic in production
 // deployments.
 type ProductionConfig struct {
-	CloudID string `toml:"elastic.production.cloud_id"`
-	APIKey  string `toml:"elastic.production.api_key"`
+	CloudID string `toml:"cloud_id"`
+	APIKey  string `toml:"api_key"`
 }
 
 // Config contains the server configuration options.
@@ -80,7 +80,7 @@ func loadConfig(logger *slog.Logger, environment string) (*elasticsearch.Config,
 		return nil, fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 	// Unmarshal config, overwriting defaults.
-	if err := configSrc.Unmarshal(ElasticConfigPrefix+"."+environment, config); err != nil {
+	if err := configSrc.UnmarshalWithConf(ElasticConfigPrefix+"."+environment, config, koanf.UnmarshalConf{Tag: "toml"}); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 
