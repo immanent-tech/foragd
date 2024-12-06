@@ -1,4 +1,5 @@
 [server]
+secret = "someSecret"
 environment = "development"
 port = 7000
 loglevel = "debug"

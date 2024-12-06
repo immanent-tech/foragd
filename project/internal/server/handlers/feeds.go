@@ -19,10 +19,10 @@ import (
 )
 
 // ShowFeeds displays the details for the given feeds.
-func ShowFeeds(res http.ResponseWriter, req *http.Request, cache models.Cache, db models.DB, filters *models.Filters) {
+func ShowFeeds(res http.ResponseWriter, req *http.Request, cache models.Cache, db models.DB) {
 	var feedCards []components.Card
 	// Get all subscribed feeds.
-	feeds, err := models.GetSubcribedFeeds(req.Context(), cache, db, filters.Feeds...)
+	feeds, err := models.GetSubcribedFeeds(req.Context(), cache, db)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not add item.", slog.Any("error", err))
@@ -31,6 +31,22 @@ func ShowFeeds(res http.ResponseWriter, req *http.Request, cache models.Cache, d
 	for _, feed := range feeds {
 		feedCards = append(feedCards, newFeedCard(feed))
 	}
+
+	cookie := http.Cookie{
+		Name:     "feeds",
+		Value:    "foo bar baz",
+		Path:     "/home/items",
+		MaxAge:   3600,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	// Use the http.SetCookie() function to send the cookie to the client.
+	// Behind the scenes this adds a `Set-Cookie` header to the response
+	// containing the necessary cookie data.
+	http.SetCookie(res, &cookie)
+
 	// Render the list of feed cards.
 	if err := htmx.NewResponse().
 		RenderTempl(req.Context(), res, partials.ShowCardList(feedCards...)); err != nil {
@@ -42,7 +58,7 @@ func ShowFeeds(res http.ResponseWriter, req *http.Request, cache models.Cache, d
 }
 
 // showAllItems shows a list of all items from all subscribed feeds as cards.
-func showAllItems(res http.ResponseWriter, req *http.Request, cache models.Cache, db models.DB) {
+func ShowItems(res http.ResponseWriter, req *http.Request, cache models.Cache, db models.DB) {
 	var (
 		itemCards []components.Card
 		feedIDs   []string
@@ -117,9 +133,8 @@ func newFeedCard(feed models.APIFeed) components.Card {
 		components.WithCardShadow(components.SM),
 		components.WithID[components.Card](feed.ID),
 		components.WithAttributes[components.Card](templ.Attributes{
-			"hx-target":  "#content",
-			"hx-get":     "/list/items",
-			"hx-include": "[id='" + feed.ID + "']",
+			"hx-target": "#content",
+			"hx-post":   "/home/items",
 		}),
 		components.WithBody(templ.Raw(feed.Description)),
 	)

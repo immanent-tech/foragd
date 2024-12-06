@@ -12,39 +12,52 @@ import (
 
 // APIFeed defines model for APIFeed.
 type APIFeed struct {
-	ID          string           `json:"feed_id"`
-	URL         string           `json:"feedLink" validate:"required,url"`
-	Authors     []*gofeed.Person `json:"authors,omitempty"`
-	Categories  []string         `json:"categories,omitempty"`
-	Copyright   string           `json:"copyright,omitempty"`
-	Description string           `json:"description"`
-	FeedType    string           `json:"feedType"`
-	FeedVersion string           `json:"feedVersion"`
-	Generator   string           `json:"generator,omitempty"`
-	Image       *gofeed.Image    `json:"image,omitempty"`
-	Language    string           `json:"language,omitempty"`
-	Published   time.Time        `json:"publishedParsed"`
-	Title       string           `json:"title"`
-	Updated     time.Time        `json:"updatedParsed"`
+	// ID is the unique ID of a feed.
+	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+
+	// URL is a URL.
+	URL     string           `json:"feedLink" validate:"required,url"`
+	Authors []*gofeed.Person `json:"authors,omitempty"`
+
+	// Categories is a list of feed/item categories.
+	Categories  Categories    `form:"categories" json:"categories"`
+	Copyright   string        `json:"copyright,omitempty"`
+	Description string        `json:"description"`
+	FeedType    string        `json:"feedType"`
+	FeedVersion string        `json:"feedVersion"`
+	Generator   string        `json:"generator,omitempty"`
+	Image       *gofeed.Image `json:"image,omitempty"`
+	Language    string        `json:"language,omitempty"`
+	Published   time.Time     `json:"publishedParsed"`
+	Title       string        `json:"title"`
+	Updated     time.Time     `json:"updatedParsed"`
 }
 
 // APIItem defines model for APIItem.
 type APIItem struct {
-	FeedID      string           `json:"feed_id"`
-	ID          string           `json:"item_id"`
-	URL         string           `json:"url" validate:"required,url"`
-	Authors     []*gofeed.Person `json:"authors,omitempty"`
-	Categories  []string         `json:"categories,omitempty"`
-	Description string           `json:"description"`
-	Image       *gofeed.Image    `json:"image,omitempty"`
-	Published   time.Time        `json:"publishedParsed"`
-	Title       string           `json:"title"`
-	Updated     time.Time        `json:"updatedParsed"`
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+
+	// ID is the unique ID of an item.
+	ID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
+
+	// URL is a URL.
+	URL     URL              `gorm:"-" json:"url" validate:"required,url"`
+	Authors []*gofeed.Person `json:"authors,omitempty"`
+
+	// Categories is a list of feed/item categories.
+	Categories  Categories    `form:"categories" json:"categories"`
+	Description string        `json:"description"`
+	Image       *gofeed.Image `json:"image,omitempty"`
+	Published   time.Time     `json:"publishedParsed"`
+	Title       string        `json:"title"`
+	Updated     time.Time     `json:"updatedParsed"`
 }
 
 // APISubscription represents a subscription object for the API endpoints.
 type APISubscription struct {
-	URL string `gorm:"-" json:"url" validate:"required,url"`
+	// URL is a URL.
+	URL URL `gorm:"-" json:"url" validate:"required,url"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name string `json:"name,omitempty"`
@@ -56,6 +69,9 @@ type APIUser struct {
 	Nickname string `json:"nickname,omitempty" validate:"omitempty"`
 	Password string `json:"password" validate:"required"`
 }
+
+// Categories is a list of feed/item categories.
+type Categories = []string
 
 // Claims defines model for Claims.
 type Claims struct {
@@ -71,55 +87,110 @@ type Claims struct {
 	UserPictureURL string      `json:"picture"`
 }
 
-// FeedCommon contains common fields for feeds and items.
-type FeedCommon struct {
-	Authors     []*gofeed.Person `json:"authors,omitempty"`
-	Categories  []string         `json:"categories,omitempty"`
-	Description string           `json:"description"`
-	Image       *gofeed.Image    `json:"image,omitempty"`
-	Published   time.Time        `json:"publishedParsed"`
-	Title       string           `json:"title"`
-	Updated     time.Time        `json:"updatedParsed"`
-}
+// FeedID is the unique ID of a feed.
+type FeedID = string
+
+// FeedIDs is a list of feed IDs.
+type FeedIDs = []FeedID
 
 // FeedState defines model for FeedState.
 type FeedState struct {
-	ID        string    `gorm:"primaryKey" json:"feed_id"`
+	ID string `gorm:"primaryKey" json:"feed_id"`
+
+	// CreatedAt records when the object was created in the database.
 	CreatedAt time.Time `json:"created_at"`
+
+	// DeletedAt records when the object was deleted.
 	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
 
 	// LastFetched indicates when the feed was last fetched from its source.
 	LastFetched time.Time `json:"last_fetched,omitempty"`
-	UpdatedAt   time.Time `json:"updated_at"`
-}
 
-// Filters contains any filter options for display.
-type Filters struct {
-	Feeds      []string `form:"feeds" json:"feeds"`
-	Items      []string `form:"items" json:"items"`
-	Categories []string `form:"categories" json:"categories"`
-}
-
-// SchemaMetadata contains metadata fields for schema objects.
-type SchemaMetadata struct {
-	CreatedAt time.Time `json:"created_at"`
-	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
+	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// FeedsFilters contains settings for feeds list pane.
+type FeedsFilters struct {
+	// Categories is a list of feed/item categories.
+	Categories Categories `form:"categories" json:"categories"`
+
+	// Feeds is a list of feed IDs.
+	Feeds FeedIDs `form:"feeds" json:"feeds"`
+}
+
+// ItemID is the unique ID of an item.
+type ItemID = string
+
+// ItemIDs is a list of item IDs.
+type ItemIDs = []ItemID
+
+// ItemsFilters defines model for ItemsFilters.
+type ItemsFilters struct {
+	// Categories is a list of feed/item categories.
+	Categories Categories `form:"categories" json:"categories"`
+
+	// Feeds is a list of feed IDs.
+	Feeds FeedIDs `form:"feeds" json:"feeds"`
+
+	// Items is a list of item IDs.
+	Items ItemIDs `form:"items" json:"items"`
+}
+
+// MetadataDB contains common (metadata) fields for database objects.
+type MetadataDB struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt time.Time `json:"created_at"`
+
+	// DeletedAt records when the object was deleted.
+	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// MetadataFeed contains common/metadata fields for feeds and items.
+type MetadataFeed struct {
+	Authors []*gofeed.Person `json:"authors,omitempty"`
+
+	// Categories is a list of feed/item categories.
+	Categories  Categories    `form:"categories" json:"categories"`
+	Description string        `json:"description"`
+	Image       *gofeed.Image `json:"image,omitempty"`
+	Published   time.Time     `json:"publishedParsed"`
+	Title       string        `json:"title"`
+	Updated     time.Time     `json:"updatedParsed"`
 }
 
 // Subscription defines model for Subscription.
 type Subscription struct {
-	FeedID    string    `json:"feed_id" validate:"required"`
-	ID        string    `gorm:"primaryKey" json:"subscription_id" validate:"required"`
-	URL       string    `gorm:"-" json:"url" validate:"required,url"`
-	UserID    string    `json:"user_id" validate:"required"`
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+
+	// ID is the unique ID of a subscription.
+	ID SubscriptionID `gorm:"primaryKey" json:"subscription_id" validate:"required"`
+
+	// URL is a URL.
+	URL URL `gorm:"-" json:"url" validate:"required,url"`
+
+	// UserID is the unique ID of a user.
+	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
+
+	// CreatedAt records when the object was created in the database.
 	CreatedAt time.Time `json:"created_at"`
+
+	// DeletedAt records when the object was deleted.
 	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
-	Name      string    `json:"name,omitempty"`
+	Name string `json:"name,omitempty"`
+
+	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt time.Time `json:"updated_at"`
 }
+
+// SubscriptionID is the unique ID of a subscription.
+type SubscriptionID = string
 
 // Tokens defines model for Tokens.
 type Tokens struct {
@@ -128,13 +199,26 @@ type Tokens struct {
 	IDToken     *oidc.IDToken `json:"IDToken"`
 }
 
+// URL is a URL.
+type URL = string
+
 // User defines model for User.
 type User struct {
-	ID        string    `gorm:"primaryKey" json:"user_id"`
+	// ID is the unique ID of a user.
+	ID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
+
+	// CreatedAt records when the object was created in the database.
 	CreatedAt time.Time `json:"created_at"`
+
+	// DeletedAt records when the object was deleted.
 	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
 
 	// Subscriptions is the list of user subscriptions.
 	Subscriptions []Subscription `json:"subscriptions,omitempty"`
-	UpdatedAt     time.Time      `json:"updated_at"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt time.Time `json:"updated_at"`
 }
+
+// UserID is the unique ID of a user.
+type UserID = string

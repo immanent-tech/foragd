@@ -8,6 +8,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
+
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/server/handlers"
 )
@@ -18,7 +20,8 @@ var _ ServerInterface = (*Server)(nil)
 // GetLogin handles login for provider.
 // (GET /login/{provider}).
 func (s Server) GetLogin(res http.ResponseWriter, req *http.Request, provider string) {
-	ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "UserLogin")))
+	logger := s.Logger.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
+	ctx := logging.ToContext(req.Context(), logger)
 
 	switch provider {
 	case "auth0":
@@ -32,18 +35,17 @@ func (s Server) GetLogin(res http.ResponseWriter, req *http.Request, provider st
 // GetLoginCallback handles callback from provider.
 // (GET /login/{provider}/callback).
 func (s Server) GetLoginCallback(res http.ResponseWriter, req *http.Request, provider string, params GetLoginCallbackParams) {
-	ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "UserLoginCallback")))
+	logger := s.Logger.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
+	ctx := logging.ToContext(req.Context(), logger)
 
 	if params.Code == "" {
-		logging.FromContext(req.Context()).
-			Error("Invalid code.")
+		logger.Error("Invalid code.")
 		res.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	if params.State == "" {
-		logging.FromContext(req.Context()).
-			Error("Invalid state.")
+		logger.Error("Invalid state.")
 		res.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -52,22 +54,24 @@ func (s Server) GetLoginCallback(res http.ResponseWriter, req *http.Request, pro
 	case "auth0":
 		handlers.Auth0Callback(res, req.WithContext(ctx), s.API.auth, params.Code, params.State)
 	default:
-		s.Logger.Warn("No provider to satisfy callback.")
+		logger.Warn("No provider to satisfy callback.")
 		http.NotFound(res, req)
 	}
+	// Redirect to logged in page.
+	req.Header.Add("Content-Type", "")
+	http.Redirect(res, req.WithContext(ctx), "/home", http.StatusTemporaryRedirect)
 }
 
 // GetLogout handles logging user out from specified provider.
 // (GET /logout/{provider}).
 func (s Server) GetLogout(res http.ResponseWriter, req *http.Request, provider string) {
-	ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "UserLogout")))
+	logger := s.Logger.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
 
 	switch provider {
 	case "auth0":
-		handlers.Auth0LogoutHandler(res, req.WithContext(ctx), s.API.auth)
+		handlers.Auth0LogoutHandler(res, req, s.API.auth)
 	default:
-		logging.LogReq(req, http.StatusNotFound).
-			Error("No provider to statisfy login.")
+		logger.Error("No provider to satisfy login.")
 		http.NotFound(res, req)
 	}
 }

@@ -23,11 +23,17 @@ import (
 	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
-func IsAuthenticated(req *http.Request, pgMgr *postgres.Client) (bool, error) {
-	// Ensure there are valid tokens in the session.
-	valid, err := session.ValidUser(req.Context(), pgMgr)
-	if err != nil || !valid {
-		return false, fmt.Errorf("user is invalid: %w", err)
+// IsAuthenticated checks whether the session user is a valid user.
+func IsAuthenticated(req *http.Request, db *postgres.Client) (bool, error) {
+	// Get the user tokens from the session storage.
+	tokens, err := session.GetTokens(req.Context())
+	if err != nil {
+		return false, fmt.Errorf("unable to get user details from session: %w", err)
+	}
+	// Ensure the user ID in the token matches a user in the database.
+	_, err = db.GetUserByID(req.Context(), tokens.UserID())
+	if err != nil {
+		return false, fmt.Errorf("unable to get user details from session: %w", err)
 	}
 
 	return true, nil

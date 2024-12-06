@@ -96,10 +96,6 @@ func Auth0Callback(res http.ResponseWriter, req *http.Request, authenticator *au
 		res.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-
-	// Redirect to logged in page.
-	req.Header.Add("Content-Type", "")
-	http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
 }
 
 func Auth0LogoutHandler(res http.ResponseWriter, req *http.Request, authenticator *auth0.Authenticator) {

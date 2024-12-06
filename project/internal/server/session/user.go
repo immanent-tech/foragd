@@ -22,18 +22,3 @@ func UserID(ctx context.Context) (string, error) {
 
 	return tokens.IDToken.Subject, nil
 }
-
-func ValidUser(ctx context.Context, db DB) (bool, error) {
-	// Get the user tokens from the session storage.
-	tokens, err := GetTokens(ctx)
-	if err != nil {
-		return false, fmt.Errorf("unable to get user details from session: %w", err)
-	}
-	// Ensure the user ID in the token matches a user in the database.
-	_, err = db.GetUserByID(ctx, tokens.UserID())
-	if err != nil {
-		return false, fmt.Errorf("unable to get user details from session: %w", err)
-	}
-
-	return true, nil
-}

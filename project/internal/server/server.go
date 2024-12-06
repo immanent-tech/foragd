@@ -154,30 +154,25 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	router.Post("/search", wrapper.Search)
 
-	// /home routes.
+	// /subscription routes.
+	router.Route("/subscription", func(subscriptionRouter chi.Router) {
+		subscriptionRouter.Get("/add", wrapper.GetSubscriptionAdd)
+		subscriptionRouter.Post("/add", wrapper.PostSubscriptionAdd)
+		subscriptionRouter.Get("/edit", wrapper.GetSubscriptionEdit)
+		subscriptionRouter.Post("/edit", wrapper.PostSubscriptionEdit)
+		subscriptionRouter.Post("/validate", wrapper.PostSubscriptionValidate)
+	})
+
+	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
 		homeRouter.Get("/", wrapper.GetHome)
+		homeRouter.Get("/feeds", wrapper.GetFeedList)
+		homeRouter.Post("/feeds", wrapper.UpdateFeedList)
+		homeRouter.Get("/items", wrapper.ListItems)
+		homeRouter.Post("/items", wrapper.UpdateItemsList)
+		homeRouter.Get("/home/{feed}", wrapper.ShowFeed)
+		homeRouter.Get("/home/{feed}/{item}", wrapper.ShowItem)
 		homeRouter.Get("/settings", wrapper.GetHomeSettings)
-	})
-	// /subscription routes.
-	router.Route("/subscription", func(r chi.Router) {
-		r.Get("/add", wrapper.GetSubscriptionAdd)
-		r.Post("/add", wrapper.PostSubscriptionAdd)
-		r.Get("/edit", wrapper.GetSubscriptionEdit)
-		r.Post("/edit", wrapper.PostSubscriptionEdit)
-		r.Post("/validate", wrapper.PostSubscriptionValidate)
-	})
-
-	// /list routes
-	router.Route("/list", func(r chi.Router) {
-		r.Get("/feeds", wrapper.ListFeeds)
-		r.Get("/items", wrapper.ListItems)
-	})
-
-	// /feed routes
-	router.Route("/feed", func(r chi.Router) {
-		r.Get("/{feed}", wrapper.GetFeed)
-		r.Get("/{feed}/{item}", wrapper.GetItem)
 	})
 
 	return router

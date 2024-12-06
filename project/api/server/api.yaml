@@ -1,4 +1,4 @@
-openapi: '3.0.0'
+openapi: '3.1.0'
 info:
   version: 1.0.0
   title: Admin API
@@ -10,10 +10,7 @@ paths:
       operationId: getIndex
       responses:
         200:
-          description: Show index page
-          content:
-            text/html:
-
+          $ref: '#/components/responses/htmx'
   /login/{provider}:
     get:
       summary: Process a user login with given provider
@@ -90,7 +87,7 @@ paths:
         200:
           description: Show sign up page
           content:
-            text/html:
+            text/html: {}
         400:
           description: Bad request (not htmx)
         500:
@@ -106,9 +103,7 @@ paths:
               $ref: '../models/api.yaml#/components/schemas/APIUser'
       responses:
         200:
-          description: Show signup results
-          content:
-            text/html:
+          $ref: '#/components/responses/htmx'
         500:
           description: Error processing signup
 
@@ -120,7 +115,7 @@ paths:
         200:
           description: Validation completed
           content:
-            text/html:
+            text/html: {}
       requestBody:
         description: Item to validate
         content:
@@ -134,9 +129,7 @@ paths:
       operationId: getHome
       responses:
         200:
-          description: Show index page
-          content:
-            text/html:
+          $ref: '#/components/responses/htmx'
         401:
           description: Unauthorized
         500:
@@ -147,9 +140,7 @@ paths:
       operationId: Search
       responses:
         200:
-          description: Show search results
-          content:
-            text/html:
+          $ref: '#/components/responses/htmx'
         401:
           description: Unauthorized
         500:
@@ -166,9 +157,7 @@ paths:
       operationId: getHomeSettings
       responses:
         200:
-          description: Show search results
-          content:
-            text/html:
+          $ref: '#/components/responses/htmx'
         401:
           description: Unauthorized
         500:
@@ -179,9 +168,7 @@ paths:
       operationId: getSubscriptionAdd
       responses:
         200:
-          description: Show the add subscription modal.
-          content:
-            text/html:
+          $ref: '#/components/responses/htmx'
         401:
           description: Unauthorized
         500:
@@ -191,7 +178,7 @@ paths:
       operationId: postSubscriptionAdd
       responses:
         200:
-          description: Subscription added successfully
+          $ref: '#/components/responses/htmx'
         401:
           description: Unauthorized
         500:
@@ -202,9 +189,7 @@ paths:
       operationId: postSubscriptionValidate
       responses:
         200:
-          description: Validation completed
-          content:
-            text/html:
+          $ref: '#/components/responses/htmx'
       requestBody:
         description: Subscription to validate
         content:
@@ -223,9 +208,7 @@ paths:
             type: string
       responses:
         200:
-          description: Show the edit subscription modal.
-          content:
-            text/html:
+          $ref: '#/components/responses/htmx'
         401:
           description: Unauthorized
         500:
@@ -241,7 +224,7 @@ paths:
             type: string
       responses:
         200:
-          description: Subscription edited successfully
+          $ref: '#/components/responses/htmx'
         401:
           description: Unauthorized
         500:
@@ -249,55 +232,65 @@ paths:
   /home/feeds:
     get:
       summary: list feeds filtered by given parameters
-      operationId: listFeeds
+      operationId: getFeedList
+      parameters:
+        - $ref: '#/components/parameters/FeedsCookie'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+    post:
+      summary: update feeds list filters
+      operationId: updateFeedList
       requestBody:
         required: true
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '../models/api.yaml#/components/schemas/Filters'
+              $ref: '../models/api.yaml#/components/schemas/FeedsFilters'
       responses:
         200:
-          content:
-            text/html:
+          $ref: '#/components/responses/htmx'
   /home/items:
     get:
       summary: list items with filtered by given parameters
       operationId: listItems
+      parameters:
+        - $ref: '#/components/parameters/ItemsCookie'
+          in: cookie
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+    post:
+      summary: update items list filters
+      operationId: updateItemsList
       requestBody:
         required: true
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '../models/api.yaml#/components/schemas/Filters'
+              $ref: '../models/api.yaml#/components/schemas/ItemsFilters'
+  /home/{feed}:
+    get:
+      summary: display a feed
+      operationId: showFeed
+      parameters:
+        - $ref: '../models/api.yaml#/components/parameters/FeedID'
+          required: true
       responses:
         200:
-          content:
-            text/html:
-  # /feed/{feed}:
-  #   get:
-  #     summary: retrieve a feed by ID
-  #     operationId: getFeed
-  #     parameters:
-  #       - $ref: '#/components/parameters/FeedID'
-  #         required: true
-  #     responses:
-  #       200:
-  #         content:
-  #           text/html:
-  # /feed/{feed}/{item}:
-  #   get:
-  #     summary: retrieve an item by ID
-  #     operationId: getItem
-  #     parameters:
-  #       - $ref: '#/components/parameters/FeedID'
-  #         required: true
-  #       - $ref: '#/components/parameters/ItemID'
-  #         required: true
-  #     responses:
-  #       200:
-  #         content:
-  #           text/html:
+          $ref: '#/components/responses/htmx'
+  /home/{feed}/{item}:
+    get:
+      summary: display an item
+      operationId: showItem
+      parameters:
+        - $ref: '../models/api.yaml#/components/parameters/FeedID'
+          required: true
+        - $ref: '../models/api.yaml#/components/parameters/ItemID'
+          required: true
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
 components:
   parameters:
     FeedID:
@@ -310,24 +303,20 @@ components:
       in: path
       schema:
         type: string
-    Feeds:
-      name: feeds
-      in: query
+    FeedsCookie:
+      description: contains settings for the feeds list pane.
+      name: feedsFilters
+      in: cookie
       schema:
-        type: array
-        items:
-          type: string
-    Items:
-      name: items
-      in: query
+        $ref: '../models/api.yaml#/components/schemas/FeedsFilters'
+    ItemsCookie:
+      description: contains settings for the items list pane.
+      name: itemsFilters
+      in: cookie
       schema:
-        type: array
-        items:
-          type: string
-    Categories:
-      name: categories
-      in: query
-      schema:
-        type: array
-        items:
-          type: string
+        $ref: '../models/api.yaml#/components/schemas/ItemsFilters'
+  responses:
+    htmx:
+      description: standard htmx powered response.
+      content:
+        'text/html;charset=utf-8': {}

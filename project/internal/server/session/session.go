@@ -41,6 +41,7 @@ const (
 	profileSessionKey     = "tokens"
 	preferencesSessionKey = "preferences"
 	stateSessionKey       = "state"
+	feedsSessionKey       = "feeds"
 )
 
 var (

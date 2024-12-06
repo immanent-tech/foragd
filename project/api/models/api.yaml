@@ -3,8 +3,42 @@
 
 components:
   schemas:
-    SchemaMetadata:
-      description: contains metadata fields for schema objects.
+    # Metadata Objects.
+    MetadataFeed:
+      description: contains common/metadata fields for feeds and items.
+      type: object
+      required:
+        - title
+        - description
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        categories:
+          $ref: '#/components/schemas/Categories'
+        image:
+          x-go-type: '*gofeed.Image'
+          x-go-type-import:
+            path: github.com/mmcdole/gofeed
+          x-go-type-skip-optional-pointer: true
+        authors:
+          x-go-type: '[]*gofeed.Person'
+          x-go-type-import:
+            path: github.com/mmcdole/gofeed
+          x-go-type-skip-optional-pointer: true
+        published:
+          x-oapi-codegen-extra-tags:
+            json: 'publishedParsed'
+          x-go-type: 'time.Time'
+          x-go-type-skip-optional-pointer: true
+        updated:
+          x-oapi-codegen-extra-tags:
+            json: 'updatedParsed'
+          x-go-type: 'time.Time'
+          x-go-type-skip-optional-pointer: true
+    MetadataDB:
+      description: contains common (metadata) fields for database objects.
       type: object
       required:
         - created_at
@@ -12,18 +46,130 @@ components:
         - deleted_at
       properties:
         created_at:
+          description: records when the object was created in the database.
           x-go-type: 'time.Time'
         updated_at:
+          description: records when the object was last updated in the database.
           x-go-type: 'time.Time'
         deleted_at:
+          description: records when the object was deleted.
           x-go-type: 'time.Time'
           x-oapi-codegen-extra-tags:
             gorm: 'index'
+    # Common field definitions.
+    # Feeds:
+    #   description: is a list of feed IDs to filter on.
+    #   type: array
+    #   items:
+    #     type: string
+    # Items:
+    #   description: is a list of item IDs to filter on.
+    #   type: array
+    #   items:
+    #     type: string
+    #   x-oapi-codegen-extra-tags:
+    #     json: 'items'
+    #     form: 'feeds'
+    #   x-go-type-skip-optional-pointer: true
+    # Categories:
+    #   description: is a list of categories to filter on.
+    #   type: array
+    #   items:
+    #     type: string
+    #   x-oapi-codegen-extra-tags:
+    #     json: 'categories'
+    #     form: 'categories'
+    #   x-go-type-skip-optional-pointer: true
+    # FeedsFilters:
+    #   description: contains settings for feeds list pane.
+    #   type: object
+    #   properties:
+    #     Feeds:
+    #       $ref: '#/components/schemas/Feeds'
+    #     Categories:
+    #       $ref: '#/components/schemas/Categories'
+    # ItemsFilters:
+    #   description: contains settings for items list pane.
+    #   type: object
+    #   allOf:
+    #     - $ref: '#/components/schemas/FeedsFilters'
+    #     - type: object
+    #       properties:
+    #         Items:
+    #           $ref: '#/components/schemas/Items'
+    SubscriptionID:
+      description: is the unique ID of a subscription.
+      type: string
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        json: 'subscription_id'
+        gorm: 'primaryKey'
+      x-go-type-skip-optional-pointer: true
+    FeedID:
+      description: is the unique ID of a feed.
+      type: string
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        json: 'feed_id'
+        gorm: 'primaryKey'
+      x-go-type-skip-optional-pointer: true
+    FeedIDs:
+      description: is a list of feed IDs.
+      type: array
+      items:
+        $ref: '#/components/schemas/FeedID'
+      x-oapi-codegen-extra-tags:
+        json: 'feeds'
+        form: 'feeds'
+      x-go-type-skip-optional-pointer: true
+    ItemID:
+      description: is the unique ID of an item.
+      type: string
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        json: 'item_id'
+        gorm: 'primaryKey'
+      x-go-type-skip-optional-pointer: true
+    ItemIDs:
+      description: is a list of item IDs.
+      type: array
+      items:
+        $ref: '#/components/schemas/ItemID'
+      x-oapi-codegen-extra-tags:
+        json: 'items'
+        form: 'items'
+      x-go-type-skip-optional-pointer: true
+    UserID:
+      description: is the unique ID of a user.
+      type: string
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        json: 'user_id'
+        gorm: 'primaryKey'
+      x-go-type-skip-optional-pointer: true
+    URL: &URL
+      description: is a URL.
+      type: string
+      x-oapi-codegen-extra-tags:
+        json: 'url'
+        validate: 'required,url'
+        gorm: '-'
+      x-go-type-skip-optional-pointer: true
+    Categories:
+      description: is a list of feed/item categories.
+      type: array
+      items:
+        type: string
+      x-oapi-codegen-extra-tags:
+        json: 'categories'
+        form: 'categories'
+      x-go-type-skip-optional-pointer: true
+    # Objects.
     User:
       description: is a user of the application.
       type: object
       allOf:
-        - $ref: '#/components/schemas/SchemaMetadata'
+        - $ref: '#/components/schemas/MetadataDB'
         - type: object
           required:
             - ID
@@ -33,17 +179,7 @@ components:
               x-go-type: '[]Subscription'
               x-go-type-skip-optional-pointer: true
             ID:
-              type: string
-              x-oapi-codegen-extra-tags:
-                gorm: 'primaryKey'
-                json: 'user_id'
-            # session:
-            #   # type: object
-            #   $ref: '#/components/schemas/Tokens'
-            #   x-oapi-codegen-extra-tags:
-            #     gorm: '-'
-            #     json: '-'
-            #   x-go-type-skip-optional-pointer: true
+              $ref: '#/components/schemas/UserID'
     APIUser:
       type: object
       required:
@@ -65,9 +201,8 @@ components:
             validate: 'required'
     Subscription:
       description: represents a feed a particular user has subscribed to.
-      type: object
       allOf:
-        - $ref: '#/components/schemas/SchemaMetadata'
+        - $ref: '#/components/schemas/MetadataDB'
         - $ref: '#/components/schemas/APISubscription'
         - type: object
           required:
@@ -76,21 +211,11 @@ components:
             - UserID
           properties:
             ID:
-              type: string
-              x-oapi-codegen-extra-tags:
-                gorm: 'primaryKey'
-                json: 'subscription_id'
-                validate: 'required'
+              $ref: '#/components/schemas/SubscriptionID'
             FeedID:
-              type: string
-              x-oapi-codegen-extra-tags:
-                json: 'feed_id'
-                validate: 'required'
+              $ref: '#/components/schemas/FeedID'
             UserID:
-              type: string
-              x-oapi-codegen-extra-tags:
-                json: 'user_id'
-                validate: 'required'
+              $ref: '#/components/schemas/UserID'
     APISubscription:
       description: represents a subscription object for the API endpoints.
       type: object
@@ -102,16 +227,12 @@ components:
           type: string
           x-go-type-skip-optional-pointer: true
         URL:
-          type: string
-          x-oapi-codegen-extra-tags:
-            json: 'url'
-            gorm: '-'
-            validate: 'required,url'
+          $ref: '#/components/schemas/URL'
     FeedState:
       description: tracks the state of the feed.
       type: object
       allOf:
-        - $ref: '#/components/schemas/SchemaMetadata'
+        - $ref: '#/components/schemas/MetadataDB'
         - type: object
           required:
             - ID
@@ -125,46 +246,6 @@ components:
               description: indicates when the feed was last fetched from its source.
               x-go-type: time.Time
               x-go-type-skip-optional-pointer: true
-            # subscriptions:
-            #   description: is the list of user subscriptions to this feed.
-            #   x-go-type: '[]Subscription'
-            #   x-go-type-skip-optional-pointer: true
-    FeedCommon:
-      description: contains common fields for feeds and items.
-      type: object
-      required:
-        - title
-        - description
-      properties:
-        title:
-          type: string
-        description:
-          type: string
-        categories:
-          type: array
-          items:
-            type: string
-          x-go-type-skip-optional-pointer: true
-        image:
-          x-go-type: '*gofeed.Image'
-          x-go-type-import:
-            path: github.com/mmcdole/gofeed
-          x-go-type-skip-optional-pointer: true
-        authors:
-          x-go-type: '[]*gofeed.Person'
-          x-go-type-import:
-            path: github.com/mmcdole/gofeed
-          x-go-type-skip-optional-pointer: true
-        published:
-          x-oapi-codegen-extra-tags:
-            json: 'publishedParsed'
-          x-go-type: 'time.Time'
-          x-go-type-skip-optional-pointer: true
-        updated:
-          x-oapi-codegen-extra-tags:
-            json: 'updatedParsed'
-          x-go-type: 'time.Time'
-          x-go-type-skip-optional-pointer: true
 
     APIFeed:
       description: represents a feed object for API endpoints.
@@ -175,20 +256,16 @@ components:
         - URL
         - ID
       allOf:
-        - $ref: '#/components/schemas/FeedCommon'
+        - $ref: '#/components/schemas/MetadataFeed'
         - type: object
           properties:
             ID:
-              type: string
-              x-oapi-codegen-extra-tags:
-                json: 'feed_id'
-              x-go-type-skip-optional-pointer: true
+              $ref: '#/components/schemas/FeedID'
             URL:
-              type: string
+              <<: *URL
               x-oapi-codegen-extra-tags:
                 json: 'feedLink'
                 validate: 'required,url'
-              x-go-type-skip-optional-pointer: true
             language:
               type: string
               x-go-type-skip-optional-pointer: true
@@ -219,25 +296,15 @@ components:
         - title
         - description
       allOf:
-        - $ref: '#/components/schemas/FeedCommon'
+        - $ref: '#/components/schemas/MetadataFeed'
         - type: object
           properties:
             ID:
-              type: string
-              x-oapi-codegen-extra-tags:
-                json: 'item_id'
-              x-go-type-skip-optional-pointer: true
+              $ref: '#/components/schemas/ItemID'
             FeedID:
-              type: string
-              x-oapi-codegen-extra-tags:
-                json: 'feed_id'
-              x-go-type-skip-optional-pointer: true
+              $ref: '#/components/schemas/FeedID'
             URL:
-              type: string
-              x-oapi-codegen-extra-tags:
-                json: 'url'
-                validate: 'required,url'
-              x-go-type-skip-optional-pointer: true
+              $ref: '#/components/schemas/URL'
     Tokens:
       type: object
       required:
@@ -310,31 +377,21 @@ components:
           x-oapi-codegen-extra-tags:
             json: 'iat'
           x-go-type-skip-optional-pointer: true
-    Filters:
-      description: contains any filter options for display.
+    FeedsFilters:
+      description: contains settings for feeds list pane.
       type: object
       properties:
-        categories:
-          type: array
-          items:
-            type: string
-          x-oapi-codegen-extra-tags:
-            json: 'categories'
-            form: 'categories'
-          x-go-type-skip-optional-pointer: true
         Feeds:
-          type: array
-          items:
-            type: string
-          x-oapi-codegen-extra-tags:
-            json: 'feeds'
-            form: 'feeds'
-          x-go-type-skip-optional-pointer: true
-        Items:
-          type: array
-          items:
-            type: string
-          x-oapi-codegen-extra-tags:
-            json: 'items'
-            form: 'items'
-          x-go-type-skip-optional-pointer: true
+          $ref: '#/components/schemas/FeedIDs'
+        Categories:
+          $ref: '#/components/schemas/Categories'
+    ItemsFilters:
+      description: contains settings for items list pane.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/FeedsFilters'
+        - type: object
+          properties:
+            Items:
+              $ref: '#/components/schemas/ItemIDs'
+
