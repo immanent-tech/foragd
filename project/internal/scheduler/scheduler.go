@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
-	"github.com/knadh/koanf/v2"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -75,8 +74,11 @@ func (s *taskScheduler) GetConfigs() ([]*asynq.PeriodicTaskConfig, error) {
 	return s.taskConfigs, nil
 }
 
-func NewTaskScheduler(ctx context.Context, config *koanf.Koanf, cache Cache) error {
-	settings := getSettings(config)
+func NewTaskScheduler(ctx context.Context, cache Cache) error {
+	if err := loadConfig(); err != nil {
+		return fmt.Errorf("cannot start scheduler: %w", err)
+	}
+
 	logger := logging.FromContext(ctx).WithGroup("tasks").With(slog.String("component", "scheduler"))
 
 	manager := &taskScheduler{
@@ -88,7 +90,7 @@ func NewTaskScheduler(ctx context.Context, config *koanf.Koanf, cache Cache) err
 	opts := asynq.PeriodicTaskManagerOpts{
 		PeriodicTaskConfigProvider: manager,
 		RedisConnOpt: asynq.RedisClientOpt{
-			Addr: settings.RedisServer + ":" + strconv.Itoa(settings.RedisPort),
+			Addr: config.RedisServer + ":" + strconv.Itoa(config.RedisPort),
 		},
 		SyncInterval: DefaultTaskManagerSyncInterval,
 	}

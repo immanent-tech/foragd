@@ -16,48 +16,24 @@
 package server
 
 import (
-	"log/slog"
-
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/postgres"
 )
 
-func (s Server) GetPort() int {
-	if port := s.Config.Int("server.port"); port != 0 {
-		return port
-	}
-
-	return defaultServerPort
+// Environment returns the current environment under which the server is
+// running.
+func (s Server) Environment() string {
+	return config.Environment
 }
 
-func (s Server) GetEnvironment() string {
-	if environment := s.Config.String("server.environment"); environment != "" {
-		return environment
-	}
-
-	return EnvDevelopment.String()
+func (s Server) AppSecret() string {
+	return config.Secret
 }
 
-func (s Server) GetLogLevel() string {
-	if loglevel := s.Config.String("server.loglevel"); loglevel != "" {
-		return loglevel
-	}
-
-	slog.Debug("Log level not found, using default debug.")
-
-	return "debug"
-}
-
-func (s Server) CSP() []string {
-	csp := s.Config.Strings("server.csp")
-	if len(csp) > 0 {
-		return csp
-	}
-
-	slog.Debug("CSP policy not found, using a default.")
-
-	return []string{"default-src 'self';"}
+// Port returns the port on which the server is listening.
+func (s Server) Port() int {
+	return config.Port
 }
 
 // UserAPI returns the API endpoint for manipulating users.

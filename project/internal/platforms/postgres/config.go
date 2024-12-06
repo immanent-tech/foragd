@@ -1,34 +1,55 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package postgres
 
-import "github.com/knadh/koanf/v2"
+import (
+	"errors"
+	"fmt"
+	"strings"
 
-const (
-	settingsPrefix = "postgres"
+	"github.com/knadh/koanf/parsers/toml"
+	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/v2"
 )
 
-type settings struct {
-	DSN string `toml:"dsn"`
+const (
+	// PostgresConfigEnvPrefix defines the environment variable prefix for reading
+	// elastic configuration from the environment.
+	PostgresConfigEnvPrefix = "GOFEEDME_POSTGRES_"
+	// PostgresConfigFile is the location of the configuration file for elastic.
+	PostgresConfigFile = "server.toml"
+)
+
+// Define default postgres configuration options.
+var config = &Config{
+	DSN: "host=postgres user=gofeedme password=gofeedme dbname=gofeedme port=5432 sslmode=disable",
 }
 
-func getSettings(config *koanf.Koanf) settings {
-	envPrefix := settingsPrefix + "." + config.String("server.environment")
+var ErrLoadConfig = errors.New("error loading config")
 
-	return settings{
-		DSN: config.String(envPrefix + ".dsn"),
+// Config contains the server configuration options.
+type Config struct {
+	DSN string `toml:"postgres.dsn"`
+}
+
+var configSrc = koanf.New(".")
+
+func loadConfig() error {
+	// Load config file
+	if err := configSrc.Load(file.Provider(PostgresConfigFile), toml.Parser()); err != nil {
+		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
+	// Merge config with any environment variables.
+	configSrc.Load(env.Provider(PostgresConfigEnvPrefix, ".", func(s string) string {
+		return strings.Replace(strings.ToLower(
+			strings.TrimPrefix(s, PostgresConfigEnvPrefix)), "_", ".", -1)
+	}), nil)
+	// Unmarshal config, overwriting defaults.
+	if err := configSrc.Unmarshal("postgres", config); err != nil {
+		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	}
+
+	return nil
 }

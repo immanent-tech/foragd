@@ -23,7 +23,6 @@ import (
 
 	"github.com/alexedwards/scs/gormstore"
 	"github.com/alexedwards/scs/v2"
-	"github.com/knadh/koanf/v2"
 	sloggorm "github.com/orandin/slog-gorm"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -60,8 +59,10 @@ func (c *Client) NewSessionStorage() scs.Store {
 	return c.sessionStore
 }
 
-func Connect(ctx context.Context, config *koanf.Koanf) (*Client, error) {
-	settings := getSettings(config)
+func Connect(ctx context.Context) (*Client, error) {
+	if err := loadConfig(); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
+	}
 
 	logger := logging.FromContext(ctx).WithGroup("postgres").With(slog.String("component", "client"))
 
@@ -70,7 +71,7 @@ func Connect(ctx context.Context, config *koanf.Koanf) (*Client, error) {
 		sloggorm.SetLogLevel(sloggorm.DefaultLogType, LevelDebug),
 	)
 
-	db, err := gorm.Open(postgres.Open(settings.DSN), &gorm.Config{
+	db, err := gorm.Open(postgres.Open(config.DSN), &gorm.Config{
 		Logger: gormLogger,
 	})
 	if err != nil {

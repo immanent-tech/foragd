@@ -23,26 +23,16 @@ import (
 	"log/slog"
 	"net"
 	"net/http"
-	"os"
 	"time"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
-	"github.com/knadh/koanf/v2"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
 const (
-	ConfigPrefix  = "elastic"
-	ConfigURL     = "url"
-	ConfigCAFile  = "ca_file"
-	ConfigUser    = "user"
-	ConfigPass    = "pass"
-	ConfigCloudID = "cloud_id"
-	ConfigAPIKey  = "api_key"
-
 	maxIdleConnsPerHost = 10
 	connTimeout         = time.Second
 )
@@ -58,7 +48,6 @@ var defaultTransportConfig = &http.Transport{
 
 var (
 	ErrConnectFailed = errors.New("elasticsearch connection failed")
-	ErrInvalidConfig = errors.New("invalid elasticsearch config")
 	ErrSetupFailed   = errors.New("elasticsearch setup failed")
 )
 
@@ -69,18 +58,13 @@ type Client struct {
 	bulkStream chan []document
 }
 
-func Connect(ctx context.Context, config *koanf.Koanf) (*Client, error) {
-	var (
-		esconfig *elasticsearch.Config
-		err      error
-	)
-
+func Connect(ctx context.Context, environment string) (*Client, error) {
 	// Retrieve a logger from the context.
 	logger := logging.FromContext(ctx).WithGroup("elastic")
 
-	esconfig, err = genConfig(config, logger)
+	esconfig, err := loadConfig(logger, environment)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidConfig, err)
+		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
 
 	esclient, err := elasticsearch.NewTypedClient(*esconfig)
@@ -127,44 +111,4 @@ func (c *Client) Setup(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func genConfig(config *koanf.Koanf, logger *slog.Logger) (*elasticsearch.Config, error) {
-	var generated *elasticsearch.Config
-
-	environment := config.String("server.environment")
-
-	envPrefix := "elastic." + environment
-
-	switch environment {
-	case "development":
-		caFileData, err := os.ReadFile(config.String(envPrefix + ".caFile"))
-		if err != nil {
-			return nil, fmt.Errorf("could not retrieve CA certificate file: %w", err)
-		}
-
-		generated = &elasticsearch.Config{
-			Addresses: config.Strings(envPrefix + ".urls"),
-			Logger: &ESLogger{
-				Logger: *logger,
-			},
-			Username:  config.String(envPrefix + ".user"),
-			Password:  config.String(envPrefix + ".pass"),
-			CACert:    caFileData,
-			Transport: defaultTransportConfig,
-		}
-	case "production":
-		generated = &elasticsearch.Config{
-			Logger: &ESLogger{
-				Logger: *logger,
-			},
-			CloudID:   config.String(envPrefix + ".cloudID"),
-			APIKey:    config.String(envPrefix + ".apiKey"),
-			Transport: defaultTransportConfig,
-		}
-	default:
-		return nil, ErrInvalidConfig
-	}
-
-	return generated, nil
 }

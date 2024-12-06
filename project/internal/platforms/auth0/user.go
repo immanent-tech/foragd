@@ -17,10 +17,9 @@ package auth0
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
-
-	"github.com/knadh/koanf/v2"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -28,6 +27,8 @@ import (
 	"github.com/auth0/go-auth0/authentication"
 	"github.com/auth0/go-auth0/authentication/database"
 )
+
+var ErrConnectAPIFail = errors.New("could not connect to Auth0 API")
 
 const UserDBConnection = "Username-Password-Authentication"
 
@@ -56,14 +57,16 @@ func (u *UserSignup) Verified() bool {
 	return u.details.EmailVerified
 }
 
-func NewUserAPI(ctx context.Context, config *koanf.Koanf) (*UserAPI, error) {
-	settings := getSettings(config)
+func NewUserAPI(ctx context.Context) (*UserAPI, error) {
+	if err := loadConfig(); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrConnectAPIFail, err)
+	}
 
 	authAPI, err := authentication.New(
 		ctx,
-		settings.Domain,
-		authentication.WithClientID(settings.ClientID),
-		authentication.WithClientSecret(settings.ClientSecret),
+		config.Domain,
+		authentication.WithClientID(config.ClientID),
+		authentication.WithClientSecret(config.ClientSecret),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to Auth0 API: %w", err)

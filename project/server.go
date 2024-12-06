@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -23,6 +24,8 @@ const (
 	ServerWriteTimeout = 10 * time.Second
 )
 
+var ErrStartServerFailed = errors.New("could not start server")
+
 //go:embed all:static
 var static embed.FS
 
@@ -32,11 +35,18 @@ func runServer() error {
 	// Set up a new server interface.
 	svr, err := server.NewServer(ctx)
 	if err != nil {
-		return fmt.Errorf("could not start: %w", err)
+		return fmt.Errorf("%w: %w", ErrStartServerFailed, err)
 	}
 
-	scheduler.NewTaskWorker(ctx, svr.Config, svr.DataAPI(), svr.StoreAPI())
-	scheduler.NewTaskScheduler(ctx, svr.Config, svr.DataAPI())
+	// Start a task worker for this server.
+	if err := scheduler.NewTaskWorker(ctx, svr.DataAPI(), svr.StoreAPI()); err != nil {
+		return fmt.Errorf("%w: %w", ErrStartServerFailed, err)
+	}
+
+	// Start the scheduler.
+	if err := scheduler.NewTaskScheduler(ctx, svr.DataAPI()); err != nil {
+		return fmt.Errorf("%w: %w", ErrStartServerFailed, err)
+	}
 
 	// Set up a new chi router.
 	router := chi.NewRouter()
@@ -45,17 +55,17 @@ func runServer() error {
 	// Get an `http.Handler` that we can use from the router and server.
 	handler := server.GenerateHandler(svr, router)
 
-	s := &http.Server{
+	serverObj := &http.Server{
 		Handler:      handler,
-		Addr:         fmt.Sprintf(":%d", svr.GetPort()),
+		Addr:         fmt.Sprintf(":%d", svr.Port()),
 		ReadTimeout:  ServerReadTimeout,
 		WriteTimeout: ServerWriteTimeout,
 	}
 
 	svr.Logger.Info("Starting server...",
-		slog.Int("port", svr.GetPort()),
-		slog.String("environment", svr.GetEnvironment()))
+		slog.Int("port", svr.Port()),
+		slog.String("environment", svr.Environment()))
 
 	// And we serve HTTP until the world ends.
-	return s.ListenAndServe()
+	return serverObj.ListenAndServe()
 }

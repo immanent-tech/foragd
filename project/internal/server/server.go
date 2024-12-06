@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/knadh/koanf/v2"
 	"github.com/lxzan/gws"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -24,16 +24,6 @@ import (
 
 const (
 	requestIDKey = "request_id"
-
-	envPrefix          = "GOFEEDME_"
-	defaultServerPort  = 7000
-	defaultEnvironment = EnvDevelopment
-)
-
-var (
-	ConfigPath  = "./"
-	ConfigFile  = "server.toml"
-	ConfigPerms = 0o600
 )
 
 type API struct {
@@ -45,29 +35,20 @@ type API struct {
 }
 
 type Server struct {
-	Config *koanf.Koanf
 	API    *API
 	Logger *slog.Logger
 }
 
 func NewServer(ctx context.Context) (Server, error) {
-	var (
-		err error
-		svr Server
-	)
+	var svr Server
 
 	// Load the config.
-	err = svr.loadConfig()
-	if err != nil {
+	if err := loadConfig(); err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
 
 	// Set up the logger
-	if loglevel := svr.Config.String("server.loglevel"); loglevel != "" {
-		svr.Logger = logging.NewLogger(loglevel)
-	} else {
-		svr.Logger = logging.NewLogger("debug")
-	}
+	svr.Logger = logging.NewLogger(config.LogLevel)
 	// Embed the logger into the context
 	ctx = logging.ToContext(ctx, svr.Logger)
 
@@ -75,25 +56,25 @@ func NewServer(ctx context.Context) (Server, error) {
 	// ctx = config.ToContext(ctx, cfg)
 
 	// Load the auth0UserAPI backend.
-	auth0UserAPI, err := auth0.NewUserAPI(ctx, svr.Config)
+	auth0UserAPI, err := auth0.NewUserAPI(ctx)
 	if err != nil {
 		return svr, fmt.Errorf("failed to initialize the auth0 user backend API: %w", err)
 	}
 
 	// Load the Elastic backend
-	elasticAPI, err := elastic.Connect(ctx, svr.Config)
+	elasticAPI, err := elastic.Connect(ctx, config.Environment)
 	if err != nil {
 		return svr, fmt.Errorf("failed to connect to the db backend: %w", err)
 	}
 
 	// Load the Postgres backend
-	postgresAPI, err := postgres.Connect(ctx, svr.Config)
+	postgresAPI, err := postgres.Connect(ctx)
 	if err != nil {
 		return svr, fmt.Errorf("failed to connect to the db backend: %w", err)
 	}
 
 	// Load the authenticator backend.
-	auth0API, err := auth0.NewAuthenticator(ctx, svr.Config)
+	auth0API, err := auth0.NewAuthenticator(ctx, "http://localhost:"+strconv.Itoa(config.Port))
 	if err != nil {
 		return svr, fmt.Errorf("failed to initialize the authenticator backend API: %w", err)
 	}
@@ -125,15 +106,15 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	wrapper.HandlerMiddlewares = append(wrapper.HandlerMiddlewares,
 		middleware.RequestID,
 		middleware.RealIP,
-		middlewares.Logger(svr.Logger, svr.GetLogLevel(), requestIDKey),
+		middlewares.Logger(svr.Logger, config.LogLevel, requestIDKey),
 		middleware.Recoverer,
-		middlewares.CORS(svr.GetEnvironment()),
-		middlewares.CSP(svr.CSP()),
+		middlewares.CORS(config.Environment),
+		middlewares.CSP(config.CSP),
 		session.LoadAndSave())
 
 	svr.Logger.Debug("Setting up routes...")
 
-	if svr.GetEnvironment() == "development" {
+	if config.Environment == "development" {
 		router.Mount("/debug", middleware.Profiler())
 	}
 

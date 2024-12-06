@@ -21,38 +21,40 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/coreos/go-oidc"
-	"github.com/knadh/koanf/v2"
 	"golang.org/x/oauth2"
 )
 
-var ErrNoIDToken = errors.New("no id_token field in oauth2 token")
+var (
+	ErrStartAuthenticator = errors.New("could not create new authentication provider")
+	ErrNoIDToken          = errors.New("no id_token field in oauth2 token")
+)
 
 // Authenticator is used to authenticate our users.
 type Authenticator struct {
 	*oidc.Provider
 	oauth2.Config
-	settings settings
 }
 
 // NewAuthenticator instantiates the *Authenticator.
-func NewAuthenticator(ctx context.Context, config *koanf.Koanf) (*Authenticator, error) {
-	settings := getSettings(config)
+func NewAuthenticator(ctx context.Context, serverURI string) (*Authenticator, error) {
+	if err := loadConfig(); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrStartAuthenticator, err)
+	}
 
 	provider, err := oidc.NewProvider(
 		ctx,
-		"https://"+settings.Domain+"/",
+		"https://"+config.Domain+"/",
 	)
 	if err != nil {
-		return nil, fmt.Errorf("could not create new authentication provider: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrStartAuthenticator, err)
 	}
 
 	conf := oauth2.Config{
-		ClientID:     settings.ClientID,
-		ClientSecret: settings.ClientSecret,
-		RedirectURL:  "http://localhost:" + strconv.Itoa(settings.ServerPort) + "/login/auth0/callback",
+		ClientID:     config.ClientID,
+		ClientSecret: config.ClientSecret,
+		RedirectURL:  serverURI + "/login/auth0/callback",
 		Endpoint:     provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, "profile"},
 	}
@@ -60,7 +62,6 @@ func NewAuthenticator(ctx context.Context, config *koanf.Koanf) (*Authenticator,
 	return &Authenticator{
 		Provider: provider,
 		Config:   conf,
-		settings: settings,
 	}, nil
 }
 
@@ -84,7 +85,7 @@ func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) 
 }
 
 func (a *Authenticator) LogoutURL(req *http.Request) (*url.URL, error) {
-	logoutURL, err := url.Parse("https://" + a.settings.Domain + "/v2/logout")
+	logoutURL, err := url.Parse("https://" + config.Domain + "/v2/logout")
 	if err != nil {
 		return nil, fmt.Errorf("could not determine logout URL: %w", err)
 	}
@@ -101,7 +102,7 @@ func (a *Authenticator) LogoutURL(req *http.Request) (*url.URL, error) {
 
 	parameters := url.Values{}
 	parameters.Add("returnTo", returnTo.String())
-	parameters.Add("client_id", a.settings.ClientID)
+	parameters.Add("client_id", config.ClientID)
 	logoutURL.RawQuery = parameters.Encode()
 
 	return logoutURL, nil

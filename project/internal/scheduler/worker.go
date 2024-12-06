@@ -5,11 +5,11 @@ package scheduler
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"strconv"
 
 	"github.com/hibiken/asynq"
-	"github.com/knadh/koanf/v2"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
@@ -18,13 +18,16 @@ const (
 	DefaultWorkerConcurrency = 10
 )
 
-func NewTaskWorker(ctx context.Context, config *koanf.Koanf, cache Cache, db DB) {
-	settings := getSettings(config)
+func NewTaskWorker(ctx context.Context, cache Cache, db DB) error {
+	if err := loadConfig(); err != nil {
+		return fmt.Errorf("cannot start scheduler: %w", err)
+	}
+
 	logger := logging.FromContext(ctx).WithGroup("tasks").With(slog.String("component", "worker"))
 
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{
-			Addr: settings.RedisServer + ":" + strconv.Itoa(settings.RedisPort),
+			Addr: config.RedisServer + ":" + strconv.Itoa(config.RedisPort),
 		},
 		asynq.Config{Concurrency: DefaultWorkerConcurrency},
 	)
@@ -48,4 +51,6 @@ func NewTaskWorker(ctx context.Context, config *koanf.Koanf, cache Cache, db DB)
 		defer srv.Shutdown()
 		<-ctx.Done()
 	}()
+
+	return nil
 }
