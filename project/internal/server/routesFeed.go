@@ -5,14 +5,20 @@
 package server
 
 import (
+	"bytes"
+	"encoding/gob"
 	"errors"
+	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/yassinebenaid/godump"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/server/cookies"
 	"github.com/joshuar/go-feed-me/internal/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/server/middlewares"
 )
@@ -22,8 +28,6 @@ var ErrFeedIDRequired = errors.New("feed ID is required")
 func (s Server) GetFeedList(res http.ResponseWriter, req *http.Request, params GetFeedListParams) {
 	logger := s.Logger.With(slog.String("handler", "ListFeeds"))
 	ctx := logging.ToContext(req.Context(), logger)
-
-	godump.Dump(params)
 
 	// Only continue if request was made by htmx.
 	if !htmx.IsHTMX(req) {
@@ -77,6 +81,7 @@ func (s Server) ListItems(res http.ResponseWriter, req *http.Request, params Lis
 		res.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	spew.Dump(params.ItemsFilters)
 
 	if params.ItemsFilters != nil {
 
@@ -98,8 +103,29 @@ func (s Server) ListItems(res http.ResponseWriter, req *http.Request, params Lis
 }
 
 func (s Server) UpdateItemsList(res http.ResponseWriter, req *http.Request) {
+	logger := s.Logger.With(slog.String("handler", "UpdateItemsList"))
+
+	filters, problems, err := handlers.DecodeForm[*models.ItemsFilters](req)
+	if err != nil && len(problems) == 0 {
+		logger.Error("Could not decode filters.", slog.Any("error", err))
+		return
+	}
+
+	cookie, err := setItemsListCookie(filters)
+	if err != nil && len(problems) == 0 {
+		logger.Error("Could not encode filters.", slog.Any("error", err))
+		return
+	}
+
+	if err := cookies.WriteEncrypted(res, cookie, []byte(s.AppSecret())); err != nil {
+		logger.Error("Could not write cookie.", slog.Any("error", err))
+		return
+	}
+
+	s.ListItems(res, req, ListItemsParams{ItemsFilters: filters})
+	// handlers.ShowItems(res, req, s.API.elastic, s.API.pg)
 	// logger := s.Logger.With(slog.String("handler", "UpdateFeedList"))
-	res.WriteHeader(http.StatusNotImplemented)
+	// res.WriteHeader(http.StatusNotImplemented)
 }
 
 func (s Server) ShowFeed(res http.ResponseWriter, req *http.Request, feedID string) {
@@ -136,4 +162,26 @@ func (s Server) ShowItem(res http.ResponseWriter, req *http.Request, feedID stri
 	}
 
 	res.WriteHeader(http.StatusNotImplemented)
+}
+
+func setItemsListCookie(filters *models.ItemsFilters) (http.Cookie, error) {
+	// Initialize a buffer to hold the gob-encoded data.
+	var buf bytes.Buffer
+
+	// Gob-encode the user data, storing the encoded output in the buffer.
+	err := gob.NewEncoder(&buf).Encode(filters)
+	if err != nil {
+		log.Println(err)
+		return http.Cookie{}, fmt.Errorf("could not encode cookie value: %w", err)
+	}
+
+	return http.Cookie{
+		Name:     "itemsFilters",
+		Value:    buf.String(),
+		Path:     "/home/items",
+		MaxAge:   3600,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}, nil
 }

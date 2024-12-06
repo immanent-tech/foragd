@@ -20,12 +20,12 @@ templ skeletonCard() {
 templ ShowCardList(cards ...components.Card) {
 	<div id="content" class="flex flex-col space-y-8">
 		for _, card := range cards {
-			<div>
+			<form>
 				// Render a hidden input for this feed.
 				@components.NewHiddenInput(card.ID(), "feeds", card.ID()).Show()
 				// Render the feed card.
 				@card.Show()
-			</div>
+			</form>
 		}
 	</div>
 }
