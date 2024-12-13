@@ -17,12 +17,9 @@ var (
 	ErrNoHits       = errors.New("no hits found")
 )
 
-// QueryOption sets an option on a query object.
-type QueryOption func(*types.Query) *types.Query
-
 // QueryMatchAll adds a "Match All" clause.
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-all-query.html
-func QueryMatchAll() QueryOption {
+func QueryMatchAll() Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
 		query.MatchAll = types.NewMatchAllQuery()
 		return query
@@ -31,7 +28,7 @@ func QueryMatchAll() QueryOption {
 
 // QueryByTerm adds a "Term" query on the given field with the given value.
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
-func QueryByTerm(field string, value any) QueryOption {
+func QueryByTerm(field string, value any) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
 		query.Term = map[string]types.TermQuery{
 			field: {Value: value},
@@ -43,7 +40,7 @@ func QueryByTerm(field string, value any) QueryOption {
 
 // QueryByFeedIDs adds a "Terms" clause with the given Feed IDs.
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
-func QueryByFeedIDs(feedIDs ...string) QueryOption {
+func QueryByFeedIDs(feedIDs ...string) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
 		query.Terms = &types.TermsQuery{
 			TermsQuery: map[string]types.TermsQueryField{
@@ -57,7 +54,7 @@ func QueryByFeedIDs(feedIDs ...string) QueryOption {
 
 // QuerySince adds a "Range" query to find documents newer than the given time.
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
-func QuerySince(field string, since time.Time) QueryOption {
+func QuerySince(field string, since time.Time) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
 		var sinceStr string
 		if since.IsZero() {
@@ -76,19 +73,16 @@ func QuerySince(field string, since time.Time) QueryOption {
 	}
 }
 
-// SearchOption applies an option to a search object.
-type SearchOption func(*search.Search) *search.Search
-
-// IndexPattern defines the index pattern the search will use.
-func IndexPattern(pattern string) SearchOption {
-	return func(search *search.Search) *search.Search {
-		search = search.Index(pattern)
-		return search
-	}
-}
+// // IndexPattern defines the index pattern the search will use.
+// func IndexPattern(pattern string) SearchOption {
+// 	return func(search *search.Search) *search.Search {
+// 		search = search.Index(pattern)
+// 		return search
+// 	}
+// }
 
 // WithQueryOptions adds the given query options (conditions) to the search.
-func WithQueryOptions(options ...QueryOption) SearchOption {
+func WithQueryOptions(options ...Option[*types.Query]) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
 		queryOptions := &types.Query{}
 
@@ -103,7 +97,7 @@ func WithQueryOptions(options ...QueryOption) SearchOption {
 }
 
 // WithSortOptions adds the given sorting options to the search.
-func WithSortOptions(options map[string]types.FieldSort) SearchOption {
+func WithSortOptions(options map[string]types.FieldSort) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
 		search = search.Sort(options)
 		return search
@@ -111,7 +105,7 @@ func WithSortOptions(options map[string]types.FieldSort) SearchOption {
 }
 
 // WithFields ensures the search will return the given fields in the response.
-func WithFields(fields ...string) SearchOption {
+func WithFields(fields ...string) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
 		fieldsReturned := make([]types.FieldAndFormat, len(fields))
 		for i, name := range fields {
@@ -125,7 +119,7 @@ func WithFields(fields ...string) SearchOption {
 }
 
 // SearchSize defines the number of results returned.
-func SearchSize(size int) SearchOption {
+func SearchSize(size int) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
 		search = search.Size(size)
 		return search
@@ -133,7 +127,7 @@ func SearchSize(size int) SearchOption {
 }
 
 // NewSearchRequest creates a new search object with the given options.
-func (c *Client) NewSearchRequest(options ...SearchOption) *search.Search {
+func (c *Client) NewSearchRequest(options ...Option[*search.Search]) *search.Search {
 	req := c.API.Search()
 
 	for _, option := range options {

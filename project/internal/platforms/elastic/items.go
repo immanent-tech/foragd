@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
@@ -24,7 +26,7 @@ func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.
 	}
 
 	req := c.NewSearchRequest(
-		IndexPattern(schema.FeedItemsSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](schema.FeedItemsSchemaPrefix+"-*"),
 		WithFields(defaultItemFields...),
 		WithQueryOptions(QueryByFeedIDs(feedIDs...)),
 		WithSortOptions(SortTimestampDesc()),
@@ -44,8 +46,6 @@ func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.
 			c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
 			continue
 		}
-		// spew.Dump(hit.Source_)
-		// godump.Dump(item)
 		items = append(items, item)
 	}
 

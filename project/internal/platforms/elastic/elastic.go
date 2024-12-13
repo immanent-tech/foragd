@@ -15,7 +15,9 @@
 
 package elastic
 
-import "errors"
+import (
+	"errors"
+)
 
 const (
 	userIndex  = ""
@@ -23,3 +25,21 @@ const (
 )
 
 var ErrNoClient = errors.New("no client")
+
+// Option is a generic type for request options.
+type Option[T any] func(T) T
+
+type customisableIndexPattern[T any] interface {
+	Index(value string) T
+}
+
+// WithValue allows setting an value on a component.
+func WithIndexPattern[T any](value string) Option[T] {
+	return func(req T) T {
+		if settable, ok := any(req).(customisableIndexPattern[T]); ok {
+			req = settable.Index(value)
+		}
+
+		return req
+	}
+}

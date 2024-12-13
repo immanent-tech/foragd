@@ -10,26 +10,67 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
-var defaultFeedFields = []string{"publishedParsed", "updatedParsed", "feed_id", "title", "description", "feedLink", "image", "categories", "authors"}
+var defaultFeedFields = []string{
+	"publishedParsed",
+	"updatedParsed",
+	"feed_id",
+	"title",
+	"description",
+	"feedLink",
+	"image",
+	"categories",
+	"authors",
+}
 
-// GetFeeds returns the feeds with the given feed IDs. If no feed IDs are given,
-// it returns all feeds.
-func (c *Client) GetFeeds(ctx context.Context, feedIDs ...string) ([]models.APIFeed, error) {
-	var queryOpt QueryOption
-	if len(feedIDs) > 0 {
-		queryOpt = QueryByFeedIDs(feedIDs...)
-	} else {
-		queryOpt = QueryMatchAll()
+// getFeedsByID retrieves the specified feeds with an mget request.
+func (c *Client) getFeedsByID(ctx context.Context, ids ...string) ([]models.APIFeed, error) {
+	req := c.NewMGetRequest(
+		WithIndexPattern[*mget.Mget]("feeds"),
+		WithIDs(ids...),
+		// WithStoredFields(defaultFeedFields...),
+	)
+
+	res, err := req.Do(ctx)
+	if err != nil {
+		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
+	var feeds []models.APIFeed
+
+	for _, doc := range res.Docs {
+		switch obj := doc.(type) {
+		case types.MultiGetError:
+			c.logger.Warn("Problem getting document", slog.Any("error", obj))
+		case *types.GetResult:
+			var feed models.APIFeed
+
+			if err := json.Unmarshal(obj.Source_, &feed); err != nil {
+				c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
+				continue
+			}
+
+			feeds = append(feeds, feed)
+		}
+	}
+
+	return feeds, nil
+}
+
+// getAllFeeds retrieves all feeds by executing a search request with a
+// match_all query.
+func (c *Client) getAllFeeds(ctx context.Context) ([]models.APIFeed, error) {
 	req := c.NewSearchRequest(
-		IndexPattern(schema.FeedSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
 		WithFields(defaultFeedFields...),
-		WithQueryOptions(queryOpt),
+		WithQueryOptions(QueryMatchAll()),
 	)
 
 	res, err := req.Do(ctx)
@@ -54,9 +95,20 @@ func (c *Client) GetFeeds(ctx context.Context, feedIDs ...string) ([]models.APIF
 	return feeds, nil
 }
 
+// GetFeeds returns the feeds with the given feed IDs. If no feed IDs are given,
+// it returns all feeds. This will either be an mget (specific feeds) or search
+// (all feeds) request.
+func (c *Client) GetFeeds(ctx context.Context, feedIDs ...string) ([]models.APIFeed, error) {
+	if len(feedIDs) > 0 {
+		return c.getFeedsByID(ctx, feedIDs...)
+	}
+
+	return c.getAllFeeds(ctx)
+}
+
 func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error) {
 	req := c.NewSearchRequest(
-		IndexPattern(schema.FeedSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
 		WithQueryOptions(QuerySince("@timestamp", since)),
 	)
 
@@ -79,6 +131,8 @@ func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]model
 		feeds = append(feeds, feed)
 	}
 
+	// godump.Dump(feeds)
+
 	return feeds, nil
 }
 
@@ -86,7 +140,7 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 	var feed models.APIFeed
 
 	req := c.NewSearchRequest(
-		IndexPattern(schema.FeedSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
 		WithFields(defaultFeedFields...),
 		WithQueryOptions(QueryByTerm("feedLink", url)),
 	)
@@ -108,7 +162,7 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 	return feed, nil
 }
 
-func (c *Client) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
+func (c *Client) AddFeeds(_ context.Context, feeds ...models.Feed) error {
 	var docs []document
 
 	for _, feed := range feeds {
