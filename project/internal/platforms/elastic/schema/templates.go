@@ -18,6 +18,14 @@ func FeedsIndexTemplate() IndexTemplate {
 					Mappings: feedMapping(),
 				},
 			},
+			{
+				Name: FeedSchemaPrefix + "_settings",
+				Template: types.IndexState{
+					Aliases: map[string]types.Alias{
+						"feeds": {},
+					},
+				},
+			},
 		},
 		Priority: defaultPriority,
 	}
