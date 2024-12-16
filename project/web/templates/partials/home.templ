@@ -3,8 +3,6 @@
 
 package partials
 
-import "github.com/joshuar/go-templ-daisyui"
-
 // skeletonCard displays a skeleton that can represent a feed card that is
 // loading.
 templ skeletonCard() {
@@ -15,24 +13,4 @@ templ skeletonCard() {
 			<div class="skeleton h-4 w-24"></div>
 		</div>
 	</div>
-}
-
-templ ShowCardList(cards ...components.Card) {
-	<div id="content" class="flex flex-col space-y-8">
-		for _, card := range cards {
-			<form>
-				// Render a hidden input for this feed.
-				@components.NewHiddenInput(card.ID(), "feeds", card.ID()).Show()
-				// Render the feed card.
-				@card.Show()
-			</form>
-		}
-	</div>
-}
-
-templ ShowFeeds(cards ...components.Card) {
-	@ShowCardList(cards...)
-}
-
-templ ShowItems(cards ...components.Card) {
 }

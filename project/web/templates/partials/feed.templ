@@ -1,0 +1,46 @@
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import "github.com/joshuar/go-templ-daisyui"
+
+// ShowFeeds shows a list of feed cards.
+templ ShowFeeds(cards ...components.Card) {
+	<div id="content" class="flex flex-col space-y-8">
+		@showCardList("feeds", cards...)
+	</div>
+}
+
+// ShowFeedItems shows a list of item cards.
+templ ShowFeedItems(cards ...components.Card) {
+	<div id="content" class="flex flex-col space-y-8">
+		<form method="dialog">
+			@navButton("/home/feeds").Show()
+		</form>
+		@showCardList("items", cards...)
+	</div>
+}
+
+templ showCardList(name string, cards ...components.Card) {
+	for _, card := range cards {
+		<form>
+			// Render a hidden input for this feed.
+			@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
+			// Render the feed card.
+			@card.Show()
+		</form>
+	}
+}
+
+func navButton(link string) components.Button {
+	return components.NewButton("", "back",
+		components.AsShape(components.ButtonCircle),
+		components.WithModifier(components.ButtonGhost),
+		components.WithIcon(components.NewIcon("arrow-left"), components.AlignMiddle),
+		components.WithClasses[components.Button]("left-2", "top-2"),
+		components.WithAttributes[components.Button](templ.Attributes{
+			"hx-target": "#content",
+			"hx-get":    link}),
+	)
+}

@@ -34,7 +34,7 @@ func ShowFeeds(res http.ResponseWriter, req *http.Request, cache models.Cache, d
 
 	// Render the list of feed cards.
 	if err := htmx.NewResponse().
-		RenderTempl(req.Context(), res, partials.ShowCardList(feedCards...)); err != nil {
+		RenderTempl(req.Context(), res, partials.ShowFeeds(feedCards...)); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("showAllFeeds: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -73,7 +73,7 @@ func ShowItems(res http.ResponseWriter, req *http.Request, cache models.Cache, d
 	}
 	// Render the list of feed cards.
 	if err := htmx.NewResponse().
-		RenderTempl(req.Context(), res, partials.ShowCardList(itemCards...)); err != nil {
+		RenderTempl(req.Context(), res, partials.ShowFeedItems(itemCards...)); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -97,7 +97,7 @@ func showItems(res http.ResponseWriter, req *http.Request, cache models.Cache, f
 
 	// Render the list of feed cards.
 	if err := htmx.NewResponse().
-		RenderTempl(req.Context(), res, partials.ShowCardList(itemCards...)); err != nil {
+		RenderTempl(req.Context(), res, partials.ShowFeedItems(itemCards...)); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -157,12 +157,11 @@ func newItemCard(item models.APIItem) components.Card {
 		components.WithCardLayout(components.CardLayoutSide),
 		components.WithTitle(item.Title),
 		components.WithCardShadow(components.XL),
-		// components.WithBody(partials.FeedItemDescription(item.Description)),
-		// components.CardClasses("btn"),
-		// components.CardAttributes(templ.Attributes{
-		// 	"hx-target": "#secondaryPane",
-		// 	"hx-get":    "/feed/" + feed.ID,
-		// }),
+		components.WithID[components.Card](item.ID),
+		components.WithAttributes[components.Card](templ.Attributes{
+			"hx-target": "#content",
+			"hx-get":    "/home/" + item.FeedID + "/" + item.ID,
+		}),
 	)
 
 	if item.Image != nil {
