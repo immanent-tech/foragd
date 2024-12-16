@@ -69,3 +69,33 @@ func (c *Client) AddFeedItems(ctx context.Context, items ...models.Item) error {
 
 	return nil
 }
+
+// GetItem retrieves the specified item with the given id and from the given
+// feed.
+func (c *Client) GetItem(ctx context.Context, feedID, itemID string) (models.APIItem, error) {
+	req := c.NewSearchRequest(
+		WithIndexPattern[*search.Search](schema.FeedItemsSchemaPrefix+"-*"),
+		WithFields(defaultItemFields...),
+		WithQueryOptions(
+			QueryByFeedIDs(feedID),
+			QueryByItemIDs(itemID)),
+		WithSortOptions(SortTimestampDesc()),
+	)
+
+	res, err := req.Do(ctx)
+	if err != nil {
+		return models.APIItem{}, errors.Join(ErrSearchFailed, err)
+	}
+
+	var item models.APIItem
+
+	for _, hit := range res.Hits.Hits {
+		if err := json.Unmarshal(hit.Source_, &item); err != nil {
+			c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
+			continue
+		}
+		break
+	}
+
+	return item, nil
+}

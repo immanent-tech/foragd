@@ -4,6 +4,7 @@
 package elastic
 
 import (
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
@@ -76,4 +77,8 @@ func (c *Client) NewMGetRequest(options ...Option[*mget.Mget]) *mget.Mget {
 	}
 
 	return req
+}
+
+func (c *Client) NewGetRequest(index, id string) *get.Get {
+	return c.API.Get(index, id)
 }

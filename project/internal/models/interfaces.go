@@ -12,9 +12,10 @@ type Auth interface {
 }
 
 type DB interface {
-	FindSubscriptionByFeedID(ctx context.Context, feedID string) (*Subscription, error)
+	IsSubscribed(ctx context.Context, feedID string) (bool, error)
 	AddSubscription(ctx context.Context, userID string, sub *Subscription) error
 	GetAllSubscriptions(ctx context.Context) ([]Subscription, error)
+	FilterSubscriptionsByFeedID(ctx context.Context, feedIDs ...string) ([]Subscription, error)
 	GetUserByID(ctx context.Context, userID string) (*User, error)
 	AddUser(ctx context.Context, userID string, newUser *APIUser) error
 }
@@ -24,6 +25,7 @@ type Cache interface {
 	AddFeeds(ctx context.Context, feeds ...Feed) error
 	GetFeeds(ctx context.Context, feedIDs ...string) ([]APIFeed, error)
 	GetFeedItems(ctx context.Context, feedIDs ...string) ([]APIItem, error)
+	GetItem(ctx context.Context, feedID, itemID string) (APIItem, error)
 }
 
 type Session interface {

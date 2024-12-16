@@ -52,6 +52,20 @@ func QueryByFeedIDs(feedIDs ...string) Option[*types.Query] {
 	}
 }
 
+// QueryByItemIDs adds a "Terms" clause with the given Item IDs.
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
+func QueryByItemIDs(itemIDs ...string) Option[*types.Query] {
+	return func(query *types.Query) *types.Query {
+		query.Terms = &types.TermsQuery{
+			TermsQuery: map[string]types.TermsQueryField{
+				"item_id": itemIDs,
+			},
+		}
+
+		return query
+	}
+}
+
 // QuerySince adds a "Range" query to find documents newer than the given time.
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
 func QuerySince(field string, since time.Time) Option[*types.Query] {
@@ -72,14 +86,6 @@ func QuerySince(field string, since time.Time) Option[*types.Query] {
 		return query
 	}
 }
-
-// // IndexPattern defines the index pattern the search will use.
-// func IndexPattern(pattern string) SearchOption {
-// 	return func(search *search.Search) *search.Search {
-// 		search = search.Index(pattern)
-// 		return search
-// 	}
-// }
 
 // WithQueryOptions adds the given query options (conditions) to the search.
 func WithQueryOptions(options ...Option[*types.Query]) Option[*search.Search] {

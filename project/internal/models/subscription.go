@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"slices"
 
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -19,6 +18,7 @@ var (
 	ErrSubscriptionExists  = errors.New("subscription already exists")
 	ErrGetSubscriptions    = errors.New("get subscriptions failed")
 	ErrSubscriptionInvalid = errors.New("invalid subscription")
+	ErrNotSubscribed       = errors.New("not subscribed")
 )
 
 func AddNewSubscription(ctx context.Context, userID string, cache Cache, db DB, sub *APISubscription) error {
@@ -47,16 +47,16 @@ func AddNewSubscription(ctx context.Context, userID string, cache Cache, db DB, 
 	}
 
 	// Find a subscription by the provided feed URL.
-	newSub, err := db.FindSubscriptionByFeedID(ctx, feed.ID)
+	found, err := db.IsSubscribed(ctx, feed.ID)
 	if err != nil {
 		return errors.Join(ErrAddSubscription, err)
 	}
 	// If the subscription already exists, nothing to do, exit.
-	if newSub.ID != "" {
+	if found {
 		return ErrSubscriptionExists
 	}
-	// Otherwise, create a new subscription from the proivded details.
-	newSub, err = newSubscription(sub.Name, feed.ID)
+	// Otherwise, create a new subscription from the provided details.
+	newSub, err := newSubscription(sub.Name, feed.ID)
 	if err != nil {
 		return errors.Join(ErrAddSubscription, err)
 	}
@@ -80,25 +80,16 @@ func AddNewSubscription(ctx context.Context, userID string, cache Cache, db DB, 
 
 func GetSubcribedFeeds(ctx context.Context, cache Cache, db DB, feedFilters ...string) ([]APIFeed, error) {
 	// Get user subscriptions
-	subs, err := db.GetAllSubscriptions(ctx)
+	subs, err := db.FilterSubscriptionsByFeedID(ctx, feedFilters...)
 	if err != nil {
 		return nil, errors.Join(ErrGetSubscriptions, err)
 	}
 
 	var feedIDs []string
 
-	if len(feedFilters) > 0 {
-		// If there filters were provided, filter the list of subscriptions.
-		for _, sub := range subs {
-			if slices.Contains(feedFilters, sub.FeedID) {
-				feedIDs = append(feedIDs, sub.FeedID)
-			}
-		}
-	} else {
-		// Otherwise include all subscriptions.
-		for _, sub := range subs {
-			feedIDs = append(feedIDs, sub.FeedID)
-		}
+	// Otherwise include all subscriptions.
+	for _, sub := range subs {
+		feedIDs = append(feedIDs, sub.FeedID)
 	}
 
 	feeds, err := cache.GetFeeds(ctx, feedIDs...)

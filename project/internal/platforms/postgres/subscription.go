@@ -15,8 +15,51 @@ import (
 	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
-var ErrAddSubscription = errors.New("error adding subscription")
+var (
+	ErrAddSubscription = errors.New("error adding subscription(s)")
+	ErrGetSubscription = errors.New("error retrieving subscription(s)")
+)
 
+// IsSubscribed returns a bool indicating if the user is subscribed to the given
+// feed.
+func (c *Client) IsSubscribed(ctx context.Context, feedID string) (bool, error) {
+	var subscription models.Subscription
+
+	userID, err := session.UserID(ctx)
+	if err != nil {
+		return false, fmt.Errorf("%w: %w", ErrGetSubscription, err)
+	}
+
+	result := c.db.Where("user_id = ? AND feed_id = ?", userID, feedID).First(&subscription)
+
+	switch {
+	case result.Error != nil && errors.Is(result.Error, gorm.ErrRecordNotFound):
+		return false, nil
+	case result.Error != nil:
+		return false, fmt.Errorf("%w: %w", ErrGetSubscription, result.Error)
+	default:
+		return true, nil
+	}
+}
+
+// FilterSubscriptionsByFeedID retrieves the user subscriptions, filtered to the
+// given feed ids.
+func (c *Client) FilterSubscriptionsByFeedID(ctx context.Context, feedIDs ...string) ([]models.Subscription, error) {
+	userID, err := session.UserID(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrGetSubscription, err)
+	}
+
+	var subscriptions []models.Subscription
+
+	if err := c.db.Where("user_id = ? AND feed_id IN ?", userID, feedIDs).Find(&subscriptions).Error; err != nil {
+		return nil, fmt.Errorf("unable to get subscriptions: %w", err)
+	}
+
+	return subscriptions, nil
+}
+
+// GetAllSubscriptions retrieves all subscriptions for a user.
 func (c *Client) GetAllSubscriptions(ctx context.Context) ([]models.Subscription, error) {
 	userID, err := session.UserID(ctx)
 	if err != nil {
@@ -30,23 +73,6 @@ func (c *Client) GetAllSubscriptions(ctx context.Context) ([]models.Subscription
 	}
 
 	return subscriptions, nil
-}
-
-func (c *Client) FindSubscriptionByFeedID(ctx context.Context, feedID string) (*models.Subscription, error) {
-	var subscription models.Subscription
-
-	userID, err := session.UserID(ctx)
-	if err != nil {
-		return &subscription, fmt.Errorf("unable to get subscriptions: %w", err)
-	}
-
-	subscription.UserID = userID
-
-	if err := c.db.First(&subscription, "feed_id = ?", feedID).Error; err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return &subscription, fmt.Errorf("unable to get subscription: %w", err)
-	}
-
-	return &subscription, nil
 }
 
 func (c *Client) AddSubscription(ctx context.Context, userID string, sub *models.Subscription) error {

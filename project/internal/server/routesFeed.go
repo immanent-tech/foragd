@@ -14,7 +14,6 @@ import (
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -81,7 +80,6 @@ func (s Server) ListItems(res http.ResponseWriter, req *http.Request, params Lis
 		res.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	spew.Dump(params.ItemsFilters)
 
 	if params.ItemsFilters != nil {
 
@@ -149,6 +147,12 @@ func (s Server) ShowFeed(res http.ResponseWriter, req *http.Request, feedID stri
 func (s Server) ShowItem(res http.ResponseWriter, req *http.Request, feedID string, itemID string) {
 	logger := s.Logger.With(slog.String("handler", "FeedItem"))
 
+	if feedID == "" || itemID == "" {
+		logger.Error("Invalid request.", slog.Any("error", ErrFeedIDRequired))
+		http.Error(res, "Invalid request.", http.StatusBadRequest)
+		return
+	}
+
 	// if !htmx.IsHTMX(req) {
 	// 	logger.Error("Request was not made by htmx.")
 	// 	http.Error(res, "Invalid request", http.StatusBadRequest)
@@ -161,7 +165,7 @@ func (s Server) ShowItem(res http.ResponseWriter, req *http.Request, feedID stri
 		return
 	}
 
-	res.WriteHeader(http.StatusNotImplemented)
+	handlers.ShowItem(res, req, feedID, itemID, s.API.elastic, s.API.pg)
 }
 
 func setItemsListCookie(filters *models.ItemsFilters) (http.Cookie, error) {

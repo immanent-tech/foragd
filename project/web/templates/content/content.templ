@@ -1,25 +1,51 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package partials
+package content
 
-import "github.com/joshuar/go-templ-daisyui"
+import (
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-templ-daisyui"
+)
+
+// wrapContent wraps children with the appropriate div for displaying main home content.
+templ wrapContent() {
+	<div id="content" class="flex flex-col space-y-8">
+		{ children... }
+	</div>
+}
 
 // ShowFeeds shows a list of feed cards.
 templ ShowFeeds(cards ...components.Card) {
-	<div id="content" class="flex flex-col space-y-8">
+	@wrapContent() {
 		@showCardList("feeds", cards...)
-	</div>
+	}
 }
 
 // ShowFeedItems shows a list of item cards.
 templ ShowFeedItems(cards ...components.Card) {
-	<div id="content" class="flex flex-col space-y-8">
+	@wrapContent() {
 		<form method="dialog">
 			@navButton("/home/feeds").Show()
 		</form>
 		@showCardList("items", cards...)
-	</div>
+	}
+}
+
+templ ShowItem(item *models.APIItem) {
+	@wrapContent() {
+		<form method="dialog">
+			@navButton("/home/items").Show()
+		</form>
+		@item.AsArticle().Show()
+		if len(item.CategoryBadges()) > 0 {
+			<div class="badges">
+				for _, badge := range item.CategoryBadges() {
+					@badge.Show()
+				}
+			</div>
+		}
+	}
 }
 
 templ showCardList(name string, cards ...components.Card) {

@@ -59,7 +59,8 @@
     "components/badge",
     "components/fit",
     "components/header",
-    "components/size"
+    "components/size",
+    "components/article"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

@@ -9,20 +9,13 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/mmcdole/gofeed"
+	"github.com/a-h/templ"
+
+	components "github.com/joshuar/go-templ-daisyui"
 
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
-
-var ErrParseFeed = errors.New("could not parse feed")
-
-var parser *gofeed.Parser
-
-func init() {
-	parser = gofeed.NewParser()
-	parser.UserAgent = "Mozilla/5.0 (X11; Linux x86_64; rv:132.0) Gecko/20100101 Firefox/132.0"
-}
 
 // GetItemsSince retrieves the feed items that are newer than the given time.
 func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
@@ -48,6 +41,45 @@ func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 	}
 
 	return items
+}
+
+// AsCardSummary displays a summary of a feed item in a DaisyUI card component.
+// Useful for displaying as a list/grouping of feeds.
+func (f *APIFeed) AsCardSummary() components.Card {
+	card := components.NewCard(
+		components.WithCardLayout(components.CardLayoutSide),
+		components.WithTitle(f.Title),
+		components.WithCardShadow(components.SM),
+		components.WithID[components.Card](f.ID),
+		components.WithAttributes[components.Card](templ.Attributes{
+			"hx-target": "#content",
+			"hx-post":   "/home/items",
+		}),
+		components.WithBody(templ.Raw(f.Description)),
+	)
+
+	if f.Image != nil {
+		image := components.NewImage(
+			components.WithURL(f.Image.URL),
+		)
+
+		if f.Image.Title != "" {
+			image.Alt = f.Image.Title
+		}
+
+		card.Image = &image
+	}
+
+	if len(f.Categories) > 0 {
+		var categories []components.Badge
+		for _, c := range f.Categories {
+			categories = append(categories, components.NewBadge(c))
+		}
+
+		card.Badges = categories
+	}
+
+	return card
 }
 
 // NewFeedFromURL creates a new feed model from the given URL as its canonical
