@@ -2,12 +2,12 @@ package partials
 
 import components "github.com/joshuar/go-templ-daisyui"
 
-templ SignUpForm(form components.Form) {
+templ ShowSignUpForm() {
 	<div class="hero-content text-center">
 		<div class="max-w-md">
 			<h1 class="text-3xl font-bold">Sign-up to Go Feed Me</h1>
 			<div id="signup-notifications"></div>
-			@form.Show()
+			@SignUpForm().Show()
 		</div>
 	</div>
 }
