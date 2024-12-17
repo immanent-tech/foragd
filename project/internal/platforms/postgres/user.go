@@ -21,11 +21,14 @@ import (
 	"fmt"
 	"log/slog"
 
+	"gorm.io/gorm"
+
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 var (
 	ErrAddUser      = errors.New("error adding user")
+	ErrGetUser      = errors.New("error retrieving user")
 	ErrInvalidToken = errors.New("session data is invalid")
 	ErrUnknownUser  = errors.New("user does not exist")
 )
@@ -53,4 +56,22 @@ func (c *Client) GetUserByID(_ context.Context, userID string) (*models.User, er
 	}
 
 	return &user, nil
+}
+
+// IsValidUser checks that the given user ID exists in the database store. It
+// returns a boolean for this check and a non-nil error if a problem occurred
+// when trying to execute the check.
+func (c *Client) IsValidUser(_ context.Context, userID string) (bool, error) {
+	var user models.User
+
+	result := c.db.First(&user, "id = ?", userID)
+
+	switch {
+	case result.Error != nil && errors.Is(result.Error, gorm.ErrRecordNotFound):
+		return false, nil
+	case result.Error != nil:
+		return false, fmt.Errorf("%w: %w", ErrGetUser, result.Error)
+	default:
+		return true, nil
+	}
 }

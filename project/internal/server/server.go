@@ -96,6 +96,11 @@ func NewServer(ctx context.Context) (Server, error) {
 	return svr, nil
 }
 
+var (
+	htmxOnlyRoutes  = []string{"/home/feeds", "/home/items", "/home/settings", "/signup", "/subscription"}
+	protectedRoutes = []string{"/home"}
+)
+
 func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	wrapper := ServerInterfaceWrapper{
 		Handler: svr,
@@ -110,6 +115,8 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		middleware.Recoverer,
 		middlewares.CORS(config.Environment),
 		middlewares.CSP(config.CSP),
+		middlewares.RequireAuthentication(protectedRoutes, svr.API.pg),
+		middlewares.RequireHTMX(htmxOnlyRoutes),
 		session.LoadAndSave())
 
 	svr.Logger.Debug("Setting up routes...")

@@ -14,48 +14,41 @@ import (
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
+	components "github.com/joshuar/go-templ-daisyui"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/server/cookies"
 	"github.com/joshuar/go-feed-me/internal/server/handlers"
-	"github.com/joshuar/go-feed-me/internal/server/middlewares"
+	"github.com/joshuar/go-feed-me/web/templates/content"
 )
 
 var ErrFeedIDRequired = errors.New("feed ID is required")
 
 func (s Server) GetFeedList(res http.ResponseWriter, req *http.Request, params GetFeedListParams) {
 	logger := s.Logger.With(slog.String("handler", "ListFeeds"))
-	ctx := logging.ToContext(req.Context(), logger)
 
-	// Only continue if request was made by htmx.
-	if !htmx.IsHTMX(req) {
-		logger.Error("Request was not made by htmx.")
-		http.Error(res, "Invalid request", http.StatusBadRequest)
+	// Get all subscribed feeds.
+	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg)
+	if err != nil {
+		logger.Error("Could not add item.", slog.Any("error", err))
+	}
+
+	feedCards := make([]components.Card, len(feeds))
+
+	// Generate cards for each feed.
+	for i, feed := range feeds {
+		feedCards[i] = feed.AsCardSummary()
+	}
+
+	// Render the list of feed cards.
+	if err := htmx.NewResponse().
+		RenderTempl(req.Context(), res, content.ShowFeeds(feedCards...)); err != nil {
+		logging.LogReq(req, http.StatusInternalServerError).Error("showAllFeeds: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
-
-	// Only continue if user is authorized.
-	if authenticated, err := middlewares.IsAuthenticated(req, s.API.pg); !authenticated {
-		logger.Error("Unauthorized.", slog.Any("error", err))
-		res.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	if params.FeedsFilters != nil {
-		// Add any feeds for filtering.
-		if len(params.FeedsFilters.Feeds) > 0 {
-			ctx = handlers.FeedsToCtx(ctx, params.FeedsFilters.Feeds)
-		}
-		// Add categories for filtering.
-		if len(params.FeedsFilters.Categories) > 0 {
-			ctx = handlers.CategoriesToCtx(ctx, params.FeedsFilters.Categories)
-		}
-	}
-
-	logging.LogReq(req, http.StatusAccepted).Info("processing request")
-
-	handlers.ShowFeeds(res, req.WithContext(ctx), s.API.elastic, s.API.pg)
 }
 
 func (s Server) UpdateFeedList(res http.ResponseWriter, req *http.Request) {
@@ -64,40 +57,41 @@ func (s Server) UpdateFeedList(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s Server) ListItems(res http.ResponseWriter, req *http.Request, params ListItemsParams) {
-	logger := s.Logger.With(slog.String("handler", "ListFeeds"))
-	ctx := logging.ToContext(req.Context(), logger)
+	logger := s.Logger.With(slog.String("handler", "ListItems"))
 
-	// Only continue if request was made by htmx.
-	if !htmx.IsHTMX(req) {
-		logger.Error("Request was not made by htmx.")
-		http.Error(res, "Invalid request", http.StatusBadRequest)
+	// Get all subscribed feeds.
+	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg, params.ItemsFilters.Feeds...)
+	if err != nil {
+		logging.FromContext(req.Context()).
+			Error("Could not add item.", slog.Any("error", err))
+	}
+
+	subs := make([]string, len(feeds))
+
+	// Get a list of the feed IDs.
+	for i, feed := range feeds {
+		subs[i] = feed.ID
+	}
+	// Get all feed items for all subscribed feeds.
+	items, err := s.API.elastic.GetFeedItems(req.Context(), subs...)
+	if err != nil {
+		logger.Error("Could not show feed items.", slog.Any("error", err))
+	}
+
+	itemCards := make([]components.Card, len(items))
+
+	// Create item cards.
+	for i, item := range items {
+		itemCards[i] = item.AsCardSummary()
+	}
+	// Render the list of feed cards.
+	if err := htmx.NewResponse().
+		RenderTempl(req.Context(), res, content.ShowFeedItems(itemCards...)); err != nil {
+		logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
-
-	// Only continue if user is authorized.
-	if authenticated, err := middlewares.IsAuthenticated(req, s.API.pg); !authenticated {
-		logger.Error("Unauthorized.", slog.Any("error", err))
-		res.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	if params.ItemsFilters != nil {
-
-		// Add any feeds for filtering.
-		if len(params.ItemsFilters.Feeds) > 0 {
-			ctx = handlers.FeedsToCtx(ctx, params.ItemsFilters.Feeds)
-		}
-		// Add any items for filtering.
-		if len(params.ItemsFilters.Items) > 0 {
-			ctx = handlers.FeedsToCtx(ctx, params.ItemsFilters.Items)
-		}
-		// Add categories for filtering.
-		if len(params.ItemsFilters.Categories) > 0 {
-			ctx = handlers.CategoriesToCtx(ctx, params.ItemsFilters.Categories)
-		}
-	}
-
-	handlers.ShowItems(res, req.WithContext(ctx), s.API.elastic, s.API.pg)
 }
 
 func (s Server) UpdateItemsList(res http.ResponseWriter, req *http.Request) {
@@ -135,12 +129,6 @@ func (s Server) ShowFeed(res http.ResponseWriter, req *http.Request, feedID stri
 		return
 	}
 
-	if authenticated, err := middlewares.IsAuthenticated(req, s.API.pg); !authenticated {
-		logger.Error("Unauthorized.", slog.Any("error", err))
-		res.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -153,19 +141,20 @@ func (s Server) ShowItem(res http.ResponseWriter, req *http.Request, feedID stri
 		return
 	}
 
-	// if !htmx.IsHTMX(req) {
-	// 	logger.Error("Request was not made by htmx.")
-	// 	http.Error(res, "Invalid request", http.StatusBadRequest)
-	// 	return
-	// }
-
-	if authenticated, err := middlewares.IsAuthenticated(req, s.API.pg); !authenticated {
-		logger.Error("Unauthorized.", slog.Any("error", err))
-		res.WriteHeader(http.StatusUnauthorized)
-		return
+	item, err := models.GetItem(req.Context(), s.API.pg, s.API.elastic, feedID, itemID)
+	if err != nil {
+		logging.FromContext(req.Context()).
+			Error("Could not get item.", slog.Any("error", err))
 	}
 
-	handlers.ShowItem(res, req, feedID, itemID, s.API.elastic, s.API.pg)
+	// Render the list of feed cards.
+	if err := htmx.NewResponse().
+		RenderTempl(req.Context(), res, content.ShowItem(item)); err != nil {
+		logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+
+		return
+	}
 }
 
 func setItemsListCookie(filters *models.ItemsFilters) (http.Cookie, error) {

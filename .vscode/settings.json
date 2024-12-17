@@ -60,7 +60,8 @@
     "components/fit",
     "components/header",
     "components/size",
-    "components/article"
+    "components/article",
+    "middlewares"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

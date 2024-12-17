@@ -8,20 +8,12 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/angelofallars/htmx-go"
-
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/server/handlers"
 )
 
 // SubscriptionAdd handles subscription request input GET(/subscription/add).
 func (s Server) GetSubscriptionAdd(res http.ResponseWriter, req *http.Request) {
-	if !htmx.IsHTMX(req) {
-		s.Logger.Error("Request was not made by htmx.", slog.String("handler", "SubscriptionAdd"))
-		http.Error(res, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
 	ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "SubscriptionAdd")))
 
 	handlers.AddSubscriptionHandler(res, req.WithContext(ctx))
@@ -29,12 +21,6 @@ func (s Server) GetSubscriptionAdd(res http.ResponseWriter, req *http.Request) {
 
 // SubscriptionAddSubmit processes a subscription request POST(/subscription/add)
 func (s Server) PostSubscriptionAdd(res http.ResponseWriter, req *http.Request) {
-	if !htmx.IsHTMX(req) {
-		s.Logger.Error("Request was not made by htmx.", slog.String("handler", "SubscriptionAddSubmit"))
-		http.Error(res, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
 	ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "SubscriptionAddSubmit")))
 
 	handlers.ProcessAddSubscriptionForm(res, req.WithContext(ctx), s.API.elastic, s.API.pg)
@@ -42,12 +28,6 @@ func (s Server) PostSubscriptionAdd(res http.ResponseWriter, req *http.Request) 
 
 // SubscriptionValidate validates a subscription request GET(/subscription/validate)
 func (s Server) PostSubscriptionValidate(res http.ResponseWriter, req *http.Request) {
-	if !htmx.IsHTMX(req) {
-		s.Logger.Error("Request was not made by htmx.", slog.String("handler", "SubscriptionValidate"))
-		http.Error(res, "Invalid request", http.StatusBadRequest)
-		return
-	}
-
 	ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "SubscriptionValidate")))
 
 	handlers.Validate(res, req.WithContext(ctx), handlers.UpdateAddSubscriptionForm)
