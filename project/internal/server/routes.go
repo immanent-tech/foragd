@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/server/handlers"
 )
 
@@ -25,7 +26,7 @@ func (s Server) GetLogin(res http.ResponseWriter, req *http.Request, provider st
 
 	switch provider {
 	case "auth0":
-		handlers.Auth0Login(res, req.WithContext(ctx), s.API.auth)
+		auth0.LoginHandler(res, req.WithContext(ctx), s.API.auth)
 	default:
 		s.Logger.Warn("No provider to satisfy login.")
 		http.NotFound(res, req)
@@ -52,7 +53,7 @@ func (s Server) GetLoginCallback(res http.ResponseWriter, req *http.Request, pro
 
 	switch provider {
 	case "auth0":
-		handlers.Auth0Callback(res, req.WithContext(ctx), s.API.auth, params.Code, params.State)
+		auth0.CallbackHandler(res, req.WithContext(ctx), s.API.auth, params.Code, params.State)
 	default:
 		logger.Warn("No provider to satisfy callback.")
 		http.NotFound(res, req)
@@ -69,7 +70,7 @@ func (s Server) GetLogout(res http.ResponseWriter, req *http.Request, provider s
 
 	switch provider {
 	case "auth0":
-		handlers.Auth0LogoutHandler(res, req, s.API.auth)
+		auth0.LogoutHandler(res, req)
 	default:
 		logger.Error("No provider to satisfy login.")
 		http.NotFound(res, req)

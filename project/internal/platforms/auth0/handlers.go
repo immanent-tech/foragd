@@ -1,19 +1,7 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package handlers
+package auth0
 
 import (
 	"crypto/rand"
@@ -23,11 +11,10 @@ import (
 	"net/url"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
-func Auth0Login(res http.ResponseWriter, req *http.Request, authenticator *auth0.Authenticator) {
+func LoginHandler(res http.ResponseWriter, req *http.Request, authenticator *Authenticator) {
 	state, err := generateRandomState()
 	if err != nil {
 		logging.FromContext(req.Context()).
@@ -48,7 +35,7 @@ func Auth0Login(res http.ResponseWriter, req *http.Request, authenticator *auth0
 	http.Redirect(res, req, authenticator.AuthCodeURL(state), http.StatusTemporaryRedirect)
 }
 
-func Auth0Callback(res http.ResponseWriter, req *http.Request, authenticator *auth0.Authenticator, code, state string) {
+func CallbackHandler(res http.ResponseWriter, req *http.Request, authenticator *Authenticator, code, state string) {
 	if req.URL.Path != "/login/auth0/callback" {
 		logging.FromContext(req.Context()).
 			Error("Invalid request.")
@@ -68,6 +55,7 @@ func Auth0Callback(res http.ResponseWriter, req *http.Request, authenticator *au
 		logging.FromContext(req.Context()).
 			Error("Unauthorized. Invalid state.")
 		res.WriteHeader(http.StatusUnauthorized)
+
 		return
 	}
 
@@ -77,6 +65,7 @@ func Auth0Callback(res http.ResponseWriter, req *http.Request, authenticator *au
 		logging.FromContext(req.Context()).
 			Error("Unauthorized. Invalid token.", slog.Any("error", err))
 		res.WriteHeader(http.StatusUnauthorized)
+
 		return
 	}
 
@@ -85,6 +74,7 @@ func Auth0Callback(res http.ResponseWriter, req *http.Request, authenticator *au
 		logging.FromContext(req.Context()).
 			Error("Unauthorized. Invalid token.", slog.Any("error", err))
 		res.WriteHeader(http.StatusUnauthorized)
+
 		return
 	}
 
@@ -94,12 +84,13 @@ func Auth0Callback(res http.ResponseWriter, req *http.Request, authenticator *au
 		logging.FromContext(req.Context()).
 			Error("Unable to store tokens.", slog.Any("error", err))
 		res.WriteHeader(http.StatusUnauthorized)
+
 		return
 	}
 }
 
-func Auth0LogoutHandler(res http.ResponseWriter, req *http.Request, authenticator *auth0.Authenticator) {
-	logoutURL, err := authenticator.LogoutURL(req)
+func LogoutHandler(res http.ResponseWriter, req *http.Request) {
+	logoutURL, err := generateLogoutURL(req)
 	if err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).
 			Error("Auth0LogoutHandler: invalid Auth0 domain.",

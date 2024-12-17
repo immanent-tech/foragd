@@ -84,7 +84,7 @@ func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) 
 	return validToken, nil
 }
 
-func (a *Authenticator) LogoutURL(req *http.Request) (*url.URL, error) {
+func generateLogoutURL(req *http.Request) (*url.URL, error) {
 	logoutURL, err := url.Parse("https://" + config.Domain + "/v2/logout")
 	if err != nil {
 		return nil, fmt.Errorf("could not determine logout URL: %w", err)
