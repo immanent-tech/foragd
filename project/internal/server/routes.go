@@ -8,11 +8,15 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
-	"github.com/joshuar/go-feed-me/internal/server/handlers"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/meta"
+	"github.com/joshuar/go-feed-me/web/templates/pages"
 )
 
 // Ensures we statisfy the ServerInterface interface.
@@ -80,5 +84,23 @@ func (s Server) GetLogout(res http.ResponseWriter, req *http.Request, provider s
 // GetIndex serves the front page.
 // GET(/).
 func (s Server) GetIndex(res http.ResponseWriter, req *http.Request) {
-	handlers.Index(res, req)
+	// Define template layout for index page.
+	indexTemplate := templates.PageTempl(
+		templates.Page{
+			Title: "Go Feed Me",
+			CustomHeaders: []templ.Component{
+				meta.Tag("keywords", "feeds, atom, rss, feed reader"),
+				meta.Tag("description", "Welcome to Go Feed Me."),
+			},
+		},
+		pages.IndexPage(),
+	)
+
+	// Render index page template.
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, indexTemplate); err != nil {
+		logging.LogReq(req, http.StatusInternalServerError).Error("IndexViewHandler: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+		slog.Info("here")
+		return
+	}
 }
