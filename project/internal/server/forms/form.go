@@ -1,19 +1,7 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package handlers
+package forms
 
 import (
 	"context"
@@ -21,7 +9,10 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/angelofallars/htmx-go"
 	"github.com/go-playground/form/v4"
+
+	components "github.com/joshuar/go-templ-daisyui"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 )
@@ -72,4 +63,12 @@ func DecodeRequest[T Validator](req *http.Request) (T, models.ValidationErrors, 
 	}
 
 	return obj, nil, nil
+}
+
+func updateFormInput(req *http.Request, res http.ResponseWriter, input components.Input) error {
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, input.Show()); err != nil {
+		return fmt.Errorf("failed to render input: %w", err)
+	}
+
+	return nil
 }

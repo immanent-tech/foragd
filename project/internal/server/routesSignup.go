@@ -12,7 +12,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/server/handlers"
+	"github.com/joshuar/go-feed-me/internal/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
@@ -33,11 +33,11 @@ func (s Server) GetSignup(res http.ResponseWriter, req *http.Request) {
 func (s Server) PostSignup(res http.ResponseWriter, req *http.Request) {
 	// ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "Signup")))
 
-	newUser, problems, err := handlers.DecodeForm[*models.APIUser](req)
+	newUser, problems, err := forms.DecodeForm[*models.APIUser](req)
 	if err != nil && len(problems) == 0 {
 		logging.FromContext(req.Context()).
 			Error("Could not decode submitted signup request.", slog.Any("error", err))
-		handlers.Validate(res, req, partials.UpdateSignupInput)
+		forms.Validate(res, req, partials.UpdateSignupInput)
 		return
 	}
 
@@ -80,5 +80,5 @@ func (s Server) PostSignup(res http.ResponseWriter, req *http.Request) {
 func (s Server) PostSignupValidate(res http.ResponseWriter, req *http.Request) {
 	ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "Signup")))
 
-	handlers.Validate(res, req.WithContext(ctx), partials.UpdateSignupInput)
+	forms.Validate(res, req.WithContext(ctx), partials.UpdateSignupInput)
 }

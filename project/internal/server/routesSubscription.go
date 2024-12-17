@@ -10,8 +10,8 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/server/handlers"
-	"github.com/joshuar/go-feed-me/internal/server/handlers/renderers"
+	"github.com/joshuar/go-feed-me/internal/server/forms"
+	"github.com/joshuar/go-feed-me/internal/server/modals"
 	"github.com/joshuar/go-feed-me/internal/server/session"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
@@ -20,7 +20,7 @@ import (
 func (s Server) GetSubscriptionAdd(res http.ResponseWriter, req *http.Request) {
 	logger := s.Logger.With(slog.String("handler", "SubscriptionAdd"))
 
-	if err := renderers.CommandModal(req, res, partials.AddSubscriptionForm().Show()); err != nil {
+	if err := modals.CommandModal(req, res, partials.AddSubscriptionForm().Show()); err != nil {
 		logger.Warn("Unable to command modal.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 	}
@@ -30,11 +30,11 @@ func (s Server) GetSubscriptionAdd(res http.ResponseWriter, req *http.Request) {
 func (s Server) PostSubscriptionAdd(res http.ResponseWriter, req *http.Request) {
 	logger := s.Logger.With(slog.String("handler", "SubscriptionAddSubmit"))
 
-	newSubscription, problems, err := handlers.DecodeForm[*models.APISubscription](req)
+	newSubscription, problems, err := forms.DecodeForm[*models.APISubscription](req)
 	if err != nil && len(problems) == 0 {
 		logging.FromContext(req.Context()).
 			Error("Could not decode submitted add feed request.", slog.Any("error", err))
-		handlers.Validate(res, req, partials.UpdateAddSubscriptionForm)
+		forms.Validate(res, req, partials.UpdateAddSubscriptionForm)
 		res.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -59,7 +59,7 @@ func (s Server) PostSubscriptionAdd(res http.ResponseWriter, req *http.Request) 
 func (s Server) PostSubscriptionValidate(res http.ResponseWriter, req *http.Request) {
 	ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "SubscriptionValidate")))
 
-	handlers.Validate(res, req.WithContext(ctx), partials.UpdateAddSubscriptionForm)
+	forms.Validate(res, req.WithContext(ctx), partials.UpdateAddSubscriptionForm)
 }
 
 // Edit a new subscription

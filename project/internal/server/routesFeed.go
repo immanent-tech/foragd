@@ -19,7 +19,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/server/cookies"
-	"github.com/joshuar/go-feed-me/internal/server/handlers"
+	"github.com/joshuar/go-feed-me/internal/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/content"
 )
 
@@ -97,7 +97,7 @@ func (s Server) ListItems(res http.ResponseWriter, req *http.Request, params Lis
 func (s Server) UpdateItemsList(res http.ResponseWriter, req *http.Request) {
 	logger := s.Logger.With(slog.String("handler", "UpdateItemsList"))
 
-	filters, problems, err := handlers.DecodeForm[*models.ItemsFilters](req)
+	filters, problems, err := forms.DecodeForm[*models.ItemsFilters](req)
 	if err != nil && len(problems) == 0 {
 		logger.Error("Could not decode filters.", slog.Any("error", err))
 		return

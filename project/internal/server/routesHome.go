@@ -12,7 +12,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/server/handlers"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/meta"
 	"github.com/joshuar/go-feed-me/web/templates/pages"
@@ -45,9 +44,5 @@ func (s Server) GetHome(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s Server) GetHomeSettings(res http.ResponseWriter, req *http.Request) {
-	logger := s.Logger.With(slog.String("handler", "UserSettings"))
-
-	ctx := logging.ToContext(req.Context(), logger)
-
-	handlers.Search(res, req.WithContext(ctx))
+	res.WriteHeader(http.StatusNotImplemented)
 }
