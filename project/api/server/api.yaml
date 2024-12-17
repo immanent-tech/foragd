@@ -231,58 +231,48 @@ paths:
           description: Problem with request
   /home/feeds:
     get:
-      summary: list feeds filtered by given parameters
-      operationId: getFeedList
+      summary: show a list of feeds (with optional filtering)
+      operationId: feedsHandler
       parameters:
-        - $ref: '#/components/parameters/FeedsCookie'
+        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Categories'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-    post:
-      summary: update feeds list filters
-      operationId: updateFeedList
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '../models/api.yaml#/components/schemas/FeedsFilters'
+  /home/feeds/{category}:
+    get:
+      summary: show a list of feeds with the given category
+      operationId: feedsCategoryHandler
+      parameters:
+        - $ref: '#/components/parameters/Category'
+          required: true
       responses:
         200:
           $ref: '#/components/responses/htmx'
   /home/items:
     get:
       summary: list items with filtered by given parameters
-      operationId: listItems
+      operationId: itemsHandler
       parameters:
-        - $ref: '#/components/parameters/ItemsCookie'
-          in: cookie
+        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Categories'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-    post:
-      summary: update items list filters
-      operationId: updateItemsList
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '../models/api.yaml#/components/schemas/ItemsFilters'
-  /home/{feed}:
+  /home/items/{category}:
     get:
-      summary: display a feed
-      operationId: showFeed
+      summary: show a list of items with the given category
+      operationId: itemsCategoryHandler
       parameters:
-        - $ref: '../models/api.yaml#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/Category'
           required: true
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/{feed}/{item}:
+  /home/{feed}-{item}:
     get:
       summary: display an item
-      operationId: showItem
+      operationId: articleHandler
       parameters:
         - $ref: '../models/api.yaml#/components/parameters/FeedID'
           required: true
@@ -293,6 +283,21 @@ paths:
           $ref: '#/components/responses/htmx'
 components:
   parameters:
+    Feeds:
+      name: feeds
+      in: query
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/FeedIDs'
+    Items:
+      name: items
+      in: query
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/ItemIDs'
+    Categories:
+      name: categories
+      in: query
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/Categories'
     FeedID:
       name: feed
       in: path
@@ -303,18 +308,11 @@ components:
       in: path
       schema:
         type: string
-    FeedsCookie:
-      description: contains settings for the feeds list pane.
-      name: feedsFilters
-      in: cookie
+    Category:
+      name: category
+      in: path
       schema:
-        $ref: '../models/api.yaml#/components/schemas/FeedsFilters'
-    ItemsCookie:
-      description: contains settings for the items list pane.
-      name: itemsFilters
-      in: cookie
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/ItemsFilters'
+        type: string
   responses:
     htmx:
       description: standard htmx powered response.

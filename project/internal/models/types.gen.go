@@ -73,6 +73,9 @@ type APIUser struct {
 // Categories is a list of feed/item categories.
 type Categories = []string
 
+// Category is a single feed/item category.
+type Category = string
+
 // Claims defines model for Claims.
 type Claims struct {
 	Audience       string      `json:"aud"`
@@ -110,32 +113,11 @@ type FeedState struct {
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-// FeedsFilters contains settings for feeds list pane.
-type FeedsFilters struct {
-	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories" json:"categories"`
-
-	// Feeds is a list of feed IDs.
-	Feeds FeedIDs `form:"feeds" json:"feeds"`
-}
-
 // ItemID is the unique ID of an item.
 type ItemID = string
 
 // ItemIDs is a list of item IDs.
 type ItemIDs = []ItemID
-
-// ItemsFilters defines model for ItemsFilters.
-type ItemsFilters struct {
-	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories" json:"categories"`
-
-	// Feeds is a list of feed IDs.
-	Feeds FeedIDs `form:"feeds" json:"feeds"`
-
-	// Items is a list of item IDs.
-	Items ItemIDs `form:"items" json:"items"`
-}
 
 // MetadataDB contains common (metadata) fields for database objects.
 type MetadataDB struct {

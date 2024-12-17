@@ -4,7 +4,6 @@
 package models
 
 import (
-	"context"
 	"errors"
 	"time"
 
@@ -41,8 +40,4 @@ func (i *Item) DocID() string {
 type UserSession struct {
 	*Tokens
 	*User
-}
-
-func (f *ItemsFilters) Valid(_ context.Context) (bool, ValidationErrors) {
-	return true, nil
 }

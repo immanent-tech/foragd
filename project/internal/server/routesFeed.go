@@ -5,11 +5,7 @@
 package server
 
 import (
-	"bytes"
-	"encoding/gob"
 	"errors"
-	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 
@@ -18,18 +14,26 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/server/cookies"
-	"github.com/joshuar/go-feed-me/internal/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/content"
 )
 
 var ErrFeedIDRequired = errors.New("feed ID is required")
 
-func (s Server) GetFeedList(res http.ResponseWriter, req *http.Request, params GetFeedListParams) {
+func (s Server) FeedsHandler(res http.ResponseWriter, req *http.Request, params FeedsHandlerParams) {
 	logger := s.Logger.With(slog.String("handler", "ListFeeds"))
 
+	var feedIDs []string
+	// categories []string
+
+	if params.Feeds != nil {
+		feedIDs = append(feedIDs, *params.Feeds...)
+	}
+	// if params.Categories != nil {
+	// 	categories = append(feedIDs, *params.Categories...)
+	// }
+
 	// Get all subscribed feeds.
-	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg)
+	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg, feedIDs...)
 	if err != nil {
 		logger.Error("Could not add item.", slog.Any("error", err))
 	}
@@ -51,16 +55,25 @@ func (s Server) GetFeedList(res http.ResponseWriter, req *http.Request, params G
 	}
 }
 
-func (s Server) UpdateFeedList(res http.ResponseWriter, req *http.Request) {
-	// logger := s.Logger.With(slog.String("handler", "UpdateFeedList"))
+func (s Server) FeedsCategoryHandler(res http.ResponseWriter, req *http.Request, category string) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) ListItems(res http.ResponseWriter, req *http.Request, params ListItemsParams) {
+func (s Server) ItemsHandler(res http.ResponseWriter, req *http.Request, params ItemsHandlerParams) {
 	logger := s.Logger.With(slog.String("handler", "ListItems"))
 
+	var feedIDs []string
+	// categories []string
+
+	if params.Feeds != nil {
+		feedIDs = append(feedIDs, *params.Feeds...)
+	}
+	// if params.Categories != nil {
+	// 	categories = append(feedIDs, *params.Categories...)
+	// }
+
 	// Get all subscribed feeds.
-	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg, params.ItemsFilters.Feeds...)
+	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg, feedIDs...)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not add item.", slog.Any("error", err))
@@ -94,45 +107,11 @@ func (s Server) ListItems(res http.ResponseWriter, req *http.Request, params Lis
 	}
 }
 
-func (s Server) UpdateItemsList(res http.ResponseWriter, req *http.Request) {
-	logger := s.Logger.With(slog.String("handler", "UpdateItemsList"))
-
-	filters, problems, err := forms.DecodeForm[*models.ItemsFilters](req)
-	if err != nil && len(problems) == 0 {
-		logger.Error("Could not decode filters.", slog.Any("error", err))
-		return
-	}
-
-	cookie, err := setItemsListCookie(filters)
-	if err != nil && len(problems) == 0 {
-		logger.Error("Could not encode filters.", slog.Any("error", err))
-		return
-	}
-
-	if err := cookies.WriteEncrypted(res, cookie, []byte(s.AppSecret())); err != nil {
-		logger.Error("Could not write cookie.", slog.Any("error", err))
-		return
-	}
-
-	s.ListItems(res, req, ListItemsParams{ItemsFilters: filters})
-	// handlers.ShowItems(res, req, s.API.elastic, s.API.pg)
-	// logger := s.Logger.With(slog.String("handler", "UpdateFeedList"))
-	// res.WriteHeader(http.StatusNotImplemented)
-}
-
-func (s Server) ShowFeed(res http.ResponseWriter, req *http.Request, feedID string) {
-	logger := s.Logger.With(slog.String("handler", "Feed"))
-
-	if feedID == "" {
-		logger.Error("Invalid request.", slog.Any("error", ErrFeedIDRequired))
-		http.Error(res, "Invalid request.", http.StatusBadRequest)
-		return
-	}
-
+func (s Server) ItemsCategoryHandler(res http.ResponseWriter, req *http.Request, category string) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) ShowItem(res http.ResponseWriter, req *http.Request, feedID string, itemID string) {
+func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedID string, itemID string) {
 	logger := s.Logger.With(slog.String("handler", "FeedItem"))
 
 	if feedID == "" || itemID == "" {
@@ -155,26 +134,4 @@ func (s Server) ShowItem(res http.ResponseWriter, req *http.Request, feedID stri
 
 		return
 	}
-}
-
-func setItemsListCookie(filters *models.ItemsFilters) (http.Cookie, error) {
-	// Initialize a buffer to hold the gob-encoded data.
-	var buf bytes.Buffer
-
-	// Gob-encode the user data, storing the encoded output in the buffer.
-	err := gob.NewEncoder(&buf).Encode(filters)
-	if err != nil {
-		log.Println(err)
-		return http.Cookie{}, fmt.Errorf("could not encode cookie value: %w", err)
-	}
-
-	return http.Cookie{
-		Name:     "itemsFilters",
-		Value:    buf.String(),
-		Path:     "/home/items",
-		MaxAge:   3600,
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-	}, nil
 }

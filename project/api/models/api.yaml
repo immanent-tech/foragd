@@ -56,47 +56,6 @@ components:
           x-go-type: 'time.Time'
           x-oapi-codegen-extra-tags:
             gorm: 'index'
-    # Common field definitions.
-    # Feeds:
-    #   description: is a list of feed IDs to filter on.
-    #   type: array
-    #   items:
-    #     type: string
-    # Items:
-    #   description: is a list of item IDs to filter on.
-    #   type: array
-    #   items:
-    #     type: string
-    #   x-oapi-codegen-extra-tags:
-    #     json: 'items'
-    #     form: 'feeds'
-    #   x-go-type-skip-optional-pointer: true
-    # Categories:
-    #   description: is a list of categories to filter on.
-    #   type: array
-    #   items:
-    #     type: string
-    #   x-oapi-codegen-extra-tags:
-    #     json: 'categories'
-    #     form: 'categories'
-    #   x-go-type-skip-optional-pointer: true
-    # FeedsFilters:
-    #   description: contains settings for feeds list pane.
-    #   type: object
-    #   properties:
-    #     Feeds:
-    #       $ref: '#/components/schemas/Feeds'
-    #     Categories:
-    #       $ref: '#/components/schemas/Categories'
-    # ItemsFilters:
-    #   description: contains settings for items list pane.
-    #   type: object
-    #   allOf:
-    #     - $ref: '#/components/schemas/FeedsFilters'
-    #     - type: object
-    #       properties:
-    #         Items:
-    #           $ref: '#/components/schemas/Items'
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
@@ -154,6 +113,13 @@ components:
         json: 'url'
         validate: 'required,url'
         gorm: '-'
+      x-go-type-skip-optional-pointer: true
+    Category:
+      description: is a single feed/item category.
+      type: string
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        json: 'category'
       x-go-type-skip-optional-pointer: true
     Categories:
       description: is a list of feed/item categories.
@@ -377,21 +343,3 @@ components:
           x-oapi-codegen-extra-tags:
             json: 'iat'
           x-go-type-skip-optional-pointer: true
-    FeedsFilters:
-      description: contains settings for feeds list pane.
-      type: object
-      properties:
-        Feeds:
-          $ref: '#/components/schemas/FeedIDs'
-        Categories:
-          $ref: '#/components/schemas/Categories'
-    ItemsFilters:
-      description: contains settings for items list pane.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/FeedsFilters'
-        - type: object
-          properties:
-            Items:
-              $ref: '#/components/schemas/ItemIDs'
-

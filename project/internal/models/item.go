@@ -29,7 +29,7 @@ func (i *APIItem) AsCardSummary() components.Card {
 		components.WithID[components.Card](i.ID),
 		components.WithAttributes[components.Card](templ.Attributes{
 			"hx-target": "#content",
-			"hx-get":    "/home/" + i.FeedID + "/" + i.ID,
+			"hx-get":    "/home/" + i.FeedID + "-" + i.ID,
 		}),
 	)
 
