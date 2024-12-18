@@ -26,7 +26,7 @@ func (s Server) FeedsHandler(res http.ResponseWriter, req *http.Request, params 
 	feedsPage := layouts.NewPage("Go Feed Me - Feeds",
 		layouts.WithPageDescription("Your feeds."),
 		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		layouts.WithPageContent(layouts.HomeLayout("/home/feeds/show")))
+		layouts.WithPageContent(layouts.HomeLayout(req.URL.Path+"/show")))
 
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, feedsPage.Show()); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("showAllFeeds: cannot render template.", slog.Any("error", err))
@@ -77,7 +77,7 @@ func (s Server) ItemsHandler(res http.ResponseWriter, req *http.Request, params 
 	itemsPage := layouts.NewPage("Go Feed Me - Items",
 		layouts.WithPageDescription("Your items."),
 		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		layouts.WithPageContent(layouts.HomeLayout("/home/items/show")))
+		layouts.WithPageContent(layouts.HomeLayout(req.URL.Path+"/show")))
 
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, itemsPage.Show()); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("showAllFeeds: cannot render template.", slog.Any("error", err))
