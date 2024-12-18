@@ -111,8 +111,12 @@ func LogReq(req *http.Request, status int) *slog.Logger {
 		)
 }
 
-func LogHandler(handler string) *slog.Logger {
+func LogHandler(handler string, req *http.Request) *slog.Logger {
 	return slog.Default().With(
 		slog.Group("handler"),
-		slog.String("name", handler))
+		slog.String("name", handler)).
+		With(slog.Group("request"),
+			slog.String("method", req.Method),
+			slog.String("path", req.URL.Path),
+		)
 }

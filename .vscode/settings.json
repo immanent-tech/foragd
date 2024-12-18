@@ -62,7 +62,8 @@
     "components/size",
     "components/article",
     "middlewares",
-    "models,server"
+    "models,server",
+    "logging"
   ],
   "emmet.includeLanguages": {
     "templ": "html"
