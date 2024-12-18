@@ -3,29 +3,17 @@
 
 package content
 
-import (
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-templ-daisyui"
-	"strings"
-)
+import "github.com/joshuar/go-templ-daisyui"
 
 templ ContentHeader() {
-	if templates.BackLinkFromCtx(ctx) != "" {
-		<form method="dialog" hx-target="#content" hx-get={ templates.BackLinkFromCtx(ctx) }>
-			@components.NewHiddenInput("feeds", "feeds",
-				strings.Join(templates.FeedsFromContext(ctx), ",")).Show()
-			@components.NewHiddenInput("categories", "categories",
-				strings.Join(templates.CategoriesFromCtx(ctx), ",")).Show()
-			@navButton().Show()
+	if BackLinkFromCtx(ctx) != "" {
+		<form method="dialog" hx-target="#content" hx-get={ BackLinkFromCtx(ctx) }>
+			@components.NewButton("", "back",
+				components.AsShape(components.ButtonCircle),
+				components.WithModifier(components.ButtonGhost),
+				components.WithIcon(components.NewIcon("arrow-left"), components.AlignMiddle),
+				components.WithClasses[components.Button]("left-2", "top-2"),
+			).Show()
 		</form>
 	}
-}
-
-func navButton() components.Button {
-	return components.NewButton("", "back",
-		components.AsShape(components.ButtonCircle),
-		components.WithModifier(components.ButtonGhost),
-		components.WithIcon(components.NewIcon("arrow-left"), components.AlignMiddle),
-		components.WithClasses[components.Button]("left-2", "top-2"),
-	)
 }

@@ -244,6 +244,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/BackLink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -254,6 +255,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/BackLink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -266,6 +268,7 @@ paths:
           required: true
         - $ref: '../models/api.yaml#/components/parameters/ItemID'
           required: true
+        - $ref: '#/components/parameters/BackLink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -290,15 +293,20 @@ components:
       name: feed
       in: path
       schema:
-        type: string
+        $ref: '../models/api.yaml#/components/schemas/FeedID'
     ItemID:
       name: item
       in: path
       schema:
-        type: string
+        $ref: '../models/api.yaml#/components/schemas/ItemID'
     Category:
       name: category
       in: path
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/Category'
+    BackLink:
+      name: backlink
+      in: query
       schema:
         type: string
   responses:

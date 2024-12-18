@@ -9,7 +9,7 @@ import 'htmx.org/dist/ext/morphdom-swap';
 
 // hyperscript
 import './setup-hyperscript.js'
-// theme-change
-import { themeChange } from 'theme-change';
-themeChange();
+// // theme-change
+// import { themeChange } from 'theme-change';
+// themeChange();
 

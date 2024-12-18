@@ -12,11 +12,19 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// BackLink defines model for BackLink.
+type BackLink = string
+
 // Categories is a list of feed/item categories.
 type Categories = externalRef0.Categories
 
 // Feeds is a list of feed IDs.
 type Feeds = externalRef0.FeedIDs
+
+// ArticleHandlerParams defines parameters for ArticleHandler.
+type ArticleHandlerParams struct {
+	Backlink *BackLink `form:"backlink,omitempty" json:"backlink,omitempty"`
+}
 
 // FeedsHandlerParams defines parameters for FeedsHandler.
 type FeedsHandlerParams struct {
@@ -34,12 +42,14 @@ type ShowFeedsParams struct {
 type ItemsHandlerParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Backlink   *BackLink   `form:"backlink,omitempty" json:"backlink,omitempty"`
 }
 
 // ShowItemsParams defines parameters for ShowItems.
 type ShowItemsParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Backlink   *BackLink   `form:"backlink,omitempty" json:"backlink,omitempty"`
 }
 
 // GetLoginCallbackParams defines parameters for GetLoginCallback.
@@ -64,7 +74,7 @@ type ServerInterface interface {
 	GetIndex(w http.ResponseWriter, r *http.Request)
 	// display an item
 	// (GET /home/article/{feed}/{item})
-	ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID)
+	ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID, params ArticleHandlerParams)
 	// renders a page showing feed cards matching the given parameters.
 	// (GET /home/feeds)
 	FeedsHandler(w http.ResponseWriter, r *http.Request, params FeedsHandlerParams)
@@ -130,7 +140,7 @@ func (_ Unimplemented) GetIndex(w http.ResponseWriter, r *http.Request) {
 
 // display an item
 // (GET /home/article/{feed}/{item})
-func (_ Unimplemented) ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID) {
+func (_ Unimplemented) ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID, params ArticleHandlerParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -282,8 +292,19 @@ func (siw *ServerInterfaceWrapper) ArticleHandler(w http.ResponseWriter, r *http
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ArticleHandlerParams
+
+	// ------------- Optional query parameter "backlink" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "backlink", r.URL.Query(), &params.Backlink)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ArticleHandler(w, r, feed, item)
+		siw.Handler.ArticleHandler(w, r, feed, item, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -387,6 +408,14 @@ func (siw *ServerInterfaceWrapper) ItemsHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	// ------------- Optional query parameter "backlink" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "backlink", r.URL.Query(), &params.Backlink)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ItemsHandler(w, r, params)
 	}))
@@ -419,6 +448,14 @@ func (siw *ServerInterfaceWrapper) ShowItems(w http.ResponseWriter, r *http.Requ
 	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "backlink" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "backlink", r.URL.Query(), &params.Backlink)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
 		return
 	}
 

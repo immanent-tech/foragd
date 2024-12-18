@@ -8,6 +8,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/angelofallars/htmx-go"
 
@@ -15,7 +16,6 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials/content"
 )
@@ -40,15 +40,18 @@ func (s Server) ShowFeeds(res http.ResponseWriter, req *http.Request, params Sho
 	ctx := req.Context()
 
 	var feedIDs []string
-	// categories []string
+	var categories []string
+	var paramsStr string
 
 	if params.Feeds != nil {
 		feedIDs = append(feedIDs, *params.Feeds...)
+		paramsStr = "?feeds=" + strings.Join(feedIDs, ",")
 	}
 
-	// if params.Categories != nil {
-	// 	// categories = append(feedIDs, *params.Categories...)
-	// }
+	if params.Categories != nil {
+		categories = append(feedIDs, *params.Categories...)
+		paramsStr = "&categories=" + strings.Join(categories, ",")
+	}
 
 	// Get all subscribed feeds.
 	feeds, err := models.GetSubcribedFeeds(ctx, s.API.elastic, s.API.pg, feedIDs...)
@@ -60,11 +63,11 @@ func (s Server) ShowFeeds(res http.ResponseWriter, req *http.Request, params Sho
 
 	// Generate cards for each feed.
 	for i, feed := range feeds {
-		feedCards[i] = feed.AsCardSummary()
+		feedCards[i] = content.NewFeedCard(&feed)
 	}
 
 	// Render the list of feed cards.
-	if err := htmx.NewResponse().RenderTempl(ctx, res, content.ShowFeeds(feedCards...)); err != nil {
+	if err := htmx.NewResponse().PushURL("/home/feeds"+paramsStr).RenderTempl(ctx, res, content.ShowCards("feeds", "/home/feeds/show"+paramsStr, feedCards...)); err != nil {
 		logging.LogHandler("ShowFeeds", req).Error("Cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -87,18 +90,22 @@ func (s Server) ItemsHandler(res http.ResponseWriter, req *http.Request, params 
 func (s Server) ShowItems(res http.ResponseWriter, req *http.Request, params ShowItemsParams) {
 	ctx := req.Context()
 
-	ctx = templates.BackLinkToCtx(ctx, "/home/feeds/show")
+	ctx = content.BackLinkToCtx(ctx, *params.Backlink)
 
 	var feedIDs []string
-	// categories []string
+	var paramsStr string
+	var categories []string
 
 	if params.Feeds != nil {
 		feedIDs = append(feedIDs, *params.Feeds...)
+		paramsStr = "?feeds=" + strings.Join(feedIDs, ",")
+
 		// ctx = templates.FeedsToContext(ctx, *params.Feeds)
 	}
-	// if params.Categories != nil {
-	// 	categories = append(feedIDs, *params.Categories...)
-	// }
+	if params.Categories != nil {
+		categories = append(feedIDs, *params.Categories...)
+		paramsStr = paramsStr + "&categories=" + strings.Join(categories, ",")
+	}
 
 	// Get all subscribed feeds.
 	feeds, err := models.GetSubcribedFeeds(ctx, s.API.elastic, s.API.pg, feedIDs...)
@@ -122,11 +129,11 @@ func (s Server) ShowItems(res http.ResponseWriter, req *http.Request, params Sho
 
 	// Create item cards.
 	for i, item := range items {
-		itemCards[i] = item.AsCardSummary()
+		itemCards[i] = content.NewItemCard(&item)
 	}
 
 	// Render the list of feed cards.
-	if err := htmx.NewResponse().RenderTempl(ctx, res, content.ShowFeedItems(itemCards...)); err != nil {
+	if err := htmx.NewResponse().PushURL("/home/items"+paramsStr).RenderTempl(ctx, res, content.ShowCards("items", "/home/feeds/show"+paramsStr, itemCards...)); err != nil {
 		logging.LogHandler("ShowItems", req).Error("Cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -134,12 +141,12 @@ func (s Server) ShowItems(res http.ResponseWriter, req *http.Request, params Sho
 	}
 }
 
-func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedID, itemID string) {
+func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedID, itemID string, params ArticleHandlerParams) {
 	logger := s.Logger.With(slog.String("handler", "FeedItem"))
 
 	ctx := req.Context()
 
-	ctx = templates.BackLinkToCtx(ctx, "/home/items")
+	ctx = content.BackLinkToCtx(ctx, "/home/items")
 
 	// spew.Dump(params)
 

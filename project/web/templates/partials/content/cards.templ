@@ -8,60 +8,34 @@ import (
 	"github.com/joshuar/go-templ-daisyui"
 )
 
-// wrapContent wraps children with the appropriate div for displaying main home content.
-templ wrapContent() {
+templ ShowItem(item *models.APIItem) {
+	@item.AsArticle().Show()
+	if len(item.CategoryBadges()) > 0 {
+		<div class="badges">
+			for _, badge := range item.CategoryBadges() {
+				@badge.Show()
+			}
+		</div>
+	}
+}
+
+templ ShowCards(name, backlink string, cards ...components.Card) {
 	<div id="content" class="flex flex-col space-y-8">
+		<!-- Content Header -->
 		<div id="content-header" class="bg-orange-500 sticky top-0 w-full">
-			<!-- Content Header -->
 			@ContentHeader()
 		</div>
-		<div>
-			<!-- Content -->
-			{ children... }
-		</div>
-	</div>
-}
-
-// ShowFeeds shows a list of feed cards.
-templ ShowFeeds(cards ...components.Card) {
-	@wrapContent() {
-		@showCardList("feeds", cards...)
-	}
-}
-
-// ShowFeedItems shows a list of item cards.
-templ ShowFeedItems(cards ...components.Card) {
-	@wrapContent() {
-		// <form method="dialog">
-		// 	@navButton("/home/feeds").Show()
-		// </form>
-		@showCardList("items", cards...)
-	}
-}
-
-templ ShowItem(item *models.APIItem) {
-	@wrapContent() {
-		// <form method="dialog">
-		// 	@navButton("/home/items").Show()
-		// </form>
-		@item.AsArticle().Show()
-		if len(item.CategoryBadges()) > 0 {
-			<div class="badges">
-				for _, badge := range item.CategoryBadges() {
-					@badge.Show()
+		<!-- Content -->
+		<form>
+			@components.NewHiddenInput("backlink", "backlink", backlink).Show()
+			<div>
+				for _, card := range cards {
+					// Render a hidden input for this feed.
+					@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
+					// Render the feed card.
+					@card.Show()
 				}
 			</div>
-		}
-	}
-}
-
-templ showCardList(name string, cards ...components.Card) {
-	for _, card := range cards {
-		<form>
-			// Render a hidden input for this feed.
-			@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
-			// Render the feed card.
-			@card.Show()
 		</form>
-	}
+	</div>
 }

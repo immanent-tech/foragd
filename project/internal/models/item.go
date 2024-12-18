@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/mmcdole/gofeed"
 
 	components "github.com/joshuar/go-templ-daisyui"
@@ -19,33 +18,28 @@ import (
 
 var ErrGetItem = errors.New("could not retrieve item")
 
-// AsCardSummary displays a summary of a item in a DaisyUI card component.
-// Useful for displaying as a list/grouping of items.
-func (i *APIItem) AsCardSummary() components.Card {
-	card := components.NewCard(
-		components.WithCardLayout(components.CardLayoutSide),
-		components.WithTitle(i.Title),
-		components.WithCardShadow(components.XL),
-		components.WithID[components.Card](i.ID),
-		components.WithAttributes[components.Card](templ.Attributes{
-			"hx-target":  "#content",
-			"hx-get":     "/home/" + i.FeedID + "-" + i.ID,
-			"hx-include": "[id='" + i.FeedID + "']",
-		}),
-	)
+func (i *APIItem) GetTitle() string {
+	return i.Title
+}
 
-	if i.Image != nil {
-		image := components.NewImage(
-			components.WithURL(i.Image.URL),
-			components.WithAltText(i.Image.Title),
-			components.WithClasses[components.Image]("max-h-full"),
-		)
-		card.Image = &image
-	}
+func (i *APIItem) GetID() string {
+	return i.ID
+}
 
-	card.Badges = i.CategoryBadges()
+func (i *APIItem) GetFeedID() string {
+	return i.FeedID
+}
 
-	return card
+func (i *APIItem) GetImage() *gofeed.Image {
+	return i.Image
+}
+
+func (i *APIItem) GetCategories() []string {
+	return i.Categories
+}
+
+func (i *APIItem) GetContent() string {
+	return i.Description
 }
 
 func (i *APIItem) AsArticle() components.Article {

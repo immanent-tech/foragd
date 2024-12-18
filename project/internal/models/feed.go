@@ -9,9 +9,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/a-h/templ"
-
-	components "github.com/joshuar/go-templ-daisyui"
+	"github.com/mmcdole/gofeed"
 
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -43,44 +41,24 @@ func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 	return items
 }
 
-// AsCardSummary displays a summary of a feed item in a DaisyUI card component.
-// Useful for displaying as a list/grouping of feeds.
-func (f *APIFeed) AsCardSummary() components.Card {
-	card := components.NewCard(
-		components.WithCardLayout(components.CardLayoutSide),
-		components.WithTitle(f.Title),
-		components.WithCardShadow(components.SM),
-		components.WithID[components.Card](f.ID),
-		components.WithAttributes[components.Card](templ.Attributes{
-			"hx-target":  "#content",
-			"hx-get":     "/home/items/show",
-			"hx-include": "[id='" + f.ID + "']",
-		}),
-		components.WithBody(templ.Raw(f.Description)),
-	)
+func (f *APIFeed) GetTitle() string {
+	return f.Title
+}
 
-	if f.Image != nil {
-		image := components.NewImage(
-			components.WithURL(f.Image.URL),
-		)
+func (f *APIFeed) GetID() string {
+	return f.ID
+}
 
-		if f.Image.Title != "" {
-			image.Alt = f.Image.Title
-		}
+func (f *APIFeed) GetImage() *gofeed.Image {
+	return f.Image
+}
 
-		card.Image = &image
-	}
+func (f *APIFeed) GetCategories() []string {
+	return f.Categories
+}
 
-	if len(f.Categories) > 0 {
-		var categories []components.Badge
-		for _, c := range f.Categories {
-			categories = append(categories, components.NewBadge(c))
-		}
-
-		card.Badges = categories
-	}
-
-	return card
+func (f *APIFeed) GetContent() string {
+	return f.Description
 }
 
 // NewFeedFromURL creates a new feed model from the given URL as its canonical

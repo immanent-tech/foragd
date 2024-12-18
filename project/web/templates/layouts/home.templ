@@ -6,19 +6,18 @@ package layouts
 import "github.com/joshuar/go-feed-me/web/templates/partials/content"
 
 templ HomeLayout(triggerPath string) {
-	<div class="drawer lg:drawer-open w-full flex h-svh max-h-svh">
+	<!-- Header -->
+	<div class="sticky top-0 z-10 w-full">
+		<input id="my-drawer-2" type="checkbox" class="drawer-toggle"/>
+		@content.AppBarTop()
+	</div>
+	<div class="drawer lg:drawer-open">
 		<!-- Navbar -->
 		<input id="home-drawer" type="checkbox" class="drawer-toggle"/>
-		<div class="drawer-side">
-			@content.Drawer()
-		</div>
+		@content.Drawer()
+		// </div>
 		<!-- Main Content Area-->
-		<div class="drawer-content flex h-full flex-1 flex-col">
-			<!-- Header -->
-			<div class="sticky top-0 w-full">
-				<input id="my-drawer-2" type="checkbox" class="drawer-toggle"/>
-				@content.AppBarTop()
-			</div>
+		<div class="drawer-content flex flex-1 flex-col">
 			<!-- Modal for commands -->
 			<dialog id="command-modal" class="modal"></dialog>
 			<!-- Content -->
