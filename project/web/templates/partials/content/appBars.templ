@@ -1,10 +1,11 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package partials
+package content
 
 import "github.com/joshuar/go-templ-daisyui"
 
+// AppBarTop displays an app bar at the top of the page.
 templ AppBarTop() {
 	<div class="navbar bg-base-100">
 		<div class="navbar-start">
@@ -54,4 +55,13 @@ templ appBarTopRight() {
 			<li><a>Item 2</a></li>
 		</ul>
 	</details>
+}
+
+// AppBarBottom displays an app bar at the bottom of the content.
+templ AppBarBottom() {
+	<div id="#bottomAppBar" class="w-full">
+		<div class="bg-yellow-600 py-12">
+			<h1 class="text-center text-xl">Footer</h1>
+		</div>
+	</div>
 }

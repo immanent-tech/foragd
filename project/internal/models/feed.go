@@ -53,7 +53,7 @@ func (f *APIFeed) AsCardSummary() components.Card {
 		components.WithID[components.Card](f.ID),
 		components.WithAttributes[components.Card](templ.Attributes{
 			"hx-target":  "#content",
-			"hx-get":     "/home/items",
+			"hx-get":     "/home/items/show",
 			"hx-include": "[id='" + f.ID + "']",
 		}),
 		components.WithBody(templ.Raw(f.Description)),

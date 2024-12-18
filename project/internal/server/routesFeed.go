@@ -10,17 +10,34 @@ import (
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
+
 	components "github.com/joshuar/go-templ-daisyui"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/web/templates/content"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/partials/content"
 )
 
 var ErrFeedIDRequired = errors.New("feed ID is required")
 
 func (s Server) FeedsHandler(res http.ResponseWriter, req *http.Request, params FeedsHandlerParams) {
+	feedsPage := layouts.NewPage("Go Feed Me - Feeds",
+		layouts.WithPageDescription("Your feeds."),
+		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+		layouts.WithPageContent(layouts.HomeLayout("/home/feeds/show")))
+
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, feedsPage.Show()); err != nil {
+		logging.LogReq(req, http.StatusInternalServerError).Error("showAllFeeds: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func (s Server) ShowFeeds(res http.ResponseWriter, req *http.Request, params ShowFeedsParams) {
 	logger := s.Logger.With(slog.String("handler", "ListFeeds"))
+
+	ctx := req.Context()
 
 	var feedIDs []string
 	// categories []string
@@ -28,12 +45,13 @@ func (s Server) FeedsHandler(res http.ResponseWriter, req *http.Request, params 
 	if params.Feeds != nil {
 		feedIDs = append(feedIDs, *params.Feeds...)
 	}
+
 	// if params.Categories != nil {
-	// 	categories = append(feedIDs, *params.Categories...)
+	// 	// categories = append(feedIDs, *params.Categories...)
 	// }
 
 	// Get all subscribed feeds.
-	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg, feedIDs...)
+	feeds, err := models.GetSubcribedFeeds(ctx, s.API.elastic, s.API.pg, feedIDs...)
 	if err != nil {
 		logger.Error("Could not add item.", slog.Any("error", err))
 	}
@@ -47,7 +65,7 @@ func (s Server) FeedsHandler(res http.ResponseWriter, req *http.Request, params 
 
 	// Render the list of feed cards.
 	if err := htmx.NewResponse().
-		RenderTempl(req.Context(), res, content.ShowFeeds(feedCards...)); err != nil {
+		RenderTempl(ctx, res, content.ShowFeeds(feedCards...)); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("showAllFeeds: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -55,28 +73,40 @@ func (s Server) FeedsHandler(res http.ResponseWriter, req *http.Request, params 
 	}
 }
 
-func (s Server) FeedsCategoryHandler(res http.ResponseWriter, req *http.Request, category string) {
-	res.WriteHeader(http.StatusNotImplemented)
+func (s Server) ItemsHandler(res http.ResponseWriter, req *http.Request, params ItemsHandlerParams) {
+	itemsPage := layouts.NewPage("Go Feed Me - Items",
+		layouts.WithPageDescription("Your items."),
+		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+		layouts.WithPageContent(layouts.HomeLayout("/home/items/show")))
+
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, itemsPage.Show()); err != nil {
+		logging.LogReq(req, http.StatusInternalServerError).Error("showAllFeeds: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+	}
 }
 
-func (s Server) ItemsHandler(res http.ResponseWriter, req *http.Request, params ItemsHandlerParams) {
+func (s Server) ShowItems(res http.ResponseWriter, req *http.Request, params ShowItemsParams) {
 	logger := s.Logger.With(slog.String("handler", "ListItems"))
+
+	ctx := req.Context()
+
+	ctx = templates.BackLinkToCtx(ctx, "/home/feeds/show")
 
 	var feedIDs []string
 	// categories []string
 
 	if params.Feeds != nil {
 		feedIDs = append(feedIDs, *params.Feeds...)
+		// ctx = templates.FeedsToContext(ctx, *params.Feeds)
 	}
 	// if params.Categories != nil {
 	// 	categories = append(feedIDs, *params.Categories...)
 	// }
 
 	// Get all subscribed feeds.
-	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg, feedIDs...)
+	feeds, err := models.GetSubcribedFeeds(ctx, s.API.elastic, s.API.pg, feedIDs...)
 	if err != nil {
-		logging.FromContext(req.Context()).
-			Error("Could not add item.", slog.Any("error", err))
+		logger.Error("Could not add item.", slog.Any("error", err))
 	}
 
 	subs := make([]string, len(feeds))
@@ -86,7 +116,7 @@ func (s Server) ItemsHandler(res http.ResponseWriter, req *http.Request, params 
 		subs[i] = feed.ID
 	}
 	// Get all feed items for all subscribed feeds.
-	items, err := s.API.elastic.GetFeedItems(req.Context(), subs...)
+	items, err := s.API.elastic.GetFeedItems(ctx, subs...)
 	if err != nil {
 		logger.Error("Could not show feed items.", slog.Any("error", err))
 	}
@@ -97,9 +127,10 @@ func (s Server) ItemsHandler(res http.ResponseWriter, req *http.Request, params 
 	for i, item := range items {
 		itemCards[i] = item.AsCardSummary()
 	}
+
 	// Render the list of feed cards.
 	if err := htmx.NewResponse().
-		RenderTempl(req.Context(), res, content.ShowFeedItems(itemCards...)); err != nil {
+		RenderTempl(ctx, res, content.ShowFeedItems(itemCards...)); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -107,12 +138,22 @@ func (s Server) ItemsHandler(res http.ResponseWriter, req *http.Request, params 
 	}
 }
 
-func (s Server) ItemsCategoryHandler(res http.ResponseWriter, req *http.Request, category string) {
-	res.WriteHeader(http.StatusNotImplemented)
-}
-
-func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedID string, itemID string) {
+func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedID, itemID string) {
 	logger := s.Logger.With(slog.String("handler", "FeedItem"))
+
+	ctx := req.Context()
+
+	ctx = templates.BackLinkToCtx(ctx, "/home/items")
+
+	// spew.Dump(params)
+
+	// if params.Feeds != nil {
+	// 	ctx = templates.FeedsToContext(ctx, *params.Feeds)
+	// }
+
+	// if params.Categories != nil {
+	// 	ctx = templates.CategoriesToContext(ctx, *params.Categories)
+	// }
 
 	if feedID == "" || itemID == "" {
 		logger.Error("Invalid request.", slog.Any("error", ErrFeedIDRequired))
@@ -120,18 +161,19 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 		return
 	}
 
-	item, err := models.GetItem(req.Context(), s.API.pg, s.API.elastic, feedID, itemID)
-	if err != nil {
-		logging.FromContext(req.Context()).
-			Error("Could not get item.", slog.Any("error", err))
-	}
+	// item, err := models.GetItem(ctx, s.API.pg, s.API.elastic, feedID, itemID)
+	// if err != nil {
+	// 	logger.Error("Could not get item.", slog.Any("error", err))
+	// }
 
-	// Render the list of feed cards.
-	if err := htmx.NewResponse().
-		RenderTempl(req.Context(), res, content.ShowItem(item)); err != nil {
-		logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
+	res.WriteHeader(http.StatusNotImplemented)
 
-		return
-	}
+	// // Render the list of feed cards.
+	// if err := htmx.NewResponse().
+	// 	RenderTempl(ctx, res, content.ShowItem(item)); err != nil {
+	// 	logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
+	// 	res.WriteHeader(http.StatusInternalServerError)
+
+	// 	return
+	// }
 }

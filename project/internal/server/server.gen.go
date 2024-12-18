@@ -15,9 +15,6 @@ import (
 // Categories is a list of feed/item categories.
 type Categories = externalRef0.Categories
 
-// Category defines model for Category.
-type Category = string
-
 // Feeds is a list of feed IDs.
 type Feeds = externalRef0.FeedIDs
 
@@ -27,8 +24,20 @@ type FeedsHandlerParams struct {
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
 }
 
+// ShowFeedsParams defines parameters for ShowFeeds.
+type ShowFeedsParams struct {
+	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+}
+
 // ItemsHandlerParams defines parameters for ItemsHandler.
 type ItemsHandlerParams struct {
+	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+}
+
+// ShowItemsParams defines parameters for ShowItems.
+type ShowItemsParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
 }
@@ -53,21 +62,21 @@ type ServerInterface interface {
 	// Index
 	// (GET /)
 	GetIndex(w http.ResponseWriter, r *http.Request)
-	// Display user home page
-	// (GET /home)
-	GetHome(w http.ResponseWriter, r *http.Request)
-	// show a list of feeds (with optional filtering)
+	// display an item
+	// (GET /home/article/{feed}/{item})
+	ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID)
+	// renders a page showing feed cards matching the given parameters.
 	// (GET /home/feeds)
 	FeedsHandler(w http.ResponseWriter, r *http.Request, params FeedsHandlerParams)
-	// show a list of feeds with the given category
-	// (GET /home/feeds/{category})
-	FeedsCategoryHandler(w http.ResponseWriter, r *http.Request, category Category)
-	// list items with filtered by given parameters
+	// returns partial html containing a list of feed cards.
+	// (GET /home/feeds/show)
+	ShowFeeds(w http.ResponseWriter, r *http.Request, params ShowFeedsParams)
+	// renders a page showing item cards matching the given parameters.
 	// (GET /home/items)
 	ItemsHandler(w http.ResponseWriter, r *http.Request, params ItemsHandlerParams)
-	// show a list of items with the given category
-	// (GET /home/items/{category})
-	ItemsCategoryHandler(w http.ResponseWriter, r *http.Request, category Category)
+	// returns partial html containing a list of feed cards.
+	// (GET /home/items/show)
+	ShowItems(w http.ResponseWriter, r *http.Request, params ShowItemsParams)
 	// Show user settings modal
 	// (GET /home/settings)
 	GetHomeSettings(w http.ResponseWriter, r *http.Request)
@@ -86,9 +95,6 @@ type ServerInterface interface {
 	// Validate a subscription
 	// (POST /home/subscription/validate)
 	PostSubscriptionValidate(w http.ResponseWriter, r *http.Request)
-	// display an item
-	// (GET /home/{feed}-{item})
-	ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID)
 	// Process a user login with given provider
 	// (GET /login/{provider})
 	GetLogin(w http.ResponseWriter, r *http.Request, provider string)
@@ -122,33 +128,33 @@ func (_ Unimplemented) GetIndex(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Display user home page
-// (GET /home)
-func (_ Unimplemented) GetHome(w http.ResponseWriter, r *http.Request) {
+// display an item
+// (GET /home/article/{feed}/{item})
+func (_ Unimplemented) ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// show a list of feeds (with optional filtering)
+// renders a page showing feed cards matching the given parameters.
 // (GET /home/feeds)
 func (_ Unimplemented) FeedsHandler(w http.ResponseWriter, r *http.Request, params FeedsHandlerParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// show a list of feeds with the given category
-// (GET /home/feeds/{category})
-func (_ Unimplemented) FeedsCategoryHandler(w http.ResponseWriter, r *http.Request, category Category) {
+// returns partial html containing a list of feed cards.
+// (GET /home/feeds/show)
+func (_ Unimplemented) ShowFeeds(w http.ResponseWriter, r *http.Request, params ShowFeedsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// list items with filtered by given parameters
+// renders a page showing item cards matching the given parameters.
 // (GET /home/items)
 func (_ Unimplemented) ItemsHandler(w http.ResponseWriter, r *http.Request, params ItemsHandlerParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// show a list of items with the given category
-// (GET /home/items/{category})
-func (_ Unimplemented) ItemsCategoryHandler(w http.ResponseWriter, r *http.Request, category Category) {
+// returns partial html containing a list of feed cards.
+// (GET /home/items/show)
+func (_ Unimplemented) ShowItems(w http.ResponseWriter, r *http.Request, params ShowItemsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -185,12 +191,6 @@ func (_ Unimplemented) PostSubscriptionEdit(w http.ResponseWriter, r *http.Reque
 // Validate a subscription
 // (POST /home/subscription/validate)
 func (_ Unimplemented) PostSubscriptionValidate(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// display an item
-// (GET /home/{feed}-{item})
-func (_ Unimplemented) ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -259,11 +259,31 @@ func (siw *ServerInterfaceWrapper) GetIndex(w http.ResponseWriter, r *http.Reque
 	handler.ServeHTTP(w, r)
 }
 
-// GetHome operation middleware
-func (siw *ServerInterfaceWrapper) GetHome(w http.ResponseWriter, r *http.Request) {
+// ArticleHandler operation middleware
+func (siw *ServerInterfaceWrapper) ArticleHandler(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "feed" -------------
+	var feed externalRef0.FeedID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "item" -------------
+	var item externalRef0.ItemID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetHome(w, r)
+		siw.Handler.ArticleHandler(w, r, feed, item)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -308,22 +328,32 @@ func (siw *ServerInterfaceWrapper) FeedsHandler(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
-// FeedsCategoryHandler operation middleware
-func (siw *ServerInterfaceWrapper) FeedsCategoryHandler(w http.ResponseWriter, r *http.Request) {
+// ShowFeeds operation middleware
+func (siw *ServerInterfaceWrapper) ShowFeeds(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	// ------------- Path parameter "category" -------------
-	var category Category
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ShowFeedsParams
 
-	err = runtime.BindStyledParameterWithOptions("simple", "category", chi.URLParam(r, "category"), &category, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	// ------------- Optional query parameter "feeds" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.FeedsCategoryHandler(w, r, category)
+		siw.Handler.ShowFeeds(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -368,22 +398,32 @@ func (siw *ServerInterfaceWrapper) ItemsHandler(w http.ResponseWriter, r *http.R
 	handler.ServeHTTP(w, r)
 }
 
-// ItemsCategoryHandler operation middleware
-func (siw *ServerInterfaceWrapper) ItemsCategoryHandler(w http.ResponseWriter, r *http.Request) {
+// ShowItems operation middleware
+func (siw *ServerInterfaceWrapper) ShowItems(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	// ------------- Path parameter "category" -------------
-	var category Category
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ShowItemsParams
 
-	err = runtime.BindStyledParameterWithOptions("simple", "category", chi.URLParam(r, "category"), &category, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	// ------------- Optional query parameter "feeds" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ItemsCategoryHandler(w, r, category)
+		siw.Handler.ShowItems(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -490,40 +530,6 @@ func (siw *ServerInterfaceWrapper) PostSubscriptionValidate(w http.ResponseWrite
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PostSubscriptionValidate(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ArticleHandler operation middleware
-func (siw *ServerInterfaceWrapper) ArticleHandler(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feed" -------------
-	var feed externalRef0.FeedID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "item" -------------
-	var item externalRef0.ItemID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ArticleHandler(w, r, feed, item)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -814,19 +820,19 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/", wrapper.GetIndex)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home", wrapper.GetHome)
+		r.Get(options.BaseURL+"/home/article/{feed}/{item}", wrapper.ArticleHandler)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/feeds", wrapper.FeedsHandler)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/feeds/{category}", wrapper.FeedsCategoryHandler)
+		r.Get(options.BaseURL+"/home/feeds/show", wrapper.ShowFeeds)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/items", wrapper.ItemsHandler)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/items/{category}", wrapper.ItemsCategoryHandler)
+		r.Get(options.BaseURL+"/home/items/show", wrapper.ShowItems)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)
@@ -845,9 +851,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/home/subscription/validate", wrapper.PostSubscriptionValidate)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/{feed}-{item}", wrapper.ArticleHandler)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/login/{provider}", wrapper.GetLogin)

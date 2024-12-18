@@ -1,34 +1,32 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package pages
+package layouts
 
-import "github.com/joshuar/go-feed-me/web/templates/partials"
+import "github.com/joshuar/go-feed-me/web/templates/partials/content"
 
-templ HomePage() {
+templ HomeLayout(triggerPath string) {
 	<div class="drawer lg:drawer-open w-full flex h-svh max-h-svh">
 		<!-- Navbar -->
 		<input id="home-drawer" type="checkbox" class="drawer-toggle"/>
 		<div class="drawer-side">
-			@partials.Navbar()
+			@content.Drawer()
 		</div>
 		<!-- Main Content Area-->
 		<div class="drawer-content flex h-full flex-1 flex-col">
 			<!-- Header -->
 			<div class="sticky top-0 w-full">
 				<input id="my-drawer-2" type="checkbox" class="drawer-toggle"/>
-				@partials.AppBarTop()
+				@content.AppBarTop()
 			</div>
 			<!-- Modal for commands -->
 			<dialog id="command-modal" class="modal"></dialog>
 			<!-- Content -->
-			@partials.MainContent()
-			<!-- Footer -->
-			<div class="w-full">
-				<div class="bg-yellow-600 py-12">
-					<h1 class="text-center text-xl">Footer</h1>
-				</div>
+			<div class="flex overflow-y-scroll">
+				<div id="content" hx-get={ triggerPath } hx-trigger="load" hx-swap="outerHTML" class="flex flex-col space-y-8"></div>
 			</div>
+			<!-- Footer -->
+			@content.AppBarBottom()
 			// <div class="sticky top-0 block bg-pink-500 py-5 md:hidden">
 			// 	<h1 class="text-center text-xl">Bottom Navigation</h1>
 			// </div>

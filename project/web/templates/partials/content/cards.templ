@@ -11,7 +11,14 @@ import (
 // wrapContent wraps children with the appropriate div for displaying main home content.
 templ wrapContent() {
 	<div id="content" class="flex flex-col space-y-8">
-		{ children... }
+		<div id="content-header" class="bg-orange-500 sticky top-0 w-full">
+			<!-- Content Header -->
+			@ContentHeader()
+		</div>
+		<div>
+			<!-- Content -->
+			{ children... }
+		</div>
 	</div>
 }
 
@@ -25,18 +32,18 @@ templ ShowFeeds(cards ...components.Card) {
 // ShowFeedItems shows a list of item cards.
 templ ShowFeedItems(cards ...components.Card) {
 	@wrapContent() {
-		<form method="dialog">
-			@navButton("/home/feeds").Show()
-		</form>
+		// <form method="dialog">
+		// 	@navButton("/home/feeds").Show()
+		// </form>
 		@showCardList("items", cards...)
 	}
 }
 
 templ ShowItem(item *models.APIItem) {
 	@wrapContent() {
-		<form method="dialog">
-			@navButton("/home/items").Show()
-		</form>
+		// <form method="dialog">
+		// 	@navButton("/home/items").Show()
+		// </form>
 		@item.AsArticle().Show()
 		if len(item.CategoryBadges()) > 0 {
 			<div class="badges">
@@ -57,16 +64,4 @@ templ showCardList(name string, cards ...components.Card) {
 			@card.Show()
 		</form>
 	}
-}
-
-func navButton(link string) components.Button {
-	return components.NewButton("", "back",
-		components.AsShape(components.ButtonCircle),
-		components.WithModifier(components.ButtonGhost),
-		components.WithIcon(components.NewIcon("arrow-left"), components.AlignMiddle),
-		components.WithClasses[components.Button]("left-2", "top-2"),
-		components.WithAttributes[components.Button](templ.Attributes{
-			"hx-target": "#content",
-			"hx-get":    link}),
-	)
 }

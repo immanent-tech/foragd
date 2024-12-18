@@ -122,18 +122,6 @@ paths:
           application/x-www-form-urlencoded:
             schema:
               $ref: '../models/api.yaml#/components/schemas/APIUser'
-
-  /home:
-    get:
-      summary: Display user home page
-      operationId: getHome
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-        401:
-          description: Unauthorized
-        500:
-          description: Problem with request
   /search:
     post:
       summary: Issue a user search request
@@ -231,7 +219,7 @@ paths:
           description: Problem with request
   /home/feeds:
     get:
-      summary: show a list of feeds (with optional filtering)
+      summary: renders a page showing feed cards matching the given parameters.
       operationId: feedsHandler
       parameters:
         - $ref: '#/components/parameters/Feeds'
@@ -239,19 +227,19 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/feeds/{category}:
+  /home/feeds/show:
     get:
-      summary: show a list of feeds with the given category
-      operationId: feedsCategoryHandler
+      summary: returns partial html containing a list of feed cards.
+      operationId: showFeeds
       parameters:
-        - $ref: '#/components/parameters/Category'
-          required: true
+        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Categories'
       responses:
         200:
           $ref: '#/components/responses/htmx'
   /home/items:
     get:
-      summary: list items with filtered by given parameters
+      summary: renders a page showing item cards matching the given parameters.
       operationId: itemsHandler
       parameters:
         - $ref: '#/components/parameters/Feeds'
@@ -259,17 +247,17 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/items/{category}:
+  /home/items/show:
     get:
-      summary: show a list of items with the given category
-      operationId: itemsCategoryHandler
+      summary: returns partial html containing a list of feed cards.
+      operationId: showItems
       parameters:
-        - $ref: '#/components/parameters/Category'
-          required: true
+        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Categories'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/{feed}-{item}:
+  /home/article/{feed}/{item}:
     get:
       summary: display an item
       operationId: articleHandler

@@ -8,16 +8,15 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/meta"
-	"github.com/joshuar/go-feed-me/web/templates/pages"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
+
+const homePage = "/home/feeds"
 
 // Ensures we statisfy the ServerInterface interface.
 var _ ServerInterface = (*Server)(nil)
@@ -46,12 +45,14 @@ func (s Server) GetLoginCallback(res http.ResponseWriter, req *http.Request, pro
 	if params.Code == "" {
 		logger.Error("Invalid code.")
 		res.WriteHeader(http.StatusUnauthorized)
+
 		return
 	}
 
 	if params.State == "" {
 		logger.Error("Invalid state.")
 		res.WriteHeader(http.StatusUnauthorized)
+
 		return
 	}
 
@@ -64,7 +65,7 @@ func (s Server) GetLoginCallback(res http.ResponseWriter, req *http.Request, pro
 	}
 	// Redirect to logged in page.
 	req.Header.Add("Content-Type", "")
-	http.Redirect(res, req.WithContext(ctx), "/home", http.StatusTemporaryRedirect)
+	http.Redirect(res, req.WithContext(ctx), homePage, http.StatusTemporaryRedirect)
 }
 
 // GetLogout handles logging user out from specified provider.
@@ -84,23 +85,20 @@ func (s Server) GetLogout(res http.ResponseWriter, req *http.Request, provider s
 // GetIndex serves the front page.
 // GET(/).
 func (s Server) GetIndex(res http.ResponseWriter, req *http.Request) {
-	// Define template layout for index page.
-	indexTemplate := templates.PageTempl(
-		templates.Page{
-			Title: "Go Feed Me",
-			CustomHeaders: []templ.Component{
-				meta.Tag("keywords", "feeds, atom, rss, feed reader"),
-				meta.Tag("description", "Welcome to Go Feed Me."),
-			},
-		},
-		pages.IndexPage(),
-	)
+	indexPage := layouts.NewPage("Go Feed Me",
+		layouts.WithPageDescription("Welcome to Go Feed Me."),
+		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+		layouts.WithPageContent(layouts.IndexLayout()))
 
 	// Render index page template.
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, indexTemplate); err != nil {
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, indexPage.Show()); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("IndexViewHandler: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
-		slog.Info("here")
+
 		return
 	}
+}
+
+func (s Server) GetHomeSettings(res http.ResponseWriter, req *http.Request) {
+	res.WriteHeader(http.StatusNotImplemented)
 }

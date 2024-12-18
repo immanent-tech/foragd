@@ -1,11 +1,11 @@
-package pages
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-import (
-	"github.com/joshuar/go-feed-me/web/templates"
-	components "github.com/joshuar/go-templ-daisyui"
-)
+package layouts
 
-templ IndexPage() {
+import components "github.com/joshuar/go-templ-daisyui"
+
+templ IndexLayout() {
 	<div id="index-hero" class="hero bg-base-200 min-h-screen">
 		<div class="hero-content text-center">
 			<div class="max-w-md">
@@ -25,5 +25,4 @@ templ IndexPage() {
 			</div>
 		</div>
 	</div>
-	@templates.Footer()
 }

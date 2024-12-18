@@ -1,0 +1,31 @@
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package content
+
+import (
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-templ-daisyui"
+	"strings"
+)
+
+templ ContentHeader() {
+	if templates.BackLinkFromCtx(ctx) != "" {
+		<form method="dialog" hx-target="#content" hx-get={ templates.BackLinkFromCtx(ctx) }>
+			@components.NewHiddenInput("feeds", "feeds",
+				strings.Join(templates.FeedsFromContext(ctx), ",")).Show()
+			@components.NewHiddenInput("categories", "categories",
+				strings.Join(templates.CategoriesFromCtx(ctx), ",")).Show()
+			@navButton().Show()
+		</form>
+	}
+}
+
+func navButton() components.Button {
+	return components.NewButton("", "back",
+		components.AsShape(components.ButtonCircle),
+		components.WithModifier(components.ButtonGhost),
+		components.WithIcon(components.NewIcon("arrow-left"), components.AlignMiddle),
+		components.WithClasses[components.Button]("left-2", "top-2"),
+	)
+}

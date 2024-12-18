@@ -28,8 +28,9 @@ func (i *APIItem) AsCardSummary() components.Card {
 		components.WithCardShadow(components.XL),
 		components.WithID[components.Card](i.ID),
 		components.WithAttributes[components.Card](templ.Attributes{
-			"hx-target": "#content",
-			"hx-get":    "/home/" + i.FeedID + "-" + i.ID,
+			"hx-target":  "#content",
+			"hx-get":     "/home/" + i.FeedID + "-" + i.ID,
+			"hx-include": "[id='" + i.FeedID + "']",
 		}),
 	)
 

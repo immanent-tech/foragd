@@ -97,7 +97,7 @@ func NewServer(ctx context.Context) (Server, error) {
 }
 
 var (
-	htmxOnlyRoutes  = []string{"/home/feeds", "/home/items", "/home/settings", "/signup", "/subscription"}
+	htmxOnlyRoutes  = []string{"/home/feeds/show", "/home/items/show", "/home/settings", "/signup", "/subscription"}
 	protectedRoutes = []string{"/home"}
 )
 
@@ -153,12 +153,11 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
-		homeRouter.Get("/", wrapper.GetHome)
 		homeRouter.Get("/feeds", wrapper.FeedsHandler)
-		homeRouter.Get("/feeds/{category}", wrapper.FeedsCategoryHandler)
+		homeRouter.Get("/feeds/show", wrapper.ShowFeeds)
 		homeRouter.Get("/items", wrapper.ItemsHandler)
-		homeRouter.Get("/items/{category}", wrapper.ItemsCategoryHandler)
-		homeRouter.Get("/{feed}-{item}", wrapper.ArticleHandler)
+		homeRouter.Get("/items/show", wrapper.ShowItems)
+		homeRouter.Get("/article/{feed}/{item}", wrapper.ArticleHandler)
 		homeRouter.Get("/settings", wrapper.GetHomeSettings)
 	})
 

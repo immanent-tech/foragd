@@ -1,0 +1,21 @@
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package layouts
+
+import "github.com/joshuar/go-feed-me/web/templates/partials/page"
+
+templ (p *Page) Show() {
+	<!DOCTYPE html>
+	<html lang="en" data-theme="light">
+		if len(p.CustomHeaders) > 0 {
+			@page.Head(p.CustomHeaders)
+		}
+		<body hx-boost="true">
+			for _, content := range p.Content {
+				@content
+			}
+			@page.Footer()
+		</body>
+	</html>
+}
