@@ -36,6 +36,7 @@ type Content interface {
 func newCard(summary Summary, attributes templ.Attributes) components.Card {
 	card := components.NewCard(
 		components.WithBorder(),
+		components.WithClasses[components.Card]("bg-base-100"),
 		components.WithCardLayout(components.CardLayoutSide),
 		components.WithTitle(summary.GetTitle()),
 		components.WithCardShadow(components.XL),

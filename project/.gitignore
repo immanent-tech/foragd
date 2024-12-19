@@ -19,6 +19,8 @@ server.toml
 # Don't include generated files.
 static/styles.*
 static/scripts.*
+static/*.woff2
+static/*.ttf
 *_templ.go
 
 

@@ -17,13 +17,13 @@ templ HomeLayout(triggerPath string) {
 		@content.Drawer()
 		// </div>
 		<!-- Main Content Area-->
-		<div class="drawer-content flex flex-1 flex-col">
+		<div class="drawer-content">
 			<!-- Modal for commands -->
 			<dialog id="command-modal" class="modal"></dialog>
 			<!-- Content -->
-			<div class="flex overflow-y-scroll">
-				<div id="content" hx-get={ triggerPath } hx-trigger="load" hx-swap="outerHTML" class="flex flex-col space-y-8"></div>
-			</div>
+			// <div class="flex overflow-y-scroll">
+			<div id="content" hx-get={ triggerPath } hx-trigger="load" hx-swap="outerHTML"></div>
+			// </div>
 			<!-- Footer -->
 			@content.AppBarBottom()
 			// <div class="sticky top-0 block bg-pink-500 py-5 md:hidden">

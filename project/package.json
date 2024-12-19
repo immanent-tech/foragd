@@ -20,19 +20,20 @@
     "build": "parcel build"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^6.7.2",
     "@tailwindcss/forms": "latest",
     "@tailwindcss/typography": "latest",
-    "daisyui": "latest",
+    "daisyui": "4.12.22",
     "htmx.org": "latest",
-    "hyperscript.org": "latest",
-    "tailwindcss": "latest",
+    "hyperscript.org": "0.9.13",
+    "tailwindcss": "3.4.17",
     "theme-change": "^2.5.0"
   },
   "devDependencies": {
-    "@parcel/transformer-sass": "^2.13.0",
-    "autoprefixer": "^10.4.19",
-    "parcel": "^2.13.0",
-    "postcss": "^8.4.38",
+    "@parcel/transformer-sass": "^2.13.3",
+    "autoprefixer": "^10.4.20",
+    "parcel": "^2.13.3",
+    "postcss": "^8.4.49",
     "prettier": "latest"
   }
 }

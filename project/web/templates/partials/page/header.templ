@@ -3,8 +3,6 @@
 
 package page
 
-import "github.com/joshuar/go-feed-me/web/templates/partials/meta"
-
 templ Head(customHeaders []templ.Component) {
 	<head>
 		<meta charset="UTF-8"/>
@@ -20,11 +18,7 @@ templ Head(customHeaders []templ.Component) {
 		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
 		<link rel="icon" href="/static/favicon.png" sizes="any"/>
 		<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet"/>
-		<link href="/static/fontawesome/css/fontawesome.css" rel="stylesheet"/>
-		<link href="/static/fontawesome/css/brands.css" rel="stylesheet"/>
-		<link href="/static/fontawesome/css/solid.css" rel="stylesheet"/>
 		<link href="/static/styles.css" rel="stylesheet"/>
-		@meta.Script(true, "/static/scripts.js")
 		for _, header := range customHeaders {
 			@header
 		}
