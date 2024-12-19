@@ -5,9 +5,9 @@ package content
 
 import "github.com/joshuar/go-templ-daisyui"
 
-templ ContentHeader() {
-	if BackLinkFromCtx(ctx) != "" {
-		<form method="dialog" hx-target="#content" hx-get={ BackLinkFromCtx(ctx) }>
+templ ContentHeader(backlink string) {
+	if backlink != "" {
+		<form method="dialog" hx-target="#content" hx-get={ backlink }>
 			@components.NewButton("", "back",
 				components.AsShape(components.ButtonCircle),
 				components.WithModifier(components.ButtonGhost),

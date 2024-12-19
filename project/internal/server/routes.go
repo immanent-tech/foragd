@@ -16,7 +16,10 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
-const homePage = "/home/feeds"
+const (
+	homePage       = "/home/feeds"
+	HeaderBacklink = "GoFeedMe-Backlink"
+)
 
 // Ensures we statisfy the ServerInterface interface.
 var _ ServerInterface = (*Server)(nil)

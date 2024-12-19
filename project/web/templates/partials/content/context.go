@@ -11,8 +11,8 @@ import (
 type contextKey string
 
 const (
-	backLinkCtxKey     = "backlink"
-	outGoingLinkCtxKey = "outgoingLink"
+	backLinkCtxKey     contextKey = "backlink"
+	outGoingLinkCtxKey contextKey = "outgoingLink"
 )
 
 var ErrNotInCtx = errors.New("not found in context")

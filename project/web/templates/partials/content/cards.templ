@@ -19,23 +19,27 @@ templ ShowItem(item *models.APIItem) {
 	}
 }
 
-templ ShowCards(name, backlink string, cards ...components.Card) {
+templ ShowCards(name string, cards ...components.Card) {
+	<form>
+		// @components.NewHiddenInput("backlink", "backlink", backlink).Show()
+		<div>
+			for _, card := range cards {
+				// Render a hidden input for this feed.
+				@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
+				// Render the feed card.
+				@card.Show()
+			}
+		</div>
+	</form>
+}
+
+templ ShowContent(backlink string, content templ.Component) {
 	<div id="content" class="flex flex-col space-y-8">
 		<!-- Content Header -->
 		<div id="content-header" class="bg-orange-500 sticky top-0 w-full">
-			@ContentHeader()
+			@ContentHeader(backlink)
 		</div>
 		<!-- Content -->
-		<form>
-			@components.NewHiddenInput("backlink", "backlink", backlink).Show()
-			<div>
-				for _, card := range cards {
-					// Render a hidden input for this feed.
-					@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
-					// Render the feed card.
-					@card.Show()
-				}
-			</div>
-		</form>
+		@content
 	</div>
 }

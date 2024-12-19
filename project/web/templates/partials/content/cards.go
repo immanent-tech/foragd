@@ -4,6 +4,8 @@
 package content
 
 import (
+	"context"
+
 	"github.com/a-h/templ"
 	components "github.com/joshuar/go-templ-daisyui"
 	"github.com/mmcdole/gofeed"
@@ -73,11 +75,12 @@ func addContentToCard(card components.Card, content string) components.Card {
 	return components.WithBody(templ.Raw(content))(card)
 }
 
-func NewFeedCard(feed Feed) components.Card {
+func NewFeedCard(ctx context.Context, feed Feed) components.Card {
 	feedCard := newCard(feed, templ.Attributes{
 		"hx-target":  "#content",
 		"hx-get":     "/home/items/show",
-		"hx-include": "[id='" + feed.GetID() + "'], [name='backlink']",
+		"hx-include": "[id='" + feed.GetID() + "']",
+		"hx-headers": `{ "GoFeedMe-Backlink": "` + BackLinkFromCtx(ctx) + `" }`,
 	})
 
 	feedCard = addContentToCard(feedCard, feed.GetContent())
@@ -85,10 +88,11 @@ func NewFeedCard(feed Feed) components.Card {
 	return feedCard
 }
 
-func NewItemCard(item Item) components.Card {
+func NewItemCard(ctx context.Context, item Item) components.Card {
 	return newCard(item, templ.Attributes{
 		"hx-target":  "#content",
-		"hx-get":     "/home/" + item.GetFeedID() + "-" + item.GetID(),
-		"hx-include": "[id='" + item.GetFeedID() + "'], [name='backlink']",
+		"hx-get":     "/home/article/" + item.GetFeedID() + "/" + item.GetID(),
+		"hx-include": "[id='" + item.GetFeedID() + "']",
+		"hx-headers": `{ "GoFeedMe-Backlink": "` + BackLinkFromCtx(ctx) + `" }`,
 	})
 }

@@ -244,7 +244,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/BackLink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -255,7 +254,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/BackLink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -268,7 +266,6 @@ paths:
           required: true
         - $ref: '../models/api.yaml#/components/parameters/ItemID'
           required: true
-        - $ref: '#/components/parameters/BackLink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -304,11 +301,6 @@ components:
       in: path
       schema:
         $ref: '../models/api.yaml#/components/schemas/Category'
-    BackLink:
-      name: backlink
-      in: query
-      schema:
-        type: string
   responses:
     htmx:
       description: standard htmx powered response.
