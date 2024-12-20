@@ -36,9 +36,8 @@ type Content interface {
 func newCard(summary Summary, attributes templ.Attributes) components.Card {
 	card := components.NewCard(
 		components.WithBorder(),
-		components.WithClasses[components.Card]("bg-base-100"),
 		components.WithCardLayout(components.CardLayoutSide),
-		components.WithTitle(summary.GetTitle()),
+		components.WithTitle(summary.GetTitle(), components.H2),
 		components.WithCardShadow(components.XL),
 		components.WithID[components.Card](summary.GetID()),
 		components.WithAttributes[components.Card](attributes),
@@ -51,7 +50,12 @@ func newCard(summary Summary, attributes templ.Attributes) components.Card {
 	if len(summary.GetCategories()) > 0 {
 		var categories []components.Badge
 		for _, c := range summary.GetCategories() {
-			categories = append(categories, components.NewBadge(c))
+			categories = append(categories,
+				components.NewBadge(
+					components.WithBadgeDescription(c),
+					components.WithSize[components.Badge](components.SM),
+					components.WithColor[components.Badge](components.ColorAccent, true)),
+			)
 		}
 
 		card.Badges = categories
@@ -61,15 +65,11 @@ func newCard(summary Summary, attributes templ.Attributes) components.Card {
 }
 
 func addImageToCard(card components.Card, img *gofeed.Image) components.Card {
-	image := components.NewImage(
-		components.WithURL(img.URL),
-	)
-
-	if img.Title != "" {
-		image.Alt = img.Title
-	}
-
-	return components.WithImage(image)(card)
+	return components.WithImage(
+		components.NewImage(
+			components.WithURL(img.URL),
+			components.WithAltText(img.Title),
+		))(card)
 }
 
 func addContentToCard(card components.Card, content string) components.Card {

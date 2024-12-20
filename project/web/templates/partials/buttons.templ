@@ -8,10 +8,9 @@ import "github.com/joshuar/go-templ-daisyui"
 // buttonAddItemIcon shows a button as an icon to open the add item modal.
 templ buttonAddItemIcon(classes ...string) {
 	@components.NewButton("", "add",
-		components.WithModifier(components.ButtonGhost),
+		components.WithColor[components.Button](components.ColorGhost, false),
 		components.WithIcon(components.NewIcon("plus"), components.AlignMiddle),
 		components.WithButtonTooltip("Add Item", components.AlignRight),
-		components.WithClasses[components.Button](classes...),
 		components.WithAttributes[components.Button](templ.Attributes{
 			"hx-get":    "/subscription/add",
 			"hx-target": "#command-modal",
@@ -22,10 +21,9 @@ templ buttonAddItemIcon(classes ...string) {
 // buttonToggleReadIcon shows a button as an icon to toggle read status.
 templ buttonToggleReadIcon(classes ...string) {
 	@components.NewButton("", "read",
-		components.WithModifier(components.ButtonGhost),
+		components.WithColor[components.Button](components.ColorGhost, false),
 		components.WithIcon(components.NewIcon("check"), components.AlignMiddle),
 		components.WithButtonTooltip("Toggle Read Status", components.AlignRight),
-		components.WithClasses[components.Button](classes...),
 		components.WithAttributes[components.Button](templ.Attributes{
 			"hx-get":    "/subscription/add",
 			"hx-target": "#command-modal",

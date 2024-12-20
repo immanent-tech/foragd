@@ -9,10 +9,10 @@ templ ContentHeader(backlink string) {
 	if backlink != "" {
 		<form method="dialog" hx-target="#content" hx-get={ backlink }>
 			@components.NewButton("", "back",
-				components.AsShape(components.ButtonCircle),
-				components.WithModifier(components.ButtonGhost),
-				components.WithIcon(components.NewIcon("arrow-left"), components.AlignMiddle),
-				components.WithClasses[components.Button]("left-2", "top-2"),
+				components.WithButtonShape(components.ButtonCircle),
+				components.WithColor[components.Button](components.ColorGhost, false),
+				components.WithIcon(components.NewIcon("fa-arrow-left"), components.AlignMiddle),
+				// components.WithContainerAlignment(components.TopLeft),
 			).Show()
 		</form>
 	}

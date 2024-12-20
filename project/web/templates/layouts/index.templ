@@ -15,7 +15,8 @@ templ IndexLayout() {
 				</p>
 				<a class="btn btn-primary" hx-boost="false" href="/login/auth0">Login with Auth0</a>
 				@components.NewButton("Sign-up", "signup",
-					components.WithModifier(components.ButtonSecondary),
+					components.WithColor[components.Button](components.ColorSecondary,
+					false),
 					components.WithAttributes[components.Button](templ.Attributes{
 						"hx-get":      "/signup",
 						"hx-target":   "#index-hero",

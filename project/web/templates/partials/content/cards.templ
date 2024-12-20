@@ -9,14 +9,14 @@ import (
 )
 
 templ ShowItem(item *models.APIItem) {
-	@item.AsArticle().Show()
-	if len(item.CategoryBadges()) > 0 {
-		<div class="badges">
-			for _, badge := range item.CategoryBadges() {
-				@badge.Show()
-			}
-		</div>
-	}
+	@components.NewArticle(item.GetTitle(), item.GetContent()).Show()
+	// if len(item.CategoryBadges()) > 0 {
+	// 	<div class="badges">
+	// 		for _, badge := range item.CategoryBadges() {
+	// 			@badge.Show()
+	// 		}
+	// 	</div>
+	// }
 }
 
 templ ShowCards(name string, cards ...components.Card) {

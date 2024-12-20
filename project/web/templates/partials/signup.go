@@ -48,7 +48,7 @@ func SignUpForm() components.Form {
 		),
 		components.Buttons(
 			components.NewButton("Signup", "signup",
-				components.WithModifier(components.ButtonAccent)),
+				components.WithColor[components.Button](components.ColorAccent, false)),
 		),
 	)
 }

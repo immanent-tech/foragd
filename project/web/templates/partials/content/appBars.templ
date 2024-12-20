@@ -22,7 +22,7 @@ templ AppBarTop() {
 
 templ appBarTopLeft() {
 	<label for="home-drawer" aria-label="Open Drawer" class="btn btn-square lg:hidden drawer-button">
-		@components.NewIcon("bars").Show()
+		@components.NewIcon("fa-bars").Show()
 	</label>
 }
 
@@ -47,8 +47,8 @@ templ appBarTopCenter() {
 templ appBarTopRight() {
 	<details class="dropdown dropdown-bottom dropdown-end [&_.swap-on]:opacity-100 [&_.swap-off]:opacity-0 [&[open]_.swap-off]:opacity-100 [&[open]_.swap-on]:opacity-0">
 		<summary class="swap">
-			@components.NewIcon("bars", components.WithClasses[components.Icon]("swap-on")).Show()
-			@components.NewIcon("xmark", components.WithClasses[components.Icon]("swap-off")).Show()
+			@components.NewIcon("fa-bars", components.AsSwapOn()).Show()
+			@components.NewIcon("fa-xmark", components.AsSwapOff()).Show()
 		</summary>
 		<ul class="p-2 menu dropdown-content z-[1] bg-base-200 rounded-box w-52">
 			<li><a>Item 1</a></li>

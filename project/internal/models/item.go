@@ -11,8 +11,6 @@ import (
 
 	"github.com/mmcdole/gofeed"
 
-	components "github.com/joshuar/go-templ-daisyui"
-
 	"github.com/joshuar/go-feed-me/internal/id"
 )
 
@@ -40,22 +38,6 @@ func (i *APIItem) GetCategories() []string {
 
 func (i *APIItem) GetContent() string {
 	return i.Description
-}
-
-func (i *APIItem) AsArticle() components.Article {
-	return components.NewArticle(i.Title, i.Description)
-}
-
-func (i *APIItem) CategoryBadges() []components.Badge {
-	var badges []components.Badge
-
-	if len(i.Categories) > 0 {
-		for _, c := range i.Categories {
-			badges = append(badges, components.NewBadge(c))
-		}
-	}
-
-	return badges
 }
 
 // isNewer returns a boolean indicating whether this item has been updated or
