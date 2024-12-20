@@ -7,10 +7,12 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
+// FeedsIndexTemplate contains the mapping and setting component templates for
+// the feeds index.
 func FeedsIndexTemplate() IndexTemplate {
 	return IndexTemplate{
 		Name:          FeedSchemaPrefix,
-		IndexPatterns: []string{"feeds-*"},
+		IndexPatterns: []string{FeedSchemaPrefix + "-*"},
 		Components: []ComponentTemplate{
 			{
 				Name: FeedSchemaPrefix + "_mappings",
@@ -31,6 +33,8 @@ func FeedsIndexTemplate() IndexTemplate {
 	}
 }
 
+// FeedItemsIndexTemplate contains the mapping and setting component templates for
+// the feed-items index.
 func FeeditemsIndexTemplate() IndexTemplate {
 	lifecycleName := FeedItemsSchemaPrefix
 	lifecycle := types.NewIndexSettingsLifecycle()
@@ -38,7 +42,7 @@ func FeeditemsIndexTemplate() IndexTemplate {
 
 	return IndexTemplate{
 		Name:          FeedItemsSchemaPrefix,
-		IndexPatterns: []string{"feeditems-*"},
+		IndexPatterns: []string{FeedItemsSchemaPrefix + "-*"},
 		Components: []ComponentTemplate{
 			{
 				Name: FeedItemsSchemaPrefix + "_mappings",
@@ -48,6 +52,37 @@ func FeeditemsIndexTemplate() IndexTemplate {
 			},
 			{
 				Name: FeedItemsSchemaPrefix + "_settings",
+				Template: types.IndexState{
+					Settings: &types.IndexSettings{
+						Lifecycle: lifecycle,
+					},
+				},
+			},
+		},
+		DataStream: types.NewDataStreamVisibility(),
+		Priority:   defaultPriority,
+	}
+}
+
+// ReadItemsIndexTemplate contains the mapping and setting component templates for
+// the read-items index.
+func ReadItemsIndexTemplate() IndexTemplate {
+	lifecycleName := ReadItemsSchemaPrefix
+	lifecycle := types.NewIndexSettingsLifecycle()
+	lifecycle.Name = &lifecycleName
+
+	return IndexTemplate{
+		Name:          ReadItemsSchemaPrefix,
+		IndexPatterns: []string{ReadItemsSchemaPrefix + "-*"},
+		Components: []ComponentTemplate{
+			{
+				Name: ReadItemsSchemaPrefix + "_mappings",
+				Template: types.IndexState{
+					Mappings: readItemsMapping(),
+				},
+			},
+			{
+				Name: ReadItemsSchemaPrefix + "_settings",
 				Template: types.IndexState{
 					Settings: &types.IndexSettings{
 						Lifecycle: lifecycle,

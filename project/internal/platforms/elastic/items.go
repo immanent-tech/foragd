@@ -46,13 +46,14 @@ func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.
 			c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
 			continue
 		}
+
 		items = append(items, item)
 	}
 
 	return items, nil
 }
 
-func (c *Client) AddFeedItems(ctx context.Context, items ...models.Item) error {
+func (c *Client) AddFeedItems(_ context.Context, items ...models.Item) error {
 	var docs []document
 
 	for _, item := range items {
@@ -94,6 +95,7 @@ func (c *Client) GetItem(ctx context.Context, feedID, itemID string) (models.API
 			c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
 			continue
 		}
+
 		break
 	}
 

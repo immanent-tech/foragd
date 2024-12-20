@@ -20,36 +20,15 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"os"
-	"path/filepath"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ilm/putlifecycle"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-)
-
-const (
-	policyFileSuffix = ".ilm.policy.json"
 )
 
 var (
 	ErrInvalidILMPolicyFile = errors.New("invalid ILM policy file")
 	ErrPutPolicy            = errors.New("put ILM policy failed")
 )
-
-func GetILMPolicy(policyName string) (*types.IlmPolicy, error) {
-	data, err := os.ReadFile(filepath.Join(assetsPath, policyName+policyFileSuffix))
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidILMPolicyFile, err)
-	}
-
-	policy := types.NewIlmPolicy()
-
-	if err := policy.UnmarshalJSON(data); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrInvalidILMPolicyFile, err)
-	}
-
-	return policy, nil
-}
 
 func (c *Client) PutILMPolicy(ctx context.Context, policyName string, policy *types.IlmPolicy) error {
 	req := &putlifecycle.Request{

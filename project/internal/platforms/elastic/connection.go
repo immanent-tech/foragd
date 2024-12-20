@@ -88,13 +88,12 @@ func Connect(ctx context.Context, environment string) (*Client, error) {
 }
 
 func (c *Client) Setup(ctx context.Context) error {
-	// Get the latest ILM policy for feeditems from file.
-	policy, err := GetILMPolicy(schema.FeedItemsSchemaPrefix)
-	if err != nil {
-		return fmt.Errorf("get ILM Policy: %w", err)
-	}
 	// Update the ILM policy for feeditems.
-	if err := c.PutILMPolicy(ctx, schema.FeedItemsSchemaPrefix, policy); err != nil {
+	if err := c.PutILMPolicy(ctx, schema.FeedItemsSchemaPrefix, schema.FeedItemsILMPolicy()); err != nil {
+		return fmt.Errorf("put ILM policy: %w", err)
+	}
+	// Update the ILM policy for readitems.
+	if err := c.PutILMPolicy(ctx, schema.ReadItemsSchemaPrefix, schema.ReadItemsILMPolicy()); err != nil {
 		return fmt.Errorf("put ILM policy: %w", err)
 	}
 	// Add ingest pipeline(s).
@@ -103,6 +102,10 @@ func (c *Client) Setup(ctx context.Context) error {
 	}
 	// Update the feeditems index template.
 	if err := c.PutIndexTemplate(ctx, schema.FeeditemsIndexTemplate()); err != nil {
+		return fmt.Errorf("put index template: %w", err)
+	}
+	// Update the readitems index template.
+	if err := c.PutIndexTemplate(ctx, schema.ReadItemsIndexTemplate()); err != nil {
 		return fmt.Errorf("put index template: %w", err)
 	}
 	// Update the feeds index template.

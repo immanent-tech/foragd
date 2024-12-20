@@ -56,6 +56,13 @@ components:
           x-go-type: 'time.Time'
           x-oapi-codegen-extra-tags:
             gorm: 'index'
+    Timestamp:
+      description: is when the document was created.
+      x-go-type: 'time.Time'
+      x-oapi-codegen-extra-tags:
+        json: "@timestamp"
+        validate: "required"
+      x-go-type-skip-optional-pointer: true
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
@@ -271,6 +278,26 @@ components:
               $ref: '#/components/schemas/FeedID'
             URL:
               $ref: '#/components/schemas/URL'
+
+    ReadItem:
+      description: represents an item (e.g., an individual feed item) that has been read.
+      type: object
+      required:
+        - timestamp
+        - ID
+        - FeedID
+        - UserID
+      allOf:
+        - type: object
+          properties:
+            Timestamp:
+              $ref: '#/components/schemas/Timestamp'
+            ID:
+              $ref: '#/components/schemas/ItemID'
+            FeedID:
+              $ref: '#/components/schemas/FeedID'
+            UserID:
+              $ref: '#/components/schemas/UserID'
     Tokens:
       type: object
       required:

@@ -144,6 +144,21 @@ type MetadataFeed struct {
 	Updated     time.Time     `json:"updatedParsed"`
 }
 
+// ReadItem defines model for ReadItem.
+type ReadItem struct {
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+
+	// ID is the unique ID of an item.
+	ID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
+
+	// Timestamp is when the document was created.
+	Timestamp Timestamp `json:"@timestamp" validate:"required"`
+
+	// UserID is the unique ID of a user.
+	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
+}
+
 // Subscription defines model for Subscription.
 type Subscription struct {
 	// FeedID is the unique ID of a feed.
@@ -173,6 +188,9 @@ type Subscription struct {
 
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
+
+// Timestamp is when the document was created.
+type Timestamp = time.Time
 
 // Tokens defines model for Tokens.
 type Tokens struct {

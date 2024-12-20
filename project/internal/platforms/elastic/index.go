@@ -49,9 +49,11 @@ func (c *Client) PutIndexTemplate(ctx context.Context, template schema.IndexTemp
 		IndexPatterns: template.IndexPatterns,
 		Priority:      &template.Priority,
 	}
+
 	if template.Meta != nil {
 		req.Meta_ = *template.Meta
 	}
+
 	if template.DataStream != nil {
 		req.DataStream = template.DataStream
 	}
