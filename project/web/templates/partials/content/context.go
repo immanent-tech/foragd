@@ -12,6 +12,7 @@ type contextKey string
 
 const (
 	backLinkCtxKey contextKey = "backlink"
+	triggerCtxKey  contextKey = "trigger"
 )
 
 var ErrNotInCtx = errors.New("not found in context")
@@ -29,4 +30,19 @@ func BackLinkFromCtx(ctx context.Context) string {
 	}
 
 	return link
+}
+
+func TriggerToCtx(ctx context.Context, trigger string) context.Context {
+	newCtx := context.WithValue(ctx, triggerCtxKey, trigger)
+
+	return newCtx
+}
+
+func TriggerFromCtx(ctx context.Context) string {
+	trigger, ok := ctx.Value(triggerCtxKey).(string)
+	if !ok {
+		return ""
+	}
+
+	return trigger
 }

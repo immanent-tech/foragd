@@ -3,39 +3,20 @@
 
 package layouts
 
-import "github.com/joshuar/go-feed-me/web/templates/partials/content"
+import (
+	"github.com/joshuar/go-feed-me/web/templates/partials/content"
+	"github.com/joshuar/go-templ-daisyui"
+)
 
 templ HomeLayout(triggerPath string) {
 	<!-- Header -->
-	<div class="sticky top-0 z-10 w-full">
-		<input id="my-drawer-2" type="checkbox" class="drawer-toggle"/>
+	<div class="sticky top-0 z-40 w-full">
 		@content.AppBarTop()
 	</div>
-	<div class="drawer lg:drawer-open">
-		<!-- Navbar -->
-		<input id="home-drawer" type="checkbox" class="drawer-toggle"/>
-		@content.Drawer()
-		// </div>
-		<!-- Main Content Area-->
-		<div class="drawer-content">
-			<!-- Modal for commands -->
-			<dialog id="command-modal" class="modal"></dialog>
-			<!-- Content -->
-			// <div class="flex overflow-y-scroll">
-			<div id="content" hx-get={ triggerPath } hx-trigger="load" hx-swap="outerHTML"></div>
-			// </div>
-			<!-- Footer -->
-			@content.AppBarBottom()
-			// <div class="sticky top-0 block bg-pink-500 py-5 md:hidden">
-			// 	<h1 class="text-center text-xl">Bottom Navigation</h1>
-			// </div>
-		</div>
-		// <div class="hidden h-full flex-[0.3] lg:block">
-		// 	<!-- Right Sidebar -->
-		// 	<div class="grid h-full place-content-center bg-blue-600">
-		// 		<h1 class="text-xl">Right</h1>
-		// 		<h1 class="text-xl">Sidebar</h1>
-		// 	</div>
-		// </div>
-	</div>
+	@components.NewDrawer("home-drawer",
+		components.WithDrawerVisibility(components.LG),
+		components.WithMainContent(content.DrawerMain()),
+		components.WithSideContent(content.DrawerSide()),
+		components.WithZIndex[components.Drawer](components.Z50),
+	).Show()
 }

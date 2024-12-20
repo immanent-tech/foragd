@@ -25,12 +25,14 @@ var ErrFeedIDRequired = errors.New("feed ID is required")
 // FeedsHandler displays the home page with a list of feeds, optionally filtered
 // by the given feed IDs and categories.
 func (s Server) FeedsHandler(res http.ResponseWriter, req *http.Request, params FeedsHandlerParams) {
+	ctx := content.TriggerToCtx(req.Context(), req.URL.Path+"/show")
+
 	feedsPage := layouts.NewPage("Go Feed Me - Feeds",
 		layouts.WithPageDescription("Your feeds."),
 		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
 		layouts.WithPageContent(layouts.HomeLayout(req.URL.Path+"/show")))
 
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, feedsPage.Show()); err != nil {
+	if err := htmx.NewResponse().RenderTempl(ctx, res, feedsPage.Show()); err != nil {
 		logging.LogHandler("FeedsHandler", req).Error("Cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 	}
@@ -78,12 +80,14 @@ func (s Server) ShowFeeds(res http.ResponseWriter, req *http.Request, params Sho
 }
 
 func (s Server) ItemsHandler(res http.ResponseWriter, req *http.Request, params ItemsHandlerParams) {
+	ctx := content.TriggerToCtx(req.Context(), req.URL.Path+"/show")
+
 	itemsPage := layouts.NewPage("Go Feed Me - Items",
 		layouts.WithPageDescription("Your items."),
 		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
 		layouts.WithPageContent(layouts.HomeLayout(req.URL.Path+"/show")))
 
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, itemsPage.Show()); err != nil {
+	if err := htmx.NewResponse().RenderTempl(ctx, res, itemsPage.Show()); err != nil {
 		logging.LogHandler("ItemsHandler", req).Error("Cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 	}

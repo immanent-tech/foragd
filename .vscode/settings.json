@@ -63,7 +63,10 @@
     "components/article",
     "middlewares",
     "models,server",
-    "logging"
+    "logging",
+    "modifiers/z-index",
+    "components/drawer",
+    "templates/layouts"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

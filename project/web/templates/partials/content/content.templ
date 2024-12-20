@@ -17,3 +17,26 @@ templ ContentHeader(backlink string) {
 		</form>
 	}
 }
+
+templ DrawerMain() {
+	<!-- Modal for commands -->
+	<dialog id="command-modal" class="modal"></dialog>
+	<!-- Content -->
+	<div id="content" hx-get={ TriggerFromCtx(ctx) } hx-trigger="load" hx-swap="outerHTML"></div>
+	<!-- Footer -->
+	@AppBarBottom()
+}
+
+templ DrawerSide() {
+	<div class="bg-base-200">
+		@components.NewButton("", "add",
+			components.WithColor[components.Button](components.ColorGhost, false),
+			components.WithIcon(components.NewIcon("fa-plus"), components.AlignMiddle),
+			components.WithButtonTooltip("Add Item", components.AlignRight),
+			components.WithAttributes[components.Button](templ.Attributes{
+				"hx-get":    "/subscription/add",
+				"hx-target": "#command-modal",
+				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #command-modal",
+			})).Show()
+	</div>
+}
