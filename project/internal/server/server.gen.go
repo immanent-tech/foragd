@@ -18,6 +18,9 @@ type Categories = externalRef0.Categories
 // Feeds is a list of feed IDs.
 type Feeds = externalRef0.FeedIDs
 
+// Pagination defines model for Pagination.
+type Pagination = string
+
 // FeedsHandlerParams defines parameters for FeedsHandler.
 type FeedsHandlerParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
@@ -28,6 +31,7 @@ type FeedsHandlerParams struct {
 type ShowFeedsParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 // ItemsHandlerParams defines parameters for ItemsHandler.
@@ -40,6 +44,7 @@ type ItemsHandlerParams struct {
 type ShowItemsParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 // GetLoginCallbackParams defines parameters for GetLoginCallback.
@@ -352,6 +357,14 @@ func (siw *ServerInterfaceWrapper) ShowFeeds(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ShowFeeds(w, r, params)
 	}))
@@ -419,6 +432,14 @@ func (siw *ServerInterfaceWrapper) ShowItems(w http.ResponseWriter, r *http.Requ
 	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
 		return
 	}
 

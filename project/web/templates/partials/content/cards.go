@@ -78,10 +78,10 @@ func addContentToCard(card components.Card, content string) components.Card {
 
 func NewFeedCard(ctx context.Context, feed Feed) components.Card {
 	feedCard := newCard(feed, templ.Attributes{
-		"hx-target":  "#content",
+		"hx-target":  "#" + ContentTarget,
 		"hx-get":     "/home/items/show",
 		"hx-include": "[id='" + feed.GetID() + "']",
-		"hx-headers": `{ "GoFeedMe-Backlink": "` + BackLinkFromCtx(ctx) + `" }`,
+		"hx-headers": `{ ` + HeaderBacklink + `": "` + NavigationFromCtx(ctx).Backlink + `" }`,
 	})
 
 	feedCard = addContentToCard(feedCard, feed.GetContent())
@@ -91,9 +91,9 @@ func NewFeedCard(ctx context.Context, feed Feed) components.Card {
 
 func NewItemCard(ctx context.Context, item Item) components.Card {
 	return newCard(item, templ.Attributes{
-		"hx-target":  "#content",
+		"hx-target":  "#" + ContentTarget,
 		"hx-get":     "/home/article/" + item.GetFeedID() + "/" + item.GetID(),
 		"hx-include": "[id='" + item.GetFeedID() + "']",
-		"hx-headers": `{ "GoFeedMe-Backlink": "` + BackLinkFromCtx(ctx) + `" }`,
+		"hx-headers": `{ ` + HeaderBacklink + `: "` + NavigationFromCtx(ctx).Backlink + `" }`,
 	})
 }

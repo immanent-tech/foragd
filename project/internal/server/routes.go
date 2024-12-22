@@ -17,8 +17,7 @@ import (
 )
 
 const (
-	homePage       = "/home/feeds"
-	HeaderBacklink = "GoFeedMe-Backlink"
+	homePage = "/home/feeds"
 )
 
 // Ensures we statisfy the ServerInterface interface.

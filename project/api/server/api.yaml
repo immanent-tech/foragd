@@ -234,6 +234,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/Pagination'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -254,6 +255,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/Pagination'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -301,6 +303,11 @@ components:
       in: path
       schema:
         $ref: '../models/api.yaml#/components/schemas/Category'
+    Pagination:
+      name: pagination
+      in: query
+      schema:
+        type: string
   responses:
     htmx:
       description: standard htmx powered response.

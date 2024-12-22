@@ -132,6 +132,15 @@ func SearchSize(size int) Option[*search.Search] {
 	}
 }
 
+// SearchAfter sets the sort value to fetch the next set of results.
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
+func SearchAfter(sortValue []types.FieldValue) Option[*search.Search] {
+	return func(search *search.Search) *search.Search {
+		search = search.SearchAfter(sortValue)
+		return search
+	}
+}
+
 // NewSearchRequest creates a new search object with the given options.
 func (c *Client) NewSearchRequest(options ...Option[*search.Search]) *search.Search {
 	req := c.API.Search()

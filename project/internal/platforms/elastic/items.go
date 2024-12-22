@@ -20,9 +20,9 @@ var ErrNoFeedID = errors.New("no feed ID provided")
 
 var defaultItemFields = []string{"publishedParsed", "updatedParsed", "title", "description", "item_id", "image"}
 
-func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.APIItem, error) {
+func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.APIItem, []byte, error) {
 	if feedIDs == nil {
-		return nil, ErrNoFeedID
+		return nil, nil, ErrNoFeedID
 	}
 
 	req := c.NewSearchRequest(
@@ -30,11 +30,12 @@ func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.
 		WithFields(defaultItemFields...),
 		WithQueryOptions(QueryByFeedIDs(feedIDs...)),
 		WithSortOptions(SortTimestampDesc()),
+		SearchSize(20),
 	)
 
 	res, err := req.Do(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get feed item summaries: %w", err)
+		return nil, nil, fmt.Errorf("failed to get feed item summaries: %w", err)
 	}
 
 	var items []models.APIItem
@@ -50,7 +51,13 @@ func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.
 		items = append(items, item)
 	}
 
-	return items, nil
+	// Get the sort value(s) of the last hit.
+	data, err := json.Marshal(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
+	if err != nil {
+		c.logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
+	}
+
+	return items, data, nil
 }
 
 func (c *Client) AddFeedItems(_ context.Context, items ...models.Item) error {

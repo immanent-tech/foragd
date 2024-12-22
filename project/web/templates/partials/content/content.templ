@@ -5,9 +5,9 @@ package content
 
 import "github.com/joshuar/go-templ-daisyui"
 
-templ ContentHeader(backlink string) {
-	if backlink != "" {
-		<form method="dialog" hx-target="#content" hx-get={ backlink }>
+templ ContentHeader() {
+	if NavigationFromCtx(ctx).Parent != "" {
+		<form method="dialog" hx-target={ "#" + ContentTarget } hx-get={ NavigationFromCtx(ctx).Parent }>
 			@components.NewButton("", "back",
 				components.WithButtonShape(components.ButtonCircle),
 				components.WithColor[components.Button](components.ColorGhost, false),
@@ -22,7 +22,23 @@ templ DrawerMain() {
 	<!-- Modal for commands -->
 	<dialog id="command-modal" class="modal"></dialog>
 	<!-- Content -->
-	<div id="content" hx-get={ TriggerFromCtx(ctx) } hx-trigger="load" hx-swap="outerHTML"></div>
+	<div id="content">
+		<!-- Content Header -->
+		<div id="content-header" class="bg-orange-500 sticky top-0 w-full">
+			@ContentHeader()
+		</div>
+		<div id="content-main">
+			<!-- Content -->
+			<form
+				id={ ContentTarget }
+				hx-get={ TriggerFromCtx(ctx) }
+				hx-trigger="load"
+				hx-swap="innerHTML"
+			>
+				@components.LoadingTempl("", components.XL)
+			</form>
+		</div>
+	</div>
 	<!-- Footer -->
 	@AppBarBottom()
 }
