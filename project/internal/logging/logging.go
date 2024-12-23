@@ -112,9 +112,9 @@ func LogReq(req *http.Request, status int) *slog.Logger {
 }
 
 func NewHandlerLogger(handler string, req *http.Request) *slog.Logger {
-	return FromContext(req.Context()).With(
-		slog.Group("handler"),
-		slog.String("name", handler)).
+	return FromContext(req.Context()).
+		With(slog.Group("handler",
+			slog.String("name", handler))).
 		With(slog.Group("request"),
 			slog.String("method", req.Method),
 			slog.String("path", req.URL.Path),
