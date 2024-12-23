@@ -5,6 +5,7 @@
 package server
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -18,6 +19,12 @@ import (
 
 const (
 	homePage = "/home/feeds"
+)
+
+var (
+	ErrMissingQueryParams = errors.New("missing query parameters")
+	ErrInvalidQueryParams = errors.New("invalid query parameters")
+	ErrRenderTemplateFail = errors.New("could not render template")
 )
 
 // Ensures we statisfy the ServerInterface interface.

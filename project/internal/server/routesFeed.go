@@ -28,11 +28,9 @@ const (
 	articlePath   = "/home/article"
 )
 
-var ErrFeedIDRequired = errors.New("feed ID is required")
-
 // FeedsHandler displays the home page with a list of feeds, optionally filtered
 // by the given feed IDs and categories.
-func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show ListHandlerParamsListType, params ListHandlerParams) {
+func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType ListHandlerParamsListType, params ListHandlerParams) {
 	var (
 		page    templ.Component
 		filters models.APISearchFilters
@@ -43,8 +41,8 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show Lis
 	logger := logging.NewHandlerLogger("ListHandler", req)
 
 	// Bail if an invalid show parameter is requested.
-	if show != ListHandlerParamsListTypeFeeds && show != ListHandlerParamsListTypeItems {
-		logger.Error("Bad Request (invalid parameter).")
+	if showType != ListHandlerParamsListTypeFeeds && showType != ListHandlerParamsListTypeItems {
+		logger.Error("Bad request.", slog.Any("error", ErrInvalidQueryParams))
 		res.WriteHeader(http.StatusBadRequest)
 
 		return
@@ -60,7 +58,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show Lis
 
 	if params.Pagination != nil {
 		if pagination, err := url.QueryUnescape(*params.Pagination); err != nil {
-			logger.Error("Could not unescape pagination parameter.", slog.Any("error", err))
+			logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		} else {
 			filters.Pagination = []byte(pagination)
 		}
@@ -70,10 +68,12 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show Lis
 	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg, filters)
 	if err != nil {
 		logger.Error("Cannot display content.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+
+		return
 	}
 
-	switch show {
+	switch showType {
 	case ListHandlerParamsListTypeFeeds:
 		ctx = content.NavigationToCtx(req.Context(), content.NavigationLinks{
 			Backlink: stripBacklink(req.URL),
@@ -85,7 +85,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show Lis
 	case ListHandlerParamsListTypeItems:
 		items, pagination, err := s.API.elastic.GetItems(req.Context(), filters)
 		if err != nil {
-			logger.Error("Could not retrieve items.", slog.Any("error", err))
+			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
 
 		ctx = content.NavigationToCtx(req.Context(), content.NavigationLinks{
@@ -106,12 +106,13 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show Lis
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
 			layouts.WithPageContent(layouts.HomeLayout(content.ShowCards("feeds", cards...)))).Show()
 	} else {
-		page = content.ShowCards("feeds", cards...)
+		// Partial content otherwise.
+		page = content.ShowCards(string(showType), cards...)
 	}
 
 	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {
-		logger.Error("Cannot display content.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
+		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }
 
@@ -121,7 +122,7 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 	logger := logging.NewHandlerLogger("ArticleHandler", req)
 
 	if feedID == "" || itemID == "" {
-		logger.Error("Invalid request.", slog.Any("error", ErrFeedIDRequired))
+		logger.Error("Invalid request.", slog.Any("error", ErrMissingQueryParams))
 		http.Error(res, "Invalid request.", http.StatusBadRequest)
 
 		return
@@ -136,6 +137,9 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 	item, err := models.GetItem(ctx, s.API.pg, s.API.elastic, feedID, itemID)
 	if err != nil {
 		logger.Error("Could not get item.", slog.Any("error", err))
+		http.Error(res, "Not found!.", http.StatusNotFound)
+
+		return
 	}
 
 	if !htmx.IsHTMX(req) {
@@ -147,16 +151,12 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 		page = content.ShowArticle(item)
 	}
 
-	// historyURL, err := url.JoinPath(articlePath, feedID, itemID)
-	// if err != nil {
-	// 	logger.Error("showFeedSummary: cannot render template.", slog.Any("error", err))
-	// 	res.WriteHeader(http.StatusInternalServerError)
-	// }
-
 	if err := htmx.NewResponse().
 		RenderTempl(ctx, res, page); err != nil {
-		logger.Error("showFeedSummary: cannot render template.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
+		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+
+		return
 	}
 }
 
