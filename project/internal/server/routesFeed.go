@@ -109,7 +109,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show Lis
 		page = content.ShowCards("feeds", cards...)
 	}
 
-	if err := htmx.NewResponse().PushURL(req.URL.String()).RenderTempl(ctx, res, page); err != nil {
+	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {
 		logger.Error("Cannot display content.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 	}
@@ -147,13 +147,13 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 		page = content.ShowArticle(item)
 	}
 
-	historyURL, err := url.JoinPath(articlePath, feedID, itemID)
-	if err != nil {
-		logger.Error("showFeedSummary: cannot render template.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
-	}
+	// historyURL, err := url.JoinPath(articlePath, feedID, itemID)
+	// if err != nil {
+	// 	logger.Error("showFeedSummary: cannot render template.", slog.Any("error", err))
+	// 	res.WriteHeader(http.StatusInternalServerError)
+	// }
 
-	if err := htmx.NewResponse().PushURL(historyURL).
+	if err := htmx.NewResponse().
 		RenderTempl(ctx, res, page); err != nil {
 		logger.Error("showFeedSummary: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)

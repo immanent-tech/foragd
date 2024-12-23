@@ -82,6 +82,7 @@ templ ShowCards(name string, cards ...components.Card) {
 			hx-get={ NavigationFromCtx(ctx).Backlink.String() + "&pagination=" + NavigationFromCtx(ctx).Pagination }
 			hx-trigger="revealed"
 			hx-swap="afterend"
+			hx-push-url="false"
 		></div>
 	}
 }

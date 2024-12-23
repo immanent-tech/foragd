@@ -78,9 +78,10 @@ func addContentToCard(card components.Card, content string) components.Card {
 
 func NewFeedCard(_ context.Context, feed Feed) components.Card {
 	feedCard := newCard(feed, templ.Attributes{
-		"hx-target":  "#" + ContentTarget,
-		"hx-get":     "/home/list/items",
-		"hx-include": "[id='" + feed.GetID() + "']",
+		"hx-target":   "#" + ContentTarget,
+		"hx-get":      "/home/list/items",
+		"hx-push-url": "true",
+		"hx-include":  "[id='" + feed.GetID() + "']",
 	})
 
 	feedCard = addContentToCard(feedCard, feed.GetContent())
@@ -90,8 +91,9 @@ func NewFeedCard(_ context.Context, feed Feed) components.Card {
 
 func NewItemCard(_ context.Context, item Item) components.Card {
 	return newCard(item, templ.Attributes{
-		"hx-target":  "#" + ContentTarget,
-		"hx-get":     "/home/article/" + item.GetFeedID() + "/" + item.GetID(),
-		"hx-include": "[id='" + item.GetID() + "']",
+		"hx-target":   "#" + ContentTarget,
+		"hx-get":      "/home/article/" + item.GetFeedID() + "/" + item.GetID(),
+		"hx-push-url": "/home/article/" + item.GetFeedID() + "/" + item.GetID(),
+		"hx-include":  "[id='" + item.GetID() + "']",
 	})
 }
