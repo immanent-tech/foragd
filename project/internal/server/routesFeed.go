@@ -22,11 +22,16 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials/content"
 )
 
+const (
+	listFeedsPath = "/home/list/feeds"
+	listItemsPath = "/home/list/items"
+)
+
 var ErrFeedIDRequired = errors.New("feed ID is required")
 
 // FeedsHandler displays the home page with a list of feeds, optionally filtered
 // by the given feed IDs and categories.
-func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show ListHandlerParamsShow, params ListHandlerParams) {
+func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show ListHandlerParamsListType, params ListHandlerParams) {
 	var (
 		page    templ.Component
 		filters models.APISearchFilters
@@ -37,7 +42,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show Lis
 	logger := logging.NewHandlerLogger("ListHandler", req)
 
 	// Bail if an invalid show parameter is requested.
-	if show != ListHandlerParamsShowFeeds && show != ListHandlerParamsShowItems {
+	if show != ListHandlerParamsListTypeFeeds && show != ListHandlerParamsListTypeItems {
 		logger.Error("Bad Request (invalid parameter).")
 		res.WriteHeader(http.StatusBadRequest)
 
@@ -68,7 +73,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show Lis
 	}
 
 	switch show {
-	case ListHandlerParamsShowFeeds:
+	case ListHandlerParamsListTypeFeeds:
 		ctx = content.NavigationToCtx(req.Context(), content.NavigationLinks{
 			Backlink: stripBacklink(req.URL),
 		})
@@ -76,14 +81,14 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show Lis
 		for _, feed := range feeds {
 			cards = append(cards, content.NewFeedCard(ctx, &feed))
 		}
-	case ListHandlerParamsShowItems:
+	case ListHandlerParamsListTypeItems:
 		items, pagination, err := s.API.elastic.GetItems(req.Context(), filters)
 		if err != nil {
 			logger.Error("Could not retrieve items.", slog.Any("error", err))
 		}
 
 		ctx = content.NavigationToCtx(req.Context(), content.NavigationLinks{
-			Parent:     generateParent("/home/feeds", params.Backlink),
+			Parent:     generateParent(listFeedsPath, params.Backlink),
 			Backlink:   stripBacklink(req.URL),
 			Pagination: url.QueryEscape(string(pagination)),
 		})
@@ -95,8 +100,8 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, show Lis
 
 	if !htmx.IsHTMX(req) {
 		// Full page when not htmx.
-		page = layouts.NewPage("Go Feed Me - Feeds",
-			layouts.WithPageDescription("Your feeds."),
+		page = layouts.NewPage("Go Feed Me - Home",
+			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
 			layouts.WithPageContent(layouts.HomeLayout(content.ShowCards("feeds", cards...)))).Show()
 	} else {
@@ -124,7 +129,7 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 	ctx := req.Context()
 
 	ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
-		Parent: generateParent("/home/items", params.Backlink),
+		Parent: generateParent(listItemsPath, params.Backlink),
 	})
 
 	item, err := models.GetItem(ctx, s.API.pg, s.API.elastic, feedID, itemID)
@@ -133,8 +138,8 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 	}
 
 	if !htmx.IsHTMX(req) {
-		page = layouts.NewPage("Go Feed Me - Items",
-			layouts.WithPageDescription("Your items."),
+		page = layouts.NewPage("Go Feed Me - Home",
+			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
 			layouts.WithPageContent(layouts.HomeLayout(content.ShowArticle(item)))).Show()
 	} else {

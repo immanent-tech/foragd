@@ -217,12 +217,12 @@ paths:
           description: Unauthorized
         500:
           description: Problem with request
-  /home/{show}:
+  /home/list/{listType}:
     get:
       summary: renders a page showing feed or item cards matching the given parameters.
       operationId: listHandler
       parameters:
-        - $ref: '#/components/parameters/Show'
+        - $ref: '#/components/parameters/ListType'
           required: true
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
@@ -286,8 +286,8 @@ components:
       in: query
       schema:
         type: string
-    Show:
-      name: show
+    ListType:
+      name: listType
       in: path
       schema:
         type: string

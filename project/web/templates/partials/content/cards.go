@@ -79,7 +79,7 @@ func addContentToCard(card components.Card, content string) components.Card {
 func NewFeedCard(_ context.Context, feed Feed) components.Card {
 	feedCard := newCard(feed, templ.Attributes{
 		"hx-target":  "#" + ContentTarget,
-		"hx-get":     "/home/items",
+		"hx-get":     "/home/list/items",
 		"hx-include": "[id='" + feed.GetID() + "']",
 	})
 
