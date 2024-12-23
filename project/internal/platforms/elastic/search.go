@@ -136,7 +136,7 @@ func SearchSize(size int) Option[*search.Search] {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
 func SearchAfter(sortValue []types.FieldValue) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
-		search = search.SearchAfter(sortValue)
+		search = search.SearchAfter(sortValue...)
 		return search
 	}
 }

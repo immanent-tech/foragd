@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
@@ -61,8 +60,6 @@ func (c *Client) GetItems(ctx context.Context, filters models.APISearchFilters) 
 
 		items = append(items, item)
 	}
-
-	spew.Dump(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
 
 	// Get the sort value(s) of the last hit.
 	data, err := json.Marshal(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)

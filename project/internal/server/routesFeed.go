@@ -171,10 +171,11 @@ func generateParent(fallback string, source *Backlink) *url.URL {
 	return parent
 }
 
-func stripBacklink(u *url.URL) *url.URL {
-	q := u.Query()
+func stripBacklink(backlink *url.URL) *url.URL {
+	q := backlink.Query()
 	q.Del("backlink")
-	u.RawQuery = q.Encode()
+	q.Del("pagination")
+	backlink.RawQuery = q.Encode()
 
-	return u
+	return backlink
 }
