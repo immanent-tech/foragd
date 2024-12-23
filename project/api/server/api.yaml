@@ -217,33 +217,13 @@ paths:
           description: Unauthorized
         500:
           description: Problem with request
-  /home/feeds:
+  /home/{show}:
     get:
-      summary: renders a page showing feed cards matching the given parameters.
-      operationId: feedsHandler
+      summary: renders a page showing feed or item cards matching the given parameters.
+      operationId: listHandler
       parameters:
-        - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/Pagination'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  # /home/feeds/show:
-  #   get:
-  #     summary: returns partial html containing a list of feed cards.
-  #     operationId: showFeeds
-  #     parameters:
-  #       - $ref: '#/components/parameters/Feeds'
-  #       - $ref: '#/components/parameters/Categories'
-  #       - $ref: '#/components/parameters/Pagination'
-  #     responses:
-  #       200:
-  #         $ref: '#/components/responses/htmx'
-  /home/items:
-    get:
-      summary: renders a page showing item cards matching the given parameters.
-      operationId: itemsHandler
-      parameters:
+        - $ref: '#/components/parameters/Show'
+          required: true
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Pagination'
@@ -251,18 +231,6 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  # /home/items/show:
-  #   get:
-  #     summary: returns partial html containing a list of feed cards.
-  #     operationId: showItems
-  #     parameters:
-  #       - $ref: '#/components/parameters/Feeds'
-  #       - $ref: '#/components/parameters/Categories'
-  #       - $ref: '#/components/parameters/Pagination'
-  #       - $ref: '#/components/parameters/Backlink'
-  #     responses:
-  #       200:
-  #         $ref: '#/components/responses/htmx'
   /home/article/{feed}/{item}:
     get:
       summary: display an item
@@ -318,6 +286,12 @@ components:
       in: query
       schema:
         type: string
+    Show:
+      name: show
+      in: path
+      schema:
+        type: string
+        enum: [feeds, items]
   responses:
     htmx:
       description: standard htmx powered response.
