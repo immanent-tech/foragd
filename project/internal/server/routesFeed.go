@@ -25,6 +25,7 @@ import (
 const (
 	listFeedsPath = "/home/list/feeds"
 	listItemsPath = "/home/list/items"
+	articlePath   = "/home/article"
 )
 
 var ErrFeedIDRequired = errors.New("feed ID is required")
@@ -146,7 +147,13 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 		page = content.ShowArticle(item)
 	}
 
-	if err := htmx.NewResponse().PushURL(req.URL.String()).
+	historyURL, err := url.JoinPath(articlePath, feedID, itemID)
+	if err != nil {
+		logger.Error("showFeedSummary: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+	}
+
+	if err := htmx.NewResponse().PushURL(historyURL).
 		RenderTempl(ctx, res, page); err != nil {
 		logger.Error("showFeedSummary: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
