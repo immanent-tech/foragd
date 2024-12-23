@@ -8,14 +8,14 @@ import (
 	"github.com/joshuar/go-templ-daisyui"
 )
 
-templ HomeLayout(triggerPath string) {
+templ HomeLayout(data templ.Component) {
 	<!-- Header -->
 	<div class="sticky top-0 z-40 w-full">
 		@content.AppBarTop()
 	</div>
 	@components.NewDrawer("home-drawer",
 		components.WithDrawerVisibility(components.LG),
-		components.WithMainContent(content.DrawerMain()),
+		components.WithMainContent(content.DrawerMain(data)),
 		components.WithSideContent(content.DrawerSide()),
 		components.WithZIndex[components.Drawer](components.Z50),
 	).Show()

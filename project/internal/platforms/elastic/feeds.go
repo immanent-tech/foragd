@@ -98,9 +98,9 @@ func (c *Client) getAllFeeds(ctx context.Context) ([]models.APIFeed, error) {
 // GetFeeds returns the feeds with the given feed IDs. If no feed IDs are given,
 // it returns all feeds. This will either be an mget (specific feeds) or search
 // (all feeds) request.
-func (c *Client) GetFeeds(ctx context.Context, feedIDs ...string) ([]models.APIFeed, error) {
-	if len(feedIDs) > 0 {
-		return c.getFeedsByID(ctx, feedIDs...)
+func (c *Client) GetFeeds(ctx context.Context, filters models.APISearchFilters) ([]models.APIFeed, error) {
+	if len(filters.FeedIDs) > 0 {
+		return c.getFeedsByID(ctx, filters.FeedIDs...)
 	}
 
 	return c.getAllFeeds(ctx)

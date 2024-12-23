@@ -137,6 +137,15 @@ components:
         json: 'categories'
         form: 'categories'
       x-go-type-skip-optional-pointer: true
+    Pagination:
+      description: >
+        contains details that allow fetching results at a certain
+        point.
+      x-go-type: '[]byte'
+      x-go-type-skip-optional-pointer: true
+      x-oapi-codegen-extra-tags:
+        json: 'pagination'
+        form: 'pagination'
     # Objects.
     User:
       description: is a user of the application.
@@ -370,3 +379,15 @@ components:
           x-oapi-codegen-extra-tags:
             json: 'iat'
           x-go-type-skip-optional-pointer: true
+    APISearchFilters:
+      description: contains parameters for searching feeds and items
+      type: object
+      properties:
+        FeedIDs:
+          $ref: '#/components/schemas/FeedIDs'
+        ItemIDs:
+          $ref: '#/components/schemas/ItemIDs'
+        Categories:
+          $ref: '#/components/schemas/Categories'
+        Pagination:
+          $ref: '#/components/schemas/Pagination'

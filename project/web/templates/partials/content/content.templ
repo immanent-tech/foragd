@@ -3,11 +3,14 @@
 
 package content
 
-import "github.com/joshuar/go-templ-daisyui"
+import (
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-templ-daisyui"
+)
 
 templ ContentHeader() {
-	if NavigationFromCtx(ctx).Parent != "" {
-		<form method="dialog" hx-target={ "#" + ContentTarget } hx-get={ NavigationFromCtx(ctx).Parent }>
+	if NavigationFromCtx(ctx).Parent != nil {
+		<form method="dialog" hx-target={ "#" + ContentTarget } hx-get={ NavigationFromCtx(ctx).Parent.String() }>
 			@components.NewButton("", "back",
 				components.WithButtonShape(components.ButtonCircle),
 				components.WithColor[components.Button](components.ColorGhost, false),
@@ -18,7 +21,10 @@ templ ContentHeader() {
 	}
 }
 
-templ DrawerMain() {
+// hx-get={ TriggerFromCtx(ctx) }
+// hx-trigger="load"
+// hx-swap="innerHTML"
+templ DrawerMain(data templ.Component) {
 	<!-- Modal for commands -->
 	<dialog id="command-modal" class="modal"></dialog>
 	<!-- Content -->
@@ -29,13 +35,8 @@ templ DrawerMain() {
 		</div>
 		<div id="content-main">
 			<!-- Content -->
-			<form
-				id={ ContentTarget }
-				hx-get={ TriggerFromCtx(ctx) }
-				hx-trigger="load"
-				hx-swap="innerHTML"
-			>
-				@components.LoadingTempl("", components.XL)
+			<form id={ ContentTarget }>
+				@data
 			</form>
 		</div>
 	</div>
@@ -55,4 +56,38 @@ templ DrawerSide() {
 				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #command-modal",
 			})).Show()
 	</div>
+}
+
+// ShowArticle displays an item as an article.
+templ ShowArticle(item *models.APIItem) {
+	<div id="content-header" hx-swap-oob="true" class="bg-orange-500 sticky top-0 w-full">
+		@ContentHeader()
+	</div>
+	@components.NewArticle(item.GetTitle(), item.GetContent()).Show()
+}
+
+// ShowCards displays a list of the given cards.
+templ ShowCards(name string, cards ...components.Card) {
+	// {{ spew.Dump(ctx) }}
+	// <!-- Content Header -->
+	<div id="content-header" hx-swap-oob="true" class="bg-orange-500 sticky top-0 w-full">
+		@ContentHeader()
+	</div>
+	// <!-- Content -->
+	for _, card := range cards {
+		<div>
+			@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
+			@components.NewHiddenInput(card.ID(), "backlink", NavigationFromCtx(ctx).Backlink.String()).Show()
+			@card.Show()
+		</div>
+	}
+	if NavigationFromCtx(ctx).Pagination != "" {
+		<div
+			hx-get={ NavigationFromCtx(ctx).Backlink.String() + "&pagination=" + NavigationFromCtx(ctx).Pagination }
+			hx-trigger="revealed"
+			hx-swap="afterend"
+		>
+			// @components.NewHiddenInput("pagination", "pagination", NavigationFromCtx(ctx).Pagination).Show()
+		</div>
+	}
 }

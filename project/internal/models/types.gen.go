@@ -54,6 +54,21 @@ type APIItem struct {
 	Updated     time.Time     `json:"updatedParsed"`
 }
 
+// APISearchFilters contains parameters for searching feeds and items
+type APISearchFilters struct {
+	// Categories is a list of feed/item categories.
+	Categories Categories `form:"categories" json:"categories"`
+
+	// FeedIDs is a list of feed IDs.
+	FeedIDs FeedIDs `form:"feeds" json:"feeds"`
+
+	// ItemIDs is a list of item IDs.
+	ItemIDs ItemIDs `form:"items" json:"items"`
+
+	// Pagination contains details that allow fetching results at a certain point.
+	Pagination Pagination `form:"pagination" json:"pagination"`
+}
+
 // APISubscription represents a subscription object for the API endpoints.
 type APISubscription struct {
 	// URL is a URL.
@@ -143,6 +158,9 @@ type MetadataFeed struct {
 	Title       string        `json:"title"`
 	Updated     time.Time     `json:"updatedParsed"`
 }
+
+// Pagination contains details that allow fetching results at a certain point.
+type Pagination = []byte
 
 // ReadItem defines model for ReadItem.
 type ReadItem struct {

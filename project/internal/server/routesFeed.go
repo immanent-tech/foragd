@@ -8,8 +8,11 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"net/url"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 
 	components "github.com/joshuar/go-templ-daisyui"
 
@@ -24,41 +27,38 @@ var ErrFeedIDRequired = errors.New("feed ID is required")
 // FeedsHandler displays the home page with a list of feeds, optionally filtered
 // by the given feed IDs and categories.
 func (s Server) FeedsHandler(res http.ResponseWriter, req *http.Request, params FeedsHandlerParams) {
-	ctx := content.TriggerToCtx(req.Context(), req.URL.Path+"/show")
+	var (
+		page    templ.Component
+		filters models.APISearchFilters
+	)
 
-	feedsPage := layouts.NewPage("Go Feed Me - Feeds",
-		layouts.WithPageDescription("Your feeds."),
-		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		layouts.WithPageContent(layouts.HomeLayout(req.URL.Path+"/show")))
-
-	if err := htmx.NewResponse().RenderTempl(ctx, res, feedsPage.Show()); err != nil {
-		logging.LogHandler("FeedsHandler", req).Error("Cannot render template.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
-func (s Server) ShowFeeds(res http.ResponseWriter, req *http.Request, params ShowFeedsParams) {
-	ctx := req.Context()
-
-	var feedIDs []string
-	// var categories []string
+	logger := logging.NewHandlerLogger("FeedsHandler", req)
 
 	if params.Feeds != nil {
-		feedIDs = append(feedIDs, *params.Feeds...)
+		filters.FeedIDs = *params.Feeds
 	}
 
-	// if params.Categories != nil {
-	// 	categories = append(feedIDs, *params.Categories...)
-	// }
+	if params.Categories != nil {
+		filters.Categories = *params.Categories
+	}
 
-	ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
-		Backlink: "/home/feeds/show?" + req.URL.RawQuery,
+	if params.Pagination != nil {
+		if pagination, err := url.QueryUnescape(*params.Pagination); err != nil {
+			logger.Error("Could not unescape pagination parameter.", slog.Any("error", err))
+		} else {
+			filters.Pagination = []byte(pagination)
+		}
+	}
+
+	ctx := content.NavigationToCtx(req.Context(), content.NavigationLinks{
+		Backlink: stripBacklink(req.URL),
 	})
 
 	// Get all subscribed feeds.
-	feeds, err := models.GetSubcribedFeeds(ctx, s.API.elastic, s.API.pg, feedIDs...)
+	feeds, err := models.GetSubcribedFeeds(ctx, s.API.elastic, s.API.pg, filters)
 	if err != nil {
-		logging.LogHandler("ShowFeeds", req).Error("Could not retrieve subscribed feeds.", slog.Any("error", err))
+		logger.Error("Cannot display content.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
 	}
 
 	feedCards := make([]components.Card, len(feeds))
@@ -68,53 +68,52 @@ func (s Server) ShowFeeds(res http.ResponseWriter, req *http.Request, params Sho
 		feedCards[i] = content.NewFeedCard(ctx, &feed)
 	}
 
-	// Render the list of feed cards.
-	if err := htmx.NewResponse().PushURL("/home/feeds?"+req.URL.RawQuery).RenderTempl(ctx, res, content.ShowCards("feeds", feedCards...)); err != nil {
-		logging.LogHandler("ShowFeeds", req).Error("Cannot render template.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
+	if !htmx.IsHTMX(req) {
+		// Full page when not htmx.
+		page = layouts.NewPage("Go Feed Me - Feeds",
+			layouts.WithPageDescription("Your feeds."),
+			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+			layouts.WithPageContent(layouts.HomeLayout(content.ShowCards("feeds", feedCards...)))).Show()
+	} else {
+		page = content.ShowCards("feeds", feedCards...)
+	}
 
-		return
+	if err := htmx.NewResponse().PushURL(req.URL.String()).RenderTempl(ctx, res, page); err != nil {
+		logger.Error("Cannot display content.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
 	}
 }
 
 func (s Server) ItemsHandler(res http.ResponseWriter, req *http.Request, params ItemsHandlerParams) {
-	ctx := content.TriggerToCtx(req.Context(), req.URL.Path+"/show")
+	var (
+		page    templ.Component
+		filters models.APISearchFilters
+	)
 
-	itemsPage := layouts.NewPage("Go Feed Me - Items",
-		layouts.WithPageDescription("Your items."),
-		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		layouts.WithPageContent(layouts.HomeLayout(req.URL.Path+"/show")))
+	logger := logging.NewHandlerLogger("ItemsHandler", req)
 
-	if err := htmx.NewResponse().RenderTempl(ctx, res, itemsPage.Show()); err != nil {
-		logging.LogHandler("ItemsHandler", req).Error("Cannot render template.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
-	}
-}
-
-func (s Server) ShowItems(res http.ResponseWriter, req *http.Request, params ShowItemsParams) {
-	ctx := req.Context()
-
-	parent := req.Header.Get(content.HeaderBacklink)
-
-	if parent == "" {
-		parent = "/home/feeds/show"
-	}
-
-	var feedIDs []string
-	// var categories []string
+	spew.Dump(req.URL)
 
 	if params.Feeds != nil {
-		feedIDs = append(feedIDs, *params.Feeds...)
+		filters.FeedIDs = *params.Feeds
 	}
 
-	// if params.Categories != nil {
-	// 	categories = append(feedIDs, *params.Categories...)
-	// }
+	if params.Categories != nil {
+		filters.Categories = *params.Categories
+	}
+
+	if params.Pagination != nil {
+		if pagination, err := url.QueryUnescape(*params.Pagination); err != nil {
+			logger.Error("Could not unescape pagination parameter.", slog.Any("error", err))
+		} else {
+			filters.Pagination = []byte(pagination)
+		}
+	}
 
 	// Get all subscribed feeds.
-	feeds, err := models.GetSubcribedFeeds(ctx, s.API.elastic, s.API.pg, feedIDs...)
+	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg, filters)
 	if err != nil {
-		logging.LogHandler("ShowItems", req).Error("Could not retrieve feeds.", slog.Any("error", err))
+		logger.Error("Could not retrieve feeds.", slog.Any("error", err))
 	}
 
 	subs := make([]string, len(feeds))
@@ -124,10 +123,16 @@ func (s Server) ShowItems(res http.ResponseWriter, req *http.Request, params Sho
 		subs[i] = feed.ID
 	}
 	// Get all feed items for all subscribed feeds.
-	items, pagination, err := s.API.elastic.GetFeedItems(ctx, subs...)
+	items, pagination, err := s.API.elastic.GetItems(req.Context(), filters)
 	if err != nil {
-		logging.LogHandler("ShowItems", req).Error("Could not retrieve items.", slog.Any("error", err))
+		logger.Error("Could not retrieve items.", slog.Any("error", err))
 	}
+
+	ctx := content.NavigationToCtx(req.Context(), content.NavigationLinks{
+		Parent:     generateParent("/home/feeds", params.Backlink),
+		Backlink:   stripBacklink(req.URL),
+		Pagination: url.QueryEscape(string(pagination)),
+	})
 
 	itemCards := make([]components.Card, len(items))
 
@@ -136,25 +141,25 @@ func (s Server) ShowItems(res http.ResponseWriter, req *http.Request, params Sho
 		itemCards[i] = content.NewItemCard(ctx, &item)
 	}
 
-	ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
-		Parent:     parent,
-		Backlink:   "/home/items/show?" + req.URL.RawQuery,
-		Pagination: string(pagination),
-	})
+	if !htmx.IsHTMX(req) {
+		page = layouts.NewPage("Go Feed Me - Items",
+			layouts.WithPageDescription("Your items."),
+			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+			layouts.WithPageContent(layouts.HomeLayout(content.ShowCards("items", itemCards...)))).Show()
+	} else {
+		page = content.ShowCards("items", itemCards...)
+	}
 
-	// Render the list of feed cards.
-	if err := htmx.NewResponse().
-		PushURL("/home/items?"+req.URL.RawQuery).
-		RenderTempl(ctx, res, content.ShowCards("items", itemCards...)); err != nil {
-		logging.LogHandler("ShowItems", req).Error("Cannot render template.", slog.Any("error", err))
+	if err := htmx.NewResponse().PushURL(req.URL.String()).RenderTempl(ctx, res, page); err != nil {
+		logger.Error("Cannot display content.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
-
-		return
 	}
 }
 
-func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedID, itemID string) {
-	logger := s.Logger.With(slog.String("handler", "FeedItem"))
+func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedID, itemID string, params ArticleHandlerParams) {
+	var page templ.Component
+
+	logger := logging.NewHandlerLogger("ArticleHandler", req)
 
 	if feedID == "" || itemID == "" {
 		logger.Error("Invalid request.", slog.Any("error", ErrFeedIDRequired))
@@ -165,14 +170,8 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 
 	ctx := req.Context()
 
-	parent := req.Header.Get(content.HeaderBacklink)
-
-	if parent == "" {
-		parent = "/home/items/show"
-	}
-
 	ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
-		Parent: parent,
+		Parent: generateParent("/home/items", params.Backlink),
 	})
 
 	item, err := models.GetItem(ctx, s.API.pg, s.API.elastic, feedID, itemID)
@@ -180,14 +179,44 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 		logger.Error("Could not get item.", slog.Any("error", err))
 	}
 
-	// res.WriteHeader(http.StatusNotImplemented)
-
-	// Render the list of feed cards.
-	if err := htmx.NewResponse().PushURL(req.URL.Path).
-		RenderTempl(ctx, res, content.ShowItem(item)); err != nil {
-		logging.LogReq(req, http.StatusInternalServerError).Error("showFeedSummary: cannot render template.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
-
-		return
+	if !htmx.IsHTMX(req) {
+		page = layouts.NewPage("Go Feed Me - Items",
+			layouts.WithPageDescription("Your items."),
+			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+			layouts.WithPageContent(layouts.HomeLayout(content.ShowArticle(item)))).Show()
+	} else {
+		page = content.ShowArticle(item)
 	}
+
+	if err := htmx.NewResponse().PushURL(req.URL.String()).
+		RenderTempl(ctx, res, page); err != nil {
+		logger.Error("showFeedSummary: cannot render template.", slog.Any("error", err))
+		res.WriteHeader(http.StatusInternalServerError)
+	}
+}
+
+func generateParent(fallback string, source *Backlink) *url.URL {
+	var (
+		parent *url.URL
+		err    error
+	)
+
+	if source != nil {
+		parent, err = url.Parse(*source)
+	}
+
+	if err != nil || source == nil {
+		parent, err = url.Parse(fallback)
+		slog.Warn("Failed to generate fallback parent link.", slog.Any("error", err))
+	}
+
+	return parent
+}
+
+func stripBacklink(u *url.URL) *url.URL {
+	q := u.Query()
+	q.Del("backlink")
+	u.RawQuery = q.Encode()
+
+	return u
 }

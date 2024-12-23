@@ -10,7 +10,9 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
@@ -20,18 +22,27 @@ var ErrNoFeedID = errors.New("no feed ID provided")
 
 var defaultItemFields = []string{"publishedParsed", "updatedParsed", "title", "description", "item_id", "image"}
 
-func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.APIItem, []byte, error) {
-	if feedIDs == nil {
+func (c *Client) GetItems(ctx context.Context, filters models.APISearchFilters) ([]models.APIItem, []byte, error) {
+	if len(filters.FeedIDs) == 0 {
 		return nil, nil, ErrNoFeedID
 	}
 
 	req := c.NewSearchRequest(
 		WithIndexPattern[*search.Search](schema.FeedItemsSchemaPrefix+"-*"),
 		WithFields(defaultItemFields...),
-		WithQueryOptions(QueryByFeedIDs(feedIDs...)),
+		WithQueryOptions(QueryByFeedIDs(filters.FeedIDs...)),
 		WithSortOptions(SortTimestampDesc()),
-		SearchSize(20),
+		SearchSize(10),
 	)
+
+	if filters.Pagination != nil {
+		var searchAfter []types.FieldValue
+		if err := json.Unmarshal(filters.Pagination, &searchAfter); err != nil {
+			c.logger.Warn("Could not unmarshal pagination data.", slog.Any("error", err))
+		} else {
+			req = SearchAfter(searchAfter)(req)
+		}
+	}
 
 	res, err := req.Do(ctx)
 	if err != nil {
@@ -51,6 +62,8 @@ func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.
 		items = append(items, item)
 	}
 
+	spew.Dump(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
+
 	// Get the sort value(s) of the last hit.
 	data, err := json.Marshal(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
 	if err != nil {
@@ -61,16 +74,16 @@ func (c *Client) GetFeedItems(ctx context.Context, feedIDs ...string) ([]models.
 }
 
 func (c *Client) AddFeedItems(_ context.Context, items ...models.Item) error {
-	var docs []document
+	docs := make([]document, len(items))
 
-	for _, item := range items {
+	for iter, item := range items {
 		c.logger.Debug("Adding item",
 			slog.String("name", item.Title),
 			slog.String("item_id", item.ID),
 			slog.String("feed_id", item.FeedID),
 		)
 
-		docs = append(docs, &item)
+		docs[iter] = &item
 	}
 
 	c.bulkStream <- docs

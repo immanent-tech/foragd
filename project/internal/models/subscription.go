@@ -78,21 +78,20 @@ func AddNewSubscription(ctx context.Context, userID string, cache Cache, db DB, 
 	return nil
 }
 
-func GetSubcribedFeeds(ctx context.Context, cache Cache, db DB, feedFilters ...string) ([]APIFeed, error) {
+func GetSubcribedFeeds(ctx context.Context, cache Cache, db DB, filters APISearchFilters) ([]APIFeed, error) {
 	// Get user subscriptions
-	subs, err := db.FilterSubscriptionsByFeedID(ctx, feedFilters...)
+	subs, err := db.FilterSubscriptionsByFeedID(ctx, filters.FeedIDs...)
 	if err != nil {
 		return nil, errors.Join(ErrGetSubscriptions, err)
 	}
 
-	var feedIDs []string
-
-	// Otherwise include all subscriptions.
+	// Replace feed IDs with those filtered by user subscriptions.
+	filters.FeedIDs = nil
 	for _, sub := range subs {
-		feedIDs = append(feedIDs, sub.FeedID)
+		filters.FeedIDs = append(filters.FeedIDs, sub.FeedID)
 	}
 
-	feeds, err := cache.GetFeeds(ctx, feedIDs...)
+	feeds, err := cache.GetFeeds(ctx, filters)
 	if err != nil {
 		return nil, errors.Join(ErrGetSubscriptions, err)
 	}

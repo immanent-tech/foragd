@@ -23,8 +23,8 @@ type DB interface {
 type Cache interface {
 	GetFeedByURL(ctx context.Context, url string) (APIFeed, error)
 	AddFeeds(ctx context.Context, feeds ...Feed) error
-	GetFeeds(ctx context.Context, feedIDs ...string) ([]APIFeed, error)
-	GetFeedItems(ctx context.Context, feedIDs ...string) ([]APIItem, []byte, error)
+	GetFeeds(ctx context.Context, filters APISearchFilters) ([]APIFeed, error)
+	GetItems(ctx context.Context, filters APISearchFilters) ([]APIItem, []byte, error)
 	GetItem(ctx context.Context, feedID, itemID string) (APIItem, error)
 }
 

@@ -6,13 +6,12 @@ package content
 import (
 	"context"
 	"errors"
+	"net/url"
 )
 
 type contextKey string
 
 const (
-	backLinkCtxKey   contextKey = "backlink"
-	triggerCtxKey    contextKey = "trigger"
 	navigationCtxKey contextKey = "navigation"
 
 	HeaderBacklink = "Gofeedme-Backlink"
@@ -23,9 +22,9 @@ var ErrNotInCtx = errors.New("not found in context")
 // NavigationLinks contains the links for navigating between pages.
 type NavigationLinks struct {
 	// Parent is the page to which this page should redirect back to.
-	Parent string
+	Parent *url.URL
 	// Backlink is the page which any children should redirect back to.
-	Backlink string
+	Backlink *url.URL
 	// Pagination is a value used by the backend to fetch the next set of
 	// results as the user scrolls through feeds/items.
 	Pagination string
@@ -44,19 +43,4 @@ func NavigationFromCtx(ctx context.Context) NavigationLinks {
 	}
 
 	return nav
-}
-
-func TriggerToCtx(ctx context.Context, trigger string) context.Context {
-	newCtx := context.WithValue(ctx, triggerCtxKey, trigger)
-
-	return newCtx
-}
-
-func TriggerFromCtx(ctx context.Context) string {
-	trigger, ok := ctx.Value(triggerCtxKey).(string)
-	if !ok {
-		return ""
-	}
-
-	return trigger
 }

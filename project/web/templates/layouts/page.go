@@ -55,7 +55,7 @@ func WithPageContent(content ...templ.Component) Option[Page] {
 }
 
 // NewPage creates a new page with the given options.
-func NewPage(title string, options ...Option[Page]) Page {
+func NewPage(title string, options ...Option[Page]) *Page {
 	page := Page{
 		Title: title,
 	}
@@ -64,5 +64,5 @@ func NewPage(title string, options ...Option[Page]) Page {
 		page = option(page)
 	}
 
-	return page
+	return &page
 }

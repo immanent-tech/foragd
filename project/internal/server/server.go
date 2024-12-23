@@ -154,9 +154,7 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
 		homeRouter.Get("/feeds", wrapper.FeedsHandler)
-		homeRouter.Get("/feeds/show", wrapper.ShowFeeds)
 		homeRouter.Get("/items", wrapper.ItemsHandler)
-		homeRouter.Get("/items/show", wrapper.ShowItems)
 		homeRouter.Get("/article/{feed}/{item}", wrapper.ArticleHandler)
 		homeRouter.Get("/settings", wrapper.GetHomeSettings)
 	})
