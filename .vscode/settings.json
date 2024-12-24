@@ -66,7 +66,9 @@
     "logging",
     "modifiers/z-index",
     "components/drawer",
-    "templates/layouts"
+    "templates/layouts",
+    "components/loading",
+    "templates/content"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

@@ -37,9 +37,16 @@ templ DrawerMain(data templ.Component) {
 		<!-- Content Header -->
 		<div id="content-header" class="bg-orange-500 sticky top-0 w-full"></div>
 		<!-- Content -->
-		<div id="content-main">
-			@data
-		</div>
+		<form>
+			<div id="content-main">
+				@data
+			</div>
+		</form>
+		<center>
+			@components.NewLoading(components.LoadingBars,
+				components.WithSize[components.Loading](components.LG),
+				components.WithID[components.Loading]("content-loading")).Show()
+		</center>
 	</div>
 	<!-- Footer -->
 	@AppBarBottom()
@@ -62,30 +69,27 @@ templ DrawerSide() {
 // ShowArticle displays an item as an article.
 templ ShowArticle(item *models.APIItem) {
 	@ContentHeader()
-	<form>
-		@components.NewArticle(item.GetTitle(), item.GetContent()).Show()
-	</form>
+	@components.NewArticle(item.GetTitle(), item.GetContent()).Show()
 }
 
 // ShowCards displays a list of the given cards.
 templ ShowCards(name string, cards ...components.Card) {
 	@ContentHeader()
-	<form>
-		for _, card := range cards {
-			<div>
-				@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
-				@components.NewHiddenInput(card.ID(), "backlink", NavigationFromCtx(ctx).Backlink.String()).Show()
-				@card.Show()
-			</div>
-		}
-		// Infinite scroll when bottom of list reached.
-		if NavigationFromCtx(ctx).Pagination != nil {
-			<div
-				hx-get={ NavigationFromCtx(ctx).Pagination.String() }
-				hx-trigger="revealed"
-				hx-swap="afterend"
-				hx-push-url="false"
-			></div>
-		}
-	</form>
+	for _, card := range cards {
+		<div>
+			@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
+			@components.NewHiddenInput(card.ID(), "backlink", NavigationFromCtx(ctx).Backlink.String()).Show()
+			@card.Show()
+		</div>
+	}
+	// Infinite scroll when bottom of list reached.
+	if NavigationFromCtx(ctx).Pagination != nil {
+		<div
+			hx-get={ NavigationFromCtx(ctx).Pagination.String() }
+			hx-trigger="revealed"
+			hx-swap="afterend"
+			hx-push-url="false"
+			hx-indicator="#content-loading"
+		></div>
+	}
 }
