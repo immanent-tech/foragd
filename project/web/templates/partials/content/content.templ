@@ -9,16 +9,25 @@ import (
 )
 
 templ ContentHeader() {
-	if NavigationFromCtx(ctx).Parent != nil {
-		<form method="dialog" hx-target={ "#" + ContentTarget } hx-get={ NavigationFromCtx(ctx).Parent.String() }>
-			@components.NewButton("", "back",
-				components.WithButtonShape(components.ButtonCircle),
-				components.WithColor[components.Button](components.ColorGhost, false),
-				components.WithIcon(components.NewIcon("fa-arrow-left"), components.AlignMiddle),
-				// components.WithContainerAlignment(components.TopLeft),
-			).Show()
+	<div id="content-header" hx-swap-oob="true" class="bg-orange-500 sticky top-0 w-full">
+		<form
+			method="dialog"
+		>
+			if NavigationFromCtx(ctx).Parent != nil {
+				@components.NewButton("", "back",
+					components.WithButtonShape(components.ButtonCircle),
+					components.WithColor[components.Button](components.ColorGhost, false),
+					components.WithIcon(components.NewIcon("fa-arrow-left"),
+						components.AlignMiddle),
+					components.WithAttributes[components.Button](templ.Attributes{
+						"hx-get":      NavigationFromCtx(ctx).Parent.String(),
+						"hx-target":   "#" + ContentTarget,
+						"hx-push-url": "true",
+					}),
+				).Show()
+			}
 		</form>
-	}
+	</div>
 }
 
 templ DrawerMain(data templ.Component) {
@@ -26,14 +35,10 @@ templ DrawerMain(data templ.Component) {
 	<dialog id="command-modal" class="modal"></dialog>
 	<div id="content">
 		<!-- Content Header -->
-		<div id="content-header" class="bg-orange-500 sticky top-0 w-full">
-			@ContentHeader()
-		</div>
+		<div id="content-header" class="bg-orange-500 sticky top-0 w-full"></div>
 		<!-- Content -->
 		<div id="content-main">
-			<form id={ ContentTarget }>
-				@data
-			</form>
+			@data
 		</div>
 	</div>
 	<!-- Footer -->
@@ -56,33 +61,31 @@ templ DrawerSide() {
 
 // ShowArticle displays an item as an article.
 templ ShowArticle(item *models.APIItem) {
-	<div id="content-header" hx-swap-oob="true:#content-header" class="bg-orange-500 sticky top-0 w-full">
-		@ContentHeader()
-	</div>
-	@components.NewArticle(item.GetTitle(), item.GetContent()).Show()
+	@ContentHeader()
+	<form>
+		@components.NewArticle(item.GetTitle(), item.GetContent()).Show()
+	</form>
 }
 
 // ShowCards displays a list of the given cards.
 templ ShowCards(name string, cards ...components.Card) {
-	// Update content navigation with OOB swap.
-	<div id="content-header" hx-swap-oob="true:#content-header" class="bg-orange-500 sticky top-0 w-full">
-		@ContentHeader()
-	</div>
-	// Update content.
-	for _, card := range cards {
-		<div>
-			@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
-			@components.NewHiddenInput(card.ID(), "backlink", NavigationFromCtx(ctx).Backlink.String()).Show()
-			@card.Show()
-		</div>
-	}
-	// Infinite scroll when bottom of list reached.
-	if NavigationFromCtx(ctx).Pagination != "" {
-		<div
-			hx-get={ NavigationFromCtx(ctx).Backlink.String() + "&pagination=" + NavigationFromCtx(ctx).Pagination }
-			hx-trigger="revealed"
-			hx-swap="afterend"
-			hx-push-url="false"
-		></div>
-	}
+	@ContentHeader()
+	<form>
+		for _, card := range cards {
+			<div>
+				@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
+				@components.NewHiddenInput(card.ID(), "backlink", NavigationFromCtx(ctx).Backlink.String()).Show()
+				@card.Show()
+			</div>
+		}
+		// Infinite scroll when bottom of list reached.
+		if NavigationFromCtx(ctx).Pagination != nil {
+			<div
+				hx-get={ NavigationFromCtx(ctx).Pagination.String() }
+				hx-trigger="revealed"
+				hx-swap="afterend"
+				hx-push-url="false"
+			></div>
+		}
+	</form>
 }

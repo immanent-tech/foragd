@@ -4,5 +4,5 @@
 package content
 
 const (
-	ContentTarget = "cards"
+	ContentTarget = "content-main"
 )

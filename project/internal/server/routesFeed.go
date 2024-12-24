@@ -13,6 +13,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/go-chi/chi/v5"
 
 	components "github.com/joshuar/go-templ-daisyui"
 
@@ -41,7 +42,9 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 	logger := logging.NewHandlerLogger("ListHandler", req)
 
 	// Bail if an invalid show parameter is requested.
-	if showType != ListHandlerParamsListTypeFeeds && showType != ListHandlerParamsListTypeItems {
+	if chi.URLParam(req, "listType") != string(ListHandlerParamsListTypeFeeds) && chi.URLParam(req, "listType") != string(ListHandlerParamsListTypeItems) {
+		// if showType != ListHandlerParamsListTypeFeeds && showType != ListHandlerParamsListTypeItems {
+		slog.Info("here", slog.Any("type", showType))
 		logger.Error("Bad request.", slog.Any("error", ErrInvalidQueryParams))
 		res.WriteHeader(http.StatusBadRequest)
 
@@ -73,8 +76,8 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 		return
 	}
 
-	switch showType {
-	case ListHandlerParamsListTypeFeeds:
+	switch chi.URLParam(req, "listType") {
+	case string(ListHandlerParamsListTypeFeeds):
 		ctx = content.NavigationToCtx(req.Context(), content.NavigationLinks{
 			Backlink: stripBacklink(req.URL),
 		})
@@ -82,7 +85,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 		for _, feed := range feeds {
 			cards = append(cards, content.NewFeedCard(ctx, &feed))
 		}
-	case ListHandlerParamsListTypeItems:
+	case string(ListHandlerParamsListTypeItems):
 		items, pagination, err := s.API.elastic.GetItems(req.Context(), filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
@@ -91,7 +94,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 		ctx = content.NavigationToCtx(req.Context(), content.NavigationLinks{
 			Parent:     generateParent(listFeedsPath, params.Backlink),
 			Backlink:   stripBacklink(req.URL),
-			Pagination: url.QueryEscape(string(pagination)),
+			Pagination: generatePagination(stripBacklink(req.URL), pagination),
 		})
 
 		for _, item := range items {
@@ -151,12 +154,9 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 		page = content.ShowArticle(item)
 	}
 
-	if err := htmx.NewResponse().
-		RenderTempl(ctx, res, page); err != nil {
+	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {
 		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
-
-		return
 	}
 }
 
@@ -171,11 +171,20 @@ func generateParent(fallback string, source *Backlink) *url.URL {
 	}
 
 	if err != nil || source == nil {
-		parent, err = url.Parse(fallback)
-		slog.Warn("Failed to generate fallback parent link.", slog.Any("error", err))
+		if parent, err = url.Parse(fallback); err != nil {
+			slog.Warn("Failed to generate fallback parent link.", slog.Any("error", err))
+		}
 	}
 
 	return parent
+}
+
+func generatePagination(backlink *url.URL, pagination []byte) *url.URL {
+	q := backlink.Query()
+	q.Add("pagination", url.QueryEscape(string(pagination)))
+	backlink.RawQuery = q.Encode()
+
+	return backlink
 }
 
 func stripBacklink(backlink *url.URL) *url.URL {

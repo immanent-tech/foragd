@@ -22,17 +22,16 @@ var ErrNoFeedID = errors.New("no feed ID provided")
 var defaultItemFields = []string{"publishedParsed", "updatedParsed", "title", "description", "item_id", "image"}
 
 func (c *Client) GetItems(ctx context.Context, filters models.APISearchFilters) ([]models.APIItem, []byte, error) {
-	if len(filters.FeedIDs) == 0 {
-		return nil, nil, ErrNoFeedID
-	}
-
 	req := c.NewSearchRequest(
 		WithIndexPattern[*search.Search](schema.FeedItemsSchemaPrefix+"-*"),
 		WithFields(defaultItemFields...),
-		WithQueryOptions(QueryByFeedIDs(filters.FeedIDs...)),
 		WithSortOptions(SortTimestampDesc()),
 		SearchSize(10),
 	)
+
+	if len(filters.FeedIDs) > 0 {
+		req = WithQueryOptions(QueryByFeedIDs(filters.FeedIDs...))(req)
+	}
 
 	if filters.Pagination != nil {
 		var searchAfter []types.FieldValue

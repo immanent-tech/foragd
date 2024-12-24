@@ -27,7 +27,7 @@ type NavigationLinks struct {
 	Backlink *url.URL
 	// Pagination is a value used by the backend to fetch the next set of
 	// results as the user scrolls through feeds/items.
-	Pagination string
+	Pagination *url.URL
 }
 
 func NavigationToCtx(ctx context.Context, nav NavigationLinks) context.Context {
