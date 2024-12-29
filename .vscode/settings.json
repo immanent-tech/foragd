@@ -9,7 +9,6 @@
     "ui.noSemanticNumber": true, // delegates number syntax highlighting to vscode
     "formatting.gofumpt": true,
     "ui.diagnostic.analyses": {
-      "fieldalignment": true,
       "unusedvariable": true,
       "copylocks": false,
     }
