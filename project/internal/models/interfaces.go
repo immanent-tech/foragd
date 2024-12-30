@@ -26,6 +26,7 @@ type Cache interface {
 	GetFeeds(ctx context.Context, filters APISearchFilters) ([]APIFeed, error)
 	GetItems(ctx context.Context, filters APISearchFilters) ([]APIItem, []byte, error)
 	GetItem(ctx context.Context, feedID, itemID string) (APIItem, error)
+	CountUnread(ctx context.Context, feedIDs ...string) (int, error)
 }
 
 type Session interface {

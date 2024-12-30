@@ -38,7 +38,7 @@ func GetDoc(options ...Option[types.MgetOperation]) types.MgetOperation {
 
 // WithDocs adds get operations for all the specified doc IDs to the request.
 func WithDocs(ids ...string) Option[*mget.Mget] {
-	return func(m *mget.Mget) *mget.Mget {
+	return func(mget *mget.Mget) *mget.Mget {
 		// Create get ops for all the specified IDs.
 		var docs []types.MgetOperation
 		for _, id := range ids {
@@ -47,9 +47,9 @@ func WithDocs(ids ...string) Option[*mget.Mget] {
 			))
 		}
 		// Add the ops to the request.
-		m = m.Docs(docs...)
+		mget = mget.Docs(docs...)
 
-		return m
+		return mget
 	}
 }
 

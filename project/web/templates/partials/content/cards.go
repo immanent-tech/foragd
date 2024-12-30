@@ -5,6 +5,7 @@ package content
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/a-h/templ"
 	components "github.com/joshuar/go-templ-daisyui"
@@ -76,7 +77,7 @@ func addContentToCard(card components.Card, content string) components.Card {
 	return components.WithBody(templ.Raw(content))(card)
 }
 
-func NewFeedCard(_ context.Context, feed Feed) components.Card {
+func NewFeedCard(_ context.Context, feed Feed, unread int) templ.Component {
 	feedCard := newCard(feed, templ.Attributes{
 		"hx-target":   "#" + ContentTarget,
 		"hx-get":      "/home/list/items",
@@ -86,14 +87,20 @@ func NewFeedCard(_ context.Context, feed Feed) components.Card {
 
 	feedCard = addContentToCard(feedCard, feed.GetContent())
 
-	return feedCard
+	return components.NewCardIndicator(components.AlignIndicatorTop,
+		components.NewBadge(
+			components.WithBadgeDescription(strconv.Itoa(unread)),
+			components.WithClasses[components.Badge]("indicator-item", "indicator-top"),
+		).Show(),
+		showCardInput("feeds", feedCard),
+	).Show()
 }
 
-func NewItemCard(_ context.Context, item Item) components.Card {
+func NewItemCard(_ context.Context, item Item) templ.Component {
 	return newCard(item, templ.Attributes{
 		"hx-target":   "#" + ContentTarget,
 		"hx-get":      "/home/article/" + item.GetFeedID() + "/" + item.GetID(),
 		"hx-push-url": "/home/article/" + item.GetFeedID() + "/" + item.GetID(),
 		"hx-include":  "[id='" + item.GetID() + "']",
-	})
+	}).Show()
 }

@@ -7,15 +7,18 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
+	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
 var defaultFeedFields = []string{
@@ -66,11 +69,13 @@ func (c *Client) getFeedsByID(ctx context.Context, ids ...string) ([]models.APIF
 
 // getAllFeeds retrieves all feeds by executing a search request with a
 // match_all query.
+//
+//nolint:prealloc
 func (c *Client) getAllFeeds(ctx context.Context) ([]models.APIFeed, error) {
 	req := c.NewSearchRequest(
 		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
 		WithFields(defaultFeedFields...),
-		WithQueryOptions(QueryMatchAll()),
+		WithSearchQueryOptions(QueryMatchAll()),
 	)
 
 	res, err := req.Do(ctx)
@@ -106,10 +111,11 @@ func (c *Client) GetFeeds(ctx context.Context, filters models.APISearchFilters) 
 	return c.getAllFeeds(ctx)
 }
 
+//nolint:prealloc
 func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error) {
 	req := c.NewSearchRequest(
 		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
-		WithQueryOptions(QuerySince("@timestamp", since)),
+		WithSearchQueryOptions(QuerySince("@timestamp", since)),
 	)
 
 	res, err := req.Do(ctx)
@@ -142,7 +148,7 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 	req := c.NewSearchRequest(
 		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
 		WithFields(defaultFeedFields...),
-		WithQueryOptions(QueryByTerm("feedLink", url)),
+		WithSearchQueryOptions(QueryByTerm("feedLink", url)),
 	)
 
 	res, err := req.Do(ctx)
@@ -162,6 +168,7 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 	return feed, nil
 }
 
+//nolint:prealloc
 func (c *Client) AddFeeds(_ context.Context, feeds ...models.Feed) error {
 	var docs []document
 
@@ -177,4 +184,63 @@ func (c *Client) AddFeeds(_ context.Context, feeds ...models.Feed) error {
 	c.bulkStream <- docs
 
 	return nil
+}
+
+func (c *Client) CountUnread(ctx context.Context, feedIDs ...string) (int, error) {
+	userID, err := session.UserID(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("unable to get unread items: %w", err)
+	}
+	// Find all read items for this user and the given feeds.
+	readItemsReq := c.NewSearchRequest(
+		WithIndexPattern[*search.Search](schema.ReadItemsSchemaPrefix+"-*"),
+		WithFields("user_id"),
+		WithSearchQueryOptions(
+			QueryBool(
+				BoolFilter(
+					QueryByTerm("user_id", userID),
+					QueryByFeedIDs(feedIDs...)),
+			),
+		),
+	)
+
+	readItemsRes, err := readItemsReq.Do(ctx)
+	if err != nil {
+		return 0, errors.Join(ErrSearchFailed, err)
+	}
+
+	// Extract the read item IDs.
+	var itemIDs []string
+
+	for _, hit := range readItemsRes.Hits.Hits {
+		itemIDs = append(itemIDs, string(hit.Fields["user_id"]))
+	}
+
+	var queryOpts Option[*count.Count]
+
+	// Create the query options depending on whether there are any unread items
+	// to filter.
+	if len(itemIDs) > 0 {
+		queryOpts = WithCountQueryOptions(
+			QueryBool(
+				BoolFilter(QueryByFeedIDs(feedIDs...)),
+				BoolMustNot(QueryByItemIDs(itemIDs...))),
+		)
+	} else {
+		queryOpts = WithCountQueryOptions(
+			QueryBool(BoolFilter(QueryByFeedIDs(feedIDs...))))
+	}
+
+	// Create the count query.
+	countReq := c.NewCountRequest(
+		WithIndexPattern[*count.Count](schema.FeedItemsSchemaPrefix+"-*"),
+		queryOpts,
+	)
+
+	countRes, err := countReq.Do(ctx)
+	if err != nil {
+		return 0, errors.Join(ErrCountFailed, err)
+	}
+
+	return int(countRes.Count), nil
 }

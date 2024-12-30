@@ -15,8 +15,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 
-	components "github.com/joshuar/go-templ-daisyui"
-
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
@@ -35,7 +33,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 	var (
 		page    templ.Component
 		filters models.APISearchFilters
-		cards   []components.Card
+		cards   []templ.Component
 		ctx     context.Context
 	)
 
@@ -83,7 +81,8 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 		})
 
 		for _, feed := range feeds {
-			cards = append(cards, content.NewFeedCard(ctx, &feed))
+			unread := feed.GetUnreadCount(req.Context(), s.API.elastic)
+			cards = append(cards, content.NewFeedCard(ctx, &feed, unread))
 		}
 	case string(ListHandlerParamsListTypeItems):
 		items, pagination, err := s.API.elastic.GetItems(req.Context(), filters)

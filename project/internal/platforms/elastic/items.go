@@ -30,7 +30,7 @@ func (c *Client) GetItems(ctx context.Context, filters models.APISearchFilters) 
 	)
 
 	if len(filters.FeedIDs) > 0 {
-		req = WithQueryOptions(QueryByFeedIDs(filters.FeedIDs...))(req)
+		req = WithSearchQueryOptions(QueryByFeedIDs(filters.FeedIDs...))(req)
 	}
 
 	if filters.Pagination != nil {
@@ -93,7 +93,7 @@ func (c *Client) GetItem(ctx context.Context, feedID, itemID string) (models.API
 	req := c.NewSearchRequest(
 		WithIndexPattern[*search.Search](schema.FeedItemsSchemaPrefix+"-*"),
 		WithFields(defaultItemFields...),
-		WithQueryOptions(
+		WithSearchQueryOptions(
 			QueryByFeedIDs(feedID),
 			QueryByItemIDs(itemID)),
 		WithSortOptions(SortTimestampDesc()),

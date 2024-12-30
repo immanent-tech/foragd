@@ -42,11 +42,6 @@ templ DrawerMain(data templ.Component) {
 				@data
 			</div>
 		</form>
-		<center>
-			@components.NewLoading(components.LoadingBars,
-				components.WithSize[components.Loading](components.LG),
-				components.WithID[components.Loading]("content-loading")).Show()
-		</center>
 	</div>
 	<!-- Footer -->
 	@AppBarBottom()
@@ -72,15 +67,19 @@ templ ShowArticle(item *models.APIItem) {
 	@components.NewArticle(item.GetTitle(), item.GetContent()).Show()
 }
 
+templ showCardInput(name string, card components.Card) {
+	<div>
+		@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
+		@components.NewHiddenInput(card.ID(), "backlink", NavigationFromCtx(ctx).Backlink.String()).Show()
+		@card.Show()
+	</div>
+}
+
 // ShowCards displays a list of the given cards.
-templ ShowCards(name string, cards ...components.Card) {
+templ ShowCards(name string, cards ...templ.Component) {
 	@ContentHeader()
 	for _, card := range cards {
-		<div>
-			@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
-			@components.NewHiddenInput(card.ID(), "backlink", NavigationFromCtx(ctx).Backlink.String()).Show()
-			@card.Show()
-		</div>
+		@card
 	}
 	// Infinite scroll when bottom of list reached.
 	if NavigationFromCtx(ctx).Pagination != nil {
@@ -91,5 +90,10 @@ templ ShowCards(name string, cards ...components.Card) {
 			hx-push-url="false"
 			hx-indicator="#content-loading"
 		></div>
+		<center>
+			@components.NewLoading(components.LoadingBars,
+				components.WithSize[components.Loading](components.LG),
+				components.WithID[components.Loading]("content-loading")).Show()
+		</center>
 	}
 }

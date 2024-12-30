@@ -41,6 +41,20 @@ func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 	return items
 }
 
+func (f *APIFeed) GetUnreadCount(ctx context.Context, cache Cache) int {
+	count, err := cache.CountUnread(ctx, f.ID)
+	if err != nil {
+		logging.FromContext(ctx).Warn("Could not get unread count for feed.",
+			slog.String("feed", f.Title),
+			slog.String("id", f.ID),
+			slog.Any("error", err))
+
+		return 0
+	}
+
+	return count
+}
+
 func (f *APIFeed) GetTitle() string {
 	return f.Title
 }

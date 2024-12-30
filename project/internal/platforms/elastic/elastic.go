@@ -19,11 +19,6 @@ import (
 	"errors"
 )
 
-const (
-	userIndex  = ""
-	assetsPath = "internal/platforms/elastic/assets"
-)
-
 var ErrNoClient = errors.New("no client")
 
 // Option is a generic type for request options.

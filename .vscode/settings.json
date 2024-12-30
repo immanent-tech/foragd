@@ -67,7 +67,8 @@
     "components/drawer",
     "templates/layouts",
     "components/loading",
-    "templates/content"
+    "templates/content",
+    "components/indicator"
   ],
   "emmet.includeLanguages": {
     "templ": "html"
