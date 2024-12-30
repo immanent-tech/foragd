@@ -13,14 +13,14 @@ templ ContentHeader() {
 		<form
 			method="dialog"
 		>
-			if NavigationFromCtx(ctx).Parent != nil {
+			if NavigationFromCtx(ctx).Parent != "" {
 				@components.NewButton("", "back",
 					components.WithButtonShape(components.ButtonCircle),
 					components.WithColor[components.Button](components.ColorGhost, false),
 					components.WithIcon(components.NewIcon("fa-arrow-left"),
 						components.AlignMiddle),
 					components.WithAttributes[components.Button](templ.Attributes{
-						"hx-get":      NavigationFromCtx(ctx).Parent.String(),
+						"hx-get":      NavigationFromCtx(ctx).Parent,
 						"hx-target":   "#" + ContentTarget,
 						"hx-push-url": "true",
 					}),
@@ -67,14 +67,6 @@ templ ShowArticle(item *models.APIItem) {
 	@components.NewArticle(item.GetTitle(), item.GetContent()).Show()
 }
 
-templ showCardInput(name string, card components.Card) {
-	<div>
-		@components.NewHiddenInput(card.ID(), name, card.ID()).Show()
-		@components.NewHiddenInput(card.ID(), "backlink", NavigationFromCtx(ctx).Backlink.String()).Show()
-		@card.Show()
-	</div>
-}
-
 // ShowCards displays a list of the given cards.
 templ ShowCards(name string, cards ...templ.Component) {
 	@ContentHeader()
@@ -82,9 +74,9 @@ templ ShowCards(name string, cards ...templ.Component) {
 		@card
 	}
 	// Infinite scroll when bottom of list reached.
-	if NavigationFromCtx(ctx).Pagination != nil {
+	if NavigationFromCtx(ctx).Pagination != "" {
 		<div
-			hx-get={ NavigationFromCtx(ctx).Pagination.String() }
+			hx-get={ NavigationFromCtx(ctx).Pagination }
 			hx-trigger="revealed"
 			hx-swap="afterend"
 			hx-push-url="false"

@@ -17,6 +17,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/server/session"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials/content"
 )
@@ -76,8 +77,10 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 
 	switch chi.URLParam(req, "listType") {
 	case string(ListHandlerParamsListTypeFeeds):
+		// Save list feeds filters in session storage.
+		session.SaveListFeedsFilters(req.Context(), filters)
 		ctx = content.NavigationToCtx(req.Context(), content.NavigationLinks{
-			Backlink: stripBacklink(req.URL),
+			Return: generateReturn(req.URL),
 		})
 
 		for _, feed := range feeds {
@@ -85,15 +88,18 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 			cards = append(cards, content.NewFeedCard(ctx, &feed, unread))
 		}
 	case string(ListHandlerParamsListTypeItems):
+		// Save list items filters in session storage.
+		session.SaveListItemsFilters(req.Context(), filters)
+
 		items, pagination, err := s.API.elastic.GetItems(req.Context(), filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
 
 		ctx = content.NavigationToCtx(req.Context(), content.NavigationLinks{
-			Parent:     generateParent(listFeedsPath, params.Backlink),
-			Backlink:   stripBacklink(req.URL),
-			Pagination: generatePagination(stripBacklink(req.URL), pagination),
+			Parent:     generateBacklink(req.Context(), listFeedsPath),
+			Return:     generateReturn(req.URL),
+			Pagination: generatePagination(req.URL, pagination),
 		})
 
 		for _, item := range items {
@@ -118,7 +124,11 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 	}
 }
 
-func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedID, itemID string, params ArticleHandlerParams) {
+func (s Server) ListActionHandler(res http.ResponseWriter, req *http.Request, listType ListActionHandlerParamsListType, action ListActionHandlerParamsAction, params ListActionHandlerParams) {
+	res.WriteHeader(http.StatusNotImplemented)
+}
+
+func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedID, itemID string) {
 	var page templ.Component
 
 	logger := logging.NewHandlerLogger("ArticleHandler", req)
@@ -133,7 +143,7 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 	ctx := req.Context()
 
 	ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
-		Parent: generateParent(listItemsPath, params.Backlink),
+		Parent: generateBacklink(req.Context(), listItemsPath),
 	})
 
 	item, err := models.GetItem(ctx, s.API.pg, s.API.elastic, feedID, itemID)
@@ -159,38 +169,52 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 	}
 }
 
-func generateParent(fallback string, source *Backlink) *url.URL {
+func (s Server) ArticleActionHandler(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, action ArticleActionHandlerParamsAction) {
+	res.WriteHeader(http.StatusNotImplemented)
+}
+
+func generateBacklink(ctx context.Context, basePath string) string {
 	var (
-		parent *url.URL
-		err    error
+		filters models.APISearchFilters
+		err     error
 	)
 
-	if source != nil {
-		parent, err = url.Parse(*source)
+	switch basePath {
+	case listFeedsPath:
+		filters, err = session.LoadListFeedsFilters(ctx)
+	case listItemsPath:
+		filters, err = session.LoadListItemsFilters(ctx)
 	}
 
-	if err != nil || source == nil {
-		if parent, err = url.Parse(fallback); err != nil {
-			slog.Warn("Failed to generate fallback parent link.", slog.Any("error", err))
-		}
+	if err != nil {
+		logging.FromContext(ctx).Warn("Could not generate backlink.",
+			slog.Any("error", err))
+		return basePath
 	}
 
-	return parent
+	backlink, err := filters.GenerateURL(basePath)
+	if err != nil {
+		logging.FromContext(ctx).Warn("Could not generate backlink.",
+			slog.Any("error", err))
+		return basePath
+	}
+
+	return backlink.String()
 }
 
-func generatePagination(backlink *url.URL, pagination []byte) *url.URL {
-	q := backlink.Query()
-	q.Add("pagination", url.QueryEscape(string(pagination)))
-	backlink.RawQuery = q.Encode()
-
-	return backlink
-}
-
-func stripBacklink(backlink *url.URL) *url.URL {
-	q := backlink.Query()
+func generateReturn(currentURL *url.URL) string {
+	q := currentURL.Query()
 	q.Del("backlink")
-	q.Del("pagination")
-	backlink.RawQuery = q.Encode()
+	currentURL.RawQuery = q.Encode()
 
-	return backlink
+	return currentURL.String()
+}
+
+func generatePagination(currentURL *url.URL, pagination []byte) string {
+	q := currentURL.Query()
+	q.Del("pagination")
+	q.Add("pagination", url.QueryEscape(string(pagination)))
+	currentURL.RawQuery = q.Encode()
+
+	return currentURL.Path
 }

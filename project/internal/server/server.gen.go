@@ -12,10 +12,26 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for Action.
+const (
+	ActionMarkRead   Action = "markRead"
+	ActionMarkUnread Action = "markUnread"
+	ActionRemove     Action = "remove"
+	ActionSave       Action = "save"
+)
+
 // Defines values for ListType.
 const (
 	ListTypeFeeds ListType = "feeds"
 	ListTypeItems ListType = "items"
+)
+
+// Defines values for ArticleActionHandlerParamsAction.
+const (
+	ArticleActionHandlerParamsActionMarkRead   ArticleActionHandlerParamsAction = "markRead"
+	ArticleActionHandlerParamsActionMarkUnread ArticleActionHandlerParamsAction = "markUnread"
+	ArticleActionHandlerParamsActionRemove     ArticleActionHandlerParamsAction = "remove"
+	ArticleActionHandlerParamsActionSave       ArticleActionHandlerParamsAction = "save"
 )
 
 // Defines values for ListHandlerParamsListType.
@@ -24,8 +40,22 @@ const (
 	ListHandlerParamsListTypeItems ListHandlerParamsListType = "items"
 )
 
-// Backlink defines model for Backlink.
-type Backlink = string
+// Defines values for ListActionHandlerParamsListType.
+const (
+	ListActionHandlerParamsListTypeFeeds ListActionHandlerParamsListType = "feeds"
+	ListActionHandlerParamsListTypeItems ListActionHandlerParamsListType = "items"
+)
+
+// Defines values for ListActionHandlerParamsAction.
+const (
+	MarkRead   ListActionHandlerParamsAction = "markRead"
+	MarkUnread ListActionHandlerParamsAction = "markUnread"
+	Remove     ListActionHandlerParamsAction = "remove"
+	Save       ListActionHandlerParamsAction = "save"
+)
+
+// Action defines model for Action.
+type Action string
 
 // Categories is a list of feed/item categories.
 type Categories = externalRef0.Categories
@@ -39,21 +69,31 @@ type ListType string
 // Pagination defines model for Pagination.
 type Pagination = string
 
-// ArticleHandlerParams defines parameters for ArticleHandler.
-type ArticleHandlerParams struct {
-	Backlink *Backlink `form:"backlink,omitempty" json:"backlink,omitempty"`
-}
+// ArticleActionHandlerParamsAction defines parameters for ArticleActionHandler.
+type ArticleActionHandlerParamsAction string
 
 // ListHandlerParams defines parameters for ListHandler.
 type ListHandlerParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
 	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
-	Backlink   *Backlink   `form:"backlink,omitempty" json:"backlink,omitempty"`
 }
 
 // ListHandlerParamsListType defines parameters for ListHandler.
 type ListHandlerParamsListType string
+
+// ListActionHandlerParams defines parameters for ListActionHandler.
+type ListActionHandlerParams struct {
+	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+// ListActionHandlerParamsListType defines parameters for ListActionHandler.
+type ListActionHandlerParamsListType string
+
+// ListActionHandlerParamsAction defines parameters for ListActionHandler.
+type ListActionHandlerParamsAction string
 
 // GetLoginCallbackParams defines parameters for GetLoginCallback.
 type GetLoginCallbackParams struct {
@@ -77,10 +117,16 @@ type ServerInterface interface {
 	GetIndex(w http.ResponseWriter, r *http.Request)
 	// display an item
 	// (GET /home/article/{feed}/{item})
-	ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID, params ArticleHandlerParams)
+	ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID)
+	// perform the given action on the item
+	// (GET /home/article/{feed}/{item}/{action})
+	ArticleActionHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID, action ArticleActionHandlerParamsAction)
 	// renders a page showing feed or item cards matching the given parameters.
 	// (GET /home/list/{listType})
 	ListHandler(w http.ResponseWriter, r *http.Request, listType ListHandlerParamsListType, params ListHandlerParams)
+	// performs the given action on the list of feeds/items.
+	// (POST /home/list/{listType}/{action})
+	ListActionHandler(w http.ResponseWriter, r *http.Request, listType ListActionHandlerParamsListType, action ListActionHandlerParamsAction, params ListActionHandlerParams)
 	// Show user settings modal
 	// (GET /home/settings)
 	GetHomeSettings(w http.ResponseWriter, r *http.Request)
@@ -134,13 +180,25 @@ func (_ Unimplemented) GetIndex(w http.ResponseWriter, r *http.Request) {
 
 // display an item
 // (GET /home/article/{feed}/{item})
-func (_ Unimplemented) ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID, params ArticleHandlerParams) {
+func (_ Unimplemented) ArticleHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// perform the given action on the item
+// (GET /home/article/{feed}/{item}/{action})
+func (_ Unimplemented) ArticleActionHandler(w http.ResponseWriter, r *http.Request, feed externalRef0.FeedID, item externalRef0.ItemID, action ArticleActionHandlerParamsAction) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // renders a page showing feed or item cards matching the given parameters.
 // (GET /home/list/{listType})
 func (_ Unimplemented) ListHandler(w http.ResponseWriter, r *http.Request, listType ListHandlerParamsListType, params ListHandlerParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// performs the given action on the list of feeds/items.
+// (POST /home/list/{listType}/{action})
+func (_ Unimplemented) ListActionHandler(w http.ResponseWriter, r *http.Request, listType ListActionHandlerParamsListType, action ListActionHandlerParamsAction, params ListActionHandlerParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -268,19 +326,51 @@ func (siw *ServerInterfaceWrapper) ArticleHandler(w http.ResponseWriter, r *http
 		return
 	}
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ArticleHandlerParams
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ArticleHandler(w, r, feed, item)
+	}))
 
-	// ------------- Optional query parameter "backlink" -------------
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
 
-	err = runtime.BindQueryParameter("form", true, false, "backlink", r.URL.Query(), &params.Backlink)
+	handler.ServeHTTP(w, r)
+}
+
+// ArticleActionHandler operation middleware
+func (siw *ServerInterfaceWrapper) ArticleActionHandler(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "feed" -------------
+	var feed externalRef0.FeedID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "item" -------------
+	var item externalRef0.ItemID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "action" -------------
+	var action ArticleActionHandlerParamsAction
+
+	err = runtime.BindStyledParameterWithOptions("simple", "action", chi.URLParam(r, "action"), &action, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ArticleHandler(w, r, feed, item, params)
+		siw.Handler.ArticleActionHandler(w, r, feed, item, action)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -331,16 +421,69 @@ func (siw *ServerInterfaceWrapper) ListHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	// ------------- Optional query parameter "backlink" -------------
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListHandler(w, r, listType, params)
+	}))
 
-	err = runtime.BindQueryParameter("form", true, false, "backlink", r.URL.Query(), &params.Backlink)
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ListActionHandler operation middleware
+func (siw *ServerInterfaceWrapper) ListActionHandler(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "listType" -------------
+	var listType ListActionHandlerParamsListType
+
+	err = runtime.BindStyledParameterWithOptions("simple", "listType", chi.URLParam(r, "listType"), &listType, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "listType", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "action" -------------
+	var action ListActionHandlerParamsAction
+
+	err = runtime.BindStyledParameterWithOptions("simple", "action", chi.URLParam(r, "action"), &action, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListActionHandlerParams
+
+	// ------------- Optional query parameter "feeds" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ListHandler(w, r, listType, params)
+		siw.Handler.ListActionHandler(w, r, listType, action, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -740,7 +883,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/home/article/{feed}/{item}", wrapper.ArticleHandler)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/home/article/{feed}/{item}/{action}", wrapper.ArticleActionHandler)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/list/{listType}", wrapper.ListHandler)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/home/list/{listType}/{action}", wrapper.ListActionHandler)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)

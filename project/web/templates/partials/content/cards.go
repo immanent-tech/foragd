@@ -34,11 +34,27 @@ type Content interface {
 	GetContent() string
 }
 
-func newCard(summary Summary, attributes templ.Attributes) components.Card {
+func newCard(summary Summary, attributes templ.Attributes, count int) components.Card {
+	var titleOption components.Option[components.Card]
+
+	if count > 0 {
+		titleOption = components.WithTitle(
+			summary.GetTitle(),
+			components.H2,
+			components.NewBadge(
+				components.WithColor[components.Badge](components.ColorPrimary, false),
+				components.WithBadgeDescription(strconv.Itoa(count)),
+			))
+	} else {
+		titleOption = components.WithTitle(
+			summary.GetTitle(),
+			components.H2)
+	}
+
 	card := components.NewCard(
+		titleOption,
 		components.WithBorder(),
 		components.WithCardLayout(components.CardLayoutSide),
-		components.WithTitle(summary.GetTitle(), components.H2),
 		components.WithCardShadow(components.XL),
 		components.WithID[components.Card](summary.GetID()),
 		components.WithAttributes[components.Card](attributes),
@@ -80,27 +96,19 @@ func addContentToCard(card components.Card, content string) components.Card {
 func NewFeedCard(_ context.Context, feed Feed, unread int) templ.Component {
 	feedCard := newCard(feed, templ.Attributes{
 		"hx-target":   "#" + ContentTarget,
-		"hx-get":      "/home/list/items",
+		"hx-get":      "/home/list/items?feeds=" + feed.GetID(),
 		"hx-push-url": "true",
-		"hx-include":  "[id='" + feed.GetID() + "']",
-	})
+	}, unread)
 
 	feedCard = addContentToCard(feedCard, feed.GetContent())
 
-	return components.NewCardIndicator(components.AlignIndicatorTop,
-		components.NewBadge(
-			components.WithBadgeDescription(strconv.Itoa(unread)),
-			components.WithClasses[components.Badge]("indicator-item", "indicator-top"),
-		).Show(),
-		showCardInput("feeds", feedCard),
-	).Show()
+	return feedCard.Show()
 }
 
 func NewItemCard(_ context.Context, item Item) templ.Component {
 	return newCard(item, templ.Attributes{
 		"hx-target":   "#" + ContentTarget,
 		"hx-get":      "/home/article/" + item.GetFeedID() + "/" + item.GetID(),
-		"hx-push-url": "/home/article/" + item.GetFeedID() + "/" + item.GetID(),
-		"hx-include":  "[id='" + item.GetID() + "']",
-	}).Show()
+		"hx-push-url": "true",
+	}, 0).Show()
 }

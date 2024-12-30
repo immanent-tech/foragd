@@ -227,7 +227,21 @@ paths:
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Pagination'
-        - $ref: '#/components/parameters/Backlink'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+  /home/list/{listType}/{action}:
+    post:
+      summary: performs the given action on the list of feeds/items.
+      operationId: listActionHandler
+      parameters:
+        - $ref: '#/components/parameters/ListType'
+          required: true
+        - $ref: '#/components/parameters/Action'
+          required: true
+        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/Pagination'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -240,7 +254,20 @@ paths:
           required: true
         - $ref: '../models/api.yaml#/components/parameters/ItemID'
           required: true
-        - $ref: '#/components/parameters/Backlink'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+  /home/article/{feed}/{item}/{action}:
+    get:
+      summary: perform the given action on the item
+      operationId: articleActionHandler
+      parameters:
+        - $ref: '../models/api.yaml#/components/parameters/FeedID'
+          required: true
+        - $ref: '../models/api.yaml#/components/parameters/ItemID'
+          required: true
+        - $ref: '#/components/parameters/Action'
+          required: true
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -281,17 +308,18 @@ components:
       in: query
       schema:
         type: string
-    Backlink:
-      name: backlink
-      in: query
-      schema:
-        type: string
     ListType:
       name: listType
       in: path
       schema:
         type: string
         enum: [feeds, items]
+    Action:
+      name: action
+      in: path
+      schema:
+        type: string
+        enum: [markRead,markUnread,remove,save]
   responses:
     htmx:
       description: standard htmx powered response.

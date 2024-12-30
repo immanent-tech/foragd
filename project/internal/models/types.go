@@ -5,6 +5,9 @@ package models
 
 import (
 	"errors"
+	"fmt"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -40,4 +43,35 @@ func (i *Item) DocID() string {
 type UserSession struct {
 	*Tokens
 	*User
+}
+
+// GenerateURL generates a new URL using the basePath provided with any non-zero
+// filters.
+func (f APISearchFilters) GenerateURL(basePath string) (*url.URL, error) {
+	newURL, err := url.Parse(basePath)
+	if err != nil {
+		return nil, fmt.Errorf("cannot generate URL: %w", err)
+	}
+
+	params := newURL.Query()
+
+	if len(f.FeedIDs) > 0 {
+		params.Add("feeds", strings.Join(f.FeedIDs, ","))
+	}
+
+	if len(f.ItemIDs) > 0 {
+		params.Add("items", strings.Join(f.ItemIDs, ","))
+	}
+
+	if len(f.Categories) > 0 {
+		params.Add("categories", strings.Join(f.Categories, ","))
+	}
+
+	if f.Pagination != nil {
+		params.Add("pagination", string(f.Pagination))
+	}
+
+	newURL.RawQuery = params.Encode()
+
+	return newURL, nil
 }

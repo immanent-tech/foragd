@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 )
@@ -38,10 +39,11 @@ const (
 )
 
 const (
-	profileSessionKey     = "tokens"
-	preferencesSessionKey = "preferences"
-	stateSessionKey       = "state"
-	feedsSessionKey       = "feeds"
+	profileSessionKey          = "tokens"
+	preferencesSessionKey      = "preferences"
+	stateSessionKey            = "state"
+	listFeedsFiltersSessionKey = "feeds_state"
+	listItemsFiltersSessionKey = "items_state"
 )
 
 var (
@@ -54,6 +56,7 @@ var sessionManager *scs.SessionManager
 func init() {
 	gob.Register(models.Tokens{})
 	gob.Register(models.UserPreferences{})
+	gob.Register(models.APISearchFilters{})
 }
 
 func NewSessionManager(store sessionStore) {
@@ -79,4 +82,41 @@ func ClearSession(ctx context.Context) error {
 
 func LoadAndSave() func(next http.Handler) http.Handler {
 	return sessionManager.LoadAndSave
+}
+
+func SaveListFeedsFilters(ctx context.Context, filters models.APISearchFilters) {
+	spew.Dump(filters)
+	sessionManager.Put(ctx, listFeedsFiltersSessionKey, filters)
+}
+
+func LoadListFeedsFilters(ctx context.Context) (models.APISearchFilters, error) {
+	data := sessionManager.Get(ctx, listFeedsFiltersSessionKey)
+	filters, ok := data.(models.APISearchFilters)
+
+	switch {
+	case data == nil:
+		return models.APISearchFilters{}, ErrDataNotFound
+	case ok:
+		return filters, nil
+	default:
+		return models.APISearchFilters{}, ErrInvalidData
+	}
+}
+
+func SaveListItemsFilters(ctx context.Context, filters models.APISearchFilters) {
+	sessionManager.Put(ctx, listItemsFiltersSessionKey, filters)
+}
+
+func LoadListItemsFilters(ctx context.Context) (models.APISearchFilters, error) {
+	data := sessionManager.Get(ctx, listItemsFiltersSessionKey)
+	filters, ok := data.(models.APISearchFilters)
+
+	switch {
+	case data == nil:
+		return models.APISearchFilters{}, ErrDataNotFound
+	case ok:
+		return filters, nil
+	default:
+		return models.APISearchFilters{}, ErrInvalidData
+	}
 }
