@@ -10,9 +10,7 @@ import (
 
 templ ContentHeader() {
 	<div id="content-header" hx-swap-oob="true" class="bg-orange-500 sticky top-0 w-full">
-		<form
-			method="dialog"
-		>
+		<form>
 			if NavigationFromCtx(ctx).Parent != "" {
 				@components.NewButton("", "back",
 					components.WithButtonShape(components.ButtonCircle),

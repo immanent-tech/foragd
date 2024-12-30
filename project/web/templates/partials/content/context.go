@@ -22,8 +22,6 @@ var ErrNotInCtx = errors.New("not found in context")
 type NavigationLinks struct {
 	// Parent is the page to which this page should redirect back to.
 	Parent string
-	// Return is the page which any children should redirect back to.
-	Return string
 	// Pagination is a value used by the backend to fetch the next set of
 	// results as the user scrolls through feeds/items.
 	Pagination string

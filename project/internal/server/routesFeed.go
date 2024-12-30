@@ -35,10 +35,10 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 		page    templ.Component
 		filters models.APISearchFilters
 		cards   []templ.Component
-		ctx     context.Context
 	)
 
 	logger := logging.NewHandlerLogger("ListHandler", req)
+	ctx := req.Context()
 
 	// Bail if an invalid show parameter is requested.
 	if chi.URLParam(req, "listType") != string(ListHandlerParamsListTypeFeeds) && chi.URLParam(req, "listType") != string(ListHandlerParamsListTypeItems) {
@@ -67,7 +67,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 	}
 
 	// Get all subscribed feeds.
-	feeds, err := models.GetSubcribedFeeds(req.Context(), s.API.elastic, s.API.pg, filters)
+	feeds, err := models.GetSubcribedFeeds(ctx, s.API.elastic, s.API.pg, filters)
 	if err != nil {
 		logger.Error("Cannot display content.", slog.Any("error", err))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -78,27 +78,23 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 	switch chi.URLParam(req, "listType") {
 	case string(ListHandlerParamsListTypeFeeds):
 		// Save list feeds filters in session storage.
-		session.SaveListFeedsFilters(req.Context(), filters)
-		ctx = content.NavigationToCtx(req.Context(), content.NavigationLinks{
-			Return: generateReturn(req.URL),
-		})
+		session.SaveListFeedsFilters(ctx, filters)
 
 		for _, feed := range feeds {
-			unread := feed.GetUnreadCount(req.Context(), s.API.elastic)
+			unread := feed.GetUnreadCount(ctx, s.API.elastic)
 			cards = append(cards, content.NewFeedCard(ctx, &feed, unread))
 		}
 	case string(ListHandlerParamsListTypeItems):
 		// Save list items filters in session storage.
-		session.SaveListItemsFilters(req.Context(), filters)
+		session.SaveListItemsFilters(ctx, filters)
 
-		items, pagination, err := s.API.elastic.GetItems(req.Context(), filters)
+		items, pagination, err := s.API.elastic.GetItems(ctx, filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
 
-		ctx = content.NavigationToCtx(req.Context(), content.NavigationLinks{
-			Parent:     generateBacklink(req.Context(), listFeedsPath),
-			Return:     generateReturn(req.URL),
+		ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
+			Parent:     generateBacklink(ctx, listFeedsPath),
 			Pagination: generatePagination(req.URL, pagination),
 		})
 
@@ -173,6 +169,8 @@ func (s Server) ArticleActionHandler(res http.ResponseWriter, req *http.Request,
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
+// generateBacklink creates a URL string that can be used for a back button on a
+// page.
 func generateBacklink(ctx context.Context, basePath string) string {
 	var (
 		filters models.APISearchFilters
@@ -202,14 +200,7 @@ func generateBacklink(ctx context.Context, basePath string) string {
 	return backlink.String()
 }
 
-func generateReturn(currentURL *url.URL) string {
-	q := currentURL.Query()
-	q.Del("backlink")
-	currentURL.RawQuery = q.Encode()
-
-	return currentURL.String()
-}
-
+// generatePagination generates a URL string with an updated pagination value.
 func generatePagination(currentURL *url.URL, pagination []byte) string {
 	q := currentURL.Query()
 	q.Del("pagination")
