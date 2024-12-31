@@ -9,22 +9,33 @@ import (
 )
 
 templ ContentHeader() {
-	<div id="content-header" hx-swap-oob="true" class="bg-orange-500 sticky top-0 w-full">
-		<form>
-			if NavigationFromCtx(ctx).Parent != "" {
-				@components.NewButton("", "back",
-					components.WithButtonShape(components.ButtonCircle),
-					components.WithColor[components.Button](components.ColorGhost, false),
-					components.WithIcon(components.NewIcon("fa-arrow-left"),
-						components.AlignMiddle),
-					components.WithAttributes[components.Button](templ.Attributes{
-						"hx-get":      NavigationFromCtx(ctx).Parent,
-						"hx-target":   "#" + ContentTarget,
-						"hx-push-url": "true",
-					}),
-				).Show()
-			}
-		</form>
+	<div id="content-header" hx-swap-oob="true" class="sticky top-0 w-full">
+		<div>
+			<form>
+				if NavigationFromCtx(ctx).Parent != "" {
+					@components.NewButton("", "back",
+						components.WithButtonShape(components.ButtonCircle),
+						components.WithColor[components.Button](components.ColorGhost, false),
+						components.WithIcon(components.NewIcon("fa-arrow-left"),
+							components.AlignMiddle),
+						components.WithAttributes[components.Button](templ.Attributes{
+							"hx-get":      NavigationFromCtx(ctx).Parent,
+							"hx-target":   "#" + ContentTarget,
+							"hx-push-url": "true",
+						}),
+					).Show()
+				}
+			</form>
+		</div>
+	</div>
+}
+
+// AppBarBottom displays an app bar at the bottom of the content.
+templ ContentFooter() {
+	<div id="content-footer" hx-swap-oob="true" class="sticky bottom-0 w-full">
+		<div class="bg-yellow-600 py-12">
+			<h1 class="text-center text-xl">Footer</h1>
+		</div>
 	</div>
 }
 
@@ -40,9 +51,9 @@ templ DrawerMain(data templ.Component) {
 				@data
 			</div>
 		</form>
+		<div id="content-footer" class="sticky bottom-0 w-full"></div>
 	</div>
 	<!-- Footer -->
-	@AppBarBottom()
 }
 
 templ DrawerSide() {
@@ -89,6 +100,7 @@ templ ShowArticle(item *models.APIItem) {
 			</center>
 		</article>
 	</div>
+	@ContentFooter()
 }
 
 // ShowCards displays a list of the given cards.
@@ -113,4 +125,5 @@ templ ShowCards(name string, cards ...templ.Component) {
 			</center>
 		</div>
 	}
+	@ContentFooter()
 }
