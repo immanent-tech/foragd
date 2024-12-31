@@ -95,7 +95,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 
 		ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
 			Parent:     generateBacklink(ctx, listFeedsPath),
-			Pagination: generatePagination(req.URL, pagination),
+			Pagination: generatePagination(ctx, listItemsPath, pagination),
 		})
 
 		for _, item := range items {
@@ -201,11 +201,36 @@ func generateBacklink(ctx context.Context, basePath string) string {
 }
 
 // generatePagination generates a URL string with an updated pagination value.
-func generatePagination(currentURL *url.URL, pagination []byte) string {
-	q := currentURL.Query()
+func generatePagination(ctx context.Context, basePath string, pagination []byte) string {
+	var (
+		filters models.APISearchFilters
+		err     error
+	)
+
+	switch basePath {
+	case listFeedsPath:
+		filters, err = session.LoadListFeedsFilters(ctx)
+	case listItemsPath:
+		filters, err = session.LoadListItemsFilters(ctx)
+	}
+
+	if err != nil {
+		logging.FromContext(ctx).Warn("Could not generate pagination link.",
+			slog.Any("error", err))
+		return basePath
+	}
+
+	paginationLink, err := filters.GenerateURL(basePath)
+	if err != nil {
+		logging.FromContext(ctx).Warn("Could not generate pagination link.",
+			slog.Any("error", err))
+		return basePath
+	}
+
+	q := paginationLink.Query()
 	q.Del("pagination")
 	q.Add("pagination", url.QueryEscape(string(pagination)))
-	currentURL.RawQuery = q.Encode()
+	paginationLink.RawQuery = q.Encode()
 
-	return currentURL.Path
+	return paginationLink.String()
 }

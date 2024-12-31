@@ -106,10 +106,11 @@ templ ShowCards(name string, cards ...templ.Component) {
 			hx-push-url="false"
 			hx-indicator="#content-loading"
 		></div>
-		<center>
-			@components.NewLoading(components.LoadingBars,
-				components.WithSize[components.Loading](components.LG),
-				components.WithID[components.Loading]("content-loading")).Show()
-		</center>
+		<div id="content-loading">
+			<center>
+				@components.NewLoading(components.LoadingBars,
+					components.WithSize[components.Loading](components.LG)).Show()
+			</center>
+		</div>
 	}
 }
