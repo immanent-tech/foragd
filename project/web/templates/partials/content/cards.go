@@ -6,6 +6,7 @@ package content
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/a-h/templ"
 	components "github.com/joshuar/go-templ-daisyui"
@@ -28,6 +29,8 @@ type Summary interface {
 	GetID() string
 	GetImage() *gofeed.Image
 	GetCategories() []string
+	GetTimestamp() time.Time
+	GetLink() string
 }
 
 type Content interface {

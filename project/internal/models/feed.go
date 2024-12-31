@@ -63,6 +63,10 @@ func (f *APIFeed) GetID() string {
 	return f.ID
 }
 
+func (f *APIFeed) GetLink() string {
+	return f.URL
+}
+
 func (f *APIFeed) GetImage() *gofeed.Image {
 	return f.Image
 }
@@ -73,6 +77,18 @@ func (f *APIFeed) GetCategories() []string {
 
 func (f *APIFeed) GetContent() string {
 	return f.Description
+}
+
+func (f *APIFeed) GetTimestamp() time.Time {
+	var itemTime time.Time
+
+	if !f.Published.IsZero() {
+		itemTime = f.Published
+	} else {
+		itemTime = f.Updated
+	}
+
+	return itemTime
 }
 
 // NewFeedFromURL creates a new feed model from the given URL as its canonical

@@ -62,7 +62,33 @@ templ DrawerSide() {
 // ShowArticle displays an item as an article.
 templ ShowArticle(item *models.APIItem) {
 	@ContentHeader()
-	@components.NewArticle(item.GetTitle(), item.GetContent()).Show()
+	<div id="article">
+		<article class={ "prose dark:prose-invert" }>
+			<h2>{ item.Title }</h2>
+			if len(item.GetCategories()) > 0 {
+				<p>
+					for _, c := range item.GetCategories() {
+						@components.NewBadge(
+							components.WithBadgeDescription(c),
+							components.WithSize[components.Badge](components.SM),
+							components.WithColor[components.Badge](components.ColorGhost,
+								false)).Show()
+					}
+				</p>
+			}
+			<p class="text-sm justify-end">
+				{ RelativeTime(item.GetTimestamp()) }
+			</p>
+			<p>
+				@templ.Raw(item.GetContent())
+			</p>
+			<center>
+				<p>
+					<a class="link link-hover" href={ templ.URL(item.GetLink()) }>View Original</a>
+				</p>
+			</center>
+		</article>
+	</div>
 }
 
 // ShowCards displays a list of the given cards.

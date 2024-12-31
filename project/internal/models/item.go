@@ -28,6 +28,10 @@ func (i *APIItem) GetFeedID() string {
 	return i.FeedID
 }
 
+func (i *APIItem) GetLink() string {
+	return i.URL
+}
+
 func (i *APIItem) GetImage() *gofeed.Image {
 	return i.Image
 }
@@ -38,6 +42,18 @@ func (i *APIItem) GetCategories() []string {
 
 func (i *APIItem) GetContent() string {
 	return i.Description
+}
+
+func (i *APIItem) GetTimestamp() time.Time {
+	var itemTime time.Time
+
+	if !i.Published.IsZero() {
+		itemTime = i.Published
+	} else {
+		itemTime = i.Updated
+	}
+
+	return itemTime
 }
 
 // isNewer returns a boolean indicating whether this item has been updated or

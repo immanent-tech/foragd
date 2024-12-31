@@ -3,6 +3,16 @@
 
 package content
 
+import (
+	"time"
+
+	"github.com/dustin/go-humanize"
+)
+
 const (
 	ContentTarget = "content-main"
 )
+
+func RelativeTime(timestamp time.Time) string {
+	return humanize.Time(timestamp)
+}
