@@ -1,0 +1,54 @@
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package content
+
+import "github.com/joshuar/go-templ-daisyui"
+
+// backButton shows the back button. It will be invisible if there is no backlink.
+templ backButton() {
+	<li class={ templ.KV("invisible", NavigationFromCtx(ctx).Parent == "") }>
+		<a
+			class="tooltip tooltip-bottom"
+			data-tip="Back"
+			hx-get={ NavigationFromCtx(ctx).Parent }
+			hx-target={ "#" + ContentTarget }
+			hx-push-url="true"
+		>
+			@components.NewIcon("fa-arrow-left").Show()
+		</a>
+	</li>
+}
+
+templ refreshButton() {
+	<li>
+		<a
+			class="tooltip tooltip-bottom"
+			data-tip="Refresh"
+		>
+			@components.NewIcon("fa-rotate").Show()
+		</a>
+	</li>
+}
+
+templ selectButton() {
+	<li>
+		<a
+			class="tooltip tooltip-bottom"
+			data-tip="Select Items"
+		>
+			@components.NewIcon("fa-list-check").Show()
+		</a>
+	</li>
+}
+
+templ markReadButton() {
+	<li>
+		<a
+			class="tooltip tooltip-bottom"
+			data-tip="Mark Read"
+		>
+			@components.NewIcon("fa-check").Show()
+		</a>
+	</li>
+}

@@ -68,7 +68,8 @@
     "templates/layouts",
     "components/loading",
     "templates/content",
-    "components/indicator"
+    "components/indicator",
+    "modifiers/attributes"
   ],
   "emmet.includeLanguages": {
     "templ": "html"
