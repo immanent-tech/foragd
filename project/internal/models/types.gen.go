@@ -42,7 +42,7 @@ type APIItem struct {
 	ID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
 
 	// URL is a URL.
-	URL     URL              `gorm:"-" json:"url" validate:"required,url"`
+	URL     string           `json:"link" validate:"required,url"`
 	Authors []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.

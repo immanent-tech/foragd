@@ -286,7 +286,10 @@ components:
             FeedID:
               $ref: '#/components/schemas/FeedID'
             URL:
-              $ref: '#/components/schemas/URL'
+              <<: *URL
+              x-oapi-codegen-extra-tags:
+                json: 'link'
+                validate: 'required,url'
 
     ReadItem:
       description: represents an item (e.g., an individual feed item) that has been read.
