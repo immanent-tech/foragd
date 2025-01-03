@@ -256,7 +256,7 @@ func generatePagination(ctx context.Context, basePath string, pagination []byte)
 		return basePath
 	}
 
-	paginationLink, err := filters.GenerateURL(basePath)
+	paginationLink, err := filters.GenerateURL(basePath + "/show")
 	if err != nil {
 		logging.FromContext(ctx).Warn("Could not generate pagination link.",
 			slog.Any("error", err))
