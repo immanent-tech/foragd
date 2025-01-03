@@ -14,3 +14,6 @@ import 'htmx.org/dist/ext/morphdom-swap';
 // hyperscript
 import _hyperscript from 'hyperscript.org';
 _hyperscript.browserInit();
+
+import { themeChange } from 'theme-change'
+themeChange()
