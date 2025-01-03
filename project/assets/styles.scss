@@ -21,3 +21,8 @@ $fa-font-path: '../node_modules/@fortawesome/fontawesome-free/webfonts';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 } */
+
+.card.htmx-swapping {
+  opacity: 0;
+  transition: opacity 1s ease-out;
+}
