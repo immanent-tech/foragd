@@ -33,8 +33,10 @@ func QueryMatchAll() Option[*types.Query] {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
 func QueryByTerm(field string, value any) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
-		query.Term = map[string]types.TermQuery{
-			field: {Value: value},
+		if value != nil {
+			query.Term = map[string]types.TermQuery{
+				field: {Value: value},
+			}
 		}
 
 		return query
@@ -190,13 +192,15 @@ func BoolShould(queries ...Option[*types.Query]) Option[*types.BoolQuery] {
 // the query.
 func QueryBool(options ...Option[*types.BoolQuery]) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
-		boolOptions := &types.BoolQuery{}
+		boolQuery := &types.BoolQuery{}
 
 		for _, option := range options {
-			boolOptions = option(boolOptions)
+			boolQuery = option(boolQuery)
 		}
 
-		query.Bool = boolOptions
+		if !reflect.DeepEqual(boolQuery, &types.BoolQuery{}) {
+			query.Bool = boolQuery
+		}
 
 		return query
 	}
@@ -251,7 +255,10 @@ func SearchSize(size int) Option[*search.Search] {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
 func SearchAfter(sortValue []types.FieldValue) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
-		search = search.SearchAfter(sortValue...)
+		if len(sortValue) > 0 {
+			search = search.SearchAfter(sortValue...)
+		}
+
 		return search
 	}
 }
