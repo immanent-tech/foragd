@@ -11,10 +11,10 @@ import (
 templ ContentHeader() {
 	<div id="content-header" hx-swap-oob="true" class="bg-base-300 sticky top-0 z-30 w-full">
 		@components.NewMenu(
-			components.WithMenuLayout(components.HorizontalLayout),
-			components.WithMenuItems(
+			components.WithLayout[components.Menu](components.HorizontalLayout),
+			components.WithItems[components.Menu](
 				backButton(),
-				markReadButton(),
+				markMultipleReadButton(),
 				selectButton(),
 				refreshButton(),
 			),
@@ -38,11 +38,11 @@ templ DrawerMain(data templ.Component) {
 		<!-- Content Header -->
 		<div id="content-header" class="bg-orange-500 sticky z-30 top-0 w-full"></div>
 		<!-- Content -->
-		<form>
-			<div id="content-main">
-				@data
-			</div>
-		</form>
+		// <form>
+		<div id="content-main" class="flex flex-row flex-wrap gap-2">
+			@data
+		</div>
+		// </form>
 		<div id="content-footer" class="sticky bottom-0 z-40 w-full"></div>
 	</div>
 	<!-- Footer -->
@@ -73,7 +73,7 @@ templ ShowArticle(item *models.APIItem) {
 					for _, c := range item.GetCategories() {
 						@components.NewBadge(
 							components.WithBadgeDescription(c),
-							components.WithSize[components.Badge](components.SM),
+							components.WithResponsiveSize[components.Badge](components.SM),
 							components.WithColor[components.Badge](components.ColorGhost,
 								false)).Show()
 					}
@@ -87,7 +87,7 @@ templ ShowArticle(item *models.APIItem) {
 			</p>
 			<center>
 				<p>
-					<a class="link link-hover" href={ templ.URL(item.GetLink()) }>View Original</a>
+					<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
 				</p>
 			</center>
 		</article>
@@ -113,7 +113,7 @@ templ ShowCards(name string, cards ...templ.Component) {
 		<div id="content-loading">
 			<center>
 				@components.NewLoading(components.LoadingBars,
-					components.WithSize[components.Loading](components.LG)).Show()
+					components.WithResponsiveSize[components.Loading](components.LG)).Show()
 			</center>
 		</div>
 	}

@@ -44,7 +44,7 @@ func AddSubscriptionForm() components.Form {
 		components.Inputs(subscriptionNameInput(), subscriptionLinkInput()),
 		components.Buttons(
 			components.NewButton("Save", "save",
-				components.WithSize[components.Button](components.LG),
+				components.WithResponsiveSize[components.Button](components.LG),
 				components.WithAttributes[components.Button](templ.Attributes{
 					"_": "on click take .modal-open from #command-modal wait 200ms",
 				}),

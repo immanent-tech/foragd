@@ -25,6 +25,8 @@ type Cache interface {
 	AddFeeds(ctx context.Context, feeds ...Feed) error
 	GetFeeds(ctx context.Context, filters APISearchFilters) ([]APIFeed, error)
 	GetItems(ctx context.Context, filters APISearchFilters) ([]APIItem, []byte, error)
+	MarkFeedsRead(ctx context.Context, feedIDs ...FeedID) error
+	MarkItemsRead(ctx context.Context, items ...APIReadItem) error
 	GetItem(ctx context.Context, feedID, itemID string) (APIItem, error)
 	CountUnread(ctx context.Context, feedIDs ...string) (int, error)
 }

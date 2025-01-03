@@ -290,7 +290,6 @@ components:
               x-oapi-codegen-extra-tags:
                 json: 'link'
                 validate: 'required,url'
-
     ReadItem:
       description: represents an item (e.g., an individual feed item) that has been read.
       type: object
@@ -304,12 +303,31 @@ components:
           properties:
             Timestamp:
               $ref: '#/components/schemas/Timestamp'
-            ID:
+            ItemID:
               $ref: '#/components/schemas/ItemID'
             FeedID:
               $ref: '#/components/schemas/FeedID'
             UserID:
               $ref: '#/components/schemas/UserID'
+    ReadItems:
+      description: represents an array of item (e.g., an individual feed item) that have been read.
+      type: array
+      items:
+        $ref: '#/components/schemas/ReadItem'
+    APIReadItem:
+      description: >
+        represents an item (e.g., an individual feed item) that has
+        been read as used by the API.
+      type: object
+      required:
+        - ItemID
+      allOf:
+        - type: object
+          properties:
+            ItemID:
+              $ref: '#/components/schemas/ItemID'
+            FeedID:
+              $ref: '#/components/schemas/FeedID'
     Tokens:
       type: object
       required:

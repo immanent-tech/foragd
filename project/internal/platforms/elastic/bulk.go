@@ -5,14 +5,12 @@ package elastic
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"log/slog"
-	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/bulk"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
@@ -22,21 +20,8 @@ type BulkRequest struct {
 
 // document represents a single record in elasticsearch.
 type document interface {
-	DocID() string
-}
-
-func (b *BulkRequest) generateItemCreateOps(documents ...document) error {
-	var errs error
-
-	for _, doc := range documents {
-		err := b.CreateOp(NewCreateOp(doc.DocID()), doc)
-		if err != nil {
-			errs = errors.Join(errs, fmt.Errorf("could not generate create op for %s: %w", doc.DocID(), err))
-			continue
-		}
-	}
-
-	return errs
+	DocumentType() models.DocumentType
+	DocumentID() string
 }
 
 // BulkOption sets an option on a bulk request.
@@ -58,6 +43,35 @@ func WithIndex(index string) BulkOption {
 	}
 }
 
+// CreateDocs will add create operations for the given docs to the bulk request.
+func CreateDocs(documents ...document) BulkOption {
+	return func(bulkReq *bulk.Bulk) *bulk.Bulk {
+		for _, doc := range documents {
+			var index string
+
+			switch doc.DocumentType() {
+			case models.TypeFeed:
+				index = "feeds-test"
+			case models.TypeItem:
+				index = "feeditems-test"
+			case models.TypeReadItem:
+				index = "readitems-test"
+			}
+
+			if err := bulkReq.CreateOp(types.CreateOperation{Index_: &index}, doc); err != nil {
+				slog.Warn("Could not generate a create op for document.",
+					slog.Any("type", doc.DocumentType()),
+					slog.String("id", doc.DocumentID()),
+					slog.Any("error", err))
+
+				continue
+			}
+		}
+
+		return bulkReq
+	}
+}
+
 // NewSearchRequest creates a new search object with the given options.
 func (c *Client) NewBulkRequest(options ...BulkOption) *BulkRequest {
 	req := c.API.Bulk()
@@ -69,13 +83,8 @@ func (c *Client) NewBulkRequest(options ...BulkOption) *BulkRequest {
 	return &BulkRequest{Bulk: req}
 }
 
-func NewCreateOp(id string) types.CreateOperation {
-	op := types.NewCreateOperation()
-	op.Id_ = &id
-
-	return *op
-}
-
+// bulkStreamWorker runs in a goroutine and listens for documents to bulk index
+// into Elasticsearch.
 func (c *Client) bulkStreamWorker(ctx context.Context) {
 	c.logger.Debug("Bulk indexer ready...")
 
@@ -89,34 +98,18 @@ func (c *Client) bulkStreamWorker(ctx context.Context) {
 			}
 
 			go func() {
-				var req *BulkRequest
 				// Create a new bulk request.
-				switch {
-				case strings.HasPrefix(items[0].DocID(), "item"):
-					req = c.NewBulkRequest(
-						WithIndex("feeditems-test"),
-						WithPipeline(schema.IngestPipelineID),
-					)
-				case strings.HasPrefix(items[0].DocID(), "feed"):
-					req = c.NewBulkRequest(
-						WithIndex("feeds-test"),
-						WithPipeline(schema.IngestPipelineID),
-					)
-				}
-				// Add all the items to the bulk request.
-				if err := req.generateItemCreateOps(items...); err != nil {
-					c.logger.Warn("Problems encountered when generating create operations.",
-						slog.Any("error", err))
-				}
-				// Execute the bulk request.
-				resp, err := req.Do(ctx)
+				resp, err := c.NewBulkRequest(
+					WithPipeline(schema.IngestPipelineID),
+					CreateDocs(items...),
+				).Do(ctx)
 				// Handle response.
 				switch {
 				case err != nil:
 					c.logger.Error("Bulk index failed.",
 						slog.Any("error", err))
 				case resp.Errors:
-					c.logger.Info("Bulk index completed with some errors.",
+					c.logger.Warn("Bulk index completed with some errors.",
 						slog.Any("errors", resp.Items),
 					)
 				}

@@ -69,7 +69,11 @@
     "components/loading",
     "templates/content",
     "components/indicator",
-    "modifiers/attributes"
+    "modifiers/attributes",
+    "modifiers/shadow",
+    "modifiers/mask",
+    "modifiers/object",
+    "modifiers/color"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

@@ -13,7 +13,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/go-chi/chi/v5"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -23,14 +22,14 @@ import (
 )
 
 const (
-	listFeedsPath = "/home/list/feeds"
-	listItemsPath = "/home/list/items"
-	articlePath   = "/home/article"
+	feedsListBasePath = "/home/feeds"
+	itemsListBasePath = "/home/items"
+	itemBasePath      = "/home/item"
 )
 
 // FeedsHandler displays the home page with a list of feeds, optionally filtered
 // by the given feed IDs and categories.
-func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType ListHandlerParamsListType, params ListHandlerParams) {
+func (s Server) GetListHandler(res http.ResponseWriter, req *http.Request, list GetListHandlerParamsListType, action GetListHandlerParamsGetAction, params GetListHandlerParams) {
 	var (
 		page    templ.Component
 		filters models.APISearchFilters
@@ -40,11 +39,16 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 	logger := logging.NewHandlerLogger("ListHandler", req)
 	ctx := req.Context()
 
+	logger.Debug("Handling Request.",
+		slog.Any("action", action),
+		slog.Any("list", list))
+
 	// Bail if an invalid show parameter is requested.
-	if chi.URLParam(req, "listType") != string(ListHandlerParamsListTypeFeeds) && chi.URLParam(req, "listType") != string(ListHandlerParamsListTypeItems) {
-		// if showType != ListHandlerParamsListTypeFeeds && showType != ListHandlerParamsListTypeItems {
-		slog.Info("here", slog.Any("type", showType))
-		logger.Error("Bad request.", slog.Any("error", ErrInvalidQueryParams))
+	if list != GetListHandlerParamsListTypeFeeds && list != GetListHandlerParamsListTypeItems {
+		logger.Error("Bad request.",
+			slog.String("action", string(action)),
+			slog.String("list", string(list)),
+			slog.Any("error", ErrInvalidQueryParams))
 		res.WriteHeader(http.StatusBadRequest)
 
 		return
@@ -75,16 +79,28 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 		return
 	}
 
-	switch chi.URLParam(req, "listType") {
-	case string(ListHandlerParamsListTypeFeeds):
+	switch list {
+	case GetListHandlerParamsListTypeFeeds:
 		// Save list feeds filters in session storage.
 		session.SaveListFeedsFilters(ctx, filters)
 
+		ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
+			ActionBasePath:      feedsListBasePath,
+			ChildActionBasePath: itemsListBasePath,
+		})
+
 		for _, feed := range feeds {
 			unread := feed.GetUnreadCount(ctx, s.API.elastic)
-			cards = append(cards, content.NewFeedCard(ctx, &feed, unread))
+
+			card, err := content.NewCard(ctx, &feed, unread)
+			if err != nil {
+				logger.Warn("Could not render item as card.", slog.Any("error", err))
+				continue
+			}
+
+			cards = append(cards, card.Show())
 		}
-	case string(ListHandlerParamsListTypeItems):
+	case GetListHandlerParamsListTypeItems:
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
 
@@ -94,12 +110,20 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 		}
 
 		ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
-			Parent:     generateBacklink(ctx, listFeedsPath),
-			Pagination: generatePagination(ctx, listItemsPath, pagination),
+			Parent:              generateBacklink(ctx, feedsListBasePath),
+			Pagination:          generatePagination(ctx, itemsListBasePath, pagination),
+			ActionBasePath:      itemsListBasePath,
+			ChildActionBasePath: itemBasePath,
 		})
 
 		for _, item := range items {
-			cards = append(cards, content.NewItemCard(ctx, &item))
+			card, err := content.NewCard(ctx, &item, 0)
+			if err != nil {
+				logger.Warn("Could not render item as card.", slog.Any("error", err))
+				continue
+			}
+
+			cards = append(cards, card.Show())
 		}
 	}
 
@@ -111,7 +135,7 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 			layouts.WithPageContent(layouts.HomeLayout(content.ShowCards("feeds", cards...)))).Show()
 	} else {
 		// Partial content otherwise.
-		page = content.ShowCards(string(showType), cards...)
+		page = content.ShowCards(string(list), cards...)
 	}
 
 	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {
@@ -120,26 +144,20 @@ func (s Server) ListHandler(res http.ResponseWriter, req *http.Request, showType
 	}
 }
 
-func (s Server) ListActionHandler(res http.ResponseWriter, req *http.Request, listType ListActionHandlerParamsListType, action ListActionHandlerParamsAction, params ListActionHandlerParams) {
+func (s Server) PostListHandler(res http.ResponseWriter, req *http.Request, list PostListHandlerParamsListType, action PostListHandlerParamsPostAction, params PostListHandlerParams) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedID, itemID string) {
+func (s Server) GetItemHandler(res http.ResponseWriter, req *http.Request, action GetItemHandlerParamsGetAction, feedID FeedID, itemID ItemID) {
 	var page templ.Component
 
 	logger := logging.NewHandlerLogger("ArticleHandler", req)
 
-	if feedID == "" || itemID == "" {
-		logger.Error("Invalid request.", slog.Any("error", ErrMissingQueryParams))
-		http.Error(res, "Invalid request.", http.StatusBadRequest)
-
-		return
-	}
-
 	ctx := req.Context()
 
 	ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
-		Parent: generateBacklink(req.Context(), listItemsPath),
+		Parent:         generateBacklink(req.Context(), itemsListBasePath),
+		ActionBasePath: itemBasePath,
 	})
 
 	item, err := models.GetItem(ctx, s.API.pg, s.API.elastic, feedID, itemID)
@@ -165,8 +183,26 @@ func (s Server) ArticleHandler(res http.ResponseWriter, req *http.Request, feedI
 	}
 }
 
-func (s Server) ArticleActionHandler(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, action ArticleActionHandlerParamsAction) {
-	res.WriteHeader(http.StatusNotImplemented)
+func (s Server) PostItemHandler(res http.ResponseWriter, req *http.Request, action PostItemHandlerParamsPostAction, feed FeedID, item ItemID) {
+	logger := logging.NewHandlerLogger("PostItemHandler", req)
+
+	switch action {
+	case PostItemHandlerParamsPostActionMarkRead:
+		item := models.APIReadItem{
+			ItemID: item,
+			FeedID: feed,
+		}
+		if err := s.API.elastic.MarkItemsRead(req.Context(), item); err != nil {
+			logger.Warn("Could not mark item as read.", slog.Any("error", err))
+			return
+		}
+		if _, err := res.Write(nil); err != nil {
+			logger.Error("Failed to write response.", slog.Any("error", err))
+		}
+	default:
+		logger.Warn("Unimplmented.")
+		res.WriteHeader(http.StatusNotImplemented)
+	}
 }
 
 // generateBacklink creates a URL string that can be used for a back button on a
@@ -178,23 +214,23 @@ func generateBacklink(ctx context.Context, basePath string) string {
 	)
 
 	switch basePath {
-	case listFeedsPath:
+	case feedsListBasePath:
 		filters, err = session.LoadListFeedsFilters(ctx)
-	case listItemsPath:
+	case itemsListBasePath:
 		filters, err = session.LoadListItemsFilters(ctx)
 	}
 
 	if err != nil {
 		logging.FromContext(ctx).Warn("Could not generate backlink.",
 			slog.Any("error", err))
-		return basePath
+		return basePath + "/show"
 	}
 
-	backlink, err := filters.GenerateURL(basePath)
+	backlink, err := filters.GenerateURL(basePath + "/show")
 	if err != nil {
 		logging.FromContext(ctx).Warn("Could not generate backlink.",
 			slog.Any("error", err))
-		return basePath
+		return basePath + "/show"
 	}
 
 	return backlink.String()
@@ -208,9 +244,9 @@ func generatePagination(ctx context.Context, basePath string, pagination []byte)
 	)
 
 	switch basePath {
-	case listFeedsPath:
+	case feedsListBasePath:
 		filters, err = session.LoadListFeedsFilters(ctx)
-	case listItemsPath:
+	case itemsListBasePath:
 		filters, err = session.LoadListItemsFilters(ctx)
 	}
 

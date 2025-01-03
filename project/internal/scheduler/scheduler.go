@@ -32,7 +32,7 @@ type DB interface {
 // implementation.
 type Cache interface {
 	GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error)
-	AddFeedItems(ctx context.Context, items ...models.Item) error
+	AddItems(ctx context.Context, items ...models.Item) error
 }
 
 type taskScheduler struct {

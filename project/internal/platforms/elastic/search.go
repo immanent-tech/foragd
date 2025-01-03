@@ -5,6 +5,7 @@ package elastic
 
 import (
 	"errors"
+	"reflect"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
@@ -44,6 +45,10 @@ func QueryByTerm(field string, value any) Option[*types.Query] {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
 func QueryByFeedIDs(feedIDs ...string) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
+		if len(feedIDs) == 0 {
+			return query
+		}
+
 		query.Terms = &types.TermsQuery{
 			TermsQuery: map[string]types.TermsQueryField{
 				"feed_id": feedIDs,
@@ -58,6 +63,10 @@ func QueryByFeedIDs(feedIDs ...string) Option[*types.Query] {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
 func QueryByItemIDs(itemIDs ...string) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
+		if len(itemIDs) == 0 {
+			return query
+		}
+
 		query.Terms = &types.TermsQuery{
 			TermsQuery: map[string]types.TermsQueryField{
 				"item_id": itemIDs,
@@ -91,77 +100,89 @@ func QuerySince(field string, since time.Time) Option[*types.Query] {
 
 // BoolFilter sets the given query options as the "filter" clause of the bool query.
 func BoolFilter(queries ...Option[*types.Query]) Option[*types.BoolQuery] {
-	return func(bq *types.BoolQuery) *types.BoolQuery {
+	return func(boolQueryClause *types.BoolQuery) *types.BoolQuery {
 		var filters []types.Query
 		// Create queries for each of the passed in query options and append to
 		// the bool filters list.
 		for _, query := range queries {
-			filter := &types.Query{}
+			filter := query(&types.Query{})
 
-			filter = query(filter)
-			filters = append(filters, *filter)
+			if !reflect.DeepEqual(filter, &types.Query{}) {
+				filters = append(filters, *filter)
+			}
 		}
 		// Create the filter clause.
-		bq.Filter = filters
+		if len(filters) > 0 {
+			boolQueryClause.Filter = filters
+		}
 
-		return bq
+		return boolQueryClause
 	}
 }
 
 // BoolMust sets the given query options as the "must" clause of the bool query.
 func BoolMust(queries ...Option[*types.Query]) Option[*types.BoolQuery] {
-	return func(bq *types.BoolQuery) *types.BoolQuery {
+	return func(boolQueryClause *types.BoolQuery) *types.BoolQuery {
 		var musts []types.Query
 		// Create queries for each of the passed in query options and append to
 		// the bool must list.
 		for _, query := range queries {
-			must := &types.Query{}
+			must := query(&types.Query{})
 
-			must = query(must)
-			musts = append(musts, *must)
+			if !reflect.DeepEqual(must, &types.Query{}) {
+				musts = append(musts, *must)
+			}
 		}
 		// Create the must clause.
-		bq.Must = musts
+		if len(musts) > 0 {
+			boolQueryClause.Must = musts
+		}
 
-		return bq
+		return boolQueryClause
 	}
 }
 
 // BoolMustNot sets the given query options as the "must_not" clause of the bool query.
 func BoolMustNot(queries ...Option[*types.Query]) Option[*types.BoolQuery] {
-	return func(bq *types.BoolQuery) *types.BoolQuery {
+	return func(boolQueryClause *types.BoolQuery) *types.BoolQuery {
 		var mustNots []types.Query
 		// Create queries for each of the passed in query options and append to
 		// the bool must_not list.
 		for _, query := range queries {
-			mustNot := &types.Query{}
+			mustNot := query(&types.Query{})
 
-			mustNot = query(mustNot)
-			mustNots = append(mustNots, *mustNot)
+			if !reflect.DeepEqual(mustNot, &types.Query{}) {
+				mustNots = append(mustNots, *mustNot)
+			}
 		}
 		// Create the must_not clause.
-		bq.MustNot = mustNots
+		if len(mustNots) > 0 {
+			boolQueryClause.MustNot = mustNots
+		}
 
-		return bq
+		return boolQueryClause
 	}
 }
 
 // BoolMustNot sets the given query options as the "must_not" clause of the bool query.
 func BoolShould(queries ...Option[*types.Query]) Option[*types.BoolQuery] {
-	return func(bq *types.BoolQuery) *types.BoolQuery {
+	return func(boolQueryClause *types.BoolQuery) *types.BoolQuery {
 		var shoulds []types.Query
 		// Create queries for each of the passed in query options and append to
 		// the bool should list.
 		for _, query := range queries {
-			should := &types.Query{}
+			should := query(&types.Query{})
 
-			should = query(should)
-			shoulds = append(shoulds, *should)
+			if !reflect.DeepEqual(should, &types.Query{}) {
+				shoulds = append(shoulds, *should)
+			}
 		}
 		// Create the must_not clause.
-		bq.Should = shoulds
+		if len(shoulds) > 0 {
+			boolQueryClause.Should = shoulds
+		}
 
-		return bq
+		return boolQueryClause
 	}
 }
 

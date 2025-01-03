@@ -59,7 +59,7 @@ func (r *TaskRunner) HandleGetFeedItemsTask(ctx context.Context, t *asynq.Task) 
 	// Get new items since the last fetch.
 	items := payload.Feed.GetItemsSince(ctx, lastFetched)
 	// Cache the new items.
-	if err := r.cache.AddFeedItems(ctx, items...); err != nil {
+	if err := r.cache.AddItems(ctx, items...); err != nil {
 		return fmt.Errorf("could not cache feed items: %w", err)
 	}
 

@@ -42,13 +42,66 @@ templ selectButton() {
 	</li>
 }
 
-templ markReadButton() {
+templ markMultipleReadButton() {
 	<li>
 		<a
 			class="tooltip tooltip-bottom"
 			data-tip="Mark Read"
 		>
 			@components.NewIcon("fa-check").Show()
+		</a>
+	</li>
+}
+
+templ buttonToggleItem(feedID, itemID string) {
+	<li>
+		<a
+			class="tooltip tooltip-left"
+			data-tip="Mark Read"
+			if itemID != "" {
+				hx-post={ NavigationFromCtx(ctx).ChildActionBasePath + "/markRead/" + feedID + "/" + itemID }
+				hx-trigger="click consume"
+				hx-target={ "#" + itemID }
+				hx-swap="outerHTML swap:1s"
+				hx-push-url="false"
+			} else {
+				hx-post={ NavigationFromCtx(ctx).ActionBasePath +
+				"/markRead?feeds=" + feedID }
+				hx-trigger="click consume"
+				hx-target={ "#" + feedID }
+				hx-swap="outerHTML swap:1s"
+				hx-push-url="false"
+			}
+		>
+			@components.NewIcon("fa-check").Show()
+		</a>
+	</li>
+}
+
+templ buttonSaveItem(feedID, itemID string) {
+	<li>
+		<a
+			class="tooltip tooltip-left"
+			data-tip="Save"
+			hx-post={ "/home/article/" + feedID + "/" + itemID + "/markRead" }
+		>
+			@components.NewIcon("fa-bookmark").Show()
+		</a>
+	</li>
+}
+
+templ buttonShareItem(feedID, itemID string) {
+	<li>
+		<a
+			class="tooltip tooltip-left"
+			data-tip="Share"
+			if itemID != "" {
+				hx-post={ "/home/article/" + feedID + "/" + itemID + "/share" }
+			} else {
+				hx-post={ "/home/" + feedID + "/share" }
+			}
+		>
+			@components.NewIcon("fa-share").Show()
 		</a>
 	</li>
 }

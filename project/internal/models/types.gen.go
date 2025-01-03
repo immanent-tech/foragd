@@ -54,6 +54,15 @@ type APIItem struct {
 	Updated     time.Time     `json:"updatedParsed"`
 }
 
+// APIReadItem defines model for APIReadItem.
+type APIReadItem struct {
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+
+	// ItemID is the unique ID of an item.
+	ItemID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
+}
+
 // APISearchFilters contains parameters for searching feeds and items
 type APISearchFilters struct {
 	// Categories is a list of feed/item categories.
@@ -167,8 +176,8 @@ type ReadItem struct {
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
 
-	// ID is the unique ID of an item.
-	ID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
+	// ItemID is the unique ID of an item.
+	ItemID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
 
 	// Timestamp is when the document was created.
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
@@ -176,6 +185,9 @@ type ReadItem struct {
 	// UserID is the unique ID of a user.
 	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
 }
+
+// ReadItems represents an array of item (e.g., an individual feed item) that have been read.
+type ReadItems = []ReadItem
 
 // Subscription defines model for Subscription.
 type Subscription struct {

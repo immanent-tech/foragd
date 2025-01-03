@@ -25,6 +25,12 @@ type NavigationLinks struct {
 	// Pagination is a value used by the backend to fetch the next set of
 	// results as the user scrolls through feeds/items.
 	Pagination string
+	// ChildActionBasePath is the base path of the URL for any actions on items
+	// that the page directs to.
+	ChildActionBasePath string
+	// ActionBasePath is the base path of the URL for any actions on items on
+	// the current page.
+	ActionBasePath string
 }
 
 func NavigationToCtx(ctx context.Context, nav NavigationLinks) context.Context {

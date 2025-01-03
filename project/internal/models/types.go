@@ -13,6 +13,14 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
+const (
+	TypeFeed DocumentType = iota
+	TypeItem
+	TypeReadItem
+)
+
+type DocumentType int
+
 var ErrInvalidID = errors.New("error generating unique ID")
 
 // Feed represents a feed. It embeds the gofeed.Feed object and adds additional
@@ -23,8 +31,12 @@ type Feed struct {
 	ID string `json:"feed_id" validate:"required"`
 }
 
-func (f *Feed) DocID() string {
+func (f *Feed) DocumentID() string {
 	return f.ID
+}
+
+func (f *Feed) DocumentType() DocumentType {
+	return TypeFeed
 }
 
 // Item represents an item of a feed. It embeds the gofeed.Item object and adds additional
@@ -36,8 +48,20 @@ type Item struct {
 	FeedID string `json:"feed_id"`
 }
 
-func (i *Item) DocID() string {
+func (i *Item) DocumentID() string {
 	return i.ID
+}
+
+func (i *Item) DocumentType() DocumentType {
+	return TypeItem
+}
+
+func (i *ReadItem) DocumentID() string {
+	return i.ItemID
+}
+
+func (i *ReadItem) DocumentType() DocumentType {
+	return TypeReadItem
 }
 
 type UserSession struct {
@@ -74,4 +98,14 @@ func (f APISearchFilters) GenerateURL(basePath string) (*url.URL, error) {
 	newURL.RawQuery = params.Encode()
 
 	return newURL, nil
+}
+
+func ReadItemIDs(items []ReadItem) []ItemID {
+	itemIDs := make([]ItemID, len(items))
+
+	for i, item := range items {
+		itemIDs[i] = item.ItemID
+	}
+
+	return itemIDs
 }

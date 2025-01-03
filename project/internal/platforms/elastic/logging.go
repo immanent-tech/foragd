@@ -41,7 +41,7 @@ func (l *ESLogger) LogRoundTrip(req *http.Request, res *http.Response, _ error, 
 
 	// Log event.
 	//
-	l.Info("Request",
+	l.Debug("Round Trip Stats.",
 		slog.String("server", req.URL.Host),
 		slog.String("path", req.URL.Path),
 		slog.String("method", req.Method),
@@ -49,7 +49,7 @@ func (l *ESLogger) LogRoundTrip(req *http.Request, res *http.Response, _ error, 
 		slog.Duration("duration", dur),
 		slog.Int64("req_bytes", nReq),
 		slog.Int64("res_bytes", nRes),
-		slog.String("body", reqBody.String()),
+		// slog.String("body", reqBody.String()),
 	)
 
 	return nil
