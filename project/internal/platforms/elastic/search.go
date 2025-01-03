@@ -4,7 +4,10 @@
 package elastic
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"log/slog"
 	"reflect"
 	"time"
 
@@ -12,6 +15,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
+
+	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
 var (
@@ -308,4 +313,38 @@ func SortTimestampDesc() map[string]types.FieldSort {
 			Order: &sortorder.Desc,
 		},
 	}
+}
+
+// extractSources loops through the given hits array and extracts the `_source`
+// field of each document as type `T`, returning the documents as an array
+// `[]T`. Any errors extracting sources will be logged at the WARN level.
+//
+//nolint:prealloc
+func extractSources[T any](ctx context.Context, hits []types.Hit) []T {
+	var items []T
+
+	for _, hit := range hits {
+		source, err := extractSource[T](hit)
+		if err != nil {
+			logging.FromContext(ctx).Warn("Could not unmarshal item source.",
+				slog.Any("error", err))
+			continue
+		}
+
+		items = append(items, source)
+	}
+
+	return items
+}
+
+// extractSource extracts the `_source` field from a hit. A non-nil error is
+// returned if the source cannot be extracted.
+func extractSource[T any](hit types.Hit) (T, error) {
+	var source T
+
+	if err := json.Unmarshal(hit.Source_, &source); err != nil {
+		return source, errors.Join(ErrExtractSource, err)
+	}
+
+	return source, nil
 }

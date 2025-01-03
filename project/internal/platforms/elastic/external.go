@@ -11,13 +11,11 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 	"github.com/joshuar/go-feed-me/internal/server/session"
@@ -45,8 +43,9 @@ var defaultItemFields = []string{
 }
 
 var (
-	ErrNoFeedID  = errors.New("no feed ID provided")
-	ErrNoUserCtx = errors.New("no valid user in context")
+	ErrNoFeedID      = errors.New("no feed ID provided")
+	ErrNoUserCtx     = errors.New("no valid user in context")
+	ErrExtractSource = errors.New("could not extract document _source")
 )
 
 // getFeedsByID retrieves the specified feeds with an mget request.
@@ -85,33 +84,17 @@ func (c *Client) getFeedsByID(ctx context.Context, ids ...string) ([]models.APIF
 
 // getAllFeeds retrieves all feeds by executing a search request with a
 // match_all query.
-//
-//nolint:prealloc
 func (c *Client) getAllFeeds(ctx context.Context) ([]models.APIFeed, error) {
-	req := c.NewSearchRequest(
+	resp, err := c.NewSearchRequest(
 		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
 		WithFields(defaultFeedFields...),
 		WithSearchQueryOptions(QueryMatchAll()),
-	)
-
-	res, err := req.Do(ctx)
+	).Do(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
-	var feeds []models.APIFeed
-
-	for _, hit := range res.Hits.Hits {
-		var feed models.APIFeed
-
-		if err := json.Unmarshal(hit.Source_, &feed); err != nil {
-			c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
-			continue
-		}
-		// spew.Dump(hit.Source_)
-		// godump.Dump(item)
-		feeds = append(feeds, feed)
-	}
+	feeds := extractSources[models.APIFeed](ctx, resp.Hits.Hits)
 
 	return feeds, nil
 }
@@ -127,57 +110,39 @@ func (c *Client) GetFeeds(ctx context.Context, filters models.APISearchFilters) 
 	return c.getAllFeeds(ctx)
 }
 
-//nolint:prealloc
+// GetNewFeedsSince retrieves a list of feeds that have been updated since the
+// given time.
 func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error) {
-	req := c.NewSearchRequest(
+	resp, err := c.NewSearchRequest(
 		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
 		WithSearchQueryOptions(QuerySince("@timestamp", since)),
-	)
-
-	res, err := req.Do(ctx)
+	).Do(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
-	var feeds []models.APIFeed
-
-	for _, hit := range res.Hits.Hits {
-		var feed models.APIFeed
-
-		if err := json.Unmarshal(hit.Source_, &feed); err != nil {
-			c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
-			continue
-		}
-		// spew.Dump(hit.Source_)
-		// godump.Dump(item)
-		feeds = append(feeds, feed)
-	}
-
-	// godump.Dump(feeds)
+	feeds := extractSources[models.APIFeed](ctx, resp.Hits.Hits)
 
 	return feeds, nil
 }
 
 func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, error) {
-	var feed models.APIFeed
-
-	req := c.NewSearchRequest(
+	resp, err := c.NewSearchRequest(
 		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
 		WithFields(defaultFeedFields...),
 		WithSearchQueryOptions(QueryByTerm("feedLink", url)),
-	)
-
-	res, err := req.Do(ctx)
+	).Do(ctx)
 	if err != nil {
-		return feed, errors.Join(ErrSearchFailed, err)
+		return models.APIFeed{}, errors.Join(ErrSearchFailed, err)
 	}
 
 	// If there are no hits, just return an empty APIFeed object.
-	if res.Hits.Total.Value == 0 {
-		return feed, nil
+	if resp.Hits.Total.Value == 0 {
+		return models.APIFeed{}, nil
 	}
 
-	if err := json.Unmarshal(res.Hits.Hits[0].Source_, &feed); err != nil {
+	feed, err := extractSource[models.APIFeed](resp.Hits.Hits[0])
+	if err != nil {
 		return feed, errors.Join(ErrSearchFailed, err)
 	}
 
@@ -274,20 +239,7 @@ func (c *Client) GetItems(ctx context.Context, filters models.APISearchFilters) 
 		return nil, nil, fmt.Errorf("failed to get feed item summaries: %w", err)
 	}
 
-	var items []models.APIItem
-
-	for _, hit := range res.Hits.Hits {
-		var item models.APIItem
-
-		if err := json.Unmarshal([]byte(hit.Source_), &item); err != nil {
-			c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
-			continue
-		}
-
-		items = append(items, item)
-	}
-
-	spew.Dump(items)
+	items := extractSources[models.APIItem](ctx, res.Hits.Hits)
 
 	// Get the sort value(s) of the last hit.
 	data, err := json.Marshal(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
@@ -334,15 +286,9 @@ func (c *Client) GetItem(ctx context.Context, feedID, itemID string) (models.API
 		return models.APIItem{}, errors.Join(ErrSearchFailed, err)
 	}
 
-	var item models.APIItem
-
-	for _, hit := range res.Hits.Hits {
-		if err := json.Unmarshal(hit.Source_, &item); err != nil {
-			c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
-			continue
-		}
-
-		break
+	item, err := extractSource[models.APIItem](res.Hits.Hits[0])
+	if err != nil {
+		errors.Join(ErrSearchFailed, err)
 	}
 
 	return item, nil
@@ -397,29 +343,7 @@ func (c *Client) getUserReadItems(ctx context.Context, userID models.UserID, fil
 		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
-	items := unmarshalSource[models.ReadItem](ctx, resp.Hits.Hits)
+	items := extractSources[models.ReadItem](ctx, resp.Hits.Hits)
 
 	return items, nil
-}
-
-// unmarshalSource loops through the given hits array and extracts the `_source`
-// field of each document as type `T`, returning the documents as `[]T`.
-//
-//nolint:prealloc
-func unmarshalSource[T any](ctx context.Context, hits []types.Hit) []T {
-	var items []T
-
-	for _, hit := range hits {
-		var item T
-
-		if err := json.Unmarshal([]byte(hit.Source_), &item); err != nil {
-			logging.FromContext(ctx).Warn("Could not unmarshal item source.",
-				slog.Any("error", err))
-			continue
-		}
-
-		items = append(items, item)
-	}
-
-	return items
 }
