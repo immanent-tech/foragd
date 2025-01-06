@@ -202,11 +202,7 @@ func (c *Client) CountUnread(ctx context.Context, feedIDs ...string) (int, error
 // GetUnreadItemsPaginated will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (c *Client) GetUnreadItems(ctx context.Context, filters models.APISearchFilters, size int) ([]models.APIItem, []byte, error) {
-	if size == 0 {
-		size = 10
-	}
-
+func (c *Client) GetUnreadItems(ctx context.Context, filters models.APISearchFilters) ([]models.APIItem, []byte, error) {
 	userID, err := session.UserID(ctx)
 	if err != nil {
 		return nil, nil, errors.Join(ErrNoUserCtx, err)
@@ -231,7 +227,7 @@ func (c *Client) GetUnreadItems(ctx context.Context, filters models.APISearchFil
 			),
 		),
 		WithSortOptions(SortTimestampDesc()),
-		WithSearchSize(size),
+		WithSearchSize(filters.Count),
 		WithSearchAfter(filters.Pagination),
 	)
 
