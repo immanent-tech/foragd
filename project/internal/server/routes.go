@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	homePage = "/home/feeds"
+	homePage = "/home/feeds/show"
 )
 
 var (

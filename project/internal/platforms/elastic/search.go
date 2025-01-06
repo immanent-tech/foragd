@@ -248,20 +248,33 @@ func WithFields(fields ...string) Option[*search.Search] {
 	}
 }
 
-// SearchSize defines the number of results returned.
-func SearchSize(size int) Option[*search.Search] {
+// WithSearchSize defines the number of results returned.
+func WithSearchSize(size int) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
 		search = search.Size(size)
 		return search
 	}
 }
 
-// SearchAfter sets the sort value to fetch the next set of results.
+// WithSearchAfter sets the sort value to fetch the next set of results.
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
-func SearchAfter(sortValue []types.FieldValue) Option[*search.Search] {
+func WithSearchAfter(value any) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
-		if len(sortValue) > 0 {
-			search = search.SearchAfter(sortValue...)
+		if value == nil {
+			return search
+		}
+
+		switch sort := value.(type) {
+		case []types.FieldValue:
+			search = search.SearchAfter(sort...)
+		case []byte:
+			var fv []types.FieldValue
+			if err := json.Unmarshal(sort, &fv); err != nil {
+				slog.Warn("Could not unmarshal pagination data.", slog.Any("error", err))
+			} else {
+				search = search.SearchAfter(fv...)
+			}
+
 		}
 
 		return search

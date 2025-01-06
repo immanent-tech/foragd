@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 //nolint:lll
+//revive:disable:get-return
 package server
 
 import (
@@ -27,17 +28,39 @@ const (
 	itemBasePath      = "/home/item"
 )
 
+func (p GetListHandlerParams) GenerateFilters() models.APISearchFilters {
+	var filters models.APISearchFilters
+
+	if p.Feeds != nil {
+		filters.FeedIDs = *p.Feeds
+	}
+
+	if p.Categories != nil {
+		filters.Categories = *p.Categories
+	}
+
+	if p.Pagination != nil {
+		if pagination, err := url.QueryUnescape(*p.Pagination); err != nil {
+			slog.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		} else {
+			filters.Pagination = []byte(pagination)
+		}
+	}
+
+	return filters
+}
+
 // FeedsHandler displays the home page with a list of feeds, optionally filtered
 // by the given feed IDs and categories.
 func (s Server) GetListHandler(res http.ResponseWriter, req *http.Request, list GetListHandlerParamsListType, action GetListHandlerParamsGetAction, params GetListHandlerParams) {
 	var (
-		page    templ.Component
-		filters models.APISearchFilters
-		cards   []templ.Component
+		page  templ.Component
+		cards []templ.Component
 	)
 
-	logger := logging.NewHandlerLogger("ListHandler", req)
+	logger := logging.NewHandlerLogger("GetListHandler", req)
 	ctx := req.Context()
+	filters := params.GenerateFilters()
 
 	logger.Debug("Handling Request.",
 		slog.Any("action", action),
@@ -52,22 +75,6 @@ func (s Server) GetListHandler(res http.ResponseWriter, req *http.Request, list 
 		res.WriteHeader(http.StatusBadRequest)
 
 		return
-	}
-
-	if params.Feeds != nil {
-		filters.FeedIDs = *params.Feeds
-	}
-
-	if params.Categories != nil {
-		filters.Categories = *params.Categories
-	}
-
-	if params.Pagination != nil {
-		if pagination, err := url.QueryUnescape(*params.Pagination); err != nil {
-			logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		} else {
-			filters.Pagination = []byte(pagination)
-		}
 	}
 
 	// Get all subscribed feeds.
@@ -90,21 +97,26 @@ func (s Server) GetListHandler(res http.ResponseWriter, req *http.Request, list 
 		})
 
 		for _, feed := range feeds {
+			// Get unread count for feed.
 			unread := feed.GetUnreadCount(ctx, s.API.elastic)
-
+			// Skip display if unread count is zero.
+			if unread == 0 {
+				continue
+			}
+			// Else, generate a feed card for display.
 			card, err := content.NewCard(ctx, &feed, unread)
 			if err != nil {
 				logger.Warn("Could not render item as card.", slog.Any("error", err))
 				continue
 			}
-
+			// Append to the list of feed cards.
 			cards = append(cards, card.Show())
 		}
 	case GetListHandlerParamsListTypeItems:
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
 
-		items, pagination, err := s.API.elastic.GetItems(ctx, filters)
+		items, pagination, err := s.API.elastic.GetUnreadItems(ctx, filters, 10)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
@@ -145,13 +157,64 @@ func (s Server) GetListHandler(res http.ResponseWriter, req *http.Request, list 
 }
 
 func (s Server) PostListHandler(res http.ResponseWriter, req *http.Request, list PostListHandlerParamsListType, action PostListHandlerParamsPostAction, params PostListHandlerParams) {
-	res.WriteHeader(http.StatusNotImplemented)
+	var (
+		filters     models.APISearchFilters
+		items       []models.APIItem
+		pagination  []byte
+		err         error
+		unreadItems []models.APIReadItem
+	)
+
+	logger := logging.NewHandlerLogger("PostListHandler", req)
+	ctx := req.Context()
+
+	if params.Feeds != nil {
+		filters.FeedIDs = *params.Feeds
+	}
+
+	if params.Categories != nil {
+		filters.Categories = *params.Categories
+	}
+
+	// Fetch the unread items with the given filters. Paginate through the
+	// results, collecting into unreadItems.
+	for {
+		if pagination != nil {
+			filters.Pagination = pagination
+		}
+
+		items, pagination, err = s.API.elastic.GetUnreadItems(ctx, filters, 100)
+		if err != nil {
+			logger.Warn("Could not retrieve items.", slog.Any("error", err))
+		}
+
+		if len(items) == 0 {
+			break
+		}
+
+		for _, item := range items {
+			unreadItems = append(unreadItems, models.APIReadItem{
+				ItemID: item.ID,
+				FeedID: item.FeedID,
+			})
+		}
+	}
+
+	// Mark all unreadItems as read.
+	if err := s.API.elastic.MarkItemsRead(req.Context(), unreadItems...); err != nil {
+		logger.Warn("Could not mark item as read.", slog.Any("error", err))
+		return
+	}
+
+	if _, err := res.Write(nil); err != nil {
+		logger.Error("Failed to write response.", slog.Any("error", err))
+	}
 }
 
 func (s Server) GetItemHandler(res http.ResponseWriter, req *http.Request, action GetItemHandlerParamsGetAction, feedID FeedID, itemID ItemID) {
 	var page templ.Component
 
-	logger := logging.NewHandlerLogger("ArticleHandler", req)
+	logger := logging.NewHandlerLogger("GetItemHandler", req)
 
 	ctx := req.Context()
 
@@ -192,10 +255,12 @@ func (s Server) PostItemHandler(res http.ResponseWriter, req *http.Request, acti
 			ItemID: item,
 			FeedID: feed,
 		}
+
 		if err := s.API.elastic.MarkItemsRead(req.Context(), item); err != nil {
 			logger.Warn("Could not mark item as read.", slog.Any("error", err))
 			return
 		}
+
 		if _, err := res.Write(nil); err != nil {
 			logger.Error("Failed to write response.", slog.Any("error", err))
 		}

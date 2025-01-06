@@ -199,7 +199,14 @@ func (c *Client) CountUnread(ctx context.Context, feedIDs ...string) (int, error
 	return int(countRes.Count), nil
 }
 
-func (c *Client) GetItems(ctx context.Context, filters models.APISearchFilters) ([]models.APIItem, []byte, error) {
+// GetUnreadItemsPaginated will search Elasticsearch for unread items (with
+// given filters applied) for the given user, and, returns the items as well as
+// pagination details for paging through the results.
+func (c *Client) GetUnreadItems(ctx context.Context, filters models.APISearchFilters, size int) ([]models.APIItem, []byte, error) {
+	if size == 0 {
+		size = 10
+	}
+
 	userID, err := session.UserID(ctx)
 	if err != nil {
 		return nil, nil, errors.Join(ErrNoUserCtx, err)
@@ -212,6 +219,8 @@ func (c *Client) GetItems(ctx context.Context, filters models.APISearchFilters) 
 			slog.Any("error", err))
 	}
 
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
 	req := c.NewSearchRequest(
 		WithIndexPattern[*search.Search](schema.FeedItemsSchemaPrefix+"-*"),
 		WithFields(defaultItemFields...),
@@ -222,17 +231,9 @@ func (c *Client) GetItems(ctx context.Context, filters models.APISearchFilters) 
 			),
 		),
 		WithSortOptions(SortTimestampDesc()),
-		SearchSize(10),
+		WithSearchSize(size),
+		WithSearchAfter(filters.Pagination),
 	)
-
-	if filters.Pagination != nil {
-		var searchAfter []types.FieldValue
-		if err := json.Unmarshal(filters.Pagination, &searchAfter); err != nil {
-			c.logger.Warn("Could not unmarshal pagination data.", slog.Any("error", err))
-		} else {
-			req = SearchAfter(searchAfter)(req)
-		}
-	}
 
 	res, err := req.Do(ctx)
 	if err != nil {
@@ -241,13 +242,16 @@ func (c *Client) GetItems(ctx context.Context, filters models.APISearchFilters) 
 
 	items := extractSources[models.APIItem](ctx, res.Hits.Hits)
 
+	var paginationData []byte
 	// Get the sort value(s) of the last hit.
-	data, err := json.Marshal(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
-	if err != nil {
-		c.logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
+	if len(res.Hits.Hits) > 0 {
+		paginationData, err = json.Marshal(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
+		if err != nil {
+			c.logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
+		}
 	}
 
-	return items, data, nil
+	return items, paginationData, nil
 }
 
 // AddItems will bulk index the given items to the Elasticsearch cache.
@@ -288,7 +292,7 @@ func (c *Client) GetItem(ctx context.Context, feedID, itemID string) (models.API
 
 	item, err := extractSource[models.APIItem](res.Hits.Hits[0])
 	if err != nil {
-		errors.Join(ErrSearchFailed, err)
+		return models.APIItem{}, errors.Join(ErrSearchFailed, err)
 	}
 
 	return item, nil
@@ -305,11 +309,6 @@ func (c *Client) MarkItemsRead(ctx context.Context, items ...models.APIReadItem)
 	docs := make([]document, len(items))
 
 	for iter, item := range items {
-		c.logger.Debug("Marking item read",
-			slog.String("item_id", item.ItemID),
-			slog.String("feed_id", item.FeedID),
-		)
-
 		docs[iter] = &models.ReadItem{
 			Timestamp: time.Now(),
 			ItemID:    item.ItemID,
@@ -323,27 +322,44 @@ func (c *Client) MarkItemsRead(ctx context.Context, items ...models.APIReadItem)
 	return nil
 }
 
-func (c *Client) MarkFeedsRead(ctx context.Context, feedIDs ...models.FeedID) error {
-	return nil
-}
-
+// getUserReadItems will paginate through the readitems datastream, collating
+// all read items that match the given filters.
 func (c *Client) getUserReadItems(ctx context.Context, userID models.UserID, filters models.APISearchFilters) (models.ReadItems, error) {
-	resp, err := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](schema.ReadItemsSchemaPrefix+"-*"),
-		WithFields("user_id"),
-		WithSearchQueryOptions(
-			QueryBool(
-				BoolFilter(
-					QueryByTerm("user_id", userID),
-					QueryByFeedIDs(filters.FeedIDs...)),
+	var (
+		readItems  models.ReadItems
+		pagination []types.FieldValue
+	)
+
+	searchSize := 1000
+
+	for {
+		resp, err := c.NewSearchRequest(
+			WithIndexPattern[*search.Search](schema.ReadItemsSchemaPrefix+"-*"),
+			WithFields("user_id"),
+			WithSearchQueryOptions(
+				QueryBool(
+					BoolFilter(
+						QueryByTerm("user_id", userID),
+						QueryByFeedIDs(filters.FeedIDs...)),
+				),
 			),
-		),
-	).Do(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrSearchFailed, err)
+			WithSearchSize(searchSize),
+			WithSearchAfter(pagination),
+			WithSortOptions(SortTimestampDesc()),
+		).Do(ctx)
+		if err != nil {
+			return nil, errors.Join(ErrSearchFailed, err)
+		}
+
+		if len(resp.Hits.Hits) == 0 || len(resp.Hits.Hits) < searchSize {
+			break
+		}
+
+		items := extractSources[models.ReadItem](ctx, resp.Hits.Hits)
+		pagination = resp.Hits.Hits[len(resp.Hits.Hits)-1].Sort
+
+		readItems = append(readItems, items...)
 	}
 
-	items := extractSources[models.ReadItem](ctx, resp.Hits.Hits)
-
-	return items, nil
+	return readItems, nil
 }
