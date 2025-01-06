@@ -26,6 +26,7 @@ var (
 )
 
 // QueryMatchAll adds a "Match All" clause.
+//
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-all-query.html
 func QueryMatchAll() Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
@@ -35,6 +36,7 @@ func QueryMatchAll() Option[*types.Query] {
 }
 
 // QueryByTerm adds a "Term" query on the given field with the given value.
+//
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
 func QueryByTerm(field string, value any) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
@@ -49,6 +51,7 @@ func QueryByTerm(field string, value any) Option[*types.Query] {
 }
 
 // QueryByFeedIDs adds a "Terms" clause with the given Feed IDs.
+//
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
 func QueryByFeedIDs(feedIDs ...string) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
@@ -67,6 +70,7 @@ func QueryByFeedIDs(feedIDs ...string) Option[*types.Query] {
 }
 
 // QueryByItemIDs adds a "Terms" clause with the given Item IDs.
+//
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
 func QueryByItemIDs(itemIDs ...string) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
@@ -85,6 +89,7 @@ func QueryByItemIDs(itemIDs ...string) Option[*types.Query] {
 }
 
 // QuerySince adds a "Range" query to find documents newer than the given time.
+//
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
 func QuerySince(field string, since time.Time) Option[*types.Query] {
 	return func(query *types.Query) *types.Query {
@@ -256,7 +261,10 @@ func WithSearchSize(size int) Option[*search.Search] {
 	}
 }
 
-// WithSearchAfter sets the sort value to fetch the next set of results.
+// WithSearchAfter sets the sort value to fetch the next set of results. It can
+// accept either a []types.FieldValue or a []byte (html-encoded
+// []types.FieldValue).
+//
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
 func WithSearchAfter(value any) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
