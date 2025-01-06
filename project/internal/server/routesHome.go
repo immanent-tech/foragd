@@ -108,9 +108,6 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			cards = append(cards, card.Show())
 		}
 
-		if len(cards) == 0 {
-		}
-
 	case ShowListParamsListItems:
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
@@ -123,7 +120,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
 			BackPath:            generateActionLink(ctx, showFeedsPath),
 			RefreshPath:         generateActionLink(ctx, showItemsPath),
-			MarkReadPath:        generateActionLink(ctx, markItemsReadPath),
+			MarkReadPath:        generateActionLink(ctx, markArticlePath),
 			Pagination:          generatePagination(ctx, showItemsPath, pagination),
 			ActionBasePath:      showItemsPath,
 			ChildActionBasePath: showArticlePath,
