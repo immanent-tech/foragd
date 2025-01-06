@@ -113,6 +113,11 @@ func (c *Client) bulkStreamWorker(ctx context.Context) {
 						slog.Any("errors", resp.Items),
 					)
 				}
+
+				c.logger.Debug("Bulk indexed items.",
+					slog.Int("count", len(resp.Items)),
+					slog.Int("took", int(resp.Took)),
+				)
 			}()
 		}
 	}
