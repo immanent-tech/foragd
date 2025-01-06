@@ -7,11 +7,11 @@ import "github.com/joshuar/go-templ-daisyui"
 
 // backButton shows the back button. It will be invisible if there is no backlink.
 templ backButton() {
-	<li class={ templ.KV("invisible", NavigationFromCtx(ctx).BackURL == "") }>
+	<li class={ templ.KV("invisible", NavigationFromCtx(ctx).BackPath == "") }>
 		<a
 			class="tooltip tooltip-bottom"
 			data-tip="Back"
-			hx-get={ NavigationFromCtx(ctx).BackURL }
+			hx-get={ NavigationFromCtx(ctx).BackPath }
 			hx-target={ "#" + ContentTarget }
 			hx-push-url="true"
 		>
@@ -25,7 +25,7 @@ templ refreshButton() {
 		<a
 			class="tooltip tooltip-bottom"
 			data-tip="Refresh"
-			hx-get={ NavigationFromCtx(ctx).RefreshURL }
+			hx-get={ NavigationFromCtx(ctx).RefreshPath }
 			hx-target={ "#" + ContentTarget }
 			hx-push-url="false"
 		>
@@ -39,7 +39,7 @@ templ markAllReadButton() {
 		<a
 			class="tooltip tooltip-bottom"
 			data-tip="Mark All Read"
-			hx-post={ NavigationFromCtx(ctx).ActionAllURL }
+			hx-post={ NavigationFromCtx(ctx).MarkReadPath }
 			hx-target={ "#" + ContentTarget }
 			hx-push-url="false"
 		>
@@ -54,14 +54,14 @@ templ buttonToggleItem(feedID, itemID string) {
 			class="tooltip tooltip-left"
 			data-tip="Mark Read"
 			if itemID != "" {
-				hx-post={ NavigationFromCtx(ctx).ChildActionBasePath + "/markRead/" + feedID + "/" + itemID }
+				hx-post={ NavigationFromCtx(ctx).MarkReadPath + "/" + feedID + "/" + itemID }
 				hx-trigger="click consume"
 				hx-target={ "#" + itemID }
 				hx-swap="outerHTML swap:1s"
 				hx-push-url="false"
 			} else {
-				hx-post={ NavigationFromCtx(ctx).ActionBasePath +
-				"/markRead?feeds=" + feedID }
+				hx-post={ NavigationFromCtx(ctx).MarkReadPath +
+				"?feeds=" + feedID }
 				hx-trigger="click consume"
 				hx-target={ "#" + feedID }
 				hx-swap="outerHTML swap:1s"

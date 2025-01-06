@@ -24,7 +24,6 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 )
@@ -85,7 +84,6 @@ func LoadAndSave() func(next http.Handler) http.Handler {
 }
 
 func SaveListFeedsFilters(ctx context.Context, filters models.APISearchFilters) {
-	spew.Dump(filters)
 	sessionManager.Put(ctx, listFeedsFiltersSessionKey, filters)
 }
 

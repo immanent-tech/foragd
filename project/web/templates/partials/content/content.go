@@ -64,7 +64,7 @@ func NewCard(ctx context.Context, item any, count int) (components.Card, error) 
 	// Generate type-specific card features.
 	switch details := item.(type) {
 	case Item:
-		actionPath, err := url.JoinPath(NavigationFromCtx(ctx).ChildActionBasePath, "show", details.GetFeedID(), details.GetID())
+		actionPath, err := url.JoinPath(NavigationFromCtx(ctx).ChildActionBasePath, details.GetFeedID(), details.GetID())
 		if err != nil {
 			return components.Card{}, fmt.Errorf("could not generate a card: %w", err)
 		}
@@ -85,7 +85,7 @@ func NewCard(ctx context.Context, item any, count int) (components.Card, error) 
 			"hx-push-url": "true",
 		}
 	case Feed:
-		actionPath := NavigationFromCtx(ctx).ChildActionBasePath + "/show?feeds=" + details.GetID()
+		actionPath := NavigationFromCtx(ctx).ChildActionBasePath + "?feeds=" + details.GetID()
 
 		title = components.WithTitle(
 			details.GetTitle(),

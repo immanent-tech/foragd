@@ -213,43 +213,55 @@ paths:
           description: Unauthorized
         500:
           description: Problem with request
-  /home/{listType}/{getAction}:
+  /home/show/{list}:
     get:
       summary: show a list of feeds/items with optional filtering.
-      operationId: getListHandler
+      operationId: showList
       parameters:
-        - $ref: '#/components/parameters/ListType'
-          required: true
-        - $ref: '#/components/parameters/GetAction'
+        - $ref: '#/components/parameters/List'
           required: true
         - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Items'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Pagination'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/{listType}/{postAction}:
+  /home/show/{list}/menu:
+    get:
+      summary: show menu actions for a list.
+      operationId: showListMenu
+      parameters:
+        - $ref: '#/components/parameters/List'
+          required: true
+        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Items'
+        - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/Pagination'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+  /home/mark/{list}/{action}:
     post:
-      summary: performs an action on the list of feeds/items with optional filtering.
-      operationId: postListHandler
+      summary: marks the list of feeds/items with optional filtering as read.
+      operationId: markList
       parameters:
-        - $ref: '#/components/parameters/ListType'
+        - $ref: '#/components/parameters/List'
           required: true
-        - $ref: '#/components/parameters/PostAction'
+        - $ref: '#/components/parameters/Action'
           required: true
         - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Items'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Pagination'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/item/{getAction}/{feed}/{item}:
+  /home/show/{feed}/{item}:
     get:
       summary: display an item.
-      operationId: getItemHandler
+      operationId: showArticle
       parameters:
-        - $ref: '#/components/parameters/GetAction'
-          required: true
         - $ref: '#/components/parameters/FeedID'
           required: true
         - $ref: '#/components/parameters/ItemID'
@@ -257,16 +269,28 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/item/{postAction}/{feed}/{item}:
-    post:
-      summary: perform the given action on the item.
-      operationId: postItemHandler
+  /home/show/{feed}/{item}/menu:
+    get:
+      summary: show menu actions for an item.
+      operationId: showArticleMenu
       parameters:
-        - $ref: '#/components/parameters/PostAction'
-          required: true
         - $ref: '#/components/parameters/FeedID'
           required: true
         - $ref: '#/components/parameters/ItemID'
+          required: true
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+  /home/mark/{action}/{feed}/{item}:
+    post:
+      summary: mark an article as read.
+      operationId: markArticle
+      parameters:
+        - $ref: '#/components/parameters/FeedID'
+          required: true
+        - $ref: '#/components/parameters/ItemID'
+          required: true
+        - $ref: '#/components/parameters/Action'
           required: true
       responses:
         200:
@@ -308,24 +332,18 @@ components:
       in: query
       schema:
         type: string
-    ListType:
-      name: listType
+    List:
+      name: list
       in: path
       schema:
         type: string
         enum: [feeds, items]
-    GetAction:
-      name: getAction
+    Action:
+      name: action
       in: path
       schema:
         type: string
-        enum: [show,showRead,share]
-    PostAction:
-      name: postAction
-      in: path
-      schema:
-        type: string
-        enum: [markRead,markUnread,save]
+        enum: [read, unread]
   responses:
     htmx:
       description: standard htmx powered response.

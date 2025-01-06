@@ -9,7 +9,12 @@ import (
 )
 
 templ ContentHeader() {
-	<div id="content-header" hx-swap-oob="true" class="bg-base-300 sticky top-0 z-30 w-full">
+	// if NavigationFromCtx(ctx).Pagination == "" {
+	<div
+		id="content-header"
+		class="bg-base-300 sticky top-0
+	z-30 w-full"
+	>
 		@components.NewMenu(
 			components.WithLayout[components.Menu](components.HorizontalLayout),
 			components.WithItems[components.Menu](
@@ -19,6 +24,7 @@ templ ContentHeader() {
 			),
 		).Show()
 	</div>
+	// }
 }
 
 // AppBarBottom displays an app bar at the bottom of the content.
@@ -34,8 +40,6 @@ templ DrawerMain(data templ.Component) {
 	<!-- Modal for commands -->
 	<dialog id="command-modal" class="modal"></dialog>
 	<div id="content">
-		<!-- Content Header -->
-		<div id="content-header" class="bg-orange-500 sticky z-30 top-0 w-full"></div>
 		<!-- Content -->
 		// <form>
 		<div id="content-main" class="flex flex-row flex-wrap gap-2">
@@ -95,7 +99,7 @@ templ ShowArticle(item *models.APIItem) {
 }
 
 // ShowCards displays a list of the given cards.
-templ ShowCards(name string, cards ...templ.Component) {
+templ ShowCards(cards ...templ.Component) {
 	@ContentHeader()
 	for _, card := range cards {
 		@card

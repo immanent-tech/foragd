@@ -153,10 +153,12 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
-		homeRouter.Get("/{listType}/{getAction}", wrapper.GetListHandler)
-		homeRouter.Post("/{listType}/{postAction}", wrapper.PostListHandler)
-		homeRouter.Get("/item/{getAction}/{feed}/{item}", wrapper.GetItemHandler)
-		homeRouter.Post("/item/{postAction}/{feed}/{item}", wrapper.PostItemHandler)
+		homeRouter.Get("/show/{list}", wrapper.ShowList)
+		homeRouter.Get("/show/{list}/menu", wrapper.ShowListMenu)
+		homeRouter.Post("/mark/{list}/{action}", wrapper.MarkList)
+		homeRouter.Get("/show/article/{feed}/{item}", wrapper.ShowArticle)
+		homeRouter.Get("/show/article/{feed}/{item}/menu", wrapper.ShowArticleMenu)
+		homeRouter.Post("/mark/article/{action}/{feed}/{item}", wrapper.MarkArticle)
 		homeRouter.Get("/settings", wrapper.GetHomeSettings)
 	})
 

@@ -94,13 +94,13 @@ func (s Server) GetLogout(res http.ResponseWriter, req *http.Request, provider s
 // GetIndex serves the front page.
 // GET(/).
 func (s Server) GetIndex(res http.ResponseWriter, req *http.Request) {
-	indexPage := layouts.NewPage("Go Feed Me",
+	indexPage := layouts.Page("Go Feed Me",
 		layouts.WithPageDescription("Welcome to Go Feed Me."),
 		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
 		layouts.WithPageContent(layouts.IndexLayout()))
 
 	// Render index page template.
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, indexPage.Show()); err != nil {
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, indexPage); err != nil {
 		logging.LogReq(req, http.StatusInternalServerError).Error("IndexViewHandler: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
