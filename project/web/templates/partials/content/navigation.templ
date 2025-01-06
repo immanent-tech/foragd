@@ -7,11 +7,11 @@ import "github.com/joshuar/go-templ-daisyui"
 
 // backButton shows the back button. It will be invisible if there is no backlink.
 templ backButton() {
-	<li class={ templ.KV("invisible", NavigationFromCtx(ctx).Parent == "") }>
+	<li class={ templ.KV("invisible", NavigationFromCtx(ctx).BackURL == "") }>
 		<a
 			class="tooltip tooltip-bottom"
 			data-tip="Back"
-			hx-get={ NavigationFromCtx(ctx).Parent }
+			hx-get={ NavigationFromCtx(ctx).BackURL }
 			hx-target={ "#" + ContentTarget }
 			hx-push-url="true"
 		>
@@ -25,28 +25,23 @@ templ refreshButton() {
 		<a
 			class="tooltip tooltip-bottom"
 			data-tip="Refresh"
+			hx-get={ NavigationFromCtx(ctx).RefreshURL }
+			hx-target={ "#" + ContentTarget }
+			hx-push-url="false"
 		>
 			@components.NewIcon("fa-rotate").Show()
 		</a>
 	</li>
 }
 
-templ selectButton() {
+templ markAllReadButton() {
 	<li>
 		<a
 			class="tooltip tooltip-bottom"
-			data-tip="Select Items"
-		>
-			@components.NewIcon("fa-list-check").Show()
-		</a>
-	</li>
-}
-
-templ markMultipleReadButton() {
-	<li>
-		<a
-			class="tooltip tooltip-bottom"
-			data-tip="Mark Read"
+			data-tip="Mark All Read"
+			hx-post={ NavigationFromCtx(ctx).ActionAllURL }
+			hx-target={ "#" + ContentTarget }
+			hx-push-url="false"
 		>
 			@components.NewIcon("fa-check").Show()
 		</a>

@@ -20,8 +20,13 @@ var ErrNotInCtx = errors.New("not found in context")
 
 // NavigationLinks contains the links for navigating between pages.
 type NavigationLinks struct {
-	// Parent is the page to which this page should redirect back to.
-	Parent string
+	// RefreshURL is the URL to refresh the current page.
+	RefreshURL string
+	// BackURL is the URL to which this page should redirect back to.
+	BackURL string
+	// ActionAllURL is the URL to perform an action on all items on the current
+	// page.
+	ActionAllURL string
 	// Pagination is a value used by the backend to fetch the next set of
 	// results as the user scrolls through feeds/items.
 	Pagination string

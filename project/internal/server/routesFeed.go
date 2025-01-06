@@ -92,6 +92,8 @@ func (s Server) GetListHandler(res http.ResponseWriter, req *http.Request, list 
 		session.SaveListFeedsFilters(ctx, filters)
 
 		ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
+			RefreshURL:          generateActionLink(ctx, feedsListBasePath, string(GetItemHandlerParamsGetActionShow)),
+			ActionAllURL:        generateActionLink(ctx, feedsListBasePath, string(PostItemHandlerParamsPostActionMarkRead)),
 			ActionBasePath:      feedsListBasePath,
 			ChildActionBasePath: itemsListBasePath,
 		})
@@ -122,7 +124,9 @@ func (s Server) GetListHandler(res http.ResponseWriter, req *http.Request, list 
 		}
 
 		ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
-			Parent:              generateBacklink(ctx, feedsListBasePath),
+			BackURL:             generateActionLink(ctx, feedsListBasePath, string(GetItemHandlerParamsGetActionShow)),
+			RefreshURL:          generateActionLink(ctx, itemsListBasePath, string(GetItemHandlerParamsGetActionShow)),
+			ActionAllURL:        generateActionLink(ctx, itemsListBasePath, string(PostItemHandlerParamsPostActionMarkRead)),
 			Pagination:          generatePagination(ctx, itemsListBasePath, pagination),
 			ActionBasePath:      itemsListBasePath,
 			ChildActionBasePath: itemBasePath,
@@ -219,7 +223,7 @@ func (s Server) GetItemHandler(res http.ResponseWriter, req *http.Request, actio
 	ctx := req.Context()
 
 	ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
-		Parent:         generateBacklink(req.Context(), itemsListBasePath),
+		BackURL:        generateActionLink(req.Context(), itemsListBasePath, string(GetItemHandlerParamsGetActionShow)),
 		ActionBasePath: itemBasePath,
 	})
 
@@ -270,9 +274,9 @@ func (s Server) PostItemHandler(res http.ResponseWriter, req *http.Request, acti
 	}
 }
 
-// generateBacklink creates a URL string that can be used for a back button on a
-// page.
-func generateBacklink(ctx context.Context, basePath string) string {
+// generateActionLink creates a URL string that can be used for actions that
+// manipulate the current page.
+func generateActionLink(ctx context.Context, basePath, action string) string {
 	var (
 		filters models.APISearchFilters
 		err     error
@@ -288,14 +292,14 @@ func generateBacklink(ctx context.Context, basePath string) string {
 	if err != nil {
 		logging.FromContext(ctx).Warn("Could not generate backlink.",
 			slog.Any("error", err))
-		return basePath + "/show"
+		return basePath + "/" + action
 	}
 
-	backlink, err := filters.GenerateURL(basePath + "/show")
+	backlink, err := filters.GenerateURL(basePath + "/" + action)
 	if err != nil {
 		logging.FromContext(ctx).Warn("Could not generate backlink.",
 			slog.Any("error", err))
-		return basePath + "/show"
+		return basePath + "/" + action
 	}
 
 	return backlink.String()
