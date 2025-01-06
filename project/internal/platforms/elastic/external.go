@@ -330,6 +330,10 @@ func (c *Client) getUserReadItems(ctx context.Context, userID models.UserID, fil
 		pagination []types.FieldValue
 	)
 
+	c.logger.Debug("Finding read items...",
+		slog.Any("feeds", filters.FeedIDs),
+	)
+
 	searchSize := 1000
 
 	for {

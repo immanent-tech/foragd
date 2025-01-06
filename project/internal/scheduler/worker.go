@@ -23,8 +23,6 @@ func NewTaskWorker(ctx context.Context, cache Cache, db DB) error {
 		return fmt.Errorf("cannot start scheduler: %w", err)
 	}
 
-	logger := logging.FromContext(ctx).WithGroup("tasks").With(slog.String("component", "worker"))
-
 	srv := asynq.NewServer(
 		asynq.RedisClientOpt{
 			Addr: config.RedisServer + ":" + strconv.Itoa(config.RedisPort),
@@ -35,7 +33,7 @@ func NewTaskWorker(ctx context.Context, cache Cache, db DB) error {
 	itemsWorker := &TaskRunner{
 		db:     db,
 		cache:  cache,
-		logger: logger,
+		logger: logging.FromContext(ctx).WithGroup("worker"),
 	}
 
 	mux := asynq.NewServeMux()
@@ -43,7 +41,7 @@ func NewTaskWorker(ctx context.Context, cache Cache, db DB) error {
 
 	go func() {
 		if err := srv.Run(mux); err != nil {
-			logger.Error("Worker could not start.", slog.Any("error", err))
+			logging.FromContext(ctx).Error("Worker could not start.", slog.Any("error", err))
 		}
 	}()
 

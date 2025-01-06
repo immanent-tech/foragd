@@ -48,14 +48,16 @@ func (r *TaskRunner) HandleGetFeedItemsTask(ctx context.Context, t *asynq.Task) 
 		return fmt.Errorf("could not unmarshal task payload: %w", err)
 	}
 
-	slog.Debug("Checking for feed updates.",
-		slog.String("feed_id", payload.Feed.ID))
-
 	// Get the time the feed items were last fetched.
 	lastFetched, err := r.db.GetFeedLastFetched(ctx, payload.Feed.ID)
 	if err != nil {
 		return errors.Join(ErrTaskFailed, err)
 	}
+
+	slog.Debug("Checking for feed updates.",
+		slog.String("feed_id", payload.Feed.ID),
+		slog.Time("since", lastFetched))
+
 	// Get new items since the last fetch.
 	items := payload.Feed.GetItemsSince(ctx, lastFetched)
 	// Cache the new items.

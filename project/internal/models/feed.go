@@ -38,6 +38,13 @@ func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 		items = append(items, *item)
 	}
 
+	if len(items) > 0 {
+		logging.FromContext(ctx).Debug("Found new items.",
+			slog.String("feed", f.GetTitle()),
+			slog.String("id", f.GetID()),
+			slog.Int("count", len(items)))
+	}
+
 	return items
 }
 
