@@ -22,7 +22,7 @@ templ AppBarTop() {
 
 templ appBarTopLeft() {
 	<label for="home-drawer" aria-label="Open Drawer" class="btn btn-square lg:hidden drawer-button">
-		@components.NewIcon("fa-chevron-right").Show()
+		@components.Icon("fa-chevron-right")
 	</label>
 }
 
@@ -32,7 +32,7 @@ templ appBarTopCenter() {
 		components.AsFormControl(),
 		components.WithInputModifier(components.InputAccent),
 		components.WithInputType(components.InputTypeSearch),
-		components.WithInputIcon(components.NewIcon("magnifying-glass"), components.AlignLeft),
+		components.WithInputIcon("fa-magnifying-glass", components.AlignLeft),
 		components.WithPlaceholder("Search anything..."),
 		components.WithAttributes[components.Input](templ.Attributes{
 			"tabindex":     0,
@@ -47,8 +47,8 @@ templ appBarTopCenter() {
 templ appBarTopRight() {
 	<details class="dropdown dropdown-bottom dropdown-end [&_.swap-on]:opacity-100 [&_.swap-off]:opacity-0 [&[open]_.swap-off]:opacity-100 [&[open]_.swap-on]:opacity-0">
 		<summary class="swap">
-			@components.NewIcon("fa-bars", components.AsSwapOn()).Show()
-			@components.NewIcon("fa-xmark", components.AsSwapOff()).Show()
+			@components.Icon("fa-bars", components.AsSwapOn())
+			@components.Icon("fa-xmark", components.AsSwapOff())
 		</summary>
 		<ul class="p-2 menu dropdown-content z-[1] bg-base-200 rounded-box w-52">
 			<li><button type="checkbox" data-toggle-theme="dark,light" class="toggle theme-controller"></button></li>

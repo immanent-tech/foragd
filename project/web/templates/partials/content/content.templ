@@ -9,11 +9,11 @@ import (
 )
 
 templ ContentHeader() {
-	// if NavigationFromCtx(ctx).Pagination == "" {
 	<div
 		id="content-header"
 		class="bg-base-300 sticky top-0
 	z-30 w-full"
+		hx-swap-oob="true"
 	>
 		@components.NewMenu(
 			components.WithLayout[components.Menu](components.HorizontalLayout),
@@ -24,38 +24,34 @@ templ ContentHeader() {
 			),
 		).Show()
 	</div>
-	// }
 }
 
 // AppBarBottom displays an app bar at the bottom of the content.
 templ ContentFooter() {
-	<div id="content-footer" hx-swap-oob="true" class="sticky z-30 bottom-0 w-full">
-		<div class="bg-base-300 py-12">
-			<h1 class="text-center text-xl">Footer</h1>
-		</div>
+	<div
+		id="content-footer"
+		hx-swap-oob="true"
+		class="bg-base-300 sticky z-30
+	bottom-0 w-full py-12"
+	>
+		<h1 class="text-center text-xl">Footer</h1>
 	</div>
 }
 
 templ DrawerMain(data templ.Component) {
 	<!-- Modal for commands -->
 	<dialog id="command-modal" class="modal"></dialog>
+	<!-- Content -->
 	<div id="content">
-		<!-- Content -->
-		// <form>
-		<div id="content-main" class="flex flex-row flex-wrap gap-2">
-			@data
-		</div>
-		// </form>
-		<div id="content-footer" class="sticky bottom-0 z-40 w-full"></div>
+		@data
 	</div>
-	<!-- Footer -->
 }
 
 templ DrawerSide() {
 	<div class="bg-base-200">
 		@components.NewButton("", "add",
 			components.WithColor[components.Button](components.ColorGhost, false),
-			components.WithIcon(components.NewIcon("fa-plus"), components.AlignMiddle),
+			components.WithIcon("fa-plus", components.AlignMiddle),
 			components.WithButtonTooltip("Add Item", components.AlignRight),
 			components.WithAttributes[components.Button](templ.Attributes{
 				"hx-get":    "/subscription/add",
@@ -68,32 +64,34 @@ templ DrawerSide() {
 // ShowArticle displays an item as an article.
 templ ShowArticle(item *models.APIItem) {
 	@ContentHeader()
-	<div id="article">
-		<article class={ "prose dark:prose-invert" }>
-			<h2>{ item.Title }</h2>
-			if len(item.GetCategories()) > 0 {
-				<p>
-					for _, c := range item.GetCategories() {
-						@components.NewBadge(
-							components.WithBadgeDescription(c),
-							components.WithResponsiveSize[components.Badge](components.SM),
-							components.WithColor[components.Badge](components.ColorGhost,
-								false)).Show()
-					}
+	<div id="content-main" class="flex flex-row flex-wrap gap-2">
+		<div id="article">
+			<article class={ "prose dark:prose-invert" }>
+				<h2>{ item.Title }</h2>
+				if len(item.GetCategories()) > 0 {
+					<p>
+						for _, c := range item.GetCategories() {
+							@components.Badge(
+								components.WithBadgeDescription(c),
+								components.WithResponsiveSize[components.BadgeProps](components.SM),
+								components.WithColor[components.BadgeProps](components.ColorGhost,
+									false))
+						}
+					</p>
+				}
+				<p class="text-sm justify-end">
+					{ RelativeTime(item.GetTimestamp()) }
 				</p>
-			}
-			<p class="text-sm justify-end">
-				{ RelativeTime(item.GetTimestamp()) }
-			</p>
-			<p>
-				@templ.Raw(item.GetContent())
-			</p>
-			<center>
 				<p>
-					<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
+					@templ.Raw(item.GetContent())
 				</p>
-			</center>
-		</article>
+				<center>
+					<p>
+						<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
+					</p>
+				</center>
+			</article>
+		</div>
 	</div>
 	@ContentFooter()
 }
@@ -101,24 +99,26 @@ templ ShowArticle(item *models.APIItem) {
 // ShowCards displays a list of the given cards.
 templ ShowCards(cards ...templ.Component) {
 	@ContentHeader()
-	for _, card := range cards {
-		@card
-	}
-	// Infinite scroll when bottom of list reached.
-	if NavigationFromCtx(ctx).Pagination != "" {
-		<div
-			hx-get={ NavigationFromCtx(ctx).Pagination }
-			hx-trigger="revealed"
-			hx-swap="afterend"
-			hx-push-url="false"
-			hx-indicator="#content-loading"
-		></div>
-		<div id="content-loading">
-			<center>
-				@components.NewLoading(components.LoadingBars,
-					components.WithResponsiveSize[components.Loading](components.LG)).Show()
-			</center>
-		</div>
-	}
+	<div id="content-main" class="flex flex-row flex-wrap gap-2 w-full">
+		for _, card := range cards {
+			@card
+		}
+		// Infinite scroll when bottom of list reached.
+		if NavigationFromCtx(ctx).Pagination != "" && len(cards) == NavigationFromCtx(ctx).Count {
+			<div
+				hx-get={ NavigationFromCtx(ctx).Pagination }
+				hx-trigger="revealed"
+				hx-swap="afterend"
+				hx-push-url="false"
+				hx-indicator="#content-loading"
+			>
+				@components.Loading(components.LoadingBars,
+					components.WithID[components.LoadingProps]("content-loading"),
+					components.WithColor[components.LoadingProps](components.ColorGhost,
+						false),
+					components.WithResponsiveSize[components.LoadingProps](components.LG))
+			</div>
+		}
+	</div>
 	@ContentFooter()
 }

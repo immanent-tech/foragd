@@ -256,7 +256,12 @@ func WithFields(fields ...string) Option[*search.Search] {
 // WithSearchSize defines the number of results returned.
 func WithSearchSize(size int) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
+		if size == 0 {
+			return search
+		}
+
 		search = search.Size(size)
+
 		return search
 	}
 }

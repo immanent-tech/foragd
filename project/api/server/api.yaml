@@ -223,20 +223,7 @@ paths:
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Items'
         - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/Pagination'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/show/{list}/menu:
-    get:
-      summary: show menu actions for a list.
-      operationId: showListMenu
-      parameters:
-        - $ref: '#/components/parameters/List'
-          required: true
-        - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/Items'
-        - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/Count'
         - $ref: '#/components/parameters/Pagination'
       responses:
         200:
@@ -253,7 +240,6 @@ paths:
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Items'
         - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/Pagination'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -261,18 +247,6 @@ paths:
     get:
       summary: display an item.
       operationId: showArticle
-      parameters:
-        - $ref: '#/components/parameters/FeedID'
-          required: true
-        - $ref: '#/components/parameters/ItemID'
-          required: true
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/show/{feed}/{item}/menu:
-    get:
-      summary: show menu actions for an item.
-      operationId: showArticleMenu
       parameters:
         - $ref: '#/components/parameters/FeedID'
           required: true
@@ -344,6 +318,11 @@ components:
       schema:
         type: string
         enum: [read, unread]
+    Count:
+      name: count
+      in: query
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/Count'
   responses:
     htmx:
       description: standard htmx powered response.

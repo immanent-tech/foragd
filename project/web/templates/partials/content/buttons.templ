@@ -15,7 +15,7 @@ templ backButton() {
 			hx-target={ "#" + ContentTarget }
 			hx-push-url="true"
 		>
-			@components.NewIcon("fa-arrow-left").Show()
+			@components.Icon("fa-arrow-left")
 		</a>
 	</li>
 }
@@ -29,7 +29,7 @@ templ refreshButton() {
 			hx-target={ "#" + ContentTarget }
 			hx-push-url="false"
 		>
-			@components.NewIcon("fa-rotate").Show()
+			@components.Icon("fa-rotate")
 		</a>
 	</li>
 }
@@ -43,7 +43,7 @@ templ markAllReadButton() {
 			hx-target={ "#" + ContentTarget }
 			hx-push-url="false"
 		>
-			@components.NewIcon("fa-check").Show()
+			@components.Icon("fa-check")
 		</a>
 	</li>
 }
@@ -68,7 +68,7 @@ templ buttonToggleItem(feedID, itemID string) {
 				hx-push-url="false"
 			}
 		>
-			@components.NewIcon("fa-check").Show()
+			@components.Icon("fa-check")
 		</a>
 	</li>
 }
@@ -80,7 +80,7 @@ templ buttonSaveItem(feedID, itemID string) {
 			data-tip="Save"
 			hx-post={ "/home/article/" + feedID + "/" + itemID + "/markRead" }
 		>
-			@components.NewIcon("fa-bookmark").Show()
+			@components.Icon("fa-bookmark")
 		</a>
 	</li>
 }
@@ -96,7 +96,7 @@ templ buttonShareItem(feedID, itemID string) {
 				hx-post={ "/home/" + feedID + "/share" }
 			}
 		>
-			@components.NewIcon("fa-share").Show()
+			@components.Icon("fa-share")
 		</a>
 	</li>
 }

@@ -28,8 +28,10 @@ type NavigationLinks struct {
 	// page.
 	MarkReadPath string
 	// Pagination is a value used by the backend to fetch the next set of
-	// results as the user scrolls through feeds/items.
+	// items as the user scrolls through feeds/items.
 	Pagination string
+	// Count is the number of items to retrieve with each pagination request.
+	Count int
 	// ChildActionBasePath is the base path of the URL for any actions on items
 	// that the page directs to.
 	ChildActionBasePath string

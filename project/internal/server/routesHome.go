@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 //nolint:lll
-//revive:disable:get-return
 package server
 
 import (
@@ -29,6 +28,8 @@ const (
 	markItemsReadPath = "/home/mark/items/read"
 	showArticlePath   = "/home/show/article"
 	markArticlePath   = "/home/mark/article/read"
+
+	defaultCount = 10
 )
 
 // ShowList will show a list of feeds or items, with filtering applied.
@@ -50,6 +51,12 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 
 	if params.Categories != nil {
 		filters.Categories = *params.Categories
+	}
+
+	if params.Count != nil {
+		filters.Count = *params.Count
+	} else {
+		filters.Count = defaultCount
 	}
 
 	if params.Pagination != nil {
@@ -89,6 +96,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			MarkReadPath:        generateActionLink(ctx, markFeedsReadPath),
 			ActionBasePath:      showFeedsPath,
 			ChildActionBasePath: showItemsPath,
+			Count:               filters.Count,
 		})
 
 		for _, feed := range feeds {
@@ -112,7 +120,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
 
-		items, pagination, err := s.API.elastic.GetUnreadItems(ctx, filters, 10)
+		items, pagination, err := s.API.elastic.GetUnreadItems(ctx, filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
@@ -122,6 +130,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			RefreshPath:         generateActionLink(ctx, showItemsPath),
 			MarkReadPath:        generateActionLink(ctx, markArticlePath),
 			Pagination:          generatePagination(ctx, showItemsPath, pagination),
+			Count:               filters.Count,
 			ActionBasePath:      showItemsPath,
 			ChildActionBasePath: showArticlePath,
 		})
@@ -154,12 +163,6 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 	}
 }
 
-func (s Server) ShowListMenu(res http.ResponseWriter, req *http.Request, list ShowListMenuParamsList, params ShowListMenuParams) {
-	logger := logging.NewHandlerLogger("ShowListMenu", req)
-	logger.Warn("Unimplmented.")
-	res.WriteHeader(http.StatusNotImplemented)
-}
-
 // MarkList will mark a list of feeds or items, with filtering applied, as read
 // or unread.
 //
@@ -184,6 +187,8 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 		filters.Categories = *params.Categories
 	}
 
+	filters.Count = 100
+
 	// Fetch the unread items with the given filters. Paginate through the
 	// results, collecting into unreadItems.
 	for {
@@ -191,7 +196,7 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 			filters.Pagination = pagination
 		}
 
-		items, pagination, err = s.API.elastic.GetUnreadItems(ctx, filters, 100)
+		items, pagination, err = s.API.elastic.GetUnreadItems(ctx, filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}

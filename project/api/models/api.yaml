@@ -146,6 +146,17 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'pagination'
         form: 'pagination'
+    Count:
+      description: >
+        is the count of items to retrieve with a request.
+      type: integer
+      minimum: 1
+      maximum: 50
+      default: 10
+      x-go-type-skip-optional-pointer: true
+      x-oapi-codegen-extra-tags:
+        json: 'count'
+        form: 'count'
     # Objects.
     User:
       description: is a user of the application.
@@ -228,7 +239,6 @@ components:
               description: indicates when the feed was last fetched from its source.
               x-go-type: time.Time
               x-go-type-skip-optional-pointer: true
-
     APIFeed:
       description: represents a feed object for API endpoints.
       type: object
@@ -412,3 +422,5 @@ components:
           $ref: '#/components/schemas/Categories'
         Pagination:
           $ref: '#/components/schemas/Pagination'
+        Count:
+          $ref: '#/components/schemas/Count'

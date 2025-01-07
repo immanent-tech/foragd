@@ -49,64 +49,22 @@ type Content interface {
 	GetContent() string
 }
 
+type cardCustomisation struct {
+	title      components.Option[components.Card]
+	buttons    []templ.Component
+	attributes templ.Attributes
+	content    string
+}
+
 func NewCard(ctx context.Context, item any, count int) (components.Card, error) {
 	var (
-		title      components.Option[components.Card]
-		buttons    []templ.Component
-		attributes templ.Attributes
-		content    string
+		customisation *cardCustomisation
+		err           error
 	)
 
+	// Don't continue if we cannot generate card menu actions.
 	if NavigationFromCtx(ctx).ActionBasePath == "" {
 		return components.Card{}, errors.New("could not generate a card: no actions path")
-	}
-
-	// Generate type-specific card features.
-	switch details := item.(type) {
-	case Item:
-		actionPath, err := url.JoinPath(NavigationFromCtx(ctx).ChildActionBasePath, details.GetFeedID(), details.GetID())
-		if err != nil {
-			return components.Card{}, fmt.Errorf("could not generate a card: %w", err)
-		}
-
-		title = components.WithTitle(
-			details.GetTitle(),
-			components.H2)
-
-		buttons = append(buttons,
-			buttonToggleItem(details.GetFeedID(), details.GetID()),
-			buttonSaveItem(details.GetFeedID(), details.GetID()),
-			buttonShareItem(details.GetFeedID(), details.GetID()),
-		)
-
-		attributes = templ.Attributes{
-			"hx-target":   "#" + ContentTarget,
-			"hx-get":      actionPath,
-			"hx-push-url": "true",
-		}
-	case Feed:
-		actionPath := NavigationFromCtx(ctx).ChildActionBasePath + "?feeds=" + details.GetID()
-
-		title = components.WithTitle(
-			details.GetTitle(),
-			components.H2,
-			components.NewBadge(
-				components.WithColor[components.Badge](components.ColorPrimary, false),
-				components.WithBadgeDescription(strconv.Itoa(count)),
-			))
-
-		content = details.GetContent()
-
-		buttons = append(buttons,
-			buttonToggleItem(details.GetID(), ""),
-			buttonShareItem(details.GetID(), ""),
-		)
-
-		attributes = templ.Attributes{
-			"hx-target":   "#" + ContentTarget,
-			"hx-get":      actionPath,
-			"hx-push-url": "true",
-		}
 	}
 
 	// Don't continue if we don't have an object that can be represented as a
@@ -116,42 +74,53 @@ func NewCard(ctx context.Context, item any, count int) (components.Card, error) 
 		return components.Card{}, fmt.Errorf("could not generate a card, unknown item")
 	}
 
+	// Generate type-specific card customisation.
+	switch details := item.(type) {
+	case Item:
+		customisation, err = itemCustomisation(ctx, details)
+	case Feed:
+		customisation, err = feedCustomisation(ctx, details, count)
+	}
+
+	if err != nil {
+		return components.Card{}, fmt.Errorf("could not generate a card: %w", err)
+	}
+
 	// Create the base card with the defined options.
 	card := components.NewCard(
-		title,
+		customisation.title,
 		components.WithBorder(),
 		components.WithCardLayout(components.CardLayoutSide),
 		components.WithCardShadow(components.XL),
 		components.WithID[components.Card](summary.GetID()),
-		components.WithAttributes[components.Card](attributes),
-		components.WithTopRightActions(withMenu(buttons...)...),
+		components.WithAttributes[components.Card](customisation.attributes),
+		components.WithTopRightActions(withMenu(customisation.buttons...)...),
 	)
 
 	// If content has been defined, add it to the card.
-	if content != "" {
-		card = components.WithBody(templ.Raw(content))(card)
+	if customisation.content != "" {
+		card = components.WithBody(templ.Raw(customisation.content))(card)
 	}
 
 	// If there is an image, show it.
 	if img := summary.GetImage(); img != nil {
-		card = components.WithImage(
-			components.NewImage(img.URL,
-				components.WithAltText(img.Title),
-				components.WithSize[components.Image](components.Size16),
-				components.WithMask[components.Image](components.MaskSquircle),
-				components.WithObjectFit[components.Image](components.ObjectScaleDown),
-			))(card)
+		card = components.WithImage(img.URL,
+			components.WithAltText(img.Title),
+			components.WithSize[components.ImageProps](components.Size16),
+			components.WithMask[components.ImageProps](components.MaskSquircle),
+			components.WithObjectFit[components.ImageProps](components.ObjectScaleDown),
+		)(card)
 	}
 
 	// If there are categories, show them.
 	if len(summary.GetCategories()) > 0 {
-		var categories []components.Badge
+		var categories []templ.Component
 		for _, c := range summary.GetCategories() {
 			categories = append(categories,
-				components.NewBadge(
+				components.Badge(
 					components.WithBadgeDescription(c),
-					components.WithResponsiveSize[components.Badge](components.SM),
-					components.WithColor[components.Badge](components.ColorAccent, true)),
+					components.WithResponsiveSize[components.BadgeProps](components.SM),
+					components.WithColor[components.BadgeProps](components.ColorAccent, true)),
 			)
 		}
 
@@ -184,4 +153,53 @@ func withMenu(items ...templ.Component) []templ.Component {
 	)
 
 	return menus
+}
+
+func itemCustomisation(ctx context.Context, item Item) (*cardCustomisation, error) {
+	actionPath, err := url.JoinPath(NavigationFromCtx(ctx).ChildActionBasePath, item.GetFeedID(), item.GetID())
+	if err != nil {
+		return nil, fmt.Errorf("could not generate a card: %w", err)
+	}
+
+	return &cardCustomisation{
+			attributes: templ.Attributes{
+				"hx-target":   "#" + ContentTarget,
+				"hx-get":      actionPath,
+				"hx-push-url": "true",
+			},
+			title: components.WithTitle(
+				item.GetTitle(),
+				components.H2),
+			buttons: []templ.Component{
+				buttonToggleItem(item.GetFeedID(), item.GetID()),
+				buttonSaveItem(item.GetFeedID(), item.GetID()),
+				buttonShareItem(item.GetFeedID(), item.GetID()),
+			},
+		},
+		nil
+}
+
+func feedCustomisation(ctx context.Context, feed Feed, count int) (*cardCustomisation, error) {
+	actionPath := NavigationFromCtx(ctx).ChildActionBasePath + "?feeds=" + feed.GetID()
+
+	return &cardCustomisation{
+			attributes: templ.Attributes{
+				"hx-target":   "#" + ContentTarget,
+				"hx-get":      actionPath,
+				"hx-push-url": "true",
+			},
+			title: components.WithTitle(
+				feed.GetTitle(),
+				components.H2,
+				components.Badge(
+					components.WithColor[components.BadgeProps](components.ColorPrimary, false),
+					components.WithBadgeDescription(strconv.Itoa(count)),
+				)),
+			content: feed.GetContent(),
+			buttons: []templ.Component{
+				buttonToggleItem(feed.GetID(), ""),
+				buttonShareItem(feed.GetID(), ""),
+			},
+		},
+		nil
 }

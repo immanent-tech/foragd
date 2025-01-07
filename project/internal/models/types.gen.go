@@ -68,6 +68,9 @@ type APISearchFilters struct {
 	// Categories is a list of feed/item categories.
 	Categories Categories `form:"categories" json:"categories"`
 
+	// Count is the count of items to retrieve with a request.
+	Count Count `form:"count" json:"count"`
+
 	// FeedIDs is a list of feed IDs.
 	FeedIDs FeedIDs `form:"feeds" json:"feeds"`
 
@@ -113,6 +116,9 @@ type Claims struct {
 	UserNickName   string      `json:"nickname"`
 	UserPictureURL string      `json:"picture"`
 }
+
+// Count is the count of items to retrieve with a request.
+type Count = int
 
 // FeedID is the unique ID of a feed.
 type FeedID = string
