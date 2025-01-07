@@ -14,6 +14,8 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
+	components "github.com/joshuar/go-templ-daisyui"
+
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/server/session"
@@ -107,13 +109,17 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 				continue
 			}
 			// Else, generate a feed card for display.
-			card, err := content.NewCard(ctx, &feed, unread)
+			card, err := content.NewCard(&feed, unread)
 			if err != nil {
 				logger.Warn("Could not render item as card.", slog.Any("error", err))
 				continue
 			}
+			// Add the URL for fetching items for this feed.
+			card.Body.AddAttributes(templ.Attributes{
+				"hx-get": showItemsPath + "?feeds=" + feed.GetID(),
+			})
 			// Append to the list of feed cards.
-			cards = append(cards, card.Show())
+			cards = append(cards, components.Card(components.FromCardProps(card)))
 		}
 
 	case ShowListParamsListItems:
@@ -135,14 +141,36 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			ChildActionBasePath: showArticlePath,
 		})
 
-		for _, item := range items {
-			card, err := content.NewCard(ctx, &item, 0)
+		for i, item := range items {
+			// Create item card properties.
+			card, err := content.NewCard(&item, 0)
 			if err != nil {
 				logger.Warn("Could not render item as card.", slog.Any("error", err))
 				continue
 			}
+			// Generate URL for fetching article for item.
+			get, err := url.JoinPath(showArticlePath, item.GetFeedID(), item.GetID())
+			if err != nil {
+				logger.Warn("Could not render item as card.", slog.Any("error", err))
+				continue
+			}
+			// Add the URL for fetching the item article.
+			card.Body.AddAttributes(templ.Attributes{
+				"hx-get": get,
+			})
 
-			cards = append(cards, card.Show())
+			if i == len(items)-1 && pagination != nil && len(items) == filters.Count {
+				slog.Info("last item", slog.Any("item", item))
+				card.AddAttributes(templ.Attributes{
+					"hx-get":       generatePagination(ctx, showItemsPath, pagination),
+					"hx-trigger":   "revealed",
+					"hx-swap":      "afterend",
+					"hx-push-url":  "false",
+					"hx-indicator": "#content-loading",
+				})
+			}
+			// Append to the list of item cards.
+			cards = append(cards, components.Card(components.FromCardProps(card)))
 		}
 	}
 
@@ -151,10 +179,10 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		page = layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(content.ShowCards(cards...))))
+			layouts.WithPageContent(layouts.HomeLayout(content.ShowContent(cards...))))
 	} else {
 		// Partial content otherwise.
-		page = content.ShowCards(cards...)
+		page = content.ShowContent(cards...)
 	}
 
 	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {

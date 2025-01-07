@@ -4,10 +4,7 @@
 package content
 
 import (
-	"context"
-	"errors"
 	"fmt"
-	"net/url"
 	"strconv"
 	"time"
 
@@ -50,66 +47,51 @@ type Content interface {
 }
 
 type cardCustomisation struct {
-	title      components.Option[components.Card]
-	buttons    []templ.Component
-	attributes templ.Attributes
-	content    string
+	title   components.Option[components.CardProps]
+	buttons []templ.Component
+	content string
 }
 
-func NewCard(ctx context.Context, item any, count int) (components.Card, error) {
-	var (
-		customisation *cardCustomisation
-		err           error
-	)
-
-	// Don't continue if we cannot generate card menu actions.
-	if NavigationFromCtx(ctx).ActionBasePath == "" {
-		return components.Card{}, errors.New("could not generate a card: no actions path")
-	}
+func NewCard(item any, count int) (components.CardProps, error) {
+	var customisation *cardCustomisation
 
 	// Don't continue if we don't have an object that can be represented as a
 	// Summary.
 	summary, ok := item.(Summary)
 	if !ok {
-		return components.Card{}, fmt.Errorf("could not generate a card, unknown item")
+		return components.CardProps{}, fmt.Errorf("could not generate a card, unknown item")
 	}
 
 	// Generate type-specific card customisation.
 	switch details := item.(type) {
 	case Item:
-		customisation, err = itemCustomisation(ctx, details)
+		customisation = itemCustomisation(details)
 	case Feed:
-		customisation, err = feedCustomisation(ctx, details, count)
+		customisation = feedCustomisation(details, count)
 	}
 
-	if err != nil {
-		return components.Card{}, fmt.Errorf("could not generate a card: %w", err)
-	}
-
-	// Create the base card with the defined options.
-	card := components.NewCard(
+	// Create the base CardProps with the defined options.
+	cardProps := components.BuildCard(
 		customisation.title,
 		components.WithBorder(),
 		components.WithCardLayout(components.CardLayoutSide),
 		components.WithCardShadow(components.XL),
-		components.WithID[components.Card](summary.GetID()),
-		components.WithAttributes[components.Card](customisation.attributes),
+		components.WithID[components.CardProps](summary.GetID()),
 		components.WithTopRightActions(withMenu(customisation.buttons...)...),
+		components.WithBody(templ.Raw(customisation.content), templ.Attributes{
+			"hx-target":   "#" + ContentTarget,
+			"hx-push-url": "true",
+		}),
 	)
-
-	// If content has been defined, add it to the card.
-	if customisation.content != "" {
-		card = components.WithBody(templ.Raw(customisation.content))(card)
-	}
 
 	// If there is an image, show it.
 	if img := summary.GetImage(); img != nil {
-		card = components.WithImage(img.URL,
+		cardProps = components.WithImage(img.URL,
 			components.WithAltText(img.Title),
 			components.WithSize[components.ImageProps](components.Size16),
 			components.WithMask[components.ImageProps](components.MaskSquircle),
 			components.WithObjectFit[components.ImageProps](components.ObjectScaleDown),
-		)(card)
+		)(cardProps)
 	}
 
 	// If there are categories, show them.
@@ -124,10 +106,10 @@ func NewCard(ctx context.Context, item any, count int) (components.Card, error) 
 			)
 		}
 
-		card.Badges = categories
+		cardProps.Badges = categories
 	}
 
-	return card, nil
+	return cardProps, nil
 }
 
 func withMenu(items ...templ.Component) []templ.Component {
@@ -155,51 +137,32 @@ func withMenu(items ...templ.Component) []templ.Component {
 	return menus
 }
 
-func itemCustomisation(ctx context.Context, item Item) (*cardCustomisation, error) {
-	actionPath, err := url.JoinPath(NavigationFromCtx(ctx).ChildActionBasePath, item.GetFeedID(), item.GetID())
-	if err != nil {
-		return nil, fmt.Errorf("could not generate a card: %w", err)
-	}
-
+func itemCustomisation(item Item) *cardCustomisation {
 	return &cardCustomisation{
-			attributes: templ.Attributes{
-				"hx-target":   "#" + ContentTarget,
-				"hx-get":      actionPath,
-				"hx-push-url": "true",
-			},
-			title: components.WithTitle(
-				item.GetTitle(),
-				components.H2),
-			buttons: []templ.Component{
-				buttonToggleItem(item.GetFeedID(), item.GetID()),
-				buttonSaveItem(item.GetFeedID(), item.GetID()),
-				buttonShareItem(item.GetFeedID(), item.GetID()),
-			},
+		title: components.WithTitle(
+			item.GetTitle(),
+			components.H2),
+		buttons: []templ.Component{
+			buttonToggleItem(item.GetFeedID(), item.GetID()),
+			buttonSaveItem(item.GetFeedID(), item.GetID()),
+			buttonShareItem(item.GetFeedID(), item.GetID()),
 		},
-		nil
+	}
 }
 
-func feedCustomisation(ctx context.Context, feed Feed, count int) (*cardCustomisation, error) {
-	actionPath := NavigationFromCtx(ctx).ChildActionBasePath + "?feeds=" + feed.GetID()
-
+func feedCustomisation(feed Feed, count int) *cardCustomisation {
 	return &cardCustomisation{
-			attributes: templ.Attributes{
-				"hx-target":   "#" + ContentTarget,
-				"hx-get":      actionPath,
-				"hx-push-url": "true",
-			},
-			title: components.WithTitle(
-				feed.GetTitle(),
-				components.H2,
-				components.Badge(
-					components.WithColor[components.BadgeProps](components.ColorPrimary, false),
-					components.WithBadgeDescription(strconv.Itoa(count)),
-				)),
-			content: feed.GetContent(),
-			buttons: []templ.Component{
-				buttonToggleItem(feed.GetID(), ""),
-				buttonShareItem(feed.GetID(), ""),
-			},
+		title: components.WithTitle(
+			feed.GetTitle(),
+			components.H2,
+			components.Badge(
+				components.WithColor[components.BadgeProps](components.ColorPrimary, false),
+				components.WithBadgeDescription(strconv.Itoa(count)),
+			)),
+		content: feed.GetContent(),
+		buttons: []templ.Component{
+			buttonToggleItem(feed.GetID(), ""),
+			buttonShareItem(feed.GetID(), ""),
 		},
-		nil
+	}
 }
