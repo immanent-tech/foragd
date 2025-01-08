@@ -4,10 +4,13 @@
 package logging
 
 import (
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"path/filepath"
+	"time"
 
 	"github.com/lmittmann/tint"
 	"github.com/mattn/go-isatty"
@@ -24,16 +27,23 @@ var LevelNames = map[slog.Leveler]string{
 	LevelFatal: "FATAL",
 }
 
+type Options struct {
+	LogLevel  string `name:"log-level" enum:"info,debug,trace" default:"info" help:"Set logging level."`
+	NoLogFile bool   `name:"no-log-file" help:"Don't write to a log file." default:"false"`
+}
+
 var DefaultLogFile = "../deployments/server.log"
 
-func NewLogger(level string) *slog.Logger {
+//revive:disable:flag-parameter
+func New(options Options) *slog.Logger {
 	var (
-		logLevel                    slog.Level
-		consoleHandler, fileHandler slog.Handler
+		logLevel slog.Level
+		logFile  string
+		handlers []slog.Handler
 	)
 
 	// Set the log level.
-	switch level {
+	switch options.LogLevel {
 	case "trace":
 		logLevel = LevelTrace
 	case "debug":
@@ -42,59 +52,118 @@ func NewLogger(level string) *slog.Logger {
 		logLevel = slog.LevelInfo
 	}
 
-	// Set the slog handler
-	consoleHandler = tint.NewHandler(os.Stderr, &tint.Options{
-		Level:       logLevel,
-		NoColor:     !isatty.IsTerminal(os.Stderr.Fd()),
-		ReplaceAttr: levelReplacer,
-	})
+	// Set a log file if specified.
+	if options.NoLogFile {
+		logFile = ""
+	} else {
+		logFile = DefaultLogFile
+	}
+
+	handlers = append(handlers, tint.NewHandler(os.Stderr,
+		generateConsoleOptions(logLevel, os.Stderr.Fd())))
 
 	// Unless no log file was requested, set up file logging.
-	if DefaultLogFile != "" {
-		logFile, err := openLogFile(DefaultLogFile)
+	if logFile != "" {
+		logFH, err := openLogFile(logFile)
 		if err != nil {
-			slog.Warn("Unable to open log file.",
-				slog.String("file", logFile.Name()),
+			slog.Warn("unable to open log file",
+				slog.String("file", logFile),
 				slog.Any("error", err))
 		} else {
-			fileHandler = slog.NewJSONHandler(logFile, nil)
+			handlers = append(handlers, slog.NewTextHandler(logFH, generateFileOpts(logLevel)))
 		}
 	}
 
-	logger := slog.New(slogmulti.Fanout(
-		consoleHandler,
-		fileHandler,
-	))
-
+	logger := slog.New(slogmulti.Fanout(handlers...))
 	slog.SetDefault(logger)
 
 	return logger
 }
 
-func levelReplacer(_ []string, attr slog.Attr) slog.Attr {
+func generateConsoleOptions(level slog.Level, fd uintptr) *tint.Options {
+	opts := &tint.Options{
+		Level:       level,
+		NoColor:     !isatty.IsTerminal(fd),
+		ReplaceAttr: tintLevelReplacer,
+		TimeFormat:  time.Kitchen,
+	}
+	if level == LevelTrace {
+		opts.AddSource = true
+	}
+
+	return opts
+}
+
+func generateFileOpts(level slog.Level) *slog.HandlerOptions {
+	opts := &slog.HandlerOptions{
+		Level:       level,
+		ReplaceAttr: fileLevelReplacer,
+	}
+	if level == LevelTrace {
+		opts.AddSource = true
+	}
+
+	return opts
+}
+
+func tintLevelReplacer(_ []string, attr slog.Attr) slog.Attr {
+	// Set default level.
 	if attr.Key == slog.LevelKey {
 		level, ok := attr.Value.Any().(slog.Level)
 		if !ok {
 			level = slog.LevelInfo
 		}
 
+		// Errors in red.
+		if err, ok := attr.Value.Any().(error); ok {
+			aErr := tint.Err(err)
+			attr.Key = aErr.Key
+		}
+
+		// Format custom log level.
 		levelLabel, exists := LevelNames[level]
 		if exists {
 			attr.Value = slog.StringValue(levelLabel)
 		}
 	}
 
-	if err, ok := attr.Value.Any().(error); ok {
-		aErr := tint.Err(err)
-		attr.Key = aErr.Key
+	return attr
+}
+
+func fileLevelReplacer(_ []string, attr slog.Attr) slog.Attr {
+	// Set default level.
+	if attr.Key == slog.LevelKey {
+		level, ok := attr.Value.Any().(slog.Level)
+		if !ok {
+			level = slog.LevelInfo
+		}
+
+		// Format custom log level.
+		levelLabel, exists := LevelNames[level]
+		if exists {
+			attr.Value = slog.StringValue(levelLabel)
+		}
 	}
 
 	return attr
 }
 
-//nolint:mnd
+// openLogFile will attempt to open the specified log file. It will also attempt
+// to create the directory containing the log file if it does not exist.
 func openLogFile(logFile string) (*os.File, error) {
-	logFileHandle, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	logDir := filepath.Dir(logFile)
+	// Create the log directory if it does not exist.
+	_, err := os.Stat(logDir)
+
+	if err == nil || errors.Is(err, os.ErrNotExist) {
+		err = os.MkdirAll(logDir, os.ModePerm)
+		if err != nil {
+			return nil, fmt.Errorf("unable to create log file directory %s: %w", logDir, err)
+		}
+	}
+
+	// Open the log file.
+	logFileHandle, err := os.Create(logFile)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open log file: %w", err)
 	}

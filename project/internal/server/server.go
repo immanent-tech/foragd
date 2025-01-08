@@ -43,14 +43,12 @@ func NewServer(ctx context.Context) (Server, error) {
 	var svr Server
 
 	// Load the config.
-	if err := loadConfig(); err != nil {
+	if err := LoadConfig(); err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
 
 	// Set up the logger
-	svr.Logger = logging.NewLogger(config.LogLevel)
-	// Embed the logger into the context
-	ctx = logging.ToContext(ctx, svr.Logger)
+	svr.Logger = logging.FromContext(ctx)
 
 	// Embed the config into the context
 	// ctx = config.ToContext(ctx, cfg)

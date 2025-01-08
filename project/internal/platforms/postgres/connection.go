@@ -78,15 +78,6 @@ func Connect(ctx context.Context) (*Client, error) {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
 
-	logger.Debug("Performing auto-migration...")
-
-	err = db.AutoMigrate(schemas[:]...)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrSetupFailed, err)
-	}
-
-	logger.Debug("Auto-migration complete!")
-
 	store, err := gormstore.New(db)
 	if err != nil {
 		return nil, fmt.Errorf("unable to create session store in DB: %w", err)

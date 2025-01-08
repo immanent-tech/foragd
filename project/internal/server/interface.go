@@ -23,7 +23,7 @@ import (
 
 // Environment returns the current environment under which the server is
 // running.
-func (s Server) Environment() string {
+func Environment() string {
 	return config.Environment
 }
 
@@ -32,7 +32,7 @@ func (s Server) AppSecret() string {
 }
 
 // Port returns the port on which the server is listening.
-func (s Server) Port() int {
+func Port() int {
 	return config.Port
 }
 

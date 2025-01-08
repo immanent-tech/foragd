@@ -60,7 +60,7 @@ type Config struct {
 
 var configSrc = koanf.New(".")
 
-func loadConfig() error {
+func LoadConfig() error {
 	// Load config file
 	if err := configSrc.Load(file.Provider(ServerConfigFile), toml.Parser()); err != nil {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
