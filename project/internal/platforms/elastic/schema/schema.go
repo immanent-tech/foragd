@@ -12,19 +12,23 @@ import (
 )
 
 const (
-	MappingsSuffix        = "_mappings"
-	SettingsSuffix        = "_settings"
-	FeedSchemaPrefix      = "feeds"
-	FeedItemsSchemaPrefix = "feeditems"
-	ReadItemsSchemaPrefix = "readitems"
-	IngestPipelineID      = "gofeed"
+	MappingsSuffix            = "_mappings"
+	SettingsSuffix            = "_settings"
+	SubscriptionsSchemaPrefix = "subscriptions"
+	FeedsSchemaPrefix         = "feeds"
+	FeedItemsSchemaPrefix     = "feeditems"
+	ReadItemsSchemaPrefix     = "readitems"
 
-	FeedsMappings      = FeedSchemaPrefix + MappingsSuffix
-	FeedsSettings      = FeedSchemaPrefix + SettingsSuffix
-	FeedsItemsMappings = FeedItemsSchemaPrefix + MappingsSuffix
-	FeedsItemsSettings = FeedItemsSchemaPrefix + SettingsSuffix
-	ReadItemsMappings  = ReadItemsSchemaPrefix + MappingsSuffix
-	ReadItemsSettings  = ReadItemsSchemaPrefix + SettingsSuffix
+	IngestPipelineID = "gofeed"
+
+	SubscriptionsMappings = SubscriptionsSchemaPrefix + MappingsSuffix
+	SubscriptionsSettings = SubscriptionsSchemaPrefix + SettingsSuffix
+	FeedsMappings         = FeedsSchemaPrefix + MappingsSuffix
+	FeedsSettings         = FeedsSchemaPrefix + SettingsSuffix
+	FeedsItemsMappings    = FeedItemsSchemaPrefix + MappingsSuffix
+	FeedsItemsSettings    = FeedItemsSchemaPrefix + SettingsSuffix
+	ReadItemsMappings     = ReadItemsSchemaPrefix + MappingsSuffix
+	ReadItemsSettings     = ReadItemsSchemaPrefix + SettingsSuffix
 
 	schemaVersion = "v0.0.0"
 )
@@ -33,6 +37,51 @@ var defaultMetadata = NewMetadata(WithMetadataField("version", schemaVersion))
 
 // Option is a reusable generic function for applying options to a type.
 type Option[T any] func(T) T
+
+//
+// SUBSCRIPTIONS
+//
+
+// ComponentTemplateSubscriptionsMappings returns a Component Template for subscriptions
+// index field mappings.
+func ComponentTemplateSubscriptionsMappings() *putcomponenttemplate.Request {
+	return NewComponentTemplateRequest(
+		WithIndexOptions(
+			NewIndexState(
+				WithMappings(
+					NewPropertyMapping(
+						WithDateNanosProperty("@timestamp"),
+						WithKeywordProperty("feed_id"),
+						WithKeywordProperty("subscription_id"),
+						WithKeywordProperty("user_id"),
+						WithTextAndKeywordProperty("name"),
+						WithTextAndKeywordProperty("categories"),
+					),
+				),
+			),
+		),
+	)
+}
+
+// ComponentTemplateSubscriptionsSettings returns a Component Template for subscriptions
+// index settings.
+func ComponentTemplateSubscriptionsSettings() *putcomponenttemplate.Request {
+	return NewComponentTemplateRequest(
+		WithIndexOptions(
+			NewIndexState(
+				WithAliases("subscriptions", types.Alias{}),
+			),
+		),
+	)
+}
+
+// IndexTemplateFeeds returns an Index Template for feeds indices.
+func IndexTemplateSubscriptions() *putindextemplate.Request {
+	return NewIndexTemplateRequest(
+		WithIndexPatterns(SubscriptionsSchemaPrefix+"-*"),
+		WithComponentTemplates(SubscriptionsMappings, SubscriptionsSettings),
+	)
+}
 
 //
 // FEEDS
@@ -97,7 +146,7 @@ func ComponentTemplateFeedsSettings() *putcomponenttemplate.Request {
 // IndexTemplateFeeds returns an Index Template for feeds indices.
 func IndexTemplateFeeds() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
-		WithIndexPatterns(FeedSchemaPrefix+"-*"),
+		WithIndexPatterns(FeedsSchemaPrefix+"-*"),
 		WithComponentTemplates(FeedsMappings, FeedsSettings),
 	)
 }

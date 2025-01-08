@@ -18,7 +18,9 @@ import (
 )
 
 // MigrateCmd: `go-feed-me migrate`.
-type MigrateCmd struct{}
+type MigrateCmd struct {
+	Migrations []string `help:"Components to migrate."`
+}
 
 func (r *MigrateCmd) Run(opts *CmdOpts) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -37,7 +39,7 @@ func (r *MigrateCmd) Run(opts *CmdOpts) error {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}
 
-	if err = elasticClient.Migration(ctx); err != nil {
+	if err = elasticClient.Migration(ctx, r.Migrations...); err != nil {
 		return fmt.Errorf("unable to perform Elastic migration: %w", err)
 	}
 

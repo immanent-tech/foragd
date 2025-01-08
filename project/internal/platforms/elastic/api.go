@@ -86,7 +86,7 @@ func (c *Client) getFeedsByID(ctx context.Context, ids ...string) ([]models.APIF
 // match_all query.
 func (c *Client) getAllFeeds(ctx context.Context) ([]models.APIFeed, error) {
 	resp, err := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](schema.FeedsSchemaPrefix+"-*"),
 		WithFields(defaultFeedFields...),
 		WithSearchQueryOptions(QueryMatchAll()),
 	).Do(ctx)
@@ -114,7 +114,7 @@ func (c *Client) GetFeeds(ctx context.Context, filters models.APISearchFilters) 
 // given time.
 func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error) {
 	resp, err := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](schema.FeedsSchemaPrefix+"-*"),
 		WithSearchQueryOptions(QuerySince("@timestamp", since)),
 	).Do(ctx)
 	if err != nil {
@@ -128,7 +128,7 @@ func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]model
 
 func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, error) {
 	resp, err := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](schema.FeedSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](schema.FeedsSchemaPrefix+"-*"),
 		WithFields(defaultFeedFields...),
 		WithSearchQueryOptions(QueryByTerm("feedLink", url)),
 	).Do(ctx)
