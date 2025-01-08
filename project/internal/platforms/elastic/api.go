@@ -66,12 +66,12 @@ func (c *Client) getFeedsByID(ctx context.Context, ids ...string) ([]models.APIF
 	for _, doc := range res.Docs {
 		switch obj := doc.(type) {
 		case types.MultiGetError:
-			c.logger.Warn("Problem getting document", slog.Any("error", obj))
+			c.Logger.Warn("Problem getting document", slog.Any("error", obj))
 		case *types.GetResult:
 			var feed models.APIFeed
 
 			if err := json.Unmarshal(obj.Source_, &feed); err != nil {
-				c.logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
+				c.Logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
 				continue
 			}
 
@@ -154,7 +154,7 @@ func (c *Client) AddFeeds(_ context.Context, feeds ...models.Feed) error {
 	var docs []document
 
 	for _, feed := range feeds {
-		c.logger.Debug("Adding feed",
+		c.Logger.Debug("Adding feed",
 			slog.String("name", feed.Title),
 			slog.String("item_id", feed.ID),
 		)
@@ -211,7 +211,7 @@ func (c *Client) GetUnreadItems(ctx context.Context, filters models.APISearchFil
 	// Get the user read items.
 	readItems, err := c.getUserReadItems(ctx, userID, filters)
 	if err != nil {
-		c.logger.Warn("Could not get user read items.",
+		c.Logger.Warn("Could not get user read items.",
 			slog.Any("error", err))
 	}
 
@@ -243,7 +243,7 @@ func (c *Client) GetUnreadItems(ctx context.Context, filters models.APISearchFil
 	if len(res.Hits.Hits) > 0 {
 		paginationData, err = json.Marshal(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
 		if err != nil {
-			c.logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
+			c.Logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
 		}
 	}
 
@@ -255,7 +255,7 @@ func (c *Client) AddItems(_ context.Context, items ...models.Item) error {
 	docs := make([]document, len(items))
 
 	for iter, item := range items {
-		c.logger.Debug("Adding item",
+		c.Logger.Debug("Adding item",
 			slog.String("name", item.Title),
 			slog.String("item_id", item.ID),
 			slog.String("feed_id", item.FeedID),
@@ -326,7 +326,7 @@ func (c *Client) getUserReadItems(ctx context.Context, userID models.UserID, fil
 		pagination []types.FieldValue
 	)
 
-	c.logger.Debug("Finding read items...",
+	c.Logger.Debug("Finding read items...",
 		slog.Any("feeds", filters.FeedIDs),
 	)
 

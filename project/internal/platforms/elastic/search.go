@@ -287,7 +287,6 @@ func WithSearchAfter(value any) Option[*search.Search] {
 			} else {
 				search = search.SearchAfter(fv...)
 			}
-
 		}
 
 		return search

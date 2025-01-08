@@ -1,96 +1,74 @@
-// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package schema
 
 import (
+	"github.com/elastic/go-elasticsearch/v8/typedapi/cluster/putcomponenttemplate"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/putindextemplate"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-// FeedsIndexTemplate contains the mapping and setting component templates for
-// the feeds index.
-func FeedsIndexTemplate() IndexTemplate {
-	return IndexTemplate{
-		Name:          FeedSchemaPrefix,
-		IndexPatterns: []string{FeedSchemaPrefix + "-*"},
-		Components: []ComponentTemplate{
-			{
-				Name: FeedSchemaPrefix + "_mappings",
-				Template: types.IndexState{
-					Mappings: feedMapping(),
-				},
-			},
-			{
-				Name: FeedSchemaPrefix + "_settings",
-				Template: types.IndexState{
-					Aliases: map[string]types.Alias{
-						"feeds": {},
-					},
-				},
-			},
-		},
-		Priority: defaultPriority,
+// WithIndexOptions adds the given index options to the component template.
+func WithIndexOptions(state types.IndexState) Option[*putcomponenttemplate.Request] {
+	return func(template *putcomponenttemplate.Request) *putcomponenttemplate.Request {
+		template.Template = state
+		return template
 	}
 }
 
-// FeedItemsIndexTemplate contains the mapping and setting component templates for
-// the feed-items index.
-func FeeditemsIndexTemplate() IndexTemplate {
-	lifecycleName := FeedItemsSchemaPrefix
-	lifecycle := types.NewIndexSettingsLifecycle()
-	lifecycle.Name = &lifecycleName
+func NewComponentTemplateRequest(options ...Option[*putcomponenttemplate.Request]) *putcomponenttemplate.Request {
+	template := &putcomponenttemplate.Request{
+		Meta_: defaultMetadata,
+	}
 
-	return IndexTemplate{
-		Name:          FeedItemsSchemaPrefix,
-		IndexPatterns: []string{FeedItemsSchemaPrefix + "-*"},
-		Components: []ComponentTemplate{
-			{
-				Name: FeedItemsSchemaPrefix + "_mappings",
-				Template: types.IndexState{
-					Mappings: feeditemsMapping(),
-				},
-			},
-			{
-				Name: FeedItemsSchemaPrefix + "_settings",
-				Template: types.IndexState{
-					Settings: &types.IndexSettings{
-						Lifecycle: lifecycle,
-					},
-				},
-			},
-		},
-		DataStream: types.NewDataStreamVisibility(),
-		Priority:   defaultPriority,
+	for _, option := range options {
+		template = option(template)
+	}
+
+	return template
+}
+
+// WithComponentTemplates assigns the given component templates to the index template.
+func WithComponentTemplates(components ...string) Option[*putindextemplate.Request] {
+	return func(template *putindextemplate.Request) *putindextemplate.Request {
+		template.ComposedOf = components
+		return template
 	}
 }
 
-// ReadItemsIndexTemplate contains the mapping and setting component templates for
-// the read-items index.
-func ReadItemsIndexTemplate() IndexTemplate {
-	lifecycleName := ReadItemsSchemaPrefix
-	lifecycle := types.NewIndexSettingsLifecycle()
-	lifecycle.Name = &lifecycleName
-
-	return IndexTemplate{
-		Name:          ReadItemsSchemaPrefix,
-		IndexPatterns: []string{ReadItemsSchemaPrefix + "-*"},
-		Components: []ComponentTemplate{
-			{
-				Name: ReadItemsSchemaPrefix + "_mappings",
-				Template: types.IndexState{
-					Mappings: readItemsMapping(),
-				},
-			},
-			{
-				Name: ReadItemsSchemaPrefix + "_settings",
-				Template: types.IndexState{
-					Settings: &types.IndexSettings{
-						Lifecycle: lifecycle,
-					},
-				},
-			},
-		},
-		DataStream: types.NewDataStreamVisibility(),
-		Priority:   defaultPriority,
+// WithIndexPatterns assigns the given index patterns to the index template.
+func WithIndexPatterns(patterns ...string) Option[*putindextemplate.Request] {
+	return func(template *putindextemplate.Request) *putindextemplate.Request {
+		template.IndexPatterns = patterns
+		return template
 	}
+}
+
+// WithPriority assigns the given priority to the index template.
+func WithPriority(priority int64) Option[*putindextemplate.Request] {
+	return func(template *putindextemplate.Request) *putindextemplate.Request {
+		template.Priority = &priority
+		return template
+	}
+}
+
+// AsDataStream will associate the index template with a data stream.
+func AsDataStream() Option[*putindextemplate.Request] {
+	return func(template *putindextemplate.Request) *putindextemplate.Request {
+		template.DataStream = types.NewDataStreamVisibility()
+		return template
+	}
+}
+
+func NewIndexTemplateRequest(options ...Option[*putindextemplate.Request]) *putindextemplate.Request {
+	template := &putindextemplate.Request{
+		Meta_: defaultMetadata,
+	}
+
+	for _, option := range options {
+		template = option(template)
+	}
+
+	return template
 }

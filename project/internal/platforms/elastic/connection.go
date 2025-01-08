@@ -29,7 +29,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
 const (
@@ -54,7 +53,7 @@ var (
 type Client struct {
 	conn       *elasticsearch.TypedClient
 	API        *typedapi.API
-	logger     *slog.Logger
+	Logger     *slog.Logger
 	bulkStream chan []document
 }
 
@@ -72,11 +71,11 @@ func Connect(ctx context.Context, environment string) (*Client, error) {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
 
-	client := &Client{API: typedapi.New(esclient), conn: esclient, logger: logger}
+	client := &Client{API: typedapi.New(esclient), conn: esclient, Logger: logger}
 
-	if err := client.Setup(ctx); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrSetupFailed, err)
-	}
+	// if err := client.Setup(ctx); err != nil {
+	// 	return nil, fmt.Errorf("%w: %w", ErrSetupFailed, err)
+	// }
 
 	client.bulkStream = make(chan []document)
 	go func() {
@@ -87,31 +86,23 @@ func Connect(ctx context.Context, environment string) (*Client, error) {
 	return client, nil
 }
 
-func (c *Client) Setup(ctx context.Context) error {
-	// Update the ILM policy for feeditems.
-	if err := c.PutILMPolicy(ctx, schema.FeedItemsSchemaPrefix, schema.FeedItemsILMPolicy()); err != nil {
-		return fmt.Errorf("put ILM policy: %w", err)
-	}
-	// Update the ILM policy for readitems.
-	if err := c.PutILMPolicy(ctx, schema.ReadItemsSchemaPrefix, schema.ReadItemsILMPolicy()); err != nil {
-		return fmt.Errorf("put ILM policy: %w", err)
-	}
-	// Add ingest pipeline(s).
-	if err := c.PutIngestPipeline(ctx, schema.IngestPipelineID, schema.FeedItemsIngestPipeline()); err != nil {
-		return fmt.Errorf("put ingest pipeline: %w", err)
-	}
-	// Update the feeditems index template.
-	if err := c.PutIndexTemplate(ctx, schema.FeeditemsIndexTemplate()); err != nil {
-		return fmt.Errorf("put index template: %w", err)
-	}
-	// Update the readitems index template.
-	if err := c.PutIndexTemplate(ctx, schema.ReadItemsIndexTemplate()); err != nil {
-		return fmt.Errorf("put index template: %w", err)
-	}
-	// Update the feeds index template.
-	if err := c.PutIndexTemplate(ctx, schema.FeedsIndexTemplate()); err != nil {
-		return fmt.Errorf("put index template: %w", err)
-	}
+// func (c *Client) Setup(ctx context.Context) error {
+// 	// Update the ILM policy for feeditems.
+// 	if err := c.PutILMPolicy(ctx, schema.FeedItemsSchemaPrefix, schema.FeedItemsILMPolicy()); err != nil {
+// 		return fmt.Errorf("put ILM policy: %w", err)
+// 	}
+// 	// Update the ILM policy for readitems.
+// 	if err := c.PutILMPolicy(ctx, schema.ReadItemsSchemaPrefix, schema.ReadItemsILMPolicy()); err != nil {
+// 		return fmt.Errorf("put ILM policy: %w", err)
+// 	}
+// 	// Add ingest pipeline(s).
+// 	if err := c.PutIngestPipeline(ctx, schema.IngestPipelineID, schema.FeedItemsIngestPipeline()); err != nil {
+// 		return fmt.Errorf("put ingest pipeline: %w", err)
+// 	}
 
-	return nil
-}
+// 	// if err := schema.CreateTemplates(ctx); err != nil {
+// 	// 	return fmt.Errorf("put index template: %w", err)
+// 	// }
+
+// 	return nil
+// }

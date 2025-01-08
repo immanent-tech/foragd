@@ -86,7 +86,7 @@ func (c *Client) NewBulkRequest(options ...BulkOption) *BulkRequest {
 // bulkStreamWorker runs in a goroutine and listens for documents to bulk index
 // into Elasticsearch.
 func (c *Client) bulkStreamWorker(ctx context.Context) {
-	c.logger.Debug("Bulk indexer ready...")
+	c.Logger.Debug("Bulk indexer ready...")
 
 	for {
 		select {
@@ -106,15 +106,15 @@ func (c *Client) bulkStreamWorker(ctx context.Context) {
 				// Handle response.
 				switch {
 				case err != nil:
-					c.logger.Error("Bulk index failed.",
+					c.Logger.Error("Bulk index failed.",
 						slog.Any("error", err))
 				case resp.Errors:
-					c.logger.Warn("Bulk index completed with some errors.",
+					c.Logger.Warn("Bulk index completed with some errors.",
 						slog.Any("errors", resp.Items),
 					)
 				}
 
-				c.logger.Debug("Bulk indexed items.",
+				c.Logger.Debug("Bulk indexed items.",
 					slog.Int("count", len(resp.Items)),
 					slog.Int("took", int(resp.Took)),
 				)

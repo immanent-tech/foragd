@@ -1,0 +1,125 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package schema
+
+import (
+	"github.com/elastic/go-elasticsearch/v8/typedapi/ilm/putlifecycle"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+)
+
+const (
+	HotPhase Phase = iota
+	WarmPhase
+	ColdPhase
+	FrozenPhase
+	DeletePhase
+)
+
+// Phase represents a phase in an ILM policy.
+type Phase int
+
+// WithDelete will add a delete action to the phase.
+func WithDelete() Option[*types.IlmActions] {
+	return func(action *types.IlmActions) *types.IlmActions {
+		action.Delete = types.NewDeleteAction()
+		return action
+	}
+}
+
+// WithRolloverMaxSize will apply a rollover action to the phase that will
+// rollover indices larger than the given size.
+func WithRolloverMaxSize(size string) Option[*types.IlmActions] {
+	return func(action *types.IlmActions) *types.IlmActions {
+		action.Rollover.MaxSize = types.ByteSize(size)
+		return action
+	}
+}
+
+// WithForceMergeSegments will apply a force merge action to the phase that will
+// force merge indices to the given number of segments.
+func WithForceMergeSegments(segments int) Option[*types.IlmActions] {
+	return func(action *types.IlmActions) *types.IlmActions {
+		action.Forcemerge.MaxNumSegments = segments
+		return action
+	}
+}
+
+// WithShrinkToShards will apply a shrink action to the phase that will shrink
+// indices to the given number of shards.
+func WithShrinkToShards(shards int) Option[*types.IlmActions] {
+	return func(action *types.IlmActions) *types.IlmActions {
+		action.Shrink.NumberOfShards = &shards
+		return action
+	}
+}
+
+// NewILMAction creates a new ILM action for with the given options.
+func NewILMAction(options ...Option[*types.IlmActions]) *types.IlmActions {
+	actions := &types.IlmActions{}
+
+	for _, option := range options {
+		actions = option(actions)
+	}
+
+	return actions
+}
+
+// WithActions adds the given actions to the phase.
+func WithActions(options ...Option[*types.IlmActions]) Option[*types.Phase] {
+	return func(phase *types.Phase) *types.Phase {
+		phase.Actions = NewILMAction(options...)
+		return phase
+	}
+}
+
+// WithMinAge defines the minimum age at which this phase applies.
+func WithMinAge(age string) Option[*types.Phase] {
+	return func(phase *types.Phase) *types.Phase {
+		dur := types.Duration(age)
+		phase.MinAge = &dur
+
+		return phase
+	}
+}
+
+// NewILMPhase creates a new ILM Phase with the given options.
+func NewILMPhase(options ...Option[*types.Phase]) *types.Phase {
+	phase := &types.Phase{}
+
+	for _, option := range options {
+		phase = option(phase)
+	}
+
+	return phase
+}
+
+// WithPhase adds a phase to the ILM policy with the given phase options.
+func WithPhase(phase Phase, options ...Option[*types.Phase]) Option[*types.IlmPolicy] {
+	return func(ilm *types.IlmPolicy) *types.IlmPolicy {
+		switch phase {
+		case HotPhase:
+			ilm.Phases.Hot = NewILMPhase(options...)
+		case WarmPhase:
+			ilm.Phases.Warm = NewILMPhase(options...)
+		case ColdPhase:
+			ilm.Phases.Cold = NewILMPhase(options...)
+		case FrozenPhase:
+			ilm.Phases.Frozen = NewILMPhase(options...)
+		}
+
+		return ilm
+	}
+}
+
+func NewILMPolicy(options ...Option[*types.IlmPolicy]) *putlifecycle.Request {
+	policy := &types.IlmPolicy{
+		Meta_: defaultMetadata,
+	}
+
+	for _, option := range options {
+		policy = option(policy)
+	}
+
+	return &putlifecycle.Request{Policy: policy}
+}
