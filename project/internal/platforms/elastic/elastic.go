@@ -1,22 +1,17 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package elastic
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
+	"log/slog"
+
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
+	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
 var ErrNoClient = errors.New("no client")
@@ -37,4 +32,38 @@ func WithIndexPattern[T any](value string) Option[T] {
 
 		return req
 	}
+}
+
+// extractSources loops through the given hits array and extracts the `_source`
+// field of each document as type `T`, returning the documents as an array
+// `[]T`. Any errors extracting sources will be logged at the WARN level.
+//
+//nolint:prealloc
+func extractSources[T any](ctx context.Context, hits []types.Hit) []T {
+	var items []T
+
+	for _, hit := range hits {
+		source, err := extractSource[T](hit.Source_)
+		if err != nil {
+			logging.FromContext(ctx).Warn("Could not unmarshal item source.",
+				slog.Any("error", err))
+			continue
+		}
+
+		items = append(items, source)
+	}
+
+	return items
+}
+
+// extractSource extracts the `_source` field from a hit. A non-nil error is
+// returned if the source cannot be extracted.
+func extractSource[T any](doc json.RawMessage) (T, error) {
+	var source T
+
+	if err := json.Unmarshal(doc, &source); err != nil {
+		return source, errors.Join(ErrExtractSource, err)
+	}
+
+	return source, nil
 }

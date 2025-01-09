@@ -30,6 +30,7 @@ type APIFeed struct {
 	Language    string        `json:"language,omitempty"`
 	Published   time.Time     `json:"publishedParsed"`
 	Title       string        `json:"title"`
+	UnreadCount int           `json:"-"`
 	Updated     time.Time     `json:"updatedParsed"`
 }
 
@@ -54,6 +55,13 @@ type APIItem struct {
 	Updated     time.Time     `json:"updatedParsed"`
 }
 
+// APINewUser contains the details for a user account that should be created.
+type APINewUser struct {
+	Email    string `json:"email" validate:"required,email"`
+	Nickname string `json:"nickname,omitempty" validate:"omitempty"`
+	Password string `json:"password" validate:"required"`
+}
+
 // APIReadItem defines model for APIReadItem.
 type APIReadItem struct {
 	// FeedID is the unique ID of a feed.
@@ -61,6 +69,12 @@ type APIReadItem struct {
 
 	// ItemID is the unique ID of an item.
 	ItemID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
+
+	// Timestamp is when the document was created.
+	Timestamp Timestamp `json:"@timestamp" validate:"required"`
+
+	// UserID is the unique ID of a user.
+	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
 }
 
 // APISearchFilters contains parameters for searching feeds and items
@@ -81,24 +95,23 @@ type APISearchFilters struct {
 	Pagination Pagination `form:"pagination" json:"pagination"`
 }
 
-// APISubscription represents a subscription object for the API endpoints.
+// APISubscription defines model for APISubscription.
 type APISubscription struct {
-	// URL is a URL.
-	URL URL `gorm:"-" json:"url" validate:"required,url"`
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+
+	// UserID is the unique ID of a user.
+	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
+
+	// Categories is a list of feed/item categories.
+	Categories Categories `form:"categories" json:"categories"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name string `json:"name,omitempty"`
 }
 
-// APIUser defines model for APIUser.
-type APIUser struct {
-	Email    string `json:"email" validate:"required,email"`
-	Nickname string `json:"nickname,omitempty" validate:"omitempty"`
-	Password string `json:"password" validate:"required"`
-}
-
 // Categories is a list of feed/item categories.
-type Categories = []string
+type Categories = []Category
 
 // Category is a single feed/item category.
 type Category = string
@@ -179,47 +192,20 @@ type Pagination = []byte
 
 // ReadItem defines model for ReadItem.
 type ReadItem struct {
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
-
 	// ItemID is the unique ID of an item.
 	ItemID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
 
 	// Timestamp is when the document was created.
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
-
-	// UserID is the unique ID of a user.
-	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
 }
 
-// ReadItems represents an array of item (e.g., an individual feed item) that have been read.
-type ReadItems = []ReadItem
-
-// Subscription defines model for Subscription.
+// Subscription represents a feed a particular user has subscribed to.
 type Subscription struct {
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
-
-	// ID is the unique ID of a subscription.
-	ID SubscriptionID `gorm:"primaryKey" json:"subscription_id" validate:"required"`
-
-	// URL is a URL.
-	URL URL `gorm:"-" json:"url" validate:"required,url"`
-
-	// UserID is the unique ID of a user.
-	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
-
-	// CreatedAt records when the object was created in the database.
-	CreatedAt time.Time `json:"created_at"`
-
-	// DeletedAt records when the object was deleted.
-	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
+	// Categories is a list of feed/item categories.
+	Categories Categories `form:"categories" json:"categories"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name string `json:"name,omitempty"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
@@ -249,8 +235,11 @@ type User struct {
 	// DeletedAt records when the object was deleted.
 	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
 
+	// ReadItems is the list of user read items.
+	ReadItems map[string][]ReadItem `json:"read_items,omitempty"`
+
 	// Subscriptions is the list of user subscriptions.
-	Subscriptions []Subscription `json:"subscriptions,omitempty"`
+	Subscriptions map[string]Subscription `json:"subscriptions,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt time.Time `json:"updated_at"`

@@ -55,7 +55,7 @@ func SignUpForm() components.Form {
 
 // UpdateSignupInput takes the user input, validation results and decorates the
 // sign up form with the results.
-func UpdateSignupInput(field string, item *models.APIUser, problems models.ValidationErrors) components.Input {
+func UpdateSignupInput(field string, item *models.APINewUser, problems models.ValidationErrors) components.Input {
 	form := SignUpForm()
 
 	input, _ := form.Inputs.Get(field)

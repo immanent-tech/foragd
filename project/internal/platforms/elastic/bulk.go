@@ -21,7 +21,7 @@ type BulkRequest struct {
 // document represents a single record in elasticsearch.
 type document interface {
 	DocumentType() models.DocumentType
-	DocumentID() string
+	DocumentID() *string
 }
 
 // BulkOption sets an option on a bulk request.
@@ -54,14 +54,14 @@ func CreateDocs(documents ...document) BulkOption {
 				index = "feeds-test"
 			case models.TypeItem:
 				index = "feeditems-test"
-			case models.TypeReadItem:
-				index = "readitems-test"
+			case models.TypeUser:
+				index = "users-test"
 			}
 
-			if err := bulkReq.CreateOp(types.CreateOperation{Index_: &index}, doc); err != nil {
+			if err := bulkReq.CreateOp(types.CreateOperation{Index_: &index, Id_: doc.DocumentID()}, doc); err != nil {
 				slog.Warn("Could not generate a create op for document.",
 					slog.Any("type", doc.DocumentType()),
-					slog.String("id", doc.DocumentID()),
+					slog.String("id", *doc.DocumentID()),
 					slog.Any("error", err))
 
 				continue

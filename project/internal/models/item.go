@@ -4,9 +4,7 @@
 package models
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -87,23 +85,4 @@ func NewFeedItem(feedID string, details *gofeed.Item) (*Item, error) {
 			Item:      details,
 		},
 		nil
-}
-
-func GetItem(ctx context.Context, db DB, cache Cache, feedID string, itemID string) (*APIItem, error) {
-	// Find a subscription by the provided feed ID.
-	found, err := db.IsSubscribed(ctx, feedID)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrGetSubscriptions, err)
-	}
-	// If not subscribed to this feed, return nothing but an error.
-	if !found {
-		return nil, ErrNotSubscribed
-	}
-
-	item, err := cache.GetItem(ctx, feedID, itemID)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrGetItem, err)
-	}
-
-	return &item, nil
 }

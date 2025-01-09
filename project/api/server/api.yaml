@@ -97,7 +97,7 @@ paths:
         content:
           multipart/form-data:
             schema:
-              $ref: '../models/api.yaml#/components/schemas/APIUser'
+              $ref: '../models/api.yaml#/components/schemas/APINewUser'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -117,7 +117,7 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '../models/api.yaml#/components/schemas/APIUser'
+              $ref: '../models/api.yaml#/components/schemas/APINewUser'
   /search:
     post:
       summary: Issue a user search request

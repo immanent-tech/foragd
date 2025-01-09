@@ -132,11 +132,38 @@ components:
       description: is a list of feed/item categories.
       type: array
       items:
-        type: string
+        $ref: '#/components/schemas/Category'
       x-oapi-codegen-extra-tags:
         json: 'categories'
         form: 'categories'
       x-go-type-skip-optional-pointer: true
+    ReadItem:
+      description: represents an item (e.g., an individual feed item) that has been read.
+      type: object
+      required:
+        - timestamp
+        - ItemID
+      allOf:
+        - type: object
+          properties:
+            Timestamp:
+              $ref: '#/components/schemas/Timestamp'
+            ItemID:
+              $ref: '#/components/schemas/ItemID'
+    Subscription:
+      description: represents a feed a particular user has subscribed to.
+      type: object
+      properties:
+        name:
+          description: >
+            is a friendly name or nickname for the feed given by the user.
+          type: string
+          x-go-type-skip-optional-pointer: true
+        categories:
+          description: >
+            is a list of custom categories the user has assigned to
+            the feed.
+          $ref: '#/components/schemas/Categories'
     Pagination:
       description: >
         contains details that allow fetching results at a certain
@@ -169,11 +196,23 @@ components:
           properties:
             subscriptions:
               description: is the list of user subscriptions.
-              x-go-type: '[]Subscription'
+              type: object
+              additionalProperties:
+                $ref: '#/components/schemas/Subscription'
+              x-go-type-skip-optional-pointer: true
+            read_items:
+              description: is the list of user read items.
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReadItem'
               x-go-type-skip-optional-pointer: true
             ID:
               $ref: '#/components/schemas/UserID'
-    APIUser:
+    APINewUser:
+      description: >
+        contains the details for a user account that should be created.
       type: object
       required:
         - email
@@ -192,35 +231,20 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             validate: 'required'
-    Subscription:
+    APISubscription:
       description: represents a feed a particular user has subscribed to.
       allOf:
-        - $ref: '#/components/schemas/MetadataDB'
-        - $ref: '#/components/schemas/APISubscription'
+        - $ref: '#/components/schemas/Subscription'
         - type: object
           required:
             - ID
             - FeedID
             - UserID
           properties:
-            ID:
-              $ref: '#/components/schemas/SubscriptionID'
             FeedID:
               $ref: '#/components/schemas/FeedID'
             UserID:
               $ref: '#/components/schemas/UserID'
-    APISubscription:
-      description: represents a subscription object for the API endpoints.
-      type: object
-      required:
-        - URL
-      properties:
-        name:
-          description: is a friendly name or nickname for the feed given by the user.
-          type: string
-          x-go-type-skip-optional-pointer: true
-        URL:
-          $ref: '#/components/schemas/URL'
     FeedState:
       description: tracks the state of the feed.
       type: object
@@ -277,6 +301,11 @@ components:
               x-oapi-codegen-extra-tags:
                 json: 'feedVersion'
               x-go-type-skip-optional-pointer: true
+            unread_count:
+              type: integer
+              x-oapi-codegen-extra-tags:
+                json: '-'
+              x-go-type-skip-optional-pointer: true
     APIItem:
       description: represents an individual item (e.g., an individual feed item).
       type: object
@@ -300,44 +329,26 @@ components:
               x-oapi-codegen-extra-tags:
                 json: 'link'
                 validate: 'required,url'
-    ReadItem:
-      description: represents an item (e.g., an individual feed item) that has been read.
-      type: object
-      required:
-        - timestamp
-        - ID
-        - FeedID
-        - UserID
-      allOf:
-        - type: object
-          properties:
-            Timestamp:
-              $ref: '#/components/schemas/Timestamp'
-            ItemID:
-              $ref: '#/components/schemas/ItemID'
-            FeedID:
-              $ref: '#/components/schemas/FeedID'
-            UserID:
-              $ref: '#/components/schemas/UserID'
-    ReadItems:
-      description: represents an array of item (e.g., an individual feed item) that have been read.
-      type: array
-      items:
-        $ref: '#/components/schemas/ReadItem'
+    # ReadItems:
+    #   description: represents an array of item (e.g., an individual feed item) that have been read.
+    #   type: array
+    #   items:
+    #     $ref: '#/components/schemas/ReadItem'
     APIReadItem:
       description: >
         represents an item (e.g., an individual feed item) that has
         been read as used by the API.
-      type: object
-      required:
-        - ItemID
       allOf:
+        - $ref: '#/components/schemas/ReadItem'
         - type: object
+          required:
+            - FeedID
+            - UserID
           properties:
-            ItemID:
-              $ref: '#/components/schemas/ItemID'
             FeedID:
               $ref: '#/components/schemas/FeedID'
+            UserID:
+              $ref: '#/components/schemas/UserID'
     Tokens:
       type: object
       required:

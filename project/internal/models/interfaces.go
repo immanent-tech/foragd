@@ -7,29 +7,34 @@ import (
 	"context"
 )
 
-type Auth interface {
-	Create(ctx context.Context, newUser *APIUser) (string, error)
+// AuthAPI contains methods for handling auth requests.
+type AuthAPI interface {
+	Create(ctx context.Context, user *APINewUser) (string, error)
 }
 
-type DB interface {
-	IsSubscribed(ctx context.Context, feedID string) (bool, error)
-	AddSubscription(ctx context.Context, userID string, sub *Subscription) error
-	GetAllSubscriptions(ctx context.Context) ([]Subscription, error)
-	FilterSubscriptionsByFeedID(ctx context.Context, feedIDs ...string) ([]Subscription, error)
-	GetUserByID(ctx context.Context, userID string) (*User, error)
-	AddUser(ctx context.Context, userID string, newUser *APIUser) error
+// UserActionsAPI contains methods for handling user requests.
+type UserActionsAPI interface {
+	UserActionAddSubscriptions(ctx context.Context, subscriptions ...APISubscription) error
+	UseActionrMarkItemsRead(ctx context.Context, items ...APIReadItem) error
+	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
+	UserActionGetItems(ctx context.Context, filters APISearchFilters) ([]APIItem, []byte, error)
+	UserActionGetFeeds(ctx context.Context, filters APISearchFilters) ([]APIFeed, error)
+	UserActionCountUnread(ctx context.Context, feedIDs ...FeedID) (int, error)
 }
 
-type Cache interface {
-	GetFeedByURL(ctx context.Context, url string) (APIFeed, error)
+// UserManagementAPI contains methods for user management.
+type UserManagementAPI interface {
+	UserExists(ctx context.Context, userID UserID) (bool, error)
+	AddUser(ctx context.Context, userID UserID) error
+}
+
+// FeedManagementAPI contains methods for feed/item management.
+type FeedManagementAPI interface {
+	GetFeedByURL(ctx context.Context, url URL) (APIFeed, error)
 	AddFeeds(ctx context.Context, feeds ...Feed) error
-	GetFeeds(ctx context.Context, filters APISearchFilters) ([]APIFeed, error)
-	GetItem(ctx context.Context, feedID, itemID string) (APIItem, error)
-	GetUnreadItems(ctx context.Context, filters APISearchFilters) ([]APIItem, []byte, error)
-	MarkItemsRead(ctx context.Context, items ...APIReadItem) error
-	CountUnread(ctx context.Context, feedIDs ...string) (int, error)
 }
 
-type Session interface {
+// SessionManagementAPI contains methods for session management.
+type SessionManagementAPI interface {
 	GetTokens(ctx context.Context) (*Tokens, error)
 }

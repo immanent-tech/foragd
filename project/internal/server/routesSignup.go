@@ -33,7 +33,7 @@ func (s Server) GetSignup(res http.ResponseWriter, req *http.Request) {
 func (s Server) PostSignup(res http.ResponseWriter, req *http.Request) {
 	// ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "Signup")))
 
-	newUser, problems, err := forms.DecodeForm[*models.APIUser](req)
+	newUser, problems, err := forms.DecodeForm[*models.APINewUser](req)
 	if err != nil && len(problems) == 0 {
 		logging.FromContext(req.Context()).
 			Error("Could not decode submitted signup request.", slog.Any("error", err))
@@ -57,7 +57,7 @@ func (s Server) PostSignup(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Create new user in the database backend.
-	err = s.API.pg.AddUser(req.Context(), userID, newUser)
+	err = s.API.elastic.AddUser(req.Context(), userID)
 	if err != nil {
 		logging.FromContext(req.Context()).
 			Error("Could not create user account.", slog.Any("error", err))

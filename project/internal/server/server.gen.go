@@ -113,10 +113,10 @@ type GetLoginCallbackParams struct {
 type PostSubscriptionValidateFormdataRequestBody = externalRef0.APISubscription
 
 // PostSignupMultipartRequestBody defines body for PostSignup for multipart/form-data ContentType.
-type PostSignupMultipartRequestBody = externalRef0.APIUser
+type PostSignupMultipartRequestBody = externalRef0.APINewUser
 
 // PostSignupValidateFormdataRequestBody defines body for PostSignupValidate for application/x-www-form-urlencoded ContentType.
-type PostSignupValidateFormdataRequestBody = externalRef0.APIUser
+type PostSignupValidateFormdataRequestBody = externalRef0.APINewUser
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {

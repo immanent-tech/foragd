@@ -4,10 +4,14 @@
 package elastic
 
 import (
+	"errors"
+
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
+
+var ErrGetFailed = errors.New("get request failed")
 
 // WithDocID specifies the document ID to get.
 func WithDocID(id string) Option[types.MgetOperation] {

@@ -12,23 +12,20 @@ import (
 )
 
 const (
-	MappingsSuffix            = "_mappings"
-	SettingsSuffix            = "_settings"
-	SubscriptionsSchemaPrefix = "subscriptions"
-	FeedsSchemaPrefix         = "feeds"
-	FeedItemsSchemaPrefix     = "feeditems"
-	ReadItemsSchemaPrefix     = "readitems"
+	MappingsSuffix        = "_mappings"
+	SettingsSuffix        = "_settings"
+	FeedsSchemaPrefix     = "feeds"
+	FeedItemsSchemaPrefix = "feeditems"
+	UsersSchemaPrefix     = "users"
 
 	IngestPipelineID = "gofeed"
 
-	SubscriptionsMappings = SubscriptionsSchemaPrefix + MappingsSuffix
-	SubscriptionsSettings = SubscriptionsSchemaPrefix + SettingsSuffix
-	FeedsMappings         = FeedsSchemaPrefix + MappingsSuffix
-	FeedsSettings         = FeedsSchemaPrefix + SettingsSuffix
-	FeedsItemsMappings    = FeedItemsSchemaPrefix + MappingsSuffix
-	FeedsItemsSettings    = FeedItemsSchemaPrefix + SettingsSuffix
-	ReadItemsMappings     = ReadItemsSchemaPrefix + MappingsSuffix
-	ReadItemsSettings     = ReadItemsSchemaPrefix + SettingsSuffix
+	FeedsMappings      = FeedsSchemaPrefix + MappingsSuffix
+	FeedsSettings      = FeedsSchemaPrefix + SettingsSuffix
+	FeedsItemsMappings = FeedItemsSchemaPrefix + MappingsSuffix
+	FeedsItemsSettings = FeedItemsSchemaPrefix + SettingsSuffix
+	UsersMappings      = UsersSchemaPrefix + MappingsSuffix
+	UsersSettings      = UsersSchemaPrefix + SettingsSuffix
 
 	schemaVersion = "v0.0.0"
 )
@@ -39,23 +36,28 @@ var defaultMetadata = NewMetadata(WithMetadataField("version", schemaVersion))
 type Option[T any] func(T) T
 
 //
-// SUBSCRIPTIONS
+// USERS
 //
 
-// ComponentTemplateSubscriptionsMappings returns a Component Template for subscriptions
+// ComponentTemplateUserMappings returns a Component Template for users
 // index field mappings.
-func ComponentTemplateSubscriptionsMappings() *putcomponenttemplate.Request {
+func ComponentTemplateUserMappings() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
 				WithMappings(
 					NewPropertyMapping(
 						WithDateNanosProperty("@timestamp"),
-						WithKeywordProperty("feed_id"),
-						WithKeywordProperty("subscription_id"),
 						WithKeywordProperty("user_id"),
-						WithTextAndKeywordProperty("name"),
-						WithTextAndKeywordProperty("categories"),
+						WithDateNanosProperty("created_at"),
+						WithObjectProperty("subscriptions", map[string]types.Property{
+							"categories": asTextAndKeyword(),
+							"name":       asTextAndKeyword(),
+						}),
+						WithObjectProperty("read_items", map[string]types.Property{
+							"item_id":    types.NewKeywordProperty(),
+							"@timestamp": types.NewDateNanosProperty(),
+						}),
 					),
 				),
 			),
@@ -63,23 +65,23 @@ func ComponentTemplateSubscriptionsMappings() *putcomponenttemplate.Request {
 	)
 }
 
-// ComponentTemplateSubscriptionsSettings returns a Component Template for subscriptions
+// ComponentTemplateUsersSettings returns a Component Template for users
 // index settings.
-func ComponentTemplateSubscriptionsSettings() *putcomponenttemplate.Request {
+func ComponentTemplateUsersSettings() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
-				WithAliases("subscriptions", types.Alias{}),
+				WithAliases(UsersSchemaPrefix, types.Alias{}),
 			),
 		),
 	)
 }
 
-// IndexTemplateFeeds returns an Index Template for feeds indices.
-func IndexTemplateSubscriptions() *putindextemplate.Request {
+// IndexTemplateUsers returns an Index Template for users indices.
+func IndexTemplateUsers() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
-		WithIndexPatterns(SubscriptionsSchemaPrefix+"-*"),
-		WithComponentTemplates(SubscriptionsMappings, SubscriptionsSettings),
+		WithIndexPatterns(UsersSchemaPrefix+"-*"),
+		WithComponentTemplates(UsersMappings, UsersSettings),
 	)
 }
 
@@ -223,57 +225,6 @@ func IndexTemplateFeedItems() *putindextemplate.Request {
 
 // ILMPolicyFeedItems is the ILM policy for feed items indices.
 func ILMPolicyFeedItems() *putlifecycle.Request {
-	return DefaultILMPolicy()
-}
-
-//
-// READ ITEMS
-//
-
-// ComponentTemplateReadItemsMappings returns a Component Template for read items
-// index field mappings.
-func ComponentTemplateReadItemsMappings() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithMappings(
-					NewPropertyMapping(
-						WithDateNanosProperty("@timestamp"),
-						WithKeywordProperty("feed_id"),
-						WithKeywordProperty("item_id"),
-						WithKeywordProperty("user_id"),
-					),
-				),
-			),
-		),
-	)
-}
-
-// ComponentTemplateReadItemsSettings returns a Component Template for read item
-// index settings.
-func ComponentTemplateReadItemsSettings() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithIndexSettings(
-					WithIndexLifecycle(ReadItemsSchemaPrefix),
-				),
-			),
-		),
-	)
-}
-
-// IndexTemplateReadItems returns an Index Template for read items indices.
-func IndexTemplateReadItems() *putindextemplate.Request {
-	return NewIndexTemplateRequest(
-		WithIndexPatterns(ReadItemsSchemaPrefix+"-*"),
-		WithComponentTemplates(ReadItemsMappings, ReadItemsSettings),
-		AsDataStream(),
-	)
-}
-
-// ILMPolicyReadItems is the ILM policy for read items indices.
-func ILMPolicyReadItems() *putlifecycle.Request {
 	return DefaultILMPolicy()
 }
 

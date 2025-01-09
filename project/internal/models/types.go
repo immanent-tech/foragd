@@ -16,7 +16,7 @@ import (
 const (
 	TypeFeed DocumentType = iota
 	TypeItem
-	TypeReadItem
+	TypeUser
 )
 
 type DocumentType int
@@ -31,8 +31,8 @@ type Feed struct {
 	ID string `json:"feed_id" validate:"required"`
 }
 
-func (f *Feed) DocumentID() string {
-	return f.ID
+func (f *Feed) DocumentID() *string {
+	return &f.ID
 }
 
 func (f *Feed) DocumentType() DocumentType {
@@ -48,20 +48,12 @@ type Item struct {
 	FeedID string `json:"feed_id"`
 }
 
-func (i *Item) DocumentID() string {
-	return i.ID
+func (i *Item) DocumentID() *string {
+	return &i.ID
 }
 
 func (i *Item) DocumentType() DocumentType {
 	return TypeItem
-}
-
-func (i *ReadItem) DocumentID() string {
-	return i.ItemID
-}
-
-func (i *ReadItem) DocumentType() DocumentType {
-	return TypeReadItem
 }
 
 type UserSession struct {

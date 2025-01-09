@@ -16,25 +16,21 @@
 package middlewares
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
 	"slices"
 	"strings"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/server/session"
 )
-
-type DB interface {
-	IsValidUser(ctx context.Context, userID string) (bool, error)
-}
 
 // RequireAuthentication ensures there is a valid user for the given protected
 // routes. For protected routes, it retrieves the user tokens from the session
 // store, then validates if the token matches a valid user in the database
 // store. For unprotected routes, it passes the request along unmodified.
-func RequireAuthentication(protectedRoutes []string, db DB) func(next http.Handler) http.Handler {
+func RequireAuthentication(protectedRoutes []string, userMgmtAPI models.UserManagementAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			if slices.ContainsFunc(protectedRoutes, func(path string) bool {
@@ -49,7 +45,7 @@ func RequireAuthentication(protectedRoutes []string, db DB) func(next http.Handl
 					return
 				}
 				// Ensure the user ID in the token matches a user in the database.
-				valid, err := db.IsValidUser(req.Context(), tokens.UserID())
+				valid, err := userMgmtAPI.UserExists(req.Context(), tokens.UserID())
 				if err != nil || !valid {
 					logging.LogReq(req, http.StatusUnauthorized).Error("Authentication error.", slog.Any("error", err))
 					http.Error(res, "Authentication error.", http.StatusUnauthorized)

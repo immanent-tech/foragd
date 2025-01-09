@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 )
 
 var ErrAddUser = errors.New("add subscription failed")
@@ -19,11 +20,47 @@ func NewUserPreferences() UserPreferences {
 	}
 }
 
-func (s *User) Valid(_ context.Context) (bool, ValidationErrors) {
-	return validateStruct(s)
+func (u *User) GetSubscribedFeedIDs() []FeedID {
+	var feedIDs []FeedID
+
+	for feedID := range u.Subscriptions {
+		feedIDs = append(feedIDs, feedID)
+	}
+
+	return feedIDs
 }
 
-func (s *APIUser) Valid(_ context.Context) (bool, ValidationErrors) {
+func (u *User) GetReadItemIDs(feedIDs ...FeedID) []ItemID {
+	var readItemsIDs []ItemID
+
+	for feedID, items := range u.ReadItems {
+		if len(feedIDs) > 0 {
+			if !slices.Contains(feedIDs, feedID) {
+				continue
+			}
+		}
+
+		for _, item := range items {
+			readItemsIDs = append(readItemsIDs, item.ItemID)
+		}
+	}
+
+	return readItemsIDs
+}
+
+func (u *User) DocumentID() *string {
+	return &u.ID
+}
+
+func (u *User) DocumentType() DocumentType {
+	return TypeUser
+}
+
+func (u *User) Valid(_ context.Context) (bool, ValidationErrors) {
+	return validateStruct(u)
+}
+
+func (s *APINewUser) Valid(_ context.Context) (bool, ValidationErrors) {
 	return validateStruct(s)
 }
 

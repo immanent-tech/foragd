@@ -11,7 +11,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
-var validMigrations = []string{"feeds", "subscriptions", "feeditems", "readitems", "ingest"}
+var validMigrations = []string{"feeds", "feeditems", "users", "ingest"}
 
 var ErrMigrationFailed = errors.New("schema migration failed")
 
@@ -27,14 +27,12 @@ func (c *Client) Migration(ctx context.Context, migrations ...string) error {
 		var err error
 
 		switch migration {
-		case "subscriptions":
-			err = c.migrateSubscriptions(ctx)
+		case "users":
+			err = c.migrateUsers(ctx)
 		case "feeds":
 			err = c.migrateFeeds(ctx)
 		case "feeditems":
 			err = c.migrateFeedItems(ctx)
-		case "readitems":
-			err = c.migratedReadItems(ctx)
 		case "ingest":
 			err = c.migrateIngest(ctx)
 		}
@@ -47,23 +45,23 @@ func (c *Client) Migration(ctx context.Context, migrations ...string) error {
 	return nil
 }
 
-// migrateSubscriptions contains migration actions for migrating subscriptions indices and
+// migrateUsers contains migration actions for migrating users indices and
 // settings.
-func (c *Client) migrateSubscriptions(ctx context.Context) error {
-	c.Logger.Debug("Migrating subscriptions...")
+func (c *Client) migrateUsers(ctx context.Context) error {
+	c.Logger.Debug("Migrating users...")
 
-	if _, err := c.API.Cluster.PutComponentTemplate(schema.SubscriptionsMappings).
-		Request(schema.ComponentTemplateSubscriptionsMappings()).Do(ctx); err != nil {
+	if _, err := c.API.Cluster.PutComponentTemplate(schema.UsersMappings).
+		Request(schema.ComponentTemplateUserMappings()).Do(ctx); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if _, err := c.API.Cluster.PutComponentTemplate(schema.SubscriptionsSettings).
-		Request(schema.ComponentTemplateSubscriptionsSettings()).Do(ctx); err != nil {
+	if _, err := c.API.Cluster.PutComponentTemplate(schema.UsersSettings).
+		Request(schema.ComponentTemplateUsersSettings()).Do(ctx); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if _, err := c.API.Indices.PutIndexTemplate(schema.SubscriptionsSchemaPrefix).
-		Request(schema.IndexTemplateSubscriptions()).Do(ctx); err != nil {
+	if _, err := c.API.Indices.PutIndexTemplate(schema.UsersSchemaPrefix).
+		Request(schema.IndexTemplateUsers()).Do(ctx); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
@@ -115,34 +113,6 @@ func (c *Client) migrateFeedItems(ctx context.Context) error {
 
 	if _, err := c.API.Indices.PutIndexTemplate(schema.FeedItemsSchemaPrefix).
 		Request(schema.IndexTemplateFeedItems()).Do(ctx); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-
-	return nil
-}
-
-// migrateReadItems contains migration actions for migrating read items
-// index mappings & settings and ILM policy.
-func (c *Client) migratedReadItems(ctx context.Context) error {
-	c.Logger.Debug("Migrating read items...")
-
-	if _, err := c.API.Ilm.PutLifecycle(schema.ReadItemsSchemaPrefix).
-		Request(schema.ILMPolicyReadItems()).Do(ctx); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-
-	if _, err := c.API.Cluster.PutComponentTemplate(schema.ReadItemsMappings).
-		Request(schema.ComponentTemplateReadItemsMappings()).Do(ctx); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-
-	if _, err := c.API.Cluster.PutComponentTemplate(schema.ReadItemsSettings).
-		Request(schema.ComponentTemplateReadItemsSettings()).Do(ctx); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-
-	if _, err := c.API.Indices.PutIndexTemplate(schema.ReadItemsSchemaPrefix).
-		Request(schema.IndexTemplateReadItems()).Do(ctx); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 

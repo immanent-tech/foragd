@@ -113,7 +113,7 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		middleware.Recoverer,
 		middlewares.CORS(config.Environment),
 		middlewares.CSP(config.CSP),
-		middlewares.RequireAuthentication(protectedRoutes, svr.API.pg),
+		middlewares.RequireAuthentication(protectedRoutes, svr.API.elastic),
 		middlewares.RequireHTMX(htmxOnlyRoutes),
 		session.LoadAndSave())
 

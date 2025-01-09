@@ -80,7 +80,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 	}
 
 	// Get all subscribed feeds.
-	feeds, err := models.GetSubcribedFeeds(ctx, s.API.elastic, s.API.pg, filters)
+	feeds, err := s.API.elastic.UserActionGetFeeds(ctx, filters)
 	if err != nil {
 		logger.Error("Cannot display content.", slog.Any("error", err))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -102,14 +102,8 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		})
 
 		for _, feed := range feeds {
-			// Get unread count for feed.
-			unread := feed.GetUnreadCount(ctx, s.API.elastic)
-			// Skip display if unread count is zero.
-			if unread == 0 {
-				continue
-			}
 			// Else, generate a feed card for display.
-			card, err := content.NewCard(&feed, unread)
+			card, err := content.NewCard(&feed, 0)
 			if err != nil {
 				logger.Warn("Could not render item as card.", slog.Any("error", err))
 				continue
@@ -126,7 +120,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
 
-		items, pagination, err := s.API.elastic.GetUnreadItems(ctx, filters)
+		items, pagination, err := s.API.elastic.UserActionGetItems(ctx, filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
@@ -224,7 +218,7 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 			filters.Pagination = pagination
 		}
 
-		items, pagination, err = s.API.elastic.GetUnreadItems(ctx, filters)
+		items, pagination, err = s.API.elastic.UserActionGetItems(ctx, filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
@@ -242,7 +236,7 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 	}
 
 	// Mark all unreadItems as read.
-	if err := s.API.elastic.MarkItemsRead(req.Context(), unreadItems...); err != nil {
+	if err := s.API.elastic.UserActionMarkItemsRead(req.Context(), unreadItems...); err != nil {
 		logger.Warn("Could not mark item as read.", slog.Any("error", err))
 		return
 	}
@@ -267,8 +261,8 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 		ActionBasePath: showArticlePath,
 	})
 
-	item, err := models.GetItem(ctx, s.API.pg, s.API.elastic, feedID, itemID)
-	if err != nil {
+	item, found, err := s.API.elastic.UserActionGetItem(ctx, feedID, itemID)
+	if err != nil || !found {
 		logger.Error("Could not get item.", slog.Any("error", err))
 		http.Error(res, "Not found!.", http.StatusNotFound)
 
@@ -279,9 +273,9 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 		page = layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(content.ShowArticle(item))))
+			layouts.WithPageContent(layouts.HomeLayout(content.ShowArticle(&item))))
 	} else {
-		page = content.ShowArticle(item)
+		page = content.ShowArticle(&item)
 	}
 
 	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {
@@ -309,7 +303,7 @@ func (s Server) MarkArticle(res http.ResponseWriter, req *http.Request, action M
 			FeedID: feed,
 		}
 
-		if err := s.API.elastic.MarkItemsRead(req.Context(), item); err != nil {
+		if err := s.API.elastic.UserActionMarkItemsRead(req.Context(), item); err != nil {
 			logger.Warn("Could not mark item as read.", slog.Any("error", err))
 			return
 		}
