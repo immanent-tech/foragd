@@ -52,7 +52,7 @@ func (s Server) ProcessSignup(res http.ResponseWriter, req *http.Request) {
 
 	if !userSignup.Valid() {
 		ctx := layouts.UserSignupToCtx(req.Context(), userSignup)
-		if err := htmx.NewResponse().RenderTempl(ctx, res, layouts.SignUpForm()); err != nil {
+		if err := htmx.NewResponse().RenderTempl(ctx, res, layouts.SignupForm()); err != nil {
 			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}

@@ -5,6 +5,7 @@ package layouts
 
 import "github.com/joshuar/go-templ-daisyui"
 
+// SignupLayout is the page content for the signup page.
 templ SignupLayout() {
 	<div id="signup-hero" class="hero bg-base-200 min-h-screen">
 		<div class="hero-content text-center">
@@ -13,7 +14,7 @@ templ SignupLayout() {
 				<div id="signup-notifications"></div>
 				if UserSignupFromCtx(ctx) != nil {
 					<div id="signup">
-						@SignUpForm()
+						@SignupForm()
 					</div>
 				}
 			</div>
@@ -21,7 +22,8 @@ templ SignupLayout() {
 	</div>
 }
 
-templ SignUpForm() {
+// SignupForm is a form for a user to enter sign-up details.
+templ SignupForm() {
 	<form hx-post="/signup" hx-target="#signup">
 		<div class="flex flex-col gap-4">
 			{{ signup := UserSignupFromCtx(ctx) }}
