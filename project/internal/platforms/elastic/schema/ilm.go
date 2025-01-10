@@ -31,7 +31,12 @@ func WithDelete() Option[*types.IlmActions] {
 // rollover indices larger than the given size.
 func WithRolloverMaxSize(size string) Option[*types.IlmActions] {
 	return func(action *types.IlmActions) *types.IlmActions {
+		if action.Rollover == nil {
+			action.Rollover = types.NewRolloverAction()
+		}
+
 		action.Rollover.MaxSize = types.ByteSize(size)
+
 		return action
 	}
 }
@@ -40,7 +45,12 @@ func WithRolloverMaxSize(size string) Option[*types.IlmActions] {
 // force merge indices to the given number of segments.
 func WithForceMergeSegments(segments int) Option[*types.IlmActions] {
 	return func(action *types.IlmActions) *types.IlmActions {
+		if action.Forcemerge == nil {
+			action.Forcemerge = types.NewForceMergeAction()
+		}
+
 		action.Forcemerge.MaxNumSegments = segments
+
 		return action
 	}
 }
@@ -49,7 +59,12 @@ func WithForceMergeSegments(segments int) Option[*types.IlmActions] {
 // indices to the given number of shards.
 func WithShrinkToShards(shards int) Option[*types.IlmActions] {
 	return func(action *types.IlmActions) *types.IlmActions {
+		if action.Shrink == nil {
+			action.Shrink = types.NewShrinkAction()
+		}
+
 		action.Shrink.NumberOfShards = &shards
+
 		return action
 	}
 }

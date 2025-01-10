@@ -69,7 +69,9 @@ func WithSettings(settings *types.IndexSettings) Option[types.IndexState] {
 
 // NewIndexState creates a new index state with the given options.
 func NewIndexState(options ...Option[types.IndexState]) types.IndexState {
-	state := types.IndexState{}
+	state := types.IndexState{
+		Aliases: make(map[string]types.Alias),
+	}
 
 	for _, option := range options {
 		state = option(state)

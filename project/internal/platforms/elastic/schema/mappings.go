@@ -102,7 +102,10 @@ func WithObjectProperty(name string, props map[string]types.Property) Option[*ty
 
 // NewPropertyMapping generates a new mapping of document fields from the given options.
 func NewPropertyMapping(options ...Option[*types.TypeMapping]) *types.TypeMapping {
-	mapping := &types.TypeMapping{}
+	mapping := &types.TypeMapping{
+		DynamicTemplates: make([]map[string]types.DynamicTemplate, 0),
+		Properties:       make(map[string]types.Property),
+	}
 
 	for _, option := range options {
 		mapping = option(mapping)
