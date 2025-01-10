@@ -135,7 +135,6 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	router.Route("/signup", func(signupRouter chi.Router) {
 		signupRouter.Get("/", wrapper.Signup)
 		signupRouter.Post("/", wrapper.ProcessSignup)
-		signupRouter.Post("/validate", wrapper.PostSignupValidate)
 	})
 
 	router.Post("/search", wrapper.Search)

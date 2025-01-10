@@ -118,9 +118,6 @@ type SignupMultipartRequestBody = externalRef0.UserSignup
 // ProcessSignupMultipartRequestBody defines body for ProcessSignup for multipart/form-data ContentType.
 type ProcessSignupMultipartRequestBody = externalRef0.UserSignup
 
-// PostSignupValidateFormdataRequestBody defines body for PostSignupValidate for application/x-www-form-urlencoded ContentType.
-type PostSignupValidateFormdataRequestBody = externalRef0.UserSignup
-
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Index
@@ -174,9 +171,6 @@ type ServerInterface interface {
 	// Process sign up request
 	// (POST /signup)
 	ProcessSignup(w http.ResponseWriter, r *http.Request)
-	// Validate sign up
-	// (POST /signup/validate)
-	PostSignupValidate(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -282,12 +276,6 @@ func (_ Unimplemented) Signup(w http.ResponseWriter, r *http.Request) {
 // Process sign up request
 // (POST /signup)
 func (_ Unimplemented) ProcessSignup(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Validate sign up
-// (POST /signup/validate)
-func (_ Unimplemented) PostSignupValidate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -776,20 +764,6 @@ func (siw *ServerInterfaceWrapper) ProcessSignup(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
-// PostSignupValidate operation middleware
-func (siw *ServerInterfaceWrapper) PostSignupValidate(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostSignupValidate(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -953,9 +927,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/signup", wrapper.ProcessSignup)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/signup/validate", wrapper.PostSignupValidate)
 	})
 
 	return r

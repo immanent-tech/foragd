@@ -96,9 +96,3 @@ func (s Server) ProcessSignup(res http.ResponseWriter, req *http.Request) {
 	// 	res.WriteHeader(http.StatusInternalServerError)
 	// }
 }
-
-func (s Server) PostSignupValidate(res http.ResponseWriter, req *http.Request) {
-	// ctx := logging.ToContext(req.Context(), s.Logger.With(slog.String("handler", "Signup")))
-
-	// forms.Validate(res, req.WithContext(ctx), partials.UpdateSignupInput)
-}
