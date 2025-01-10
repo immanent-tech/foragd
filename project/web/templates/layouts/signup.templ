@@ -1,0 +1,50 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package layouts
+
+import "github.com/joshuar/go-templ-daisyui"
+
+templ SignupLayout() {
+	<div id="signup-hero" class="hero bg-base-200 min-h-screen">
+		<div class="hero-content text-center">
+			<div class="max-w-md gap-2">
+				<h1 class="text-3xl font-bold">Sign-up to Go Feed Me</h1>
+				<div id="signup-notifications"></div>
+				if UserSignupFromCtx(ctx) != nil {
+					<div id="signup">
+						@SignUpForm()
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+}
+
+templ SignUpForm() {
+	<form hx-post="/signup" hx-target="#signup">
+		<div class="flex flex-col gap-4">
+			{{ signup := UserSignupFromCtx(ctx) }}
+			@signup.ShowNickNameInput()
+			@signup.ShowEmailInput()
+			@signup.ShowPasswordInput()
+			@components.Button(
+				components.NewButton("Signup", "signup",
+					components.WithColor[components.Button](components.ColorPrimary, true)),
+			).Show()
+		</div>
+	</form>
+}
+
+templ SignupSuccess() {
+	@components.Alert(components.AlertSuccess, "Account created!", "signup-notifications", true) {
+		<a class="btn btn-primary" href="/login/auth0">Login with Auth0</a>
+	}
+}
+
+templ SignupError() {
+	@components.Alert(components.AlertError, "Oops! We had a problem creating your account account!", "signup-notifications", true)
+	<p class="py-6">
+		Please go back and try again.
+	</p>
+}

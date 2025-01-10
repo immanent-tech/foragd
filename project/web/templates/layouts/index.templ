@@ -3,8 +3,6 @@
 
 package layouts
 
-import components "github.com/joshuar/go-templ-daisyui"
-
 templ IndexLayout() {
 	<div id="index-hero" class="hero bg-base-200 min-h-screen">
 		<div class="hero-content text-center">
@@ -13,16 +11,16 @@ templ IndexLayout() {
 				<p class="py-6">
 					Your new homepage on the internet.
 				</p>
-				<a class="btn btn-primary" hx-boost="false" href="/login/auth0">Login with Auth0</a>
-				@components.NewButton("Sign-up", "signup",
-					components.WithColor[components.Button](components.ColorSecondary,
-					false),
-					components.WithAttributes[components.Button](templ.Attributes{
-						"hx-get":      "/signup",
-						"hx-target":   "#index-hero",
-						"hx-push-url": true,
-					}),
-				).Show()
+				<a
+					class="btn btn-primary"
+					hx-boost="false"
+					href="/login/auth0"
+				>Login with Auth0</a>
+				<a
+					class="btn btn-primary"
+					hx-boost="false"
+					href="/signup"
+				>Sign-up</a>
 			</div>
 		</div>
 	</div>

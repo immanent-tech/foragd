@@ -24,7 +24,7 @@ func init() {
 	validate = validator.New(validator.WithRequiredStructEnabled())
 }
 
-//nolint:errorlint
+//nolint:errorlint,errcheck
 func validateStruct[T any](obj T) (bool, ValidationErrors) {
 	validationErr := &validator.ValidationErrors{}
 

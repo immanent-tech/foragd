@@ -27,21 +27,18 @@ templ appBarTopLeft() {
 }
 
 templ appBarTopCenter() {
-	@components.NewInput(
-		components.WithID[components.Input]("Search"),
-		components.AsFormControl(),
-		components.WithInputModifier(components.InputAccent),
-		components.WithInputType(components.InputTypeSearch),
-		components.WithInputIcon("fa-magnifying-glass", components.AlignLeft),
-		components.WithPlaceholder("Search anything..."),
-		components.WithAttributes[components.Input](templ.Attributes{
+	@components.TextInput(
+		components.WithInsideLabels(components.Icon("fa-magnifying-glass"), nil),
+		components.WithID[components.TextInputProps]("search"),
+		components.WithPlaceholder[components.TextInputProps]("Search anything..."),
+		components.WithAttributes[components.TextInputProps](templ.Attributes{
 			"tabindex":     0,
 			"hx-post":      "/home/search",
 			"hx-trigger":   "input changed delay:500ms, SearchRequest",
 			"hx-target":    "#search-results",
 			"hx-indicator": ".htmx-indicator",
 		}),
-	).Show()
+	)
 }
 
 templ appBarTopRight() {

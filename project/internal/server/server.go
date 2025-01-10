@@ -95,7 +95,7 @@ func NewServer(ctx context.Context) (Server, error) {
 }
 
 var (
-	htmxOnlyRoutes  = []string{"/home/settings", "/signup", "/subscription"}
+	htmxOnlyRoutes  = []string{"/home/settings", "/subscription"}
 	protectedRoutes = []string{"/home"}
 )
 
@@ -133,8 +133,8 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	// Sign up routes.
 	router.Route("/signup", func(signupRouter chi.Router) {
-		signupRouter.Get("/", wrapper.GetSignup)
-		signupRouter.Post("/", wrapper.PostSignup)
+		signupRouter.Get("/", wrapper.Signup)
+		signupRouter.Post("/", wrapper.ProcessSignup)
 		signupRouter.Post("/validate", wrapper.PostSignupValidate)
 	})
 

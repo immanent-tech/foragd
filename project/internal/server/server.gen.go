@@ -112,11 +112,14 @@ type GetLoginCallbackParams struct {
 // PostSubscriptionValidateFormdataRequestBody defines body for PostSubscriptionValidate for application/x-www-form-urlencoded ContentType.
 type PostSubscriptionValidateFormdataRequestBody = externalRef0.APISubscription
 
-// PostSignupMultipartRequestBody defines body for PostSignup for multipart/form-data ContentType.
-type PostSignupMultipartRequestBody = externalRef0.APINewUser
+// SignupMultipartRequestBody defines body for Signup for multipart/form-data ContentType.
+type SignupMultipartRequestBody = externalRef0.UserSignup
+
+// ProcessSignupMultipartRequestBody defines body for ProcessSignup for multipart/form-data ContentType.
+type ProcessSignupMultipartRequestBody = externalRef0.UserSignup
 
 // PostSignupValidateFormdataRequestBody defines body for PostSignupValidate for application/x-www-form-urlencoded ContentType.
-type PostSignupValidateFormdataRequestBody = externalRef0.APINewUser
+type PostSignupValidateFormdataRequestBody = externalRef0.UserSignup
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -167,10 +170,10 @@ type ServerInterface interface {
 	Search(w http.ResponseWriter, r *http.Request)
 	// User sign up
 	// (GET /signup)
-	GetSignup(w http.ResponseWriter, r *http.Request)
+	Signup(w http.ResponseWriter, r *http.Request)
 	// Process sign up request
 	// (POST /signup)
-	PostSignup(w http.ResponseWriter, r *http.Request)
+	ProcessSignup(w http.ResponseWriter, r *http.Request)
 	// Validate sign up
 	// (POST /signup/validate)
 	PostSignupValidate(w http.ResponseWriter, r *http.Request)
@@ -272,13 +275,13 @@ func (_ Unimplemented) Search(w http.ResponseWriter, r *http.Request) {
 
 // User sign up
 // (GET /signup)
-func (_ Unimplemented) GetSignup(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) Signup(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Process sign up request
 // (POST /signup)
-func (_ Unimplemented) PostSignup(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) ProcessSignup(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -745,11 +748,11 @@ func (siw *ServerInterfaceWrapper) Search(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r)
 }
 
-// GetSignup operation middleware
-func (siw *ServerInterfaceWrapper) GetSignup(w http.ResponseWriter, r *http.Request) {
+// Signup operation middleware
+func (siw *ServerInterfaceWrapper) Signup(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetSignup(w, r)
+		siw.Handler.Signup(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -759,11 +762,11 @@ func (siw *ServerInterfaceWrapper) GetSignup(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r)
 }
 
-// PostSignup operation middleware
-func (siw *ServerInterfaceWrapper) PostSignup(w http.ResponseWriter, r *http.Request) {
+// ProcessSignup operation middleware
+func (siw *ServerInterfaceWrapper) ProcessSignup(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostSignup(w, r)
+		siw.Handler.ProcessSignup(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -946,10 +949,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/search", wrapper.Search)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/signup", wrapper.GetSignup)
+		r.Get(options.BaseURL+"/signup", wrapper.Signup)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/signup", wrapper.PostSignup)
+		r.Post(options.BaseURL+"/signup", wrapper.ProcessSignup)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/signup/validate", wrapper.PostSignupValidate)

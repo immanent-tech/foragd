@@ -9,7 +9,7 @@ import (
 
 // AuthAPI contains methods for handling auth requests.
 type AuthAPI interface {
-	Create(ctx context.Context, user *APINewUser) (string, error)
+	Create(ctx context.Context, user *UserSignup) (string, error)
 }
 
 // UserActionsAPI contains methods for handling user requests.

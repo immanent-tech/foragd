@@ -80,7 +80,7 @@ func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 	return api, nil
 }
 
-func (u *UserAPI) Create(ctx context.Context, details *models.APINewUser) (string, error) {
+func (u *UserAPI) Create(ctx context.Context, details *models.UserSignup) (string, error) {
 	userData := database.SignupRequest{
 		Connection: UserDBConnection,
 		Nickname:   details.Nickname,

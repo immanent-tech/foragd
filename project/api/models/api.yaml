@@ -210,9 +210,9 @@ components:
               x-go-type-skip-optional-pointer: true
             ID:
               $ref: '#/components/schemas/UserID'
-    APINewUser:
+    UserSignup:
       description: >
-        contains the details for a user account that should be created.
+        contains the details for a user signup request.
       type: object
       required:
         - email
@@ -222,15 +222,39 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             validate: 'omitempty'
+            form: 'nickname,omitempty'
+          x-go-type-skip-optional-pointer: true
+        InputNickname:
+          x-go-type: 'components.TextInputProps'
+          x-go-type-import:
+            path: 'github.com/joshuar/go-templ-daisyui'
+          x-oapi-codegen-extra-tags:
+            form: '-'
           x-go-type-skip-optional-pointer: true
         email:
           type: string
           x-oapi-codegen-extra-tags:
             validate: 'required,email'
+            form: 'email'
+        InputEmail:
+          x-go-type: 'components.TextInputProps'
+          x-go-type-import:
+            path: 'github.com/joshuar/go-templ-daisyui'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+          x-go-type-skip-optional-pointer: true
         password:
           type: string
           x-oapi-codegen-extra-tags:
-            validate: 'required'
+            validate: 'required,len=10'
+            form: 'password'
+        InputPassword:
+          x-go-type: 'components.TextInputProps'
+          x-go-type-import:
+            path: 'github.com/joshuar/go-templ-daisyui'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+          x-go-type-skip-optional-pointer: true
     APISubscription:
       description: represents a feed a particular user has subscribed to.
       allOf:

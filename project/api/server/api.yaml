@@ -77,27 +77,32 @@ paths:
         500:
           description: Problem with request
   /signup:
+    summary: Display a sign-up form.
     get:
       summary: User sign up
-      operationId: getSignup
+      operationId: signup
+      requestBody:
+        description: New user information
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '../models/api.yaml#/components/schemas/UserSignup'
       responses:
         200:
-          description: Show sign up page
-          content:
-            text/html: {}
+          $ref: '#/components/responses/htmx'
         400:
           description: Bad request (not htmx)
         500:
           description: Error rendering signup form
     post:
       summary: Process sign up request
-      operationId: postSignup
+      operationId: processSignup
       requestBody:
         description: New user information
         content:
           multipart/form-data:
             schema:
-              $ref: '../models/api.yaml#/components/schemas/APINewUser'
+              $ref: '../models/api.yaml#/components/schemas/UserSignup'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -117,7 +122,7 @@ paths:
         content:
           application/x-www-form-urlencoded:
             schema:
-              $ref: '../models/api.yaml#/components/schemas/APINewUser'
+              $ref: '../models/api.yaml#/components/schemas/UserSignup'
   /search:
     post:
       summary: Issue a user search request

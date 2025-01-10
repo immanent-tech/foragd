@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc"
+	components "github.com/joshuar/go-templ-daisyui"
 	"github.com/mmcdole/gofeed"
 )
 
@@ -53,13 +54,6 @@ type APIItem struct {
 	Published   time.Time     `json:"publishedParsed"`
 	Title       string        `json:"title"`
 	Updated     time.Time     `json:"updatedParsed"`
-}
-
-// APINewUser contains the details for a user account that should be created.
-type APINewUser struct {
-	Email    string `json:"email" validate:"required,email"`
-	Nickname string `json:"nickname,omitempty" validate:"omitempty"`
-	Password string `json:"password" validate:"required"`
 }
 
 // APIReadItem defines model for APIReadItem.
@@ -247,3 +241,13 @@ type User struct {
 
 // UserID is the unique ID of a user.
 type UserID = string
+
+// UserSignup contains the details for a user signup request.
+type UserSignup struct {
+	InputEmail    components.TextInputProps `form:"-" json:"InputEmail,omitempty"`
+	InputNickname components.TextInputProps `form:"-" json:"InputNickname,omitempty"`
+	InputPassword components.TextInputProps `form:"-" json:"InputPassword,omitempty"`
+	Email         string                    `form:"email" json:"email" validate:"required,email"`
+	Nickname      string                    `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
+	Password      string                    `form:"password" json:"password" validate:"required,len=10"`
+}
