@@ -45,8 +45,7 @@ templ SignupSuccess() {
 }
 
 templ SignupError() {
-	@components.Alert(components.AlertError, "Oops! We had a problem creating your account account!", "signup-notifications", true)
-	<p class="py-6">
-		Please go back and try again.
-	</p>
+	<div id="signup-notifications" hx-swap-oob="true">
+		@components.Alert(components.AlertError, "Oops! We had a problem creating your account account!", "signup-notifications", true)
+	</div>
 }

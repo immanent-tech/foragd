@@ -20,5 +20,5 @@ func UserID(ctx context.Context) (string, error) {
 		return "", fmt.Errorf("could not retrieve user id: %w", err)
 	}
 
-	return tokens.IDToken.Subject, nil
+	return tokens.UserID(), nil
 }

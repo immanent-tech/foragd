@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"time"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
@@ -54,7 +55,10 @@ func (c *Client) AddUser(ctx context.Context, userID models.UserID) error {
 	resp, err := c.NewCreateRequest(
 		schema.UsersSchemaPrefix,
 		userID,
-		&models.User{ID: userID}).
+		&models.User{
+			ID:        userID,
+			CreatedAt: time.Now(),
+		}).
 		Do(ctx)
 	if err != nil {
 		return errors.Join(ErrCreateUserFailed, err)

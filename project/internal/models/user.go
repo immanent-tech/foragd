@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/a-h/templ"
 	components "github.com/joshuar/go-templ-daisyui"
@@ -66,7 +67,8 @@ func (u *User) Valid(_ context.Context) (bool, ValidationErrors) {
 }
 
 func (t *Tokens) UserID() string {
-	return t.IDToken.Subject
+	id, _ := strings.CutPrefix(t.IDToken.Subject, "auth0|")
+	return id
 }
 
 func (t *Tokens) Nickname() string {

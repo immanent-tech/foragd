@@ -249,5 +249,5 @@ type UserSignup struct {
 	InputPassword components.TextInputProps `form:"-" json:"InputPassword,omitempty"`
 	Email         string                    `form:"email" json:"email" validate:"required,email"`
 	Nickname      string                    `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
-	Password      string                    `form:"password" json:"password" validate:"required,len=10"`
+	Password      string                    `form:"password" json:"password" validate:"required,min=10"`
 }
