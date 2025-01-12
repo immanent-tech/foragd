@@ -28,7 +28,8 @@ func StartProfiling(flags ProfileFlags) error {
 				return fmt.Errorf("could not start web profiler: %w", err)
 			}
 		case "heapprofile":
-			slog.Debug("Heap profiling enabled.")
+			slog.Debug("Heap profiling enabled.",
+				slog.String("file", flagVal))
 		case "cpuprofile":
 			if err := startCPUProfiler(flagVal); err != nil {
 				return fmt.Errorf("could not start CPU profiling: %w", err)
@@ -142,7 +143,8 @@ func startCPUProfiler(path string) error {
 		return fmt.Errorf("could not start CPU profiling: %w", err)
 	}
 
-	slog.Debug("CPU profiling enabled.")
+	slog.Debug("CPU profiling enabled.",
+		slog.String("file", path))
 
 	return nil
 }
@@ -157,7 +159,8 @@ func startTraceProfiling(path string) error {
 		return fmt.Errorf("could not start trace profiling: %w", err)
 	}
 
-	slog.Debug("Trace profiling enabled.")
+	slog.Debug("Trace profiling enabled.",
+		slog.String("file", path))
 
 	return nil
 }
