@@ -25,6 +25,7 @@ type UserActionsAPI interface {
 // UserManagementAPI contains methods for user management.
 type UserManagementAPI interface {
 	UserExists(ctx context.Context, userID UserID) (bool, error)
+	GetUser(ctx context.Context) (User, error)
 	AddUser(ctx context.Context, userID UserID) error
 }
 

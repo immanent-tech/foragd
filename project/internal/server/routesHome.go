@@ -39,7 +39,6 @@ const (
 // `GET /home/show/{list}`.
 func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowListParamsList, params ShowListParams) {
 	var (
-		page    templ.Component
 		cards   []templ.Component
 		filters models.APISearchFilters
 	)
@@ -81,6 +80,15 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 
 	// Get all subscribed feeds.
 	feeds, err := s.API.elastic.UserActionGetFeeds(ctx, filters)
+	if err != nil && errors.Is(err, models.ErrNoSubscriptions) {
+		if err = renderHome(ctx, res, req, content.ShowEmptyContent()); err != nil {
+			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			http.Error(res, "Problem!", http.StatusInternalServerError)
+		}
+
+		return
+	}
+
 	if err != nil {
 		logger.Error("Cannot display content.", slog.Any("error", err))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -168,21 +176,27 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		}
 	}
 
+	if err := renderHome(ctx, res, req, content.ShowContent(cards...)); err != nil {
+		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
+}
+
+func renderHome(ctx context.Context, res http.ResponseWriter, req *http.Request, pageContent templ.Component) error {
+	var page templ.Component
+
 	if !htmx.IsHTMX(req) {
 		// Full page when not htmx.
 		page = layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(content.ShowContent(cards...))))
+			layouts.WithPageContent(layouts.HomeLayout(pageContent)))
 	} else {
 		// Partial content otherwise.
-		page = content.ShowContent(cards...)
+		page = pageContent
 	}
 
-	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {
-		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-		http.Error(res, "Problem!", http.StatusInternalServerError)
-	}
+	return htmx.NewResponse().RenderTempl(ctx, res, page)
 }
 
 // MarkList will mark a list of feeds or items, with filtering applied, as read

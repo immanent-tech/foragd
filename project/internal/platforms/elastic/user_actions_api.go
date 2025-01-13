@@ -27,9 +27,9 @@ var ErrUserActionFailed = errors.New("user action failed")
 
 // UserActionAddSubscriptions will add subscriptions for the user.
 func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions ...models.APISubscription) error {
-	user, err := c.GetUser(ctx)
-	if err != nil {
-		return errors.Join(ErrGetUserFailed, err)
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return ErrGetUserFailed
 	}
 
 	for _, subscription := range subscriptions {
@@ -63,21 +63,21 @@ func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions .
 // UserSubscriptionExists checks if the user has a valid subscription to the
 // given feed.
 func (c *Client) UserSubscriptionExists(ctx context.Context, feedID models.FeedID) (bool, error) {
-	user, err := c.GetUser(ctx)
-	if err != nil {
-		return false, errors.Join(ErrGetUserFailed, err)
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return false, ErrGetUserFailed
 	}
 
-	_, found := user.Subscriptions[feedID]
+	_, found = user.Subscriptions[feedID]
 
 	return found, nil
 }
 
 // UserActionMarkItemsRead will mark the given items as read for the user.
 func (c *Client) UserActionMarkItemsRead(ctx context.Context, items ...models.APIReadItem) error {
-	user, err := c.GetUser(ctx)
-	if err != nil {
-		return errors.Join(ErrGetUserFailed, err)
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return ErrGetUserFailed
 	}
 
 	for _, item := range items {
@@ -152,9 +152,9 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
 func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearchFilters) ([]models.APIItem, []byte, error) {
-	user, err := c.GetUser(ctx)
-	if err != nil {
-		return nil, nil, errors.Join(ErrGetUserFailed, err)
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, nil, ErrGetUserFailed
 	}
 
 	readItemsIDs := user.GetReadItemIDs(filters.FeedIDs...)
@@ -197,9 +197,9 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearc
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
 func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearchFilters) ([]models.APIFeed, error) {
-	user, err := c.GetUser(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrGetUserFailed, err)
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, ErrGetUserFailed
 	}
 
 	subscribedFeedIDs := user.GetSubscribedFeedIDs()
@@ -218,8 +218,12 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearc
 		},
 	)
 
-	itemIDs := user.GetReadItemIDs(feedIDs...)
+	// If there are no subscriptions, return an error indicating so.
+	if len(feedIDs) == 0 {
+		return nil, models.ErrNoSubscriptions
+	}
 
+	// Get the feed details.
 	req := c.NewMGetRequest(
 		WithIndexPattern[*mget.Mget](schema.FeedsSchemaPrefix),
 		WithIDs(feedIDs...),
@@ -232,6 +236,9 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearc
 	}
 
 	var feeds []models.APIFeed
+
+	// Get the user's read items for the list of feeds.
+	itemIDs := user.GetReadItemIDs(feedIDs...)
 
 	c.userActionGetFeedUnreadCounts(ctx, feedIDs, itemIDs)
 

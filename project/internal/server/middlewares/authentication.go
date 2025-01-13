@@ -23,35 +23,29 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
 // RequireAuthentication ensures there is a valid user for the given protected
-// routes. For protected routes, it retrieves the user tokens from the session
-// store, then validates if the token matches a valid user in the database
-// store. For unprotected routes, it passes the request along unmodified.
+// routes.
 func RequireAuthentication(protectedRoutes []string, userMgmtAPI models.UserManagementAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			if slices.ContainsFunc(protectedRoutes, func(path string) bool {
 				return strings.HasPrefix(req.URL.Path, path)
 			}) {
-				// Get the user tokens from the session storage.
-				tokens, err := session.GetTokens(req.Context())
+				// Fetch the user from the user management API.
+				user, err := userMgmtAPI.GetUser(req.Context())
+				//  If no user can be found, return 401 response.
 				if err != nil {
 					logging.LogReq(req, http.StatusUnauthorized).Error("Authentication error.", slog.Any("error", err))
 					http.Error(res, "Authentication error.", http.StatusUnauthorized)
 
 					return
 				}
-				// Ensure the user ID in the token matches a user in the database.
-				valid, err := userMgmtAPI.UserExists(req.Context(), tokens.UserID())
-				if err != nil || !valid {
-					logging.LogReq(req, http.StatusUnauthorized).Error("Authentication error.", slog.Any("error", err))
-					http.Error(res, "Authentication error.", http.StatusUnauthorized)
-
-					return
-				}
+				// Else load the user into the context and pass the new context
+				// to the next request.
+				ctx := models.UserToCtx(req.Context(), user)
+				req = req.WithContext(ctx)
 			}
 
 			next.ServeHTTP(res, req)

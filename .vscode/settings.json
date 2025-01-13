@@ -73,7 +73,8 @@
     "modifiers/shadow",
     "modifiers/mask",
     "modifiers/object",
-    "modifiers/color"
+    "modifiers/color",
+    "routes/home"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

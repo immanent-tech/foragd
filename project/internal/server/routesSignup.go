@@ -11,7 +11,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -60,8 +59,6 @@ func (s Server) ProcessSignup(res http.ResponseWriter, req *http.Request) {
 
 		return
 	}
-
-	spew.Dump(userSignup)
 
 	// Create the user in the auth backend.
 	userID, err := s.API.user.Create(req.Context(), userSignup)

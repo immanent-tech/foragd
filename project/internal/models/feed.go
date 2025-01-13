@@ -15,6 +15,10 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
+// ErrNoSubscriptions indicates the user has no subscriptions. In this
+// case, a page with a prompt to add subscriptions should be displayed.
+var ErrNoSubscriptions = errors.New("no user subscriptions")
+
 // GetItemsSince retrieves the feed items that are newer than the given time.
 func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 	var items []Item
