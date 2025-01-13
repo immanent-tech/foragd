@@ -89,21 +89,6 @@ type APISearchFilters struct {
 	Pagination Pagination `form:"pagination" json:"pagination"`
 }
 
-// APISubscription defines model for APISubscription.
-type APISubscription struct {
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
-
-	// UserID is the unique ID of a user.
-	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
-
-	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories" json:"categories"`
-
-	// Name is a friendly name or nickname for the feed given by the user.
-	Name string `json:"name,omitempty"`
-}
-
 // Categories is a list of feed/item categories.
 type Categories = []Category
 
@@ -193,17 +178,58 @@ type ReadItem struct {
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 }
 
-// Subscription represents a feed a particular user has subscribed to.
+// Subscription defines model for Subscription.
 type Subscription struct {
 	// Categories is a list of feed/item categories.
 	Categories Categories `form:"categories" json:"categories"`
 
+	// CreatedAt records when the object was created in the database.
+	CreatedAt time.Time `json:"created_at"`
+
+	// DeletedAt records when the object was deleted.
+	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
+
 	// Name is a friendly name or nickname for the feed given by the user.
-	Name string `json:"name,omitempty"`
+	Name string `form:"name" json:"name,omitempty"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
+
+// SubscriptionRequest defines model for SubscriptionRequest.
+type SubscriptionRequest struct {
+	InputCategories components.TextInputProps `form:"-" json:"-"`
+	InputName       components.TextInputProps `form:"-" json:"-"`
+	InputURL        components.TextInputProps `form:"-" json:"-"`
+
+	// URL is a URL.
+	URL string `json:"URL" validate:"required,url"`
+
+	// Categories is a list of feed/item categories.
+	Categories Categories `form:"categories" json:"categories"`
+
+	// CreatedAt records when the object was created in the database.
+	CreatedAt time.Time `json:"created_at"`
+
+	// DeletedAt records when the object was deleted.
+	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
+
+	// Name is a friendly name or nickname for the feed given by the user.
+	Name string `form:"name" json:"name,omitempty"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+// SubscriptionRequestForm represents a form input for a subscription request.
+type SubscriptionRequestForm struct {
+	InputCategories components.TextInputProps `form:"-" json:"-"`
+	InputName       components.TextInputProps `form:"-" json:"-"`
+	InputURL        components.TextInputProps `form:"-" json:"-"`
+}
 
 // Timestamp is when the document was created.
 type Timestamp = time.Time
@@ -242,12 +268,25 @@ type User struct {
 // UserID is the unique ID of a user.
 type UserID = string
 
-// UserSignup contains the details for a user signup request.
+// UserSigninForm represents the inputs for user sign-in.
+type UserSigninForm struct {
+	InputEmail    components.TextInputProps `form:"-" json:"-"`
+	InputPassword components.TextInputProps `form:"-" json:"-"`
+}
+
+// UserSignup defines model for UserSignup.
 type UserSignup struct {
-	InputEmail    components.TextInputProps `form:"-" json:"InputEmail,omitempty"`
-	InputNickname components.TextInputProps `form:"-" json:"InputNickname,omitempty"`
-	InputPassword components.TextInputProps `form:"-" json:"InputPassword,omitempty"`
+	InputEmail    components.TextInputProps `form:"-" json:"-"`
+	InputNickname components.TextInputProps `form:"-" json:"-"`
+	InputPassword components.TextInputProps `form:"-" json:"-"`
 	Email         string                    `form:"email" json:"email" validate:"required,email"`
 	Nickname      string                    `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
 	Password      string                    `form:"password" json:"password" validate:"required,min=10"`
+}
+
+// UserSignupForm defines model for UserSignupForm.
+type UserSignupForm struct {
+	InputEmail    components.TextInputProps `form:"-" json:"-"`
+	InputNickname components.TextInputProps `form:"-" json:"-"`
+	InputPassword components.TextInputProps `form:"-" json:"-"`
 }

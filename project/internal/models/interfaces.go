@@ -14,7 +14,7 @@ type AuthAPI interface {
 
 // UserActionsAPI contains methods for handling user requests.
 type UserActionsAPI interface {
-	UserActionAddSubscriptions(ctx context.Context, subscriptions ...APISubscription) error
+	UserActionAddSubscriptions(ctx context.Context, subscriptions ...SubscriptionRequest) error
 	UseActionrMarkItemsRead(ctx context.Context, items ...APIReadItem) error
 	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
 	UserActionGetItems(ctx context.Context, filters APISearchFilters) ([]APIItem, []byte, error)

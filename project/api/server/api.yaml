@@ -81,12 +81,6 @@ paths:
     get:
       summary: User sign up
       operationId: signup
-      requestBody:
-        description: New user information
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '../models/api.yaml#/components/schemas/UserSignup'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -139,7 +133,7 @@ paths:
   /home/subscription/add:
     get:
       summary: Add a new subscription
-      operationId: getSubscriptionAdd
+      operationId: addSubscription
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -149,7 +143,13 @@ paths:
           description: Problem with request
     post:
       summary: Process a new subscription
-      operationId: postSubscriptionAdd
+      operationId: processAddSubscription
+      requestBody:
+        description: New user information
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '../models/api.yaml#/components/schemas/SubscriptionRequest'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -157,29 +157,13 @@ paths:
           description: Unauthorized
         500:
           description: Problem with subscription
-  /home/subscription/validate:
-    post:
-      summary: Validate a subscription
-      operationId: postSubscriptionValidate
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-      requestBody:
-        description: Subscription to validate
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '../models/api.yaml#/components/schemas/APISubscription'
-  /home/subscription/edit/{subID}:
+  /home/subscription/edit/{feed}:
     get:
       summary: Edit a new subscription
       operationId: getSubscriptionEdit
       parameters:
-        - name: subID
-          in: path
+        - $ref: '#/components/parameters/FeedID'
           required: true
-          schema:
-            type: string
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -191,11 +175,14 @@ paths:
       summary: Process a subscription edit
       operationId: postSubscriptionEdit
       parameters:
-        - name: subID
-          in: path
+        - $ref: '#/components/parameters/FeedID'
           required: true
-          schema:
-            type: string
+      requestBody:
+        description: New user information
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '../models/api.yaml#/components/schemas/SubscriptionRequest'
       responses:
         200:
           $ref: '#/components/responses/htmx'

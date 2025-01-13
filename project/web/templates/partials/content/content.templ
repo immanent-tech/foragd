@@ -40,7 +40,7 @@ templ ContentFooter() {
 
 templ DrawerMain(data templ.Component) {
 	<!-- Modal for commands -->
-	<dialog id="command-modal" class="modal"></dialog>
+	<div id="command_modal"></div>
 	<!-- Content -->
 	<div id="content">
 		<div id="content-header" class="bg-base-300 sticky top-0 z-30 w-full" hx-swap-oob="true"></div>
@@ -127,7 +127,12 @@ templ ShowEmptyContent() {
 					Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
 					quasi. In deleniti eaque aut repudiandae et a id nisi.
 				</p>
-				<button class="btn btn-primary">Get Started</button>
+				<button
+					class="btn btn-primary"
+					hx-get="/home/subscription/add"
+					hx-target="#command_modal"
+					_="on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal"
+				>Add Subscription</button>
 			</div>
 		</div>
 	</div>

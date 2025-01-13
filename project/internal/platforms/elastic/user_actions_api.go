@@ -26,24 +26,47 @@ import (
 var ErrUserActionFailed = errors.New("user action failed")
 
 // UserActionAddSubscriptions will add subscriptions for the user.
-func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions ...models.APISubscription) error {
+func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions ...models.SubscriptionRequest) error {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return ErrGetUserFailed
+		return ErrNoUserCtx
 	}
 
+	// Extract the URLs from the subscriptions.
+	urls := make([]string, len(subscriptions))
+	for idx, sub := range subscriptions {
+		urls[idx] = sub.URL
+	}
+	// Get a list of existing existingFeeds by the subscription URLs.
+	existingFeeds, err := c.userActionGetFeedsByURL(ctx, urls...)
+	if err != nil {
+		return errors.Join(ErrUpdateFailed, err)
+	}
+
+	// Go through the requested subscriptions. Ignore any feeds the user has
+	// already subscribed to. For the rest, add a new subscription.
 	for _, subscription := range subscriptions {
-		if _, found := user.Subscriptions[subscription.FeedID]; found {
-			c.Logger.Warn("Already subscribed.")
-			continue
+		// Check for an existing feed for this subscription request.
+		idx := slices.IndexFunc(existingFeeds, func(feed models.APIFeed) bool { return feed.URL == subscription.URL })
+		if idx == -1 {
+			// If there is no existing feed, create the feed in addition to the user
+			// subscription.
+			// create feed
+			// create subscription
+		} else {
+			// Create a new subscription if the user is not already subscribed.
+			if !user.IsSubscribed(existingFeeds[idx].ID) {
+				// create subscription
+			}
 		}
 
-		user.Subscriptions[subscription.FeedID] = models.Subscription{
-			Categories: subscription.Categories,
-			Name:       subscription.Name,
-		}
+		// user.Subscriptions[existingFeeds[subscriptions.URL]] = models.Subscription{
+		// 	Categories: subscriptions.Categories,
+		// 	Name:       subscriptions.Name,
+		// }
 	}
 
+	// Update the user subscriptions.
 	req := c.NewUpdateRequest(schema.UsersSchemaPrefix, user.ID,
 		WithDocUpdate(user.Subscriptions),
 	)
@@ -60,24 +83,11 @@ func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions .
 	return nil
 }
 
-// UserSubscriptionExists checks if the user has a valid subscription to the
-// given feed.
-func (c *Client) UserSubscriptionExists(ctx context.Context, feedID models.FeedID) (bool, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return false, ErrGetUserFailed
-	}
-
-	_, found = user.Subscriptions[feedID]
-
-	return found, nil
-}
-
 // UserActionMarkItemsRead will mark the given items as read for the user.
 func (c *Client) UserActionMarkItemsRead(ctx context.Context, items ...models.APIReadItem) error {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return ErrGetUserFailed
+		return ErrNoUserCtx
 	}
 
 	for _, item := range items {
@@ -117,13 +127,13 @@ func (c *Client) UserActionMarkItemsRead(ctx context.Context, items ...models.AP
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
 func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (models.APIItem, bool, error) {
-	subscribed, err := c.UserSubscriptionExists(ctx, feedID)
-	if err != nil {
-		return models.APIItem{}, false, errors.Join(ErrUserActionFailed, err)
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.APIItem{}, false, ErrNoUserCtx
 	}
 
-	if !subscribed {
-		return models.APIItem{}, false, nil
+	if !user.IsSubscribed(feedID) {
+		return models.APIItem{}, false, ErrNoUserCtx
 	}
 
 	req := c.NewSearchRequest(
@@ -304,4 +314,35 @@ func (c *Client) userActionGetFeedUnreadCounts(ctx context.Context, feedIDs []mo
 	spew.Dump(resp.Aggregations["UnreadCounts"].(types.TermsAggregation))
 
 	return unreadCounts, nil
+}
+
+func (c *Client) userActionGetFeedsByURL(ctx context.Context, urls ...string) ([]models.APIFeed, error) {
+	searchSize := 1000
+	pagination := make([]types.FieldValue, 0)
+	feeds := make([]models.APIFeed, 0)
+
+	// Loop until we've paginated through all results.
+	for {
+		resp, err := c.NewSearchRequest(
+			WithIndexPattern[*search.Search](schema.FeedsSchemaPrefix+"-*"),
+			WithFields("feed_id", "feedLink"),
+			WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
+			WithSearchSize(searchSize),
+			WithSearchAfter(pagination),
+		).Do(ctx)
+		if err != nil {
+			return nil, errors.Join(ErrSearchFailed, err)
+		}
+		// Stop if there are no hits or the number of hits is less than the
+		// search size (i.e., last set of hits).
+		if len(resp.Hits.Hits) == 0 || len(resp.Hits.Hits) < searchSize {
+			break
+		}
+		// Loop through this set of results.
+		feeds = append(feeds, extractSources[models.APIFeed](ctx, resp.Hits.Hits)...)
+		// Update pagination value.
+		pagination = resp.Hits.Hits[len(resp.Hits.Hits)-1].Sort
+	}
+
+	return feeds, nil
 }

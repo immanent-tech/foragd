@@ -140,13 +140,6 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	router.Post("/search", wrapper.Search)
 
 	// /subscription routes.
-	router.Route("/subscription", func(subscriptionRouter chi.Router) {
-		subscriptionRouter.Get("/add", wrapper.GetSubscriptionAdd)
-		subscriptionRouter.Post("/add", wrapper.PostSubscriptionAdd)
-		subscriptionRouter.Get("/edit", wrapper.GetSubscriptionEdit)
-		subscriptionRouter.Post("/edit", wrapper.PostSubscriptionEdit)
-		subscriptionRouter.Post("/validate", wrapper.PostSubscriptionValidate)
-	})
 
 	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
@@ -155,6 +148,12 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		homeRouter.Get("/show/article/{feed}/{item}", wrapper.ShowArticle)
 		homeRouter.Post("/mark/article/{action}/{feed}/{item}", wrapper.MarkArticle)
 		homeRouter.Get("/settings", wrapper.GetHomeSettings)
+		homeRouter.Route("/subscription", func(subscriptionRouter chi.Router) {
+			subscriptionRouter.Get("/add", wrapper.AddSubscription)
+			subscriptionRouter.Post("/add", wrapper.ProcessAddSubscription)
+			subscriptionRouter.Get("/edit", wrapper.GetSubscriptionEdit)
+			subscriptionRouter.Post("/edit", wrapper.PostSubscriptionEdit)
+		})
 	})
 
 	return router

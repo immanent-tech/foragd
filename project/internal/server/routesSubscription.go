@@ -5,21 +5,30 @@
 package server
 
 import (
+	"errors"
+	"log/slog"
 	"net/http"
+
+	"github.com/angelofallars/htmx-go"
+
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials/content"
 )
 
 // SubscriptionAdd handles subscription request input GET(/subscription/add).
-func (s Server) GetSubscriptionAdd(res http.ResponseWriter, req *http.Request) {
-	// logger := s.Logger.With(slog.String("handler", "SubscriptionAdd"))
+func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
+	logger := s.Logger.With(slog.String("handler", "AddSubscription"))
 
-	// if err := modals.CommandModal(req, res, partials.AddSubscriptionForm().Show()); err != nil {
-	// 	logger.Warn("Unable to command modal.", slog.Any("error", err))
-	// 	res.WriteHeader(http.StatusInternalServerError)
-	// }
+	ctx := models.SubscriptionRequestToCtx(req.Context(), models.NewSubscriptionAddRequest())
+
+	if err := htmx.NewResponse().RenderTempl(ctx, res, content.AddSubscriptionForm()); err != nil {
+		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
 }
 
 // SubscriptionAddSubmit processes a subscription request POST(/subscription/add)
-func (s Server) PostSubscriptionAdd(res http.ResponseWriter, req *http.Request) {
+func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Request) {
 	// logger := s.Logger.With(slog.String("handler", "SubscriptionAddSubmit"))
 
 	// newSubscription, problems, err := forms.DecodeForm[*models.APISubscription](req)

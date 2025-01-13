@@ -120,6 +120,7 @@ components:
         json: 'url'
         validate: 'required,url'
         gorm: '-'
+        form: 'url'
       x-go-type-skip-optional-pointer: true
     Category:
       description: is a single feed/item category.
@@ -153,17 +154,64 @@ components:
     Subscription:
       description: represents a feed a particular user has subscribed to.
       type: object
+      allOf:
+        - $ref: '#/components/schemas/MetadataDB'
+        - type: object
+          properties:
+            name:
+              description: >
+                is a friendly name or nickname for the feed given by the user.
+              type: string
+              x-go-type-skip-optional-pointer: true
+              x-oapi-codegen-extra-tags:
+                form: 'name'
+            categories:
+              description: >
+                is a list of custom categories the user has assigned to
+                the feed.
+              $ref: '#/components/schemas/Categories'
+    SubscriptionRequest:
+      description: represents a new subscription request from a user.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Subscription'
+        - $ref: '#/components/schemas/SubscriptionRequestForm'
+        - type: object
+          required:
+            - URL
+          properties:
+            URL:
+              <<: *URL
+              x-oapi-codegen-extra-tags:
+                validate: 'required,url'
+    SubscriptionRequestForm:
+      description: represents a form input for a subscription request.
+      type: object
       properties:
-        name:
-          description: >
-            is a friendly name or nickname for the feed given by the user.
-          type: string
+        InputName:
+          x-go-type: 'components.TextInputProps'
+          x-go-type-import:
+            path: 'github.com/joshuar/go-templ-daisyui'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
           x-go-type-skip-optional-pointer: true
-        categories:
-          description: >
-            is a list of custom categories the user has assigned to
-            the feed.
-          $ref: '#/components/schemas/Categories'
+        InputCategories:
+          x-go-type: 'components.TextInputProps'
+          x-go-type-import:
+            path: 'github.com/joshuar/go-templ-daisyui'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true
+        InputURL:
+          x-go-type: 'components.TextInputProps'
+          x-go-type-import:
+            path: 'github.com/joshuar/go-templ-daisyui'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true
     Pagination:
       description: >
         contains details that allow fetching results at a certain
@@ -214,61 +262,67 @@ components:
       description: >
         contains the details for a user signup request.
       type: object
+      allOf:
+        - $ref: '#/components/schemas/UserSignupForm'
+        - type: object
+          required:
+            - email
+            - password
+          properties:
+            nickname:
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: 'omitempty'
+                form: 'nickname,omitempty'
+              x-go-type-skip-optional-pointer: true
+            email:
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: 'required,email'
+                form: 'email'
+            password:
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: 'required,min=10'
+                form: 'password'
+    UserSignupForm:
+      description: represents the inputs for a user sign-up.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/UserSigninForm'
+        - type: object
+          properties:
+            InputNickname:
+              x-go-type: 'components.TextInputProps'
+              x-go-type-import:
+                path: 'github.com/joshuar/go-templ-daisyui'
+              x-oapi-codegen-extra-tags:
+                form: '-'
+                json: '-'
+              x-go-type-skip-optional-pointer: true
+    UserSigninForm:
+      description: represents the inputs for user sign-in.
+      type: object
       required:
-        - email
-        - password
+        - InputEmail
+        - InputPassword
       properties:
-        nickname:
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'omitempty'
-            form: 'nickname,omitempty'
-          x-go-type-skip-optional-pointer: true
-        InputNickname:
-          x-go-type: 'components.TextInputProps'
-          x-go-type-import:
-            path: 'github.com/joshuar/go-templ-daisyui'
-          x-oapi-codegen-extra-tags:
-            form: '-'
-          x-go-type-skip-optional-pointer: true
-        email:
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required,email'
-            form: 'email'
         InputEmail:
           x-go-type: 'components.TextInputProps'
           x-go-type-import:
             path: 'github.com/joshuar/go-templ-daisyui'
           x-oapi-codegen-extra-tags:
             form: '-'
+            json: '-'
           x-go-type-skip-optional-pointer: true
-        password:
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required,min=10'
-            form: 'password'
         InputPassword:
           x-go-type: 'components.TextInputProps'
           x-go-type-import:
             path: 'github.com/joshuar/go-templ-daisyui'
           x-oapi-codegen-extra-tags:
             form: '-'
+            json: '-'
           x-go-type-skip-optional-pointer: true
-    APISubscription:
-      description: represents a feed a particular user has subscribed to.
-      allOf:
-        - $ref: '#/components/schemas/Subscription'
-        - type: object
-          required:
-            - ID
-            - FeedID
-            - UserID
-          properties:
-            FeedID:
-              $ref: '#/components/schemas/FeedID'
-            UserID:
-              $ref: '#/components/schemas/UserID'
     FeedState:
       description: tracks the state of the feed.
       type: object
@@ -353,11 +407,6 @@ components:
               x-oapi-codegen-extra-tags:
                 json: 'link'
                 validate: 'required,url'
-    # ReadItems:
-    #   description: represents an array of item (e.g., an individual feed item) that have been read.
-    #   type: array
-    #   items:
-    #     $ref: '#/components/schemas/ReadItem'
     APIReadItem:
       description: >
         represents an item (e.g., an individual feed item) that has

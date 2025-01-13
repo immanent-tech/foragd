@@ -22,7 +22,7 @@ var (
 	ErrNoHits       = errors.New("no hits found")
 )
 
-type aggregationDefinition struct {
+type Aggregation struct {
 	Name       string
 	Definition types.Aggregations
 }
@@ -83,6 +83,25 @@ func QueryByItemIDs(itemIDs ...string) Option[*types.Query] {
 		query.Terms = &types.TermsQuery{
 			TermsQuery: map[string]types.TermsQueryField{
 				"item_id": itemIDs,
+			},
+		}
+
+		return query
+	}
+}
+
+// QueryByURLs adds a "Terms" clause to query the given field with a list of URLs.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
+func QueryByURLs(field string, urls ...string) Option[*types.Query] {
+	return func(query *types.Query) *types.Query {
+		if len(urls) == 0 {
+			return query
+		}
+
+		query.Terms = &types.TermsQuery{
+			TermsQuery: map[string]types.TermsQueryField{
+				field: urls,
 			},
 		}
 
@@ -218,8 +237,8 @@ func QueryBool(options ...Option[*types.BoolQuery]) Option[*types.Query] {
 	}
 }
 
-func TermsAggregation(name, field string) aggregationDefinition {
-	return aggregationDefinition{
+func TermsAggregation(name, field string) Aggregation {
+	return Aggregation{
 		Name: name,
 		Definition: types.Aggregations{
 			Terms: &types.TermsAggregation{
@@ -230,7 +249,7 @@ func TermsAggregation(name, field string) aggregationDefinition {
 }
 
 // WithAggregations adds the given aggregation definitions to the search.
-func WithAggregations(definitions ...aggregationDefinition) Option[*search.Search] {
+func WithAggregations(definitions ...Aggregation) Option[*search.Search] {
 	return func(search *search.Search) *search.Search {
 		aggregations := make(map[string]types.Aggregations)
 

@@ -8,13 +8,13 @@ import "context"
 type contextKey string
 
 const (
-	userContextKey contextKey = "user"
+	userContextKey            contextKey = "user"
+	subscriptionRequestCtxKey contextKey = "subscriptionRequest"
 )
 
 // UserToCtx stores a user in the context.
 func UserToCtx(ctx context.Context, user User) context.Context {
-	newCtx := context.WithValue(ctx, userContextKey, user)
-	return newCtx
+	return context.WithValue(ctx, userContextKey, user)
 }
 
 // UserFromCtx retrieves a user from the context and a boolean indicating
@@ -28,4 +28,17 @@ func UserFromCtx(ctx context.Context) (User, bool) {
 	}
 
 	return user, true
+}
+
+func SubscriptionRequestToCtx(ctx context.Context, req *SubscriptionRequest) context.Context {
+	return context.WithValue(ctx, subscriptionRequestCtxKey, req)
+}
+
+func SubscriptionRequestFromCtx(ctx context.Context) *SubscriptionRequest {
+	req, found := ctx.Value(subscriptionRequestCtxKey).(*SubscriptionRequest)
+	if !found {
+		return nil
+	}
+
+	return req
 }

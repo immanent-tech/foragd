@@ -109,11 +109,11 @@ type GetLoginCallbackParams struct {
 	State string `form:"state" json:"state"`
 }
 
-// PostSubscriptionValidateFormdataRequestBody defines body for PostSubscriptionValidate for application/x-www-form-urlencoded ContentType.
-type PostSubscriptionValidateFormdataRequestBody = externalRef0.APISubscription
+// ProcessAddSubscriptionMultipartRequestBody defines body for ProcessAddSubscription for multipart/form-data ContentType.
+type ProcessAddSubscriptionMultipartRequestBody = externalRef0.SubscriptionRequest
 
-// SignupMultipartRequestBody defines body for Signup for multipart/form-data ContentType.
-type SignupMultipartRequestBody = externalRef0.UserSignup
+// PostSubscriptionEditMultipartRequestBody defines body for PostSubscriptionEdit for multipart/form-data ContentType.
+type PostSubscriptionEditMultipartRequestBody = externalRef0.SubscriptionRequest
 
 // ProcessSignupMultipartRequestBody defines body for ProcessSignup for multipart/form-data ContentType.
 type ProcessSignupMultipartRequestBody = externalRef0.UserSignup
@@ -140,19 +140,16 @@ type ServerInterface interface {
 	ShowList(w http.ResponseWriter, r *http.Request, list ShowListParamsList, params ShowListParams)
 	// Add a new subscription
 	// (GET /home/subscription/add)
-	GetSubscriptionAdd(w http.ResponseWriter, r *http.Request)
+	AddSubscription(w http.ResponseWriter, r *http.Request)
 	// Process a new subscription
 	// (POST /home/subscription/add)
-	PostSubscriptionAdd(w http.ResponseWriter, r *http.Request)
+	ProcessAddSubscription(w http.ResponseWriter, r *http.Request)
 	// Edit a new subscription
-	// (GET /home/subscription/edit/{subID})
-	GetSubscriptionEdit(w http.ResponseWriter, r *http.Request, subID string)
+	// (GET /home/subscription/edit/{feed})
+	GetSubscriptionEdit(w http.ResponseWriter, r *http.Request, feed FeedID)
 	// Process a subscription edit
-	// (POST /home/subscription/edit/{subID})
-	PostSubscriptionEdit(w http.ResponseWriter, r *http.Request, subID string)
-	// Validate a subscription
-	// (POST /home/subscription/validate)
-	PostSubscriptionValidate(w http.ResponseWriter, r *http.Request)
+	// (POST /home/subscription/edit/{feed})
+	PostSubscriptionEdit(w http.ResponseWriter, r *http.Request, feed FeedID)
 	// Process a user login with given provider
 	// (GET /login/{provider})
 	GetLogin(w http.ResponseWriter, r *http.Request, provider string)
@@ -215,31 +212,25 @@ func (_ Unimplemented) ShowList(w http.ResponseWriter, r *http.Request, list Sho
 
 // Add a new subscription
 // (GET /home/subscription/add)
-func (_ Unimplemented) GetSubscriptionAdd(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) AddSubscription(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Process a new subscription
 // (POST /home/subscription/add)
-func (_ Unimplemented) PostSubscriptionAdd(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) ProcessAddSubscription(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Edit a new subscription
-// (GET /home/subscription/edit/{subID})
-func (_ Unimplemented) GetSubscriptionEdit(w http.ResponseWriter, r *http.Request, subID string) {
+// (GET /home/subscription/edit/{feed})
+func (_ Unimplemented) GetSubscriptionEdit(w http.ResponseWriter, r *http.Request, feed FeedID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Process a subscription edit
-// (POST /home/subscription/edit/{subID})
-func (_ Unimplemented) PostSubscriptionEdit(w http.ResponseWriter, r *http.Request, subID string) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Validate a subscription
-// (POST /home/subscription/validate)
-func (_ Unimplemented) PostSubscriptionValidate(w http.ResponseWriter, r *http.Request) {
+// (POST /home/subscription/edit/{feed})
+func (_ Unimplemented) PostSubscriptionEdit(w http.ResponseWriter, r *http.Request, feed FeedID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -522,11 +513,11 @@ func (siw *ServerInterfaceWrapper) ShowList(w http.ResponseWriter, r *http.Reque
 	handler.ServeHTTP(w, r)
 }
 
-// GetSubscriptionAdd operation middleware
-func (siw *ServerInterfaceWrapper) GetSubscriptionAdd(w http.ResponseWriter, r *http.Request) {
+// AddSubscription operation middleware
+func (siw *ServerInterfaceWrapper) AddSubscription(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetSubscriptionAdd(w, r)
+		siw.Handler.AddSubscription(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -536,11 +527,11 @@ func (siw *ServerInterfaceWrapper) GetSubscriptionAdd(w http.ResponseWriter, r *
 	handler.ServeHTTP(w, r)
 }
 
-// PostSubscriptionAdd operation middleware
-func (siw *ServerInterfaceWrapper) PostSubscriptionAdd(w http.ResponseWriter, r *http.Request) {
+// ProcessAddSubscription operation middleware
+func (siw *ServerInterfaceWrapper) ProcessAddSubscription(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostSubscriptionAdd(w, r)
+		siw.Handler.ProcessAddSubscription(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -555,17 +546,17 @@ func (siw *ServerInterfaceWrapper) GetSubscriptionEdit(w http.ResponseWriter, r 
 
 	var err error
 
-	// ------------- Path parameter "subID" -------------
-	var subID string
+	// ------------- Path parameter "feed" -------------
+	var feed FeedID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "subID", chi.URLParam(r, "subID"), &subID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subID", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetSubscriptionEdit(w, r, subID)
+		siw.Handler.GetSubscriptionEdit(w, r, feed)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -580,31 +571,17 @@ func (siw *ServerInterfaceWrapper) PostSubscriptionEdit(w http.ResponseWriter, r
 
 	var err error
 
-	// ------------- Path parameter "subID" -------------
-	var subID string
+	// ------------- Path parameter "feed" -------------
+	var feed FeedID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "subID", chi.URLParam(r, "subID"), &subID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subID", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostSubscriptionEdit(w, r, subID)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// PostSubscriptionValidate operation middleware
-func (siw *ServerInterfaceWrapper) PostSubscriptionValidate(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostSubscriptionValidate(w, r)
+		siw.Handler.PostSubscriptionEdit(w, r, feed)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -896,19 +873,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/home/show/{list}", wrapper.ShowList)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/subscription/add", wrapper.GetSubscriptionAdd)
+		r.Get(options.BaseURL+"/home/subscription/add", wrapper.AddSubscription)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/subscription/add", wrapper.PostSubscriptionAdd)
+		r.Post(options.BaseURL+"/home/subscription/add", wrapper.ProcessAddSubscription)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/subscription/edit/{subID}", wrapper.GetSubscriptionEdit)
+		r.Get(options.BaseURL+"/home/subscription/edit/{feed}", wrapper.GetSubscriptionEdit)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/subscription/edit/{subID}", wrapper.PostSubscriptionEdit)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/subscription/validate", wrapper.PostSubscriptionValidate)
+		r.Post(options.BaseURL+"/home/subscription/edit/{feed}", wrapper.PostSubscriptionEdit)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/login/{provider}", wrapper.GetLogin)

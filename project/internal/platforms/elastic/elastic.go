@@ -14,7 +14,10 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
-var ErrNoClient = errors.New("no client")
+var (
+	ErrNoClient      = errors.New("no client")
+	ErrFieldNotFound = errors.New("field not found")
+)
 
 // Option is a generic type for request options.
 type Option[T any] func(T) T
@@ -66,4 +69,22 @@ func extractSource[T any](doc json.RawMessage) (T, error) {
 	}
 
 	return source, nil
+}
+
+// extractFieldValue extracts the value of the given field from a hit's list of
+// returned fields. If the field is not found or the value cannot be extracted,
+// a non-nil error is returned.
+func extractFieldValue[T any](field string, fields map[string]json.RawMessage) (T, error) {
+	var fieldValue T
+
+	if _, found := fields[field]; !found {
+		return fieldValue, ErrFieldNotFound
+	}
+
+	err := json.Unmarshal(fields[field], &fieldValue)
+	if err != nil {
+		return fieldValue, errors.Join(ErrFieldNotFound, err)
+	}
+
+	return fieldValue, nil
 }
