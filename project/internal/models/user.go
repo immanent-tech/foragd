@@ -9,8 +9,6 @@ import (
 	"fmt"
 	"slices"
 	"strings"
-
-	components "github.com/joshuar/go-templ-daisyui"
 )
 
 var ErrAddUser = errors.New("add subscription failed")
@@ -93,26 +91,4 @@ func (t *Tokens) DecodeClaims() error {
 	t.Claims = claims
 
 	return nil
-}
-
-func (s *UserSignup) Valid() bool {
-	valid, problems := validateStruct(s)
-	if valid {
-		return true
-	}
-
-	s.generateInputs()
-
-	for field, problem := range problems {
-		switch field {
-		case "Email":
-			s.InputEmail.SetState(components.StateError, true)
-			s.InputEmail.SetBottomRightLabel(problem)
-		case "Password":
-			s.InputPassword.SetState(components.StateError, true)
-			s.InputPassword.SetBottomRightLabel(problem)
-		}
-	}
-
-	return false
 }

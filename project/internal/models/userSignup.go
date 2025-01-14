@@ -61,20 +61,50 @@ func (s *UserSignup) generateInputs() {
 	}
 }
 
-func (s *UserSignup) ShowNickNameInput() templ.Component {
-	return components.TextInput(
-		components.FromTextInputProps(s.InputNickname),
+func (s *UserSignup) Form() templ.Component {
+	return components.Form(
+		components.WithFormComponents(
+			components.TextInput(
+				components.FromTextInputProps(s.InputNickname),
+			),
+			components.TextInput(
+				components.FromTextInputProps(s.InputEmail),
+			),
+			components.TextInput(
+				components.FromTextInputProps(s.InputPassword),
+			),
+			components.Button(
+				components.NewButton("Signup", "signup",
+					components.WithColor[components.Button](components.ColorPrimary, true)),
+			).Show(),
+		),
+		components.WithAttributes[components.FormProps](
+			templ.Attributes{
+				"hx-post":   "/signup",
+				"hx-target": "#signup",
+			},
+		),
 	)
 }
 
-func (s *UserSignup) ShowEmailInput() templ.Component {
-	return components.TextInput(
-		components.FromTextInputProps(s.InputEmail),
-	)
-}
+func (s *UserSignup) Valid() bool {
+	valid, problems := validateStruct(s)
+	if valid {
+		return true
+	}
 
-func (s *UserSignup) ShowPasswordInput() templ.Component {
-	return components.TextInput(
-		components.FromTextInputProps(s.InputPassword),
-	)
+	s.generateInputs()
+
+	for field, problem := range problems {
+		switch field {
+		case "Email":
+			s.InputEmail.SetState(components.StateError, true)
+			s.InputEmail.SetBottomRightLabel(problem)
+		case "Password":
+			s.InputPassword.SetState(components.StateError, true)
+			s.InputPassword.SetBottomRightLabel(problem)
+		}
+	}
+
+	return false
 }

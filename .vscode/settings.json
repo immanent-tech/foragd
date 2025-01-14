@@ -74,7 +74,9 @@
     "modifiers/mask",
     "modifiers/object",
     "modifiers/color",
-    "routes/home"
+    "routes/home",
+    "components/form",
+    "components/dropdown"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

@@ -43,16 +43,16 @@ func (s Server) Signup(res http.ResponseWriter, req *http.Request) {
 func (s Server) ProcessSignup(res http.ResponseWriter, req *http.Request) {
 	logger := logging.NewHandlerLogger("ProcessSignup", req)
 
-	userSignup, err := forms.DecodeForm[*models.UserSignup](req)
+	userSignup, valid, err := forms.DecodeForm[*models.UserSignup](req)
 	if err != nil {
 		logger.Error("Could not decode submitted signup request.",
 			slog.Any("error", err))
 		return
 	}
 
-	if !userSignup.Valid() {
+	if !valid {
 		ctx := layouts.UserSignupToCtx(req.Context(), userSignup)
-		if err = htmx.NewResponse().RenderTempl(ctx, res, layouts.SignupForm()); err != nil {
+		if err = htmx.NewResponse().RenderTempl(ctx, res, userSignup.Form()); err != nil {
 			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}

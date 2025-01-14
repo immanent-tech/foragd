@@ -16,19 +16,10 @@ templ AddSubscriptionForm() {
 		components.WithModalCloseButton(components.AlignRight),
 		components.WithModalCloseOutside(),
 	) {
-		<form hx-post="/home/subscription/add" hx-target="#command_modal">
-			<div class="flex flex-col gap-4">
-				{{ req := models.SubscriptionRequestFromCtx(ctx) }}
-				if req != nil {
-					@req.ShowNameInput()
-					@req.ShowURLInput()
-					@req.ShowCategoriesInput()
-					@components.Button(
-						components.NewButton("Add", "add",
-							components.WithColor[components.Button](components.ColorPrimary, true)),
-					).Show()
-				}
-			</div>
-		</form>
+		<div id="alert"></div>
+		{{ req := models.SubscriptionRequestFromCtx(ctx) }}
+		if req != nil {
+			@req.Form()
+		}
 	}
 }

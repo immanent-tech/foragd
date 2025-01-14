@@ -21,14 +21,16 @@ func NewSubscriptionAddRequest() *SubscriptionRequest {
 func (s *SubscriptionRequest) generateInputs() {
 	s.InputName = components.BuildTextInput(
 		components.WithFormControl(),
-		components.WithOutsideLabels("Name", "", "Replaces the feed's own name.", ""),
 		components.WithInsideLabels(
-			components.Icon("fa-rss"),
-			components.Badge(
-				components.WithBadgeDescription("Optional"),
-				components.WithColor[components.BadgeProps](components.ColorPrimary, true))),
+			components.PlainText("Nickname"),
+			components.HelperDropdown(
+				"Optional. Replace the name of the feed with your own custom nickname.",
+				components.WithOpenFrom[components.DropdownProps](components.OpenLeft),
+				components.WithOpenOnHover(),
+			),
+		),
 		components.WithID[components.TextInputProps]("name"),
-		components.WithPlaceholder[components.TextInputProps]("Your custom name for this feed"),
+		components.WithPlaceholder[components.TextInputProps]("Cool feed"),
 	)
 	if s.Name != "" {
 		s.InputName.SetValue(s.Name)
@@ -36,14 +38,19 @@ func (s *SubscriptionRequest) generateInputs() {
 
 	s.InputURL = components.BuildTextInput(
 		components.WithFormControl(),
-		components.WithOutsideLabels("URL", "", "The URL for the feed.", ""),
 		components.WithInsideLabels(
-			components.Icon("fa-link"),
-			nil),
+			components.PlainText("URL"),
+			components.HelperDropdown(
+				"The URL for the feed.",
+				components.WithOpenOnHover(),
+				components.WithOpenFrom[components.DropdownProps](components.OpenBottom),
+				components.WithOpenFrom[components.DropdownProps](components.OpenLeft),
+			),
+		),
 		components.WithID[components.TextInputProps]("url"),
 		components.AsURL(),
 		components.WithColor[components.TextInputProps](components.ColorPrimary, false),
-		components.WithPlaceholder[components.TextInputProps]("http://awesome.feed/rss"),
+		components.WithPlaceholder[components.TextInputProps]("https://cool.feed.lol/rss"),
 		components.WithValidationRequired[components.TextInputProps](),
 	)
 	if s.URL != "" {
@@ -52,33 +59,64 @@ func (s *SubscriptionRequest) generateInputs() {
 
 	s.InputCategories = components.BuildTextInput(
 		components.WithFormControl(),
-		components.WithOutsideLabels("Categories", "", "A list of custom categories to group this feed with others.", ""),
 		components.WithInsideLabels(
-			components.Icon("fa-list"),
-			nil),
+			components.PlainText("Categories"),
+			components.HelperDropdown(
+				"Optional. A (comma-separated) list of custom categories to group this feed with others.",
+				components.WithOpenOnHover(),
+				components.WithOpenFrom[components.DropdownProps](components.OpenLeft),
+			),
+		),
 		components.WithID[components.TextInputProps]("categories"),
 		components.WithColor[components.TextInputProps](components.ColorPrimary, false),
-		components.WithPlaceholder[components.TextInputProps]("feeds, stuff, news"),
+		components.WithPlaceholder[components.TextInputProps]("awesome, news"),
 	)
 	if len(s.Categories) > 0 {
 		s.InputCategories.SetValue(strings.Join(s.Categories, ","))
 	}
 }
 
-func (s *SubscriptionRequest) ShowNameInput() templ.Component {
-	return components.TextInput(
-		components.FromTextInputProps(s.InputName),
+func (s *SubscriptionRequest) Form() templ.Component {
+	return components.Form(
+		components.WithFormComponents(
+			components.TextInput(
+				components.FromTextInputProps(s.InputName),
+			),
+			components.TextInput(
+				components.FromTextInputProps(s.InputURL),
+			),
+			components.TextInput(
+				components.FromTextInputProps(s.InputCategories),
+			),
+			components.Button(
+				components.NewButton("Add Subscription", "add",
+					components.WithColor[components.Button](components.ColorPrimary, true)),
+			).Show(),
+		),
+		components.WithAttributes[components.FormProps](
+			templ.Attributes{
+				"hx-post":   "/home/subscription/add",
+				"hx-target": "#command_modal",
+			},
+		),
 	)
 }
 
-func (s *SubscriptionRequest) ShowURLInput() templ.Component {
-	return components.TextInput(
-		components.FromTextInputProps(s.InputURL),
-	)
-}
+func (s *SubscriptionRequest) Valid() bool {
+	valid, problems := validateStruct(s)
+	if valid {
+		return true
+	}
 
-func (s *SubscriptionRequest) ShowCategoriesInput() templ.Component {
-	return components.TextInput(
-		components.FromTextInputProps(s.InputCategories),
-	)
+	s.generateInputs()
+
+	for field, problem := range problems {
+		switch field {
+		case "URL":
+			s.InputURL.SetState(components.StateError, true)
+			s.InputURL.SetBottomRightLabel(problem)
+		}
+	}
+
+	return false
 }

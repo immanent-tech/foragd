@@ -17,25 +17,29 @@ func init() {
 	decoder = form.NewDecoder()
 }
 
-func DecodeForm[T any](req *http.Request) (T, error) {
+// DecodeForm will decode submitted form contents into the passed in type. It
+// will perform validation of the type and will return the type and a boolean
+// true if it is valid. If decoding the form submission fails, a non-nill error
+// is returned.
+func DecodeForm[T Validator](req *http.Request) (T, bool, error) {
 	var obj T
 	// Parse form values in request.
 	if err := req.ParseForm(); err != nil {
-		return obj, fmt.Errorf("parse form: %w", err)
+		return obj, false, fmt.Errorf("parse form: %w", err)
 	}
 
 	// Decode into appropriate object.
 	err := decoder.Decode(&obj, req.Form)
 	if err != nil {
-		return obj, fmt.Errorf("decode form: %w", err)
+		return obj, false, fmt.Errorf("decode form: %w", err)
 	}
 
-	// // Validate the object.
-	// if ok, problems := obj.Valid(); !ok {
-	// 	return obj, problems, fmt.Errorf("invalid %T: %d problems", obj, len(problems))
-	// }
+	// Validate the object.
+	if ok := obj.Valid(); !ok {
+		return obj, false, fmt.Errorf("invalid %T", obj)
+	}
 
-	return obj, nil
+	return obj, true, nil
 }
 
 func DecodeRequest[T any](req *http.Request) (T, error) {

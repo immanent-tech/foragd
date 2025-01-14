@@ -64,9 +64,9 @@ templ DrawerSide() {
 			components.WithIcon("fa-plus", components.AlignMiddle),
 			components.WithButtonTooltip("Add Item", components.AlignRight),
 			components.WithAttributes[components.Button](templ.Attributes{
-				"hx-get":    "/subscription/add",
-				"hx-target": "#command-modal",
-				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #command-modal",
+				"hx-get":    "/home/subscription/add",
+				"hx-target": "#command_modal",
+				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
 			})).Show()
 	</div>
 }

@@ -12,30 +12,15 @@ templ SignupLayout() {
 			<div class="max-w-md gap-2">
 				<h1 class="text-3xl font-bold">Sign-up to Go Feed Me</h1>
 				<div id="signup-notifications"></div>
-				if UserSignupFromCtx(ctx) != nil {
+				{{ signup := UserSignupFromCtx(ctx) }}
+				if signup != nil {
 					<div id="signup">
-						@SignupForm()
+						@signup.Form()
 					</div>
 				}
 			</div>
 		</div>
 	</div>
-}
-
-// SignupForm is a form for a user to enter sign-up details.
-templ SignupForm() {
-	<form hx-post="/signup" hx-target="#signup">
-		<div class="flex flex-col gap-4">
-			{{ signup := UserSignupFromCtx(ctx) }}
-			@signup.ShowNickNameInput()
-			@signup.ShowEmailInput()
-			@signup.ShowPasswordInput()
-			@components.Button(
-				components.NewButton("Signup", "signup",
-					components.WithColor[components.Button](components.ColorPrimary, true)),
-			).Show()
-		</div>
-	</form>
 }
 
 templ SignupSuccess() {
