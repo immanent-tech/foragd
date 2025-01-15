@@ -13,13 +13,54 @@ import (
 templ AddSubscriptionForm() {
 	@components.Modal(
 		components.WithID[components.ModalProps]("add_subscription_modal"),
-		components.WithModalCloseButton(components.AlignRight),
+		components.WithModalCloseButton(),
 		components.WithModalCloseOutside(),
+		components.OpenModalInitially(),
 	) {
-		<div id="alert"></div>
+		<h2>Add a new subscription</h2>
+		<p><i>Enter the details and hit add.</i></p>
 		{{ req := models.SubscriptionRequestFromCtx(ctx) }}
 		if req != nil {
-			@req.Form()
+			<div class="p-4">
+				@req.Form()
+			</div>
 		}
+	}
+}
+
+templ AddSubscriptionSuccess() {
+	@components.Modal(
+		components.WithID[components.ModalProps]("add_subscription_modal"),
+		components.WithModalCloseOutside(),
+		components.OpenModalInitially(),
+	) {
+		<h2>Subscription added!</h2>
+		@components.Button(
+			components.WithButtonContent(components.AsTextContent("Close")),
+			components.WithAutofocus[components.ButtonProps](),
+			components.WithAttributes[components.ButtonProps](templ.Attributes{
+				"_": "on click take .modal-open from #command_modal wait 200ms then remove #command_modal",
+			}),
+		)
+	}
+}
+
+templ AddSubscriptionWarning(warnings []string) {
+	@components.Modal(
+		components.WithID[components.ModalProps]("add_subscription_modal"),
+		components.WithModalCloseOutside(),
+		components.OpenModalInitially(),
+	) {
+		<h2>There was an issue with adding the subscription!</h2>
+		for _, warning := range warnings {
+			<p>{ warning }</p>
+		}
+		@components.Button(
+			components.WithButtonContent(components.AsTextContent("Close")),
+			components.WithAutofocus[components.ButtonProps](),
+			components.WithAttributes[components.ButtonProps](templ.Attributes{
+				"_": "on click take .modal-open from #command_modal wait 200ms then remove #command_modal",
+			}),
+		)
 	}
 }

@@ -27,13 +27,29 @@ func DetectNoop(value bool) Option[*update.Request] {
 	}
 }
 
-// WithDocUpdate sets the document content for the update. This can be a partial
-// or full document. The document is automatically marshaled to JSON.
+// WithDocUpdate sets the full document content for the update. The document is
+// automatically marshaled to JSON.
 func WithDocUpdate(doc any) Option[*update.Request] {
 	return func(update *update.Request) *update.Request {
 		data, err := json.Marshal(doc)
 		if err != nil {
 			slog.Warn("Could not marshal document.", slog.Any("error", err))
+			return update
+		}
+
+		update.Doc = data
+
+		return update
+	}
+}
+
+// WithPartialDocUpdate sets the fields of the document to update. The fields are
+// automatically marshaled to JSON.
+func WithPartialDocUpdate(fields map[string]any) Option[*update.Request] {
+	return func(update *update.Request) *update.Request {
+		data, err := json.Marshal(fields)
+		if err != nil {
+			slog.Warn("Could not marshal fields.", slog.Any("error", err))
 			return update
 		}
 

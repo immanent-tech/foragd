@@ -63,12 +63,10 @@ func (s Server) ProcessSignup(res http.ResponseWriter, req *http.Request) {
 	// Create the user in the auth backend.
 	userID, err := s.API.user.Create(req.Context(), userSignup)
 	if err != nil {
-		logging.FromContext(req.Context()).
-			Error("Could not create user account.", slog.Any("error", err))
+		logger.Error("Could not create user account.", slog.Any("error", err))
 
 		if err = htmx.NewResponse().RenderTempl(req.Context(), res, layouts.SignupError()); err != nil {
-			logging.FromContext(req.Context()).
-				Error("Cannot render sign up error.", slog.Any("error", err))
+			logger.Error("Cannot render sign up error.", slog.Any("error", err))
 			res.WriteHeader(http.StatusInternalServerError)
 		}
 
@@ -78,20 +76,17 @@ func (s Server) ProcessSignup(res http.ResponseWriter, req *http.Request) {
 	// Create new user in the database backend.
 	err = s.API.elastic.AddUser(req.Context(), userID)
 	if err != nil {
-		logging.FromContext(req.Context()).
-			Error("Could not create user account.", slog.Any("error", err))
+		logger.Error("Could not create user account.", slog.Any("error", err))
 
 		if err = htmx.NewResponse().RenderTempl(req.Context(), res, layouts.SignupError()); err != nil {
-			logging.FromContext(req.Context()).
-				Error("Cannot render sign up error.", slog.Any("error", err))
+			logger.Error("Cannot render sign up error.", slog.Any("error", err))
 			res.WriteHeader(http.StatusInternalServerError)
 		}
 	}
 
 	// Show success message.
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, layouts.SignupSuccess()); err != nil {
-		logging.FromContext(req.Context()).
-			Error("Cannot render sign up error.", slog.Any("error", err))
+		logger.Error("Cannot render sign up error.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 	}
 }

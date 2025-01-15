@@ -31,8 +31,7 @@ templ ContentFooter() {
 	<div
 		id="content-footer"
 		hx-swap-oob="true"
-		class="bg-base-300 sticky z-30
-	bottom-0 w-full py-12"
+		class="bg-base-300 sticky z-30 bottom-0 w-full py-12"
 	>
 		<h1 class="text-center text-xl">Footer</h1>
 	</div>
@@ -59,15 +58,15 @@ templ DrawerMain(data templ.Component) {
 
 templ DrawerSide() {
 	<div class="bg-base-200">
-		@components.NewButton("", "add",
-			components.WithColor[components.Button](components.ColorGhost, false),
-			components.WithIcon("fa-plus", components.AlignMiddle),
-			components.WithButtonTooltip("Add Item", components.AlignRight),
-			components.WithAttributes[components.Button](templ.Attributes{
+		@components.Button(
+			components.WithID[components.ButtonProps]("add"),
+			components.WithColor[components.ButtonProps](components.ColorGhost, false),
+			components.WithButtonContent(components.AsIconContent("fa-plus")),
+			components.WithAttributes[components.ButtonProps](templ.Attributes{
 				"hx-get":    "/home/subscription/add",
 				"hx-target": "#command_modal",
 				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
-			})).Show()
+			}))
 	</div>
 }
 
@@ -131,9 +130,10 @@ templ ShowEmptyContent() {
 					class="btn btn-primary"
 					hx-get="/home/subscription/add"
 					hx-target="#command_modal"
-					_="on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal"
 				>Add Subscription</button>
 			</div>
 		</div>
 	</div>
 }
+
+// _="on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal"

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/davecgh/go-spew/spew"
 	components "github.com/joshuar/go-templ-daisyui"
 )
 
@@ -26,7 +27,6 @@ func (s *SubscriptionRequest) generateInputs() {
 			components.HelperDropdown(
 				"Optional. Replace the name of the feed with your own custom nickname.",
 				components.WithOpenFrom[components.DropdownProps](components.OpenLeft),
-				components.WithOpenOnHover(),
 			),
 		),
 		components.WithID[components.TextInputProps]("name"),
@@ -42,8 +42,6 @@ func (s *SubscriptionRequest) generateInputs() {
 			components.PlainText("URL"),
 			components.HelperDropdown(
 				"The URL for the feed.",
-				components.WithOpenOnHover(),
-				components.WithOpenFrom[components.DropdownProps](components.OpenBottom),
 				components.WithOpenFrom[components.DropdownProps](components.OpenLeft),
 			),
 		),
@@ -63,7 +61,6 @@ func (s *SubscriptionRequest) generateInputs() {
 			components.PlainText("Categories"),
 			components.HelperDropdown(
 				"Optional. A (comma-separated) list of custom categories to group this feed with others.",
-				components.WithOpenOnHover(),
 				components.WithOpenFrom[components.DropdownProps](components.OpenLeft),
 			),
 		),
@@ -89,9 +86,10 @@ func (s *SubscriptionRequest) Form() templ.Component {
 				components.FromTextInputProps(s.InputCategories),
 			),
 			components.Button(
-				components.NewButton("Add Subscription", "add",
-					components.WithColor[components.Button](components.ColorPrimary, true)),
-			).Show(),
+				components.WithID[components.ButtonProps]("add"),
+				components.WithButtonContent(components.AsTextContent("Add")),
+				components.WithColor[components.ButtonProps](components.ColorPrimary, true),
+			),
 		),
 		components.WithAttributes[components.FormProps](
 			templ.Attributes{
@@ -108,12 +106,14 @@ func (s *SubscriptionRequest) Valid() bool {
 		return true
 	}
 
+	spew.Dump(problems)
+
 	s.generateInputs()
 
 	for field, problem := range problems {
 		switch field {
 		case "URL":
-			s.InputURL.SetState(components.StateError, true)
+			s.InputURL.SetStateColor(components.StateError, true)
 			s.InputURL.SetBottomRightLabel(problem)
 		}
 	}

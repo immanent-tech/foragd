@@ -1,7 +1,5 @@
 package partials
 
-import components "github.com/joshuar/go-templ-daisyui"
-
 templ SettingsModal() {
 	<div class="modal-box">
 		<form hx-post="/home/settings">
@@ -11,17 +9,17 @@ templ SettingsModal() {
 			</div>
 			<div class="join">
 				// Add button.
-				@components.NewButton("Save", "save",
-					components.WithAttributes[components.Button](templ.Attributes{
-						"_": "on click take .modal-open from #command-modal wait 200ms",
-					}),
-				).Show()
-				// Close button.
-				@components.NewButton("Close", "close",
-					components.WithAttributes[components.Button](templ.Attributes{
-						"_": "on click take .modal-open from #command-modal wait 200ms",
-					}),
-				).Show()
+				// @components.NewButton("Save", "save",
+				// 	components.WithAttributes[components.Button](templ.Attributes{
+				// 		"_": "on click take .modal-open from #command-modal wait 200ms",
+				// 	}),
+				// ).Show()
+				// // Close button.
+				// @components.NewButton("Close", "close",
+				// 	components.WithAttributes[components.Button](templ.Attributes{
+				// 		"_": "on click take .modal-open from #command-modal wait 200ms",
+				// 	}),
+				// ).Show()
 			</div>
 		</form>
 	</div>

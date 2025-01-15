@@ -74,9 +74,10 @@ func (s *UserSignup) Form() templ.Component {
 				components.FromTextInputProps(s.InputPassword),
 			),
 			components.Button(
-				components.NewButton("Signup", "signup",
-					components.WithColor[components.Button](components.ColorPrimary, true)),
-			).Show(),
+				components.WithID[components.ButtonProps]("signup"),
+				components.WithButtonContent(components.AsTextContent("Signup")),
+				components.WithColor[components.ButtonProps](components.ColorPrimary, true),
+			),
 		),
 		components.WithAttributes[components.FormProps](
 			templ.Attributes{
@@ -98,10 +99,10 @@ func (s *UserSignup) Valid() bool {
 	for field, problem := range problems {
 		switch field {
 		case "Email":
-			s.InputEmail.SetState(components.StateError, true)
+			s.InputEmail.SetStateColor(components.StateError, true)
 			s.InputEmail.SetBottomRightLabel(problem)
 		case "Password":
-			s.InputPassword.SetState(components.StateError, true)
+			s.InputPassword.SetStateColor(components.StateError, true)
 			s.InputPassword.SetBottomRightLabel(problem)
 		}
 	}

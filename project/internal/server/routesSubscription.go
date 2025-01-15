@@ -42,12 +42,31 @@ func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Reques
 
 	if !valid {
 		ctx := models.SubscriptionRequestToCtx(req.Context(), subscription)
-		if err = htmx.NewResponse().RenderTempl(ctx, res, subscription.Form()); err != nil {
+		if err = htmx.NewResponse().RenderTempl(ctx, res, content.AddSubscriptionForm()); err != nil {
 			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 
 		return
+	}
+
+	warnings, err := s.API.elastic.UserActionAddSubscriptions(req.Context(), *subscription)
+	if err != nil {
+		logger.Error("Could not add subscription.", slog.Any("error", err))
+	}
+
+	if len(warnings) > 0 {
+		if err := htmx.NewResponse().RenderTempl(req.Context(), res, content.AddSubscriptionWarning(warnings)); err != nil {
+			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			http.Error(res, "Problem!", http.StatusInternalServerError)
+		}
+
+		return
+	}
+
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, content.AddSubscriptionSuccess()); err != nil {
+		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }
 

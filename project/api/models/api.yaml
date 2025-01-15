@@ -136,7 +136,7 @@ components:
         $ref: '#/components/schemas/Category'
       x-oapi-codegen-extra-tags:
         json: 'categories'
-        form: 'categories'
+        form: 'categories[]'
       x-go-type-skip-optional-pointer: true
     ReadItem:
       description: represents an item (e.g., an individual feed item) that has been read.
@@ -183,6 +183,7 @@ components:
             URL:
               <<: *URL
               x-oapi-codegen-extra-tags:
+                form: 'url'
                 validate: 'required,url'
     SubscriptionRequestForm:
       description: represents a form input for a subscription request.

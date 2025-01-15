@@ -21,7 +21,7 @@ type APIFeed struct {
 	Authors []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
-	Categories  Categories    `form:"categories" json:"categories"`
+	Categories  Categories    `form:"categories[]" json:"categories"`
 	Copyright   string        `json:"copyright,omitempty"`
 	Description string        `json:"description"`
 	FeedType    string        `json:"feedType"`
@@ -48,7 +48,7 @@ type APIItem struct {
 	Authors []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
-	Categories  Categories    `form:"categories" json:"categories"`
+	Categories  Categories    `form:"categories[]" json:"categories"`
 	Description string        `json:"description"`
 	Image       *gofeed.Image `json:"image,omitempty"`
 	Published   time.Time     `json:"publishedParsed"`
@@ -74,7 +74,7 @@ type APIReadItem struct {
 // APISearchFilters contains parameters for searching feeds and items
 type APISearchFilters struct {
 	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories" json:"categories"`
+	Categories Categories `form:"categories[]" json:"categories"`
 
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count"`
@@ -158,7 +158,7 @@ type MetadataFeed struct {
 	Authors []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
-	Categories  Categories    `form:"categories" json:"categories"`
+	Categories  Categories    `form:"categories[]" json:"categories"`
 	Description string        `json:"description"`
 	Image       *gofeed.Image `json:"image,omitempty"`
 	Published   time.Time     `json:"publishedParsed"`
@@ -181,7 +181,7 @@ type ReadItem struct {
 // Subscription defines model for Subscription.
 type Subscription struct {
 	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories" json:"categories"`
+	Categories Categories `form:"categories[]" json:"categories"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt time.Time `json:"created_at"`
@@ -206,10 +206,10 @@ type SubscriptionRequest struct {
 	InputURL        components.TextInputProps `form:"-" json:"-"`
 
 	// URL is a URL.
-	URL string `json:"URL" validate:"required,url"`
+	URL string `form:"url" json:"URL" validate:"required,url"`
 
 	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories" json:"categories"`
+	Categories Categories `form:"categories[]" json:"categories"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt time.Time `json:"created_at"`
