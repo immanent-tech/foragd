@@ -68,7 +68,8 @@ templ buttonToggleItem(feedID, itemID string) {
 				hx-push-url="false"
 			}
 		>
-			@components.Icon("fa-check")
+			@components.Icon("fa-check",
+				components.WithLabel("Mark Read", components.AlignRight))
 		</a>
 	</li>
 }

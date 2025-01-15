@@ -75,7 +75,7 @@ templ ShowArticle(item *models.APIItem) {
 	@ContentHeader()
 	<div id="content-main" class="flex flex-row flex-wrap gap-2">
 		<div id="article">
-			<article class={ "prose dark:prose-invert" }>
+			@components.Article() {
 				<h2>{ item.Title }</h2>
 				if len(item.GetCategories()) > 0 {
 					<p>
@@ -99,7 +99,7 @@ templ ShowArticle(item *models.APIItem) {
 						<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
 					</p>
 				</center>
-			</article>
+			}
 		</div>
 	</div>
 	@ContentFooter()
