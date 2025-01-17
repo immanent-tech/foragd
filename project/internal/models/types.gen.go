@@ -4,11 +4,14 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/coreos/go-oidc"
 	components "github.com/joshuar/go-templ-daisyui"
 	"github.com/mmcdole/gofeed"
+	"github.com/oapi-codegen/runtime"
+	"github.com/reugn/go-quartz/quartz"
 )
 
 // APIFeed defines model for APIFeed.
@@ -112,27 +115,34 @@ type Claims struct {
 // Count is the count of items to retrieve with a request.
 type Count = int
 
+// CreatedAt records when the object was created in the database.
+type CreatedAt = time.Time
+
+// DeletedAt records when the object was deleted.
+type DeletedAt = time.Time
+
 // FeedID is the unique ID of a feed.
 type FeedID = string
 
 // FeedIDs is a list of feed IDs.
 type FeedIDs = []FeedID
 
-// FeedState defines model for FeedState.
-type FeedState struct {
-	ID string `gorm:"primaryKey" json:"feed_id"`
+// FeedJob represents a job that fetches new items for a feed.
+type FeedJob struct {
+	// ID is the unique ID of a feed.
+	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
 
-	// CreatedAt records when the object was created in the database.
-	CreatedAt time.Time `json:"created_at"`
+	// URL is a URL.
+	URL URL `form:"url" gorm:"-" json:"url" validate:"required,url"`
+}
 
-	// DeletedAt records when the object was deleted.
-	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
+// FeedJobState tracks the state of the feed job.
+type FeedJobState struct {
+	// ID is the unique ID of a feed.
+	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
 
 	// LastFetched indicates when the feed was last fetched from its source.
-	LastFetched time.Time `json:"last_fetched,omitempty"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt time.Time `json:"updated_at"`
+	LastFetched time.Time `json:"last_fetched"`
 }
 
 // ItemID is the unique ID of an item.
@@ -144,13 +154,13 @@ type ItemIDs = []ItemID
 // MetadataDB contains common (metadata) fields for database objects.
 type MetadataDB struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt CreatedAt `json:"created_at"`
 
 	// DeletedAt records when the object was deleted.
-	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
+	DeletedAt DeletedAt `gorm:"index" json:"deleted_at"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt time.Time `json:"updated_at"`
+	UpdatedAt UpdatedAt `json:"updated_at"`
 }
 
 // MetadataFeed contains common/metadata fields for feeds and items.
@@ -178,22 +188,35 @@ type ReadItem struct {
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 }
 
-// Subscription defines model for Subscription.
+// ScheduledJob represents a job that has been scheduled by the job scheduler.
+type ScheduledJob struct {
+	Data     ScheduledJob_Data        `json:"job_data"`
+	NextRun  int64                    `json:"job_next_run"`
+	Options  *quartz.JobDetailOptions `json:"job_options,omitempty"`
+	Schedule string                   `json:"job_trigger" validate:"required,cron"`
+
+	// Timestamp is when the document was created.
+	Timestamp Timestamp `json:"@timestamp" validate:"required"`
+}
+
+// ScheduledJob_Data defines model for ScheduledJob.Data.
+type ScheduledJob_Data struct {
+	union json.RawMessage
+}
+
+// Subscription represents a feed a particular user has subscribed to.
 type Subscription struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at"`
+
 	// Categories is a list of feed/item categories.
 	Categories Categories `form:"categories[]" json:"categories"`
 
-	// CreatedAt records when the object was created in the database.
-	CreatedAt time.Time `json:"created_at"`
-
-	// DeletedAt records when the object was deleted.
-	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
-
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name string `form:"name" json:"name,omitempty"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
@@ -211,17 +234,8 @@ type SubscriptionRequest struct {
 	// Categories is a list of feed/item categories.
 	Categories Categories `form:"categories[]" json:"categories"`
 
-	// CreatedAt records when the object was created in the database.
-	CreatedAt time.Time `json:"created_at"`
-
-	// DeletedAt records when the object was deleted.
-	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
-
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name string `form:"name" json:"name,omitempty"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // SubscriptionRequestForm represents a form input for a subscription request.
@@ -244,25 +258,28 @@ type Tokens struct {
 // URL is a URL.
 type URL = string
 
+// UpdatedAt records when the object was last updated in the database.
+type UpdatedAt = time.Time
+
 // User defines model for User.
 type User struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at"`
+
+	// DeletedAt records when the object was deleted.
+	DeletedAt DeletedAt `gorm:"index" json:"deleted_at"`
+
 	// ID is the unique ID of a user.
 	ID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
 
-	// CreatedAt records when the object was created in the database.
-	CreatedAt time.Time `json:"created_at"`
-
-	// DeletedAt records when the object was deleted.
-	DeletedAt time.Time `gorm:"index" json:"deleted_at"`
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at"`
 
 	// ReadItems is the list of user read items.
 	ReadItems map[string][]ReadItem `json:"read_items,omitempty"`
 
 	// Subscriptions is the list of user subscriptions.
 	Subscriptions map[string]Subscription `json:"subscriptions,omitempty"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // UserID is the unique ID of a user.
@@ -289,4 +306,40 @@ type UserSignupForm struct {
 	InputEmail    components.TextInputProps `form:"-" json:"-"`
 	InputNickname components.TextInputProps `form:"-" json:"-"`
 	InputPassword components.TextInputProps `form:"-" json:"-"`
+}
+
+// AsFeedJob returns the union data inside the ScheduledJob_Data as a FeedJob
+func (t ScheduledJob_Data) AsFeedJob() (FeedJob, error) {
+	var body FeedJob
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFeedJob overwrites any union data inside the ScheduledJob_Data as the provided FeedJob
+func (t *ScheduledJob_Data) FromFeedJob(v FeedJob) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFeedJob performs a merge with any union data inside the ScheduledJob_Data, using the provided FeedJob
+func (t *ScheduledJob_Data) MergeFeedJob(v FeedJob) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t ScheduledJob_Data) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ScheduledJob_Data) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
 }

@@ -225,6 +225,8 @@ linters-settings:
         disabled: true
       - name: function-length
         disabled: true
+      - name: unused-receiver
+        disabled: true
       - name: useless-break # Covered by staticcheck SA4011.
         disabled: true
       - name: banned-characters

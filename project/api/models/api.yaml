@@ -3,6 +3,25 @@
 
 components:
   schemas:
+    CreatedAt:
+      description: records when the object was created in the database.
+      x-go-type: 'time.Time'
+      x-oapi-codegen-extra-tags:
+        json: 'created_at'
+      x-go-type-skip-optional-pointer: true
+    UpdatedAt:
+      description: records when the object was last updated in the database.
+      x-go-type: 'time.Time'
+      x-oapi-codegen-extra-tags:
+        json: 'updated_at'
+      x-go-type-skip-optional-pointer: true
+    DeletedAt:
+      description: records when the object was deleted.
+      x-go-type: 'time.Time'
+      x-oapi-codegen-extra-tags:
+        gorm: 'index'
+        json: 'deleted_at'
+      x-go-type-skip-optional-pointer: true
     # Metadata Objects.
     MetadataFeed:
       description: contains common/metadata fields for feeds and items.
@@ -45,17 +64,12 @@ components:
         - updated_at
         - deleted_at
       properties:
-        created_at:
-          description: records when the object was created in the database.
-          x-go-type: 'time.Time'
-        updated_at:
-          description: records when the object was last updated in the database.
-          x-go-type: 'time.Time'
-        deleted_at:
-          description: records when the object was deleted.
-          x-go-type: 'time.Time'
-          x-oapi-codegen-extra-tags:
-            gorm: 'index'
+        CreatedAt:
+          $ref: '#/components/schemas/CreatedAt'
+        UpdatedAt:
+          $ref: '#/components/schemas/UpdatedAt'
+        DeletedAt:
+          $ref: '#/components/schemas/DeletedAt'
     Timestamp:
       description: is when the document was created.
       x-go-type: 'time.Time'
@@ -154,10 +168,37 @@ components:
     Subscription:
       description: represents a feed a particular user has subscribed to.
       type: object
+      properties:
+        CreatedAt:
+          $ref: '#/components/schemas/CreatedAt'
+        UpdatedAt:
+          $ref: '#/components/schemas/UpdatedAt'
+        name:
+          description: >
+            is a friendly name or nickname for the feed given by the user.
+          type: string
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            form: 'name'
+        categories:
+          description: >
+            is a list of custom categories the user has assigned to
+            the feed.
+          $ref: '#/components/schemas/Categories'
+    SubscriptionRequest:
+      description: represents a new subscription request from a user.
+      type: object
       allOf:
-        - $ref: '#/components/schemas/MetadataDB'
+        - $ref: '#/components/schemas/SubscriptionRequestForm'
         - type: object
+          required:
+            - URL
           properties:
+            URL:
+              <<: *URL
+              x-oapi-codegen-extra-tags:
+                form: 'url'
+                validate: 'required,url'
             name:
               description: >
                 is a friendly name or nickname for the feed given by the user.
@@ -170,21 +211,6 @@ components:
                 is a list of custom categories the user has assigned to
                 the feed.
               $ref: '#/components/schemas/Categories'
-    SubscriptionRequest:
-      description: represents a new subscription request from a user.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/Subscription'
-        - $ref: '#/components/schemas/SubscriptionRequestForm'
-        - type: object
-          required:
-            - URL
-          properties:
-            URL:
-              <<: *URL
-              x-oapi-codegen-extra-tags:
-                form: 'url'
-                validate: 'required,url'
     SubscriptionRequestForm:
       description: represents a form input for a subscription request.
       type: object
@@ -324,24 +350,6 @@ components:
             form: '-'
             json: '-'
           x-go-type-skip-optional-pointer: true
-    FeedState:
-      description: tracks the state of the feed.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/MetadataDB'
-        - type: object
-          required:
-            - ID
-          properties:
-            ID:
-              type: string
-              x-oapi-codegen-extra-tags:
-                gorm: 'primaryKey'
-                json: 'feed_id'
-            last_fetched:
-              description: indicates when the feed was last fetched from its source.
-              x-go-type: time.Time
-              x-go-type-skip-optional-pointer: true
     APIFeed:
       description: represents a feed object for API endpoints.
       type: object
@@ -509,3 +517,63 @@ components:
           $ref: '#/components/schemas/Pagination'
         Count:
           $ref: '#/components/schemas/Count'
+    ScheduledJob:
+      description: represents a job that has been scheduled by the job scheduler.
+      type: object
+      required:
+        - Schedule
+        - NextRun
+        - Data
+      properties:
+        Timestamp:
+          $ref: '#/components/schemas/Timestamp'
+        Schedule:
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'job_trigger'
+            validate: 'required,cron'
+          x-go-type-skip-optional-pointer: true
+        NextRun:
+          x-go-type: 'int64'
+          x-oapi-codegen-extra-tags:
+            json: 'job_next_run'
+          x-go-type-skip-optional-pointer: true
+        Options:
+          x-go-type: '*quartz.JobDetailOptions'
+          x-go-type-import:
+            path: 'github.com/reugn/go-quartz/quartz'
+          x-oapi-codegen-extra-tags:
+            json: 'job_options,omitempty'
+          x-go-type-skip-optional-pointer: true
+        Data:
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/FeedJob'
+          x-oapi-codegen-extra-tags:
+            json: 'job_data'
+          x-go-type-skip-optional-pointer: true
+    FeedJob:
+      description: represents a job that fetches new items for a feed.
+      type: object
+      required:
+        - ID
+        - URL
+      properties:
+        ID:
+          $ref: '#/components/schemas/FeedID'
+        URL:
+          $ref: '#/components/schemas/URL'
+    FeedJobState:
+      description: tracks the state of the feed job.
+      type: object
+      properties:
+        ID:
+          $ref: '#/components/schemas/FeedID'
+        LastFetched:
+          description: indicates when the feed was last fetched from its source.
+          x-go-type: time.Time
+          x-oapi-codegen-extra-tags:
+            json: 'last_fetched'
+          x-go-type-skip-optional-pointer: true
+
+

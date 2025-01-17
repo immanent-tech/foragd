@@ -28,7 +28,6 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 const (
@@ -39,8 +38,6 @@ var (
 	ErrConnectFailed = errors.New("postgres connection failed")
 	ErrInvalidConfig = errors.New("invalid postgres config")
 	ErrSetupFailed   = errors.New("postgres setup failed")
-
-	schemas = [...]any{&models.User{}, &models.Subscription{}, &models.FeedState{}}
 )
 
 type Env interface {

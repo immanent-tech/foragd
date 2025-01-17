@@ -5,6 +5,7 @@ package models
 
 import (
 	"context"
+	"time"
 )
 
 // AuthAPI contains methods for handling auth requests.
@@ -14,12 +15,12 @@ type AuthAPI interface {
 
 // UserActionsAPI contains methods for handling user requests.
 type UserActionsAPI interface {
-	UserActionAddSubscriptions(ctx context.Context, subscriptions ...SubscriptionRequest) error
-	UseActionrMarkItemsRead(ctx context.Context, items ...APIReadItem) error
+	UserActionAddSubscriptions(ctx context.Context, subscriptions ...SubscriptionRequest) ([]string, error)
+	UserActionMarkItemsRead(ctx context.Context, items ...APIReadItem) error
 	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
 	UserActionGetItems(ctx context.Context, filters APISearchFilters) ([]APIItem, []byte, error)
 	UserActionGetFeeds(ctx context.Context, filters APISearchFilters) ([]APIFeed, error)
-	UserActionCountUnread(ctx context.Context, feedIDs ...FeedID) (int, error)
+	// UserActionCountUnread(ctx context.Context, feedIDs ...FeedID) (int, error)
 }
 
 // UserManagementAPI contains methods for user management.
@@ -29,10 +30,18 @@ type UserManagementAPI interface {
 	AddUser(ctx context.Context, userID UserID) error
 }
 
+type FeedJobStateAPI interface {
+	GetFeedJobState(ctx context.Context, feedID FeedID) (FeedJobState, error)
+	UpdateFeedJobState(ctx context.Context, feedID FeedID, lastFetched time.Time) error
+	FeedJobExists(ctx context.Context, feedID FeedID) (bool, error)
+}
+
 // FeedManagementAPI contains methods for feed/item management.
 type FeedManagementAPI interface {
 	GetFeedByURL(ctx context.Context, url URL) (APIFeed, error)
 	AddFeeds(ctx context.Context, feeds ...Feed) error
+	AddItems(ctx context.Context, items ...Item) error
+	FeedJobStateAPI
 }
 
 // SessionManagementAPI contains methods for session management.

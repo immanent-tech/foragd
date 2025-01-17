@@ -13,8 +13,13 @@ import (
 
 var ErrGetFailed = errors.New("get request failed")
 
+type MGetRequest struct {
+	types.MgetOperation
+	docIDOption
+}
+
 // WithDocID specifies the document ID to get.
-func WithDocID(id string) Option[types.MgetOperation] {
+func WithGetDocID(id string) Option[types.MgetOperation] {
 	return func(mo types.MgetOperation) types.MgetOperation {
 		mo.Id_ = id
 		return mo
@@ -47,7 +52,7 @@ func WithDocs(ids ...string) Option[*mget.Mget] {
 		var docs []types.MgetOperation
 		for _, id := range ids {
 			docs = append(docs, GetDoc(
-				WithDocID(id),
+				WithGetDocID(id),
 			))
 		}
 		// Add the ops to the request.

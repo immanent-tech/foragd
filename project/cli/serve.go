@@ -21,7 +21,6 @@ import (
 	gowebly "github.com/gowebly/helpers"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/scheduler"
 	"github.com/joshuar/go-feed-me/internal/server"
 )
 
@@ -49,16 +48,6 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 	// Set up a new server interface.
 	svr, err := server.NewServer(ctx)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrStartServerFailed, err)
-	}
-
-	// Start a task worker for this server.
-	if err := scheduler.NewTaskWorker(ctx, svr.DataAPI(), svr.StoreAPI()); err != nil {
-		return fmt.Errorf("%w: %w", ErrStartServerFailed, err)
-	}
-
-	// Start the scheduler.
-	if err := scheduler.NewTaskScheduler(ctx, svr.DataAPI()); err != nil {
 		return fmt.Errorf("%w: %w", ErrStartServerFailed, err)
 	}
 

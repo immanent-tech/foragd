@@ -17,15 +17,21 @@ const (
 	FeedsSchemaPrefix     = "feeds"
 	FeedItemsSchemaPrefix = "feeditems"
 	UsersSchemaPrefix     = "users"
+	SchedulerJobsPrefix   = "scheduler_jobs"
+	SchedulerStatePrefix  = "scheduler_state"
 
 	IngestPipelineID = "gofeed"
 
-	FeedsMappings      = FeedsSchemaPrefix + MappingsSuffix
-	FeedsSettings      = FeedsSchemaPrefix + SettingsSuffix
-	FeedsItemsMappings = FeedItemsSchemaPrefix + MappingsSuffix
-	FeedsItemsSettings = FeedItemsSchemaPrefix + SettingsSuffix
-	UsersMappings      = UsersSchemaPrefix + MappingsSuffix
-	UsersSettings      = UsersSchemaPrefix + SettingsSuffix
+	FeedsMappings          = FeedsSchemaPrefix + MappingsSuffix
+	FeedsSettings          = FeedsSchemaPrefix + SettingsSuffix
+	FeedsItemsMappings     = FeedItemsSchemaPrefix + MappingsSuffix
+	FeedsItemsSettings     = FeedItemsSchemaPrefix + SettingsSuffix
+	UsersMappings          = UsersSchemaPrefix + MappingsSuffix
+	UsersSettings          = UsersSchemaPrefix + SettingsSuffix
+	SchedulerJobsMappings  = SchedulerJobsPrefix + MappingsSuffix
+	SchedulerJobsSettings  = SchedulerJobsPrefix + SettingsSuffix
+	SchedulerStateMappings = SchedulerStatePrefix + MappingsSuffix
+	SchedulerStateSettings = SchedulerStatePrefix + SettingsSuffix
 
 	schemaVersion = "v0.0.0"
 )
@@ -34,6 +40,90 @@ var defaultMetadata = NewMetadata(WithMetadataField("version", schemaVersion))
 
 // Option is a reusable generic function for applying options to a type.
 type Option[T any] func(T) T
+
+//
+// SCHEDULER
+//
+
+// ComponentTemplateSchedulerJobsMappings returns a Component Template for
+// scheduler jobs index field mappings. Dynamic mapping is allowed so that jobs
+// can store additional fields specific to their purpose.
+func ComponentTemplateSchedulerJobsMappings() *putcomponenttemplate.Request {
+	return NewComponentTemplateRequest(
+		WithIndexOptions(
+			NewIndexState(
+				WithMappings(
+					NewPropertyMapping(
+						WithoutDynamicMapping(),
+						WithDateNanosProperty("@timestamp"),
+						WithFlattenedProperty("job_options"),
+						WithFlattenedProperty("job_data"),
+						WithKeywordProperty("job_trigger"),
+						WithNumericProperty("job_next_run", "unsigned_long"),
+					),
+				),
+			),
+		),
+	)
+}
+
+// ComponentTemplateFeedItemsSettings returns a Component Template for scheduler
+// jobs index settings.
+func ComponentTemplateSchedulerJobsSettings() *putcomponenttemplate.Request {
+	return NewComponentTemplateRequest(
+		WithIndexOptions(
+			NewIndexState(
+				WithAliases(SchedulerJobsPrefix, types.Alias{}),
+			),
+		),
+	)
+}
+
+// IndexTemplateSchedulerJobs returns an Index Template for scheduler jobs indices.
+func IndexTemplateSchedulerJobs() *putindextemplate.Request {
+	return NewIndexTemplateRequest(
+		WithIndexPatterns(SchedulerJobsPrefix+"-*"),
+		WithComponentTemplates(SchedulerJobsMappings, SchedulerJobsSettings),
+	)
+}
+
+// ComponentTemplateSchedulerStateMappings: component template for scheduler
+// state datastream indicies field mappings.
+func ComponentTemplateSchedulerStateMappings() *putcomponenttemplate.Request {
+	return NewComponentTemplateRequest(
+		WithIndexOptions(
+			NewIndexState(
+				WithMappings(
+					NewPropertyMapping(
+						WithoutDynamicMapping(),
+						WithDateNanosProperty("feed_id"),
+						WithDateNanosProperty("last_fetched"),
+					),
+				),
+			),
+		),
+	)
+}
+
+// ComponentTemplateSchedulerStateSettings: component template for scheduler
+// state datastream indicies settings.
+func ComponentTemplateSchedulerStateSettings() *putcomponenttemplate.Request {
+	return NewComponentTemplateRequest(
+		WithIndexOptions(
+			NewIndexState(
+				WithAliases(SchedulerStatePrefix, types.Alias{}),
+			),
+		),
+	)
+}
+
+// IndexTemplateSchedulerState: index template for scheduler state datastream indices.
+func IndexTemplateSchedulerState() *putindextemplate.Request {
+	return NewIndexTemplateRequest(
+		WithIndexPatterns(SchedulerStatePrefix+"-*"),
+		WithComponentTemplates(SchedulerStateMappings, SchedulerStateSettings),
+	)
+}
 
 //
 // USERS
@@ -47,16 +137,20 @@ func ComponentTemplateUserMappings() *putcomponenttemplate.Request {
 			NewIndexState(
 				WithMappings(
 					NewPropertyMapping(
-						WithDateNanosProperty("@timestamp"),
+						WithoutDynamicMapping(),
 						WithKeywordProperty("user_id"),
 						WithDateNanosProperty("created_at"),
+						WithDateNanosProperty("updated_at"),
 						WithObjectProperty("subscriptions", map[string]types.Property{
 							"categories": asTextAndKeyword(),
 							"name":       asTextAndKeyword(),
+							"created_at": types.NewDateNanosProperty(),
+							"updated_at": types.NewDateNanosProperty(),
 						}),
 						WithObjectProperty("read_items", map[string]types.Property{
 							"item_id":    types.NewKeywordProperty(),
-							"@timestamp": types.NewDateNanosProperty(),
+							"created_at": types.NewDateNanosProperty(),
+							"updated_at": types.NewDateNanosProperty(),
 						}),
 					),
 				),
@@ -97,6 +191,7 @@ func ComponentTemplateFeedsMappings() *putcomponenttemplate.Request {
 			NewIndexState(
 				WithMappings(
 					NewPropertyMapping(
+						WithoutDynamicMapping(),
 						WithDateNanosProperty("@timestamp"),
 						WithKeywordProperty("feed_id"),
 						WithDateNanosProperty("created_at"),
@@ -104,7 +199,7 @@ func ComponentTemplateFeedsMappings() *putcomponenttemplate.Request {
 						WithTextProperty("description"),
 						WithTextProperty("content"),
 						WithKeywordProperty("link"),
-						WithKeywordProperty("feedlink"),
+						WithKeywordProperty("feedLink"),
 						WithKeywordProperty("links"),
 						WithKeywordProperty("feedType"),
 						WithKeywordProperty("feedVersion"),
@@ -139,7 +234,7 @@ func ComponentTemplateFeedsSettings() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
-				WithAliases("feeds", types.Alias{}),
+				WithAliases(FeedsSchemaPrefix, types.Alias{}),
 			),
 		),
 	)
@@ -165,6 +260,7 @@ func ComponentTemplateFeedItemsMappings() *putcomponenttemplate.Request {
 			NewIndexState(
 				WithMappings(
 					NewPropertyMapping(
+						WithoutDynamicMapping(),
 						WithDateNanosProperty("@timestamp"),
 						WithKeywordProperty("feed_id"),
 						WithKeywordProperty("item_id"),

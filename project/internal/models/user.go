@@ -41,14 +41,6 @@ func (u *User) GetReadItemIDs(feedIDs ...FeedID) []ItemID {
 	return readItemsIDs
 }
 
-func (u *User) DocumentID() *string {
-	return &u.ID
-}
-
-func (u *User) DocumentType() DocumentType {
-	return TypeUser
-}
-
 func (u *User) Valid(_ context.Context) (bool, ValidationErrors) {
 	return validateStruct(u)
 }

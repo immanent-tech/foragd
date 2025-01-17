@@ -13,14 +13,6 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-const (
-	TypeFeed DocumentType = iota
-	TypeItem
-	TypeUser
-)
-
-type DocumentType int
-
 var ErrInvalidID = errors.New("error generating unique ID")
 
 // Feed represents a feed. It embeds the gofeed.Feed object and adds additional
@@ -31,14 +23,6 @@ type Feed struct {
 	ID string `json:"feed_id" validate:"required"`
 }
 
-func (f *Feed) DocumentID() *string {
-	return &f.ID
-}
-
-func (f *Feed) DocumentType() DocumentType {
-	return TypeFeed
-}
-
 // Item represents an item of a feed. It embeds the gofeed.Item object and adds additional
 // fields required.
 type Item struct {
@@ -46,14 +30,6 @@ type Item struct {
 	*gofeed.Item
 	ID     string `json:"item_id"`
 	FeedID string `json:"feed_id"`
-}
-
-func (i *Item) DocumentID() *string {
-	return &i.ID
-}
-
-func (i *Item) DocumentType() DocumentType {
-	return TypeItem
 }
 
 type UserSession struct {

@@ -15,6 +15,8 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
+var ErrParseFeedFailed = errors.New("could not parse feed")
+
 // ErrNoSubscriptions indicates the user has no subscriptions. In this
 // case, a page with a prompt to add subscriptions should be displayed.
 var ErrNoSubscriptions = errors.New("no user subscriptions")
@@ -53,17 +55,17 @@ func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 }
 
 func (f *APIFeed) GetUnreadCount(ctx context.Context, action UserActionsAPI) int {
-	count, err := action.UserActionCountUnread(ctx, f.ID)
-	if err != nil {
-		logging.FromContext(ctx).Warn("Could not get unread count for feed.",
-			slog.String("feed", f.Title),
-			slog.String("id", f.ID),
-			slog.Any("error", err))
+	// count, err := action.UserActionCountUnread(ctx, f.ID)
+	// if err != nil {
+	// 	logging.FromContext(ctx).Warn("Could not get unread count for feed.",
+	// 		slog.String("feed", f.Title),
+	// 		slog.String("id", f.ID),
+	// 		slog.Any("error", err))
 
-		return 0
-	}
+	// 	return 0
+	// }
 
-	return count
+	return 0
 }
 
 func (f *APIFeed) GetTitle() string {

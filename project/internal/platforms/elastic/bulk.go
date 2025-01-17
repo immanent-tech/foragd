@@ -5,30 +5,31 @@ package elastic
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/bulk"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
+const (
+	BulkCreate BulkOpType = iota
+	BulkIndex
+	BulkDelete
+	BulkUpdate
+)
+
+type BulkOpType int
+
 type BulkRequest struct {
 	*bulk.Bulk
+	logger *slog.Logger
 }
-
-// document represents a single record in elasticsearch.
-type document interface {
-	DocumentType() models.DocumentType
-	DocumentID() *string
-}
-
-// BulkOption sets an option on a bulk request.
-type BulkOption func(*bulk.Bulk) *bulk.Bulk
 
 // WithPipeline defines the ingest pipeline to use on each document.
-func WithPipeline(pipeline string) BulkOption {
+func WithPipeline(pipeline string) Option[*bulk.Bulk] {
 	return func(b *bulk.Bulk) *bulk.Bulk {
 		b = b.Pipeline(pipeline)
 		return b
@@ -36,51 +37,92 @@ func WithPipeline(pipeline string) BulkOption {
 }
 
 // WithIndex defines the index on which the request will operate.
-func WithIndex(index string) BulkOption {
+func WithIndex(index string) Option[*bulk.Bulk] {
 	return func(b *bulk.Bulk) *bulk.Bulk {
 		b = b.Index(index)
 		return b
 	}
 }
 
-// CreateDocs will add create operations for the given docs to the bulk request.
-func CreateDocs(documents ...document) BulkOption {
-	return func(bulkReq *bulk.Bulk) *bulk.Bulk {
-		for _, doc := range documents {
-			var index string
+// AddOperations adds document operations to the bulk request.
+func (r *BulkRequest) AddOperations(operations ...BulkOperation) *BulkRequest {
+	for _, operation := range operations {
+		var err error
 
-			switch doc.DocumentType() {
-			case models.TypeFeed:
-				index = "feeds-test"
-			case models.TypeItem:
-				index = "feeditems-test"
-			case models.TypeUser:
-				index = "users-test"
+		switch operation.opType {
+		case BulkCreate:
+			if operation.GetDocID() != "" {
+				err = r.CreateOp(types.CreateOperation{Index_: &operation.index, Id_: &operation.id}, operation.document)
+			} else {
+				err = r.CreateOp(types.CreateOperation{Index_: &operation.index}, operation.document)
 			}
-
-			if err := bulkReq.CreateOp(types.CreateOperation{Index_: &index, Id_: doc.DocumentID()}, doc); err != nil {
-				slog.Warn("Could not generate a create op for document.",
-					slog.Any("type", doc.DocumentType()),
-					slog.String("id", *doc.DocumentID()),
-					slog.Any("error", err))
-
-				continue
+		case BulkUpdate:
+			if operation.GetDocID() == "" {
+				err = fmt.Errorf("id is required for update operation")
+			} else {
+				err = r.UpdateOp(types.UpdateOperation{Index_: &operation.index, Id_: &operation.id}, operation.document, types.NewUpdateAction())
 			}
 		}
 
-		return bulkReq
+		if err != nil {
+			r.logger.Warn("Could not process bulk operation.",
+				slog.Any("error", err))
+		}
 	}
+
+	return r
 }
 
-// NewSearchRequest creates a new search object with the given options.
-func (c *Client) NewBulkRequest(options ...BulkOption) *BulkRequest {
+// NewBulkRequest creates a new bulk requesst object with the given options.
+// After creation, document operations can be added with the AddOperations method.
+func (c *Client) NewBulkRequest(options ...Option[*bulk.Bulk]) *BulkRequest {
 	req := c.API.Bulk()
 
 	for _, option := range options {
 		req = option(req)
 	}
 
-	return &BulkRequest{Bulk: req}
+	return &BulkRequest{
+		Bulk:   req,
+		logger: c.Logger.WithGroup("bulk"),
+	}
+}
+
+// BulkOperation represents an individual document's bulk operation.
+type BulkOperation struct {
+	document any
+	index    string
+	opType   BulkOpType
+	docIDOption
+}
+
+func WithDocIndex(index string) Option[BulkOperation] {
+	return func(operation BulkOperation) BulkOperation {
+		operation.index = index
+		return operation
+	}
+}
+
+// AsOpType specifies the type of bulk operation to perform. If this option is
+// not specified, the operation will default to a create operation.
+func AsOpType(opType BulkOpType) Option[BulkOperation] {
+	return func(operation BulkOperation) BulkOperation {
+		operation.opType = opType
+		return operation
+	}
+}
+
+// NewBulkOperation creates a new bulk operation for a document with the given options.
+func NewBulkOperation(doc any, options ...Option[BulkOperation]) BulkOperation {
+	operation := BulkOperation{
+		document: doc,
+	}
+
+	for _, option := range options {
+		operation = option(operation)
+	}
+
+	return operation
 }
 
 // bulkStreamWorker runs in a goroutine and listens for documents to bulk index
@@ -92,8 +134,8 @@ func (c *Client) bulkStreamWorker(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case items := <-c.bulkStream:
-			if len(items) == 0 {
+		case operations := <-c.bulkStream:
+			if len(operations) == 0 {
 				continue
 			}
 
@@ -101,8 +143,9 @@ func (c *Client) bulkStreamWorker(ctx context.Context) {
 				// Create a new bulk request.
 				resp, err := c.NewBulkRequest(
 					WithPipeline(schema.IngestPipelineID),
-					CreateDocs(items...),
-				).Do(ctx)
+				).
+					AddOperations(operations...).
+					Do(ctx)
 				// Handle response.
 				switch {
 				case err != nil:

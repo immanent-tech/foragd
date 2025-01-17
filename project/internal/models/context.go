@@ -5,12 +5,13 @@ package models
 
 import "context"
 
-type contextKey string
-
 const (
 	userContextKey            contextKey = "user"
 	subscriptionRequestCtxKey contextKey = "subscriptionRequest"
+	feedManagementAPICtxKey   contextKey = "feedManagementAPI"
 )
+
+type contextKey string
 
 // UserToCtx stores a user in the context.
 func UserToCtx(ctx context.Context, user User) context.Context {
@@ -41,4 +42,17 @@ func SubscriptionRequestFromCtx(ctx context.Context) *SubscriptionRequest {
 	}
 
 	return req
+}
+
+func FeedManagementAPIToCtx(ctx context.Context, api FeedManagementAPI) context.Context {
+	return context.WithValue(ctx, feedManagementAPICtxKey, api)
+}
+
+func FeedManagementAPIFromCtx(ctx context.Context) FeedManagementAPI {
+	api, found := ctx.Value(feedManagementAPICtxKey).(FeedManagementAPI)
+	if !found {
+		return nil
+	}
+
+	return api
 }

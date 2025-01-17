@@ -76,7 +76,9 @@
     "modifiers/color",
     "routes/home",
     "components/form",
-    "components/dropdown"
+    "components/dropdown",
+    "components/alert",
+    "modifiers/state"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

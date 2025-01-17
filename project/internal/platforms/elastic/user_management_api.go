@@ -9,6 +9,8 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
+
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 	"github.com/joshuar/go-feed-me/internal/server/session"
@@ -42,7 +44,7 @@ func (c *Client) GetUser(ctx context.Context) (models.User, error) {
 
 // UserExists checks if a user record exists in Elasticsearch for the given user ID.
 func (c *Client) UserExists(ctx context.Context, userID models.UserID) (bool, error) {
-	found, err := c.NewExistsRequest(schema.UsersSchemaPrefix, userID).Do(ctx)
+	found, err := c.NewDocExistsRequest(schema.UsersSchemaPrefix, userID).Do(ctx)
 	if err != nil {
 		return false, errors.Join(ErrExistsFailed, err)
 	}
@@ -52,13 +54,14 @@ func (c *Client) UserExists(ctx context.Context, userID models.UserID) (bool, er
 
 // AddUser creates a new user record.
 func (c *Client) AddUser(ctx context.Context, userID models.UserID) error {
-	resp, err := c.NewCreateRequest(
+	resp, err := c.NewDocCreateRequest(
 		schema.UsersSchemaPrefix,
 		userID,
 		&models.User{
 			ID:        userID,
 			CreatedAt: time.Now(),
-		}).
+		},
+		refresh.True).
 		Do(ctx)
 	if err != nil {
 		return errors.Join(ErrCreateUserFailed, err)

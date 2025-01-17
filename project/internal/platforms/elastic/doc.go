@@ -9,8 +9,10 @@ import (
 	"log/slog"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/create"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/delete"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/exists"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/update"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 )
 
 var (
@@ -29,7 +31,7 @@ func DetectNoop(value bool) Option[*update.Request] {
 
 // WithDocUpdate sets the full document content for the update. The document is
 // automatically marshaled to JSON.
-func WithDocUpdate(doc any) Option[*update.Request] {
+func WithDocUpdate(doc any, upsert bool) Option[*update.Request] {
 	return func(update *update.Request) *update.Request {
 		data, err := json.Marshal(doc)
 		if err != nil {
@@ -38,6 +40,10 @@ func WithDocUpdate(doc any) Option[*update.Request] {
 		}
 
 		update.Doc = data
+
+		if upsert {
+			update.DocAsUpsert = &upsert
+		}
 
 		return update
 	}
@@ -59,8 +65,8 @@ func WithPartialDocUpdate(fields map[string]any) Option[*update.Request] {
 	}
 }
 
-// NewUpdateRequest creates a new update request with the given options.
-func (c *Client) NewUpdateRequest(index, id string, options ...Option[*update.Request]) *update.Update {
+// NewDocUpdateRequest creates a new update request with the given options.
+func (c *Client) NewDocUpdateRequest(index, id string, options ...Option[*update.Request]) *update.Update {
 	req := &update.Request{}
 
 	for _, option := range options {
@@ -70,12 +76,17 @@ func (c *Client) NewUpdateRequest(index, id string, options ...Option[*update.Re
 	return c.API.Update(index, id).Request(req)
 }
 
-// NewExistsRequest creates a new exists request.
-func (c *Client) NewExistsRequest(index, id string) *exists.Exists {
+// NewDocExistsRequest creates a new document exists request.
+func (c *Client) NewDocExistsRequest(index, id string) *exists.Exists {
 	return c.API.Exists(index, id)
 }
 
-// NewExistsRequest creates a new exists request.
-func (c *Client) NewCreateRequest(index, id string, doc any) *create.Create {
-	return c.API.Create(index, id).Document(doc)
+// NewExistsRequest creates a new document index request.
+func (c *Client) NewDocCreateRequest(index, id string, doc any, refreshValue refresh.Refresh) *create.Create {
+	return c.API.Create(index, id).Document(doc).Refresh(refreshValue)
+}
+
+// NewExistsRequest creates a new document delete request.
+func (c *Client) NewDocDeleteRequest(index, id string, refreshValue refresh.Refresh) *delete.Delete {
+	return c.API.Delete(index, id).Refresh(refreshValue)
 }

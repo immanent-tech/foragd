@@ -86,7 +86,6 @@ func NewServer(ctx context.Context) (Server, error) {
 	svr.API = &API{
 		user:    auth0UserAPI,
 		elastic: elasticAPI,
-		pg:      postgresAPI,
 		auth:    auth0API,
 		// websocket: websocket,
 	}

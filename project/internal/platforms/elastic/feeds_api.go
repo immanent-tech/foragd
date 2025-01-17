@@ -91,17 +91,19 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 	return feed, nil
 }
 
-//nolint:prealloc
 func (c *Client) AddFeeds(_ context.Context, feeds ...models.Feed) error {
-	var docs []document
+	docs := make([]BulkOperation, len(feeds))
 
-	for _, feed := range feeds {
+	for iter, feed := range feeds {
 		c.Logger.Debug("Adding feed",
 			slog.String("name", feed.Title),
 			slog.String("item_id", feed.ID),
 		)
 
-		docs = append(docs, &feed)
+		docs[iter] = NewBulkOperation(&feed,
+			WithDocID[BulkOperation](feed.ID),
+			WithDocIndex(schema.FeedsSchemaPrefix+"-test"),
+		)
 	}
 
 	c.bulkStream <- docs
@@ -111,7 +113,7 @@ func (c *Client) AddFeeds(_ context.Context, feeds ...models.Feed) error {
 
 // AddItems will bulk index the given items to the Elasticsearch cache.
 func (c *Client) AddItems(_ context.Context, items ...models.Item) error {
-	docs := make([]document, len(items))
+	docs := make([]BulkOperation, len(items))
 
 	for iter, item := range items {
 		c.Logger.Debug("Adding item",
@@ -120,7 +122,10 @@ func (c *Client) AddItems(_ context.Context, items ...models.Item) error {
 			slog.String("feed_id", item.FeedID),
 		)
 
-		docs[iter] = &item
+		docs[iter] = NewBulkOperation(&item,
+			WithDocID[BulkOperation](item.ID),
+			WithDocIndex(schema.FeedItemsSchemaPrefix+"-test"),
+		)
 	}
 
 	c.bulkStream <- docs

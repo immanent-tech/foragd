@@ -13,7 +13,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
-	"github.com/joshuar/go-feed-me/internal/platforms/postgres"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 	"github.com/joshuar/go-feed-me/internal/server"
 )
 
@@ -39,18 +39,8 @@ func (r *MigrateCmd) Run(opts *CmdOpts) error {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}
 
-	if err = elasticClient.Migration(ctx, r.Migrations...); err != nil {
+	if err = schema.Migration(ctx, elasticClient, r.Migrations...); err != nil {
 		return fmt.Errorf("unable to perform Elastic migration: %w", err)
-	}
-
-	// Load the Postgres backend
-	postgresClient, err := postgres.Connect(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to connect to backend: %w", err)
-	}
-
-	if err = postgresClient.Migration(ctx); err != nil {
-		return fmt.Errorf("unable to perform Postgres migration: %w", err)
 	}
 
 	return nil

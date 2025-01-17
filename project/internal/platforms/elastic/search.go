@@ -131,6 +131,37 @@ func QuerySince(field string, since time.Time) Option[*types.Query] {
 	}
 }
 
+func IntLessThan(value int64) Option[*types.NumberRangeQuery] {
+	return func(numberRange *types.NumberRangeQuery) *types.NumberRangeQuery {
+		lt := types.Float64(value)
+		numberRange.Lt = &lt
+
+		return numberRange
+	}
+}
+
+// QueryBool constructs a bool query with the given query options and adds it to
+// the query.
+func QueryNumberRange(field string, options ...Option[*types.NumberRangeQuery]) Option[*types.Query] {
+	return func(query *types.Query) *types.Query {
+		rangeQuery := &types.NumberRangeQuery{}
+
+		for _, option := range options {
+			rangeQuery = option(rangeQuery)
+		}
+
+		if !reflect.DeepEqual(rangeQuery, &types.NumberRangeQuery{}) {
+			if query.Range == nil {
+				query.Range = make(map[string]types.RangeQuery)
+			}
+
+			query.Range[field] = rangeQuery
+		}
+
+		return query
+	}
+}
+
 // BoolFilter sets the given query options as the "filter" clause of the bool query.
 func BoolFilter(queries ...Option[*types.Query]) Option[*types.BoolQuery] {
 	return func(boolQueryClause *types.BoolQuery) *types.BoolQuery {

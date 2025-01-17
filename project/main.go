@@ -20,6 +20,7 @@ var static embed.FS
 var CLI struct {
 	Serve        cli.ServeCmd         `cmd:"" help:"Run server."`
 	Migrate      cli.MigrateCmd       `cmd:"" help:"Run backend migrations."`
+	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
 	ProfileFlags logging.ProfileFlags `name:"profile" help:"Set profiling flags."`
 	logging.Options
 }

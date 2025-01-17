@@ -38,6 +38,34 @@ func WithoutDynamicMapping() Option[*types.TypeMapping] {
 	}
 }
 
+// WithNumericTypeProperty adds a `number` property to the mapping.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/number.html
+func WithNumericProperty(name string, numericType string) Option[*types.TypeMapping] {
+	return func(mapping *types.TypeMapping) *types.TypeMapping {
+		switch numericType {
+		case "long":
+			mapping.Properties[name] = types.NewLongNumberProperty()
+		case "integer":
+			mapping.Properties[name] = types.NewIntegerNumberProperty()
+		case "short":
+			mapping.Properties[name] = types.NewShortNumberProperty()
+		case "byte":
+			mapping.Properties[name] = types.NewByteNumberProperty()
+		case "double":
+			mapping.Properties[name] = types.NewDoubleNumberProperty()
+		case "float":
+			mapping.Properties[name] = types.NewFloatNumberProperty()
+		case "half_float":
+			mapping.Properties[name] = types.NewHalfFloatNumberProperty()
+		case "unsigned_long":
+			mapping.Properties[name] = types.NewUnsignedLongNumberProperty()
+		}
+
+		return mapping
+	}
+}
+
 // WithDataNanosProperty adds a `date_nanos` property to the mapping.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/date_nanos.html

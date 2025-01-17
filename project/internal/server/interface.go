@@ -18,7 +18,6 @@ package server
 import (
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
-	"github.com/joshuar/go-feed-me/internal/platforms/postgres"
 )
 
 // Environment returns the current environment under which the server is
@@ -45,12 +44,6 @@ func (s Server) UserAPI() *auth0.UserAPI {
 // cache/temp/non-permanent data.
 func (s Server) DataAPI() *elastic.Client {
 	return s.API.elastic
-}
-
-// StoreAPI returns the API endpoint for the backend data-store which holds
-// permanent data.
-func (s Server) StoreAPI() *postgres.Client {
-	return s.API.pg
 }
 
 func (s Server) Authenticator() *auth0.Authenticator {

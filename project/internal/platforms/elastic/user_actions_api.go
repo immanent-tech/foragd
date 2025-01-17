@@ -81,7 +81,7 @@ func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions .
 	}
 
 	// Update the user subscriptions.
-	req := c.NewUpdateRequest(schema.UsersSchemaPrefix, user.ID,
+	req := c.NewDocUpdateRequest(schema.UsersSchemaPrefix, user.ID,
 		WithPartialDocUpdate(map[string]any{
 			"subscriptions": user.Subscriptions,
 			"updated_at":    time.Now(),
@@ -124,8 +124,8 @@ func (c *Client) UserActionMarkItemsRead(ctx context.Context, items ...models.AP
 		})
 	}
 
-	req := c.NewUpdateRequest(schema.UsersSchemaPrefix, user.ID,
-		WithDocUpdate(user.ReadItems),
+	req := c.NewDocUpdateRequest(schema.UsersSchemaPrefix, user.ID,
+		WithDocUpdate(user.ReadItems, false),
 	)
 
 	resp, err := req.Do(ctx)
