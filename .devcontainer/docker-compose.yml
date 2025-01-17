@@ -8,7 +8,6 @@ volumes:
   es03-data:
   kibana-data:
   filebeat-registry:
-  valkey-data:
 networks:
   go-feed-me:
 services:
@@ -318,18 +317,3 @@ services:
       - postgres-data:/var/lib/postgresql/data:Z,U
     labels:
       - co.elastic.logs/module=postgresql
-
-  valkey:
-    hostname: valkey
-    userns_mode: keep-id
-    networks:
-      - go-feed-me
-    image: docker.io/valkey/valkey:$VALKEY_VERSION
-    restart: always
-    # cap_add:
-    #   - SYS_ADMIN
-    # sysctls:
-    #   - vm.overcommit_memory=1
-    volumes:
-      - valkey-data:/data:Z,U
-    command: valkey-server --bind 0.0.0.0 --protected-mode no --save 60 1 --loglevel warning
