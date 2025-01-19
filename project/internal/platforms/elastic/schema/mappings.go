@@ -66,7 +66,17 @@ func WithNumericProperty(name string, numericType string) Option[*types.TypeMapp
 	}
 }
 
-// WithDataNanosProperty adds a `date_nanos` property to the mapping.
+// WithBinaryProperty adds a `keyword` property to the mapping.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/keyword.html
+func WithBinaryProperty(name string) Option[*types.TypeMapping] {
+	return func(mapping *types.TypeMapping) *types.TypeMapping {
+		mapping.Properties[name] = types.NewBinaryProperty()
+		return mapping
+	}
+}
+
+// WithDateNanosProperty adds a `date_nanos` property to the mapping.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/date_nanos.html
 func WithDateNanosProperty(name string) Option[*types.TypeMapping] {
