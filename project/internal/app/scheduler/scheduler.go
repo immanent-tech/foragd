@@ -47,7 +47,7 @@ func Run(ctx context.Context, env string) error {
 
 	logger := logging.FromContext(ctx).WithGroup("scheduler")
 
-	jobQueue := elastic.NewJobQueue(ctx, esClient, logger)
+	jobQueue := elastic.NewJobQueue(ctx, esClient)
 	scheduler := quartz.NewStdSchedulerWithOptions(quartz.StdSchedulerOptions{
 		OutdatedThreshold: 50 * time.Second, // considering file system I/O latency
 	}, jobQueue, nil)

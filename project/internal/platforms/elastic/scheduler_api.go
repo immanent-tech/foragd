@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
@@ -17,6 +18,7 @@ import (
 	"github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/quartz"
 
+	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
@@ -46,12 +48,12 @@ type JobQueue struct {
 }
 
 // NewJobQueue initializes and returns an empty jobQueue.
-func NewJobQueue(ctx context.Context, client *Client, logger *slog.Logger) *JobQueue {
+func NewJobQueue(ctx context.Context, client *Client) *JobQueue {
 	schedCtx = ctx
 
 	return &JobQueue{
 		client: client,
-		logger: logger,
+		logger: logging.FromContext(ctx).WithGroup("job_queue"),
 	}
 }
 
@@ -235,6 +237,7 @@ func isMatch(job quartz.ScheduledJob, matchers []quartz.Matcher[quartz.Scheduled
 // Size returns the size of the job queue.
 func (jq *JobQueue) Size() (int, error) {
 	resp, err := jq.client.NewCountRequest(
+		WithIndexPattern[*count.Count](schema.SchedulerJobsPrefix+"-*"),
 		WithCountQueryOptions(
 			QueryMatchAll(),
 		),
