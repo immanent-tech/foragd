@@ -23,6 +23,7 @@ const (
 
 type BulkOpType int
 
+// BulkRequest represents a bulk request.
 type BulkRequest struct {
 	*bulk.Bulk
 	logger *slog.Logger
@@ -37,7 +38,7 @@ func WithPipeline(pipeline string) Option[*bulk.Bulk] {
 }
 
 // WithIndex defines the index on which the request will operate.
-func WithIndex(index string) Option[*bulk.Bulk] {
+func WithOverallIndex(index string) Option[*bulk.Bulk] {
 	return func(b *bulk.Bulk) *bulk.Bulk {
 		b = b.Index(index)
 		return b
@@ -96,18 +97,19 @@ type BulkOperation struct {
 	docIDOption
 }
 
-func WithDocIndex(index string) Option[BulkOperation] {
+// AsOperationType specifies the type of bulk operation to perform. If this option is
+// not specified, the operation will default to a create operation.
+func AsOperationType(opType BulkOpType) Option[BulkOperation] {
 	return func(operation BulkOperation) BulkOperation {
-		operation.index = index
+		operation.opType = opType
 		return operation
 	}
 }
 
-// AsOpType specifies the type of bulk operation to perform. If this option is
-// not specified, the operation will default to a create operation.
-func AsOpType(opType BulkOpType) Option[BulkOperation] {
+// ToIndex sets the index containing the document.
+func ToIndex(index string) Option[BulkOperation] {
 	return func(operation BulkOperation) BulkOperation {
-		operation.opType = opType
+		operation.index = index
 		return operation
 	}
 }

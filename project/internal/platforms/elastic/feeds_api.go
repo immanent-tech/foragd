@@ -102,7 +102,7 @@ func (c *Client) AddFeeds(_ context.Context, feeds ...models.Feed) error {
 
 		docs[iter] = NewBulkOperation(&feed,
 			WithDocID[BulkOperation](feed.ID),
-			WithDocIndex(schema.FeedsSchemaPrefix+"-test"),
+			ToIndex(schema.FeedsSchemaPrefix+"-test"),
 		)
 	}
 
@@ -124,7 +124,7 @@ func (c *Client) AddItems(_ context.Context, items ...models.Item) error {
 
 		docs[iter] = NewBulkOperation(&item,
 			WithDocID[BulkOperation](item.ID),
-			WithDocIndex(schema.FeedItemsSchemaPrefix+"-test"),
+			ToIndex(schema.FeedItemsSchemaPrefix+"-test"),
 		)
 	}
 
