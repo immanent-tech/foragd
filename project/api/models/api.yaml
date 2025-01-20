@@ -575,5 +575,29 @@ components:
           x-oapi-codegen-extra-tags:
             json: 'last_fetched'
           x-go-type-skip-optional-pointer: true
+    UserSession:
+      description: tracks a user session.
+      type: object
+      required:
+        - Token
+        - Data
+        - Expiry
+      properties:
+        Token:
+          description: the session token for the user.
+          type: string
+          x-oapi-codegen-extra-tags:
+            json: 'token'
+        Data:
+          description: the session data.
+          x-go-type: '[]byte'
+          x-oapi-codegen-extra-tags:
+            json: 'data'
+        Expiry:
+          description: the time at which this session token expires.
+          x-go-type: time.Time
+          x-oapi-codegen-extra-tags:
+            json: 'expiry'
+
 
 

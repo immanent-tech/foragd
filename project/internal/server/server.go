@@ -17,6 +17,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	sessionstore "github.com/joshuar/go-feed-me/internal/platforms/elastic/implementations/session"
 	"github.com/joshuar/go-feed-me/internal/platforms/postgres"
 	"github.com/joshuar/go-feed-me/internal/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/server/session"
@@ -65,11 +66,13 @@ func NewServer(ctx context.Context) (Server, error) {
 		return svr, fmt.Errorf("failed to connect to the db backend: %w", err)
 	}
 
-	// Load the Postgres backend
-	postgresAPI, err := postgres.Connect(ctx)
-	if err != nil {
-		return svr, fmt.Errorf("failed to connect to the db backend: %w", err)
-	}
+	sessionStore := sessionstore.NewSessionStore(ctx, elasticAPI)
+
+	// // Load the Postgres backend
+	// postgresAPI, err := postgres.Connect(ctx)
+	// if err != nil {
+	// 	return svr, fmt.Errorf("failed to connect to the db backend: %w", err)
+	// }
 
 	// Load the authenticator backend.
 	auth0API, err := auth0.NewAuthenticator(ctx, "http://localhost:"+strconv.Itoa(config.Port))
@@ -80,7 +83,7 @@ func NewServer(ctx context.Context) (Server, error) {
 	// websocket := handlers.NewWebsocketServer(&handlers.FeedItemWebsocketHandler{})
 
 	// Set up the session manager.
-	session.NewSessionManager(postgresAPI)
+	session.NewSessionManager(sessionStore)
 
 	// Add the API to the environment.
 	svr.API = &API{

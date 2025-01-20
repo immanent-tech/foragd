@@ -63,7 +63,7 @@ func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]model
 		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
-	feeds := extractSources[models.APIFeed](ctx, resp.Hits.Hits)
+	feeds := ExtractSources[models.APIFeed](ctx, resp.Hits.Hits)
 
 	return feeds, nil
 }
@@ -83,7 +83,7 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 		return models.APIFeed{}, nil
 	}
 
-	feed, err := extractSource[models.APIFeed](resp.Hits.Hits[0].Source_)
+	feed, err := ExtractSource[models.APIFeed](resp.Hits.Hits[0].Source_)
 	if err != nil {
 		return feed, errors.Join(ErrSearchFailed, err)
 	}

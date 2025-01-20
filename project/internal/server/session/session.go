@@ -28,10 +28,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
-type sessionStore interface {
-	NewSessionStorage() scs.Store
-}
-
 const (
 	sessionLifetime = 24 * time.Hour
 	sessionCookie   = "feedme"
@@ -58,10 +54,10 @@ func init() {
 	gob.Register(models.APISearchFilters{})
 }
 
-func NewSessionManager(store sessionStore) {
+func NewSessionManager(store scs.Store) {
 	// Set up the session manager.
 	sessionManager = scs.New()
-	sessionManager.Store = store.NewSessionStorage()
+	sessionManager.Store = store
 	sessionManager.Lifetime = sessionLifetime
 	sessionManager.Cookie.Name = sessionCookie
 	sessionManager.Cookie.Secure = true

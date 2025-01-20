@@ -285,6 +285,18 @@ type User struct {
 // UserID is the unique ID of a user.
 type UserID = string
 
+// UserSession tracks a user session.
+type UserSession struct {
+	// Data the session data.
+	Data []byte `json:"data"`
+
+	// Expiry the time at which this session token expires.
+	Expiry time.Time `json:"expiry"`
+
+	// Token the session token for the user.
+	Token string `json:"token"`
+}
+
 // UserSigninForm represents the inputs for user sign-in.
 type UserSigninForm struct {
 	InputEmail    components.TextInputProps `form:"-" json:"-"`

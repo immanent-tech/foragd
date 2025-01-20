@@ -15,7 +15,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
-var validMigrations = []string{"feeds", "feeditems", "users", "ingest", "scheduler"}
+var validMigrations = []string{"feeds", "feeditems", "users", "ingest", "scheduler", "session"}
 
 var ErrMigrationFailed = errors.New("schema migration failed")
 
@@ -46,6 +46,8 @@ func Migration(ctx context.Context, client client, migrations ...string) error {
 			err = migrateFeedItems(ctx, client)
 		case "scheduler":
 			err = migrateScheduler(ctx, client)
+		case "session":
+			err = migrateSession(ctx, client)
 		case "ingest":
 			err = migrateIngest(ctx, client)
 		}
@@ -152,6 +154,26 @@ func migrateScheduler(ctx context.Context, client client) error {
 	}
 
 	if err := client.PutIndexTemplate(ctx, SchedulerJobsPrefix, IndexTemplateSchedulerJobs()); err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+
+	return nil
+}
+
+// migrateSession contains migration actions for migrating session indices and
+// settings.
+func migrateSession(ctx context.Context, client client) error {
+	logging.FromContext(ctx).Debug("Migrating feeds...")
+
+	if err := client.PutComponentTemplate(ctx, SessionsMappings, ComponentTemplateSessionsMappings()); err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+
+	if err := client.PutComponentTemplate(ctx, SessionsSettings, ComponentTemplateSessionsSettings()); err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+
+	if err := client.PutIndexTemplate(ctx, SessionsPrefix, IndexTemplateSessions()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 

@@ -19,6 +19,7 @@ const (
 	UsersSchemaPrefix     = "users"
 	SchedulerJobsPrefix   = "scheduler_jobs"
 	SchedulerStatePrefix  = "scheduler_state"
+	SessionsPrefix        = "sessions"
 
 	IngestPipelineID = "gofeed"
 
@@ -32,6 +33,8 @@ const (
 	SchedulerJobsSettings  = SchedulerJobsPrefix + SettingsSuffix
 	SchedulerStateMappings = SchedulerStatePrefix + MappingsSuffix
 	SchedulerStateSettings = SchedulerStatePrefix + SettingsSuffix
+	SessionsMappings       = SessionsPrefix + MappingsSuffix
+	SessionsSettings       = SessionsPrefix + SettingsSuffix
 
 	schemaVersion = "v0.0.0"
 )
@@ -42,12 +45,54 @@ var defaultMetadata = NewMetadata(WithMetadataField("version", schemaVersion))
 type Option[T any] func(T) T
 
 //
+// SESSION
+//
+
+// ComponentTemplateSessionsMappings returns a Component Template for
+// sessions index field mappings.
+func ComponentTemplateSessionsMappings() *putcomponenttemplate.Request {
+	return NewComponentTemplateRequest(
+		WithIndexOptions(
+			NewIndexState(
+				WithMappings(
+					NewPropertyMapping(
+						WithoutDynamicMapping(),
+						WithDateNanosProperty("expiry"),
+						WithKeywordProperty("token"),
+						WithBinaryProperty("data"),
+					),
+				),
+			),
+		),
+	)
+}
+
+// ComponentTemplateSessionsSettings returns a Component Template for sessions
+// index settings.
+func ComponentTemplateSessionsSettings() *putcomponenttemplate.Request {
+	return NewComponentTemplateRequest(
+		WithIndexOptions(
+			NewIndexState(
+				WithAliases(SessionsPrefix, types.Alias{}),
+			),
+		),
+	)
+}
+
+// IndexTemplateSessions returns an Index Template for sessions indices.
+func IndexTemplateSessions() *putindextemplate.Request {
+	return NewIndexTemplateRequest(
+		WithIndexPatterns(SessionsPrefix+"-*"),
+		WithComponentTemplates(SessionsMappings, SessionsSettings),
+	)
+}
+
+//
 // SCHEDULER
 //
 
 // ComponentTemplateSchedulerJobsMappings returns a Component Template for
-// scheduler jobs index field mappings. Dynamic mapping is allowed so that jobs
-// can store additional fields specific to their purpose.
+// scheduler jobs index field mappings.
 func ComponentTemplateSchedulerJobsMappings() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(

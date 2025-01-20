@@ -167,7 +167,7 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (
 		return models.APIItem{}, false, errors.Join(ErrSearchFailed, err)
 	}
 
-	item, err := extractSource[models.APIItem](res.Hits.Hits[0].Source_)
+	item, err := ExtractSource[models.APIItem](res.Hits.Hits[0].Source_)
 	if err != nil {
 		return models.APIItem{}, false, errors.Join(ErrSearchFailed, err)
 	}
@@ -207,7 +207,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearc
 		return nil, nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	items := extractSources[models.APIItem](ctx, res.Hits.Hits)
+	items := ExtractSources[models.APIItem](ctx, res.Hits.Hits)
 
 	var paginationData []byte
 	// Get the sort value(s) of the last hit.
@@ -276,7 +276,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearc
 		case types.MultiGetError:
 			c.Logger.Warn("Problem getting document", slog.Any("error", obj))
 		case *types.GetResult:
-			feed, err := extractSource[models.APIFeed](obj.Source_)
+			feed, err := ExtractSource[models.APIFeed](obj.Source_)
 			if err != nil {
 				c.Logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
 				continue
@@ -357,7 +357,7 @@ func (c *Client) userActionGetFeedsByURL(ctx context.Context, urls ...string) ([
 			return nil, nil
 		}
 		// Loop through this set of results.
-		feeds = append(feeds, extractSources[models.APIFeed](ctx, resp.Hits.Hits)...)
+		feeds = append(feeds, ExtractSources[models.APIFeed](ctx, resp.Hits.Hits)...)
 		// Update pagination value.
 		pagination = resp.Hits.Hits[len(resp.Hits.Hits)-1].Sort
 		// Stop if the number of hits is less than the search size (i.e., last set of hits).

@@ -34,7 +34,7 @@ func (c *Client) GetUser(ctx context.Context) (models.User, error) {
 		return models.User{}, errors.Join(ErrGetFailed, err)
 	}
 
-	user, err := extractSource[models.User](resp.Source_)
+	user, err := ExtractSource[models.User](resp.Source_)
 	if err != nil {
 		return models.User{}, errors.Join(ErrGetFailed, err)
 	}

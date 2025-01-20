@@ -139,7 +139,7 @@ func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
 	}
 
 	// Loop through this set of results.
-	nextJob, err := extractSource[models.ScheduledJob](resp.Hits.Hits[0].Source_)
+	nextJob, err := ExtractSource[models.ScheduledJob](resp.Hits.Hits[0].Source_)
 	if err != nil {
 		return nil, errors.Join(ErrParseJobFailed, err)
 	}
@@ -160,7 +160,7 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 		return nil, errors.Join(ErrGetJobFailed, err)
 	}
 
-	job, err := extractSource[models.ScheduledJob](resp.Source_)
+	job, err := ExtractSource[models.ScheduledJob](resp.Source_)
 	if err != nil {
 		return nil, errors.Join(ErrGetJobFailed, err)
 	}
@@ -205,7 +205,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 			return nil, nil
 		}
 		// Loop through this set of results.
-		allJobs = append(allJobs, extractSources[models.ScheduledJob](schedCtx, resp.Hits.Hits)...)
+		allJobs = append(allJobs, ExtractSources[models.ScheduledJob](schedCtx, resp.Hits.Hits)...)
 		// Update pagination value.
 		pagination = resp.Hits.Hits[len(resp.Hits.Hits)-1].Sort
 		// Stop if the number of hits is less than the search size (i.e., last set of hits).
@@ -280,7 +280,7 @@ func (c *Client) GetFeedJobState(ctx context.Context, feedID models.FeedID) (mod
 	}
 
 	// Loop through this set of results.
-	state, err := extractSource[models.FeedJobState](resp.Source_)
+	state, err := ExtractSource[models.FeedJobState](resp.Source_)
 	if err != nil {
 		return models.FeedJobState{ID: feedID, LastFetched: time.Time{}}, errors.Join(ErrParseJobFailed, err)
 	}

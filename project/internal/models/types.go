@@ -32,7 +32,7 @@ type Item struct {
 	FeedID string `json:"feed_id"`
 }
 
-type UserSession struct {
+type UserData struct {
 	*Tokens
 	*User
 }

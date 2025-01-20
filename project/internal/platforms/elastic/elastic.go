@@ -27,16 +27,16 @@ var (
 	ErrFieldNotFound = errors.New("field not found")
 )
 
-// extractSources loops through the given hits array and extracts the `_source`
+// ExtractSources loops through the given hits array and extracts the `_source`
 // field of each document as type `T`, returning the documents as an array
 // `[]T`. Any errors extracting sources will be logged at the WARN level.
 //
 //nolint:prealloc
-func extractSources[T any](ctx context.Context, hits []types.Hit) []T {
+func ExtractSources[T any](ctx context.Context, hits []types.Hit) []T {
 	var items []T
 
 	for _, hit := range hits {
-		source, err := extractSource[T](hit.Source_)
+		source, err := ExtractSource[T](hit.Source_)
 		if err != nil {
 			logging.FromContext(ctx).Warn("Could not unmarshal item source.",
 				slog.Any("error", err))
@@ -49,9 +49,9 @@ func extractSources[T any](ctx context.Context, hits []types.Hit) []T {
 	return items
 }
 
-// extractSource extracts the `_source` field from a hit. A non-nil error is
+// ExtractSource extracts the `_source` field from a hit. A non-nil error is
 // returned if the source cannot be extracted.
-func extractSource[T any](doc json.RawMessage) (T, error) {
+func ExtractSource[T any](doc json.RawMessage) (T, error) {
 	var source T
 
 	if err := json.Unmarshal(doc, &source); err != nil {
