@@ -6,13 +6,11 @@ package cli
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/joshuar/go-feed-me/internal/app/scheduler"
-	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
@@ -27,10 +25,5 @@ func (r *SchedulerCmd) Run(opts *CmdOpts) error {
 
 	ctx = logging.ToContext(ctx, opts.Logger)
 
-	// Load the config.
-	if err := config.Init(); err != nil {
-		return fmt.Errorf("unable to load server config: %w", err)
-	}
-
-	return scheduler.Run(ctx, config.Environment())
+	return scheduler.Run(ctx)
 }

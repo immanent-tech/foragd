@@ -78,7 +78,9 @@
     "components/form",
     "components/dropdown",
     "components/alert",
-    "modifiers/state"
+    "modifiers/state",
+    "internal/id",
+    "cli"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

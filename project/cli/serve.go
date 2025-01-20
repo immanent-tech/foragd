@@ -20,6 +20,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	gowebly "github.com/gowebly/helpers"
 
+	"github.com/joshuar/go-feed-me/internal/app/scheduler"
 	"github.com/joshuar/go-feed-me/internal/app/server"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -36,17 +37,11 @@ var ErrStartServerFailed = errors.New("could not start server")
 type ServeCmd struct{}
 
 func (r *ServeCmd) Run(opts *CmdOpts) error {
-	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer cancelFunc()
-
-	if err := config.Init(); err != nil {
-		return errors.Join(ErrStartServerFailed, err)
-	}
-
 	// Creating a waiting group that waits until the graceful shutdown procedure is done
 	var wg sync.WaitGroup
 
-	wg.Add(1)
+	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancelFunc()
 
 	ctx = logging.ToContext(ctx, opts.Logger)
 
@@ -70,22 +65,32 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 		WriteTimeout: ServerWriteTimeout,
 	}
 
-	// This goroutine is running in parallels to the main one
+	wg.Add(1)
+	// Listen for shutdown events and process them.
 	go func() {
-		// creating a channel to listen for signals, like SIGINT
+		wg.Done()
+
 		stop := make(chan os.Signal, 1)
-		// subscribing to interruption signals
+
 		signal.Notify(stop, os.Interrupt)
-		// this blocks until the signal is received
 		<-stop
-		// initiating the shutdown
+
 		err = serverObj.Shutdown(context.Background())
 		// can't do much here except for logging any errors
 		if err != nil {
 			log.Printf("error during shutdown: %v\n", err)
 		}
-		// notifying the main goroutine that we are done
-		wg.Done()
+	}()
+
+	wg.Add(1)
+	// Start the scheduler.
+	go func() {
+		defer wg.Done()
+		if err := scheduler.Run(ctx); err != nil {
+			svr.Logger.Error("Error running scheduler.",
+				slog.Any("error", err))
+			cancelFunc()
+		}
 	}()
 
 	svr.Logger.Info("Starting server...",

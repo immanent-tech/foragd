@@ -6,10 +6,12 @@ package main
 import (
 	"embed"
 	"log/slog"
+	"os"
 
 	"github.com/alecthomas/kong"
 
 	"github.com/joshuar/go-feed-me/cli"
+	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
@@ -32,6 +34,13 @@ func main() {
 	ctx := kong.Parse(&CLI, kong.Bind())
 
 	logger := logging.New(logging.Options{LogLevel: CLI.LogLevel, NoLogFile: CLI.NoLogFile})
+
+	if err := config.Init(); err != nil {
+		logger.Error("Could not initialize config.",
+			slog.Any("error", err))
+		os.Exit(-1)
+	}
+
 	// Enable profiling if requested.
 	if CLI.ProfileFlags != nil {
 		if err := logging.StartProfiling(CLI.ProfileFlags); err != nil {
@@ -55,9 +64,4 @@ func main() {
 				slog.Any("error", err))
 		}
 	}
-	// // Run your server.
-	// if err := runServer(); err != nil {
-	// 	slog.Error("Failed to start server!", slog.Any("error", err))
-	// 	os.Exit(1)
-	// }
 }
