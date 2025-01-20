@@ -6,11 +6,14 @@ package elastic
 import (
 	"context"
 	"errors"
+	"sync"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/cluster/putcomponenttemplate"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ilm/putlifecycle"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/create"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/putindextemplate"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 var ErrPutILMPolicyFailed = errors.New("create ILM policy failed")
@@ -49,4 +52,65 @@ func (c *Client) PutIngestPipeline(ctx context.Context, name string, pipeline *p
 	}
 
 	return nil
+}
+
+type CreateIndexRequest struct {
+	*create.Create
+	aliases map[string]types.Alias
+	mu      sync.Mutex
+}
+
+// WithIndexMappings adds the given mappings to the index.
+func WithIndexMappings(mappings *types.TypeMapping) Option[*CreateIndexRequest] {
+	return func(index *CreateIndexRequest) *CreateIndexRequest {
+		index.Mappings(mappings)
+		return index
+	}
+}
+
+// WithIndexSettings adds the given settings to the index.
+func WithIndexSettings(settings *types.IndexSettings) Option[*CreateIndexRequest] {
+	return func(index *CreateIndexRequest) *CreateIndexRequest {
+		index.Settings(settings)
+		return index
+	}
+}
+
+// WithIndexAlias adds the given index alias to the index.
+func WithIndexAlias(name string, details types.Alias) Option[*CreateIndexRequest] {
+	return func(index *CreateIndexRequest) *CreateIndexRequest {
+		index.mu.Lock()
+		defer index.mu.Unlock()
+		index.aliases[name] = details
+
+		return index
+	}
+}
+
+// NewIndexRequest creates a new index request for the given index name and options.
+func (c *Client) NewIndexRequest(name string, options ...Option[*CreateIndexRequest]) *create.Create {
+	req := &CreateIndexRequest{
+		aliases: make(map[string]types.Alias),
+		Create:  c.API.Indices.Create(name),
+	}
+
+	for _, option := range options {
+		req = option(req)
+	}
+
+	if len(req.aliases) > 0 {
+		req.Create.Aliases(req.aliases)
+	}
+
+	return req.Create
+}
+
+// IndexExists checks whether an index with the given name exists.
+func (c *Client) IndexExists(ctx context.Context, name string) (bool, error) {
+	resp, err := c.API.Indices.Exists(name).Do(ctx)
+	if err != nil {
+		return false, errors.Join(ErrExistsFailed, err)
+	}
+
+	return resp, nil
 }
