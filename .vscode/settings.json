@@ -80,7 +80,8 @@
     "components/alert",
     "modifiers/state",
     "internal/id",
-    "cli"
+    "cli",
+    "app/scheduler"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

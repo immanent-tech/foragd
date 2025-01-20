@@ -12,12 +12,15 @@ import (
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
+
+	"github.com/joshuar/go-feed-me/internal/id"
 )
 
 const (
 	// defaultJobTrigger is a cron schedule to run a job every 5 minutes.
 	defaultJobTrigger = "0 */5 * * * *"
-
+	// FeedJobGroup is a scheduler group key for jobs to fetch new items for
+	// feeds.
 	FeedJobGroup = "get_items"
 )
 
@@ -43,10 +46,10 @@ func (sj *ScheduledJob) JobDetail() *quartz.JobDetail {
 	}
 
 	if sj.Options != nil {
-		return quartz.NewJobDetailWithOptions(&job, quartz.NewJobKeyWithGroup(job.ID, FeedJobGroup), sj.Options)
+		return quartz.NewJobDetailWithOptions(&job, GenerateJobKey(job.ID), sj.Options)
 	}
 
-	return quartz.NewJobDetail(&job, quartz.NewJobKeyWithGroup(job.ID, FeedJobGroup))
+	return quartz.NewJobDetail(&job, GenerateJobKey(job.ID))
 }
 
 func (sj *ScheduledJob) Trigger() quartz.Trigger {
@@ -149,6 +152,7 @@ func (job *FeedJob) getItemsSince(since time.Time) ([]Item, error) {
 	return items, nil
 }
 
+// NewFeedJob creates a job that can be scheduled from the given feed data.
 func NewFeedJob(feed APIFeed) (*ScheduledJob, error) {
 	job := &ScheduledJob{
 		Timestamp: time.Now().UTC(),
@@ -163,4 +167,14 @@ func NewFeedJob(feed APIFeed) (*ScheduledJob, error) {
 	}
 
 	return job, nil
+}
+
+// GenerateJobKey generates an appropriate job key based on the type of job.
+func GenerateJobKey(jobID string) *quartz.JobKey {
+	switch id.IdentifyID(jobID) {
+	case id.Feed:
+		return quartz.NewJobKeyWithGroup(jobID, FeedJobGroup)
+	}
+
+	return nil
 }

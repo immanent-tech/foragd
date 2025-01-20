@@ -127,6 +127,12 @@ components:
         json: 'user_id'
         gorm: 'primaryKey'
       x-go-type-skip-optional-pointer: true
+    SchedulerID:
+      description: is the unique ID of a job scheduler instance.
+      type: string
+      x-oapi-codegen-extra-tags:
+        json: 'scheduler_id'
+      x-go-type-skip-optional-pointer: true
     URL: &URL
       description: is a URL.
       type: string
@@ -552,6 +558,8 @@ components:
           x-oapi-codegen-extra-tags:
             json: 'job_data'
           x-go-type-skip-optional-pointer: true
+        SchedulerID:
+          $ref: '#/components/schemas/SchedulerID'
     FeedJob:
       description: represents a job that fetches new items for a feed.
       type: object

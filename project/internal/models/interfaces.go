@@ -33,7 +33,6 @@ type UserManagementAPI interface {
 type FeedJobStateAPI interface {
 	GetFeedJobState(ctx context.Context, feedID FeedID) (FeedJobState, error)
 	UpdateFeedJobState(ctx context.Context, feedID FeedID, lastFetched time.Time) error
-	FeedJobExists(ctx context.Context, feedID FeedID) (bool, error)
 }
 
 // FeedManagementAPI contains methods for feed/item management.

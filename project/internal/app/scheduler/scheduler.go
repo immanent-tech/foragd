@@ -11,6 +11,7 @@ import (
 
 	"github.com/reugn/go-quartz/quartz"
 
+	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
@@ -24,10 +25,10 @@ var (
 type databaseAPI interface {
 	GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error)
 	AddItems(ctx context.Context, items ...models.Item) error
-	FeedJobExists(ctx context.Context, feedID models.FeedID) (bool, error)
 }
 
 type Manager struct {
+	id         string
 	db         databaseAPI
 	queue      quartz.JobQueue
 	scheduler  quartz.Scheduler
@@ -37,7 +38,12 @@ type Manager struct {
 
 var manager *Manager
 
-func Run(ctx context.Context, env string) error {
+func Run(ctx context.Context) error {
+	schedulerID, err := id.NewID(id.Scheduler)
+	if err != nil {
+		return errors.Join(ErrRunFailed, err)
+	}
+
 	esClient, err := elastic.Connect(ctx)
 	if err != nil {
 		return errors.Join(ErrRunFailed, err)
@@ -45,18 +51,17 @@ func Run(ctx context.Context, env string) error {
 
 	ctx = models.FeedManagementAPIToCtx(ctx, esClient)
 
-	logger := logging.FromContext(ctx).WithGroup("scheduler")
-
 	jobQueue := elastic.NewJobQueue(ctx, esClient)
 	scheduler := quartz.NewStdSchedulerWithOptions(quartz.StdSchedulerOptions{
 		OutdatedThreshold: 50 * time.Second, // considering file system I/O latency
 	}, jobQueue, nil)
 
 	manager = &Manager{
+		id:         schedulerID,
 		db:         esClient,
 		queue:      jobQueue,
 		scheduler:  scheduler,
-		logger:     logger,
+		logger:     logging.FromContext(ctx).WithGroup("scheduler"),
 		checkpoint: time.Time{},
 	}
 
@@ -94,18 +99,20 @@ func Run(ctx context.Context, env string) error {
 
 	<-ctx.Done()
 
-	// scheduledJobs, err := jobQueue.ScheduledJobs(nil)
-	// if err != nil {
-	// 	manager.logger.Error("Failed to fetch scheduled jobs.",
-	// 		slog.Any("error", err))
-	// 	return errors.Join(ErrRunFailed, err)
-	// }
+	scheduledJobs, err := jobQueue.ScheduledJobs(nil)
+	if err != nil {
+		manager.logger.Error("Failed to fetch scheduled jobs.",
+			slog.Any("error", err))
+		return errors.Join(ErrRunFailed, err)
+	}
 
-	// jobNames := make([]string, 0, len(scheduledJobs))
+	jobNames := make([]string, 0, len(scheduledJobs))
 
-	// for _, job := range scheduledJobs {
-	// 	jobNames = append(jobNames, job.JobDetail().JobKey().String())
-	// }
+	for _, job := range scheduledJobs {
+		jobNames = append(jobNames, job.JobDetail().JobKey().String())
+	}
+
+	manager.logger.Debug("Jobs in queue: %s", slog.Any("jobs", jobNames))
 
 	return nil
 }
@@ -119,22 +126,47 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 	m.checkpoint = time.Now().UTC()
 
 	for _, feed := range feeds {
-		if found, err := m.db.FeedJobExists(ctx, models.FeedJobGroup+quartz.Sep+feed.GetID()); err != nil || found {
-			m.logger.Warn("Not scheduling job for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Bool("found", found),
+		var (
+			job quartz.ScheduledJob
+			err error
+		)
+		// Fetch any existing job.
+		existingJob, err := m.queue.Get(models.GenerateJobKey(feed.GetID()))
+		if err != nil {
+			m.logger.Warn("Could not check for scheduled jobs.",
 				slog.Any("error", err))
-
 			continue
 		}
 
-		job, err := models.NewFeedJob(feed)
-		if err != nil {
-			m.logger.Warn("Failed to schedule job for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
+		if existingJob != nil {
+			if details, ok := existingJob.(*models.ScheduledJob); ok {
+				// If the existing job is scheduled by this scheduler instance,
+				// ignore this feed.
+				if details.SchedulerID == m.id {
+					continue
+				}
+				// Otherwise, set the scheduler ID for the job to this scheduler
+				details.SchedulerID = m.id
+				// Delete the existing job.
+				if err = m.scheduler.DeleteJob(models.GenerateJobKey(feed.GetID())); err != nil {
+					m.logger.Warn("Could not reset existing job for feed .",
+						slog.String("feed_id", feed.GetID()),
+						slog.Any("error", err))
 
-			continue
+					continue
+				}
+				// Re-schedule the job.
+				job = quartz.ScheduledJob(details)
+			}
+		} else {
+			job, err = models.NewFeedJob(feed)
+			if err != nil {
+				m.logger.Warn("Failed to schedule job for feed.",
+					slog.String("feed_id", feed.GetID()),
+					slog.Any("error", err))
+
+				continue
+			}
 		}
 
 		if err := m.scheduler.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
@@ -148,7 +180,7 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 		m.logger.Debug("Adding job for feed.",
 			slog.String("feed_id", feed.ID),
 			slog.String("feed_title", feed.Title),
-			slog.String("schedule", job.Schedule),
+			slog.String("schedule", job.Trigger().Description()),
 		)
 	}
 

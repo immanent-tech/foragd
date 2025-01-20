@@ -12,11 +12,12 @@ func _() {
 	_ = x[Subscription-1]
 	_ = x[Feed-2]
 	_ = x[Item-3]
+	_ = x[Scheduler-4]
 }
 
-const _Prefix_name = "unknownsubfeeditem"
+const _Prefix_name = "unknownsubfeeditemscheduler"
 
-var _Prefix_index = [...]uint8{0, 7, 10, 14, 18}
+var _Prefix_index = [...]uint8{0, 7, 10, 14, 18, 27}
 
 func (i Prefix) String() string {
 	if i < 0 || i >= Prefix(len(_Prefix_index)-1) {

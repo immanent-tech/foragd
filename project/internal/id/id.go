@@ -16,6 +16,7 @@ const (
 	Subscription               // sub
 	Feed                       // feed
 	Item                       // item
+	Scheduler                  // scheduler
 )
 
 // Prefix represents a type of ID. Specific types share a common prefix.

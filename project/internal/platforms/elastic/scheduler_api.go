@@ -303,13 +303,3 @@ func (c *Client) UpdateFeedJobState(ctx context.Context, feedID models.FeedID, l
 
 	return nil
 }
-
-// FeedJobExists checks if a job for a feed already exists in the scheduler jobs index.
-func (c *Client) FeedJobExists(ctx context.Context, feedID models.FeedID) (bool, error) {
-	found, err := c.NewDocExistsRequest(schema.SchedulerJobsPrefix+"_test", feedID).Do(ctx)
-	if err != nil {
-		return false, errors.Join(ErrExistsFailed, err)
-	}
-
-	return found, nil
-}

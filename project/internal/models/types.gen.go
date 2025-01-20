@@ -195,6 +195,9 @@ type ScheduledJob struct {
 	Options  *quartz.JobDetailOptions `json:"job_options,omitempty"`
 	Schedule string                   `json:"job_trigger" validate:"required,cron"`
 
+	// SchedulerID is the unique ID of a job scheduler instance.
+	SchedulerID SchedulerID `json:"scheduler_id"`
+
 	// Timestamp is when the document was created.
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 }
@@ -203,6 +206,9 @@ type ScheduledJob struct {
 type ScheduledJob_Data struct {
 	union json.RawMessage
 }
+
+// SchedulerID is the unique ID of a job scheduler instance.
+type SchedulerID = string
 
 // Subscription represents a feed a particular user has subscribed to.
 type Subscription struct {
