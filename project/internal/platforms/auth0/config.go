@@ -5,25 +5,19 @@ package auth0
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 	"sync"
 
-	"github.com/knadh/koanf/parsers/toml"
-	"github.com/knadh/koanf/providers/env"
-	"github.com/knadh/koanf/providers/file"
-	"github.com/knadh/koanf/v2"
+	"github.com/joshuar/go-feed-me/internal/config"
 )
 
 const (
-	Auth0ConfigEnvPrefix = "GOFEEDME_AUTH0_"
-	Auth0ConfigPrefix    = "auth0"
-	Auth0ConfigFile      = "server.toml"
+	auth0ConfigEnvPrefix = "GOFEEDME_AUTH0_"
+	auth0ConfigPrefix    = "auth0"
 )
 
-// Default config values.
+// Default auth0Config values.
 var (
-	config        = &Config{}
+	auth0Config   = &Config{}
 	ErrLoadConfig = errors.New("error loading config")
 )
 
@@ -34,24 +28,12 @@ type Config struct {
 	ClientSecret string `toml:"client_secret"`
 }
 
-var configSrc = koanf.New(".")
+var getConfigOnce = sync.OnceValue(loadConfig)
 
-var loadConfig = sync.OnceValue(func() error {
-	// Load config file
-	if err := configSrc.Load(file.Provider(Auth0ConfigFile), toml.Parser()); err != nil {
-		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
-	}
-	// Merge config with any environment variables.
-	if err := configSrc.Load(env.Provider(Auth0ConfigEnvPrefix, ".", func(s string) string {
-		return strings.Replace(strings.ToLower(
-			strings.TrimPrefix(s, Auth0ConfigEnvPrefix)), "_", ".", -1)
-	}), nil); err != nil {
-		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
-	}
-	// Unmarshal config, overwriting defaults.
-	if err := configSrc.UnmarshalWithConf(Auth0ConfigPrefix, config, koanf.UnmarshalConf{Tag: "toml"}); err != nil {
-		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+func loadConfig() error {
+	if err := config.Load(auth0ConfigPrefix, auth0ConfigEnvPrefix, auth0Config); err != nil {
+		return errors.Join(config.ErrLoadConfig, err)
 	}
 
 	return nil
-})
+}

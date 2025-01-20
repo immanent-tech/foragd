@@ -11,9 +11,9 @@ import (
 
 	"github.com/angelofallars/htmx-go"
 
+	"github.com/joshuar/go-feed-me/internal/app/server/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/partials/content"
 )
 

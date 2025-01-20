@@ -39,21 +39,21 @@ type Authenticator struct {
 
 // NewAuthenticator instantiates the *Authenticator.
 func NewAuthenticator(ctx context.Context, serverURI string) (*Authenticator, error) {
-	if err := loadConfig(); err != nil {
+	if err := getConfigOnce(); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrStartAuthenticator, err)
 	}
 
 	provider, err := oidc.NewProvider(
 		ctx,
-		"https://"+config.Domain+"/",
+		"https://"+auth0Config.Domain+"/",
 	)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrStartAuthenticator, err)
 	}
 
 	conf := oauth2.Config{
-		ClientID:     config.ClientID,
-		ClientSecret: config.ClientSecret,
+		ClientID:     auth0Config.ClientID,
+		ClientSecret: auth0Config.ClientSecret,
 		RedirectURL:  serverURI + "/login/auth0/callback",
 		Endpoint:     provider.Endpoint(),
 		Scopes:       []string{oidc.ScopeOpenID, "profile"},
@@ -85,7 +85,7 @@ func (a *Authenticator) VerifyIDToken(ctx context.Context, token *oauth2.Token) 
 }
 
 func generateLogoutURL(req *http.Request) (*url.URL, error) {
-	logoutURL, err := url.Parse("https://" + config.Domain + "/v2/logout")
+	logoutURL, err := url.Parse("https://" + auth0Config.Domain + "/v2/logout")
 	if err != nil {
 		return nil, fmt.Errorf("could not determine logout URL: %w", err)
 	}
@@ -102,7 +102,7 @@ func generateLogoutURL(req *http.Request) (*url.URL, error) {
 
 	parameters := url.Values{}
 	parameters.Add("returnTo", returnTo.String())
-	parameters.Add("client_id", config.ClientID)
+	parameters.Add("client_id", auth0Config.ClientID)
 	logoutURL.RawQuery = parameters.Encode()
 
 	return logoutURL, nil

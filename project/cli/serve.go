@@ -20,8 +20,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	gowebly "github.com/gowebly/helpers"
 
+	"github.com/joshuar/go-feed-me/internal/app/server"
+	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/server"
 )
 
 const (
@@ -37,6 +38,10 @@ type ServeCmd struct{}
 func (r *ServeCmd) Run(opts *CmdOpts) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
+
+	if err := config.Init(); err != nil {
+		return errors.Join(ErrStartServerFailed, err)
+	}
 
 	// Creating a waiting group that waits until the graceful shutdown procedure is done
 	var wg sync.WaitGroup
@@ -85,7 +90,7 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 
 	svr.Logger.Info("Starting server...",
 		slog.Int("port", server.Port()),
-		slog.String("environment", server.Environment()))
+		slog.String("environment", config.Environment()))
 
 	// And we serve HTTP until the world ends.
 	err = serverObj.ListenAndServe()

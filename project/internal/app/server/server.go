@@ -14,12 +14,13 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/lxzan/gws"
 
+	"github.com/joshuar/go-feed-me/internal/app/server/middlewares"
+	"github.com/joshuar/go-feed-me/internal/app/server/session"
+	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	sessionstore "github.com/joshuar/go-feed-me/internal/platforms/elastic/implementations/session"
-	"github.com/joshuar/go-feed-me/internal/server/middlewares"
-	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
 const (
@@ -41,9 +42,18 @@ type Server struct {
 func NewServer(ctx context.Context) (Server, error) {
 	var svr Server
 
-	// Load the config.
-	if err := LoadConfig(); err != nil {
+	if err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, serverConfig); err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
+	}
+
+	// If no secret is set, create a new secret.
+	if serverConfig.Secret == "" {
+		secret, err := randomBase16String(32)
+		if err != nil {
+			return svr, fmt.Errorf("%w: %w", ErrLoadConfig, err)
+		}
+
+		serverConfig.Secret = secret
 	}
 
 	// Set up the logger
@@ -59,7 +69,7 @@ func NewServer(ctx context.Context) (Server, error) {
 	}
 
 	// Load the Elastic backend
-	elasticAPI, err := elastic.Connect(ctx, config.Environment)
+	elasticAPI, err := elastic.Connect(ctx, config.Environment())
 	if err != nil {
 		return svr, fmt.Errorf("failed to connect to the db backend: %w", err)
 	}
@@ -73,7 +83,7 @@ func NewServer(ctx context.Context) (Server, error) {
 	// }
 
 	// Load the authenticator backend.
-	auth0API, err := auth0.NewAuthenticator(ctx, "http://localhost:"+strconv.Itoa(config.Port))
+	auth0API, err := auth0.NewAuthenticator(ctx, "http://localhost:"+strconv.Itoa(serverConfig.Port))
 	if err != nil {
 		return svr, fmt.Errorf("failed to initialize the authenticator backend API: %w", err)
 	}
@@ -109,17 +119,17 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	wrapper.HandlerMiddlewares = append(wrapper.HandlerMiddlewares,
 		middleware.RequestID,
 		middleware.RealIP,
-		middlewares.Logger(svr.Logger, config.LogLevel, requestIDKey),
+		middlewares.Logger(svr.Logger, config.LogLevel(), requestIDKey),
 		middleware.Recoverer,
-		middlewares.CORS(config.Environment),
-		middlewares.CSP(config.CSP),
+		middlewares.CORS(config.Environment()),
+		middlewares.CSP(serverConfig.CSP),
 		middlewares.RequireAuthentication(protectedRoutes, svr.API.elastic),
 		middlewares.RequireHTMX(htmxOnlyRoutes),
 		session.LoadAndSave())
 
 	svr.Logger.Debug("Setting up routes...")
 
-	if config.Environment == "development" {
+	if config.Environment() == "development" {
 		router.Mount("/debug", middleware.Profiler())
 	}
 

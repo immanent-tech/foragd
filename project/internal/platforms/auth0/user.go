@@ -58,15 +58,15 @@ func (u *UserSignup) Verified() bool {
 }
 
 func NewUserAPI(ctx context.Context) (*UserAPI, error) {
-	if err := loadConfig(); err != nil {
+	if err := getConfigOnce(); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrConnectAPIFail, err)
 	}
 
 	authAPI, err := authentication.New(
 		ctx,
-		config.Domain,
-		authentication.WithClientID(config.ClientID),
-		authentication.WithClientSecret(config.ClientSecret),
+		auth0Config.Domain,
+		authentication.WithClientID(auth0Config.ClientID),
+		authentication.WithClientSecret(auth0Config.ClientSecret),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to Auth0 API: %w", err)

@@ -11,10 +11,10 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
-	"github.com/joshuar/go-feed-me/internal/server"
 )
 
 // MigrateCmd: `go-feed-me migrate`.
@@ -29,12 +29,12 @@ func (r *MigrateCmd) Run(opts *CmdOpts) error {
 	ctx = logging.ToContext(ctx, opts.Logger)
 
 	// Load the config.
-	if err := server.LoadConfig(); err != nil {
+	if err := config.Init(); err != nil {
 		return fmt.Errorf("unable to load server config: %w", err)
 	}
 
 	// Load the Elastic backend
-	elasticClient, err := elastic.Connect(ctx, server.Environment())
+	elasticClient, err := elastic.Connect(ctx, config.Environment())
 	if err != nil {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}

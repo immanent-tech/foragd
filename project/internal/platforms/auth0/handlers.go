@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/server/session"
 )
 
 func LoginHandler(res http.ResponseWriter, req *http.Request, authenticator *Authenticator) {

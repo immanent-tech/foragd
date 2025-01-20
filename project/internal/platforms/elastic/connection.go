@@ -28,6 +28,7 @@ import (
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 
+	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
@@ -61,12 +62,12 @@ func Connect(ctx context.Context, environment string) (*Client, error) {
 	// Retrieve a logger from the context.
 	logger := logging.FromContext(ctx).WithGroup("elastic")
 
-	esconfig, err := loadConfig(logger, environment)
+	clientConfig, err := loadConfigOnce(logger, config.Environment())
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
 
-	esclient, err := elasticsearch.NewTypedClient(*esconfig)
+	esclient, err := elasticsearch.NewTypedClient(*clientConfig)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
@@ -85,24 +86,3 @@ func Connect(ctx context.Context, environment string) (*Client, error) {
 
 	return client, nil
 }
-
-// func (c *Client) Setup(ctx context.Context) error {
-// 	// Update the ILM policy for feeditems.
-// 	if err := c.PutILMPolicy(ctx, schema.FeedItemsSchemaPrefix, schema.FeedItemsILMPolicy()); err != nil {
-// 		return fmt.Errorf("put ILM policy: %w", err)
-// 	}
-// 	// Update the ILM policy for readitems.
-// 	if err := c.PutILMPolicy(ctx, schema.ReadItemsSchemaPrefix, schema.ReadItemsILMPolicy()); err != nil {
-// 		return fmt.Errorf("put ILM policy: %w", err)
-// 	}
-// 	// Add ingest pipeline(s).
-// 	if err := c.PutIngestPipeline(ctx, schema.IngestPipelineID, schema.FeedItemsIngestPipeline()); err != nil {
-// 		return fmt.Errorf("put ingest pipeline: %w", err)
-// 	}
-
-// 	// if err := schema.CreateTemplates(ctx); err != nil {
-// 	// 	return fmt.Errorf("put index template: %w", err)
-// 	// }
-
-// 	return nil
-// }

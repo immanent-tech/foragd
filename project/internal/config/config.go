@@ -1,0 +1,105 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package config
+
+import (
+	"errors"
+	"fmt"
+	"log/slog"
+	"strings"
+	"sync"
+
+	"github.com/knadh/koanf/parsers/toml"
+	"github.com/knadh/koanf/providers/env"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/v2"
+)
+
+const (
+	// ConfigEnvPrefix defines the environment variable prefix for reading
+	// server configuration from the environment.
+	ConfigEnvPrefix = "GOFEEDME_"
+	// ConfigFile is the location of the server configuration file.
+	ConfigFile   = "server.toml"
+	ConfigPrefix = "app"
+)
+
+// Config contains the server configuration options.
+type Config struct {
+	Secret      string `toml:"app.secret"`
+	Environment string `toml:"app.environment"`
+	LogLevel    string `toml:"app.log_level"`
+}
+
+var (
+	ErrLoadConfig    = errors.New("error loading config")
+	ErrInvalidConfig = errors.New("invalid config")
+)
+
+var configSrc = koanf.New(".")
+
+var appConfig = &Config{
+	Environment: "development",
+	LogLevel:    "debug",
+}
+
+// Init initializes the config store. This will load the global (app) config
+// values and set up a config backend that other components can use via the Load
+// method.
+var Init = sync.OnceValue(func() error {
+	// Load config file
+	if err := configSrc.Load(file.Provider(ConfigFile), toml.Parser()); err != nil {
+		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	}
+	// Merge config with any environment variables.
+	if err := configSrc.Load(env.Provider(ConfigEnvPrefix, ".", func(s string) string {
+		return strings.Replace(strings.ToLower(
+			strings.TrimPrefix(s, ConfigEnvPrefix)), "_", ".", -1)
+	}), nil); err != nil {
+		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	}
+	// Unmarshal config, overwriting defaults.
+	if err := configSrc.UnmarshalWithConf("app", appConfig, koanf.UnmarshalConf{Tag: "toml"}); err != nil {
+		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	}
+
+	slog.Debug("Config backend initialized.")
+
+	return nil
+})
+
+// Load will load the config for a component, using the given file and
+// environment prefixes, and marshaling the config into the given config object.
+func Load(configPrefix, envPrefix string, cfg any) error {
+	// Load config file
+	if err := configSrc.Load(file.Provider(ConfigFile), toml.Parser()); err != nil {
+		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	}
+	// Merge config with any environment variables.
+	if err := configSrc.Load(env.Provider(envPrefix, ".", func(s string) string {
+		return strings.Replace(strings.ToLower(
+			strings.TrimPrefix(s, envPrefix)), "_", ".", -1)
+	}), nil); err != nil {
+		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	}
+	// Unmarshal config, overwriting defaults.
+	if err := configSrc.UnmarshalWithConf(configPrefix, cfg, koanf.UnmarshalConf{Tag: "toml"}); err != nil {
+		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	}
+
+	slog.Debug("Loading config for component.",
+		slog.String("component", configPrefix))
+
+	return nil
+}
+
+// Environment returns the app environment.
+func Environment() string {
+	return appConfig.Environment
+}
+
+// LogLevel returns the app logging level.
+func LogLevel() string {
+	return appConfig.LogLevel
+}

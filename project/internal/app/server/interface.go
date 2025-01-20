@@ -20,19 +20,13 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 )
 
-// Environment returns the current environment under which the server is
-// running.
-func Environment() string {
-	return config.Environment
-}
-
 func (s Server) AppSecret() string {
-	return config.Secret
+	return serverConfig.Secret
 }
 
 // Port returns the port on which the server is listening.
 func Port() int {
-	return config.Port
+	return serverConfig.Port
 }
 
 // UserAPI returns the API endpoint for manipulating users.
