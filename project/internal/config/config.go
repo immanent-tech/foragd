@@ -20,12 +20,14 @@ const (
 	// ConfigEnvPrefix defines the environment variable prefix for reading
 	// server configuration from the environment.
 	ConfigEnvPrefix = "GOFEEDME_"
-	// ConfigFile is the location of the server configuration file.
-	ConfigFile   = "server.toml"
+	// ConfigPrefix defines the prefix used in the configuration file to find
+	// global (app) config.
 	ConfigPrefix = "app"
+	// ConfigFile is the location of the server configuration file.
+	ConfigFile = "server.toml"
 )
 
-// Config contains the server configuration options.
+// Config contains the global (app) configuration options.
 type Config struct {
 	Secret      string `toml:"app.secret"`
 	Environment string `toml:"app.environment"`
@@ -46,7 +48,7 @@ var appConfig = &Config{
 
 // Init initializes the config store. This will load the global (app) config
 // values and set up a config backend that other components can use via the Load
-// method.
+// method. This only happens once.
 var Init = sync.OnceValue(func() error {
 	// Load config file
 	if err := configSrc.Load(file.Provider(ConfigFile), toml.Parser()); err != nil {
@@ -71,6 +73,8 @@ var Init = sync.OnceValue(func() error {
 
 // Load will load the config for a component, using the given file and
 // environment prefixes, and marshaling the config into the given config object.
+// Components should take care to ensure this is called only once, where
+// required.
 func Load(configPrefix, envPrefix string, cfg any) error {
 	// Load config file
 	if err := configSrc.Load(file.Provider(ConfigFile), toml.Parser()); err != nil {

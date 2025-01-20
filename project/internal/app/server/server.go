@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/lxzan/gws"
 
 	"github.com/joshuar/go-feed-me/internal/app/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/app/server/session"
@@ -28,10 +27,9 @@ const (
 )
 
 type API struct {
-	user      *auth0.UserAPI
-	elastic   *elastic.Client
-	auth      *auth0.Authenticator
-	websocket *gws.Upgrader
+	user    *auth0.UserAPI
+	elastic *elastic.Client
+	auth    *auth0.Authenticator
 }
 
 type Server struct {
@@ -41,11 +39,10 @@ type Server struct {
 
 func NewServer(ctx context.Context) (Server, error) {
 	var svr Server
-
+	// Load the server config.
 	if err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, serverConfig); err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
-
 	// If no secret is set, create a new secret.
 	if serverConfig.Secret == "" {
 		secret, err := randomBase16String(32)
@@ -55,50 +52,32 @@ func NewServer(ctx context.Context) (Server, error) {
 
 		serverConfig.Secret = secret
 	}
-
 	// Set up the logger
 	svr.Logger = logging.FromContext(ctx)
-
-	// Embed the config into the context
-	// ctx = config.ToContext(ctx, cfg)
-
 	// Load the auth0UserAPI backend.
 	auth0UserAPI, err := auth0.NewUserAPI(ctx)
 	if err != nil {
 		return svr, fmt.Errorf("failed to initialize the auth0 user backend API: %w", err)
 	}
-
 	// Load the Elastic backend
-	elasticAPI, err := elastic.Connect(ctx, config.Environment())
+	elasticAPI, err := elastic.Connect(ctx)
 	if err != nil {
 		return svr, fmt.Errorf("failed to connect to the db backend: %w", err)
 	}
-
-	sessionStore := sessionstore.NewSessionStore(ctx, elasticAPI)
-
-	// // Load the Postgres backend
-	// postgresAPI, err := postgres.Connect(ctx)
-	// if err != nil {
-	// 	return svr, fmt.Errorf("failed to connect to the db backend: %w", err)
-	// }
-
 	// Load the authenticator backend.
 	auth0API, err := auth0.NewAuthenticator(ctx, "http://localhost:"+strconv.Itoa(serverConfig.Port))
 	if err != nil {
 		return svr, fmt.Errorf("failed to initialize the authenticator backend API: %w", err)
 	}
-
-	// websocket := handlers.NewWebsocketServer(&handlers.FeedItemWebsocketHandler{})
-
+	// Load the session store.
+	sessionStore := sessionstore.NewSessionStore(ctx, elasticAPI)
 	// Set up the session manager.
 	session.NewSessionManager(sessionStore)
-
 	// Add the API to the environment.
 	svr.API = &API{
 		user:    auth0UserAPI,
 		elastic: elasticAPI,
 		auth:    auth0API,
-		// websocket: websocket,
 	}
 
 	return svr, nil

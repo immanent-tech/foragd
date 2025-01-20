@@ -37,11 +37,6 @@ require (
 )
 
 require (
-	github.com/dolthub/maphash v0.1.0 // indirect
-	github.com/klauspost/compress v1.17.5 // indirect
-)
-
-require (
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/PuerkitoBio/goquery v1.10.1 // indirect
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
@@ -88,7 +83,6 @@ require (
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/jwx/v2 v2.1.3 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
-	github.com/lxzan/gws v1.8.8
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect

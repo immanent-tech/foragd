@@ -34,7 +34,7 @@ func (r *MigrateCmd) Run(opts *CmdOpts) error {
 	}
 
 	// Load the Elastic backend
-	elasticClient, err := elastic.Connect(ctx, config.Environment())
+	elasticClient, err := elastic.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}

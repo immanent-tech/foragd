@@ -58,7 +58,7 @@ type Client struct {
 	bulkStream chan []BulkOperation
 }
 
-func Connect(ctx context.Context, environment string) (*Client, error) {
+func Connect(ctx context.Context) (*Client, error) {
 	// Retrieve a logger from the context.
 	logger := logging.FromContext(ctx).WithGroup("elastic")
 

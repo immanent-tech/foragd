@@ -38,7 +38,7 @@ type Manager struct {
 var manager *Manager
 
 func Run(ctx context.Context, env string) error {
-	esClient, err := elastic.Connect(ctx, env)
+	esClient, err := elastic.Connect(ctx)
 	if err != nil {
 		return errors.Join(ErrRunFailed, err)
 	}

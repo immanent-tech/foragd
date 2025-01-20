@@ -28,7 +28,9 @@ type Config struct {
 	ClientSecret string `toml:"client_secret"`
 }
 
-var getConfigOnce = sync.OnceValue(loadConfig)
+// loadConfigOnce loads the auth0 configuration and ensures this is only done
+// one time, no matter how many times it is called.
+var loadConfigOnce = sync.OnceValue(loadConfig)
 
 func loadConfig() error {
 	if err := config.Load(auth0ConfigPrefix, auth0ConfigEnvPrefix, auth0Config); err != nil {

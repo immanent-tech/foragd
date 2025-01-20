@@ -39,7 +39,7 @@ type Authenticator struct {
 
 // NewAuthenticator instantiates the *Authenticator.
 func NewAuthenticator(ctx context.Context, serverURI string) (*Authenticator, error) {
-	if err := getConfigOnce(); err != nil {
+	if err := loadConfigOnce(); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrStartAuthenticator, err)
 	}
 

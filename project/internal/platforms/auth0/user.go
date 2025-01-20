@@ -58,7 +58,7 @@ func (u *UserSignup) Verified() bool {
 }
 
 func NewUserAPI(ctx context.Context) (*UserAPI, error) {
-	if err := getConfigOnce(); err != nil {
+	if err := loadConfigOnce(); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrConnectAPIFail, err)
 	}
 

@@ -53,6 +53,8 @@ type Config struct {
 	Production  *ProductionConfig
 }
 
+// loadConfigOnce loads the elasticsearch configuration and ensures this is done
+// one-time only, no matter how many times it is called.
 func loadConfigOnce(logger *slog.Logger, environment string) (*elasticsearch.Config, error) {
 	return sync.OnceValues(func() (*elasticsearch.Config, error) {
 		err := config.Load(elasticConfigPrefix, elasticConfigEnvPrefix, elasticConfig)
@@ -70,6 +72,8 @@ func loadConfigOnce(logger *slog.Logger, environment string) (*elasticsearch.Con
 	)()
 }
 
+// genConfig will generate an Elasticsearch client config, required by the
+// underlying package for connecting to an Elasticsearch cluster.
 func genConfig(logger *slog.Logger, environment string) (*elasticsearch.Config, error) {
 	var generated *elasticsearch.Config
 
