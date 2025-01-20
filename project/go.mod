@@ -7,7 +7,6 @@ replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
 require (
 	github.com/a-h/templ v0.3.819
 	github.com/air-verse/air v1.61.5
-	github.com/alexedwards/scs/gormstore v0.0.0-20240316134038-7e11d57e8885
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.14.0
@@ -29,15 +28,12 @@ require (
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
-	github.com/orandin/slog-gorm v1.4.0
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-chi v1.13.0
 	github.com/samber/slog-multi v1.3.3
 	github.com/yassinebenaid/godump v0.11.1
 	golang.org/x/oauth2 v0.25.0
 	golang.org/x/tools v0.29.0
-	gorm.io/driver/postgres v1.5.11
-	gorm.io/gorm v1.25.12
 )
 
 require (
@@ -82,12 +78,6 @@ require (
 	github.com/gohugoio/hugo v0.134.3 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/invopop/yaml v0.3.1 // indirect
-	github.com/jackc/pgpassfile v1.0.0 // indirect
-	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
-	github.com/jackc/pgx/v5 v5.5.5 // indirect
-	github.com/jackc/puddle/v2 v2.2.1 // indirect
-	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/knadh/koanf/maps v0.1.1 // indirect

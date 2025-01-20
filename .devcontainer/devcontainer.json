@@ -35,8 +35,6 @@
         "bradlc.vscode-tailwindcss",
         "yzhang.markdown-all-in-one",
         "DavidAnson.vscode-markdownlint",
-        "mtxr.sqltools-driver-pg",
-        "mtxr.sqltools"
       ]
     }
   }
