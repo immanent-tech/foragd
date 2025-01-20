@@ -18,7 +18,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	sessionstore "github.com/joshuar/go-feed-me/internal/platforms/elastic/implementations/session"
-	"github.com/joshuar/go-feed-me/internal/platforms/postgres"
 	"github.com/joshuar/go-feed-me/internal/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/server/session"
 )
@@ -30,7 +29,6 @@ const (
 type API struct {
 	user      *auth0.UserAPI
 	elastic   *elastic.Client
-	pg        *postgres.Client
 	auth      *auth0.Authenticator
 	websocket *gws.Upgrader
 }
