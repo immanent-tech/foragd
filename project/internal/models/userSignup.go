@@ -24,9 +24,9 @@ func (s *UserSignup) generateInputs() {
 			components.Icon("fa-user"),
 			components.Badge(
 				components.WithBadgeDescription("Optional"),
-				components.WithColor[components.BadgeProps](components.ColorPrimary, true))),
-		components.WithID[components.TextInputProps]("nickname"),
-		components.WithPlaceholder[components.TextInputProps]("Your name"),
+				components.WithColor[*components.BadgeProps](components.ColorPrimary, true))),
+		components.WithID[*components.TextInputProps]("nickname"),
+		components.WithPlaceholder[*components.TextInputProps]("Your name"),
 	)
 	if s.Nickname != "" {
 		s.InputNickname.SetValue(s.Nickname)
@@ -37,11 +37,11 @@ func (s *UserSignup) generateInputs() {
 		components.WithInsideLabels(
 			components.Icon("fa-at"),
 			nil),
-		components.WithID[components.TextInputProps]("email"),
+		components.WithID[*components.TextInputProps]("email"),
 		components.AsEmail(),
-		components.WithColor[components.TextInputProps](components.ColorPrimary, false),
-		components.WithPlaceholder[components.TextInputProps]("youremail@domain.com"),
-		components.WithValidationRequired[components.TextInputProps](),
+		components.WithColor[*components.TextInputProps](components.ColorPrimary, false),
+		components.WithPlaceholder[*components.TextInputProps]("youremail@domain.com"),
+		components.WithValidationRequired[*components.TextInputProps](),
 	)
 	if s.Email != "" {
 		s.InputEmail.SetValue(s.Email)
@@ -52,10 +52,10 @@ func (s *UserSignup) generateInputs() {
 		components.WithInsideLabels(
 			components.Icon("fa-key"),
 			nil),
-		components.WithID[components.TextInputProps]("password"),
+		components.WithID[*components.TextInputProps]("password"),
 		components.AsPassword(),
-		components.WithColor[components.TextInputProps](components.ColorPrimary, false),
-		components.WithPlaceholder[components.TextInputProps]("supersecret"),
+		components.WithColor[*components.TextInputProps](components.ColorPrimary, false),
+		components.WithPlaceholder[*components.TextInputProps]("supersecret"),
 	)
 	if s.Password != "" {
 		s.InputPassword.SetValue(s.Password)
@@ -75,12 +75,12 @@ func (s *UserSignup) Form() templ.Component {
 				components.FromTextInputProps(s.InputPassword),
 			),
 			components.Button(
-				components.WithID[components.ButtonProps]("signup"),
+				components.WithID[*components.ButtonProps]("signup"),
 				components.WithButtonContent(components.AsTextContent("Signup")),
-				components.WithColor[components.ButtonProps](components.ColorPrimary, true),
+				components.WithColor[*components.ButtonProps](components.ColorPrimary, true),
 			),
 		),
-		components.WithAttributes[components.FormProps](
+		components.WithAttributes[*components.FormProps](
 			templ.Attributes{
 				"hx-post":   "/signup",
 				"hx-target": "#signup",

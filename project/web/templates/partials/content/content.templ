@@ -16,8 +16,8 @@ templ ContentHeader() {
 		hx-swap-oob="true"
 	>
 		@components.NewMenu(
-			components.WithLayout[components.Menu](components.HorizontalLayout),
-			components.WithItems[components.Menu](
+			components.WithLayout[*components.Menu](components.HorizontalLayout),
+			components.WithItems[*components.Menu](
 				backButton(),
 				refreshButton(),
 				markAllReadButton(),
@@ -47,11 +47,11 @@ templ DrawerMain(data templ.Component) {
 			@data
 		</div>
 		@components.Loading(components.LoadingBars,
-			components.WithID[components.LoadingProps]("content-indicator"),
+			components.WithID[*components.LoadingProps]("content-indicator"),
 			components.AsHTMXIndicator(),
-			components.WithColor[components.LoadingProps](components.ColorGhost,
+			components.WithColor[*components.LoadingProps](components.ColorGhost,
 				false),
-			components.WithResponsiveSize[components.LoadingProps](components.LG))
+			components.WithResponsiveSize[*components.LoadingProps](components.LG))
 		<div id="content-footer" hx-swap-oob="true" class="bg-base-300 sticky z-30 bottom-0 w-full py-12"></div>
 	</div>
 }
@@ -59,10 +59,10 @@ templ DrawerMain(data templ.Component) {
 templ DrawerSide() {
 	<div class="bg-base-200">
 		@components.Button(
-			components.WithID[components.ButtonProps]("add"),
-			components.WithColor[components.ButtonProps](components.ColorGhost, false),
+			components.WithID[*components.ButtonProps]("add"),
+			components.WithColor[*components.ButtonProps](components.ColorGhost, false),
 			components.WithButtonContent(components.AsIconContent("fa-plus")),
-			components.WithAttributes[components.ButtonProps](templ.Attributes{
+			components.WithAttributes[*components.ButtonProps](templ.Attributes{
 				"hx-get":    "/home/subscription/add",
 				"hx-target": "#command_modal",
 				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
@@ -82,8 +82,8 @@ templ ShowArticle(item *models.APIItem) {
 						for _, c := range item.GetCategories() {
 							@components.Badge(
 								components.WithBadgeDescription(c),
-								components.WithResponsiveSize[components.BadgeProps](components.SM),
-								components.WithColor[components.BadgeProps](components.ColorGhost,
+								components.WithResponsiveSize[*components.BadgeProps](components.SM),
+								components.WithColor[*components.BadgeProps](components.ColorGhost,
 									false))
 						}
 					</p>

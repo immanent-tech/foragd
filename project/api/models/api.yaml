@@ -194,17 +194,13 @@ components:
     SubscriptionRequestForm:
       description: represents a form input for a subscription request.
       type: object
+      required:
+        - InputName
+        - InputURL
+        - InputCategories
       properties:
         InputName:
-          x-go-type: 'components.TextInputProps'
-          x-go-type-import:
-            path: 'github.com/joshuar/go-templ-daisyui'
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
-          x-go-type-skip-optional-pointer: true
-        InputCategories:
-          x-go-type: 'components.TextInputProps'
+          x-go-type: '*components.TextInputProps'
           x-go-type-import:
             path: 'github.com/joshuar/go-templ-daisyui'
           x-oapi-codegen-extra-tags:
@@ -212,7 +208,15 @@ components:
             json: '-'
           x-go-type-skip-optional-pointer: true
         InputURL:
-          x-go-type: 'components.TextInputProps'
+          x-go-type: '*components.TextInputProps'
+          x-go-type-import:
+            path: 'github.com/joshuar/go-templ-daisyui'
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+          x-go-type-skip-optional-pointer: true
+        InputCategories:
+          x-go-type: '*components.TextInputProps'
           x-go-type-import:
             path: 'github.com/joshuar/go-templ-daisyui'
           x-oapi-codegen-extra-tags:
@@ -291,7 +295,7 @@ components:
         - type: object
           properties:
             InputNickname:
-              x-go-type: 'components.TextInputProps'
+              x-go-type: '*components.TextInputProps'
               x-go-type-import:
                 path: 'github.com/joshuar/go-templ-daisyui'
               x-oapi-codegen-extra-tags:
@@ -306,7 +310,7 @@ components:
         - InputPassword
       properties:
         InputEmail:
-          x-go-type: 'components.TextInputProps'
+          x-go-type: '*components.TextInputProps'
           x-go-type-import:
             path: 'github.com/joshuar/go-templ-daisyui'
           x-oapi-codegen-extra-tags:
@@ -314,7 +318,7 @@ components:
             json: '-'
           x-go-type-skip-optional-pointer: true
         InputPassword:
-          x-go-type: 'components.TextInputProps'
+          x-go-type: '*components.TextInputProps'
           x-go-type-import:
             path: 'github.com/joshuar/go-templ-daisyui'
           x-oapi-codegen-extra-tags:

@@ -283,7 +283,9 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 		ActionBasePath: showArticlePath,
 	})
 
-	item, found, err := s.API.elastic.UserActionGetItem(ctx, feedID, itemID)
+	getItemCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
+
+	item, found, err := s.API.elastic.UserActionGetItem(getItemCtx, feedID, itemID)
 	if err != nil || !found {
 		logger.Error("Could not get item.", slog.Any("error", err))
 		http.Error(res, "Not found!.", http.StatusNotFound)

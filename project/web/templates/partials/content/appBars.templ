@@ -29,9 +29,9 @@ templ appBarTopLeft() {
 templ appBarTopCenter() {
 	@components.TextInput(
 		components.WithInsideLabels(components.Icon("fa-magnifying-glass"), nil),
-		components.WithID[components.TextInputProps]("search"),
-		components.WithPlaceholder[components.TextInputProps]("Search anything..."),
-		components.WithAttributes[components.TextInputProps](templ.Attributes{
+		components.WithID[*components.TextInputProps]("search"),
+		components.WithPlaceholder[*components.TextInputProps]("Search anything..."),
+		components.WithAttributes[*components.TextInputProps](templ.Attributes{
 			"tabindex":     0,
 			"hx-post":      "/home/search",
 			"hx-trigger":   "input changed delay:500ms, SearchRequest",

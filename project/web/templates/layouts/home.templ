@@ -17,6 +17,6 @@ templ HomeLayout(data templ.Component) {
 		components.WithDrawerVisibility(components.LG),
 		components.WithMainContent(content.DrawerMain(data)),
 		components.WithSideContent(content.DrawerSide()),
-		components.WithZIndex[components.Drawer](components.Z50, false),
+		components.WithZIndex[*components.DrawerProps](components.Z50, false),
 	).Show()
 }

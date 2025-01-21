@@ -12,7 +12,7 @@ import (
 // subscription.
 templ AddSubscriptionForm() {
 	@components.Modal(
-		components.WithID[components.ModalProps]("add_subscription_modal"),
+		components.WithID[*components.ModalProps]("add_subscription_modal"),
 		components.WithModalCloseButton(),
 		components.WithModalCloseOutside(),
 		components.OpenModalInitially(),
@@ -30,15 +30,15 @@ templ AddSubscriptionForm() {
 
 templ AddSubscriptionSuccess() {
 	@components.Modal(
-		components.WithID[components.ModalProps]("add_subscription_modal"),
+		components.WithID[*components.ModalProps]("add_subscription_modal"),
 		components.WithModalCloseOutside(),
 		components.OpenModalInitially(),
 	) {
 		<h2>Subscription added!</h2>
 		@components.Button(
 			components.WithButtonContent(components.AsTextContent("Close")),
-			components.WithAutofocus[components.ButtonProps](),
-			components.WithAttributes[components.ButtonProps](templ.Attributes{
+			components.WithAutofocus[*components.ButtonProps](),
+			components.WithAttributes[*components.ButtonProps](templ.Attributes{
 				"_": "on click take .modal-open from #command_modal wait 200ms then remove #command_modal",
 			}),
 		)
@@ -47,7 +47,7 @@ templ AddSubscriptionSuccess() {
 
 templ AddSubscriptionWarning(warnings []string) {
 	@components.Modal(
-		components.WithID[components.ModalProps]("add_subscription_modal"),
+		components.WithID[*components.ModalProps]("add_subscription_modal"),
 		components.WithModalCloseOutside(),
 		components.OpenModalInitially(),
 	) {
@@ -57,8 +57,8 @@ templ AddSubscriptionWarning(warnings []string) {
 		}
 		@components.Button(
 			components.WithButtonContent(components.AsTextContent("Close")),
-			components.WithAutofocus[components.ButtonProps](),
-			components.WithAttributes[components.ButtonProps](templ.Attributes{
+			components.WithAutofocus[*components.ButtonProps](),
+			components.WithAttributes[*components.ButtonProps](templ.Attributes{
 				"_": "on click take .modal-open from #command_modal wait 200ms then remove #command_modal",
 			}),
 		)

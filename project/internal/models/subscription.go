@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/davecgh/go-spew/spew"
 	components "github.com/joshuar/go-templ-daisyui"
 )
 
@@ -27,11 +26,11 @@ func (s *SubscriptionRequest) generateInputs() {
 			components.PlainText("Nickname"),
 			components.HelperDropdown(
 				"Optional. Replace the name of the feed with your own custom nickname.",
-				components.WithOpenFrom[components.DropdownProps](components.OpenLeft),
+				components.WithOpenFrom[*components.DropdownProps](components.OpenLeft),
 			),
 		),
-		components.WithID[components.TextInputProps]("name"),
-		components.WithPlaceholder[components.TextInputProps]("Cool feed"),
+		components.WithID[*components.TextInputProps]("name"),
+		components.WithPlaceholder[*components.TextInputProps]("Cool feed"),
 	)
 	if s.Name != "" {
 		s.InputName.SetValue(s.Name)
@@ -43,14 +42,14 @@ func (s *SubscriptionRequest) generateInputs() {
 			components.PlainText("URL"),
 			components.HelperDropdown(
 				"The URL for the feed.",
-				components.WithOpenFrom[components.DropdownProps](components.OpenLeft),
+				components.WithOpenFrom[*components.DropdownProps](components.OpenLeft),
 			),
 		),
-		components.WithID[components.TextInputProps]("url"),
+		components.WithID[*components.TextInputProps]("url"),
 		components.AsURL(),
-		components.WithColor[components.TextInputProps](components.ColorPrimary, false),
-		components.WithPlaceholder[components.TextInputProps]("https://cool.feed.lol/rss"),
-		components.WithValidationRequired[components.TextInputProps](),
+		components.WithColor[*components.TextInputProps](components.ColorPrimary, false),
+		components.WithPlaceholder[*components.TextInputProps]("https://cool.feed.lol/rss"),
+		components.WithValidationRequired[*components.TextInputProps](),
 	)
 	if s.URL != "" {
 		s.InputURL.SetValue(s.URL)
@@ -62,12 +61,12 @@ func (s *SubscriptionRequest) generateInputs() {
 			components.PlainText("Categories"),
 			components.HelperDropdown(
 				"Optional. A (comma-separated) list of custom categories to group this feed with others.",
-				components.WithOpenFrom[components.DropdownProps](components.OpenLeft),
+				components.WithOpenFrom[*components.DropdownProps](components.OpenLeft),
 			),
 		),
-		components.WithID[components.TextInputProps]("categories"),
-		components.WithColor[components.TextInputProps](components.ColorPrimary, false),
-		components.WithPlaceholder[components.TextInputProps]("awesome, news"),
+		components.WithID[*components.TextInputProps]("categories"),
+		components.WithColor[*components.TextInputProps](components.ColorPrimary, false),
+		components.WithPlaceholder[*components.TextInputProps]("awesome, news"),
 	)
 	if len(s.Categories) > 0 {
 		s.InputCategories.SetValue(strings.Join(s.Categories, ","))
@@ -87,12 +86,12 @@ func (s *SubscriptionRequest) Form() templ.Component {
 				components.FromTextInputProps(s.InputCategories),
 			),
 			components.Button(
-				components.WithID[components.ButtonProps]("add"),
+				components.WithID[*components.ButtonProps]("add"),
 				components.WithButtonContent(components.AsTextContent("Add")),
-				components.WithColor[components.ButtonProps](components.ColorPrimary, true),
+				components.WithColor[*components.ButtonProps](components.ColorPrimary, true),
 			),
 		),
-		components.WithAttributes[components.FormProps](
+		components.WithAttributes[*components.FormProps](
 			templ.Attributes{
 				"hx-post":   "/home/subscription/add",
 				"hx-target": "#command_modal",
@@ -106,8 +105,6 @@ func (s *SubscriptionRequest) Valid() bool {
 	if valid {
 		return true
 	}
-
-	spew.Dump(problems)
 
 	s.generateInputs()
 

@@ -213,9 +213,9 @@ type SubscriptionID = string
 
 // SubscriptionRequest defines model for SubscriptionRequest.
 type SubscriptionRequest struct {
-	InputCategories components.TextInputProps `form:"-" json:"-"`
-	InputName       components.TextInputProps `form:"-" json:"-"`
-	InputURL        components.TextInputProps `form:"-" json:"-"`
+	InputCategories *components.TextInputProps `form:"-" json:"-"`
+	InputName       *components.TextInputProps `form:"-" json:"-"`
+	InputURL        *components.TextInputProps `form:"-" json:"-"`
 
 	// URL is a URL.
 	URL string `form:"url" json:"URL" validate:"required,url"`
@@ -229,9 +229,9 @@ type SubscriptionRequest struct {
 
 // SubscriptionRequestForm represents a form input for a subscription request.
 type SubscriptionRequestForm struct {
-	InputCategories components.TextInputProps `form:"-" json:"-"`
-	InputName       components.TextInputProps `form:"-" json:"-"`
-	InputURL        components.TextInputProps `form:"-" json:"-"`
+	InputCategories *components.TextInputProps `form:"-" json:"-"`
+	InputName       *components.TextInputProps `form:"-" json:"-"`
+	InputURL        *components.TextInputProps `form:"-" json:"-"`
 }
 
 // Timestamp is when the document was created.
@@ -285,25 +285,25 @@ type UserSession struct {
 
 // UserSigninForm represents the inputs for user sign-in.
 type UserSigninForm struct {
-	InputEmail    components.TextInputProps `form:"-" json:"-"`
-	InputPassword components.TextInputProps `form:"-" json:"-"`
+	InputEmail    *components.TextInputProps `form:"-" json:"-"`
+	InputPassword *components.TextInputProps `form:"-" json:"-"`
 }
 
 // UserSignup defines model for UserSignup.
 type UserSignup struct {
-	InputEmail    components.TextInputProps `form:"-" json:"-"`
-	InputNickname components.TextInputProps `form:"-" json:"-"`
-	InputPassword components.TextInputProps `form:"-" json:"-"`
-	Email         string                    `form:"email" json:"email" validate:"required,email"`
-	Nickname      string                    `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
-	Password      string                    `form:"password" json:"password" validate:"required,min=10"`
+	InputEmail    *components.TextInputProps `form:"-" json:"-"`
+	InputNickname *components.TextInputProps `form:"-" json:"-"`
+	InputPassword *components.TextInputProps `form:"-" json:"-"`
+	Email         string                     `form:"email" json:"email" validate:"required,email"`
+	Nickname      string                     `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
+	Password      string                     `form:"password" json:"password" validate:"required,min=10"`
 }
 
 // UserSignupForm defines model for UserSignupForm.
 type UserSignupForm struct {
-	InputEmail    components.TextInputProps `form:"-" json:"-"`
-	InputNickname components.TextInputProps `form:"-" json:"-"`
-	InputPassword components.TextInputProps `form:"-" json:"-"`
+	InputEmail    *components.TextInputProps `form:"-" json:"-"`
+	InputNickname *components.TextInputProps `form:"-" json:"-"`
+	InputPassword *components.TextInputProps `form:"-" json:"-"`
 }
 
 // AsFeedJob returns the union data inside the ScheduledJob_Data as a FeedJob

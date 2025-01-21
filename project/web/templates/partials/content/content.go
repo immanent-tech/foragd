@@ -47,19 +47,19 @@ type Content interface {
 }
 
 type cardCustomisation struct {
-	title   components.Option[components.CardProps]
+	title   components.Option[*components.CardProps]
 	buttons []templ.Component
 	content string
 }
 
-func NewCard(item any, count int) (components.CardProps, error) {
+func NewCard(item any, count int) (*components.CardProps, error) {
 	var customisation *cardCustomisation
 
 	// Don't continue if we don't have an object that can be represented as a
 	// Summary.
 	summary, ok := item.(Summary)
 	if !ok {
-		return components.CardProps{}, fmt.Errorf("could not generate a card, unknown item")
+		return nil, fmt.Errorf("could not generate a card, unknown item")
 	}
 
 	// Generate type-specific card customisation.
@@ -76,7 +76,7 @@ func NewCard(item any, count int) (components.CardProps, error) {
 		components.WithBorder(),
 		components.WithCardLayout(components.CardLayoutSide),
 		components.WithCardShadow(components.XL),
-		components.WithID[components.CardProps](summary.GetID()),
+		components.WithID[*components.CardProps](summary.GetID()),
 		components.WithTopRightActions(withMenu(customisation.buttons...)...),
 		components.WithBody(templ.Raw(customisation.content), templ.Attributes{
 			"hx-target":   "#" + ContentTarget,
@@ -88,9 +88,9 @@ func NewCard(item any, count int) (components.CardProps, error) {
 	if img := summary.GetImage(); img != nil {
 		cardProps = components.WithImage(img.URL,
 			components.WithAltText(img.Title),
-			components.WithSize[components.ImageProps](components.Size16),
-			components.WithMask[components.ImageProps](components.MaskSquircle),
-			components.WithObjectFit[components.ImageProps](components.ObjectScaleDown),
+			components.WithSize[*components.ImageProps](components.Size16),
+			components.WithMask[*components.ImageProps](components.MaskSquircle),
+			components.WithObjectFit[*components.ImageProps](components.ObjectScaleDown),
 		)(cardProps)
 	}
 
@@ -101,8 +101,8 @@ func NewCard(item any, count int) (components.CardProps, error) {
 			categories = append(categories,
 				components.Badge(
 					components.WithBadgeDescription(c),
-					components.WithResponsiveSize[components.BadgeProps](components.SM),
-					components.WithColor[components.BadgeProps](components.ColorAccent, true)),
+					components.WithResponsiveSize[*components.BadgeProps](components.SM),
+					components.WithColor[*components.BadgeProps](components.ColorAccent, true)),
 			)
 		}
 
@@ -118,19 +118,19 @@ func withMenu(items ...templ.Component) []templ.Component {
 	menus = append(menus,
 		// Menu for large screens: horizontal layout, all buttons shown.
 		components.NewMenu(
-			components.WithResponsiveSize[components.Menu](components.SM),
-			components.WithBaseColor[components.Menu](components.ColorBgBase200),
-			components.WithLayout[components.Menu](components.HorizontalLayout),
-			components.WithRevealedBreakpoint[components.Menu](components.LG),
-			components.WithItems[components.Menu](items...),
+			components.WithResponsiveSize[*components.Menu](components.SM),
+			components.WithBaseColor[*components.Menu](components.ColorBgBase200),
+			components.WithLayout[*components.Menu](components.HorizontalLayout),
+			components.WithRevealedBreakpoint[*components.Menu](components.LG),
+			components.WithItems[*components.Menu](items...),
 		).Show(),
 		// Menu for small screens: buttons hidden behind drop-down.
 		components.NewDropDownMenu(
-			components.WithResponsiveSize[components.DropDownMenu](components.SM),
-			components.WithBaseColor[components.DropDownMenu](components.ColorBgBase200),
-			components.WithLayout[components.DropDownMenu](components.VerticalLayout),
-			components.WithHiddenBreakpoint[components.DropDownMenu](components.LG),
-			components.WithItems[components.DropDownMenu](items...),
+			components.WithResponsiveSize[*components.DropDownMenu](components.SM),
+			components.WithBaseColor[*components.DropDownMenu](components.ColorBgBase200),
+			components.WithLayout[*components.DropDownMenu](components.VerticalLayout),
+			components.WithHiddenBreakpoint[*components.DropDownMenu](components.LG),
+			components.WithItems[*components.DropDownMenu](items...),
 		).Show(),
 	)
 
@@ -156,7 +156,7 @@ func feedCustomisation(feed Feed, count int) *cardCustomisation {
 			feed.GetTitle(),
 			components.H2,
 			components.Badge(
-				components.WithColor[components.BadgeProps](components.ColorPrimary, false),
+				components.WithColor[*components.BadgeProps](components.ColorPrimary, false),
 				components.WithBadgeDescription(strconv.Itoa(count)),
 			)),
 		content: feed.GetContent(),

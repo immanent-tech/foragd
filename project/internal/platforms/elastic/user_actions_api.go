@@ -208,8 +208,6 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearc
 		return nil, nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	spew.Dump(res.Hits.Hits)
-
 	items := ExtractSources[models.APIItem](ctx, res.Hits.Hits)
 
 	var paginationData []byte
