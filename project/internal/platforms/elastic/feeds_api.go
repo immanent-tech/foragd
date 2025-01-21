@@ -99,6 +99,7 @@ func (c *Client) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
 	docs := make([]BulkOperation, len(feeds))
 
 	for iter, feed := range feeds {
+		feed.Items = nil // don't index items in feed.
 		c.Logger.Debug("Adding feed",
 			slog.String("name", feed.Title),
 			slog.String("item_id", feed.ID),
