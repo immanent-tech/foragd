@@ -13,23 +13,10 @@ import (
 
 var ErrGetFailed = errors.New("get request failed")
 
-type MGetRequest struct {
-	types.MgetOperation
-	docIDOption
-}
-
 // WithDocID specifies the document ID to get.
 func WithGetDocID(id string) Option[types.MgetOperation] {
 	return func(mo types.MgetOperation) types.MgetOperation {
 		mo.Id_ = id
-		return mo
-	}
-}
-
-// FromIndex specifies the index containing the document.
-func FromIndex(index string) Option[types.MgetOperation] {
-	return func(mo types.MgetOperation) types.MgetOperation {
-		mo.Index_ = &index
 		return mo
 	}
 }
@@ -43,38 +30,6 @@ func GetDoc(options ...Option[types.MgetOperation]) types.MgetOperation {
 	}
 
 	return req
-}
-
-// WithDocs adds get operations for all the specified doc IDs to the request.
-func WithDocs(ids ...string) Option[*mget.Mget] {
-	return func(mget *mget.Mget) *mget.Mget {
-		// Create get ops for all the specified IDs.
-		var docs []types.MgetOperation
-		for _, id := range ids {
-			docs = append(docs, GetDoc(
-				WithGetDocID(id),
-			))
-		}
-		// Add the ops to the request.
-		mget = mget.Docs(docs...)
-
-		return mget
-	}
-}
-
-// WithIDs retrieves the documents with the given IDs.
-func WithIDs(ids ...string) Option[*mget.Mget] {
-	return func(m *mget.Mget) *mget.Mget {
-		m = m.Ids(ids...)
-		return m
-	}
-}
-
-func WithStoredFields(fields ...string) Option[*mget.Mget] {
-	return func(m *mget.Mget) *mget.Mget {
-		m = m.StoredFields(fields...)
-		return m
-	}
 }
 
 // NewMGetRequest creates a new mget object with the given options.

@@ -17,6 +17,7 @@ import (
 	components "github.com/joshuar/go-templ-daisyui"
 
 	"github.com/joshuar/go-feed-me/internal/app/server/session"
+	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
@@ -80,7 +81,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		return
 	}
 
-	getFeedsCtx := elastic.FeedsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix)
+	getFeedsCtx := elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
 	// Get all subscribed feeds.
 	feeds, err := s.API.elastic.UserActionGetFeeds(getFeedsCtx, filters)
 	if err != nil && errors.Is(err, models.ErrNoSubscriptions) {
@@ -131,7 +132,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
 
-		getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix)
+		getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 		// Get feed items.
 		items, pagination, err := s.API.elastic.UserActionGetItems(getItemsCtx, filters)
 		if err != nil {
@@ -230,7 +231,7 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 
 	filters.Count = 100
 
-	getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix)
+	getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 	// Fetch the unread items with the given filters. Paginate through the
 	// results, collecting into unreadItems.
 	for {

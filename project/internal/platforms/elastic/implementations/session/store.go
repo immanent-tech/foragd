@@ -126,7 +126,7 @@ func (s *Store) All() (map[string][]byte, error) {
 	// Loop until we've paginated through all results.
 	for {
 		resp, err := s.client.NewSearchRequest(
-			elastic.WithIndexPattern[*search.Search](s.index),
+			elastic.WithIndex[*search.Search](s.index),
 			elastic.WithSearchQueryOptions(elastic.QuerySince("expiry", time.Now().UTC())),
 			elastic.WithSearchSize(searchSize),
 			elastic.WithSearchAfter(pagination),

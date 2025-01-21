@@ -11,6 +11,7 @@ import (
 
 	"github.com/reugn/go-quartz/quartz"
 
+	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -54,7 +55,7 @@ func Run(ctx context.Context) error {
 	ctx = models.FeedManagementAPIToCtx(ctx, esClient)
 	ctx = elastic.JobsIndexToCtx(ctx, schema.SchedulerStatePrefix)
 	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
-	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix)
+	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 
 	jobQueue, err := queue.NewJobQueue(ctx, esClient)
 	if err != nil {
@@ -157,8 +158,8 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 		}
 
 		m.logger.Debug("Adding job for feed.",
-			slog.String("feed_id", feed.ID),
-			slog.String("feed_title", feed.Title),
+			slog.String("feed_id", feed.GetID()),
+			slog.String("feed_title", feed.GetTitle()),
 			slog.String("schedule", job.Trigger().Description()),
 		)
 	}

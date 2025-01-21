@@ -150,7 +150,7 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (
 	}
 
 	req := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](index),
+		WithIndex[*search.Search](index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
 			QueryByFeedIDs(feedID),
@@ -190,7 +190,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearc
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
 	req := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](index),
+		WithIndex[*search.Search](index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
 			QueryBool(
@@ -207,6 +207,8 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearc
 	if err != nil {
 		return nil, nil, errors.Join(ErrUserActionFailed, err)
 	}
+
+	spew.Dump(res.Hits.Hits)
 
 	items := ExtractSources[models.APIItem](ctx, res.Hits.Hits)
 
@@ -260,9 +262,8 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearc
 
 	// Get the feed details.
 	req := c.NewMGetRequest(
-		WithIndexPattern[*mget.Mget](index),
-		WithIDs(subscribedFeedIDs...),
-		// WithStoredFields(defaultFeedFields...),
+		WithIndex[*mget.Mget](index),
+		WithIDs[*mget.Mget](subscribedFeedIDs...),
 	)
 
 	res, err := req.Do(ctx)
@@ -304,7 +305,7 @@ func (c *Client) userActionGetFeedUnreadCounts(ctx context.Context, feedIDs []mo
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
 	req := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](index),
+		WithIndex[*search.Search](index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
 			QueryBool(
@@ -342,7 +343,7 @@ func (c *Client) userActionGetFeedsByURL(ctx context.Context, urls ...string) ([
 	// Loop until we've paginated through all results.
 	for {
 		resp, err := c.NewSearchRequest(
-			WithIndexPattern[*search.Search](index),
+			WithIndex[*search.Search](index),
 			WithFields("feed_id", "feedLink"),
 			WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
 			WithSearchSize(searchSize),

@@ -50,7 +50,7 @@ func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]model
 	}
 
 	resp, err := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](index),
+		WithIndex[*search.Search](index),
 		WithSearchQueryOptions(QuerySince("@timestamp", since)),
 	).Do(ctx)
 	if err != nil {
@@ -69,7 +69,7 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 	}
 
 	resp, err := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](index),
+		WithIndex[*search.Search](index),
 		WithFields(defaultFeedFields...),
 		WithSearchQueryOptions(QueryByTerm("feedLink", url)),
 	).Do(ctx)

@@ -359,11 +359,13 @@ func WithSearchAfter(value any) Option[*search.Search] {
 		case []types.FieldValue:
 			search = search.SearchAfter(sort...)
 		case []byte:
-			var fv []types.FieldValue
-			if err := json.Unmarshal(sort, &fv); err != nil {
-				slog.Warn("Could not unmarshal pagination data.", slog.Any("error", err))
-			} else {
-				search = search.SearchAfter(fv...)
+			if sort != nil {
+				var fv []types.FieldValue
+				if err := json.Unmarshal(sort, &fv); err != nil {
+					slog.Warn("Could not unmarshal pagination data.", slog.Any("error", err))
+				} else {
+					search = search.SearchAfter(fv...)
+				}
 			}
 		}
 

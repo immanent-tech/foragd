@@ -6,17 +6,44 @@ package elastic
 // Option is a generic type for request options.
 type Option[T any] func(T) T
 
-type hasIndexPatternOption[T any] interface {
+// hasIndexOption represents requests that have an option to set the index (or
+// index pattern).
+type hasIndexOption[T any] interface {
 	Index(value string) T
 }
 
-// WithValue allows setting an value on a component.
-func WithIndexPattern[T any](value string) Option[T] {
+// WithIndex specifies the index (or index pattern) which the request
+// will apply to.
+func WithIndex[T hasIndexOption[T]](value string) Option[T] {
 	return func(req T) T {
-		if settable, ok := any(req).(hasIndexPatternOption[T]); ok {
-			req = settable.Index(value)
-		}
+		req = req.Index(value)
+		return req
+	}
+}
 
+// hasIDsOption represents requests that have an option to set the doc IDs.
+type hasIDsOption[T any] interface {
+	Ids(ids ...string) T
+}
+
+// WithIDs retrieves the documents with the given IDs.
+func WithIDs[T hasIDsOption[T]](ids ...string) Option[T] {
+	return func(req T) T {
+		req = req.Ids(ids...)
+		return req
+	}
+}
+
+// hasSourceOption represents requests that have an option to fetch the source
+// (or particular fields from the source).
+type hasSourceOption[T any] interface {
+	Source_(value string) T
+}
+
+// WithSource specifies that the `_source` field should be retrieved.
+func WithSource[T hasSourceOption[T]]() Option[T] {
+	return func(req T) T {
+		req = req.Source_("true")
 		return req
 	}
 }

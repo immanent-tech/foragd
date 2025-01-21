@@ -219,15 +219,6 @@ components:
             form: '-'
             json: '-'
           x-go-type-skip-optional-pointer: true
-    Pagination:
-      description: >
-        contains details that allow fetching results at a certain
-        point.
-      x-go-type: '[]byte'
-      x-go-type-skip-optional-pointer: true
-      x-oapi-codegen-extra-tags:
-        json: 'pagination'
-        form: 'pagination'
     Count:
       description: >
         is the count of items to retrieve with a request.
@@ -500,7 +491,14 @@ components:
         Categories:
           $ref: '#/components/schemas/Categories'
         Pagination:
-          $ref: '#/components/schemas/Pagination'
+          description: >
+            contains details that allow fetching results at a certain
+            point.
+          x-go-type: '[]byte'
+          x-oapi-codegen-extra-tags:
+            json: 'pagination'
+            form: 'pagination'
+          x-go-type-skip-optional-pointer: true
         Count:
           $ref: '#/components/schemas/Count'
     ScheduledJob:

@@ -149,7 +149,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 	// Loop until we've paginated through all results.
 	for {
 		resp, err := jq.client.NewSearchRequest(
-			elastic.WithIndexPattern[*search.Search](jq.index),
+			elastic.WithIndex[*search.Search](jq.index),
 			elastic.WithSearchQueryOptions(elastic.QueryMatchAll()),
 			elastic.WithSearchSize(searchSize),
 			elastic.WithSearchAfter(pagination),
@@ -183,7 +183,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 // Size returns the size of the job queue.
 func (jq *JobQueue) Size() (int, error) {
 	resp, err := jq.client.NewCountRequest(
-		elastic.WithIndexPattern[*count.Count](jq.index),
+		elastic.WithIndex[*count.Count](jq.index),
 		elastic.WithCountQueryOptions(
 			elastic.QueryMatchAll(),
 		),
@@ -206,7 +206,7 @@ func (jq *JobQueue) Clear() error {
 
 func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
 	resp, err := jq.client.NewSearchRequest(
-		elastic.WithIndexPattern[*search.Search](jq.index),
+		elastic.WithIndex[*search.Search](jq.index),
 		elastic.WithSearchQueryOptions(
 			elastic.QueryMatchAll(),
 		),

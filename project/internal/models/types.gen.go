@@ -85,7 +85,7 @@ type APISearchFilters struct {
 	ItemIDs []ItemID `json:"ItemIDs,omitempty"`
 
 	// Pagination contains details that allow fetching results at a certain point.
-	Pagination Pagination `form:"pagination" json:"pagination"`
+	Pagination []byte `form:"pagination" json:"pagination"`
 }
 
 // Categories is a list of feed/item categories.
@@ -162,9 +162,6 @@ type MetadataFeed struct {
 	Title       string        `json:"title"`
 	Updated     time.Time     `json:"updatedParsed"`
 }
-
-// Pagination contains details that allow fetching results at a certain point.
-type Pagination = []byte
 
 // ReadItem defines model for ReadItem.
 type ReadItem struct {
