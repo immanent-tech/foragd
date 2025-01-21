@@ -102,7 +102,7 @@ services:
     ports:
       - 9200:9200
     environment:
-      - ES_JAVA_OPTS=-Xms4g -Xmx4g
+      - ES_JAVA_OPTS=-Xms6g -Xmx6g
       - node.name=es01
       - cluster.name=go-feed-me
       - cluster.initial_master_nodes=es01,es02,es03
@@ -123,7 +123,7 @@ services:
       - cluster.routing.allocation.disk.watermark.low=0.95
       - cluster.routing.allocation.disk.watermark.high=0.98
       - cluster.routing.allocation.disk.watermark.flood_stage=0.99
-    mem_limit: 6442450944
+    mem_limit: 8442450944
     oom_kill_disable: true
     ulimits:
       memlock:
@@ -153,7 +153,7 @@ services:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
       - es02-data:/usr/share/elasticsearch/data
     environment:
-      - ES_JAVA_OPTS=-Xms4g -Xmx4g
+      - ES_JAVA_OPTS=-Xms6g -Xmx6g
       - node.name=es02
       - cluster.name=go-feed-me
       - cluster.initial_master_nodes=es01,es02,es03
@@ -173,7 +173,7 @@ services:
       - cluster.routing.allocation.disk.watermark.low=0.95
       - cluster.routing.allocation.disk.watermark.high=0.98
       - cluster.routing.allocation.disk.watermark.flood_stage=0.99
-    mem_limit: 6442450944
+    mem_limit: 8442450944
     oom_kill_disable: true
     ulimits:
       memlock:
@@ -203,7 +203,7 @@ services:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
       - es03-data:/usr/share/elasticsearch/data
     environment:
-      - ES_JAVA_OPTS=-Xms4g -Xmx4g
+      - ES_JAVA_OPTS=-Xms6g -Xmx6g
       - node.name=es03
       - cluster.name=go-feed-me
       - cluster.initial_master_nodes=es01,es02,es03
@@ -223,7 +223,7 @@ services:
       - cluster.routing.allocation.disk.watermark.low=0.95
       - cluster.routing.allocation.disk.watermark.high=0.98
       - cluster.routing.allocation.disk.watermark.flood_stage=0.99
-    mem_limit: 6442450944
+    mem_limit: 8442450944
     oom_kill_disable: true
     ulimits:
       memlock:
