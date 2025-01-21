@@ -10,8 +10,6 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/bulk"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
 const (
@@ -32,7 +30,9 @@ type BulkRequest struct {
 // WithPipeline defines the ingest pipeline to use on each document.
 func WithPipeline(pipeline string) Option[*bulk.Bulk] {
 	return func(b *bulk.Bulk) *bulk.Bulk {
-		b = b.Pipeline(pipeline)
+		if pipeline != "" {
+			b = b.Pipeline(pipeline)
+		}
 		return b
 	}
 }
@@ -130,6 +130,7 @@ func NewBulkOperation(doc any, options ...Option[BulkOperation]) BulkOperation {
 // bulkStreamWorker runs in a goroutine and listens for documents to bulk index
 // into Elasticsearch.
 func (c *Client) bulkStreamWorker(ctx context.Context) {
+	pipeline := IngestPipelineFromCtx(ctx)
 	c.Logger.Debug("Bulk indexer ready...")
 
 	for {
@@ -144,7 +145,7 @@ func (c *Client) bulkStreamWorker(ctx context.Context) {
 			go func() {
 				// Create a new bulk request.
 				resp, err := c.NewBulkRequest(
-					WithPipeline(schema.IngestPipelineID),
+					WithPipeline(pipeline),
 				).
 					AddOperations(operations...).
 					Do(ctx)

@@ -23,6 +23,8 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
 // RequireAuthentication ensures there is a valid user for the given protected
@@ -34,7 +36,8 @@ func RequireAuthentication(protectedRoutes []string, userMgmtAPI models.UserMana
 				return strings.HasPrefix(req.URL.Path, path)
 			}) {
 				// Fetch the user from the user management API.
-				user, err := userMgmtAPI.GetUser(req.Context())
+				getUserCtx := elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix)
+				user, err := userMgmtAPI.GetUser(getUserCtx)
 				//  If no user can be found, return 401 response.
 				if err != nil {
 					logging.LogReq(req, http.StatusUnauthorized).Error("Authentication error.", slog.Any("error", err))

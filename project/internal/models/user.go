@@ -71,7 +71,9 @@ func (u *User) AddSubscription(feedID FeedID, name string, categories []Category
 		u.Subscriptions = make(map[string]Subscription)
 	}
 
-	u.Subscriptions[feedID] = Subscription{Name: name, Categories: categories, CreatedAt: time.Now()}
+	createdAt := time.Now().UTC()
+
+	u.Subscriptions[feedID] = Subscription{Name: name, Categories: categories, CreatedAt: &createdAt}
 
 	return nil
 }

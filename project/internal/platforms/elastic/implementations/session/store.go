@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package session
+package store
 
 import (
 	"context"
@@ -29,6 +29,7 @@ var (
 )
 
 var (
+	ErrInitStoreFailed     = errors.New("could not initialize session store")
 	ErrDeleteSessionFailed = errors.New("delete session failed")
 	ErrFindSessionFailed   = errors.New("could not find session")
 	ErrCommitSessionFailed = errors.New("could not commit session")
@@ -37,6 +38,7 @@ var (
 type Store struct {
 	logger *slog.Logger
 	client *elastic.Client
+	index  string
 }
 
 // DeleteCtx should remove the session token and corresponding data from the
@@ -44,7 +46,7 @@ type Store struct {
 // and return nil (not an error).
 func (s *Store) Delete(token string) error {
 	_, err := s.client.NewDocDeleteRequest(
-		schema.SessionsPrefix+"_test",
+		s.index,
 		token,
 		refresh.True,
 	).Do(sessionCtx)
@@ -62,7 +64,7 @@ func (s *Store) Delete(token string) error {
 // nil err value. The err return value should be used for system errors only
 func (s *Store) Find(token string) ([]byte, bool, error) {
 	resp, err := s.client.NewGetRequest(
-		schema.SessionsPrefix+"_test",
+		s.index,
 		token,
 	).Do(sessionCtx)
 	if err != nil {
@@ -100,7 +102,7 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 		slog.Time("expiry", session.Expiry))
 
 	_, err := s.client.NewDocUpdateRequest(
-		schema.SessionsPrefix+"_test",
+		s.index,
 		token,
 		elastic.WithDocUpdate(session, true),
 		elastic.WithForcedRefresh[*elastic.DocUpdateRequest](true),
@@ -124,7 +126,7 @@ func (s *Store) All() (map[string][]byte, error) {
 	// Loop until we've paginated through all results.
 	for {
 		resp, err := s.client.NewSearchRequest(
-			elastic.WithIndexPattern[*search.Search](schema.SessionsPrefix+"-*"),
+			elastic.WithIndexPattern[*search.Search](s.index),
 			elastic.WithSearchQueryOptions(elastic.QuerySince("expiry", time.Now().UTC())),
 			elastic.WithSearchSize(searchSize),
 			elastic.WithSearchAfter(pagination),
@@ -152,11 +154,12 @@ func (s *Store) All() (map[string][]byte, error) {
 	return data, nil
 }
 
-func NewSessionStore(ctx context.Context, client *elastic.Client) *Store {
+func NewSessionStore(ctx context.Context, client *elastic.Client) (*Store, error) {
 	sessionCtx = ctx
 
 	return &Store{
 		logger: logging.FromContext(ctx).WithGroup("session"),
 		client: client,
-	}
+		index:  schema.SessionsPrefix,
+	}, nil
 }

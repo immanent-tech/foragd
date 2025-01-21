@@ -82,7 +82,7 @@ func ComponentTemplateSessionsSettings() *putcomponenttemplate.Request {
 // IndexTemplateSessions returns an Index Template for sessions indices.
 func IndexTemplateSessions() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
-		WithIndexPatterns(SessionsPrefix+"-*"),
+		WithIndexPatterns(SessionsPrefix+"_*"),
 		WithComponentTemplates(SessionsMappings, SessionsSettings),
 	)
 }
@@ -104,7 +104,7 @@ func ComponentTemplateSchedulerJobsMappings() *putcomponenttemplate.Request {
 						WithFlattenedProperty("job_options"),
 						WithFlattenedProperty("job_data"),
 						WithKeywordProperty("job_trigger"),
-						WithNumericProperty("job_next_run", "unsigned_long"),
+						WithDateNanosProperty("job_next_run"),
 					),
 				),
 			),
@@ -127,7 +127,7 @@ func ComponentTemplateSchedulerJobsSettings() *putcomponenttemplate.Request {
 // IndexTemplateSchedulerJobs returns an Index Template for scheduler jobs indices.
 func IndexTemplateSchedulerJobs() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
-		WithIndexPatterns(SchedulerJobsPrefix+"-*"),
+		WithIndexPatterns(SchedulerJobsPrefix+"_*"),
 		WithComponentTemplates(SchedulerJobsMappings, SchedulerJobsSettings),
 	)
 }
@@ -165,7 +165,7 @@ func ComponentTemplateSchedulerStateSettings() *putcomponenttemplate.Request {
 // IndexTemplateSchedulerState: index template for scheduler state datastream indices.
 func IndexTemplateSchedulerState() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
-		WithIndexPatterns(SchedulerStatePrefix+"-*"),
+		WithIndexPatterns(SchedulerStatePrefix+"_*"),
 		WithComponentTemplates(SchedulerStateMappings, SchedulerStateSettings),
 	)
 }
@@ -219,7 +219,7 @@ func ComponentTemplateUsersSettings() *putcomponenttemplate.Request {
 // IndexTemplateUsers returns an Index Template for users indices.
 func IndexTemplateUsers() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
-		WithIndexPatterns(UsersSchemaPrefix+"-*"),
+		WithIndexPatterns(UsersSchemaPrefix+"_*"),
 		WithComponentTemplates(UsersMappings, UsersSettings),
 	)
 }
@@ -288,7 +288,7 @@ func ComponentTemplateFeedsSettings() *putcomponenttemplate.Request {
 // IndexTemplateFeeds returns an Index Template for feeds indices.
 func IndexTemplateFeeds() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
-		WithIndexPatterns(FeedsSchemaPrefix+"-*"),
+		WithIndexPatterns(FeedsSchemaPrefix+"_*"),
 		WithComponentTemplates(FeedsMappings, FeedsSettings),
 	)
 }
@@ -358,7 +358,7 @@ func ComponentTemplateFeedItemsSettings() *putcomponenttemplate.Request {
 // IndexTemplateFeeds returns an Index Template for feed item indices.
 func IndexTemplateFeedItems() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
-		WithIndexPatterns(FeedItemsSchemaPrefix+"-*"),
+		WithIndexPatterns(FeedItemsSchemaPrefix+"_*"),
 		WithComponentTemplates(FeedsItemsMappings, FeedsItemsSettings),
 		AsDataStream(),
 	)

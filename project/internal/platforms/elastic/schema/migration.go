@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+//nolint:dupl
 package schema
 
 import (
@@ -9,10 +10,13 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/cluster/putcomponenttemplate"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ilm/putlifecycle"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/create"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/putindextemplate"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
 
+	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 )
 
 var validMigrations = []string{"feeds", "feeditems", "users", "ingest", "scheduler", "session"}
@@ -24,6 +28,8 @@ type client interface {
 	PutComponentTemplate(ctx context.Context, name string, template *putcomponenttemplate.Request) error
 	PutIndexTemplate(ctx context.Context, name string, template *putindextemplate.Request) error
 	PutIngestPipeline(ctx context.Context, name string, pipeline *putpipeline.Request) error
+	IndexExists(ctx context.Context, index string) (bool, error)
+	NewIndexRequest(name string, options ...elastic.Option[*elastic.CreateIndexRequest]) *create.Create
 }
 
 // Migration will create all necessary index templates settings and policies.
@@ -77,6 +83,20 @@ func migrateUsers(ctx context.Context, client client) error {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
+	userIndex := UsersSchemaPrefix + "_" + config.Environment()
+	// Check that a job queue index exists.
+	found, err := client.IndexExists(ctx, userIndex)
+	if err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	// Create a job queue index if not found.
+	if !found {
+		_, err = client.NewIndexRequest(userIndex).Do(ctx)
+		if err != nil {
+			return errors.Join(ErrMigrationFailed, err)
+		}
+	}
+
 	return nil
 }
 
@@ -95,6 +115,20 @@ func migrateFeeds(ctx context.Context, client client) error {
 
 	if err := client.PutIndexTemplate(ctx, FeedsSchemaPrefix, IndexTemplateFeeds()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
+	}
+
+	feedsIndex := FeedsSchemaPrefix + "_" + config.Environment()
+	// Check that a job queue index exists.
+	found, err := client.IndexExists(ctx, feedsIndex)
+	if err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	// Create a job queue index if not found.
+	if !found {
+		_, err = client.NewIndexRequest(feedsIndex).Do(ctx)
+		if err != nil {
+			return errors.Join(ErrMigrationFailed, err)
+		}
 	}
 
 	return nil
@@ -143,18 +177,46 @@ func migrateScheduler(ctx context.Context, client client) error {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
+	schedulerStateIndex := SchedulerStatePrefix + "_" + config.Environment()
+	// Check that a job queue index exists.
+	found, err := client.IndexExists(ctx, schedulerStateIndex)
+	if err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	// Create a job queue index if not found.
+	if !found {
+		_, err = client.NewIndexRequest(schedulerStateIndex).Do(ctx)
+		if err != nil {
+			return errors.Join(ErrMigrationFailed, err)
+		}
+	}
+
 	// scheduler jobs indicies
 
-	if err := client.PutComponentTemplate(ctx, SchedulerJobsMappings, ComponentTemplateSchedulerJobsMappings()); err != nil {
+	if err = client.PutComponentTemplate(ctx, SchedulerJobsMappings, ComponentTemplateSchedulerJobsMappings()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutComponentTemplate(ctx, SchedulerJobsSettings, ComponentTemplateSchedulerJobsSettings()); err != nil {
+	if err = client.PutComponentTemplate(ctx, SchedulerJobsSettings, ComponentTemplateSchedulerJobsSettings()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutIndexTemplate(ctx, SchedulerJobsPrefix, IndexTemplateSchedulerJobs()); err != nil {
+	if err = client.PutIndexTemplate(ctx, SchedulerJobsPrefix, IndexTemplateSchedulerJobs()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
+	}
+
+	jobsStateIndex := SchedulerJobsPrefix + "_" + config.Environment()
+	// Check that a job queue index exists.
+	found, err = client.IndexExists(ctx, jobsStateIndex)
+	if err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	// Create a job queue index if not found.
+	if !found {
+		_, err = client.NewIndexRequest(jobsStateIndex).Do(ctx)
+		if err != nil {
+			return errors.Join(ErrMigrationFailed, err)
+		}
 	}
 
 	return nil
@@ -175,6 +237,20 @@ func migrateSession(ctx context.Context, client client) error {
 
 	if err := client.PutIndexTemplate(ctx, SessionsPrefix, IndexTemplateSessions()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
+	}
+
+	sessionIndex := SessionsPrefix + "_" + config.Environment()
+	// Check that a job queue index exists.
+	found, err := client.IndexExists(ctx, sessionIndex)
+	if err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	// Create a job queue index if not found.
+	if !found {
+		_, err = client.NewIndexRequest(sessionIndex).Do(ctx)
+		if err != nil {
+			return errors.Join(ErrMigrationFailed, err)
+		}
 	}
 
 	return nil

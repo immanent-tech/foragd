@@ -5,6 +5,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -19,7 +20,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
-	sessionstore "github.com/joshuar/go-feed-me/internal/platforms/elastic/implementations/session"
+	store "github.com/joshuar/go-feed-me/internal/platforms/elastic/implementations/session"
 )
 
 const (
@@ -36,6 +37,8 @@ type Server struct {
 	API    *API
 	Logger *slog.Logger
 }
+
+var ErrStartServer = errors.New("start server failed")
 
 func NewServer(ctx context.Context) (Server, error) {
 	var svr Server
@@ -57,20 +60,24 @@ func NewServer(ctx context.Context) (Server, error) {
 	// Load the auth0UserAPI backend.
 	auth0UserAPI, err := auth0.NewUserAPI(ctx)
 	if err != nil {
-		return svr, fmt.Errorf("failed to initialize the auth0 user backend API: %w", err)
+		return svr, errors.Join(ErrStartServer, err)
 	}
 	// Load the Elastic backend
 	elasticAPI, err := elastic.Connect(ctx)
 	if err != nil {
-		return svr, fmt.Errorf("failed to connect to the db backend: %w", err)
+		return svr, errors.Join(ErrStartServer, err)
 	}
 	// Load the authenticator backend.
 	auth0API, err := auth0.NewAuthenticator(ctx, "http://localhost:"+strconv.Itoa(serverConfig.Port))
 	if err != nil {
-		return svr, fmt.Errorf("failed to initialize the authenticator backend API: %w", err)
+		return svr, errors.Join(ErrStartServer, err)
 	}
 	// Load the session store.
-	sessionStore := sessionstore.NewSessionStore(ctx, elasticAPI)
+	sessionStore, err := store.NewSessionStore(ctx, elasticAPI)
+	if err != nil {
+		return svr, errors.Join(ErrStartServer, err)
+	}
+
 	// Set up the session manager.
 	session.NewSessionManager(sessionStore)
 	// Add the API to the environment.

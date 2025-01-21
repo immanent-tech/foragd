@@ -58,7 +58,7 @@ func (sj *ScheduledJob) Trigger() quartz.Trigger {
 }
 
 func (sj *ScheduledJob) NextRunTime() int64 {
-	return sj.NextRun
+	return sj.NextRun.UnixNano()
 }
 
 // MarshalJob takes a quartz.ScheduledJob object and marshals it back into a
@@ -66,7 +66,7 @@ func (sj *ScheduledJob) NextRunTime() int64 {
 func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
 	triggerOpts := strings.Split(job.Trigger().Description(), quartz.Sep)
 	serialized := &ScheduledJob{
-		NextRun:   job.NextRunTime(),
+		NextRun:   time.Unix(0, job.NextRunTime()),
 		Timestamp: time.Now().UTC(),
 		Options:   job.JobDetail().Options(),
 		Schedule:  triggerOpts[1],

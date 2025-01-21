@@ -14,6 +14,8 @@ import (
 	"github.com/joshuar/go-feed-me/internal/app/server/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 	"github.com/joshuar/go-feed-me/web/templates/partials/content"
 )
 
@@ -50,7 +52,10 @@ func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	warnings, err := s.API.elastic.UserActionAddSubscriptions(req.Context(), *subscription)
+	addSubCtx := elastic.FeedsIndexToCtx(req.Context(), schema.FeedsSchemaPrefix)
+	addSubCtx = elastic.UserIndexToCtx(addSubCtx, schema.UsersSchemaPrefix)
+
+	warnings, err := s.API.elastic.UserActionAddSubscriptions(addSubCtx, *subscription)
 	if err != nil {
 		logger.Error("Could not add subscription.", slog.Any("error", err))
 	}

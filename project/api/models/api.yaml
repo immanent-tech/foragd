@@ -7,21 +7,17 @@ components:
       description: records when the object was created in the database.
       x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        json: 'created_at'
-      x-go-type-skip-optional-pointer: true
+        json: 'created_at,omitempty'
     UpdatedAt:
       description: records when the object was last updated in the database.
       x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        json: 'updated_at'
-      x-go-type-skip-optional-pointer: true
+        json: 'updated_at,omitempty'
     DeletedAt:
       description: records when the object was deleted.
       x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        gorm: 'index'
-        json: 'deleted_at'
-      x-go-type-skip-optional-pointer: true
+        json: 'deleted_at,omitempty'
     # Metadata Objects.
     MetadataFeed:
       description: contains common/metadata fields for feeds and items.
@@ -61,15 +57,11 @@ components:
       type: object
       required:
         - created_at
-        - updated_at
-        - deleted_at
       properties:
         CreatedAt:
           $ref: '#/components/schemas/CreatedAt'
         UpdatedAt:
           $ref: '#/components/schemas/UpdatedAt'
-        DeletedAt:
-          $ref: '#/components/schemas/DeletedAt'
     Timestamp:
       description: is when the document was created.
       x-go-type: 'time.Time'
@@ -540,7 +532,7 @@ components:
             validate: 'required,cron'
           x-go-type-skip-optional-pointer: true
         NextRun:
-          x-go-type: 'int64'
+          x-go-type: 'time.Time'
           x-oapi-codegen-extra-tags:
             json: 'job_next_run'
           x-go-type-skip-optional-pointer: true

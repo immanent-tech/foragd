@@ -12,7 +12,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
 var defaultFeedFields = []string{
@@ -39,24 +38,19 @@ var defaultItemFields = []string{
 var (
 	ErrNoFeedID      = errors.New("no feed ID provided")
 	ErrExtractSource = errors.New("could not extract document _source")
+	ErrAddFailed     = errors.New("adding items failed")
 )
-
-// // GetFeeds returns the feeds with the given feed IDs. If no feed IDs are given,
-// // it returns all feeds. This will either be an mget (specific feeds) or search
-// // (all feeds) request.
-// func (c *Client) GetFeeds(ctx context.Context, filters models.APISearchFilters) ([]models.APIFeed, error) {
-// 	if len(filters.FeedIDs) > 0 {
-// 		return c.getFeedsByID(ctx, filters.FeedIDs...)
-// 	}
-
-// 	return c.getAllFeeds(ctx)
-// }
 
 // GetNewFeedsSince retrieves a list of feeds that have been updated since the
 // given time.
 func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
 	resp, err := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](schema.FeedsSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](index),
 		WithSearchQueryOptions(QuerySince("@timestamp", since)),
 	).Do(ctx)
 	if err != nil {
@@ -69,8 +63,13 @@ func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]model
 }
 
 func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return models.APIFeed{}, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
 	resp, err := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](schema.FeedsSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](index),
 		WithFields(defaultFeedFields...),
 		WithSearchQueryOptions(QueryByTerm("feedLink", url)),
 	).Do(ctx)
@@ -91,7 +90,12 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 	return feed, nil
 }
 
-func (c *Client) AddFeeds(_ context.Context, feeds ...models.Feed) error {
+func (c *Client) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return errors.Join(ErrAddFailed, ErrNoIndexInCtx)
+	}
+
 	docs := make([]BulkOperation, len(feeds))
 
 	for iter, feed := range feeds {
@@ -102,7 +106,7 @@ func (c *Client) AddFeeds(_ context.Context, feeds ...models.Feed) error {
 
 		docs[iter] = NewBulkOperation(&feed,
 			WithDocID[BulkOperation](feed.ID),
-			ToIndex(schema.FeedsSchemaPrefix+"-test"),
+			ToIndex(index),
 		)
 	}
 
@@ -112,7 +116,12 @@ func (c *Client) AddFeeds(_ context.Context, feeds ...models.Feed) error {
 }
 
 // AddItems will bulk index the given items to the Elasticsearch cache.
-func (c *Client) AddItems(_ context.Context, items ...models.Item) error {
+func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return errors.Join(ErrAddFailed, ErrNoIndexInCtx)
+	}
+
 	docs := make([]BulkOperation, len(items))
 
 	for iter, item := range items {
@@ -124,7 +133,7 @@ func (c *Client) AddItems(_ context.Context, items ...models.Item) error {
 
 		docs[iter] = NewBulkOperation(&item,
 			WithDocID[BulkOperation](item.ID),
-			ToIndex(schema.FeedItemsSchemaPrefix+"-test"),
+			ToIndex(index),
 		)
 	}
 

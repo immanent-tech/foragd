@@ -15,6 +15,8 @@ import (
 	"github.com/joshuar/go-feed-me/internal/app/server/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
@@ -74,7 +76,9 @@ func (s Server) ProcessSignup(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Create new user in the database backend.
-	err = s.API.elastic.AddUser(req.Context(), userID)
+	addUserCtx := elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix)
+
+	err = s.API.elastic.AddUser(addUserCtx, userID)
 	if err != nil {
 		logger.Error("Could not create user account.", slog.Any("error", err))
 

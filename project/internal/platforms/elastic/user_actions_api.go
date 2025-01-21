@@ -18,7 +18,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
 // ErrUserActionFailed is a generic error indicating something went wrong with a
@@ -80,28 +79,20 @@ func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions .
 		}
 	}
 
-	// Update the user subscriptions.
-	req := c.NewDocUpdateRequest(schema.UsersSchemaPrefix, user.ID,
-		WithPartialDocUpdate(map[string]any{
-			"subscriptions": user.Subscriptions,
-			"updated_at":    time.Now(),
-		}),
-	)
-
-	resp, err := req.Do(ctx)
-	if err != nil {
+	if err := c.userActionUpdateSubscriptions(ctx, user.ID, user.Subscriptions); err != nil {
 		return warnings, errors.Join(ErrUpdateFailed, err)
 	}
-
-	slog.Debug("Updated subscriptions.",
-		slog.String("result", resp.Result.String()),
-		slog.Int64("version", resp.Version_))
 
 	return warnings, nil
 }
 
 // UserActionMarkItemsRead will mark the given items as read for the user.
 func (c *Client) UserActionMarkItemsRead(ctx context.Context, items ...models.APIReadItem) error {
+	index := UserIndexFromCtx(ctx)
+	if index == "" {
+		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)
+	}
+
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx
@@ -124,7 +115,7 @@ func (c *Client) UserActionMarkItemsRead(ctx context.Context, items ...models.AP
 		})
 	}
 
-	req := c.NewDocUpdateRequest(schema.UsersSchemaPrefix, user.ID,
+	req := c.NewDocUpdateRequest(index, user.ID,
 		WithDocUpdate(user.ReadItems, false),
 	)
 
@@ -144,6 +135,11 @@ func (c *Client) UserActionMarkItemsRead(ctx context.Context, items ...models.AP
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
 func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (models.APIItem, bool, error) {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return models.APIItem{}, false, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return models.APIItem{}, false, ErrNoUserCtx
@@ -154,7 +150,7 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (
 	}
 
 	req := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](schema.FeedItemsSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
 			QueryByFeedIDs(feedID),
@@ -179,6 +175,11 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
 func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearchFilters) ([]models.APIItem, []byte, error) {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, nil, ErrGetUserFailed
@@ -189,7 +190,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearc
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
 	req := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](schema.FeedItemsSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
 			QueryBool(
@@ -224,6 +225,11 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearc
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
 func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearchFilters) ([]models.APIFeed, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed
@@ -254,7 +260,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearc
 
 	// Get the feed details.
 	req := c.NewMGetRequest(
-		WithIndexPattern[*mget.Mget](schema.FeedsSchemaPrefix),
+		WithIndexPattern[*mget.Mget](index),
 		WithIDs(subscribedFeedIDs...),
 		// WithStoredFields(defaultFeedFields...),
 	)
@@ -289,28 +295,16 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearc
 	return feeds, nil
 }
 
-// // getAllFeeds retrieves all feeds by executing a search request with a
-// // match_all query.
-// func (c *Client) getAllFeeds(ctx context.Context) ([]models.APIFeed, error) {
-// 	resp, err := c.NewSearchRequest(
-// 		WithIndexPattern[*search.Search](schema.FeedsSchemaPrefix+"-*"),
-// 		WithFields(defaultFeedFields...),
-// 		WithSearchQueryOptions(QueryMatchAll()),
-// 	).Do(ctx)
-// 	if err != nil {
-// 		return nil, errors.Join(ErrSearchFailed, err)
-// 	}
-
-// 	feeds := extractSources[models.APIFeed](ctx, resp.Hits.Hits)
-
-// 	return feeds, nil
-// }
-
 func (c *Client) userActionGetFeedUnreadCounts(ctx context.Context, feedIDs []models.FeedID, readItemIDs []models.ItemID) (map[string]int, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
 	req := c.NewSearchRequest(
-		WithIndexPattern[*search.Search](schema.FeedItemsSchemaPrefix+"-*"),
+		WithIndexPattern[*search.Search](index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
 			QueryBool(
@@ -336,6 +330,11 @@ func (c *Client) userActionGetFeedUnreadCounts(ctx context.Context, feedIDs []mo
 }
 
 func (c *Client) userActionGetFeedsByURL(ctx context.Context, urls ...string) ([]models.APIFeed, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
 	searchSize := 1000
 	pagination := make([]types.FieldValue, 0)
 	feeds := make([]models.APIFeed, 0)
@@ -343,7 +342,7 @@ func (c *Client) userActionGetFeedsByURL(ctx context.Context, urls ...string) ([
 	// Loop until we've paginated through all results.
 	for {
 		resp, err := c.NewSearchRequest(
-			WithIndexPattern[*search.Search](schema.FeedsSchemaPrefix+"-*"),
+			WithIndexPattern[*search.Search](index),
 			WithFields("feed_id", "feedLink"),
 			WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
 			WithSearchSize(searchSize),
@@ -367,4 +366,30 @@ func (c *Client) userActionGetFeedsByURL(ctx context.Context, urls ...string) ([
 	}
 
 	return feeds, nil
+}
+
+func (c *Client) userActionUpdateSubscriptions(ctx context.Context, id models.UserID, subscriptions map[string]models.Subscription) error {
+	index := UserIndexFromCtx(ctx)
+	if index == "" {
+		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)
+	}
+
+	// Update the user subscriptions.
+	req := c.NewDocUpdateRequest(index, id,
+		WithPartialDocUpdate(map[string]any{
+			"subscriptions": subscriptions,
+			"updated_at":    time.Now().UTC(),
+		}),
+	)
+
+	resp, err := req.Do(ctx)
+	if err != nil {
+		return errors.Join(ErrUpdateFailed, err)
+	}
+
+	slog.Debug("Updated user subscriptions.",
+		slog.String("result", resp.Result.String()),
+		slog.Int64("version", resp.Version_))
+
+	return nil
 }

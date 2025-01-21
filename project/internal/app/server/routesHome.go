@@ -19,6 +19,8 @@ import (
 	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials/content"
 )
@@ -78,8 +80,9 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		return
 	}
 
+	getFeedsCtx := elastic.FeedsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix)
 	// Get all subscribed feeds.
-	feeds, err := s.API.elastic.UserActionGetFeeds(ctx, filters)
+	feeds, err := s.API.elastic.UserActionGetFeeds(getFeedsCtx, filters)
 	if err != nil && errors.Is(err, models.ErrNoSubscriptions) {
 		if err = renderHome(ctx, res, req, content.ShowEmptyContent()); err != nil {
 			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
@@ -128,7 +131,9 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
 
-		items, pagination, err := s.API.elastic.UserActionGetItems(ctx, filters)
+		getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix)
+		// Get feed items.
+		items, pagination, err := s.API.elastic.UserActionGetItems(getItemsCtx, filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
@@ -143,7 +148,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			ChildActionBasePath: showArticlePath,
 		})
 
-		for i, item := range items {
+		for idx, item := range items {
 			// Create item card properties.
 			card, err := content.NewCard(&item, 0)
 			if err != nil {
@@ -161,7 +166,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 				"hx-get": get,
 			})
 
-			if i == len(items)-1 && pagination != nil && len(items) == filters.Count {
+			if idx == len(items)-1 && pagination != nil && len(items) == filters.Count {
 				slog.Info("last item", slog.Any("item", item))
 				card.AddAttributes(templ.Attributes{
 					"hx-get":       generatePagination(ctx, showItemsPath, pagination),
@@ -225,6 +230,7 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 
 	filters.Count = 100
 
+	getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix)
 	// Fetch the unread items with the given filters. Paginate through the
 	// results, collecting into unreadItems.
 	for {
@@ -232,7 +238,7 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 			filters.Pagination = pagination
 		}
 
-		items, pagination, err = s.API.elastic.UserActionGetItems(ctx, filters)
+		items, pagination, err = s.API.elastic.UserActionGetItems(getItemsCtx, filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
@@ -249,8 +255,9 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 		}
 	}
 
+	markItemsCtx := elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 	// Mark all unreadItems as read.
-	if err := s.API.elastic.UserActionMarkItemsRead(req.Context(), unreadItems...); err != nil {
+	if err := s.API.elastic.UserActionMarkItemsRead(markItemsCtx, unreadItems...); err != nil {
 		logger.Warn("Could not mark item as read.", slog.Any("error", err))
 		return
 	}

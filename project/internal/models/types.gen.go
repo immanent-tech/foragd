@@ -154,13 +154,10 @@ type ItemIDs = []ItemID
 // MetadataDB contains common (metadata) fields for database objects.
 type MetadataDB struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at"`
-
-	// DeletedAt records when the object was deleted.
-	DeletedAt DeletedAt `gorm:"index" json:"deleted_at"`
+	CreatedAt *CreatedAt `json:"created_at,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at"`
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 }
 
 // MetadataFeed contains common/metadata fields for feeds and items.
@@ -191,7 +188,7 @@ type ReadItem struct {
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {
 	Data     ScheduledJob_Data        `json:"job_data"`
-	NextRun  int64                    `json:"job_next_run"`
+	NextRun  time.Time                `json:"job_next_run"`
 	Options  *quartz.JobDetailOptions `json:"job_options,omitempty"`
 	Schedule string                   `json:"job_trigger" validate:"required,cron"`
 
@@ -213,10 +210,10 @@ type SchedulerID = string
 // Subscription represents a feed a particular user has subscribed to.
 type Subscription struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at"`
+	CreatedAt *CreatedAt `json:"created_at,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at"`
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 
 	// Categories is a list of feed/item categories.
 	Categories Categories `form:"categories[]" json:"categories"`
@@ -270,16 +267,13 @@ type UpdatedAt = time.Time
 // User defines model for User.
 type User struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at"`
-
-	// DeletedAt records when the object was deleted.
-	DeletedAt DeletedAt `gorm:"index" json:"deleted_at"`
+	CreatedAt *CreatedAt `json:"created_at,omitempty"`
 
 	// ID is the unique ID of a user.
 	ID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at"`
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 
 	// ReadItems is the list of user read items.
 	ReadItems map[string][]ReadItem `json:"read_items,omitempty"`

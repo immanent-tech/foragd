@@ -15,6 +15,8 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	queue "github.com/joshuar/go-feed-me/internal/platforms/elastic/implementations/scheduler"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
 var (
@@ -51,7 +53,11 @@ func Run(ctx context.Context) error {
 
 	ctx = models.FeedManagementAPIToCtx(ctx, esClient)
 
-	jobQueue := elastic.NewJobQueue(ctx, esClient)
+	jobQueue, err := queue.NewJobQueue(ctx, esClient)
+	if err != nil {
+		return errors.Join(ErrRunFailed, err)
+	}
+
 	scheduler := quartz.NewStdSchedulerWithOptions(quartz.StdSchedulerOptions{
 		OutdatedThreshold: 50 * time.Second, // considering file system I/O latency
 	}, jobQueue, nil)
@@ -64,8 +70,6 @@ func Run(ctx context.Context) error {
 		logger:     logging.FromContext(ctx).WithGroup("scheduler"),
 		checkpoint: time.Time{},
 	}
-
-	manager.logger.Debug("Scheduler started.")
 
 	ticker := time.NewTicker(time.Minute)
 
@@ -89,30 +93,15 @@ func Run(ctx context.Context) error {
 		}
 	}()
 
-	// jobQueueSize, err := jobQueue.Size()
-	// if err != nil {
-	// 	logger.Errorf("Failed to fetch job queue size: %s", err)
-	// 	return errors.Join(ErrRunFailed, err)
-	// }
+	ctx = elastic.JobsIndexToCtx(ctx, schema.SchedulerStatePrefix)
+	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix)
 
 	scheduler.Start(ctx)
 
+	manager.logger.Debug("Scheduler started.")
 	<-ctx.Done()
 
-	scheduledJobs, err := jobQueue.ScheduledJobs(nil)
-	if err != nil {
-		manager.logger.Error("Failed to fetch scheduled jobs.",
-			slog.Any("error", err))
-		return errors.Join(ErrRunFailed, err)
-	}
-
-	jobNames := make([]string, 0, len(scheduledJobs))
-
-	for _, job := range scheduledJobs {
-		jobNames = append(jobNames, job.JobDetail().JobKey().String())
-	}
-
-	manager.logger.Debug("Jobs in queue: %s", slog.Any("jobs", jobNames))
+	manager.logger.Debug("Scheduler stopped.")
 
 	return nil
 }
@@ -126,19 +115,9 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 	m.checkpoint = time.Now().UTC()
 
 	for _, feed := range feeds {
-		var (
-			job quartz.ScheduledJob
-			err error
-		)
+		var job quartz.ScheduledJob
 		// Fetch any existing job.
-		existingJob, err := m.queue.Get(models.GenerateJobKey(feed.GetID()))
-		if err != nil {
-			m.logger.Warn("Could not check for scheduled jobs.",
-				slog.Any("error", err))
-			continue
-		}
-
-		if existingJob != nil {
+		if existingJob, err := m.queue.Get(models.GenerateJobKey(feed.GetID())); err == nil {
 			if details, ok := existingJob.(*models.ScheduledJob); ok {
 				// If the existing job is scheduled by this scheduler instance,
 				// ignore this feed.
