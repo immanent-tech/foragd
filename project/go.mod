@@ -1,6 +1,6 @@
 module github.com/joshuar/go-feed-me
 
-go 1.23.4
+go 1.23.5
 
 replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
 

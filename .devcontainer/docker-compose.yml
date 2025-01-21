@@ -20,6 +20,10 @@ services:
     command: sleep infinity
     user: vscode
     userns_mode: keep-id
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
     hostname: devcontainer
     networks:
       - go-feed-me
