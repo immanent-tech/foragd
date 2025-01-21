@@ -52,6 +52,8 @@ func Run(ctx context.Context) error {
 	}
 
 	ctx = models.FeedManagementAPIToCtx(ctx, esClient)
+	ctx = elastic.JobsIndexToCtx(ctx, schema.SchedulerStatePrefix)
+	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
 
 	jobQueue, err := queue.NewJobQueue(ctx, esClient)
 	if err != nil {
@@ -93,15 +95,12 @@ func Run(ctx context.Context) error {
 		}
 	}()
 
-	ctx = elastic.JobsIndexToCtx(ctx, schema.SchedulerStatePrefix)
-	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix)
-
+	manager.logger.Info("Starting scheduler.")
 	scheduler.Start(ctx)
 
-	manager.logger.Debug("Scheduler started.")
 	<-ctx.Done()
 
-	manager.logger.Debug("Scheduler stopped.")
+	manager.logger.Info("Stopping scheduler.")
 
 	return nil
 }
