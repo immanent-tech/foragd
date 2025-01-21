@@ -84,6 +84,7 @@ func IndexTemplateSessions() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
 		WithIndexPatterns(SessionsPrefix+"_*"),
 		WithComponentTemplates(SessionsMappings, SessionsSettings),
+		WithPriority(500),
 	)
 }
 
@@ -129,6 +130,7 @@ func IndexTemplateSchedulerJobs() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
 		WithIndexPatterns(SchedulerJobsPrefix+"_*"),
 		WithComponentTemplates(SchedulerJobsMappings, SchedulerJobsSettings),
+		WithPriority(500),
 	)
 }
 
@@ -141,7 +143,7 @@ func ComponentTemplateSchedulerStateMappings() *putcomponenttemplate.Request {
 				WithMappings(
 					NewPropertyMapping(
 						WithoutDynamicMapping(),
-						WithDateNanosProperty("feed_id"),
+						WithKeywordProperty("feed_id"),
 						WithDateNanosProperty("last_fetched"),
 					),
 				),
@@ -167,6 +169,7 @@ func IndexTemplateSchedulerState() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
 		WithIndexPatterns(SchedulerStatePrefix+"_*"),
 		WithComponentTemplates(SchedulerStateMappings, SchedulerStateSettings),
+		WithPriority(500),
 	)
 }
 
@@ -220,6 +223,7 @@ func IndexTemplateUsers() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
 		WithIndexPatterns(UsersSchemaPrefix+"_*"),
 		WithComponentTemplates(UsersMappings, UsersSettings),
+		WithPriority(500),
 	)
 }
 
@@ -359,6 +363,7 @@ func IndexTemplateFeedItems() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
 		WithIndexPatterns(FeedItemsSchemaPrefix+"_*"),
 		WithComponentTemplates(FeedsItemsMappings, FeedsItemsSettings),
+		WithPriority(500),
 		AsDataStream(),
 	)
 }
