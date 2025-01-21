@@ -100,7 +100,7 @@ func ComponentTemplateSchedulerJobsMappings() *putcomponenttemplate.Request {
 				WithMappings(
 					NewPropertyMapping(
 						WithoutDynamicMapping(),
-						WithDateNanosProperty("@timestamp"),
+						WithDateNanosProperty("created_at"),
 						WithFlattenedProperty("job_options"),
 						WithFlattenedProperty("job_data"),
 						WithKeywordProperty("job_trigger"),
@@ -195,7 +195,6 @@ func ComponentTemplateUserMappings() *putcomponenttemplate.Request {
 						WithObjectProperty("read_items", map[string]types.Property{
 							"item_id":    types.NewKeywordProperty(),
 							"created_at": types.NewDateNanosProperty(),
-							"updated_at": types.NewDateNanosProperty(),
 						}),
 					),
 				),

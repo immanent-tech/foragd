@@ -67,7 +67,7 @@ func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
 	triggerOpts := strings.Split(job.Trigger().Description(), quartz.Sep)
 	serialized := &ScheduledJob{
 		NextRun:   time.Unix(0, job.NextRunTime()),
-		Timestamp: time.Now().UTC(),
+		CreatedAt: time.Now().UTC(),
 		Options:   job.JobDetail().Options(),
 		Schedule:  triggerOpts[1],
 	}
@@ -155,7 +155,7 @@ func (job *FeedJob) getItemsSince(since time.Time) ([]Item, error) {
 // NewFeedJob creates a job that can be scheduled from the given feed data.
 func NewFeedJob(feed APIFeed) (*ScheduledJob, error) {
 	job := &ScheduledJob{
-		Timestamp: time.Now().UTC(),
+		CreatedAt: time.Now().UTC(),
 		Schedule:  defaultJobTrigger,
 	}
 

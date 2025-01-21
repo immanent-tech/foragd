@@ -3,6 +3,13 @@
 
 components:
   schemas:
+    Timestamp:
+      description: is when the document was created.
+      x-go-type: 'time.Time'
+      x-oapi-codegen-extra-tags:
+        json: "@timestamp"
+        validate: "required"
+      x-go-type-skip-optional-pointer: true
     CreatedAt:
       description: records when the object was created in the database.
       x-go-type: 'time.Time'
@@ -62,13 +69,6 @@ components:
           $ref: '#/components/schemas/CreatedAt'
         UpdatedAt:
           $ref: '#/components/schemas/UpdatedAt'
-    Timestamp:
-      description: is when the document was created.
-      x-go-type: 'time.Time'
-      x-oapi-codegen-extra-tags:
-        json: "@timestamp"
-        validate: "required"
-      x-go-type-skip-optional-pointer: true
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
@@ -85,15 +85,6 @@ components:
         json: 'feed_id'
         gorm: 'primaryKey'
       x-go-type-skip-optional-pointer: true
-    FeedIDs:
-      description: is a list of feed IDs.
-      type: array
-      items:
-        $ref: '#/components/schemas/FeedID'
-      x-oapi-codegen-extra-tags:
-        json: 'feeds'
-        form: 'feeds'
-      x-go-type-skip-optional-pointer: true
     ItemID:
       description: is the unique ID of an item.
       type: string
@@ -101,15 +92,6 @@ components:
         validate: 'required'
         json: 'item_id'
         gorm: 'primaryKey'
-      x-go-type-skip-optional-pointer: true
-    ItemIDs:
-      description: is a list of item IDs.
-      type: array
-      items:
-        $ref: '#/components/schemas/ItemID'
-      x-oapi-codegen-extra-tags:
-        json: 'items'
-        form: 'items'
       x-go-type-skip-optional-pointer: true
     UserID:
       description: is the unique ID of a user.
@@ -154,12 +136,12 @@ components:
       description: represents an item (e.g., an individual feed item) that has been read.
       type: object
       required:
-        - timestamp
+        - CreatedAt
         - ItemID
       allOf:
         - type: object
           properties:
-            Timestamp:
+            CreatedAt:
               $ref: '#/components/schemas/Timestamp'
             ItemID:
               $ref: '#/components/schemas/ItemID'
@@ -506,9 +488,15 @@ components:
       type: object
       properties:
         FeedIDs:
-          $ref: '#/components/schemas/FeedIDs'
+          type: array
+          items:
+            $ref: '#/components/schemas/FeedID'
+          x-go-type-skip-optional-pointer: true
         ItemIDs:
-          $ref: '#/components/schemas/ItemIDs'
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemID'
+          x-go-type-skip-optional-pointer: true
         Categories:
           $ref: '#/components/schemas/Categories'
         Pagination:
@@ -522,9 +510,10 @@ components:
         - Schedule
         - NextRun
         - Data
+        - CreatedAt
       properties:
-        Timestamp:
-          $ref: '#/components/schemas/Timestamp'
+        CreatedAt:
+          $ref: '#/components/schemas/CreatedAt'
         Schedule:
           type: string
           x-oapi-codegen-extra-tags:

@@ -61,14 +61,14 @@ type APIItem struct {
 
 // APIReadItem defines model for APIReadItem.
 type APIReadItem struct {
+	// CreatedAt is when the document was created.
+	CreatedAt Timestamp `json:"@timestamp" validate:"required"`
+
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
 
 	// ItemID is the unique ID of an item.
 	ItemID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
-
-	// Timestamp is when the document was created.
-	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 
 	// UserID is the unique ID of a user.
 	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
@@ -80,13 +80,9 @@ type APISearchFilters struct {
 	Categories Categories `form:"categories[]" json:"categories"`
 
 	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"count"`
-
-	// FeedIDs is a list of feed IDs.
-	FeedIDs FeedIDs `form:"feeds" json:"feeds"`
-
-	// ItemIDs is a list of item IDs.
-	ItemIDs ItemIDs `form:"items" json:"items"`
+	Count   Count    `form:"count" json:"count"`
+	FeedIDs []FeedID `json:"FeedIDs,omitempty"`
+	ItemIDs []ItemID `json:"ItemIDs,omitempty"`
 
 	// Pagination contains details that allow fetching results at a certain point.
 	Pagination Pagination `form:"pagination" json:"pagination"`
@@ -124,9 +120,6 @@ type DeletedAt = time.Time
 // FeedID is the unique ID of a feed.
 type FeedID = string
 
-// FeedIDs is a list of feed IDs.
-type FeedIDs = []FeedID
-
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
 	// ID is the unique ID of a feed.
@@ -147,9 +140,6 @@ type FeedJobState struct {
 
 // ItemID is the unique ID of an item.
 type ItemID = string
-
-// ItemIDs is a list of item IDs.
-type ItemIDs = []ItemID
 
 // MetadataDB contains common (metadata) fields for database objects.
 type MetadataDB struct {
@@ -178,25 +168,24 @@ type Pagination = []byte
 
 // ReadItem defines model for ReadItem.
 type ReadItem struct {
+	// CreatedAt is when the document was created.
+	CreatedAt Timestamp `json:"@timestamp" validate:"required"`
+
 	// ItemID is the unique ID of an item.
 	ItemID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
-
-	// Timestamp is when the document was created.
-	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 }
 
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {
-	Data     ScheduledJob_Data        `json:"job_data"`
-	NextRun  time.Time                `json:"job_next_run"`
-	Options  *quartz.JobDetailOptions `json:"job_options,omitempty"`
-	Schedule string                   `json:"job_trigger" validate:"required,cron"`
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt                `json:"created_at,omitempty"`
+	Data      ScheduledJob_Data        `json:"job_data"`
+	NextRun   time.Time                `json:"job_next_run"`
+	Options   *quartz.JobDetailOptions `json:"job_options,omitempty"`
+	Schedule  string                   `json:"job_trigger" validate:"required,cron"`
 
 	// SchedulerID is the unique ID of a job scheduler instance.
 	SchedulerID SchedulerID `json:"scheduler_id"`
-
-	// Timestamp is when the document was created.
-	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 }
 
 // ScheduledJob_Data defines model for ScheduledJob.Data.

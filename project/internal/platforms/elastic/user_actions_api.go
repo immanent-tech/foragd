@@ -111,7 +111,7 @@ func (c *Client) UserActionMarkItemsRead(ctx context.Context, items ...models.AP
 		// Add a new read item to the user record.
 		user.ReadItems[item.FeedID] = append(user.ReadItems[item.FeedID], models.ReadItem{
 			ItemID:    item.ItemID,
-			Timestamp: time.Now(),
+			CreatedAt: time.Now().UTC(),
 		})
 	}
 

@@ -252,12 +252,16 @@ components:
       name: feeds
       in: query
       schema:
-        $ref: '../models/api.yaml#/components/schemas/FeedIDs'
+        type: array
+        items:
+          $ref: '../models/api.yaml#/components/schemas/FeedID'
     Items:
       name: items
       in: query
       schema:
-        $ref: '../models/api.yaml#/components/schemas/ItemIDs'
+        type: array
+        items:
+          $ref: '../models/api.yaml#/components/schemas/ItemID'
     Categories:
       name: categories
       in: query
