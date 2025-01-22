@@ -50,7 +50,7 @@ type Content interface {
 type cardCustomisation struct {
 	title   components.Option[*components.CardProps]
 	buttons []templ.Component
-	content string
+	content templ.Component
 }
 
 func NewCard(item any) (*components.CardProps, error) {
@@ -73,13 +73,13 @@ func NewCard(item any) (*components.CardProps, error) {
 
 	// Create the base CardProps with the defined options.
 	cardProps := components.BuildCard(
-		customisation.title,
+		// customisation.title,
 		components.WithBorder(),
 		components.WithCardLayout(components.CardLayoutSide),
 		components.WithCardShadow(components.XL),
 		components.WithID[*components.CardProps](summary.GetID()),
 		components.WithTopRightActions(withMenu(customisation.buttons...)...),
-		components.WithBody(templ.Raw(customisation.content), templ.Attributes{
+		components.WithBody(customisation.content, templ.Attributes{
 			"hx-target":   "#" + ContentTarget,
 			"hx-push-url": "true",
 		}),
@@ -89,9 +89,7 @@ func NewCard(item any) (*components.CardProps, error) {
 	if img := summary.GetImage(); img != nil {
 		cardProps = components.WithImage(img.URL,
 			components.WithAltText(img.Title),
-			components.WithSize[*components.ImageProps](components.Size16),
 			components.WithMask[*components.ImageProps](components.MaskSquircle),
-			components.WithObjectFit[*components.ImageProps](components.ObjectScaleDown),
 		)(cardProps)
 	}
 
@@ -142,12 +140,13 @@ func itemCustomisation(item Item) *cardCustomisation {
 	return &cardCustomisation{
 		title: components.WithTitle(
 			item.GetTitle(),
-			components.H2),
+			components.H4),
 		buttons: []templ.Component{
 			buttonToggleItem(item.GetFeedID(), item.GetID()),
 			buttonSaveItem(item.GetFeedID(), item.GetID()),
 			buttonShareItem(item.GetFeedID(), item.GetID()),
 		},
+		content: ItemCard(item),
 	}
 }
 
@@ -160,7 +159,7 @@ func feedCustomisation(feed Feed) *cardCustomisation {
 				components.WithColor[*components.BadgeProps](components.ColorPrimary, false),
 				components.WithBadgeDescription(strconv.Itoa(feed.GetUnreadCount())),
 			)),
-		content: feed.GetContent(),
+		content: FeedCard(feed),
 		buttons: []templ.Component{
 			buttonToggleItem(feed.GetID(), ""),
 			buttonShareItem(feed.GetID(), ""),

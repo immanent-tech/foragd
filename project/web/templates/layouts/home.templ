@@ -10,7 +10,7 @@ import (
 
 templ HomeLayout(data templ.Component) {
 	<!-- Header -->
-	<div class="sticky top-0 z-40 w-full">
+	<div class="sticky top-0 z-40 max-w-full">
 		@content.AppBarTop()
 	</div>
 	@components.NewDrawer("home-drawer",
