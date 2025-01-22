@@ -47,7 +47,12 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 	)
 
 	logger := logging.NewHandlerLogger("ShowList", req)
+
+	// Load up a context with required values.
 	ctx := req.Context()
+	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
+	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
+	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 
 	if params.Feeds != nil {
 		filters.FeedIDs = *params.Feeds
@@ -81,9 +86,8 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		return
 	}
 
-	getFeedsCtx := elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
 	// Get all subscribed feeds.
-	feeds, err := s.API.elastic.UserActionGetFeeds(getFeedsCtx, filters)
+	feeds, err := s.API.elastic.UserActionGetFeeds(ctx, filters)
 	if err != nil && errors.Is(err, models.ErrNoSubscriptions) {
 		if err = renderHome(ctx, res, req, content.ShowEmptyContent()); err != nil {
 			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
@@ -115,7 +119,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 
 		for _, feed := range feeds {
 			// Else, generate a feed card for display.
-			card, err := content.NewCard(&feed, 0)
+			card, err := content.NewCard(feed)
 			if err != nil {
 				logger.Warn("Could not render item as card.", slog.Any("error", err))
 				continue
@@ -132,9 +136,8 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
 
-		getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 		// Get feed items.
-		items, pagination, err := s.API.elastic.UserActionGetItems(getItemsCtx, filters)
+		items, pagination, err := s.API.elastic.UserActionGetItems(ctx, filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
@@ -151,7 +154,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 
 		for idx, item := range items {
 			// Create item card properties.
-			card, err := content.NewCard(&item, 0)
+			card, err := content.NewCard(&item)
 			if err != nil {
 				logger.Warn("Could not render item as card.", slog.Any("error", err))
 				continue
@@ -168,7 +171,6 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			})
 
 			if idx == len(items)-1 && pagination != nil && len(items) == filters.Count {
-				slog.Info("last item", slog.Any("item", item))
 				card.AddAttributes(templ.Attributes{
 					"hx-get":       generatePagination(ctx, showItemsPath, pagination),
 					"hx-trigger":   "revealed",

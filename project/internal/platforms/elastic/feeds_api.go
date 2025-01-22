@@ -9,7 +9,9 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 )
@@ -88,6 +90,44 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 	}
 
 	return feed, nil
+}
+
+// GetFeedsByID fetches a list of feeds by their FeedID.
+func (c *Client) GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) ([]*models.APIFeed, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
+	// Get the feed details.
+	req := c.NewMGetRequest(
+		WithIndex[*mget.Mget](index),
+		WithIDs[*mget.Mget](feedIDs...),
+	)
+
+	res, err := req.Do(ctx)
+	if err != nil {
+		return nil, errors.Join(ErrSearchFailed, err)
+	}
+
+	var feeds []*models.APIFeed
+
+	for _, doc := range res.Docs {
+		switch obj := doc.(type) {
+		case types.MultiGetError:
+			c.Logger.Warn("Problem getting document", slog.Any("error", obj))
+		case *types.GetResult:
+			feed, err := ExtractSource[*models.APIFeed](obj.Source_)
+			if err != nil {
+				c.Logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
+				continue
+			}
+
+			feeds = append(feeds, feed)
+		}
+	}
+
+	return feeds, nil
 }
 
 func (c *Client) AddFeeds(ctx context.Context, feeds ...models.Feed) error {

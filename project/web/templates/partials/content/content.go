@@ -25,6 +25,7 @@ func RelativeTime(timestamp time.Time) string {
 type Feed interface {
 	Summary
 	Content
+	GetUnreadCount() int
 }
 
 type Item interface {
@@ -52,7 +53,7 @@ type cardCustomisation struct {
 	content string
 }
 
-func NewCard(item any, count int) (*components.CardProps, error) {
+func NewCard(item any) (*components.CardProps, error) {
 	var customisation *cardCustomisation
 
 	// Don't continue if we don't have an object that can be represented as a
@@ -67,7 +68,7 @@ func NewCard(item any, count int) (*components.CardProps, error) {
 	case Item:
 		customisation = itemCustomisation(details)
 	case Feed:
-		customisation = feedCustomisation(details, count)
+		customisation = feedCustomisation(details)
 	}
 
 	// Create the base CardProps with the defined options.
@@ -150,14 +151,14 @@ func itemCustomisation(item Item) *cardCustomisation {
 	}
 }
 
-func feedCustomisation(feed Feed, count int) *cardCustomisation {
+func feedCustomisation(feed Feed) *cardCustomisation {
 	return &cardCustomisation{
 		title: components.WithTitle(
 			feed.GetTitle(),
 			components.H2,
 			components.Badge(
 				components.WithColor[*components.BadgeProps](components.ColorPrimary, false),
-				components.WithBadgeDescription(strconv.Itoa(count)),
+				components.WithBadgeDescription(strconv.Itoa(feed.GetUnreadCount())),
 			)),
 		content: feed.GetContent(),
 		buttons: []templ.Component{

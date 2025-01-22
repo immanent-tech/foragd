@@ -19,7 +19,7 @@ type UserActionsAPI interface {
 	UserActionMarkItemsRead(ctx context.Context, items ...APIReadItem) error
 	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
 	UserActionGetItems(ctx context.Context, filters APISearchFilters) ([]APIItem, []byte, error)
-	UserActionGetFeeds(ctx context.Context, filters APISearchFilters) ([]APIFeed, error)
+	UserActionGetFeeds(ctx context.Context, filters APISearchFilters) ([]*APIFeed, error)
 	// UserActionCountUnread(ctx context.Context, feedIDs ...FeedID) (int, error)
 }
 

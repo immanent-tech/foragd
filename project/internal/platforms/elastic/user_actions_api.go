@@ -12,8 +12,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
@@ -224,19 +222,14 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearc
 
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearchFilters) ([]models.APIFeed, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
-	}
-
+func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearchFilters) ([]*models.APIFeed, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed
 	}
 
+	// Get the FeedIDs for the user's subscriptions.
 	subscribedFeedIDs := user.GetSubscribedFeedIDs()
-
 	// Filter the list of requested feeds to only those which the user has a
 	// subscription.
 	if len(filters.FeedIDs) > 0 {
@@ -252,50 +245,32 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearc
 			},
 		)
 	}
-
 	// If there are no subscriptions, return an error indicating so.
 	if len(subscribedFeedIDs) == 0 {
 		return nil, models.ErrNoSubscriptions
 	}
 
-	// Get the feed details.
-	req := c.NewMGetRequest(
-		WithIndex[*mget.Mget](index),
-		WithIDs[*mget.Mget](subscribedFeedIDs...),
-	)
-
-	res, err := req.Do(ctx)
+	// Get the feed details for the subscribed feeds.
+	feeds, err := c.GetFeedsByID(ctx, subscribedFeedIDs...)
 	if err != nil {
-		return nil, errors.Join(ErrSearchFailed, err)
+		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	var feeds []models.APIFeed
-
-	// Get the user's read items for the list of feeds.
-	itemIDs := user.GetReadItemIDs(subscribedFeedIDs...)
-
-	c.userActionGetFeedUnreadCounts(ctx, subscribedFeedIDs, itemIDs)
-
-	for _, doc := range res.Docs {
-		switch obj := doc.(type) {
-		case types.MultiGetError:
-			c.Logger.Warn("Problem getting document", slog.Any("error", obj))
-		case *types.GetResult:
-			feed, err := ExtractSource[models.APIFeed](obj.Source_)
-			if err != nil {
-				c.Logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
-				continue
-			}
-
-			feeds = append(feeds, feed)
-		}
+	// Get the unread counts for the feeds.
+	unreadCounts, err := c.userActionGetFeedUnreadCounts(ctx, subscribedFeedIDs, user)
+	if err != nil {
+		return nil, errors.Join(ErrUserActionFailed, err)
+	}
+	// Add unread counts to feed objects.
+	for _, feed := range feeds {
+		feed.UnreadCount = int(unreadCounts[feed.ID])
 	}
 
 	return feeds, nil
 }
 
-func (c *Client) userActionGetFeedUnreadCounts(ctx context.Context, feedIDs []models.FeedID, readItemIDs []models.ItemID) (map[string]int, error) {
-	index := FeedsIndexFromCtx(ctx)
+func (c *Client) userActionGetFeedUnreadCounts(ctx context.Context, feedIDs []models.FeedID, user models.User) (map[string]int64, error) {
+	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
@@ -308,7 +283,7 @@ func (c *Client) userActionGetFeedUnreadCounts(ctx context.Context, feedIDs []mo
 		WithSearchQueryOptions(
 			QueryBool(
 				BoolFilter(QueryByFeedIDs(feedIDs...)),
-				BoolMustNot(QueryByItemIDs(readItemIDs...)),
+				BoolMustNot(QueryByItemIDs(user.GetReadItemIDs(feedIDs...)...)),
 			),
 		),
 		WithSortOptions(SortTimestampDesc()),
@@ -321,9 +296,18 @@ func (c *Client) userActionGetFeedUnreadCounts(ctx context.Context, feedIDs []mo
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	unreadCounts := make(map[string]int)
+	var results TermsAggregationResults
+	var ok bool
 
-	spew.Dump(resp.Aggregations["UnreadCounts"].(*types.StringTermsAggregate))
+	results.StringTermsAggregate, ok = resp.Aggregations["UnreadCounts"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, errors.Join(ErrUserActionFailed, fmt.Errorf("not TermsAggregationResults"))
+	}
+
+	unreadCounts := make(map[string]int64)
+	for _, feedID := range feedIDs {
+		unreadCounts[feedID] = results.GetCount(feedID)
+	}
 
 	return unreadCounts, nil
 }
