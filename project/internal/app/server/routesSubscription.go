@@ -19,7 +19,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials/content"
 )
 
-// SubscriptionAdd handles subscription request input GET(/subscription/add).
+// AddSubscription handles subscription request input.
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	logger := logging.NewHandlerLogger("AddSubscription", req)
 
@@ -31,9 +31,13 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// SubscriptionAddSubmit processes a subscription request POST(/subscription/add)
+// ProcessAddSubscription processes a subscription request.
 func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Request) {
 	logger := logging.NewHandlerLogger("ProcessAddSubscription", req)
+
+	// Load up the context.
+	ctx := elastic.FeedsIndexToCtx(req.Context(), schema.FeedsSchemaPrefix)
+	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 
 	subscription, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 	if err != nil {
@@ -43,7 +47,7 @@ func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Reques
 	}
 
 	if !valid {
-		ctx := models.SubscriptionRequestToCtx(req.Context(), subscription)
+		ctx = models.SubscriptionRequestToCtx(req.Context(), subscription)
 		if err = htmx.NewResponse().RenderTempl(ctx, res, content.AddSubscriptionForm()); err != nil {
 			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -52,10 +56,7 @@ func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	addSubCtx := elastic.FeedsIndexToCtx(req.Context(), schema.FeedsSchemaPrefix)
-	addSubCtx = elastic.UserIndexToCtx(addSubCtx, schema.UsersSchemaPrefix)
-
-	warnings, err := s.API.elastic.UserActionAddSubscriptions(addSubCtx, *subscription)
+	warnings, err := s.API.elastic.UserActionAddSubscriptions(ctx, *subscription)
 	if err != nil {
 		logger.Error("Could not add subscription.", slog.Any("error", err))
 	}

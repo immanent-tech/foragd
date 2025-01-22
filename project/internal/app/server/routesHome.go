@@ -317,10 +317,10 @@ func (s Server) ShowArticleMenu(res http.ResponseWriter, req *http.Request, feed
 }
 
 // MarkArticle will mark an article as read/unread.
-//
-// `POST /home/mark/article/{action}/{feedID}/{itemID}`.
 func (s Server) MarkArticle(res http.ResponseWriter, req *http.Request, action MarkArticleParamsAction, feed FeedID, item ItemID) {
 	logger := logging.NewHandlerLogger("MarkArticle", req)
+
+	ctx := elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix)
 
 	switch action {
 	case MarkArticleParamsActionRead:
@@ -329,7 +329,7 @@ func (s Server) MarkArticle(res http.ResponseWriter, req *http.Request, action M
 			FeedID: feed,
 		}
 
-		if err := s.API.elastic.UserActionMarkItemsRead(req.Context(), item); err != nil {
+		if err := s.API.elastic.UserActionMarkItemsRead(ctx, item); err != nil {
 			logger.Warn("Could not mark item as read.", slog.Any("error", err))
 			return
 		}

@@ -96,28 +96,20 @@ func (c *Client) UserActionMarkItemsRead(ctx context.Context, items ...models.AP
 		return ErrNoUserCtx
 	}
 
+	// Mark all items read in the user object. Any items already marked read are ignored.
 	for _, item := range items {
-		// If there are read items for the feed and if the item is already
-		// marked read, continue.
-		if feed, found := user.ReadItems[item.FeedID]; found {
-			if slices.ContainsFunc(feed, func(readitem models.ReadItem) bool {
-				return readitem.ItemID == item.ItemID
-			}) {
-				continue
-			}
+		if err := user.MarkItemRead(item); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
+			c.Logger.Warn("Could not mark item read", slog.Any("error", err))
 		}
-		// Add a new read item to the user record.
-		user.ReadItems[item.FeedID] = append(user.ReadItems[item.FeedID], models.ReadItem{
-			ItemID:    item.ItemID,
-			CreatedAt: time.Now().UTC(),
-		})
 	}
 
-	req := c.NewDocUpdateRequest(index, user.ID,
-		WithDocUpdate(user.ReadItems, false),
-	)
-
-	resp, err := req.Do(ctx)
+	// Update the user in the store with the new list of read items.
+	resp, err := c.NewDocUpdateRequest(index, user.ID,
+		WithPartialDocUpdate(map[string]any{
+			"read_items": user.ReadItems,
+			"updated_at": time.Now().UTC(),
+		}),
+	).Do(ctx)
 	if err != nil {
 		return errors.Join(ErrUpdateFailed, err)
 	}
