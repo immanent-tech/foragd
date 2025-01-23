@@ -13,7 +13,10 @@ templ HomeLayout(data templ.Component) {
 	<div class="sticky top-0 z-40 max-w-full">
 		@content.AppBarTop()
 	</div>
-	@components.NewDrawer("home-drawer",
+		<!-- Modal for commands -->
+	<div id="command_modal" class="max-w-full"></div>
+
+	@components.NewDrawer("home_drawer",
 		components.WithDrawerVisibility(components.LG),
 		components.WithMainContent(content.DrawerMain(data)),
 		components.WithSideContent(content.DrawerSide()),

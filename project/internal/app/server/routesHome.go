@@ -42,6 +42,7 @@ const (
 // `GET /home/show/{list}`.
 func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowListParamsList, params ShowListParams) {
 	var (
+		page    templ.Component
 		cards   []templ.Component
 		filters models.APISearchFilters
 	)
@@ -53,6 +54,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
 	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
+	ctx = content.IsHtmxToCtx(ctx, htmx.IsHTMX(req))
 
 	if params.Feeds != nil {
 		filters.FeedIDs = *params.Feeds
@@ -117,21 +119,25 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			Count:               filters.Count,
 		})
 
-		for _, feed := range feeds {
-			// Else, generate a feed card for display.
-			card, err := content.NewCard(feed)
-			if err != nil {
-				logger.Warn("Could not render item as card.", slog.Any("error", err))
-				continue
+		if len(feeds) == 0 {
+			page = content.ShowEmptyContent()
+		} else {
+			for _, feed := range feeds {
+				// Else, generate a feed card for display.
+				card, err := content.NewCard(feed)
+				if err != nil {
+					logger.Warn("Could not render item as card.", slog.Any("error", err))
+					continue
+				}
+				// Add the URL for fetching items for this feed.
+				card.Body.AddAttributes(templ.Attributes{
+					"hx-get": showItemsPath + "?feeds=" + feed.GetID(),
+				})
+				// Append to the list of feed cards.
+				cards = append(cards, components.Card(components.FromCardProps(card)))
 			}
-			// Add the URL for fetching items for this feed.
-			card.Body.AddAttributes(templ.Attributes{
-				"hx-get": showItemsPath + "?feeds=" + feed.GetID(),
-			})
-			// Append to the list of feed cards.
-			cards = append(cards, components.Card(components.FromCardProps(card)))
+			page = content.ShowContent(cards...)
 		}
-
 	case ShowListParamsListItems:
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
@@ -152,39 +158,44 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			ChildActionBasePath: showArticlePath,
 		})
 
-		for idx, item := range items {
-			// Create item card properties.
-			card, err := content.NewCard(&item)
-			if err != nil {
-				logger.Warn("Could not render item as card.", slog.Any("error", err))
-				continue
-			}
-			// Generate URL for fetching article for item.
-			get, err := url.JoinPath(showArticlePath, item.GetFeedID(), item.GetID())
-			if err != nil {
-				logger.Warn("Could not render item as card.", slog.Any("error", err))
-				continue
-			}
-			// Add the URL for fetching the item article.
-			card.Body.AddAttributes(templ.Attributes{
-				"hx-get": get,
-			})
-
-			if idx == len(items)-1 && pagination != nil && len(items) == filters.Count {
-				card.AddAttributes(templ.Attributes{
-					"hx-get":       generatePagination(ctx, showItemsPath, pagination),
-					"hx-trigger":   "revealed",
-					"hx-swap":      "afterend",
-					"hx-push-url":  "false",
-					"hx-indicator": "#content-loading",
+		if len(items) == 0 {
+			page = content.ShowEmptyContent()
+		} else {
+			for idx, item := range items {
+				// Create item card properties.
+				card, err := content.NewCard(&item)
+				if err != nil {
+					logger.Warn("Could not render item as card.", slog.Any("error", err))
+					continue
+				}
+				// Generate URL for fetching article for item.
+				get, err := url.JoinPath(showArticlePath, item.GetFeedID(), item.GetID())
+				if err != nil {
+					logger.Warn("Could not render item as card.", slog.Any("error", err))
+					continue
+				}
+				// Add the URL for fetching the item article.
+				card.Body.AddAttributes(templ.Attributes{
+					"hx-get": get,
 				})
+
+				if idx == len(items)-1 && pagination != nil && len(items) == filters.Count {
+					card.AddAttributes(templ.Attributes{
+						"hx-get":       generatePagination(ctx, showItemsPath, pagination),
+						"hx-trigger":   "revealed",
+						"hx-swap":      "afterend",
+						"hx-push-url":  "false",
+						"hx-indicator": "#content-loading",
+					})
+				}
+				// Append to the list of item cards.
+				cards = append(cards, components.Card(components.FromCardProps(card)))
 			}
-			// Append to the list of item cards.
-			cards = append(cards, components.Card(components.FromCardProps(card)))
+			page = content.ShowContent(cards...)
 		}
 	}
 
-	if err := renderHome(ctx, res, req, content.ShowContent(cards...)); err != nil {
+	if err := renderHome(ctx, res, req, page); err != nil {
 		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}

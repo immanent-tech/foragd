@@ -27,6 +27,7 @@ func (s *SubscriptionRequest) generateInputs() {
 			components.HelperDropdown(
 				"Optional. Replace the name of the feed with your own custom nickname.",
 				components.WithOpenFrom[*components.DropdownProps](components.OpenLeft),
+				components.WithOpenOnHover(),
 			),
 		),
 		components.WithID[*components.TextInputProps]("name"),
@@ -43,6 +44,7 @@ func (s *SubscriptionRequest) generateInputs() {
 			components.HelperDropdown(
 				"The URL for the feed.",
 				components.WithOpenFrom[*components.DropdownProps](components.OpenLeft),
+				components.WithOpenOnHover(),
 			),
 		),
 		components.WithID[*components.TextInputProps]("url"),
@@ -62,6 +64,7 @@ func (s *SubscriptionRequest) generateInputs() {
 			components.HelperDropdown(
 				"Optional. A (comma-separated) list of custom categories to group this feed with others.",
 				components.WithOpenFrom[*components.DropdownProps](components.OpenLeft),
+				components.WithOpenOnHover(),
 			),
 		),
 		components.WithID[*components.TextInputProps]("categories"),

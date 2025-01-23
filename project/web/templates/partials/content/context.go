@@ -12,8 +12,7 @@ type contextKey string
 
 const (
 	navigationCtxKey contextKey = "navigation"
-
-	HeaderBacklink = "Gofeedme-Backlink"
+	htmxCtxKey       contextKey = "htmx"
 )
 
 var ErrNotInCtx = errors.New("not found in context")
@@ -41,9 +40,7 @@ type NavigationLinks struct {
 }
 
 func NavigationToCtx(ctx context.Context, nav NavigationLinks) context.Context {
-	newCtx := context.WithValue(ctx, navigationCtxKey, nav)
-
-	return newCtx
+	return context.WithValue(ctx, navigationCtxKey, nav)
 }
 
 func NavigationFromCtx(ctx context.Context) NavigationLinks {
@@ -53,4 +50,17 @@ func NavigationFromCtx(ctx context.Context) NavigationLinks {
 	}
 
 	return nav
+}
+
+func IsHtmxToCtx(ctx context.Context, value bool) context.Context {
+	return context.WithValue(ctx, htmxCtxKey, value)
+}
+
+func IsHtmxFromCtx(ctx context.Context) bool {
+	value, ok := ctx.Value(htmxCtxKey).(bool)
+	if !ok {
+		return false
+	}
+
+	return value
 }
