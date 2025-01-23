@@ -5,6 +5,7 @@ package models
 
 import (
 	"errors"
+	"html"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -15,7 +16,7 @@ import (
 var ErrGetItem = errors.New("could not retrieve item")
 
 func (i *APIItem) GetTitle() string {
-	return i.Title
+	return safePrinter.Sanitize(i.Title)
 }
 
 func (i *APIItem) GetID() string {
@@ -35,11 +36,16 @@ func (i *APIItem) GetImage() *gofeed.Image {
 }
 
 func (i *APIItem) GetCategories() []string {
-	return i.Categories
+	categories := make([]string, len(i.Categories))
+	for idx, category := range i.Categories {
+		categories[idx] = html.UnescapeString(safePrinter.Sanitize(category))
+	}
+
+	return categories
 }
 
 func (i *APIItem) GetContent() string {
-	return i.Description
+	return safePrinter.Sanitize(i.Description)
 }
 
 func (i *APIItem) GetTimestamp() time.Time {

@@ -6,9 +6,11 @@ package models
 import (
 	"context"
 	"errors"
+	"html"
 	"log/slog"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/mmcdole/gofeed"
 
 	"github.com/joshuar/go-feed-me/internal/id"
@@ -55,7 +57,7 @@ func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 }
 
 func (f *APIFeed) GetTitle() string {
-	return f.Title
+	return safePrinter.Sanitize(f.Title)
 }
 
 func (f *APIFeed) GetID() string {
@@ -71,11 +73,17 @@ func (f *APIFeed) GetImage() *gofeed.Image {
 }
 
 func (f *APIFeed) GetCategories() []string {
-	return f.Categories
+	categories := make([]string, len(f.Categories))
+	for idx, category := range f.Categories {
+		categories[idx] = html.UnescapeString(safePrinter.Sanitize(category))
+		spew.Dump(categories[idx])
+	}
+
+	return categories
 }
 
 func (f *APIFeed) GetContent() string {
-	return f.Description
+	return safePrinter.Sanitize(f.Description)
 }
 
 func (f *APIFeed) GetTimestamp() time.Time {
