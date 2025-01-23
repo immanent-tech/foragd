@@ -35,6 +35,10 @@ components:
         gorm: '-'
         form: 'url'
       x-go-type-skip-optional-pointer: true
+    HTMLString:
+      description: is a string that can contain HTML.
+      type: string
+      x-go-type-skip-optional-pointer: true
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
@@ -119,9 +123,9 @@ components:
         - description
       properties:
         title:
-          type: string
+          $ref: '#/components/schemas/HTMLString'
         description:
-          type: string
+          $ref: '#/components/schemas/HTMLString'
         categories:
           $ref: '#/components/schemas/Categories'
         image:

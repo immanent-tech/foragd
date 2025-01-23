@@ -30,18 +30,22 @@ type APIFeed struct {
 	Authors   []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
-	Categories  Categories    `form:"categories[]" json:"categories"`
-	Copyright   string        `json:"copyright,omitempty"`
-	Description string        `json:"description"`
+	Categories Categories `form:"categories[]" json:"categories"`
+	Copyright  string     `json:"copyright,omitempty"`
+
+	// Description is a string that can contain HTML.
+	Description HTMLString    `json:"description"`
 	FeedType    string        `json:"feedType"`
 	FeedVersion string        `json:"feedVersion"`
 	Generator   string        `json:"generator,omitempty"`
 	Image       *gofeed.Image `json:"image,omitempty"`
 	Language    string        `json:"language,omitempty"`
 	Published   time.Time     `json:"publishedParsed"`
-	Title       string        `json:"title"`
-	UnreadCount int           `json:"-"`
-	Updated     time.Time     `json:"updatedParsed"`
+
+	// Title is a string that can contain HTML.
+	Title       HTMLString `json:"title"`
+	UnreadCount int        `json:"-"`
+	Updated     time.Time  `json:"updatedParsed"`
 }
 
 // APIFeedState tracks the state of a feed.
@@ -69,12 +73,16 @@ type APIItem struct {
 	Authors []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
-	Categories  Categories    `form:"categories[]" json:"categories"`
-	Description string        `json:"description"`
+	Categories Categories `form:"categories[]" json:"categories"`
+
+	// Description is a string that can contain HTML.
+	Description HTMLString    `json:"description"`
 	Image       *gofeed.Image `json:"image,omitempty"`
 	Published   time.Time     `json:"publishedParsed"`
-	Title       string        `json:"title"`
-	Updated     time.Time     `json:"updatedParsed"`
+
+	// Title is a string that can contain HTML.
+	Title   HTMLString `json:"title"`
+	Updated time.Time  `json:"updatedParsed"`
 }
 
 // APIReadItem defines model for APIReadItem.
@@ -150,6 +158,9 @@ type FeedJob struct {
 // FeedURL is a URL.
 type FeedURL = string
 
+// HTMLString is a string that can contain HTML.
+type HTMLString = string
+
 // ItemID is the unique ID of an item.
 type ItemID = string
 
@@ -170,12 +181,16 @@ type MetadataFeed struct {
 	Authors []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
-	Categories  Categories    `form:"categories[]" json:"categories"`
-	Description string        `json:"description"`
+	Categories Categories `form:"categories[]" json:"categories"`
+
+	// Description is a string that can contain HTML.
+	Description HTMLString    `json:"description"`
 	Image       *gofeed.Image `json:"image,omitempty"`
 	Published   time.Time     `json:"publishedParsed"`
-	Title       string        `json:"title"`
-	Updated     time.Time     `json:"updatedParsed"`
+
+	// Title is a string that can contain HTML.
+	Title   HTMLString `json:"title"`
+	Updated time.Time  `json:"updatedParsed"`
 }
 
 // ReadItem defines model for ReadItem.
