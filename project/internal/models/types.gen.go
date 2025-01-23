@@ -60,6 +60,21 @@ type APIFeedState struct {
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 }
 
+// APIFilters contains parameters for searching feeds and items
+type APIFilters struct {
+	// Categories is a list of feed/item categories.
+	Categories Categories `form:"categories[]" json:"categories"`
+
+	// Count is the count of items to retrieve with a request.
+	Count   Count    `form:"count" json:"count"`
+	FeedIDs []FeedID `json:"FeedIDs,omitempty"`
+	ItemIDs []ItemID `json:"ItemIDs,omitempty"`
+
+	// Pagination contains details that allow fetching results at a certain point.
+	Pagination []byte `form:"pagination" json:"pagination"`
+	ShowUnread bool   `form:"show_unread" json:"show_unread"`
+}
+
 // APIItem defines model for APIItem.
 type APIItem struct {
 	// FeedID is the unique ID of a feed.
@@ -98,20 +113,6 @@ type APIReadItem struct {
 
 	// UserID is the unique ID of a user.
 	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
-}
-
-// APISearchFilters contains parameters for searching feeds and items
-type APISearchFilters struct {
-	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories[]" json:"categories"`
-
-	// Count is the count of items to retrieve with a request.
-	Count   Count    `form:"count" json:"count"`
-	FeedIDs []FeedID `json:"FeedIDs,omitempty"`
-	ItemIDs []ItemID `json:"ItemIDs,omitempty"`
-
-	// Pagination contains details that allow fetching results at a certain point.
-	Pagination []byte `form:"pagination" json:"pagination"`
 }
 
 // Categories is a list of feed/item categories.

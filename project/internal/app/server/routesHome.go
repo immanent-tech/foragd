@@ -44,7 +44,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 	var (
 		page    templ.Component
 		cards   []templ.Component
-		filters models.APISearchFilters
+		filters models.APIFilters
 	)
 
 	logger := logging.NewHandlerLogger("ShowList", req)
@@ -224,7 +224,7 @@ func renderHome(ctx context.Context, res http.ResponseWriter, req *http.Request,
 // `POST /home/mark/{list}/{action}`.
 func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkListParamsList, action MarkListParamsAction, params MarkListParams) {
 	var (
-		filters     models.APISearchFilters
+		filters     models.APIFilters
 		items       []models.APIItem
 		pagination  []byte
 		err         error
@@ -362,7 +362,7 @@ func (s Server) MarkArticle(res http.ResponseWriter, req *http.Request, action M
 // manipulate the current page.
 func generateActionLink(ctx context.Context, path string) string {
 	var (
-		filters models.APISearchFilters
+		filters models.APIFilters
 		err     error
 	)
 
@@ -392,7 +392,7 @@ func generateActionLink(ctx context.Context, path string) string {
 // generatePagination generates a URL string with an updated pagination value.
 func generatePagination(ctx context.Context, path string, pagination []byte) string {
 	var (
-		filters models.APISearchFilters
+		filters models.APIFilters
 		err     error
 	)
 

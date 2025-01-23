@@ -504,7 +504,7 @@ components:
           x-oapi-codegen-extra-tags:
             json: 'iat'
           x-go-type-skip-optional-pointer: true
-    APISearchFilters:
+    APIFilters:
       description: contains parameters for searching feeds and items
       type: object
       properties:
@@ -531,6 +531,12 @@ components:
           x-go-type-skip-optional-pointer: true
         Count:
           $ref: '#/components/schemas/Count'
+        ShowUnread:
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            json: 'show_unread'
+            form: 'show_unread'
+          x-go-type-skip-optional-pointer: true
     ScheduledJob:
       description: represents a job that has been scheduled by the job scheduler.
       type: object

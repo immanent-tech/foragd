@@ -38,7 +38,7 @@ var sessionManager *scs.SessionManager
 
 func init() {
 	gob.Register(models.Tokens{})
-	gob.Register(models.APISearchFilters{})
+	gob.Register(models.APIFilters{})
 }
 
 func NewSessionManager(store scs.Store) {
@@ -66,38 +66,38 @@ func LoadAndSave() func(next http.Handler) http.Handler {
 	return sessionManager.LoadAndSave
 }
 
-func SaveListFeedsFilters(ctx context.Context, filters models.APISearchFilters) {
+func SaveListFeedsFilters(ctx context.Context, filters models.APIFilters) {
 	sessionManager.Put(ctx, listFeedsFiltersSessionKey, filters)
 }
 
-func LoadListFeedsFilters(ctx context.Context) (models.APISearchFilters, error) {
+func LoadListFeedsFilters(ctx context.Context) (models.APIFilters, error) {
 	data := sessionManager.Get(ctx, listFeedsFiltersSessionKey)
-	filters, ok := data.(models.APISearchFilters)
+	filters, ok := data.(models.APIFilters)
 
 	switch {
 	case data == nil:
-		return models.APISearchFilters{}, ErrDataNotFound
+		return models.APIFilters{}, ErrDataNotFound
 	case ok:
 		return filters, nil
 	default:
-		return models.APISearchFilters{}, ErrInvalidData
+		return models.APIFilters{}, ErrInvalidData
 	}
 }
 
-func SaveListItemsFilters(ctx context.Context, filters models.APISearchFilters) {
+func SaveListItemsFilters(ctx context.Context, filters models.APIFilters) {
 	sessionManager.Put(ctx, listItemsFiltersSessionKey, filters)
 }
 
-func LoadListItemsFilters(ctx context.Context) (models.APISearchFilters, error) {
+func LoadListItemsFilters(ctx context.Context) (models.APIFilters, error) {
 	data := sessionManager.Get(ctx, listItemsFiltersSessionKey)
-	filters, ok := data.(models.APISearchFilters)
+	filters, ok := data.(models.APIFilters)
 
 	switch {
 	case data == nil:
-		return models.APISearchFilters{}, ErrDataNotFound
+		return models.APIFilters{}, ErrDataNotFound
 	case ok:
 		return filters, nil
 	default:
-		return models.APISearchFilters{}, ErrInvalidData
+		return models.APIFilters{}, ErrInvalidData
 	}
 }

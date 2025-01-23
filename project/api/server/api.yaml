@@ -304,6 +304,11 @@ components:
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/Count'
+    Filters:
+      name: filters
+      in: query
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/APIFilters'
   responses:
     htmx:
       description: standard htmx powered response.

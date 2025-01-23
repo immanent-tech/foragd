@@ -164,7 +164,7 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearchFilters) ([]models.APIItem, []byte, error) {
+func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilters) ([]models.APIItem, []byte, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -214,7 +214,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APISearc
 
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APISearchFilters) ([]*models.APIFeed, error) {
+func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilters) ([]*models.APIFeed, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed

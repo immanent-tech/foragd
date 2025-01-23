@@ -38,7 +38,7 @@ type UserData struct {
 
 // GenerateURL generates a new URL using the basePath provided with any non-zero
 // filters.
-func (f APISearchFilters) GenerateURL(basePath string) (*url.URL, error) {
+func (f APIFilters) GenerateURL(basePath string) (*url.URL, error) {
 	newURL, err := url.Parse(basePath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot generate URL: %w", err)

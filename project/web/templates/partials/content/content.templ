@@ -115,13 +115,13 @@ templ ShowArticle(item *models.APIItem) {
 // ShowCards displays a list of the given cards.
 templ ShowContent(cards ...templ.Component) {
 	// Update content header with oob swap.
-	@ContentHeader()
+	// @ContentHeader()
 	// Show cards.
 	for _, card := range cards {
 		@card
 	}
 	// Update content footer with oob swap.
-	@ContentFooter()
+	// @ContentFooter()
 }
 
 templ ShowEmptyContent() {
