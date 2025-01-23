@@ -1,15 +1,11 @@
 {
   "dockerComposeFile": "docker-compose.yml",
   "service": "devcontainer",
-  "postCreateCommand": ".devcontainer/postcreate.sh",
+  "postCreateCommand": "bash .devcontainer/postcreate.sh",
   "containerUser": "vscode",
-  "remoteUser": "vscode",
   "containerEnv": {
     "TZ": "${localEnv:TZ:Australia/Brisbane}",
-    "DISPLAY": ":0",
-    "XAUTHORITY": "/tmp/.Xauthority",
-    "HOME": "/home/vscode",
-    "DEVCONTAINER": "true"
+    "HOME": "/home/vscode"
   },
   "updateRemoteUserUID": true,
   "workspaceFolder": "/workspace",
@@ -34,7 +30,7 @@
         "a-h.templ",
         "bradlc.vscode-tailwindcss",
         "yzhang.markdown-all-in-one",
-        "DavidAnson.vscode-markdownlint",
+        "DavidAnson.vscode-markdownlint"
       ]
     }
   }

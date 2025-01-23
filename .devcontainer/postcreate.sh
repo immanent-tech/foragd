@@ -12,6 +12,8 @@ cd /workspace/project
 # Install parceljs.
 npm install --save-dev parcel || exit -1
 
+go mod tidy
+
 # Install latest templ command.
 go install github.com/a-h/templ/cmd/templ@latest
 # Install latest air command.
