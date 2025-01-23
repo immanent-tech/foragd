@@ -23,7 +23,7 @@ func (s *SubscriptionRequest) generateInputs() {
 	s.InputName = components.BuildTextInput(
 		components.WithFormControl(),
 		components.WithInsideLabels(
-			components.PlainText("Nickname"),
+			components.Text("Nickname"),
 			components.HelperDropdown(
 				"Optional. Replace the name of the feed with your own custom nickname.",
 				components.WithOpenFrom[*components.DropdownProps](components.OpenLeft),
@@ -40,7 +40,7 @@ func (s *SubscriptionRequest) generateInputs() {
 	s.InputURL = components.BuildTextInput(
 		components.WithFormControl(),
 		components.WithInsideLabels(
-			components.PlainText("URL"),
+			components.Text("URL"),
 			components.HelperDropdown(
 				"The URL for the feed.",
 				components.WithOpenFrom[*components.DropdownProps](components.OpenLeft),
@@ -60,7 +60,7 @@ func (s *SubscriptionRequest) generateInputs() {
 	s.InputCategories = components.BuildTextInput(
 		components.WithFormControl(),
 		components.WithInsideLabels(
-			components.PlainText("Categories"),
+			components.Text("Categories"),
 			components.HelperDropdown(
 				"Optional. A (comma-separated) list of custom categories to group this feed with others.",
 				components.WithOpenFrom[*components.DropdownProps](components.OpenLeft),

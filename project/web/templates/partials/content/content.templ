@@ -6,13 +6,14 @@ package content
 import (
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-templ-daisyui"
+	"strconv"
 )
 
 templ ContentHeader() {
 	<div
 		id="content-header"
 		hx-swap-oob="true"
-		class="bg-base-300 sticky top-0 z-40 max-w-full"
+		class="bg-base-300 sticky top-0 max-w-full"
 	>
 		@components.NewMenu(
 			components.WithLayout[*components.Menu](components.HorizontalLayout),
@@ -30,7 +31,7 @@ templ ContentFooter() {
 	<div
 		id="content-footer"
 		hx-swap-oob="true"
-		class="bg-base-300 sticky z-30 bottom-0 py-12 max-w-full"
+		class="bg-base-300 sticky bottom-0 py-12 max-w-full"
 	>
 		<h1 class="text-center text-xl">Footer</h1>
 	</div>
@@ -41,7 +42,7 @@ templ DrawerMain(data templ.Component) {
 	<div id="content" class="flex flex-col">
 		// @ContentHeader()
 		if !IsHtmxFromCtx(ctx) {
-			<div id="content-header" class="bg-base-300 sticky top-0 z-30 max-w-full" hx-swap-oob="true"></div>
+			<div id="content-header" class="bg-base-300 sticky top-0 max-w-full" hx-swap-oob="true"></div>
 		}
 		<div id="content-main" class="gap-4 justify-center items-center max-w-prose">
 			@data
@@ -58,14 +59,14 @@ templ DrawerMain(data templ.Component) {
 				id="content-footer"
 				hx-swap-oob="true"
 				class="bg-base-300 sticky
-		z-30 bottom-0 max-w-full"
+		bottom-0 max-w-full"
 			></div>
 		}
 	</div>
 }
 
 templ DrawerSide() {
-	<div class="bg-base-200">
+	<div class="bg-base-200 min-w-32 min-h-full z-50">
 		@components.Button(
 			components.WithID[*components.ButtonProps]("add"),
 			components.WithColor[*components.ButtonProps](components.ColorGhost, false),
@@ -143,33 +144,14 @@ templ ShowEmptyContent() {
 }
 
 templ FeedCard(feed Feed) {
-	@components.Article() {
-		<h4>{ feed.GetTitle() }</h4>
-		if len(feed.GetCategories()) > 0 {
-			<p>
-				for _, c := range feed.GetCategories() {
-					@components.Badge(
-						components.WithBadgeDescription(c),
-						components.WithResponsiveSize[*components.BadgeProps](components.SM),
-						components.WithColor[*components.BadgeProps](components.ColorGhost,
-							false))
-				}
-			</p>
-		}
-		<p class="text-sm justify-end">
-			{ RelativeTime(feed.GetTimestamp()) }
-		</p>
-		<p>
-			@templ.Raw(feed.GetContent())
-		</p>
-	}
-}
-
-templ ItemCard(item Item) {
-	@components.Article() {
-		<h4>{ item.GetTitle() }</h4>
-		<p class="text-sm justify-end">
-			{ RelativeTime(item.GetTimestamp()) }
-		</p>
-	}
+	@components.Text(
+		feed.GetTitle(),
+		components.WithTextSize(components.TextLG),
+		components.WithTextWeight(components.TextSemibold),
+	)
+	@components.Badge(
+		components.WithColor[*components.BadgeProps](components.ColorPrimary, false),
+		components.WithBadgeDescription(strconv.Itoa(feed.GetUnreadCount())),
+	)
+	@templ.Raw(feed.GetContent())
 }

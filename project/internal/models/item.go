@@ -16,7 +16,7 @@ import (
 var ErrGetItem = errors.New("could not retrieve item")
 
 func (i *APIItem) GetTitle() string {
-	return safePrinter.Sanitize(i.Title)
+	return html.UnescapeString(safePrinter.Sanitize(i.Title))
 }
 
 func (i *APIItem) GetID() string {

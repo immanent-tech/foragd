@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/dustin/go-humanize"
 	components "github.com/joshuar/go-templ-daisyui"
 	"github.com/mmcdole/gofeed"
 )
@@ -19,7 +18,7 @@ const (
 )
 
 func RelativeTime(timestamp time.Time) string {
-	return humanize.Time(timestamp)
+	return timestamp.Format("Mon Jan 2 15:04")
 }
 
 type Feed interface {
@@ -48,9 +47,10 @@ type Content interface {
 }
 
 type cardCustomisation struct {
-	title   components.Option[*components.CardProps]
-	buttons []templ.Component
-	content templ.Component
+	title     components.Option[*components.CardProps]
+	actions   []templ.Component
+	content   templ.Component
+	updatedAt string
 }
 
 func NewCard(item any) (*components.CardProps, error) {
@@ -71,31 +71,9 @@ func NewCard(item any) (*components.CardProps, error) {
 		customisation = feedCustomisation(details)
 	}
 
-	// Create the base CardProps with the defined options.
-	cardProps := components.BuildCard(
-		// customisation.title,
-		components.WithBorder(),
-		components.WithCardLayout(components.CardLayoutSide),
-		components.WithCardShadow(components.XL),
-		components.WithID[*components.CardProps](summary.GetID()),
-		components.WithTopRightActions(withMenu(customisation.buttons...)...),
-		components.WithBody(customisation.content, templ.Attributes{
-			"hx-target":   "#" + ContentTarget,
-			"hx-push-url": "true",
-		}),
-	)
-
-	// If there is an image, show it.
-	if img := summary.GetImage(); img != nil {
-		cardProps = components.WithImage(img.URL,
-			components.WithAltText(img.Title),
-			components.WithMask[*components.ImageProps](components.MaskSquircle),
-		)(cardProps)
-	}
-
+	var categories []templ.Component
 	// If there are categories, show them.
 	if len(summary.GetCategories()) > 0 {
-		var categories []templ.Component
 		for _, c := range summary.GetCategories() {
 			categories = append(categories,
 				components.Badge(
@@ -104,8 +82,37 @@ func NewCard(item any) (*components.CardProps, error) {
 					components.WithColor[*components.BadgeProps](components.ColorAccent, true)),
 			)
 		}
+	}
 
-		cardProps.Badges = categories
+	// Create the base CardProps with the defined options.
+	cardProps := components.BuildCard(
+		// customisation.title,
+		components.WithBorder(),
+		components.WithCardLayout(components.CardLayoutSide),
+		components.WithCardShadow(components.XL),
+		components.WithCompactCardBody(),
+		components.WithID[*components.CardProps](summary.GetID()),
+		components.WithBody(customisation.content,
+			components.WithTopRightActions(withMenu(customisation.actions...)...),
+			components.WithBottomLeftActions(components.Text(
+				customisation.updatedAt,
+				components.AsItalicText(),
+				components.WithTextSize(components.TextSM))),
+			components.WithBottomRightActions(categories...),
+			components.WithAttributes[*components.CardBodyProps](templ.Attributes{
+				"hx-target":   "#" + ContentTarget,
+				"hx-push-url": "true",
+			}),
+		),
+	)
+
+	// If there is an image, show it.
+	if img := summary.GetImage(); img != nil {
+		cardProps = components.WithImage(img.URL,
+			components.ImageTop,
+			components.WithAltText(img.Title),
+			components.WithMask[*components.ImageProps](components.MaskSquircle),
+		)(cardProps)
 	}
 
 	return cardProps, nil
@@ -141,12 +148,16 @@ func itemCustomisation(item Item) *cardCustomisation {
 		title: components.WithTitle(
 			item.GetTitle(),
 			components.H4),
-		buttons: []templ.Component{
+		actions: []templ.Component{
 			buttonToggleItem(item.GetFeedID(), item.GetID()),
 			buttonSaveItem(item.GetFeedID(), item.GetID()),
 			buttonShareItem(item.GetFeedID(), item.GetID()),
 		},
-		content: ItemCard(item),
+		content: components.Text(
+			item.GetTitle(),
+			components.WithTextSize(components.TextLG),
+			components.WithTextWeight(components.TextSemibold)),
+		updatedAt: "Published: " + RelativeTime(item.GetTimestamp()),
 	}
 }
 
@@ -160,9 +171,10 @@ func feedCustomisation(feed Feed) *cardCustomisation {
 				components.WithBadgeDescription(strconv.Itoa(feed.GetUnreadCount())),
 			)),
 		content: FeedCard(feed),
-		buttons: []templ.Component{
+		actions: []templ.Component{
 			buttonToggleItem(feed.GetID(), ""),
 			buttonShareItem(feed.GetID(), ""),
 		},
+		updatedAt: "Last Update: " + RelativeTime(feed.GetTimestamp()),
 	}
 }

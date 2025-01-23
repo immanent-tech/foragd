@@ -9,16 +9,13 @@ import (
 )
 
 templ HomeLayout(data templ.Component) {
-	<!-- Header -->
 	<div class="sticky top-0 z-40 max-w-full">
 		@content.AppBarTop()
 	</div>
-	<!-- Modal for commands -->
 	<div id="command_modal" class="max-w-full"></div>
 	@components.NewDrawer("home_drawer",
 		components.WithDrawerVisibility(components.LG),
 		components.WithMainContent(content.DrawerMain(data)),
 		components.WithSideContent(content.DrawerSide()),
-		components.WithZIndex[*components.DrawerProps](components.Z50, false),
 	).Show()
 }
