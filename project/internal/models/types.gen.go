@@ -16,12 +16,18 @@ import (
 
 // APIFeed defines model for APIFeed.
 type APIFeed struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt *CreatedAt `json:"created_at,omitempty"`
+
 	// ID is the unique ID of a feed.
 	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
 
 	// URL is a URL.
-	URL     string           `json:"feedLink" validate:"required,url"`
-	Authors []*gofeed.Person `json:"authors,omitempty"`
+	URL FeedURL `json:"feedLink" validate:"required,url"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt *UpdatedAt       `json:"updated_at,omitempty"`
+	Authors   []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
 	Categories  Categories    `form:"categories[]" json:"categories"`
@@ -38,6 +44,18 @@ type APIFeed struct {
 	Updated     time.Time     `json:"updatedParsed"`
 }
 
+// APIFeedState tracks the state of a feed.
+type APIFeedState struct {
+	// ID is the unique ID of a feed.
+	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+
+	// URL is a URL.
+	URL FeedURL `json:"feedLink" validate:"required,url"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
+}
+
 // APIItem defines model for APIItem.
 type APIItem struct {
 	// FeedID is the unique ID of a feed.
@@ -47,7 +65,7 @@ type APIItem struct {
 	ID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
 
 	// URL is a URL.
-	URL     string           `json:"link" validate:"required,url"`
+	URL     ItemURL          `json:"link" validate:"required,url"`
 	Authors []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
@@ -129,17 +147,14 @@ type FeedJob struct {
 	URL URL `form:"url" gorm:"-" json:"url" validate:"required,url"`
 }
 
-// FeedJobState tracks the state of the feed job.
-type FeedJobState struct {
-	// ID is the unique ID of a feed.
-	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
-
-	// LastFetched indicates when the feed was last fetched from its source.
-	LastFetched time.Time `json:"last_fetched"`
-}
+// FeedURL is a URL.
+type FeedURL = string
 
 // ItemID is the unique ID of an item.
 type ItemID = string
+
+// ItemURL is a URL.
+type ItemURL = string
 
 // MetadataDB contains common (metadata) fields for database objects.
 type MetadataDB struct {

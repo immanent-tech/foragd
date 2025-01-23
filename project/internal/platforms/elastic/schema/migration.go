@@ -163,33 +163,10 @@ func migrateFeedItems(ctx context.Context, client client) error {
 func migrateScheduler(ctx context.Context, client client) error {
 	logging.FromContext(ctx).Debug("Migrating feed items...")
 
-	// scheduler state indicies
-
-	if err := client.PutComponentTemplate(ctx, SchedulerStateMappings, ComponentTemplateSchedulerStateMappings()); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-
-	if err := client.PutComponentTemplate(ctx, SchedulerStateSettings, ComponentTemplateSchedulerStateSettings()); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-
-	if err := client.PutIndexTemplate(ctx, SchedulerStatePrefix, IndexTemplateSchedulerState()); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-
-	schedulerStateIndex := SchedulerStatePrefix + "_" + config.Environment()
-	// Check that a job queue index exists.
-	found, err := client.IndexExists(ctx, schedulerStateIndex)
-	if err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-	// Create a job queue index if not found.
-	if !found {
-		_, err = client.NewIndexRequest(schedulerStateIndex).Do(ctx)
-		if err != nil {
-			return errors.Join(ErrMigrationFailed, err)
-		}
-	}
+	var (
+		err   error
+		found bool
+	)
 
 	// scheduler jobs indicies
 

@@ -53,7 +53,6 @@ func Run(ctx context.Context) error {
 	}
 
 	ctx = models.FeedManagementAPIToCtx(ctx, esClient)
-	ctx = elastic.JobsIndexToCtx(ctx, schema.SchedulerStatePrefix)
 	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
 	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 

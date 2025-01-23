@@ -14,6 +14,7 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/joshuar/go-feed-me/internal/id"
+	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
 const (
@@ -99,12 +100,17 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
 
-	slog.Debug("Checking for feed updates.",
+	if state.UpdatedAt == nil {
+		updated := time.Time{}
+		state.UpdatedAt = &updated
+	}
+
+	logging.FromContext(ctx).Debug("Checking for feed updates.",
 		slog.String("feed_id", job.ID),
-		slog.Time("since", state.LastFetched))
+		slog.Time("since", *state.UpdatedAt))
 
 	// Get new items since the last fetch.
-	items, err := job.getItemsSince(state.LastFetched)
+	items, err := job.getItemsSince(*state.UpdatedAt)
 	if err != nil {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
@@ -113,7 +119,13 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
 
-	if err := api.UpdateFeedJobState(ctx, job.ID, time.Now().UTC()); err != nil {
+	updated := time.Now().UTC()
+	update := &APIFeedState{
+		ID:        job.ID,
+		UpdatedAt: &updated,
+	}
+
+	if err := api.UpdateFeedJobState(ctx, update); err != nil {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
 

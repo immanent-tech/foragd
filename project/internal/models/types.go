@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
-	"time"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -18,18 +17,18 @@ var ErrInvalidID = errors.New("error generating unique ID")
 // Feed represents a feed. It embeds the gofeed.Feed object and adds additional
 // fields required.
 type Feed struct {
-	CreatedAt time.Time `json:"@timestamp" validate:"required"`
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 	*gofeed.Feed
-	ID string `json:"feed_id" validate:"required"`
+	ID FeedID `json:"feed_id" validate:"required"`
 }
 
 // Item represents an item of a feed. It embeds the gofeed.Item object and adds additional
 // fields required.
 type Item struct {
-	CreatedAt time.Time `json:"@timestamp" validate:"required"`
+	CreatedAt CreatedAt `json:"@timestamp" validate:"required"`
 	*gofeed.Item
-	ID     string `json:"item_id"`
-	FeedID string `json:"feed_id"`
+	ID     ItemID `json:"item_id"`
+	FeedID FeedID `json:"feed_id"`
 }
 
 type UserData struct {

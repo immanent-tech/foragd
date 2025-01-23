@@ -5,7 +5,6 @@ package models
 
 import (
 	"context"
-	"time"
 )
 
 // AuthAPI contains methods for handling auth requests.
@@ -31,8 +30,8 @@ type UserManagementAPI interface {
 }
 
 type FeedJobStateAPI interface {
-	GetFeedJobState(ctx context.Context, feedID FeedID) (FeedJobState, error)
-	UpdateFeedJobState(ctx context.Context, feedID FeedID, lastFetched time.Time) error
+	GetFeedJobState(ctx context.Context, feedID FeedID) (*APIFeedState, error)
+	UpdateFeedJobState(ctx context.Context, state *APIFeedState) error
 }
 
 // FeedManagementAPI contains methods for feed/item management.

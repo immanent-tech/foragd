@@ -79,15 +79,11 @@ func (f *APIFeed) GetContent() string {
 }
 
 func (f *APIFeed) GetTimestamp() time.Time {
-	var itemTime time.Time
-
-	if !f.Published.IsZero() {
-		itemTime = f.Published
-	} else {
-		itemTime = f.Updated
+	if f.UpdatedAt != nil {
+		return *f.UpdatedAt
 	}
 
-	return itemTime
+	return time.Time{}
 }
 
 func (f *APIFeed) GetUnreadCount() int {

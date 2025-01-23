@@ -3,6 +3,7 @@
 
 components:
   schemas:
+    # Common Fields.
     Timestamp:
       description: is when the document was created.
       x-go-type: 'time.Time'
@@ -25,6 +26,90 @@ components:
       x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
         json: 'deleted_at,omitempty'
+    URL: &URL
+      description: is a URL.
+      type: string
+      x-oapi-codegen-extra-tags:
+        json: 'url'
+        validate: 'required,url'
+        gorm: '-'
+        form: 'url'
+      x-go-type-skip-optional-pointer: true
+    SubscriptionID:
+      description: is the unique ID of a subscription.
+      type: string
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        json: 'subscription_id'
+        gorm: 'primaryKey'
+      x-go-type-skip-optional-pointer: true
+    FeedID:
+      description: is the unique ID of a feed.
+      type: string
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        json: 'feed_id'
+        gorm: 'primaryKey'
+      x-go-type-skip-optional-pointer: true
+    FeedURL:
+      <<: *URL
+      x-oapi-codegen-extra-tags:
+        json: 'feedLink'
+        validate: 'required,url'
+    ItemID:
+      description: is the unique ID of an item.
+      type: string
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        json: 'item_id'
+        gorm: 'primaryKey'
+      x-go-type-skip-optional-pointer: true
+    ItemURL:
+      <<: *URL
+      x-oapi-codegen-extra-tags:
+        json: 'link'
+        validate: 'required,url'
+    UserID:
+      description: is the unique ID of a user.
+      type: string
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        json: 'user_id'
+        gorm: 'primaryKey'
+      x-go-type-skip-optional-pointer: true
+    SchedulerID:
+      description: is the unique ID of a job scheduler instance.
+      type: string
+      x-oapi-codegen-extra-tags:
+        json: 'scheduler_id'
+      x-go-type-skip-optional-pointer: true
+    Category:
+      description: is a single feed/item category.
+      type: string
+      x-oapi-codegen-extra-tags:
+        validate: 'required'
+        json: 'category'
+      x-go-type-skip-optional-pointer: true
+    Categories:
+      description: is a list of feed/item categories.
+      type: array
+      items:
+        $ref: '#/components/schemas/Category'
+      x-oapi-codegen-extra-tags:
+        json: 'categories'
+        form: 'categories[]'
+      x-go-type-skip-optional-pointer: true
+    Count:
+      description: >
+        is the count of items to retrieve with a request.
+      type: integer
+      minimum: 1
+      maximum: 50
+      default: 10
+      x-go-type-skip-optional-pointer: true
+      x-oapi-codegen-extra-tags:
+        json: 'count'
+        form: 'count'
     # Metadata Objects.
     MetadataFeed:
       description: contains common/metadata fields for feeds and items.
@@ -69,69 +154,7 @@ components:
           $ref: '#/components/schemas/CreatedAt'
         UpdatedAt:
           $ref: '#/components/schemas/UpdatedAt'
-    SubscriptionID:
-      description: is the unique ID of a subscription.
-      type: string
-      x-oapi-codegen-extra-tags:
-        validate: 'required'
-        json: 'subscription_id'
-        gorm: 'primaryKey'
-      x-go-type-skip-optional-pointer: true
-    FeedID:
-      description: is the unique ID of a feed.
-      type: string
-      x-oapi-codegen-extra-tags:
-        validate: 'required'
-        json: 'feed_id'
-        gorm: 'primaryKey'
-      x-go-type-skip-optional-pointer: true
-    ItemID:
-      description: is the unique ID of an item.
-      type: string
-      x-oapi-codegen-extra-tags:
-        validate: 'required'
-        json: 'item_id'
-        gorm: 'primaryKey'
-      x-go-type-skip-optional-pointer: true
-    UserID:
-      description: is the unique ID of a user.
-      type: string
-      x-oapi-codegen-extra-tags:
-        validate: 'required'
-        json: 'user_id'
-        gorm: 'primaryKey'
-      x-go-type-skip-optional-pointer: true
-    SchedulerID:
-      description: is the unique ID of a job scheduler instance.
-      type: string
-      x-oapi-codegen-extra-tags:
-        json: 'scheduler_id'
-      x-go-type-skip-optional-pointer: true
-    URL: &URL
-      description: is a URL.
-      type: string
-      x-oapi-codegen-extra-tags:
-        json: 'url'
-        validate: 'required,url'
-        gorm: '-'
-        form: 'url'
-      x-go-type-skip-optional-pointer: true
-    Category:
-      description: is a single feed/item category.
-      type: string
-      x-oapi-codegen-extra-tags:
-        validate: 'required'
-        json: 'category'
-      x-go-type-skip-optional-pointer: true
-    Categories:
-      description: is a list of feed/item categories.
-      type: array
-      items:
-        $ref: '#/components/schemas/Category'
-      x-oapi-codegen-extra-tags:
-        json: 'categories'
-        form: 'categories[]'
-      x-go-type-skip-optional-pointer: true
+    # Objects.
     ReadItem:
       description: represents an item (e.g., an individual feed item) that has been read.
       type: object
@@ -223,18 +246,6 @@ components:
             form: '-'
             json: '-'
           x-go-type-skip-optional-pointer: true
-    Count:
-      description: >
-        is the count of items to retrieve with a request.
-      type: integer
-      minimum: 1
-      maximum: 50
-      default: 10
-      x-go-type-skip-optional-pointer: true
-      x-oapi-codegen-extra-tags:
-        json: 'count'
-        form: 'count'
-    # Objects.
     User:
       description: is a user of the application.
       type: object
@@ -335,15 +346,13 @@ components:
         - ID
       allOf:
         - $ref: '#/components/schemas/MetadataFeed'
+        - $ref: '#/components/schemas/MetadataDB'
         - type: object
           properties:
             ID:
               $ref: '#/components/schemas/FeedID'
             URL:
-              <<: *URL
-              x-oapi-codegen-extra-tags:
-                json: 'feedLink'
-                validate: 'required,url'
+              $ref: '#/components/schemas/FeedURL'
             language:
               type: string
               x-go-type-skip-optional-pointer: true
@@ -368,6 +377,19 @@ components:
               x-oapi-codegen-extra-tags:
                 json: '-'
               x-go-type-skip-optional-pointer: true
+    APIFeedState:
+      description: tracks the state of a feed.
+      type: object
+      required:
+        - ID
+        - URL
+      properties:
+        ID:
+          $ref: '#/components/schemas/FeedID'
+        URL:
+          $ref: '#/components/schemas/FeedURL'
+        UpdatedAt:
+          $ref: '#/components/schemas/UpdatedAt'
     APIItem:
       description: represents an individual item (e.g., an individual feed item).
       type: object
@@ -381,16 +403,16 @@ components:
       allOf:
         - $ref: '#/components/schemas/MetadataFeed'
         - type: object
+          required:
+            - ID
+            - FeedID
           properties:
             ID:
               $ref: '#/components/schemas/ItemID'
             FeedID:
               $ref: '#/components/schemas/FeedID'
             URL:
-              <<: *URL
-              x-oapi-codegen-extra-tags:
-                json: 'link'
-                validate: 'required,url'
+              $ref: '#/components/schemas/ItemURL'
     APIReadItem:
       description: >
         represents an item (e.g., an individual feed item) that has
@@ -554,18 +576,6 @@ components:
           $ref: '#/components/schemas/FeedID'
         URL:
           $ref: '#/components/schemas/URL'
-    FeedJobState:
-      description: tracks the state of the feed job.
-      type: object
-      properties:
-        ID:
-          $ref: '#/components/schemas/FeedID'
-        LastFetched:
-          description: indicates when the feed was last fetched from its source.
-          x-go-type: time.Time
-          x-oapi-codegen-extra-tags:
-            json: 'last_fetched'
-          x-go-type-skip-optional-pointer: true
     UserSession:
       description: tracks a user session.
       type: object
@@ -589,6 +599,3 @@ components:
           x-go-type: time.Time
           x-oapi-codegen-extra-tags:
             json: 'expiry'
-
-
-

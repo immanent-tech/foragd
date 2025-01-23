@@ -18,23 +18,20 @@ const (
 	FeedItemsSchemaPrefix = "feeditems"
 	UsersSchemaPrefix     = "users"
 	SchedulerJobsPrefix   = "scheduler_jobs"
-	SchedulerStatePrefix  = "scheduler_state"
 	SessionsPrefix        = "sessions"
 
 	IngestPipelineID = "gofeed"
 
-	FeedsMappings          = FeedsSchemaPrefix + MappingsSuffix
-	FeedsSettings          = FeedsSchemaPrefix + SettingsSuffix
-	FeedsItemsMappings     = FeedItemsSchemaPrefix + MappingsSuffix
-	FeedsItemsSettings     = FeedItemsSchemaPrefix + SettingsSuffix
-	UsersMappings          = UsersSchemaPrefix + MappingsSuffix
-	UsersSettings          = UsersSchemaPrefix + SettingsSuffix
-	SchedulerJobsMappings  = SchedulerJobsPrefix + MappingsSuffix
-	SchedulerJobsSettings  = SchedulerJobsPrefix + SettingsSuffix
-	SchedulerStateMappings = SchedulerStatePrefix + MappingsSuffix
-	SchedulerStateSettings = SchedulerStatePrefix + SettingsSuffix
-	SessionsMappings       = SessionsPrefix + MappingsSuffix
-	SessionsSettings       = SessionsPrefix + SettingsSuffix
+	FeedsMappings         = FeedsSchemaPrefix + MappingsSuffix
+	FeedsSettings         = FeedsSchemaPrefix + SettingsSuffix
+	FeedsItemsMappings    = FeedItemsSchemaPrefix + MappingsSuffix
+	FeedsItemsSettings    = FeedItemsSchemaPrefix + SettingsSuffix
+	UsersMappings         = UsersSchemaPrefix + MappingsSuffix
+	UsersSettings         = UsersSchemaPrefix + SettingsSuffix
+	SchedulerJobsMappings = SchedulerJobsPrefix + MappingsSuffix
+	SchedulerJobsSettings = SchedulerJobsPrefix + SettingsSuffix
+	SessionsMappings      = SessionsPrefix + MappingsSuffix
+	SessionsSettings      = SessionsPrefix + SettingsSuffix
 
 	schemaVersion = "v0.0.0"
 )
@@ -134,45 +131,6 @@ func IndexTemplateSchedulerJobs() *putindextemplate.Request {
 	)
 }
 
-// ComponentTemplateSchedulerStateMappings: component template for scheduler
-// state datastream indicies field mappings.
-func ComponentTemplateSchedulerStateMappings() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithMappings(
-					NewPropertyMapping(
-						WithoutDynamicMapping(),
-						WithKeywordProperty("feed_id"),
-						WithDateNanosProperty("last_fetched"),
-					),
-				),
-			),
-		),
-	)
-}
-
-// ComponentTemplateSchedulerStateSettings: component template for scheduler
-// state datastream indicies settings.
-func ComponentTemplateSchedulerStateSettings() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithAliases(SchedulerStatePrefix, types.Alias{}),
-			),
-		),
-	)
-}
-
-// IndexTemplateSchedulerState: index template for scheduler state datastream indices.
-func IndexTemplateSchedulerState() *putindextemplate.Request {
-	return NewIndexTemplateRequest(
-		WithIndexPatterns(SchedulerStatePrefix+"_*"),
-		WithComponentTemplates(SchedulerStateMappings, SchedulerStateSettings),
-		WithPriority(500),
-	)
-}
-
 //
 // USERS
 //
@@ -240,9 +198,9 @@ func ComponentTemplateFeedsMappings() *putcomponenttemplate.Request {
 				WithMappings(
 					NewPropertyMapping(
 						WithoutDynamicMapping(),
-						WithDateNanosProperty("@timestamp"),
 						WithKeywordProperty("feed_id"),
 						WithDateNanosProperty("created_at"),
+						WithDateNanosProperty("updated_at"),
 						WithTextAndKeywordProperty("title"),
 						WithTextProperty("description"),
 						WithTextProperty("content"),
