@@ -248,15 +248,11 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 	// Fetch the unread items with the given filters. Paginate through the
 	// results, collecting into unreadItems.
 	for {
-		if pagination != nil {
-			filters.Pagination = pagination
-		}
-
 		items, pagination, err = s.API.elastic.UserActionGetItems(getItemsCtx, filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
-
+		// Stop if there are no hits
 		if len(items) == 0 {
 			break
 		}
@@ -266,6 +262,14 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 				ItemID: item.ID,
 				FeedID: item.FeedID,
 			})
+		}
+
+		// Update pagination value.
+		filters.Pagination = pagination
+
+		// Stop if the number of hits is less than the search size (i.e., last set of hits).
+		if len(items) < filters.Count {
+			break
 		}
 	}
 
