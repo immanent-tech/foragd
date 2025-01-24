@@ -8,13 +8,13 @@ import (
 )
 
 func StoreState(ctx context.Context, state string) error {
-	sessionManager.Put(ctx, stateSessionKey, state)
+	session.Put(ctx, stateSessionKey, state)
 
 	return nil
 }
 
 func GetState(ctx context.Context) (string, error) {
-	data := sessionManager.Get(ctx, stateSessionKey)
+	data := session.Get(ctx, stateSessionKey)
 	preferences, ok := data.(string)
 
 	switch {

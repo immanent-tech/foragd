@@ -5,19 +5,18 @@ package layouts
 
 import (
 	"github.com/joshuar/go-feed-me/web/templates/layouts/partials"
-	"github.com/joshuar/go-feed-me/web/templates/panes"
 	"github.com/joshuar/go-templ-daisyui"
 )
 
-templ HomeLayout(data templ.Component) {
+templ HomeLayout(content, drawer templ.Component) {
 	<div class="sticky top-0 z-40 max-w-full">
 		@partials.AppBarTop()
 	</div>
 	<div id="command_modal" class="max-w-full"></div>
 	@components.Drawer("home_drawer",
 		components.WithDrawerVisibility(components.LG),
-		components.WithMainContent(DrawerMain(data)),
-		components.WithSideContent(panes.Drawer()),
+		components.WithMainContent(content),
+		components.WithSideContent(drawer),
 	)
 	@components.Loading(components.LoadingBars,
 		components.WithID[*components.LoadingProps]("content-loading"),
@@ -25,13 +24,4 @@ templ HomeLayout(data templ.Component) {
 		components.WithColor[*components.LoadingProps](components.ColorGhost,
 			false),
 		components.WithResponsiveSize[*components.LoadingProps](components.LG))
-}
-
-templ DrawerMain(data templ.Component) {
-	<!-- Content -->
-	@panes.Header()
-	<div id="content" class="flex flex-col">
-		@data
-	</div>
-	@panes.Footer()
 }

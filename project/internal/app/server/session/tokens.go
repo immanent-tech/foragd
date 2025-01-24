@@ -22,13 +22,13 @@ func StoreTokens(ctx context.Context, idToken *oidc.IDToken, accessToken string)
 		return fmt.Errorf("cannot store tokens: %w", err)
 	}
 
-	sessionManager.Put(ctx, profileSessionKey, tokens)
+	session.Put(ctx, profileSessionKey, tokens)
 
 	return nil
 }
 
 func GetTokens(ctx context.Context) (*models.Tokens, error) {
-	data := sessionManager.Get(ctx, profileSessionKey)
+	data := session.Get(ctx, profileSessionKey)
 	tokens, ok := data.(models.Tokens)
 
 	switch {

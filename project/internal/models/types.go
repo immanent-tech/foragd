@@ -36,15 +36,8 @@ type UserData struct {
 	*User
 }
 
-// GenerateURL generates a new URL using the basePath provided with any non-zero
-// filters.
-func (f APIFilters) GenerateURL(basePath string) (*url.URL, error) {
-	newURL, err := url.Parse(basePath)
-	if err != nil {
-		return nil, fmt.Errorf("cannot generate URL: %w", err)
-	}
-
-	params := newURL.Query()
+func (f APIFilters) String() string {
+	params := make(url.Values)
 
 	if len(f.FeedIDs) > 0 {
 		params.Add("feeds", strings.Join(f.FeedIDs, ","))
@@ -62,7 +55,22 @@ func (f APIFilters) GenerateURL(basePath string) (*url.URL, error) {
 		params.Add("pagination", string(f.Pagination))
 	}
 
-	newURL.RawQuery = params.Encode()
+	// if f.Count != 0 {
+	// 	params.Add("count", strconv.Itoa(f.Count))
+	// }
+
+	return params.Encode()
+}
+
+// GenerateURL generates a new URL using the basePath provided with any non-zero
+// filters.
+func (f APIFilters) GenerateURL(basePath string) (*url.URL, error) {
+	newURL, err := url.Parse(basePath)
+	if err != nil {
+		return nil, fmt.Errorf("cannot generate URL: %w", err)
+	}
+
+	newURL.RawQuery = f.String()
 
 	return newURL, nil
 }

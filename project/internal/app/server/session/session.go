@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -34,7 +35,12 @@ var (
 	ErrInvalidData  = errors.New("invalid data in session")
 )
 
-var sessionManager *scs.SessionManager
+type manager struct {
+	*scs.SessionManager
+	logger *slog.Logger
+}
+
+var session = &manager{logger: slog.Default()}
 
 func init() {
 	gob.Register(models.Tokens{})
@@ -43,19 +49,19 @@ func init() {
 
 func NewSessionManager(store scs.Store) {
 	// Set up the session manager.
-	sessionManager = scs.New()
-	sessionManager.Store = store
-	sessionManager.Lifetime = sessionLifetime
-	sessionManager.Cookie.Name = sessionCookie
-	sessionManager.Cookie.Secure = true
+	session.SessionManager = scs.New()
+	session.Store = store
+	session.Lifetime = sessionLifetime
+	session.Cookie.Name = sessionCookie
+	session.Cookie.Secure = true
 }
 
 func ClearSession(ctx context.Context) error {
-	if err := sessionManager.Clear(ctx); err != nil {
+	if err := session.Clear(ctx); err != nil {
 		return fmt.Errorf("unable to clear session data: %w", err)
 	}
 
-	if err := sessionManager.Destroy(ctx); err != nil {
+	if err := session.Destroy(ctx); err != nil {
 		return fmt.Errorf("unable to remove session: %w", err)
 	}
 
@@ -63,15 +69,20 @@ func ClearSession(ctx context.Context) error {
 }
 
 func LoadAndSave() func(next http.Handler) http.Handler {
-	return sessionManager.LoadAndSave
+	return session.LoadAndSave
 }
 
-func SaveListFeedsFilters(ctx context.Context, filters models.APIFilters) {
-	sessionManager.Put(ctx, listFeedsFiltersSessionKey, filters)
+func SaveListFeedsFilters(ctx context.Context, filters *models.APIFilters) {
+	if filters == nil {
+		session.logger.Warn("Cannot store feed filters: filters is nil.")
+		return
+	}
+
+	session.Put(ctx, listFeedsFiltersSessionKey, *filters)
 }
 
 func LoadListFeedsFilters(ctx context.Context) (models.APIFilters, error) {
-	data := sessionManager.Get(ctx, listFeedsFiltersSessionKey)
+	data := session.Get(ctx, listFeedsFiltersSessionKey)
 	filters, ok := data.(models.APIFilters)
 
 	switch {
@@ -84,12 +95,17 @@ func LoadListFeedsFilters(ctx context.Context) (models.APIFilters, error) {
 	}
 }
 
-func SaveListItemsFilters(ctx context.Context, filters models.APIFilters) {
-	sessionManager.Put(ctx, listItemsFiltersSessionKey, filters)
+func SaveListItemsFilters(ctx context.Context, filters *models.APIFilters) {
+	if filters == nil {
+		session.logger.Warn("Cannot store items filters: filters is nil.")
+		return
+	}
+
+	session.Put(ctx, listItemsFiltersSessionKey, filters)
 }
 
 func LoadListItemsFilters(ctx context.Context) (models.APIFilters, error) {
-	data := sessionManager.Get(ctx, listItemsFiltersSessionKey)
+	data := session.Get(ctx, listItemsFiltersSessionKey)
 	filters, ok := data.(models.APIFilters)
 
 	switch {

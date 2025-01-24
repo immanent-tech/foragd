@@ -37,16 +37,12 @@ templ Footer() {
 }
 
 // Cards displays a list of the given cards.
-templ Cards(oob bool, cards ...templ.Component) {
-	if oob {
-		@Header()
-	}
-	for _, card := range cards {
-		@card
-	}
-	if oob {
-		@Footer()
-	}
+templ Cards(header, footer, cards templ.Component) {
+	@header
+	<div id="content" class="flex flex-col">
+		@cards
+	</div>
+	@footer
 }
 
 templ FeedCard(feed Feed) {

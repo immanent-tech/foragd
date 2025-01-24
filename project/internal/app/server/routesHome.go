@@ -90,7 +90,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 	switch list {
 	case ShowListParamsListFeeds:
 		// Save list feeds filters in session storage.
-		session.SaveListFeedsFilters(ctx, *filters)
+		session.SaveListFeedsFilters(ctx, filters)
 
 		cards = renderFeedCards(ctx, s.API.elastic, filters)
 
@@ -104,7 +104,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 
 	case ShowListParamsListItems:
 		// Save list items filters in session storage.
-		session.SaveListItemsFilters(ctx, *filters)
+		session.SaveListItemsFilters(ctx, filters)
 
 		var pagination []byte
 
@@ -132,14 +132,27 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		page = layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(cards)))
+			layouts.WithPageContent(layouts.HomeLayout(panes.Cards(panes.Header(), panes.Footer(), cards), panes.Drawer())))
+		if err := page.Render(ctx, res); err != nil {
+			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			http.Error(res, "Problem!", http.StatusInternalServerError)
+		}
 	} else {
-		page = cards
-	}
+		resp := htmx.NewResponse()
+		if err := resp.RenderTempl(ctx, res, cards); err != nil {
+			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			http.Error(res, "Problem!", http.StatusInternalServerError)
+		}
 
-	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {
-		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-		http.Error(res, "Problem!", http.StatusInternalServerError)
+		if err := resp.RenderTempl(ctx, res, panes.Header()); err != nil {
+			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			http.Error(res, "Problem!", http.StatusInternalServerError)
+		}
+
+		if err := resp.RenderTempl(ctx, res, panes.Footer()); err != nil {
+			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			http.Error(res, "Problem!", http.StatusInternalServerError)
+		}
 	}
 }
 
@@ -317,7 +330,7 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 		page = layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(panes.Article(false, &item))))
+			layouts.WithPageContent(layouts.HomeLayout(panes.Article(false, &item), panes.Drawer())))
 	} else {
 		page = panes.Article(true, &item)
 	}
