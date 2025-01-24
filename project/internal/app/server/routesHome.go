@@ -6,7 +6,9 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -23,7 +25,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/partials/content"
+	"github.com/joshuar/go-feed-me/web/templates/panes"
 )
 
 const (
@@ -33,18 +35,43 @@ const (
 	markItemsReadPath = "/home/mark/items/read"
 	showArticlePath   = "/home/show/article"
 	markArticlePath   = "/home/mark/article/read"
-
-	defaultCount = 10
 )
+
+func generateFilters(params any) (*models.APIFilters, error) {
+	filters := &models.APIFilters{}
+
+	data, err := json.Marshal(params)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate filters: %w", err)
+	}
+
+	err = json.Unmarshal(data, filters)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate filters: %w", err)
+	}
+
+	if filters.Count == 0 || filters.Count > 20 {
+		filters.Count = 10
+	}
+
+	// if params.Pagination != nil {
+	// 	if pagination, err := url.QueryUnescape(*params.Pagination); err != nil {
+	// 		slog.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+	// 	} else {
+	// 		filters.Pagination = []byte(pagination)
+	// 	}
+	// }
+
+	return filters, nil
+}
 
 // ShowList will show a list of feeds or items, with filtering applied.
 //
 // `GET /home/show/{list}`.
 func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowListParamsList, params ShowListParams) {
 	var (
-		page    templ.Component
-		cards   []templ.Component
-		filters models.APIFilters
+		page  templ.Component
+		cards templ.Component
 	)
 
 	logger := logging.NewHandlerLogger("ShowList", req)
@@ -54,64 +81,20 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
 	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
-	ctx = content.IsHtmxToCtx(ctx, htmx.IsHTMX(req))
 
-	if params.Feeds != nil {
-		filters.FeedIDs = *params.Feeds
-	}
-
-	if params.Categories != nil {
-		filters.Categories = *params.Categories
-	}
-
-	if params.Count != nil {
-		filters.Count = *params.Count
-	} else {
-		filters.Count = defaultCount
-	}
-
-	if params.Pagination != nil {
-		if pagination, err := url.QueryUnescape(*params.Pagination); err != nil {
-			slog.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		} else {
-			filters.Pagination = []byte(pagination)
-		}
-	}
-
-	// Bail if an invalid show parameter is requested.
-	if list != ShowListParamsListFeeds && list != ShowListParamsListItems {
-		logger.Error("Bad request.",
-			slog.String("list", string(list)),
-			slog.Any("error", ErrInvalidQueryParams))
-		res.WriteHeader(http.StatusBadRequest)
-
-		return
-	}
-
-	// Get all subscribed feeds.
-	feeds, err := s.API.elastic.UserActionGetFeeds(ctx, filters)
-	if err != nil && errors.Is(err, models.ErrNoSubscriptions) {
-		if err = renderHome(ctx, res, req, content.ShowEmptyContent()); err != nil {
-			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
-
-		return
-	}
-
+	filters, err := generateFilters(params)
 	if err != nil {
-		logger.Error("Cannot display content.", slog.Any("error", err))
-		http.Error(res, "Problem!", http.StatusInternalServerError)
-
-		return
+		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
 
 	switch list {
 	case ShowListParamsListFeeds:
 		// Save list feeds filters in session storage.
-		session.SaveListFeedsFilters(ctx, filters)
+		session.SaveListFeedsFilters(ctx, *filters)
 
-		ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
+		cards = renderFeedCards(ctx, s.API.elastic, filters)
+
+		ctx = panes.NavigationToCtx(ctx, panes.NavigationLinks{
 			RefreshPath:         generateActionLink(ctx, showFeedsPath),
 			MarkReadPath:        generateActionLink(ctx, markFeedsReadPath),
 			ActionBasePath:      showFeedsPath,
@@ -119,36 +102,15 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			Count:               filters.Count,
 		})
 
-		if len(feeds) == 0 {
-			page = content.ShowEmptyContent()
-		} else {
-			for _, feed := range feeds {
-				// Else, generate a feed card for display.
-				card, err := content.NewCard(feed)
-				if err != nil {
-					logger.Warn("Could not render item as card.", slog.Any("error", err))
-					continue
-				}
-				// Add the URL for fetching items for this feed.
-				card.Body.AddAttributes(templ.Attributes{
-					"hx-get": showItemsPath + "?feeds=" + feed.GetID(),
-				})
-				// Append to the list of feed cards.
-				cards = append(cards, components.Card(components.FromCardProps(card)))
-			}
-			page = content.ShowContent(cards...)
-		}
 	case ShowListParamsListItems:
 		// Save list items filters in session storage.
-		session.SaveListItemsFilters(ctx, filters)
+		session.SaveListItemsFilters(ctx, *filters)
 
-		// Get feed items.
-		items, pagination, err := s.API.elastic.UserActionGetItems(ctx, filters)
-		if err != nil {
-			logger.Warn("Could not retrieve items.", slog.Any("error", err))
-		}
+		var pagination []byte
 
-		ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
+		cards, pagination = renderItemCards(ctx, s.API.elastic, filters)
+
+		ctx = panes.NavigationToCtx(ctx, panes.NavigationLinks{
 			BackPath:            generateActionLink(ctx, showFeedsPath),
 			RefreshPath:         generateActionLink(ctx, showItemsPath),
 			MarkReadPath:        generateActionLink(ctx, markArticlePath),
@@ -157,65 +119,111 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			ActionBasePath:      showItemsPath,
 			ChildActionBasePath: showArticlePath,
 		})
+	default:
+		logger.Error("Bad request.",
+			slog.String("list", string(list)),
+			slog.Any("error", ErrInvalidQueryParams))
+		res.WriteHeader(http.StatusBadRequest)
 
-		if len(items) == 0 {
-			page = content.ShowEmptyContent()
-		} else {
-			for idx, item := range items {
-				// Create item card properties.
-				card, err := content.NewCard(&item)
-				if err != nil {
-					logger.Warn("Could not render item as card.", slog.Any("error", err))
-					continue
-				}
-				// Generate URL for fetching article for item.
-				get, err := url.JoinPath(showArticlePath, item.GetFeedID(), item.GetID())
-				if err != nil {
-					logger.Warn("Could not render item as card.", slog.Any("error", err))
-					continue
-				}
-				// Add the URL for fetching the item article.
-				card.Body.AddAttributes(templ.Attributes{
-					"hx-get": get,
-				})
-
-				if idx == len(items)-1 && pagination != nil && len(items) == filters.Count {
-					card.AddAttributes(templ.Attributes{
-						"hx-get":       generatePagination(ctx, showItemsPath, pagination),
-						"hx-trigger":   "revealed",
-						"hx-swap":      "afterend",
-						"hx-push-url":  "false",
-						"hx-indicator": "#content-loading",
-					})
-				}
-				// Append to the list of item cards.
-				cards = append(cards, components.Card(components.FromCardProps(card)))
-			}
-			page = content.ShowContent(cards...)
-		}
+		return
 	}
 
-	if err := renderHome(ctx, res, req, page); err != nil {
+	if !htmx.IsHTMX(req) {
+		page = layouts.Page("Go Feed Me - Home",
+			layouts.WithPageDescription("Your home."),
+			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+			layouts.WithPageContent(layouts.HomeLayout(cards)))
+	} else {
+		page = cards
+	}
+
+	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {
 		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }
 
-func renderHome(ctx context.Context, res http.ResponseWriter, req *http.Request, pageContent templ.Component) error {
-	var page templ.Component
-
-	if !htmx.IsHTMX(req) {
-		// Full page when not htmx.
-		page = layouts.Page("Go Feed Me - Home",
-			layouts.WithPageDescription("Your home."),
-			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(pageContent)))
-	} else {
-		// Partial content otherwise.
-		page = pageContent
+func renderFeedCards(ctx context.Context, api models.UserActionsAPI, filters *models.APIFilters) templ.Component {
+	feeds, err := api.UserActionGetFeeds(ctx, *filters)
+	if err != nil {
+		logging.FromContext(ctx).Warn("Could not retrieve feeds.",
+			slog.Any("error", err))
+		return panes.EmptyContent()
 	}
 
-	return htmx.NewResponse().RenderTempl(ctx, res, page)
+	if len(feeds) == 0 {
+		return panes.EmptyContent()
+	}
+
+	var cards []templ.Component
+
+	for _, feed := range feeds {
+		// Else, generate a feed card for display.
+		card, err := panes.NewCard(feed)
+		if err != nil {
+			logging.FromContext(ctx).Warn("Could not render item as card.",
+				slog.Any("error", err))
+			continue
+		}
+		// Add the URL for fetching items for this feed.
+		card.Body.AddAttributes(templ.Attributes{
+			"hx-get": showItemsPath + "?feeds=" + feed.GetID(),
+		})
+		// Append to the list of feed cards.
+		cards = append(cards, components.Card(components.FromCardProps(card)))
+	}
+
+	return components.ComponentArray(cards...)
+}
+
+func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *models.APIFilters) (templ.Component, []byte) {
+	var cards []templ.Component
+
+	items, pagination, err := api.UserActionGetItems(ctx, *filters)
+	if err != nil {
+		logging.FromContext(ctx).Warn("Could not retrieve items.",
+			slog.Any("error", err))
+		return panes.EmptyContent(), pagination
+	}
+
+	if len(items) == 0 {
+		return panes.EmptyContent(), pagination
+	}
+
+	for idx, item := range items {
+		// Create item card properties.
+		card, err := panes.NewCard(&item)
+		if err != nil {
+			logging.FromContext(ctx).Warn("Could not render item as card.",
+				slog.Any("error", err))
+			continue
+		}
+		// Generate URL for fetching article for item.
+		get, err := url.JoinPath(showArticlePath, item.GetFeedID(), item.GetID())
+		if err != nil {
+			logging.FromContext(ctx).Warn("Could not render item as card.",
+				slog.Any("error", err))
+			continue
+		}
+		// Add the URL for fetching the item article.
+		card.Body.AddAttributes(templ.Attributes{
+			"hx-get": get,
+		})
+
+		if idx == len(items)-1 && pagination != nil && len(items) == filters.Count {
+			card.AddAttributes(templ.Attributes{
+				"hx-get":       generatePagination(ctx, showItemsPath, pagination),
+				"hx-trigger":   "revealed",
+				"hx-swap":      "afterend",
+				"hx-push-url":  "false",
+				"hx-indicator": "#content-loading",
+			})
+		}
+		// Append to the list of item cards.
+		cards = append(cards, components.Card(components.FromCardProps(card)))
+	}
+
+	return components.ComponentArray(cards...), pagination
 }
 
 // MarkList will mark a list of feeds or items, with filtering applied, as read
@@ -224,7 +232,6 @@ func renderHome(ctx context.Context, res http.ResponseWriter, req *http.Request,
 // `POST /home/mark/{list}/{action}`.
 func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkListParamsList, action MarkListParamsAction, params MarkListParams) {
 	var (
-		filters     models.APIFilters
 		items       []models.APIItem
 		pagination  []byte
 		err         error
@@ -234,21 +241,17 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 	logger := logging.NewHandlerLogger("MarkListRead", req)
 	ctx := req.Context()
 
-	if params.Feeds != nil {
-		filters.FeedIDs = *params.Feeds
+	filters, err := generateFilters(params)
+	if err != nil {
+		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
-
-	if params.Categories != nil {
-		filters.Categories = *params.Categories
-	}
-
 	filters.Count = 100
 
 	getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 	// Fetch the unread items with the given filters. Paginate through the
 	// results, collecting into unreadItems.
 	for {
-		items, pagination, err = s.API.elastic.UserActionGetItems(getItemsCtx, filters)
+		items, pagination, err = s.API.elastic.UserActionGetItems(getItemsCtx, *filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
@@ -295,7 +298,7 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 
 	ctx := req.Context()
 
-	ctx = content.NavigationToCtx(ctx, content.NavigationLinks{
+	ctx = panes.NavigationToCtx(ctx, panes.NavigationLinks{
 		BackPath:       generateActionLink(req.Context(), showItemsPath),
 		ActionBasePath: showArticlePath,
 	})
@@ -314,9 +317,9 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 		page = layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(content.ShowArticle(&item))))
+			layouts.WithPageContent(layouts.HomeLayout(panes.Article(false, &item))))
 	} else {
-		page = content.ShowArticle(&item)
+		page = panes.Article(true, &item)
 	}
 
 	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {

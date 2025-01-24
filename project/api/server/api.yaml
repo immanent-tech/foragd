@@ -252,16 +252,12 @@ components:
       name: feeds
       in: query
       schema:
-        type: array
-        items:
-          $ref: '../models/api.yaml#/components/schemas/FeedID'
+        $ref: '../models/api.yaml#/components/schemas/FeedIDs'
     Items:
       name: items
       in: query
       schema:
-        type: array
-        items:
-          $ref: '../models/api.yaml#/components/schemas/ItemID'
+        $ref: '../models/api.yaml#/components/schemas/ItemIDs'
     Categories:
       name: categories
       in: query
@@ -304,6 +300,9 @@ components:
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/Count'
+        minimum: 1
+        maximum: 20
+        default: 10
     Filters:
       name: filters
       in: query

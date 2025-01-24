@@ -1,0 +1,20 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package panes
+
+import "github.com/joshuar/go-templ-daisyui"
+
+templ Drawer() {
+	<div class="bg-base-200 min-w-32 min-h-full z-10">
+		@components.Button(
+			components.WithID[*components.ButtonProps]("add"),
+			components.WithColor[*components.ButtonProps](components.ColorGhost, false),
+			components.WithButtonContent(components.AsIconContent("fa-plus")),
+			components.WithAttributes[*components.ButtonProps](templ.Attributes{
+				"hx-get":    "/home/subscription/add",
+				"hx-target": "#command_modal",
+				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
+			}))
+	</div>
+}

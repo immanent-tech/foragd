@@ -55,6 +55,15 @@ components:
         json: 'feed_id'
         gorm: 'primaryKey'
       x-go-type-skip-optional-pointer: true
+    FeedIDs:
+      description: is a list of feed IDs.
+      type: array
+      items:
+        $ref: '#/components/schemas/FeedID'
+      x-oapi-codegen-extra-tags:
+        json: 'feeds'
+        form: 'feeds[]'
+      x-go-type-skip-optional-pointer: true
     FeedURL:
       <<: *URL
       x-oapi-codegen-extra-tags:
@@ -67,6 +76,15 @@ components:
         validate: 'required'
         json: 'item_id'
         gorm: 'primaryKey'
+      x-go-type-skip-optional-pointer: true
+    ItemIDs:
+      description: is a list of item IDs.
+      type: array
+      items:
+        $ref: '#/components/schemas/ItemID'
+      x-oapi-codegen-extra-tags:
+        json: 'items'
+        form: 'items[]'
       x-go-type-skip-optional-pointer: true
     ItemURL:
       <<: *URL
@@ -509,15 +527,9 @@ components:
       type: object
       properties:
         FeedIDs:
-          type: array
-          items:
-            $ref: '#/components/schemas/FeedID'
-          x-go-type-skip-optional-pointer: true
+          $ref: '#/components/schemas/FeedIDs'
         ItemIDs:
-          type: array
-          items:
-            $ref: '#/components/schemas/ItemID'
-          x-go-type-skip-optional-pointer: true
+          $ref: '#/components/schemas/ItemIDs'
         Categories:
           $ref: '#/components/schemas/Categories'
         Pagination:

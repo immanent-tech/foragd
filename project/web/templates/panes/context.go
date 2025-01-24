@@ -1,7 +1,7 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package content
+package panes
 
 import (
 	"context"
@@ -12,7 +12,6 @@ type contextKey string
 
 const (
 	navigationCtxKey contextKey = "navigation"
-	htmxCtxKey       contextKey = "htmx"
 )
 
 var ErrNotInCtx = errors.New("not found in context")
@@ -50,17 +49,4 @@ func NavigationFromCtx(ctx context.Context) NavigationLinks {
 	}
 
 	return nav
-}
-
-func IsHtmxToCtx(ctx context.Context, value bool) context.Context {
-	return context.WithValue(ctx, htmxCtxKey, value)
-}
-
-func IsHtmxFromCtx(ctx context.Context) bool {
-	value, ok := ctx.Value(htmxCtxKey).(bool)
-	if !ok {
-		return false
-	}
-
-	return value
 }

@@ -60,14 +60,14 @@ type Count = externalRef0.Count
 // FeedID is the unique ID of a feed.
 type FeedID = externalRef0.FeedID
 
-// Feeds defines model for Feeds.
-type Feeds = []externalRef0.FeedID
+// Feeds is a list of feed IDs.
+type Feeds = externalRef0.FeedIDs
 
 // ItemID is the unique ID of an item.
 type ItemID = externalRef0.ItemID
 
-// Items defines model for Items.
-type Items = []externalRef0.ItemID
+// Items is a list of item IDs.
+type Items = externalRef0.ItemIDs
 
 // List defines model for List.
 type List string

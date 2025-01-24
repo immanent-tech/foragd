@@ -90,7 +90,8 @@
     "modifiers/state",
     "internal/id",
     "cli",
-    "app/scheduler"
+    "app/scheduler",
+    "components/text"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

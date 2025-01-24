@@ -1,0 +1,23 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package panes
+
+templ EmptyContent() {
+	<div class="hero bg-base-200 min-h-screen">
+		<div class="hero-content text-center">
+			<div class="max-w-md">
+				<h1 class="text-5xl font-bold">Nothing to show.</h1>
+				<p class="py-6">
+					Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
+					quasi. In deleniti eaque aut repudiandae et a id nisi.
+				</p>
+				<button
+					class="btn btn-primary"
+					hx-get="/home/subscription/add"
+					hx-target="#command_modal"
+				>Add Subscription</button>
+			</div>
+		</div>
+	</div>
+}

@@ -66,9 +66,13 @@ type APIFilters struct {
 	Categories Categories `form:"categories[]" json:"categories"`
 
 	// Count is the count of items to retrieve with a request.
-	Count   Count    `form:"count" json:"count"`
-	FeedIDs []FeedID `json:"FeedIDs,omitempty"`
-	ItemIDs []ItemID `json:"ItemIDs,omitempty"`
+	Count Count `form:"count" json:"count"`
+
+	// FeedIDs is a list of feed IDs.
+	FeedIDs FeedIDs `form:"feeds[]" json:"feeds"`
+
+	// ItemIDs is a list of item IDs.
+	ItemIDs ItemIDs `form:"items[]" json:"items"`
 
 	// Pagination contains details that allow fetching results at a certain point.
 	Pagination []byte `form:"pagination" json:"pagination"`
@@ -147,6 +151,9 @@ type DeletedAt = time.Time
 // FeedID is the unique ID of a feed.
 type FeedID = string
 
+// FeedIDs is a list of feed IDs.
+type FeedIDs = []FeedID
+
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
 	// ID is the unique ID of a feed.
@@ -164,6 +171,9 @@ type HTMLString = string
 
 // ItemID is the unique ID of an item.
 type ItemID = string
+
+// ItemIDs is a list of item IDs.
+type ItemIDs = []ItemID
 
 // ItemURL is a URL.
 type ItemURL = string

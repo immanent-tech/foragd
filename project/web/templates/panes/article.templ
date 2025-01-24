@@ -1,0 +1,47 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+
+package panes
+
+import (
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-templ-daisyui"
+)
+
+// Article displays an item as an article.
+templ Article(oob bool, item *models.APIItem) {
+	if oob {
+		@Header()
+	}
+	<div id="article">
+		@components.Article() {
+			<h2>{ item.Title }</h2>
+			if len(item.GetCategories()) > 0 {
+				<p>
+					for _, c := range item.GetCategories() {
+						@components.Badge(
+							components.WithBadgeDescription(c),
+							components.WithResponsiveSize[*components.BadgeProps](components.SM),
+							components.WithColor[*components.BadgeProps](components.ColorGhost,
+								false))
+					}
+				</p>
+			}
+			<p class="text-sm justify-end">
+				{ RelativeTime(item.GetTimestamp()) }
+			</p>
+			<p>
+				@templ.Raw(item.GetContent())
+			</p>
+			<center>
+				<p>
+					<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
+				</p>
+			</center>
+		}
+	</div>
+	if oob {
+		@Footer()
+	}
+}

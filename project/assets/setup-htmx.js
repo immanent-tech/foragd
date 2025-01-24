@@ -4,11 +4,11 @@
 window.htmx = require('htmx.org');
 
 // https://v1.htmx.org/docs/#logging
-// htmx.logger = function(elt, event, data) {
-//     if(console) {
-//         console.log(event, elt, data);
-//     }
-// }
+htmx.logger = function(elt, event, data) {
+    if(console) {
+        console.log(event, elt, data);
+    }
+}
 
 // https://v1.htmx.org/docs/#debugging
 // htmx.logAll();
