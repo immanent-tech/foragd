@@ -95,29 +95,30 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		cards = renderFeedCards(ctx, s.API.elastic, filters)
 
 		ctx = panes.NavigationToCtx(ctx, panes.NavigationLinks{
-			RefreshPath:         generateActionLink(ctx, showFeedsPath),
-			MarkReadPath:        generateActionLink(ctx, markFeedsReadPath),
-			ActionBasePath:      showFeedsPath,
-			ChildActionBasePath: showItemsPath,
-			Count:               filters.Count,
+			Current:        showFeedsPath,
+			CurrentFilters: filters,
+			Action:         markFeedsReadPath,
 		})
 
 	case ShowListParamsListItems:
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
 
-		var pagination []byte
+		parentFilters, err := session.LoadListFeedsFilters(ctx)
+		if err != nil {
+			logger.Warn("Could not retrieve parent page filters.",
+				slog.Any("error", err))
+		}
+		// var pagination []byte
 
-		cards, pagination = renderItemCards(ctx, s.API.elastic, filters)
+		cards, _ = renderItemCards(ctx, s.API.elastic, filters)
 
 		ctx = panes.NavigationToCtx(ctx, panes.NavigationLinks{
-			BackPath:            generateActionLink(ctx, showFeedsPath),
-			RefreshPath:         generateActionLink(ctx, showItemsPath),
-			MarkReadPath:        generateActionLink(ctx, markArticlePath),
-			Pagination:          generatePagination(ctx, showItemsPath, pagination),
-			Count:               filters.Count,
-			ActionBasePath:      showItemsPath,
-			ChildActionBasePath: showArticlePath,
+			Parent:         showFeedsPath,
+			ParentFilters:  &parentFilters,
+			Current:        showItemsPath,
+			CurrentFilters: filters,
+			Action:         markItemsReadPath,
 		})
 	default:
 		logger.Error("Bad request.",
@@ -129,6 +130,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 	}
 
 	if !htmx.IsHTMX(req) {
+		// Regular request, load full page.
 		page = layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
@@ -138,6 +140,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 	} else {
+		// HTMX request, load cards and update header/footer.
 		resp := htmx.NewResponse()
 		if err := resp.RenderTempl(ctx, res, cards); err != nil {
 			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
@@ -225,7 +228,7 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 
 		if idx == len(items)-1 && pagination != nil && len(items) == filters.Count {
 			card.AddAttributes(templ.Attributes{
-				"hx-get":       generatePagination(ctx, showItemsPath, pagination),
+				// "hx-get":       generatePagination(ctx, showItemsPath, pagination),
 				"hx-trigger":   "revealed",
 				"hx-swap":      "afterend",
 				"hx-push-url":  "false",
@@ -312,8 +315,8 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 	ctx := req.Context()
 
 	ctx = panes.NavigationToCtx(ctx, panes.NavigationLinks{
-		BackPath:       generateActionLink(req.Context(), showItemsPath),
-		ActionBasePath: showArticlePath,
+		Parent:  showItemsPath,
+		Current: showArticlePath,
 	})
 
 	getItemCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
@@ -374,68 +377,68 @@ func (s Server) MarkArticle(res http.ResponseWriter, req *http.Request, action M
 	}
 }
 
-// generateActionLink creates a URL string that can be used for actions that
-// manipulate the current page.
-func generateActionLink(ctx context.Context, path string) string {
-	var (
-		filters models.APIFilters
-		err     error
-	)
+// // generateActionLink creates a URL string that can be used for actions that
+// // manipulate the current page.
+// func generateActionLink(ctx context.Context, path string) string {
+// 	var (
+// 		filters models.APIFilters
+// 		err     error
+// 	)
 
-	switch path {
-	case showFeedsPath, markFeedsReadPath:
-		filters, err = session.LoadListFeedsFilters(ctx)
-	case showItemsPath, markItemsReadPath:
-		filters, err = session.LoadListItemsFilters(ctx)
-	}
+// 	switch path {
+// 	case showFeedsPath, markFeedsReadPath:
+// 		filters, err = session.LoadListFeedsFilters(ctx)
+// 	case showItemsPath, markItemsReadPath:
+// 		filters, err = session.LoadListItemsFilters(ctx)
+// 	}
 
-	if err != nil {
-		logging.FromContext(ctx).Warn("Could not generate backlink.",
-			slog.Any("error", err))
-		return path
-	}
+// 	if err != nil {
+// 		logging.FromContext(ctx).Warn("Could not generate backlink.",
+// 			slog.Any("error", err))
+// 		return path
+// 	}
 
-	backlink, err := filters.GenerateURL(path)
-	if err != nil {
-		logging.FromContext(ctx).Warn("Could not generate backlink.",
-			slog.Any("error", err))
-		return path
-	}
+// 	backlink, err := filters.GenerateURL(path)
+// 	if err != nil {
+// 		logging.FromContext(ctx).Warn("Could not generate backlink.",
+// 			slog.Any("error", err))
+// 		return path
+// 	}
 
-	return backlink.String()
-}
+// 	return backlink.String()
+// }
 
-// generatePagination generates a URL string with an updated pagination value.
-func generatePagination(ctx context.Context, path string, pagination []byte) string {
-	var (
-		filters models.APIFilters
-		err     error
-	)
+// // generatePagination generates a URL string with an updated pagination value.
+// func generatePagination(ctx context.Context, path string, pagination []byte) string {
+// 	var (
+// 		filters models.APIFilters
+// 		err     error
+// 	)
 
-	switch path {
-	case showFeedsPath:
-		filters, err = session.LoadListFeedsFilters(ctx)
-	case showItemsPath:
-		filters, err = session.LoadListItemsFilters(ctx)
-	}
+// 	switch path {
+// 	case showFeedsPath:
+// 		filters, err = session.LoadListFeedsFilters(ctx)
+// 	case showItemsPath:
+// 		filters, err = session.LoadListItemsFilters(ctx)
+// 	}
 
-	if err != nil {
-		logging.FromContext(ctx).Warn("Could not generate pagination link.",
-			slog.Any("error", err))
-		return path
-	}
+// 	if err != nil {
+// 		logging.FromContext(ctx).Warn("Could not generate pagination link.",
+// 			slog.Any("error", err))
+// 		return path
+// 	}
 
-	paginationLink, err := filters.GenerateURL(path)
-	if err != nil {
-		logging.FromContext(ctx).Warn("Could not generate pagination link.",
-			slog.Any("error", err))
-		return path
-	}
+// 	paginationLink, err := filters.GenerateURL(path)
+// 	if err != nil {
+// 		logging.FromContext(ctx).Warn("Could not generate pagination link.",
+// 			slog.Any("error", err))
+// 		return path
+// 	}
 
-	q := paginationLink.Query()
-	q.Del("pagination")
-	q.Add("pagination", url.QueryEscape(string(pagination)))
-	paginationLink.RawQuery = q.Encode()
+// 	q := paginationLink.Query()
+// 	q.Del("pagination")
+// 	q.Add("pagination", url.QueryEscape(string(pagination)))
+// 	paginationLink.RawQuery = q.Encode()
 
-	return paginationLink.String()
-}
+// 	return paginationLink.String()
+// }

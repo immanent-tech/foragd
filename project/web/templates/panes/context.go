@@ -6,6 +6,8 @@ package panes
 import (
 	"context"
 	"errors"
+
+	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 type contextKey string
@@ -18,24 +20,52 @@ var ErrNotInCtx = errors.New("not found in context")
 
 // NavigationLinks contains the links for navigating between pages.
 type NavigationLinks struct {
-	// RefreshPath is the URL to refresh the current page.
-	RefreshPath string
-	// BackPath is the URL to which this page should redirect back to.
-	BackPath string
-	// MarkReadPath is the URL to perform an action on all items on the current
-	// page.
-	MarkReadPath string
-	// Pagination is a value used by the backend to fetch the next set of
-	// items as the user scrolls through feeds/items.
-	Pagination string
-	// Count is the number of items to retrieve with each pagination request.
-	Count int
-	// ChildActionBasePath is the base path of the URL for any actions on items
-	// that the page directs to.
-	ChildActionBasePath string
-	// ActionBasePath is the base path of the URL for any actions on items on
-	// the current page.
-	ActionBasePath string
+	// Parent is the base URL back links should use.
+	Parent string
+	// ParentFilters are the filters applied to the parent page.
+	ParentFilters *models.APIFilters
+	// Current is the base URL of the current page.
+	Current string
+	// CurrentFilters are the filters applied to the current page.
+	CurrentFilters *models.APIFilters
+	// Action is the base URL for actions.
+	Action string
+}
+
+func (n NavigationLinks) BackLink() string {
+	if n.Parent != "" {
+		return n.Parent
+	}
+
+	return ""
+}
+
+func (n NavigationLinks) RefreshLink() string {
+	if n.Current == "" {
+		return ""
+	}
+
+	if n.CurrentFilters == nil {
+		return n.Current
+	}
+
+	link, _ := n.CurrentFilters.GenerateURL(n.Current)
+
+	return link
+}
+
+func (n NavigationLinks) MarkAllReadLink() string {
+	if n.Action == "" {
+		return ""
+	}
+
+	if n.CurrentFilters == nil {
+		return n.Action
+	}
+
+	link, _ := n.CurrentFilters.GenerateURL(n.Action)
+
+	return link
 }
 
 func NavigationToCtx(ctx context.Context, nav NavigationLinks) context.Context {

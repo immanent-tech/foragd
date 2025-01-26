@@ -148,11 +148,11 @@ func itemCustomisation(item Item) *cardCustomisation {
 		title: components.WithTitle(
 			item.GetTitle(),
 			components.H4),
-		actions: []templ.Component{
-			buttonToggleItem(item.GetFeedID(), item.GetID()),
-			buttonSaveItem(item.GetFeedID(), item.GetID()),
-			buttonShareItem(item.GetFeedID(), item.GetID()),
-		},
+		// actions: []templ.Component{
+		// 	buttonToggleItem(item.GetFeedID(), item.GetID()),
+		// 	buttonSaveItem(item.GetFeedID(), item.GetID()),
+		// 	buttonShareItem(item.GetFeedID(), item.GetID()),
+		// },
 		content: components.Text(
 			item.GetTitle(),
 			components.WithTextSize(components.TextLG),
@@ -171,10 +171,10 @@ func feedCustomisation(feed Feed) *cardCustomisation {
 				components.WithBadgeDescription(strconv.Itoa(feed.GetUnreadCount())),
 			)),
 		content: FeedCard(feed),
-		actions: []templ.Component{
-			buttonToggleItem(feed.GetID(), ""),
-			buttonShareItem(feed.GetID(), ""),
-		},
+		// actions: []templ.Component{
+		// 	buttonToggleItem(feed.GetID(), ""),
+		// 	buttonShareItem(feed.GetID(), ""),
+		// },
 		updatedAt: "Last Update: " + RelativeTime(feed.GetTimestamp()),
 	}
 }

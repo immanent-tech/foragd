@@ -17,9 +17,9 @@ templ Header() {
 		@components.NewMenu(
 			components.WithLayout[*components.Menu](components.HorizontalLayout),
 			components.WithItems[*components.Menu](
-				backButton(),
-				refreshButton(),
-				markAllReadButton(),
+				navButton(NavigationFromCtx(ctx).BackLink(), "fa-arrow-left", "Back"),
+				navButton(NavigationFromCtx(ctx).RefreshLink(), "fa-rotate", "Refresh"),
+				navButton(NavigationFromCtx(ctx).MarkAllReadLink(), "fa-check", "Mark All Read"),
 			),
 		).Show()
 	</div>
@@ -42,6 +42,12 @@ templ Cards(header, footer, cards templ.Component) {
 	<div id="content" class="flex flex-col">
 		@cards
 	</div>
+	@components.Loading(components.LoadingBars,
+		components.WithID[*components.LoadingProps]("content-loading"),
+		components.AsHTMXIndicator(),
+		components.WithColor[*components.LoadingProps](components.ColorGhost,
+			false),
+		components.WithResponsiveSize[*components.LoadingProps](components.LG))
 	@footer
 }
 

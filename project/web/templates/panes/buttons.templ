@@ -5,99 +5,70 @@ package panes
 
 import "github.com/joshuar/go-templ-daisyui"
 
-// backButton shows the back button. It will be invisible if there is no backlink.
-templ backButton() {
-	<li class={ templ.KV("invisible", NavigationFromCtx(ctx).BackPath == "") }>
+templ navButton(link, icon, tooltip string) {
+	<li class={ templ.KV("invisible", link == "") }>
 		<a
 			class="tooltip tooltip-bottom"
-			data-tip="Back"
-			hx-get={ NavigationFromCtx(ctx).BackPath }
+			data-tip={ tooltip }
+			hx-get={ link }
 			hx-target={ "#" + ContentTarget }
 			hx-push-url="true"
 		>
-			@components.Icon("fa-arrow-left")
+			@components.Icon(icon)
 		</a>
 	</li>
 }
 
-templ refreshButton() {
-	<li>
-		<a
-			class="tooltip tooltip-bottom"
-			data-tip="Refresh"
-			hx-get={ NavigationFromCtx(ctx).RefreshPath }
-			hx-target={ "#" + ContentTarget }
-			hx-push-url="false"
-		>
-			@components.Icon("fa-rotate")
-		</a>
-	</li>
-}
+// templ buttonToggleItem(feedID, itemID string) {
+// 	<li>
+// 		<a
+// 			class="tooltip tooltip-left"
+// 			data-tip="Mark Read"
+// 			if itemID != "" {
+// 				hx-post={ NavigationFromCtx(ctx).MarkReadPath + "/" + feedID + "/" + itemID }
+// 				hx-trigger="click consume"
+// 				hx-target={ "#" + itemID }
+// 				hx-swap="outerHTML swap:1s"
+// 				hx-push-url="false"
+// 			} else {
+// 				hx-post={ NavigationFromCtx(ctx).MarkReadPath +
+// 				"?feeds=" + feedID }
+// 				hx-trigger="click consume"
+// 				hx-target={ "#" + feedID }
+// 				hx-swap="outerHTML swap:1s"
+// 				hx-push-url="false"
+// 			}
+// 		>
+// 			@components.Icon("fa-check",
+// 				components.WithLabel("Mark Read", components.AlignRight))
+// 		</a>
+// 	</li>
+// }
 
-templ markAllReadButton() {
-	<li>
-		<a
-			class="tooltip tooltip-bottom"
-			data-tip="Mark All Read"
-			hx-post={ NavigationFromCtx(ctx).MarkReadPath }
-			hx-target={ "#" + ContentTarget }
-			hx-push-url="false"
-		>
-			@components.Icon("fa-check")
-		</a>
-	</li>
-}
+// templ buttonSaveItem(feedID, itemID string) {
+// 	<li>
+// 		<a
+// 			class="tooltip tooltip-left"
+// 			data-tip="Save"
+// 			hx-post={ "/home/article/" + feedID + "/" + itemID + "/markRead" }
+// 		>
+// 			@components.Icon("fa-bookmark")
+// 		</a>
+// 	</li>
+// }
 
-templ buttonToggleItem(feedID, itemID string) {
-	<li>
-		<a
-			class="tooltip tooltip-left"
-			data-tip="Mark Read"
-			if itemID != "" {
-				hx-post={ NavigationFromCtx(ctx).MarkReadPath + "/" + feedID + "/" + itemID }
-				hx-trigger="click consume"
-				hx-target={ "#" + itemID }
-				hx-swap="outerHTML swap:1s"
-				hx-push-url="false"
-			} else {
-				hx-post={ NavigationFromCtx(ctx).MarkReadPath +
-				"?feeds=" + feedID }
-				hx-trigger="click consume"
-				hx-target={ "#" + feedID }
-				hx-swap="outerHTML swap:1s"
-				hx-push-url="false"
-			}
-		>
-			@components.Icon("fa-check",
-				components.WithLabel("Mark Read", components.AlignRight))
-		</a>
-	</li>
-}
-
-templ buttonSaveItem(feedID, itemID string) {
-	<li>
-		<a
-			class="tooltip tooltip-left"
-			data-tip="Save"
-			hx-post={ "/home/article/" + feedID + "/" + itemID + "/markRead" }
-		>
-			@components.Icon("fa-bookmark")
-		</a>
-	</li>
-}
-
-templ buttonShareItem(feedID, itemID string) {
-	<li>
-		<a
-			class="tooltip tooltip-left"
-			data-tip="Share"
-			if itemID != "" {
-				hx-post={ "/home/article/" + feedID + "/" + itemID + "/share" }
-			} else {
-				hx-post={ "/home/" + feedID + "/share" }
-			}
-		>
-			@components.Icon("fa-share")
-		</a>
-	</li>
-}
+// templ buttonShareItem(feedID, itemID string) {
+// 	<li>
+// 		<a
+// 			class="tooltip tooltip-left"
+// 			data-tip="Share"
+// 			if itemID != "" {
+// 				hx-post={ "/home/article/" + feedID + "/" + itemID + "/share" }
+// 			} else {
+// 				hx-post={ "/home/" + feedID + "/share" }
+// 			}
+// 		>
+// 			@components.Icon("fa-share")
+// 		</a>
+// 	</li>
+// }

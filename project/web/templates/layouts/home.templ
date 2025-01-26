@@ -18,10 +18,4 @@ templ HomeLayout(content, drawer templ.Component) {
 		components.WithMainContent(content),
 		components.WithSideContent(drawer),
 	)
-	@components.Loading(components.LoadingBars,
-		components.WithID[*components.LoadingProps]("content-loading"),
-		components.AsHTMXIndicator(),
-		components.WithColor[*components.LoadingProps](components.ColorGhost,
-			false),
-		components.WithResponsiveSize[*components.LoadingProps](components.LG))
 }
