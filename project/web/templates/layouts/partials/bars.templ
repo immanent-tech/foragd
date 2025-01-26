@@ -48,7 +48,14 @@ templ appBarTopRight() {
 			@components.Icon("fa-xmark", components.AsSwapOff())
 		</summary>
 		<ul class="p-2 menu dropdown-content z-[1] bg-base-200 rounded-box w-52">
-			<li><button type="checkbox" data-toggle-theme="dark,light" class="toggle theme-controller"></button></li>
+			<li>
+				<button
+					type="checkbox"
+					data-toggle-theme="dark,light"
+					class="toggle theme-controller"
+				></button>
+			</li>
+			<li><a hx-boost="false" href="/logout/auth0">Logout</a></li>
 		</ul>
 	</details>
 }
