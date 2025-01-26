@@ -37,27 +37,16 @@ func RequireAuthentication(protectedRoutes []string, userMgmtAPI models.UserMana
 			}) {
 				// Fetch the user from the user management API.
 				user, err := userMgmtAPI.GetUser(elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix))
-				//  If no user can be found, return 401 response.
+				//  If no user can be found, redirect back to the home page.
 				if err != nil {
 					logging.LogReq(req, http.StatusUnauthorized).
 						Error("Authentication error.",
 							slog.Any("error", err))
-					http.Error(res, "Authentication error.", http.StatusUnauthorized)
-
-					req, err = http.NewRequestWithContext(req.Context(), http.MethodGet, "/", nil)
-					if err != nil {
-						logging.LogReq(req, http.StatusInternalServerError).
-							Error("Failed to create request object.",
-								slog.Any("error", err))
-						http.Error(res, "Server erro.", http.StatusInternalServerError)
-
-						return
-					}
-				} else {
-					// Else load the user into the context and pass the new context
-					// to the next request.
-					req = req.WithContext(models.UserToCtx(req.Context(), user))
+					http.Redirect(res, req, "/", http.StatusSeeOther)
 				}
+				// Else load the user into the context and pass the new context
+				// to the next request.
+				req = req.WithContext(models.UserToCtx(req.Context(), user))
 			}
 
 			next.ServeHTTP(res, req)
