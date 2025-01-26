@@ -1,7 +1,6 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//revive:disable:get-return
 package server
 
 import (
@@ -9,12 +8,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
 const (
@@ -27,12 +24,8 @@ var (
 	ErrRenderTemplateFail = errors.New("could not render template")
 )
 
-// Ensures we statisfy the ServerInterface interface.
-var _ ServerInterface = (*Server)(nil)
-
-// GetLogin handles login for provider.
-// (GET /login/{provider}).
-func (s Server) GetLogin(res http.ResponseWriter, req *http.Request, provider string) {
+// Login handler handles login requests.
+func (s Server) Login(res http.ResponseWriter, req *http.Request, provider string) {
 	logger := s.Logger.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
 	ctx := logging.ToContext(req.Context(), logger)
 
@@ -45,9 +38,8 @@ func (s Server) GetLogin(res http.ResponseWriter, req *http.Request, provider st
 	}
 }
 
-// GetLoginCallback handles callback from provider.
-// (GET /login/{provider}/callback).
-func (s Server) GetLoginCallback(res http.ResponseWriter, req *http.Request, provider string, params GetLoginCallbackParams) {
+// LoginCallback handles the callback from login providers.
+func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provider string, params LoginCallbackParams) {
 	logger := s.Logger.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
 	ctx := logging.ToContext(req.Context(), logger)
 
@@ -75,37 +67,6 @@ func (s Server) GetLoginCallback(res http.ResponseWriter, req *http.Request, pro
 	// Redirect to logged in page.
 	req.Header.Add("Content-Type", "")
 	http.Redirect(res, req.WithContext(ctx), homePage, http.StatusTemporaryRedirect)
-}
-
-// GetLogout handles logging user out from specified provider.
-// (GET /logout/{provider}).
-func (s Server) GetLogout(res http.ResponseWriter, req *http.Request, provider string) {
-	logger := s.Logger.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
-
-	switch provider {
-	case "auth0":
-		auth0.LogoutHandler(res, req)
-	default:
-		logger.Error("No provider to satisfy login.")
-		http.NotFound(res, req)
-	}
-}
-
-// GetIndex serves the front page.
-// GET(/).
-func (s Server) GetIndex(res http.ResponseWriter, req *http.Request) {
-	indexPage := layouts.Page("Go Feed Me",
-		layouts.WithPageDescription("Welcome to Go Feed Me."),
-		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		layouts.WithPageContent(layouts.IndexLayout()))
-
-	// Render index page template.
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, indexPage); err != nil {
-		logging.LogReq(req, http.StatusInternalServerError).Error("IndexViewHandler: cannot render template.", slog.Any("error", err))
-		res.WriteHeader(http.StatusInternalServerError)
-
-		return
-	}
 }
 
 func (s Server) GetHomeSettings(res http.ResponseWriter, req *http.Request) {

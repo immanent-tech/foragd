@@ -103,8 +103,8 @@ type ShowListParams struct {
 // ShowListParamsList defines parameters for ShowList.
 type ShowListParamsList string
 
-// GetLoginCallbackParams defines parameters for GetLoginCallback.
-type GetLoginCallbackParams struct {
+// LoginCallbackParams defines parameters for LoginCallback.
+type LoginCallbackParams struct {
 	Code  string `form:"code" json:"code"`
 	State string `form:"state" json:"state"`
 }
@@ -122,7 +122,7 @@ type ProcessSignupMultipartRequestBody = externalRef0.UserSignup
 type ServerInterface interface {
 	// Index
 	// (GET /)
-	GetIndex(w http.ResponseWriter, r *http.Request)
+	Index(w http.ResponseWriter, r *http.Request)
 	// mark an article as read.
 	// (POST /home/mark/{action}/{feed}/{item})
 	MarkArticle(w http.ResponseWriter, r *http.Request, action MarkArticleParamsAction, feed FeedID, item ItemID)
@@ -152,13 +152,13 @@ type ServerInterface interface {
 	PostSubscriptionEdit(w http.ResponseWriter, r *http.Request, feed FeedID)
 	// Process a user login with given provider
 	// (GET /login/{provider})
-	GetLogin(w http.ResponseWriter, r *http.Request, provider string)
+	Login(w http.ResponseWriter, r *http.Request, provider string)
 	// Callback for login provider
 	// (GET /login/{provider}/callback)
-	GetLoginCallback(w http.ResponseWriter, r *http.Request, provider string, params GetLoginCallbackParams)
+	LoginCallback(w http.ResponseWriter, r *http.Request, provider string, params LoginCallbackParams)
 	// Logout handler for provider
 	// (GET /logout/{provider})
-	GetLogout(w http.ResponseWriter, r *http.Request, provider string)
+	Logout(w http.ResponseWriter, r *http.Request, provider string)
 	// Issue a user search request
 	// (POST /search)
 	Search(w http.ResponseWriter, r *http.Request)
@@ -176,7 +176,7 @@ type Unimplemented struct{}
 
 // Index
 // (GET /)
-func (_ Unimplemented) GetIndex(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) Index(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -236,19 +236,19 @@ func (_ Unimplemented) PostSubscriptionEdit(w http.ResponseWriter, r *http.Reque
 
 // Process a user login with given provider
 // (GET /login/{provider})
-func (_ Unimplemented) GetLogin(w http.ResponseWriter, r *http.Request, provider string) {
+func (_ Unimplemented) Login(w http.ResponseWriter, r *http.Request, provider string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Callback for login provider
 // (GET /login/{provider}/callback)
-func (_ Unimplemented) GetLoginCallback(w http.ResponseWriter, r *http.Request, provider string, params GetLoginCallbackParams) {
+func (_ Unimplemented) LoginCallback(w http.ResponseWriter, r *http.Request, provider string, params LoginCallbackParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Logout handler for provider
 // (GET /logout/{provider})
-func (_ Unimplemented) GetLogout(w http.ResponseWriter, r *http.Request, provider string) {
+func (_ Unimplemented) Logout(w http.ResponseWriter, r *http.Request, provider string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -279,11 +279,11 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
-// GetIndex operation middleware
-func (siw *ServerInterfaceWrapper) GetIndex(w http.ResponseWriter, r *http.Request) {
+// Index operation middleware
+func (siw *ServerInterfaceWrapper) Index(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetIndex(w, r)
+		siw.Handler.Index(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -591,8 +591,8 @@ func (siw *ServerInterfaceWrapper) PostSubscriptionEdit(w http.ResponseWriter, r
 	handler.ServeHTTP(w, r)
 }
 
-// GetLogin operation middleware
-func (siw *ServerInterfaceWrapper) GetLogin(w http.ResponseWriter, r *http.Request) {
+// Login operation middleware
+func (siw *ServerInterfaceWrapper) Login(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -606,7 +606,7 @@ func (siw *ServerInterfaceWrapper) GetLogin(w http.ResponseWriter, r *http.Reque
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetLogin(w, r, provider)
+		siw.Handler.Login(w, r, provider)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -616,8 +616,8 @@ func (siw *ServerInterfaceWrapper) GetLogin(w http.ResponseWriter, r *http.Reque
 	handler.ServeHTTP(w, r)
 }
 
-// GetLoginCallback operation middleware
-func (siw *ServerInterfaceWrapper) GetLoginCallback(w http.ResponseWriter, r *http.Request) {
+// LoginCallback operation middleware
+func (siw *ServerInterfaceWrapper) LoginCallback(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -631,7 +631,7 @@ func (siw *ServerInterfaceWrapper) GetLoginCallback(w http.ResponseWriter, r *ht
 	}
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params GetLoginCallbackParams
+	var params LoginCallbackParams
 
 	// ------------- Required query parameter "code" -------------
 
@@ -664,7 +664,7 @@ func (siw *ServerInterfaceWrapper) GetLoginCallback(w http.ResponseWriter, r *ht
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetLoginCallback(w, r, provider, params)
+		siw.Handler.LoginCallback(w, r, provider, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -674,8 +674,8 @@ func (siw *ServerInterfaceWrapper) GetLoginCallback(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
-// GetLogout operation middleware
-func (siw *ServerInterfaceWrapper) GetLogout(w http.ResponseWriter, r *http.Request) {
+// Logout operation middleware
+func (siw *ServerInterfaceWrapper) Logout(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -689,7 +689,7 @@ func (siw *ServerInterfaceWrapper) GetLogout(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetLogout(w, r, provider)
+		siw.Handler.Logout(w, r, provider)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -855,7 +855,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/", wrapper.GetIndex)
+		r.Get(options.BaseURL+"/", wrapper.Index)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/home/mark/{action}/{feed}/{item}", wrapper.MarkArticle)
@@ -885,13 +885,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/home/subscription/edit/{feed}", wrapper.PostSubscriptionEdit)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/login/{provider}", wrapper.GetLogin)
+		r.Get(options.BaseURL+"/login/{provider}", wrapper.Login)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/login/{provider}/callback", wrapper.GetLoginCallback)
+		r.Get(options.BaseURL+"/login/{provider}/callback", wrapper.LoginCallback)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/logout/{provider}", wrapper.GetLogout)
+		r.Get(options.BaseURL+"/logout/{provider}", wrapper.Logout)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/search", wrapper.Search)

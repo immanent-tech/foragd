@@ -38,6 +38,9 @@ type Server struct {
 	Logger *slog.Logger
 }
 
+// Ensures we statisfy the ServerInterface interface.
+var _ ServerInterface = (*Server)(nil)
+
 var ErrStartServer = errors.New("start server failed")
 
 func NewServer(ctx context.Context) (Server, error) {
@@ -120,12 +123,12 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	}
 
 	// Login/Logout routes.
-	router.Get("/", wrapper.GetIndex)
+	router.Get("/", wrapper.Index)
 	router.Route("/login", func(loginRouter chi.Router) {
-		loginRouter.Get("/{provider}", wrapper.GetLogin)
-		loginRouter.Get("/{provider}/callback", wrapper.GetLoginCallback)
+		loginRouter.Get("/{provider}", wrapper.Login)
+		loginRouter.Get("/{provider}/callback", wrapper.LoginCallback)
 	})
-	router.Get("/logout/{provider}", wrapper.GetLogout)
+	router.Get("/logout/{provider}", wrapper.Logout)
 
 	// Sign up routes.
 	router.Route("/signup", func(signupRouter chi.Router) {

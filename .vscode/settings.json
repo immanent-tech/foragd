@@ -91,7 +91,8 @@
     "internal/id",
     "cli",
     "app/scheduler",
-    "components/text"
+    "components/text",
+    "routes"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

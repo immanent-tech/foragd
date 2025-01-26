@@ -7,14 +7,14 @@ paths:
   /:
     get:
       summary: Index
-      operationId: getIndex
+      operationId: index
       responses:
         200:
           $ref: '#/components/responses/htmx'
   /login/{provider}:
     get:
       summary: Process a user login with given provider
-      operationId: getLogin
+      operationId: login
       tags:
         - login
       parameters:
@@ -33,7 +33,7 @@ paths:
   /login/{provider}/callback:
     get:
       summary: Callback for login provider
-      operationId: getLoginCallback
+      operationId: loginCallback
       tags:
         - login
       parameters:
@@ -64,7 +64,7 @@ paths:
   /logout/{provider}:
     get:
       summary: Logout handler for provider
-      operationId: getLogout
+      operationId: logout
       parameters:
         - name: provider
           in: path
