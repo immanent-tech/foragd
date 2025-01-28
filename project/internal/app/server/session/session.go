@@ -78,6 +78,8 @@ func SaveListFeedsFilters(ctx context.Context, filters *models.APIFilters) {
 		return
 	}
 
+	// spew.Dump(filters)
+
 	session.Put(ctx, listFeedsFiltersSessionKey, *filters)
 }
 

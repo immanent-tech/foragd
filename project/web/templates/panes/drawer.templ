@@ -3,18 +3,58 @@
 
 package panes
 
-import "github.com/joshuar/go-templ-daisyui"
+import (
+	"github.com/davecgh/go-spew/spew"
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-templ-daisyui"
+)
 
 templ Drawer() {
-	<div class="bg-base-200 min-w-32 min-h-full z-10">
-		@components.Button(
-			components.WithID[*components.ButtonProps]("add"),
-			components.WithColor[*components.ButtonProps](components.ColorGhost, false),
-			components.WithButtonContent(components.AsIconContent("fa-plus")),
-			components.WithAttributes[*components.ButtonProps](templ.Attributes{
-				"hx-get":    "/home/subscription/add",
-				"hx-target": "#command_modal",
-				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
-			}))
-	</div>
+	<ul
+		id="drawer_menu"
+		hx-swap-oob="true"
+		class="menu bg-base-200 text-base-content items-center justify-center min-h-full max-w-32 p-4"
+	>
+		<li>
+			@components.Text("Actions",
+				components.WithTextWeight(components.TextBold),
+				components.WithTextSize(components.TextSM),
+			)
+		</li>
+		<li>
+			@components.Button(
+				components.WithResponsiveSize[*components.ButtonProps](components.SM),
+				components.WithID[*components.ButtonProps]("add"),
+				components.WithColor[*components.ButtonProps](components.ColorGhost, false),
+				components.WithButtonContent(components.AsIconContent("fa-plus")),
+				components.WithAttributes[*components.ButtonProps](templ.Attributes{
+					"hx-get":    "/home/subscription/add",
+					"hx-target": "#command_modal",
+					"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
+				}))
+		</li>
+		<li>
+			@components.Text("Filters",
+				components.WithTextWeight(components.TextBold),
+				components.WithTextSize(components.TextSM),
+			)
+		</li>
+		<li>
+			@components.Toggle(
+				components.WithID[*components.ToggleProps]("show_unread"),
+				components.WithName[*components.ToggleProps]("show_unread"),
+				components.WithChecked[*components.ToggleProps](models.PageNavigationFromCtx(ctx).ShowUnread()),
+				components.WithResponsiveSize[*components.ToggleProps](components.SM),
+				components.WithAttributes[*components.ToggleProps](templ.Attributes{
+					"hx-get": models.StripQueryParams(models.PageNavigationFromCtx(ctx).Current,
+						"show_unread").String(),
+					"hx-target":   "#" + ContentTarget,
+					"hx-push-url": "true",
+					// "_":           "on click toggle .checked",
+					// "hx-trigger": "changed",
+				}),
+			)
+			{{ spew.Dump(models.PageNavigationFromCtx(ctx)) }}
+		</li>
+	</ul>
 }

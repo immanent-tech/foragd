@@ -92,7 +92,11 @@
     "cli",
     "app/scheduler",
     "components/text",
-    "routes"
+    "routes",
+    "modifier/position",
+    "components/toggle",
+    "components/navbar",
+    "modifiers"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

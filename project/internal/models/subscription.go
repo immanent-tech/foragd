@@ -114,7 +114,7 @@ func (s *SubscriptionRequest) Valid() bool {
 	for field, problem := range problems {
 		switch field {
 		case "URL":
-			s.InputURL.SetStateColor(components.StateError, true)
+			s.InputURL.SetColor(components.ColorStateError, true)
 			s.InputURL.SetBottomRightLabel(problem)
 		}
 	}

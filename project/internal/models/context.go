@@ -3,12 +3,15 @@
 
 package models
 
-import "context"
+import (
+	"context"
+)
 
 const (
 	userContextKey            contextKey = "user"
 	subscriptionRequestCtxKey contextKey = "subscriptionRequest"
 	feedManagementAPICtxKey   contextKey = "feedManagementAPI"
+	pageNavigationCtxKey      contextKey = "pageNavigation"
 )
 
 type contextKey string
@@ -55,4 +58,17 @@ func FeedManagementAPIFromCtx(ctx context.Context) FeedManagementAPI {
 	}
 
 	return api
+}
+
+func PageNavigationToCtx(ctx context.Context, navigation *APIPageNavigation) context.Context {
+	return context.WithValue(ctx, pageNavigationCtxKey, navigation)
+}
+
+func PageNavigationFromCtx(ctx context.Context) *APIPageNavigation {
+	navigation, found := ctx.Value(pageNavigationCtxKey).(*APIPageNavigation)
+	if !found {
+		return nil
+	}
+
+	return navigation
 }

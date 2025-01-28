@@ -3,15 +3,9 @@
 
 package layouts
 
-import (
-	"github.com/joshuar/go-feed-me/web/templates/layouts/partials"
-	"github.com/joshuar/go-templ-daisyui"
-)
+import "github.com/joshuar/go-templ-daisyui"
 
 templ HomeLayout(content, drawer templ.Component) {
-	<div class="sticky top-0 z-40 max-w-full">
-		@partials.AppBarTop()
-	</div>
 	<div id="command_modal" class="max-w-full"></div>
 	@components.Drawer("home_drawer",
 		components.WithDrawerVisibility(components.LG),

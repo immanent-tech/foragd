@@ -6,7 +6,7 @@ info:
 paths:
   /:
     get:
-      summary: Index
+      description: display the home page.
       operationId: index
       responses:
         200:
@@ -190,39 +190,25 @@ paths:
           description: Unauthorized
         500:
           description: Problem with request
-  /home/show/{list}:
+  /home/show/{kind}:
     get:
-      summary: show a list of feeds/items with optional filtering.
+      description: display of feeds or items with optional filtering.
       operationId: showList
       parameters:
-        - $ref: '#/components/parameters/List'
+        - $ref: '#/components/parameters/Kind'
           required: true
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Items'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Count'
         - $ref: '#/components/parameters/Pagination'
+        - $ref: '#/components/parameters/ShowUnread'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/mark/{list}/{action}:
-    post:
-      summary: marks the list of feeds/items with optional filtering as read.
-      operationId: markList
-      parameters:
-        - $ref: '#/components/parameters/List'
-          required: true
-        - $ref: '#/components/parameters/Action'
-          required: true
-        - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/Items'
-        - $ref: '#/components/parameters/Categories'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/show/{feed}/{item}:
+  /home/show/article/{feed}/{item}:
     get:
-      summary: display an item.
+      description: display an item.
       operationId: showArticle
       parameters:
         - $ref: '#/components/parameters/FeedID'
@@ -232,10 +218,25 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/mark/{action}/{feed}/{item}:
+  /home/set/{kind}/{action}:
     post:
-      summary: mark an article as read.
-      operationId: markArticle
+      description: perform an action on a set of feeds/items.
+      operationId: listAction
+      parameters:
+        - $ref: '#/components/parameters/Kind'
+          required: true
+        - $ref: '#/components/parameters/Action'
+          required: true
+        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Items'
+        - $ref: '#/components/parameters/Categories'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+  /home/set/article/{action}/{feed}/{item}:
+    post:
+      description: perform an action on a feed item.
+      operationId: articleAction
       parameters:
         - $ref: '#/components/parameters/FeedID'
           required: true
@@ -248,6 +249,7 @@ paths:
           $ref: '#/components/responses/htmx'
 components:
   parameters:
+  # Query parameters:
     Feeds:
       name: feeds
       in: query
@@ -263,6 +265,25 @@ components:
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/Categories'
+    ShowUnread:
+      name: show_unread
+      in: query
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/ShowUnread'
+    Pagination:
+      name: pagination
+      in: query
+      schema:
+        type: string
+    Count:
+      name: count
+      in: query
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/Count'
+        minimum: 1
+        maximum: 20
+        default: 10
+  # Path parameters:
     FeedID:
       name: feed
       in: path
@@ -278,36 +299,20 @@ components:
       in: path
       schema:
         $ref: '../models/api.yaml#/components/schemas/Category'
-    Pagination:
-      name: pagination
-      in: query
-      schema:
-        type: string
-    List:
-      name: list
+    Kind:
+      name: kind
+      description: describes the type(s) of objects to act on.
       in: path
       schema:
         type: string
-        enum: [feeds, items]
+        enum: [feeds, items, article]
     Action:
       name: action
+      description: describes the type of action to perform on the item(s).
       in: path
       schema:
         type: string
         enum: [read, unread]
-    Count:
-      name: count
-      in: query
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/Count'
-        minimum: 1
-        maximum: 20
-        default: 10
-    Filters:
-      name: filters
-      in: query
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/APIFilters'
   responses:
     htmx:
       description: standard htmx powered response.

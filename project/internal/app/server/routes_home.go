@@ -6,12 +6,11 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -28,47 +27,25 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/panes"
 )
 
+// Navigation paths.
 const (
-	showFeedsPath     = "/home/show/feeds"
-	markFeedsReadPath = "/home/mark/feeds/read"
-	showItemsPath     = "/home/show/items"
-	markItemsReadPath = "/home/mark/items/read"
-	showArticlePath   = "/home/show/article"
-	markArticlePath   = "/home/mark/article/read"
+	homeBasePath        = "/home"
+	showBasePath        = homeBasePath + "/show"
+	setBasePath         = homeBasePath + "/set"
+	showFeedsBasePath   = showBasePath + "/feeds"
+	showItemsBasePath   = showBasePath + "/items"
+	showArticleBasePath = showBasePath + "/article"
+	setFeedsBasePath    = setBasePath + "/feeds"
+	setItemsBasePath    = setBasePath + "/items"
+	setArticleBasePath  = setBasePath + "/article"
 )
 
-func generateFilters(params any) (*models.APIFilters, error) {
-	filters := &models.APIFilters{}
-
-	data, err := json.Marshal(params)
-	if err != nil {
-		return nil, fmt.Errorf("could not generate filters: %w", err)
-	}
-
-	err = json.Unmarshal(data, filters)
-	if err != nil {
-		return nil, fmt.Errorf("could not generate filters: %w", err)
-	}
-
-	if filters.Count == 0 || filters.Count > 20 {
-		filters.Count = 10
-	}
-
-	// if params.Pagination != nil {
-	// 	if pagination, err := url.QueryUnescape(*params.Pagination); err != nil {
-	// 		slog.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-	// 	} else {
-	// 		filters.Pagination = []byte(pagination)
-	// 	}
-	// }
-
-	return filters, nil
-}
+var ErrGeneratePageNavigationFailed = errors.New("error occurred while generating page navigation")
 
 // ShowList will show a list of feeds or items, with filtering applied.
 //
 // `GET /home/show/{list}`.
-func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowListParamsList, params ShowListParams) {
+func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowListParamsKind, params ShowListParams) {
 	var (
 		page  templ.Component
 		cards templ.Component
@@ -76,50 +53,35 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 
 	logger := logging.NewHandlerLogger("ShowList", req)
 
+	nav, err := createPageNavigation(req)
+	if err != nil {
+		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+	}
+
 	// Load up a context with required values.
 	ctx := req.Context()
+	ctx = models.PageNavigationToCtx(ctx, nav)
 	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
 	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 
-	filters, err := generateFilters(params)
+	filters, err := models.CreateFilters(params)
 	if err != nil {
 		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
 
 	switch list {
-	case ShowListParamsListFeeds:
+	case ShowListParamsKindFeeds:
 		// Save list feeds filters in session storage.
 		session.SaveListFeedsFilters(ctx, filters)
 
 		cards = renderFeedCards(ctx, s.API.elastic, filters)
 
-		ctx = panes.NavigationToCtx(ctx, panes.NavigationLinks{
-			Current:        showFeedsPath,
-			CurrentFilters: filters,
-			Action:         markFeedsReadPath,
-		})
-
-	case ShowListParamsListItems:
+	case ShowListParamsKindItems:
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
 
-		parentFilters, err := session.LoadListFeedsFilters(ctx)
-		if err != nil {
-			logger.Warn("Could not retrieve parent page filters.",
-				slog.Any("error", err))
-		}
-		// var pagination []byte
-
 		cards, _ = renderItemCards(ctx, s.API.elastic, filters)
-
-		ctx = panes.NavigationToCtx(ctx, panes.NavigationLinks{
-			Parent:         showFeedsPath,
-			ParentFilters:  &parentFilters,
-			Current:        showItemsPath,
-			CurrentFilters: filters,
-			Action:         markItemsReadPath,
-		})
 	default:
 		logger.Error("Bad request.",
 			slog.String("list", string(list)),
@@ -134,7 +96,7 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		page = layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(panes.Cards(panes.Header(), panes.Footer(), cards), panes.Drawer())))
+			layouts.WithPageContent(layouts.HomeLayout(panes.AllContent(panes.AppBarTop(), panes.Header(), panes.Footer(), cards), panes.Drawer())))
 		if err := page.Render(ctx, res); err != nil {
 			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -153,6 +115,11 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 		}
 
 		if err := resp.RenderTempl(ctx, res, panes.Footer()); err != nil {
+			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			http.Error(res, "Problem!", http.StatusInternalServerError)
+		}
+
+		if err := resp.RenderTempl(ctx, res, panes.Drawer()); err != nil {
 			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
@@ -183,7 +150,7 @@ func renderFeedCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 		}
 		// Add the URL for fetching items for this feed.
 		card.Body.AddAttributes(templ.Attributes{
-			"hx-get": showItemsPath + "?feeds=" + feed.GetID(),
+			"hx-get": showItemsBasePath + "?feeds=" + feed.GetID(),
 		})
 		// Append to the list of feed cards.
 		cards = append(cards, components.Card(components.FromCardProps(card)))
@@ -215,7 +182,7 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 			continue
 		}
 		// Generate URL for fetching article for item.
-		get, err := url.JoinPath(showArticlePath, item.GetFeedID(), item.GetID())
+		get, err := url.JoinPath(showArticleBasePath, item.GetFeedID(), item.GetID())
 		if err != nil {
 			logging.FromContext(ctx).Warn("Could not render item as card.",
 				slog.Any("error", err))
@@ -246,7 +213,7 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 // or unread.
 //
 // `POST /home/mark/{list}/{action}`.
-func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkListParamsList, action MarkListParamsAction, params MarkListParams) {
+func (s Server) ListAction(res http.ResponseWriter, req *http.Request, list ListActionParamsKind, action ListActionParamsAction, params ListActionParams) {
 	var (
 		items       []models.APIItem
 		pagination  []byte
@@ -257,10 +224,11 @@ func (s Server) MarkList(res http.ResponseWriter, req *http.Request, list MarkLi
 	logger := logging.NewHandlerLogger("MarkListRead", req)
 	ctx := req.Context()
 
-	filters, err := generateFilters(params)
+	filters, err := models.CreateFilters(params)
 	if err != nil {
 		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
+	// Ignore user-defined count value and use an optimized one instead.
 	filters.Count = 100
 
 	getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
@@ -312,16 +280,16 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 
 	logger := logging.NewHandlerLogger("ShowArticle", req)
 
+	nav, err := createPageNavigation(req)
+	if err != nil {
+		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+	}
+
 	ctx := req.Context()
+	ctx = models.PageNavigationToCtx(ctx, nav)
+	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 
-	ctx = panes.NavigationToCtx(ctx, panes.NavigationLinks{
-		Parent:  showItemsPath,
-		Current: showArticlePath,
-	})
-
-	getItemCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
-
-	item, found, err := s.API.elastic.UserActionGetItem(getItemCtx, feedID, itemID)
+	item, found, err := s.API.elastic.UserActionGetItem(ctx, feedID, itemID)
 	if err != nil || !found {
 		logger.Error("Could not get item.", slog.Any("error", err))
 		http.Error(res, "Not found!.", http.StatusNotFound)
@@ -351,13 +319,13 @@ func (s Server) ShowArticleMenu(res http.ResponseWriter, req *http.Request, feed
 }
 
 // MarkArticle will mark an article as read/unread.
-func (s Server) MarkArticle(res http.ResponseWriter, req *http.Request, action MarkArticleParamsAction, feed FeedID, item ItemID) {
+func (s Server) ArticleAction(res http.ResponseWriter, req *http.Request, action ArticleActionParamsAction, feed FeedID, item ItemID) {
 	logger := logging.NewHandlerLogger("MarkArticle", req)
 
 	ctx := elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix)
 
 	switch action {
-	case MarkArticleParamsActionRead:
+	case ArticleActionParamsActionRead:
 		item := models.APIReadItem{
 			ItemID: item,
 			FeedID: feed,
@@ -377,68 +345,56 @@ func (s Server) MarkArticle(res http.ResponseWriter, req *http.Request, action M
 	}
 }
 
-// // generateActionLink creates a URL string that can be used for actions that
-// // manipulate the current page.
-// func generateActionLink(ctx context.Context, path string) string {
-// 	var (
-// 		filters models.APIFilters
-// 		err     error
-// 	)
+func createPageNavigation(req *http.Request) (*models.APIPageNavigation, error) {
+	navigation := &models.APIPageNavigation{
+		Current: *req.URL,
+		Action:  *req.URL,
+	}
 
-// 	switch path {
-// 	case showFeedsPath, markFeedsReadPath:
-// 		filters, err = session.LoadListFeedsFilters(ctx)
-// 	case showItemsPath, markItemsReadPath:
-// 		filters, err = session.LoadListItemsFilters(ctx)
-// 	}
+	switch {
+	case strings.HasPrefix(req.URL.Path, showFeedsBasePath):
+		navigation.Action.Path = setFeedsBasePath
 
-// 	if err != nil {
-// 		logging.FromContext(ctx).Warn("Could not generate backlink.",
-// 			slog.Any("error", err))
-// 		return path
-// 	}
+		childURL, err := url.Parse(showItemsBasePath)
+		if err != nil {
+			return navigation, errors.Join(ErrGeneratePageNavigationFailed, err)
+		}
 
-// 	backlink, err := filters.GenerateURL(path)
-// 	if err != nil {
-// 		logging.FromContext(ctx).Warn("Could not generate backlink.",
-// 			slog.Any("error", err))
-// 		return path
-// 	}
+		navigation.Child = *childURL
+	case strings.HasPrefix(req.URL.Path, showItemsBasePath):
+		navigation.Action.Path = setItemsBasePath
 
-// 	return backlink.String()
-// }
+		parentFilters, err := session.LoadListFeedsFilters(req.Context())
+		if err != nil {
+			return navigation, errors.Join(ErrGeneratePageNavigationFailed, err)
+		}
 
-// // generatePagination generates a URL string with an updated pagination value.
-// func generatePagination(ctx context.Context, path string, pagination []byte) string {
-// 	var (
-// 		filters models.APIFilters
-// 		err     error
-// 	)
+		parentURL, err := parentFilters.GenerateURL(showFeedsBasePath)
+		if err != nil {
+			return navigation, errors.Join(ErrGeneratePageNavigationFailed, err)
+		}
 
-// 	switch path {
-// 	case showFeedsPath:
-// 		filters, err = session.LoadListFeedsFilters(ctx)
-// 	case showItemsPath:
-// 		filters, err = session.LoadListItemsFilters(ctx)
-// 	}
+		navigation.Parent = *parentURL
 
-// 	if err != nil {
-// 		logging.FromContext(ctx).Warn("Could not generate pagination link.",
-// 			slog.Any("error", err))
-// 		return path
-// 	}
+		childURL, err := url.Parse(showArticleBasePath)
+		if err != nil {
+			return navigation, errors.Join(ErrGeneratePageNavigationFailed, err)
+		}
 
-// 	paginationLink, err := filters.GenerateURL(path)
-// 	if err != nil {
-// 		logging.FromContext(ctx).Warn("Could not generate pagination link.",
-// 			slog.Any("error", err))
-// 		return path
-// 	}
+		navigation.Child = *childURL
+	case strings.HasPrefix(req.URL.Path, showArticleBasePath):
+		parentFilters, err := session.LoadListItemsFilters(req.Context())
+		if err != nil {
+			return navigation, errors.Join(ErrGeneratePageNavigationFailed, err)
+		}
 
-// 	q := paginationLink.Query()
-// 	q.Del("pagination")
-// 	q.Add("pagination", url.QueryEscape(string(pagination)))
-// 	paginationLink.RawQuery = q.Encode()
+		parentURL, err := parentFilters.GenerateURL(showItemsBasePath)
+		if err != nil {
+			return navigation, errors.Join(ErrGeneratePageNavigationFailed, err)
+		}
 
-// 	return paginationLink.String()
-// }
+		navigation.Parent = *parentURL
+	}
+
+	return navigation, nil
+}

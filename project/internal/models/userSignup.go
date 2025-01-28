@@ -100,10 +100,10 @@ func (s *UserSignup) Valid() bool {
 	for field, problem := range problems {
 		switch field {
 		case "Email":
-			s.InputEmail.SetStateColor(components.StateError, true)
+			s.InputEmail.SetColor(components.ColorStateError, true)
 			s.InputEmail.SetBottomRightLabel(problem)
 		case "Password":
-			s.InputPassword.SetStateColor(components.StateError, true)
+			s.InputPassword.SetColor(components.ColorStateError, true)
 			s.InputPassword.SetBottomRightLabel(problem)
 		}
 	}

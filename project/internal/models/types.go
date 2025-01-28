@@ -5,9 +5,6 @@ package models
 
 import (
 	"errors"
-	"fmt"
-	"net/url"
-	"strings"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -36,45 +33,6 @@ type UserData struct {
 	*User
 }
 
-func (f APIFilters) String() string {
-	params := make(url.Values)
-
-	if len(f.FeedIDs) > 0 {
-		params.Add("feeds", strings.Join(f.FeedIDs, ","))
-	}
-
-	if len(f.ItemIDs) > 0 {
-		params.Add("items", strings.Join(f.ItemIDs, ","))
-	}
-
-	if len(f.Categories) > 0 {
-		params.Add("categories", strings.Join(f.Categories, ","))
-	}
-
-	if f.Pagination != nil {
-		params.Add("pagination", string(f.Pagination))
-	}
-
-	// if f.Count != 0 {
-	// 	params.Add("count", strconv.Itoa(f.Count))
-	// }
-
-	return params.Encode()
-}
-
-// GenerateURL generates a new URL using the basePath provided with any non-zero
-// filters.
-func (f APIFilters) GenerateURL(basePath string) (string, error) {
-	newURL, err := url.Parse(basePath)
-	if err != nil {
-		return "", fmt.Errorf("cannot generate URL: %w", err)
-	}
-
-	newURL.RawQuery = f.String()
-
-	return newURL.String(), nil
-}
-
 func ReadItemIDs(items []ReadItem) []ItemID {
 	itemIDs := make([]ItemID, len(items))
 
@@ -84,3 +42,12 @@ func ReadItemIDs(items []ReadItem) []ItemID {
 
 	return itemIDs
 }
+
+// func (p *ShowUnread) MarshalJSON() ([]byte, error) {
+// 	return json.Marshal(string(*p))
+// }
+
+// func (p *ShowUnread) UnmarshalJSON(data []byte) error {
+// 	spew.Dump("unmarshal", *p)
+// 	return nil
+// }

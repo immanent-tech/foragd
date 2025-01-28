@@ -4,6 +4,7 @@
 package panes
 
 import (
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-templ-daisyui"
 	"strconv"
 )
@@ -17,9 +18,9 @@ templ Header() {
 		@components.NewMenu(
 			components.WithLayout[*components.Menu](components.HorizontalLayout),
 			components.WithItems[*components.Menu](
-				navButton(NavigationFromCtx(ctx).BackLink(), "fa-arrow-left", "Back"),
-				navButton(NavigationFromCtx(ctx).RefreshLink(), "fa-rotate", "Refresh"),
-				navButton(NavigationFromCtx(ctx).MarkAllReadLink(), "fa-check", "Mark All Read"),
+				navButton(models.PageNavigationFromCtx(ctx).Parent.String(), "fa-arrow-left", "Back"),
+				navButton(models.PageNavigationFromCtx(ctx).Current.String(), "fa-rotate", "Refresh"),
+				navButton(models.PageNavigationFromCtx(ctx).Action.String(), "fa-check", "Mark All Read"),
 			),
 		).Show()
 	</div>
@@ -36,18 +37,21 @@ templ Footer() {
 	</div>
 }
 
-// Cards displays a list of the given cards.
-templ Cards(header, footer, cards templ.Component) {
+// AllContent will display all content (headers, footers, main content, etc.)
+templ AllContent(bar, header, footer, cards templ.Component) {
+	@bar
 	@header
-	<div id="content" class="flex flex-col">
-		@cards
+	<div class="flex flex-col items-center justify-center">
+		<div id="content">
+			@cards
+		</div>
+		@components.Loading(components.LoadingBars,
+			components.WithID[*components.LoadingProps]("content-loading"),
+			components.AsHTMXIndicator(),
+			components.WithColor[*components.LoadingProps](components.ColorGhost,
+				false),
+			components.WithResponsiveSize[*components.LoadingProps](components.LG))
 	</div>
-	@components.Loading(components.LoadingBars,
-		components.WithID[*components.LoadingProps]("content-loading"),
-		components.AsHTMXIndicator(),
-		components.WithColor[*components.LoadingProps](components.ColorGhost,
-			false),
-		components.WithResponsiveSize[*components.LoadingProps](components.LG))
 	@footer
 }
 

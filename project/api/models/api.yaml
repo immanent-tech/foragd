@@ -132,6 +132,15 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'count'
         form: 'count'
+    ShowUnread:
+      type: string
+      enum:
+        - "on"
+        - "off"
+      x-go-type-skip-optional-pointer: true
+      x-oapi-codegen-extra-tags:
+        json: 'show_unread'
+        form: 'show_unread'
     # Metadata Objects.
     MetadataFeed:
       description: contains common/metadata fields for feeds and items.
@@ -544,11 +553,7 @@ components:
         Count:
           $ref: '#/components/schemas/Count'
         ShowUnread:
-          type: boolean
-          x-oapi-codegen-extra-tags:
-            json: 'show_unread'
-            form: 'show_unread'
-          x-go-type-skip-optional-pointer: true
+          $ref: '#/components/schemas/ShowUnread'
     ScheduledJob:
       description: represents a job that has been scheduled by the job scheduler.
       type: object
@@ -621,3 +626,27 @@ components:
           x-go-type: time.Time
           x-oapi-codegen-extra-tags:
             json: 'expiry'
+    APIPageNavigation:
+      description: describes the navigation "breadcrumbs" for the current page.
+      type: object
+      required:
+        - current
+        - action
+      properties:
+        parent:
+          description: the parent page of the current page.
+          x-go-type: 'url.URL'
+          x-go-type-skip-optional-pointer: true
+        current:
+          description: the current page.
+          x-go-type: 'url.URL'
+        action:
+          description: the URL for performing actions for the current page.
+          x-go-type: 'url.URL'
+        child:
+          description: the child page of the current page.
+          x-go-type: 'url.URL'
+          x-go-type-skip-optional-pointer: true
+
+
+

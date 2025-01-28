@@ -5,6 +5,7 @@ package models
 
 import (
 	"encoding/json"
+	"net/url"
 	"time"
 
 	"github.com/coreos/go-oidc"
@@ -12,6 +13,12 @@ import (
 	"github.com/mmcdole/gofeed"
 	"github.com/oapi-codegen/runtime"
 	"github.com/reugn/go-quartz/quartz"
+)
+
+// Defines values for ShowUnread.
+const (
+	Off ShowUnread = "off"
+	On  ShowUnread = "on"
 )
 
 // APIFeed defines model for APIFeed.
@@ -75,8 +82,8 @@ type APIFilters struct {
 	ItemIDs ItemIDs `form:"items[]" json:"items"`
 
 	// Pagination contains details that allow fetching results at a certain point.
-	Pagination []byte `form:"pagination" json:"pagination"`
-	ShowUnread bool   `form:"show_unread" json:"show_unread"`
+	Pagination []byte     `form:"pagination" json:"pagination"`
+	ShowUnread ShowUnread `form:"show_unread" json:"show_unread"`
 }
 
 // APIItem defines model for APIItem.
@@ -102,6 +109,21 @@ type APIItem struct {
 	// Title is a string that can contain HTML.
 	Title   HTMLString `json:"title"`
 	Updated time.Time  `json:"updatedParsed"`
+}
+
+// APIPageNavigation describes the navigation "breadcrumbs" for the current page.
+type APIPageNavigation struct {
+	// Action the URL for performing actions for the current page.
+	Action url.URL `json:"action"`
+
+	// Child the child page of the current page.
+	Child url.URL `json:"child,omitempty"`
+
+	// Current the current page.
+	Current url.URL `json:"current"`
+
+	// Parent the parent page of the current page.
+	Parent url.URL `json:"parent,omitempty"`
 }
 
 // APIReadItem defines model for APIReadItem.
@@ -233,6 +255,9 @@ type ScheduledJob_Data struct {
 
 // SchedulerID is the unique ID of a job scheduler instance.
 type SchedulerID = string
+
+// ShowUnread defines model for ShowUnread.
+type ShowUnread string
 
 // Subscription represents a feed a particular user has subscribed to.
 type Subscription struct {
