@@ -138,7 +138,7 @@ func renderFeedCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 		return panes.EmptyContent()
 	}
 
-	var cards []templ.Component
+	cards := make([]templ.Component, 0, len(feeds))
 
 	for _, feed := range feeds {
 		// Else, generate a feed card for display.
@@ -160,8 +160,6 @@ func renderFeedCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 }
 
 func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *models.APIFilters) (templ.Component, []byte) {
-	var cards []templ.Component
-
 	items, pagination, err := api.UserActionGetItems(ctx, *filters)
 	if err != nil {
 		logging.FromContext(ctx).Warn("Could not retrieve items.",
@@ -172,6 +170,8 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 	if len(items) == 0 {
 		return panes.EmptyContent(), pagination
 	}
+
+	cards := make([]templ.Component, 0, len(items))
 
 	for idx, item := range items {
 		// Create item card properties.
@@ -310,12 +310,6 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
-}
-
-func (s Server) ShowArticleMenu(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
-	logger := logging.NewHandlerLogger("ShowArticleMenu", req)
-	logger.Warn("Unimplmented.")
-	res.WriteHeader(http.StatusNotImplemented)
 }
 
 // MarkArticle will mark an article as read/unread.

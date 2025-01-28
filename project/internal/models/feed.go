@@ -25,12 +25,12 @@ var ErrNoSubscriptions = errors.New("no user subscriptions")
 
 // GetItemsSince retrieves the feed items that are newer than the given time.
 func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
-	var items []Item
-
 	details, err := parser.ParseURL(f.URL)
 	if err != nil {
 		logging.FromContext(ctx).Warn("Problem getting feed details.", slog.Any("error", err))
 	}
+
+	items := make([]Item, 0, len(details.Items))
 
 	for _, i := range details.Items {
 		item, err := NewFeedItem(f.ID, i)

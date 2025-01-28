@@ -42,12 +42,3 @@ func ReadItemIDs(items []ReadItem) []ItemID {
 
 	return itemIDs
 }
-
-// func (p *ShowUnread) MarshalJSON() ([]byte, error) {
-// 	return json.Marshal(string(*p))
-// }
-
-// func (p *ShowUnread) UnmarshalJSON(data []byte) error {
-// 	spew.Dump("unmarshal", *p)
-// 	return nil
-// }

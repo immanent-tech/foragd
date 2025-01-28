@@ -11,10 +11,11 @@ import (
 	"github.com/go-playground/form/v4"
 )
 
-var decoder *form.Decoder
+var decoder = form.NewDecoder()
 
-func init() {
-	decoder = form.NewDecoder()
+// Validator is an object that can be validated.
+type Validator interface {
+	Valid() bool
 }
 
 // DecodeForm will decode submitted form contents into the passed in type. It

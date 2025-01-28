@@ -4,7 +4,6 @@
 package panes
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-templ-daisyui"
 )
@@ -50,11 +49,8 @@ templ Drawer() {
 						"show_unread").String(),
 					"hx-target":   "#" + ContentTarget,
 					"hx-push-url": "true",
-					// "_":           "on click toggle .checked",
-					// "hx-trigger": "changed",
 				}),
 			)
-			{{ spew.Dump(models.PageNavigationFromCtx(ctx)) }}
 		</li>
 	</ul>
 }
