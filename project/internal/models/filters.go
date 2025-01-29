@@ -64,6 +64,26 @@ func (f APIFilters) GetCount() Count {
 	return 10
 }
 
+func (f APIFilters) Unread() bool {
+	if !f.ShowUnread.IsSpecified() {
+		return false
+	}
+
+	unread, err := f.ShowUnread.Get()
+	if err != nil {
+		return false
+	}
+
+	switch unread {
+	case On:
+		return true
+	case Off:
+		fallthrough
+	default:
+		return false
+	}
+}
+
 func (f APIFilters) GetPagination() (Pagination, error) {
 	if !f.Pagination.IsSpecified() {
 		return "", nil
@@ -116,7 +136,7 @@ func (f APIFilters) String() string {
 		params.Add("categories", strings.Join(categories, ","))
 	}
 
-	if pagination, err := f.GetPagination(); err == nil {
+	if pagination, err := f.GetPagination(); err == nil && pagination != "" {
 		params.Add("pagination", pagination)
 	}
 

@@ -175,7 +175,10 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 		return nil, "", ErrGetUserFailed
 	}
 
-	readItemsIDs := user.GetReadItemIDs(filters.GetFeedIDs()...)
+	var readItemsIDs models.ItemIDs
+	if !filters.Unread() {
+		readItemsIDs = user.GetReadItemIDs(filters.GetFeedIDs()...)
+	}
 
 	rawPagination, err := filters.GetPagination()
 	if err != nil {

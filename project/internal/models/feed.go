@@ -75,17 +75,19 @@ func (f *APIFeed) GetCategories() []string {
 	if f.Categories.IsNull() || !f.Categories.IsSpecified() {
 		return nil
 	}
+
 	categories, err := f.Categories.Get()
 	if err != nil {
 		return nil
 	}
 
 	cleaned := make([]string, 0, len(categories))
+
 	for _, category := range categories {
 		cleaned = append(cleaned, html.UnescapeString(safePrinter.Sanitize(category)))
 	}
 
-	return categories
+	return cleaned
 }
 
 func (f *APIFeed) GetContent() string {
