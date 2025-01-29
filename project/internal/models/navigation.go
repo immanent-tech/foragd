@@ -13,6 +13,29 @@ func (n *APIPageNavigation) ShowUnread() bool {
 	return n.Current.Query().Has("show_unread")
 }
 
+func (n *APIPageNavigation) GenerateActionURL(action any) url.URL {
+	var (
+		actionURL *url.URL
+		urlStr    string
+		err       error
+	)
+
+	switch a := action.(type) {
+	case APIState:
+		urlStr, err = url.JoinPath(n.Action.Path, string(a))
+		if err != nil {
+			return url.URL{}
+		}
+
+		actionURL, err = url.Parse(urlStr)
+		if err != nil {
+			return url.URL{}
+		}
+	}
+
+	return *actionURL
+}
+
 // StripQueryParams will strip the given query parameters from the given URL.
 func StripQueryParams(path url.URL, keys ...string) *url.URL {
 	params := path.Query()
@@ -21,6 +44,17 @@ func StripQueryParams(path url.URL, keys ...string) *url.URL {
 	}
 
 	path.RawQuery = params.Encode()
+
+	return &path
+}
+
+func SetQueryParams(path url.URL, params map[string]string) *url.URL {
+	existingParams := path.Query()
+	for key, value := range params {
+		existingParams.Set(key, value)
+	}
+
+	path.RawQuery = existingParams.Encode()
 
 	return &path
 }

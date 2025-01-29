@@ -63,7 +63,8 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'feeds'
         form: 'feeds[]'
-      x-go-type-skip-optional-pointer: true
+      nullable: true
+      # x-go-type-skip-optional-pointer: true
     FeedURL:
       <<: *URL
       x-oapi-codegen-extra-tags:
@@ -85,7 +86,8 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'items'
         form: 'items[]'
-      x-go-type-skip-optional-pointer: true
+      nullable: true
+      # x-go-type-skip-optional-pointer: true
     ItemURL:
       <<: *URL
       x-oapi-codegen-extra-tags:
@@ -105,6 +107,14 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'scheduler_id'
       x-go-type-skip-optional-pointer: true
+    # IDs:
+    #   description: represents any type of ID.
+    #   type: array
+    #   items:
+    #     oneOf:
+    #       - $ref: '#/components/schemas/FeedID'
+    #       - $ref: '#/components/schemas/ItemID'
+    #   x-go-type-skip-optional-pointer: true
     Category:
       description: is a single feed/item category.
       type: string
@@ -120,7 +130,7 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'categories'
         form: 'categories[]'
-      x-go-type-skip-optional-pointer: true
+      nullable: true
     Count:
       description: >
         is the count of items to retrieve with a request.
@@ -128,19 +138,45 @@ components:
       minimum: 1
       maximum: 50
       default: 10
-      x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         json: 'count'
         form: 'count'
+      nullable: true
     ShowUnread:
       type: string
       enum:
         - "on"
         - "off"
-      x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         json: 'show_unread'
         form: 'show_unread'
+      nullable: true
+    Pagination:
+      type: string
+      x-oapi-codegen-extra-tags:
+        json: 'pagination'
+        form: 'pagination'
+      nullable: true
+    APIAction:
+      description: >
+        are actions that can be performed on feeds or items through
+        the API. Not all actions can be performed on all kinds.
+      type: string
+      enum: ["save","unsave","share","edit"]
+      x-go-type-skip-optional-pointer: true
+    APIState:
+      description: >
+        are states that can be applied on feeds or items through
+        the API.
+      type: string
+      enum: ["markRead","markUnread"]
+      x-go-type-skip-optional-pointer: true
+    APIListType:
+      description: >
+        is the type of a list of objects.
+      type: string
+      enum: ["feeds","items"]
+      x-go-type-skip-optional-pointer: true
     # Metadata Objects.
     MetadataFeed:
       description: contains common/metadata fields for feeds and items.
@@ -542,14 +578,7 @@ components:
         Categories:
           $ref: '#/components/schemas/Categories'
         Pagination:
-          description: >
-            contains details that allow fetching results at a certain
-            point.
-          x-go-type: '[]byte'
-          x-oapi-codegen-extra-tags:
-            json: 'pagination'
-            form: 'pagination'
-          x-go-type-skip-optional-pointer: true
+          $ref: '#/components/schemas/Pagination'
         Count:
           $ref: '#/components/schemas/Count'
         ShowUnread:

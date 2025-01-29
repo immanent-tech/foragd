@@ -164,18 +164,26 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilters) ([]models.APIItem, []byte, error) {
+func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilters) ([]models.APIItem, models.Pagination, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+		return nil, "", errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, nil, ErrGetUserFailed
+		return nil, "", ErrGetUserFailed
 	}
 
-	readItemsIDs := user.GetReadItemIDs(filters.FeedIDs...)
+	readItemsIDs := user.GetReadItemIDs(filters.GetFeedIDs()...)
+
+	rawPagination, err := filters.GetPagination()
+	if err != nil {
+		c.Logger.Debug("Could not get pagination value.",
+			slog.Any("error", err))
+	}
+
+	currentPagination, err := models.DecodePagination(rawPagination)
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
@@ -184,32 +192,37 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
 			QueryBool(
-				BoolFilter(QueryByFeedIDs(filters.FeedIDs...)),
+				BoolFilter(QueryByFeedIDs(filters.GetFeedIDs()...)),
 				BoolMustNot(QueryByItemIDs(readItemsIDs...)),
 			),
 		),
 		WithSortOptions(SortTimestampDesc()),
-		WithSearchSize(filters.Count),
-		WithSearchAfter(filters.Pagination),
+		WithSearchSize(filters.GetCount()),
+		WithSearchAfter(currentPagination),
 	)
 
 	res, err := req.Do(ctx)
 	if err != nil {
-		return nil, nil, errors.Join(ErrUserActionFailed, err)
+		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
 
 	items := ExtractSources[models.APIItem](ctx, res.Hits.Hits)
 
-	var paginationData []byte
+	var newPagination models.Pagination
 	// Get the sort value(s) of the last hit.
 	if len(res.Hits.Hits) > 0 {
-		paginationData, err = json.Marshal(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
+		data, err := json.Marshal(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
 		if err != nil {
 			c.Logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
 		}
+		newPagination, err = models.EncodePagination(data)
+		if err != nil {
+			c.Logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
+		}
+
 	}
 
-	return items, paginationData, nil
+	return items, newPagination, nil
 }
 
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
@@ -224,11 +237,11 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	subscribedFeedIDs := user.GetSubscribedFeedIDs()
 	// Filter the list of requested feeds to only those which the user has a
 	// subscription.
-	if len(filters.FeedIDs) > 0 {
+	if filters.FeedIDs != nil {
 		subscribedFeedIDs = slices.Collect(
 			func(yield func(string) bool) {
 				for _, v := range subscribedFeedIDs {
-					if slices.Contains(filters.FeedIDs, v) {
+					if slices.Contains(filters.GetFeedIDs(), v) {
 						if !yield(v) {
 							return // triggered in "break"
 						}

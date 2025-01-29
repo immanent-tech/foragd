@@ -1,7 +1,6 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//nolint:lll
 package server
 
 import (
@@ -45,7 +44,7 @@ var ErrGeneratePageNavigationFailed = errors.New("error occurred while generatin
 // ShowList will show a list of feeds or items, with filtering applied.
 //
 // `GET /home/show/{list}`.
-func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowListParamsKind, params ShowListParams) {
+func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list List, params ShowListParams) {
 	var (
 		page  templ.Component
 		cards templ.Component
@@ -71,13 +70,13 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list ShowLi
 	}
 
 	switch list {
-	case ShowListParamsKindFeeds:
+	case models.Feeds:
 		// Save list feeds filters in session storage.
 		session.SaveListFeedsFilters(ctx, filters)
 
 		cards = renderFeedCards(ctx, s.API.elastic, filters)
 
-	case ShowListParamsKindItems:
+	case models.Items:
 		// Save list items filters in session storage.
 		session.SaveListItemsFilters(ctx, filters)
 
@@ -142,7 +141,7 @@ func renderFeedCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 
 	for _, feed := range feeds {
 		// Else, generate a feed card for display.
-		card, err := panes.NewCard(feed)
+		card, err := panes.NewCard(ctx, feed)
 		if err != nil {
 			logging.FromContext(ctx).Warn("Could not render item as card.",
 				slog.Any("error", err))
@@ -159,7 +158,7 @@ func renderFeedCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 	return components.ComponentArray(cards...)
 }
 
-func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *models.APIFilters) (templ.Component, []byte) {
+func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *models.APIFilters) (templ.Component, models.Pagination) {
 	items, pagination, err := api.UserActionGetItems(ctx, *filters)
 	if err != nil {
 		logging.FromContext(ctx).Warn("Could not retrieve items.",
@@ -175,7 +174,7 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 
 	for idx, item := range items {
 		// Create item card properties.
-		card, err := panes.NewCard(&item)
+		card, err := panes.NewCard(ctx, &item)
 		if err != nil {
 			logging.FromContext(ctx).Warn("Could not render item as card.",
 				slog.Any("error", err))
@@ -193,9 +192,15 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 			"hx-get": get,
 		})
 
-		if idx == len(items)-1 && pagination != nil && len(items) == filters.Count {
+		if idx == len(items)-1 && pagination != "" && len(items) == filters.GetCount() {
+			paginationURL := *models.SetQueryParams(
+				models.PageNavigationFromCtx(ctx).Current,
+				map[string]string{
+					"pagination": pagination,
+				},
+			)
 			card.AddAttributes(templ.Attributes{
-				// "hx-get":       generatePagination(ctx, showItemsPath, pagination),
+				"hx-get":       paginationURL.String(),
 				"hx-trigger":   "revealed",
 				"hx-swap":      "afterend",
 				"hx-push-url":  "false",
@@ -213,10 +218,10 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 // or unread.
 //
 // `POST /home/mark/{list}/{action}`.
-func (s Server) ListAction(res http.ResponseWriter, req *http.Request, list ListActionParamsKind, action ListActionParamsAction, params ListActionParams) {
+func (s Server) SetListState(res http.ResponseWriter, req *http.Request, list List, state State, params SetListStateParams) {
 	var (
 		items       []models.APIItem
-		pagination  []byte
+		pagination  models.Pagination
 		err         error
 		unreadItems []models.APIReadItem
 	)
@@ -229,7 +234,7 @@ func (s Server) ListAction(res http.ResponseWriter, req *http.Request, list List
 		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
 	// Ignore user-defined count value and use an optimized one instead.
-	filters.Count = 100
+	filters.Count.Set(100)
 
 	getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 	// Fetch the unread items with the given filters. Paginate through the
@@ -252,10 +257,10 @@ func (s Server) ListAction(res http.ResponseWriter, req *http.Request, list List
 		}
 
 		// Update pagination value.
-		filters.Pagination = pagination
+		filters.Pagination.Set(pagination)
 
 		// Stop if the number of hits is less than the search size (i.e., last set of hits).
-		if len(items) < filters.Count {
+		if len(items) < filters.GetCount() {
 			break
 		}
 	}
@@ -313,13 +318,13 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 }
 
 // MarkArticle will mark an article as read/unread.
-func (s Server) ArticleAction(res http.ResponseWriter, req *http.Request, action ArticleActionParamsAction, feed FeedID, item ItemID) {
+func (s Server) SetArticleState(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID, state State) {
 	logger := logging.NewHandlerLogger("MarkArticle", req)
 
 	ctx := elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix)
 
-	switch action {
-	case ArticleActionParamsActionRead:
+	switch state {
+	case models.MarkRead:
 		item := models.APIReadItem{
 			ItemID: item,
 			FeedID: feed,
@@ -337,6 +342,9 @@ func (s Server) ArticleAction(res http.ResponseWriter, req *http.Request, action
 		logger.Warn("Unimplmented.")
 		res.WriteHeader(http.StatusNotImplemented)
 	}
+}
+
+func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action models.APIAction, feed FeedID, item ItemID) {
 }
 
 func createPageNavigation(req *http.Request) (*models.APIPageNavigation, error) {
@@ -389,6 +397,13 @@ func createPageNavigation(req *http.Request) (*models.APIPageNavigation, error) 
 
 		navigation.Parent = *parentURL
 	}
+
+	logging.FromContext(req.Context()).
+		Debug("Generated page navigation.",
+			slog.Any("parent", navigation.Parent.String()),
+			slog.Any("current", navigation.Current.String()),
+			slog.Any("child", navigation.Child.String()),
+		)
 
 	return navigation, nil
 }

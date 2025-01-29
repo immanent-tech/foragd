@@ -4,6 +4,7 @@
 package panes
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"time"
@@ -11,6 +12,8 @@ import (
 	"github.com/a-h/templ"
 	components "github.com/joshuar/go-templ-daisyui"
 	"github.com/mmcdole/gofeed"
+
+	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 const (
@@ -53,7 +56,7 @@ type cardCustomisation struct {
 	updatedAt string
 }
 
-func NewCard(item any) (*components.CardProps, error) {
+func NewCard(ctx context.Context, item any) (*components.CardProps, error) {
 	var customisation *cardCustomisation
 
 	// Don't continue if we don't have an object that can be represented as a
@@ -66,9 +69,9 @@ func NewCard(item any) (*components.CardProps, error) {
 	// Generate type-specific card customisation.
 	switch details := item.(type) {
 	case Item:
-		customisation = itemCustomisation(details)
+		customisation = itemCustomisation(ctx, details)
 	case Feed:
-		customisation = feedCustomisation(details)
+		customisation = feedCustomisation(ctx, details)
 	}
 
 	var categories []templ.Component
@@ -143,16 +146,25 @@ func withMenu(items ...templ.Component) []templ.Component {
 	return menus
 }
 
-func itemCustomisation(item Item) *cardCustomisation {
+func itemCustomisation(ctx context.Context, item Item) *cardCustomisation {
+	markReadURL := models.SetQueryParams(
+		models.PageNavigationFromCtx(ctx).GenerateActionURL(models.MarkRead),
+		map[string]string{
+			"items": item.GetID(),
+		})
+	markReadURL = models.StripQueryParams(*markReadURL, "feeds")
+
 	return &cardCustomisation{
 		title: components.WithTitle(
 			item.GetTitle(),
 			components.H4),
-		// actions: []templ.Component{
-		// 	buttonToggleItem(item.GetFeedID(), item.GetID()),
-		// 	buttonSaveItem(item.GetFeedID(), item.GetID()),
-		// 	buttonShareItem(item.GetFeedID(), item.GetID()),
-		// },
+		actions: []templ.Component{
+			actionButton(markReadURL.String(), "#"+item.GetID(), "fa-check", "Mark Item Read"),
+
+			// 	buttonToggleItem(item.GetFeedID(), item.GetID()),
+			// 	buttonSaveItem(item.GetFeedID(), item.GetID()),
+			// 	buttonShareItem(item.GetFeedID(), item.GetID()),
+		},
 		content: components.Text(
 			item.GetTitle(),
 			components.WithTextSize(components.TextLG),
@@ -161,7 +173,13 @@ func itemCustomisation(item Item) *cardCustomisation {
 	}
 }
 
-func feedCustomisation(feed Feed) *cardCustomisation {
+func feedCustomisation(ctx context.Context, feed Feed) *cardCustomisation {
+	markReadURL := models.SetQueryParams(
+		models.PageNavigationFromCtx(ctx).GenerateActionURL(models.MarkRead),
+		map[string]string{
+			"feeds": feed.GetID(),
+		})
+
 	return &cardCustomisation{
 		title: components.WithTitle(
 			feed.GetTitle(),
@@ -171,10 +189,9 @@ func feedCustomisation(feed Feed) *cardCustomisation {
 				components.WithBadgeDescription(strconv.Itoa(feed.GetUnreadCount())),
 			)),
 		content: FeedCard(feed),
-		// actions: []templ.Component{
-		// 	buttonToggleItem(feed.GetID(), ""),
-		// 	buttonShareItem(feed.GetID(), ""),
-		// },
+		actions: []templ.Component{
+			actionButton(markReadURL.String(), "#"+feed.GetID(), "fa-check", "Mark Feed Read"),
+		},
 		updatedAt: "Last Update: " + RelativeTime(feed.GetTimestamp()),
 	}
 }

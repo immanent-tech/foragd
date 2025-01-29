@@ -11,8 +11,29 @@ import (
 	"github.com/coreos/go-oidc"
 	components "github.com/joshuar/go-templ-daisyui"
 	"github.com/mmcdole/gofeed"
+	"github.com/oapi-codegen/nullable"
 	"github.com/oapi-codegen/runtime"
 	"github.com/reugn/go-quartz/quartz"
+)
+
+// Defines values for APIAction.
+const (
+	Edit   APIAction = "edit"
+	Save   APIAction = "save"
+	Share  APIAction = "share"
+	Unsave APIAction = "unsave"
+)
+
+// Defines values for APIListType.
+const (
+	Feeds APIListType = "feeds"
+	Items APIListType = "items"
+)
+
+// Defines values for APIState.
+const (
+	MarkRead   APIState = "markRead"
+	MarkUnread APIState = "markUnread"
 )
 
 // Defines values for ShowUnread.
@@ -20,6 +41,9 @@ const (
 	Off ShowUnread = "off"
 	On  ShowUnread = "on"
 )
+
+// APIAction are actions that can be performed on feeds or items through the API. Not all actions can be performed on all kinds.
+type APIAction string
 
 // APIFeed defines model for APIFeed.
 type APIFeed struct {
@@ -37,8 +61,8 @@ type APIFeed struct {
 	Authors   []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories[]" json:"categories"`
-	Copyright  string     `json:"copyright,omitempty"`
+	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
+	Copyright  string                        `json:"copyright,omitempty"`
 
 	// Description is a string that can contain HTML.
 	Description HTMLString    `json:"description"`
@@ -70,20 +94,18 @@ type APIFeedState struct {
 // APIFilters contains parameters for searching feeds and items
 type APIFilters struct {
 	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories[]" json:"categories"`
+	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
 
 	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"count"`
+	Count nullable.Nullable[Count] `form:"count" json:"count"`
 
 	// FeedIDs is a list of feed IDs.
-	FeedIDs FeedIDs `form:"feeds[]" json:"feeds"`
+	FeedIDs nullable.Nullable[FeedIDs] `form:"feeds[]" json:"feeds"`
 
 	// ItemIDs is a list of item IDs.
-	ItemIDs ItemIDs `form:"items[]" json:"items"`
-
-	// Pagination contains details that allow fetching results at a certain point.
-	Pagination []byte     `form:"pagination" json:"pagination"`
-	ShowUnread ShowUnread `form:"show_unread" json:"show_unread"`
+	ItemIDs    nullable.Nullable[ItemIDs]    `form:"items[]" json:"items"`
+	Pagination nullable.Nullable[Pagination] `form:"pagination" json:"pagination"`
+	ShowUnread nullable.Nullable[ShowUnread] `form:"show_unread" json:"show_unread"`
 }
 
 // APIItem defines model for APIItem.
@@ -99,7 +121,7 @@ type APIItem struct {
 	Authors []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories[]" json:"categories"`
+	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
 
 	// Description is a string that can contain HTML.
 	Description HTMLString    `json:"description"`
@@ -110,6 +132,9 @@ type APIItem struct {
 	Title   HTMLString `json:"title"`
 	Updated time.Time  `json:"updatedParsed"`
 }
+
+// APIListType is the type of a list of objects.
+type APIListType string
 
 // APIPageNavigation describes the navigation "breadcrumbs" for the current page.
 type APIPageNavigation struct {
@@ -140,6 +165,9 @@ type APIReadItem struct {
 	// UserID is the unique ID of a user.
 	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
 }
+
+// APIState are states that can be applied on feeds or items through the API.
+type APIState string
 
 // Categories is a list of feed/item categories.
 type Categories = []Category
@@ -214,7 +242,7 @@ type MetadataFeed struct {
 	Authors []*gofeed.Person `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories[]" json:"categories"`
+	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
 
 	// Description is a string that can contain HTML.
 	Description HTMLString    `json:"description"`
@@ -225,6 +253,9 @@ type MetadataFeed struct {
 	Title   HTMLString `json:"title"`
 	Updated time.Time  `json:"updatedParsed"`
 }
+
+// Pagination defines model for Pagination.
+type Pagination = string
 
 // ReadItem defines model for ReadItem.
 type ReadItem struct {
@@ -268,7 +299,7 @@ type Subscription struct {
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 
 	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories[]" json:"categories"`
+	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name string `form:"name" json:"name,omitempty"`
@@ -287,7 +318,7 @@ type SubscriptionRequest struct {
 	URL string `form:"url" json:"URL" validate:"required,url"`
 
 	// Categories is a list of feed/item categories.
-	Categories Categories `form:"categories[]" json:"categories"`
+	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name string `form:"name" json:"name,omitempty"`

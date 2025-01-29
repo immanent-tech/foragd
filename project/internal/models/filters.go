@@ -5,6 +5,7 @@ package models
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"net/url"
@@ -12,34 +13,118 @@ import (
 	"strings"
 )
 
+var ErrGetFilterValue = errors.New("error fetching filter value")
+
+func (f APIFilters) HasFeedIDs() bool {
+	return f.FeedIDs.IsSpecified()
+}
+
+// GetFeedIDs retrieves the array of FeedIDs from the APIFilters.
+func (f APIFilters) GetFeedIDs() FeedIDs {
+	if f.FeedIDs.IsSpecified() {
+		if feeds, err := f.FeedIDs.Get(); err == nil {
+			return feeds
+		}
+	}
+
+	return nil
+}
+
+// GetItemIDs retrieves the array of ItemIDs from the APIFilters.
+func (f APIFilters) GetItemsIDs() ItemIDs {
+	if f.ItemIDs.IsSpecified() {
+		if items, err := f.ItemIDs.Get(); err == nil {
+			return items
+		}
+	}
+
+	return nil
+}
+
+// GetCategories retrieves the array of Categories from the APIFilters.
+func (f APIFilters) GetCategories() Categories {
+	if f.Categories.IsSpecified() {
+		if categories, err := f.Categories.Get(); err == nil {
+			return categories
+		}
+	}
+
+	return nil
+}
+
+// GetCount retrieves the Count from the APIFilters. If the count is not found,
+// a default value will be returned.
+func (f APIFilters) GetCount() Count {
+	if f.Count.IsSpecified() {
+		if count, err := f.Count.Get(); err == nil {
+			return count
+		}
+	}
+
+	return 10
+}
+
+func (f APIFilters) GetPagination() (Pagination, error) {
+	if !f.Pagination.IsSpecified() {
+		return "", nil
+	}
+
+	encoded, err := f.Pagination.Get()
+	if err != nil {
+		return "", errors.Join(ErrGetFilterValue, err)
+	}
+
+	return encoded, nil
+}
+
+func (f APIFilters) SetPagination(data any) {
+	switch d := data.(type) {
+	case []byte:
+		f.Pagination.Set(url.QueryEscape(string(d)))
+	case string:
+		f.Pagination.Set(d)
+	}
+}
+
+func EncodePagination(decoded []byte) (Pagination, error) {
+	return url.QueryEscape(string(decoded)), nil
+}
+
+func DecodePagination(encoded Pagination) ([]byte, error) {
+	decoded, err := url.QueryUnescape(encoded)
+	if err != nil {
+		return nil, errors.Join(ErrGetFilterValue, err)
+	}
+
+	return []byte(decoded), nil
+}
+
 // String returns a URL-encoded string of query parameters. Only some query
 // parameters are exposed this way.
 func (f APIFilters) String() string {
 	params := make(url.Values)
 
-	if len(f.FeedIDs) > 0 {
-		params.Add("feeds", strings.Join(f.FeedIDs, ","))
+	if feeds := f.GetFeedIDs(); len(feeds) > 0 {
+		params.Add("feeds", strings.Join(feeds, ","))
 	}
 
-	if len(f.ItemIDs) > 0 {
-		params.Add("items", strings.Join(f.ItemIDs, ","))
+	if items := f.GetItemsIDs(); len(items) > 0 {
+		params.Add("items", strings.Join(items, ","))
 	}
 
-	if len(f.Categories) > 0 {
-		params.Add("categories", strings.Join(f.Categories, ","))
+	if categories := f.GetCategories(); len(categories) > 0 {
+		params.Add("categories", strings.Join(categories, ","))
 	}
 
-	// if f.Pagination != nil {
-	// 	params.Add("pagination", string(f.Pagination))
-	// }
+	if pagination, err := f.GetPagination(); err == nil {
+		params.Add("pagination", pagination)
+	}
 
-	if f.ShowUnread != "" {
+	if f.ShowUnread.IsSpecified() {
 		params.Add("show_unread", "on")
 	}
 
-	if f.Count != 0 {
-		params.Add("count", strconv.Itoa(f.Count))
-	}
+	params.Add("count", strconv.Itoa(f.GetCount()))
 
 	return params.Encode()
 }
@@ -79,8 +164,12 @@ func CreateFilters(params any) (*APIFilters, error) {
 	slog.Debug("Unmarshaling filters.",
 		slog.Any("filters", filters))
 
-	if filters.Count == 0 || filters.Count > 20 {
-		filters.Count = 10
+	if filters.Count.IsSpecified() {
+		if count, err := filters.Count.Get(); err == nil {
+			if count == 0 || count > 20 {
+				filters.Count.Set(10)
+			}
+		}
 	}
 
 	// if params.Pagination != nil {

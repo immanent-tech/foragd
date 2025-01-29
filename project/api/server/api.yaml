@@ -190,15 +190,17 @@ paths:
           description: Unauthorized
         500:
           description: Problem with request
-  /home/show/{kind}:
+  /home/show/{list}:
     get:
-      description: display of feeds or items with optional filtering.
+      summary: >
+        display a list of type {list}, with optional filtering.
       operationId: showList
       parameters:
-        - $ref: '#/components/parameters/Kind'
-          required: true
-        - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/Items'
+        # Path:
+        - $ref: '#/components/parameters/List'
+        # Query:
+        - $ref: '#/components/parameters/FeedIDs'
+        - $ref: '#/components/parameters/ItemIDs'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Count'
         - $ref: '#/components/parameters/Pagination'
@@ -206,9 +208,25 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
+  /home/set/{list}/{state}:
+    post:
+      summary: >
+        set a list of type {list} with {state}, with optional filtering.
+      operationId: setListState
+      parameters:
+        # Path:
+        - $ref: '#/components/parameters/List'
+        - $ref: '#/components/parameters/State'
+        # Query:
+        - $ref: '#/components/parameters/FeedIDs'
+        - $ref: '#/components/parameters/ItemIDs'
+        - $ref: '#/components/parameters/Categories'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
   /home/show/article/{feed}/{item}:
     get:
-      description: display an item.
+      summary: display an item as an article.
       operationId: showArticle
       parameters:
         - $ref: '#/components/parameters/FeedID'
@@ -218,48 +236,47 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/set/{kind}/{action}:
+  /home/set/article/{feed}/{item}/{state}:
     post:
-      description: perform an action on a set of feeds/items.
-      operationId: listAction
-      parameters:
-        - $ref: '#/components/parameters/Kind'
-          required: true
-        - $ref: '#/components/parameters/Action'
-          required: true
-        - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/Items'
-        - $ref: '#/components/parameters/Categories'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/set/article/{action}/{feed}/{item}:
-    post:
-      description: perform an action on a feed item.
-      operationId: articleAction
+      summary: mark an article with {mark}.
+      operationId: setArticleState
       parameters:
         - $ref: '#/components/parameters/FeedID'
-          required: true
         - $ref: '#/components/parameters/ItemID'
-          required: true
+        - $ref: '#/components/parameters/State'
+    responses:
+        200:
+          $ref: '#/components/responses/htmx'
+  /home/{action}/article/{feed}/{item}:
+    post:
+      summary: perform {action} on an article.
+      operationId: actionArticle
+      parameters:
         - $ref: '#/components/parameters/Action'
-          required: true
-      responses:
+        - $ref: '#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/ItemID'
+    responses:
         200:
           $ref: '#/components/responses/htmx'
 components:
   parameters:
   # Query parameters:
-    Feeds:
+    FeedIDs:
       name: feeds
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/FeedIDs'
-    Items:
+    ItemIDs:
       name: items
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/ItemIDs'
+    # IDs:
+    #   name: ids
+    #   in: query
+    #   schema:
+    #     $ref: '../models/api.yaml#/components/schemas/IDs'
+    #   x-go-type-skip-optional-pointer: true
     Categories:
       name: categories
       in: query
@@ -274,16 +291,34 @@ components:
       name: pagination
       in: query
       schema:
-        type: string
+        $ref: '../models/api.yaml#/components/schemas/Pagination'
     Count:
       name: count
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/Count'
-        minimum: 1
-        maximum: 20
-        default: 10
   # Path parameters:
+    List:
+      name: list
+      description: >
+        the type of a list of objects.
+      in: path
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/APIListType'
+    State:
+      name: state
+      description: >
+        the type of state to set on objects.
+      in: path
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/APIState'
+    Action:
+      name: action
+      description: >
+        an action to perform on objects.
+      in: path
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/APIAction'
     FeedID:
       name: feed
       in: path
@@ -294,25 +329,6 @@ components:
       in: path
       schema:
         $ref: '../models/api.yaml#/components/schemas/ItemID'
-    Category:
-      name: category
-      in: path
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/Category'
-    Kind:
-      name: kind
-      description: describes the type(s) of objects to act on.
-      in: path
-      schema:
-        type: string
-        enum: [feeds, items, article]
-    Action:
-      name: action
-      description: describes the type of action to perform on the item(s).
-      in: path
-      schema:
-        type: string
-        enum: [read, unread]
   responses:
     htmx:
       description: standard htmx powered response.

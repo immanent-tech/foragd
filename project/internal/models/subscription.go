@@ -5,6 +5,7 @@
 package models
 
 import (
+	"html"
 	"strings"
 
 	"github.com/a-h/templ"
@@ -71,8 +72,17 @@ func (s *SubscriptionRequest) generateInputs() {
 		components.WithColor[*components.TextInputProps](components.ColorPrimary, false),
 		components.WithPlaceholder[*components.TextInputProps]("awesome, news"),
 	)
-	if len(s.Categories) > 0 {
-		s.InputCategories.SetValue(strings.Join(s.Categories, ","))
+	if s.Categories.IsSpecified() {
+		categories, err := s.Categories.Get()
+		if err == nil {
+
+			cleaned := make([]string, 0, len(categories))
+			for _, category := range categories {
+				cleaned = append(cleaned, html.UnescapeString(safePrinter.Sanitize(category)))
+			}
+
+			s.InputCategories.SetValue(strings.Join(cleaned, ","))
+		}
 	}
 }
 

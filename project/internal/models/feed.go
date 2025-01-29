@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/mmcdole/gofeed"
 
 	"github.com/joshuar/go-feed-me/internal/id"
@@ -73,10 +72,17 @@ func (f *APIFeed) GetImage() *gofeed.Image {
 }
 
 func (f *APIFeed) GetCategories() []string {
-	categories := make([]string, len(f.Categories))
-	for idx, category := range f.Categories {
-		categories[idx] = html.UnescapeString(safePrinter.Sanitize(category))
-		spew.Dump(categories[idx])
+	if f.Categories.IsNull() || !f.Categories.IsSpecified() {
+		return nil
+	}
+	categories, err := f.Categories.Get()
+	if err != nil {
+		return nil
+	}
+
+	cleaned := make([]string, 0, len(categories))
+	for _, category := range categories {
+		cleaned = append(cleaned, html.UnescapeString(safePrinter.Sanitize(category)))
 	}
 
 	return categories

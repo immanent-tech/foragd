@@ -19,6 +19,46 @@ templ navButton(link, icon, tooltip string) {
 	</li>
 }
 
+templ actionButton(link, target, icon, tooltip string) {
+	<li class={ templ.KV("invisible", link == "") }>
+		<a
+			class="tooltip tooltip-bottom"
+			data-tip={ tooltip }
+			hx-post={ link }
+			hx-trigger="click consume"
+			hx-target={ target }
+			hx-push-url="false"
+			hx-swap="outerHTML swap:1s"
+		>
+			@components.Icon(icon)
+		</a>
+	</li>
+}
+
+// 	<li>
+// 		<a
+// 			class="tooltip tooltip-left"
+// 			data-tip="Mark Read"
+// 			if itemID != "" {
+// 				hx-post={ NavigationFromCtx(ctx).MarkReadPath + "/" + feedID + "/" + itemID }
+// 				hx-trigger="click consume"
+// 				hx-target={ "#" + itemID }
+// 				hx-swap="outerHTML swap:1s"
+// 				hx-push-url="false"
+// 			} else {
+// 				hx-post={ NavigationFromCtx(ctx).MarkReadPath +
+// 				"?feeds=" + feedID }
+// 				hx-trigger="click consume"
+// 				hx-target={ "#" + feedID }
+// 				hx-swap="outerHTML swap:1s"
+// 				hx-push-url="false"
+// 			}
+// 		>
+// 			@components.Icon("fa-check",
+// 				components.WithLabel("Mark Read", components.AlignRight))
+// 		</a>
+// 	</li>
+
 // templ buttonToggleItem(feedID, itemID string) {
 // 	<li>
 // 		<a

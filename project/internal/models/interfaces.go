@@ -17,7 +17,7 @@ type UserActionsAPI interface {
 	UserActionAddSubscriptions(ctx context.Context, subscriptions ...SubscriptionRequest) ([]string, error)
 	UserActionMarkItemsRead(ctx context.Context, items ...APIReadItem) error
 	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
-	UserActionGetItems(ctx context.Context, filters APIFilters) ([]APIItem, []byte, error)
+	UserActionGetItems(ctx context.Context, filters APIFilters) ([]APIItem, Pagination, error)
 	UserActionGetFeeds(ctx context.Context, filters APIFilters) ([]*APIFeed, error)
 	// UserActionCountUnread(ctx context.Context, feedIDs ...FeedID) (int, error)
 }

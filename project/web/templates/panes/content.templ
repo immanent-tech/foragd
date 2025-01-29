@@ -15,12 +15,13 @@ templ Header() {
 		hx-swap-oob="true"
 		class="bg-base-300 sticky top-0 max-w-full"
 	>
+		{{ markReadURL := models.PageNavigationFromCtx(ctx).GenerateActionURL(models.MarkRead) }}
 		@components.NewMenu(
 			components.WithLayout[*components.Menu](components.HorizontalLayout),
 			components.WithItems[*components.Menu](
 				navButton(models.PageNavigationFromCtx(ctx).Parent.String(), "fa-arrow-left", "Back"),
 				navButton(models.PageNavigationFromCtx(ctx).Current.String(), "fa-rotate", "Refresh"),
-				navButton(models.PageNavigationFromCtx(ctx).Action.String(), "fa-check", "Mark All Read"),
+				navButton(markReadURL.String(), "fa-check", "Mark All Read"),
 			),
 		).Show()
 	</div>

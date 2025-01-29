@@ -36,9 +36,17 @@ func (i *APIItem) GetImage() *gofeed.Image {
 }
 
 func (i *APIItem) GetCategories() []string {
-	categories := make([]string, len(i.Categories))
-	for idx, category := range i.Categories {
-		categories[idx] = html.UnescapeString(safePrinter.Sanitize(category))
+	if i.Categories.IsNull() || !i.Categories.IsSpecified() {
+		return nil
+	}
+	categories, err := i.Categories.Get()
+	if err != nil {
+		return nil
+	}
+
+	cleaned := make([]string, 0, len(categories))
+	for _, category := range categories {
+		cleaned = append(cleaned, html.UnescapeString(safePrinter.Sanitize(category)))
 	}
 
 	return categories

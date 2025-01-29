@@ -8,5 +8,6 @@ generate:
 output-options:
   # to make sure that all types are generated
   skip-prune: false
+  nullable-type: true
 import-mapping:
   ../models/api.yaml: github.com/joshuar/go-feed-me/internal/models

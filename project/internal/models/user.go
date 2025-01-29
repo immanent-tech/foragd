@@ -8,6 +8,8 @@ import (
 	"errors"
 	"slices"
 	"time"
+
+	"github.com/oapi-codegen/nullable"
 )
 
 var (
@@ -82,7 +84,7 @@ func (u *User) GetSubscribedFeedIDs() []FeedID {
 }
 
 // AddSubscription adds a new subscription to the user object.
-func (u *User) AddSubscription(feedID FeedID, name string, categories []Category) error {
+func (u *User) AddSubscription(feedID FeedID, name string, categories nullable.Nullable[Categories]) error {
 	if u.IsSubscribed(feedID) {
 		return ErrUserAlreadySubscribed
 	}
