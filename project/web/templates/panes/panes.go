@@ -113,6 +113,7 @@ func NewCard(ctx context.Context, item any) (*components.CardProps, error) {
 	if img := summary.GetImage(); img != nil {
 		cardProps = components.WithImage(img.URL,
 			components.ImageTop,
+			components.WithLazyLoading(),
 			components.WithAltText(img.Title),
 			components.WithMask[*components.ImageProps](components.MaskSquircle),
 		)(cardProps)
