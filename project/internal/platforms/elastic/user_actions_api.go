@@ -164,15 +164,17 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilters) ([]models.APIItem, models.Pagination, error) {
+func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilters) (chan models.APIItem, models.Pagination, error) {
+	outCh := make(chan models.APIItem)
+
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, "", errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+		return outCh, "", errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", ErrGetUserFailed
+		return outCh, "", ErrGetUserFailed
 	}
 
 	var readItemsIDs models.ItemIDs
@@ -225,15 +227,25 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 
 	}
 
-	return items, newPagination, nil
+	go func() {
+		defer close(outCh)
+
+		for _, item := range items {
+			outCh <- item
+		}
+	}()
+
+	return outCh, newPagination, nil
 }
 
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilters) ([]*models.APIFeed, error) {
+func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilters) (chan models.APIFeed, error) {
+	outCh := make(chan models.APIFeed)
+
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, ErrGetUserFailed
+		return outCh, ErrGetUserFailed
 	}
 
 	// Get the FeedIDs for the user's subscriptions.
@@ -255,26 +267,31 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	}
 	// If there are no subscriptions, return an error indicating so.
 	if len(subscribedFeedIDs) == 0 {
-		return nil, models.ErrNoSubscriptions
+		return outCh, models.ErrNoSubscriptions
 	}
 
 	// Get the feed details for the subscribed feeds.
 	feeds, err := c.GetFeedsByID(ctx, subscribedFeedIDs...)
 	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
+		return outCh, errors.Join(ErrUserActionFailed, err)
 	}
 
 	// Get the unread counts for the feeds.
 	unreadCounts, err := c.userActionGetFeedUnreadCounts(ctx, subscribedFeedIDs, user)
 	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
+		return outCh, errors.Join(ErrUserActionFailed, err)
 	}
 	// Add unread counts to feed objects.
-	for _, feed := range feeds {
-		feed.UnreadCount = int(unreadCounts[feed.ID])
-	}
+	go func() {
+		defer close(outCh)
 
-	return feeds, nil
+		for _, feed := range feeds {
+			feed.UnreadCount = int(unreadCounts[feed.ID])
+			outCh <- *feed
+		}
+	}()
+
+	return outCh, nil
 }
 
 func (c *Client) userActionGetFeedUnreadCounts(ctx context.Context, feedIDs []models.FeedID, user models.User) (map[string]int64, error) {

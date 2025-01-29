@@ -126,22 +126,18 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list List, 
 }
 
 func renderFeedCards(ctx context.Context, api models.UserActionsAPI, filters *models.APIFilters) templ.Component {
-	feeds, err := api.UserActionGetFeeds(ctx, *filters)
+	feedCh, err := api.UserActionGetFeeds(ctx, *filters)
 	if err != nil {
 		logging.FromContext(ctx).Warn("Could not retrieve feeds.",
 			slog.Any("error", err))
 		return panes.EmptyContent()
 	}
 
-	if len(feeds) == 0 {
-		return panes.EmptyContent()
-	}
+	cards := make([]templ.Component, 0, filters.GetCount())
 
-	cards := make([]templ.Component, 0, len(feeds))
-
-	for _, feed := range feeds {
+	for feed := range feedCh {
 		// Else, generate a feed card for display.
-		card, err := panes.NewCard(ctx, feed)
+		card, err := panes.NewCard(ctx, &feed)
 		if err != nil {
 			logging.FromContext(ctx).Warn("Could not render item as card.",
 				slog.Any("error", err))
@@ -155,24 +151,26 @@ func renderFeedCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 		cards = append(cards, components.Card(components.FromCardProps(card)))
 	}
 
+	if len(cards) == 0 {
+		return panes.EmptyContent()
+	}
+
 	return components.ComponentArray(cards...)
 }
 
 func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *models.APIFilters) (templ.Component, models.Pagination) {
-	items, pagination, err := api.UserActionGetItems(ctx, *filters)
+	itemCh, pagination, err := api.UserActionGetItems(ctx, *filters)
 	if err != nil {
 		logging.FromContext(ctx).Warn("Could not retrieve items.",
 			slog.Any("error", err))
 		return panes.EmptyContent(), pagination
 	}
 
-	if len(items) == 0 {
-		return panes.EmptyContent(), pagination
-	}
+	cards := make([]templ.Component, 0, filters.GetCount())
 
-	cards := make([]templ.Component, 0, len(items))
+	idx := 0
 
-	for idx, item := range items {
+	for item := range itemCh {
 		// Create item card properties.
 		card, err := panes.NewCard(ctx, &item)
 		if err != nil {
@@ -192,7 +190,7 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 			"hx-get": get,
 		})
 
-		if idx == len(items)-1 && pagination != "" && len(items) == filters.GetCount() {
+		if idx == len(itemCh)-1 && pagination != "" && len(itemCh) == filters.GetCount() {
 			paginationURL := *models.SetQueryParams(
 				models.PageNavigationFromCtx(ctx).Current,
 				map[string]string{
@@ -209,6 +207,11 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 		}
 		// Append to the list of item cards.
 		cards = append(cards, components.Card(components.FromCardProps(card)))
+		idx++
+	}
+
+	if len(cards) == 0 {
+		return panes.EmptyContent(), pagination
 	}
 
 	return components.ComponentArray(cards...), pagination
@@ -220,7 +223,7 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 // `POST /home/mark/{list}/{action}`.
 func (s Server) SetListState(res http.ResponseWriter, req *http.Request, list List, state State, params SetListStateParams) {
 	var (
-		items       []models.APIItem
+		itemCh      chan models.APIItem
 		pagination  models.Pagination
 		err         error
 		unreadItems []models.APIReadItem
@@ -240,16 +243,16 @@ func (s Server) SetListState(res http.ResponseWriter, req *http.Request, list Li
 	// Fetch the unread items with the given filters. Paginate through the
 	// results, collecting into unreadItems.
 	for {
-		items, pagination, err = s.API.elastic.UserActionGetItems(getItemsCtx, *filters)
+		itemCh, pagination, err = s.API.elastic.UserActionGetItems(getItemsCtx, *filters)
 		if err != nil {
 			logger.Warn("Could not retrieve items.", slog.Any("error", err))
 		}
 		// Stop if there are no hits
-		if len(items) == 0 {
+		if len(itemCh) == 0 {
 			break
 		}
 
-		for _, item := range items {
+		for item := range itemCh {
 			unreadItems = append(unreadItems, models.APIReadItem{
 				ItemID: item.ID,
 				FeedID: item.FeedID,
@@ -260,7 +263,7 @@ func (s Server) SetListState(res http.ResponseWriter, req *http.Request, list Li
 		filters.Pagination.Set(pagination)
 
 		// Stop if the number of hits is less than the search size (i.e., last set of hits).
-		if len(items) < filters.GetCount() {
+		if len(itemCh) < filters.GetCount() {
 			break
 		}
 	}
