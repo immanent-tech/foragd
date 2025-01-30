@@ -32,13 +32,3 @@ type UserData struct {
 	*Tokens
 	*User
 }
-
-func ReadItemIDs(items []ReadItem) []ItemID {
-	itemIDs := make([]ItemID, len(items))
-
-	for i, item := range items {
-		itemIDs[i] = item.ItemID
-	}
-
-	return itemIDs
-}

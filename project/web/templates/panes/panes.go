@@ -149,7 +149,7 @@ func withMenu(items ...templ.Component) []templ.Component {
 
 func itemCustomisation(ctx context.Context, item Item) *cardCustomisation {
 	markReadURL := models.SetQueryParams(
-		models.PageNavigationFromCtx(ctx).GenerateActionURL(models.MarkRead),
+		models.PageNavigationFromCtx(ctx).GenerateActionURL(models.Read),
 		map[string]string{
 			"items": item.GetID(),
 		})
@@ -176,7 +176,7 @@ func itemCustomisation(ctx context.Context, item Item) *cardCustomisation {
 
 func feedCustomisation(ctx context.Context, feed Feed) *cardCustomisation {
 	markReadURL := models.SetQueryParams(
-		models.PageNavigationFromCtx(ctx).GenerateActionURL(models.MarkRead),
+		models.PageNavigationFromCtx(ctx).GenerateActionURL(models.Read),
 		map[string]string{
 			"feeds": feed.GetID(),
 		})

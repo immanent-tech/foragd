@@ -6,6 +6,7 @@ package elastic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -59,7 +60,11 @@ func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]model
 		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
-	feeds := ExtractSources[models.APIFeed](ctx, resp.Hits.Hits)
+	feeds, warnings := ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
+	if warnings != nil {
+		c.Logger.Warn("Problems occurred while extracting source from docs.",
+			slog.Any("warnings", err))
+	}
 
 	return feeds, nil
 }
@@ -181,4 +186,132 @@ func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
 	c.bulkStream <- docs
 
 	return nil
+}
+
+// GetItemCounts runs an aggregation to count the items totals for the given
+// state for the given feeds.
+//
+//nolint:lll
+func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, state models.State, feedIDs []models.FeedID) (map[string]int64, error) {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
+	var query Option[*types.Query]
+
+	switch state {
+	case models.Read:
+		query = readFeedItemsQuery(user, feedIDs)
+	case models.Unread:
+		fallthrough
+	default:
+		query = unreadFeedItemsQuery(user, feedIDs)
+	}
+
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	req := c.NewSearchRequest(
+		WithIndex[*search.Search](index),
+		WithSearchQueryOptions(
+			query,
+		),
+		WithSortOptions(SortTimestampDesc()),
+		WithSearchSize(0),
+		WithAggregations(TermsAggregation("UnreadCounts", "feed_id")),
+	)
+
+	resp, err := req.Do(ctx)
+	if err != nil {
+		return nil, errors.Join(ErrUserActionFailed, err)
+	}
+
+	var (
+		results TermsAggregationResults
+		ok      bool
+	)
+
+	results.StringTermsAggregate, ok = resp.Aggregations["UnreadCounts"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, errors.Join(ErrUserActionFailed, fmt.Errorf("not TermsAggregationResults"))
+	}
+
+	unreadCounts := make(map[string]int64)
+	for _, feedID := range feedIDs {
+		unreadCounts[feedID] = results.GetCount(feedID)
+	}
+
+	return unreadCounts, nil
+}
+
+// unreadFeedItemsQuery generates a query for matching unread items for the
+// given feeds.
+func unreadFeedItemsQuery(user *models.User, feedIDs models.FeedIDs) Option[*types.Query] {
+	clauses := make([]Option[*types.Query], 0, len(feedIDs))
+	for _, id := range feedIDs {
+		clauses = append(clauses,
+			QueryBool(
+				BoolFilter(
+					// Must match this feed.
+					QueryByTerm("feed_id", id),
+					// And should be newer than last read or explicitly marked unread.
+					QueryBool(
+						BoolShould(
+							QuerySince("publishedParsed", user.GetFeedLastRead(id)),
+							QuerySince("updatedParsed", user.GetFeedLastRead(id)),
+							QueryByItemIDs(user.GetItemIDs(models.Unread, id)...),
+						),
+					),
+				),
+			),
+		)
+	}
+
+	return QueryBool(
+		BoolFilter(
+			// Must match any of the given feed IDs.
+			QueryByFeedIDs(feedIDs...),
+			// And should match one feed clause.
+			QueryBool(
+				BoolShould(clauses...),
+			),
+		),
+		BoolMustNot(
+			// Must not match any read item IDs.
+			QueryByItemIDs(user.GetItemIDs(models.Read, feedIDs...)...),
+		),
+	)
+}
+
+// readFeedItemsQuery generates a query for matching read items for the given feeds.
+func readFeedItemsQuery(user *models.User, feedIDs models.FeedIDs) Option[*types.Query] {
+	clauses := make([]Option[*types.Query], 0, len(feedIDs))
+	for _, id := range feedIDs {
+		clauses = append(clauses,
+			QueryBool(
+				BoolFilter(
+					// Must match this feed.
+					QueryByTerm("feed_id", id),
+					// And should be newer than the max history for the user.
+					QueryBool(
+						BoolShould(
+							QuerySince("publishedParsed", user.GetMaxHistory()),
+							QuerySince("updatedParsed", user.GetMaxHistory()),
+						),
+					),
+				),
+			),
+		)
+	}
+
+	return QueryBool(
+		BoolFilter(
+			// Must match any of the given feed IDs
+			QueryByFeedIDs(feedIDs...),
+			// And should match one feed clause.
+			QueryBool(
+				BoolShould(clauses...),
+			),
+		),
+	)
 }

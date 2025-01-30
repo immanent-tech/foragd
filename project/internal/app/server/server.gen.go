@@ -39,11 +39,11 @@ type List = externalRef0.APIListType
 // Pagination defines model for Pagination.
 type Pagination = externalRef0.Pagination
 
-// ShowUnread defines model for ShowUnread.
-type ShowUnread = externalRef0.ShowUnread
-
 // State are states that can be applied on feeds or items through the API.
-type State = externalRef0.APIState
+type State = externalRef0.State
+
+// ViewState are states that can be applied on feeds or items through the API.
+type ViewState = externalRef0.State
 
 // SetListStateParams defines parameters for SetListState.
 type SetListStateParams struct {
@@ -59,7 +59,9 @@ type ShowListParams struct {
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
 	Count      *Count      `form:"count,omitempty" json:"count,omitempty"`
 	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
-	ShowUnread *ShowUnread `form:"show_unread,omitempty" json:"show_unread,omitempty"`
+
+	// State the state of objects.
+	State *ViewState `form:"state,omitempty" json:"state,omitempty"`
 }
 
 // LoginCallbackParams defines parameters for LoginCallback.
@@ -469,11 +471,11 @@ func (siw *ServerInterfaceWrapper) ShowList(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// ------------- Optional query parameter "show_unread" -------------
+	// ------------- Optional query parameter "state" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "show_unread", r.URL.Query(), &params.ShowUnread)
+	err = runtime.BindQueryParameter("form", true, false, "state", r.URL.Query(), &params.State)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "show_unread", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
 		return
 	}
 

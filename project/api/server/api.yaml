@@ -204,7 +204,7 @@ paths:
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Count'
         - $ref: '#/components/parameters/Pagination'
-        - $ref: '#/components/parameters/ShowUnread'
+        - $ref: '#/components/parameters/ViewState'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -297,6 +297,13 @@ components:
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/Count'
+    ViewState:
+      name: state
+      description: >
+        the state of objects.
+      in: query
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/State'
   # Path parameters:
     List:
       name: list
@@ -311,7 +318,7 @@ components:
         the type of state to set on objects.
       in: path
       schema:
-        $ref: '../models/api.yaml#/components/schemas/APIState'
+        $ref: '../models/api.yaml#/components/schemas/State'
     Action:
       name: action
       description: >

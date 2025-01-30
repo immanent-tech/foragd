@@ -78,7 +78,7 @@ func WithPartialDocUpdate(fields map[string]any) Option[*DocUpdateRequest] {
 	}
 }
 
-func WithForcedRefresh[T HasForcedRefreshOption](value bool) Option[T] {
+func WithForcedRefresh[T HasForcedRefreshOption]() Option[T] {
 	return func(req T) T {
 		req.ForceRefresh()
 		return req

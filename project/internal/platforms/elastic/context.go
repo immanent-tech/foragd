@@ -11,7 +11,7 @@ import (
 var ErrNoIndexInCtx = errors.New("no index name/pattern found in context")
 
 const (
-	userIndexCtxKey     contextKey = "index"
+	userIndexCtxKey     contextKey = "users"
 	feedsIndexCtxKey    contextKey = "feeds"
 	itemsIndexCtxKey    contextKey = "items"
 	jobsIndexCtxKey     contextKey = "jobs"

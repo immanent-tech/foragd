@@ -17,7 +17,7 @@ const (
 type contextKey string
 
 // UserToCtx stores a user in the context.
-func UserToCtx(ctx context.Context, user User) context.Context {
+func UserToCtx(ctx context.Context, user *User) context.Context {
 	return context.WithValue(ctx, userContextKey, user)
 }
 
@@ -25,10 +25,10 @@ func UserToCtx(ctx context.Context, user User) context.Context {
 // whether the user was found. If a user was found, the boolean will be true and
 // the user object will be valid. If a user was not found or there was a problem
 // with retrieval, the boolean will be false and an empty user object will be returned.
-func UserFromCtx(ctx context.Context) (User, bool) {
-	user, found := ctx.Value(userContextKey).(User)
+func UserFromCtx(ctx context.Context) (*User, bool) {
+	user, found := ctx.Value(userContextKey).(*User)
 	if !found {
-		return User{}, false
+		return nil, false
 	}
 
 	return user, true

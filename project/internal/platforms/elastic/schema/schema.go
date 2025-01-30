@@ -45,9 +45,9 @@ type Option[T any] func(T) T
 // SESSION
 //
 
-// ComponentTemplateSessionsMappings returns a Component Template for
+// SessionsMappingsTemplate returns a Component Template for
 // sessions index field mappings.
-func ComponentTemplateSessionsMappings() *putcomponenttemplate.Request {
+func SessionsMappingsTemplate() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
@@ -64,9 +64,9 @@ func ComponentTemplateSessionsMappings() *putcomponenttemplate.Request {
 	)
 }
 
-// ComponentTemplateSessionsSettings returns a Component Template for sessions
+// SessionsSettingsTemplate returns a Component Template for sessions
 // index settings.
-func ComponentTemplateSessionsSettings() *putcomponenttemplate.Request {
+func SessionsSettingsTemplate() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
@@ -76,8 +76,8 @@ func ComponentTemplateSessionsSettings() *putcomponenttemplate.Request {
 	)
 }
 
-// IndexTemplateSessions returns an Index Template for sessions indices.
-func IndexTemplateSessions() *putindextemplate.Request {
+// SessionsIndexTemplate returns an Index Template for sessions indices.
+func SessionsIndexTemplate() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
 		WithIndexPatterns(SessionsPrefix+"_*"),
 		WithComponentTemplates(SessionsMappings, SessionsSettings),
@@ -89,9 +89,9 @@ func IndexTemplateSessions() *putindextemplate.Request {
 // SCHEDULER
 //
 
-// ComponentTemplateSchedulerJobsMappings returns a Component Template for
+// SchedulerJobsMappingsTemplate returns a Component Template for
 // scheduler jobs index field mappings.
-func ComponentTemplateSchedulerJobsMappings() *putcomponenttemplate.Request {
+func SchedulerJobsMappingsTemplate() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
@@ -112,7 +112,7 @@ func ComponentTemplateSchedulerJobsMappings() *putcomponenttemplate.Request {
 
 // ComponentTemplateFeedItemsSettings returns a Component Template for scheduler
 // jobs index settings.
-func ComponentTemplateSchedulerJobsSettings() *putcomponenttemplate.Request {
+func SchedulerJobsSettingsTemplate() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
@@ -122,8 +122,8 @@ func ComponentTemplateSchedulerJobsSettings() *putcomponenttemplate.Request {
 	)
 }
 
-// IndexTemplateSchedulerJobs returns an Index Template for scheduler jobs indices.
-func IndexTemplateSchedulerJobs() *putindextemplate.Request {
+// SchedulerJobsIndexTemplate returns an Index Template for scheduler jobs indices.
+func SchedulerJobsIndexTemplate() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
 		WithIndexPatterns(SchedulerJobsPrefix+"_*"),
 		WithComponentTemplates(SchedulerJobsMappings, SchedulerJobsSettings),
@@ -135,9 +135,9 @@ func IndexTemplateSchedulerJobs() *putindextemplate.Request {
 // USERS
 //
 
-// ComponentTemplateUserMappings returns a Component Template for users
+// UserMappingsTemplate returns a Component Template for users
 // index field mappings.
-func ComponentTemplateUserMappings() *putcomponenttemplate.Request {
+func UserMappingsTemplate() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
@@ -148,14 +148,15 @@ func ComponentTemplateUserMappings() *putcomponenttemplate.Request {
 						WithDateNanosProperty("created_at"),
 						WithDateNanosProperty("updated_at"),
 						WithObjectProperty("subscriptions", map[string]types.Property{
-							"categories": asTextAndKeyword(),
-							"name":       asTextAndKeyword(),
-							"created_at": types.NewDateNanosProperty(),
-							"updated_at": types.NewDateNanosProperty(),
+							"categories":  asTextAndKeyword(),
+							"name":        asTextAndKeyword(),
+							"created_at":  types.NewDateNanosProperty(),
+							"updated_at":  types.NewDateNanosProperty(),
+							"marked_read": types.NewDateNanosProperty(),
 						}),
 						WithObjectProperty("read_items", map[string]types.Property{
-							"item_id":    types.NewKeywordProperty(),
-							"created_at": types.NewDateNanosProperty(),
+							"item_id":     types.NewKeywordProperty(),
+							"marked_read": types.NewDateNanosProperty(),
 						}),
 					),
 				),
@@ -164,9 +165,9 @@ func ComponentTemplateUserMappings() *putcomponenttemplate.Request {
 	)
 }
 
-// ComponentTemplateUsersSettings returns a Component Template for users
+// UsersSettingsTemplate returns a Component Template for users
 // index settings.
-func ComponentTemplateUsersSettings() *putcomponenttemplate.Request {
+func UsersSettingsTemplate() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
@@ -176,8 +177,8 @@ func ComponentTemplateUsersSettings() *putcomponenttemplate.Request {
 	)
 }
 
-// IndexTemplateUsers returns an Index Template for users indices.
-func IndexTemplateUsers() *putindextemplate.Request {
+// UsersIndexTemplate returns an Index Template for users indices.
+func UsersIndexTemplate() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
 		WithIndexPatterns(UsersSchemaPrefix+"_*"),
 		WithComponentTemplates(UsersMappings, UsersSettings),
@@ -189,9 +190,9 @@ func IndexTemplateUsers() *putindextemplate.Request {
 // FEEDS
 //
 
-// ComponentTemplateFeedsMappings returns a Component Template for feeds
+// FeedsMappingsTemplate returns a Component Template for feeds
 // index field mappings.
-func ComponentTemplateFeedsMappings() *putcomponenttemplate.Request {
+func FeedsMappingsTemplate() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
@@ -223,8 +224,8 @@ func ComponentTemplateFeedsMappings() *putcomponenttemplate.Request {
 						WithTextAndKeywordProperty("copyright"),
 						WithTextAndKeywordProperty("generator"),
 						WithTextAndKeywordProperty("categories"),
-						WithObjectProperty("dublincoreext", DublinCoreMapping()),
-						WithObjectProperty("itunesext", ItunesMapping()),
+						WithObjectProperty("dublincoreext", DublinCoreMappingsTemplate()),
+						WithObjectProperty("itunesext", ItunesMappingTemplate()),
 						WithFlattenedProperty("extensions"),
 						WithFlattenedProperty("custom"),
 					),
@@ -234,9 +235,9 @@ func ComponentTemplateFeedsMappings() *putcomponenttemplate.Request {
 	)
 }
 
-// ComponentTemplateFeedsSettings returns a Component Template for feeds
+// FeedsSettingsTemplate returns a Component Template for feeds
 // index settings.
-func ComponentTemplateFeedsSettings() *putcomponenttemplate.Request {
+func FeedsSettingsTemplate() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
@@ -246,8 +247,8 @@ func ComponentTemplateFeedsSettings() *putcomponenttemplate.Request {
 	)
 }
 
-// IndexTemplateFeeds returns an Index Template for feeds indices.
-func IndexTemplateFeeds() *putindextemplate.Request {
+// FeedsIndexTemplate returns an Index Template for feeds indices.
+func FeedsIndexTemplate() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
 		WithIndexPatterns(FeedsSchemaPrefix+"_*"),
 		WithComponentTemplates(FeedsMappings, FeedsSettings),
@@ -260,7 +261,7 @@ func IndexTemplateFeeds() *putindextemplate.Request {
 
 // ComponentTemplateFeedsMappings returns a Component Template for feed items
 // index field mappings.
-func ComponentTemplateFeedItemsMappings() *putcomponenttemplate.Request {
+func FeedItemsMappingsTemplate() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
@@ -291,8 +292,8 @@ func ComponentTemplateFeedItemsMappings() *putcomponenttemplate.Request {
 							"length": types.NewKeywordProperty(),
 							"type":   types.NewKeywordProperty(),
 						}),
-						WithObjectProperty("dublincoreext", DublinCoreMapping()),
-						WithObjectProperty("itunesext", ItunesMapping()),
+						WithObjectProperty("dublincoreext", DublinCoreMappingsTemplate()),
+						WithObjectProperty("itunesext", ItunesMappingTemplate()),
 						WithFlattenedProperty("extensions"),
 						WithFlattenedProperty("custom"),
 					),
@@ -302,9 +303,9 @@ func ComponentTemplateFeedItemsMappings() *putcomponenttemplate.Request {
 	)
 }
 
-// ComponentTemplateFeedItemsSettings returns a Component Template for feed item
+// FeedItemsSettingsTemplate returns a Component Template for feed item
 // index settings.
-func ComponentTemplateFeedItemsSettings() *putcomponenttemplate.Request {
+func FeedItemsSettingsTemplate() *putcomponenttemplate.Request {
 	return NewComponentTemplateRequest(
 		WithIndexOptions(
 			NewIndexState(
@@ -317,7 +318,7 @@ func ComponentTemplateFeedItemsSettings() *putcomponenttemplate.Request {
 }
 
 // IndexTemplateFeeds returns an Index Template for feed item indices.
-func IndexTemplateFeedItems() *putindextemplate.Request {
+func FeedItemsIndexTemplate() *putindextemplate.Request {
 	return NewIndexTemplateRequest(
 		WithIndexPatterns(FeedItemsSchemaPrefix+"_*"),
 		WithComponentTemplates(FeedsItemsMappings, FeedsItemsSettings),
@@ -326,8 +327,8 @@ func IndexTemplateFeedItems() *putindextemplate.Request {
 	)
 }
 
-// ILMPolicyFeedItems is the ILM policy for feed items indices.
-func ILMPolicyFeedItems() *putlifecycle.Request {
+// FeedItemsILMPolicy is the ILM policy for feed items indices.
+func FeedItemsILMPolicy() *putlifecycle.Request {
 	return DefaultILMPolicy()
 }
 
@@ -356,7 +357,7 @@ func DefaultILMPolicy() *putlifecycle.Request {
 	)
 }
 
-func DublinCoreMapping() map[string]types.Property {
+func DublinCoreMappingsTemplate() map[string]types.Property {
 	return map[string]types.Property{
 		"title":       asTextAndKeyword(),
 		"creator":     asTextAndKeyword(),
@@ -377,7 +378,7 @@ func DublinCoreMapping() map[string]types.Property {
 	}
 }
 
-func ItunesMapping() map[string]types.Property {
+func ItunesMappingTemplate() map[string]types.Property {
 	return map[string]types.Property{
 		"author":            asTextAndKeyword(),
 		"block":             asTextAndKeyword(),

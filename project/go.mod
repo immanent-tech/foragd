@@ -14,6 +14,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v8 v8.17.0
 	github.com/go-chi/chi/v5 v5.2.0
+	github.com/go-json-experiment/json v0.0.0-20240412061110-8868a69194fa
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.24.0
 	github.com/gowebly/helpers v0.4.0
@@ -26,6 +27,7 @@ require (
 	github.com/matoous/go-nanoid v1.5.1
 	github.com/mattn/go-isatty v0.0.20
 	github.com/mmcdole/gofeed v1.3.0
+	github.com/oapi-codegen/nullable v1.1.0
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1
 	github.com/oapi-codegen/runtime v1.1.1
 	github.com/rs/cors v1.11.1
@@ -39,7 +41,6 @@ require (
 require (
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
-	github.com/oapi-codegen/nullable v1.1.0 // indirect
 )
 
 require (
@@ -110,6 +111,7 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/tdewolff/parse/v2 v2.7.15 // indirect
+	github.com/veqryn/slog-json v0.3.0
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	go.devnw.com/structs v1.0.0 // indirect
 	go.lsp.dev/jsonrpc2 v0.10.0 // indirect

@@ -162,7 +162,13 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 			return nil, nil
 		}
 		// Loop through this set of results.
-		allJobs = append(allJobs, elastic.ExtractSources[models.ScheduledJob](schedCtx, resp.Hits.Hits)...)
+		jobs, warnings := elastic.ExtractSourceFromHits[models.ScheduledJob](resp.Hits.Hits)
+		if warnings != nil {
+			jq.logger.Warn("Could not extract all jobs.",
+				slog.Any("warnings", warnings))
+		}
+
+		allJobs = append(allJobs, jobs...)
 		// Update pagination value.
 		pagination = resp.Hits.Hits[len(resp.Hits.Hits)-1].Sort
 		// Stop if the number of hits is less than the search size (i.e., last set of hits).

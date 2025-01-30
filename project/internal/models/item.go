@@ -102,3 +102,14 @@ func NewFeedItem(feedID string, details *gofeed.Item) (*Item, error) {
 		},
 		nil
 }
+
+func NewItemState(id string, state State) ItemState {
+	itemState := ItemState{
+		ItemID:    id,
+		UpdatedAt: time.Now().UTC(),
+	}
+
+	itemState.State.Set(state)
+
+	return itemState
+}

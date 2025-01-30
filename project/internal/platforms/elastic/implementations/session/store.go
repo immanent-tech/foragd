@@ -105,7 +105,7 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 		s.index,
 		token,
 		elastic.WithDocUpdate(session, true),
-		elastic.WithForcedRefresh[*elastic.DocUpdateRequest](true),
+		elastic.WithForcedRefresh[*elastic.DocUpdateRequest](),
 	).Do(sessionCtx)
 	if err != nil {
 		return errors.Join(ErrCommitSessionFailed, err)
@@ -139,7 +139,13 @@ func (s *Store) All() (map[string][]byte, error) {
 			return nil, nil
 		}
 		// Loop through this set of results.
-		for _, session := range elastic.ExtractSources[models.UserSession](sessionCtx, resp.Hits.Hits) {
+		sessions, warnings := elastic.ExtractSourceFromHits[models.UserSession](resp.Hits.Hits)
+		if warnings != nil {
+			s.logger.Warn("Could not extract some session data.",
+				slog.Any("warnings", warnings))
+		}
+
+		for _, session := range sessions {
 			data[session.Token] = session.Data
 		}
 

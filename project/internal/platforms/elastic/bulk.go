@@ -33,6 +33,7 @@ func WithPipeline(pipeline string) Option[*bulk.Bulk] {
 		if pipeline != "" {
 			b = b.Pipeline(pipeline)
 		}
+
 		return b
 	}
 }
@@ -131,6 +132,7 @@ func NewBulkOperation(doc any, options ...Option[BulkOperation]) BulkOperation {
 // into Elasticsearch.
 func (c *Client) bulkStreamWorker(ctx context.Context) {
 	pipeline := IngestPipelineFromCtx(ctx)
+
 	c.Logger.Debug("Bulk indexer ready...")
 
 	for {

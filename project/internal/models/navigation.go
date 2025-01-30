@@ -9,8 +9,12 @@ import (
 
 // ShowUnread returns whether the current page has the "show_unread" query
 // parameter set, indicating unread items should be shown.
-func (n *APIPageNavigation) ShowUnread() bool {
-	return n.Current.Query().Has("show_unread")
+func (n *APIPageNavigation) ShowRead() bool {
+	return State(n.Current.Query().Get("state")) == Read
+}
+
+func (n *APIPageNavigation) State() State {
+	return State(n.Current.Query().Get("state"))
 }
 
 func (n *APIPageNavigation) GenerateActionURL(action any) url.URL {
@@ -21,7 +25,7 @@ func (n *APIPageNavigation) GenerateActionURL(action any) url.URL {
 	)
 
 	switch a := action.(type) {
-	case APIState:
+	case State:
 		urlStr, err = url.JoinPath(n.Action.Path, string(a))
 		if err != nil {
 			return url.URL{}

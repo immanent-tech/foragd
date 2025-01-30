@@ -222,56 +222,29 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 //
 // `POST /home/mark/{list}/{action}`.
 func (s Server) SetListState(res http.ResponseWriter, req *http.Request, list List, state State, params SetListStateParams) {
-	var (
-		itemCh      chan models.APIItem
-		pagination  models.Pagination
-		err         error
-		unreadItems []models.APIReadItem
-	)
+	var err error
 
 	logger := logging.NewHandlerLogger("MarkListRead", req)
+
+	// Set up context.
 	ctx := req.Context()
+	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
+	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 
 	filters, err := models.CreateFilters(params)
 	if err != nil {
 		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
-	// Ignore user-defined count value and use an optimized one instead.
-	filters.Count.Set(100)
 
-	getItemsCtx := elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
-	// Fetch the unread items with the given filters. Paginate through the
-	// results, collecting into unreadItems.
-	for {
-		itemCh, pagination, err = s.API.elastic.UserActionGetItems(getItemsCtx, *filters)
-		if err != nil {
-			logger.Warn("Could not retrieve items.", slog.Any("error", err))
-		}
-		// Stop if there are no hits
-		if len(itemCh) == 0 {
-			break
-		}
-
-		for item := range itemCh {
-			unreadItems = append(unreadItems, models.APIReadItem{
-				ItemID: item.ID,
-				FeedID: item.FeedID,
-			})
-		}
-
-		// Update pagination value.
-		filters.Pagination.Set(pagination)
-
-		// Stop if the number of hits is less than the search size (i.e., last set of hits).
-		if len(itemCh) < filters.GetCount() {
-			break
-		}
+	switch {
+	case len(filters.GetItemsIDs()) > 0:
+		err = s.API.elastic.UserActionMarkItems(ctx, state, filters.GetItemsIDs())
+	case len(filters.GetFeedIDs()) > 0:
+		err = s.API.elastic.UserActionMarkFeeds(ctx, state, filters.GetFeedIDs())
 	}
 
-	markItemsCtx := elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
-	// Mark all unreadItems as read.
-	if err := s.API.elastic.UserActionMarkItemsRead(markItemsCtx, unreadItems...); err != nil {
-		logger.Warn("Could not mark item as read.", slog.Any("error", err))
+	if err != nil {
+		logger.Warn("Could not mark as read.", slog.Any("error", err))
 		return
 	}
 
@@ -326,24 +299,13 @@ func (s Server) SetArticleState(res http.ResponseWriter, req *http.Request, feed
 
 	ctx := elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix)
 
-	switch state {
-	case models.MarkRead:
-		item := models.APIReadItem{
-			ItemID: item,
-			FeedID: feed,
-		}
+	if err := s.API.elastic.UserActionMarkItems(ctx, state, []string{item}); err != nil {
+		logger.Warn("Could not mark item as read.", slog.Any("error", err))
+		return
+	}
 
-		if err := s.API.elastic.UserActionMarkItemsRead(ctx, item); err != nil {
-			logger.Warn("Could not mark item as read.", slog.Any("error", err))
-			return
-		}
-
-		if _, err := res.Write(nil); err != nil {
-			logger.Error("Failed to write response.", slog.Any("error", err))
-		}
-	default:
-		logger.Warn("Unimplmented.")
-		res.WriteHeader(http.StatusNotImplemented)
+	if _, err := res.Write(nil); err != nil {
+		logger.Error("Failed to write response.", slog.Any("error", err))
 	}
 }
 

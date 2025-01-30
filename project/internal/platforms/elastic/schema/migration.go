@@ -71,15 +71,15 @@ func Migration(ctx context.Context, client client, migrations ...string) error {
 func migrateUsers(ctx context.Context, client client) error {
 	logging.FromContext(ctx).Debug("Migrating users...")
 
-	if err := client.PutComponentTemplate(ctx, UsersMappings, ComponentTemplateUserMappings()); err != nil {
+	if err := client.PutComponentTemplate(ctx, UsersMappings, UserMappingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutComponentTemplate(ctx, UsersSettings, ComponentTemplateUsersSettings()); err != nil {
+	if err := client.PutComponentTemplate(ctx, UsersSettings, UsersSettingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutIndexTemplate(ctx, UsersSchemaPrefix, IndexTemplateUsers()); err != nil {
+	if err := client.PutIndexTemplate(ctx, UsersSchemaPrefix, UsersIndexTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
@@ -105,15 +105,15 @@ func migrateUsers(ctx context.Context, client client) error {
 func migrateFeeds(ctx context.Context, client client) error {
 	logging.FromContext(ctx).Debug("Migrating feeds...")
 
-	if err := client.PutComponentTemplate(ctx, FeedsMappings, ComponentTemplateFeedsMappings()); err != nil {
+	if err := client.PutComponentTemplate(ctx, FeedsMappings, FeedsMappingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutComponentTemplate(ctx, FeedsSettings, ComponentTemplateFeedsSettings()); err != nil {
+	if err := client.PutComponentTemplate(ctx, FeedsSettings, FeedsSettingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutIndexTemplate(ctx, FeedsSchemaPrefix, IndexTemplateFeeds()); err != nil {
+	if err := client.PutIndexTemplate(ctx, FeedsSchemaPrefix, FeedsIndexTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
@@ -139,19 +139,19 @@ func migrateFeeds(ctx context.Context, client client) error {
 func migrateFeedItems(ctx context.Context, client client) error {
 	logging.FromContext(ctx).Debug("Migrating feed items...")
 
-	if err := client.PutILM(ctx, FeedItemsSchemaPrefix, ILMPolicyFeedItems()); err != nil {
+	if err := client.PutILM(ctx, FeedItemsSchemaPrefix, FeedItemsILMPolicy()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutComponentTemplate(ctx, FeedsItemsMappings, ComponentTemplateFeedItemsMappings()); err != nil {
+	if err := client.PutComponentTemplate(ctx, FeedsItemsMappings, FeedItemsMappingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutComponentTemplate(ctx, FeedsItemsSettings, ComponentTemplateFeedItemsSettings()); err != nil {
+	if err := client.PutComponentTemplate(ctx, FeedsItemsSettings, FeedItemsSettingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutIndexTemplate(ctx, FeedItemsSchemaPrefix, IndexTemplateFeedItems()); err != nil {
+	if err := client.PutIndexTemplate(ctx, FeedItemsSchemaPrefix, FeedItemsIndexTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
@@ -170,15 +170,15 @@ func migrateScheduler(ctx context.Context, client client) error {
 
 	// scheduler jobs indicies
 
-	if err = client.PutComponentTemplate(ctx, SchedulerJobsMappings, ComponentTemplateSchedulerJobsMappings()); err != nil {
+	if err = client.PutComponentTemplate(ctx, SchedulerJobsMappings, SchedulerJobsMappingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err = client.PutComponentTemplate(ctx, SchedulerJobsSettings, ComponentTemplateSchedulerJobsSettings()); err != nil {
+	if err = client.PutComponentTemplate(ctx, SchedulerJobsSettings, SchedulerJobsSettingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err = client.PutIndexTemplate(ctx, SchedulerJobsPrefix, IndexTemplateSchedulerJobs()); err != nil {
+	if err = client.PutIndexTemplate(ctx, SchedulerJobsPrefix, SchedulerJobsIndexTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
@@ -204,15 +204,15 @@ func migrateScheduler(ctx context.Context, client client) error {
 func migrateSession(ctx context.Context, client client) error {
 	logging.FromContext(ctx).Debug("Migrating feeds...")
 
-	if err := client.PutComponentTemplate(ctx, SessionsMappings, ComponentTemplateSessionsMappings()); err != nil {
+	if err := client.PutComponentTemplate(ctx, SessionsMappings, SessionsMappingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutComponentTemplate(ctx, SessionsSettings, ComponentTemplateSessionsSettings()); err != nil {
+	if err := client.PutComponentTemplate(ctx, SessionsSettings, SessionsSettingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := client.PutIndexTemplate(ctx, SessionsPrefix, IndexTemplateSessions()); err != nil {
+	if err := client.PutIndexTemplate(ctx, SessionsPrefix, SessionsIndexTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 

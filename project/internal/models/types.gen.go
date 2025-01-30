@@ -30,16 +30,17 @@ const (
 	Items APIListType = "items"
 )
 
-// Defines values for APIState.
-const (
-	MarkRead   APIState = "markRead"
-	MarkUnread APIState = "markUnread"
-)
-
 // Defines values for ShowUnread.
 const (
 	Off ShowUnread = "off"
 	On  ShowUnread = "on"
+)
+
+// Defines values for State.
+const (
+	All    State = "all"
+	Read   State = "read"
+	Unread State = "unread"
 )
 
 // APIAction are actions that can be performed on feeds or items through the API. Not all actions can be performed on all kinds.
@@ -53,7 +54,7 @@ type APIFeed struct {
 	// ID is the unique ID of a feed.
 	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
 
-	// URL is a URL.
+	// URL The canonical feed URL.
 	URL FeedURL `json:"feedLink" validate:"required,url"`
 
 	// UpdatedAt records when the object was last updated in the database.
@@ -84,7 +85,7 @@ type APIFeedState struct {
 	// ID is the unique ID of a feed.
 	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
 
-	// URL is a URL.
+	// URL The canonical feed URL.
 	URL FeedURL `json:"feedLink" validate:"required,url"`
 
 	// UpdatedAt records when the object was last updated in the database.
@@ -105,7 +106,9 @@ type APIFilters struct {
 	// ItemIDs is a list of item IDs.
 	ItemIDs    nullable.Nullable[ItemIDs]    `form:"items[]" json:"items"`
 	Pagination nullable.Nullable[Pagination] `form:"pagination" json:"pagination"`
-	ShowUnread nullable.Nullable[ShowUnread] `form:"show_unread" json:"show_unread"`
+
+	// ViewState are states that can be applied on feeds or items through the API.
+	ViewState nullable.Nullable[State] `form:"state" json:"state"`
 }
 
 // APIItem defines model for APIItem.
@@ -116,7 +119,7 @@ type APIItem struct {
 	// ID is the unique ID of an item.
 	ID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
 
-	// URL is a URL.
+	// URL A URL to view the original item.
 	URL     ItemURL          `json:"link" validate:"required,url"`
 	Authors []*gofeed.Person `json:"authors,omitempty"`
 
@@ -131,6 +134,14 @@ type APIItem struct {
 	// Title is a string that can contain HTML.
 	Title   HTMLString `json:"title"`
 	Updated time.Time  `json:"updatedParsed"`
+}
+
+// APIList represents a list of objects of any type.
+type APIList = []APIList_Item
+
+// APIList_Item defines model for APIList.Item.
+type APIList_Item struct {
+	union json.RawMessage
 }
 
 // APIListType is the type of a list of objects.
@@ -150,24 +161,6 @@ type APIPageNavigation struct {
 	// Parent the parent page of the current page.
 	Parent url.URL `json:"parent,omitempty"`
 }
-
-// APIReadItem defines model for APIReadItem.
-type APIReadItem struct {
-	// CreatedAt is when the document was created.
-	CreatedAt Timestamp `json:"@timestamp" validate:"required"`
-
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
-
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
-
-	// UserID is the unique ID of a user.
-	UserID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
-}
-
-// APIState are states that can be applied on feeds or items through the API.
-type APIState string
 
 // Categories is a list of feed/item categories.
 type Categories = []Category
@@ -213,7 +206,7 @@ type FeedJob struct {
 	URL URL `form:"url" gorm:"-" json:"url" validate:"required,url"`
 }
 
-// FeedURL is a URL.
+// FeedURL The canonical feed URL.
 type FeedURL = string
 
 // HTMLString is a string that can contain HTML.
@@ -225,8 +218,23 @@ type ItemID = string
 // ItemIDs is a list of item IDs.
 type ItemIDs = []ItemID
 
-// ItemURL is a URL.
+// ItemState defines model for ItemState.
+type ItemState struct {
+	// ItemID is the unique ID of an item.
+	ItemID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
+
+	// State are states that can be applied on feeds or items through the API.
+	State nullable.Nullable[State] `form:"state" json:"state"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at,omitempty"`
+}
+
+// ItemURL A URL to view the original item.
 type ItemURL = string
+
+// MarkedRead records when the object was last marked read.
+type MarkedRead = time.Time
 
 // MetadataDB contains common (metadata) fields for database objects.
 type MetadataDB struct {
@@ -257,15 +265,6 @@ type MetadataFeed struct {
 // Pagination defines model for Pagination.
 type Pagination = string
 
-// ReadItem defines model for ReadItem.
-type ReadItem struct {
-	// CreatedAt is when the document was created.
-	CreatedAt Timestamp `json:"@timestamp" validate:"required"`
-
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
-}
-
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {
 	// CreatedAt records when the object was created in the database.
@@ -290,10 +289,16 @@ type SchedulerID = string
 // ShowUnread defines model for ShowUnread.
 type ShowUnread string
 
+// State are states that can be applied on feeds or items through the API.
+type State string
+
 // Subscription represents a feed a particular user has subscribed to.
 type Subscription struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt *CreatedAt `json:"created_at,omitempty"`
+
+	// MarkedRead records when the object was last marked read.
+	MarkedRead *MarkedRead `json:"marked_read,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
@@ -302,7 +307,7 @@ type Subscription struct {
 	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
-	Name string `form:"name" json:"name,omitempty"`
+	Name *string `form:"name" json:"name,omitempty"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
@@ -355,11 +360,14 @@ type User struct {
 	// ID is the unique ID of a user.
 	ID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
 
+	// MaxHistory Represents the maximum time-frame over which the user can view items.
+	MaxHistory string `json:"max_history" validate:"required"`
+
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 
-	// ReadItems is the list of user read items.
-	ReadItems map[string][]ReadItem `json:"read_items,omitempty"`
+	// ItemStates Tracks state of inidividual items per feed.
+	ItemStates map[string][]ItemState `json:"item_states,omitempty"`
 
 	// Subscriptions is the list of user subscriptions.
 	Subscriptions map[string]Subscription `json:"subscriptions,omitempty"`
@@ -401,6 +409,68 @@ type UserSignupForm struct {
 	InputEmail    *components.TextInputProps `form:"-" json:"-"`
 	InputNickname *components.TextInputProps `form:"-" json:"-"`
 	InputPassword *components.TextInputProps `form:"-" json:"-"`
+}
+
+// AsAPIFeed returns the union data inside the APIList_Item as a APIFeed
+func (t APIList_Item) AsAPIFeed() (APIFeed, error) {
+	var body APIFeed
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAPIFeed overwrites any union data inside the APIList_Item as the provided APIFeed
+func (t *APIList_Item) FromAPIFeed(v APIFeed) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAPIFeed performs a merge with any union data inside the APIList_Item, using the provided APIFeed
+func (t *APIList_Item) MergeAPIFeed(v APIFeed) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsAPIItem returns the union data inside the APIList_Item as a APIItem
+func (t APIList_Item) AsAPIItem() (APIItem, error) {
+	var body APIItem
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromAPIItem overwrites any union data inside the APIList_Item as the provided APIItem
+func (t *APIList_Item) FromAPIItem(v APIItem) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeAPIItem performs a merge with any union data inside the APIList_Item, using the provided APIItem
+func (t *APIList_Item) MergeAPIItem(v APIItem) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t APIList_Item) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *APIList_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
 }
 
 // AsFeedJob returns the union data inside the ScheduledJob_Data as a FeedJob

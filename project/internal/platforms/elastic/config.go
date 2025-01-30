@@ -10,6 +10,9 @@ import (
 	"sync"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
+	"github.com/go-json-experiment/json"
+	"github.com/go-json-experiment/json/jsontext"
+	slogjson "github.com/veqryn/slog-json"
 
 	"github.com/joshuar/go-feed-me/internal/config"
 )
@@ -87,7 +90,20 @@ func genConfig(logger *slog.Logger, environment string) (*elasticsearch.Config, 
 		generated = &elasticsearch.Config{
 			Addresses: elasticConfig.Development.URLs,
 			Logger: &ESLogger{
-				Logger: *logger,
+				Logger: slog.New(slogjson.NewHandler(os.Stderr, &slogjson.HandlerOptions{
+					AddSource:   false,
+					Level:       slog.LevelDebug,
+					ReplaceAttr: nil, // Same signature and behavior as stdlib JSONHandler
+					JSONOptions: json.JoinOptions(
+						// Options from the json v2 library (these are the defaults)
+						json.Deterministic(true),
+						jsontext.AllowDuplicateNames(true),
+						jsontext.AllowInvalidUTF8(true),
+						jsontext.EscapeForJS(true),
+						jsontext.SpaceAfterColon(false),
+						jsontext.SpaceAfterComma(true),
+					),
+				})),
 			},
 			Username:  elasticConfig.Development.Username,
 			Password:  elasticConfig.Development.Password,
@@ -97,7 +113,7 @@ func genConfig(logger *slog.Logger, environment string) (*elasticsearch.Config, 
 	case "production":
 		generated = &elasticsearch.Config{
 			Logger: &ESLogger{
-				Logger: *logger,
+				Logger: logger,
 			},
 			CloudID:   elasticConfig.Production.CloudID,
 			APIKey:    elasticConfig.Production.APIKey,

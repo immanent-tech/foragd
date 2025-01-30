@@ -10,7 +10,6 @@ components:
       x-oapi-codegen-extra-tags:
         json: "@timestamp"
         validate: "required"
-      x-go-type-skip-optional-pointer: true
     CreatedAt:
       description: records when the object was created in the database.
       x-go-type: 'time.Time'
@@ -21,6 +20,11 @@ components:
       x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
         json: 'updated_at,omitempty'
+    MarkedRead:
+      description: records when the object was last marked read.
+      x-go-type: 'time.Time'
+      x-oapi-codegen-extra-tags:
+        json: 'marked_read,omitempty'
     DeletedAt:
       description: records when the object was deleted.
       x-go-type: 'time.Time'
@@ -66,6 +70,7 @@ components:
       nullable: true
       # x-go-type-skip-optional-pointer: true
     FeedURL:
+      description: The canonical feed URL.
       <<: *URL
       x-oapi-codegen-extra-tags:
         json: 'feedLink'
@@ -89,6 +94,7 @@ components:
       nullable: true
       # x-go-type-skip-optional-pointer: true
     ItemURL:
+      description: A URL to view the original item.
       <<: *URL
       x-oapi-codegen-extra-tags:
         json: 'link'
@@ -164,13 +170,16 @@ components:
       type: string
       enum: ["save","unsave","share","edit"]
       x-go-type-skip-optional-pointer: true
-    APIState:
+    State:
       description: >
         are states that can be applied on feeds or items through
         the API.
       type: string
-      enum: ["markRead","markUnread"]
-      x-go-type-skip-optional-pointer: true
+      enum: ["read","unread","all"]
+      x-oapi-codegen-extra-tags:
+        json: 'state'
+        form: 'state'
+      nullable: true
     APIListType:
       description: >
         is the type of a list of objects.
@@ -222,19 +231,6 @@ components:
         UpdatedAt:
           $ref: '#/components/schemas/UpdatedAt'
     # Objects.
-    ReadItem:
-      description: represents an item (e.g., an individual feed item) that has been read.
-      type: object
-      required:
-        - CreatedAt
-        - ItemID
-      allOf:
-        - type: object
-          properties:
-            CreatedAt:
-              $ref: '#/components/schemas/Timestamp'
-            ItemID:
-              $ref: '#/components/schemas/ItemID'
     Subscription:
       description: represents a feed a particular user has subscribed to.
       type: object
@@ -243,17 +239,15 @@ components:
           $ref: '#/components/schemas/CreatedAt'
         UpdatedAt:
           $ref: '#/components/schemas/UpdatedAt'
+        MarkedRead:
+          $ref: '#/components/schemas/MarkedRead'
         name:
           description: >
             is a friendly name or nickname for the feed given by the user.
           type: string
-          x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             form: 'name'
         categories:
-          description: >
-            is a list of custom categories the user has assigned to
-            the feed.
           $ref: '#/components/schemas/Categories'
     SubscriptionRequest:
       description: represents a new subscription request from a user.
@@ -313,6 +307,19 @@ components:
             form: '-'
             json: '-'
           x-go-type-skip-optional-pointer: true
+    ItemState:
+      type: object
+      required:
+        - ItemID
+        - UpdatedAt
+        - State
+      properties:
+        ItemID:
+          $ref: '#/components/schemas/ItemID'
+        UpdatedAt:
+          $ref: '#/components/schemas/UpdatedAt'
+        State:
+          $ref: '#/components/schemas/State'
     User:
       description: is a user of the application.
       type: object
@@ -321,23 +328,32 @@ components:
         - type: object
           required:
             - ID
+            - MaxHistory
           properties:
+            ID:
+              $ref: '#/components/schemas/UserID'
+            item_states:
+              description: Tracks state of inidividual items per feed.
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ItemState'
+              x-go-type-skip-optional-pointer: true
             subscriptions:
               description: is the list of user subscriptions.
               type: object
               additionalProperties:
                 $ref: '#/components/schemas/Subscription'
               x-go-type-skip-optional-pointer: true
-            read_items:
-              description: is the list of user read items.
-              type: object
-              additionalProperties:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ReadItem'
-              x-go-type-skip-optional-pointer: true
-            ID:
-              $ref: '#/components/schemas/UserID'
+            MaxHistory:
+              description: >
+                Represents the maximum time-frame over which the user
+                can view items.
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: 'required'
+                json: 'max_history'
     UserSignup:
       description: >
         contains the details for a user signup request.
@@ -480,21 +496,14 @@ components:
               $ref: '#/components/schemas/FeedID'
             URL:
               $ref: '#/components/schemas/ItemURL'
-    APIReadItem:
-      description: >
-        represents an item (e.g., an individual feed item) that has
-        been read as used by the API.
-      allOf:
-        - $ref: '#/components/schemas/ReadItem'
-        - type: object
-          required:
-            - FeedID
-            - UserID
-          properties:
-            FeedID:
-              $ref: '#/components/schemas/FeedID'
-            UserID:
-              $ref: '#/components/schemas/UserID'
+    APIList:
+      description: represents a list of objects of any type.
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/APIFeed'
+          - $ref: '#/components/schemas/APIItem'
+      x-go-type-skip-optional-pointer: true
     Tokens:
       type: object
       required:
@@ -581,8 +590,8 @@ components:
           $ref: '#/components/schemas/Pagination'
         Count:
           $ref: '#/components/schemas/Count'
-        ShowUnread:
-          $ref: '#/components/schemas/ShowUnread'
+        ViewState:
+          $ref: '#/components/schemas/State'
     ScheduledJob:
       description: represents a job that has been scheduled by the job scheduler.
       type: object

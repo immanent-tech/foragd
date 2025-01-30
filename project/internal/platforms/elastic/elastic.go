@@ -4,14 +4,12 @@
 package elastic
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
-	"log/slog"
+	"fmt"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -27,26 +25,54 @@ var (
 	ErrFieldNotFound = errors.New("field not found")
 )
 
-// ExtractSources loops through the given hits array and extracts the `_source`
-// field of each document as type `T`, returning the documents as an array
-// `[]T`. Any errors extracting sources will be logged at the WARN level.
-//
-//nolint:prealloc
-func ExtractSources[T any](ctx context.Context, hits []types.Hit) []T {
-	var items []T
+// ExtractSourceFromHits loops through the given hits array and extracts the `_source`
+// field of each document as type `T`, returning the document sources as an array
+// `[]T`. If there was an issue extracting any source, it will also return a
+// non-nil error containing details.
+func ExtractSourceFromHits[T any](hits []types.Hit) ([]T, error) {
+	var warnings error
+
+	sources := make([]T, 0, len(hits))
 
 	for _, hit := range hits {
 		source, err := ExtractSource[T](hit.Source_)
 		if err != nil {
-			logging.FromContext(ctx).Warn("Could not unmarshal item source.",
-				slog.Any("error", err))
+			warnings = errors.Join(warnings,
+				fmt.Errorf("error extracting source from doc %s: %w", *hit.Id_, err))
 			continue
 		}
 
-		items = append(items, source)
+		sources = append(sources, source)
 	}
 
-	return items
+	return sources, warnings
+}
+
+// ExtractSourceFromDocs loops through the given docs array and extracts the `_source`
+// field of each document as type `T`, returning the document sources as an array
+// `[]T`. If there was an issue extracting any source, it will also return a
+// non-nil error containing details.
+func ExtractSourceFromDocs[T any](docs ...any) ([]T, error) {
+	var warnings error
+
+	sources := make([]T, 0, len(docs))
+
+	for _, doc := range docs {
+		switch obj := doc.(type) {
+		case types.MultiGetError:
+			warnings = errors.Join(warnings, formatError(obj.Error))
+		case *types.GetResult:
+			source, err := ExtractSource[T](obj.Source_)
+			if err != nil {
+				warnings = errors.Join(warnings, err)
+				continue
+			}
+
+			sources = append(sources, source)
+		}
+	}
+
+	return sources, warnings
 }
 
 // ExtractSource extracts the `_source` field from a hit. A non-nil error is
@@ -61,20 +87,51 @@ func ExtractSource[T any](doc json.RawMessage) (T, error) {
 	return source, nil
 }
 
+// ExtractSourceFromHits loops through the given hits array and extracts the `_source`
+// field of each document as type `T`, returning the document sources as an array
+// `[]T`. If there was an issue extracting any source, it will also return a
+// non-nil error containing details.
+func ExtractFieldFromHits[T any](field string, hits []types.Hit) (map[string]T, error) {
+	var warnings error
+
+	values := make(map[string]T)
+
+	for _, hit := range hits {
+		value, err := ExtractFieldValue[T](field, hit.Fields)
+		if err != nil {
+			warnings = errors.Join(warnings,
+				fmt.Errorf("error extracting field value from doc %s: %w", *hit.Id_, err))
+			continue
+		}
+
+		values[*hit.Id_] = value
+	}
+
+	return values, warnings
+}
+
 // extractFieldValue extracts the value of the given field from a hit's list of
 // returned fields. If the field is not found or the value cannot be extracted,
 // a non-nil error is returned.
-func extractFieldValue[T any](field string, fields map[string]json.RawMessage) (T, error) {
-	var fieldValue T
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/search-fields.html#search-fields-param
+func ExtractFieldValue[T any](field string, fields map[string]json.RawMessage) (T, error) {
+	var fieldValue []T
 
-	if _, found := fields[field]; !found {
-		return fieldValue, ErrFieldNotFound
+	value, found := fields[field]
+	if !found {
+		return fieldValue[0], ErrFieldNotFound
 	}
 
-	err := json.Unmarshal(fields[field], &fieldValue)
+	err := json.Unmarshal(value, &fieldValue)
 	if err != nil {
-		return fieldValue, errors.Join(ErrFieldNotFound, err)
+		return fieldValue[0], errors.Join(ErrFieldNotFound, err)
 	}
 
-	return fieldValue, nil
+	return fieldValue[0], nil
+}
+
+// formatError formats an error cause from Elasticsearch into an error value.
+func formatError(err types.ErrorCause) error {
+	return fmt.Errorf("%s: %s", err.Type, *err.Reason)
 }

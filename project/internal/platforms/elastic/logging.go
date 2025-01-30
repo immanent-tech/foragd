@@ -6,6 +6,7 @@ package elastic
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"log/slog"
 	"net/http"
@@ -18,7 +19,7 @@ const (
 )
 
 type ESLogger struct {
-	slog.Logger
+	*slog.Logger
 }
 
 func (l *ESLogger) LogRoundTrip(req *http.Request, res *http.Response, _ error, _ time.Time, dur time.Duration) error {
@@ -39,6 +40,9 @@ func (l *ESLogger) LogRoundTrip(req *http.Request, res *http.Response, _ error, 
 		nRes, _ = io.Copy(io.Discard, res.Body) //nolint:errcheck
 	}
 
+	body := make(map[string]any)
+	json.Unmarshal(reqBody.Bytes(), &body)
+
 	// Log event.
 	//
 	l.Debug("Round Trip Stats.",
@@ -49,7 +53,7 @@ func (l *ESLogger) LogRoundTrip(req *http.Request, res *http.Response, _ error, 
 		slog.Duration("duration", dur),
 		slog.Int64("req_bytes", nReq),
 		slog.Int64("res_bytes", nRes),
-		// slog.String("body", reqBody.String()),
+		// slog.Any("body", body),
 	)
 
 	return nil

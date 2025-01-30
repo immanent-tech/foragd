@@ -15,7 +15,8 @@ type AuthAPI interface {
 // UserActionsAPI contains methods for handling user requests.
 type UserActionsAPI interface {
 	UserActionAddSubscriptions(ctx context.Context, subscriptions ...SubscriptionRequest) ([]string, error)
-	UserActionMarkItemsRead(ctx context.Context, items ...APIReadItem) error
+	UserActionMarkItems(ctx context.Context, state State, items ItemIDs) error
+	UserActionMarkFeeds(ctx context.Context, state State, feeds FeedIDs) error
 	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
 	UserActionGetItems(ctx context.Context, filters APIFilters) (chan APIItem, Pagination, error)
 	UserActionGetFeeds(ctx context.Context, filters APIFilters) (chan APIFeed, error)
@@ -25,7 +26,7 @@ type UserActionsAPI interface {
 // UserManagementAPI contains methods for user management.
 type UserManagementAPI interface {
 	UserExists(ctx context.Context, userID UserID) (bool, error)
-	GetUser(ctx context.Context) (User, error)
+	GetUser(ctx context.Context) (*User, error)
 	AddUser(ctx context.Context, userID UserID) error
 }
 

@@ -64,24 +64,19 @@ func (f APIFilters) GetCount() Count {
 	return 10
 }
 
-func (f APIFilters) Unread() bool {
-	if !f.ShowUnread.IsSpecified() {
-		return false
+// GetState retrieves the State value. This indicates the state of objects
+// that should be filtered.
+func (f APIFilters) GetState() State {
+	if !f.ViewState.IsSpecified() {
+		return Unread
 	}
 
-	unread, err := f.ShowUnread.Get()
+	unread, err := f.ViewState.Get()
 	if err != nil {
-		return false
+		return Unread
 	}
 
-	switch unread {
-	case On:
-		return true
-	case Off:
-		fallthrough
-	default:
-		return false
-	}
+	return unread
 }
 
 func (f APIFilters) GetPagination() (Pagination, error) {
@@ -140,9 +135,7 @@ func (f APIFilters) String() string {
 		params.Add("pagination", pagination)
 	}
 
-	if f.ShowUnread.IsSpecified() {
-		params.Add("show_unread", "on")
-	}
+	params.Add("state", string(f.GetState()))
 
 	params.Add("count", strconv.Itoa(f.GetCount()))
 
@@ -162,8 +155,8 @@ func (f APIFilters) GenerateURL(basePath string) (*url.URL, error) {
 	return newURL, nil
 }
 
-// CreateFilters takes an object, typically the params for a particular route,
-// and generates a APIFilters object from them.
+// CreateFilters unmarshals the given query parameters passed to a specific route into a
+// common APIFilters object.
 func CreateFilters(params any) (*APIFilters, error) {
 	filters := &APIFilters{}
 

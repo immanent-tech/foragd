@@ -4,9 +4,25 @@
 package panes
 
 import (
+	"context"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-templ-daisyui"
 )
+
+// setReadToggleValue sets the value attribute of the read/unread toggle. It
+// should be set to the opposite of the current value as this is the value sent
+// when the user clicks the toggle.
+func setReadToggleValue(ctx context.Context) string {
+	currentValue := models.PageNavigationFromCtx(ctx).State()
+	switch currentValue {
+	case models.Read:
+		return string(models.Unread)
+	case models.Unread:
+		fallthrough
+	default:
+		return string(models.Read)
+	}
+}
 
 templ Drawer() {
 	<ul
@@ -40,13 +56,14 @@ templ Drawer() {
 		</li>
 		<li>
 			@components.Toggle(
-				components.WithID[*components.ToggleProps]("show_unread"),
-				components.WithName[*components.ToggleProps]("show_unread"),
-				components.WithChecked[*components.ToggleProps](models.PageNavigationFromCtx(ctx).ShowUnread()),
+				components.WithID[*components.ToggleProps]("state"),
+				components.WithName[*components.ToggleProps]("state"),
+				components.WithValue[*components.ToggleProps](setReadToggleValue(ctx)),
+				components.WithChecked[*components.ToggleProps](models.PageNavigationFromCtx(ctx).ShowRead()),
 				components.WithResponsiveSize[*components.ToggleProps](components.SM),
 				components.WithAttributes[*components.ToggleProps](templ.Attributes{
 					"hx-get": models.StripQueryParams(models.PageNavigationFromCtx(ctx).Current,
-						"show_unread").String(),
+						"state").String(),
 					"hx-target":   "#" + ContentTarget,
 					"hx-push-url": "true",
 				}),

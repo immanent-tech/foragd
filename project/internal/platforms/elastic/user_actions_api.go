@@ -84,41 +84,91 @@ func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions .
 	return warnings, nil
 }
 
-// UserActionMarkItemsRead will mark the given items as read for the user.
-func (c *Client) UserActionMarkItemsRead(ctx context.Context, items ...models.APIReadItem) error {
-	index := UserIndexFromCtx(ctx)
+// UserActionMarkItemsRead will mark the given items with the given state for the user.
+func (c *Client) UserActionMarkItems(ctx context.Context, state models.State, ids models.ItemIDs) error {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return ErrNoUserCtx
+	}
+
+	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)
 	}
+
+	resp, err := c.NewSearchRequest(
+		WithIndex[*search.Search](index),
+		WithFields("feed_id"),
+		WithSearchQueryOptions(
+			// Must have the  itemID
+			QueryByItemIDs(ids...),
+		),
+		WithSortOptions(SortTimestampDesc()),
+		WithSearchSize(len(ids)),
+	).Do(ctx)
+	if err != nil {
+		return errors.Join(ErrUpdateFailed, err)
+	}
+
+	feedIDs, warnings := ExtractFieldFromHits[models.FeedID]("feed_id", resp.Hits.Hits)
+	if warnings != nil {
+		c.Logger.Warn("Problems occurred while extracting source from docs.",
+			slog.Any("warnings", warnings))
+	}
+
+	// Mark all items with the given state.
+	for _, itemID := range ids {
+		feedID, found := feedIDs[itemID]
+		if !found {
+			continue
+		}
+
+		if err := user.MarkItem(feedID, itemID, state); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
+			c.Logger.Warn("Could not mark item read", slog.Any("error", err))
+		}
+	}
+
+	// Update the user object.
+	return updateUser(ctx, c, user.ID, map[string]any{
+		"item_states": user.ItemStates,
+		"updated_at":  time.Now().UTC(),
+	})
+}
+
+// UserActionMarkFeedsRead will mark the given feeds with the given state for
+// the user.
+func (c *Client) UserActionMarkFeeds(ctx context.Context, state models.State, feedIDs models.FeedIDs) error {
+	var timestamp time.Time
 
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx
 	}
 
+	// Based on the requested state change, calculate the marked read timestamp
+	// for the feed.
+	// For read state, this will be the current time.
+	// For unread state, this will be the max history of the user.
+	switch state {
+	case models.Read:
+		timestamp = time.Now().UTC()
+	case models.Unread:
+		timestamp = user.GetMaxHistory()
+	}
+
 	// Mark all items read in the user object. Any items already marked read are ignored.
-	for _, item := range items {
-		if err := user.MarkItemRead(item); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
+	for _, feed := range feedIDs {
+		if err := user.MarkFeedRead(feed, timestamp); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
 			c.Logger.Warn("Could not mark item read", slog.Any("error", err))
 		}
 	}
 
-	// Update the user in the store with the new list of read items.
-	resp, err := c.NewDocUpdateRequest(index, user.ID,
-		WithPartialDocUpdate(map[string]any{
-			"read_items": user.ReadItems,
-			"updated_at": time.Now().UTC(),
-		}),
-	).Do(ctx)
-	if err != nil {
-		return errors.Join(ErrUpdateFailed, err)
-	}
-
-	slog.Debug("Updated read items.",
-		slog.String("result", resp.Result.String()),
-		slog.Int64("version", resp.Version_))
-
-	return nil
+	// Update the user object.
+	return updateUser(ctx, c, user.ID, map[string]any{
+		"item_states":   user.ItemStates,
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
+	})
 }
 
 // GetItem retrieves the specified item with the given id and from the given
@@ -143,8 +193,21 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (
 		WithIndex[*search.Search](index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
-			QueryByFeedIDs(feedID),
-			QueryByItemIDs(itemID)),
+			QueryBool(
+				BoolFilter(
+					// Must have the feedID and itemID
+					QueryByFeedIDs(feedID),
+					QueryByItemIDs(itemID),
+					// Must be published or updated after the user max history.
+					QueryBool(
+						BoolShould(
+							QuerySince("publishedParsed", user.GetFeedLastRead(feedID)),
+							QuerySince("updatedParsed", user.GetFeedLastRead(feedID)),
+						),
+					),
+				),
+			),
+		),
 		WithSortOptions(SortTimestampDesc()),
 	)
 
@@ -177,9 +240,15 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 		return outCh, "", ErrGetUserFailed
 	}
 
-	var readItemsIDs models.ItemIDs
-	if !filters.Unread() {
-		readItemsIDs = user.GetReadItemIDs(filters.GetFeedIDs()...)
+	var query Option[*types.Query]
+	// Work out what query to use based on the state filter.
+	switch filters.GetState() {
+	case models.Read:
+		query = readFeedItemsQuery(user, filters.GetFeedIDs())
+	case models.Unread:
+		fallthrough
+	default:
+		query = unreadFeedItemsQuery(user, filters.GetFeedIDs())
 	}
 
 	rawPagination, err := filters.GetPagination()
@@ -189,6 +258,10 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 	}
 
 	currentPagination, err := models.DecodePagination(rawPagination)
+	if err != nil {
+		c.Logger.Debug("Could not get pagination value.",
+			slog.Any("error", err))
+	}
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
@@ -196,10 +269,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 		WithIndex[*search.Search](index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
-			QueryBool(
-				BoolFilter(QueryByFeedIDs(filters.GetFeedIDs()...)),
-				BoolMustNot(QueryByItemIDs(readItemsIDs...)),
-			),
+			query,
 		),
 		WithSortOptions(SortTimestampDesc()),
 		WithSearchSize(filters.GetCount()),
@@ -211,7 +281,11 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
 
-	items := ExtractSources[models.APIItem](ctx, res.Hits.Hits)
+	items, warnings := ExtractSourceFromHits[models.APIItem](res.Hits.Hits)
+	if warnings != nil {
+		c.Logger.Warn("Problems occurred while extracting source from docs.",
+			slog.Any("warnings", err))
+	}
 
 	var newPagination models.Pagination
 	// Get the sort value(s) of the last hit.
@@ -220,11 +294,11 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 		if err != nil {
 			c.Logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
 		}
+
 		newPagination, err = models.EncodePagination(data)
 		if err != nil {
 			c.Logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
 		}
-
 	}
 
 	go func() {
@@ -277,7 +351,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	}
 
 	// Get the unread counts for the feeds.
-	unreadCounts, err := c.userActionGetFeedUnreadCounts(ctx, subscribedFeedIDs, user)
+	unreadCounts, err := c.GetFeedItemCounts(ctx, user, filters.GetState(), subscribedFeedIDs)
 	if err != nil {
 		return outCh, errors.Join(ErrUserActionFailed, err)
 	}
@@ -294,84 +368,35 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	return outCh, nil
 }
 
-func (c *Client) userActionGetFeedUnreadCounts(ctx context.Context, feedIDs []models.FeedID, user models.User) (map[string]int64, error) {
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
-	}
-
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	req := c.NewSearchRequest(
-		WithIndex[*search.Search](index),
-		WithFields(defaultItemFields...),
-		WithSearchQueryOptions(
-			QueryBool(
-				BoolFilter(QueryByFeedIDs(feedIDs...)),
-				BoolMustNot(QueryByItemIDs(user.GetReadItemIDs(feedIDs...)...)),
-			),
-		),
-		WithSortOptions(SortTimestampDesc()),
-		WithSearchSize(0),
-		WithAggregations(TermsAggregation("UnreadCounts", "feed_id")),
-	)
-
-	resp, err := req.Do(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
-	}
-
-	var results TermsAggregationResults
-	var ok bool
-
-	results.StringTermsAggregate, ok = resp.Aggregations["UnreadCounts"].(*types.StringTermsAggregate)
-	if !ok {
-		return nil, errors.Join(ErrUserActionFailed, fmt.Errorf("not TermsAggregationResults"))
-	}
-
-	unreadCounts := make(map[string]int64)
-	for _, feedID := range feedIDs {
-		unreadCounts[feedID] = results.GetCount(feedID)
-	}
-
-	return unreadCounts, nil
-}
-
 func (c *Client) userActionGetFeedsByURL(ctx context.Context, urls ...string) ([]models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
-	searchSize := 1000
-	pagination := make([]types.FieldValue, 0)
-	feeds := make([]models.APIFeed, 0)
+	feeds := make([]models.APIFeed, 0, len(urls))
 
-	// Loop until we've paginated through all results.
-	for {
-		resp, err := c.NewSearchRequest(
-			WithIndex[*search.Search](index),
-			WithFields("feed_id", "feedLink"),
-			WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
-			WithSearchSize(searchSize),
-			WithSearchAfter(pagination),
-		).Do(ctx)
-		if err != nil {
-			return nil, errors.Join(ErrSearchFailed, err)
-		}
-		// Stop if there are no hits
-		if len(resp.Hits.Hits) == 0 {
-			return nil, nil
-		}
-		// Loop through this set of results.
-		feeds = append(feeds, ExtractSources[models.APIFeed](ctx, resp.Hits.Hits)...)
-		// Update pagination value.
-		pagination = resp.Hits.Hits[len(resp.Hits.Hits)-1].Sort
-		// Stop if the number of hits is less than the search size (i.e., last set of hits).
-		if len(resp.Hits.Hits) < searchSize {
-			break
-		}
+	resp, err := c.NewSearchRequest(
+		WithIndex[*search.Search](index),
+		WithFields("feed_id", "feedLink"),
+		WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
+		WithSearchSize(len(urls)),
+	).Do(ctx)
+	if err != nil {
+		return nil, errors.Join(ErrSearchFailed, err)
 	}
+	// Stop if there are no hits
+	if len(resp.Hits.Hits) == 0 {
+		return nil, nil
+	}
+	// Loop through this set of results.
+	sources, warnings := ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
+	if warnings != nil {
+		c.Logger.Warn("Problems occurred while extracting source from docs.",
+			slog.Any("warnings", err))
+	}
+
+	feeds = append(feeds, sources...)
 
 	return feeds, nil
 }
