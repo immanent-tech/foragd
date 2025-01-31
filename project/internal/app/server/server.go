@@ -142,19 +142,19 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
+		// homeRouterMiddlewares := append(wrapper.HandlerMiddlewares)
 		// list routes:
-		homeRouter.Get("/show/{list}", wrapper.ShowList)
-		homeRouter.Post("/set/{list}/{state}", wrapper.SetListState)
+		homeRouter.Get("/{action}/list/{list}", HomeMiddleware(wrapper.ShowList))
+		homeRouter.Post("/{action}/list/{list}", HomeMiddleware(wrapper.ActionList))
 		// article routes:
-		homeRouter.Get("/show/article/{feed}/{item}", wrapper.ShowArticle)
-		homeRouter.Post("/set/article/{feed}/{item}/{state}", wrapper.SetArticleState)
-		homeRouter.Post("/{action}/article/{feed}/{item}", wrapper.ActionArticle)
+		homeRouter.Get("/{action}/item/{feed}/{item}", HomeMiddleware(wrapper.ShowItem))
+		homeRouter.Post("/{action}/item/{feed}/{item}", HomeMiddleware(wrapper.ActionItem))
 		homeRouter.Get("/settings", wrapper.GetHomeSettings)
 		homeRouter.Route("/subscription", func(subscriptionRouter chi.Router) {
-			subscriptionRouter.Get("/add", wrapper.AddSubscription)
-			subscriptionRouter.Post("/add", wrapper.ProcessAddSubscription)
-			subscriptionRouter.Get("/edit", wrapper.GetSubscriptionEdit)
-			subscriptionRouter.Post("/edit", wrapper.PostSubscriptionEdit)
+			subscriptionRouter.Get("/add", HomeMiddleware(wrapper.AddSubscription))
+			subscriptionRouter.Post("/add", HomeMiddleware(wrapper.ProcessAddSubscription))
+			subscriptionRouter.Get("/edit", HomeMiddleware(wrapper.GetSubscriptionEdit))
+			subscriptionRouter.Post("/edit", HomeMiddleware(wrapper.PostSubscriptionEdit))
 		})
 	})
 

@@ -70,6 +70,24 @@ func (i *APIItem) GetTimestamp() time.Time {
 	return itemTime
 }
 
+func (i *APIItem) GetUserState() State {
+	if i.UserProperties != nil {
+		if i.UserProperties.State != nil {
+			return *i.UserProperties.State
+		}
+	}
+
+	return StateUnread
+}
+
+func (i *APIItem) SetUserItemState(state State) {
+	if i.UserProperties == nil {
+		i.UserProperties = &UserItemProperties{}
+	}
+
+	i.UserProperties.State = &state
+}
+
 // isNewer returns a boolean indicating whether this item has been updated or
 // published after the given time.
 func (i *Item) isNewer(since time.Time) bool {
@@ -101,15 +119,4 @@ func NewFeedItem(feedID string, details *gofeed.Item) (*Item, error) {
 			Item:      details,
 		},
 		nil
-}
-
-func NewItemState(id string, state State) ItemState {
-	itemState := ItemState{
-		ItemID:    id,
-		UpdatedAt: time.Now().UTC(),
-	}
-
-	itemState.State.Set(state)
-
-	return itemState
 }

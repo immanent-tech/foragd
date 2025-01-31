@@ -66,14 +66,14 @@ func (f APIFilters) GetCount() Count {
 
 // GetState retrieves the State value. This indicates the state of objects
 // that should be filtered.
-func (f APIFilters) GetState() State {
-	if !f.ViewState.IsSpecified() {
-		return Unread
+func (f APIFilters) GetView() View {
+	if !f.View.IsSpecified() {
+		return ViewUnread
 	}
 
-	unread, err := f.ViewState.Get()
+	unread, err := f.View.Get()
 	if err != nil {
-		return Unread
+		return ViewUnread
 	}
 
 	return unread
@@ -135,7 +135,7 @@ func (f APIFilters) String() string {
 		params.Add("pagination", pagination)
 	}
 
-	params.Add("state", string(f.GetState()))
+	params.Add("view", string(f.GetView()))
 
 	params.Add("count", strconv.Itoa(f.GetCount()))
 

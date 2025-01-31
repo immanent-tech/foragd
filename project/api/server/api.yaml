@@ -190,33 +190,34 @@ paths:
           description: Unauthorized
         500:
           description: Problem with request
-  /home/show/{list}:
+  /home/{action}/list/{list}:
     get:
-      summary: >
-        display a list of type {list}, with optional filtering.
+      description: >
+        Show a list of type {list}, with optional filtering.
       operationId: showList
       parameters:
         # Path:
         - $ref: '#/components/parameters/List'
+        - $ref: '#/components/parameters/Action'
         # Query:
         - $ref: '#/components/parameters/FeedIDs'
         - $ref: '#/components/parameters/ItemIDs'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Count'
         - $ref: '#/components/parameters/Pagination'
-        - $ref: '#/components/parameters/ViewState'
+        - $ref: '#/components/parameters/View'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/set/{list}/{state}:
     post:
-      summary: >
-        set a list of type {list} with {state}, with optional filtering.
-      operationId: setListState
+      description: >
+        Perform {action} on multiple objects of type {list},
+        with optional filtering.
+      operationId: actionList
       parameters:
         # Path:
         - $ref: '#/components/parameters/List'
-        - $ref: '#/components/parameters/State'
+        - $ref: '#/components/parameters/Action'
         # Query:
         - $ref: '#/components/parameters/FeedIDs'
         - $ref: '#/components/parameters/ItemIDs'
@@ -224,33 +225,20 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/show/article/{feed}/{item}:
+  /home/{action}/item/{feed}/{item}:
     get:
-      summary: display an item as an article.
-      operationId: showArticle
+      summary: Show an item.
+      operationId: showItem
       parameters:
+        - $ref: '#/components/parameters/Action'
         - $ref: '#/components/parameters/FeedID'
-          required: true
         - $ref: '#/components/parameters/ItemID'
-          required: true
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/set/article/{feed}/{item}/{state}:
     post:
-      summary: mark an article with {mark}.
-      operationId: setArticleState
-      parameters:
-        - $ref: '#/components/parameters/FeedID'
-        - $ref: '#/components/parameters/ItemID'
-        - $ref: '#/components/parameters/State'
-    responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/{action}/article/{feed}/{item}:
-    post:
-      summary: perform {action} on an article.
-      operationId: actionArticle
+      summary: Perform {action} on an item.
+      operationId: actionItem
       parameters:
         - $ref: '#/components/parameters/Action'
         - $ref: '#/components/parameters/FeedID'
@@ -263,11 +251,13 @@ components:
   # Query parameters:
     FeedIDs:
       name: feeds
+      description: An array of Feed IDs.
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/FeedIDs'
     ItemIDs:
       name: items
+      description: An array of Item IDs.
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/ItemIDs'
@@ -282,11 +272,6 @@ components:
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/Categories'
-    ShowUnread:
-      name: show_unread
-      in: query
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/ShowUnread'
     Pagination:
       name: pagination
       in: query
@@ -297,35 +282,22 @@ components:
       in: query
       schema:
         $ref: '../models/api.yaml#/components/schemas/Count'
-    ViewState:
-      name: state
-      description: >
-        the state of objects.
+    View:
+      name: view
       in: query
       schema:
-        $ref: '../models/api.yaml#/components/schemas/State'
+        $ref: '../models/api.yaml#/components/schemas/View'
   # Path parameters:
     List:
       name: list
-      description: >
-        the type of a list of objects.
       in: path
       schema:
-        $ref: '../models/api.yaml#/components/schemas/APIListType'
-    State:
-      name: state
-      description: >
-        the type of state to set on objects.
-      in: path
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/State'
+        $ref: '../models/api.yaml#/components/schemas/List'
     Action:
       name: action
-      description: >
-        an action to perform on objects.
       in: path
       schema:
-        $ref: '../models/api.yaml#/components/schemas/APIAction'
+        $ref: '../models/api.yaml#/components/schemas/Action'
     FeedID:
       name: feed
       in: path

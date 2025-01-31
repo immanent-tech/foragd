@@ -62,12 +62,12 @@ func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions .
 				return warnings, errors.Join(ErrUserActionFailed, err)
 			}
 			// - Create a new subscription.
-			if err = user.AddSubscription(feed.ID, subscription.Name, subscription.Categories); err != nil {
+			if err = user.AddSubscription(feed.ID, *subscription.Name, subscription.Categories); err != nil {
 				return warnings, errors.Join(ErrUserActionFailed, err)
 			}
 		} else {
 			// Create a new subscription.
-			if err = user.AddSubscription(existingFeeds[idx].ID, subscription.Name, subscription.Categories); err != nil {
+			if err = user.AddSubscription(existingFeeds[idx].ID, *subscription.Name, subscription.Categories); err != nil {
 				if errors.Is(err, models.ErrUserAlreadySubscribed) {
 					warnings = append(warnings,
 						fmt.Sprintf("Already subscribed to %s (%s)", subscription.Name, subscription.URL))
@@ -85,7 +85,11 @@ func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions .
 }
 
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
-func (c *Client) UserActionMarkItems(ctx context.Context, state models.State, ids models.ItemIDs) error {
+func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Action, ids models.ItemIDs) error {
+	if mark != models.Markread && mark != models.Markunread {
+		return fmt.Errorf("unsupported mark.")
+	}
+
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx
@@ -123,21 +127,25 @@ func (c *Client) UserActionMarkItems(ctx context.Context, state models.State, id
 			continue
 		}
 
-		if err := user.MarkItem(feedID, itemID, state); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
+		if err := user.MarkItem(feedID, itemID, models.State(mark)); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
 			c.Logger.Warn("Could not mark item read", slog.Any("error", err))
 		}
 	}
 
 	// Update the user object.
 	return updateUser(ctx, c, user.ID, map[string]any{
-		"item_states": user.ItemStates,
-		"updated_at":  time.Now().UTC(),
+		"feed_item_states": user.FeedItemStates,
+		"updated_at":       time.Now().UTC(),
 	})
 }
 
 // UserActionMarkFeedsRead will mark the given feeds with the given state for
 // the user.
-func (c *Client) UserActionMarkFeeds(ctx context.Context, state models.State, feedIDs models.FeedIDs) error {
+func (c *Client) UserActionMarkFeeds(ctx context.Context, mark models.Action, feedIDs models.FeedIDs) error {
+	if mark != models.Markread && mark != models.Markunread {
+		return fmt.Errorf("unsupported mark.")
+	}
+
 	var timestamp time.Time
 
 	user, found := models.UserFromCtx(ctx)
@@ -149,10 +157,10 @@ func (c *Client) UserActionMarkFeeds(ctx context.Context, state models.State, fe
 	// for the feed.
 	// For read state, this will be the current time.
 	// For unread state, this will be the max history of the user.
-	switch state {
-	case models.Read:
+	switch mark {
+	case models.Markread:
 		timestamp = time.Now().UTC()
-	case models.Unread:
+	case models.Markunread:
 		timestamp = user.GetMaxHistory()
 	}
 
@@ -165,9 +173,9 @@ func (c *Client) UserActionMarkFeeds(ctx context.Context, state models.State, fe
 
 	// Update the user object.
 	return updateUser(ctx, c, user.ID, map[string]any{
-		"item_states":   user.ItemStates,
-		"subscriptions": user.Subscriptions,
-		"updated_at":    time.Now().UTC(),
+		"feed_item_states": user.FeedItemStates,
+		"subscriptions":    user.Subscriptions,
+		"updated_at":       time.Now().UTC(),
 	})
 }
 
@@ -242,10 +250,10 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 
 	var query Option[*types.Query]
 	// Work out what query to use based on the state filter.
-	switch filters.GetState() {
-	case models.Read:
+	switch filters.GetView() {
+	case models.ViewRead:
 		query = readFeedItemsQuery(user, filters.GetFeedIDs())
-	case models.Unread:
+	case models.ViewUnread:
 		fallthrough
 	default:
 		query = unreadFeedItemsQuery(user, filters.GetFeedIDs())
@@ -305,6 +313,11 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 		defer close(outCh)
 
 		for _, item := range items {
+			// Add the state for the item from the user object, to the item object.
+			if itemState := user.GetItemState(item.FeedID, item.ID); itemState != nil {
+				item.SetUserItemState(itemState.State)
+			}
+
 			outCh <- item
 		}
 	}()
@@ -351,7 +364,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	}
 
 	// Get the unread counts for the feeds.
-	unreadCounts, err := c.GetFeedItemCounts(ctx, user, filters.GetState(), subscribedFeedIDs)
+	unreadCounts, err := c.GetFeedItemCounts(ctx, user, filters.GetView(), subscribedFeedIDs)
 	if err != nil {
 		return outCh, errors.Join(ErrUserActionFailed, err)
 	}
@@ -360,7 +373,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		defer close(outCh)
 
 		for _, feed := range feeds {
-			feed.UnreadCount = int(unreadCounts[feed.ID])
+			feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
 			outCh <- *feed
 		}
 	}()
@@ -401,7 +414,7 @@ func (c *Client) userActionGetFeedsByURL(ctx context.Context, urls ...string) ([
 	return feeds, nil
 }
 
-func (c *Client) userActionUpdateSubscriptions(ctx context.Context, id models.UserID, subscriptions map[string]models.Subscription) error {
+func (c *Client) userActionUpdateSubscriptions(ctx context.Context, id models.UserID, subscriptions map[string]models.SubscriptionState) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)

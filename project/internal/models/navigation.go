@@ -10,7 +10,7 @@ import (
 // ShowUnread returns whether the current page has the "show_unread" query
 // parameter set, indicating unread items should be shown.
 func (n *APIPageNavigation) ShowRead() bool {
-	return State(n.Current.Query().Get("state")) == Read
+	return State(n.Current.Query().Get("state")) == StateRead
 }
 
 func (n *APIPageNavigation) State() State {

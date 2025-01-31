@@ -34,8 +34,8 @@ func (s *SubscriptionRequest) generateInputs() {
 		components.WithID[*components.TextInputProps]("name"),
 		components.WithPlaceholder[*components.TextInputProps]("Cool feed"),
 	)
-	if s.Name != "" {
-		s.InputName.SetValue(s.Name)
+	if s.Name != nil {
+		s.InputName.SetValue(*s.Name)
 	}
 
 	s.InputURL = components.BuildTextInput(
@@ -72,17 +72,13 @@ func (s *SubscriptionRequest) generateInputs() {
 		components.WithColor[*components.TextInputProps](components.ColorPrimary, false),
 		components.WithPlaceholder[*components.TextInputProps]("awesome, news"),
 	)
-	if s.Categories.IsSpecified() {
-		categories, err := s.Categories.Get()
-		if err == nil {
-
-			cleaned := make([]string, 0, len(categories))
-			for _, category := range categories {
-				cleaned = append(cleaned, html.UnescapeString(safePrinter.Sanitize(category)))
-			}
-
-			s.InputCategories.SetValue(strings.Join(cleaned, ","))
+	if len(s.Categories) > 0 {
+		cleaned := make([]string, 0, len(s.Categories))
+		for _, category := range s.Categories {
+			cleaned = append(cleaned, html.UnescapeString(safePrinter.Sanitize(category)))
 		}
+
+		s.InputCategories.SetValue(strings.Join(cleaned, ","))
 	}
 }
 

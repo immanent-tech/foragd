@@ -13,7 +13,7 @@ import (
 )
 
 // Action are actions that can be performed on feeds or items through the API. Not all actions can be performed on all kinds.
-type Action = externalRef0.APIAction
+type Action = externalRef0.Action
 
 // Categories is a list of feed/item categories.
 type Categories = externalRef0.Categories
@@ -33,35 +33,36 @@ type ItemID = externalRef0.ItemID
 // ItemIDs is a list of item IDs.
 type ItemIDs = externalRef0.ItemIDs
 
-// List is the type of a list of objects.
-type List = externalRef0.APIListType
+// List Is the type of a list of objects.
+type List = externalRef0.List
 
 // Pagination defines model for Pagination.
 type Pagination = externalRef0.Pagination
 
-// State are states that can be applied on feeds or items through the API.
-type State = externalRef0.State
-
-// ViewState are states that can be applied on feeds or items through the API.
-type ViewState = externalRef0.State
-
-// SetListStateParams defines parameters for SetListState.
-type SetListStateParams struct {
-	Feeds      *FeedIDs    `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Items      *ItemIDs    `form:"items,omitempty" json:"items,omitempty"`
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
-}
+// View The state of objects to view.
+type View = externalRef0.View
 
 // ShowListParams defines parameters for ShowList.
 type ShowListParams struct {
-	Feeds      *FeedIDs    `form:"feeds,omitempty" json:"feeds,omitempty"`
+	// Feeds An array of Feed IDs.
+	Feeds *FeedIDs `form:"feeds,omitempty" json:"feeds,omitempty"`
+
+	// Items An array of Item IDs.
 	Items      *ItemIDs    `form:"items,omitempty" json:"items,omitempty"`
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
 	Count      *Count      `form:"count,omitempty" json:"count,omitempty"`
 	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
+	View       *View       `form:"view,omitempty" json:"view,omitempty"`
+}
 
-	// State the state of objects.
-	State *ViewState `form:"state,omitempty" json:"state,omitempty"`
+// ActionListParams defines parameters for ActionList.
+type ActionListParams struct {
+	// Feeds An array of Feed IDs.
+	Feeds *FeedIDs `form:"feeds,omitempty" json:"feeds,omitempty"`
+
+	// Items An array of Item IDs.
+	Items      *ItemIDs    `form:"items,omitempty" json:"items,omitempty"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
 }
 
 // LoginCallbackParams defines parameters for LoginCallback.
@@ -84,21 +85,9 @@ type ServerInterface interface {
 
 	// (GET /)
 	Index(w http.ResponseWriter, r *http.Request)
-	// mark an article with {mark}.
-	// (POST /home/set/article/{feed}/{item}/{state})
-	SetArticleState(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, state State)
-	// set a list of type {list} with {state}, with optional filtering.
-	// (POST /home/set/{list}/{state})
-	SetListState(w http.ResponseWriter, r *http.Request, list List, state State, params SetListStateParams)
 	// Show user settings modal
 	// (GET /home/settings)
 	GetHomeSettings(w http.ResponseWriter, r *http.Request)
-	// display an item as an article.
-	// (GET /home/show/article/{feed}/{item})
-	ShowArticle(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
-	// display a list of type {list}, with optional filtering.
-	// (GET /home/show/{list})
-	ShowList(w http.ResponseWriter, r *http.Request, list List, params ShowListParams)
 	// Add a new subscription
 	// (GET /home/subscription/add)
 	AddSubscription(w http.ResponseWriter, r *http.Request)
@@ -111,9 +100,18 @@ type ServerInterface interface {
 	// Process a subscription edit
 	// (POST /home/subscription/edit/{feed})
 	PostSubscriptionEdit(w http.ResponseWriter, r *http.Request, feed FeedID)
-	// perform {action} on an article.
-	// (POST /home/{action}/article/{feed}/{item})
-	ActionArticle(w http.ResponseWriter, r *http.Request, action Action, feed FeedID, item ItemID)
+	// Show an item.
+	// (GET /home/{action}/item/{feed}/{item})
+	ShowItem(w http.ResponseWriter, r *http.Request, action Action, feed FeedID, item ItemID)
+	// Perform {action} on an item.
+	// (POST /home/{action}/item/{feed}/{item})
+	ActionItem(w http.ResponseWriter, r *http.Request, action Action, feed FeedID, item ItemID)
+
+	// (GET /home/{action}/list/{list})
+	ShowList(w http.ResponseWriter, r *http.Request, action Action, list List, params ShowListParams)
+
+	// (POST /home/{action}/list/{list})
+	ActionList(w http.ResponseWriter, r *http.Request, action Action, list List, params ActionListParams)
 	// Process a user login with given provider
 	// (GET /login/{provider})
 	Login(w http.ResponseWriter, r *http.Request, provider string)
@@ -143,33 +141,9 @@ func (_ Unimplemented) Index(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// mark an article with {mark}.
-// (POST /home/set/article/{feed}/{item}/{state})
-func (_ Unimplemented) SetArticleState(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, state State) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// set a list of type {list} with {state}, with optional filtering.
-// (POST /home/set/{list}/{state})
-func (_ Unimplemented) SetListState(w http.ResponseWriter, r *http.Request, list List, state State, params SetListStateParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 // Show user settings modal
 // (GET /home/settings)
 func (_ Unimplemented) GetHomeSettings(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// display an item as an article.
-// (GET /home/show/article/{feed}/{item})
-func (_ Unimplemented) ShowArticle(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// display a list of type {list}, with optional filtering.
-// (GET /home/show/{list})
-func (_ Unimplemented) ShowList(w http.ResponseWriter, r *http.Request, list List, params ShowListParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -197,9 +171,25 @@ func (_ Unimplemented) PostSubscriptionEdit(w http.ResponseWriter, r *http.Reque
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// perform {action} on an article.
-// (POST /home/{action}/article/{feed}/{item})
-func (_ Unimplemented) ActionArticle(w http.ResponseWriter, r *http.Request, action Action, feed FeedID, item ItemID) {
+// Show an item.
+// (GET /home/{action}/item/{feed}/{item})
+func (_ Unimplemented) ShowItem(w http.ResponseWriter, r *http.Request, action Action, feed FeedID, item ItemID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Perform {action} on an item.
+// (POST /home/{action}/item/{feed}/{item})
+func (_ Unimplemented) ActionItem(w http.ResponseWriter, r *http.Request, action Action, feed FeedID, item ItemID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /home/{action}/list/{list})
+func (_ Unimplemented) ShowList(w http.ResponseWriter, r *http.Request, action Action, list List, params ShowListParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /home/{action}/list/{list})
+func (_ Unimplemented) ActionList(w http.ResponseWriter, r *http.Request, action Action, list List, params ActionListParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -262,225 +252,11 @@ func (siw *ServerInterfaceWrapper) Index(w http.ResponseWriter, r *http.Request)
 	handler.ServeHTTP(w, r)
 }
 
-// SetArticleState operation middleware
-func (siw *ServerInterfaceWrapper) SetArticleState(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "item" -------------
-	var item ItemID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "state" -------------
-	var state State
-
-	err = runtime.BindStyledParameterWithOptions("simple", "state", chi.URLParam(r, "state"), &state, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.SetArticleState(w, r, feed, item, state)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// SetListState operation middleware
-func (siw *ServerInterfaceWrapper) SetListState(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "list" -------------
-	var list List
-
-	err = runtime.BindStyledParameterWithOptions("simple", "list", chi.URLParam(r, "list"), &list, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "list", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "state" -------------
-	var state State
-
-	err = runtime.BindStyledParameterWithOptions("simple", "state", chi.URLParam(r, "state"), &state, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params SetListStateParams
-
-	// ------------- Optional query parameter "feeds" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "items" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "items", r.URL.Query(), &params.Items)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "items", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.SetListState(w, r, list, state, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // GetHomeSettings operation middleware
 func (siw *ServerInterfaceWrapper) GetHomeSettings(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHomeSettings(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ShowArticle operation middleware
-func (siw *ServerInterfaceWrapper) ShowArticle(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "item" -------------
-	var item ItemID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ShowArticle(w, r, feed, item)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ShowList operation middleware
-func (siw *ServerInterfaceWrapper) ShowList(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "list" -------------
-	var list List
-
-	err = runtime.BindStyledParameterWithOptions("simple", "list", chi.URLParam(r, "list"), &list, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "list", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ShowListParams
-
-	// ------------- Optional query parameter "feeds" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "items" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "items", r.URL.Query(), &params.Items)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "items", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "count" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "pagination" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "state" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "state", r.URL.Query(), &params.State)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ShowList(w, r, list, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -568,8 +344,8 @@ func (siw *ServerInterfaceWrapper) PostSubscriptionEdit(w http.ResponseWriter, r
 	handler.ServeHTTP(w, r)
 }
 
-// ActionArticle operation middleware
-func (siw *ServerInterfaceWrapper) ActionArticle(w http.ResponseWriter, r *http.Request) {
+// ShowItem operation middleware
+func (siw *ServerInterfaceWrapper) ShowItem(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -601,7 +377,196 @@ func (siw *ServerInterfaceWrapper) ActionArticle(w http.ResponseWriter, r *http.
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ActionArticle(w, r, action, feed, item)
+		siw.Handler.ShowItem(w, r, action, feed, item)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ActionItem operation middleware
+func (siw *ServerInterfaceWrapper) ActionItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "action" -------------
+	var action Action
+
+	err = runtime.BindStyledParameterWithOptions("simple", "action", chi.URLParam(r, "action"), &action, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "feed" -------------
+	var feed FeedID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "item" -------------
+	var item ItemID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ActionItem(w, r, action, feed, item)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ShowList operation middleware
+func (siw *ServerInterfaceWrapper) ShowList(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "action" -------------
+	var action Action
+
+	err = runtime.BindStyledParameterWithOptions("simple", "action", chi.URLParam(r, "action"), &action, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "list" -------------
+	var list List
+
+	err = runtime.BindStyledParameterWithOptions("simple", "list", chi.URLParam(r, "list"), &list, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "list", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ShowListParams
+
+	// ------------- Optional query parameter "feeds" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "items" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "items", r.URL.Query(), &params.Items)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "items", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "count" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "view" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ShowList(w, r, action, list, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ActionList operation middleware
+func (siw *ServerInterfaceWrapper) ActionList(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "action" -------------
+	var action Action
+
+	err = runtime.BindStyledParameterWithOptions("simple", "action", chi.URLParam(r, "action"), &action, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "list" -------------
+	var list List
+
+	err = runtime.BindStyledParameterWithOptions("simple", "list", chi.URLParam(r, "list"), &list, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "list", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ActionListParams
+
+	// ------------- Optional query parameter "feeds" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "items" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "items", r.URL.Query(), &params.Items)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "items", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ActionList(w, r, action, list, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -878,19 +843,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/", wrapper.Index)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/set/article/{feed}/{item}/{state}", wrapper.SetArticleState)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/set/{list}/{state}", wrapper.SetListState)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/show/article/{feed}/{item}", wrapper.ShowArticle)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/show/{list}", wrapper.ShowList)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/subscription/add", wrapper.AddSubscription)
@@ -905,7 +858,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/home/subscription/edit/{feed}", wrapper.PostSubscriptionEdit)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/{action}/article/{feed}/{item}", wrapper.ActionArticle)
+		r.Get(options.BaseURL+"/home/{action}/item/{feed}/{item}", wrapper.ShowItem)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/home/{action}/item/{feed}/{item}", wrapper.ActionItem)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/home/{action}/list/{list}", wrapper.ShowList)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/home/{action}/list/{list}", wrapper.ActionList)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/login/{provider}", wrapper.Login)

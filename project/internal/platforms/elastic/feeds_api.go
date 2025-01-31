@@ -192,7 +192,7 @@ func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
 // state for the given feeds.
 //
 //nolint:lll
-func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, state models.State, feedIDs []models.FeedID) (map[string]int64, error) {
+func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, view models.View, feedIDs []models.FeedID) (map[string]int64, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -200,10 +200,10 @@ func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, state
 
 	var query Option[*types.Query]
 
-	switch state {
-	case models.Read:
+	switch view {
+	case models.ViewRead:
 		query = readFeedItemsQuery(user, feedIDs)
-	case models.Unread:
+	case models.ViewUnread:
 		fallthrough
 	default:
 		query = unreadFeedItemsQuery(user, feedIDs)
@@ -259,7 +259,7 @@ func unreadFeedItemsQuery(user *models.User, feedIDs models.FeedIDs) Option[*typ
 						BoolShould(
 							QuerySince("publishedParsed", user.GetFeedLastRead(id)),
 							QuerySince("updatedParsed", user.GetFeedLastRead(id)),
-							QueryByItemIDs(user.GetItemIDs(models.Unread, id)...),
+							QueryByItemIDs(user.GetItemIDsWithState(models.StateUnread, id)...),
 						),
 					),
 				),
@@ -278,7 +278,7 @@ func unreadFeedItemsQuery(user *models.User, feedIDs models.FeedIDs) Option[*typ
 		),
 		BoolMustNot(
 			// Must not match any read item IDs.
-			QueryByItemIDs(user.GetItemIDs(models.Read, feedIDs...)...),
+			QueryByItemIDs(user.GetItemIDsWithState(models.StateRead, feedIDs...)...),
 		),
 	)
 }

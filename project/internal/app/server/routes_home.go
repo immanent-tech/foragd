@@ -28,61 +28,82 @@ import (
 
 // Navigation paths.
 const (
-	homeBasePath        = "/home"
-	showBasePath        = homeBasePath + "/show"
-	setBasePath         = homeBasePath + "/set"
-	showFeedsBasePath   = showBasePath + "/feeds"
-	showItemsBasePath   = showBasePath + "/items"
-	showArticleBasePath = showBasePath + "/article"
-	setFeedsBasePath    = setBasePath + "/feeds"
-	setItemsBasePath    = setBasePath + "/items"
-	setArticleBasePath  = setBasePath + "/article"
+	homeBasePath      = "/home"
+	showFeedsBasePath = homeBasePath + "/show/list/" + "/feeds"
+	showItemsBasePath = homeBasePath + "/show/list/" + "/items"
+	showItemBasePath  = homeBasePath + "/show/item"
+	setFeedsBasePath  = homeBasePath + "/markread/list/feeds"
+	setItemsBasePath  = homeBasePath + "/markread/list/items"
+	setItemBasePath   = homeBasePath + "/markread/item"
 )
 
 var ErrGeneratePageNavigationFailed = errors.New("error occurred while generating page navigation")
 
+// HomeMiddleware performs some common functionality for /home routes.
+//
+// - Load the request context with appropriate values.
+//
+// - Enforce htmx-only routes, where applicable.
+func HomeMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+		ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
+		ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
+		ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
+
+		switch req.Method {
+		case http.MethodPost:
+			if !htmx.IsHTMX(req) {
+				logging.FromContext(ctx).Error("HTMX required.")
+				http.Error(res, "HTMX required.", http.StatusNotAcceptable)
+
+				return
+			}
+		case http.MethodGet:
+			nav, err := createPageNavigation(req)
+			if err != nil {
+				logging.FromContext(ctx).Error("Bad request.",
+					slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+				res.WriteHeader(http.StatusNotAcceptable)
+
+				return
+			}
+
+			ctx = models.PageNavigationToCtx(ctx, nav)
+		}
+
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
 // ShowList will show a list of feeds or items, with filtering applied.
 //
 // `GET /home/show/{list}`.
-func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list List, params ShowListParams) {
+func (s Server) ShowList(res http.ResponseWriter, req *http.Request, action Action, list List, params ShowListParams) {
 	var (
 		page  templ.Component
 		cards templ.Component
 	)
 
-	logger := logging.NewHandlerLogger("ShowList", req)
-
-	nav, err := createPageNavigation(req)
-	if err != nil {
-		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-	}
-
-	// Load up a context with required values.
-	ctx := req.Context()
-	ctx = models.PageNavigationToCtx(ctx, nav)
-	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
-	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
-	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
-
 	filters, err := models.CreateFilters(params)
 	if err != nil {
-		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
 
 	switch list {
 	case models.Feeds:
 		// Save list feeds filters in session storage.
-		session.SaveListFeedsFilters(ctx, filters)
+		session.SaveListFeedsFilters(req.Context(), filters)
 
-		cards = renderFeedCards(ctx, s.API.elastic, filters)
+		cards = renderFeedCards(req.Context(), s.API.elastic, filters)
 
 	case models.Items:
 		// Save list items filters in session storage.
-		session.SaveListItemsFilters(ctx, filters)
+		session.SaveListItemsFilters(req.Context(), filters)
 
-		cards, _ = renderItemCards(ctx, s.API.elastic, filters)
+		cards, _ = renderItemCards(req.Context(), s.API.elastic, filters)
 	default:
-		logger.Error("Bad request.",
+		logging.FromContext(req.Context()).Error("Bad request.",
 			slog.String("list", string(list)),
 			slog.Any("error", ErrInvalidQueryParams))
 		res.WriteHeader(http.StatusBadRequest)
@@ -96,30 +117,30 @@ func (s Server) ShowList(res http.ResponseWriter, req *http.Request, list List, 
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
 			layouts.WithPageContent(layouts.HomeLayout(panes.AllContent(panes.AppBarTop(), panes.Header(), panes.Footer(), cards), panes.Drawer())))
-		if err := page.Render(ctx, res); err != nil {
-			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		if err := page.Render(req.Context(), res); err != nil {
+			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 	} else {
 		// HTMX request, load cards and update header/footer.
 		resp := htmx.NewResponse()
-		if err := resp.RenderTempl(ctx, res, cards); err != nil {
-			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		if err := resp.RenderTempl(req.Context(), res, cards); err != nil {
+			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 
-		if err := resp.RenderTempl(ctx, res, panes.Header()); err != nil {
-			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		if err := resp.RenderTempl(req.Context(), res, panes.Header()); err != nil {
+			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 
-		if err := resp.RenderTempl(ctx, res, panes.Footer()); err != nil {
-			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		if err := resp.RenderTempl(req.Context(), res, panes.Footer()); err != nil {
+			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 
-		if err := resp.RenderTempl(ctx, res, panes.Drawer()); err != nil {
-			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		if err := resp.RenderTempl(req.Context(), res, panes.Drawer()); err != nil {
+			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 	}
@@ -166,6 +187,8 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 		return panes.EmptyContent(), pagination
 	}
 
+	ctx = models.ItemSetBasePathToCtx(ctx, setItemBasePath)
+
 	cards := make([]templ.Component, 0, filters.GetCount())
 
 	idx := 0
@@ -179,7 +202,7 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 			continue
 		}
 		// Generate URL for fetching article for item.
-		get, err := url.JoinPath(showArticleBasePath, item.GetFeedID(), item.GetID())
+		get, err := url.JoinPath(showItemBasePath, item.GetFeedID(), item.GetID())
 		if err != nil {
 			logging.FromContext(ctx).Warn("Could not render item as card.",
 				slog.Any("error", err))
@@ -221,58 +244,37 @@ func renderItemCards(ctx context.Context, api models.UserActionsAPI, filters *mo
 // or unread.
 //
 // `POST /home/mark/{list}/{action}`.
-func (s Server) SetListState(res http.ResponseWriter, req *http.Request, list List, state State, params SetListStateParams) {
+func (s Server) ActionList(res http.ResponseWriter, req *http.Request, action Action, list List, params ActionListParams) {
 	var err error
-
-	logger := logging.NewHandlerLogger("MarkListRead", req)
-
-	// Set up context.
-	ctx := req.Context()
-	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
-	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 
 	filters, err := models.CreateFilters(params)
 	if err != nil {
-		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
 
 	switch {
 	case len(filters.GetItemsIDs()) > 0:
-		err = s.API.elastic.UserActionMarkItems(ctx, state, filters.GetItemsIDs())
+		err = s.API.elastic.UserActionMarkItems(req.Context(), action, filters.GetItemsIDs())
 	case len(filters.GetFeedIDs()) > 0:
-		err = s.API.elastic.UserActionMarkFeeds(ctx, state, filters.GetFeedIDs())
+		err = s.API.elastic.UserActionMarkFeeds(req.Context(), action, filters.GetFeedIDs())
 	}
 
 	if err != nil {
-		logger.Warn("Could not mark as read.", slog.Any("error", err))
+		logging.FromContext(req.Context()).Warn("Could not mark as read.", slog.Any("error", err))
 		return
 	}
 
 	if _, err := res.Write(nil); err != nil {
-		logger.Error("Failed to write response.", slog.Any("error", err))
+		logging.FromContext(req.Context()).Error("Failed to write response.", slog.Any("error", err))
 	}
 }
 
-// ShowArticle will show an item as an article.
-//
-// `GET /home/show/article/{feedID}/{itemID}`.
-func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID FeedID, itemID ItemID) {
+func (s Server) ShowItem(res http.ResponseWriter, req *http.Request, action Action, feedID FeedID, itemID ItemID) {
 	var page templ.Component
 
-	logger := logging.NewHandlerLogger("ShowArticle", req)
-
-	nav, err := createPageNavigation(req)
-	if err != nil {
-		logger.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-	}
-
-	ctx := req.Context()
-	ctx = models.PageNavigationToCtx(ctx, nav)
-	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
-
-	item, found, err := s.API.elastic.UserActionGetItem(ctx, feedID, itemID)
+	item, found, err := s.API.elastic.UserActionGetItem(req.Context(), feedID, itemID)
 	if err != nil || !found {
-		logger.Error("Could not get item.", slog.Any("error", err))
+		logging.FromContext(req.Context()).Error("Could not get item.", slog.Any("error", err))
 		http.Error(res, "Not found!.", http.StatusNotFound)
 
 		return
@@ -287,29 +289,32 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, feedID F
 		page = panes.Article(true, &item)
 	}
 
-	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {
-		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, page); err != nil {
+		logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }
 
 // MarkArticle will mark an article as read/unread.
-func (s Server) SetArticleState(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID, state State) {
-	logger := logging.NewHandlerLogger("MarkArticle", req)
-
-	ctx := elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix)
-
-	if err := s.API.elastic.UserActionMarkItems(ctx, state, []string{item}); err != nil {
-		logger.Warn("Could not mark item as read.", slog.Any("error", err))
+func (s Server) ActionItem(res http.ResponseWriter, req *http.Request, action Action, feed FeedID, item ItemID) {
+	if action == models.Show {
+		logging.FromContext(req.Context()).Warn("Unsupported action.",
+			slog.String("action", string(action)))
 		return
 	}
 
-	if _, err := res.Write(nil); err != nil {
-		logger.Error("Failed to write response.", slog.Any("error", err))
+	switch action {
+	case models.Markread, models.Markunread:
+		if err := s.API.elastic.UserActionMarkItems(req.Context(), action, []string{item}); err != nil {
+			logging.FromContext(req.Context()).Warn("Could not set item state.", slog.Any("error", err))
+		}
+	default:
+		res.WriteHeader(http.StatusNotImplemented)
 	}
-}
 
-func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action models.APIAction, feed FeedID, item ItemID) {
+	if _, err := res.Write(nil); err != nil {
+		logging.FromContext(req.Context()).Error("Failed to write response.", slog.Any("error", err))
+	}
 }
 
 func createPageNavigation(req *http.Request) (*models.APIPageNavigation, error) {
@@ -343,13 +348,13 @@ func createPageNavigation(req *http.Request) (*models.APIPageNavigation, error) 
 
 		navigation.Parent = *parentURL
 
-		childURL, err := url.Parse(showArticleBasePath)
+		childURL, err := url.Parse(showItemBasePath)
 		if err != nil {
 			return navigation, errors.Join(ErrGeneratePageNavigationFailed, err)
 		}
 
 		navigation.Child = *childURL
-	case strings.HasPrefix(req.URL.Path, showArticleBasePath):
+	case strings.HasPrefix(req.URL.Path, showItemBasePath):
 		parentFilters, err := session.LoadListItemsFilters(req.Context())
 		if err != nil {
 			return navigation, errors.Join(ErrGeneratePageNavigationFailed, err)

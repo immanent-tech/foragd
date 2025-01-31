@@ -12,6 +12,7 @@ const (
 	subscriptionRequestCtxKey contextKey = "subscriptionRequest"
 	feedManagementAPICtxKey   contextKey = "feedManagementAPI"
 	pageNavigationCtxKey      contextKey = "pageNavigation"
+	itemSetBasePathCtxKey     contextKey = "itemSetBasePath"
 )
 
 type contextKey string
@@ -71,4 +72,17 @@ func PageNavigationFromCtx(ctx context.Context) *APIPageNavigation {
 	}
 
 	return navigation
+}
+
+func ItemSetBasePathToCtx(ctx context.Context, path string) context.Context {
+	return context.WithValue(ctx, itemSetBasePathCtxKey, path)
+}
+
+func ItemSetBasePathFromCtx(ctx context.Context) string {
+	path, found := ctx.Value(itemSetBasePathCtxKey).(string)
+	if !found {
+		return ""
+	}
+
+	return path
 }

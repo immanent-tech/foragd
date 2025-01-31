@@ -10,68 +10,64 @@ import (
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/app/server/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 	"github.com/joshuar/go-feed-me/web/templates/partials/content"
 )
 
-// AddSubscription handles subscription request input.
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
-	logger := logging.NewHandlerLogger("AddSubscription", req)
-
 	ctx := models.SubscriptionRequestToCtx(req.Context(), models.NewSubscriptionAddRequest())
 
 	if err := htmx.NewResponse().RenderTempl(ctx, res, content.AddSubscriptionForm()); err != nil {
-		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }
 
-// ProcessAddSubscription processes a subscription request.
 func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Request) {
-	logger := logging.NewHandlerLogger("ProcessAddSubscription", req)
-
-	// Load up the context.
-	ctx := elastic.FeedsIndexToCtx(req.Context(), schema.FeedsSchemaPrefix)
-	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
-
 	subscription, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 	if err != nil {
-		logger.Error("Could not decode submitted subscription request request.",
+		logging.FromContext(req.Context()).Error("Could not decode submitted subscription request request.",
 			slog.Any("error", err))
 		return
 	}
 
 	if !valid {
-		ctx = models.SubscriptionRequestToCtx(req.Context(), subscription)
+		ctx := models.SubscriptionRequestToCtx(req.Context(), subscription)
 		if err = htmx.NewResponse().RenderTempl(ctx, res, content.AddSubscriptionForm()); err != nil {
-			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			logging.FromContext(req.Context()).Error("Cannot display content.",
+				slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 
 		return
 	}
 
-	warnings, err := s.API.elastic.UserActionAddSubscriptions(ctx, *subscription)
-	if err != nil {
-		logger.Error("Could not add subscription.", slog.Any("error", err))
-	}
+	spew.Dump(*subscription)
 
-	if len(warnings) > 0 {
-		if err := htmx.NewResponse().RenderTempl(req.Context(), res, content.AddSubscriptionWarning(warnings)); err != nil {
-			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
+	// warnings, err := s.API.elastic.UserActionAddSubscriptions(req.Context(), *subscription)
+	// if err != nil {
+	// 	logging.FromContext(req.Context()).Error("Could not add subscription.",
+	// 		slog.Any("error", err))
+	// }
 
-		return
-	}
+	// if len(warnings) > 0 {
+	// 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, content.AddSubscriptionWarning(warnings)); err != nil {
+	// 		logging.FromContext(req.Context()).Error("Cannot display content.",
+	// 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+	// 		http.Error(res, "Problem!", http.StatusInternalServerError)
+	// 	}
+
+	// 	return
+	// }
 
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, content.AddSubscriptionSuccess()); err != nil {
-		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }

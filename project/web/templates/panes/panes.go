@@ -6,6 +6,7 @@ package panes
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -34,6 +35,7 @@ type Item interface {
 	Summary
 	Content
 	GetFeedID() string
+	GetState() models.State
 }
 
 type Summary interface {
@@ -148,24 +150,32 @@ func withMenu(items ...templ.Component) []templ.Component {
 }
 
 func itemCustomisation(ctx context.Context, item Item) *cardCustomisation {
-	markReadURL := models.SetQueryParams(
-		models.PageNavigationFromCtx(ctx).GenerateActionURL(models.Read),
-		map[string]string{
-			"items": item.GetID(),
-		})
-	markReadURL = models.StripQueryParams(*markReadURL, "feeds")
+	var actions []templ.Component
+
+	switch item.GetState() {
+	case models.StateRead:
+		path, err := url.JoinPath(models.ItemSetBasePathFromCtx(ctx), item.GetFeedID(), item.GetID(), string(models.StateUnread))
+		if err == nil {
+			actions = append(actions, actionButton(path, "#"+item.GetID(), "fa-file", "Mark Item Unread"))
+		}
+	case models.StateUnread:
+		fallthrough
+	default:
+		path, err := url.JoinPath(models.ItemSetBasePathFromCtx(ctx), item.GetFeedID(), item.GetID(), string(models.StateUnread))
+		if err != nil {
+			actions = append(actions, actionButton(path, "#"+item.GetID(), "fa-check", "Mark Item Read"))
+		}
+	}
 
 	return &cardCustomisation{
 		title: components.WithTitle(
 			item.GetTitle(),
 			components.H4),
-		actions: []templ.Component{
-			actionButton(markReadURL.String(), "#"+item.GetID(), "fa-check", "Mark Item Read"),
+		actions: actions,
 
-			// 	buttonToggleItem(item.GetFeedID(), item.GetID()),
-			// 	buttonSaveItem(item.GetFeedID(), item.GetID()),
-			// 	buttonShareItem(item.GetFeedID(), item.GetID()),
-		},
+		// 	buttonToggleItem(item.GetFeedID(), item.GetID()),
+		// 	buttonSaveItem(item.GetFeedID(), item.GetID()),
+		// 	buttonShareItem(item.GetFeedID(), item.GetID()),
 		content: components.Text(
 			item.GetTitle(),
 			components.WithTextSize(components.TextLG),
@@ -176,7 +186,7 @@ func itemCustomisation(ctx context.Context, item Item) *cardCustomisation {
 
 func feedCustomisation(ctx context.Context, feed Feed) *cardCustomisation {
 	markReadURL := models.SetQueryParams(
-		models.PageNavigationFromCtx(ctx).GenerateActionURL(models.Read),
+		models.PageNavigationFromCtx(ctx).GenerateActionURL(models.StateRead),
 		map[string]string{
 			"feeds": feed.GetID(),
 		})

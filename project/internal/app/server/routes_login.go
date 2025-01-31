@@ -14,10 +14,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 )
 
-const (
-	homePage = "/home/show/feeds"
-)
-
 var (
 	ErrMissingQueryParams = errors.New("missing query parameters")
 	ErrInvalidQueryParams = errors.New("invalid query parameters")
@@ -66,7 +62,7 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 	}
 	// Redirect to logged in page.
 	req.Header.Add("Content-Type", "")
-	http.Redirect(res, req.WithContext(ctx), homePage, http.StatusTemporaryRedirect)
+	http.Redirect(res, req.WithContext(ctx), showFeedsBasePath, http.StatusTemporaryRedirect)
 }
 
 func (s Server) GetHomeSettings(res http.ResponseWriter, req *http.Request) {

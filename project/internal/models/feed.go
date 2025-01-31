@@ -102,8 +102,20 @@ func (f *APIFeed) GetTimestamp() time.Time {
 	return time.Time{}
 }
 
-func (f *APIFeed) GetUnreadCount() int {
-	return f.UnreadCount
+func (f *APIFeed) GetUserUnreadCount() int {
+	if userProps := f.UserProperties; userProps != nil {
+		return userProps.UnreadCount
+	}
+
+	return 0
+}
+
+func (f *APIFeed) SetUserUnreadCount(count int) {
+	if userProps := f.UserProperties; userProps != nil {
+		f.UserProperties = &UserFeedProperties{}
+	}
+
+	f.UserProperties.UnreadCount = count
 }
 
 // NewFeedFromURL creates a new feed model from the given URL as its canonical

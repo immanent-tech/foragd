@@ -15,7 +15,7 @@ templ Header() {
 		hx-swap-oob="true"
 		class="bg-base-300 sticky top-0 max-w-full"
 	>
-		{{ markReadURL := models.PageNavigationFromCtx(ctx).GenerateActionURL(models.Read) }}
+		{{ markReadURL := models.PageNavigationFromCtx(ctx).GenerateActionURL(models.StateRead) }}
 		@components.NewMenu(
 			components.WithLayout[*components.Menu](components.HorizontalLayout),
 			components.WithItems[*components.Menu](

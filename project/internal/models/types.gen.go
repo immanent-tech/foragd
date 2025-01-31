@@ -16,35 +16,36 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 )
 
-// Defines values for APIAction.
+// Defines values for Action.
 const (
-	Edit   APIAction = "edit"
-	Save   APIAction = "save"
-	Share  APIAction = "share"
-	Unsave APIAction = "unsave"
+	Edit       Action = "edit"
+	Markread   Action = "markread"
+	Markunread Action = "markunread"
+	Remove     Action = "remove"
+	Save       Action = "save"
+	Share      Action = "share"
+	Show       Action = "show"
 )
 
-// Defines values for APIListType.
+// Defines values for List.
 const (
-	Feeds APIListType = "feeds"
-	Items APIListType = "items"
-)
-
-// Defines values for ShowUnread.
-const (
-	Off ShowUnread = "off"
-	On  ShowUnread = "on"
+	Feeds List = "feeds"
+	Items List = "items"
 )
 
 // Defines values for State.
 const (
-	All    State = "all"
-	Read   State = "read"
-	Unread State = "unread"
+	StateRead   State = "read"
+	StateSaved  State = "saved"
+	StateUnread State = "unread"
 )
 
-// APIAction are actions that can be performed on feeds or items through the API. Not all actions can be performed on all kinds.
-type APIAction string
+// Defines values for View.
+const (
+	ViewAll    View = "all"
+	ViewRead   View = "read"
+	ViewUnread View = "unread"
+)
 
 // APIFeed defines model for APIFeed.
 type APIFeed struct {
@@ -58,8 +59,11 @@ type APIFeed struct {
 	URL FeedURL `json:"feedLink" validate:"required,url"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt       `json:"updated_at,omitempty"`
-	Authors   []*gofeed.Person `json:"authors,omitempty"`
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
+
+	// UserProperties Tracks user-specific properties of a feed.
+	UserProperties *UserFeedProperties `json:"-"`
+	Authors        []*gofeed.Person    `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
 	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
@@ -75,9 +79,8 @@ type APIFeed struct {
 	Published   time.Time     `json:"publishedParsed"`
 
 	// Title is a string that can contain HTML.
-	Title       HTMLString `json:"title"`
-	UnreadCount int        `json:"-"`
-	Updated     time.Time  `json:"updatedParsed"`
+	Title   HTMLString `json:"title"`
+	Updated time.Time  `json:"updatedParsed"`
 }
 
 // APIFeedState tracks the state of a feed.
@@ -107,8 +110,8 @@ type APIFilters struct {
 	ItemIDs    nullable.Nullable[ItemIDs]    `form:"items[]" json:"items"`
 	Pagination nullable.Nullable[Pagination] `form:"pagination" json:"pagination"`
 
-	// ViewState are states that can be applied on feeds or items through the API.
-	ViewState nullable.Nullable[State] `form:"state" json:"state"`
+	// View The state of objects to view.
+	View nullable.Nullable[View] `form:"view" json:"view"`
 }
 
 // APIItem defines model for APIItem.
@@ -117,11 +120,14 @@ type APIItem struct {
 	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
 
 	// ID is the unique ID of an item.
-	ID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
+	ID ItemID `json:"item_id" validate:"required"`
 
 	// URL A URL to view the original item.
-	URL     ItemURL          `json:"link" validate:"required,url"`
-	Authors []*gofeed.Person `json:"authors,omitempty"`
+	URL ItemURL `json:"link" validate:"required,url"`
+
+	// UserProperties Tracks user-specific properties of an item.
+	UserProperties *UserItemProperties `json:"-"`
+	Authors        []*gofeed.Person    `json:"authors,omitempty"`
 
 	// Categories is a list of feed/item categories.
 	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
@@ -144,9 +150,6 @@ type APIList_Item struct {
 	union json.RawMessage
 }
 
-// APIListType is the type of a list of objects.
-type APIListType string
-
 // APIPageNavigation describes the navigation "breadcrumbs" for the current page.
 type APIPageNavigation struct {
 	// Action the URL for performing actions for the current page.
@@ -161,6 +164,9 @@ type APIPageNavigation struct {
 	// Parent the parent page of the current page.
 	Parent url.URL `json:"parent,omitempty"`
 }
+
+// Action are actions that can be performed on feeds or items through the API. Not all actions can be performed on all kinds.
+type Action string
 
 // Categories is a list of feed/item categories.
 type Categories = []Category
@@ -203,7 +209,7 @@ type FeedJob struct {
 	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
 
 	// URL is a URL.
-	URL URL `form:"url" gorm:"-" json:"url" validate:"required,url"`
+	URL URL `form:"url" json:"url" validate:"required,url"`
 }
 
 // FeedURL The canonical feed URL.
@@ -218,13 +224,10 @@ type ItemID = string
 // ItemIDs is a list of item IDs.
 type ItemIDs = []ItemID
 
-// ItemState defines model for ItemState.
+// ItemState Contains fields to track an individual item's state.
 type ItemState struct {
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `gorm:"primaryKey" json:"item_id" validate:"required"`
-
-	// State are states that can be applied on feeds or items through the API.
-	State nullable.Nullable[State] `form:"state" json:"state"`
+	// State Tracks the state of an object.
+	State State `form:"state" json:"state"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty"`
@@ -232,6 +235,9 @@ type ItemState struct {
 
 // ItemURL A URL to view the original item.
 type ItemURL = string
+
+// List Is the type of a list of objects.
+type List string
 
 // MarkedRead records when the object was last marked read.
 type MarkedRead = time.Time
@@ -286,29 +292,8 @@ type ScheduledJob_Data struct {
 // SchedulerID is the unique ID of a job scheduler instance.
 type SchedulerID = string
 
-// ShowUnread defines model for ShowUnread.
-type ShowUnread string
-
-// State are states that can be applied on feeds or items through the API.
+// State Tracks the state of an object.
 type State string
-
-// Subscription represents a feed a particular user has subscribed to.
-type Subscription struct {
-	// CreatedAt records when the object was created in the database.
-	CreatedAt *CreatedAt `json:"created_at,omitempty"`
-
-	// MarkedRead records when the object was last marked read.
-	MarkedRead *MarkedRead `json:"marked_read,omitempty"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
-
-	// Categories is a list of feed/item categories.
-	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
-
-	// Name is a friendly name or nickname for the feed given by the user.
-	Name *string `form:"name" json:"name,omitempty"`
-}
 
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
@@ -322,11 +307,11 @@ type SubscriptionRequest struct {
 	// URL is a URL.
 	URL string `form:"url" json:"URL" validate:"required,url"`
 
-	// Categories is a list of feed/item categories.
-	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
+	// Categories is a list of custom categories the user has assigned to the feed.
+	Categories []Category `form:"categories[]" json:"categories,omitempty"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
-	Name string `form:"name" json:"name,omitempty"`
+	Name *string `form:"name" json:"name,omitempty"`
 }
 
 // SubscriptionRequestForm represents a form input for a subscription request.
@@ -334,6 +319,22 @@ type SubscriptionRequestForm struct {
 	InputCategories *components.TextInputProps `form:"-" json:"-"`
 	InputName       *components.TextInputProps `form:"-" json:"-"`
 	InputURL        *components.TextInputProps `form:"-" json:"-"`
+}
+
+// SubscriptionState Contains fields to rack a subscription state.
+type SubscriptionState struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at,omitempty"`
+
+	// MarkedRead records when the object was last marked read.
+	MarkedRead *MarkedRead `json:"marked_read,omitempty"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt  *UpdatedAt `json:"updated_at,omitempty"`
+	Categories []Category `json:"categories,omitempty"`
+
+	// Name is a friendly name or nickname for the feed given by the user.
+	Name *string `form:"name" json:"name,omitempty"`
 }
 
 // Timestamp is when the document was created.
@@ -360,21 +361,32 @@ type User struct {
 	// ID is the unique ID of a user.
 	ID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
 
-	// MaxHistory Represents the maximum time-frame over which the user can view items.
-	MaxHistory string `json:"max_history" validate:"required"`
-
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 
-	// ItemStates Tracks state of inidividual items per feed.
-	ItemStates map[string][]ItemState `json:"item_states,omitempty"`
+	// FeedItemStates Tracks state of inidividual items per feed.
+	FeedItemStates map[string]map[string]ItemState `json:"feed_item_states,omitempty"`
+
+	// MaxHistory Represents the maximum time-frame over which the user can view items.
+	MaxHistory *string `json:"max_history,omitempty"`
 
 	// Subscriptions is the list of user subscriptions.
-	Subscriptions map[string]Subscription `json:"subscriptions,omitempty"`
+	Subscriptions map[string]SubscriptionState `json:"subscriptions,omitempty"`
+}
+
+// UserFeedProperties Tracks user-specific properties of a feed.
+type UserFeedProperties struct {
+	UnreadCount int `json:"unread_count,omitempty"`
 }
 
 // UserID is the unique ID of a user.
 type UserID = string
+
+// UserItemProperties Tracks user-specific properties of an item.
+type UserItemProperties struct {
+	// State Tracks the state of an object.
+	State *State `form:"state" json:"state"`
+}
 
 // UserSession tracks a user session.
 type UserSession struct {
@@ -410,6 +422,9 @@ type UserSignupForm struct {
 	InputNickname *components.TextInputProps `form:"-" json:"-"`
 	InputPassword *components.TextInputProps `form:"-" json:"-"`
 }
+
+// View The state of objects to view.
+type View string
 
 // AsAPIFeed returns the union data inside the APIList_Item as a APIFeed
 func (t APIList_Item) AsAPIFeed() (APIFeed, error) {

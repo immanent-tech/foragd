@@ -154,9 +154,13 @@ func UserMappingsTemplate() *putcomponenttemplate.Request {
 							"updated_at":  types.NewDateNanosProperty(),
 							"marked_read": types.NewDateNanosProperty(),
 						}),
-						WithObjectProperty("read_items", map[string]types.Property{
-							"item_id":     types.NewKeywordProperty(),
-							"marked_read": types.NewDateNanosProperty(),
+						WithObjectProperty("feed_item_states", map[string]types.Property{
+							"item_states": types.ObjectProperty{
+								Properties: map[string]types.Property{
+									"state":      types.NewKeywordProperty(),
+									"updated_at": types.NewDateNanosProperty(),
+								},
+							},
 						}),
 					),
 				),

@@ -15,12 +15,12 @@ import (
 func setReadToggleValue(ctx context.Context) string {
 	currentValue := models.PageNavigationFromCtx(ctx).State()
 	switch currentValue {
-	case models.Read:
-		return string(models.Unread)
-	case models.Unread:
+	case models.StateRead:
+		return string(models.StateUnread)
+	case models.StateUnread:
 		fallthrough
 	default:
-		return string(models.Read)
+		return string(models.StateRead)
 	}
 }
 
