@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/a-h/templ"
@@ -78,16 +77,15 @@ func NewCard(ctx context.Context, item any) (*components.CardProps, error) {
 
 	var categories []templ.Component
 	// If there are categories, show them.
-	if len(summary.GetCategories()) > 0 {
-		for _, c := range summary.GetCategories() {
-			categories = append(categories,
-				components.Badge(
-					components.WithBadgeDescription(c),
-					components.WithResponsiveSize[*components.BadgeProps](components.SM),
-					components.WithColor[*components.BadgeProps](components.ColorAccent, true)),
-			)
-		}
-	}
+	// if len(summary.GetCategories()) > 0 {
+	// 	for _, c := range summary.GetCategories() {
+	// 		categories = append(categories,
+	// 			components.Badge(
+	// 				components.WithResponsiveSize[*components.BadgeProps](components.SM),
+	// 				components.WithColor[*components.BadgeProps](components.ColorAccent, true)),
+	// 		)
+	// 	}
+	// }
 
 	// Create the base CardProps with the defined options.
 	cardProps := components.BuildCard(
@@ -197,7 +195,7 @@ func feedCustomisation(ctx context.Context, feed Feed) *cardCustomisation {
 			components.H2,
 			components.Badge(
 				components.WithColor[*components.BadgeProps](components.ColorPrimary, false),
-				components.WithBadgeDescription(strconv.Itoa(feed.GetUnreadCount())),
+				// components.WithBadgeDescription(strconv.Itoa(feed.GetUnreadCount())),
 			)),
 		content: FeedCard(feed),
 		actions: []templ.Component{

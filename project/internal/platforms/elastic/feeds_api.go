@@ -202,11 +202,11 @@ func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, view 
 
 	switch view {
 	case models.ViewRead:
-		query = readFeedItemsQuery(user, feedIDs)
+		query = readFeedItemsQuery(user, feedIDs...)
 	case models.ViewUnread:
 		fallthrough
 	default:
-		query = unreadFeedItemsQuery(user, feedIDs)
+		query = unreadFeedItemsQuery(user, feedIDs...)
 	}
 
 	// Search through items matching any given feeds filters, excluding any read
@@ -246,7 +246,7 @@ func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, view 
 
 // unreadFeedItemsQuery generates a query for matching unread items for the
 // given feeds.
-func unreadFeedItemsQuery(user *models.User, feedIDs models.FeedIDs) Option[*types.Query] {
+func unreadFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) Option[*types.Query] {
 	clauses := make([]Option[*types.Query], 0, len(feedIDs))
 	for _, id := range feedIDs {
 		clauses = append(clauses,
@@ -284,7 +284,7 @@ func unreadFeedItemsQuery(user *models.User, feedIDs models.FeedIDs) Option[*typ
 }
 
 // readFeedItemsQuery generates a query for matching read items for the given feeds.
-func readFeedItemsQuery(user *models.User, feedIDs models.FeedIDs) Option[*types.Query] {
+func readFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) Option[*types.Query] {
 	clauses := make([]Option[*types.Query], 0, len(feedIDs))
 	for _, id := range feedIDs {
 		clauses = append(clauses,

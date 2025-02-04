@@ -11,10 +11,13 @@ github.com/PuerkitoBio/rehttp v1.4.0/go.mod h1:LUwKPoDbDIA2RL5wYZCNsQ90cx4OJ4AWB
 github.com/RaveNoX/go-jsoncommentstrip v1.0.0/go.mod h1:78ihd09MekBnJnxpICcwzCMzGrKSKYe4AqU6PDYYpjk=
 github.com/a-h/parse v0.0.0-20240121214402-3caf7543159a h1:vlmAfVwFK9sRpDlJyuHY8htP+KfGHB2VH02u0SoIufk=
 github.com/a-h/parse v0.0.0-20240121214402-3caf7543159a/go.mod h1:3mnrkvGpurZ4ZrTDbYU84xhwXW2TjTKShSwjRi2ihfQ=
+github.com/a-h/parse v0.0.0-20250122154542-74294addb73e/go.mod h1:3mnrkvGpurZ4ZrTDbYU84xhwXW2TjTKShSwjRi2ihfQ=
 github.com/a-h/protocol v0.0.0-20240704131721-1e461c188041 h1:2enlC41iOwWklx9ZUqpQygsNAG6KIm3uMMUXzBJw5jA=
 github.com/a-h/protocol v0.0.0-20240704131721-1e461c188041/go.mod h1:Gm0KywveHnkiIhqFSMZglXwWZRQICg3KDWLYdglv/d8=
 github.com/a-h/templ v0.3.819 h1:KDJ5jTFN15FyJnmSmo2gNirIqt7hfvBD2VXVDTySckM=
 github.com/a-h/templ v0.3.819/go.mod h1:iDJKJktpttVKdWoTkRNNLcllRI+BlpopJc+8au3gOUo=
+github.com/a-h/templ v0.3.833 h1:L/KOk/0VvVTBegtE0fp2RJQiBm7/52Zxv5fqlEHiQUU=
+github.com/a-h/templ v0.3.833/go.mod h1:cAu4AiZhtJfBjMY0HASlyzvkrtjnHWPeEsyGK2YYmfk=
 github.com/air-verse/air v1.61.5 h1:FLt2k7e5DuuBi4Ol6xH/7RYwrMKwibQlijj1sfB8UfQ=
 github.com/air-verse/air v1.61.5/go.mod h1:QW4HkIASdtSnwaYof1zgJCSxd41ebvix10t5ubtm9cg=
 github.com/alecthomas/assert/v2 v2.11.0 h1:2Q9r3ki8+JYXvGsDyBXwH3LcJ+WK5D0gc5E8vS6K3D0=

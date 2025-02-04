@@ -36,19 +36,10 @@ func (i *APIItem) GetImage() *gofeed.Image {
 }
 
 func (i *APIItem) GetCategories() []string {
-	if i.Categories.IsNull() || !i.Categories.IsSpecified() {
-		return nil
-	}
+	cleaned := make([]string, 0, len(i.Categories))
 
-	categories, err := i.Categories.Get()
-	if err != nil {
-		return nil
-	}
-
-	cleaned := make([]string, 0, len(categories))
-
-	for _, category := range categories {
-		cleaned = append(cleaned, html.UnescapeString(safePrinter.Sanitize(category)))
+	for _, category := range i.Categories {
+		cleaned = append(cleaned, CleanCategory(category))
 	}
 
 	return cleaned

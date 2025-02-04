@@ -15,38 +15,28 @@ import (
 
 var ErrGetFilterValue = errors.New("error fetching filter value")
 
-func (f APIFilters) HasFeedIDs() bool {
-	return f.FeedIDs.IsSpecified()
-}
-
 // GetFeedIDs retrieves the array of FeedIDs from the APIFilters.
-func (f APIFilters) GetFeedIDs() FeedIDs {
-	if f.FeedIDs.IsSpecified() {
-		if feeds, err := f.FeedIDs.Get(); err == nil {
-			return feeds
-		}
+func (f APIFilters) GetSubscriptionIDs() []FeedID {
+	if len(f.SubscriptionIDs) > 0 {
+		return f.SubscriptionIDs
 	}
 
 	return nil
 }
 
 // GetItemIDs retrieves the array of ItemIDs from the APIFilters.
-func (f APIFilters) GetItemsIDs() ItemIDs {
-	if f.ItemIDs.IsSpecified() {
-		if items, err := f.ItemIDs.Get(); err == nil {
-			return items
-		}
+func (f APIFilters) GetItemsIDs() []ItemID {
+	if len(f.ItemIDs) > 0 {
+		return f.ItemIDs
 	}
 
 	return nil
 }
 
 // GetCategories retrieves the array of Categories from the APIFilters.
-func (f APIFilters) GetCategories() Categories {
-	if f.Categories.IsSpecified() {
-		if categories, err := f.Categories.Get(); err == nil {
-			return categories
-		}
+func (f APIFilters) GetCategories() []Category {
+	if len(f.Categories) > 0 {
+		return f.Categories
 	}
 
 	return nil
@@ -119,8 +109,8 @@ func DecodePagination(encoded Pagination) ([]byte, error) {
 func (f APIFilters) String() string {
 	params := make(url.Values)
 
-	if feeds := f.GetFeedIDs(); len(feeds) > 0 {
-		params.Add("feeds", strings.Join(feeds, ","))
+	if subscriptions := f.GetSubscriptionIDs(); len(subscriptions) > 0 {
+		params.Add("subscriptions", strings.Join(subscriptions, ","))
 	}
 
 	if items := f.GetItemsIDs(); len(items) > 0 {

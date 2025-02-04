@@ -150,12 +150,17 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		homeRouter.Get("/{action}/item/{feed}/{item}", HomeMiddleware(wrapper.ShowItem))
 		homeRouter.Post("/{action}/item/{feed}/{item}", HomeMiddleware(wrapper.ActionItem))
 		homeRouter.Get("/settings", wrapper.GetHomeSettings)
-		homeRouter.Route("/subscription", func(subscriptionRouter chi.Router) {
-			subscriptionRouter.Get("/add", HomeMiddleware(wrapper.AddSubscription))
-			subscriptionRouter.Post("/add", HomeMiddleware(wrapper.ProcessAddSubscription))
-			subscriptionRouter.Get("/edit", HomeMiddleware(wrapper.GetSubscriptionEdit))
-			subscriptionRouter.Post("/edit", HomeMiddleware(wrapper.PostSubscriptionEdit))
-		})
+	})
+
+	router.Route("/subscription", func(subscription chi.Router) {
+		subscription.Get("/add", wrapper.AddSubscription)
+		// Existing subscription management:
+		subscription.Get("/{subscription}", wrapper.ShowSubscription)
+		subscription.Put("/{subscription}", wrapper.SaveSubscription)
+		subscription.Delete("/{subscription}", wrapper.RemoveSubscription)
+		// Subscription category management:
+		subscription.Put("/{subscription}/category", wrapper.AddSubscriptionCategory)
+		subscription.Delete("/{subscription}/category", wrapper.RemoveSubscriptionCategory)
 	})
 
 	return router

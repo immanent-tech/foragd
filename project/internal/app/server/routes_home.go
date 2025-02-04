@@ -255,8 +255,8 @@ func (s Server) ActionList(res http.ResponseWriter, req *http.Request, action Ac
 	switch {
 	case len(filters.GetItemsIDs()) > 0:
 		err = s.API.elastic.UserActionMarkItems(req.Context(), action, filters.GetItemsIDs())
-	case len(filters.GetFeedIDs()) > 0:
-		err = s.API.elastic.UserActionMarkFeeds(req.Context(), action, filters.GetFeedIDs())
+	case len(filters.GetSubscriptionIDs()) > 0:
+		err = s.API.elastic.UserActionMarkFeeds(req.Context(), action, filters.GetSubscriptionIDs())
 	}
 
 	if err != nil {

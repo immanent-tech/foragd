@@ -43,7 +43,7 @@ templ Drawer() {
 				components.WithColor[*components.ButtonProps](components.ColorGhost, false),
 				components.WithButtonContent(components.AsIconContent("fa-plus")),
 				components.WithAttributes[*components.ButtonProps](templ.Attributes{
-					"hx-get":    "/home/subscription/add",
+					"hx-get":    "/subscription/add",
 					"hx-target": "#command_modal",
 					"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
 				}))

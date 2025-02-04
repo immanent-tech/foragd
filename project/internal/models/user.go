@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+
+	"github.com/joshuar/go-feed-me/internal/validation"
 )
 
 const (
@@ -25,8 +27,8 @@ var (
 	ErrNotSubscribed         = errors.New("user not subscribed to feed")
 )
 
-func (u *User) Valid(_ context.Context) (bool, ValidationErrors) {
-	return validateStruct(u)
+func (u *User) Valid(_ context.Context) (bool, validation.Problems) {
+	return validation.ValidateStruct(u)
 }
 
 // GetItemIDsWithState retrieves ItemIDs for the items the user has explicitly
@@ -187,7 +189,7 @@ func (u *User) GetSubscribedFeedIDs() []FeedID {
 }
 
 // AddSubscription adds a new subscription to the user object.
-func (u *User) AddSubscription(feedID FeedID, name string, categories Categories) error {
+func (u *User) AddSubscription(feedID FeedID, name string, categories []Category) error {
 	if u.IsSubscribed(feedID) {
 		return ErrUserAlreadySubscribed
 	}

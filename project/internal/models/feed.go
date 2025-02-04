@@ -6,7 +6,6 @@ package models
 import (
 	"context"
 	"errors"
-	"html"
 	"log/slog"
 	"time"
 
@@ -71,20 +70,15 @@ func (f *APIFeed) GetImage() *gofeed.Image {
 	return f.Image
 }
 
-func (f *APIFeed) GetCategories() []string {
-	if f.Categories.IsNull() || !f.Categories.IsSpecified() {
+func (f *APIFeed) GetCategories() []Category {
+	if len(f.Categories) == 0 {
 		return nil
 	}
 
-	categories, err := f.Categories.Get()
-	if err != nil {
-		return nil
-	}
+	cleaned := make([]string, 0, len(f.Categories))
 
-	cleaned := make([]string, 0, len(categories))
-
-	for _, category := range categories {
-		cleaned = append(cleaned, html.UnescapeString(safePrinter.Sanitize(category)))
+	for _, category := range f.Categories {
+		cleaned = append(cleaned, CleanCategory(category))
 	}
 
 	return cleaned

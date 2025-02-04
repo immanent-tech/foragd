@@ -53,7 +53,7 @@ type APIFeed struct {
 	CreatedAt *CreatedAt `json:"created_at,omitempty"`
 
 	// ID is the unique ID of a feed.
-	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+	ID FeedID `json:"feed_id" validate:"required"`
 
 	// URL The canonical feed URL.
 	URL FeedURL `json:"feedLink" validate:"required,url"`
@@ -64,10 +64,8 @@ type APIFeed struct {
 	// UserProperties Tracks user-specific properties of a feed.
 	UserProperties *UserFeedProperties `json:"-"`
 	Authors        []*gofeed.Person    `json:"authors,omitempty"`
-
-	// Categories is a list of feed/item categories.
-	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
-	Copyright  string                        `json:"copyright,omitempty"`
+	Categories     []Category          `json:"categories,omitempty"`
+	Copyright      string              `json:"copyright,omitempty"`
 
 	// Description is a string that can contain HTML.
 	Description HTMLString    `json:"description"`
@@ -86,7 +84,7 @@ type APIFeed struct {
 // APIFeedState tracks the state of a feed.
 type APIFeedState struct {
 	// ID is the unique ID of a feed.
-	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+	ID FeedID `json:"feed_id" validate:"required"`
 
 	// URL The canonical feed URL.
 	URL FeedURL `json:"feedLink" validate:"required,url"`
@@ -97,18 +95,13 @@ type APIFeedState struct {
 
 // APIFilters contains parameters for searching feeds and items
 type APIFilters struct {
-	// Categories is a list of feed/item categories.
-	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
+	Categories []Category `json:"Categories,omitempty"`
 
 	// Count is the count of items to retrieve with a request.
-	Count nullable.Nullable[Count] `form:"count" json:"count"`
-
-	// FeedIDs is a list of feed IDs.
-	FeedIDs nullable.Nullable[FeedIDs] `form:"feeds[]" json:"feeds"`
-
-	// ItemIDs is a list of item IDs.
-	ItemIDs    nullable.Nullable[ItemIDs]    `form:"items[]" json:"items"`
-	Pagination nullable.Nullable[Pagination] `form:"pagination" json:"pagination"`
+	Count           nullable.Nullable[Count]      `form:"count" json:"count"`
+	ItemIDs         []ItemID                      `json:"ItemIDs,omitempty"`
+	Pagination      nullable.Nullable[Pagination] `form:"pagination" json:"pagination"`
+	SubscriptionIDs []SubscriptionID              `json:"SubscriptionIDs,omitempty"`
 
 	// View The state of objects to view.
 	View nullable.Nullable[View] `form:"view" json:"view"`
@@ -117,7 +110,7 @@ type APIFilters struct {
 // APIItem defines model for APIItem.
 type APIItem struct {
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+	FeedID FeedID `json:"feed_id" validate:"required"`
 
 	// ID is the unique ID of an item.
 	ID ItemID `json:"item_id" validate:"required"`
@@ -128,9 +121,7 @@ type APIItem struct {
 	// UserProperties Tracks user-specific properties of an item.
 	UserProperties *UserItemProperties `json:"-"`
 	Authors        []*gofeed.Person    `json:"authors,omitempty"`
-
-	// Categories is a list of feed/item categories.
-	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
+	Categories     []Category          `json:"categories,omitempty"`
 
 	// Description is a string that can contain HTML.
 	Description HTMLString    `json:"description"`
@@ -165,11 +156,23 @@ type APIPageNavigation struct {
 	Parent url.URL `json:"parent,omitempty"`
 }
 
+// APISubscriptionRequest represents a new subscription request from a user.
+type APISubscriptionRequest struct {
+	// URL is the canonical URL for the feed.
+	URL string `form:"url" json:"URL" validate:"required,url"`
+
+	// Categories is a list of custom categories the user has assigned to the feed.
+	Categories nullable.Nullable[[]Category] `form:"categories[]" json:"categories,omitempty"`
+
+	// Name is a friendly name or nickname for the feed given by the user.
+	Name nullable.Nullable[string] `form:"name" json:"name,omitempty"`
+
+	// ValidationErrors is a map of field name -> validation error for the request.
+	ValidationErrors map[string]string `form:"-" json:"-"`
+}
+
 // Action are actions that can be performed on feeds or items through the API. Not all actions can be performed on all kinds.
 type Action string
-
-// Categories is a list of feed/item categories.
-type Categories = []Category
 
 // Category is a single feed/item category.
 type Category = string
@@ -200,13 +203,10 @@ type DeletedAt = time.Time
 // FeedID is the unique ID of a feed.
 type FeedID = string
 
-// FeedIDs is a list of feed IDs.
-type FeedIDs = []FeedID
-
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
 	// ID is the unique ID of a feed.
-	ID FeedID `gorm:"primaryKey" json:"feed_id" validate:"required"`
+	ID FeedID `json:"feed_id" validate:"required"`
 
 	// URL is a URL.
 	URL URL `form:"url" json:"url" validate:"required,url"`
@@ -220,9 +220,6 @@ type HTMLString = string
 
 // ItemID is the unique ID of an item.
 type ItemID = string
-
-// ItemIDs is a list of item IDs.
-type ItemIDs = []ItemID
 
 // ItemState Contains fields to track an individual item's state.
 type ItemState struct {
@@ -253,10 +250,8 @@ type MetadataDB struct {
 
 // MetadataFeed contains common/metadata fields for feeds and items.
 type MetadataFeed struct {
-	Authors []*gofeed.Person `json:"authors,omitempty"`
-
-	// Categories is a list of feed/item categories.
-	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
+	Authors    []*gofeed.Person `json:"authors,omitempty"`
+	Categories []Category       `json:"categories,omitempty"`
 
 	// Description is a string that can contain HTML.
 	Description HTMLString    `json:"description"`
@@ -297,29 +292,6 @@ type State string
 
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
-
-// SubscriptionRequest defines model for SubscriptionRequest.
-type SubscriptionRequest struct {
-	InputCategories *components.TextInputProps `form:"-" json:"-"`
-	InputName       *components.TextInputProps `form:"-" json:"-"`
-	InputURL        *components.TextInputProps `form:"-" json:"-"`
-
-	// URL is a URL.
-	URL string `form:"url" json:"URL" validate:"required,url"`
-
-	// Categories is a list of custom categories the user has assigned to the feed.
-	Categories []Category `form:"categories[]" json:"categories,omitempty"`
-
-	// Name is a friendly name or nickname for the feed given by the user.
-	Name *string `form:"name" json:"name,omitempty"`
-}
-
-// SubscriptionRequestForm represents a form input for a subscription request.
-type SubscriptionRequestForm struct {
-	InputCategories *components.TextInputProps `form:"-" json:"-"`
-	InputName       *components.TextInputProps `form:"-" json:"-"`
-	InputURL        *components.TextInputProps `form:"-" json:"-"`
-}
 
 // SubscriptionState Contains fields to rack a subscription state.
 type SubscriptionState struct {

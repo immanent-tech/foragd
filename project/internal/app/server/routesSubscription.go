@@ -9,27 +9,33 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/app/server/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/web/templates/partials/content"
+	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
 
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
-	ctx := models.SubscriptionRequestToCtx(req.Context(), models.NewSubscriptionAddRequest())
+	id, subscriptionRequest, err := models.NewSubscriptionRequest()
+	if err != nil {
+		logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", err))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
 
-	if err := htmx.NewResponse().RenderTempl(ctx, res, content.AddSubscriptionForm()); err != nil {
+	}
+
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.Modal(id, subscriptionRequest)); err != nil {
 		logging.FromContext(req.Context()).Error("Cannot display content.",
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }
 
-func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Request) {
-	subscription, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
+func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, subID SubscriptionID) {
+	subscriptionReq, valid, err := forms.DecodeForm[*models.APISubscriptionRequest](req)
 	if err != nil {
 		logging.FromContext(req.Context()).Error("Could not decode submitted subscription request request.",
 			slog.Any("error", err))
@@ -37,8 +43,7 @@ func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Reques
 	}
 
 	if !valid {
-		ctx := models.SubscriptionRequestToCtx(req.Context(), subscription)
-		if err = htmx.NewResponse().RenderTempl(ctx, res, content.AddSubscriptionForm()); err != nil {
+		if err = htmx.NewResponse().RenderTempl(req.Context(), res, subscription.AddSubscriptionWarning([]string{"foo", "bar"})); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.",
 				slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -47,7 +52,7 @@ func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	spew.Dump(*subscription)
+	spew.Dump(*subscriptionReq)
 
 	// warnings, err := s.API.elastic.UserActionAddSubscriptions(req.Context(), *subscription)
 	// if err != nil {
@@ -65,21 +70,53 @@ func (s Server) ProcessAddSubscription(res http.ResponseWriter, req *http.Reques
 	// 	return
 	// }
 
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, content.AddSubscriptionSuccess()); err != nil {
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.AddSubscriptionSuccess()); err != nil {
 		logging.FromContext(req.Context()).Error("Cannot display content.",
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }
 
-// Edit a new subscription
-// (GET /home/subscription/edit/{subID})
-func (s Server) GetSubscriptionEdit(w http.ResponseWriter, r *http.Request, subID string) {
+func (s Server) ShowSubscription(w http.ResponseWriter, r *http.Request, subID SubscriptionID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Process a subscription edit
-// (POST /home/subscription/edit/{subID})
-func (s Server) PostSubscriptionEdit(w http.ResponseWriter, r *http.Request, subID string) {
+func (s Server) RemoveSubscription(w http.ResponseWriter, r *http.Request, subID SubscriptionID) {
 	w.WriteHeader(http.StatusNotImplemented)
+}
+
+func (f *AddSubscriptionCategoryFormdataRequestBody) Valid() bool {
+	return f.Category != ""
+}
+
+func (s Server) AddSubscriptionCategory(res http.ResponseWriter, req *http.Request, subID SubscriptionID) {
+	var response templ.Component
+
+	data, valid, err := forms.DecodeForm[*AddSubscriptionCategoryFormdataRequestBody](req)
+	if !valid {
+		response = subscription.AddSubscriptionWarning([]string{"Category is not valid."})
+	} else {
+		response = subscription.AddCategory(subID, data.Category)
+	}
+
+	if err != nil {
+		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+	}
+
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, response); err != nil {
+		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
+}
+
+func (s Server) RemoveSubscriptionCategory(res http.ResponseWriter, req *http.Request, _ SubscriptionID) {
+	res.WriteHeader(http.StatusOK)
+
+	if _, err := res.Write(nil); err != nil {
+		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
 }

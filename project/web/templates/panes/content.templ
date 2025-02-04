@@ -64,7 +64,8 @@ templ FeedCard(feed Feed) {
 	)
 	@components.Badge(
 		components.WithColor[*components.BadgeProps](components.ColorPrimary, false),
-		components.WithBadgeDescription(strconv.Itoa(feed.GetUnreadCount())),
-	)
+	) {
+		{ strconv.Itoa(feed.GetUnreadCount()) }
+	}
 	@templ.Raw(feed.GetContent())
 }

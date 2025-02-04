@@ -5,7 +5,7 @@ go 1.23.5
 replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
 
 require (
-	github.com/a-h/templ v0.3.819
+	github.com/a-h/templ v0.3.833
 	github.com/air-verse/air v1.61.5
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/angelofallars/htmx-go v0.5.0
@@ -47,7 +47,7 @@ require (
 	dario.cat/mergo v1.0.1 // indirect
 	github.com/PuerkitoBio/goquery v1.10.1 // indirect
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
-	github.com/a-h/parse v0.0.0-20240121214402-3caf7543159a // indirect
+	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
 	github.com/a-h/protocol v0.0.0-20240704131721-1e461c188041 // indirect
 	github.com/alecthomas/kong v1.6.1
 	github.com/andybalholm/brotli v1.1.0 // indirect

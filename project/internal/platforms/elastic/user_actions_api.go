@@ -24,7 +24,7 @@ import (
 var ErrUserActionFailed = errors.New("user action failed")
 
 // UserActionAddSubscriptions will add subscriptions for the user.
-func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions ...models.SubscriptionRequest) ([]string, error) {
+func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions ...models.APISubscriptionRequest) ([]string, error) {
 	var warnings []string
 
 	user, found := models.UserFromCtx(ctx)
@@ -62,12 +62,12 @@ func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions .
 				return warnings, errors.Join(ErrUserActionFailed, err)
 			}
 			// - Create a new subscription.
-			if err = user.AddSubscription(feed.ID, *subscription.Name, subscription.Categories); err != nil {
+			if err = user.AddSubscription(feed.ID, subscription.GetName(), subscription.GetCategories()); err != nil {
 				return warnings, errors.Join(ErrUserActionFailed, err)
 			}
 		} else {
 			// Create a new subscription.
-			if err = user.AddSubscription(existingFeeds[idx].ID, *subscription.Name, subscription.Categories); err != nil {
+			if err = user.AddSubscription(existingFeeds[idx].ID, subscription.GetName(), subscription.GetCategories()); err != nil {
 				if errors.Is(err, models.ErrUserAlreadySubscribed) {
 					warnings = append(warnings,
 						fmt.Sprintf("Already subscribed to %s (%s)", subscription.Name, subscription.URL))
@@ -85,7 +85,7 @@ func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions .
 }
 
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
-func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Action, ids models.ItemIDs) error {
+func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Action, ids []models.ItemID) error {
 	if mark != models.Markread && mark != models.Markunread {
 		return fmt.Errorf("unsupported mark.")
 	}
@@ -141,7 +141,7 @@ func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Action, id
 
 // UserActionMarkFeedsRead will mark the given feeds with the given state for
 // the user.
-func (c *Client) UserActionMarkFeeds(ctx context.Context, mark models.Action, feedIDs models.FeedIDs) error {
+func (c *Client) UserActionMarkFeeds(ctx context.Context, mark models.Action, feedIDs []models.FeedID) error {
 	if mark != models.Markread && mark != models.Markunread {
 		return fmt.Errorf("unsupported mark.")
 	}
@@ -252,11 +252,11 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 	// Work out what query to use based on the state filter.
 	switch filters.GetView() {
 	case models.ViewRead:
-		query = readFeedItemsQuery(user, filters.GetFeedIDs())
+		query = readFeedItemsQuery(user, filters.GetSubscriptionIDs()...)
 	case models.ViewUnread:
 		fallthrough
 	default:
-		query = unreadFeedItemsQuery(user, filters.GetFeedIDs())
+		query = unreadFeedItemsQuery(user, filters.GetSubscriptionIDs()...)
 	}
 
 	rawPagination, err := filters.GetPagination()
@@ -339,11 +339,11 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	subscribedFeedIDs := user.GetSubscribedFeedIDs()
 	// Filter the list of requested feeds to only those which the user has a
 	// subscription.
-	if filters.FeedIDs != nil {
+	if filters.SubscriptionIDs != nil {
 		subscribedFeedIDs = slices.Collect(
 			func(yield func(string) bool) {
 				for _, v := range subscribedFeedIDs {
-					if slices.Contains(filters.GetFeedIDs(), v) {
+					if slices.Contains(filters.GetSubscriptionIDs(), v) {
 						if !yield(v) {
 							return // triggered in "break"
 						}

@@ -7,6 +7,8 @@ package models
 import (
 	"github.com/a-h/templ"
 	components "github.com/joshuar/go-templ-daisyui"
+
+	"github.com/joshuar/go-feed-me/internal/validation"
 )
 
 // NewUserSignup creates a new UserSignup request.
@@ -23,7 +25,7 @@ func (s *UserSignup) generateInputs() {
 		components.WithInsideLabels(
 			components.Icon("fa-user"),
 			components.Badge(
-				components.WithBadgeDescription("Optional"),
+				// components.WithBadgeDescription("Optional"),
 				components.WithColor[*components.BadgeProps](components.ColorPrimary, true))),
 		components.WithID[*components.TextInputProps]("nickname"),
 		components.WithPlaceholder[*components.TextInputProps]("Your name"),
@@ -90,7 +92,7 @@ func (s *UserSignup) Form() templ.Component {
 }
 
 func (s *UserSignup) Valid() bool {
-	valid, problems := validateStruct(s)
+	valid, problems := validation.ValidateStruct(s)
 	if valid {
 		return true
 	}

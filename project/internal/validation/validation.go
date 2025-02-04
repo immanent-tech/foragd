@@ -1,7 +1,6 @@
-// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package models
+package validation
 
 import (
 	"errors"
@@ -9,23 +8,19 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-var validate *validator.Validate
+var validate = validator.New(validator.WithRequiredStructEnabled())
 
 var ErrValidationFailed = errors.New("internal validation error")
 
-// ValidationErrors is a map of fields and their validation errors.
-type ValidationErrors map[string]string
+// Problems is a map of fields and their validation errors.
+type Problems map[string]string
 
-func (v ValidationErrors) GetErrors(field string) string {
+func (v Problems) GetErrors(field string) string {
 	return v[field]
 }
 
-func init() {
-	validate = validator.New(validator.WithRequiredStructEnabled())
-}
-
 //nolint:errorlint,errcheck
-func validateStruct[T any](obj T) (bool, ValidationErrors) {
+func ValidateStruct[T any](obj T) (bool, Problems) {
 	validationErr := &validator.ValidationErrors{}
 
 	err := validate.Struct(obj)
@@ -42,8 +37,8 @@ func validateStruct[T any](obj T) (bool, ValidationErrors) {
 	return true, nil
 }
 
-func parseValidationErrors(validationErrors validator.ValidationErrors) ValidationErrors {
-	problems := make(ValidationErrors)
+func parseValidationErrors(validationErrors validator.ValidationErrors) Problems {
+	problems := make(Problems)
 
 	for _, err := range validationErrors {
 		field := err.Field()

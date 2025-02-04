@@ -21,10 +21,11 @@ templ Article(oob bool, item *models.APIItem) {
 				<p>
 					for _, c := range item.GetCategories() {
 						@components.Badge(
-							components.WithBadgeDescription(c),
 							components.WithResponsiveSize[*components.BadgeProps](components.SM),
 							components.WithColor[*components.BadgeProps](components.ColorGhost,
-								false))
+								false)) {
+							{ c }
+						}
 					}
 				</p>
 			}

@@ -57,7 +57,7 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'required'
         json: 'subscription_id'
-        gorm: 'primaryKey'
+        form: 'subscription_id'
       x-go-type-skip-optional-pointer: true
     FeedID:
       description: is the unique ID of a feed.
@@ -65,17 +65,7 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'required'
         json: 'feed_id'
-        gorm: 'primaryKey'
       x-go-type-skip-optional-pointer: true
-    FeedIDs:
-      description: is a list of feed IDs.
-      type: array
-      items:
-        $ref: '#/components/schemas/FeedID'
-      x-oapi-codegen-extra-tags:
-        json: 'feeds'
-        form: 'feeds[]'
-      nullable: true
     FeedURL:
       description: The canonical feed URL.
       <<: *URL
@@ -89,15 +79,6 @@ components:
         validate: 'required'
         json: 'item_id'
       x-go-type-skip-optional-pointer: true
-    ItemIDs:
-      description: is a list of item IDs.
-      type: array
-      items:
-        $ref: '#/components/schemas/ItemID'
-      x-oapi-codegen-extra-tags:
-        json: 'items'
-        form: 'items[]'
-      nullable: true
     ItemURL:
       description: A URL to view the original item.
       <<: *URL
@@ -140,16 +121,8 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         json: 'category'
+        form: 'category'
       x-go-type-skip-optional-pointer: true
-    Categories:
-      description: is a list of feed/item categories.
-      type: array
-      items:
-        $ref: '#/components/schemas/Category'
-      x-oapi-codegen-extra-tags:
-        json: 'categories'
-        form: 'categories[]'
-      nullable: true
     Count:
       description: >
         is the count of items to retrieve with a request.
@@ -202,7 +175,10 @@ components:
         description:
           $ref: '#/components/schemas/HTMLString'
         categories:
-          $ref: '#/components/schemas/Categories'
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-go-type-skip-optional-pointer: true
         image:
           x-go-type: '*gofeed.Image'
           x-go-type-import:
@@ -268,68 +244,46 @@ components:
           items:
             $ref: '#/components/schemas/Category'
           x-go-type-skip-optional-pointer: true
-    SubscriptionRequest:
+    APISubscriptionRequest:
       description: represents a new subscription request from a user.
       type: object
-      allOf:
-        - $ref: '#/components/schemas/SubscriptionRequestForm'
-        - type: object
-          required:
-            - URL
-          properties:
-            URL:
-              <<: *URL
-              x-oapi-codegen-extra-tags:
-                form: 'url'
-                validate: 'required,url'
-            name:
-              description: >
-                is a friendly name or nickname for the feed given by the user.
-              type: string
-              x-oapi-codegen-extra-tags:
-                form: 'name'
-            categories:
-              description: >
-                is a list of custom categories the user has assigned to
-                the feed.
-              type: array
-              items:
-                $ref: '#/components/schemas/Category'
-              x-oapi-codegen-extra-tags:
-                form: 'categories[]'
-              x-go-type-skip-optional-pointer: true
-    SubscriptionRequestForm:
-      description: represents a form input for a subscription request.
-      type: object
       required:
-        - InputName
-        - InputURL
-        - InputCategories
+        - URL
       properties:
-        InputName:
-          x-go-type: '*components.TextInputProps'
-          x-go-type-import:
-            path: 'github.com/joshuar/go-templ-daisyui'
+        URL:
+          <<: *URL
+          description: >
+            is the canonical URL for the feed.
+          x-oapi-codegen-extra-tags:
+            form: 'url'
+            validate: 'required,url'
+        name:
+          description: >
+            is a friendly name or nickname for the feed given by the user.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'name'
+          nullable: true
+        categories:
+          description: >
+            is a list of custom categories the user has assigned to
+            the feed.
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: 'categories[]'
+          nullable: true
+        validation_errors:
+          description: is a map of field name -> validation error for the request.
+          type: object
+          additionalProperties:
+            type: string
+          x-go-json-ignore: true
           x-oapi-codegen-extra-tags:
             form: '-'
-            json: '-'
           x-go-type-skip-optional-pointer: true
-        InputURL:
-          x-go-type: '*components.TextInputProps'
-          x-go-type-import:
-            path: 'github.com/joshuar/go-templ-daisyui'
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
-          x-go-type-skip-optional-pointer: true
-        InputCategories:
-          x-go-type: '*components.TextInputProps'
-          x-go-type-import:
-            path: 'github.com/joshuar/go-templ-daisyui'
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
-          x-go-type-skip-optional-pointer: true
+
     User:
       description: is a user of the application.
       type: object
@@ -587,12 +541,21 @@ components:
       description: contains parameters for searching feeds and items
       type: object
       properties:
-        FeedIDs:
-          $ref: '#/components/schemas/FeedIDs'
+        SubscriptionIDs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubscriptionID'
+          x-go-type-skip-optional-pointer: true
         ItemIDs:
-          $ref: '#/components/schemas/ItemIDs'
+          type: array
+          items:
+            $ref: '#/components/schemas/ItemID'
+          x-go-type-skip-optional-pointer: true
         Categories:
-          $ref: '#/components/schemas/Categories'
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-go-type-skip-optional-pointer: true
         Pagination:
           $ref: '#/components/schemas/Pagination'
         Count:
