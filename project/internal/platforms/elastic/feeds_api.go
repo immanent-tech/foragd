@@ -97,7 +97,41 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 	return feed, nil
 }
 
-// GetFeedsByID fetches a list of feeds by their FeedID.
+// GetFeedsByURL retrieves a list of APIFeeds based on the given URLs.
+func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]models.APIFeed, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
+	feeds := make([]models.APIFeed, 0, len(urls))
+
+	resp, err := c.NewSearchRequest(
+		WithIndex[*search.Search](index),
+		WithFields("feed_id", "feedLink"),
+		WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
+		WithSearchSize(len(urls)),
+	).Do(ctx)
+	if err != nil {
+		return nil, errors.Join(ErrSearchFailed, err)
+	}
+	// Stop if there are no hits
+	if len(resp.Hits.Hits) == 0 {
+		return nil, nil
+	}
+	// Loop through this set of results.
+	sources, warnings := ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
+	if warnings != nil {
+		c.Logger.Warn("Problems occurred while extracting source from docs.",
+			slog.Any("warnings", err))
+	}
+
+	feeds = append(feeds, sources...)
+
+	return feeds, nil
+}
+
+// GetFeedsByID retrieves a list of APIFeeds by their FeedID.
 func (c *Client) GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) ([]*models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {

@@ -28,7 +28,7 @@ func (i *APIItem) GetFeedID() string {
 }
 
 func (i *APIItem) GetLink() string {
-	return i.URL
+	return i.ItemURL
 }
 
 func (i *APIItem) GetImage() *gofeed.Image {

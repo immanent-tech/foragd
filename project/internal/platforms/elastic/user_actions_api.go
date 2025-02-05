@@ -23,67 +23,6 @@ import (
 // returned from any underlying methods.
 var ErrUserActionFailed = errors.New("user action failed")
 
-// UserActionAddSubscriptions will add subscriptions for the user.
-func (c *Client) UserActionAddSubscriptions(ctx context.Context, subscriptions ...models.APISubscriptionRequest) ([]string, error) {
-	var warnings []string
-
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return warnings, ErrNoUserCtx
-	}
-
-	// Extract the URLs from the subscriptions.
-	urls := make([]string, len(subscriptions))
-	for idx, sub := range subscriptions {
-		urls[idx] = sub.URL
-	}
-
-	// Get a list of existing existingFeeds by the subscription URLs.
-	existingFeeds, err := c.userActionGetFeedsByURL(ctx, urls...)
-	if err != nil {
-		return warnings, errors.Join(ErrUpdateFailed, err)
-	}
-
-	// Go through the requested subscriptions. Ignore any feeds the user has
-	// already subscribed to. For the rest, add a new subscription.
-	for _, subscription := range subscriptions {
-		// Check for an existing feed for this subscription request.
-		idx := slices.IndexFunc(existingFeeds, func(feed models.APIFeed) bool { return feed.URL == subscription.URL })
-		if idx == -1 {
-			var feed *models.Feed
-			// If there is no existing feed:
-			// - Get the new feed details.
-			feed, err = models.NewFeedFromURL(subscription.URL)
-			if err != nil {
-				return warnings, errors.Join(ErrUserActionFailed, err)
-			}
-			// - Add the feed.
-			if err = c.AddFeeds(ctx, *feed); err != nil {
-				return warnings, errors.Join(ErrUserActionFailed, err)
-			}
-			// - Create a new subscription.
-			if err = user.AddSubscription(feed.ID, subscription.GetName(), subscription.GetCategories()); err != nil {
-				return warnings, errors.Join(ErrUserActionFailed, err)
-			}
-		} else {
-			// Create a new subscription.
-			if err = user.AddSubscription(existingFeeds[idx].ID, subscription.GetName(), subscription.GetCategories()); err != nil {
-				if errors.Is(err, models.ErrUserAlreadySubscribed) {
-					warnings = append(warnings,
-						fmt.Sprintf("Already subscribed to %s (%s)", subscription.Name, subscription.URL))
-					return warnings, nil
-				}
-			}
-		}
-	}
-
-	if err := c.userActionUpdateSubscriptions(ctx, user.ID, user.Subscriptions); err != nil {
-		return warnings, errors.Join(ErrUpdateFailed, err)
-	}
-
-	return warnings, nil
-}
-
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
 func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Action, ids []models.ItemID) error {
 	if mark != models.Markread && mark != models.Markunread {
@@ -381,47 +320,14 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	return outCh, nil
 }
 
-func (c *Client) userActionGetFeedsByURL(ctx context.Context, urls ...string) ([]models.APIFeed, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
-	}
-
-	feeds := make([]models.APIFeed, 0, len(urls))
-
-	resp, err := c.NewSearchRequest(
-		WithIndex[*search.Search](index),
-		WithFields("feed_id", "feedLink"),
-		WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
-		WithSearchSize(len(urls)),
-	).Do(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrSearchFailed, err)
-	}
-	// Stop if there are no hits
-	if len(resp.Hits.Hits) == 0 {
-		return nil, nil
-	}
-	// Loop through this set of results.
-	sources, warnings := ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
-	if warnings != nil {
-		c.Logger.Warn("Problems occurred while extracting source from docs.",
-			slog.Any("warnings", err))
-	}
-
-	feeds = append(feeds, sources...)
-
-	return feeds, nil
-}
-
-func (c *Client) userActionUpdateSubscriptions(ctx context.Context, id models.UserID, subscriptions map[string]models.SubscriptionState) error {
+func (c *Client) userActionUpdateSubscriptions(ctx context.Context, userID models.UserID, subscriptions map[string]models.SubscriptionState) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)
 	}
 
 	// Update the user subscriptions.
-	req := c.NewDocUpdateRequest(index, id,
+	req := c.NewDocUpdateRequest(index, userID,
 		WithPartialDocUpdate(map[string]any{
 			"subscriptions": subscriptions,
 			"updated_at":    time.Now().UTC(),

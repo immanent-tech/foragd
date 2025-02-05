@@ -20,8 +20,6 @@ func NewSubscriptionRequest() (SubscriptionID, *APISubscriptionRequest, error) {
 		return "", nil, fmt.Errorf("could not generate subscription id: %w", err)
 	}
 
-	request.Categories.Set([]Category{"foo", "bar", "baz"})
-
 	return subscriptionID, request, nil
 }
 
@@ -46,30 +44,4 @@ func (s *APISubscriptionRequest) Valid() bool {
 
 func (s *APISubscriptionRequest) HasErrors() bool {
 	return s.ValidationErrors != nil
-}
-
-func (s *APISubscriptionRequest) GetName() string {
-	if !s.Name.IsSpecified() {
-		return ""
-	}
-
-	name, err := s.Name.Get()
-	if err != nil {
-		return ""
-	}
-
-	return name
-}
-
-func (s *APISubscriptionRequest) GetCategories() []Category {
-	if !s.Categories.IsSpecified() {
-		return nil
-	}
-
-	categories, err := s.Categories.Get()
-	if err != nil {
-		return nil
-	}
-
-	return categories
 }

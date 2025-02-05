@@ -6,6 +6,7 @@ package models
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -23,7 +24,7 @@ var ErrNoSubscriptions = errors.New("no user subscriptions")
 
 // GetItemsSince retrieves the feed items that are newer than the given time.
 func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
-	details, err := parser.ParseURL(f.URL)
+	details, err := parser.ParseURL(f.FeedURL)
 	if err != nil {
 		logging.FromContext(ctx).Warn("Problem getting feed details.", slog.Any("error", err))
 	}
@@ -63,7 +64,7 @@ func (f *APIFeed) GetID() string {
 }
 
 func (f *APIFeed) GetLink() string {
-	return f.URL
+	return f.FeedURL
 }
 
 func (f *APIFeed) GetImage() *gofeed.Image {
@@ -114,17 +115,20 @@ func (f *APIFeed) SetUserUnreadCount(count int) {
 
 // NewFeedFromURL creates a new feed model from the given URL as its canonical
 // data source.
-func NewFeedFromURL(url string) (*Feed, error) {
+func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 	var err error
+
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
 
 	feedID, err := id.NewID(id.Feed)
 	if err != nil {
-		return nil, errors.Join(ErrInvalidID, err)
+		return nil, fmt.Errorf("%w (%s)", err, url)
 	}
 
-	details, err := parser.ParseURL(url)
+	details, err := parser.ParseURLWithContext(url, ctx)
 	if err != nil {
-		return nil, errors.Join(ErrParseFeed, err)
+		return nil, fmt.Errorf("%w: %w (%s)", ErrParseFeed, err, url)
 	}
 
 	return &Feed{
@@ -133,4 +137,18 @@ func NewFeedFromURL(url string) (*Feed, error) {
 			Feed:      details,
 		},
 		nil
+}
+
+func ValidateFeedURL(ctx context.Context, url FeedURL) (*Feed, bool, error) {
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+
+	fp := gofeed.NewParser()
+
+	feed, err := fp.ParseURLWithContext(url, ctx)
+	if err != nil {
+		return nil, false, err
+	}
+
+	return &Feed{Feed: feed}, true, nil
 }

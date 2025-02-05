@@ -14,13 +14,17 @@ type AuthAPI interface {
 
 // UserActionsAPI contains methods for handling user requests.
 type UserActionsAPI interface {
-	UserActionAddSubscriptions(ctx context.Context, subscriptions ...APISubscriptionRequest) ([]string, error)
 	UserActionMarkItems(ctx context.Context, mark Action, items []ItemID) error
 	UserActionMarkFeeds(ctx context.Context, mark Action, feeds []FeedID) error
 	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
 	UserActionGetItems(ctx context.Context, filters APIFilters) (chan APIItem, Pagination, error)
 	UserActionGetFeeds(ctx context.Context, filters APIFilters) (chan APIFeed, error)
 	// UserActionCountUnread(ctx context.Context, feedIDs ...FeedID) (int, error)
+}
+
+// SubscriptionsAPI contains methods for handling user subscriptions.
+type SubscriptionsAPI interface {
+	AddSubscriptions(ctx context.Context, id SubscriptionID, details ...*APISubscriptionRequest) error
 }
 
 // UserManagementAPI contains methods for user management.

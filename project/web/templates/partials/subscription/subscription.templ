@@ -10,15 +10,18 @@ import (
 
 templ detailsInputs(id models.SubscriptionID, req *models.APISubscriptionRequest) {
 	@components.Form(
-		components.WithID[*components.FormProps]("add_subscription_form"),
+		components.WithID[*components.FormProps]("new_subscription"),
 		components.WithFormComponents(
+			components.HiddenInput(
+				components.WithName[*components.HiddenInputProps]("subscription_id"),
+				components.WithValue[*components.HiddenInputProps](id),
+			),
 			generateNameInput(req),
 			generateURLInput(req),
 		),
 		components.WithAttributes[*components.FormProps](
 			templ.Attributes{
-				"hx-put":    "/home/subscription/" + id,
-				"hx-target": "#command_modal",
+				"hx-put": "/subscription/" + id,
 			},
 		),
 	)
@@ -32,20 +35,22 @@ templ manageCategories(id models.SubscriptionID, categories ...models.Category) 
 	@generateCategoriesList(id, categories...)
 }
 
-templ form(id models.SubscriptionID, req *models.APISubscriptionRequest) {
-	@detailsInputs(id, req)
-	@categoriesInput(id)
-	@manageCategories(id, req.GetCategories()...)
-	@components.FormControl() {
-		@components.Button(
-			components.WithID[*components.ButtonProps]("add"),
-			components.WithButtonContent(components.AsTextContent("Add")),
-			components.WithColor[*components.ButtonProps](components.ColorPrimary, true),
-			components.WithAttributes[*components.ButtonProps](templ.Attributes{
-				"form": "add_subscription_form",
-			}),
-		)
-	}
+templ Form(id models.SubscriptionID, req *models.APISubscriptionRequest) {
+	<div id="add_subscription_form" hx-target="this">
+		@detailsInputs(id, req)
+		@categoriesInput(id)
+		@manageCategories(id, req.Categories...)
+		@components.FormControl() {
+			@components.Button(
+				components.WithID[*components.ButtonProps]("add"),
+				components.WithButtonContent(components.AsTextContent("Add")),
+				components.WithColor[*components.ButtonProps](components.ColorPrimary, true),
+				components.WithAttributes[*components.ButtonProps](templ.Attributes{
+					"form": "new_subscription",
+				}),
+			)
+		}
+	</div>
 }
 
 // AddSubscriptionModal displays a modal for a user to enter new subscription details.
@@ -56,16 +61,11 @@ templ Modal(id models.SubscriptionID, req *models.APISubscriptionRequest) {
 		components.WithModalCloseOutside(),
 		components.OpenModalInitially(),
 	) {
-		if req.HasErrors() {
-			@components.Alert(components.AlertWarning,
-				"There are problems with the inputs. Please correct and try	again.",
-				"", false,
-			)
-		}
+		<div id="add_subscription_toast"></div>
 		@components.Text("Add a new subscription", components.WithTextSize(components.TextLG))
 		@components.Text("Enter the details and click Add", components.AsItalicText())
 		if req != nil {
-			@form(id, req)
+			@Form(id, req)
 		}
 	}
 }
@@ -77,38 +77,41 @@ templ AddCategory(id models.SubscriptionID, category models.Category) {
 }
 
 templ AddSubscriptionSuccess() {
-	@components.Modal(
-		components.WithID[*components.ModalProps]("add_subscription_modal"),
-		components.WithModalCloseOutside(),
-		components.OpenModalInitially(),
-	) {
-		<h2>Subscription added!</h2>
-		@components.Button(
-			components.WithButtonContent(components.AsTextContent("Close")),
-			components.WithAutofocus[*components.ButtonProps](),
-			components.WithAttributes[*components.ButtonProps](templ.Attributes{
-				"_": "on click take .modal-open from #command_modal wait 200ms then remove #command_modal",
-			}),
-		)
-	}
+	<div id="add_subscription_toast" hx-swap-oob="true">
+		<div id="success">
+			@components.Alert(components.AlertSuccess, "Subscription Added!",
+				"subscription_added", false) {
+				@components.Button(
+					components.WithResponsiveSize[*components.ButtonProps](components.SM),
+					components.WithButtonContent(components.AsTextContent("Close")),
+					components.WithAutofocus[*components.ButtonProps](),
+					components.WithAttributes[*components.ButtonProps](templ.Attributes{
+						"_": "on click transition opacity to 0 then remove #success",
+					}),
+				)
+			}
+		</div>
+	</div>
 }
 
-templ AddSubscriptionWarning(warnings []string) {
-	@components.Modal(
-		components.WithID[*components.ModalProps]("add_subscription_modal"),
-		components.WithModalCloseOutside(),
-		components.OpenModalInitially(),
-	) {
-		<h2>There was an issue with adding the subscription!</h2>
-		for _, warning := range warnings {
-			<p>{ warning }</p>
-		}
-		@components.Button(
-			components.WithButtonContent(components.AsTextContent("Close")),
-			components.WithAutofocus[*components.ButtonProps](),
-			components.WithAttributes[*components.ButtonProps](templ.Attributes{
-				"_": "on click take .modal-open from #command_modal wait 200ms then remove #command_modal",
-			}),
-		)
-	}
+templ AddSubscriptionWarning(warning string) {
+	<div id="add_subscription_toast" hx-swap-oob="true">
+		<div id="warning">
+			@components.Alert(components.AlertWarning,
+				"There was a problem adding the subscription!",
+				"subscription_failed", false) {
+				if warning != "" {
+					@components.Text(warning, components.AsItalicText(), components.WithTextSize(components.TextSM))
+				}
+				@components.Button(
+					components.WithResponsiveSize[*components.ButtonProps](components.SM),
+					components.WithButtonContent(components.AsTextContent("Close")),
+					components.WithAutofocus[*components.ButtonProps](),
+					components.WithAttributes[*components.ButtonProps](templ.Attributes{
+						"_": "on click remove me wait 200ms then remove #warning",
+					}),
+				)
+			}
+		</div>
+	</div>
 }

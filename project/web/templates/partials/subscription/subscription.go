@@ -25,23 +25,17 @@ func generateNameInput(req *models.APISubscriptionRequest) templ.Component {
 		),
 		components.WithName[*components.TextInputProps]("name"),
 		components.WithPlaceholder[*components.TextInputProps]("Cool feed"),
+		components.WithAttributes[*components.TextInputProps](templ.Attributes{
+			"onkeydown": "if (event.keyCode === 13) event.preventDefault();",
+		}),
 	)
 	// Check for validation or input errors and mark the field with error status.
-	if req.Name.IsSpecified() {
-		name, err := req.Name.Get()
-		if err != nil || req.ValidationErrors["Name"] != "" {
-			input.SetColor(components.ColorStateError, true)
-
-			if err != nil {
-				input.SetBottomLeftLabel(err.Error())
-			}
-
-			if req.ValidationErrors["Name"] != "" {
-				input.SetBottomRightLabel(req.ValidationErrors["Name"])
-			}
+	if req.Name != nil {
+		if req.ValidationErrors["Name"] != "" {
+			input.SetBottomRightLabel(req.ValidationErrors["Name"])
 		}
 
-		input.SetValue(name)
+		input.SetValue(*req.Name)
 	}
 
 	return components.TextInput(components.FromTextInputProps(input))
@@ -65,6 +59,11 @@ func generateURLInput(req *models.APISubscriptionRequest) templ.Component {
 		components.WithColor[*components.TextInputProps](components.ColorPrimary, false),
 		components.WithPlaceholder[*components.TextInputProps]("https://cool.feed.lol/rss"),
 		components.WithValidationRequired[*components.TextInputProps](),
+		components.WithAttributes[*components.TextInputProps](templ.Attributes{
+			"onkeydown": "if (event.keyCode === 13) event.preventDefault();",
+			// "onkeyup":                        "this.setCustomValidity('')",
+			// "hx-on:htmx:validation:validate": "/feed/parse_url",
+		}),
 	)
 	// Check for validation errors and mark the field with error status.
 	if req.URL != "" {
@@ -117,9 +116,9 @@ func generateCategoriesList(id models.SubscriptionID, allCategories ...models.Ca
 
 	// Categories in an unordered list.
 	return components.UnorderedList(
-		components.WithID[*components.List]("categories"),
-		components.WithItems[*components.List](categories...),
-		components.WithAttributes[*components.List](templ.Attributes{
+		components.WithID[*components.UnorderedListProps]("categories"),
+		components.WithItems[*components.UnorderedListProps](categories...),
+		components.WithAttributes[*components.UnorderedListProps](templ.Attributes{
 			"hx-target": "closest li",
 			"hx-swap":   "outerHTML swap:1s",
 		}),
@@ -147,9 +146,6 @@ func generateCategoryItem(id models.SubscriptionID, category models.Category) te
 			components.WithAttributes[*components.ButtonProps](
 				templ.Attributes{
 					"hx-delete": "/subscription/" + id + "/category",
-					// "hx-trigger": "change",
-					// "hx-sync": "closest form:abort",
-					// "form":    "update_categories_form",
 				}),
 		),
 	)

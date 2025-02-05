@@ -130,7 +130,7 @@ paths:
           description: Unauthorized
         500:
           description: Problem with request
-  /subscription/add:
+  /subscription/new:
     get:
       description: >
         Add a new subscription.
@@ -186,6 +186,16 @@ paths:
       operationId: removeSubscriptionCategory
       parameters:
         - $ref: '#/components/parameters/SubscriptionID'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+  /feed/parse_url:
+    put:
+      summary: >
+        Parse a URL for a feed and return details and whether it is valid.
+      operationId: validateFeedURL
+      requestBody:
+        $ref: '#/components/requestBodies/ParseFeedRequestBody'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -267,6 +277,19 @@ components:
             properties:
               Category:
                 $ref: '../models/api.yaml#/components/schemas/Category'
+    ParseFeedRequestBody:
+      description: >
+        A URL of a feed.
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            required:
+              - URL
+            properties:
+              URL:
+                $ref: '../models/api.yaml#/components/schemas/FeedURL'
   parameters:
   # Query parameters:
     SubscriptionIDs:

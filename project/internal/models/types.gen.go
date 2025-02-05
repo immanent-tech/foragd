@@ -53,10 +53,10 @@ type APIFeed struct {
 	CreatedAt *CreatedAt `json:"created_at,omitempty"`
 
 	// ID is the unique ID of a feed.
-	ID FeedID `json:"feed_id" validate:"required"`
+	ID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
 
-	// URL The canonical feed URL.
-	URL FeedURL `json:"feedLink" validate:"required,url"`
+	// FeedURL The canonical feed URL.
+	FeedURL FeedURL `json:"feedLink" validate:"required,url"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
@@ -84,10 +84,10 @@ type APIFeed struct {
 // APIFeedState tracks the state of a feed.
 type APIFeedState struct {
 	// ID is the unique ID of a feed.
-	ID FeedID `json:"feed_id" validate:"required"`
+	ID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
 
-	// URL The canonical feed URL.
-	URL FeedURL `json:"feedLink" validate:"required,url"`
+	// FeedURL The canonical feed URL.
+	FeedURL FeedURL `json:"feedLink" validate:"required,url"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
@@ -110,13 +110,13 @@ type APIFilters struct {
 // APIItem defines model for APIItem.
 type APIItem struct {
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required"`
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
 
 	// ID is the unique ID of an item.
-	ID ItemID `json:"item_id" validate:"required"`
+	ID ItemID `form:"item_id" json:"item_id" validate:"required"`
 
-	// URL A URL to view the original item.
-	URL ItemURL `json:"link" validate:"required,url"`
+	// ItemURL A URL to view the original item.
+	ItemURL ItemURL `json:"link" validate:"required,url"`
 
 	// UserProperties Tracks user-specific properties of an item.
 	UserProperties *UserItemProperties `json:"-"`
@@ -158,14 +158,17 @@ type APIPageNavigation struct {
 
 // APISubscriptionRequest represents a new subscription request from a user.
 type APISubscriptionRequest struct {
-	// URL is the canonical URL for the feed.
-	URL string `form:"url" json:"URL" validate:"required,url"`
-
 	// Categories is a list of custom categories the user has assigned to the feed.
-	Categories nullable.Nullable[[]Category] `form:"categories[]" json:"categories,omitempty"`
+	Categories []Category `form:"categories[]" json:"categories,omitempty"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
-	Name nullable.Nullable[string] `form:"name" json:"name,omitempty"`
+	Name *string `form:"name" json:"name,omitempty"`
+
+	// URL is a URL.
+	URL URL `form:"url" json:"url" validate:"required,url"`
 
 	// ValidationErrors is a map of field name -> validation error for the request.
 	ValidationErrors map[string]string `form:"-" json:"-"`
@@ -206,7 +209,7 @@ type FeedID = string
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
 	// ID is the unique ID of a feed.
-	ID FeedID `json:"feed_id" validate:"required"`
+	ID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
 
 	// URL is a URL.
 	URL URL `form:"url" json:"url" validate:"required,url"`
@@ -276,7 +279,7 @@ type ScheduledJob struct {
 	Schedule  string                   `json:"job_trigger" validate:"required,cron"`
 
 	// SchedulerID is the unique ID of a job scheduler instance.
-	SchedulerID SchedulerID `json:"scheduler_id"`
+	SchedulerID SchedulerID `json:"scheduler_id" validate:"required"`
 }
 
 // ScheduledJob_Data defines model for ScheduledJob.Data.
@@ -331,7 +334,7 @@ type User struct {
 	CreatedAt *CreatedAt `json:"created_at,omitempty"`
 
 	// ID is the unique ID of a user.
-	ID UserID `gorm:"primaryKey" json:"user_id" validate:"required"`
+	ID UserID `form:"user_id" json:"user_id" validate:"required"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`

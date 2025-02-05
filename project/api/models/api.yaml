@@ -33,11 +33,11 @@ components:
     URL: &URL
       description: is a URL.
       type: string
+      x-go-name: 'URL'
       x-oapi-codegen-extra-tags:
-        json: 'url'
         validate: 'required,url'
+        json: 'url'
         form: 'url'
-      x-go-type-skip-optional-pointer: true
     State:
       description: >
         Tracks the state of an object.
@@ -54,21 +54,22 @@ components:
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
+      x-go-name: 'SubscriptionID'
       x-oapi-codegen-extra-tags:
         validate: 'required'
         json: 'subscription_id'
         form: 'subscription_id'
-      x-go-type-skip-optional-pointer: true
     FeedID:
       description: is the unique ID of a feed.
       type: string
       x-oapi-codegen-extra-tags:
         validate: 'required'
         json: 'feed_id'
-      x-go-type-skip-optional-pointer: true
+        form: 'feed_id'
     FeedURL:
       description: The canonical feed URL.
-      <<: *URL
+      type: string
+      x-go-name: 'FeedURL'
       x-oapi-codegen-extra-tags:
         json: 'feedLink'
         validate: 'required,url'
@@ -78,10 +79,11 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'required'
         json: 'item_id'
-      x-go-type-skip-optional-pointer: true
+        form: 'item_id'
     ItemURL:
       description: A URL to view the original item.
-      <<: *URL
+      type: string
+      x-go-name: 'ItemURL'
       x-oapi-codegen-extra-tags:
         json: 'link'
         validate: 'required,url'
@@ -108,21 +110,19 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'required'
         json: 'user_id'
-        gorm: 'primaryKey'
-      x-go-type-skip-optional-pointer: true
+        form: 'user_id'
     SchedulerID:
       description: is the unique ID of a job scheduler instance.
       type: string
       x-oapi-codegen-extra-tags:
+        validate: 'required'
         json: 'scheduler_id'
-      x-go-type-skip-optional-pointer: true
     Category:
       description: is a single feed/item category.
       type: string
       x-oapi-codegen-extra-tags:
         json: 'category'
         form: 'category'
-      x-go-type-skip-optional-pointer: true
     Count:
       description: >
         is the count of items to retrieve with a request.
@@ -248,22 +248,19 @@ components:
       description: represents a new subscription request from a user.
       type: object
       required:
-        - URL
+        - id
+        - url
       properties:
-        URL:
-          <<: *URL
-          description: >
-            is the canonical URL for the feed.
-          x-oapi-codegen-extra-tags:
-            form: 'url'
-            validate: 'required,url'
+        id:
+          $ref: '#/components/schemas/SubscriptionID'
+        url:
+          $ref: '#/components/schemas/URL'
         name:
           description: >
             is a friendly name or nickname for the feed given by the user.
           type: string
           x-oapi-codegen-extra-tags:
             form: 'name'
-          nullable: true
         categories:
           description: >
             is a list of custom categories the user has assigned to
@@ -273,7 +270,7 @@ components:
             $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
             form: 'categories[]'
-          nullable: true
+          x-go-type-skip-optional-pointer: true
         validation_errors:
           description: is a map of field name -> validation error for the request.
           type: object
@@ -283,7 +280,6 @@ components:
           x-oapi-codegen-extra-tags:
             form: '-'
           x-go-type-skip-optional-pointer: true
-
     User:
       description: is a user of the application.
       type: object
@@ -392,6 +388,9 @@ components:
         - $ref: '#/components/schemas/MetadataFeed'
         - $ref: '#/components/schemas/MetadataDB'
         - type: object
+          required:
+            - ID
+            - URL
           properties:
             ID:
               $ref: '#/components/schemas/FeedID'
@@ -447,6 +446,7 @@ components:
           required:
             - ID
             - FeedID
+            - URL
           properties:
             ID:
               $ref: '#/components/schemas/ItemID'
@@ -566,6 +566,7 @@ components:
       description: represents a job that has been scheduled by the job scheduler.
       type: object
       required:
+        - SchedulerID
         - Schedule
         - NextRun
         - Data

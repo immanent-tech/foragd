@@ -95,7 +95,7 @@ func NewServer(ctx context.Context) (Server, error) {
 
 var (
 	htmxOnlyRoutes  = []string{"/home/settings", "/subscription"}
-	protectedRoutes = []string{"/home"}
+	protectedRoutes = []string{"/home", "/subscription"}
 )
 
 func GenerateHandler(svr Server, router chi.Router) http.Handler {
@@ -153,7 +153,7 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	})
 
 	router.Route("/subscription", func(subscription chi.Router) {
-		subscription.Get("/add", wrapper.AddSubscription)
+		subscription.Get("/new", wrapper.AddSubscription)
 		// Existing subscription management:
 		subscription.Get("/{subscription}", wrapper.ShowSubscription)
 		subscription.Put("/{subscription}", wrapper.SaveSubscription)
