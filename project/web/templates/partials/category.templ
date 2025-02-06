@@ -3,12 +3,9 @@
 
 package partials
 
-import (
-	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-templ-daisyui"
-)
+import "github.com/joshuar/go-templ-daisyui"
 
-templ CategoryBadge(category models.Category) {
+templ CategoryBadge(category string) {
 	@components.Badge(
 		components.WithResponsiveSize[*components.BadgeProps](components.MD),
 	) {

@@ -13,8 +13,8 @@ templ detailsInputs(req *models.APISubscriptionRequest) {
 	@components.Form(
 		components.WithID[*components.FormProps]("new_subscription"),
 		components.WithFormComponents(
-			generateNameInput(req),
-			generateURLInput(req),
+			req.GenerateNameInput(),
+			req.GenerateURLInput(),
 		),
 		components.WithAttributes[*components.FormProps](
 			templ.Attributes{
@@ -24,18 +24,41 @@ templ detailsInputs(req *models.APISubscriptionRequest) {
 	)
 }
 
-templ categoriesInput(req *models.APISubscriptionRequest) {
-	@generateCategoriesInput(req)
+templ categoriesInput() {
+	@components.Form(
+		components.WithID[*components.FormProps]("add_category_form"),
+		components.WithFormComponents(
+			components.TextInput(
+				components.WithName[*components.TextInputProps]("category"),
+				components.WithFormControl(),
+				components.WithResponsiveSize[*components.TextInputProps](components.SM),
+				components.WithInsideLabels(
+					components.Text("Category:", components.WithTextSize(components.TextSM)),
+					components.Button(
+						components.WithResponsiveSize[*components.ButtonProps](components.SM),
+						components.WithButtonShape(components.ButtonCircle, false),
+						components.WithButtonContent(components.AsIconContent("fa-plus")),
+					),
+				),
+			),
+		),
+		components.WithAttributes[*components.FormProps](templ.Attributes{
+			"hx-put":               "/subscription/category",
+			"hx-target":            "#categories",
+			"hx-swap":              "beforeend",
+			"hx-on::after-request": "if(event.detail.successful) this.reset()",
+		}),
+	)
 }
 
 templ manageCategories(req *models.APISubscriptionRequest) {
-	@generateCategoriesList(req)
+	@req.GenerateCategoriesList()
 }
 
 templ Form(req *models.APISubscriptionRequest) {
 	<div id="add_subscription_form" hx-target="this">
 		@detailsInputs(req)
-		@categoriesInput(req)
+		@categoriesInput()
 		@manageCategories(req)
 		@components.FormControl() {
 			@components.Button(
@@ -79,7 +102,7 @@ templ Modal(req *models.APISubscriptionRequest) {
 
 templ AddCategory(category models.Category) {
 	<li>
-		@generateCategoryItem(category)
+		@models.GenerateCategoryItem(category)
 	</li>
 }
 

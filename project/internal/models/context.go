@@ -8,8 +8,7 @@ import (
 )
 
 const (
-	userContextKey contextKey = "user"
-	// subscriptionRequestCtxKey contextKey = "subscriptionRequest"
+	userContextKey          contextKey = "user"
 	feedManagementAPICtxKey contextKey = "feedManagementAPI"
 	pageNavigationCtxKey    contextKey = "pageNavigation"
 	itemSetBasePathCtxKey   contextKey = "itemSetBasePath"
@@ -34,19 +33,6 @@ func UserFromCtx(ctx context.Context) (*User, bool) {
 
 	return user, true
 }
-
-// func SubscriptionRequestToCtx(ctx context.Context, req *SubscriptionRequest) context.Context {
-// 	return context.WithValue(ctx, subscriptionRequestCtxKey, req)
-// }
-
-// func SubscriptionRequestFromCtx(ctx context.Context) *SubscriptionRequest {
-// 	req, found := ctx.Value(subscriptionRequestCtxKey).(*SubscriptionRequest)
-// 	if !found {
-// 		return nil
-// 	}
-
-// 	return req
-// }
 
 func FeedManagementAPIToCtx(ctx context.Context, api FeedManagementAPI) context.Context {
 	return context.WithValue(ctx, feedManagementAPICtxKey, api)
