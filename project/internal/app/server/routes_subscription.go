@@ -11,7 +11,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/app/server/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -53,7 +52,7 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 		var err error
 		resp := htmx.NewResponse()
 
-		if err = resp.RenderTempl(ctx, res, subscription.AddSubscriptionWarning("Input is not valid.")); err != nil {
+		if err = resp.RenderTempl(ctx, res, subscription.AddSubscriptionWarning()); err != nil {
 			logging.FromContext(ctx).Error("Cannot display content.",
 				slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -71,18 +70,25 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 	err = s.API.elastic.AddSubscriptions(ctx, newSubscription)
 	if err != nil {
 		var err error
+
 		logging.FromContext(ctx).Error("Could not add subscription.",
 			slog.Any("error", err))
 
+		if newSubscription.ValidationErrors == nil {
+			newSubscription.ValidationErrors = make(map[string]string)
+		}
+
+		newSubscription.ValidationErrors["URL"] = "Unable to verify URL maps to a feed."
+
 		resp := htmx.NewResponse()
 
-		if err = resp.RenderTempl(ctx, res, subscription.AddSubscriptionWarning("Adding subscription failed.")); err != nil {
+		if err = resp.RenderTempl(ctx, res, subscription.Form(subscriptionID, newSubscription)); err != nil {
 			logging.FromContext(ctx).Error("Cannot display content.",
 				slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 
-		if err = resp.RenderTempl(ctx, res, subscription.Form(newSubscription.SubscriptionID, newSubscription)); err != nil {
+		if err = resp.RenderTempl(ctx, res, subscription.AddSubscriptionWarning()); err != nil {
 			logging.FromContext(ctx).Error("Cannot display content.",
 				slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -91,21 +97,7 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 		return
 	}
 
-	resp := htmx.NewResponse()
-
-	id, subscriptionRequest, err := models.NewSubscriptionRequest()
-	if err != nil {
-		logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", err))
-		http.Error(res, "Problem!", http.StatusInternalServerError)
-	}
-
-	if err := resp.RenderTempl(ctx, res, subscription.Form(id, subscriptionRequest)); err != nil {
-		logging.FromContext(ctx).Error("Cannot display content.",
-			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-		http.Error(res, "Problem!", http.StatusInternalServerError)
-	}
-
-	if err := resp.RenderTempl(ctx, res, subscription.AddSubscriptionSuccess()); err != nil {
+	if err := htmx.NewResponse().Retarget("#command_modal").RenderTempl(ctx, res, subscription.AddSubscriptionSuccess()); err != nil {
 		logging.FromContext(ctx).Error("Cannot display content.",
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -129,7 +121,7 @@ func (s Server) AddSubscriptionCategory(res http.ResponseWriter, req *http.Reque
 
 	data, valid, err := forms.DecodeForm[*AddSubscriptionCategoryFormdataRequestBody](req)
 	if !valid {
-		response = subscription.AddSubscriptionWarning("Invalid category.")
+		response = subscription.AddSubscriptionWarning()
 	} else {
 		response = subscription.AddCategory(subID, data.Category)
 	}
@@ -154,31 +146,4 @@ func (s Server) RemoveSubscriptionCategory(res http.ResponseWriter, req *http.Re
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
-}
-
-func (f *ValidateFeedURLFormdataRequestBody) Valid() bool {
-	return f.FeedURL != ""
-}
-
-func (s Server) ValidateFeedURL(res http.ResponseWriter, req *http.Request) {
-	// var response templ.Component
-
-	data, valid, err := forms.DecodeForm[*ValidateFeedURLFormdataRequestBody](req)
-	spew.Dump(data, valid, err)
-
-	// if !valid {
-	// 	response = subscription.AddSubscriptionWarning([]string{"Category is not valid."})
-	// } else {
-	// 	response = subscription.AddCategory(subID, data.Category)
-	// }
-	// if err != nil {
-	// 	logging.FromContext(req.Context()).Error("Cannot display content.",
-	// 		slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-	// }
-
-	// if err := htmx.NewResponse().RenderTempl(req.Context(), res, response); err != nil {
-	// 	logging.FromContext(req.Context()).Error("Cannot display content.",
-	// 		slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-	// 	http.Error(res, "Problem!", http.StatusInternalServerError)
-	// }
 }

@@ -189,16 +189,6 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /feed/parse_url:
-    put:
-      summary: >
-        Parse a URL for a feed and return details and whether it is valid.
-      operationId: validateFeedURL
-      requestBody:
-        $ref: '#/components/requestBodies/ParseFeedRequestBody'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
   /home/{action}/list/{list}:
     get:
       description: >

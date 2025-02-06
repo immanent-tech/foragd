@@ -45,12 +45,6 @@ type SubscriptionIDs = []externalRef0.SubscriptionID
 // View The state of objects to view.
 type View = externalRef0.View
 
-// ValidateFeedURLFormdataBody defines parameters for ValidateFeedURL.
-type ValidateFeedURLFormdataBody struct {
-	// FeedURL The canonical feed URL.
-	FeedURL externalRef0.FeedURL `form:"URL" json:"feedLink" validate:"required,url"`
-}
-
 // ShowListParams defines parameters for ShowList.
 type ShowListParams struct {
 	// Subscriptions An array of Subscription IDs.
@@ -90,9 +84,6 @@ type AddSubscriptionCategoryFormdataBody struct {
 	Category externalRef0.Category `form:"category" json:"category"`
 }
 
-// ValidateFeedURLFormdataRequestBody defines body for ValidateFeedURL for application/x-www-form-urlencoded ContentType.
-type ValidateFeedURLFormdataRequestBody ValidateFeedURLFormdataBody
-
 // ProcessSignupMultipartRequestBody defines body for ProcessSignup for multipart/form-data ContentType.
 type ProcessSignupMultipartRequestBody = externalRef0.UserSignup
 
@@ -107,9 +98,6 @@ type ServerInterface interface {
 
 	// (GET /)
 	Index(w http.ResponseWriter, r *http.Request)
-	// Parse a URL for a feed and return details and whether it is valid.
-	// (PUT /feed/parse_url)
-	ValidateFeedURL(w http.ResponseWriter, r *http.Request)
 	// Show user settings modal
 	// (GET /home/settings)
 	GetHomeSettings(w http.ResponseWriter, r *http.Request)
@@ -169,12 +157,6 @@ type Unimplemented struct{}
 
 // (GET /)
 func (_ Unimplemented) Index(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Parse a URL for a feed and return details and whether it is valid.
-// (PUT /feed/parse_url)
-func (_ Unimplemented) ValidateFeedURL(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -291,20 +273,6 @@ func (siw *ServerInterfaceWrapper) Index(w http.ResponseWriter, r *http.Request)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Index(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ValidateFeedURL operation middleware
-func (siw *ServerInterfaceWrapper) ValidateFeedURL(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ValidateFeedURL(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -964,9 +932,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/", wrapper.Index)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/feed/parse_url", wrapper.ValidateFeedURL)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)
