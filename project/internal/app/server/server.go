@@ -112,6 +112,7 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		middleware.Recoverer,
 		middlewares.CORS(config.Environment()),
 		middlewares.CSP(serverConfig.CSP),
+		middlewares.ElasticMiddleware(),
 		middlewares.RequireAuthentication(protectedRoutes, svr.API.elastic),
 		middlewares.RequireHTMX(htmxOnlyRoutes),
 		session.LoadAndSave())
@@ -153,14 +154,15 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	})
 
 	router.Route("/subscription", func(subscription chi.Router) {
-		subscription.Get("/new", wrapper.AddSubscription)
+		subscription.Get("/new", wrapper.NewSubscription)
+		subscription.Put("/new", wrapper.AddSubscription)
 		// Existing subscription management:
 		subscription.Get("/{subscription}", wrapper.ShowSubscription)
 		subscription.Put("/{subscription}", wrapper.SaveSubscription)
 		subscription.Delete("/{subscription}", wrapper.RemoveSubscription)
 		// Subscription category management:
-		subscription.Put("/{subscription}/category", wrapper.AddSubscriptionCategory)
-		subscription.Delete("/{subscription}/category", wrapper.RemoveSubscriptionCategory)
+		subscription.Put("/category", wrapper.AddSubscriptionCategory)
+		subscription.Delete("/category", wrapper.RemoveSubscriptionCategory)
 	})
 
 	return router

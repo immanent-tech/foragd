@@ -69,10 +69,10 @@ func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]model
 	return feeds, nil
 }
 
-func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, error) {
+func (c *Client) GetFeedByURL(ctx context.Context, url string) (*models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
-		return models.APIFeed{}, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
 	resp, err := c.NewSearchRequest(
@@ -81,17 +81,17 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (models.APIFeed, 
 		WithSearchQueryOptions(QueryByTerm("feedLink", url)),
 	).Do(ctx)
 	if err != nil {
-		return models.APIFeed{}, errors.Join(ErrSearchFailed, err)
+		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
 	// If there are no hits, just return an empty APIFeed object.
 	if resp.Hits.Total.Value == 0 {
-		return models.APIFeed{}, nil
+		return nil, models.ErrNoFeed
 	}
 
-	feed, err := ExtractSource[models.APIFeed](resp.Hits.Hits[0].Source_)
+	feed, err := ExtractSource[*models.APIFeed](resp.Hits.Hits[0].Source_)
 	if err != nil {
-		return feed, errors.Join(ErrSearchFailed, err)
+		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
 	return feed, nil

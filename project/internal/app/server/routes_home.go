@@ -17,11 +17,8 @@ import (
 	components "github.com/joshuar/go-templ-daisyui"
 
 	"github.com/joshuar/go-feed-me/internal/app/server/session"
-	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/panes"
 )
@@ -47,9 +44,6 @@ var ErrGeneratePageNavigationFailed = errors.New("error occurred while generatin
 func HomeMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
-		ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
-		ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
-		ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 
 		switch req.Method {
 		case http.MethodPost:

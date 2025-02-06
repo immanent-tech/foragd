@@ -5,6 +5,7 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -15,85 +16,54 @@ import (
 	"github.com/joshuar/go-feed-me/internal/app/server/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
 
-func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
-	id, subscriptionRequest, err := models.NewSubscriptionRequest()
-	if err != nil {
-		logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", err))
-		http.Error(res, "Problem!", http.StatusInternalServerError)
-	}
-
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.Modal(id, subscriptionRequest)); err != nil {
+// NewSubscription creates a new APISubscription request and presents it as a
+// form for the user to fill out.
+func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.Modal(&models.APISubscriptionRequest{})); err != nil {
 		logging.FromContext(req.Context()).Error("Cannot display content.",
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }
 
-func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID SubscriptionID) {
+func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	ctx := req.Context()
-	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
-	ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
+
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		logging.FromContext(ctx).Error("No user found?")
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+
+		return
+	}
 
 	newSubscription, valid, err := forms.DecodeForm[*models.APISubscriptionRequest](req)
 	if err != nil {
 		logging.FromContext(ctx).Error("Could not decode submitted subscription request request.",
 			slog.Any("error", err))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+
 		return
 	}
-
-	newSubscription.SubscriptionID = subscriptionID
 
 	if !valid {
-		var err error
-		resp := htmx.NewResponse()
-
-		if err = resp.RenderTempl(ctx, res, subscription.AddSubscriptionWarning()); err != nil {
-			logging.FromContext(ctx).Error("Cannot display content.",
-				slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
-
-		if err = resp.RenderTempl(ctx, res, subscription.Form(newSubscription.SubscriptionID, newSubscription)); err != nil {
-			logging.FromContext(ctx).Error("Cannot display content.",
-				slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
-
+		addSubscriptionError(ctx, res, newSubscription, "Please check your inputs and try again.")
 		return
 	}
 
-	err = s.API.elastic.AddSubscriptions(ctx, newSubscription)
+	// Find any existing feed with the subscription URL or create a new feed.
+	feedID, err := models.FindOrAddFeed(ctx, s.API.elastic, newSubscription.URL)
 	if err != nil {
-		var err error
+		addSubscriptionError(ctx, res, newSubscription, "Unable to verify URL maps to a feed.")
+		return
+	}
 
-		logging.FromContext(ctx).Error("Could not add subscription.",
-			slog.Any("error", err))
-
-		if newSubscription.ValidationErrors == nil {
-			newSubscription.ValidationErrors = make(map[string]string)
-		}
-
-		newSubscription.ValidationErrors["URL"] = "Unable to verify URL maps to a feed."
-
-		resp := htmx.NewResponse()
-
-		if err = resp.RenderTempl(ctx, res, subscription.Form(subscriptionID, newSubscription)); err != nil {
-			logging.FromContext(ctx).Error("Cannot display content.",
-				slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
-
-		if err = resp.RenderTempl(ctx, res, subscription.AddSubscriptionWarning()); err != nil {
-			logging.FromContext(ctx).Error("Cannot display content.",
-				slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
-
+	err = user.AddSubscription(ctx, s.API.elastic, feedID, newSubscription)
+	if err != nil {
+		addSubscriptionError(ctx, res, newSubscription, "There was a temporary problem adding a subscription. Please try again.")
 		return
 	}
 
@@ -104,11 +74,15 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 	}
 }
 
-func (s Server) ShowSubscription(w http.ResponseWriter, r *http.Request, subID SubscriptionID) {
+func (s Server) SaveSubscription(w http.ResponseWriter, r *http.Request, feedID FeedID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) RemoveSubscription(w http.ResponseWriter, r *http.Request, subID SubscriptionID) {
+func (s Server) ShowSubscription(w http.ResponseWriter, r *http.Request, feedID FeedID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+func (s Server) RemoveSubscription(w http.ResponseWriter, r *http.Request, feedID FeedID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -116,14 +90,14 @@ func (f *AddSubscriptionCategoryFormdataRequestBody) Valid() bool {
 	return f.Category != ""
 }
 
-func (s Server) AddSubscriptionCategory(res http.ResponseWriter, req *http.Request, subID SubscriptionID) {
+func (s Server) AddSubscriptionCategory(res http.ResponseWriter, req *http.Request) {
 	var response templ.Component
 
 	data, valid, err := forms.DecodeForm[*AddSubscriptionCategoryFormdataRequestBody](req)
 	if !valid {
-		response = subscription.AddSubscriptionWarning()
+		response = subscription.AddSubscriptionWarning("Invalid ")
 	} else {
-		response = subscription.AddCategory(subID, data.Category)
+		response = subscription.AddCategory(data.Category)
 	}
 
 	if err != nil {
@@ -138,11 +112,28 @@ func (s Server) AddSubscriptionCategory(res http.ResponseWriter, req *http.Reque
 	}
 }
 
-func (s Server) RemoveSubscriptionCategory(res http.ResponseWriter, req *http.Request, _ SubscriptionID) {
+func (s Server) RemoveSubscriptionCategory(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 
 	if _, err := res.Write(nil); err != nil {
 		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
+}
+
+func addSubscriptionError(ctx context.Context, res http.ResponseWriter, details *models.APISubscriptionRequest, message string) {
+	var err error
+	resp := htmx.NewResponse()
+
+	if err = resp.RenderTempl(ctx, res, subscription.AddSubscriptionWarning(message)); err != nil {
+		logging.FromContext(ctx).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
+
+	if err = resp.RenderTempl(ctx, res, subscription.Form(details)); err != nil {
+		logging.FromContext(ctx).Error("Cannot display content.",
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}

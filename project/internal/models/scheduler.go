@@ -145,7 +145,7 @@ func (job *FeedJob) getItemsSince(since time.Time) ([]Item, error) {
 
 	details, err := parser.ParseURL(job.URL)
 	if err != nil {
-		return nil, errors.Join(ErrParseFeedFailed, err)
+		return nil, errors.Join(ErrParseFeed, err)
 	}
 
 	for _, i := range details.Items {

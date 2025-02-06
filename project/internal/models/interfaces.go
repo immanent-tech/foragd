@@ -5,7 +5,10 @@ package models
 
 import (
 	"context"
+	"errors"
 )
+
+var ErrBackend = errors.New("backend API error")
 
 // AuthAPI contains methods for handling auth requests.
 type AuthAPI interface {
@@ -24,7 +27,7 @@ type UserActionsAPI interface {
 
 // SubscriptionsAPI contains methods for handling user subscriptions.
 type SubscriptionsAPI interface {
-	AddSubscriptions(ctx context.Context, id SubscriptionID, details ...*APISubscriptionRequest) error
+	AddSubscriptions(ctx context.Context, details ...*APISubscriptionRequest) error
 }
 
 // UserManagementAPI contains methods for user management.
@@ -32,6 +35,7 @@ type UserManagementAPI interface {
 	UserExists(ctx context.Context, userID UserID) (bool, error)
 	GetUser(ctx context.Context) (*User, error)
 	AddUser(ctx context.Context, userID UserID) error
+	UpdateUser(ctx context.Context, userID UserID, update map[string]any) error
 }
 
 type FeedJobStateAPI interface {
@@ -41,7 +45,7 @@ type FeedJobStateAPI interface {
 
 // FeedManagementAPI contains methods for feed/item management.
 type FeedManagementAPI interface {
-	GetFeedByURL(ctx context.Context, url URL) (APIFeed, error)
+	GetFeedByURL(ctx context.Context, url URL) (*APIFeed, error)
 	AddFeeds(ctx context.Context, feeds ...Feed) error
 	AddItems(ctx context.Context, items ...Item) error
 	FeedJobStateAPI

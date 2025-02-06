@@ -134,17 +134,26 @@ paths:
     get:
       description: >
         Add a new subscription.
-      operationId: addSubscription
+      operationId: newSubscription
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /subscription/{subscription}:
+    put:
+      summary: >
+        Save a subscription.
+      operationId: addSubscription
+      requestBody:
+        $ref: '#/components/requestBodies/SubscriptionRequestBody'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+  /subscription/{feed}:
     get:
       summary: >
         Show a subscription.
       operationId: showSubscription
       parameters:
-        - $ref: '#/components/parameters/SubscriptionID'
+        - $ref: '#/components/parameters/FeedID'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -153,7 +162,7 @@ paths:
         Save a subscription.
       operationId: saveSubscription
       parameters:
-        - $ref: '#/components/parameters/SubscriptionID'
+        - $ref: '#/components/parameters/FeedID'
       requestBody:
         $ref: '#/components/requestBodies/SubscriptionRequestBody'
       responses:
@@ -164,17 +173,15 @@ paths:
         Remove a subscription.
       operationId: removeSubscription
       parameters:
-        - $ref: '#/components/parameters/SubscriptionID'
+        - $ref: '#/components/parameters/FeedID'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /subscription/{subscription}/category:
+  /subscription/category:
     put:
       summary: >
         Add a category to a subscription
       operationId: addSubscriptionCategory
-      parameters:
-        - $ref: '#/components/parameters/SubscriptionID'
       requestBody:
         $ref: '#/components/requestBodies/CategoryRequestBody'
       responses:
@@ -184,8 +191,6 @@ paths:
       summary: >
         Remove a category from a subscription.
       operationId: removeSubscriptionCategory
-      parameters:
-        - $ref: '#/components/parameters/SubscriptionID'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -199,7 +204,7 @@ paths:
         - $ref: '#/components/parameters/List'
         - $ref: '#/components/parameters/Action'
         # Query:
-        - $ref: '#/components/parameters/SubscriptionIDs'
+        - $ref: '#/components/parameters/FeedIDs'
         - $ref: '#/components/parameters/ItemIDs'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Count'
@@ -218,7 +223,7 @@ paths:
         - $ref: '#/components/parameters/List'
         - $ref: '#/components/parameters/Action'
         # Query:
-        - $ref: '#/components/parameters/SubscriptionIDs'
+        - $ref: '#/components/parameters/FeedIDs'
         - $ref: '#/components/parameters/ItemIDs'
         - $ref: '#/components/parameters/Categories'
       responses:
@@ -249,7 +254,7 @@ components:
   requestBodies:
     SubscriptionRequestBody:
       description: >
-        Holds details for adding/saving a subsctiption.
+        Holds details for adding/saving a subscription.
       content:
         application/x-www-form-urlencoded:
           schema:
@@ -267,33 +272,21 @@ components:
             properties:
               Category:
                 $ref: '../models/api.yaml#/components/schemas/Category'
-    ParseFeedRequestBody:
-      description: >
-        A URL of a feed.
-      required: true
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            type: object
-            required:
-              - URL
-            properties:
-              URL:
-                $ref: '../models/api.yaml#/components/schemas/FeedURL'
   parameters:
   # Query parameters:
-    SubscriptionIDs:
+    FeedIDs:
       name: subscriptions
-      description: An array of Subscription IDs.
+      description: An array of Feed IDs.
       in: query
       schema:
         type: array
         items:
-          $ref: '../models/api.yaml#/components/schemas/SubscriptionID'
+          $ref: '../models/api.yaml#/components/schemas/FeedID'
         x-go-type-skip-optional-pointer: true
         x-oapi-codegen-extra-tags:
           json: 'subscriptions'
           form: 'subscriptions[]'
+        nullable: true
     ItemIDs:
       name: items
       description: An array of Item IDs.
@@ -306,6 +299,7 @@ components:
         x-oapi-codegen-extra-tags:
           json: 'items'
           form: 'items[]'
+        nullable: true
     Categories:
       name: categories
       description: An array of Categories.
@@ -354,11 +348,6 @@ components:
       in: path
       schema:
         $ref: '../models/api.yaml#/components/schemas/ItemID'
-    SubscriptionID:
-      name: subscription
-      in: path
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/SubscriptionID'
   responses:
     htmx:
       description: standard htmx powered response.

@@ -17,8 +17,8 @@ var ErrGetFilterValue = errors.New("error fetching filter value")
 
 // GetFeedIDs retrieves the array of FeedIDs from the APIFilters.
 func (f APIFilters) GetSubscriptionIDs() []FeedID {
-	if len(f.SubscriptionIDs) > 0 {
-		return f.SubscriptionIDs
+	if len(f.FeedIDs) > 0 {
+		return f.FeedIDs
 	}
 
 	return nil

@@ -78,7 +78,7 @@ func generateURLInput(req *models.APISubscriptionRequest) templ.Component {
 	return components.TextInput(components.FromTextInputProps(input))
 }
 
-func generateCategoriesInput(id models.SubscriptionID) templ.Component {
+func generateCategoriesInput(req *models.APISubscriptionRequest) templ.Component {
 	return components.Form(
 		components.WithID[*components.FormProps]("add_category_form"),
 		components.WithFormComponents(
@@ -97,7 +97,7 @@ func generateCategoriesInput(id models.SubscriptionID) templ.Component {
 			),
 		),
 		components.WithAttributes[*components.FormProps](templ.Attributes{
-			"hx-put":               "/subscription/" + id + "/category",
+			"hx-put":               "/subscription/category",
 			"hx-target":            "#categories",
 			"hx-swap":              "beforeend",
 			"hx-on::after-request": "if(event.detail.successful) this.reset()",
@@ -105,12 +105,12 @@ func generateCategoriesInput(id models.SubscriptionID) templ.Component {
 	)
 }
 
-func generateCategoriesList(id models.SubscriptionID, allCategories ...models.Category) templ.Component {
-	categories := make([]templ.Component, 0, len(allCategories))
+func generateCategoriesList(req *models.APISubscriptionRequest) templ.Component {
+	categories := make([]templ.Component, 0, len(req.Categories))
 
-	for _, category := range allCategories {
+	for _, category := range req.Categories {
 		categories = append(categories,
-			generateCategoryItem(id, category),
+			generateCategoryItem(category),
 		)
 	}
 
@@ -125,7 +125,7 @@ func generateCategoriesList(id models.SubscriptionID, allCategories ...models.Ca
 	)
 }
 
-func generateCategoryItem(id models.SubscriptionID, category models.Category) templ.Component {
+func generateCategoryItem(category models.Category) templ.Component {
 	return components.JoinHorizontally(
 		// The category displayed as a badge.
 		partials.CategoryBadge(category),
@@ -135,7 +135,7 @@ func generateCategoryItem(id models.SubscriptionID, category models.Category) te
 			components.WithName[*components.HiddenInputProps]("categories[]"),
 			components.WithValue[*components.HiddenInputProps](category),
 			components.WithAttributes[*components.HiddenInputProps](templ.Attributes{
-				"form": "add_subscription_form",
+				"form": "new_subscription",
 			}),
 		),
 		// Button to remove category.
@@ -145,7 +145,7 @@ func generateCategoryItem(id models.SubscriptionID, category models.Category) te
 			components.WithButtonContent(components.AsIconContent("fa-minus")),
 			components.WithAttributes[*components.ButtonProps](
 				templ.Attributes{
-					"hx-delete": "/subscription/" + id + "/category",
+					"hx-delete": "/subscription/category",
 				}),
 		),
 	)

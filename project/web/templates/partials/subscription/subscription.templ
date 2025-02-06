@@ -9,38 +9,34 @@ import (
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
 )
 
-templ detailsInputs(id models.SubscriptionID, req *models.APISubscriptionRequest) {
+templ detailsInputs(req *models.APISubscriptionRequest) {
 	@components.Form(
 		components.WithID[*components.FormProps]("new_subscription"),
 		components.WithFormComponents(
-			components.HiddenInput(
-				components.WithName[*components.HiddenInputProps]("subscription_id"),
-				components.WithValue[*components.HiddenInputProps](id),
-			),
 			generateNameInput(req),
 			generateURLInput(req),
 		),
 		components.WithAttributes[*components.FormProps](
 			templ.Attributes{
-				"hx-put": "/subscription/" + id,
+				"hx-put": "/subscription/new",
 			},
 		),
 	)
 }
 
-templ categoriesInput(id models.SubscriptionID) {
-	@generateCategoriesInput(id)
+templ categoriesInput(req *models.APISubscriptionRequest) {
+	@generateCategoriesInput(req)
 }
 
-templ manageCategories(id models.SubscriptionID, categories ...models.Category) {
-	@generateCategoriesList(id, categories...)
+templ manageCategories(req *models.APISubscriptionRequest) {
+	@generateCategoriesList(req)
 }
 
-templ Form(id models.SubscriptionID, req *models.APISubscriptionRequest) {
+templ Form(req *models.APISubscriptionRequest) {
 	<div id="add_subscription_form" hx-target="this">
-		@detailsInputs(id, req)
-		@categoriesInput(id)
-		@manageCategories(id, req.Categories...)
+		@detailsInputs(req)
+		@categoriesInput(req)
+		@manageCategories(req)
 		@components.FormControl() {
 			@components.Button(
 				components.WithID[*components.ButtonProps]("add"),
@@ -54,8 +50,8 @@ templ Form(id models.SubscriptionID, req *models.APISubscriptionRequest) {
 	</div>
 }
 
-// AddSubscriptionModal displays a modal for a user to enter new subscription details.
-templ Modal(id models.SubscriptionID, req *models.APISubscriptionRequest) {
+// NewSubscriptionModal displays a modal for a user to enter new subscription details.
+templ Modal(req *models.APISubscriptionRequest) {
 	@components.Modal(
 		components.WithID[*components.ModalProps]("add_subscription_modal"),
 		components.WithModalCloseOutside(),
@@ -76,14 +72,14 @@ templ Modal(id models.SubscriptionID, req *models.APISubscriptionRequest) {
 		@components.Text("Add a new subscription", components.WithTextSize(components.TextLG))
 		@components.Text("Enter the details and click Add", components.AsItalicText())
 		if req != nil {
-			@Form(id, req)
+			@Form(req)
 		}
 	}
 }
 
-templ AddCategory(id models.SubscriptionID, category models.Category) {
+templ AddCategory(category models.Category) {
 	<li>
-		@generateCategoryItem(id, category)
+		@generateCategoryItem(category)
 	</li>
 }
 
@@ -118,11 +114,11 @@ templ AddSubscriptionSuccess() {
 	}
 }
 
-templ AddSubscriptionWarning() {
+templ AddSubscriptionWarning(message string) {
 	<div id="warnings_toast" hx-swap-oob="true">
 		@alert.Warning(
 			alert.WithID("warning"),
-			alert.WithText("There was a problem adding the subscription. Please check the inputs and try again."),
+			alert.WithText(message),
 		) {
 			@components.Button(
 				components.WithResponsiveSize[*components.ButtonProps](components.SM),

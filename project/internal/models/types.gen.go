@@ -98,10 +98,10 @@ type APIFilters struct {
 	Categories []Category `json:"Categories,omitempty"`
 
 	// Count is the count of items to retrieve with a request.
-	Count           nullable.Nullable[Count]      `form:"count" json:"count"`
-	ItemIDs         []ItemID                      `json:"ItemIDs,omitempty"`
-	Pagination      nullable.Nullable[Pagination] `form:"pagination" json:"pagination"`
-	SubscriptionIDs []SubscriptionID              `json:"SubscriptionIDs,omitempty"`
+	Count      nullable.Nullable[Count]      `form:"count" json:"count"`
+	FeedIDs    []FeedID                      `json:"FeedIDs,omitempty"`
+	ItemIDs    []ItemID                      `json:"ItemIDs,omitempty"`
+	Pagination nullable.Nullable[Pagination] `form:"pagination" json:"pagination"`
 
 	// View The state of objects to view.
 	View nullable.Nullable[View] `form:"view" json:"view"`
@@ -160,9 +160,6 @@ type APIPageNavigation struct {
 type APISubscriptionRequest struct {
 	// Categories is a list of custom categories the user has assigned to the feed.
 	Categories []Category `form:"categories[]" json:"categories,omitempty"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name *string `form:"name" json:"name,omitempty"`
@@ -292,9 +289,6 @@ type SchedulerID = string
 
 // State Tracks the state of an object.
 type State string
-
-// SubscriptionID is the unique ID of a subscription.
-type SubscriptionID = string
 
 // SubscriptionState Contains fields to rack a subscription state.
 type SubscriptionState struct {

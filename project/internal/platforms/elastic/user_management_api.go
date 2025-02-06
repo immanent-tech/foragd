@@ -99,14 +99,17 @@ func (c *Client) AddUser(ctx context.Context, userID models.UserID) error {
 	return nil
 }
 
-func updateUser(ctx context.Context, api *Client, id models.UserID, partialUpdate map[string]any) error {
+func (c *Client) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)
 	}
 
+	// Updated the `updated_at` timestamp.
+	partialUpdate["updated_at"] = time.Now().UTC()
+
 	// Update the user in the store with the new list of read items.
-	resp, err := api.NewDocUpdateRequest(index, id,
+	resp, err := c.NewDocUpdateRequest(index, id,
 		WithPartialDocUpdate(partialUpdate),
 	).Do(ctx)
 	if err != nil {

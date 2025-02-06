@@ -72,7 +72,7 @@ func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Action, id
 	}
 
 	// Update the user object.
-	return updateUser(ctx, c, user.ID, map[string]any{
+	return c.UpdateUser(ctx, user.ID, map[string]any{
 		"feed_item_states": user.FeedItemStates,
 		"updated_at":       time.Now().UTC(),
 	})
@@ -111,7 +111,7 @@ func (c *Client) UserActionMarkFeeds(ctx context.Context, mark models.Action, fe
 	}
 
 	// Update the user object.
-	return updateUser(ctx, c, user.ID, map[string]any{
+	return c.UpdateUser(ctx, user.ID, map[string]any{
 		"feed_item_states": user.FeedItemStates,
 		"subscriptions":    user.Subscriptions,
 		"updated_at":       time.Now().UTC(),
@@ -278,7 +278,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	subscribedFeedIDs := user.GetSubscribedFeedIDs()
 	// Filter the list of requested feeds to only those which the user has a
 	// subscription.
-	if filters.SubscriptionIDs != nil {
+	if filters.FeedIDs != nil {
 		subscribedFeedIDs = slices.Collect(
 			func(yield func(string) bool) {
 				for _, v := range subscribedFeedIDs {
@@ -318,30 +318,4 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	}()
 
 	return outCh, nil
-}
-
-func (c *Client) userActionUpdateSubscriptions(ctx context.Context, userID models.UserID, subscriptions map[string]models.SubscriptionState) error {
-	index := UserIndexFromCtx(ctx)
-	if index == "" {
-		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)
-	}
-
-	// Update the user subscriptions.
-	req := c.NewDocUpdateRequest(index, userID,
-		WithPartialDocUpdate(map[string]any{
-			"subscriptions": subscriptions,
-			"updated_at":    time.Now().UTC(),
-		}),
-	)
-
-	resp, err := req.Do(ctx)
-	if err != nil {
-		return errors.Join(ErrUpdateFailed, err)
-	}
-
-	slog.Debug("Updated user subscriptions.",
-		slog.String("result", resp.Result.String()),
-		slog.Int64("version", resp.Version_))
-
-	return nil
 }

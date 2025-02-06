@@ -21,6 +21,7 @@ const (
 
 var (
 	ErrAddUser               = errors.New("add subscription failed")
+	ErrUpdateUser            = errors.New("update user failed")
 	ErrUserAlreadySubscribed = errors.New("user already subscribed")
 	ErrUserAlreadyReadItem   = errors.New("user already read this item")
 	ErrUserAlreadyUnreadItem = errors.New("user already unread this item")
@@ -135,8 +136,6 @@ func (u *User) MarkItem(feedID FeedID, itemID ItemID, state State) error {
 
 	u.FeedItemStates[feedID][itemID] = newItemState(state)
 
-	spew.Dump(u.FeedItemStates[feedID])
-
 	return nil
 }
 
@@ -189,7 +188,7 @@ func (u *User) GetSubscribedFeedIDs() []FeedID {
 }
 
 // AddSubscription adds a new subscription to the user object.
-func (u *User) AddSubscription(feedID FeedID, name string, categories []Category) error {
+func (u *User) AddSubscription(ctx context.Context, api UserManagementAPI, feedID FeedID, details *APISubscriptionRequest) error {
 	if u.IsSubscribed(feedID) {
 		return ErrUserAlreadySubscribed
 	}
@@ -198,7 +197,17 @@ func (u *User) AddSubscription(feedID FeedID, name string, categories []Category
 		u.Subscriptions = make(map[string]SubscriptionState)
 	}
 
-	u.Subscriptions[feedID] = SubscriptionState{Name: &name, Categories: categories, CreatedAt: time.Now().UTC()}
+	u.Subscriptions[feedID] = NewSubscriptionState(details)
+
+	partialUpdate := map[string]any{
+		"subscriptions": u.Subscriptions,
+	}
+
+	spew.Dump(partialUpdate)
+
+	// if err := api.UpdateUser(ctx, u.ID, partialUpdate); err != nil {
+	// 	return errors.Join(ErrUpdateUser, err)
+	// }
 
 	return nil
 }

@@ -51,14 +51,6 @@ components:
       description: is a string that can contain HTML.
       type: string
       x-go-type-skip-optional-pointer: true
-    SubscriptionID:
-      description: is the unique ID of a subscription.
-      type: string
-      x-go-name: 'SubscriptionID'
-      x-oapi-codegen-extra-tags:
-        validate: 'required'
-        json: 'subscription_id'
-        form: 'subscription_id'
     FeedID:
       description: is the unique ID of a feed.
       type: string
@@ -248,11 +240,8 @@ components:
       description: represents a new subscription request from a user.
       type: object
       required:
-        - id
         - url
       properties:
-        id:
-          $ref: '#/components/schemas/SubscriptionID'
         url:
           $ref: '#/components/schemas/URL'
         name:
@@ -541,10 +530,10 @@ components:
       description: contains parameters for searching feeds and items
       type: object
       properties:
-        SubscriptionIDs:
+        FeedIDs:
           type: array
           items:
-            $ref: '#/components/schemas/SubscriptionID'
+            $ref: '#/components/schemas/FeedID'
           x-go-type-skip-optional-pointer: true
         ItemIDs:
           type: array

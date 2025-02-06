@@ -4,24 +4,15 @@
 package models
 
 import (
-	"fmt"
+	"errors"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/validation"
 )
 
-func NewSubscriptionRequest() (SubscriptionID, *APISubscriptionRequest, error) {
-	request := &APISubscriptionRequest{}
-
-	subscriptionID, err := id.NewID(id.Subscription)
-	if err != nil {
-		return "", nil, fmt.Errorf("could not generate subscription id: %w", err)
-	}
-
-	return subscriptionID, request, nil
-}
+var ErrNewSubscriptionRequest = errors.New("could not create new subscription request")
 
 func (s *APISubscriptionRequest) Valid() bool {
 	valid, problems := validation.ValidateStruct(s)
@@ -44,4 +35,12 @@ func (s *APISubscriptionRequest) Valid() bool {
 
 func (s *APISubscriptionRequest) HasErrors() bool {
 	return s.ValidationErrors != nil
+}
+
+func NewSubscriptionState(details *APISubscriptionRequest) SubscriptionState {
+	return SubscriptionState{
+		CreatedAt:  time.Now().UTC(),
+		Name:       details.Name,
+		Categories: details.Categories,
+	}
 }
