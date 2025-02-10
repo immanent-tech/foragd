@@ -11,6 +11,11 @@ import (
 
 	"github.com/a-h/templ"
 	components "github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/layout/mask"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 	"github.com/mmcdole/gofeed"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -97,10 +102,10 @@ func NewCard(ctx context.Context, item any) (*components.CardProps, error) {
 		components.WithID[*components.CardProps](summary.GetID()),
 		components.WithBody(customisation.content,
 			components.WithTopRightActions(withMenu(customisation.actions...)...),
-			components.WithBottomLeftActions(components.Text(
+			components.WithBottomLeftActions(text.Build(
 				customisation.updatedAt,
-				components.AsItalicText(),
-				components.WithTextSize(components.TextSM))),
+				text.AsItalicText(),
+				text.WithTextSize(text.SM)).Show()),
 			components.WithBottomRightActions(categories...),
 			components.WithAttributes[*components.CardBodyProps](templ.Attributes{
 				"hx-target":   "#" + ContentTarget,
@@ -115,7 +120,7 @@ func NewCard(ctx context.Context, item any) (*components.CardProps, error) {
 			components.ImageTop,
 			components.WithLazyLoading(),
 			components.WithAltText(img.Title),
-			components.WithMask[*components.ImageProps](components.MaskSquircle),
+			components.WithMask(mask.MaskSquircle),
 		)(cardProps)
 	}
 
@@ -127,21 +132,19 @@ func withMenu(items ...templ.Component) []templ.Component {
 
 	menus = append(menus,
 		// Menu for large screens: horizontal layout, all buttons shown.
-		components.NewMenu(
-			components.WithResponsiveSize[*components.Menu](components.SM),
-			components.WithBaseColor[*components.Menu](components.ColorBgBase200),
-			components.WithLayout[*components.Menu](components.HorizontalLayout),
-			components.WithRevealedBreakpoint[*components.Menu](components.LG),
-			components.WithItems[*components.Menu](items...),
-		).Show(),
+		menu.Build(
+			menu.WithSize(size.SM),
+			menu.WithBaseColor(color.Base200),
+			menu.WithLayout(menu.Horizontal),
+			menu.WithRevealedBreakpoint(size.LG),
+		).Show(items...),
 		// Menu for small screens: buttons hidden behind drop-down.
-		components.NewDropDownMenu(
-			components.WithResponsiveSize[*components.DropDownMenu](components.SM),
-			components.WithBaseColor[*components.DropDownMenu](components.ColorBgBase200),
-			components.WithLayout[*components.DropDownMenu](components.VerticalLayout),
-			components.WithHiddenBreakpoint[*components.DropDownMenu](components.LG),
-			components.WithItems[*components.DropDownMenu](items...),
-		).Show(),
+		menu.Build(
+			menu.WithSize(size.SM),
+			menu.WithBaseColor(color.Base200),
+			menu.WithLayout(menu.Vertical),
+			menu.WithHiddenBreakpoint(size.LG),
+		).Show(items...),
 	)
 
 	return menus
@@ -174,10 +177,10 @@ func itemCustomisation(ctx context.Context, item Item) *cardCustomisation {
 		// 	buttonToggleItem(item.GetFeedID(), item.GetID()),
 		// 	buttonSaveItem(item.GetFeedID(), item.GetID()),
 		// 	buttonShareItem(item.GetFeedID(), item.GetID()),
-		content: components.Text(
+		content: text.Build(
 			item.GetTitle(),
-			components.WithTextSize(components.TextLG),
-			components.WithTextWeight(components.TextSemibold)),
+			text.WithTextSize(text.LG),
+			text.WithTextWeight(text.Semibold)).Show(),
 		updatedAt: "Published: " + RelativeTime(item.GetTimestamp()),
 	}
 }
@@ -192,11 +195,7 @@ func feedCustomisation(ctx context.Context, feed Feed) *cardCustomisation {
 	return &cardCustomisation{
 		title: components.WithTitle(
 			feed.GetTitle(),
-			components.H2,
-			components.Badge(
-				components.WithColor[*components.BadgeProps](components.ColorPrimary, false),
-				// components.WithBadgeDescription(strconv.Itoa(feed.GetUnreadCount())),
-			)),
+			components.H2),
 		content: FeedCard(feed),
 		actions: []templ.Component{
 			actionButton(markReadURL.String(), "#"+feed.GetID(), "fa-check", "Mark Feed Read"),

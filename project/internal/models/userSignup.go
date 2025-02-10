@@ -1,12 +1,15 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//nolint:dupl
 package models
 
 import (
 	"github.com/a-h/templ"
 	components "github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/input/form"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 
 	"github.com/joshuar/go-feed-me/internal/validation"
 )
@@ -23,10 +26,8 @@ func (s *UserSignup) generateInputs() {
 	s.InputNickname = components.BuildTextInput(
 		components.WithFormControl(),
 		components.WithInsideLabels(
-			components.Icon("fa-user"),
-			components.Badge(
-				// components.WithBadgeDescription("Optional"),
-				components.WithColor[*components.BadgeProps](components.ColorPrimary, true))),
+			icon.Build("fa-user").Show(),
+			nil),
 		components.WithID[*components.TextInputProps]("nickname"),
 		components.WithPlaceholder[*components.TextInputProps]("Your name"),
 	)
@@ -37,7 +38,7 @@ func (s *UserSignup) generateInputs() {
 	s.InputEmail = components.BuildTextInput(
 		components.WithFormControl(),
 		components.WithInsideLabels(
-			components.Icon("fa-at"),
+			icon.Build("fa-at").Show(),
 			nil),
 		components.WithID[*components.TextInputProps]("email"),
 		components.AsEmail(),
@@ -52,7 +53,7 @@ func (s *UserSignup) generateInputs() {
 	s.InputPassword = components.BuildTextInput(
 		components.WithFormControl(),
 		components.WithInsideLabels(
-			components.Icon("fa-key"),
+			icon.Build("fa-key").Show(),
 			nil),
 		components.WithID[*components.TextInputProps]("password"),
 		components.AsPassword(),
@@ -65,8 +66,14 @@ func (s *UserSignup) generateInputs() {
 }
 
 func (s *UserSignup) Form() templ.Component {
-	return components.Form(
-		components.WithFormComponents(
+	return form.BuildForm(
+		form.WithExtraAttributes(
+			templ.Attributes{
+				"hx-post":   "/signup",
+				"hx-target": "#signup",
+			},
+		),
+		form.WithElements(
 			components.TextInput(
 				components.FromTextInputProps(s.InputNickname),
 			),
@@ -76,19 +83,13 @@ func (s *UserSignup) Form() templ.Component {
 			components.TextInput(
 				components.FromTextInputProps(s.InputPassword),
 			),
-			components.Button(
-				components.WithID[*components.ButtonProps]("signup"),
-				components.WithButtonContent(components.AsTextContent("Signup")),
-				components.WithColor[*components.ButtonProps](components.ColorPrimary, true),
-			),
+			button.Build(
+				button.WithID("signup"),
+				button.WithContent("Signup"),
+				button.WithThemeColor(color.Primary, true),
+			).Show(),
 		),
-		components.WithAttributes[*components.FormProps](
-			templ.Attributes{
-				"hx-post":   "/signup",
-				"hx-target": "#signup",
-			},
-		),
-	)
+	).Show()
 }
 
 func (s *UserSignup) Valid() bool {

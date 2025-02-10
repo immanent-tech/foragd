@@ -3,9 +3,9 @@
 
 package panes
 
-import "github.com/joshuar/go-templ-daisyui"
+import "github.com/joshuar/go-templ-daisyui/display/icon"
 
-templ navButton(link, icon, tooltip string) {
+templ navButton(link, iconName, tooltip string) {
 	<li class={ templ.KV("invisible", link == "") }>
 		<a
 			class="tooltip tooltip-bottom"
@@ -14,12 +14,12 @@ templ navButton(link, icon, tooltip string) {
 			hx-target={ "#" + ContentTarget }
 			hx-push-url="true"
 		>
-			@components.Icon(icon)
+			@icon.Build(iconName).Show()
 		</a>
 	</li>
 }
 
-templ actionButton(link, target, icon, tooltip string) {
+templ actionButton(link, target, iconName, tooltip string) {
 	<li class={ templ.KV("invisible", link == "") }>
 		<a
 			class="tooltip tooltip-bottom"
@@ -30,7 +30,7 @@ templ actionButton(link, target, icon, tooltip string) {
 			hx-push-url="false"
 			hx-swap="outerHTML swap:1s"
 		>
-			@components.Icon(icon)
+			@icon.Build(iconName).Show()
 		</a>
 	</li>
 }

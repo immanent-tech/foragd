@@ -3,7 +3,7 @@
 
 package layouts
 
-import "github.com/joshuar/go-templ-daisyui"
+import "github.com/joshuar/go-templ-daisyui/feedback/alert"
 
 // SignupLayout is the page content for the signup page.
 templ SignupLayout() {
@@ -24,13 +24,19 @@ templ SignupLayout() {
 }
 
 templ SignupSuccess() {
-	@components.Alert(components.AlertSuccess, "Account created!", "signup-notifications", true) {
+	@alert.Build(
+		alert.WithID("signup-notifications"),
+		alert.WithText("Account Created!"),
+	).Success() {
 		<a class="btn btn-primary" href="/login/auth0">Login with Auth0</a>
 	}
 }
 
 templ SignupError() {
 	<div id="signup-notifications" hx-swap-oob="true">
-		@components.Alert(components.AlertError, "Oops! We had a problem creating your account account!", "signup-notifications", true)
+		@alert.Build(
+			alert.WithID("signup-notifications"),
+			alert.WithText("Oops! We had a problem creating your account account!"),
+		).Error()
 	</div>
 }

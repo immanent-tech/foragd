@@ -129,18 +129,8 @@
   "files.associations": {
     "*.scss": "tailwindcss"
   },
-  "sqltools.connections": [
-    {
-      "previewLimit": 50,
-      "server": "postgres",
-      "port": 5432,
-      "driver": "PostgreSQL",
-      "name": "Go Feed Me",
-      "database": "gofeedme",
-      "username": "gofeedme"
-    }
-  ],
   "yaml.schemas": {
     "https://spec.openapis.org/oas/3.1/schema/2022-10-07": "file:///workspace/project/api/server/api.yaml"
-  }
+  },
+  "terminal.integrated.scrollback": 10000
 }

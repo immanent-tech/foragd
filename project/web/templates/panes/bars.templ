@@ -3,7 +3,12 @@
 
 package panes
 
-import "github.com/joshuar/go-templ-daisyui"
+import (
+	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/input"
+	"github.com/joshuar/go-templ-daisyui/input/textinput"
+)
 
 // AppBarTop displays an app bar at the top of the page.
 templ AppBarTop() {
@@ -19,30 +24,32 @@ templ AppBarTop() {
 
 templ appBarTopLeft() {
 	<label for="home_drawer_toggle" aria-label="Open Drawer" class="btn btn-square lg:hidden drawer-button">
-		@components.Icon("fa-chevron-right")
+		@icon.Build("fa-chevron-right").Show()
 	</label>
 }
 
 templ appBarTopCenter() {
-	@components.TextInput(
-		components.WithInsideLabels(components.Icon("fa-magnifying-glass"), nil),
-		components.WithID[*components.TextInputProps]("search"),
-		components.WithPlaceholder[*components.TextInputProps]("Search anything..."),
-		components.WithAttributes[*components.TextInputProps](templ.Attributes{
-			"tabindex":     0,
-			"hx-post":      "/home/search",
-			"hx-trigger":   "input changed delay:500ms, SearchRequest",
-			"hx-target":    "#search-results",
-			"hx-indicator": ".htmx-indicator",
-		}),
-	)
+	@input.Build(
+		textinput.Build(
+			textinput.WithID("search"),
+			textinput.WithPlaceholder("Search anything..."),
+			textinput.WithExtraAttributes(templ.Attributes{
+				"tabindex":     0,
+				"hx-post":      "/home/search",
+				"hx-trigger":   "input changed delay:500ms, SearchRequest",
+				"hx-target":    "#search-results",
+				"hx-indicator": ".htmx-indicator",
+			}),
+		),
+		input.WithLabel(input.Left, icon.Build("fa-magnifying-glass")),
+	).Show()
 }
 
 templ appBarTopRight() {
 	<details class="dropdown dropdown-bottom dropdown-end [&_.swap-on]:opacity-100 [&_.swap-off]:opacity-0 [&[open]_.swap-off]:opacity-100 [&[open]_.swap-on]:opacity-0">
 		<summary class="swap">
-			@components.Icon("fa-bars", components.AsSwapOn())
-			@components.Icon("fa-xmark", components.AsSwapOff())
+			@icon.Build("fa-bars").Show("swap-on")
+			@icon.Build("fa-xmark").Show("swap-off")
 		</summary>
 		<ul class="p-2 menu dropdown-content z-[1] bg-base-200 rounded-box w-52">
 			<li>

@@ -194,60 +194,96 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/{action}/list/{list}:
+  /home/show/feeds:
     get:
       description: >
-        Show a list of type {list}, with optional filtering.
-      operationId: showList
+        Show feeds with optional filtering.
+      operationId: showFeeds
       parameters:
-        # Path:
-        - $ref: '#/components/parameters/List'
-        - $ref: '#/components/parameters/Action'
         # Query:
-        - $ref: '#/components/parameters/FeedIDs'
-        - $ref: '#/components/parameters/ItemIDs'
+        - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Count'
         - $ref: '#/components/parameters/Pagination'
         - $ref: '#/components/parameters/View'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
+  /home/{action}/feeds:
     post:
       description: >
-        Perform {action} on multiple objects of type {list},
-        with optional filtering.
-      operationId: actionList
+        Perform action on feeds with optional filtering.
+      operationId: actionFeeds
       parameters:
         # Path:
-        - $ref: '#/components/parameters/List'
         - $ref: '#/components/parameters/Action'
         # Query:
-        - $ref: '#/components/parameters/FeedIDs'
-        - $ref: '#/components/parameters/ItemIDs'
+        - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/{action}/item/{feed}/{item}:
+        - $ref: '#/components/parameters/Count'
+        - $ref: '#/components/parameters/Pagination'
+        - $ref: '#/components/parameters/View'
+  /home/show/items:
     get:
-      summary: Show an item.
+      description: >
+        Show items with optional filtering.
+      operationId: showItems
+      parameters:
+        # Query:
+        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/Count'
+        - $ref: '#/components/parameters/Pagination'
+        - $ref: '#/components/parameters/View'
+  /home/{action}/items:
+    post:
+      description: >
+        Perform action on items with optional filtering.
+      operationId: showItems
+      parameters:
+        # Query:
+        - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/Count'
+        - $ref: '#/components/parameters/Pagination'
+        - $ref: '#/components/parameters/View'
+  /home/{feed}/{item}:
+    get:
+      description: >
+        Perform action on feeds with optional filtering.
       operationId: showItem
       parameters:
-        - $ref: '#/components/parameters/Action'
         - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/ItemID'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-    post:
-      summary: Perform {action} on an item.
-      operationId: actionItem
+    put:
+      description: >
+        Save an item.
+      operationId: saveItem
       parameters:
-        - $ref: '#/components/parameters/Action'
         - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/ItemID'
-    responses:
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+    delete:
+      description: >
+        Remove a saved item.
+      operationId: unsaveItem
+      parameters:
+        - $ref: '#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/ItemID'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+  /home/{action}/{feed}/{item}:
+    post:
+      description: >
+        Perform action on item.
+      operationId: actionItem
+      parameters:
+        - $ref: '#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/ItemID'
+        - $ref: '#/components/parameters/Action'
+      responses:
         200:
           $ref: '#/components/responses/htmx'
 components:

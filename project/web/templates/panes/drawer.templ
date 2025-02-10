@@ -6,7 +6,13 @@ package panes
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/input/toggle"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 )
 
 // setReadToggleValue sets the value attribute of the read/unread toggle. It
@@ -31,43 +37,44 @@ templ Drawer() {
 		class="menu bg-base-200 text-base-content items-center justify-center min-h-full max-w-32 p-4"
 	>
 		<li>
-			@components.Text("Actions",
-				components.WithTextWeight(components.TextBold),
-				components.WithTextSize(components.TextSM),
-			)
+			@text.Build("Actions",
+				text.WithTextWeight(text.Bold),
+				text.WithTextSize(text.SM),
+			).Show()
 		</li>
 		<li>
-			@components.Button(
-				components.WithResponsiveSize[*components.ButtonProps](components.SM),
-				components.WithID[*components.ButtonProps]("add"),
-				components.WithColor[*components.ButtonProps](components.ColorGhost, false),
-				components.WithButtonContent(components.AsIconContent("fa-plus")),
-				components.WithAttributes[*components.ButtonProps](templ.Attributes{
+			@button.Build(
+				button.WithSize(size.SM),
+				button.WithID("add"),
+				button.WithThemeColor(color.Primary, false),
+				button.WithContent(icon.Build("fa-plus")),
+				button.WithExtraAttributes(templ.Attributes{
 					"hx-get":    "/subscription/new",
 					"hx-target": "#command_modal",
 					"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
-				}))
+				}),
+			).Show()
 		</li>
 		<li>
-			@components.Text("Filters",
-				components.WithTextWeight(components.TextBold),
-				components.WithTextSize(components.TextSM),
-			)
+			@text.Build("Filters",
+				text.WithTextWeight(text.Bold),
+				text.WithTextSize(text.SM),
+			).Show()
 		</li>
 		<li>
-			@components.Toggle(
-				components.WithID[*components.ToggleProps]("state"),
-				components.WithName[*components.ToggleProps]("state"),
-				components.WithValue[*components.ToggleProps](setReadToggleValue(ctx)),
-				components.WithChecked[*components.ToggleProps](models.PageNavigationFromCtx(ctx).ShowRead()),
-				components.WithResponsiveSize[*components.ToggleProps](components.SM),
-				components.WithAttributes[*components.ToggleProps](templ.Attributes{
+			@toggle.Build(
+				toggle.WithID("state"),
+				toggle.WithName("state"),
+				toggle.WithValue(attributes.Value(setReadToggleValue(ctx))),
+				toggle.WithChecked(models.PageNavigationFromCtx(ctx).ShowRead()),
+				toggle.WithSize(size.SM),
+				toggle.WithExtraAttributes(templ.Attributes{
 					"hx-get": models.StripQueryParams(models.PageNavigationFromCtx(ctx).Current,
 						"state").String(),
 					"hx-target":   "#" + ContentTarget,
 					"hx-push-url": "true",
 				}),
-			)
+			).Show()
 		</li>
 	</ul>
 }

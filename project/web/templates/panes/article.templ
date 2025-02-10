@@ -6,7 +6,10 @@ package panes
 
 import (
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/display/article"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 )
 
 // Article displays an item as an article.
@@ -15,17 +18,16 @@ templ Article(oob bool, item *models.APIItem) {
 		@Header()
 	}
 	<div id="article">
-		@components.Article() {
+		@article.Build().Show() {
 			<h2>{ item.Title }</h2>
 			if len(item.GetCategories()) > 0 {
 				<p>
 					for _, c := range item.GetCategories() {
-						@components.Badge(
-							components.WithResponsiveSize[*components.BadgeProps](components.SM),
-							components.WithColor[*components.BadgeProps](components.ColorGhost,
-								false)) {
-							{ c }
-						}
+						@badge.Build(
+							badge.WithSize(size.SM),
+							badge.WithThemeColor(color.Accent, true),
+							badge.WithText(c),
+						).Show()
 					}
 				</p>
 			}

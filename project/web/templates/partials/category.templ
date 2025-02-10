@@ -3,12 +3,12 @@
 
 package partials
 
-import "github.com/joshuar/go-templ-daisyui"
+import "github.com/joshuar/go-templ-daisyui/display/badge"
+import "github.com/joshuar/go-templ-daisyui/modifiers/size"
 
 templ CategoryBadge(category string) {
-	@components.Badge(
-		components.WithResponsiveSize[*components.BadgeProps](components.MD),
-	) {
-		{ category }
-	}
+	@badge.Build(
+		badge.WithSize(size.SM),
+		badge.WithText(category),
+	).Show()
 }
