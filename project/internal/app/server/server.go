@@ -132,9 +132,9 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	router.Get("/logout/{provider}", wrapper.Logout)
 
 	// Sign up routes.
-	router.Route("/signup", func(signupRouter chi.Router) {
-		signupRouter.Get("/", wrapper.Signup)
-		signupRouter.Post("/", wrapper.ProcessSignup)
+	router.Route("/user", func(signupRouter chi.Router) {
+		signupRouter.Get("/new", wrapper.NewUser)
+		signupRouter.Put("/new", wrapper.AddUser)
 	})
 
 	router.Post("/search", wrapper.Search)
@@ -143,14 +143,11 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
-		// homeRouterMiddlewares := append(wrapper.HandlerMiddlewares)
-		// list routes:
-		homeRouter.Get("/{action}/list/{list}", HomeMiddleware(wrapper.ShowList))
-		homeRouter.Post("/{action}/list/{list}", HomeMiddleware(wrapper.ActionList))
-		// article routes:
-		homeRouter.Get("/{action}/item/{feed}/{item}", HomeMiddleware(wrapper.ShowItem))
-		homeRouter.Post("/{action}/item/{feed}/{item}", HomeMiddleware(wrapper.ActionItem))
-		homeRouter.Get("/settings", wrapper.GetHomeSettings)
+		homeRouter.Get("/show/{type}", HomeMiddleware(wrapper.HandleShowObjects))
+		homeRouter.Get("/paginate/{type}/{pagination}", HomeMiddleware(wrapper.HandlePaginateObjects))
+		homeRouter.Post("/{action}/{type}", HomeMiddleware(wrapper.HandleActionObjects))
+		homeRouter.Get("/show/{feed}/{item}", HomeMiddleware(wrapper.HandleShowItem))
+		homeRouter.Put("/{action}/{feed}/{item}", HomeMiddleware(wrapper.HandleActionItem))
 	})
 
 	router.Route("/subscription", func(subscription chi.Router) {

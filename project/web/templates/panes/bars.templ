@@ -4,22 +4,22 @@
 package panes
 
 import (
-	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/input"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/navigation/navbar"
 )
 
 // AppBarTop displays an app bar at the top of the page.
 templ AppBarTop() {
-	@components.NavBar(
-		components.WithID[*components.NavBarProps]("app_bar"),
-		components.WithPositioning[*components.NavBarProps](components.PositionSticky),
-		components.WithBaseColor[*components.NavBarProps](components.ColorBgBase300),
-		components.NavBarStart(appBarTopLeft()),
-		components.NavBarCenter(appBarTopCenter()),
-		components.NavBarEnd(appBarTopRight()),
-	)
+	@navbar.Build(
+		navbar.WithID("app_bar"),
+		navbar.WithBaseColor(color.Base300),
+		navbar.NavBarStart(appBarTopLeft()),
+		navbar.NavBarCenter(appBarTopCenter()),
+		navbar.NavBarEnd(appBarTopRight()),
+	).Show()
 }
 
 templ appBarTopLeft() {

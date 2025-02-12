@@ -6,8 +6,6 @@ package models
 import (
 	"errors"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/joshuar/go-feed-me/internal/validation"
 )
 
@@ -18,8 +16,6 @@ func (r *APISubscriptionRequest) Valid() bool {
 	if valid {
 		return true
 	}
-
-	spew.Dump(r)
 
 	if len(r.ValidationErrors) == 0 {
 		r.ValidationErrors = make(map[string]string)

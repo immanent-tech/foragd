@@ -12,13 +12,13 @@ var ErrBackend = errors.New("backend API error")
 
 // AuthAPI contains methods for handling auth requests.
 type AuthAPI interface {
-	Create(ctx context.Context, user *UserSignup) (string, error)
+	Create(ctx context.Context, user *APIUserSignupRequest) (string, error)
 }
 
 // UserActionsAPI contains methods for handling user requests.
 type UserActionsAPI interface {
-	UserActionMarkItems(ctx context.Context, mark Action, items []ItemID) error
-	UserActionMarkFeeds(ctx context.Context, mark Action, feeds []FeedID) error
+	UserActionMarkItems(ctx context.Context, mark Mark, items []ItemID) error
+	UserActionMarkFeeds(ctx context.Context, mark Mark, feeds []FeedID) error
 	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
 	UserActionGetItems(ctx context.Context, filters APIFilters) (chan APIItem, Pagination, error)
 	UserActionGetFeeds(ctx context.Context, filters APIFilters) (chan APIFeed, error)

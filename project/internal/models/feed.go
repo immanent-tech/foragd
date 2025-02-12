@@ -16,6 +16,9 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
+// Ensures we statisfy the ServerInterface interface.
+// var _ panes.Feed = (*APIFeed)(nil)
+
 var parser = gofeed.NewParser()
 
 var (
@@ -109,7 +112,7 @@ func (f *APIFeed) GetUserUnreadCount() int {
 }
 
 func (f *APIFeed) SetUserUnreadCount(count int) {
-	if userProps := f.UserProperties; userProps != nil {
+	if f.UserProperties == nil {
 		f.UserProperties = &UserFeedProperties{}
 	}
 

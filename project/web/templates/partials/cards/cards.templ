@@ -1,0 +1,68 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package cards
+
+import (
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"github.com/mmcdole/gofeed"
+	"time"
+)
+
+type Summary interface {
+	GetTitle() string
+	GetID() string
+	GetImage() *gofeed.Image
+	GetCategories() []models.Category
+	GetTimestamp() time.Time
+	GetLink() string
+}
+
+type Content interface {
+	GetContent() string
+}
+
+type Item interface {
+	Summary
+	Content
+}
+
+func New(item Item, actionPath, actionTarget string) templ.Component {
+	props := card.Build(
+		card.Bordered(),
+		card.WithTitle(item.GetTitle()),
+		card.WithShadow(size.XL),
+		card.WithLayout(card.LayoutSide),
+		card.WithID(attributes.ID(item.GetID())),
+		card.WithExtraAttributes(templ.Attributes{
+			"hx-target":   actionTarget,
+			"hx-push-url": "true",
+			"hx-get":      actionPath,
+		}),
+	)
+
+	// switch value := item.(type) {
+	// case *models.APIFeed:
+	// 	return cardIndicator(props.Show(), strconv.Itoa(value.GetUserUnreadCount()))
+	// return indicator.BuildBadgeIndicator(
+	// 	indicator.WithBadgeOptions(
+	// 		badge.WithThemeColor(color.Primary, false),
+	// 		badge.WithText(strconv.Itoa(value.GetUserUnreadCount())),
+	// 	),
+	// ).Show(props.Show())
+	// default:
+	return props.Show()
+	// }
+
+	// return props.Show()
+}
+
+templ cardIndicator(card templ.Component, count string) {
+	<div class="indicator flex-wrap">
+		<div class="indicator-item">{ count }</div>
+		@card
+	</div>
+}

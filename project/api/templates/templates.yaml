@@ -1,0 +1,65 @@
+# Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+# SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+components:
+  schemas:
+    Feed:
+      $ref: '../models/models.yaml#/components/schemas/APIFeed'
+    Item:
+      $ref: '../models/models.yaml#/components/schemas/APIItem'
+    Attributes:
+      x-go-type: 'templ.Attributes'
+      x-go-type-import:
+        path: github.com/a-h/templ
+      x-go-type-skip-optional-pointer: true
+    Component:
+      description: >
+        contains data and properties that can be used to display the
+        data in the web UI.
+      type: object
+      required:
+        - display_type
+        - data_source
+      properties:
+        display_type:
+          description: defines how the component should be displayed.
+          type: string
+          enum:
+            - 'feed_card'
+            - 'item_card'
+            - 'item_article'
+          x-go-type-name: DisplayType
+        data_source:
+          description: contains the object to use for displaying the component.
+          type: object
+          oneOf:
+            - $ref: '#/components/schemas/Feed'
+            - $ref: '#/components/schemas/Item'
+          x-go-type-name: DataSource
+        attributes:
+          description: are any additional attributes to attach to the component.
+          $ref: '#/components/schemas/Attributes'
+        actions:
+          description: >
+            is a list of component-specific actions that the component can
+            include and use.
+          type: array
+          items:
+            $ref: '#/components/schemas/Action'
+          x-go-type-skip-optional-pointer: true
+    Action:
+      description: is an action that can be performed on a component.
+      type: object
+      required:
+        - label
+        - attributes
+      properties:
+        icon:
+          description: is an icon to represent the action.
+          type: string
+        label:
+          description: is a description of the action that can be displayed.
+          type: string
+        attributes:
+          description: are any additional attributes to attach to the action.
+          $ref: '#/components/schemas/Attributes'

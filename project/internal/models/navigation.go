@@ -7,38 +7,38 @@ import (
 	"net/url"
 )
 
-// ShowUnread returns whether the current page has the "show_unread" query
-// parameter set, indicating unread items should be shown.
-func (n *APIPageNavigation) ShowRead() bool {
-	return State(n.Current.Query().Get("state")) == StateRead
-}
+// // ShowUnread returns whether the current page has the "show_unread" query
+// // parameter set, indicating unread items should be shown.
+// func (n *APIPageNavigation) ShowRead() bool {
+// 	return State(n.Current.Query().Get("state")) == StateRead
+// }
 
-func (n *APIPageNavigation) State() State {
-	return State(n.Current.Query().Get("state"))
-}
+// func (n *APIPageNavigation) State() State {
+// 	return State(n.Current.Query().Get("state"))
+// }
 
-func (n *APIPageNavigation) GenerateActionURL(action any) url.URL {
-	var (
-		actionURL *url.URL
-		urlStr    string
-		err       error
-	)
+// func (n *APIPageNavigation) GenerateActionURL(action any) url.URL {
+// 	var (
+// 		actionURL *url.URL
+// 		urlStr    string
+// 		err       error
+// 	)
 
-	switch a := action.(type) {
-	case State:
-		urlStr, err = url.JoinPath(n.Action.Path, string(a))
-		if err != nil {
-			return url.URL{}
-		}
+// 	switch a := action.(type) {
+// 	case State:
+// 		urlStr, err = url.JoinPath(n.Action.Path, string(a))
+// 		if err != nil {
+// 			return url.URL{}
+// 		}
 
-		actionURL, err = url.Parse(urlStr)
-		if err != nil {
-			return url.URL{}
-		}
-	}
+// 		actionURL, err = url.Parse(urlStr)
+// 		if err != nil {
+// 			return url.URL{}
+// 		}
+// 	}
 
-	return *actionURL
-}
+// 	return *actionURL
+// }
 
 // StripQueryParams will strip the given query parameters from the given URL.
 func StripQueryParams(path url.URL, keys ...string) *url.URL {

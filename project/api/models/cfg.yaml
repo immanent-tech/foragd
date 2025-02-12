@@ -3,7 +3,7 @@
 
 # yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
 package: models
-output: ../../internal/models/types.gen.go
+output: ../../internal/models/models.gen.go
 generate:
   models: true
 output-options:

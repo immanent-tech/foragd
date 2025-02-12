@@ -97,7 +97,8 @@
     "components/toggle",
     "components/navbar",
     "modifiers",
-    "server/middlewares"
+    "server/middlewares",
+    "helpers/items"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

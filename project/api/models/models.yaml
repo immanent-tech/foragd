@@ -123,22 +123,20 @@ components:
       maximum: 50
       default: 10
       x-oapi-codegen-extra-tags:
-        json: 'count'
+        # json: 'count'
         form: 'count'
-      nullable: true
+      # nullable: true
     Pagination:
       type: string
       x-oapi-codegen-extra-tags:
         json: 'pagination'
         form: 'pagination'
       nullable: true
-    Action:
+    Mark:
       description: >
-        are actions that can be performed on feeds or items through
-        the API. Not all actions can be performed on all kinds.
+        applies the given mark action to objects.
       type: string
-      enum: ["save","remove","share","edit","markread","markunread","show"]
-      default: "show"
+      enum: ["read","unread"]
     View:
       description: >
         The state of objects to view.
@@ -146,14 +144,9 @@ components:
       enum: ["read","unread","all"]
       default: "unread"
       x-oapi-codegen-extra-tags:
-        json: 'view'
+        # json: 'view'
         form: 'view'
-      nullable: true
-    List:
-      description: >
-        Is the type of a list of objects.
-      type: string
-      enum: ["feeds","items"]
+      # nullable: true
     # Metadata Objects.
     MetadataFeed:
       description: contains common/metadata fields for feeds and items.
@@ -300,70 +293,37 @@ components:
               additionalProperties:
                 $ref: '#/components/schemas/SubscriptionState'
               x-go-type-skip-optional-pointer: true
-    UserSignup:
+    APIUserSignupRequest:
       description: >
         contains the details for a user signup request.
       type: object
-      allOf:
-        - $ref: '#/components/schemas/UserSignupForm'
-        - type: object
-          required:
-            - email
-            - password
-          properties:
-            nickname:
-              type: string
-              x-oapi-codegen-extra-tags:
-                validate: 'omitempty'
-                form: 'nickname,omitempty'
-              x-go-type-skip-optional-pointer: true
-            email:
-              type: string
-              x-oapi-codegen-extra-tags:
-                validate: 'required,email'
-                form: 'email'
-            password:
-              type: string
-              x-oapi-codegen-extra-tags:
-                validate: 'required,min=10'
-                form: 'password'
-    UserSignupForm:
-      description: represents the inputs for a user sign-up.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/UserSigninForm'
-        - type: object
-          properties:
-            InputNickname:
-              x-go-type: '*components.TextInputProps'
-              x-go-type-import:
-                path: 'github.com/joshuar/go-templ-daisyui'
-              x-oapi-codegen-extra-tags:
-                form: '-'
-                json: '-'
-              x-go-type-skip-optional-pointer: true
-    UserSigninForm:
-      description: represents the inputs for user sign-in.
-      type: object
       required:
-        - InputEmail
-        - InputPassword
+        - email
+        - password
       properties:
-        InputEmail:
-          x-go-type: '*components.TextInputProps'
-          x-go-type-import:
-            path: 'github.com/joshuar/go-templ-daisyui'
+        nickname:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty'
+            form: 'nickname,omitempty'
+        email:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,email'
+            form: 'email'
+        password:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,min=10'
+            form: 'password'
+        validation_errors:
+          description: is a map of field name -> validation error for the request.
+          type: object
+          additionalProperties:
+            type: string
+          x-go-json-ignore: true
           x-oapi-codegen-extra-tags:
             form: '-'
-            json: '-'
-          x-go-type-skip-optional-pointer: true
-        InputPassword:
-          x-go-type: '*components.TextInputProps'
-          x-go-type-import:
-            path: 'github.com/joshuar/go-templ-daisyui'
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            json: '-'
           x-go-type-skip-optional-pointer: true
     APIFeed:
       description: represents a feed object for API endpoints.
@@ -445,7 +405,6 @@ components:
               $ref: '#/components/schemas/ItemURL'
             UserProperties:
               $ref: '#/components/schemas/UserItemProperties'
-
     APIList:
       description: represents a list of objects of any type.
       type: array
@@ -529,27 +488,31 @@ components:
     APIFilters:
       description: contains parameters for searching feeds and items
       type: object
+      required:
+        - count
+        - view
       properties:
         FeedIDs:
+          description: is a list of feed IDs to filter on.
           type: array
           items:
             $ref: '#/components/schemas/FeedID'
           x-go-type-skip-optional-pointer: true
         ItemIDs:
+          description: is a list of item IDs to filter on.
           type: array
           items:
             $ref: '#/components/schemas/ItemID'
           x-go-type-skip-optional-pointer: true
         Categories:
+          description: is a list of categories to filter on.
           type: array
           items:
             $ref: '#/components/schemas/Category'
           x-go-type-skip-optional-pointer: true
-        Pagination:
-          $ref: '#/components/schemas/Pagination'
-        Count:
+        count:
           $ref: '#/components/schemas/Count'
-        View:
+        view:
           $ref: '#/components/schemas/View'
     ScheduledJob:
       description: represents a job that has been scheduled by the job scheduler.
@@ -624,27 +587,5 @@ components:
           x-go-type: time.Time
           x-oapi-codegen-extra-tags:
             json: 'expiry'
-    APIPageNavigation:
-      description: describes the navigation "breadcrumbs" for the current page.
-      type: object
-      required:
-        - current
-        - action
-      properties:
-        parent:
-          description: the parent page of the current page.
-          x-go-type: 'url.URL'
-          x-go-type-skip-optional-pointer: true
-        current:
-          description: the current page.
-          x-go-type: 'url.URL'
-        action:
-          description: the URL for performing actions for the current page.
-          x-go-type: 'url.URL'
-        child:
-          description: the child page of the current page.
-          x-go-type: 'url.URL'
-          x-go-type-skip-optional-pointer: true
-
 
 

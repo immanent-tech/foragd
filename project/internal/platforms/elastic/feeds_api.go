@@ -235,9 +235,9 @@ func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, view 
 	var query Option[*types.Query]
 
 	switch view {
-	case models.ViewRead:
+	case models.Read:
 		query = readFeedItemsQuery(user, feedIDs...)
-	case models.ViewUnread:
+	case models.Unread:
 		fallthrough
 	default:
 		query = unreadFeedItemsQuery(user, feedIDs...)

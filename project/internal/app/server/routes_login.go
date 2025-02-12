@@ -62,7 +62,7 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 	}
 	// Redirect to logged in page.
 	req.Header.Add("Content-Type", "")
-	http.Redirect(res, req.WithContext(ctx), showFeedsBasePath, http.StatusTemporaryRedirect)
+	http.Redirect(res, req.WithContext(ctx), "/home/show/feeds", http.StatusTemporaryRedirect)
 }
 
 func (s Server) GetHomeSettings(res http.ResponseWriter, req *http.Request) {

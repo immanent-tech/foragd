@@ -10,8 +10,8 @@ import (
 const (
 	userContextKey          contextKey = "user"
 	feedManagementAPICtxKey contextKey = "feedManagementAPI"
-	pageNavigationCtxKey    contextKey = "pageNavigation"
-	itemSetBasePathCtxKey   contextKey = "itemSetBasePath"
+	// pageNavigationCtxKey    contextKey = "pageNavigation"
+	itemSetBasePathCtxKey contextKey = "itemSetBasePath"
 )
 
 type contextKey string
@@ -47,18 +47,18 @@ func FeedManagementAPIFromCtx(ctx context.Context) FeedManagementAPI {
 	return api
 }
 
-func PageNavigationToCtx(ctx context.Context, navigation *APIPageNavigation) context.Context {
-	return context.WithValue(ctx, pageNavigationCtxKey, navigation)
-}
+// func PageNavigationToCtx(ctx context.Context, navigation *APIPageNavigation) context.Context {
+// 	return context.WithValue(ctx, pageNavigationCtxKey, navigation)
+// }
 
-func PageNavigationFromCtx(ctx context.Context) *APIPageNavigation {
-	navigation, found := ctx.Value(pageNavigationCtxKey).(*APIPageNavigation)
-	if !found {
-		return nil
-	}
+// func PageNavigationFromCtx(ctx context.Context) *APIPageNavigation {
+// 	navigation, found := ctx.Value(pageNavigationCtxKey).(*APIPageNavigation)
+// 	if !found {
+// 		return nil
+// 	}
 
-	return navigation
-}
+// 	return navigation
+// }
 
 func ItemSetBasePathToCtx(ctx context.Context, path string) context.Context {
 	return context.WithValue(ctx, itemSetBasePathCtxKey, path)

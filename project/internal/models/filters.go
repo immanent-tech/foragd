@@ -16,7 +16,7 @@ import (
 var ErrGetFilterValue = errors.New("error fetching filter value")
 
 // GetFeedIDs retrieves the array of FeedIDs from the APIFilters.
-func (f APIFilters) GetSubscriptionIDs() []FeedID {
+func (f APIFilters) GetFeedIDs() []FeedID {
 	if len(f.FeedIDs) > 0 {
 		return f.FeedIDs
 	}
@@ -45,51 +45,46 @@ func (f APIFilters) GetCategories() []Category {
 // GetCount retrieves the Count from the APIFilters. If the count is not found,
 // a default value will be returned.
 func (f APIFilters) GetCount() Count {
-	if f.Count.IsSpecified() {
-		if count, err := f.Count.Get(); err == nil {
-			return count
-		}
-	}
-
-	return 10
+	return f.Count
 }
 
 // GetState retrieves the State value. This indicates the state of objects
 // that should be filtered.
 func (f APIFilters) GetView() View {
-	if !f.View.IsSpecified() {
-		return ViewUnread
-	}
+	return Unread
+	// if !f.View.IsSpecified() {
+	// 	return Read
+	// }
 
-	unread, err := f.View.Get()
-	if err != nil {
-		return ViewUnread
-	}
+	// unread, err := f.View.Get()
+	// if err != nil {
+	// 	return Unread
+	// }
 
-	return unread
+	// return unread
 }
 
-func (f APIFilters) GetPagination() (Pagination, error) {
-	if !f.Pagination.IsSpecified() {
-		return "", nil
-	}
+// func (f APIFilters) GetPagination() (Pagination, error) {
+// 	if !f.Pagination.IsSpecified() {
+// 		return "", nil
+// 	}
 
-	encoded, err := f.Pagination.Get()
-	if err != nil {
-		return "", errors.Join(ErrGetFilterValue, err)
-	}
+// 	encoded, err := f.Pagination.Get()
+// 	if err != nil {
+// 		return "", errors.Join(ErrGetFilterValue, err)
+// 	}
 
-	return encoded, nil
-}
+// 	return encoded, nil
+// }
 
-func (f APIFilters) SetPagination(data any) {
-	switch d := data.(type) {
-	case []byte:
-		f.Pagination.Set(url.QueryEscape(string(d)))
-	case string:
-		f.Pagination.Set(d)
-	}
-}
+// func (f APIFilters) SetPagination(data any) {
+// 	switch d := data.(type) {
+// 	case []byte:
+// 		f.Pagination.Set(url.QueryEscape(string(d)))
+// 	case string:
+// 		f.Pagination.Set(d)
+// 	}
+// }
 
 func EncodePagination(decoded []byte) (Pagination, error) {
 	return url.QueryEscape(string(decoded)), nil
@@ -109,8 +104,8 @@ func DecodePagination(encoded Pagination) ([]byte, error) {
 func (f APIFilters) String() string {
 	params := make(url.Values)
 
-	if subscriptions := f.GetSubscriptionIDs(); len(subscriptions) > 0 {
-		params.Add("subscriptions", strings.Join(subscriptions, ","))
+	if feeds := f.GetFeedIDs(); len(feeds) > 0 {
+		params.Add("feeds", strings.Join(feeds, ","))
 	}
 
 	if items := f.GetItemsIDs(); len(items) > 0 {
@@ -121,9 +116,9 @@ func (f APIFilters) String() string {
 		params.Add("categories", strings.Join(categories, ","))
 	}
 
-	if pagination, err := f.GetPagination(); err == nil && pagination != "" {
-		params.Add("pagination", pagination)
-	}
+	// if pagination, err := f.GetPagination(); err == nil && pagination != "" {
+	// 	params.Add("pagination", pagination)
+	// }
 
 	params.Add("view", string(f.GetView()))
 
@@ -167,12 +162,8 @@ func CreateFilters(params any) (*APIFilters, error) {
 	slog.Debug("Unmarshaling filters.",
 		slog.Any("filters", filters))
 
-	if filters.Count.IsSpecified() {
-		if count, err := filters.Count.Get(); err == nil {
-			if count == 0 || count > 20 {
-				filters.Count.Set(10)
-			}
-		}
+	if filters.Count == 0 || filters.Count > 20 {
+		filters.Count = 10
 	}
 
 	// if params.Pagination != nil {

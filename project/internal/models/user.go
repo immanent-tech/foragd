@@ -10,8 +10,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/joshuar/go-feed-me/internal/validation"
 )
 
@@ -203,11 +201,9 @@ func (u *User) AddSubscription(ctx context.Context, api UserManagementAPI, feedI
 		"subscriptions": u.Subscriptions,
 	}
 
-	spew.Dump(partialUpdate)
-
-	// if err := api.UpdateUser(ctx, u.ID, partialUpdate); err != nil {
-	// 	return errors.Join(ErrUpdateUser, err)
-	// }
+	if err := api.UpdateUser(ctx, u.ID, partialUpdate); err != nil {
+		return errors.Join(ErrUpdateUser, err)
+	}
 
 	return nil
 }

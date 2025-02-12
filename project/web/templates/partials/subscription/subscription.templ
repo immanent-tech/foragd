@@ -43,7 +43,7 @@ func inputURL(req *models.APISubscriptionRequest) templ.Component {
 	}
 	// Check for validation errors and mark the field with error status.
 	if req.ValidationErrors["URL"] != "" {
-		urlInput.Input.SetState(color.StateColor(state.Error), true)
+		urlInput.Input.SetStateColor(state.Error)
 		urlInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["URL"])
 	}
 
@@ -74,7 +74,7 @@ func inputName(req *models.APISubscriptionRequest) templ.Component {
 	}
 	// Check for validation errors and mark the field with error status.
 	if req.ValidationErrors["Name"] != "" {
-		nameInput.Input.SetState(color.StateColor(state.Error), true)
+		nameInput.Input.SetStateColor(state.Error)
 		nameInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["Name"])
 	}
 
@@ -96,7 +96,7 @@ func inputCategory() templ.Component {
 			button.Build(
 				button.AsShape(button.Circle, true),
 				button.WithSize(size.SM),
-				button.WithThemeColor(color.Ghost, false),
+				button.WithThemeColor(color.Primary, false),
 				button.WithContent(icon.Build("fa-plus")),
 			).Show(),
 		),
@@ -118,7 +118,7 @@ func categoryItem(category models.Category) templ.Component {
 			button.Build(
 				button.AsShape(button.Circle, true),
 				button.WithSize(size.SM),
-				button.WithThemeColor(color.Ghost, false),
+				button.WithThemeColor(color.Primary, false),
 				button.WithContent(icon.Build("fa-minus")),
 				button.WithExtraAttributes(templ.Attributes{
 					"hx-delete": "/subscription/category",

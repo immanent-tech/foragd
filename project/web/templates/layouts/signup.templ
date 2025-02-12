@@ -5,6 +5,13 @@ package layouts
 
 import "github.com/joshuar/go-templ-daisyui/feedback/alert"
 
+// {{ signup := UserSignupFromCtx(ctx) }}
+// if signup != nil {
+// 	<div id="signup">
+// 		@signup.Form()
+// 	</div>
+// }
+
 // SignupLayout is the page content for the signup page.
 templ SignupLayout() {
 	<div id="signup-hero" class="hero bg-base-200 min-h-screen">
@@ -12,12 +19,6 @@ templ SignupLayout() {
 			<div class="max-w-md gap-2">
 				<h1 class="text-3xl font-bold">Sign-up to Go Feed Me</h1>
 				<div id="signup-notifications"></div>
-				{{ signup := UserSignupFromCtx(ctx) }}
-				if signup != nil {
-					<div id="signup">
-						@signup.Form()
-					</div>
-				}
 			</div>
 		</div>
 	</div>

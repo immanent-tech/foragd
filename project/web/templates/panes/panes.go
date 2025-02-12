@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	components "github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
@@ -32,7 +34,7 @@ func RelativeTime(timestamp time.Time) string {
 type Feed interface {
 	Summary
 	Content
-	GetUnreadCount() int
+	GetUserUnreadCount() int
 }
 
 type Item interface {
@@ -56,14 +58,14 @@ type Content interface {
 }
 
 type cardCustomisation struct {
-	title     components.Option[*components.CardProps]
+	title     any
 	actions   []templ.Component
 	content   templ.Component
 	updatedAt string
 }
 
-func NewCard(ctx context.Context, item any) (*components.CardProps, error) {
-	var customisation *cardCustomisation
+func NewCard(ctx context.Context, item any, actionPath string) (*card.Props, error) {
+	// var customisation *cardCustomisation
 
 	// Don't continue if we don't have an object that can be represented as a
 	// Summary.
@@ -72,15 +74,29 @@ func NewCard(ctx context.Context, item any) (*components.CardProps, error) {
 		return nil, fmt.Errorf("could not generate a card, unknown item")
 	}
 
-	// Generate type-specific card customisation.
-	switch details := item.(type) {
-	case Item:
-		customisation = itemCustomisation(ctx, details)
-	case Feed:
-		customisation = feedCustomisation(ctx, details)
-	}
+	// Create the base CardProps with the defined options.
+	props := card.Build(
+		card.Bordered(),
+		card.WithContent(text.Build(summary.GetTitle()).Show()),
+		card.WithShadow(size.XL),
+		card.WithLayout(card.LayoutSide),
+		card.WithID(attributes.ID(summary.GetID())),
+		card.WithExtraAttributes(templ.Attributes{
+			"hx-target":   "#" + ContentTarget,
+			"hx-push-url": "true",
+			"hx-get":      actionPath,
+		}),
+	)
 
-	var categories []templ.Component
+	// // Generate type-specific card customisation.
+	// switch details := item.(type) {
+	// case Item:
+	// 	customisation = itemCustomisation(ctx, details)
+	// case Feed:
+	// 	customisation = feedCustomisation(ctx, details)
+	// }
+
+	// var categories []templ.Component
 	// If there are categories, show them.
 	// if len(summary.GetCategories()) > 0 {
 	// 	for _, c := range summary.GetCategories() {
@@ -92,39 +108,36 @@ func NewCard(ctx context.Context, item any) (*components.CardProps, error) {
 	// 	}
 	// }
 
-	// Create the base CardProps with the defined options.
-	cardProps := components.BuildCard(
-		// customisation.title,
-		components.WithBorder(),
-		components.WithCardLayout(components.CardLayoutSide),
-		components.WithCardShadow(components.XL),
-		components.WithCompactCardBody(),
-		components.WithID[*components.CardProps](summary.GetID()),
-		components.WithBody(customisation.content,
-			components.WithTopRightActions(withMenu(customisation.actions...)...),
-			components.WithBottomLeftActions(text.Build(
-				customisation.updatedAt,
-				text.AsItalicText(),
-				text.WithTextSize(text.SM)).Show()),
-			components.WithBottomRightActions(categories...),
-			components.WithAttributes[*components.CardBodyProps](templ.Attributes{
-				"hx-target":   "#" + ContentTarget,
-				"hx-push-url": "true",
-			}),
-		),
-	)
+	// components.BuildCard(
+	// 	// customisation.title,
+	// 	components.WithBorder(),
+	// 	components.WithCardLayout(components.CardLayoutSide),
+	// 	components.WithCardShadow(components.XL),
+	// 	components.WithCompactCardBody(),
+	// 	components.WithID[*components.CardProps](summary.GetID()),
+	// 	components.WithBody(customisation.content,
+	// 		components.WithTopRightActions(withMenu(customisation.actions...)...),
+	// 		components.WithBottomLeftActions(text.Build(
+	// 			customisation.updatedAt,
+	// 			text.AsItalicText(),
+	// 			text.WithTextSize(text.SM)).Show()),
+	// 		components.WithBottomRightActions(categories...),
+	// 		components.WithAttributes[*components.CardBodyProps](templ.Attributes{
+	// 			"hx-target":   "#" + ContentTarget,
+	// 			"hx-push-url": "true",
+	// 		}),
+	// 	),
+	// )
 
 	// If there is an image, show it.
 	if img := summary.GetImage(); img != nil {
-		cardProps = components.WithImage(img.URL,
-			components.ImageTop,
-			components.WithLazyLoading(),
-			components.WithAltText(img.Title),
-			components.WithMask(mask.MaskSquircle),
-		)(cardProps)
+		card.WithImage(img.URL,
+			image.WithLazyLoading(),
+			image.WithAltText(img.Title),
+			image.WithMask(mask.MaskSquircle))(props)
 	}
 
-	return cardProps, nil
+	return props, nil
 }
 
 func withMenu(items ...templ.Component) []templ.Component {
@@ -137,14 +150,16 @@ func withMenu(items ...templ.Component) []templ.Component {
 			menu.WithBaseColor(color.Base200),
 			menu.WithLayout(menu.Horizontal),
 			menu.WithRevealedBreakpoint(size.LG),
-		).Show(items...),
+			menu.WithItems(items...),
+		).Show(),
 		// Menu for small screens: buttons hidden behind drop-down.
 		menu.Build(
 			menu.WithSize(size.SM),
 			menu.WithBaseColor(color.Base200),
 			menu.WithLayout(menu.Vertical),
 			menu.WithHiddenBreakpoint(size.LG),
-		).Show(items...),
+			menu.WithItems(items...),
+		).Show(),
 	)
 
 	return menus
@@ -169,9 +184,7 @@ func itemCustomisation(ctx context.Context, item Item) *cardCustomisation {
 	}
 
 	return &cardCustomisation{
-		title: components.WithTitle(
-			item.GetTitle(),
-			components.H4),
+		title:   item.GetTitle(),
 		actions: actions,
 
 		// 	buttonToggleItem(item.GetFeedID(), item.GetID()),
@@ -186,19 +199,17 @@ func itemCustomisation(ctx context.Context, item Item) *cardCustomisation {
 }
 
 func feedCustomisation(ctx context.Context, feed Feed) *cardCustomisation {
-	markReadURL := models.SetQueryParams(
-		models.PageNavigationFromCtx(ctx).GenerateActionURL(models.StateRead),
-		map[string]string{
-			"feeds": feed.GetID(),
-		})
+	// markReadURL := models.SetQueryParams(
+	// 	models.PageNavigationFromCtx(ctx).GenerateActionURL(models.StateRead),
+	// 	map[string]string{
+	// 		"feeds": feed.GetID(),
+	// 	})
 
 	return &cardCustomisation{
-		title: components.WithTitle(
-			feed.GetTitle(),
-			components.H2),
-		content: FeedCard(feed),
+		title: feed.GetTitle(),
+		// content: FeedCard(feed),
 		actions: []templ.Component{
-			actionButton(markReadURL.String(), "#"+feed.GetID(), "fa-check", "Mark Feed Read"),
+			actionButton("", "#"+feed.GetID(), "fa-check", "Mark Feed Read"),
 		},
 		updatedAt: "Last Update: " + RelativeTime(feed.GetTimestamp()),
 	}

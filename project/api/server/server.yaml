@@ -76,32 +76,23 @@ paths:
           description: Redirect to provider
         500:
           description: Problem with request
-  /signup:
-    summary: Display a sign-up form.
+  /user/new:
     get:
-      summary: User sign up
-      operationId: signup
+      description: >
+        Add a new user.
+      operationId: newUser
       responses:
         200:
           $ref: '#/components/responses/htmx'
-        400:
-          description: Bad request (not htmx)
-        500:
-          description: Error rendering signup form
-    post:
-      summary: Process sign up request
-      operationId: processSignup
+    put:
+      summary: >
+        Save a new user.
+      operationId: addUser
       requestBody:
-        description: New user information
-        content:
-          multipart/form-data:
-            schema:
-              $ref: '../models/api.yaml#/components/schemas/UserSignup'
+        $ref: '#/components/requestBodies/UserSignupRequestBody'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-        500:
-          description: Error processing signup
   /search:
     post:
       summary: Issue a user search request
@@ -118,7 +109,7 @@ paths:
       #   content:
       #     application/x-www-form-urlencoded:
       #       schema:
-      #         $ref: '../models/api.yaml#/components/schemas/Filters'
+      #         $ref: '../models/models.yaml#/components/schemas/Filters'
   /home/settings:
     get:
       summary: Show user settings modal
@@ -194,80 +185,50 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/show/feeds:
+  /home/show/{type}:
     get:
-      description: >
-        Show feeds with optional filtering.
-      operationId: showFeeds
+      summary: >
+        Show object(s) of given {type} with optional filtering.
+      operationId: handleShowObjects
       parameters:
+        - $ref: '#/components/parameters/Type'
         # Query:
-        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/FeedIDs'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Count'
-        - $ref: '#/components/parameters/Pagination'
         - $ref: '#/components/parameters/View'
-  /home/{action}/feeds:
+  /home/paginate/{type}/{pagination}:
+    get:
+      summary: >
+        Paginate through object(s) of given {type} with optional filtering.
+      operationId: handlePaginateObjects
+      parameters:
+        - $ref: '#/components/parameters/Type'
+        - $ref: '#/components/parameters/Pagination'
+        # Query:
+        - $ref: '#/components/parameters/FeedIDs'
+        - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/Count'
+        - $ref: '#/components/parameters/View'
+  /home/{action}/{type}:
     post:
-      description: >
-        Perform action on feeds with optional filtering.
-      operationId: actionFeeds
+      summary: >
+        Perform {action} on object(s) of given {type} with optional filtering.
+      operationId: handleActionObjects
       parameters:
         # Path:
         - $ref: '#/components/parameters/Action'
+        - $ref: '#/components/parameters/Type'
         # Query:
-        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/FeedIDs'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/Count'
-        - $ref: '#/components/parameters/Pagination'
         - $ref: '#/components/parameters/View'
-  /home/show/items:
+  /home/show/{feed}/{item}:
     get:
       description: >
-        Show items with optional filtering.
-      operationId: showItems
-      parameters:
-        # Query:
-        - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/Count'
-        - $ref: '#/components/parameters/Pagination'
-        - $ref: '#/components/parameters/View'
-  /home/{action}/items:
-    post:
-      description: >
-        Perform action on items with optional filtering.
-      operationId: showItems
-      parameters:
-        # Query:
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/Count'
-        - $ref: '#/components/parameters/Pagination'
-        - $ref: '#/components/parameters/View'
-  /home/{feed}/{item}:
-    get:
-      description: >
-        Perform action on feeds with optional filtering.
-      operationId: showItem
-      parameters:
-        - $ref: '#/components/parameters/FeedID'
-        - $ref: '#/components/parameters/ItemID'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-    put:
-      description: >
-        Save an item.
-      operationId: saveItem
-      parameters:
-        - $ref: '#/components/parameters/FeedID'
-        - $ref: '#/components/parameters/ItemID'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-    delete:
-      description: >
-        Remove a saved item.
-      operationId: unsaveItem
+        Show item.
+      operationId: handleShowItem
       parameters:
         - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/ItemID'
@@ -275,26 +236,44 @@ paths:
         200:
           $ref: '#/components/responses/htmx'
   /home/{action}/{feed}/{item}:
-    post:
+    put:
       description: >
         Perform action on item.
-      operationId: actionItem
+      operationId: handleActionItem
       parameters:
+        - $ref: '#/components/parameters/Action'
         - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/ItemID'
-        - $ref: '#/components/parameters/Action'
       responses:
         200:
           $ref: '#/components/responses/htmx'
 components:
+  schemas:
+    Action:
+      description: is an action to perform on object(s).
+      name: action
+      type: string
+      enum: ["save","remove","share","edit","markread","markunread"]
+    ObjectType:
+      description: is a type of object.
+      name: ObjectType
+      type: string
+      enum: ["feeds","items"]
   requestBodies:
+    UserSignupRequestBody:
+      description: >
+        Holds details for adding/saving a user signup.
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            $ref: '../models/models.yaml#/components/schemas/APIUserSignupRequest'
     SubscriptionRequestBody:
       description: >
         Holds details for adding/saving a subscription.
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: '../models/api.yaml#/components/schemas/APISubscriptionRequest'
+            $ref: '../models/models.yaml#/components/schemas/APISubscriptionRequest'
     CategoryRequestBody:
       description: >
         A list of categories to add/remove from a subscription.
@@ -307,22 +286,37 @@ components:
               - Category
             properties:
               Category:
-                $ref: '../models/api.yaml#/components/schemas/Category'
+                $ref: '../models/models.yaml#/components/schemas/Category'
   parameters:
+    Action:
+      name: action
+      in: path
+      schema:
+        $ref: '#/components/schemas/Action'
+    Type:
+      name: type
+      in: path
+      schema:
+        $ref: '#/components/schemas/ObjectType'
+    Pagination:
+      name: pagination
+      in: path
+      schema:
+        $ref: '../models/models.yaml#/components/schemas/Pagination'
+
   # Query parameters:
     FeedIDs:
-      name: subscriptions
+      name: feeds
       description: An array of Feed IDs.
       in: query
       schema:
         type: array
         items:
-          $ref: '../models/api.yaml#/components/schemas/FeedID'
+          $ref: '../models/models.yaml#/components/schemas/FeedID'
         x-go-type-skip-optional-pointer: true
         x-oapi-codegen-extra-tags:
-          json: 'subscriptions'
-          form: 'subscriptions[]'
-        nullable: true
+          json: 'feeds'
+          form: 'feeds[]'
     ItemIDs:
       name: items
       description: An array of Item IDs.
@@ -330,12 +324,11 @@ components:
       schema:
         type: array
         items:
-          $ref: '../models/api.yaml#/components/schemas/ItemID'
+          $ref: '../models/models.yaml#/components/schemas/ItemID'
         x-go-type-skip-optional-pointer: true
         x-oapi-codegen-extra-tags:
           json: 'items'
           form: 'items[]'
-        nullable: true
     Categories:
       name: categories
       description: An array of Categories.
@@ -343,47 +336,34 @@ components:
       schema:
         type: array
         items:
-          $ref: '../models/api.yaml#/components/schemas/Category'
+          $ref: '../models/models.yaml#/components/schemas/Category'
         x-go-type-skip-optional-pointer: true
         x-oapi-codegen-extra-tags:
           json: 'categories'
           form: 'categories[]'
-    Pagination:
-      name: pagination
-      in: query
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/Pagination'
     Count:
       name: count
       in: query
+      required: true
       schema:
-        $ref: '../models/api.yaml#/components/schemas/Count'
+        $ref: '../models/models.yaml#/components/schemas/Count'
     View:
       name: view
       in: query
+      required: true
       schema:
-        $ref: '../models/api.yaml#/components/schemas/View'
+        $ref: '../models/models.yaml#/components/schemas/View'
   # Path parameters:
-    List:
-      name: list
-      in: path
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/List'
-    Action:
-      name: action
-      in: path
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/Action'
     FeedID:
       name: feed
       in: path
       schema:
-        $ref: '../models/api.yaml#/components/schemas/FeedID'
+        $ref: '../models/models.yaml#/components/schemas/FeedID'
     ItemID:
       name: item
       in: path
       schema:
-        $ref: '../models/api.yaml#/components/schemas/ItemID'
+        $ref: '../models/models.yaml#/components/schemas/ItemID'
   responses:
     htmx:
       description: standard htmx powered response.

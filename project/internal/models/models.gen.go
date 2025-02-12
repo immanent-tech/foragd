@@ -5,32 +5,18 @@ package models
 
 import (
 	"encoding/json"
-	"net/url"
 	"time"
 
 	"github.com/coreos/go-oidc"
-	components "github.com/joshuar/go-templ-daisyui"
 	"github.com/mmcdole/gofeed"
-	"github.com/oapi-codegen/nullable"
 	"github.com/oapi-codegen/runtime"
 	"github.com/reugn/go-quartz/quartz"
 )
 
-// Defines values for Action.
+// Defines values for Mark.
 const (
-	Edit       Action = "edit"
-	Markread   Action = "markread"
-	Markunread Action = "markunread"
-	Remove     Action = "remove"
-	Save       Action = "save"
-	Share      Action = "share"
-	Show       Action = "show"
-)
-
-// Defines values for List.
-const (
-	Feeds List = "feeds"
-	Items List = "items"
+	MarkRead   Mark = "read"
+	MarkUnread Mark = "unread"
 )
 
 // Defines values for State.
@@ -42,9 +28,9 @@ const (
 
 // Defines values for View.
 const (
-	ViewAll    View = "all"
-	ViewRead   View = "read"
-	ViewUnread View = "unread"
+	All    View = "all"
+	Read   View = "read"
+	Unread View = "unread"
 )
 
 // APIFeed defines model for APIFeed.
@@ -95,16 +81,20 @@ type APIFeedState struct {
 
 // APIFilters contains parameters for searching feeds and items
 type APIFilters struct {
+	// Categories is a list of categories to filter on.
 	Categories []Category `json:"Categories,omitempty"`
 
+	// FeedIDs is a list of feed IDs to filter on.
+	FeedIDs []FeedID `json:"FeedIDs,omitempty"`
+
+	// ItemIDs is a list of item IDs to filter on.
+	ItemIDs []ItemID `json:"ItemIDs,omitempty"`
+
 	// Count is the count of items to retrieve with a request.
-	Count      nullable.Nullable[Count]      `form:"count" json:"count"`
-	FeedIDs    []FeedID                      `json:"FeedIDs,omitempty"`
-	ItemIDs    []ItemID                      `json:"ItemIDs,omitempty"`
-	Pagination nullable.Nullable[Pagination] `form:"pagination" json:"pagination"`
+	Count Count `form:"count" json:"count"`
 
 	// View The state of objects to view.
-	View nullable.Nullable[View] `form:"view" json:"view"`
+	View View `form:"view" json:"view"`
 }
 
 // APIItem defines model for APIItem.
@@ -141,21 +131,6 @@ type APIList_Item struct {
 	union json.RawMessage
 }
 
-// APIPageNavigation describes the navigation "breadcrumbs" for the current page.
-type APIPageNavigation struct {
-	// Action the URL for performing actions for the current page.
-	Action url.URL `json:"action"`
-
-	// Child the child page of the current page.
-	Child url.URL `json:"child,omitempty"`
-
-	// Current the current page.
-	Current url.URL `json:"current"`
-
-	// Parent the parent page of the current page.
-	Parent url.URL `json:"parent,omitempty"`
-}
-
 // APISubscriptionRequest represents a new subscription request from a user.
 type APISubscriptionRequest struct {
 	// Categories is a list of custom categories the user has assigned to the feed.
@@ -171,8 +146,15 @@ type APISubscriptionRequest struct {
 	ValidationErrors map[string]string `form:"-" json:"-"`
 }
 
-// Action are actions that can be performed on feeds or items through the API. Not all actions can be performed on all kinds.
-type Action string
+// APIUserSignupRequest contains the details for a user signup request.
+type APIUserSignupRequest struct {
+	Email    string  `form:"email" json:"email" validate:"required,email"`
+	Nickname *string `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
+	Password string  `form:"password" json:"password" validate:"required,min=10"`
+
+	// ValidationErrors is a map of field name -> validation error for the request.
+	ValidationErrors map[string]string `form:"-" json:"-"`
+}
 
 // Category is a single feed/item category.
 type Category = string
@@ -233,8 +215,8 @@ type ItemState struct {
 // ItemURL A URL to view the original item.
 type ItemURL = string
 
-// List Is the type of a list of objects.
-type List string
+// Mark applies the given mark action to objects.
+type Mark string
 
 // MarkedRead records when the object was last marked read.
 type MarkedRead = time.Time
@@ -367,29 +349,6 @@ type UserSession struct {
 
 	// Token the session token for the user.
 	Token string `json:"token"`
-}
-
-// UserSigninForm represents the inputs for user sign-in.
-type UserSigninForm struct {
-	InputEmail    *components.TextInputProps `form:"-" json:"-"`
-	InputPassword *components.TextInputProps `form:"-" json:"-"`
-}
-
-// UserSignup defines model for UserSignup.
-type UserSignup struct {
-	InputEmail    *components.TextInputProps `form:"-" json:"-"`
-	InputNickname *components.TextInputProps `form:"-" json:"-"`
-	InputPassword *components.TextInputProps `form:"-" json:"-"`
-	Email         string                     `form:"email" json:"email" validate:"required,email"`
-	Nickname      string                     `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
-	Password      string                     `form:"password" json:"password" validate:"required,min=10"`
-}
-
-// UserSignupForm defines model for UserSignupForm.
-type UserSignupForm struct {
-	InputEmail    *components.TextInputProps `form:"-" json:"-"`
-	InputNickname *components.TextInputProps `form:"-" json:"-"`
-	InputPassword *components.TextInputProps `form:"-" json:"-"`
 }
 
 // View The state of objects to view.

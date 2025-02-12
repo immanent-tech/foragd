@@ -6,7 +6,7 @@ package layouts
 import "github.com/joshuar/go-templ-daisyui"
 
 templ HomeLayout(content, drawer templ.Component) {
-	<div id="command_modal" class="max-w-full"></div>
+	<div id="command_modal" class="container mx-auto px-4"></div>
 	@components.Drawer("home_drawer",
 		components.WithDrawerVisibility(components.LG),
 		components.WithMainContent(content),
