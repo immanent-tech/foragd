@@ -131,6 +131,31 @@ func QuerySince(field string, since time.Time) Option[*types.Query] {
 	}
 }
 
+// QuerySince adds a "Range" query to find documents between (or equal to) the given times.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
+func QueryBetween(field string, from time.Time, to time.Time) Option[*types.Query] {
+	return func(query *types.Query) *types.Query {
+		var fromStr, toStr string
+
+		if from.IsZero() || to.IsZero() {
+			return query
+		}
+
+		fromStr = from.UTC().Format(time.RFC3339Nano)
+		toStr = to.UTC().Format(time.RFC3339Nano)
+
+		query.Range = map[string]types.RangeQuery{
+			field: types.DateRangeQuery{
+				Gte: &fromStr,
+				Lte: &toStr,
+			},
+		}
+
+		return query
+	}
+}
+
 func IntLessThan(value int64) Option[*types.NumberRangeQuery] {
 	return func(numberRange *types.NumberRangeQuery) *types.NumberRangeQuery {
 		lt := types.Float64(value)
