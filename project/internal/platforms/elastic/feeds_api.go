@@ -319,20 +319,33 @@ func unreadFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) Option[*t
 
 // readFeedItemsQuery generates a query for matching read items for the given feeds.
 func readFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) Option[*types.Query] {
+	readFeedIDs := make([]models.FeedID, 0, len(feedIDs))
 	clauses := make([]Option[*types.Query], 0, len(feedIDs))
+
 	for _, id := range feedIDs {
+		// Ignore feed if user has never marked it as read.
+		if user.GetFeedLastRead(id) == user.GetMaxHistory() {
+			continue
+		}
+
+		// Get any unread items for the feed.
+		readFeedIDs = append(readFeedIDs, id)
 		clauses = append(clauses,
 			QueryBool(
 				BoolFilter(
 					// Must match this feed.
 					QueryByTerm("feed_id", id),
-					// And should be newer than the max history for the user.
+					// And should be between the user max history and last read time.
 					QueryBool(
 						BoolShould(
-							QuerySince("publishedParsed", user.GetMaxHistory()),
-							QuerySince("updatedParsed", user.GetMaxHistory()),
+							QueryBetween("publishedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
+							QueryBetween("updatedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
 						),
 					),
+				),
+				BoolMustNot(
+					// Must not match an unread item.
+					QueryByItemIDs(user.GetItemIDsWithState(models.Unread, id)...),
 				),
 			),
 		)
@@ -341,7 +354,7 @@ func readFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) Option[*typ
 	return QueryBool(
 		BoolFilter(
 			// Must match any of the given feed IDs
-			QueryByFeedIDs(feedIDs...),
+			QueryByFeedIDs(readFeedIDs...),
 			// And should match one feed clause.
 			QueryBool(
 				BoolShould(clauses...),
