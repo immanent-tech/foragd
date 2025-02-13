@@ -82,6 +82,13 @@ func WithCategories(categories ...Category) ParamsOption {
 	}
 }
 
+func WithView(view View) ParamsOption {
+	return func(v url.Values) url.Values {
+		v.Set("view", string(view))
+		return v
+	}
+}
+
 // ExcludeFeeds option removes any FeedID filters from the params.
 func ExcludeFeeds() ParamsOption {
 	return func(v url.Values) url.Values {
@@ -108,10 +115,10 @@ func ExcludeCategories() ParamsOption {
 
 // BuildURL will generate a url.URL object from the given path and the current
 // APIFilters, with an exclusions specified as ParamsOption.
-func (f APIFilters) BuildURL(path string, options ...ParamsOption) (*url.URL, error) {
+func (f APIFilters) BuildURL(path string, options ...ParamsOption) *url.URL {
 	newURL, err := url.Parse(path)
 	if err != nil {
-		return nil, fmt.Errorf("cannot generate URL: %w", err)
+		return nil
 	}
 
 	params := f.Params()
@@ -122,7 +129,7 @@ func (f APIFilters) BuildURL(path string, options ...ParamsOption) (*url.URL, er
 
 	newURL.RawQuery = params.Encode()
 
-	return newURL, nil
+	return newURL
 }
 
 // CreateFilters unmarshals the given query parameters passed to a specific route into a
