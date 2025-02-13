@@ -85,7 +85,7 @@ func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *m
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
 			slog.Any("error", err))
-		renderHome(res, req, home.EmptyContent())
+		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
 
 		return
 	}
@@ -173,10 +173,18 @@ func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *m
 	}
 
 	if len(feeds) == 0 {
-		renderHome(res, req, home.EmptyContent())
+		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
 	}
 
-	renderHome(res, req, feeds...)
+	side := home.BuildSide(
+		home.WithID("drawer_menu"),
+		home.WithExtraAttributes(templ.Attributes{
+			"hx-target":   "#drawer_menu",
+			"hx-swap-oob": "true",
+		}),
+	).Show()
+
+	renderHome(res, req, side, home.Footer(), home.List(feeds...))
 }
 
 // (GET /home/show/items)
@@ -188,7 +196,7 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
 			slog.Any("error", err))
-		renderHome(res, req, home.EmptyContent())
+		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
 
 		return
 	}
@@ -250,19 +258,35 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 	}
 
 	if len(items) == 0 {
-		renderHome(res, req, home.EmptyContent())
+		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
 	}
 
-	renderHome(res, req, items...)
+	side := home.BuildSide(
+		home.WithID("drawer_menu"),
+		home.WithActionButtons(
+			home.AddSubscriptionButton(templ.Attributes{
+				"hx-get":    "/subscription/new",
+				"hx-target": "#command_modal",
+				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
+			}),
+		),
+		home.WithExtraAttributes(templ.Attributes{
+			"hx-target":   "#drawer_menu",
+			"hx-swap-oob": "true",
+		}),
+	).Show()
+
+	renderHome(res, req, side, home.Footer(), home.List(items...))
 }
 
-func renderHome(res http.ResponseWriter, req *http.Request, items ...templ.Component) {
+func renderHome(res http.ResponseWriter, req *http.Request, side, footer, content templ.Component) {
 	if !htmx.IsHTMX(req) {
+		slog.Info("full page")
 		// Regular request, load full page.
 		if err := layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(home.Content(home.AppBarTop(), home.List(items...), home.Footer()), home.BuildSideDrawer()))).
+			layouts.WithPageContent(layouts.HomeLayout(home.Content(home.AppBarTop(), content, footer), side))).
 			Render(req.Context(), res); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -270,7 +294,7 @@ func renderHome(res http.ResponseWriter, req *http.Request, items ...templ.Compo
 	} else {
 		// HTMX request, load cards and update header/footer.
 		resp := htmx.NewResponse()
-		if err := resp.RenderTempl(req.Context(), res, home.List(items...)); err != nil {
+		if err := resp.RenderTempl(req.Context(), res, content); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
@@ -280,12 +304,12 @@ func renderHome(res http.ResponseWriter, req *http.Request, items ...templ.Compo
 		// 	http.Error(res, "Problem!", http.StatusInternalServerError)
 		// }
 
-		if err := resp.RenderTempl(req.Context(), res, home.Footer()); err != nil {
+		if err := resp.RenderTempl(req.Context(), res, footer); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 
-		if err := resp.RenderTempl(req.Context(), res, home.BuildSideDrawer()); err != nil {
+		if err := resp.RenderTempl(req.Context(), res, side); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}

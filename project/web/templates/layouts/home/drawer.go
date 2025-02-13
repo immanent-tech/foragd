@@ -58,6 +58,12 @@ func WithID(id attributes.ID) SideOption {
 	}
 }
 
+func WithExtraAttributes(attrs templ.Attributes) SideOption {
+	return func(p *SideProps) {
+		p.AddAttributes(attrs)
+	}
+}
+
 func BuildSide(options ...SideOption) *SideProps {
 	side := &SideProps{
 		Attributes: attributes.New(),
@@ -90,5 +96,9 @@ func BuildSideDrawer() templ.Component {
 				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
 			}),
 		),
+		WithExtraAttributes(templ.Attributes{
+			"hx-target":   "#drawer_menu",
+			"hx-swap-oob": "true",
+		}),
 	).Show()
 }
