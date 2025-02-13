@@ -235,9 +235,9 @@ func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, view 
 	var query Option[*types.Query]
 
 	switch view {
-	case models.Read:
+	case models.ViewRead:
 		query = readFeedItemsQuery(user, feedIDs...)
-	case models.Unread:
+	case models.ViewUnread:
 		fallthrough
 	default:
 		query = unreadFeedItemsQuery(user, feedIDs...)
@@ -293,7 +293,7 @@ func unreadFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) Option[*t
 						BoolShould(
 							QuerySince("publishedParsed", user.GetFeedLastRead(id)),
 							QuerySince("updatedParsed", user.GetFeedLastRead(id)),
-							QueryByItemIDs(user.GetItemIDsWithState(models.StateUnread, id)...),
+							QueryByItemIDs(user.GetItemIDsWithState(models.Unread, id)...),
 						),
 					),
 				),
@@ -312,7 +312,7 @@ func unreadFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) Option[*t
 		),
 		BoolMustNot(
 			// Must not match any read item IDs.
-			QueryByItemIDs(user.GetItemIDsWithState(models.StateRead, feedIDs...)...),
+			QueryByItemIDs(user.GetItemIDsWithState(models.Read, feedIDs...)...),
 		),
 	)
 }

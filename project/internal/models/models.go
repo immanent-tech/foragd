@@ -9,6 +9,8 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
+type Option[T any] func(T)
+
 var ErrInvalidID = errors.New("error generating unique ID")
 
 // Feed represents a feed. It embeds the gofeed.Feed object and adds additional

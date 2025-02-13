@@ -61,34 +61,34 @@ type View = externalRef0.View
 // HandlePaginateObjectsParams defines parameters for HandlePaginateObjects.
 type HandlePaginateObjectsParams struct {
 	// Feeds An array of Feed IDs.
-	Feeds FeedIDs `form:"feeds,omitempty" json:"feeds,omitempty"`
+	Feeds *FeedIDs `form:"feeds,omitempty" json:"feeds,omitempty"`
 
 	// Categories An array of Categories.
-	Categories Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	Count      Count      `form:"count" json:"count"`
-	View       View       `form:"view" json:"view"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Count      *Count      `form:"count,omitempty" json:"count,omitempty"`
+	View       *View       `form:"view,omitempty" json:"view,omitempty"`
 }
 
 // HandleShowObjectsParams defines parameters for HandleShowObjects.
 type HandleShowObjectsParams struct {
 	// Feeds An array of Feed IDs.
-	Feeds FeedIDs `form:"feeds,omitempty" json:"feeds,omitempty"`
+	Feeds *FeedIDs `form:"feeds,omitempty" json:"feeds,omitempty"`
 
 	// Categories An array of Categories.
-	Categories Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	Count      Count      `form:"count" json:"count"`
-	View       View       `form:"view" json:"view"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Count      *Count      `form:"count,omitempty" json:"count,omitempty"`
+	View       *View       `form:"view,omitempty" json:"view,omitempty"`
 }
 
 // HandleActionObjectsParams defines parameters for HandleActionObjects.
 type HandleActionObjectsParams struct {
 	// Feeds An array of Feed IDs.
-	Feeds FeedIDs `form:"feeds,omitempty" json:"feeds,omitempty"`
+	Feeds *FeedIDs `form:"feeds,omitempty" json:"feeds,omitempty"`
 
 	// Categories An array of Categories.
-	Categories Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	Count      Count      `form:"count" json:"count"`
-	View       View       `form:"view" json:"view"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Count      *Count      `form:"count,omitempty" json:"count,omitempty"`
+	View       *View       `form:"view,omitempty" json:"view,omitempty"`
 }
 
 // LoginCallbackParams defines parameters for LoginCallback.
@@ -363,31 +363,17 @@ func (siw *ServerInterfaceWrapper) HandlePaginateObjects(w http.ResponseWriter, 
 		return
 	}
 
-	// ------------- Required query parameter "count" -------------
+	// ------------- Optional query parameter "count" -------------
 
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	err = runtime.BindQueryParameter("form", true, false, "count", r.URL.Query(), &params.Count)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
 		return
 	}
 
-	// ------------- Required query parameter "view" -------------
+	// ------------- Optional query parameter "view" -------------
 
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	err = runtime.BindQueryParameter("form", true, false, "view", r.URL.Query(), &params.View)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
 		return
@@ -485,31 +471,17 @@ func (siw *ServerInterfaceWrapper) HandleShowObjects(w http.ResponseWriter, r *h
 		return
 	}
 
-	// ------------- Required query parameter "count" -------------
+	// ------------- Optional query parameter "count" -------------
 
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	err = runtime.BindQueryParameter("form", true, false, "count", r.URL.Query(), &params.Count)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
 		return
 	}
 
-	// ------------- Required query parameter "view" -------------
+	// ------------- Optional query parameter "view" -------------
 
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	err = runtime.BindQueryParameter("form", true, false, "view", r.URL.Query(), &params.View)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
 		return
@@ -611,31 +583,17 @@ func (siw *ServerInterfaceWrapper) HandleActionObjects(w http.ResponseWriter, r 
 		return
 	}
 
-	// ------------- Required query parameter "count" -------------
+	// ------------- Optional query parameter "count" -------------
 
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	err = runtime.BindQueryParameter("form", true, false, "count", r.URL.Query(), &params.Count)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
 		return
 	}
 
-	// ------------- Required query parameter "view" -------------
+	// ------------- Optional query parameter "view" -------------
 
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	err = runtime.BindQueryParameter("form", true, false, "view", r.URL.Query(), &params.View)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
 		return

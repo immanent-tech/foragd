@@ -1,6 +1,10 @@
 # Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
-
+openapi: '3.1.0'
+info:
+  version: 1.0.0
+  title: Common Models
+  description: Common objects and fields.
 components:
   schemas:
     # Common Fields.
@@ -115,38 +119,6 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'category'
         form: 'category'
-    Count:
-      description: >
-        is the count of items to retrieve with a request.
-      type: integer
-      minimum: 1
-      maximum: 50
-      default: 10
-      x-oapi-codegen-extra-tags:
-        # json: 'count'
-        form: 'count'
-      # nullable: true
-    Pagination:
-      type: string
-      x-oapi-codegen-extra-tags:
-        json: 'pagination'
-        form: 'pagination'
-      nullable: true
-    Mark:
-      description: >
-        applies the given mark action to objects.
-      type: string
-      enum: ["read","unread"]
-    View:
-      description: >
-        The state of objects to view.
-      type: string
-      enum: ["read","unread","all"]
-      default: "unread"
-      x-oapi-codegen-extra-tags:
-        # json: 'view'
-        form: 'view'
-      # nullable: true
     # Metadata Objects.
     MetadataFeed:
       description: contains common/metadata fields for feeds and items.
@@ -229,39 +201,6 @@ components:
           items:
             $ref: '#/components/schemas/Category'
           x-go-type-skip-optional-pointer: true
-    APISubscriptionRequest:
-      description: represents a new subscription request from a user.
-      type: object
-      required:
-        - url
-      properties:
-        url:
-          $ref: '#/components/schemas/URL'
-        name:
-          description: >
-            is a friendly name or nickname for the feed given by the user.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'name'
-        categories:
-          description: >
-            is a list of custom categories the user has assigned to
-            the feed.
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-          x-oapi-codegen-extra-tags:
-            form: 'categories[]'
-          x-go-type-skip-optional-pointer: true
-        validation_errors:
-          description: is a map of field name -> validation error for the request.
-          type: object
-          additionalProperties:
-            type: string
-          x-go-json-ignore: true
-          x-oapi-codegen-extra-tags:
-            form: '-'
-          x-go-type-skip-optional-pointer: true
     User:
       description: is a user of the application.
       type: object
@@ -293,38 +232,6 @@ components:
               additionalProperties:
                 $ref: '#/components/schemas/SubscriptionState'
               x-go-type-skip-optional-pointer: true
-    APIUserSignupRequest:
-      description: >
-        contains the details for a user signup request.
-      type: object
-      required:
-        - email
-        - password
-      properties:
-        nickname:
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'omitempty'
-            form: 'nickname,omitempty'
-        email:
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required,email'
-            form: 'email'
-        password:
-          type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'required,min=10'
-            form: 'password'
-        validation_errors:
-          description: is a map of field name -> validation error for the request.
-          type: object
-          additionalProperties:
-            type: string
-          x-go-json-ignore: true
-          x-oapi-codegen-extra-tags:
-            form: '-'
-          x-go-type-skip-optional-pointer: true
     APIFeed:
       description: represents a feed object for API endpoints.
       type: object
@@ -485,35 +392,6 @@ components:
           x-oapi-codegen-extra-tags:
             json: 'iat'
           x-go-type-skip-optional-pointer: true
-    APIFilters:
-      description: contains parameters for searching feeds and items
-      type: object
-      required:
-        - count
-        - view
-      properties:
-        FeedIDs:
-          description: is a list of feed IDs to filter on.
-          type: array
-          items:
-            $ref: '#/components/schemas/FeedID'
-          x-go-type-skip-optional-pointer: true
-        ItemIDs:
-          description: is a list of item IDs to filter on.
-          type: array
-          items:
-            $ref: '#/components/schemas/ItemID'
-          x-go-type-skip-optional-pointer: true
-        Categories:
-          description: is a list of categories to filter on.
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-          x-go-type-skip-optional-pointer: true
-        count:
-          $ref: '#/components/schemas/Count'
-        view:
-          $ref: '#/components/schemas/View'
     ScheduledJob:
       description: represents a job that has been scheduled by the job scheduler.
       type: object

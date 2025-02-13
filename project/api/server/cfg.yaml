@@ -11,3 +11,4 @@ output-options:
   nullable-type: true
 import-mapping:
   ../models/models.yaml: github.com/joshuar/go-feed-me/internal/models
+  ../models/api.yaml: github.com/joshuar/go-feed-me/internal/models

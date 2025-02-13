@@ -1,0 +1,142 @@
+# Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+# SPDX-License-Identifier: 	AGPL-3.0-or-later
+openapi: '3.1.0'
+info:
+  version: 1.0.0
+  title: Common API
+  description: Common API objects and fields.
+components:
+  schemas:
+    Count:
+      description: >
+        is the count of items to retrieve with a request.
+      type: integer
+      minimum: 1
+      maximum: 50
+      default: 10
+      x-oapi-codegen-extra-tags:
+        # json: 'count'
+        form: 'count'
+    Pagination:
+      type: string
+      x-oapi-codegen-extra-tags:
+        json: 'pagination'
+        form: 'pagination'
+      nullable: true
+    Mark:
+      description: >
+        applies the given mark action to objects.
+      type: string
+      enum: ["read","unread"]
+    View:
+      description: >
+        The state of objects to view.
+      type: string
+      enum: ["read","unread","all"]
+      default: "unread"
+      x-oapi-codegen-extra-tags:
+        # json: 'view'
+        form: 'view'
+    APIFilters:
+      description: contains parameters for searching feeds and items
+      type: object
+      required:
+        - count
+        - view
+      properties:
+        FeedIDs:
+          description: is a list of feed IDs to filter on.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/FeedID'
+          x-oapi-codegen-extra-tags:
+            json: 'feeds'
+            form: 'feeds[]'
+          x-go-type-skip-optional-pointer: true
+        ItemIDs:
+          description: is a list of item IDs to filter on.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/ItemID'
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: 'items'
+            form: 'items[]'
+        Categories:
+          description: is a list of categories to filter on.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/Category'
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: 'categories'
+            form: 'categories[]'
+        count:
+          $ref: 'models.yaml#/components/schemas/Count'
+        view:
+          $ref: 'models.yaml#/components/schemas/View'
+    APISubscriptionRequest:
+      description: represents a new subscription request from a user.
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          $ref: 'models.yaml#/components/schemas/URL'
+        name:
+          description: >
+            is a friendly name or nickname for the feed given by the user.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'name'
+        categories:
+          description: >
+            is a list of custom categories the user has assigned to
+            the feed.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: 'categories[]'
+          x-go-type-skip-optional-pointer: true
+        validation_errors:
+          description: is a map of field name -> validation error for the request.
+          type: object
+          additionalProperties:
+            type: string
+          x-go-json-ignore: true
+          x-oapi-codegen-extra-tags:
+            form: '-'
+          x-go-type-skip-optional-pointer: true
+    APIUserSignupRequest:
+      description: >
+        contains the details for a user signup request.
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        nickname:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty'
+            form: 'nickname,omitempty'
+        email:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,email'
+            form: 'email'
+        password:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,min=10'
+            form: 'password'
+        validation_errors:
+          description: is a map of field name -> validation error for the request.
+          type: object
+          additionalProperties:
+            type: string
+          x-go-json-ignore: true
+          x-oapi-codegen-extra-tags:
+            form: '-'
+          x-go-type-skip-optional-pointer: true

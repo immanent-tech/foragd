@@ -75,7 +75,7 @@ func (u *User) HasReadItem(feedID FeedID, itemID ItemID) bool {
 		return false
 	}
 
-	return itemState.State == StateRead
+	return itemState.State == Read
 }
 
 // HasUnreadItem checks whether the item with the given ItemID has been marked unread by
@@ -95,7 +95,7 @@ func (u *User) HasUnreadItem(feedID FeedID, itemID ItemID) bool {
 		return false
 	}
 
-	return itemState.State == StateUnread
+	return itemState.State == Unread
 }
 
 // GetItemState retrieves the user's state for the given item. If the item
@@ -120,11 +120,11 @@ func (u *User) GetItemState(feedID FeedID, itemID ItemID) *ItemState {
 
 // MarkItem marks an item with the given state for the user.
 func (u *User) MarkItem(feedID FeedID, itemID ItemID, state State) error {
-	if state == StateRead && u.HasReadItem(feedID, itemID) {
+	if state == Read && u.HasReadItem(feedID, itemID) {
 		return ErrUserAlreadyReadItem
 	}
 
-	if state == StateUnread && u.HasUnreadItem(feedID, itemID) {
+	if state == Unread && u.HasUnreadItem(feedID, itemID) {
 		return ErrUserAlreadyUnreadItem
 	}
 

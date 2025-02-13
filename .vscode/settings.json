@@ -20,7 +20,7 @@
     "**/CVS": true,
     "**/.DS_Store": true,
     "**/Thumbs.db": true,
-    "**/*_templ.go": true,
+    // "**/*_templ.go": true,
   },
   "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
   "licenser.license": "AGPLv3",
@@ -98,7 +98,8 @@
     "components/navbar",
     "modifiers",
     "server/middlewares",
-    "helpers/items"
+    "helpers/items",
+    "helpers/attributes"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

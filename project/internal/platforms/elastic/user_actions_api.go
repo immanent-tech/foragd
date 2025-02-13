@@ -26,7 +26,7 @@ var ErrUserActionFailed = errors.New("user action failed")
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
 func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Mark, ids []models.ItemID) error {
 	if mark != models.MarkUnread && mark != models.MarkRead {
-		return fmt.Errorf("unsupported mark.")
+		return fmt.Errorf("unsupported mark")
 	}
 
 	user, found := models.UserFromCtx(ctx)
@@ -82,7 +82,7 @@ func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Mark, ids 
 // the user.
 func (c *Client) UserActionMarkFeeds(ctx context.Context, mark models.Mark, feedIDs []models.FeedID) error {
 	if mark != models.MarkRead && mark != models.MarkUnread {
-		return fmt.Errorf("unsupported mark.")
+		return fmt.Errorf("unsupported mark")
 	}
 
 	var timestamp time.Time
@@ -121,7 +121,7 @@ func (c *Client) UserActionMarkFeeds(ctx context.Context, mark models.Mark, feed
 // GetItem retrieves the specified item with the given id and from the given
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
-func (c *Client) UserActionGetItem(ctx context.Context, feedID, itemID string) (models.APIItem, bool, error) {
+func (c *Client) UserActionGetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (models.APIItem, bool, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return models.APIItem{}, false, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -189,13 +189,13 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 
 	var query Option[*types.Query]
 	// Work out what query to use based on the state filter.
-	switch filters.GetView() {
-	case models.Read:
-		query = readFeedItemsQuery(user, filters.GetFeedIDs()...)
-	case models.Unread:
+	switch filters.View {
+	case models.ViewRead:
+		query = readFeedItemsQuery(user, filters.FeedIDs...)
+	case models.ViewUnread:
 		fallthrough
 	default:
-		query = unreadFeedItemsQuery(user, filters.GetFeedIDs()...)
+		query = unreadFeedItemsQuery(user, filters.FeedIDs...)
 	}
 
 	// rawPagination, err := filters.GetPagination()
@@ -219,7 +219,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 			query,
 		),
 		WithSortOptions(SortTimestampDesc()),
-		WithSearchSize(filters.GetCount()),
+		WithSearchSize(filters.Count),
 		// WithSearchAfter(currentPagination),
 	)
 
@@ -282,7 +282,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		subscribedFeedIDs = slices.Collect(
 			func(yield func(string) bool) {
 				for _, v := range subscribedFeedIDs {
-					if slices.Contains(filters.GetFeedIDs(), v) {
+					if slices.Contains(filters.FeedIDs, v) {
 						if !yield(v) {
 							return // triggered in "break"
 						}
@@ -303,7 +303,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	}
 
 	// Get the unread counts for the feeds.
-	unreadCounts, err := c.GetFeedItemCounts(ctx, user, filters.GetView(), subscribedFeedIDs)
+	unreadCounts, err := c.GetFeedItemCounts(ctx, user, filters.View, subscribedFeedIDs)
 	if err != nil {
 		return outCh, errors.Join(ErrUserActionFailed, err)
 	}

@@ -10,7 +10,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/attributes"
 )
 
-type SideOption components.Option2[*SideProps]
+type SideOption components.Option[*SideProps]
 
 type SideProps struct {
 	ActionButtons  []*button.Props

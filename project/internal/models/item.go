@@ -68,7 +68,7 @@ func (i *APIItem) GetUserState() State {
 		}
 	}
 
-	return StateUnread
+	return Unread
 }
 
 func (i *APIItem) SetUserItemState(state State) {

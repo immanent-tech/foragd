@@ -3,13 +3,16 @@
 
 package layouts
 
-import "github.com/joshuar/go-templ-daisyui"
+import (
+	"github.com/joshuar/go-templ-daisyui/layout/drawer"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+)
 
-templ HomeLayout(content, drawer templ.Component) {
+// HomeLayout defines the layout of the /home pages. These are wrapped in a
+// drawer that has page-specific actions/content in the side drawer.
+templ HomeLayout(mainContent, sideContent templ.Component) {
 	<div id="command_modal" class="container mx-auto px-4"></div>
-	@components.Drawer("home_drawer",
-		components.WithDrawerVisibility(components.LG),
-		components.WithMainContent(content),
-		components.WithSideContent(drawer),
-	)
+	@drawer.Build("home_drawer", mainContent, sideContent,
+		drawer.WithDrawerVisibility(size.LG),
+	).Show()
 }

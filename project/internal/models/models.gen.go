@@ -13,24 +13,11 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 )
 
-// Defines values for Mark.
-const (
-	MarkRead   Mark = "read"
-	MarkUnread Mark = "unread"
-)
-
 // Defines values for State.
 const (
-	StateRead   State = "read"
-	StateSaved  State = "saved"
-	StateUnread State = "unread"
-)
-
-// Defines values for View.
-const (
-	All    View = "all"
-	Read   View = "read"
-	Unread View = "unread"
+	Read   State = "read"
+	Saved  State = "saved"
+	Unread State = "unread"
 )
 
 // APIFeed defines model for APIFeed.
@@ -79,24 +66,6 @@ type APIFeedState struct {
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 }
 
-// APIFilters contains parameters for searching feeds and items
-type APIFilters struct {
-	// Categories is a list of categories to filter on.
-	Categories []Category `json:"Categories,omitempty"`
-
-	// FeedIDs is a list of feed IDs to filter on.
-	FeedIDs []FeedID `json:"FeedIDs,omitempty"`
-
-	// ItemIDs is a list of item IDs to filter on.
-	ItemIDs []ItemID `json:"ItemIDs,omitempty"`
-
-	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"count"`
-
-	// View The state of objects to view.
-	View View `form:"view" json:"view"`
-}
-
 // APIItem defines model for APIItem.
 type APIItem struct {
 	// FeedID is the unique ID of a feed.
@@ -131,31 +100,6 @@ type APIList_Item struct {
 	union json.RawMessage
 }
 
-// APISubscriptionRequest represents a new subscription request from a user.
-type APISubscriptionRequest struct {
-	// Categories is a list of custom categories the user has assigned to the feed.
-	Categories []Category `form:"categories[]" json:"categories,omitempty"`
-
-	// Name is a friendly name or nickname for the feed given by the user.
-	Name *string `form:"name" json:"name,omitempty"`
-
-	// URL is a URL.
-	URL URL `form:"url" json:"url" validate:"required,url"`
-
-	// ValidationErrors is a map of field name -> validation error for the request.
-	ValidationErrors map[string]string `form:"-" json:"-"`
-}
-
-// APIUserSignupRequest contains the details for a user signup request.
-type APIUserSignupRequest struct {
-	Email    string  `form:"email" json:"email" validate:"required,email"`
-	Nickname *string `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
-	Password string  `form:"password" json:"password" validate:"required,min=10"`
-
-	// ValidationErrors is a map of field name -> validation error for the request.
-	ValidationErrors map[string]string `form:"-" json:"-"`
-}
-
 // Category is a single feed/item category.
 type Category = string
 
@@ -172,9 +116,6 @@ type Claims struct {
 	UserNickName   string      `json:"nickname"`
 	UserPictureURL string      `json:"picture"`
 }
-
-// Count is the count of items to retrieve with a request.
-type Count = int
 
 // CreatedAt records when the object was created in the database.
 type CreatedAt = time.Time
@@ -215,9 +156,6 @@ type ItemState struct {
 // ItemURL A URL to view the original item.
 type ItemURL = string
 
-// Mark applies the given mark action to objects.
-type Mark string
-
 // MarkedRead records when the object was last marked read.
 type MarkedRead = time.Time
 
@@ -244,9 +182,6 @@ type MetadataFeed struct {
 	Title   HTMLString `json:"title"`
 	Updated time.Time  `json:"updatedParsed"`
 }
-
-// Pagination defines model for Pagination.
-type Pagination = string
 
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {
@@ -350,9 +285,6 @@ type UserSession struct {
 	// Token the session token for the user.
 	Token string `json:"token"`
 }
-
-// View The state of objects to view.
-type View string
 
 // AsAPIFeed returns the union data inside the APIList_Item as a APIFeed
 func (t APIList_Item) AsAPIFeed() (APIFeed, error) {

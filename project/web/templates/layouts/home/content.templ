@@ -1,0 +1,96 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+
+package home
+
+import (
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-templ-daisyui/display/article"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"time"
+)
+
+func RelativeTime(timestamp time.Time) string {
+	return timestamp.Format("Mon Jan 2 15:04")
+}
+
+// Content renders the entire /home page structure. This includes the appbar,
+// main content and footer.
+templ Content(appbar, content, footer templ.Component) {
+	@appbar
+	<div id="content" class="container mx-auto p-4 items-center justify-center">
+		@content
+	</div>
+	@loading.Build(loading.Bars,
+		loading.WithID("content-loading"),
+		loading.AsHTMXIndicator(),
+		loading.WithThemeColor(color.Accent),
+	).Show()
+	@footer
+}
+
+// List will render a list of items (i.e., cards).
+templ List(items ...templ.Component) {
+	for _, item := range items {
+		@item
+	}
+}
+
+// Article displays an item as an article.
+templ Article(oob bool, item *models.APIItem) {
+	<div id="article">
+		@article.Build().Show() {
+			<h2>{ item.Title }</h2>
+			if len(item.GetCategories()) > 0 {
+				<p>
+					for _, c := range item.GetCategories() {
+						@badge.Build(
+							badge.WithSize(size.SM),
+							badge.WithThemeColor(color.Accent, true),
+							badge.WithText(c),
+						).Show()
+					}
+				</p>
+			}
+			<p class="text-sm justify-end">
+				{ RelativeTime(item.GetTimestamp()) }
+			</p>
+			<p>
+				@templ.Raw(item.GetContent())
+			</p>
+			<center>
+				<p>
+					<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
+				</p>
+			</center>
+		}
+	</div>
+	if oob {
+		@Footer()
+	}
+}
+
+// EmptyContent renders a hero with options for the user when the request
+// returned no other content.
+templ EmptyContent() {
+	<div class="hero bg-base-200 min-h-screen">
+		<div class="hero-content text-center">
+			<div class="max-w-md">
+				<h1 class="text-5xl font-bold">Nothing to show.</h1>
+				<p class="py-6">
+					Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
+					quasi. In deleniti eaque aut repudiandae et a id nisi.
+				</p>
+				<button
+					class="btn btn-primary"
+					hx-get="/subscription/new"
+					hx-target="#command_modal"
+				>Add Subscription</button>
+			</div>
+		</div>
+	</div>
+}

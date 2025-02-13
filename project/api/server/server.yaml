@@ -266,14 +266,14 @@ components:
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: '../models/models.yaml#/components/schemas/APIUserSignupRequest'
+            $ref: '../models/api.yaml#/components/schemas/APIUserSignupRequest'
     SubscriptionRequestBody:
       description: >
         Holds details for adding/saving a subscription.
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: '../models/models.yaml#/components/schemas/APISubscriptionRequest'
+            $ref: '../models/api.yaml#/components/schemas/APISubscriptionRequest'
     CategoryRequestBody:
       description: >
         A list of categories to add/remove from a subscription.
@@ -302,7 +302,7 @@ components:
       name: pagination
       in: path
       schema:
-        $ref: '../models/models.yaml#/components/schemas/Pagination'
+        $ref: '../models/api.yaml#/components/schemas/Pagination'
 
   # Query parameters:
     FeedIDs:
@@ -313,7 +313,6 @@ components:
         type: array
         items:
           $ref: '../models/models.yaml#/components/schemas/FeedID'
-        x-go-type-skip-optional-pointer: true
         x-oapi-codegen-extra-tags:
           json: 'feeds'
           form: 'feeds[]'
@@ -325,7 +324,6 @@ components:
         type: array
         items:
           $ref: '../models/models.yaml#/components/schemas/ItemID'
-        x-go-type-skip-optional-pointer: true
         x-oapi-codegen-extra-tags:
           json: 'items'
           form: 'items[]'
@@ -337,22 +335,20 @@ components:
         type: array
         items:
           $ref: '../models/models.yaml#/components/schemas/Category'
-        x-go-type-skip-optional-pointer: true
         x-oapi-codegen-extra-tags:
           json: 'categories'
           form: 'categories[]'
     Count:
       name: count
       in: query
-      required: true
       schema:
-        $ref: '../models/models.yaml#/components/schemas/Count'
+        type: string
+        $ref: '../models/api.yaml#/components/schemas/Count'
     View:
       name: view
       in: query
-      required: true
       schema:
-        $ref: '../models/models.yaml#/components/schemas/View'
+        $ref: '../models/api.yaml#/components/schemas/View'
   # Path parameters:
     FeedID:
       name: feed

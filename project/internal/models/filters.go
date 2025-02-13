@@ -13,78 +13,9 @@ import (
 	"strings"
 )
 
+type ParamsOption func(url.Values) url.Values
+
 var ErrGetFilterValue = errors.New("error fetching filter value")
-
-// GetFeedIDs retrieves the array of FeedIDs from the APIFilters.
-func (f APIFilters) GetFeedIDs() []FeedID {
-	if len(f.FeedIDs) > 0 {
-		return f.FeedIDs
-	}
-
-	return nil
-}
-
-// GetItemIDs retrieves the array of ItemIDs from the APIFilters.
-func (f APIFilters) GetItemsIDs() []ItemID {
-	if len(f.ItemIDs) > 0 {
-		return f.ItemIDs
-	}
-
-	return nil
-}
-
-// GetCategories retrieves the array of Categories from the APIFilters.
-func (f APIFilters) GetCategories() []Category {
-	if len(f.Categories) > 0 {
-		return f.Categories
-	}
-
-	return nil
-}
-
-// GetCount retrieves the Count from the APIFilters. If the count is not found,
-// a default value will be returned.
-func (f APIFilters) GetCount() Count {
-	return f.Count
-}
-
-// GetState retrieves the State value. This indicates the state of objects
-// that should be filtered.
-func (f APIFilters) GetView() View {
-	return Unread
-	// if !f.View.IsSpecified() {
-	// 	return Read
-	// }
-
-	// unread, err := f.View.Get()
-	// if err != nil {
-	// 	return Unread
-	// }
-
-	// return unread
-}
-
-// func (f APIFilters) GetPagination() (Pagination, error) {
-// 	if !f.Pagination.IsSpecified() {
-// 		return "", nil
-// 	}
-
-// 	encoded, err := f.Pagination.Get()
-// 	if err != nil {
-// 		return "", errors.Join(ErrGetFilterValue, err)
-// 	}
-
-// 	return encoded, nil
-// }
-
-// func (f APIFilters) SetPagination(data any) {
-// 	switch d := data.(type) {
-// 	case []byte:
-// 		f.Pagination.Set(url.QueryEscape(string(d)))
-// 	case string:
-// 		f.Pagination.Set(d)
-// 	}
-// }
 
 func EncodePagination(decoded []byte) (Pagination, error) {
 	return url.QueryEscape(string(decoded)), nil
@@ -99,43 +30,97 @@ func DecodePagination(encoded Pagination) ([]byte, error) {
 	return []byte(decoded), nil
 }
 
-// String returns a URL-encoded string of query parameters. Only some query
-// parameters are exposed this way.
-func (f APIFilters) String() string {
+// Params encodes the APIFilter values into a url.Values object.
+func (f APIFilters) Params() url.Values {
 	params := make(url.Values)
 
-	if feeds := f.GetFeedIDs(); len(feeds) > 0 {
-		params.Add("feeds", strings.Join(feeds, ","))
+	if len(f.FeedIDs) > 0 {
+		params.Set("feeds", strings.Join(f.FeedIDs, ","))
 	}
 
-	if items := f.GetItemsIDs(); len(items) > 0 {
-		params.Add("items", strings.Join(items, ","))
+	if len(f.ItemIDs) > 0 {
+		params.Set("items", strings.Join(f.ItemIDs, ","))
 	}
 
-	if categories := f.GetCategories(); len(categories) > 0 {
-		params.Add("categories", strings.Join(categories, ","))
+	if len(f.Categories) > 0 {
+		params.Set("categories", strings.Join(f.Categories, ","))
 	}
 
-	// if pagination, err := f.GetPagination(); err == nil && pagination != "" {
-	// 	params.Add("pagination", pagination)
-	// }
+	params.Set("view", string(f.View))
 
-	params.Add("view", string(f.GetView()))
+	params.Set("count", strconv.Itoa(f.Count))
 
-	params.Add("count", strconv.Itoa(f.GetCount()))
-
-	return params.Encode()
+	return params
 }
 
-// GenerateURL generates a new URL using the basePath provided with any non-zero
-// filters.
-func (f APIFilters) GenerateURL(basePath string) (*url.URL, error) {
-	newURL, err := url.Parse(basePath)
+// String returns a URL-encoded string of query parameters.
+func (f APIFilters) String() string {
+	return f.Params().Encode()
+}
+
+// WithFeeds option replaces any existing FeedID filters with the given list.
+func WithFeeds(ids ...FeedID) ParamsOption {
+	return func(v url.Values) url.Values {
+		v.Set("feeds", strings.Join(ids, ","))
+		return v
+	}
+}
+
+// WithItems option replaces any existing ItemID filters with the given list.
+func WithItems(ids ...ItemID) ParamsOption {
+	return func(v url.Values) url.Values {
+		v.Set("items", strings.Join(ids, ","))
+		return v
+	}
+}
+
+// WithItems option replaces any existing ItemID filters with the given list.
+func WithCategories(categories ...Category) ParamsOption {
+	return func(v url.Values) url.Values {
+		v.Set("categories", strings.Join(categories, ","))
+		return v
+	}
+}
+
+// ExcludeFeeds option removes any FeedID filters from the params.
+func ExcludeFeeds() ParamsOption {
+	return func(v url.Values) url.Values {
+		v.Del("feeds")
+		return v
+	}
+}
+
+// ExcludeItems option removes any ItemID filters from the params.
+func ExcludeItems() ParamsOption {
+	return func(v url.Values) url.Values {
+		v.Del("items")
+		return v
+	}
+}
+
+// ExcludeFeeds option removes any Category filters from the params.
+func ExcludeCategories() ParamsOption {
+	return func(v url.Values) url.Values {
+		v.Del("categories")
+		return v
+	}
+}
+
+// BuildURL will generate a url.URL object from the given path and the current
+// APIFilters, with an exclusions specified as ParamsOption.
+func (f APIFilters) BuildURL(path string, options ...ParamsOption) (*url.URL, error) {
+	newURL, err := url.Parse(path)
 	if err != nil {
 		return nil, fmt.Errorf("cannot generate URL: %w", err)
 	}
 
-	newURL.RawQuery = f.String()
+	params := f.Params()
+
+	for _, option := range options {
+		params = option(params)
+	}
+
+	newURL.RawQuery = params.Encode()
 
 	return newURL, nil
 }

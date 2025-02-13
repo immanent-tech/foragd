@@ -1,0 +1,126 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	"errors"
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/display/image"
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"strconv"
+)
+
+// ShowFeedCard shows a feed as a Card Component.
+func (c *Component) ShowFeedCard() (templ.Component, error) {
+	feed, err := c.DataSource.AsFeed()
+	if err != nil {
+		return nil, errors.Join(ErrDisplayComponent, err)
+	}
+
+	actionButtons := make([]templ.Component, 0, len(c.Actions))
+
+	for _, action := range c.Actions {
+		actionButtons = append(actionButtons, action.cardActionButton())
+	}
+
+	props := card.Build(
+		card.Bordered(),
+		card.WithContent(feedCardContent(feed)),
+		card.WithShadow(size.XL),
+		card.WithLayout(card.LayoutSide),
+		card.WithID(attributes.ID(feed.GetID())),
+		card.WithExtraAttributes(c.Attributes),
+		card.WithActions(cardActions(actionButtons...)...),
+	)
+
+	if itemImage := feed.GetImage(); itemImage != nil {
+		card.WithImage(itemImage.URL,
+			image.WithSize(size.SizeAuto),
+			image.WithAltText(itemImage.Title),
+			image.WithLazyLoading(),
+		)(props)
+	}
+
+	return props.Show("max-w-prose", "max-h-80"), nil
+}
+
+templ feedCardContent(feed Feed) {
+	@text.Build(feed.GetTitle(),
+		text.WithTextWeight(text.Bold),
+		text.WithTextSize(text.SM),
+	).Show()
+	@badge.Build(
+		badge.WithSize(size.SM),
+		badge.WithThemeColor(color.Accent, true),
+		badge.WithText(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
+	).Show()
+	<div class="carousel carousel-vertical">
+		// <div class="join join-vertical lg:join-horizontal">
+		for _, category := range feed.GetCategories() {
+			<div class="carousel-item w-full">
+				@badge.Build(
+					badge.WithSize(size.SM),
+					badge.WithThemeColor(color.Accent, true),
+					badge.WithText(category),
+				).Show("join-item")
+			</div>
+		}
+	</div>
+}
+
+func (c *Component) ShowItemCard() (templ.Component, error) {
+	item, err := c.DataSource.AsItem()
+	if err != nil {
+		return nil, errors.Join(ErrDisplayComponent, err)
+	}
+
+	actionButtons := make([]templ.Component, 0, len(c.Actions))
+
+	for _, action := range c.Actions {
+		actionButtons = append(actionButtons, action.cardActionButton())
+	}
+
+	props := card.Build(
+		card.Bordered(),
+		card.WithContent(itemCardContent(item)),
+		card.WithShadow(size.XL),
+		card.WithLayout(card.LayoutSide),
+		card.WithID(attributes.ID(item.GetID())),
+		card.WithExtraAttributes(c.Attributes),
+		card.WithActions(cardActions(actionButtons...)...),
+	)
+
+	if itemImage := item.GetImage(); itemImage != nil {
+		card.WithImage(itemImage.URL,
+			image.WithSize(size.SizeAuto),
+			image.WithAltText(itemImage.Title),
+			image.WithLazyLoading(),
+		)(props)
+	}
+
+	return props.Show("max-w-prose", "max-h-80"), nil
+}
+
+templ itemCardContent(item Item) {
+	@text.Build(item.GetTitle(),
+		text.WithTextWeight(text.Bold),
+		text.WithTextSize(text.SM),
+	).Show()
+	<div class="carousel carousel-vertical">
+		// <div class="join join-vertical lg:join-horizontal">
+		for _, category := range item.GetCategories() {
+			<div class="carousel-item w-full">
+				@badge.Build(
+					badge.WithSize(size.SM),
+					badge.WithThemeColor(color.Accent, true),
+					badge.WithText(category),
+				).Show("join-item")
+			</div>
+		}
+	</div>
+}

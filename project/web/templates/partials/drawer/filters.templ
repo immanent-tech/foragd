@@ -9,18 +9,18 @@ templ (view *ViewFilterProps) Show() {
 	<div role="tablist" class="tabs tabs-boxed tab-xs">
 		<a
 			role="tab"
-			class={ "tab", templ.KV("tab-active",view.Active == models.Read) }
-			{ view.Attributes[models.Read]... }
+			class={ "tab", templ.KV("tab-active",view.Active == models.ViewRead) }
+			{ view.Attributes[models.ViewRead]... }
 		>Read</a>
 		<a
 			role="tab"
-			class={ "tab", templ.KV("tab-active",view.Active == models.Unread) }
-			{ view.Attributes[models.Unread]... }
+			class={ "tab", templ.KV("tab-active",view.Active == models.ViewUnread) }
+			{ view.Attributes[models.ViewUnread]... }
 		>Unread</a>
 		<a
 			role="tab"
-			class={ "tab", templ.KV("tab-active",view.Active == models.All) }
-			{ view.Attributes[models.All]... }
+			class={ "tab", templ.KV("tab-active",view.Active == models.ViewAll) }
+			{ view.Attributes[models.ViewAll]... }
 		>All</a>
 	</div>
 }

@@ -12,25 +12,19 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
-	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/panes"
+	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-feed-me/web/templates/partials/drawer"
 )
 
-// Navigation paths.
 const (
-	homeBasePath = "/home"
-
-	showFeedsBasePath = homeBasePath + "/show/feeds"
-	showItemsBasePath = homeBasePath + "/show/items"
-	showItemBasePath  = homeBasePath + "/show/"
-	setFeedsBasePath  = homeBasePath + "/markread/list/feeds"
-	setItemsBasePath  = homeBasePath + "/markread/list/items"
-	setItemBasePath   = homeBasePath + "/markread/item"
+	showItemsPath       = "/home/show/items"
+	markItemsReadPath   = "/home/markread/items"
+	markItemsUnreadPath = "/home/markread/items"
+	showItemPath        = "/home/show"
 )
 
 var ErrGeneratePageNavigationFailed = errors.New("error occurred while generating page navigation")
@@ -86,36 +80,75 @@ func (s Server) HandleShowObjects(res http.ResponseWriter, req *http.Request, ob
 
 func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *models.APIFilters) {
 	// Save list feeds filters in session storage.
-	session.SaveListFeedsFilters(req.Context(), filters)
+	// session.SaveListFeedsFilters(req.Context(), filters)
 
 	feedCh, err := s.API.elastic.UserActionGetFeeds(req.Context(), *filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
 			slog.Any("error", err))
-		renderHome(res, req, panes.EmptyContent())
+		renderHome(res, req, home.EmptyContent())
 
 		return
 	}
 
-	feeds := make([]templ.Component, 0, filters.GetCount())
+	feeds := make([]templ.Component, 0, filters.Count)
 
 	for feed := range feedCh {
+		showItemsURL, err := filters.BuildURL(showItemsPath,
+			models.ExcludeCategories(),
+			models.ExcludeItems(),
+			models.WithFeeds(feed.GetID()),
+		)
+		if err != nil {
+			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
+				slog.String("feed_id", feed.GetID()),
+				slog.Any("error", err))
+
+			continue
+		}
+
+		markReadURL, err := filters.BuildURL(markItemsReadPath,
+			models.ExcludeCategories(),
+			models.ExcludeItems(),
+			models.WithFeeds(feed.GetID()),
+		)
+		if err != nil {
+			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
+				slog.String("feed_id", feed.GetID()),
+				slog.Any("error", err))
+
+			continue
+		}
+
+		markUnreadURL, err := filters.BuildURL(markItemsUnreadPath,
+			models.ExcludeCategories(),
+			models.ExcludeItems(),
+			models.WithFeeds(feed.GetID()),
+		)
+		if err != nil {
+			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
+				slog.String("feed_id", feed.GetID()),
+				slog.Any("error", err))
+
+			continue
+		}
+
 		component, err := templates.NewComponent(feed,
 			templates.DisplayAs(templates.FeedCard),
 			templates.WithAttributes(templ.Attributes{
 				"hx-target":   "#content",
 				"hx-push-url": "true",
-				"hx-get":      filepath.Join("/home", "show", "items") + "?feeds=" + feed.GetID(),
+				"hx-get":      showItemsURL.String(),
 			}),
 			templates.WithActions(
 				templates.NewAction("Mark Feed Read",
 					templates.WithActionAttributes(templ.Attributes{
-						"hx-post": filepath.Join(string(Markread), "feeds") + "?feeds=" + feed.GetID(),
+						"hx-post": markReadURL.String(),
 					}),
 				),
 				templates.NewAction("Mark Feed Unread",
 					templates.WithActionAttributes(templ.Attributes{
-						"hx-post": filepath.Join(string(Markunread), "feeds") + "?feeds=" + feed.GetID(),
+						"hx-post": markUnreadURL.String(),
 					}),
 				),
 			),
@@ -141,7 +174,7 @@ func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *m
 	}
 
 	if len(feeds) == 0 {
-		renderHome(res, req, panes.EmptyContent())
+		renderHome(res, req, home.EmptyContent())
 	}
 
 	renderHome(res, req, feeds...)
@@ -150,18 +183,18 @@ func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *m
 // (GET /home/show/items)
 func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *models.APIFilters) {
 	// Save list items filters in session storage.
-	session.SaveListItemsFilters(req.Context(), filters)
+	// session.SaveListItemsFilters(req.Context(), filters)
 
 	itemCh, pagination, err := s.API.elastic.UserActionGetItems(req.Context(), *filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
 			slog.Any("error", err))
-		renderHome(res, req, panes.EmptyContent())
+		renderHome(res, req, home.EmptyContent())
 
 		return
 	}
 
-	items := make([]templ.Component, 0, filters.GetCount())
+	items := make([]templ.Component, 0, filters.Count)
 
 	idx := 0
 
@@ -171,7 +204,7 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 			templates.WithAttributes(templ.Attributes{
 				"hx-target":   "#content",
 				"hx-push-url": "true",
-				"hx-get":      filepath.Join("home", "show", item.GetFeedID(), item.GetID()),
+				"hx-get":      filepath.Join(showItemPath, item.GetFeedID(), item.GetID()),
 			}),
 			// templates.WithActions(
 			// 	templates.NewAction("Mark Read",
@@ -187,14 +220,14 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 			// ),
 		)
 		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
-				slog.String("feed_id", item.GetID()),
+			logging.FromContext(req.Context()).Warn("Could not create card component for item.",
+				slog.String("items_id", item.GetID()),
 				slog.Any("error", err))
 
 			continue
 		}
 
-		if idx == len(itemCh)-1 && pagination != "" && len(itemCh) == filters.GetCount() {
+		if idx == len(itemCh)-1 && pagination != "" && len(itemCh) == filters.Count {
 			component.AddAttributes(templ.Attributes{
 				"hx-get":       filepath.Join("home", "show", "items") + "?pagination=" + pagination,
 				"hx-trigger":   "revealed",
@@ -206,8 +239,8 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 
 		card, err := component.Show()
 		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not render card for feed.",
-				slog.String("feed_id", item.GetID()),
+			logging.FromContext(req.Context()).Warn("Could not render card for item.",
+				slog.String("item_id", item.GetID()),
 				slog.Any("error", err))
 
 			continue
@@ -218,7 +251,7 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 	}
 
 	if len(items) == 0 {
-		renderHome(res, req, panes.EmptyContent())
+		renderHome(res, req, home.EmptyContent())
 	}
 
 	renderHome(res, req, items...)
@@ -230,7 +263,7 @@ func renderHome(res http.ResponseWriter, req *http.Request, items ...templ.Compo
 		if err := layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(panes.AllContent(panes.AppBarTop(), panes.Header(), panes.Footer(), items...), buildSideDrawer()))).
+			layouts.WithPageContent(layouts.HomeLayout(home.Content(home.AppBarTop(), home.List(items...), home.Footer()), buildSideDrawer()))).
 			Render(req.Context(), res); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -238,17 +271,17 @@ func renderHome(res http.ResponseWriter, req *http.Request, items ...templ.Compo
 	} else {
 		// HTMX request, load cards and update header/footer.
 		resp := htmx.NewResponse()
-		if err := resp.RenderTempl(req.Context(), res, panes.Items(items...)); err != nil {
+		if err := resp.RenderTempl(req.Context(), res, home.List(items...)); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 
-		if err := resp.RenderTempl(req.Context(), res, panes.Header()); err != nil {
-			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
+		// if err := resp.RenderTempl(req.Context(), res, .Header()); err != nil {
+		// 	logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		// 	http.Error(res, "Problem!", http.StatusInternalServerError)
+		// }
 
-		if err := resp.RenderTempl(req.Context(), res, panes.Footer()); err != nil {
+		if err := resp.RenderTempl(req.Context(), res, home.Footer()); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
@@ -268,8 +301,39 @@ func (s Server) HandleActionObjects(w http.ResponseWriter, r *http.Request, obje
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
-	w.WriteHeader(http.StatusNotImplemented)
+func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
+	details, found, err := s.API.elastic.UserActionGetItem(req.Context(), feed, item)
+	if err != nil || !found {
+		logging.FromContext(req.Context()).Error("Could not get item.", slog.Any("error", err))
+		http.Error(res, "Not found!.", http.StatusNotFound)
+
+		return
+	}
+
+	if !htmx.IsHTMX(req) {
+		// Regular request, load full page.
+		if err := layouts.Page("Go Feed Me - Home",
+			layouts.WithPageDescription("Your home."),
+			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+			layouts.WithPageContent(layouts.HomeLayout(home.Article(true, &details), buildSideDrawer()))).
+			Render(req.Context(), res); err != nil {
+			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			http.Error(res, "Problem!", http.StatusInternalServerError)
+		}
+	} else {
+		// HTMX request, load cards and update header/footer.
+		resp := htmx.NewResponse()
+
+		if err := resp.RenderTempl(req.Context(), res, home.Article(true, &details)); err != nil {
+			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			http.Error(res, "Problem!", http.StatusInternalServerError)
+		}
+
+		if err := resp.RenderTempl(req.Context(), res, buildSideDrawer()); err != nil {
+			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			http.Error(res, "Problem!", http.StatusInternalServerError)
+		}
+	}
 }
 
 func (s Server) HandleActionItem(w http.ResponseWriter, r *http.Request, objectAction Action, feed FeedID, item ItemID) {
