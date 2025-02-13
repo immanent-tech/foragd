@@ -21,6 +21,32 @@ type ViewFilterProps struct {
 	Attributes map[models.View]templ.Attributes
 }
 
+func BuildViewFilter(path string, filters *models.APIFilters) *ViewFilterProps {
+	return &ViewFilterProps{
+		Active: filters.View,
+		Attributes: map[models.View]templ.Attributes{
+			models.ViewRead: {
+				"hx-get":      filters.BuildURL(path, models.WithView(models.ViewRead)).String(),
+				"hx-target":   "#content",
+				"hx-push-url": "true",
+				"_":           "on click toggle .checked on #home_drawer_toggle",
+			},
+			models.ViewUnread: {
+				"hx-get":      filters.BuildURL(path, models.WithView(models.ViewUnread)).String(),
+				"hx-target":   "#content",
+				"hx-push-url": "true",
+				"_":           "on click toggle .checked on #home_drawer_toggle",
+			},
+			models.ViewAll: {
+				"hx-get":      filters.BuildURL(path, models.WithView(models.ViewAll)).String(),
+				"hx-target":   "#content",
+				"hx-push-url": "true",
+				"_":           "on click toggle .checked on #home_drawer_toggle",
+			},
+		},
+	}
+}
+
 // CategoryFilterStatus tracks the filter status of an individual category.
 type CategoryFilterStatus struct {
 	Active     bool
