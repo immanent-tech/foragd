@@ -17,7 +17,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
-	"github.com/joshuar/go-feed-me/web/templates/partials/drawer"
 )
 
 const (
@@ -263,7 +262,7 @@ func renderHome(res http.ResponseWriter, req *http.Request, items ...templ.Compo
 		if err := layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(home.Content(home.AppBarTop(), home.List(items...), home.Footer()), buildSideDrawer()))).
+			layouts.WithPageContent(layouts.HomeLayout(home.Content(home.AppBarTop(), home.List(items...), home.Footer()), home.BuildSideDrawer()))).
 			Render(req.Context(), res); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -286,7 +285,7 @@ func renderHome(res http.ResponseWriter, req *http.Request, items ...templ.Compo
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 
-		if err := resp.RenderTempl(req.Context(), res, buildSideDrawer()); err != nil {
+		if err := resp.RenderTempl(req.Context(), res, home.BuildSideDrawer()); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
@@ -315,7 +314,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 		if err := layouts.Page("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(home.Article(true, &details), buildSideDrawer()))).
+			layouts.WithPageContent(layouts.HomeLayout(home.Article(true, &details), home.BuildSideDrawer()))).
 			Render(req.Context(), res); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -329,7 +328,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
 
-		if err := resp.RenderTempl(req.Context(), res, buildSideDrawer()); err != nil {
+		if err := resp.RenderTempl(req.Context(), res, home.BuildSideDrawer()); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
@@ -338,17 +337,4 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 
 func (s Server) HandleActionItem(w http.ResponseWriter, r *http.Request, objectAction Action, feed FeedID, item ItemID) {
 	w.WriteHeader(http.StatusNotImplemented)
-}
-
-func buildSideDrawer() templ.Component {
-	return drawer.BuildSide(
-		drawer.WithID("drawer_menu"),
-		drawer.WithActionButtons(
-			drawer.AddSubscriptionButton(templ.Attributes{
-				"hx-get":    "/subscription/new",
-				"hx-target": "#command_modal",
-				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
-			}),
-		),
-	).Show()
 }
