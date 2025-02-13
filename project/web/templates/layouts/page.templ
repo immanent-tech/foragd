@@ -3,77 +3,16 @@
 
 package layouts
 
-import (
-	"strings"
-	"time"
-)
+import "time"
 
-// PageProps represents a full HTML page.
-type PageProps struct {
-	Title         string
-	CustomHeaders []templ.Component
-	Content       []templ.Component
-}
-
-// Option represents a generic option that can be applied to a component.
-type Option[T any] func(T) T
-
-// WithPageKeywords adds the list of keywords to the "keywords" meta tag in the page
-// header.
-func WithPageKeywords(keywords ...string) Option[PageProps] {
-	return func(p PageProps) PageProps {
-		p.CustomHeaders = append(p.CustomHeaders,
-			pageMetaTag("keywords", strings.Join(keywords, ",")))
-
-		return p
-	}
-}
-
-// WithPageDescription adds the given description to the "description" meta tage in
-// the page header.
-func WithPageDescription(description string) Option[PageProps] {
-	return func(p PageProps) PageProps {
-		p.CustomHeaders = append(p.CustomHeaders,
-			pageMetaTag("description", description))
-
-		return p
-	}
-}
-
-// WithPageContent defines the main body content of the page. It takes a list of
-// templ.Components that will be rendered, in the given order in the "body" of
-// the page.
-func WithPageContent(content ...templ.Component) Option[PageProps] {
-	return func(p PageProps) PageProps {
-		p.Content = append(p.Content, content...)
-
-		return p
-	}
-}
-
-func generatePageProps(title string, options ...Option[PageProps]) *PageProps {
-	page := PageProps{
-		Title: title,
-	}
-
-	for _, option := range options {
-		page = option(page)
-	}
-
-	return &page
-}
-
-templ Page(title string, options ...Option[PageProps]) {
-	{{ page := generatePageProps(title, options...) }}
+templ (page *PageProps) Show() {
 	<!DOCTYPE html>
 	<html lang="en" data-theme="light">
 		if len(page.CustomHeaders) > 0 {
 			@header(page.CustomHeaders)
 		}
 		<body hx-boost="true">
-			for _, content := range page.Content {
-				@content
-			}
+			@page.Content
 			@footer()
 			<script src="/static/scripts.js"></script>
 		</body>

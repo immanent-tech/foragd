@@ -283,11 +283,11 @@ func renderHome(res http.ResponseWriter, req *http.Request, side, footer, conten
 	if !htmx.IsHTMX(req) {
 		slog.Info("full page")
 		// Regular request, load full page.
-		if err := layouts.Page("Go Feed Me - Home",
+		if err := layouts.BuildPage("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
 			layouts.WithPageContent(layouts.HomeLayout(home.Content(home.AppBarTop(), content, footer), side))).
-			Render(req.Context(), res); err != nil {
+			Show().Render(req.Context(), res); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
@@ -335,11 +335,11 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 
 	if !htmx.IsHTMX(req) {
 		// Regular request, load full page.
-		if err := layouts.Page("Go Feed Me - Home",
+		if err := layouts.BuildPage("Go Feed Me - Home",
 			layouts.WithPageDescription("Your home."),
 			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
 			layouts.WithPageContent(layouts.HomeLayout(home.Article(true, &details), home.BuildSideDrawer()))).
-			Render(req.Context(), res); err != nil {
+			Show().Render(req.Context(), res); err != nil {
 			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 			http.Error(res, "Problem!", http.StatusInternalServerError)
 		}
