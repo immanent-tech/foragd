@@ -5,11 +5,11 @@ package layouts
 
 import "time"
 
-templ (page *PageProps) Show() {
+templ (page *Props) Show() {
 	<!DOCTYPE html>
 	<html lang="en" data-theme="light">
-		if len(page.CustomHeaders) > 0 {
-			@header(page.CustomHeaders)
+		if len(page.Headers) > 0 {
+			@header(page.Headers)
 		}
 		<body hx-boost="true">
 			@page.Content

@@ -160,7 +160,7 @@ func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *m
 			continue
 		}
 
-		card, err := component.Show()
+		card, err := home.Render(component)
 		if err != nil {
 			logging.FromContext(req.Context()).Warn("Could not render card for feed.",
 				slog.String("feed_id", feed.GetID()),
@@ -244,7 +244,7 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 			})
 		}
 
-		card, err := component.Show()
+		card, err := home.Render(component)
 		if err != nil {
 			logging.FromContext(req.Context()).Warn("Could not render card for item.",
 				slog.String("item_id", item.GetID()),

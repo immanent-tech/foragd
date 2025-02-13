@@ -59,6 +59,18 @@ type Feed = externalRef0.APIFeed
 // Item represents an individual item (e.g., an individual feed item).
 type Item = externalRef0.APIItem
 
+// Page represents a page on the website.
+type Page struct {
+	// Content is the page content.
+	Content templ.Component `json:"content"`
+
+	// Headers are additional headers to place in the page <head> element.
+	Headers []templ.Component `json:"headers,omitempty"`
+
+	// Title is the page title.
+	Title string `json:"title"`
+}
+
 // AsFeed returns the union data inside the DataSource as a Feed
 func (t DataSource) AsFeed() (Feed, error) {
 	var body Feed

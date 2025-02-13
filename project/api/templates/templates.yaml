@@ -12,6 +12,32 @@ components:
       x-go-type-import:
         path: github.com/a-h/templ
       x-go-type-skip-optional-pointer: true
+    Page:
+      description: >
+        represents a page on the website.
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          description: is the page title.
+          type: string
+        content:
+          description: is the page content.
+          x-go-type: 'templ.Component'
+          x-go-type-import:
+            path: github.com/a-h/templ
+        headers:
+          description: >
+            are additional headers to place in the page <head>
+            element.
+          type: array
+          items:
+            x-go-type: 'templ.Component'
+            x-go-type-import:
+              path: github.com/a-h/templ
+          x-go-type-skip-optional-pointer: true
     Component:
       description: >
         contains data and properties that can be used to display the

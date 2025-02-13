@@ -1,31 +1,36 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package templates
+package home
 
 import (
 	"errors"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 	"strconv"
 )
 
 // ShowFeedCard shows a feed as a Card Component.
-func (c *Component) ShowFeedCard() (templ.Component, error) {
+func ShowFeedCard(c *templates.Component) (templ.Component, error) {
 	feed, err := c.DataSource.AsFeed()
 	if err != nil {
-		return nil, errors.Join(ErrDisplayComponent, err)
+		return nil, errors.Join(templates.ErrDisplayComponent, err)
 	}
 
 	actionButtons := make([]templ.Component, 0, len(c.Actions))
 
 	for _, action := range c.Actions {
-		actionButtons = append(actionButtons, action.cardActionButton())
+		actionButtons = append(actionButtons, cardActionButton(action))
 	}
 
 	props := card.Build(
@@ -49,7 +54,7 @@ func (c *Component) ShowFeedCard() (templ.Component, error) {
 	return props.Show("max-w-prose", "max-h-80"), nil
 }
 
-templ feedCardContent(feed Feed) {
+templ feedCardContent(feed templates.Feed) {
 	@text.Build(feed.GetTitle(),
 		text.WithTextWeight(text.Bold),
 		text.WithTextSize(text.SM),
@@ -73,16 +78,16 @@ templ feedCardContent(feed Feed) {
 	</div>
 }
 
-func (c *Component) ShowItemCard() (templ.Component, error) {
+func ShowItemCard(c *templates.Component) (templ.Component, error) {
 	item, err := c.DataSource.AsItem()
 	if err != nil {
-		return nil, errors.Join(ErrDisplayComponent, err)
+		return nil, errors.Join(templates.ErrDisplayComponent, err)
 	}
 
 	actionButtons := make([]templ.Component, 0, len(c.Actions))
 
 	for _, action := range c.Actions {
-		actionButtons = append(actionButtons, action.cardActionButton())
+		actionButtons = append(actionButtons, cardActionButton(action))
 	}
 
 	props := card.Build(
@@ -106,7 +111,7 @@ func (c *Component) ShowItemCard() (templ.Component, error) {
 	return props.Show("max-w-prose", "max-h-80"), nil
 }
 
-templ itemCardContent(item Item) {
+templ itemCardContent(item templates.Item) {
 	@text.Build(item.GetTitle(),
 		text.WithTextWeight(text.Bold),
 		text.WithTextSize(text.SM),
@@ -123,4 +128,46 @@ templ itemCardContent(item Item) {
 			</div>
 		}
 	</div>
+}
+
+templ cardActionButton(action templates.Action) {
+	<a
+		role="button"
+		class="btn btn-xs"
+		{ action.Attributes... }
+	>
+		{ action.Label }
+	</a>
+}
+
+func cardActions(actions ...templ.Component) []templ.Component {
+	var menus []templ.Component
+
+	menus = append(menus,
+		// Menu for large screens: horizontal layout, all buttons shown.
+		menu.Build(
+			menu.WithSize(size.SM),
+			menu.WithLayout(menu.Horizontal),
+			menu.WithRevealedBreakpoint(size.LG),
+			menu.WithItems(actions...),
+		).Show(),
+		// Menu for small screens: buttons hidden behind drop-down.
+		dropdown.Build(
+			dropdown.WithHiddenBreakpoint(size.LG),
+			dropdown.WithOpenFrom(dropdown.OpenTop, true),
+			dropdown.WithButton(
+				button.WithSize(size.XS),
+				button.WithThemeColor(color.Secondary, true),
+				button.AsShape(button.Square, true),
+				button.WithContent(icon.Build("fa-ellipsis-vertical")),
+			),
+			dropdown.WithMenuOptions(
+				// menu.WithSize(size.SM),
+				menu.WithLayout(menu.Vertical),
+				menu.WithItems(actions...),
+			),
+		).Show(),
+	)
+
+	return menus
 }
