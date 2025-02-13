@@ -5,12 +5,8 @@
 package home
 
 import (
-	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-templ-daisyui/display/article"
-	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"time"
 )
 
@@ -37,40 +33,6 @@ templ Content(appbar, content, footer templ.Component) {
 templ List(items ...templ.Component) {
 	for _, item := range items {
 		@item
-	}
-}
-
-// Article displays an item as an article.
-templ Article(oob bool, item *models.APIItem) {
-	<div id="article">
-		@article.Build().Show() {
-			<h2>{ item.Title }</h2>
-			if len(item.GetCategories()) > 0 {
-				<p>
-					for _, c := range item.GetCategories() {
-						@badge.Build(
-							badge.WithSize(size.SM),
-							badge.WithThemeColor(color.Accent, true),
-							badge.WithText(c),
-						).Show()
-					}
-				</p>
-			}
-			<p class="text-sm justify-end">
-				{ RelativeTime(item.GetTimestamp()) }
-			</p>
-			<p>
-				@templ.Raw(item.GetContent())
-			</p>
-			<center>
-				<p>
-					<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
-				</p>
-			</center>
-		}
-	</div>
-	if oob {
-		@Footer()
 	}
 }
 

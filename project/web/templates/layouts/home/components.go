@@ -16,6 +16,8 @@ func Render(component *templates.Component) (templ.Component, error) {
 		return ShowFeedCard(component)
 	case templates.ItemCard:
 		return ShowItemCard(component)
+	case templates.ItemArticle:
+		return ShowArticle(component)
 	}
 
 	return nil, templates.ErrDisplayComponent

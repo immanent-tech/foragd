@@ -5,10 +5,12 @@ package home
 
 import (
 	"errors"
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
@@ -170,4 +172,40 @@ func cardActions(actions ...templ.Component) []templ.Component {
 	)
 
 	return menus
+}
+
+// Article displays an item as an article.
+func ShowArticle(c *templates.Component) (templ.Component, error) {
+	item, err := c.DataSource.AsItem()
+	if err != nil {
+		return nil, errors.Join(templates.ErrDisplayComponent, err)
+	}
+
+	return article.Build(itemArticleContent(item)).Show(), nil
+}
+
+templ itemArticleContent(item models.APIItem) {
+	<h2>{ item.Title }</h2>
+	if len(item.GetCategories()) > 0 {
+		<p>
+			for _, c := range item.GetCategories() {
+				@badge.Build(
+					badge.WithSize(size.SM),
+					badge.WithThemeColor(color.Accent, true),
+					badge.WithText(c),
+				).Show()
+			}
+		</p>
+	}
+	<p class="text-sm justify-end">
+		{ RelativeTime(item.GetTimestamp()) }
+	</p>
+	<p>
+		@templ.Raw(item.GetContent())
+	</p>
+	<center>
+		<p>
+			<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
+		</p>
+	</center>
 }

@@ -329,34 +329,49 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 	if err != nil || !found {
 		logging.FromContext(req.Context()).Error("Could not get item.", slog.Any("error", err))
 		http.Error(res, "Not found!.", http.StatusNotFound)
+		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
 
 		return
 	}
 
-	if !htmx.IsHTMX(req) {
-		// Regular request, load full page.
-		if err := layouts.BuildPage("Go Feed Me - Home",
-			layouts.WithPageDescription("Your home."),
-			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(home.Article(true, &details), home.BuildSideDrawer()))).
-			Show().Render(req.Context(), res); err != nil {
-			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
-	} else {
-		// HTMX request, load cards and update header/footer.
-		resp := htmx.NewResponse()
+	component, err := templates.NewComponent(details,
+		templates.DisplayAs(templates.ItemArticle),
+	)
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Could not create card component for item.",
+			slog.String("items_id", details.GetID()),
+			slog.Any("error", err))
+		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
 
-		if err := resp.RenderTempl(req.Context(), res, home.Article(true, &details)); err != nil {
-			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
-
-		if err := resp.RenderTempl(req.Context(), res, home.BuildSideDrawer()); err != nil {
-			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
+		return
 	}
+
+	article, err := home.Render(component)
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Could not render card for item.",
+			slog.String("item_id", details.GetID()),
+			slog.Any("error", err))
+		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
+
+		return
+	}
+
+	side := home.BuildSide(
+		home.WithID("drawer_menu"),
+		home.WithActionButtons(
+			home.AddSubscriptionButton(templ.Attributes{
+				"hx-get":    "/subscription/new",
+				"hx-target": "#command_modal",
+				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
+			}),
+		),
+		home.WithExtraAttributes(templ.Attributes{
+			"hx-target":   "#drawer_menu",
+			"hx-swap-oob": "true",
+		}),
+	).Show()
+
+	renderHome(res, req, side, home.Footer(), article)
 }
 
 func (s Server) HandleActionItem(w http.ResponseWriter, r *http.Request, objectAction Action, feed FeedID, item ItemID) {
