@@ -20,6 +20,7 @@ import (
 )
 
 const (
+	showFeedsPath       = "/home/show/feeds"
 	showItemsPath       = "/home/show/items"
 	markItemsReadPath   = "/home/markread/items"
 	markItemsUnreadPath = "/home/markread/items"
@@ -93,61 +94,34 @@ func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *m
 	feeds := make([]templ.Component, 0, filters.Count)
 
 	for feed := range feedCh {
-		showItemsURL, err := filters.BuildURL(showItemsPath,
-			models.ExcludeCategories(),
-			models.ExcludeItems(),
-			models.WithFeeds(feed.GetID()),
-		)
-		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
-
-			continue
-		}
-
-		markReadURL, err := filters.BuildURL(markItemsReadPath,
-			models.ExcludeCategories(),
-			models.ExcludeItems(),
-			models.WithFeeds(feed.GetID()),
-		)
-		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
-
-			continue
-		}
-
-		markUnreadURL, err := filters.BuildURL(markItemsUnreadPath,
-			models.ExcludeCategories(),
-			models.ExcludeItems(),
-			models.WithFeeds(feed.GetID()),
-		)
-		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
-
-			continue
-		}
-
 		component, err := templates.NewComponent(feed,
 			templates.DisplayAs(templates.FeedCard),
 			templates.WithAttributes(templ.Attributes{
 				"hx-target":   "#content",
 				"hx-push-url": "true",
-				"hx-get":      showItemsURL.String(),
+				"hx-get": filters.BuildURL(showItemsPath,
+					models.ExcludeCategories(),
+					models.ExcludeItems(),
+					models.WithFeeds(feed.GetID()),
+				).String(),
 			}),
 			templates.WithActions(
 				templates.NewAction("Mark Feed Read",
 					templates.WithActionAttributes(templ.Attributes{
-						"hx-post": markReadURL.String(),
+						"hx-post": filters.BuildURL(markItemsReadPath,
+							models.ExcludeCategories(),
+							models.ExcludeItems(),
+							models.WithFeeds(feed.GetID()),
+						).String(),
 					}),
 				),
 				templates.NewAction("Mark Feed Unread",
 					templates.WithActionAttributes(templ.Attributes{
-						"hx-post": markUnreadURL.String(),
+						"hx-post": filters.BuildURL(markItemsUnreadPath,
+							models.ExcludeCategories(),
+							models.ExcludeItems(),
+							models.WithFeeds(feed.GetID()),
+						).String(),
 					}),
 				),
 			),
@@ -178,6 +152,7 @@ func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *m
 
 	side := home.BuildSide(
 		home.WithID("drawer_menu"),
+		home.WithFilterControls(home.BuildViewFilter(showFeedsPath, filters).Show()),
 		home.WithExtraAttributes(templ.Attributes{
 			"hx-target":   "#drawer_menu",
 			"hx-swap-oob": "true",
@@ -192,11 +167,27 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 	// Save list items filters in session storage.
 	// session.SaveListItemsFilters(req.Context(), filters)
 
+	side := home.BuildSide(
+		home.WithID("drawer_menu"),
+		home.WithFilterControls(home.BuildViewFilter(showItemsPath, filters).Show()),
+		home.WithActionButtons(
+			home.AddSubscriptionButton(templ.Attributes{
+				"hx-get":    "/subscription/new",
+				"hx-target": "#command_modal",
+				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
+			}),
+		),
+		home.WithExtraAttributes(templ.Attributes{
+			"hx-target":   "#drawer_menu",
+			"hx-swap-oob": "true",
+		}),
+	).Show()
+
 	itemCh, pagination, err := s.API.elastic.UserActionGetItems(req.Context(), *filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
 			slog.Any("error", err))
-		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
+		renderHome(res, req, side, home.Footer(), home.EmptyContent())
 
 		return
 	}
@@ -258,23 +249,8 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 	}
 
 	if len(items) == 0 {
-		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
+		renderHome(res, req, side, home.Footer(), home.EmptyContent())
 	}
-
-	side := home.BuildSide(
-		home.WithID("drawer_menu"),
-		home.WithActionButtons(
-			home.AddSubscriptionButton(templ.Attributes{
-				"hx-get":    "/subscription/new",
-				"hx-target": "#command_modal",
-				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
-			}),
-		),
-		home.WithExtraAttributes(templ.Attributes{
-			"hx-target":   "#drawer_menu",
-			"hx-swap-oob": "true",
-		}),
-	).Show()
 
 	renderHome(res, req, side, home.Footer(), home.List(items...))
 }
