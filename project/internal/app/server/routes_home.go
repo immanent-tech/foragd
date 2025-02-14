@@ -20,7 +20,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
-	"github.com/joshuar/go-feed-me/web/templates/navigation/filters/state"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 const (
@@ -91,12 +91,9 @@ func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *m
 		home.WithSideBar(
 			menu.WithID("drawer_menu"),
 			menu.WithItems(
-				home.AddSubscriptionButton(templ.Attributes{
-					"hx-get":    "/subscription/new",
-					"hx-target": "#command_modal",
-					"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
-				}).Show(),
-				state.BuildFilter(showFeedsPath, filters).Show(),
+				partials.AddSubscriptionButton().Show(),
+				text.Build("View:", text.WithTextWeight(text.Semibold)).Show(),
+				partials.StateFilter(showFeedsPath, filters).Show(),
 			),
 			menu.WithExtraAttributes(templ.Attributes{
 				"hx-target":   "#drawer_menu",
@@ -185,12 +182,9 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 		home.WithSideBar(
 			menu.WithID("drawer_menu"),
 			menu.WithItems(
-				home.AddSubscriptionButton(templ.Attributes{
-					"hx-get":    "/subscription/new",
-					"hx-target": "#command_modal",
-					"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
-				}).Show(),
-				state.BuildFilter(showItemsPath, filters).Show(),
+				partials.AddSubscriptionButton().Show(),
+				text.Build("View:", text.WithTextWeight(text.Semibold)).Show(),
+				partials.StateFilter(showItemsPath, filters).Show(),
 			),
 			menu.WithExtraAttributes(templ.Attributes{
 				"hx-target":   "#drawer_menu",

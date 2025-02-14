@@ -39,18 +39,21 @@ type LayoutProps struct {
 	Footer      templ.Component
 }
 
+// WithContent option defines the content to display on the page.
 func WithContent(content ...*templates.Component) LayoutOption {
 	return func(layout *LayoutProps) {
 		layout.Content = content
 	}
 }
 
+// WithFooter option controls the options for the home page footer.
 func WithFooter(footer templ.Component) LayoutOption {
 	return func(layout *LayoutProps) {
 		layout.Footer = footer
 	}
 }
 
+// WithBreadCrumbs option defines the breadcrumbs to display on the home page.
 func WithBreadCrumbs(crumbs ...templ.Component) LayoutOption {
 	return func(layout *LayoutProps) {
 		allCrumbs := make([]templ.Component, 0, len(crumbs)+1)
@@ -68,6 +71,7 @@ func WithBreadCrumbs(crumbs ...templ.Component) LayoutOption {
 	}
 }
 
+// BuildCrumb creates a new breadcrumb.
 func BuildCrumb(name string, weight text.Weight, attributes templ.Attributes) templ.Component {
 	return link.Build(link.WithContent(text.Build(name,
 		text.WithTextWeight(weight),
@@ -76,6 +80,7 @@ func BuildCrumb(name string, weight text.Weight, attributes templ.Attributes) te
 	).Show()
 }
 
+// WithSideBar option defines the layout of the drawer side rail on the home page.
 func WithSideBar(options ...menu.Option) LayoutOption {
 	return func(layout *LayoutProps) {
 		layout.SideBar = menu.Build(options...)

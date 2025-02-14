@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package state
+package partials
 
 import (
 	"github.com/a-h/templ"
@@ -9,15 +9,15 @@ import (
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
-// Props contains data for filtering by state.
-type Props struct {
+// StateFilterProps contains data for filtering by state.
+type StateFilterProps struct {
 	Active     models.View
 	Attributes map[models.View]templ.Attributes
 }
 
-// BuildFilter creates a state filter from the given data.
-func BuildFilter(path string, filters *models.APIFilters) *Props {
-	return &Props{
+// StateFilter creates a control for filtering on view state (i.e., read/unread/all).
+func StateFilter(path string, filters *models.APIFilters) *StateFilterProps {
+	return &StateFilterProps{
 		Active: filters.View,
 		Attributes: map[models.View]templ.Attributes{
 			models.ViewRead: {
