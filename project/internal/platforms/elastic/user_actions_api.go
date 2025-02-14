@@ -307,12 +307,22 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	if err != nil {
 		return outCh, errors.Join(ErrUserActionFailed, err)
 	}
-	// Add unread counts to feed objects.
+
 	go func() {
 		defer close(outCh)
 
 		for _, feed := range feeds {
+			// Add user unread count to feed.
 			feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
+			// Add user defined name to the feed.
+			if name := user.Subscriptions[feed.ID].Name; name != nil && *name != "" {
+				feed.SetUserName(*name)
+			}
+			// Add user defined categories to the feed.
+			if categories := user.Subscriptions[feed.ID].Categories; categories != nil {
+				feed.SetUserCategories(categories)
+			}
+			// Pass the feed through the output channel.
 			outCh <- *feed
 		}
 	}()

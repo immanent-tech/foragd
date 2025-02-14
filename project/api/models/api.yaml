@@ -72,9 +72,9 @@ components:
             json: 'categories'
             form: 'categories[]'
         count:
-          $ref: 'models.yaml#/components/schemas/Count'
+          $ref: '#/components/schemas/Count'
         view:
-          $ref: 'models.yaml#/components/schemas/View'
+          $ref: '#/components/schemas/View'
     APISubscriptionRequest:
       description: represents a new subscription request from a user.
       type: object

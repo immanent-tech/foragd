@@ -4,29 +4,20 @@
 package home
 
 import (
-	"errors"
-	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/article"
-	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
-	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/image"
-	"github.com/joshuar/go-templ-daisyui/display/text"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
-	"strconv"
 )
 
 // ShowFeedCard shows a feed as a Card Component.
-func ShowFeedCard(c *templates.Component) (templ.Component, error) {
+func ShowFeedCard(c *templates.Component) templ.Component {
 	feed, err := c.DataSource.AsFeed()
 	if err != nil {
-		return nil, errors.Join(templates.ErrDisplayComponent, err)
+		return nil
 	}
 
 	actionButtons := make([]templ.Component, 0, len(c.Actions))
@@ -42,7 +33,7 @@ func ShowFeedCard(c *templates.Component) (templ.Component, error) {
 		card.WithLayout(card.LayoutSide),
 		card.WithID(attributes.ID(feed.GetID())),
 		card.WithExtraAttributes(c.Attributes),
-		card.WithActions(cardActions(actionButtons...)...),
+		card.WithActions(partials.DisplayCardActions(actionButtons...)...),
 	)
 
 	if itemImage := feed.GetImage(); itemImage != nil {
@@ -53,37 +44,18 @@ func ShowFeedCard(c *templates.Component) (templ.Component, error) {
 		)(props)
 	}
 
-	return props.Show("max-w-prose", "max-h-80"), nil
+	return props.Show("max-w-prose", "max-h-80")
 }
 
 templ feedCardContent(feed templates.Feed) {
-	@text.Build(feed.GetTitle(),
-		text.WithTextWeight(text.Bold),
-		text.WithTextSize(text.SM),
-	).Show()
-	@badge.Build(
-		badge.WithSize(size.SM),
-		badge.WithThemeColor(color.Accent, true),
-		badge.WithText(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
-	).Show()
-	<div class="carousel carousel-vertical">
-		// <div class="join join-vertical lg:join-horizontal">
-		for _, category := range feed.GetCategories() {
-			<div class="carousel-item w-full">
-				@badge.Build(
-					badge.WithSize(size.SM),
-					badge.WithThemeColor(color.Accent, true),
-					badge.WithText(category),
-				).Show("join-item")
-			</div>
-		}
-	</div>
+	@partials.DisplayFeedTitle(feed)
+	@partials.DisplayCategories(feed.GetCategories()...)
 }
 
-func ShowItemCard(c *templates.Component) (templ.Component, error) {
+func ShowItemCard(c *templates.Component) templ.Component {
 	item, err := c.DataSource.AsItem()
 	if err != nil {
-		return nil, errors.Join(templates.ErrDisplayComponent, err)
+		return nil
 	}
 
 	actionButtons := make([]templ.Component, 0, len(c.Actions))
@@ -99,7 +71,7 @@ func ShowItemCard(c *templates.Component) (templ.Component, error) {
 		card.WithLayout(card.LayoutSide),
 		card.WithID(attributes.ID(item.GetID())),
 		card.WithExtraAttributes(c.Attributes),
-		card.WithActions(cardActions(actionButtons...)...),
+		card.WithActions(partials.DisplayCardActions(actionButtons...)...),
 	)
 
 	if itemImage := item.GetImage(); itemImage != nil {
@@ -110,26 +82,12 @@ func ShowItemCard(c *templates.Component) (templ.Component, error) {
 		)(props)
 	}
 
-	return props.Show("max-w-prose", "max-h-80"), nil
+	return props.Show("max-w-prose", "max-h-80")
 }
 
 templ itemCardContent(item templates.Item) {
-	@text.Build(item.GetTitle(),
-		text.WithTextWeight(text.Bold),
-		text.WithTextSize(text.SM),
-	).Show()
-	<div class="carousel carousel-vertical">
-		// <div class="join join-vertical lg:join-horizontal">
-		for _, category := range item.GetCategories() {
-			<div class="carousel-item w-full">
-				@badge.Build(
-					badge.WithSize(size.SM),
-					badge.WithThemeColor(color.Accent, true),
-					badge.WithText(category),
-				).Show("join-item")
-			</div>
-		}
-	</div>
+	@partials.DisplayItemTitle(item)
+	@partials.DisplayLastUpdated("Last Updated:", item.GetTimestamp())
 }
 
 templ cardActionButton(action templates.Action) {
@@ -142,70 +100,12 @@ templ cardActionButton(action templates.Action) {
 	</a>
 }
 
-func cardActions(actions ...templ.Component) []templ.Component {
-	var menus []templ.Component
-
-	menus = append(menus,
-		// Menu for large screens: horizontal layout, all buttons shown.
-		menu.Build(
-			menu.WithSize(size.SM),
-			menu.WithLayout(menu.Horizontal),
-			menu.WithRevealedBreakpoint(size.LG),
-			menu.WithItems(actions...),
-		).Show(),
-		// Menu for small screens: buttons hidden behind drop-down.
-		dropdown.Build(
-			dropdown.WithHiddenBreakpoint(size.LG),
-			dropdown.WithOpenFrom(dropdown.OpenTop, true),
-			dropdown.WithButton(
-				button.WithSize(size.XS),
-				button.WithThemeColor(color.Secondary, true),
-				button.AsShape(button.Square, true),
-				button.WithContent(icon.Build("fa-ellipsis-vertical")),
-			),
-			dropdown.WithMenuOptions(
-				// menu.WithSize(size.SM),
-				menu.WithLayout(menu.Vertical),
-				menu.WithItems(actions...),
-			),
-		).Show(),
-	)
-
-	return menus
-}
-
 // Article displays an item as an article.
-func ShowArticle(c *templates.Component) (templ.Component, error) {
+func ShowArticle(c *templates.Component) templ.Component {
 	item, err := c.DataSource.AsItem()
 	if err != nil {
-		return nil, errors.Join(templates.ErrDisplayComponent, err)
+		return nil
 	}
 
-	return article.Build(itemArticleContent(item)).Show(), nil
-}
-
-templ itemArticleContent(item models.APIItem) {
-	<h2>{ item.Title }</h2>
-	if len(item.GetCategories()) > 0 {
-		<p>
-			for _, c := range item.GetCategories() {
-				@badge.Build(
-					badge.WithSize(size.SM),
-					badge.WithThemeColor(color.Accent, true),
-					badge.WithText(c),
-				).Show()
-			}
-		</p>
-	}
-	<p class="text-sm justify-end">
-		{ RelativeTime(item.GetTimestamp()) }
-	</p>
-	<p>
-		@templ.Raw(item.GetContent())
-	</p>
-	<center>
-		<p>
-			<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
-		</p>
-	</center>
+	return article.Build(partials.DisplayItemArticle(item)).Show()
 }

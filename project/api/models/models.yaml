@@ -97,9 +97,13 @@ components:
       properties:
         unread_count:
           type: integer
-          x-go-type-skip-optional-pointer: true
-      x-oapi-codegen-extra-tags:
-        json: '-'
+          minimum: 0
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        nickname:
+          type: string
     UserID:
       description: is the unique ID of a user.
       type: string
@@ -114,7 +118,7 @@ components:
         validate: 'required'
         json: 'scheduler_id'
     Category:
-      description: is a single feed/item category.
+      description: is a single category.
       type: string
       x-oapi-codegen-extra-tags:
         json: 'category'
@@ -312,14 +316,6 @@ components:
               $ref: '#/components/schemas/ItemURL'
             UserProperties:
               $ref: '#/components/schemas/UserItemProperties'
-    APIList:
-      description: represents a list of objects of any type.
-      type: array
-      items:
-        oneOf:
-          - $ref: '#/components/schemas/APIFeed'
-          - $ref: '#/components/schemas/APIItem'
-      x-go-type-skip-optional-pointer: true
     Tokens:
       type: object
       required:

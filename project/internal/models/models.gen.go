@@ -35,7 +35,7 @@ type APIFeed struct {
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 
 	// UserProperties Tracks user-specific properties of a feed.
-	UserProperties *UserFeedProperties `json:"-"`
+	UserProperties *UserFeedProperties `json:"UserProperties,omitempty"`
 	Authors        []*gofeed.Person    `json:"authors,omitempty"`
 	Categories     []Category          `json:"categories,omitempty"`
 	Copyright      string              `json:"copyright,omitempty"`
@@ -92,15 +92,7 @@ type APIItem struct {
 	Updated time.Time  `json:"updatedParsed"`
 }
 
-// APIList represents a list of objects of any type.
-type APIList = []APIList_Item
-
-// APIList_Item defines model for APIList.Item.
-type APIList_Item struct {
-	union json.RawMessage
-}
-
-// Category is a single feed/item category.
+// Category is a single category.
 type Category = string
 
 // Claims defines model for Claims.
@@ -262,7 +254,9 @@ type User struct {
 
 // UserFeedProperties Tracks user-specific properties of a feed.
 type UserFeedProperties struct {
-	UnreadCount int `json:"unread_count,omitempty"`
+	Categories  *[]Category `json:"categories,omitempty"`
+	Nickname    *string     `json:"nickname,omitempty"`
+	UnreadCount *int        `json:"unread_count,omitempty"`
 }
 
 // UserID is the unique ID of a user.
@@ -284,68 +278,6 @@ type UserSession struct {
 
 	// Token the session token for the user.
 	Token string `json:"token"`
-}
-
-// AsAPIFeed returns the union data inside the APIList_Item as a APIFeed
-func (t APIList_Item) AsAPIFeed() (APIFeed, error) {
-	var body APIFeed
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromAPIFeed overwrites any union data inside the APIList_Item as the provided APIFeed
-func (t *APIList_Item) FromAPIFeed(v APIFeed) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeAPIFeed performs a merge with any union data inside the APIList_Item, using the provided APIFeed
-func (t *APIList_Item) MergeAPIFeed(v APIFeed) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsAPIItem returns the union data inside the APIList_Item as a APIItem
-func (t APIList_Item) AsAPIItem() (APIItem, error) {
-	var body APIItem
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromAPIItem overwrites any union data inside the APIList_Item as the provided APIItem
-func (t *APIList_Item) FromAPIItem(v APIItem) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeAPIItem performs a merge with any union data inside the APIList_Item, using the provided APIItem
-func (t *APIList_Item) MergeAPIItem(v APIItem) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t APIList_Item) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *APIList_Item) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
 }
 
 // AsFeedJob returns the union data inside the ScheduledJob_Data as a FeedJob

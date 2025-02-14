@@ -62,6 +62,12 @@ func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 }
 
 func (f *APIFeed) GetTitle() string {
+	if userProps := f.UserProperties; userProps != nil {
+		if userProps.Nickname != nil {
+			return safePrinter.Sanitize(*userProps.Nickname)
+		}
+	}
+
 	return safePrinter.Sanitize(f.Title)
 }
 
@@ -77,18 +83,27 @@ func (f *APIFeed) GetImage() *gofeed.Image {
 	return f.Image
 }
 
+// GetCategories retrieves the list of user-defined and feed-defined categories
+// for the Feed.
+//
+//nolint:prealloc // it would be complicated to pre-allocate the slice.
 func (f *APIFeed) GetCategories() []Category {
-	if len(f.Categories) == 0 {
-		return nil
+	var categories []Category
+
+	// Add any user-defined categories.
+	if userProps := f.UserProperties; userProps != nil {
+		if userProps.Categories != nil {
+			for _, category := range *userProps.Categories {
+				categories = append(categories, CleanCategory(category))
+			}
+		}
 	}
-
-	cleaned := make([]string, 0, len(f.Categories))
-
+	// Add any feed categories.
 	for _, category := range f.Categories {
-		cleaned = append(cleaned, CleanCategory(category))
+		categories = append(categories, CleanCategory(category))
 	}
 
-	return cleaned
+	return categories
 }
 
 func (f *APIFeed) GetContent() string {
@@ -105,18 +120,40 @@ func (f *APIFeed) GetTimestamp() time.Time {
 
 func (f *APIFeed) GetUserUnreadCount() int {
 	if userProps := f.UserProperties; userProps != nil {
-		return userProps.UnreadCount
+		if userProps.UnreadCount != nil {
+			return *userProps.UnreadCount
+		}
 	}
 
 	return 0
 }
 
+// SetUserName sets the user-defined name in the user properties of the Feed.
+func (f *APIFeed) SetUserName(name string) {
+	if f.UserProperties == nil {
+		f.UserProperties = &UserFeedProperties{}
+	}
+
+	f.UserProperties.Nickname = &name
+}
+
+// SetUserCategories sets any user-defined categories in the user properties of
+// the Feed.
+func (f *APIFeed) SetUserCategories(categories []Category) {
+	if f.UserProperties == nil {
+		f.UserProperties = &UserFeedProperties{}
+	}
+
+	f.UserProperties.Categories = &categories
+}
+
+// SetUserUnreadCount sets the unread count in the user properties of the Feed.
 func (f *APIFeed) SetUserUnreadCount(count int) {
 	if f.UserProperties == nil {
 		f.UserProperties = &UserFeedProperties{}
 	}
 
-	f.UserProperties.UnreadCount = count
+	f.UserProperties.UnreadCount = &count
 }
 
 func AddFeedByURL(ctx context.Context, api FeedManagementAPI, url URL) (FeedID, error) {

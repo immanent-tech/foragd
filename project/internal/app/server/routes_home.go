@@ -12,11 +12,15 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/navigation/menu"
+
+	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
+	"github.com/joshuar/go-feed-me/web/templates/navigation/filters/state"
 )
 
 const (
@@ -80,18 +84,42 @@ func (s Server) HandleShowObjects(res http.ResponseWriter, req *http.Request, ob
 
 func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *models.APIFilters) {
 	// Save list feeds filters in session storage.
-	// session.SaveListFeedsFilters(req.Context(), filters)
+	session.SaveListFeedsFilters(req.Context(), filters)
+
+	layout := home.BuildLayout(
+		home.WithBreadCrumbs(home.BuildCrumb("Feeds", text.Semibold, nil)),
+		home.WithSideBar(
+			menu.WithID("drawer_menu"),
+			menu.WithItems(
+				home.AddSubscriptionButton(templ.Attributes{
+					"hx-get":    "/subscription/new",
+					"hx-target": "#command_modal",
+					"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
+				}).Show(),
+				state.BuildFilter(showFeedsPath, filters).Show(),
+			),
+			menu.WithExtraAttributes(templ.Attributes{
+				"hx-target":   "#drawer_menu",
+				"hx-swap-oob": "true",
+			}),
+		),
+	)
 
 	feedCh, err := s.API.elastic.UserActionGetFeeds(req.Context(), *filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
 			slog.Any("error", err))
-		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
+
+		if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
+			logging.FromContext(req.Context()).Error("Show feeds failed.",
+				slog.Any("error", err))
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+		}
 
 		return
 	}
 
-	feeds := make([]templ.Component, 0, filters.Count)
+	feeds := make([]*templates.Component, 0, filters.Count)
 
 	for feed := range feedCh {
 		component, err := templates.NewComponent(feed,
@@ -134,65 +162,80 @@ func (s Server) showFeeds(res http.ResponseWriter, req *http.Request, filters *m
 			continue
 		}
 
-		card, err := home.Render(component)
-		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not render card for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
-
-			continue
-		}
-
-		feeds = append(feeds, card)
+		feeds = append(feeds, component)
 	}
 
-	if len(feeds) == 0 {
-		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
+	if len(feeds) > 0 {
+		home.WithContent(feeds...)(layout)
 	}
 
-	side := home.BuildSide(
-		home.WithID("drawer_menu"),
-		home.WithFilterControls(home.BuildViewFilter(showFeedsPath, filters).Show()),
-		home.WithExtraAttributes(templ.Attributes{
-			"hx-target":   "#drawer_menu",
-			"hx-swap-oob": "true",
-		}),
-	).Show()
-
-	renderHome(res, req, side, home.Footer(), home.List(feeds...))
+	if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
+		logging.FromContext(req.Context()).Error("Show feeds failed.",
+			slog.Any("error", err))
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // (GET /home/show/items)
 func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *models.APIFilters) {
 	// Save list items filters in session storage.
-	// session.SaveListItemsFilters(req.Context(), filters)
+	session.SaveListItemsFilters(req.Context(), filters)
 
-	side := home.BuildSide(
-		home.WithID("drawer_menu"),
-		home.WithFilterControls(home.BuildViewFilter(showItemsPath, filters).Show()),
-		home.WithActionButtons(
-			home.AddSubscriptionButton(templ.Attributes{
-				"hx-get":    "/subscription/new",
-				"hx-target": "#command_modal",
-				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
+	layout := home.BuildLayout(
+		home.WithSideBar(
+			menu.WithID("drawer_menu"),
+			menu.WithItems(
+				home.AddSubscriptionButton(templ.Attributes{
+					"hx-get":    "/subscription/new",
+					"hx-target": "#command_modal",
+					"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
+				}).Show(),
+				state.BuildFilter(showItemsPath, filters).Show(),
+			),
+			menu.WithExtraAttributes(templ.Attributes{
+				"hx-target":   "#drawer_menu",
+				"hx-swap-oob": "true",
 			}),
 		),
-		home.WithExtraAttributes(templ.Attributes{
-			"hx-target":   "#drawer_menu",
-			"hx-swap-oob": "true",
-		}),
-	).Show()
+	)
+
+	// Build breadcrumbs.
+	var crumbs []templ.Component
+	// Build a feeds breadcrumb using any stored feeds filters.
+	feedFilters, err := session.LoadListFeedsFilters(req.Context())
+	if err != nil {
+		crumbs = append(crumbs, home.BuildCrumb("Feeds", text.Normal, templ.Attributes{
+			"hx-get":      feedFilters.BuildURL(showFeedsPath),
+			"hx-target":   "#content",
+			"hx-push-url": "true",
+		}))
+	} else {
+		crumbs = append(crumbs, home.BuildCrumb("Feeds", text.Normal, templ.Attributes{
+			"hx-get":      showFeedsPath,
+			"hx-target":   "#content",
+			"hx-push-url": "true",
+		}))
+	}
+	// Build an items breadcrumb.
+	crumbs = append(crumbs, home.BuildCrumb("Items", text.Semibold, nil))
+	// Create the breadcrumbs.
+	home.WithBreadCrumbs(crumbs...)(layout)
 
 	itemCh, pagination, err := s.API.elastic.UserActionGetItems(req.Context(), *filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
 			slog.Any("error", err))
-		renderHome(res, req, side, home.Footer(), home.EmptyContent())
+
+		if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
+			logging.FromContext(req.Context()).Error("Show feeds failed.",
+				slog.Any("error", err))
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+		}
 
 		return
 	}
 
-	items := make([]templ.Component, 0, filters.Count)
+	items := make([]*templates.Component, 0, filters.Count)
 
 	idx := 0
 
@@ -235,60 +278,18 @@ func (s Server) showItems(res http.ResponseWriter, req *http.Request, filters *m
 			})
 		}
 
-		card, err := home.Render(component)
-		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not render card for item.",
-				slog.String("item_id", item.GetID()),
-				slog.Any("error", err))
-
-			continue
-		}
-
-		items = append(items, card)
+		items = append(items, component)
 		idx++
 	}
 
-	if len(items) == 0 {
-		renderHome(res, req, side, home.Footer(), home.EmptyContent())
+	if len(items) > 0 {
+		home.WithContent(items...)(layout)
 	}
 
-	renderHome(res, req, side, home.Footer(), home.List(items...))
-}
-
-func renderHome(res http.ResponseWriter, req *http.Request, side, footer, content templ.Component) {
-	if !htmx.IsHTMX(req) {
-		slog.Info("full page")
-		// Regular request, load full page.
-		if err := layouts.BuildPage("Go Feed Me - Home",
-			layouts.WithPageDescription("Your home."),
-			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-			layouts.WithPageContent(layouts.HomeLayout(home.Content(home.AppBarTop(), content, footer), side))).
-			Show().Render(req.Context(), res); err != nil {
-			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
-	} else {
-		// HTMX request, load cards and update header/footer.
-		resp := htmx.NewResponse()
-		if err := resp.RenderTempl(req.Context(), res, content); err != nil {
-			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
-
-		// if err := resp.RenderTempl(req.Context(), res, .Header()); err != nil {
-		// 	logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-		// 	http.Error(res, "Problem!", http.StatusInternalServerError)
-		// }
-
-		if err := resp.RenderTempl(req.Context(), res, footer); err != nil {
-			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
-
-		if err := resp.RenderTempl(req.Context(), res, side); err != nil {
-			logging.FromContext(req.Context()).Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-			http.Error(res, "Problem!", http.StatusInternalServerError)
-		}
+	if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
+		logging.FromContext(req.Context()).Error("Show feeds failed.",
+			slog.Any("error", err))
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -301,11 +302,63 @@ func (s Server) HandleActionObjects(w http.ResponseWriter, r *http.Request, obje
 }
 
 func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
+	layout := home.BuildLayout(
+		home.WithBreadCrumbs(home.BuildCrumb("Feeds", text.Semibold, nil)),
+		home.WithSideBar(
+			menu.WithID("drawer_menu"),
+			menu.WithExtraAttributes(templ.Attributes{
+				"hx-target":   "#drawer_menu",
+				"hx-swap-oob": "true",
+			}),
+		),
+	)
+
+	// Build breadcrumbs.
+	var crumbs []templ.Component
+	// Build a feeds breadcrumb using any stored feeds filters.
+	feedFilters, err := session.LoadListFeedsFilters(req.Context())
+	if err != nil {
+		crumbs = append(crumbs, home.BuildCrumb("Feeds", text.Normal, templ.Attributes{
+			"hx-get":      feedFilters.BuildURL(showFeedsPath),
+			"hx-target":   "#content",
+			"hx-push-url": "true",
+		}))
+	} else {
+		crumbs = append(crumbs, home.BuildCrumb("Feeds", text.Normal, templ.Attributes{
+			"hx-get":      showFeedsPath,
+			"hx-target":   "#content",
+			"hx-push-url": "true",
+		}))
+	}
+	// Build a items breadcrumb using any stored items filters.
+	itemFilters, err := session.LoadListItemsFilters(req.Context())
+	if err != nil {
+		crumbs = append(crumbs, home.BuildCrumb("Items", text.Normal, templ.Attributes{
+			"hx-get":      itemFilters.BuildURL(showItemsPath),
+			"hx-target":   "#content",
+			"hx-push-url": "true",
+		}))
+	} else {
+		crumbs = append(crumbs, home.BuildCrumb("Items", text.Normal, templ.Attributes{
+			"hx-get":      showItemsPath,
+			"hx-target":   "#content",
+			"hx-push-url": "true",
+		}))
+	}
+	// Add the article breadcrumb.
+	crumbs = append(crumbs, home.BuildCrumb("Article", text.Semibold, nil))
+	// Create the breadcrumbs.
+	home.WithBreadCrumbs(crumbs...)(layout)
+
 	details, found, err := s.API.elastic.UserActionGetItem(req.Context(), feed, item)
 	if err != nil || !found {
-		logging.FromContext(req.Context()).Error("Could not get item.", slog.Any("error", err))
-		http.Error(res, "Not found!.", http.StatusNotFound)
-		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
+		logging.FromContext(req.Context()).Warn("Could not retrieve item.",
+			slog.Any("error", err))
+		if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
+			logging.FromContext(req.Context()).Error("Show item failed.",
+				slog.Any("error", err))
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+		}
 
 		return
 	}
@@ -314,40 +367,25 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 		templates.DisplayAs(templates.ItemArticle),
 	)
 	if err != nil {
-		logging.FromContext(req.Context()).Warn("Could not create card component for item.",
-			slog.String("items_id", details.GetID()),
+		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
 			slog.Any("error", err))
-		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
+
+		if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
+			logging.FromContext(req.Context()).Error("Show feeds failed.",
+				slog.Any("error", err))
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+		}
 
 		return
 	}
 
-	article, err := home.Render(component)
-	if err != nil {
-		logging.FromContext(req.Context()).Warn("Could not render card for item.",
-			slog.String("item_id", details.GetID()),
+	home.WithContent(component)(layout)
+
+	if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
+		logging.FromContext(req.Context()).Error("Show feeds failed.",
 			slog.Any("error", err))
-		renderHome(res, req, home.BuildSideDrawer(), home.EmptyContent(), home.Footer())
-
-		return
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
-
-	side := home.BuildSide(
-		home.WithID("drawer_menu"),
-		home.WithActionButtons(
-			home.AddSubscriptionButton(templ.Attributes{
-				"hx-get":    "/subscription/new",
-				"hx-target": "#command_modal",
-				"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
-			}),
-		),
-		home.WithExtraAttributes(templ.Attributes{
-			"hx-target":   "#drawer_menu",
-			"hx-swap-oob": "true",
-		}),
-	).Show()
-
-	renderHome(res, req, side, home.Footer(), article)
 }
 
 func (s Server) HandleActionItem(w http.ResponseWriter, r *http.Request, objectAction Action, feed FeedID, item ItemID) {

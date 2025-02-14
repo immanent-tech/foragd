@@ -1,0 +1,102 @@
+// Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package home
+
+import (
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/layout/drawer"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+)
+
+// homeDrawer renders home page content in a DaisyUI drawer.
+templ (home *LayoutProps) homeDrawer() {
+	<div id="command_modal" class="container mx-auto px-4"></div>
+	@drawer.Build("home_drawer", home.showDrawerContent(), home.showDrawerSide(),
+		drawer.WithDrawerVisibility(size.LG),
+	).Show()
+}
+
+// showDrawerSide renders the side rail of the home drawer.
+templ (home *LayoutProps) showDrawerSide() {
+	if home.SideBar != nil {
+		<div class="bg-base-200 min-h-full p-4">
+			@home.SideBar.Show()
+		</div>
+	}
+}
+
+// showDrawerContent renders the content area of the home drawer.
+templ (home *LayoutProps) showDrawerContent() {
+	@home.ShowAppBar()
+	@home.ShowBreadcrumbs()
+	<div id="content" class="container mx-auto p-4 items-center justify-center">
+		@home.ShowContent()
+	</div>
+	@loading.Build(loading.Bars,
+		loading.WithID("content-loading"),
+		loading.AsHTMXIndicator(),
+		loading.WithThemeColor(color.Accent),
+	).Show()
+	@home.ShowFooter()
+}
+
+templ (home *LayoutProps) ShowAppBar() {
+	if home.AppBar != nil {
+		@home.AppBar.Show()
+	}
+}
+
+templ (home *LayoutProps) ShowBreadcrumbs() {
+	if home.Breadcrumbs != nil {
+		<div id="content_breadcrumbs" hx-swap-oob="true" class="p-2 m-2">
+			@home.Breadcrumbs.Show()
+		</div>
+	}
+}
+
+templ (home *LayoutProps) ShowContent() {
+	if len(home.Content) == 0 {
+		@emptyContent()
+	} else {
+		for _, item := range home.Content {
+			switch item.DisplayType {
+				case templates.FeedCard:
+					@ShowFeedCard(item)
+				case templates.ItemCard:
+					@ShowItemCard(item)
+				case templates.ItemArticle:
+					@ShowArticle(item)
+			}
+		}
+	}
+}
+
+templ (home *LayoutProps) ShowFooter() {
+	if home.Footer != nil {
+		@home.Footer
+	}
+}
+
+// EmptyContent renders a hero with options for the user when the request
+// returned no other content.
+templ emptyContent() {
+	<div class="hero bg-base-200 min-h-screen">
+		<div class="hero-content text-center">
+			<div class="max-w-md">
+				<h1 class="text-5xl font-bold">Nothing to show.</h1>
+				<p class="py-6">
+					Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
+					quasi. In deleniti eaque aut repudiandae et a id nisi.
+				</p>
+				<button
+					class="btn btn-primary"
+					hx-get="/subscription/new"
+					hx-target="#command_modal"
+				>Add Subscription</button>
+			</div>
+		</div>
+	</div>
+}

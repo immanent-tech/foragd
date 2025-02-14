@@ -7,20 +7,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/input"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/navigation/navbar"
 )
-
-// AppBarTop displays an app bar at the top of the page.
-templ AppBarTop() {
-	@navbar.Build(
-		navbar.WithID("app_bar"),
-		navbar.WithBaseColor(color.Base300),
-		navbar.NavBarStart(appBarTopLeft()),
-		navbar.NavBarCenter(appBarTopCenter()),
-		navbar.NavBarEnd(appBarTopRight()),
-	).Show()
-}
 
 templ appBarTopLeft() {
 	<label for="home_drawer_toggle" aria-label="Open Drawer" class="btn btn-square lg:hidden drawer-button">

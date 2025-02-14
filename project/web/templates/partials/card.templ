@@ -1,0 +1,124 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+
+package partials
+
+import (
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"github.com/joshuar/go-templ-daisyui/navigation/menu"
+	"strconv"
+	"time"
+)
+
+func relativeTime(timestamp time.Time) string {
+	return timestamp.Format("Mon Jan 2 15:04")
+}
+
+templ titleText(title string) {
+	@text.Build(title,
+		text.WithTextWeight(text.Semibold),
+		text.WithTextSize(text.SM),
+	).Show()
+}
+
+// DisplayLastUpdated shows the timestamp indicating last update of an item as a
+// relative time in the bottom left corner.
+templ DisplayLastUpdated(description string, updated time.Time) {
+	<div class="flex justify-start left-2 bottom-2">
+		@text.Build(description+" "+relativeTime(updated),
+			text.WithTextSize(text.XS),
+			text.AsItalicText(),
+		).Show()
+	</div>
+}
+
+// DisplayItemTitle shows the item title.
+templ DisplayItemTitle(item templates.Item) {
+	<div class="flex">
+		@titleText(item.GetTitle())
+	</div>
+}
+
+// DisplayFeedTitle shows the feed title and the unread count as an indicator.
+templ DisplayFeedTitle(feed templates.Feed) {
+	<div class="flex">
+		if feed.GetUserUnreadCount() > 0 {
+			@badge.Build(
+				badge.WithSize(size.SM),
+				badge.WithThemeColor(color.Primary, false),
+				badge.WithText(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
+			).Show("absolute", "right-2", "top-2", "p-2")
+		}
+		@titleText(feed.GetTitle())
+	</div>
+}
+
+// DisplayCategories shows a list of categories as badges.
+templ DisplayCategories(categories ...models.Category) {
+	<div class="flex flex-wrap">
+		for _, category := range categories {
+			@badge.Build(
+				badge.WithSize(size.SM),
+				badge.WithThemeColor(color.Accent, true),
+				badge.WithText(category),
+			).Show("p-1", "m-1")
+		}
+	</div>
+}
+
+templ DisplayItemArticle(item templates.Item) {
+	<h2>{ item.Title }</h2>
+	@DisplayLastUpdated("Last Updated:", item.GetTimestamp())
+	@DisplayCategories(item.GetCategories()...)
+	<p>
+		@templ.Raw(item.GetContent())
+	</p>
+	<center>
+		<p>
+			<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
+		</p>
+	</center>
+}
+
+// DisplayCardActions displays action buttons for a card, either as a horizontal
+// list (on large screens) or a drop-down menu (on smaller screens).
+func DisplayCardActions(actions ...templ.Component) []templ.Component {
+	var menus []templ.Component
+
+	menus = append(menus,
+		// Menu for large screens: horizontal layout, all buttons shown.
+		menu.Build(
+			menu.WithSize(size.SM),
+			menu.WithLayout(menu.Horizontal),
+			menu.WithRevealedBreakpoint(size.LG),
+			menu.WithItems(actions...),
+		).Show(),
+		// Menu for small screens: buttons hidden behind drop-down.
+		dropdown.Build(
+			dropdown.WithHiddenBreakpoint(size.LG),
+			dropdown.WithOpenFrom(dropdown.OpenTop, true),
+			dropdown.WithButton(
+				button.WithSize(size.XS),
+				button.WithThemeColor(color.Secondary, true),
+				button.AsShape(button.Square, true),
+				button.WithContent(icon.Build("fa-ellipsis-vertical")),
+			),
+			dropdown.WithMenuOptions(
+				// menu.WithSize(size.SM),
+				menu.WithLayout(menu.Vertical),
+				menu.WithItems(actions...),
+			),
+		).Show(),
+	)
+
+	return menus
+}

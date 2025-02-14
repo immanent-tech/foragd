@@ -99,7 +99,9 @@
     "modifiers",
     "server/middlewares",
     "helpers/items",
-    "helpers/attributes"
+    "helpers/attributes",
+    "components/breadcrumbs",
+    "components/link"
   ],
   "emmet.includeLanguages": {
     "templ": "html"
