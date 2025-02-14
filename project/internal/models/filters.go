@@ -154,17 +154,16 @@ func CreateFilters(params any) (*APIFilters, error) {
 	slog.Debug("Unmarshaling filters.",
 		slog.Any("filters", filters))
 
+	// Validate the count is within an appropriate range and adjust if
+	// necessary.
 	if filters.Count == 0 || filters.Count > 20 {
 		filters.Count = 10
 	}
 
-	// if params.Pagination != nil {
-	// 	if pagination, err := url.QueryUnescape(*params.Pagination); err != nil {
-	// 		slog.Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-	// 	} else {
-	// 		filters.Pagination = []byte(pagination)
-	// 	}
-	// }
+	// Validate view value or set if necessary.
+	if filters.View == "" {
+		filters.View = ViewUnread
+	}
 
 	return filters, nil
 }
