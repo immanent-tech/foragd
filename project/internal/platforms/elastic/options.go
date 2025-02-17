@@ -3,8 +3,8 @@
 
 package elastic
 
-// Option is a generic type for request options.
-type Option[T any] func(T) T
+// Option is a generic type for functional options.
+type Option[T any] func(T)
 
 // hasIndexOption represents requests that have an option to set the index (or
 // index pattern).
@@ -12,12 +12,10 @@ type hasIndexOption[T any] interface {
 	Index(value string) T
 }
 
-// WithIndex specifies the index (or index pattern) which the request
-// will apply to.
+// WithIndex option specifies the index (or index pattern) to use.
 func WithIndex[T hasIndexOption[T]](value string) Option[T] {
-	return func(req T) T {
+	return func(req T) {
 		req = req.Index(value)
-		return req
 	}
 }
 
@@ -26,11 +24,10 @@ type hasIDsOption[T any] interface {
 	Ids(ids ...string) T
 }
 
-// WithIDs retrieves the documents with the given IDs.
+// WithIDs option retrieves the documents with the given IDs.
 func WithIDs[T hasIDsOption[T]](ids ...string) Option[T] {
-	return func(req T) T {
+	return func(req T) {
 		req = req.Ids(ids...)
-		return req
 	}
 }
 
@@ -40,11 +37,10 @@ type hasSourceOption[T any] interface {
 	Source_(value string) T
 }
 
-// WithSource specifies that the `_source` field should be retrieved.
+// WithSource option specifies that the `_source` field should be retrieved.
 func WithSource[T hasSourceOption[T]]() Option[T] {
-	return func(req T) T {
+	return func(req T) {
 		req = req.Source_("true")
-		return req
 	}
 }
 
@@ -64,15 +60,13 @@ type hasDocIDOption[T any] interface {
 	SetDocID(id string)
 }
 
-// WithDocID allows setting the document ID as an option.
+// WithDocID option allows setting the document ID.
 func WithDocID[T any](id string) Option[T] {
-	return func(req T) T {
+	return func(req T) {
 		request := &req
 
 		if settable, ok := any(request).(hasDocIDOption[T]); ok {
 			settable.SetDocID(id)
 		}
-
-		return *request
 	}
 }

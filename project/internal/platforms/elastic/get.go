@@ -13,31 +13,50 @@ import (
 
 var ErrGetFailed = errors.New("get request failed")
 
+// MGetOperationOption is a functional option for an mget operation.
+type MGetOperationOption Option[*types.MgetOperation]
+
+// MGetOption is a functional option for an mget request.
+type MGetOption Option[*mget.Mget]
+
 // WithDocID specifies the document ID to get.
-func WithGetDocID(id string) Option[types.MgetOperation] {
-	return func(mo types.MgetOperation) types.MgetOperation {
+func WithGetDocID(id string) MGetOperationOption {
+	return func(mo *types.MgetOperation) {
 		mo.Id_ = id
-		return mo
 	}
 }
 
 // GetDoc creates a get doc operation.
-func GetDoc(options ...Option[types.MgetOperation]) types.MgetOperation {
-	req := types.MgetOperation{}
+func GetDoc(options ...MGetOperationOption) *types.MgetOperation {
+	req := &types.MgetOperation{}
 
 	for _, option := range options {
-		req = option(req)
+		option(req)
 	}
 
 	return req
 }
 
+// GetIDs option sets the document IDs to get.
+func GetIDs(ids ...string) MGetOption {
+	return func(m *mget.Mget) {
+		m.Ids(ids...)
+	}
+}
+
+// GetFromIndex option sets the index (or index pattern) to get documents from.
+func GetFromIndex(index string) MGetOption {
+	return func(m *mget.Mget) {
+		m.Index(index)
+	}
+}
+
 // NewMGetRequest creates a new mget object with the given options.
-func (c *Client) NewMGetRequest(options ...Option[*mget.Mget]) *mget.Mget {
+func (c *Client) NewMGetRequest(options ...MGetOption) *mget.Mget {
 	req := c.API.Mget()
 
 	for _, option := range options {
-		req = option(req)
+		option(req)
 	}
 
 	return req

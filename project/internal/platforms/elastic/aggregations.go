@@ -9,9 +9,27 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
+// Aggregation represents a named aggregation definition in a search query.
+type Aggregation struct {
+	Name       string
+	Definition types.Aggregations
+}
+
 // TermsAggregationResults contains the results for a string terms aggregation.
 type TermsAggregationResults struct {
 	*types.StringTermsAggregate
+}
+
+// NewTermsAggregation creates a TermsAggregation aggregation for a query.
+func NewTermsAggregation(name, field string) Aggregation {
+	return Aggregation{
+		Name: name,
+		Definition: types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &field,
+			},
+		},
+	}
 }
 
 // GetCount retrieves the document count for the bucket with the given key.

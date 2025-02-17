@@ -20,6 +20,9 @@ var (
 	ErrExistsFailed = errors.New("exists request failed")
 )
 
+// DocUpdateOption is a functional option for a DocUpdateRequest.
+type DocUpdateOption Option[*DocUpdateRequest]
+
 type HasForcedRefreshOption interface {
 	ForceRefresh()
 }
@@ -35,21 +38,20 @@ func (u *DocUpdateRequest) ForceRefresh() {
 
 // DetectNoop configures noop handling. Set to false to disable setting 'result'
 // in the response to 'noop' if no change to the document occurred.
-func DetectNoop(value bool) Option[*DocUpdateRequest] {
-	return func(update *DocUpdateRequest) *DocUpdateRequest {
+func DetectNoop(value bool) DocUpdateOption {
+	return func(update *DocUpdateRequest) {
 		update.DetectNoop = &value
-		return update
 	}
 }
 
 // WithDocUpdate sets the full document content for the update. The document is
 // automatically marshaled to JSON.
-func WithDocUpdate(doc any, upsert bool) Option[*DocUpdateRequest] {
-	return func(update *DocUpdateRequest) *DocUpdateRequest {
+func WithDocUpdate(doc any, upsert bool) DocUpdateOption {
+	return func(update *DocUpdateRequest) {
 		data, err := json.Marshal(doc)
 		if err != nil {
 			slog.Warn("Could not marshal document.", slog.Any("error", err))
-			return update
+			return
 		}
 
 		update.Doc = data
@@ -57,42 +59,37 @@ func WithDocUpdate(doc any, upsert bool) Option[*DocUpdateRequest] {
 		if upsert {
 			update.DocAsUpsert = &upsert
 		}
-
-		return update
 	}
 }
 
 // WithPartialDocUpdate sets the fields of the document to update. The fields are
 // automatically marshaled to JSON.
-func WithPartialDocUpdate(fields map[string]any) Option[*DocUpdateRequest] {
-	return func(update *DocUpdateRequest) *DocUpdateRequest {
+func WithPartialDocUpdate(fields map[string]any) DocUpdateOption {
+	return func(update *DocUpdateRequest) {
 		data, err := json.Marshal(fields)
 		if err != nil {
 			slog.Warn("Could not marshal fields.", slog.Any("error", err))
-			return update
+			return
 		}
 
 		update.Doc = data
-
-		return update
 	}
 }
 
-func WithForcedRefresh[T HasForcedRefreshOption]() Option[T] {
-	return func(req T) T {
+func WithForcedRefresh() DocUpdateOption {
+	return func(req *DocUpdateRequest) {
 		req.ForceRefresh()
-		return req
 	}
 }
 
 // NewDocUpdateRequest creates a new update request with the given options.
-func (c *Client) NewDocUpdateRequest(index, id string, options ...Option[*DocUpdateRequest]) *update.Update {
+func (c *Client) NewDocUpdateRequest(index, id string, options ...DocUpdateOption) *update.Update {
 	req := &DocUpdateRequest{
 		Request: update.NewRequest(),
 	}
 
 	for _, option := range options {
-		req = option(req)
+		option(req)
 	}
 
 	return c.API.Update(index, id).Request(req.Request)

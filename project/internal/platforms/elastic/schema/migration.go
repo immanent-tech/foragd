@@ -29,7 +29,7 @@ type client interface {
 	PutIndexTemplate(ctx context.Context, name string, template *putindextemplate.Request) error
 	PutIngestPipeline(ctx context.Context, name string, pipeline *putpipeline.Request) error
 	IndexExists(ctx context.Context, index string) (bool, error)
-	NewIndexRequest(name string, options ...elastic.Option[*elastic.CreateIndexRequest]) *create.Create
+	NewIndexRequest(name string, options ...elastic.CreateIndexOption) *create.Create
 }
 
 // Migration will create all necessary index templates settings and policies.

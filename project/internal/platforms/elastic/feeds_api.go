@@ -10,8 +10,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -53,7 +51,7 @@ func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]model
 	}
 
 	resp, err := c.NewSearchRequest(
-		WithIndex[*search.Search](index),
+		WithSearchIndex(index),
 		WithSearchQueryOptions(QuerySince("@timestamp", since)),
 	).Do(ctx)
 	if err != nil {
@@ -76,7 +74,7 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (*models.APIFeed,
 	}
 
 	resp, err := c.NewSearchRequest(
-		WithIndex[*search.Search](index),
+		WithSearchIndex(index),
 		WithFields(defaultFeedFields...),
 		WithSearchQueryOptions(QueryByTerm("feedLink", url)),
 	).Do(ctx)
@@ -107,7 +105,7 @@ func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]model
 	feeds := make([]models.APIFeed, 0, len(urls))
 
 	resp, err := c.NewSearchRequest(
-		WithIndex[*search.Search](index),
+		WithSearchIndex(index),
 		WithFields("feed_id", "feedLink"),
 		WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
 		WithSearchSize(len(urls)),
@@ -140,8 +138,8 @@ func (c *Client) GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) ([]
 
 	// Get the feed details.
 	req := c.NewMGetRequest(
-		WithIndex[*mget.Mget](index),
-		WithIDs[*mget.Mget](feedIDs...),
+		GetFromIndex(index),
+		GetIDs(feedIDs...),
 	)
 
 	res, err := req.Do(ctx)
@@ -189,7 +187,7 @@ func (c *Client) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
 		return errors.Join(ErrAddFailed, ErrNoIndexInCtx)
 	}
 
-	docs := make([]BulkOperation, len(feeds))
+	docs := make([]*BulkOperation, len(feeds))
 
 	for iter, feed := range feeds {
 		feed.Items = nil // don't index items in feed.
@@ -199,7 +197,7 @@ func (c *Client) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
 		)
 
 		docs[iter] = NewBulkOperation(&feed,
-			WithDocID[BulkOperation](feed.ID),
+			SetDocID(feed.ID),
 			ToIndex(index),
 		)
 	}
@@ -216,7 +214,7 @@ func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
 		return errors.Join(ErrAddFailed, ErrNoIndexInCtx)
 	}
 
-	docs := make([]BulkOperation, len(items))
+	docs := make([]*BulkOperation, len(items))
 
 	for iter, item := range items {
 		c.Logger.Debug("Adding item",
@@ -226,7 +224,7 @@ func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
 		)
 
 		docs[iter] = NewBulkOperation(&item,
-			WithDocID[BulkOperation](item.ID),
+			SetDocID(item.ID),
 			ToIndex(index),
 		)
 	}
@@ -246,7 +244,7 @@ func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, view 
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
-	var query Option[*types.Query]
+	var query QueryOption
 
 	switch view {
 	case models.ViewRead:
@@ -260,13 +258,13 @@ func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, view 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
 	req := c.NewSearchRequest(
-		WithIndex[*search.Search](index),
+		WithSearchIndex(index),
 		WithSearchQueryOptions(
 			query,
 		),
 		WithSortOptions(SortTimestampDesc()),
 		WithSearchSize(0),
-		WithAggregations(TermsAggregation("UnreadCounts", "feed_id")),
+		WithAggregations(NewTermsAggregation("UnreadCounts", "feed_id")),
 	)
 
 	resp, err := req.Do(ctx)
@@ -294,8 +292,8 @@ func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, view 
 
 // unreadFeedItemsQuery generates a query for matching unread items for the
 // given feeds.
-func unreadFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) Option[*types.Query] {
-	clauses := make([]Option[*types.Query], 0, len(feedIDs))
+func unreadFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) QueryOption {
+	clauses := make([]QueryOption, 0, len(feedIDs))
 	for _, id := range feedIDs {
 		clauses = append(clauses,
 			QueryBool(
@@ -332,9 +330,9 @@ func unreadFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) Option[*t
 }
 
 // readFeedItemsQuery generates a query for matching read items for the given feeds.
-func readFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) Option[*types.Query] {
+func readFeedItemsQuery(user *models.User, feedIDs ...models.FeedID) QueryOption {
 	readFeedIDs := make([]models.FeedID, 0, len(feedIDs))
-	clauses := make([]Option[*types.Query], 0, len(feedIDs))
+	clauses := make([]QueryOption, 0, len(feedIDs))
 
 	for _, id := range feedIDs {
 		// Ignore feed if user has never marked it as read.

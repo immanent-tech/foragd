@@ -12,9 +12,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -40,7 +37,7 @@ func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Mark, ids 
 	}
 
 	resp, err := c.NewSearchRequest(
-		WithIndex[*search.Search](index),
+		WithSearchIndex(index),
 		WithFields("feed_id"),
 		WithSearchQueryOptions(
 			// Must have the  itemID
@@ -137,7 +134,7 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID models.FeedID, it
 	}
 
 	req := c.NewSearchRequest(
-		WithIndex[*search.Search](index),
+		WithSearchIndex(index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
 			QueryBool(
@@ -187,7 +184,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 		return outCh, "", ErrGetUserFailed
 	}
 
-	var query Option[*types.Query]
+	var query QueryOption
 	// Work out what query to use based on the state filter.
 	switch filters.View {
 	case models.ViewRead:
@@ -213,7 +210,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
 	req := c.NewSearchRequest(
-		WithIndex[*search.Search](index),
+		WithSearchIndex(index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
 			query,

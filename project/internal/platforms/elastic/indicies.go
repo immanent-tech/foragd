@@ -18,6 +18,9 @@ import (
 
 var ErrPutILMPolicyFailed = errors.New("create ILM policy failed")
 
+// CreateIndexOption is a functional option for a create index request.
+type CreateIndexOption Option[*CreateIndexRequest]
+
 func (c *Client) PutILM(ctx context.Context, name string, policy *putlifecycle.Request) error {
 	_, err := c.API.Ilm.PutLifecycle(name).Request(policy).Do(ctx)
 	if err != nil {
@@ -61,41 +64,37 @@ type CreateIndexRequest struct {
 }
 
 // WithIndexMappings adds the given mappings to the index.
-func WithIndexMappings(mappings *types.TypeMapping) Option[*CreateIndexRequest] {
-	return func(index *CreateIndexRequest) *CreateIndexRequest {
+func WithIndexMappings(mappings *types.TypeMapping) CreateIndexOption {
+	return func(index *CreateIndexRequest) {
 		index.Mappings(mappings)
-		return index
 	}
 }
 
 // WithIndexSettings adds the given settings to the index.
-func WithIndexSettings(settings *types.IndexSettings) Option[*CreateIndexRequest] {
-	return func(index *CreateIndexRequest) *CreateIndexRequest {
+func WithIndexSettings(settings *types.IndexSettings) CreateIndexOption {
+	return func(index *CreateIndexRequest) {
 		index.Settings(settings)
-		return index
 	}
 }
 
 // WithIndexAlias adds the given index alias to the index.
-func WithIndexAlias(name string, details types.Alias) Option[*CreateIndexRequest] {
-	return func(index *CreateIndexRequest) *CreateIndexRequest {
+func WithIndexAlias(name string, details types.Alias) CreateIndexOption {
+	return func(index *CreateIndexRequest) {
 		index.mu.Lock()
 		defer index.mu.Unlock()
 		index.aliases[name] = details
-
-		return index
 	}
 }
 
 // NewIndexRequest creates a new index request for the given index name and options.
-func (c *Client) NewIndexRequest(name string, options ...Option[*CreateIndexRequest]) *create.Create {
+func (c *Client) NewIndexRequest(name string, options ...CreateIndexOption) *create.Create {
 	req := &CreateIndexRequest{
 		aliases: make(map[string]types.Alias),
 		Create:  c.API.Indices.Create(name),
 	}
 
 	for _, option := range options {
-		req = option(req)
+		option(req)
 	}
 
 	if len(req.aliases) > 0 {

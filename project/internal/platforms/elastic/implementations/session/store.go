@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 
@@ -61,7 +60,7 @@ func (s *Store) Delete(token string) error {
 // session token is not found or is expired, the found return value should
 // be false (and the err return value should be nil). Similarly, tampered
 // or malformed tokens should result in a found return value of false and a
-// nil err value. The err return value should be used for system errors only
+// nil err value. The err return value should be used for system errors only.
 func (s *Store) Find(token string) ([]byte, bool, error) {
 	resp, err := s.client.NewGetRequest(
 		s.index,
@@ -105,7 +104,7 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 		s.index,
 		token,
 		elastic.WithDocUpdate(session, true),
-		elastic.WithForcedRefresh[*elastic.DocUpdateRequest](),
+		elastic.WithForcedRefresh(),
 	).Do(sessionCtx)
 	if err != nil {
 		return errors.Join(ErrCommitSessionFailed, err)
@@ -126,7 +125,7 @@ func (s *Store) All() (map[string][]byte, error) {
 	// Loop until we've paginated through all results.
 	for {
 		resp, err := s.client.NewSearchRequest(
-			elastic.WithIndex[*search.Search](s.index),
+			elastic.WithSearchIndex(s.index),
 			elastic.WithSearchQueryOptions(elastic.QuerySince("expiry", time.Now().UTC())),
 			elastic.WithSearchSize(searchSize),
 			elastic.WithSearchAfter(pagination),

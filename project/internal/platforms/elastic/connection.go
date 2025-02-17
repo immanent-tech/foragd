@@ -55,7 +55,7 @@ type Client struct {
 	conn       *elasticsearch.TypedClient
 	API        *typedapi.API
 	Logger     *slog.Logger
-	bulkStream chan []BulkOperation
+	bulkStream chan []*BulkOperation
 }
 
 func Connect(ctx context.Context) (*Client, error) {
@@ -78,7 +78,7 @@ func Connect(ctx context.Context) (*Client, error) {
 	// 	return nil, fmt.Errorf("%w: %w", ErrSetupFailed, err)
 	// }
 
-	client.bulkStream = make(chan []BulkOperation)
+	client.bulkStream = make(chan []*BulkOperation)
 	go func() {
 		defer close(client.bulkStream)
 		client.bulkStreamWorker(ctx)

@@ -19,7 +19,14 @@ const (
 	BulkUpdate
 )
 
+// BulkOpType represents the type of bulk operation to perform.
 type BulkOpType int
+
+// BulkOpOption is a functional option for a bulk operation.
+type BulkOpOption Option[*BulkOperation]
+
+// BulkOption is a functional option for a bulk request.
+type BulkOption Option[*bulk.Bulk]
 
 // BulkRequest represents a bulk request.
 type BulkRequest struct {
@@ -28,26 +35,23 @@ type BulkRequest struct {
 }
 
 // WithPipeline defines the ingest pipeline to use on each document.
-func WithPipeline(pipeline string) Option[*bulk.Bulk] {
-	return func(b *bulk.Bulk) *bulk.Bulk {
+func WithPipeline(pipeline string) BulkOption {
+	return func(b *bulk.Bulk) {
 		if pipeline != "" {
 			b = b.Pipeline(pipeline)
 		}
-
-		return b
 	}
 }
 
 // WithIndex defines the index on which the request will operate.
-func WithOverallIndex(index string) Option[*bulk.Bulk] {
-	return func(b *bulk.Bulk) *bulk.Bulk {
+func WithOverallIndex(index string) BulkOption {
+	return func(b *bulk.Bulk) {
 		b = b.Index(index)
-		return b
 	}
 }
 
 // AddOperations adds document operations to the bulk request.
-func (r *BulkRequest) AddOperations(operations ...BulkOperation) *BulkRequest {
+func (r *BulkRequest) AddOperations(operations ...*BulkOperation) *BulkRequest {
 	for _, operation := range operations {
 		var err error
 
@@ -77,11 +81,11 @@ func (r *BulkRequest) AddOperations(operations ...BulkOperation) *BulkRequest {
 
 // NewBulkRequest creates a new bulk requesst object with the given options.
 // After creation, document operations can be added with the AddOperations method.
-func (c *Client) NewBulkRequest(options ...Option[*bulk.Bulk]) *BulkRequest {
+func (c *Client) NewBulkRequest(options ...BulkOption) *BulkRequest {
 	req := c.API.Bulk()
 
 	for _, option := range options {
-		req = option(req)
+		option(req)
 	}
 
 	return &BulkRequest{
@@ -98,31 +102,35 @@ type BulkOperation struct {
 	docIDOption
 }
 
+func SetDocID(id string) BulkOpOption {
+	return func(operation *BulkOperation) {
+		operation.SetDocID(id)
+	}
+}
+
 // AsOperationType specifies the type of bulk operation to perform. If this option is
 // not specified, the operation will default to a create operation.
-func AsOperationType(opType BulkOpType) Option[BulkOperation] {
-	return func(operation BulkOperation) BulkOperation {
+func AsOperationType(opType BulkOpType) BulkOpOption {
+	return func(operation *BulkOperation) {
 		operation.opType = opType
-		return operation
 	}
 }
 
 // ToIndex sets the index containing the document.
-func ToIndex(index string) Option[BulkOperation] {
-	return func(operation BulkOperation) BulkOperation {
+func ToIndex(index string) BulkOpOption {
+	return func(operation *BulkOperation) {
 		operation.index = index
-		return operation
 	}
 }
 
 // NewBulkOperation creates a new bulk operation for a document with the given options.
-func NewBulkOperation(doc any, options ...Option[BulkOperation]) BulkOperation {
-	operation := BulkOperation{
+func NewBulkOperation(doc any, options ...BulkOpOption) *BulkOperation {
+	operation := &BulkOperation{
 		document: doc,
 	}
 
 	for _, option := range options {
-		operation = option(operation)
+		option(operation)
 	}
 
 	return operation
