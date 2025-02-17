@@ -28,6 +28,8 @@ components:
         applies the given mark action to objects.
       type: string
       enum: ["read","unread"]
+      x-oapi-codegen-extra-tags:
+        form: 'mark'
     View:
       description: >
         The state of objects to view.
@@ -41,8 +43,8 @@ components:
       description: contains parameters for searching feeds and items
       type: object
       required:
-        - count
         - view
+        - count
       properties:
         FeedIDs:
           description: is a list of feed IDs to filter on.

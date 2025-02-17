@@ -143,11 +143,18 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
-		homeRouter.Get("/show/{type}", HomeMiddleware(wrapper.HandleShowObjects))
-		homeRouter.Get("/paginate/{type}/{pagination}", HomeMiddleware(wrapper.HandlePaginateObjects))
-		homeRouter.Post("/{action}/{type}", HomeMiddleware(wrapper.HandleActionObjects))
-		homeRouter.Get("/show/{feed}/{item}", HomeMiddleware(wrapper.HandleShowItem))
-		homeRouter.Put("/{action}/{feed}/{item}", HomeMiddleware(wrapper.HandleActionItem))
+		homeRouter.Get("/", HomeMiddleware(wrapper.HandleHome))
+		// Feeds:
+		homeRouter.Get("/feeds", HomeMiddleware(wrapper.HandleShowFeeds))
+		homeRouter.Post("/feeds", HomeMiddleware(wrapper.HandleMarkFeeds))
+		// Items:
+		homeRouter.Get("/feed/{feed}/items", HomeMiddleware(wrapper.HandleShowFeedItems))
+		homeRouter.Post("/feed/{feed}/items", HomeMiddleware(wrapper.HandleMarkFeedItems))
+		// Item:
+		homeRouter.Get("/feed/{feed}/item/{item}", HomeMiddleware(wrapper.HandleShowItem))
+		homeRouter.Post("/feed/{feed}/item/{item}", HomeMiddleware(wrapper.HandleMarkItem))
+		homeRouter.Put("/feed/{feed}/item/{item}", HomeMiddleware(wrapper.HandleSaveItem))
+		homeRouter.Delete("/feed/{feed}/item/{item}", HomeMiddleware(wrapper.HandleUnsaveItem))
 	})
 
 	router.Route("/subscription", func(subscription chi.Router) {

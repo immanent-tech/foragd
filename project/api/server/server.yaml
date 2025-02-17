@@ -185,68 +185,82 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/show/{type}:
+  /home:
     get:
       summary: >
-        Show object(s) of given {type} with optional filtering.
-      operationId: handleShowObjects
-      parameters:
-        - $ref: '#/components/parameters/Type'
-        # Query:
-        - $ref: '#/components/parameters/FeedIDs'
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/Count'
-        - $ref: '#/components/parameters/View'
-  /home/paginate/{type}/{pagination}:
+        Shows a page of curated feeds and content based on the user's
+        subscriptions and viewing preferences.
+      operationId: handleHome
+  /home/feeds:
     get:
       summary: >
-        Paginate through object(s) of given {type} with optional filtering.
-      operationId: handlePaginateObjects
+        Shows subscribed feeds grouped by categories.
+      operationId: handleShowFeeds
       parameters:
-        - $ref: '#/components/parameters/Type'
-        - $ref: '#/components/parameters/Pagination'
-        # Query:
-        - $ref: '#/components/parameters/FeedIDs'
         - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/Count'
         - $ref: '#/components/parameters/View'
-  /home/{action}/{type}:
+        - $ref: '#/components/parameters/Count'
     post:
       summary: >
-        Perform {action} on object(s) of given {type} with optional filtering.
-      operationId: handleActionObjects
+        Mark feeds.
+      operationId: handleMarkFeeds
+      parameters:
+        - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/Mark'
+  /home/feed/{feed}/items:
+    get:
+      summary: >
+        Show items for a feed.
+      operationID: handleShowFeedItems
       parameters:
         # Path:
-        - $ref: '#/components/parameters/Action'
-        - $ref: '#/components/parameters/Type'
+        - $ref: '#/components/parameters/FeedID'
         # Query:
-        - $ref: '#/components/parameters/FeedIDs'
         - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/Count'
         - $ref: '#/components/parameters/View'
-  /home/show/{feed}/{item}:
+        - $ref: '#/components/parameters/Count'
+    post:
+      summary: >
+        Mark items for a feed.
+      operationID: handleMarkFeedItems
+      parameters:
+        # Path:
+        - $ref: '#/components/parameters/FeedID'
+        # Query:
+        - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/Mark'
+  /home/feed/{feed}/item/{item}:
     get:
-      description: >
-        Show item.
-      operationId: handleShowItem
+      summary: >
+        Shows a feed item.
+      operationID: handleShowItem
       parameters:
         - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/ItemID'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/{action}/{feed}/{item}:
+    post:
+      summary: >
+        Mark a feed item.
+      operationID: handleMarkItem
+      parameters:
+        # Path:
+        - $ref: '#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/ItemID'
+        # Query:
+        - $ref: '#/components/parameters/Mark'
     put:
-      description: >
-        Perform action on item.
-      operationId: handleActionItem
+      summary: >
+        Save a feed item to the user's saved items.
+      operationID: handleSaveItem
       parameters:
-        - $ref: '#/components/parameters/Action'
         - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/ItemID'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
+    delete:
+      summary: >
+        Remove a feed item from the user's saved items.
+      operationID: handleUnsaveItem
+      parameters:
+        - $ref: '#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/ItemID'
 components:
   schemas:
     Action:
@@ -288,23 +302,30 @@ components:
               Category:
                 $ref: '../models/models.yaml#/components/schemas/Category'
   parameters:
-    Action:
-      name: action
+    # Path parameters:
+    FeedID:
+      name: feed
       in: path
       schema:
-        $ref: '#/components/schemas/Action'
-    Type:
-      name: type
+        $ref: '../models/models.yaml#/components/schemas/FeedID'
+    ItemID:
+      name: item
       in: path
       schema:
-        $ref: '#/components/schemas/ObjectType'
-    Pagination:
-      name: pagination
-      in: path
+        $ref: '../models/models.yaml#/components/schemas/ItemID'
+    # Query Parameters:
+    Mark:
+      name: mark
+      in: query
+      required: true
       schema:
-        $ref: '../models/api.yaml#/components/schemas/Pagination'
-
-  # Query parameters:
+        $ref: '../models/api.yaml#/components/schemas/Mark'
+    View:
+      name: view
+      in: query
+      required: true
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/View'
     FeedIDs:
       name: feeds
       description: An array of Feed IDs.
@@ -316,17 +337,6 @@ components:
         x-oapi-codegen-extra-tags:
           json: 'feeds'
           form: 'feeds[]'
-    ItemIDs:
-      name: items
-      description: An array of Item IDs.
-      in: query
-      schema:
-        type: array
-        items:
-          $ref: '../models/models.yaml#/components/schemas/ItemID'
-        x-oapi-codegen-extra-tags:
-          json: 'items'
-          form: 'items[]'
     Categories:
       name: categories
       description: An array of Categories.
@@ -338,28 +348,14 @@ components:
         x-oapi-codegen-extra-tags:
           json: 'categories'
           form: 'categories[]'
+        x-go-type-skip-optional-pointer: true
     Count:
       name: count
       in: query
+      required: true
       schema:
         type: string
         $ref: '../models/api.yaml#/components/schemas/Count'
-    View:
-      name: view
-      in: query
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/View'
-  # Path parameters:
-    FeedID:
-      name: feed
-      in: path
-      schema:
-        $ref: '../models/models.yaml#/components/schemas/FeedID'
-    ItemID:
-      name: item
-      in: path
-      schema:
-        $ref: '../models/models.yaml#/components/schemas/ItemID'
   responses:
     htmx:
       description: standard htmx powered response.

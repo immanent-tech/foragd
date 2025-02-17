@@ -16,24 +16,24 @@ type StateFilterProps struct {
 }
 
 // StateFilter creates a control for filtering on view state (i.e., read/unread/all).
-func StateFilter(path string, filters *models.APIFilters) *StateFilterProps {
+func StateFilter(active models.View, urls map[models.View]string) *StateFilterProps {
 	return &StateFilterProps{
-		Active: filters.View,
+		Active: active,
 		Attributes: map[models.View]templ.Attributes{
 			models.ViewRead: {
-				"hx-get":      filters.BuildURL(path, models.WithView(models.ViewRead)).String(),
+				"hx-get":      urls[models.ViewRead],
 				"hx-target":   "#content",
 				"hx-push-url": "true",
 				"_":           "on click toggle .checked on #home_drawer_toggle",
 			},
 			models.ViewUnread: {
-				"hx-get":      filters.BuildURL(path, models.WithView(models.ViewUnread)).String(),
+				"hx-get":      urls[models.ViewUnread],
 				"hx-target":   "#content",
 				"hx-push-url": "true",
 				"_":           "on click toggle .checked on #home_drawer_toggle",
 			},
 			models.ViewAll: {
-				"hx-get":      filters.BuildURL(path, models.WithView(models.ViewAll)).String(),
+				"hx-get":      urls[models.ViewAll],
 				"hx-target":   "#content",
 				"hx-push-url": "true",
 				"_":           "on click toggle .checked on #home_drawer_toggle",
