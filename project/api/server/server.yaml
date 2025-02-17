@@ -348,7 +348,7 @@ components:
         x-oapi-codegen-extra-tags:
           json: 'categories'
           form: 'categories[]'
-        x-go-type-skip-optional-pointer: true
+        # x-go-type-skip-optional-pointer: true
     Count:
       name: count
       in: query

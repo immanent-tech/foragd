@@ -169,6 +169,20 @@ func (c *Client) GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) ([]
 	return feeds, nil
 }
 
+// GetFeedByID fetches a single feed by its ID.
+func (c *Client) GetFeedByID(ctx context.Context, feedID models.FeedID) (*models.APIFeed, error) {
+	feeds, err := c.GetFeedsByID(ctx, feedID)
+	if err != nil {
+		return nil, errors.Join(ErrReqFailed, err)
+	}
+
+	if len(feeds) == 0 {
+		return nil, ErrNotFound
+	}
+
+	return feeds[0], nil
+}
+
 func (c *Client) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {

@@ -21,9 +21,6 @@ type Count = externalRef0.Count
 // FeedID is the unique ID of a feed.
 type FeedID = externalRef0.FeedID
 
-// FeedIDs defines model for FeedIDs.
-type FeedIDs = []externalRef0.FeedID
-
 // ItemID is the unique ID of an item.
 type ItemID = externalRef0.ItemID
 
@@ -41,34 +38,31 @@ type HandleMarkItemParams struct {
 // HandleShowFeedItemsParams defines parameters for HandleShowFeedItems.
 type HandleShowFeedItemsParams struct {
 	// Categories An array of Categories.
-	Categories Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	View       View       `form:"view" json:"view"`
-	Count      Count      `form:"count" json:"count"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
 }
 
 // HandleMarkFeedItemsParams defines parameters for HandleMarkFeedItems.
 type HandleMarkFeedItemsParams struct {
 	// Categories An array of Categories.
-	Categories Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	Mark       Mark       `form:"mark" json:"mark"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Mark       Mark        `form:"mark" json:"mark"`
 }
 
 // HandleShowFeedsParams defines parameters for HandleShowFeeds.
 type HandleShowFeedsParams struct {
 	// Categories An array of Categories.
-	Categories Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	View       View       `form:"view" json:"view"`
-	Count      Count      `form:"count" json:"count"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
 }
 
 // HandleMarkFeedsParams defines parameters for HandleMarkFeeds.
 type HandleMarkFeedsParams struct {
-	// Feeds An array of Feed IDs.
-	Feeds *FeedIDs `form:"feeds,omitempty" json:"feeds,omitempty"`
-
 	// Categories An array of Categories.
-	Categories Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	Mark       Mark       `form:"mark" json:"mark"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Mark       Mark        `form:"mark" json:"mark"`
 }
 
 // LoginCallbackParams defines parameters for LoginCallback.
@@ -688,14 +682,6 @@ func (siw *ServerInterfaceWrapper) HandleMarkFeeds(w http.ResponseWriter, r *htt
 
 	// Parameter object where we will unmarshal all parameters from the context
 	var params HandleMarkFeedsParams
-
-	// ------------- Optional query parameter "feeds" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
-		return
-	}
 
 	// ------------- Optional query parameter "categories" -------------
 

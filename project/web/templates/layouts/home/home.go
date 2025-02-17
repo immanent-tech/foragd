@@ -11,8 +11,11 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/breadcrumbs"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
@@ -20,6 +23,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 )
 
 var (
@@ -32,11 +36,12 @@ type LayoutOption templates.Option[*LayoutProps]
 
 // LayoutProps is the home page layout.
 type LayoutProps struct {
-	SideBar     *menu.Props
-	AppBar      *navbar.Props
-	Breadcrumbs *breadcrumbs.Props
-	Content     []*templates.Component
-	Footer      templ.Component
+	SideBar       *menu.Props
+	AppBar        *navbar.Props
+	ContentHeader templ.Component
+	Breadcrumbs   *breadcrumbs.Props
+	Content       []*templates.Component
+	ContentFooter templ.Component
 }
 
 // WithContent option defines the content to display on the page.
@@ -46,10 +51,16 @@ func WithContent(content ...*templates.Component) LayoutOption {
 	}
 }
 
+func WithHeader(header templ.Component) LayoutOption {
+	return func(layout *LayoutProps) {
+		layout.ContentHeader = header
+	}
+}
+
 // WithFooter option controls the options for the home page footer.
 func WithFooter(footer templ.Component) LayoutOption {
 	return func(layout *LayoutProps) {
-		layout.Footer = footer
+		layout.ContentFooter = footer
 	}
 }
 
@@ -59,10 +70,15 @@ func WithBreadCrumbs(crumbs ...templ.Component) LayoutOption {
 		allCrumbs := make([]templ.Component, 0, len(crumbs)+1)
 		// Always add a link to "/home as the first crumb.
 		allCrumbs = append(allCrumbs,
-			BuildCrumb("Home", text.Normal, templ.Attributes{
-				"hx-get":      "/home",
-				"hx-push-url": "true",
-			}))
+			button.Build(
+				button.WithSize(size.SM),
+				button.AsShape(button.Square, false),
+				button.WithThemeColor(color.Ghost, false),
+				button.WithContent(
+					icon.Build("fa-house"),
+				),
+			).Show(),
+		)
 		// Append other crumbs.
 		allCrumbs = append(allCrumbs, crumbs...)
 		layout.Breadcrumbs = breadcrumbs.Build(
@@ -76,6 +92,7 @@ func BuildCrumb(name string, weight text.Weight, attributes templ.Attributes) te
 	return link.Build(link.WithContent(text.Build(name,
 		text.WithTextWeight(weight),
 		text.WithTextSize(text.SM))),
+		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(attributes),
 	).Show()
 }
@@ -91,12 +108,9 @@ func WithSideBar(options ...menu.Option) LayoutOption {
 func BuildLayout(options ...LayoutOption) *LayoutProps {
 	layout := &LayoutProps{
 		// TODO: implement appbar as option.
-		AppBar: navbar.Build(navbar.WithID("content_app_bar"),
-			navbar.WithBaseColor(color.Base200),
-			navbar.NavBarStart(appBarTopLeft()),
-			navbar.NavBarEnd(appBarTopRight()),
-			navbar.NavBarCenter(appBarTopCenter())),
-		Footer: Footer(),
+		AppBar:        appbar.AppBar(),
+		ContentFooter: Footer(),
+		// ContentHeader: Header(),
 	}
 
 	for _, option := range options {
@@ -134,9 +148,15 @@ func (layout *LayoutProps) PartialRender(ctx context.Context, res http.ResponseW
 	if err := resp.RenderTempl(ctx, res, layout.ShowBreadcrumbs()); err != nil {
 		return errors.Join(ErrHomePartialRender, err)
 	}
+	// OOB update header.
+	if layout.ContentHeader != nil {
+		if err := resp.RenderTempl(ctx, res, layout.ContentHeader); err != nil {
+			return errors.Join(ErrHomePartialRender, err)
+		}
+	}
 	// OOB update footer.
-	if layout.Footer != nil {
-		if err := resp.RenderTempl(ctx, res, layout.Footer); err != nil {
+	if layout.ContentFooter != nil {
+		if err := resp.RenderTempl(ctx, res, layout.ContentFooter); err != nil {
 			return errors.Join(ErrHomePartialRender, err)
 		}
 	}

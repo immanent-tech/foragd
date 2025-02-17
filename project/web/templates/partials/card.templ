@@ -55,7 +55,7 @@ templ DisplayFeedTitle(feed templates.Feed) {
 			@badge.Build(
 				badge.WithSize(size.SM),
 				badge.WithThemeColor(color.Primary, false),
-				badge.WithText(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
+				badge.WithContent(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
 			).Show("absolute", "right-2", "top-2", "p-2")
 		}
 		@titleText(feed.GetTitle())
@@ -69,7 +69,7 @@ templ DisplayCategories(categories ...models.Category) {
 			@badge.Build(
 				badge.WithSize(size.SM),
 				badge.WithThemeColor(color.Accent, true),
-				badge.WithText(category),
+				badge.WithContent(category),
 			).Show("p-1", "m-1")
 		}
 	</div>

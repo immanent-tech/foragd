@@ -10,7 +10,9 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/image"
+	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"strconv"
 )
 
 // ShowFeedCard shows a feed as a Card Component.
@@ -30,7 +32,6 @@ func ShowFeedCard(c *templates.Component) templ.Component {
 		card.Bordered(),
 		card.WithContent(feedCardContent(feed)),
 		card.WithShadow(size.XL),
-		card.WithLayout(card.LayoutSide),
 		card.WithID(attributes.ID(feed.GetID())),
 		card.WithExtraAttributes(c.Attributes),
 		card.WithActions(partials.DisplayCardActions(actionButtons...)...),
@@ -38,18 +39,23 @@ func ShowFeedCard(c *templates.Component) templ.Component {
 
 	if itemImage := feed.GetImage(); itemImage != nil {
 		card.WithImage(itemImage.URL,
-			image.WithSize(size.SizeAuto),
 			image.WithAltText(itemImage.Title),
 			image.WithLazyLoading(),
 		)(props)
 	}
 
-	return props.Show("max-w-prose", "max-h-80")
+	return props.Show("max-w-1/2", "sm:max-lg:card-side", "lg:max-w-prose", "max-h-80", "p-2", "mx-auto")
 }
 
 templ feedCardContent(feed templates.Feed) {
-	@partials.DisplayFeedTitle(feed)
-	@partials.DisplayCategories(feed.GetCategories()...)
+	@text.Build(feed.GetTitle(),
+		text.WithTextWeight(text.Semibold),
+		text.WithTextSize(text.Base)).Show()
+	if feed.GetUserUnreadCount() > 0 {
+		@text.Build(strconv.Itoa(feed.GetUserUnreadCount())+" Unread",
+			text.AsItalicText(), text.WithTextSize(text.SM)).Show()
+	}
+	@text.Build(feed.GetContent(), text.WithTextSize(text.SM)).Show()
 }
 
 func ShowItemCard(c *templates.Component) templ.Component {

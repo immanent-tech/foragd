@@ -23,6 +23,8 @@ var (
 var (
 	ErrNoClient      = errors.New("no client")
 	ErrFieldNotFound = errors.New("field not found")
+	ErrReqFailed     = errors.New("api request failed")
+	ErrNotFound      = errors.New("not found")
 )
 
 // ExtractSourceFromHits loops through the given hits array and extracts the `_source`

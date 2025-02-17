@@ -1,0 +1,35 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import "github.com/joshuar/go-templ-daisyui/display/badge"
+
+import "github.com/joshuar/go-templ-daisyui/display/icon"
+import "github.com/joshuar/go-templ-daisyui/modifiers/size"
+import "github.com/joshuar/go-templ-daisyui/modifiers/color"
+
+templ (filters CategoryFilters) Show() {
+	<div class="flex flex-wrap">
+		for category, state := range filters {
+			@badge.Build(
+				badge.WithSize(size.SM),
+				badge.WithThemeColor(color.Accent, !state.active),
+				badge.WithContent(categoryBadgeContent(category, state.active)),
+				badge.WithExtraAttributes(state.attributes),
+			).Show()
+		}
+	</div>
+}
+
+templ categoryBadgeContent(category string, active bool) {
+	<div class="p-1 m-1">
+		if active {
+			@icon.Build("fa-xmark").Show()
+			{ category }
+		} else {
+			@icon.Build("fa-plus").Show()
+			{ category }
+		}
+	</div>
+}
