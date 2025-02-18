@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -50,21 +51,45 @@ func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]model
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
-	resp, err := c.NewSearchRequest(
-		WithSearchIndex(index),
-		WithSearchQueryOptions(QuerySince("@timestamp", since)),
-	).Do(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrSearchFailed, err)
+	c.Logger.Debug("Finding new feeds.",
+		slog.Time("since", since))
+
+	var newFeeds []models.APIFeed
+
+	searchSize := 100
+	pagination := make([]types.FieldValue, 0)
+
+	for {
+		var (
+			feeds    []models.APIFeed
+			warnings error
+		)
+
+		resp, err := c.NewSearchRequest(
+			WithSearchIndex(index),
+			WithSearchQueryOptions(QuerySince("created_at", since)),
+			WithSearchSize(searchSize),
+			WithSearchAfter(pagination),
+		).Do(ctx)
+		if err != nil {
+			return nil, errors.Join(ErrSearchFailed, err)
+		}
+
+		feeds, pagination, warnings = ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
+		if warnings != nil {
+			c.Logger.Warn("Problems occurred while extracting source from docs.",
+				slog.Any("warnings", err))
+		}
+
+		newFeeds = append(newFeeds, feeds...)
+
+		// Stop if we are at the end of the results.
+		if int(resp.Hits.Total.Value) < searchSize {
+			break
+		}
 	}
 
-	feeds, warnings := ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
-	if warnings != nil {
-		c.Logger.Warn("Problems occurred while extracting source from docs.",
-			slog.Any("warnings", err))
-	}
-
-	return feeds, nil
+	return newFeeds, nil
 }
 
 func (c *Client) GetFeedByURL(ctx context.Context, url string) (*models.APIFeed, error) {
@@ -118,7 +143,7 @@ func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]model
 		return nil, nil
 	}
 	// Loop through this set of results.
-	sources, warnings := ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
+	sources, _, warnings := ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
 	if warnings != nil {
 		c.Logger.Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
@@ -129,7 +154,89 @@ func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]model
 	return feeds, nil
 }
 
-// GetFeedsByID retrieves a list of APIFeeds by their FeedID.
+// SearchFeeds searches the feeds index for feeds matching the relevant filters.
+func (c *Client) SearchFeeds(ctx context.Context, filters models.APIFilters) ([]*models.APIFeed, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
+	resp, err := c.NewSearchRequest(
+		WithSearchIndex(index),
+		WithSearchQueryOptions(
+			QueryBool(
+				// Match either the FeedID OR the Category.
+				BoolShould(
+					QueryByFeedIDs(filters.FeedIDs...),
+					QueryByCategory(filters.Categories...),
+				),
+			),
+		),
+		WithSearchSize(filters.Count),
+	).Do(ctx)
+	if err != nil {
+		return nil, errors.Join(ErrSearchFailed, err)
+	}
+	// Stop if there are no hits
+	if len(resp.Hits.Hits) == 0 {
+		return nil, nil
+	}
+	// Loop through this set of results.
+	sources, _, warnings := ExtractSourceFromHits[*models.APIFeed](resp.Hits.Hits)
+	if warnings != nil {
+		c.Logger.Warn("Problems occurred while extracting source from docs.",
+			slog.Any("warnings", err))
+	}
+
+	return sources, nil
+}
+
+func (c *Client) GetFeedCategories(ctx context.Context, feedIDs ...models.FeedID) (*TermsAggregationResults, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+	}
+
+	// Find all feeds with the given IDs, build a terms aggregation on the
+	// categories field.
+	req := c.NewSearchRequest(
+		WithSearchIndex(index),
+		WithSearchQueryOptions(
+			QueryByFeedIDs(feedIDs...),
+		),
+		WithSortOptions(SortTimestampDesc()),
+		WithSearchSize(0),
+		WithAggregations(NewTermsAggregation("Categories", "categories.raw")),
+	)
+
+	resp, err := req.Do(ctx)
+	if err != nil {
+		return nil, errors.Join(ErrUserActionFailed, err)
+	}
+
+	var (
+		results TermsAggregationResults
+		ok      bool
+	)
+
+	results.StringTermsAggregate, ok = resp.Aggregations["Categories"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, errors.Join(ErrUserActionFailed, fmt.Errorf("not TermsAggregationResults"))
+	}
+
+	// categoryCounts := make(map[string]int64)
+	// for _, feedID := range feedIDs {
+	// 	categoryCounts[feedID] = results.GetCount(feedID)
+	// }
+
+	spew.Dump(results)
+
+	return &results, nil
+}
+
+// GetFeedsByID retrieves a list of feeds by their FeedID. If the list of feeds
+// needs filtering, this should be done before calling this method as an mget
+// request offers no filtering options.
 func (c *Client) GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) ([]*models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {

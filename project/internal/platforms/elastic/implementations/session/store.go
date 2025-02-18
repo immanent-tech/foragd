@@ -124,6 +124,11 @@ func (s *Store) All() (map[string][]byte, error) {
 
 	// Loop until we've paginated through all results.
 	for {
+		var (
+			sessions []models.UserSession
+			warnings error
+		)
+
 		resp, err := s.client.NewSearchRequest(
 			elastic.WithSearchIndex(s.index),
 			elastic.WithSearchQueryOptions(elastic.QuerySince("expiry", time.Now().UTC())),
@@ -138,7 +143,7 @@ func (s *Store) All() (map[string][]byte, error) {
 			return nil, nil
 		}
 		// Loop through this set of results.
-		sessions, warnings := elastic.ExtractSourceFromHits[models.UserSession](resp.Hits.Hits)
+		sessions, pagination, warnings = elastic.ExtractSourceFromHits[models.UserSession](resp.Hits.Hits)
 		if warnings != nil {
 			s.logger.Warn("Could not extract some session data.",
 				slog.Any("warnings", warnings))
@@ -148,8 +153,6 @@ func (s *Store) All() (map[string][]byte, error) {
 			data[session.Token] = session.Data
 		}
 
-		// Update pagination value.
-		pagination = resp.Hits.Hits[len(resp.Hits.Hits)-1].Sort
 		// Stop if the number of hits is less than the search size (i.e., last set of hits).
 		if len(resp.Hits.Hits) < searchSize {
 			break

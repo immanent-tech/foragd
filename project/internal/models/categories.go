@@ -7,6 +7,12 @@ import (
 	"html"
 )
 
+// CategoryCount holds a document count for a Category.
+type CategoryCount struct {
+	name  Category
+	count int64
+}
+
 // CleanCategories takes an array of Categories and "cleans" them, removing any
 // HTML escape strings for better display.
 func CleanCategory(category Category) Category {

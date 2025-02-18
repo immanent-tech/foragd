@@ -7,6 +7,8 @@ import (
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
+	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 // Aggregation represents a named aggregation definition in a search query.
@@ -18,18 +20,6 @@ type Aggregation struct {
 // TermsAggregationResults contains the results for a string terms aggregation.
 type TermsAggregationResults struct {
 	*types.StringTermsAggregate
-}
-
-// NewTermsAggregation creates a TermsAggregation aggregation for a query.
-func NewTermsAggregation(name, field string) Aggregation {
-	return Aggregation{
-		Name: name,
-		Definition: types.Aggregations{
-			Terms: &types.TermsAggregation{
-				Field: &field,
-			},
-		},
-	}
 }
 
 // GetCount retrieves the document count for the bucket with the given key.
@@ -49,4 +39,35 @@ func (a *TermsAggregationResults) GetCount(key string) int64 {
 	}
 
 	return 0
+}
+
+func (a *TermsAggregationResults) BucketNames() []models.Category {
+	switch value := a.Buckets.(type) {
+	case map[string]types.StringTermsBucket:
+		return nil
+	case []types.StringTermsBucket:
+		names := make([]models.Category, len(value))
+
+		for _, bucket := range value {
+			if category, ok := bucket.Key.(string); ok {
+				names = append(names, category)
+			}
+		}
+
+		return names
+	}
+
+	return nil
+}
+
+// NewTermsAggregation creates a TermsAggregation aggregation for a query.
+func NewTermsAggregation(name, field string) Aggregation {
+	return Aggregation{
+		Name: name,
+		Definition: types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &field,
+			},
+		},
+	}
 }

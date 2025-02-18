@@ -30,12 +30,17 @@ var (
 // ExtractSourceFromHits loops through the given hits array and extracts the `_source`
 // field of each document as type `T`, returning the document sources as an array
 // `[]T`. If there was an issue extracting any source, it will also return a
-// non-nil error containing details.
-func ExtractSourceFromHits[T any](hits []types.Hit) ([]T, error) {
-	var warnings error
+// non-nil error containing details. The sort value of the last hit will also be
+// returned, which can be used for pagination if needed.
+func ExtractSourceFromHits[T any](hits []types.Hit) ([]T, []types.FieldValue, error) {
+	var (
+		lastSortValue []types.FieldValue
+		warnings      error
+	)
 
 	sources := make([]T, 0, len(hits))
 
+	// Loop through the hits, extracting the source into the required type.
 	for _, hit := range hits {
 		source, err := ExtractSource[T](hit.Source_)
 		if err != nil {
@@ -46,8 +51,12 @@ func ExtractSourceFromHits[T any](hits []types.Hit) ([]T, error) {
 
 		sources = append(sources, source)
 	}
+	// Retrieve the sort value for the last hit.
+	if len(hits) > 0 {
+		lastSortValue = hits[len(hits)-1].Sort
+	}
 
-	return sources, warnings
+	return sources, lastSortValue, warnings
 }
 
 // ExtractSourceFromDocs loops through the given docs array and extracts the `_source`

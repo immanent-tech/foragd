@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"slices"
 	"time"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -225,7 +224,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
 
-	items, warnings := ExtractSourceFromHits[models.APIItem](res.Hits.Hits)
+	items, _, warnings := ExtractSourceFromHits[models.APIItem](res.Hits.Hits)
 	if warnings != nil {
 		c.Logger.Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
@@ -271,36 +270,16 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		return outCh, ErrGetUserFailed
 	}
 
-	// Get the FeedIDs for the user's subscriptions.
-	subscribedFeedIDs := user.GetSubscribedFeedIDs()
-	// Filter the list of requested feeds to only those which the user has a
-	// subscription.
-	if filters.FeedIDs != nil {
-		subscribedFeedIDs = slices.Collect(
-			func(yield func(string) bool) {
-				for _, v := range subscribedFeedIDs {
-					if slices.Contains(filters.FeedIDs, v) {
-						if !yield(v) {
-							return // triggered in "break"
-						}
-					}
-				}
-			},
-		)
-	}
-	// If there are no subscriptions, return an error indicating so.
-	if len(subscribedFeedIDs) == 0 {
-		return outCh, models.ErrNoSubscriptions
-	}
+	filters.FeedIDs = user.FilterSubscribedFeeds(filters)
 
 	// Get the feed details for the subscribed feeds.
-	feeds, err := c.GetFeedsByID(ctx, subscribedFeedIDs...)
+	feeds, err := c.SearchFeeds(ctx, filters)
 	if err != nil {
 		return outCh, errors.Join(ErrUserActionFailed, err)
 	}
 
 	// Get the unread counts for the feeds.
-	unreadCounts, err := c.GetFeedItemCounts(ctx, user, filters.View, subscribedFeedIDs)
+	unreadCounts, err := c.GetFeedItemCounts(ctx, user, filters.View, filters.FeedIDs)
 	if err != nil {
 		return outCh, errors.Join(ErrUserActionFailed, err)
 	}
@@ -309,6 +288,10 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		defer close(outCh)
 
 		for _, feed := range feeds {
+			// If filtering by unread, ignore feeds with no unread count.
+			if filters.View == models.ViewUnread && int(unreadCounts[feed.ID]) == 0 {
+				continue
+			}
 			// Add user unread count to feed.
 			feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
 			// Add user defined name to the feed.
@@ -325,4 +308,15 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	}()
 
 	return outCh, nil
+}
+
+func (c *Client) UserActionGetFeedCategories(ctx context.Context) ([]models.CategoryCount, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, ErrGetUserFailed
+	}
+
+	// subscriptions := user.GetSubscribedFeedIDs()
+
+	return user.GetCategoryCounts(), nil
 }

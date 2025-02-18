@@ -12,7 +12,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
@@ -37,8 +36,6 @@ var ErrGeneratePageNavigationFailed = errors.New("error occurred while generatin
 func HomeMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
-
-		spew.Dump(req.URL.Query())
 
 		params := req.URL.Query()
 		if !params.Has("count") {
@@ -82,8 +79,17 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, reqP
 		return
 	}
 
+	_, err = s.API.elastic.UserActionGetFeedCategories(req.Context())
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
+			slog.Any("error", err))
+	}
+
 	var feeds []*templates.Component
-	categoryFilters := make(partials.CategoryFilters)
+	categoryFilters := partials.NewCategoryFilter("/home/feeds", templ.Attributes{
+		"hx-target":   "#content",
+		"hx-push-url": "true",
+	}, *filters)
 
 	for feed := range feedCh {
 		feedBasePath := "/home/feed/" + feed.GetID() + "/items"
@@ -124,21 +130,13 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, reqP
 					active = true
 				}
 			}
-			categoryFilters.Add(category, active, templ.Attributes{
-				"hx-get": params.BuildURL("/home/feeds",
-					params.WithCategories(category),
-					params.WithCount(reqParams.Count),
-					params.WithView(reqParams.View),
-				),
-				"hx-target":   "#content",
-				"hx-push-url": "true",
-			})
+			categoryFilters.Add(category, active)
 		}
 	}
 
 	layout := home.BuildLayout(
 		home.WithBreadCrumbs(home.BuildCrumb("Feeds", text.Semibold, nil)),
-		home.WithHeader(home.FeedsHeader(categoryFilters)),
+		home.WithHeader(home.FeedsHeader(*categoryFilters)),
 		home.WithSideBar(
 			menu.WithID("drawer_menu"),
 			menu.WithItems(

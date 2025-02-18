@@ -146,6 +146,11 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 	// Loop until we've paginated through all results.
 	for {
+		var (
+			jobs     []models.ScheduledJob
+			warnings error
+		)
+
 		resp, err := jq.client.NewSearchRequest(
 			elastic.WithSearchIndex(jq.index),
 			elastic.WithSearchQueryOptions(elastic.QueryMatchAll()),
@@ -160,7 +165,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 			return nil, nil
 		}
 		// Loop through this set of results.
-		jobs, warnings := elastic.ExtractSourceFromHits[models.ScheduledJob](resp.Hits.Hits)
+		jobs, pagination, warnings = elastic.ExtractSourceFromHits[models.ScheduledJob](resp.Hits.Hits)
 		if warnings != nil {
 			jq.logger.Warn("Could not extract all jobs.",
 				slog.Any("warnings", warnings))
