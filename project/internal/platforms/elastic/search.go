@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log/slog"
+	"reflect"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
@@ -60,14 +61,16 @@ func WithSearchQueryOptions(options ...QueryOption) SearchOption {
 			option(queryOptions)
 		}
 
-		search.Query(queryOptions)
+		if !reflect.DeepEqual(queryOptions, &types.Query{}) {
+			search.Query(queryOptions)
+		}
 	}
 }
 
 // WithSortOptions adds the given sorting options to the search.
 func WithSortOptions(options map[string]types.FieldSort) SearchOption {
 	return func(search *search.Search) {
-		search = search.Sort(options)
+		search.Sort(options)
 	}
 }
 
@@ -86,9 +89,7 @@ func WithFields(fields ...string) SearchOption {
 // WithSearchSize defines the number of results returned.
 func WithSearchSize(size int) SearchOption {
 	return func(search *search.Search) {
-		if size != 0 {
-			search = search.Size(size)
-		}
+		search.Size(size)
 	}
 }
 
@@ -102,14 +103,14 @@ func WithSearchAfter(value any) SearchOption {
 		if value != nil {
 			switch sort := value.(type) {
 			case []types.FieldValue:
-				search = search.SearchAfter(sort...)
+				search.SearchAfter(sort...)
 			case []byte:
 				if string(sort) != "" {
 					var fv []types.FieldValue
 					if err := json.Unmarshal(sort, &fv); err != nil {
 						slog.Warn("Could not unmarshal pagination data.", slog.Any("error", err))
 					} else {
-						search = search.SearchAfter(fv...)
+						search.SearchAfter(fv...)
 					}
 				}
 			}
