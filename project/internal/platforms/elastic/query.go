@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
+	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 // QueryOption is a functional option for queries.
@@ -42,9 +44,7 @@ func QueryByTerm(field string, value any) QueryOption {
 }
 
 // QueryByFeedIDs adds a "Terms" clause with the given Feed IDs.
-//
-// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
-func QueryByFeedIDs(feedIDs ...string) QueryOption {
+func QueryByFeedIDs(feedIDs ...models.FeedID) QueryOption {
 	return func(query *types.Query) {
 		if len(feedIDs) > 0 {
 			query.Terms = &types.TermsQuery{
@@ -57,9 +57,7 @@ func QueryByFeedIDs(feedIDs ...string) QueryOption {
 }
 
 // QueryByItemIDs adds a "Terms" clause with the given Item IDs.
-//
-// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
-func QueryByItemIDs(itemIDs ...string) QueryOption {
+func QueryByItemIDs(itemIDs ...models.ItemID) QueryOption {
 	return func(query *types.Query) {
 		if len(itemIDs) > 0 {
 			query.Terms = &types.TermsQuery{
@@ -72,14 +70,25 @@ func QueryByItemIDs(itemIDs ...string) QueryOption {
 }
 
 // QueryByURLs adds a "Terms" clause to query the given field with a list of URLs.
-//
-// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-terms-query.html
 func QueryByURLs(field string, urls ...string) QueryOption {
 	return func(query *types.Query) {
 		if len(urls) > 0 {
 			query.Terms = &types.TermsQuery{
 				TermsQuery: map[string]types.TermsQueryField{
 					field: urls,
+				},
+			}
+		}
+	}
+}
+
+// QueryByCategory adds a "Terms" clause to query by the given list of category names.
+func QueryByCategory(categories ...models.Category) QueryOption {
+	return func(query *types.Query) {
+		if len(categories) > 0 {
+			query.Terms = &types.TermsQuery{
+				TermsQuery: map[string]types.TermsQueryField{
+					"categories": categories,
 				},
 			}
 		}
@@ -168,6 +177,7 @@ func BoolFilter(queryOptions ...QueryOption) BoolQueryOption {
 				filters = append(filters, *filterClause)
 			}
 		}
+
 		// Create the filter clause.
 		if len(filters) > 0 {
 			boolQueryClause.Filter = filters
