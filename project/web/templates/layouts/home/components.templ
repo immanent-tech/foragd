@@ -12,7 +12,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
-	"strconv"
 )
 
 // ShowFeedCard shows a feed as a Card Component.
@@ -44,17 +43,11 @@ func ShowFeedCard(c *templates.Component) templ.Component {
 		)(props)
 	}
 
-	return props.Show("max-w-1/2", "sm:max-lg:card-side", "lg:max-w-prose", "max-h-80", "p-2", "mx-auto")
+	return props.Show("w-prose", "lg:w-1/2", "card-side", "max-h-80", "p-2", "mx-auto")
 }
 
 templ feedCardContent(feed templates.Feed) {
-	@text.Build(feed.GetTitle(),
-		text.WithTextWeight(text.Semibold),
-		text.WithTextSize(text.Base)).Show()
-	if feed.GetUserUnreadCount() > 0 {
-		@text.Build(strconv.Itoa(feed.GetUserUnreadCount())+" Unread",
-			text.AsItalicText(), text.WithTextSize(text.SM)).Show()
-	}
+	@partials.DisplayFeedTitle(feed)
 	@text.Build(feed.GetContent(), text.WithTextSize(text.SM)).Show()
 }
 
