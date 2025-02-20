@@ -11,8 +11,7 @@ networks:
   go-feed-me:
 services:
   devcontainer:
-    build:
-      dockerfile: Dockerfile
+    image: mcr.microsoft.com/devcontainers/base:ubuntu@sha256:08a925b41755bcff957285d31e9bf5f0b7fc74962f455a929c15dc341b984b6f
     volumes:
       - ..:/workspace:Z,cached
       - /etc/localtime:/etc/localtime:ro,cached
@@ -29,6 +28,8 @@ services:
       - go-feed-me
 
   setup:
+    env_file:
+      - .env
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
@@ -99,6 +100,8 @@ services:
     userns_mode: keep-id
     networks:
       - go-feed-me
+    env_file:
+      - .env
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
@@ -106,12 +109,10 @@ services:
     ports:
       - 9200:9200
     environment:
-      - ES_JAVA_OPTS=-Xms6g -Xmx6g
       - node.name=es01
       - cluster.name=go-feed-me
       - cluster.initial_master_nodes=es01,es02,es03
       - discovery.seed_hosts=es02,es03
-      - ELASTIC_PASSWORD=gofeedme
       - bootstrap.memory_lock=true
       - xpack.security.enabled=true
       - xpack.security.http.ssl.enabled=true
@@ -127,7 +128,7 @@ services:
       - cluster.routing.allocation.disk.watermark.low=0.95
       - cluster.routing.allocation.disk.watermark.high=0.98
       - cluster.routing.allocation.disk.watermark.flood_stage=0.99
-    mem_limit: 8442450944
+    mem_limit: $MEM_LIMIT
     oom_kill_disable: true
     ulimits:
       memlock:
@@ -153,11 +154,12 @@ services:
     userns_mode: keep-id
     networks:
       - go-feed-me
+    env_file:
+      - .env
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
       - es02-data:/usr/share/elasticsearch/data
     environment:
-      - ES_JAVA_OPTS=-Xms6g -Xmx6g
       - node.name=es02
       - cluster.name=go-feed-me
       - cluster.initial_master_nodes=es01,es02,es03
@@ -177,7 +179,7 @@ services:
       - cluster.routing.allocation.disk.watermark.low=0.95
       - cluster.routing.allocation.disk.watermark.high=0.98
       - cluster.routing.allocation.disk.watermark.flood_stage=0.99
-    mem_limit: 8442450944
+    mem_limit: $MEM_LIMIT
     oom_kill_disable: true
     ulimits:
       memlock:
@@ -206,8 +208,9 @@ services:
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
       - es03-data:/usr/share/elasticsearch/data
+    env_file:
+      - .env
     environment:
-      - ES_JAVA_OPTS=-Xms6g -Xmx6g
       - node.name=es03
       - cluster.name=go-feed-me
       - cluster.initial_master_nodes=es01,es02,es03
@@ -227,7 +230,7 @@ services:
       - cluster.routing.allocation.disk.watermark.low=0.95
       - cluster.routing.allocation.disk.watermark.high=0.98
       - cluster.routing.allocation.disk.watermark.flood_stage=0.99
-    mem_limit: 8442450944
+    mem_limit: $MEM_LIMIT
     oom_kill_disable: true
     ulimits:
       memlock:
@@ -257,6 +260,8 @@ services:
     userns_mode: keep-id
     networks:
       - go-feed-me
+    env_file:
+      - .env
     image: docker.elastic.co/kibana/kibana:$STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/kibana/config/certs
@@ -267,7 +272,6 @@ services:
       - SERVERNAME=kibana
       - ELASTICSEARCH_HOSTS=https://es01:9200
       - ELASTICSEARCH_USERNAME=kibana_system
-      - ELASTICSEARCH_PASSWORD=gofeedme
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
     mem_limit: 1073741824
     healthcheck:

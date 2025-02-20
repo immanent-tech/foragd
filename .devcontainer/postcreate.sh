@@ -2,6 +2,11 @@
 
 set -x
 
+# Install additional packages.
+apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends micro fish ripgrep fzf pre-commit \
+    && apt-get -y autoremove && apt-get -y clean && rm -rf /var/lib/apt/lists/*
+
 # Install starship prompt.
 cd /tmp && curl -sS https://starship.rs/install.sh | sh -s -- -y || exit -1
 mkdir -p ~/.config/fish

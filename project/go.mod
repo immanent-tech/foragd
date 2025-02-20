@@ -39,8 +39,6 @@ require (
 
 require (
 	github.com/aymerick/douceur v0.2.0 // indirect
-	github.com/fogfish/golem/hseq v1.3.0 // indirect
-	github.com/fogfish/golem/optics v0.14.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 )
 
@@ -64,7 +62,6 @@ require (
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.6.0 // indirect
 	github.com/fatih/color v1.17.0 // indirect
-	github.com/fogfish/opts v0.0.5
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/getkin/kin-openapi v0.127.0 // indirect
