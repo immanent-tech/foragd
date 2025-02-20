@@ -19,14 +19,18 @@ templ Header() {
 	</div>
 }
 
-templ FeedsHeader(categoryFilters partials.CategoryFilters) {
+templ FeedsHeader(categoryFilters []partials.FeedCategoryFilter) {
 	<div id="content_header" hx-swap-oob="true">
 		<div class="collapse collapse-arrow">
 			<input type="checkbox" aria-label="Checkbox" class="btn btn-wide"/>
 			// <input type="checkbox"/>
 			<div class="collapse-title text-sm font-medium">Feed Categories</div>
 			<div class="collapse-content">
-				@categoryFilters.Show()
+				<div class="flex flex-wrap">
+					for _, category := range categoryFilters {
+						@category.Show()
+					}
+				</div>
 			</div>
 		</div>
 	</div>

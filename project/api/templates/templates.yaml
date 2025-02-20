@@ -7,11 +7,6 @@ components:
       $ref: '../models/models.yaml#/components/schemas/APIFeed'
     Item:
       $ref: '../models/models.yaml#/components/schemas/APIItem'
-    Attributes:
-      x-go-type: 'templ.Attributes'
-      x-go-type-import:
-        path: github.com/a-h/templ
-      x-go-type-skip-optional-pointer: true
     Page:
       description: >
         represents a page on the website.
@@ -38,6 +33,14 @@ components:
             x-go-type-import:
               path: github.com/a-h/templ
           x-go-type-skip-optional-pointer: true
+    ComponentType:
+      description: defines how the component should be displayed.
+      type: string
+      enum:
+        - 'feed_card'
+        - 'item_card'
+        - 'item_article'
+      x-go-type-name: DisplayType
     Component:
       description: >
         contains data and properties that can be used to display the
@@ -48,13 +51,7 @@ components:
         - data_source
       properties:
         display_type:
-          description: defines how the component should be displayed.
-          type: string
-          enum:
-            - 'feed_card'
-            - 'item_card'
-            - 'item_article'
-          x-go-type-name: DisplayType
+          $ref: '#/components/schemas/ComponentType'
         data_source:
           description: contains the object to use for displaying the component.
           type: object
@@ -62,30 +59,11 @@ components:
             - $ref: '#/components/schemas/Feed'
             - $ref: '#/components/schemas/Item'
           x-go-type-name: DataSource
-        attributes:
-          description: are any additional attributes to attach to the component.
-          $ref: '#/components/schemas/Attributes'
-        actions:
+        routes:
           description: >
-            is a list of component-specific actions that the component can
-            include and use.
-          type: array
-          items:
-            $ref: '#/components/schemas/Action'
+            is the route used for performing actions on the
+            component.
+          type: object
+          additionalProperties:
+            $ref: '../models/api.yaml#/components/schemas/APIRoute'
           x-go-type-skip-optional-pointer: true
-    Action:
-      description: is an action that can be performed on a component.
-      type: object
-      required:
-        - label
-        - attributes
-      properties:
-        icon:
-          description: is an icon to represent the action.
-          type: string
-        label:
-          description: is a description of the action that can be displayed.
-          type: string
-        attributes:
-          description: are any additional attributes to attach to the action.
-          $ref: '#/components/schemas/Attributes'

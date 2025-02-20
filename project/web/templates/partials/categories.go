@@ -9,15 +9,29 @@ import (
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
-type CategoryFilter struct {
-	attributes templ.Attributes
-	active     bool
+type FeedCategoryFilter struct {
+	name   models.Category
+	route  *models.APIRoute
+	active bool
 }
 
-type CategoryFilters map[models.Category]CategoryFilter
+func NewCategoryFilter(name models.Category, active bool, req string) FeedCategoryFilter {
+	route := models.BuildRoute(req,
+		models.WithAttributes(templ.Attributes{
+			"hx-target":   "#content",
+			"hx-push-url": "true",
+		}),
+	)
 
-func (f CategoryFilters) Add(category models.Category, active bool, attributes templ.Attributes) {
-	if _, found := f[category]; !found {
-		f[category] = CategoryFilter{attributes: attributes, active: active}
+	if active {
+		route = route.UnsetCategories()
+	} else {
+		route = route.SetCategories(name)
+	}
+
+	return FeedCategoryFilter{
+		name:   name,
+		active: active,
+		route:  route,
 	}
 }

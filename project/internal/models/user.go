@@ -205,7 +205,7 @@ func (u *User) GetCategoryCounts() []CategoryCount {
 	var categoryCounts []CategoryCount
 
 	for category, count := range counts {
-		categoryCounts = append(categoryCounts, CategoryCount{name: category, count: count})
+		categoryCounts = append(categoryCounts, CategoryCount{Name: category, Count: count})
 	}
 
 	return categoryCounts

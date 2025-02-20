@@ -11,38 +11,23 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// Defines values for DisplayType.
+// Defines values for ComponentType.
 const (
-	FeedCard    DisplayType = "feed_card"
-	ItemArticle DisplayType = "item_article"
-	ItemCard    DisplayType = "item_card"
+	FeedCard    ComponentType = "feed_card"
+	ItemArticle ComponentType = "item_article"
+	ItemCard    ComponentType = "item_card"
 )
-
-// Action is an action that can be performed on a component.
-type Action struct {
-	Attributes Attributes `json:"attributes"`
-
-	// Icon is an icon to represent the action.
-	Icon *string `json:"icon,omitempty"`
-
-	// Label is a description of the action that can be displayed.
-	Label string `json:"label"`
-}
-
-// Attributes defines model for Attributes.
-type Attributes = templ.Attributes
 
 // Component contains data and properties that can be used to display the data in the web UI.
 type Component struct {
-	// Actions is a list of component-specific actions that the component can include and use.
-	Actions    []Action   `json:"actions,omitempty"`
-	Attributes Attributes `json:"attributes,omitempty"`
-
 	// DataSource contains the object to use for displaying the component.
 	DataSource DataSource `json:"data_source"`
 
 	// DisplayType defines how the component should be displayed.
-	DisplayType DisplayType `json:"display_type"`
+	DisplayType ComponentType `json:"display_type"`
+
+	// Routes is the route used for performing actions on the component.
+	Routes map[string]*externalRef0.APIRoute `json:"routes,omitempty"`
 }
 
 // DataSource contains the object to use for displaying the component.
@@ -50,8 +35,8 @@ type DataSource struct {
 	union json.RawMessage
 }
 
-// DisplayType defines how the component should be displayed.
-type DisplayType string
+// ComponentType defines how the component should be displayed.
+type ComponentType string
 
 // Feed represents a feed object for API endpoints.
 type Feed = externalRef0.APIFeed

@@ -26,6 +26,10 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 )
 
+const (
+	ContentTarget = "#content"
+)
+
 var (
 	ErrHomePartialRender = errors.New("partial render of home failed")
 	ErrHomeFullRender    = errors.New("full render of home failed")

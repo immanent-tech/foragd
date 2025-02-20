@@ -39,6 +39,43 @@ components:
       x-oapi-codegen-extra-tags:
         # json: 'view'
         form: 'view'
+    APIRoute:
+      description: >
+        is a htmx route within the server.
+      type: object
+      required:
+        - url
+        - mu
+        - attributes
+      properties:
+        url:
+          description: is the url object for the route.
+          x-go-name: url
+          x-oapi-codegen-only-honour-go-name: true
+          x-go-type: 'url.URL'
+          x-go-json-ignore: true
+        mu:
+          description: is a mutex for safe concurrent access.
+          x-go-name: mu
+          x-oapi-codegen-only-honour-go-name: true
+          x-go-type: 'sync.Mutex'
+          x-go-type-import:
+            path: 'sync'
+          x-go-json-ignore: true
+        method:
+          description: is the HTTP method for the route.
+          type: string
+          x-go-name: method
+          x-oapi-codegen-only-honour-go-name: true
+          x-go-json-ignore: true
+        attributes:
+          description: are additional htmx attributes to apply to the route.
+          x-go-name: attributes
+          x-oapi-codegen-only-honour-go-name: true
+          x-go-type: 'templ.Attributes'
+          x-go-type-import:
+            path: 'github.com/a-h/templ'
+          x-go-json-ignore: true
     APIFilters:
       description: contains parameters for searching feeds and items
       type: object

@@ -5,23 +5,23 @@ package partials
 
 import "github.com/joshuar/go-feed-me/internal/models"
 
-// Show renders the state filter.
-templ (view *StateFilterProps) Show() {
+// Show renders the view filter.
+templ (view *ViewFilter) Show() {
 	<div role="tablist" class="tabs tabs-boxed tab-xs">
 		<a
 			role="tab"
 			class={ "tab", templ.KV("tab-active",view.Active == models.ViewRead) }
-			{ view.Attributes[models.ViewRead]... }
+			{ view.routes[models.ViewRead]... }
 		>Read</a>
 		<a
 			role="tab"
 			class={ "tab", templ.KV("tab-active",view.Active == models.ViewUnread) }
-			{ view.Attributes[models.ViewUnread]... }
+			{ view.routes[models.ViewUnread]... }
 		>Unread</a>
 		<a
 			role="tab"
 			class={ "tab", templ.KV("tab-active",view.Active == models.ViewAll) }
-			{ view.Attributes[models.ViewAll]... }
+			{ view.routes[models.ViewAll]... }
 		>All</a>
 	</div>
 }

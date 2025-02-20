@@ -4,14 +4,17 @@
 package home
 
 import (
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"net/http"
 )
 
 // ShowFeedCard shows a feed as a Card Component.
@@ -21,10 +24,25 @@ func ShowFeedCard(c *templates.Component) templ.Component {
 		return nil
 	}
 
-	actionButtons := make([]templ.Component, 0, len(c.Actions))
+	feedRoute := c.Routes["self"]
+	feedRoute.Rebuild(
+		models.WithAttribute("hx-target", ContentTarget),
+	)
 
-	for _, action := range c.Actions {
-		actionButtons = append(actionButtons, cardActionButton(action))
+	itemsRoute := c.Routes["items"]
+	itemsRoute.Rebuild(
+		models.WithAttribute("hx-target", ContentTarget),
+		models.WithAttribute("hx-push-url", "true"),
+	)
+
+	var cardMenuItems []templ.Component
+
+	if feed.GetUserUnreadCount() > 0 {
+		cardMenuItems = append(cardMenuItems, buildMarkButton("Mark Read",
+			models.MarkRead, feedRoute))
+	} else {
+		cardMenuItems = append(cardMenuItems, buildMarkButton("Mark Unread",
+			models.MarkUnread, feedRoute))
 	}
 
 	props := card.Build(
@@ -32,8 +50,8 @@ func ShowFeedCard(c *templates.Component) templ.Component {
 		card.WithContent(feedCardContent(feed)),
 		card.WithShadow(size.XL),
 		card.WithID(attributes.ID(feed.GetID())),
-		card.WithExtraAttributes(c.Attributes),
-		card.WithActions(partials.DisplayCardActions(actionButtons...)...),
+		card.WithExtraAttributes(itemsRoute.Attributes()),
+		card.WithActions(partials.DisplayCardActions(cardMenuItems...)...),
 	)
 
 	if itemImage := feed.GetImage(); itemImage != nil {
@@ -57,10 +75,25 @@ func ShowItemCard(c *templates.Component) templ.Component {
 		return nil
 	}
 
-	actionButtons := make([]templ.Component, 0, len(c.Actions))
+	itemRoute := c.Routes["self"]
+	itemRoute.Rebuild(
+		models.WithAttribute("hx-target", ContentTarget),
+	)
 
-	for _, action := range c.Actions {
-		actionButtons = append(actionButtons, cardActionButton(action))
+	articleRoute := c.Routes["article"]
+	articleRoute.Rebuild(
+		models.WithAttribute("hx-target", ContentTarget),
+		models.WithAttribute("hx-push-url", "true"),
+	)
+
+	var cardMenuItems []templ.Component
+
+	if item.GetUserState() == models.Unread {
+		cardMenuItems = append(cardMenuItems, buildMarkButton("Mark Read",
+			models.MarkRead, itemRoute))
+	} else {
+		cardMenuItems = append(cardMenuItems, buildMarkButton("Mark Unread",
+			models.MarkUnread, itemRoute))
 	}
 
 	props := card.Build(
@@ -69,8 +102,8 @@ func ShowItemCard(c *templates.Component) templ.Component {
 		card.WithShadow(size.XL),
 		card.WithLayout(card.LayoutSide),
 		card.WithID(attributes.ID(item.GetID())),
-		card.WithExtraAttributes(c.Attributes),
-		card.WithActions(partials.DisplayCardActions(actionButtons...)...),
+		card.WithExtraAttributes(articleRoute.Attributes()),
+		card.WithActions(partials.DisplayCardActions(cardMenuItems...)...),
 	)
 
 	if itemImage := item.GetImage(); itemImage != nil {
@@ -89,16 +122,6 @@ templ itemCardContent(item templates.Item) {
 	@partials.DisplayLastUpdated("Last Updated:", item.GetTimestamp())
 }
 
-templ cardActionButton(action templates.Action) {
-	<a
-		role="button"
-		class="btn btn-xs"
-		{ action.Attributes... }
-	>
-		{ action.Label }
-	</a>
-}
-
 // Article displays an item as an article.
 func ShowArticle(c *templates.Component) templ.Component {
 	item, err := c.DataSource.AsItem()
@@ -107,4 +130,24 @@ func ShowArticle(c *templates.Component) templ.Component {
 	}
 
 	return article.Build(partials.DisplayItemArticle(item)).Show()
+}
+
+func buildMarkButton(label string, mark models.Mark, route *models.APIRoute) templ.Component {
+	return button.Build(
+		button.WithSize(size.XS),
+		button.WithContent(label),
+		button.WithExtraAttributes(buildMarkRoute(route, mark)),
+	).Show()
+}
+
+func buildMarkRoute(r *models.APIRoute, mark models.Mark) templ.Attributes {
+	r.Rebuild(
+		models.WithMethod(http.MethodPost),
+		models.WithParams(
+			models.WithMarkParam(mark),
+		),
+		models.WithAttribute("hx-target", ContentTarget),
+	)
+
+	return r.Attributes()
 }

@@ -4,22 +4,17 @@
 package partials
 
 import "github.com/joshuar/go-templ-daisyui/display/badge"
-
 import "github.com/joshuar/go-templ-daisyui/display/icon"
 import "github.com/joshuar/go-templ-daisyui/modifiers/size"
 import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 
-templ (filters CategoryFilters) Show() {
-	<div class="flex flex-wrap">
-		for category, state := range filters {
-			@badge.Build(
-				badge.WithSize(size.SM),
-				badge.WithThemeColor(color.Accent, !state.active),
-				badge.WithContent(categoryBadgeContent(category, state.active)),
-				badge.WithExtraAttributes(state.attributes),
-			).Show()
-		}
-	</div>
+templ (category *FeedCategoryFilter) Show() {
+	@badge.Build(
+		badge.WithSize(size.SM),
+		badge.WithThemeColor(color.Accent, category.active),
+		badge.WithContent(categoryBadgeContent(category.name, category.active)),
+		badge.WithExtraAttributes(category.route.Attributes()),
+	).Show()
 }
 
 templ categoryBadgeContent(category string, active bool) {

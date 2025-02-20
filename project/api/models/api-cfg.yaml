@@ -12,3 +12,5 @@ output-options:
   nullable-type: true
 import-mapping:
   models.yaml: '-'
+compatibility:
+  allow-unexported-struct-field-names: true
