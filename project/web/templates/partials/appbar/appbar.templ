@@ -7,46 +7,62 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/input"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 )
 
 templ appBarTopLeft() {
-	<label for="home_drawer_toggle" aria-label="Open Drawer" class="btn btn-square lg:hidden drawer-button">
-		@icon.Build("fa-chevron-right").Show()
-	</label>
+	<div class="flex-none">
+		<label for="home_drawer_toggle" aria-label="Open Drawer" class="btn btn-square lg:hidden drawer-button">
+			@icon.Build("fa-bars").Show()
+		</label>
+	</div>
 }
 
 templ appBarTopCenter() {
-	@input.Build(
-		textinput.Build(
-			textinput.WithID("search"),
-			textinput.WithPlaceholder("Search anything..."),
-			textinput.WithExtraAttributes(templ.Attributes{
-				"tabindex":     0,
-				"hx-post":      "/home/search",
-				"hx-trigger":   "input changed delay:500ms, SearchRequest",
-				"hx-target":    "#search-results",
-				"hx-indicator": ".htmx-indicator",
-			}),
-		),
-		input.WithLabel(input.Left, icon.Build("fa-magnifying-glass")),
-	).Show()
+	<div class="flex-1">
+		@input.Build(
+			textinput.Build(
+				textinput.WithID("search"),
+				textinput.WithPlaceholder("Search anything..."),
+				textinput.WithExtraAttributes(templ.Attributes{
+					"tabindex":     0,
+					"hx-post":      "/home/search",
+					"hx-trigger":   "input changed delay:500ms, SearchRequest",
+					"hx-target":    "#search-results",
+					"hx-indicator": ".htmx-indicator",
+				}),
+			),
+			input.WithLabel(input.Left, icon.Build("fa-magnifying-glass")),
+		).Show()
+	</div>
 }
 
 templ appBarTopRight() {
-	<details class="dropdown dropdown-bottom dropdown-end [&_.swap-on]:opacity-100 [&_.swap-off]:opacity-0 [&[open]_.swap-off]:opacity-100 [&[open]_.swap-on]:opacity-0">
-		<summary class="swap">
-			@icon.Build("fa-bars").Show("swap-on")
-			@icon.Build("fa-xmark").Show("swap-off")
-		</summary>
-		<ul class="p-2 menu dropdown-content z-[1] bg-base-200 rounded-box w-52">
-			<li>
-				<button
-					type="checkbox"
-					data-toggle-theme="dark,light"
-					class="toggle theme-controller"
-				></button>
-			</li>
-			<li><a hx-boost="false" href="/logout/auth0">Logout</a></li>
-		</ul>
-	</details>
+	<div class="flex-none">
+		<div class="dropdown dropdown-end">
+			<div
+				tabindex="0"
+				role="button"
+				class="btn btn-ghost btn-circle
+			avatar"
+			>
+				@icon.Build("fa-user-astronaut",
+					icon.WithRelativeSize(size.XL),
+				).Show()
+			</div>
+			<ul
+				tabindex="0"
+				class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
+			>
+				<li>
+					<a class="justify-between">
+						Profile
+						<span class="badge">New</span>
+					</a>
+				</li>
+				<li><a>Settings</a></li>
+				<li><a>Logout</a></li>
+			</ul>
+		</div>
+	</div>
 }

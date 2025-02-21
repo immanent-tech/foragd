@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
@@ -154,8 +155,8 @@ func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]model
 	return feeds, nil
 }
 
-// SearchFeeds searches the feeds index for feeds matching the relevant filters.
-func (c *Client) SearchFeeds(ctx context.Context, filters models.APIFilters) ([]*models.APIFeed, error) {
+// FeedsSearch searches the feeds index for feeds matching the relevant filters.
+func (c *Client) FeedsSearch(ctx context.Context, filters models.APIFilters) ([]*models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -391,6 +392,8 @@ func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, filte
 	for _, feedID := range filters.FeedIDs {
 		unreadCounts[feedID] = results.GetCount(feedID)
 	}
+
+	spew.Dump(unreadCounts)
 
 	return unreadCounts, nil
 }

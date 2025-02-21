@@ -101,7 +101,8 @@
     "helpers/items",
     "helpers/attributes",
     "components/breadcrumbs",
-    "components/link"
+    "components/link",
+    "session"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

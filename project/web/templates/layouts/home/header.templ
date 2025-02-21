@@ -4,7 +4,6 @@
 
 package home
 
-import "github.com/joshuar/go-templ-daisyui/display/text"
 import "github.com/joshuar/go-feed-me/web/templates/partials"
 import "github.com/joshuar/go-templ-daisyui/actions/dropdown"
 import "github.com/joshuar/go-templ-daisyui/actions/button"
@@ -57,56 +56,14 @@ func viewFilterControl(filters *partials.ViewFilter) templ.Component {
 	).Show()
 }
 
-templ Header() {
-	<div id="content_header">
-		<div tabindex="0" class="collapse bg-base-200">
-			@text.Build("Categories", text.WithTextWeight(text.Semibold), text.WithTextSize(text.SM)).Show("collapse-title")
-			<div class="collapse-content">
-				<p>Category 1</p>
-				<p>Category 2</p>
-			</div>
-		</div>
-	</div>
-}
-
-templ FeedsHeader(categoryFilters []partials.FeedCategoryFilter, viewFilter *partials.ViewFilter) {
+templ Header(categoryFilters []partials.FeedCategoryFilter, viewFilter *partials.ViewFilter) {
 	<div id="content_header" hx-swap-oob="true">
-		// <div class="collapse collapse-arrow">
-		// 	<input type="checkbox" aria-label="Checkbox" class="btn btn-wide"/>
-		// 	// <input type="checkbox"/>
-		// 	<div class="collapse-title text-sm font-medium">Feed Categories</div>
-		// 	<div class="collapse-content">
-		// 		<div class="flex flex-wrap">
-		// 			for _, category := range categoryFilters {
-		// 				@category.Show()
-		// 			}
-		// 		</div>
-		// 	</div>
-		// </div>
 		<div class="navbar bg-base-100">
 			<div class="flex-1">
 				@categoryFiltersControl(categoryFilters)
 			</div>
 			<div class="flex-none">
 				@viewFilterControl(viewFilter)
-				// <details class="dropdown dropdown-end">
-				// 	<summary class="btn btn-sm m-1">
-				// 		<i class="fa-solid fa-sliders"></i>
-				// 	</summary>
-				// 	<div
-				// 		tabindex="0"
-				// 		class="card card-compact dropdown-content bg-base-100 z-[1] mt-3 min-w-1/2 shadow"
-				// 	>
-				// 		<div class="card-body">
-				// 			@viewFilter.Show()
-				// 			// <span class="text-lg font-bold">8 Items</span>
-				// 			// <span class="text-info">Subtotal: $999</span>
-				// 			// <div class="card-actions">
-				// 			// 	<button class="btn btn-primary btn-block">View cart</button>
-				// 			// </div>
-				// 		</div>
-				// 	</div>
-				// </details>
 				<details class="dropdown dropdown-end">
 					<summary class="btn btn-sm m-1">
 						<i class="fa-solid fa-sort"></i>

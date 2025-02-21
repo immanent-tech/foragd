@@ -275,7 +275,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	filters.FeedIDs = user.FilterSubscribedFeeds(filters)
 
 	// Get the feed details for the subscribed feeds.
-	feeds, err := c.SearchFeeds(ctx, filters)
+	feeds, err := c.FeedsSearch(ctx, filters)
 	if err != nil {
 		return outCh, errors.Join(ErrUserActionFailed, err)
 	}
@@ -294,6 +294,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 			if filters.View == models.ViewUnread && int(unreadCounts[feed.ID]) == 0 {
 				continue
 			}
+			slog.Info("foo")
 			// Add user unread count to feed.
 			feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
 			// Add user defined name to the feed.

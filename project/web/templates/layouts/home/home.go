@@ -112,10 +112,7 @@ func BuildCrumb(name string, weight text.Weight, attributes templ.Attributes) te
 // BuildHomeLayout builds the home page layout from the given options.
 func BuildLayout(options ...LayoutOption) *LayoutProps {
 	layout := &LayoutProps{
-		// TODO: implement appbar as option.
-		AppBar:        appbar.AppBar(),
-		ContentFooter: Footer(),
-		// ContentHeader: Header(),
+		AppBar: appbar.AppBar(),
 	}
 
 	for _, option := range options {

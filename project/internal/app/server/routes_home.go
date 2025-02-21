@@ -11,6 +11,7 @@ import (
 
 	"github.com/angelofallars/htmx-go"
 
+	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -51,28 +52,24 @@ func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, reqParams HandleShowFeedsParams) {
+	// Create filters from params.
 	filters, err := models.CreateFilters(reqParams)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
 
 	// Save list feeds filters in session storage.
-	// session.SaveListFeedsFilters(req.Context(), filters)
+	session.SetRouteState(req.Context(), "/home/feeds", req.URL.String())
 
+	// Get feeds.
 	feedCh, err := s.API.elastic.UserActionGetFeeds(req.Context(), *filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
 			slog.Any("error", err))
-
-		// if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
-		// 	logging.FromContext(req.Context()).Error("Show feeds failed.",
-		// 		slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)
-		// }
 
 		return
 	}
-
 	// Retrieve the feed categories and the unread counts.
 	categories, err := s.API.elastic.UserActionGetFeedCategories(req.Context())
 	if err != nil {
@@ -81,7 +78,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, reqP
 	}
 
 	var feeds []*templates.Component
-
+	// Build feed cards.
 	for feed := range feedCh {
 		feedRoute := models.BuildRoute("/home/feed/" + feed.GetID() + "/items")
 
@@ -101,14 +98,19 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, reqP
 		feeds = append(feeds, component)
 	}
 
+	// Build page layout.
 	layout := home.BuildLayout(
 		home.WithContent(feeds...),
 		home.WithHeader(
-			home.FeedsHeader(
+			home.Header(
 				partials.BuildCategoryFilters(reqParams.Categories, categories, req.URL.String()),
-				partials.BuildViewFilter(reqParams.View, req.URL.String()))),
+				partials.BuildViewFilter(reqParams.View, req.URL.String()),
+			),
+		),
+		home.WithFooter(home.Footer("/home")),
 	)
 
+	// Render /home/feeds page.
 	if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
 		logging.FromContext(req.Context()).Error("Show feeds failed.",
 			slog.Any("error", err))
@@ -143,7 +145,7 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 	// }
 
 	// Save list items filters in session storage.
-	// session.SaveListItemsFilters(req.Context(), filters)
+	session.SetRouteState(req.Context(), "/home/feed/"+feedID, req.URL.String())
 
 	itemCh, _, err := s.API.elastic.UserActionGetItems(req.Context(), *filters)
 	if err != nil {
@@ -199,9 +201,12 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 	layout := home.BuildLayout(
 		home.WithContent(items...),
 		home.WithHeader(
-			home.FeedsHeader(
+			home.Header(
 				partials.BuildCategoryFilters(reqParams.Categories, categoryCounts, req.URL.String()),
-				partials.BuildViewFilter(reqParams.View, req.URL.String()))),
+				partials.BuildViewFilter(reqParams.View, req.URL.String()),
+			),
+		),
+		home.WithFooter(home.Footer("/home/feeds")),
 	)
 
 	if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
