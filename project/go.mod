@@ -13,7 +13,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/go-chi/chi/v5 v5.2.1
-	github.com/go-json-experiment/json v0.0.0-20250213060926-925ba3f173fa
+	github.com/go-json-experiment/json v0.0.0-20240412061110-8868a69194fa
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.25.0
 	github.com/gowebly/helpers v0.4.0
