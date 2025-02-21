@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
@@ -61,9 +62,13 @@ func Run(ctx context.Context) error {
 		return errors.Join(ErrRunFailed, err)
 	}
 
-	scheduler := quartz.NewStdSchedulerWithOptions(quartz.StdSchedulerOptions{
-		OutdatedThreshold: 50 * time.Second, // considering file system I/O latency
-	}, jobQueue, nil)
+	scheduler, err := quartz.NewStdScheduler(
+		quartz.WithOutdatedThreshold(50*time.Second),
+		quartz.WithQueue(jobQueue, &sync.Mutex{}),
+	)
+	if err != nil {
+		return errors.Join(ErrRunFailed, err)
+	}
 
 	manager = &Manager{
 		id:         schedulerID,

@@ -13,7 +13,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
-	"github.com/reugn/go-quartz/logger"
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -98,7 +97,8 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	job, err := jq.findHead()
 	if err != nil {
-		logger.Errorf("Failed to find job: %s", err)
+		jq.logger.Error("Failed to find job",
+			slog.Any("error", err))
 	}
 
 	return job, err
