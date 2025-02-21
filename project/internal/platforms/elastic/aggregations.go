@@ -7,8 +7,6 @@ import (
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
-	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 // Aggregation represents a named aggregation definition in a search query.
@@ -41,12 +39,12 @@ func (a *TermsAggregationResults) GetCount(key string) int64 {
 	return 0
 }
 
-func (a *TermsAggregationResults) BucketNames() []models.Category {
+func (a *TermsAggregationResults) BucketNames() []string {
 	switch value := a.Buckets.(type) {
 	case map[string]types.StringTermsBucket:
 		return nil
 	case []types.StringTermsBucket:
-		names := make([]models.Category, len(value))
+		names := make([]string, 0, len(value))
 
 		for _, bucket := range value {
 			if category, ok := bucket.Key.(string); ok {

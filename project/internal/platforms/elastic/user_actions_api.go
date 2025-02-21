@@ -11,6 +11,8 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -187,11 +189,11 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 	// Work out what query to use based on the state filter.
 	switch filters.View {
 	case models.ViewRead:
-		query = readFeedItemsQuery(user, filters.FeedIDs...)
+		query = readFeedItemsQuery(user, filters)
 	case models.ViewUnread:
 		fallthrough
 	default:
-		query = unreadFeedItemsQuery(user, filters.FeedIDs...)
+		query = unreadFeedItemsQuery(user, filters)
 	}
 
 	// rawPagination, err := filters.GetPagination()
@@ -279,7 +281,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	}
 
 	// Get the unread counts for the feeds.
-	unreadCounts, err := c.GetFeedItemCounts(ctx, user, filters.View, filters.FeedIDs)
+	unreadCounts, err := c.GetFeedItemCounts(ctx, user, filters)
 	if err != nil {
 		return outCh, errors.Join(ErrUserActionFailed, err)
 	}
@@ -319,4 +321,135 @@ func (c *Client) UserActionGetFeedCategories(ctx context.Context) ([]models.Cate
 	// subscriptions := user.GetSubscribedFeedIDs()
 
 	return user.GetCategoryCounts(), nil
+}
+
+func (c *Client) UserActionGetItemCategories(ctx context.Context, filters models.APIFilters) ([]models.CategoryCount, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, ErrGetUserFailed
+	}
+
+	// Unset the category filter.
+	filters.Categories = nil
+
+	var query QueryOption
+	// Work out what query to use based on the state filter.
+	switch filters.View {
+	case models.ViewRead:
+		query = readFeedItemsQuery(user, filters)
+	case models.ViewUnread:
+		fallthrough
+	default:
+		query = unreadFeedItemsQuery(user, filters)
+	}
+
+	resp, err := c.ItemsAggregation(ctx, query, NewTermsAggregation("categories", "categories.raw"))
+	if err != nil {
+		return nil, errors.Join(ErrUserActionFailed, err)
+	}
+
+	var (
+		results TermsAggregationResults
+		ok      bool
+	)
+
+	results.StringTermsAggregate, ok = resp.Aggregations["categories"].(*types.StringTermsAggregate)
+	if !ok {
+		return nil, errors.Join(ErrUserActionFailed, fmt.Errorf("not TermsAggregationResults"))
+	}
+
+	var categories []models.CategoryCount
+
+	for _, category := range results.BucketNames() {
+		categories = append(categories, models.CategoryCount{Name: category, Count: results.GetCount(category)})
+	}
+
+	return categories, nil
+}
+
+// unreadFeedItemsQuery generates a query for matching unread items for the
+// given feeds.
+func unreadFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption {
+	clauses := make([]QueryOption, 0, len(filters.FeedIDs))
+	for _, id := range filters.FeedIDs {
+		clauses = append(clauses,
+			QueryBool(
+				BoolFilter(
+					// Must match this feed.
+					QueryByTerm("feed_id", id),
+					// And should be newer than last read or explicitly marked unread.
+					QueryBool(
+						BoolShould(
+							QuerySince("publishedParsed", user.GetFeedLastRead(id)),
+							QuerySince("updatedParsed", user.GetFeedLastRead(id)),
+							QueryByItemIDs(user.GetItemIDsWithState(models.Unread, id)...),
+						),
+					),
+				),
+			),
+		)
+	}
+
+	return QueryBool(
+		BoolFilter(
+			// Must match any of the given feed IDs.
+			QueryByFeedIDs(filters.FeedIDs...),
+			QueryByCategory(filters.Categories...),
+			// And should match one feed clause.
+			QueryBool(
+				BoolShould(clauses...),
+			),
+		),
+		BoolMustNot(
+			// Must not match any read item IDs.
+			QueryByItemIDs(user.GetItemIDsWithState(models.Read, filters.FeedIDs...)...),
+		),
+	)
+}
+
+// readFeedItemsQuery generates a query for matching read items for the given feeds.
+func readFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption {
+	readFeedIDs := make([]models.FeedID, 0, len(filters.FeedIDs))
+	clauses := make([]QueryOption, 0, len(filters.FeedIDs))
+
+	for _, id := range filters.FeedIDs {
+		// Ignore feed if user has never marked it as read.
+		if user.GetFeedLastRead(id) == user.GetMaxHistory() {
+			continue
+		}
+
+		// Get any unread items for the feed.
+		readFeedIDs = append(readFeedIDs, id)
+		clauses = append(clauses,
+			QueryBool(
+				BoolFilter(
+					// Must match this feed.
+					QueryByTerm("feed_id", id),
+					// And should be between the user max history and last read time.
+					QueryBool(
+						BoolShould(
+							QueryBetween("publishedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
+							QueryBetween("updatedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
+						),
+					),
+				),
+			),
+		)
+	}
+
+	return QueryBool(
+		BoolFilter(
+			// Must match any of the given feed IDs
+			QueryByFeedIDs(readFeedIDs...),
+			QueryByCategory(filters.Categories...),
+			// And should match one feed clause.
+			QueryBool(
+				BoolShould(clauses...),
+			),
+		),
+		BoolMustNot(
+			// Must not match an unread item.
+			QueryByItemIDs(user.GetItemIDsWithState(models.Unread, readFeedIDs...)...),
+		),
+	)
 }

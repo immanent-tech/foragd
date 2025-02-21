@@ -88,7 +88,7 @@ func QueryByCategory(categories ...models.Category) QueryOption {
 		if len(categories) > 0 {
 			query.Terms = &types.TermsQuery{
 				TermsQuery: map[string]types.TermsQueryField{
-					"categories": categories,
+					"categories.raw": categories,
 				},
 			}
 		}

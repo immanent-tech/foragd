@@ -8,13 +8,8 @@ import (
 	"log/slog"
 	"net/http"
 	"path/filepath"
-	"slices"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-
-	"github.com/joshuar/go-templ-daisyui/display/text"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -84,18 +79,6 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, reqP
 		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
 			slog.Any("error", err))
 	}
-	// Build category filters from the categories.
-	categoryFilters := make([]partials.FeedCategoryFilter, 0, len(categories))
-	for _, category := range categories {
-		var active bool
-		if reqParams.Categories != nil {
-			if slices.Contains(*reqParams.Categories, category.Name) {
-				active = true
-			}
-		}
-
-		categoryFilters = append(categoryFilters, partials.NewCategoryFilter(category.Name, active, req.URL.String()))
-	}
 
 	var feeds []*templates.Component
 
@@ -119,24 +102,12 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, reqP
 	}
 
 	layout := home.BuildLayout(
-		home.WithHeader(home.FeedsHeader(categoryFilters)),
-		home.WithSideBar(
-			menu.WithID("drawer_menu"),
-			menu.WithItems(
-				partials.AddSubscriptionButton().Show(),
-				text.Build("View:", text.WithTextWeight(text.Semibold)).Show(),
-				partials.BuildViewFilter(reqParams.View, req.URL.String()).Show(),
-			),
-			menu.WithExtraAttributes(templ.Attributes{
-				"hx-target":   "#drawer_menu",
-				"hx-swap-oob": "true",
-			}),
-		),
+		home.WithContent(feeds...),
+		home.WithHeader(
+			home.FeedsHeader(
+				partials.BuildCategoryFilters(reqParams.Categories, categories, req.URL.String()),
+				partials.BuildViewFilter(reqParams.View, req.URL.String()))),
 	)
-
-	if len(feeds) > 0 {
-		home.WithContent(feeds...)(layout)
-	}
 
 	if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
 		logging.FromContext(req.Context()).Error("Show feeds failed.",
@@ -174,37 +145,25 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 	// Save list items filters in session storage.
 	// session.SaveListItemsFilters(req.Context(), filters)
 
-	layout := home.BuildLayout(
-		home.WithSideBar(
-			menu.WithID("drawer_menu"),
-			menu.WithItems(
-				partials.AddSubscriptionButton().Show(),
-				text.Build("View:", text.WithTextWeight(text.Semibold)).Show(),
-				partials.BuildViewFilter(reqParams.View, req.URL.String()).Show(),
-			),
-			menu.WithExtraAttributes(templ.Attributes{
-				"hx-target":   "#drawer_menu",
-				"hx-swap-oob": "true",
-			}),
-		),
-	)
-
 	itemCh, _, err := s.API.elastic.UserActionGetItems(req.Context(), *filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
 			slog.Any("error", err))
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 
-		if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
-			logging.FromContext(req.Context()).Error("Show feeds failed.",
-				slog.Any("error", err))
-			http.Error(res, err.Error(), http.StatusInternalServerError)
-		}
+		return
+	}
+
+	categoryCounts, err := s.API.elastic.UserActionGetItemCategories(req.Context(), *filters)
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
+			slog.Any("error", err))
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 
 		return
 	}
 
 	items := make([]*templates.Component, 0, filters.Count)
-
 	idx := 0
 
 	for item := range itemCh {
@@ -237,9 +196,13 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 		idx++
 	}
 
-	if len(items) > 0 {
-		home.WithContent(items...)(layout)
-	}
+	layout := home.BuildLayout(
+		home.WithContent(items...),
+		home.WithHeader(
+			home.FeedsHeader(
+				partials.BuildCategoryFilters(reqParams.Categories, categoryCounts, req.URL.String()),
+				partials.BuildViewFilter(reqParams.View, req.URL.String()))),
+	)
 
 	if err := layout.Render(req.Context(), res, htmx.NewResponse(), htmx.IsHTMX(req)); err != nil {
 		logging.FromContext(req.Context()).Error("Show feeds failed.",
@@ -254,13 +217,13 @@ func (s Server) HandleMarkFeedItems(res http.ResponseWriter, req *http.Request, 
 
 func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
 	layout := home.BuildLayout(
-		home.WithSideBar(
-			menu.WithID("drawer_menu"),
-			menu.WithExtraAttributes(templ.Attributes{
-				"hx-target":   "#drawer_menu",
-				"hx-swap-oob": "true",
-			}),
-		),
+	// home.WithSideBar(
+	// 	menu.WithID("drawer_menu"),
+	// 	menu.WithExtraAttributes(templ.Attributes{
+	// 		"hx-target":   "#drawer_menu",
+	// 		"hx-swap-oob": "true",
+	// 	}),
+	// ),
 	)
 
 	details, found, err := s.API.elastic.UserActionGetItem(req.Context(), feed, item)
