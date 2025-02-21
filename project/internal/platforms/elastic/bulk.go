@@ -5,7 +5,7 @@ package elastic
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log/slog"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/bulk"
@@ -38,7 +38,7 @@ type BulkRequest struct {
 func WithPipeline(pipeline string) BulkOption {
 	return func(b *bulk.Bulk) {
 		if pipeline != "" {
-			b = b.Pipeline(pipeline)
+			b.Pipeline(pipeline)
 		}
 	}
 }
@@ -46,7 +46,7 @@ func WithPipeline(pipeline string) BulkOption {
 // WithIndex defines the index on which the request will operate.
 func WithOverallIndex(index string) BulkOption {
 	return func(b *bulk.Bulk) {
-		b = b.Index(index)
+		b.Index(index)
 	}
 }
 
@@ -64,7 +64,7 @@ func (r *BulkRequest) AddOperations(operations ...*BulkOperation) *BulkRequest {
 			}
 		case BulkUpdate:
 			if operation.GetDocID() == "" {
-				err = fmt.Errorf("id is required for update operation")
+				err = errors.New("id is required for update operation")
 			} else {
 				err = r.UpdateOp(types.UpdateOperation{Index_: &operation.index, Id_: &operation.id}, operation.document, types.NewUpdateAction())
 			}
