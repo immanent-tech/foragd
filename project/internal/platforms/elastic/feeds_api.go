@@ -6,11 +6,9 @@ package elastic
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
@@ -215,14 +213,11 @@ func (c *Client) GetFeedCategories(ctx context.Context, feedIDs ...models.FeedID
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	var (
-		results TermsAggregationResults
-		ok      bool
-	)
+	var results TermsAggregationResults
 
-	results.StringTermsAggregate, ok = resp.Aggregations["Categories"].(*types.StringTermsAggregate)
-	if !ok {
-		return nil, errors.Join(ErrUserActionFailed, fmt.Errorf("not TermsAggregationResults"))
+	results.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](resp, "Categories")
+	if err != nil {
+		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
 	// categoryCounts := make(map[string]int64)
@@ -338,64 +333,6 @@ func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
 	c.bulkStream <- docs
 
 	return nil
-}
-
-// GetItemCounts runs an aggregation to count the items totals for the given
-// state for the given feeds.
-//
-//nolint:lll
-func (c *Client) GetFeedItemCounts(ctx context.Context, user *models.User, filters models.APIFilters) (map[string]int64, error) {
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
-	}
-
-	var query QueryOption
-
-	switch filters.View {
-	case models.ViewRead:
-		query = readFeedItemsQuery(user, filters)
-	case models.ViewUnread:
-		fallthrough
-	default:
-		query = unreadFeedItemsQuery(user, filters)
-	}
-
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	req := c.NewSearchRequest(
-		WithSearchIndex(index),
-		WithSearchQueryOptions(
-			query,
-		),
-		WithSortOptions(SortTimestampDesc()),
-		WithSearchSize(0),
-		WithAggregations(NewTermsAggregation("UnreadCounts", "feed_id")),
-	)
-
-	resp, err := req.Do(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
-	}
-
-	var (
-		results TermsAggregationResults
-		ok      bool
-	)
-
-	results.StringTermsAggregate, ok = resp.Aggregations["UnreadCounts"].(*types.StringTermsAggregate)
-	if !ok {
-		return nil, errors.Join(ErrUserActionFailed, fmt.Errorf("not TermsAggregationResults"))
-	}
-
-	unreadCounts := make(map[string]int64)
-	for _, feedID := range filters.FeedIDs {
-		unreadCounts[feedID] = results.GetCount(feedID)
-	}
-
-	spew.Dump(unreadCounts)
-
-	return unreadCounts, nil
 }
 
 func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, size models.Count) (*search.Response, error) {

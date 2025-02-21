@@ -280,10 +280,24 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		return outCh, errors.Join(ErrUserActionFailed, err)
 	}
 
+	filters.Categories = nil
+
 	// Get the unread counts for the feeds.
-	unreadCounts, err := c.GetFeedItemCounts(ctx, user, filters)
+	countResults, err := c.ItemsAggregation(ctx, generateItemsQueryClause(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
 	if err != nil {
 		return outCh, errors.Join(ErrUserActionFailed, err)
+	}
+
+	var categoryCounts TermsAggregationResults
+
+	categoryCounts.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](countResults, "UnreadCounts")
+	if err != nil {
+		return nil, errors.Join(ErrUserActionFailed, err)
+	}
+
+	unreadCounts := make(map[string]int64)
+	for _, feedID := range filters.FeedIDs {
+		unreadCounts[feedID] = categoryCounts.GetCount(feedID)
 	}
 
 	go func() {
@@ -294,7 +308,6 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 			if filters.View == models.ViewUnread && int(unreadCounts[feed.ID]) == 0 {
 				continue
 			}
-			slog.Info("foo")
 			// Add user unread count to feed.
 			feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
 			// Add user defined name to the feed.
@@ -333,33 +346,19 @@ func (c *Client) UserActionGetItemCategories(ctx context.Context, filters models
 	// Unset the category filter.
 	filters.Categories = nil
 
-	var query QueryOption
-	// Work out what query to use based on the state filter.
-	switch filters.View {
-	case models.ViewRead:
-		query = readFeedItemsQuery(user, filters)
-	case models.ViewUnread:
-		fallthrough
-	default:
-		query = unreadFeedItemsQuery(user, filters)
-	}
-
-	resp, err := c.ItemsAggregation(ctx, query, NewTermsAggregation("categories", "categories.raw"))
+	resp, err := c.ItemsAggregation(ctx, generateItemsQueryClause(user, filters), NewTermsAggregation("categories", "categories.raw"))
 	if err != nil {
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	var (
-		results TermsAggregationResults
-		ok      bool
-	)
+	var results TermsAggregationResults
 
-	results.StringTermsAggregate, ok = resp.Aggregations["categories"].(*types.StringTermsAggregate)
-	if !ok {
-		return nil, errors.Join(ErrUserActionFailed, fmt.Errorf("not TermsAggregationResults"))
+	results.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](resp, "categories")
+	if err != nil {
+		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	var categories []models.CategoryCount
+	categories := make([]models.CategoryCount, 0, results.BucketCount())
 
 	for _, category := range results.BucketNames() {
 		categories = append(categories, models.CategoryCount{Name: category, Count: results.GetCount(category)})
@@ -368,8 +367,21 @@ func (c *Client) UserActionGetItemCategories(ctx context.Context, filters models
 	return categories, nil
 }
 
-// unreadFeedItemsQuery generates a query for matching unread items for the
-// given feeds.
+// generateItemsQueryClause selects the appropriate query clause for retrieving
+// items using the given filters.
+func generateItemsQueryClause(user *models.User, filters models.APIFilters) QueryOption {
+	// Work out what query to use based on the state filter.
+	switch filters.View {
+	case models.ViewRead:
+		return readFeedItemsQuery(user, filters)
+	case models.ViewUnread:
+		fallthrough
+	default:
+		return unreadFeedItemsQuery(user, filters)
+	}
+}
+
+// unreadFeedItemsQuery generates a query for matching unread items using the given filters.
 func unreadFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption {
 	clauses := make([]QueryOption, 0, len(filters.FeedIDs))
 	for _, id := range filters.FeedIDs {
@@ -408,7 +420,7 @@ func unreadFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOpt
 	)
 }
 
-// readFeedItemsQuery generates a query for matching read items for the given feeds.
+// readFeedItemsQuery generates a query for matching read items using the given filters.
 func readFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption {
 	readFeedIDs := make([]models.FeedID, 0, len(filters.FeedIDs))
 	clauses := make([]QueryOption, 0, len(filters.FeedIDs))

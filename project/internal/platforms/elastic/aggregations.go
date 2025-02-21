@@ -4,10 +4,14 @@
 package elastic
 
 import (
+	"errors"
 	"slices"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
+
+var ErrInvalidAggType = errors.New("not requested aggregation type")
 
 // Aggregation represents a named aggregation definition in a search query.
 type Aggregation struct {
@@ -39,6 +43,19 @@ func (a *TermsAggregationResults) GetCount(key string) int64 {
 	return 0
 }
 
+// BucketCount retrieves the count of buckets for the terms aggregation.
+func (a *TermsAggregationResults) BucketCount() int {
+	switch value := a.Buckets.(type) {
+	case map[string]types.StringTermsBucket:
+		return len(value)
+	case []types.StringTermsBucket:
+		return len(value)
+	}
+
+	return 0
+}
+
+// BucketNames retrieves all the bucket names for the terms aggregation.
 func (a *TermsAggregationResults) BucketNames() []string {
 	switch value := a.Buckets.(type) {
 	case map[string]types.StringTermsBucket:
@@ -68,4 +85,15 @@ func NewTermsAggregation(name, field string) Aggregation {
 			},
 		},
 	}
+}
+
+// ExtractAggregation extracts the named aggregation as the requested type from
+// the search response.
+func ExtractAggregation[T any](resp *search.Response, name string) (T, error) {
+	aggregation, ok := resp.Aggregations[name].(T)
+	if !ok {
+		return aggregation, ErrInvalidAggType
+	}
+
+	return aggregation, nil
 }
