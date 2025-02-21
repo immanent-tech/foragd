@@ -23,11 +23,10 @@ const (
 )
 
 const (
-	profileSessionKey          = "tokens"
-	preferencesSessionKey      = "preferences"
-	stateSessionKey            = "state"
-	listFeedsFiltersSessionKey = "feeds_state"
-	listItemsFiltersSessionKey = "items_state"
+	profileSessionKey     = "tokens"
+	preferencesSessionKey = "preferences"
+	stateSessionKey       = "state"
+	routeStateSessionKey  = "route_state"
 )
 
 var (
@@ -44,7 +43,6 @@ var session = &manager{logger: slog.Default()}
 
 func init() {
 	gob.Register(models.Tokens{})
-	gob.Register(models.APIFilters{})
 }
 
 func NewSessionManager(store scs.Store) {
@@ -70,50 +68,4 @@ func ClearSession(ctx context.Context) error {
 
 func LoadAndSave() func(next http.Handler) http.Handler {
 	return session.LoadAndSave
-}
-
-func SaveListFeedsFilters(ctx context.Context, filters *models.APIFilters) {
-	if filters == nil {
-		session.logger.Warn("Cannot store feed filters: filters is nil.")
-		return
-	}
-
-	session.Put(ctx, listFeedsFiltersSessionKey, *filters)
-}
-
-func LoadListFeedsFilters(ctx context.Context) (models.APIFilters, error) {
-	data := session.Get(ctx, listFeedsFiltersSessionKey)
-	filters, ok := data.(models.APIFilters)
-
-	switch {
-	case data == nil:
-		return models.APIFilters{}, ErrDataNotFound
-	case ok:
-		return filters, nil
-	default:
-		return models.APIFilters{}, ErrInvalidData
-	}
-}
-
-func SaveListItemsFilters(ctx context.Context, filters *models.APIFilters) {
-	if filters == nil {
-		session.logger.Warn("Cannot store items filters: filters is nil.")
-		return
-	}
-
-	session.Put(ctx, listItemsFiltersSessionKey, filters)
-}
-
-func LoadListItemsFilters(ctx context.Context) (models.APIFilters, error) {
-	data := session.Get(ctx, listItemsFiltersSessionKey)
-	filters, ok := data.(models.APIFilters)
-
-	switch {
-	case data == nil:
-		return models.APIFilters{}, ErrDataNotFound
-	case ok:
-		return filters, nil
-	default:
-		return models.APIFilters{}, ErrInvalidData
-	}
 }
