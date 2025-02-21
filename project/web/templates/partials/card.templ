@@ -105,14 +105,19 @@ func DisplayCardActions(actions ...templ.Component) []templ.Component {
 		// Menu for small screens: buttons hidden behind drop-down.
 		dropdown.Build(
 			dropdown.WithHiddenBreakpoint(size.LG),
-			dropdown.WithOpenFrom(dropdown.OpenTop, true),
 			dropdown.WithButton(
 				button.WithSize(size.XS),
 				button.WithThemeColor(color.Secondary, true),
 				button.AsShape(button.Square, true),
 				button.WithContent(icon.Build("fa-ellipsis-vertical")),
+				button.WithExtraAttributes(templ.Attributes{
+					"_": "on click halt the event's bubbling",
+				}),
 			),
-			dropdown.WithMenuOptions(
+			dropdown.WithOpenOptions(
+				dropdown.From(dropdown.OpenTop, true),
+			),
+			dropdown.WithMenuContent(
 				// menu.WithSize(size.SM),
 				menu.WithLayout(menu.Vertical),
 				menu.WithItems(actions...),

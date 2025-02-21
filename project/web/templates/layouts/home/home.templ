@@ -6,34 +6,35 @@ package home
 import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
-	"github.com/joshuar/go-templ-daisyui/layout/drawer"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 )
 
-// homeDrawer renders home page content in a DaisyUI drawer.
-templ (home *LayoutProps) homeDrawer() {
-	<div id="command_modal" class="container mx-auto px-4"></div>
-	@drawer.Build("home_drawer", home.showDrawerContent(), home.showDrawerSide(),
-		drawer.WithDrawerVisibility(size.LG),
-	).Show()
-}
+// // homeDrawer renders home page content in a DaisyUI drawer.
+// templ (home *LayoutProps) homeDrawer() {
+// 	<div id="command_modal" class="container mx-auto px-4"></div>
+// 	@drawer.Build("home_drawer", home.showDrawerContent(), home.showDrawerSide(),
+// 		drawer.WithDrawerVisibility(size.LG),
+// 	).Show()
+// }
 
-// showDrawerSide renders the side rail of the home drawer.
-templ (home *LayoutProps) showDrawerSide() {
-	if home.SideBar != nil {
-		<div class="bg-base-200 min-h-full p-4">
-			@home.SideBar.Show()
-		</div>
-	}
-}
+// // showDrawerSide renders the side rail of the home drawer.
+// templ (home *LayoutProps) showDrawerSide() {
+// 	if home.SideBar != nil {
+// 		<div class="bg-base-200 min-h-full p-4">
+// 			@home.SideBar.Show()
+// 		</div>
+// 	}
+// }
 
 // showDrawerContent renders the content area of the home drawer.
-templ (home *LayoutProps) showDrawerContent() {
-	@home.ShowAppBar()
-	// @home.ShowBreadcrumbs()
-	@home.ShowHeader()
-	<div id="content" class="flex flex-wrap p-4">
+templ (home *LayoutProps) showFullLayout() {
+	<div id="command_modal" class="container mx-auto px-4"></div>
+	<div class="z-50 sticky top-0">
+		@home.ShowAppBar()
+		// @home.ShowBreadcrumbs()
+		@home.ShowHeader()
+	</div>
+	<div id="content" class="flex flex-wrap p-4 h-full">
 		@home.ShowContent()
 	</div>
 	@loading.Build(loading.Bars,

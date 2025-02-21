@@ -5,7 +5,6 @@ package partials
 
 import (
 	"github.com/a-h/templ"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 )
@@ -16,7 +15,6 @@ type ViewFilter struct {
 }
 
 func BuildViewFilter(activeView models.View, req string) *ViewFilter {
-	spew.Dump(req)
 	attributes := templ.Attributes{
 		"hx-target":   "#content",
 		"hx-push-url": "true",

@@ -18,7 +18,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/breadcrumbs"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 	"github.com/joshuar/go-templ-daisyui/navigation/navbar"
 
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -40,7 +39,7 @@ type LayoutOption templates.Option[*LayoutProps]
 
 // LayoutProps is the home page layout.
 type LayoutProps struct {
-	SideBar       *menu.Props
+	// SideBar       *menu.Props
 	AppBar        *navbar.Props
 	ContentHeader templ.Component
 	Breadcrumbs   *breadcrumbs.Props
@@ -51,7 +50,9 @@ type LayoutProps struct {
 // WithContent option defines the content to display on the page.
 func WithContent(content ...*templates.Component) LayoutOption {
 	return func(layout *LayoutProps) {
-		layout.Content = content
+		if len(content) > 0 {
+			layout.Content = content
+		}
 	}
 }
 
@@ -101,12 +102,12 @@ func BuildCrumb(name string, weight text.Weight, attributes templ.Attributes) te
 	).Show()
 }
 
-// WithSideBar option defines the layout of the drawer side rail on the home page.
-func WithSideBar(options ...menu.Option) LayoutOption {
-	return func(layout *LayoutProps) {
-		layout.SideBar = menu.Build(options...)
-	}
-}
+// // WithSideBar option defines the layout of the drawer side rail on the home page.
+// func WithSideBar(options ...menu.Option) LayoutOption {
+// 	return func(layout *LayoutProps) {
+// 		layout.SideBar = menu.Build(options...)
+// 	}
+// }
 
 // BuildHomeLayout builds the home page layout from the given options.
 func BuildLayout(options ...LayoutOption) *LayoutProps {
@@ -136,7 +137,7 @@ func (layout *LayoutProps) FullRender(ctx context.Context, res http.ResponseWrit
 	page := layouts.BuildPage("Go Feed Me - Home",
 		layouts.WithPageDescription("Your home."),
 		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		layouts.WithPageContent(layout.homeDrawer())).Show()
+		layouts.WithPageContent(layout.showFullLayout())).Show()
 	if err := resp.RenderTempl(ctx, res, page); err != nil {
 		return errors.Join(ErrHomeFullRender, err)
 	}
@@ -164,10 +165,10 @@ func (layout *LayoutProps) PartialRender(ctx context.Context, res http.ResponseW
 			return errors.Join(ErrHomePartialRender, err)
 		}
 	}
-	// OOB update drawer sidebar.
-	if err := resp.RenderTempl(ctx, res, layout.SideBar.Show()); err != nil {
-		return errors.Join(ErrHomePartialRender, err)
-	}
+	// // OOB update drawer sidebar.
+	// if err := resp.RenderTempl(ctx, res, layout.SideBar.Show()); err != nil {
+	// 	return errors.Join(ErrHomePartialRender, err)
+	// }
 
 	return nil
 }

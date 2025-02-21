@@ -47,11 +47,13 @@ func ShowFeedCard(c *templates.Component) templ.Component {
 
 	props := card.Build(
 		card.Bordered(),
-		card.WithContent(feedCardContent(feed)),
+		card.WithBodyOptions(
+			card.WithContent(feedCardContent(feed)),
+			card.WithActions(partials.DisplayCardActions(cardMenuItems...)...),
+		),
 		card.WithShadow(size.XL),
 		card.WithID(attributes.ID(feed.GetID())),
 		card.WithExtraAttributes(itemsRoute.Attributes()),
-		card.WithActions(partials.DisplayCardActions(cardMenuItems...)...),
 	)
 
 	if itemImage := feed.GetImage(); itemImage != nil {
@@ -98,12 +100,14 @@ func ShowItemCard(c *templates.Component) templ.Component {
 
 	props := card.Build(
 		card.Bordered(),
-		card.WithContent(itemCardContent(item)),
+		card.WithBodyOptions(
+			card.WithContent(itemCardContent(item)),
+			card.WithActions(partials.DisplayCardActions(cardMenuItems...)...),
+		),
 		card.WithShadow(size.XL),
 		card.WithLayout(card.LayoutSide),
 		card.WithID(attributes.ID(item.GetID())),
 		card.WithExtraAttributes(articleRoute.Attributes()),
-		card.WithActions(partials.DisplayCardActions(cardMenuItems...)...),
 	)
 
 	if itemImage := item.GetImage(); itemImage != nil {
