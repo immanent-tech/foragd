@@ -76,6 +76,66 @@ components:
           x-go-type-import:
             path: 'github.com/a-h/templ'
           x-go-json-ignore: true
+    CommonFilters:
+      description: >
+        contains common filter options.
+      type: object
+      properties:
+        categories:
+          description: is a list of categories to filter on.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/Category'
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            form: 'categories[]'
+        count:
+          $ref: '#/components/schemas/Count'
+        view:
+          $ref: '#/components/schemas/View'
+    FeedFilters:
+      description: >
+        contains filters for searching Feeds.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CommonFilters'
+        - type: object
+          properties:
+            feeds:
+              description: is a list of feed IDs to filter on.
+              type: array
+              items:
+                $ref: 'models.yaml#/components/schemas/FeedID'
+              x-go-name: FeedIDs
+              x-oapi-codegen-extra-tags:
+                form: 'feeds[]'
+              x-go-type-skip-optional-pointer: true
+    ItemFilters:
+      description: >
+        contains filters for searching Items.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/CommonFilters'
+        - type: object
+          properties:
+            feeds:
+              description: is a list of feed IDs to filter on.
+              type: array
+              items:
+                $ref: 'models.yaml#/components/schemas/FeedID'
+              x-go-name: FeedIDs
+              x-oapi-codegen-extra-tags:
+                form: 'feeds[]'
+              x-go-type-skip-optional-pointer: true
+            items:
+              description: is a list of item IDs to filter on.
+              type: array
+              items:
+                $ref: 'models.yaml#/components/schemas/ItemID'
+              x-go-name: ItemIDs
+              x-oapi-codegen-extra-tags:
+                form: 'items[]'
+              x-go-type-skip-optional-pointer: true
     APIFilters:
       description: contains parameters for searching feeds and items
       type: object

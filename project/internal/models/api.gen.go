@@ -82,8 +82,53 @@ type APIUserSignupRequest struct {
 	ValidationErrors map[string]string `form:"-" json:"-"`
 }
 
+// CommonFilters contains common filter options.
+type CommonFilters struct {
+	// Categories is a list of categories to filter on.
+	Categories []Category `form:"categories[]" json:"categories,omitempty"`
+
+	// Count is the count of items to retrieve with a request.
+	Count *Count `form:"count" json:"count,omitempty"`
+
+	// View The state of objects to view.
+	View *View `form:"view" json:"view,omitempty"`
+}
+
 // Count is the count of items to retrieve with a request.
 type Count = int
+
+// FeedFilters defines model for FeedFilters.
+type FeedFilters struct {
+	// Categories is a list of categories to filter on.
+	Categories []Category `form:"categories[]" json:"categories,omitempty"`
+
+	// Count is the count of items to retrieve with a request.
+	Count *Count `form:"count" json:"count,omitempty"`
+
+	// FeedIDs is a list of feed IDs to filter on.
+	FeedIDs []FeedID `form:"feeds[]" json:"feeds,omitempty"`
+
+	// View The state of objects to view.
+	View *View `form:"view" json:"view,omitempty"`
+}
+
+// ItemFilters defines model for ItemFilters.
+type ItemFilters struct {
+	// Categories is a list of categories to filter on.
+	Categories []Category `form:"categories[]" json:"categories,omitempty"`
+
+	// Count is the count of items to retrieve with a request.
+	Count *Count `form:"count" json:"count,omitempty"`
+
+	// FeedIDs is a list of feed IDs to filter on.
+	FeedIDs []FeedID `form:"feeds[]" json:"feeds,omitempty"`
+
+	// ItemIDs is a list of item IDs to filter on.
+	ItemIDs []ItemID `form:"items[]" json:"items,omitempty"`
+
+	// View The state of objects to view.
+	View *View `form:"view" json:"view,omitempty"`
+}
 
 // Mark applies the given mark action to objects.
 type Mark string
