@@ -17,6 +17,11 @@ cd /workspace/project
 # Install parceljs.
 npm install --save-dev parcel || exit -1
 
+# Install Go tools.
+go install github.com/air-verse/air@latest
+go install github.com/a-h/templ/cmd/templ@latest
+
+# Clean go.mod.
 go mod tidy
 
 exit 0
