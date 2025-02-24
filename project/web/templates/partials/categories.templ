@@ -12,19 +12,7 @@ templ (category *FeedCategoryFilter) Show() {
 	@badge.Build(
 		badge.WithSize(size.SM),
 		badge.WithThemeColor(color.Accent, category.active),
-		badge.WithContent(categoryBadgeContent(category.name, category.active)),
+		badge.WithContent(category.name),
 		badge.WithExtraAttributes(category.route.Attributes()),
 	).Show("p-1 m-1")
-}
-
-templ categoryBadgeContent(category string, active bool) {
-	<div>
-		if active {
-			@icon.Build("fa-xmark").Show()
-			{ category }
-		} else {
-			@icon.Build("fa-plus").Show()
-			{ category }
-		}
-	</div>
 }
