@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -80,11 +81,8 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, reqP
 	var feeds []*templates.Component
 	// Build feed cards.
 	for feed := range feedCh {
-		feedRoute := models.BuildRoute("/home/feed/" + feed.GetID() + "/items")
-
 		component, err := templates.NewComponent(feed,
-			templates.WithRoute("self", models.BuildRoute(req.URL.String())),
-			templates.WithRoute("items", feedRoute),
+			templates.WithRoute(models.BuildRoute("/home/feed/"+feed.GetID())),
 			templates.DisplayAs(templates.FeedCard),
 		)
 		if err != nil {
@@ -123,6 +121,7 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request, reqP
 }
 
 func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, feedID FeedID, reqParams HandleShowFeedItemsParams) {
+	// Create filters for API requests.
 	filters, err := models.CreateFilters(reqParams)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
@@ -132,21 +131,10 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 	}
 	// Add the feed ID.
 	filters.FeedIDs = append(filters.FeedIDs, feedID)
-
-	// Build a route for requests to perform actions against feeds.
-	showItemsRoute := models.BuildRoute(req.URL)
-	// // Get the feed details.
-	// feed, err := s.API.elastic.GetFeedByID(req.Context(), feedID)
-	// if err != nil {
-	// 	logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", err))
-	// 	http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-
-	// 	return
-	// }
-
 	// Save list items filters in session storage.
 	session.SetRouteState(req.Context(), "/home/feed/"+feedID, req.URL.String())
 
+	// Get all items.
 	itemCh, _, err := s.API.elastic.UserActionGetItems(req.Context(), *filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
@@ -155,7 +143,7 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 
 		return
 	}
-
+	// Get item categories.
 	categoryCounts, err := s.API.elastic.UserActionGetItemCategories(req.Context(), *filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
@@ -167,14 +155,11 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 
 	items := make([]*templates.Component, 0, filters.Count)
 	idx := 0
-
+	// Build item cards.
 	for item := range itemCh {
-		showArticleRoute := models.BuildRoute(filepath.Join(showItemPath, item.GetFeedID(), item.GetID()))
-
 		component, err := templates.NewComponent(item,
 			templates.DisplayAs(templates.ItemCard),
-			templates.WithRoute("self", showItemsRoute),
-			templates.WithRoute("article", showArticleRoute),
+			templates.WithRoute(models.BuildRoute(filepath.Join(showItemPath, item.GetFeedID(), item.GetID()))),
 		)
 		if err != nil {
 			logging.FromContext(req.Context()).Warn("Could not create card component for item.",
@@ -198,6 +183,7 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 		idx++
 	}
 
+	// Build page layout.
 	layout := home.BuildLayout(
 		home.WithContent(items...),
 		home.WithHeader(
@@ -217,6 +203,16 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 }
 
 func (s Server) HandleMarkFeedItems(res http.ResponseWriter, req *http.Request, feed FeedID, reqParams HandleMarkFeedItemsParams) {
+	// Create filters for API requests.
+	filters, err := models.CreateFilters(reqParams)
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
+
+		return
+	}
+
+	spew.Dump(filters)
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -248,7 +244,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 
 	component, err := templates.NewComponent(details,
 		templates.DisplayAs(templates.ItemArticle),
-		templates.WithRoute("self", articleRoute),
+		templates.WithRoute(articleRoute),
 	)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",

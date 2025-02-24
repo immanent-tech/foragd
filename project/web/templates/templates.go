@@ -26,9 +26,9 @@ func DisplayAs(displayType ComponentType) ComponentOption {
 	}
 }
 
-func WithRoute(label string, route *models.APIRoute) ComponentOption {
+func WithRoute(route *models.APIRoute) ComponentOption {
 	return func(c *Component) {
-		c.Routes[label] = route
+		c.Route = route
 	}
 }
 
@@ -37,9 +37,7 @@ func WithRoute(label string, route *models.APIRoute) ComponentOption {
 func NewComponent(object any, options ...ComponentOption) (*Component, error) {
 	var err error
 
-	component := &Component{
-		Routes: make(map[string]*models.APIRoute),
-	}
+	component := &Component{}
 
 	switch data := object.(type) {
 	case models.APIFeed:

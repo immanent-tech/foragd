@@ -10,6 +10,7 @@ require (
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.17.0
 	github.com/coreos/go-oidc v2.3.0+incompatible
+	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-json-experiment/json v0.0.0-20240412061110-8868a69194fa

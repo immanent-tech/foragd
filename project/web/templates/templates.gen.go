@@ -26,8 +26,8 @@ type Component struct {
 	// DisplayType defines how the component should be displayed.
 	DisplayType ComponentType `json:"display_type"`
 
-	// Routes is the route used for performing actions on the component.
-	Routes map[string]*externalRef0.APIRoute `json:"routes,omitempty"`
+	// Route is a htmx route within the server.
+	Route *externalRef0.APIRoute `json:"route,omitempty"`
 }
 
 // DataSource contains the object to use for displaying the component.

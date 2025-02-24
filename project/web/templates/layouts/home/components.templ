@@ -24,25 +24,25 @@ func ShowFeedCard(c *templates.Component) templ.Component {
 		return nil
 	}
 
-	feedRoute := c.Routes["self"]
-	feedRoute.Rebuild(
+	// Rebuild feed route with common options.
+	c.Route.Rebuild(
 		models.WithAttribute("hx-target", ContentTarget),
+		models.WithSubPath("/items"),
 	)
 
-	itemsRoute := c.Routes["items"]
-	itemsRoute.Rebuild(
-		models.WithAttribute("hx-target", ContentTarget),
+	// Build route to show feed items.
+	showItemsRoute := models.BuildRoute(c.Route.String(),
 		models.WithAttribute("hx-push-url", "true"),
 	)
 
 	var cardMenuItems []templ.Component
-
+	// Add card menu item for marking read/unread.
 	if feed.GetUserUnreadCount() > 0 {
 		cardMenuItems = append(cardMenuItems, buildMarkButton("Mark Read",
-			models.MarkRead, feedRoute))
+			models.MarkRead, c.Route))
 	} else {
 		cardMenuItems = append(cardMenuItems, buildMarkButton("Mark Unread",
-			models.MarkUnread, feedRoute))
+			models.MarkUnread, c.Route))
 	}
 
 	props := card.Build(
@@ -53,7 +53,7 @@ func ShowFeedCard(c *templates.Component) templ.Component {
 		),
 		card.WithShadow(size.XL),
 		card.WithID(attributes.ID(feed.GetID())),
-		card.WithExtraAttributes(itemsRoute.Attributes()),
+		card.WithExtraAttributes(showItemsRoute.Attributes()),
 	)
 
 	if itemImage := feed.GetImage(); itemImage != nil {
@@ -77,25 +77,20 @@ func ShowItemCard(c *templates.Component) templ.Component {
 		return nil
 	}
 
-	itemRoute := c.Routes["self"]
-	itemRoute.Rebuild(
-		models.WithAttribute("hx-target", ContentTarget),
-	)
-
-	articleRoute := c.Routes["article"]
-	articleRoute.Rebuild(
-		models.WithAttribute("hx-target", ContentTarget),
+	// Build route to show item.
+	itemRoute := models.BuildRoute(c.Route.String(),
 		models.WithAttribute("hx-push-url", "true"),
+		models.WithAttribute("hx-target", ContentTarget),
 	)
 
 	var cardMenuItems []templ.Component
-
+	// Add card menu item for marking read/unread.
 	if item.GetUserState() == models.Unread {
 		cardMenuItems = append(cardMenuItems, buildMarkButton("Mark Read",
-			models.MarkRead, itemRoute))
+			models.MarkRead, c.Route))
 	} else {
 		cardMenuItems = append(cardMenuItems, buildMarkButton("Mark Unread",
-			models.MarkUnread, itemRoute))
+			models.MarkUnread, c.Route))
 	}
 
 	props := card.Build(
@@ -107,7 +102,7 @@ func ShowItemCard(c *templates.Component) templ.Component {
 		card.WithShadow(size.XL),
 		card.WithLayout(card.LayoutSide),
 		card.WithID(attributes.ID(item.GetID())),
-		card.WithExtraAttributes(articleRoute.Attributes()),
+		card.WithExtraAttributes(itemRoute.Attributes()),
 	)
 
 	if itemImage := item.GetImage(); itemImage != nil {
@@ -150,7 +145,7 @@ func buildMarkRoute(r *models.APIRoute, mark models.Mark) templ.Attributes {
 		models.WithParams(
 			models.WithMarkParam(mark),
 		),
-		models.WithAttribute("hx-target", ContentTarget),
+		models.WithAttribute("_", "on click halt the event's bubbling"),
 	)
 
 	return r.Attributes()

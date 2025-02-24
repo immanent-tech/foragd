@@ -59,11 +59,8 @@ components:
             - $ref: '#/components/schemas/Feed'
             - $ref: '#/components/schemas/Item'
           x-go-type-name: DataSource
-        routes:
+        route:
           description: >
             is the route used for performing actions on the
             component.
-          type: object
-          additionalProperties:
-            $ref: '../models/api.yaml#/components/schemas/APIRoute'
-          x-go-type-skip-optional-pointer: true
+          $ref: '../models/api.yaml#/components/schemas/APIRoute'

@@ -25,7 +25,7 @@ const (
 
 var DefaultRouteMethod = http.MethodGet
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=HTMXMethod -linecomment -output routing.gen.go
+//go:generate go tool golang.org/x/tools/cmd/stringer -type=HTMXMethod -linecomment -output routing.gen.go
 type HTMXMethod int
 
 // String shows the route URL as a string.
@@ -165,6 +165,12 @@ func WithCountParam(count int) ParamsOption {
 	return func(v url.Values) url.Values {
 		v.Set("count", strconv.Itoa(count))
 		return v
+	}
+}
+
+func WithSubPath(path string) RouteOption {
+	return func(a *APIRoute) {
+		a.url = *a.url.JoinPath(path)
 	}
 }
 

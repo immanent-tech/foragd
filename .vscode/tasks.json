@@ -6,13 +6,13 @@
         {
             "label": "gowebly: doctor",
             "type": "shell",
-            "command": "cd project && go run github.com/gowebly/gowebly/v2@latest doctor",
+            "command": "cd project && go tool github.com/gowebly/gowebly/v2 doctor",
             "problemMatcher": []
         },
         {
             "label": "gowebly: run",
             "type": "shell",
-            "command": "cd project && go run github.com/gowebly/gowebly/v2@latest run",
+            "command": "cd project && go tool github.com/gowebly/gowebly/v2 run",
             "problemMatcher": [],
             "presentation": {
                 "echo": true,
