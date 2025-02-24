@@ -200,14 +200,17 @@ paths:
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/View'
         - $ref: '#/components/parameters/Count'
+  /home/feeds/{mark}:
     post:
       summary: >
         Mark feeds.
       operationId: handleMarkFeeds
       parameters:
-        - $ref: '#/components/parameters/Categories'
+        # Path:
         - $ref: '#/components/parameters/Mark'
-  /home/feed/{feed}/items:
+        # Query:
+        - $ref: '#/components/parameters/Categories'
+  /home/feed/{feed}:
     get:
       summary: >
         Show items for a feed.
@@ -219,6 +222,7 @@ paths:
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/View'
         - $ref: '#/components/parameters/Count'
+  /home/feed/{feed}/{mark}:
     post:
       summary: >
         Mark items for a feed.
@@ -226,9 +230,9 @@ paths:
       parameters:
         # Path:
         - $ref: '#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/Mark'
         # Query:
         - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/Mark'
   /home/feed/{feed}/item/{item}:
     get:
       summary: >
@@ -237,16 +241,6 @@ paths:
       parameters:
         - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/ItemID'
-    post:
-      summary: >
-        Mark a feed item.
-      operationID: handleMarkItem
-      parameters:
-        # Path:
-        - $ref: '#/components/parameters/FeedID'
-        - $ref: '#/components/parameters/ItemID'
-        # Query:
-        - $ref: '#/components/parameters/Mark'
     put:
       summary: >
         Save a feed item to the user's saved items.
@@ -261,6 +255,16 @@ paths:
       parameters:
         - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/ItemID'
+  /home/feed/{feed}/item/{item}/{mark}:
+    post:
+      summary: >
+        Mark a feed item.
+      operationID: handleMarkItem
+      parameters:
+        # Path:
+        - $ref: '#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/ItemID'
+        - $ref: '#/components/parameters/Mark'
 components:
   schemas:
     Action:
@@ -313,13 +317,12 @@ components:
       in: path
       schema:
         $ref: '../models/models.yaml#/components/schemas/ItemID'
-    # Query Parameters:
     Mark:
       name: mark
-      in: query
-      required: true
+      in: path
       schema:
         $ref: '../models/api.yaml#/components/schemas/Mark'
+    # Query Parameters:
     View:
       name: view
       in: query

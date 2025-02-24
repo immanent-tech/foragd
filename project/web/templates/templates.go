@@ -44,6 +44,8 @@ func NewComponent(object any, options ...ComponentOption) (*Component, error) {
 		err = component.DataSource.FromFeed(data)
 	case models.APIItem:
 		err = component.DataSource.FromItem(data)
+	default:
+		return nil, errors.Join(ErrNewComponent, errors.New("unsupported data source"))
 	}
 
 	if err != nil {

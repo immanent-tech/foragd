@@ -17,8 +17,8 @@ type AuthAPI interface {
 
 // UserActionsAPI contains methods for handling user requests.
 type UserActionsAPI interface {
-	UserActionMarkItems(ctx context.Context, mark Mark, items []ItemID) error
-	UserActionMarkFeeds(ctx context.Context, mark Mark, feeds []FeedID) error
+	UserActionMarkItems(ctx context.Context, mark Mark, items ...ItemID) error
+	UserActionMarkFeeds(ctx context.Context, mark Mark, feeds ...FeedID) error
 	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
 	UserActionGetItems(ctx context.Context, filters APIFilters) (chan APIItem, Pagination, error)
 	UserActionGetFeeds(ctx context.Context, filters APIFilters) (chan APIFeed, error)

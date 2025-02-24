@@ -28,6 +28,18 @@ var DefaultRouteMethod = http.MethodGet
 //go:generate go tool golang.org/x/tools/cmd/stringer -type=HTMXMethod -linecomment -output routing.gen.go
 type HTMXMethod int
 
+func (r *APIRoute) GetViewParam() View {
+	return View(r.url.Query().Get("view"))
+}
+
+func (r *APIRoute) GetCountParam() Count {
+	if count, err := strconv.Atoi(r.url.Query().Get("count")); err != nil {
+		return count
+	}
+
+	return 10
+}
+
 // String shows the route URL as a string.
 func (r *APIRoute) String() string {
 	return r.url.String()

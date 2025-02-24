@@ -22,7 +22,7 @@ import (
 var ErrUserActionFailed = errors.New("user action failed")
 
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
-func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Mark, ids []models.ItemID) error {
+func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Mark, ids ...models.ItemID) error {
 	if mark != models.MarkUnread && mark != models.MarkRead {
 		return fmt.Errorf("unsupported mark")
 	}
@@ -78,9 +78,9 @@ func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Mark, ids 
 
 // UserActionMarkFeedsRead will mark the given feeds with the given state for
 // the user.
-func (c *Client) UserActionMarkFeeds(ctx context.Context, mark models.Mark, feedIDs []models.FeedID) error {
+func (c *Client) UserActionMarkFeeds(ctx context.Context, mark models.Mark, feedIDs ...models.FeedID) error {
 	if mark != models.MarkRead && mark != models.MarkUnread {
-		return fmt.Errorf("unsupported mark")
+		return errors.Join(ErrUserActionFailed, errors.New("unsupported mark action"))
 	}
 
 	var timestamp time.Time
@@ -307,9 +307,10 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 			// If filtering by unread, ignore feeds with no unread count.
 			if filters.View == models.ViewUnread && int(unreadCounts[feed.ID]) == 0 {
 				continue
+			} else {
+				// Add user unread count to feed.
+				feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
 			}
-			// Add user unread count to feed.
-			feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
 			// Add user defined name to the feed.
 			if name := user.Subscriptions[feed.ID].Name; name != nil && *name != "" {
 				feed.SetUserName(*name)
@@ -324,6 +325,60 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	}()
 
 	return outCh, nil
+}
+
+func (c *Client) UserActionGetFeed(ctx context.Context, feedID models.FeedID) (*models.APIFeed, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, ErrGetUserFailed
+	}
+
+	if !user.IsSubscribed(feedID) {
+		return nil, errors.Join(ErrUserActionFailed, ErrNoHits)
+	}
+
+	// Get the feed.
+	feed, err := c.GetFeedByID(ctx, feedID)
+	if err != nil {
+		return nil, errors.Join(ErrUserActionFailed, err)
+	}
+
+	// Generate an appropriate view state for this feed.
+	var view models.View
+	if user.GetFeedLastRead(feed.GetID()).After(user.GetMaxHistory()) {
+		view = models.ViewRead
+	} else {
+		view = models.ViewUnread
+	}
+
+	// Get the unread counts for the feeds.
+	filters := models.APIFilters{FeedIDs: []models.FeedID{feed.GetID()}, View: view}
+	countResults, err := c.ItemsAggregation(ctx, generateItemsQueryClause(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
+	if err != nil {
+		return nil, errors.Join(ErrUserActionFailed, err)
+	}
+
+	var itemCounts TermsAggregationResults
+
+	itemCounts.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](countResults, "UnreadCounts")
+	if err != nil {
+		return nil, errors.Join(ErrUserActionFailed, err)
+	}
+
+	// Add user unread count to feed.
+	if filters.View == models.ViewUnread && itemCounts.GetCount(feed.GetID()) > 0 {
+		feed.SetUserUnreadCount(int(itemCounts.GetCount(feed.GetID())))
+	}
+	// Add user defined name to the feed.
+	if name := user.Subscriptions[feed.ID].Name; name != nil && *name != "" {
+		feed.SetUserName(*name)
+	}
+	// Add user defined categories to the feed.
+	if categories := user.Subscriptions[feed.ID].Categories; categories != nil {
+		feed.SetUserCategories(categories)
+	}
+
+	return feed, nil
 }
 
 func (c *Client) UserActionGetFeedCategories(ctx context.Context) ([]models.CategoryCount, error) {

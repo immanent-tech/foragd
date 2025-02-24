@@ -143,18 +143,18 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
-		homeRouter.Get("/", HomeMiddleware(wrapper.HandleHome))
+		homeRouter.Get("/", SetCommonHomeFilters(wrapper.HandleHome))
 		// Feeds:
-		homeRouter.Get("/feeds", HomeMiddleware(wrapper.HandleShowFeeds))
-		homeRouter.Post("/feeds", HomeMiddleware(wrapper.HandleMarkFeeds))
+		homeRouter.Get("/feeds", SetCommonHomeFilters(wrapper.HandleShowFeeds))
+		homeRouter.Post("/feeds/{mark}", SetCommonHomeFilters(wrapper.HandleMarkFeeds))
 		// Items:
-		homeRouter.Get("/feed/{feed}/items", HomeMiddleware(wrapper.HandleShowFeedItems))
-		homeRouter.Post("/feed/{feed}/items", HomeMiddleware(wrapper.HandleMarkFeedItems))
+		homeRouter.Get("/feed/{feed}", SetCommonHomeFilters(wrapper.HandleShowFeedItems))
+		homeRouter.Post("/feed/{feed}/{mark}", SetCommonHomeFilters(wrapper.HandleMarkFeedItems))
 		// Item:
-		homeRouter.Get("/feed/{feed}/item/{item}", HomeMiddleware(wrapper.HandleShowItem))
-		homeRouter.Post("/feed/{feed}/item/{item}", HomeMiddleware(wrapper.HandleMarkItem))
-		homeRouter.Put("/feed/{feed}/item/{item}", HomeMiddleware(wrapper.HandleSaveItem))
-		homeRouter.Delete("/feed/{feed}/item/{item}", HomeMiddleware(wrapper.HandleUnsaveItem))
+		homeRouter.Get("/feed/{feed}/item/{item}", SetCommonHomeFilters(wrapper.HandleShowItem))
+		homeRouter.Post("/feed/{feed}/item/{item}/{mark}", SetCommonHomeFilters(wrapper.HandleMarkItem))
+		homeRouter.Put("/feed/{feed}/item/{item}", SetCommonHomeFilters(wrapper.HandleSaveItem))
+		homeRouter.Delete("/feed/{feed}/item/{item}", SetCommonHomeFilters(wrapper.HandleUnsaveItem))
 	})
 
 	router.Route("/subscription", func(subscription chi.Router) {

@@ -122,15 +122,16 @@ func BuildLayout(options ...LayoutOption) *LayoutProps {
 	return layout
 }
 
-func (layout *LayoutProps) Render(ctx context.Context, res http.ResponseWriter, resp htmx.Response, isHTMX bool) error {
-	if !isHTMX {
-		return layout.FullRender(ctx, res, resp)
+func (layout *LayoutProps) Render(req *http.Request, res http.ResponseWriter) error {
+	if req.Header.Get(htmx.HeaderTarget) == "" {
+		return layout.FullRender(req.Context(), res)
 	}
 
-	return layout.PartialRender(ctx, res, resp)
+	return layout.PartialRender(req.Context(), res)
 }
 
-func (layout *LayoutProps) FullRender(ctx context.Context, res http.ResponseWriter, resp htmx.Response) error {
+func (layout *LayoutProps) FullRender(ctx context.Context, res http.ResponseWriter) error {
+	resp := htmx.NewResponse()
 	page := layouts.BuildPage("Go Feed Me - Home",
 		layouts.WithPageDescription("Your home."),
 		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
@@ -142,7 +143,8 @@ func (layout *LayoutProps) FullRender(ctx context.Context, res http.ResponseWrit
 	return nil
 }
 
-func (layout *LayoutProps) PartialRender(ctx context.Context, res http.ResponseWriter, resp htmx.Response) error {
+func (layout *LayoutProps) PartialRender(ctx context.Context, res http.ResponseWriter) error {
+	resp := htmx.NewResponse()
 	if err := resp.RenderTempl(ctx, res, layout.ShowContent()); err != nil {
 		return errors.Join(ErrHomePartialRender, err)
 	}
