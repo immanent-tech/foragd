@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
@@ -335,6 +336,8 @@ func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
 	return nil
 }
 
+// ItemsSearch performs a search query on feed items with the given query
+// options. It returns the raw search response.
 func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, size models.Count) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
@@ -356,6 +359,8 @@ func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, size models
 	return resp, nil
 }
 
+// ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
+// options. It returns the raw search response.
 func (c *Client) ItemsAggregation(ctx context.Context, query QueryOption, aggregation Aggregation) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
@@ -373,6 +378,27 @@ func (c *Client) ItemsAggregation(ctx context.Context, query QueryOption, aggreg
 	resp, err := req.Do(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrUserActionFailed, err)
+	}
+
+	return resp, nil
+}
+
+// ItemsCount performs a count query on feed items with the given query
+// options. It returns the raw count response.
+func (c *Client) ItemsCount(ctx context.Context, query QueryOption) (*count.Response, error) {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrCountFailed, ErrNoIndexInCtx)
+	}
+
+	req := c.NewCountRequest(
+		WithCountIndex(index),
+		WithCountQueryOptions(query),
+	)
+
+	resp, err := req.Do(ctx)
+	if err != nil {
+		return nil, errors.Join(ErrCountFailed, err)
 	}
 
 	return resp, nil

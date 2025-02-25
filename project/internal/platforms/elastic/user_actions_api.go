@@ -343,32 +343,30 @@ func (c *Client) UserActionGetFeed(ctx context.Context, feedID models.FeedID) (*
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	// Generate an appropriate view state for this feed.
-	var view models.View
-	if user.GetFeedLastRead(feed.GetID()).After(user.GetMaxHistory()) {
-		view = models.ViewRead
-	} else {
-		view = models.ViewUnread
-	}
+	query := QueryBool(
+		BoolFilter(
+			// Must match this feed.
+			QueryByTerm("feed_id", feedID),
+			// Must not match any read item IDs.
+			QueryByItemIDs(user.GetItemIDsWithState(models.Read, feedID)...),
+			// And should be newer than last read or explicitly marked unread.
+			QueryBool(
+				BoolShould(
+					QuerySince("publishedParsed", user.GetFeedLastRead(feedID)),
+					QuerySince("updatedParsed", user.GetFeedLastRead(feedID)),
+					QueryByItemIDs(user.GetItemIDsWithState(models.Unread, feedID)...),
+				),
+			),
+		),
+	)
 
-	// Get the unread counts for the feeds.
-	filters := models.APIFilters{FeedIDs: []models.FeedID{feed.GetID()}, View: view}
-	countResults, err := c.ItemsAggregation(ctx, generateItemsQueryClause(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
-	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
-	}
-
-	var itemCounts TermsAggregationResults
-
-	itemCounts.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](countResults, "UnreadCounts")
+	resp, err := c.ItemsCount(ctx, query)
 	if err != nil {
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
 	// Add user unread count to feed.
-	if filters.View == models.ViewUnread && itemCounts.GetCount(feed.GetID()) > 0 {
-		feed.SetUserUnreadCount(int(itemCounts.GetCount(feed.GetID())))
-	}
+	feed.SetUserUnreadCount(int(resp.Count))
 	// Add user defined name to the feed.
 	if name := user.Subscriptions[feed.ID].Name; name != nil && *name != "" {
 		feed.SetUserName(*name)
