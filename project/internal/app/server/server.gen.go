@@ -24,9 +24,6 @@ type FeedID = externalRef0.FeedID
 // ItemID is the unique ID of an item.
 type ItemID = externalRef0.ItemID
 
-// Mark applies the given mark action to objects.
-type Mark = externalRef0.Mark
-
 // View The state of objects to view.
 type View = externalRef0.View
 
@@ -38,10 +35,30 @@ type HandleShowFeedItemsParams struct {
 	Count      Count       `form:"count" json:"count"`
 }
 
+// HandleMarkFeedItemsFormdataBody defines parameters for HandleMarkFeedItems.
+type HandleMarkFeedItemsFormdataBody struct {
+	Feeds *[]externalRef0.FeedID `form:"feeds" json:"feeds,omitempty"`
+	Items *[]externalRef0.ItemID `form:"items" json:"items,omitempty"`
+
+	// Mark applies the given mark action to objects.
+	Mark externalRef0.Mark `form:"mark" json:"mark"`
+}
+
 // HandleMarkFeedItemsParams defines parameters for HandleMarkFeedItems.
 type HandleMarkFeedItemsParams struct {
 	// Categories An array of Categories.
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
+}
+
+// HandleMarkItemFormdataBody defines parameters for HandleMarkItem.
+type HandleMarkItemFormdataBody struct {
+	Feeds *[]externalRef0.FeedID `form:"feeds" json:"feeds,omitempty"`
+	Items *[]externalRef0.ItemID `form:"items" json:"items,omitempty"`
+
+	// Mark applies the given mark action to objects.
+	Mark externalRef0.Mark `form:"mark" json:"mark"`
 }
 
 // HandleShowFeedsParams defines parameters for HandleShowFeeds.
@@ -52,10 +69,21 @@ type HandleShowFeedsParams struct {
 	Count      Count       `form:"count" json:"count"`
 }
 
+// HandleMarkFeedsFormdataBody defines parameters for HandleMarkFeeds.
+type HandleMarkFeedsFormdataBody struct {
+	Feeds *[]externalRef0.FeedID `form:"feeds" json:"feeds,omitempty"`
+	Items *[]externalRef0.ItemID `form:"items" json:"items,omitempty"`
+
+	// Mark applies the given mark action to objects.
+	Mark externalRef0.Mark `form:"mark" json:"mark"`
+}
+
 // HandleMarkFeedsParams defines parameters for HandleMarkFeeds.
 type HandleMarkFeedsParams struct {
 	// Categories An array of Categories.
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
 }
 
 // LoginCallbackParams defines parameters for LoginCallback.
@@ -69,6 +97,15 @@ type AddSubscriptionCategoryFormdataBody struct {
 	// Category is a single category.
 	Category externalRef0.Category `form:"category" json:"category"`
 }
+
+// HandleMarkFeedItemsFormdataRequestBody defines body for HandleMarkFeedItems for application/x-www-form-urlencoded ContentType.
+type HandleMarkFeedItemsFormdataRequestBody HandleMarkFeedItemsFormdataBody
+
+// HandleMarkItemFormdataRequestBody defines body for HandleMarkItem for application/x-www-form-urlencoded ContentType.
+type HandleMarkItemFormdataRequestBody HandleMarkItemFormdataBody
+
+// HandleMarkFeedsFormdataRequestBody defines body for HandleMarkFeeds for application/x-www-form-urlencoded ContentType.
+type HandleMarkFeedsFormdataRequestBody HandleMarkFeedsFormdataBody
 
 // AddSubscriptionCategoryFormdataRequestBody defines body for AddSubscriptionCategory for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
@@ -93,27 +130,27 @@ type ServerInterface interface {
 	// Show items for a feed.
 	// (GET /home/feed/{feed})
 	HandleShowFeedItems(w http.ResponseWriter, r *http.Request, feed FeedID, params HandleShowFeedItemsParams)
+	// Mark items for a feed.
+	// (POST /home/feed/{feed})
+	HandleMarkFeedItems(w http.ResponseWriter, r *http.Request, feed FeedID, params HandleMarkFeedItemsParams)
 	// Remove a feed item from the user's saved items.
 	// (DELETE /home/feed/{feed}/item/{item})
 	HandleUnsaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
 	// Shows a feed item.
 	// (GET /home/feed/{feed}/item/{item})
 	HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
+	// Mark a feed item.
+	// (POST /home/feed/{feed}/item/{item})
+	HandleMarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
 	// Save a feed item to the user's saved items.
 	// (PUT /home/feed/{feed}/item/{item})
 	HandleSaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
-	// Mark a feed item.
-	// (POST /home/feed/{feed}/item/{item}/{mark})
-	HandleMarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, mark Mark)
-	// Mark items for a feed.
-	// (POST /home/feed/{feed}/{mark})
-	HandleMarkFeedItems(w http.ResponseWriter, r *http.Request, feed FeedID, mark Mark, params HandleMarkFeedItemsParams)
 	// Shows subscribed feeds grouped by categories.
 	// (GET /home/feeds)
 	HandleShowFeeds(w http.ResponseWriter, r *http.Request, params HandleShowFeedsParams)
 	// Mark feeds.
-	// (POST /home/feeds/{mark})
-	HandleMarkFeeds(w http.ResponseWriter, r *http.Request, mark Mark, params HandleMarkFeedsParams)
+	// (POST /home/feeds)
+	HandleMarkFeeds(w http.ResponseWriter, r *http.Request, params HandleMarkFeedsParams)
 	// Show user settings modal
 	// (GET /home/settings)
 	GetHomeSettings(w http.ResponseWriter, r *http.Request)
@@ -179,6 +216,12 @@ func (_ Unimplemented) HandleShowFeedItems(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Mark items for a feed.
+// (POST /home/feed/{feed})
+func (_ Unimplemented) HandleMarkFeedItems(w http.ResponseWriter, r *http.Request, feed FeedID, params HandleMarkFeedItemsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Remove a feed item from the user's saved items.
 // (DELETE /home/feed/{feed}/item/{item})
 func (_ Unimplemented) HandleUnsaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
@@ -191,21 +234,15 @@ func (_ Unimplemented) HandleShowItem(w http.ResponseWriter, r *http.Request, fe
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Mark a feed item.
+// (POST /home/feed/{feed}/item/{item})
+func (_ Unimplemented) HandleMarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Save a feed item to the user's saved items.
 // (PUT /home/feed/{feed}/item/{item})
 func (_ Unimplemented) HandleSaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Mark a feed item.
-// (POST /home/feed/{feed}/item/{item}/{mark})
-func (_ Unimplemented) HandleMarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, mark Mark) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Mark items for a feed.
-// (POST /home/feed/{feed}/{mark})
-func (_ Unimplemented) HandleMarkFeedItems(w http.ResponseWriter, r *http.Request, feed FeedID, mark Mark, params HandleMarkFeedItemsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -216,8 +253,8 @@ func (_ Unimplemented) HandleShowFeeds(w http.ResponseWriter, r *http.Request, p
 }
 
 // Mark feeds.
-// (POST /home/feeds/{mark})
-func (_ Unimplemented) HandleMarkFeeds(w http.ResponseWriter, r *http.Request, mark Mark, params HandleMarkFeedsParams) {
+// (POST /home/feeds)
+func (_ Unimplemented) HandleMarkFeeds(w http.ResponseWriter, r *http.Request, params HandleMarkFeedsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -406,6 +443,72 @@ func (siw *ServerInterfaceWrapper) HandleShowFeedItems(w http.ResponseWriter, r 
 	handler.ServeHTTP(w, r)
 }
 
+// HandleMarkFeedItems operation middleware
+func (siw *ServerInterfaceWrapper) HandleMarkFeedItems(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "feed" -------------
+	var feed FeedID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params HandleMarkFeedItemsParams
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HandleMarkFeedItems(w, r, feed, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // HandleUnsaveItem operation middleware
 func (siw *ServerInterfaceWrapper) HandleUnsaveItem(w http.ResponseWriter, r *http.Request) {
 
@@ -474,6 +577,40 @@ func (siw *ServerInterfaceWrapper) HandleShowItem(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
+// HandleMarkItem operation middleware
+func (siw *ServerInterfaceWrapper) HandleMarkItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "feed" -------------
+	var feed FeedID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "item" -------------
+	var item ItemID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HandleMarkItem(w, r, feed, item)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // HandleSaveItem operation middleware
 func (siw *ServerInterfaceWrapper) HandleSaveItem(w http.ResponseWriter, r *http.Request) {
 
@@ -499,94 +636,6 @@ func (siw *ServerInterfaceWrapper) HandleSaveItem(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleSaveItem(w, r, feed, item)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// HandleMarkItem operation middleware
-func (siw *ServerInterfaceWrapper) HandleMarkItem(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "item" -------------
-	var item ItemID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "mark" -------------
-	var mark Mark
-
-	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleMarkItem(w, r, feed, item, mark)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// HandleMarkFeedItems operation middleware
-func (siw *ServerInterfaceWrapper) HandleMarkFeedItems(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "mark" -------------
-	var mark Mark
-
-	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params HandleMarkFeedItemsParams
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleMarkFeedItems(w, r, feed, mark, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -658,15 +707,6 @@ func (siw *ServerInterfaceWrapper) HandleMarkFeeds(w http.ResponseWriter, r *htt
 
 	var err error
 
-	// ------------- Path parameter "mark" -------------
-	var mark Mark
-
-	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
-		return
-	}
-
 	// Parameter object where we will unmarshal all parameters from the context
 	var params HandleMarkFeedsParams
 
@@ -678,8 +718,38 @@ func (siw *ServerInterfaceWrapper) HandleMarkFeeds(w http.ResponseWriter, r *htt
 		return
 	}
 
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleMarkFeeds(w, r, mark, params)
+		siw.Handler.HandleMarkFeeds(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1107,25 +1177,25 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/home/feed/{feed}", wrapper.HandleShowFeedItems)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/home/feed/{feed}", wrapper.HandleMarkFeedItems)
+	})
+	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/home/feed/{feed}/item/{item}", wrapper.HandleUnsaveItem)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/feed/{feed}/item/{item}", wrapper.HandleShowItem)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/home/feed/{feed}/item/{item}", wrapper.HandleMarkItem)
+	})
+	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/home/feed/{feed}/item/{item}", wrapper.HandleSaveItem)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/feed/{feed}/item/{item}/{mark}", wrapper.HandleMarkItem)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/feed/{feed}/{mark}", wrapper.HandleMarkFeedItems)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/feeds", wrapper.HandleShowFeeds)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/feeds/{mark}", wrapper.HandleMarkFeeds)
+		r.Post(options.BaseURL+"/home/feeds", wrapper.HandleMarkFeeds)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)

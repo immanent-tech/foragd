@@ -28,6 +28,11 @@ var DefaultRouteMethod = http.MethodGet
 //go:generate go tool golang.org/x/tools/cmd/stringer -type=HTMXMethod -linecomment -output routing.gen.go
 type HTMXMethod int
 
+func (r *APIRoute) GetCategoriesParam() []Category {
+	categories := r.url.Query()["categories"]
+	return categories
+}
+
 func (r *APIRoute) GetViewParam() View {
 	return View(r.url.Query().Get("view"))
 }
@@ -102,6 +107,21 @@ func (r *APIRoute) UnsetCategories() *APIRoute {
 	return r
 }
 
+func (r *APIRoute) SetFeeds(feedIDs ...FeedID) {
+	params := WithFeedsParam(feedIDs...)(r.url.Query())
+	r.url.RawQuery = params.Encode()
+}
+
+func (r *APIRoute) SetItems(itemIDs ...ItemID) {
+	params := WithItemsParam(itemIDs...)(r.url.Query())
+	r.url.RawQuery = params.Encode()
+}
+
+func (r *APIRoute) SetMark(mark Mark) {
+	params := WithMarkParam(mark)(r.url.Query())
+	r.url.RawQuery = params.Encode()
+}
+
 func (r *APIRoute) AddAttribute(key, value string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -127,6 +147,10 @@ func (r *APIRoute) SetAttributes(attributes templ.Attributes) {
 	} else {
 		r.attributes = attributes
 	}
+}
+
+func (r *APIRoute) SetMethod(method string) {
+	r.method = &method
 }
 
 // RouteOption is a functional option to customize a APIRoute.

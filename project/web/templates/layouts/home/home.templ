@@ -57,9 +57,9 @@ templ (home *LayoutProps) ShowContent() {
 		for _, item := range home.content {
 			switch item.DisplayType {
 				case templates.FeedCard:
-					@ShowFeedCard(item)
+					@ShowFeedCard(ctx, item)
 				case templates.ItemCard:
-					@ShowItemCard(item)
+					@ShowItemCard(ctx, item)
 				case templates.ItemArticle:
 					@ShowArticle(item)
 			}

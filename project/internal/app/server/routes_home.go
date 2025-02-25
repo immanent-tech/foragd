@@ -4,15 +4,15 @@
 package server
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 
+	"github.com/joshuar/go-feed-me/internal/app/server/forms"
 	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -50,47 +50,58 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, reqP
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
 
-	// Save list feeds filters in session storage.
-	session.SetRouteState(req.Context(), "/home/feeds", req.URL.String())
+	feedHandler(s.DataAPI(), res, req, *filters)
+}
 
-	feeds, err := s.getFeeds(req.Context(), *filters)
+func (f *HandleMarkFeedsFormdataBody) Valid() bool {
+	// Must have valid mark value.
+	if !(f.Mark == models.MarkRead || f.Mark == models.MarkUnread) {
+		return false
+	}
+	// Feeds must be specified.
+	if f.Feeds == nil {
+		// if !f.Feeds.IsSpecified() {
+		return false
+	}
+
+	return true
+}
+
+func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request, reqParams HandleMarkFeedsParams) {
+	// Create filters for API requests.
+	filters, err := models.CreateFilters(reqParams)
 	if err != nil {
-		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
-			slog.Any("error", err))
-		http.Error(res, err.Error(), http.StatusInternalServerError)
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 
 		return
 	}
-
-	// Retrieve the feed categories and the unread counts.
-	categories, err := s.API.elastic.UserActionGetFeedCategories(req.Context())
-	if err != nil {
-		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
+	// Decode mark parameters.
+	marks, valid, err := forms.DecodeForm[*HandleMarkFeedsFormdataBody](req)
+	if err != nil || !valid {
+		logging.FromContext(req.Context()).Error("Could not decode form data.",
 			slog.Any("error", err))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+
+		return
 	}
+	// Get the list of feeds to mark.
+	feeds := *marks.Feeds
+	// feeds, err := marks.Feeds.Get()
+	// if err != nil {
+	// 	logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+	// 	http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 
-	// Build page layout.
-	layout := home.BuildLayout(
-		home.WithContent(feeds...),
-		home.WithPart(home.Header,
-			home.FullHeader(
-				partials.BuildCategoryFilters(reqParams.Categories, categories, req.URL.String()),
-				partials.BuildViewFilter(reqParams.View, req.URL.String()),
-			),
-		),
-		home.WithPart(home.Footer, home.FullFooter("/home")),
-	)
-
-	// Render /home/feeds page.
-	if err := layout.Render(req, res); err != nil {
-		logging.FromContext(req.Context()).Error("Show feeds failed.",
+	// 	return
+	// }
+	// Mark the feeds.
+	if err := s.API.elastic.UserActionMarkFeeds(req.Context(), marks.Mark, feeds...); err != nil {
+		logging.FromContext(req.Context()).Error("Mark feed failed.",
 			slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
-}
-
-func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request, mark Mark, reqParams HandleMarkFeedsParams) {
-	res.WriteHeader(http.StatusNotImplemented)
+	// Reload the home page.
+	feedHandler(s.DataAPI(), res, req, *filters)
 }
 
 func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, feedID FeedID, reqParams HandleShowFeedItemsParams) {
@@ -180,77 +191,55 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 	}
 }
 
-func (s Server) HandleMarkFeedItems(res http.ResponseWriter, req *http.Request, feedID FeedID, mark Mark, reqParams HandleMarkFeedItemsParams) {
-	if err := s.API.elastic.UserActionMarkFeeds(req.Context(), mark, feedID); err != nil {
+func (f *HandleMarkFeedItemsFormdataRequestBody) Valid() bool {
+	// Must have valid mark value.
+	if !(f.Mark == models.MarkRead || f.Mark == models.MarkUnread) {
+		return false
+	}
+	// Feeds must be specified.
+	if f.Items == nil {
+		// if !f.Feeds.IsSpecified() {
+		return false
+	}
+
+	return true
+}
+
+func (s Server) HandleMarkFeedItems(res http.ResponseWriter, req *http.Request, feedID FeedID, reqParams HandleMarkFeedItemsParams) {
+	// Create filters for API requests.
+	filters, err := models.CreateFilters(reqParams)
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
+
+		return
+	}
+	// Decode mark parameters.
+	marks, valid, err := forms.DecodeForm[*HandleMarkFeedItemsFormdataRequestBody](req)
+	if err != nil || !valid {
+		logging.FromContext(req.Context()).Error("Could not decode submitted subscription request request.",
+			slog.Any("error", err))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+
+		return
+	}
+	// Get the list of feeds to mark.
+	// feeds, err := marks.Items.Get()
+	items := *marks.Items
+	// if err != nil {
+	// 	logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+	// 	http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
+
+	// 	return
+	// }
+	// Mark feed.
+	if err := s.API.elastic.UserActionMarkItems(req.Context(), marks.Mark, items...); err != nil {
 		logging.FromContext(req.Context()).Error("Mark feed failed.",
 			slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
-
-	route := models.BuildRoute(session.GetRouteState(req.Context(), "/home/feed/"+feedID))
-
-	if route.GetViewParam() == models.ViewAll {
-		feed, err := s.DataAPI().UserActionGetFeed(req.Context(), feedID)
-		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
-		}
-
-		component, err := templates.NewComponent(*feed,
-			templates.WithRoute(route),
-			templates.DisplayAs(templates.FeedCard),
-		)
-		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
-		}
-
-		layout := home.BuildLayout(
-			home.WithPart(home.Card, home.ShowFeedCard(component)),
-		)
-
-		if err := layout.PartRender(req.Context(), res, home.Card); err != nil {
-			logging.FromContext(req.Context()).Error("Show feeds failed.",
-				slog.Any("error", err))
-			http.Error(res, err.Error(), http.StatusInternalServerError)
-		}
-	}
-}
-
-func (s Server) getFeeds(ctx context.Context, filters models.APIFilters) ([]*templates.Component, error) {
-	// Get feeds.
-	feedCh, err := s.API.elastic.UserActionGetFeeds(ctx, filters)
-	if err != nil {
-		return nil, fmt.Errorf("could not retrieve feeds: %w", err)
-	}
-
-	var feeds []*templates.Component
-	// Build feed cards.
-	for feed := range feedCh {
-		component, err := templates.NewComponent(feed,
-			templates.WithRoute(models.BuildRoute(
-				"/home/feed/"+feed.GetID(),
-				models.WithParams(
-					models.WithCountParam(filters.Count),
-					models.WithViewParam(filters.View),
-				),
-			)),
-			templates.DisplayAs(templates.FeedCard),
-		)
-		if err != nil {
-			logging.FromContext(ctx).Warn("Could not create card component for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
-
-			continue
-		}
-
-		feeds = append(feeds, component)
-	}
-
-	return feeds, nil
+	// Reload home page.
+	feedHandler(s.DataAPI(), res, req, *filters)
 }
 
 func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
@@ -289,7 +278,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 	}
 }
 
-func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID, mark Mark) {
+func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -299,4 +288,69 @@ func (s Server) HandleSaveItem(res http.ResponseWriter, req *http.Request, feed 
 
 func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
 	res.WriteHeader(http.StatusNotImplemented)
+}
+
+func feedHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters models.APIFilters) {
+	// Save route state.
+	session.SetRouteState(req.Context(), req.URL.Path, req.URL.String())
+
+	// Get feeds.
+	feedCh, err := api.UserActionGetFeeds(req.Context(), filters)
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
+			slog.Any("error", err))
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+
+	var feeds []*templates.Component
+	// Build feed cards.
+	for feed := range feedCh {
+		component, err := templates.NewComponent(feed,
+			templates.WithRoute(models.BuildRoute(
+				"/home/feed/"+feed.GetID(),
+				models.WithParams(
+					models.WithCountParam(filters.Count),
+					models.WithViewParam(filters.View),
+				),
+			)),
+			templates.DisplayAs(templates.FeedCard),
+		)
+		if err != nil {
+			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
+				slog.String("feed_id", feed.GetID()),
+				slog.Any("error", err))
+
+			continue
+		}
+
+		feeds = append(feeds, component)
+	}
+
+	// Retrieve the feed categories and the unread counts.
+	categories, err := api.UserActionGetFeedCategories(req.Context())
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
+			slog.Any("error", err))
+	}
+
+	// Build page layout.
+	layout := home.BuildLayout(
+		home.WithContent(feeds...),
+		home.WithPart(home.Header,
+			home.FullHeader(
+				partials.BuildCategoryFilters(&filters.Categories, categories, req.URL.String()),
+				partials.BuildViewFilter(filters.View, req.URL.String()),
+			),
+		),
+		home.WithPart(home.Footer, home.FullFooter("/home")),
+	)
+
+	// Render /home/feeds page.
+	if err := layout.Render(req, res); err != nil {
+		logging.FromContext(req.Context()).Error("Show feeds failed.",
+			slog.Any("error", err))
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+	}
 }

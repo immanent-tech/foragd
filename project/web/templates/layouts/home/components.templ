@@ -4,6 +4,8 @@
 package home
 
 import (
+	"context"
+	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -18,7 +20,7 @@ import (
 )
 
 // ShowFeedCard shows a feed as a Card Component.
-func ShowFeedCard(c *templates.Component) templ.Component {
+func ShowFeedCard(ctx context.Context, c *templates.Component) templ.Component {
 	feed, err := c.DataSource.AsFeed()
 	if err != nil {
 		return nil
@@ -26,19 +28,33 @@ func ShowFeedCard(c *templates.Component) templ.Component {
 
 	// Rebuild feed route with common options.
 	// Build route to show feed items.
-	showItemsRoute := models.BuildRoute(c.Route.String(),
-		models.WithAttribute("hx-push-url", "true"),
-		models.WithAttribute("hx-target", ContentTarget),
+	showItemsRoute := models.BuildRoute(session.GetRouteState(ctx, "/home/feed/"+feed.GetID()),
+		models.WithAttributes(templ.Attributes{
+			"hx-push-url": "true",
+			"hx-target":   ContentTarget,
+		}),
+	)
+
+	markRoute := models.BuildRoute(session.GetRouteState(ctx, "/home/feeds"),
+		models.WithAttributes(templ.Attributes{
+			"_":           "on click halt the event's bubbling",
+			"hx-push-url": "false",
+			"hx-target":   ContentTarget,
+		}),
+		models.WithParams(
+			models.WithFeedsParam(feed.GetID()),
+		),
+		models.WithMethod(http.MethodPost),
 	)
 
 	var cardMenuItems []templ.Component
 	// Add card menu item for marking read/unread.
 	if feed.GetUserUnreadCount() > 0 {
-		cardMenuItems = append(cardMenuItems, buildMarkButton(feed.GetID(), "Mark Read",
-			models.MarkRead, c.Route))
+		cardMenuItems = append(cardMenuItems,
+			buildMarkButton("Mark Read", models.MarkRead, markRoute))
 	} else {
-		cardMenuItems = append(cardMenuItems, buildMarkButton(feed.GetID(), "Mark Unread",
-			models.MarkUnread, c.Route))
+		cardMenuItems = append(cardMenuItems,
+			buildMarkButton("Mark Unread", models.MarkUnread, markRoute))
 	}
 
 	props := card.Build(
@@ -67,26 +83,44 @@ templ feedCardContent(feed templates.Feed) {
 	@text.Build(feed.GetContent(), text.WithTextSize(text.SM)).Show()
 }
 
-func ShowItemCard(c *templates.Component) templ.Component {
+func ShowItemCard(ctx context.Context, c *templates.Component) templ.Component {
 	item, err := c.DataSource.AsItem()
 	if err != nil {
 		return nil
 	}
 
 	// Build route to show item.
-	itemRoute := models.BuildRoute(c.Route.String(),
-		models.WithAttribute("hx-push-url", "true"),
-		models.WithAttribute("hx-target", ContentTarget),
+	itemRoute :=
+		models.BuildRoute(
+			session.GetRouteState(ctx, "/home/feed/"+item.GetFeedID()+"/item/"+item.GetID()),
+			models.WithAttributes(templ.Attributes{
+				"_":           "on click halt the event's bubbling",
+				"hx-push-url": "false",
+				"hx-target":   ContentTarget,
+			}),
+		)
+
+	markRoute := models.BuildRoute(
+		session.GetRouteState(ctx, "/home/feed/"+item.GetFeedID()),
+		models.WithAttributes(templ.Attributes{
+			"_":           "on click halt the event's bubbling",
+			"hx-push-url": "false",
+			"hx-target":   ContentTarget,
+		}),
+		models.WithParams(
+			models.WithItemsParam(item.GetID()),
+		),
+		models.WithMethod(http.MethodPost),
 	)
 
 	var cardMenuItems []templ.Component
 	// Add card menu item for marking read/unread.
 	if item.GetUserState() == models.Unread {
-		cardMenuItems = append(cardMenuItems, buildMarkButton(item.GetID(), "Mark Read",
-			models.MarkRead, c.Route))
+		cardMenuItems = append(cardMenuItems,
+			buildMarkButton("Mark Read", models.MarkRead, markRoute))
 	} else {
-		cardMenuItems = append(cardMenuItems, buildMarkButton(item.GetID(), "Mark Unread",
-			models.MarkUnread, c.Route))
+		cardMenuItems = append(cardMenuItems,
+			buildMarkButton("Mark Unread", models.MarkUnread, markRoute))
 	}
 
 	props := card.Build(
@@ -127,23 +161,11 @@ func ShowArticle(c *templates.Component) templ.Component {
 	return article.Build(partials.DisplayItemArticle(item)).Show()
 }
 
-func buildMarkButton(id, label string, mark models.Mark, route *models.APIRoute) templ.Component {
+func buildMarkButton(label string, mark models.Mark, route *models.APIRoute) templ.Component {
+	route.SetMark(mark)
 	return button.Build(
 		button.WithSize(size.XS),
 		button.WithContent(label),
-		button.WithExtraAttributes(buildMarkRoute(id, route, mark)),
+		button.WithExtraAttributes(route.Attributes()),
 	).Show()
-}
-
-func buildMarkRoute(id string, r *models.APIRoute, mark models.Mark) templ.Attributes {
-	r.Rebuild(
-		models.WithMethod(http.MethodPost),
-		models.WithSubPath(string(mark)),
-		models.WithAttribute("_", "on click halt the event's bubbling"),
-		models.WithAttribute("hx-target", "#"+id),
-		models.WithAttribute("hx-swap", "outerHTML swap:1s"),
-		models.WithAttribute("hx-push-url", "false"),
-	)
-
-	return r.Attributes()
 }
