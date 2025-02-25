@@ -4,7 +4,6 @@
 package home
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -24,8 +23,6 @@ func ShowFeedCard(c *templates.Component) templ.Component {
 	if err != nil {
 		return nil
 	}
-
-	spew.Dump(c.Route)
 
 	// Rebuild feed route with common options.
 	// Build route to show feed items.

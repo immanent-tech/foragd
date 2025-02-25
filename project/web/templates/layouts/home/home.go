@@ -6,19 +6,12 @@ package home
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/display/icon"
-	"github.com/joshuar/go-templ-daisyui/display/text"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
-	"github.com/joshuar/go-templ-daisyui/navigation/breadcrumbs"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/joshuar/go-templ-daisyui/navigation/navbar"
 
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
@@ -26,93 +19,56 @@ import (
 )
 
 const (
+	AppBar LayoutPart = "appbar"
+	Header LayoutPart = "header"
+	Footer LayoutPart = "footer"
+	Card   LayoutPart = "card"
+
 	ContentTarget = "#content"
 )
+
+// LayoutPart defines a part of the home page, usually a component that will be
+// an OOB swap on the page.
+type LayoutPart string
 
 var (
 	ErrHomePartialRender = errors.New("partial render of home failed")
 	ErrHomeFullRender    = errors.New("full render of home failed")
 )
 
+var homePage = layouts.BuildPage("Go Feed Me - Home",
+	layouts.WithPageDescription("Your home."),
+	layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"))
+
 // LayoutOption is an option that can be applied to the home page layout.
 type LayoutOption templates.Option[*LayoutProps]
 
 // LayoutProps is the home page layout.
 type LayoutProps struct {
-	// SideBar       *menu.Props
-	AppBar        *navbar.Props
-	ContentHeader templ.Component
-	Breadcrumbs   *breadcrumbs.Props
-	Content       []*templates.Component
-	ContentFooter templ.Component
+	parts   map[LayoutPart]templ.Component
+	content []*templates.Component
 }
 
-// WithContent option defines the content to display on the page.
+// WithPart adds a layout "part"; a component that will be OOB swapped into the
+// page along with the main content.
+func WithPart(name LayoutPart, part templ.Component) LayoutOption {
+	return func(layout *LayoutProps) {
+		layout.parts[name] = part
+	}
+}
+
+// WithContent is the content to be loaded into the page. If there is no
+// content, a content placeholder will be loaded instead.
 func WithContent(content ...*templates.Component) LayoutOption {
 	return func(layout *LayoutProps) {
-		if len(content) > 0 {
-			layout.Content = content
-		}
+		layout.content = content
 	}
 }
-
-func WithHeader(header templ.Component) LayoutOption {
-	return func(layout *LayoutProps) {
-		layout.ContentHeader = header
-	}
-}
-
-// WithFooter option controls the options for the home page footer.
-func WithFooter(footer templ.Component) LayoutOption {
-	return func(layout *LayoutProps) {
-		layout.ContentFooter = footer
-	}
-}
-
-// WithBreadCrumbs option defines the breadcrumbs to display on the home page.
-func WithBreadCrumbs(crumbs ...templ.Component) LayoutOption {
-	return func(layout *LayoutProps) {
-		allCrumbs := make([]templ.Component, 0, len(crumbs)+1)
-		// Always add a link to "/home as the first crumb.
-		allCrumbs = append(allCrumbs,
-			button.Build(
-				button.WithSize(size.SM),
-				button.AsShape(button.Square, false),
-				button.WithThemeColor(color.Ghost, false),
-				button.WithContent(
-					icon.Build("fa-house"),
-				),
-			).Show(),
-		)
-		// Append other crumbs.
-		allCrumbs = append(allCrumbs, crumbs...)
-		layout.Breadcrumbs = breadcrumbs.Build(
-			breadcrumbs.WithCrumbs(allCrumbs...),
-		)
-	}
-}
-
-// BuildCrumb creates a new breadcrumb.
-func BuildCrumb(name string, weight text.Weight, attributes templ.Attributes) templ.Component {
-	return link.Build(link.WithContent(text.Build(name,
-		text.WithTextWeight(weight),
-		text.WithTextSize(text.SM))),
-		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(attributes),
-	).Show()
-}
-
-// // WithSideBar option defines the layout of the drawer side rail on the home page.
-// func WithSideBar(options ...menu.Option) LayoutOption {
-// 	return func(layout *LayoutProps) {
-// 		layout.SideBar = menu.Build(options...)
-// 	}
-// }
 
 // BuildHomeLayout builds the home page layout from the given options.
 func BuildLayout(options ...LayoutOption) *LayoutProps {
 	layout := &LayoutProps{
-		AppBar: appbar.AppBar(),
+		parts: make(map[LayoutPart]templ.Component),
 	}
 
 	for _, option := range options {
@@ -122,52 +78,74 @@ func BuildLayout(options ...LayoutOption) *LayoutProps {
 	return layout
 }
 
+// Render will render the home page, choosing whether to do a full page load or
+// partial depending on the HTMX headers.
 func (layout *LayoutProps) Render(req *http.Request, res http.ResponseWriter) error {
-	if req.Header.Get(htmx.HeaderTarget) == "" {
-		return layout.FullRender(req.Context(), res)
-	}
+	header := req.Header.Get(htmx.HeaderTarget)
 
-	return layout.PartialRender(req.Context(), res)
+	switch {
+	case "#"+header == ContentTarget:
+		return layout.PartialRender(req.Context(), res)
+	case strings.HasPrefix(header, "feed_"):
+		return layout.PartRender(req.Context(), res, Card)
+	case header == "":
+		return layout.FullRender(req.Context(), res)
+	default:
+		return errors.New("invalid render target")
+	}
 }
 
+// FullRender is a full home page render with all parts/components that are set.
 func (layout *LayoutProps) FullRender(ctx context.Context, res http.ResponseWriter) error {
 	resp := htmx.NewResponse()
-	page := layouts.BuildPage("Go Feed Me - Home",
-		layouts.WithPageDescription("Your home."),
-		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		layouts.WithPageContent(layout.showFullLayout())).Show()
-	if err := resp.RenderTempl(ctx, res, page); err != nil {
+
+	WithPart(AppBar, appbar.AppBar().Show())(layout)
+
+	layouts.WithPageContent(layout.showFullLayout())(homePage)
+
+	if err := resp.RenderTempl(ctx, res, homePage.Show()); err != nil {
 		return errors.Join(ErrHomeFullRender, err)
 	}
 
 	return nil
 }
 
+// PartialRender does a partial render, targeting the main content and relying
+// on OOB swaps for the optional parts.
 func (layout *LayoutProps) PartialRender(ctx context.Context, res http.ResponseWriter) error {
+	var warnings error
+
 	resp := htmx.NewResponse()
+
 	if err := resp.RenderTempl(ctx, res, layout.ShowContent()); err != nil {
-		return errors.Join(ErrHomePartialRender, err)
+		return errors.Join(ErrHomePartialRender, fmt.Errorf("could not render content: %w", err))
 	}
-	// OOB update breadcrumbs.
-	if err := resp.RenderTempl(ctx, res, layout.ShowBreadcrumbs()); err != nil {
-		return errors.Join(ErrHomePartialRender, err)
-	}
-	// OOB update header.
-	if layout.ContentHeader != nil {
-		if err := resp.RenderTempl(ctx, res, layout.ContentHeader); err != nil {
-			return errors.Join(ErrHomePartialRender, err)
+
+	for name, part := range layout.parts {
+		if err := resp.RenderTempl(ctx, res, part); err != nil {
+			warnings = errors.Join(warnings, fmt.Errorf("could not render %s: %w", name, err))
 		}
 	}
-	// OOB update footer.
-	if layout.ContentFooter != nil {
-		if err := resp.RenderTempl(ctx, res, layout.ContentFooter); err != nil {
-			return errors.Join(ErrHomePartialRender, err)
-		}
+
+	if warnings != nil {
+		return errors.Join(ErrHomePartialRender, warnings)
 	}
-	// // OOB update drawer sidebar.
-	// if err := resp.RenderTempl(ctx, res, layout.SideBar.Show()); err != nil {
-	// 	return errors.Join(ErrHomePartialRender, err)
-	// }
+
+	return nil
+}
+
+// PartRender renders just the specified part, usually as an OOB swap.
+func (layout *LayoutProps) PartRender(ctx context.Context, res http.ResponseWriter, part LayoutPart) error {
+	resp := htmx.NewResponse()
+
+	component, found := layout.parts[part]
+	if !found {
+		return errors.Join(ErrHomePartialRender, fmt.Errorf("missing part %s", part))
+	}
+
+	if err := resp.RenderTempl(ctx, res, component); err != nil {
+		return errors.Join(ErrHomePartialRender, fmt.Errorf("could not render part %s: %w", part, err))
+	}
 
 	return nil
 }
