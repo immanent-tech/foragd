@@ -32,13 +32,10 @@ type APIFeed struct {
 	FeedURL FeedURL `json:"feedLink" validate:"required,url"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
-
-	// UserProperties Tracks user-specific properties of a feed.
-	UserProperties *UserFeedProperties `json:"UserProperties,omitempty"`
-	Authors        []*gofeed.Person    `json:"authors,omitempty"`
-	Categories     []Category          `json:"categories,omitempty"`
-	Copyright      string              `json:"copyright,omitempty"`
+	UpdatedAt  *UpdatedAt       `json:"updated_at,omitempty"`
+	Authors    []*gofeed.Person `json:"authors,omitempty"`
+	Categories []Category       `json:"categories,omitempty"`
+	Copyright  string           `json:"copyright,omitempty"`
 
 	// Description is a string that can contain HTML.
 	Description HTMLString    `json:"description"`
@@ -52,6 +49,9 @@ type APIFeed struct {
 	// Title is a string that can contain HTML.
 	Title   HTMLString `json:"title"`
 	Updated time.Time  `json:"updatedParsed"`
+
+	// UserProperties Tracks user-specific properties of a feed.
+	UserProperties *UserFeedProperties `json:"user_properties,omitempty"`
 }
 
 // APIFeedState tracks the state of a feed.
@@ -75,12 +75,9 @@ type APIItem struct {
 	ID ItemID `form:"item_id" json:"item_id" validate:"required"`
 
 	// ItemURL A URL to view the original item.
-	ItemURL ItemURL `json:"link" validate:"required,url"`
-
-	// UserProperties Tracks user-specific properties of an item.
-	UserProperties *UserItemProperties `json:"-"`
-	Authors        []*gofeed.Person    `json:"authors,omitempty"`
-	Categories     []Category          `json:"categories,omitempty"`
+	ItemURL    ItemURL          `json:"link" validate:"required,url"`
+	Authors    []*gofeed.Person `json:"authors,omitempty"`
+	Categories []Category       `json:"categories,omitempty"`
 
 	// Description is a string that can contain HTML.
 	Description HTMLString    `json:"description"`
@@ -90,6 +87,9 @@ type APIItem struct {
 	// Title is a string that can contain HTML.
 	Title   HTMLString `json:"title"`
 	Updated time.Time  `json:"updatedParsed"`
+
+	// UserProperties Tracks user-specific properties of an item.
+	UserProperties *UserItemProperties `json:"-"`
 }
 
 // Category is a single category.

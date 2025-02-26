@@ -7,15 +7,22 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-
-	"github.com/joshuar/go-feed-me/web/templates"
 )
 
-// Props contains the customisable properties for a Page.
-type Props templates.Page
+// Page represents a page on the website.
+type Props struct {
+	// Content is the page content.
+	Content templ.Component `json:"content"`
+
+	// Headers are additional headers to place in the page <head> element.
+	Headers []templ.Component `json:"headers,omitempty"`
+
+	// Title is the page title.
+	Title string `json:"title"`
+}
 
 // PageOption is an option that can be applied to a Page.
-type PageOption templates.Option[*Props]
+type PageOption func(*Props)
 
 type PageContent interface {
 	templ.Component

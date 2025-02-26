@@ -13,10 +13,18 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 )
+
+var (
+	ErrHomePartialRender = errors.New("partial render of home failed")
+	ErrHomeFullRender    = errors.New("full render of home failed")
+)
+
+var homePage = layouts.BuildPage("Go Feed Me - Home",
+	layouts.WithPageDescription("Your home."),
+	layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"))
 
 const (
 	AppBar LayoutPart = "appbar"
@@ -31,22 +39,17 @@ const (
 // an OOB swap on the page.
 type LayoutPart string
 
-var (
-	ErrHomePartialRender = errors.New("partial render of home failed")
-	ErrHomeFullRender    = errors.New("full render of home failed")
-)
-
-var homePage = layouts.BuildPage("Go Feed Me - Home",
-	layouts.WithPageDescription("Your home."),
-	layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"))
+type Content interface {
+	Show(classes ...string) templ.Component
+}
 
 // LayoutOption is an option that can be applied to the home page layout.
-type LayoutOption templates.Option[*LayoutProps]
+type LayoutOption func(*LayoutProps)
 
 // LayoutProps is the home page layout.
 type LayoutProps struct {
 	parts   map[LayoutPart]templ.Component
-	content []*templates.Component
+	content []Content
 }
 
 // WithPart adds a layout "part"; a component that will be OOB swapped into the
@@ -59,7 +62,7 @@ func WithPart(name LayoutPart, part templ.Component) LayoutOption {
 
 // WithContent is the content to be loaded into the page. If there is no
 // content, a content placeholder will be loaded instead.
-func WithContent(content ...*templates.Component) LayoutOption {
+func WithContent(content ...Content) LayoutOption {
 	return func(layout *LayoutProps) {
 		layout.content = content
 	}

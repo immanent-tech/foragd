@@ -275,7 +275,7 @@ components:
               x-oapi-codegen-extra-tags:
                 json: 'feedVersion'
               x-go-type-skip-optional-pointer: true
-            UserProperties:
+            user_properties:
               $ref: '#/components/schemas/UserFeedProperties'
     APIFeedState:
       description: tracks the state of a feed.
@@ -314,7 +314,7 @@ components:
               $ref: '#/components/schemas/FeedID'
             URL:
               $ref: '#/components/schemas/ItemURL'
-            UserProperties:
+            user_properties:
               $ref: '#/components/schemas/UserItemProperties'
     Tokens:
       type: object

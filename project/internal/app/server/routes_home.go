@@ -13,7 +13,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
@@ -43,9 +42,9 @@ func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, reqParams HandleShowFeedsParams) {
+func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
 	// Create filters from params.
-	filters, err := models.CreateFilters(reqParams)
+	filters, err := models.CreateFilters(params)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
@@ -67,9 +66,9 @@ func (f *HandleMarkFeedsFormdataBody) Valid() bool {
 	return true
 }
 
-func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request, reqParams HandleMarkFeedsParams) {
+func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request, params HandleMarkFeedsParams) {
 	// Create filters for API requests.
-	filters, err := models.CreateFilters(reqParams)
+	filters, err := models.CreateFilters(params)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
@@ -87,13 +86,6 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request, reqP
 	}
 	// Get the list of feeds to mark.
 	feeds := *marks.Feeds
-	// feeds, err := marks.Feeds.Get()
-	// if err != nil {
-	// 	logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-	// 	http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-
-	// 	return
-	// }
 	// Mark the feeds.
 	if err := s.API.elastic.UserActionMarkFeeds(req.Context(), marks.Mark, feeds...); err != nil {
 		logging.FromContext(req.Context()).Error("Mark feed failed.",
@@ -137,19 +129,11 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 		return
 	}
 
-	items := make([]*templates.Component, 0, filters.Count)
+	items := make([]home.Content, 0, filters.Count)
 	idx := 0
 	// Build item cards.
 	for item := range itemCh {
-		component, err := templates.NewComponent(item,
-			templates.DisplayAs(templates.ItemCard),
-			templates.WithRoute(models.BuildRoute(
-				"/home/feed/",
-				models.WithSubPath(item.GetFeedID()),
-				models.WithSubPath("item"),
-				models.WithSubPath(item.GetID()),
-			)),
-		)
+		itemCard, err := partials.NewItemCard(req.Context(), &item)
 		if err != nil {
 			logging.FromContext(req.Context()).Warn("Could not create card component for item.",
 				slog.String("items_id", item.GetID()),
@@ -168,7 +152,7 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 		// 	})
 		// }
 
-		items = append(items, component)
+		items = append(items, itemCard)
 		idx++
 	}
 
@@ -224,14 +208,7 @@ func (s Server) HandleMarkFeedItems(res http.ResponseWriter, req *http.Request, 
 		return
 	}
 	// Get the list of feeds to mark.
-	// feeds, err := marks.Items.Get()
 	items := *marks.Items
-	// if err != nil {
-	// 	logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-	// 	http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-
-	// 	return
-	// }
 	// Mark feed.
 	if err := s.API.elastic.UserActionMarkItems(req.Context(), marks.Mark, items...); err != nil {
 		logging.FromContext(req.Context()).Error("Mark feed failed.",
@@ -252,12 +229,21 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 		return
 	}
 
-	articleRoute := models.BuildRoute(req.URL)
+	// articleRoute := models.BuildRoute(req.URL)
 
-	component, err := templates.NewComponent(details,
-		templates.DisplayAs(templates.ItemArticle),
-		templates.WithRoute(articleRoute),
-	)
+	// component, err := templates.NewComponent(details,
+	// 	templates.DisplayAs(templates.ItemArticle),
+	// 	templates.WithRoute(articleRoute),
+	// )
+	// if err != nil {
+	// 	logging.FromContext(req.Context()).Warn("Could not retrieve item.",
+	// 		slog.Any("error", err))
+	// 	http.Error(res, err.Error(), http.StatusInternalServerError)
+
+	// 	return
+	// }
+
+	article, err := partials.NewArticle(details)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve item.",
 			slog.Any("error", err))
@@ -267,7 +253,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 	}
 
 	layout := home.BuildLayout(
-		home.WithContent(component),
+		home.WithContent(article),
 		home.WithPart(home.Footer, home.FullFooter(session.GetRouteState(req.Context(), "/home/feed/"+feed))),
 	)
 
@@ -304,19 +290,10 @@ func feedHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request
 		return
 	}
 
-	var feeds []*templates.Component
+	var feeds []home.Content
 	// Build feed cards.
 	for feed := range feedCh {
-		component, err := templates.NewComponent(feed,
-			templates.WithRoute(models.BuildRoute(
-				"/home/feed/"+feed.GetID(),
-				models.WithParams(
-					models.WithCountParam(filters.Count),
-					models.WithViewParam(filters.View),
-				),
-			)),
-			templates.DisplayAs(templates.FeedCard),
-		)
+		feedCard, err := partials.NewFeedCard(req.Context(), &feed)
 		if err != nil {
 			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
 				slog.String("feed_id", feed.GetID()),
@@ -325,7 +302,7 @@ func feedHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request
 			continue
 		}
 
-		feeds = append(feeds, component)
+		feeds = append(feeds, feedCard)
 	}
 
 	// Retrieve the feed categories and the unread counts.

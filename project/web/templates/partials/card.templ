@@ -6,7 +6,6 @@ package partials
 
 import (
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
@@ -16,54 +15,17 @@ import (
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 	"strconv"
-	"time"
 )
 
-func relativeTime(timestamp time.Time) string {
-	return timestamp.Format("Mon Jan 2 15:04")
-}
-
-templ titleText(title string) {
+templ showTitle(title string) {
 	@text.Build(title,
 		text.WithTextWeight(text.Semibold),
 		text.WithTextSize(text.SM),
 	).Show()
 }
 
-// DisplayLastUpdated shows the timestamp indicating last update of an item as a
-// relative time in the bottom left corner.
-templ DisplayLastUpdated(description string, updated time.Time) {
-	<div class="flex justify-start left-2 bottom-2">
-		@text.Build(description+" "+relativeTime(updated),
-			text.WithTextSize(text.XS),
-			text.AsItalicText(),
-		).Show()
-	</div>
-}
-
-// DisplayItemTitle shows the item title.
-templ DisplayItemTitle(item templates.Item) {
-	<div class="flex">
-		@titleText(item.GetTitle())
-	</div>
-}
-
-// DisplayFeedTitle shows the feed title and the unread count as an indicator.
-templ DisplayFeedTitle(feed templates.Feed) {
-	<div class="flex">
-		if feed.GetUserUnreadCount() > 0 {
-			@badge.Build(
-				badge.WithSize(size.SM),
-				badge.WithThemeColor(color.Primary, false),
-				badge.WithContent(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
-			).Show("absolute", "right-2", "top-2", "p-2")
-		}
-		@titleText(feed.GetTitle())
-	</div>
-}
-
-// DisplayCategories shows a list of categories as badges.
-templ DisplayCategories(categories ...models.Category) {
+// showCategories shows a list of categories as badges.
+templ showCategories(categories ...models.Category) {
 	<div class="flex flex-wrap">
 		for _, category := range categories {
 			@badge.Build(
@@ -75,23 +37,9 @@ templ DisplayCategories(categories ...models.Category) {
 	</div>
 }
 
-templ DisplayItemArticle(item templates.Item) {
-	<h2>{ item.Title }</h2>
-	@DisplayLastUpdated("Last Updated:", item.GetTimestamp())
-	@DisplayCategories(item.GetCategories()...)
-	<p>
-		@templ.Raw(item.GetContent())
-	</p>
-	<center>
-		<p>
-			<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
-		</p>
-	</center>
-}
-
 // DisplayCardActions displays action buttons for a card, either as a horizontal
 // list (on large screens) or a drop-down menu (on smaller screens).
-func DisplayCardActions(actions ...templ.Component) []templ.Component {
+func showCardActions(actions ...templ.Component) []templ.Component {
 	var menus []templ.Component
 
 	menus = append(menus,
@@ -126,4 +74,29 @@ func DisplayCardActions(actions ...templ.Component) []templ.Component {
 	)
 
 	return menus
+}
+
+templ showFeedCardContent(feed *models.APIFeed) {
+	<div class="flex">
+		if feed.GetUserUnreadCount() > 0 {
+			@badge.Build(
+				badge.WithSize(size.SM),
+				badge.WithThemeColor(color.Primary, false),
+				badge.WithContent(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
+			).Show("absolute", "right-2", "top-2", "p-2")
+		}
+		@showTitle(feed.GetTitle())
+	</div>
+	@text.Build(feed.GetContent(), text.WithTextSize(text.SM)).Show()
+}
+
+templ showItemCardContent(item *models.APIItem) {
+	<div class="flex">
+		@showTitle(item.GetTitle())
+	</div>
+	@showLastUpdated("Last Updated:", item.GetTimestamp())
+}
+
+templ (c *Card) Show(classes ...string) {
+	@c.Props.Show("w-prose", "lg:w-1/2", "card-side", "max-h-80", "p-2", "mx-auto")
 }

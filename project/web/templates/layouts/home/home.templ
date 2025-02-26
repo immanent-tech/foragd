@@ -4,7 +4,6 @@
 package home
 
 import (
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 )
@@ -55,14 +54,15 @@ templ (home *LayoutProps) ShowContent() {
 		@emptyContent()
 	} else {
 		for _, item := range home.content {
-			switch item.DisplayType {
-				case templates.FeedCard:
-					@ShowFeedCard(ctx, item)
-				case templates.ItemCard:
-					@ShowItemCard(ctx, item)
-				case templates.ItemArticle:
-					@ShowArticle(item)
-			}
+			@item.Show()
+			// switch item.DisplayType {
+			// 	case templates.FeedCard:
+			// 		@ShowFeedCard(ctx, item)
+			// 	case templates.ItemCard:
+			// 		@ShowItemCard(ctx, item)
+			// 	case templates.ItemArticle:
+			// 		@ShowArticle(item)
+			// }
 		}
 	}
 }

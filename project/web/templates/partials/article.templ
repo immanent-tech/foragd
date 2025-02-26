@@ -1,0 +1,21 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+
+package partials
+
+import "github.com/joshuar/go-feed-me/internal/models"
+
+templ showItemArticle(item models.APIItem) {
+	<h2>{ item.Title }</h2>
+	@showLastUpdated("Last Updated:", item.GetTimestamp())
+	@showCategories(item.GetCategories()...)
+	<p>
+		@templ.Raw(item.GetContent())
+	</p>
+	<center>
+		<p>
+			<a class="link link-hover" hx-boost="false" href={ templ.URL(item.GetLink()) }>View Original</a>
+		</p>
+	</center>
+}
