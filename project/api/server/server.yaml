@@ -192,44 +192,38 @@ paths:
         subscriptions and viewing preferences.
       operationId: handleHome
   /home/feeds:
-    parameters:
-      - $ref: '#/components/parameters/Categories'
-      - $ref: '#/components/parameters/View'
-      - $ref: '#/components/parameters/Count'
     get:
       summary: >
-        Shows subscribed feeds grouped by categories.
+        Shows feeds with optional filtering applied.
       operationId: handleShowFeeds
+      parameters:
+        - $ref: '#/components/parameters/FeedIDs'
+        - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/View'
+        - $ref: '#/components/parameters/Count'
     post:
       summary: >
         Mark feeds.
       operationId: handleMarkFeeds
       requestBody:
-        $ref: '#/components/requestBodies/MarkBody'
-  /home/feed/{feed}:
-    summary: >
-      Handle feed.
-    parameters:
-      # Path:
-      - $ref: '#/components/parameters/FeedID'
-      # Query:
-      - $ref: '#/components/parameters/View'
-      - $ref: '#/components/parameters/Count'
+        $ref: '#/components/requestBodies/MarkMultiple'
+  /home/items:
     get:
       summary: >
-        Show items for a feed.
-      operationID: handleShowFeedItems
+        Shows items with optional filtering applied.
+      operationId: handleShowItems
       parameters:
+        - $ref: '#/components/parameters/FeedIDs'
         - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/View'
+        - $ref: '#/components/parameters/Count'
     post:
       summary: >
-        Mark items for a feed.
-      operationID: handleMarkFeedItems
+        Mark feeds.
+      operationId: handleMarkItems
       requestBody:
-        $ref: '#/components/requestBodies/MarkBody'
-      parameters:
-        - $ref: '#/components/parameters/Categories'
-  /home/feed/{feed}/item/{item}:
+        $ref: '#/components/requestBodies/MarkMultiple'
+  /home/{feed}/{item}:
     summary: >
       Handle item.
     parameters:
@@ -252,14 +246,9 @@ paths:
         Mark a feed item.
       operationID: handleMarkItem
       requestBody:
-        $ref: '#/components/requestBodies/MarkBody'
+        $ref: '#/components/requestBodies/Mark'
 components:
   schemas:
-    ObjectType:
-      description: is a type of object.
-      name: ObjectType
-      type: string
-      enum: ["feeds","items"]
     Mark:
       name: mark
       description: describes what type of mark to set.
@@ -267,28 +256,55 @@ components:
         $ref: '../models/api.yaml#/components/schemas/Mark'
     FeedIDs:
       name: feeds
-      description: An array of Feed IDs.
-      in: query
-      schema:
-        type: array
-        items:
-          $ref: '../models/models.yaml#/components/schemas/FeedID'
-        x-oapi-codegen-extra-tags:
-          form: 'feeds[]'
+      description: is an array of Feed IDs.
+      type: array
+      items:
+        $ref: '../models/models.yaml#/components/schemas/FeedID'
+      x-oapi-codegen-extra-tags:
+        form: 'feeds'
     ItemIDs:
       name: items
-      description: An array of Item IDs.
-      in: query
-      schema:
-        type: array
-        items:
-          $ref: '../models/models.yaml#/components/schemas/ItemID'
-        x-oapi-codegen-extra-tags:
-          form: 'items[]'
+      description: is an array of Item IDs.
+      type: array
+      items:
+        $ref: '../models/models.yaml#/components/schemas/ItemID'
+      x-oapi-codegen-extra-tags:
+        form: 'items'
+    IDs:
+      name: ids
+      description: An array of either Feed or Item IDs.
+      type: array
+      items:
+        oneOf:
+          - $ref: '#/components/schemas/FeedIDs'
+          - $ref: '#/components/schemas/ItemIDs'
+      x-oapi-codegen-extra-tags:
+        form: ids
+    Categories:
+      name: categories
+      description: is an array of Categories.
+      type: array
+      items:
+        $ref: '../models/models.yaml#/components/schemas/Category'
+      x-oapi-codegen-extra-tags:
+        form: 'categories'
+      # x-go-type-skip-optional-pointer: true
   requestBodies:
-    MarkBody:
+    Mark:
       description: >
-        Holds details for marking feed/items.
+        Holds the options for marking an object.
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            required:
+              - mark
+            properties:
+              mark:
+                $ref: '../models/api.yaml#/components/schemas/Mark'
+    MarkMultiple:
+      description: >
+        Holds the options for marking multiple objects.
       content:
         application/x-www-form-urlencoded:
           schema:
@@ -299,19 +315,11 @@ components:
               mark:
                 $ref: '../models/api.yaml#/components/schemas/Mark'
               feeds:
-                type: array
-                items:
-                  $ref: '../models/models.yaml#/components/schemas/FeedID'
-                x-oapi-codegen-extra-tags:
-                  form: 'feeds'
-                # nullable: true
+                $ref: '#/components/schemas/FeedIDs'
               items:
-                type: array
-                items:
-                  $ref: '../models/models.yaml#/components/schemas/ItemID'
-                x-oapi-codegen-extra-tags:
-                  form: 'items'
-                # nullable: true
+                $ref: '#/components/schemas/ItemIDs'
+              categories:
+                $ref: '#/components/schemas/Categories'
     UserSignupRequestBody:
       description: >
         Holds details for adding/saving a user signup.
@@ -365,18 +373,26 @@ components:
       schema:
         type: string
         $ref: '../models/api.yaml#/components/schemas/Count'
-    Categories:
-      name: categories
-      description: An array of Categories.
+    IDs:
+      name: ids
       in: query
       schema:
-        type: array
-        items:
-          $ref: '../models/models.yaml#/components/schemas/Category'
-        x-oapi-codegen-extra-tags:
-          json: 'categories'
-          form: 'categories[]'
-        # x-go-type-skip-optional-pointer: true
+        $ref: '#/components/schemas/IDs'
+    FeedIDs:
+      name: feeds
+      in: query
+      schema:
+        $ref: '#/components/schemas/FeedIDs'
+    ItemIDs:
+      name: items
+      in: query
+      schema:
+        $ref: '#/components/schemas/ItemIDs'
+    Categories:
+      name: categories
+      in: query
+      schema:
+        $ref: '#/components/schemas/Categories'
   responses:
     htmx:
       description: standard htmx powered response.

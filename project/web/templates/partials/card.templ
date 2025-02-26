@@ -98,5 +98,5 @@ templ showItemCardContent(item *models.APIItem) {
 }
 
 templ (c *Card) Show(classes ...string) {
-	@c.Props.Show("w-prose", "lg:w-1/2", "card-side", "max-h-80", "p-2", "mx-auto")
+	@c.Props.Show("w-full", "lg:w-1/2", "card-side", "h-48", "p-2", "m-auto")
 }

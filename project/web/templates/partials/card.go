@@ -42,7 +42,7 @@ type Card struct {
 }
 
 // buildMarkButton creates a button to mark the card as read/unread.
-func (c *Card) buildMarkButton(ctx context.Context, label string, mark models.Mark, path string) templ.Component {
+func (c *Card) buildMarkButton(label string, mark models.Mark, path string) templ.Component {
 	var paramOption models.RouteOption
 
 	switch c.Type {
@@ -58,7 +58,7 @@ func (c *Card) buildMarkButton(ctx context.Context, label string, mark models.Ma
 		)
 	}
 
-	route := models.BuildRoute(session.GetRouteState(ctx, path),
+	route := models.BuildRoute(path,
 		models.WithAttributes(templ.Attributes{
 			"_":           "on click halt the event's bubbling",
 			"hx-push-url": "false",
@@ -77,12 +77,25 @@ func (c *Card) buildMarkButton(ctx context.Context, label string, mark models.Ma
 
 // buildProps builds the card.Props for the given content.
 func (c *Card) buildProps(ctx context.Context, path string, options ...card.Option) {
-	route := models.BuildRoute(session.GetRouteState(ctx, path),
+	var routeOptions []models.RouteOption
+
+	routeOptions = append(routeOptions,
 		models.WithAttributes(templ.Attributes{
 			"hx-push-url": "true",
 			"hx-target":   c.Target,
 		}),
 	)
+
+	switch c.Type {
+	case Feed:
+		routeOptions = append(routeOptions,
+			models.WithParams(
+				models.WithFeedsParam(c.ID),
+			),
+		)
+	}
+
+	route := models.BuildRoute(session.GetRouteState(ctx, path), routeOptions...)
 
 	options = append(options,
 		card.Bordered(),
@@ -112,10 +125,10 @@ func NewFeedCard(ctx context.Context, feed *models.APIFeed) (*Card, error) {
 	// Add card menu item for marking read/unread.
 	if feed.GetUserUnreadCount() > 0 {
 		cardMenuItems = append(cardMenuItems,
-			feedCard.buildMarkButton(ctx, "Mark Read", models.MarkRead, "/home/feeds"))
+			feedCard.buildMarkButton("Mark Read", models.MarkRead, "/home/feeds"))
 	} else {
 		cardMenuItems = append(cardMenuItems,
-			feedCard.buildMarkButton(ctx, "Mark Unread", models.MarkUnread, "/home/feeds"))
+			feedCard.buildMarkButton("Mark Unread", models.MarkUnread, "/home/feeds"))
 	}
 
 	var cardOptions []card.Option
@@ -138,7 +151,7 @@ func NewFeedCard(ctx context.Context, feed *models.APIFeed) (*Card, error) {
 		)
 	}
 
-	feedCard.buildProps(ctx, "/home/feed/"+feed.GetID(), cardOptions...)
+	feedCard.buildProps(ctx, "/home/items", cardOptions...)
 
 	return feedCard, nil
 }
@@ -162,10 +175,10 @@ func NewItemCard(ctx context.Context, item *models.APIItem) (*Card, error) {
 	// Add card menu item for marking read/unread.
 	if item.GetUserState() == models.Unread {
 		cardMenuItems = append(cardMenuItems,
-			itemCard.buildMarkButton(ctx, "Mark Read", models.MarkRead, "/home/feed/"+item.GetFeedID()))
+			itemCard.buildMarkButton("Mark Read", models.MarkRead, "/home/items"))
 	} else {
 		cardMenuItems = append(cardMenuItems,
-			itemCard.buildMarkButton(ctx, "Mark Unread", models.MarkUnread, "/home/feed/"+item.GetFeedID()))
+			itemCard.buildMarkButton("Mark Unread", models.MarkUnread, "/home/items"))
 	}
 
 	var cardOptions []card.Option
@@ -187,7 +200,7 @@ func NewItemCard(ctx context.Context, item *models.APIItem) (*Card, error) {
 		)
 	}
 
-	itemCard.buildProps(ctx, "/home/feed/"+item.GetFeedID()+"/item/"+item.GetID(), cardOptions...)
+	itemCard.buildProps(ctx, "/home/"+item.GetFeedID()+"/"+item.GetID(), cardOptions...)
 
 	return itemCard, nil
 }

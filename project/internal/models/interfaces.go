@@ -21,7 +21,7 @@ type UserActionsAPI interface {
 	UserActionMarkFeeds(ctx context.Context, mark Mark, feeds ...FeedID) error
 	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
 	UserActionGetItems(ctx context.Context, filters APIFilters) (chan APIItem, Pagination, error)
-	UserActionGetFeeds(ctx context.Context, filters APIFilters) (chan APIFeed, error)
+	UserActionGetFeeds(ctx context.Context, filters APIFilters) ([]*APIFeed, error)
 	// UserActionCountUnread(ctx context.Context, feedIDs ...FeedID) (int, error)
 }
 

@@ -264,12 +264,10 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilters) (chan models.APIFeed, error) {
-	outCh := make(chan models.APIFeed)
-
+func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilters) ([]*models.APIFeed, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return outCh, ErrGetUserFailed
+		return nil, ErrGetUserFailed
 	}
 
 	filters.FeedIDs = user.FilterSubscribedFeeds(filters)
@@ -277,15 +275,15 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	// Get the feed details for the subscribed feeds.
 	feeds, err := c.FeedsSearch(ctx, filters)
 	if err != nil {
-		return outCh, errors.Join(ErrUserActionFailed, err)
+		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
+	// Reset filter categories to calculate counts over all categories.
 	filters.Categories = nil
-
 	// Get the unread counts for the feeds.
 	countResults, err := c.ItemsAggregation(ctx, generateItemsQueryClause(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
 	if err != nil {
-		return outCh, errors.Join(ErrUserActionFailed, err)
+		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
 	var categoryCounts TermsAggregationResults
@@ -300,31 +298,26 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		unreadCounts[feedID] = categoryCounts.GetCount(feedID)
 	}
 
-	go func() {
-		defer close(outCh)
-
-		for _, feed := range feeds {
-			// If filtering by unread, ignore feeds with no unread count.
-			if filters.View == models.ViewUnread && int(unreadCounts[feed.ID]) == 0 {
-				continue
-			} else {
-				// Add user unread count to feed.
-				feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
-			}
-			// Add user defined name to the feed.
-			if name := user.Subscriptions[feed.ID].Name; name != nil && *name != "" {
-				feed.SetUserName(*name)
-			}
-			// Add user defined categories to the feed.
-			if categories := user.Subscriptions[feed.ID].Categories; categories != nil {
-				feed.SetUserCategories(categories)
-			}
-			// Pass the feed through the output channel.
-			outCh <- *feed
+	for _, feed := range feeds {
+		// If filtering by unread, ignore feeds with no unread count.
+		if filters.View == models.ViewUnread && int(unreadCounts[feed.ID]) == 0 {
+			continue
+		} else {
+			// Add user unread count to feed.
+			feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
 		}
-	}()
+		// Add user defined name to the feed.
+		if name := user.Subscriptions[feed.ID].Name; name != nil && *name != "" {
+			feed.SetUserName(*name)
+		}
+		// Add user defined categories to the feed.
+		if categories := user.Subscriptions[feed.ID].Categories; categories != nil {
+			feed.SetUserCategories(categories)
+		}
+		// Pass the feed through the output channel.
+	}
 
-	return outCh, nil
+	return feeds, nil
 }
 
 func (c *Client) UserActionGetFeed(ctx context.Context, feedID models.FeedID) (*models.APIFeed, error) {
