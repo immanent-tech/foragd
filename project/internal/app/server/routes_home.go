@@ -8,6 +8,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/joshuar/go-feed-me/internal/app/server/forms"
 	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -49,7 +51,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
 
-	feedHandler(s.DataAPI(), res, req, *filters)
+	feedsHandler(s.DataAPI(), res, req, *filters)
 }
 
 func (f *HandleMarkFeedsFormdataBody) Valid() bool {
@@ -93,7 +95,7 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request, para
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 	// Reload the home page.
-	feedHandler(s.DataAPI(), res, req, *filters)
+	feedsHandler(s.DataAPI(), res, req, *filters)
 }
 
 func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, feedID FeedID, reqParams HandleShowFeedItemsParams) {
@@ -107,72 +109,8 @@ func (s Server) HandleShowFeedItems(res http.ResponseWriter, req *http.Request, 
 	}
 	// Add the feed ID.
 	filters.FeedIDs = append(filters.FeedIDs, feedID)
-	// Save list items filters in session storage.
-	session.SetRouteState(req.Context(), "/home/feed/"+feedID, req.URL.String())
 
-	// Get all items.
-	itemCh, _, err := s.API.elastic.UserActionGetItems(req.Context(), *filters)
-	if err != nil {
-		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
-			slog.Any("error", err))
-		http.Error(res, err.Error(), http.StatusInternalServerError)
-
-		return
-	}
-	// Get item categories.
-	categoryCounts, err := s.API.elastic.UserActionGetItemCategories(req.Context(), *filters)
-	if err != nil {
-		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
-			slog.Any("error", err))
-		http.Error(res, err.Error(), http.StatusInternalServerError)
-
-		return
-	}
-
-	items := make([]home.Content, 0, filters.Count)
-	idx := 0
-	// Build item cards.
-	for item := range itemCh {
-		itemCard, err := partials.NewItemCard(req.Context(), &item)
-		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not create card component for item.",
-				slog.String("items_id", item.GetID()),
-				slog.Any("error", err))
-
-			continue
-		}
-
-		// if idx == len(itemCh)-1 && pagination != "" && len(itemCh) == filters.Count {
-		// 	component.AddAttributes(templ.Attributes{
-		// 		"hx-get":       filepath.Join("home", "show", "items") + "?pagination=" + pagination,
-		// 		"hx-trigger":   "revealed",
-		// 		"hx-swap":      "afterend",
-		// 		"hx-push-url":  "false",
-		// 		"hx-indicator": "#content-loading",
-		// 	})
-		// }
-
-		items = append(items, itemCard)
-		idx++
-	}
-
-	// Build page layout.
-	layout := home.BuildLayout(
-		home.WithContent(items...),
-		home.WithPart(home.Header,
-			home.FullHeader(
-				partials.BuildCategoryFilters(reqParams.Categories, categoryCounts, req.URL.String()),
-				partials.BuildViewFilter(reqParams.View, req.URL.String()),
-			),
-		),
-		home.WithPart(home.Footer, home.FullFooter("/home/feeds")),
-	)
-
-	if err := layout.Render(req, res); err != nil {
-		logging.FromContext(req.Context()).Error("Show feeds failed.",
-			slog.Any("error", err))
-		http.Error(res, err.Error(), http.StatusInternalServerError)
-	}
+	itemsHandler(s.DataAPI(), res, req, *filters)
 }
 
 func (f *HandleMarkFeedItemsFormdataRequestBody) Valid() bool {
@@ -189,15 +127,17 @@ func (f *HandleMarkFeedItemsFormdataRequestBody) Valid() bool {
 	return true
 }
 
-func (s Server) HandleMarkFeedItems(res http.ResponseWriter, req *http.Request, feedID FeedID, reqParams HandleMarkFeedItemsParams) {
+func (s Server) HandleMarkFeedItems(res http.ResponseWriter, req *http.Request, feedID FeedID, params HandleMarkFeedItemsParams) {
 	// Create filters for API requests.
-	filters, err := models.CreateFilters(reqParams)
+	filters, err := models.CreateFilters(params)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 
 		return
 	}
+
+	spew.Dump(filters)
 	// Decode mark parameters.
 	marks, valid, err := forms.DecodeForm[*HandleMarkFeedItemsFormdataRequestBody](req)
 	if err != nil || !valid {
@@ -215,8 +155,12 @@ func (s Server) HandleMarkFeedItems(res http.ResponseWriter, req *http.Request, 
 			slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
-	// Reload home page.
-	feedHandler(s.DataAPI(), res, req, *filters)
+
+	// Add the feed ID.
+	filters.FeedIDs = append(filters.FeedIDs, feedID)
+
+	// Reload page.
+	itemsHandler(s.DataAPI(), res, req, *filters)
 }
 
 func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
@@ -276,7 +220,7 @@ func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, fee
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func feedHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters models.APIFilters) {
+func feedsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters models.APIFilters) {
 	// Save route state.
 	session.SetRouteState(req.Context(), req.URL.Path, req.URL.String())
 
@@ -312,19 +256,101 @@ func feedHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request
 			slog.Any("error", err))
 	}
 
+	var layout *home.LayoutProps
 	// Build page layout.
-	layout := home.BuildLayout(
-		home.WithContent(feeds...),
-		home.WithPart(home.Header,
-			home.FullHeader(
-				partials.BuildCategoryFilters(&filters.Categories, categories, req.URL.String()),
-				partials.BuildViewFilter(filters.View, req.URL.String()),
+	if req.Method == http.MethodGet {
+		layout = home.BuildLayout(
+			home.WithContent(feeds...),
+			home.WithPart(home.Header,
+				home.FullHeader(
+					partials.BuildCategoryFilters(&filters.Categories, categories, req.URL.String()),
+					partials.BuildViewFilter(filters.View, req.URL.String()),
+				),
 			),
-		),
-		home.WithPart(home.Footer, home.FullFooter("/home")),
-	)
-
+			home.WithPart(home.Footer, home.FullFooter("/home")),
+		)
+	} else {
+		layout = home.BuildLayout(
+			home.WithContent(feeds...),
+		)
+	}
 	// Render /home/feeds page.
+	if err := layout.Render(req, res); err != nil {
+		logging.FromContext(req.Context()).Error("Show feeds failed.",
+			slog.Any("error", err))
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters models.APIFilters) {
+	// Save list items filters in session storage.
+	session.SetRouteState(req.Context(), req.URL.Path, req.URL.String())
+
+	// Get all items.
+	itemCh, _, err := api.UserActionGetItems(req.Context(), filters)
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
+			slog.Any("error", err))
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+	// Get item categories.
+	categoryCounts, err := api.UserActionGetItemCategories(req.Context(), filters)
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
+			slog.Any("error", err))
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+
+	items := make([]home.Content, 0, filters.Count)
+	idx := 0
+	// Build item cards.
+	for item := range itemCh {
+		itemCard, err := partials.NewItemCard(req.Context(), &item)
+		if err != nil {
+			logging.FromContext(req.Context()).Warn("Could not create card component for item.",
+				slog.String("items_id", item.GetID()),
+				slog.Any("error", err))
+
+			continue
+		}
+
+		// if idx == len(itemCh)-1 && pagination != "" && len(itemCh) == filters.Count {
+		// 	component.AddAttributes(templ.Attributes{
+		// 		"hx-get":       filepath.Join("home", "show", "items") + "?pagination=" + pagination,
+		// 		"hx-trigger":   "revealed",
+		// 		"hx-swap":      "afterend",
+		// 		"hx-push-url":  "false",
+		// 		"hx-indicator": "#content-loading",
+		// 	})
+		// }
+
+		items = append(items, itemCard)
+		idx++
+	}
+
+	var layout *home.LayoutProps
+	// Build page layout.
+	if req.Method == http.MethodGet {
+		layout = home.BuildLayout(
+			home.WithContent(items...),
+			home.WithPart(home.Header,
+				home.FullHeader(
+					partials.BuildCategoryFilters(&filters.Categories, categoryCounts, req.URL.String()),
+					partials.BuildViewFilter(filters.View, req.URL.String()),
+				),
+			),
+			home.WithPart(home.Footer, home.FullFooter("/home/feeds")),
+		)
+	} else {
+		layout = home.BuildLayout(
+			home.WithContent(items...),
+		)
+	}
+
 	if err := layout.Render(req, res); err != nil {
 		logging.FromContext(req.Context()).Error("Show feeds failed.",
 			slog.Any("error", err))

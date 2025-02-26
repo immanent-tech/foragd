@@ -48,6 +48,14 @@ func (c *Client) GetUser(ctx context.Context) (*models.User, error) {
 		return nil, errors.Join(ErrGetFailed, err)
 	}
 
+	if user.Subscriptions == nil {
+		user.Subscriptions = make(map[string]models.SubscriptionState)
+	}
+
+	if user.FeedItemStates == nil {
+		user.FeedItemStates = make(map[string]map[string]models.ItemState)
+	}
+
 	return &user, nil
 }
 

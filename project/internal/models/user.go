@@ -128,8 +128,8 @@ func (u *User) MarkItem(feedID FeedID, itemID ItemID, state State) error {
 		return ErrUserAlreadyUnreadItem
 	}
 
-	if u.FeedItemStates == nil {
-		u.FeedItemStates = make(map[string]map[string]ItemState)
+	if u.FeedItemStates[feedID] == nil {
+		u.FeedItemStates[feedID] = make(map[string]ItemState)
 	}
 
 	u.FeedItemStates[feedID][itemID] = newItemState(state)
