@@ -1,8 +1,8 @@
 openapi: '3.1.0'
 info:
   version: 1.0.0
-  title: Admin API
-  description: The admin-only portion of the API, which has its own separate OpenAPI spec
+  title: Server Spec
+  description: OpenAPI spec for the Go Feed Me server.
 paths:
   /:
     get:
@@ -241,16 +241,19 @@ paths:
       summary: >
         Remove a feed item from the user's saved items.
       operationID: handleUnsaveItem
+  /home/{feed}/{item}/{mark}:
+    summary: >
+      Handle marking item.
     post:
       summary: >
         Mark a feed item.
       operationID: handleMarkItem
-      requestBody:
-        $ref: '#/components/requestBodies/Mark'
+      parameters:
+        - $ref: '#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/ItemID'
+        - $ref: '#/components/parameters/Mark'
 components:
   schemas:
-    Mark:
-      $ref: '../models/api.yaml#/components/schemas/Mark'
     MarkMultipleRequest:
       description: contains data for marking multiple objects.
       type: object
@@ -275,53 +278,6 @@ components:
           - $ref: '../models/models.yaml#/components/schemas/ItemIDs'
       x-oapi-codegen-extra-tags:
         form: ids
-  requestBodies:
-    Mark:
-      description: >
-        Holds the options for marking an object.
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            type: object
-            required:
-              - mark
-            properties:
-              mark:
-                $ref: '../models/api.yaml#/components/schemas/Mark'
-    MarkMultiple:
-      description: >
-        Holds the options for marking multiple objects.
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            $ref: '#/components/schemas/MarkMultipleRequest'
-    UserSignupRequestBody:
-      description: >
-        Holds details for adding/saving a user signup.
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            $ref: '../models/api.yaml#/components/schemas/APIUserSignupRequest'
-    SubscriptionRequestBody:
-      description: >
-        Holds details for adding/saving a subscription.
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            $ref: '../models/api.yaml#/components/schemas/APISubscriptionRequest'
-    CategoryRequestBody:
-      description: >
-        A list of categories to add/remove from a subscription.
-      required: true
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            type: object
-            required:
-              - Category
-            properties:
-              Category:
-                $ref: '../models/models.yaml#/components/schemas/Category'
   parameters:
     # Path parameters:
     FeedID:
@@ -334,6 +290,11 @@ components:
       in: path
       schema:
         $ref: '../models/models.yaml#/components/schemas/ItemID'
+    Mark:
+      name: mark
+      in: path
+      schema:
+        $ref: '../models/api.yaml#/components/schemas/Mark'
     # Query Parameters:
     View:
       name: view
@@ -374,6 +335,41 @@ components:
         $ref: '../models/models.yaml#/components/schemas/Categories'
       x-oapi-codegen-extra-tags:
         form: 'categories[]'
+  requestBodies:
+    MarkMultiple:
+      description: >
+        Holds the options for marking multiple objects.
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            $ref: '#/components/schemas/MarkMultipleRequest'
+    UserSignupRequestBody:
+      description: >
+        Holds details for adding/saving a user signup.
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            $ref: '../models/api.yaml#/components/schemas/APIUserSignupRequest'
+    SubscriptionRequestBody:
+      description: >
+        Holds details for adding/saving a subscription.
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            $ref: '../models/api.yaml#/components/schemas/APISubscriptionRequest'
+    CategoryRequestBody:
+      description: >
+        A list of categories to add/remove from a subscription.
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            required:
+              - Category
+            properties:
+              Category:
+                $ref: '../models/models.yaml#/components/schemas/Category'
   responses:
     htmx:
       description: standard htmx powered response.

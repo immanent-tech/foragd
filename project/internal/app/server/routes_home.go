@@ -244,8 +244,14 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 	}
 }
 
-func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
-	res.WriteHeader(http.StatusNotImplemented)
+// HandleMarkItem marks a single item.
+func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feedID FeedID, itemID ItemID, mark Mark) {
+	// Mark item.
+	if err := s.DataAPI().UserActionMarkItems(req.Context(), mark, itemID); err != nil {
+		logging.FromContext(req.Context()).Error("Mark item failed.",
+			slog.Any("error", err))
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 func (s Server) HandleSaveItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
@@ -293,7 +299,7 @@ func DecodeMarkRequest(values url.Values) (*MarkMultipleRequest, error) {
 	}
 
 	if categories != nil {
-		request.Categories = categories
+		request.Categories = nullable.NewNullableWithValue(*categories)
 	}
 	// Parse mark param.
 	if request.Mark = models.Mark(values.Get(string(models.ParamMark))); request.Mark == "" {

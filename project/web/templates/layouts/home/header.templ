@@ -57,7 +57,7 @@ func viewFilterControl(filters *partials.ViewFilter) templ.Component {
 }
 
 templ FullHeader(categoryFilters []partials.FeedCategoryFilter, viewFilter *partials.ViewFilter) {
-	<div id="content_header" hx-swap-oob="true">
+	<div id="content_header" hx-swap-oob="true" hx-swap="morph:outerHTML">
 		<div class="navbar bg-base-100">
 			<div class="flex-1">
 				@categoryFiltersControl(categoryFilters)

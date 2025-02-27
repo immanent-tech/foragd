@@ -186,16 +186,8 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 		return outCh, "", ErrGetUserFailed
 	}
 
-	var query QueryOption
 	// Work out what query to use based on the state filter.
-	switch filters.View {
-	case models.ViewRead:
-		query = readFeedItemsQuery(user, filters)
-	case models.ViewUnread:
-		fallthrough
-	default:
-		query = unreadFeedItemsQuery(user, filters)
-	}
+	query := generateItemsQueryClause(user, filters)
 
 	// rawPagination, err := filters.GetPagination()
 	// if err != nil {
@@ -420,7 +412,9 @@ func generateItemsQueryClause(user *models.User, filters models.APIFilters) Quer
 	case models.ViewRead:
 		return readFeedItemsQuery(user, filters)
 	case models.ViewUnread:
-		fallthrough
+		return unreadFeedItemsQuery(user, filters)
+	case models.ViewAll:
+		return allFeedItemsQuery(user, filters)
 	default:
 		return unreadFeedItemsQuery(user, filters)
 	}
@@ -486,6 +480,7 @@ func readFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOptio
 							BoolShould(
 								QuerySince("publishedParsed", user.GetMaxHistory()),
 								QuerySince("updatedParsed", user.GetMaxHistory()),
+								QueryByItemIDs(user.GetItemIDsWithState(models.Read, id)...),
 							),
 						),
 					),
@@ -502,6 +497,7 @@ func readFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOptio
 							BoolShould(
 								QueryBetween("publishedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
 								QueryBetween("updatedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
+								QueryByItemIDs(user.GetItemIDsWithState(models.Read, id)...),
 							),
 						),
 					),
@@ -523,6 +519,40 @@ func readFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOptio
 		BoolMustNot(
 			// Must not match an unread item.
 			QueryByItemIDs(user.GetItemIDsWithState(models.Unread, readFeedIDs...)...),
+		),
+	)
+}
+
+func allFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption {
+	clauses := make([]QueryOption, 0, len(filters.GetFeeds()))
+
+	for _, id := range filters.GetFeeds() {
+		clauses = append(clauses,
+			QueryBool(
+				BoolFilter(
+					// Must match this feed.
+					QueryByTerm("feed_id", id),
+					// And be published/updated since the user max history.
+					QueryBool(
+						BoolShould(
+							QuerySince("publishedParsed", user.GetMaxHistory()),
+							QuerySince("updatedParsed", user.GetMaxHistory()),
+						),
+					),
+				),
+			),
+		)
+	}
+
+	return QueryBool(
+		BoolFilter(
+			// Must match any of the given feed IDs.
+			QueryByFeedIDs(filters.GetFeeds()...),
+			QueryByCategory(filters.GetCategories()...),
+			// And should match one feed clause.
+			QueryBool(
+				BoolShould(clauses...),
+			),
 		),
 	)
 }

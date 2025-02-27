@@ -16,7 +16,7 @@ import (
 // MarkMultipleRequest contains data for marking multiple objects.
 type MarkMultipleRequest struct {
 	// Categories is a list of categories.
-	Categories *externalRef0.Categories `form:"categories[]" json:"categories"`
+	Categories nullable.Nullable[externalRef0.Categories] `form:"categories[]" json:"categories"`
 
 	// Feeds is a list of feed IDs.
 	Feeds nullable.Nullable[externalRef0.FeedIDs] `form:"feeds[]" json:"feeds"`
@@ -43,6 +43,9 @@ type FeedIDs = externalRef0.FeedIDs
 // ItemID is the unique ID of an item.
 type ItemID = externalRef0.ItemID
 
+// Mark applies the given mark action to objects.
+type Mark = externalRef0.Mark
+
 // View The state of objects to view.
 type View = externalRef0.View
 
@@ -62,12 +65,6 @@ type HandleShowItemsParams struct {
 	Count      Count       `form:"count" json:"count"`
 }
 
-// HandleMarkItemFormdataBody defines parameters for HandleMarkItem.
-type HandleMarkItemFormdataBody struct {
-	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark"`
-}
-
 // LoginCallbackParams defines parameters for LoginCallback.
 type LoginCallbackParams struct {
 	Code  string `form:"code" json:"code"`
@@ -85,9 +82,6 @@ type HandleMarkFeedsFormdataRequestBody = MarkMultipleRequest
 
 // HandleMarkItemsFormdataRequestBody defines body for HandleMarkItems for application/x-www-form-urlencoded ContentType.
 type HandleMarkItemsFormdataRequestBody = MarkMultipleRequest
-
-// HandleMarkItemFormdataRequestBody defines body for HandleMarkItem for application/x-www-form-urlencoded ContentType.
-type HandleMarkItemFormdataRequestBody HandleMarkItemFormdataBody
 
 // AddSubscriptionCategoryFormdataRequestBody defines body for AddSubscriptionCategory for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
@@ -130,12 +124,12 @@ type ServerInterface interface {
 	// Shows a feed item.
 	// (GET /home/{feed}/{item})
 	HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
-	// Mark a feed item.
-	// (POST /home/{feed}/{item})
-	HandleMarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
 	// Save a feed item to the user's saved items.
 	// (PUT /home/{feed}/{item})
 	HandleSaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
+	// Mark a feed item.
+	// (POST /home/{feed}/{item}/{mark})
+	HandleMarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, mark Mark)
 	// Process a user login with given provider
 	// (GET /login/{provider})
 	Login(w http.ResponseWriter, r *http.Request, provider string)
@@ -234,15 +228,15 @@ func (_ Unimplemented) HandleShowItem(w http.ResponseWriter, r *http.Request, fe
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Mark a feed item.
-// (POST /home/{feed}/{item})
-func (_ Unimplemented) HandleMarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 // Save a feed item to the user's saved items.
 // (PUT /home/{feed}/{item})
 func (_ Unimplemented) HandleSaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Mark a feed item.
+// (POST /home/{feed}/{item}/{mark})
+func (_ Unimplemented) HandleMarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, mark Mark) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -599,40 +593,6 @@ func (siw *ServerInterfaceWrapper) HandleShowItem(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
-// HandleMarkItem operation middleware
-func (siw *ServerInterfaceWrapper) HandleMarkItem(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "item" -------------
-	var item ItemID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleMarkItem(w, r, feed, item)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // HandleSaveItem operation middleware
 func (siw *ServerInterfaceWrapper) HandleSaveItem(w http.ResponseWriter, r *http.Request) {
 
@@ -658,6 +618,49 @@ func (siw *ServerInterfaceWrapper) HandleSaveItem(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleSaveItem(w, r, feed, item)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// HandleMarkItem operation middleware
+func (siw *ServerInterfaceWrapper) HandleMarkItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "feed" -------------
+	var feed FeedID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "item" -------------
+	var item ItemID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "mark" -------------
+	var mark Mark
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HandleMarkItem(w, r, feed, item, mark)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1089,10 +1092,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleShowItem)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleMarkItem)
+		r.Put(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleSaveItem)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleSaveItem)
+		r.Post(options.BaseURL+"/home/{feed}/{item}/{mark}", wrapper.HandleMarkItem)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/login/{provider}", wrapper.Login)

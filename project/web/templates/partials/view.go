@@ -18,6 +18,7 @@ func BuildViewFilter(activeView models.View, req string) *ViewFilter {
 	attributes := templ.Attributes{
 		"hx-target":   "#content",
 		"hx-push-url": "true",
+		"hx-swap":     "morph:outerHTML",
 	}
 
 	readRoute := models.BuildRoute(req,

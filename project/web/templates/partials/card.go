@@ -82,6 +82,7 @@ func (c *Card) buildProps(path string, filters models.APIFilters, options ...car
 		models.WithAttributes(templ.Attributes{
 			"hx-push-url": "true",
 			"hx-target":   c.Target,
+			"hx-swap":     "morph:innerHTML",
 		}),
 		models.WithParams(
 			models.WithViewParam(filters.View),
