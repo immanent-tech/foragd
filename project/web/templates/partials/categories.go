@@ -38,7 +38,7 @@ func NewCategoryFilter(name models.Category, active bool, req string) FeedCatego
 	}
 }
 
-func BuildCategoryFilters(filteredCategories *[]models.Category, allCategories []models.CategoryCount, path string) []FeedCategoryFilter {
+func BuildCategoryFilters(filteredCategories models.Categories, allCategories []models.CategoryCount, path string) []FeedCategoryFilter {
 	// Build category filters from the categories.
 	filters := make([]FeedCategoryFilter, 0, len(allCategories))
 
@@ -46,7 +46,7 @@ func BuildCategoryFilters(filteredCategories *[]models.Category, allCategories [
 		var active bool
 
 		if filteredCategories != nil {
-			if slices.Contains(*filteredCategories, category.Name) {
+			if slices.Contains(filteredCategories, category.Name) {
 				active = true
 			}
 		}

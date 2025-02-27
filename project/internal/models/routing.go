@@ -28,6 +28,10 @@ var DefaultRouteMethod = http.MethodGet
 //go:generate go tool golang.org/x/tools/cmd/stringer -type=HTMXMethod -linecomment -output routing.gen.go
 type HTMXMethod int
 
+func (r *APIRoute) GetParams() url.Values {
+	return r.url.Query()
+}
+
 func (r *APIRoute) GetCategoriesParam() []Category {
 	categories := r.url.Query()["categories"]
 	return categories

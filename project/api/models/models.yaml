@@ -62,6 +62,15 @@ components:
         validate: 'required'
         json: 'feed_id'
         form: 'feed_id'
+    FeedIDs:
+      description: is a list of feed IDs.
+      type: array
+      items:
+        $ref: '#/components/schemas/FeedID'
+      x-oapi-codegen-extra-tags:
+        json: 'feeds'
+        form: 'feeds[]'
+      nullable: true
     FeedURL:
       description: The canonical feed URL.
       type: string
@@ -76,6 +85,15 @@ components:
         validate: 'required'
         json: 'item_id'
         form: 'item_id'
+    ItemIDs:
+      description: is a list of items IDs.
+      type: array
+      items:
+        $ref: '#/components/schemas/ItemID'
+      x-oapi-codegen-extra-tags:
+        json: 'items'
+        form: 'items[]'
+      nullable: true
     ItemURL:
       description: A URL to view the original item.
       type: string
@@ -123,6 +141,15 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'category'
         form: 'category'
+    Categories:
+      description: is a list of categories.
+      type: array
+      items:
+        $ref: '#/components/schemas/Category'
+      x-oapi-codegen-extra-tags:
+        json: 'categories'
+        form: 'categories[]'
+      nullable: true
     # Metadata Objects.
     MetadataFeed:
       description: contains common/metadata fields for feeds and items.

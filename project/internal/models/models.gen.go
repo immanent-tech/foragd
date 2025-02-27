@@ -92,6 +92,9 @@ type APIItem struct {
 	UserProperties *UserItemProperties `json:"-"`
 }
 
+// Categories is a list of categories.
+type Categories = []Category
+
 // Category is a single category.
 type Category = string
 
@@ -118,6 +121,9 @@ type DeletedAt = time.Time
 // FeedID is the unique ID of a feed.
 type FeedID = string
 
+// FeedIDs is a list of feed IDs.
+type FeedIDs = []FeedID
+
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
 	// ID is the unique ID of a feed.
@@ -135,6 +141,9 @@ type HTMLString = string
 
 // ItemID is the unique ID of an item.
 type ItemID = string
+
+// ItemIDs is a list of items IDs.
+type ItemIDs = []ItemID
 
 // ItemState Contains fields to track an individual item's state.
 type ItemState struct {

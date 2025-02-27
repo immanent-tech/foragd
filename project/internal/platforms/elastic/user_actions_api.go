@@ -11,6 +11,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -210,23 +211,13 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	req := c.NewSearchRequest(
-		WithSearchIndex(index),
-		WithFields(defaultItemFields...),
-		WithSearchQueryOptions(
-			query,
-		),
-		WithSortOptions(SortTimestampDesc()),
-		WithSearchSize(filters.Count),
-		// WithSearchAfter(currentPagination),
-	)
 
-	res, err := req.Do(ctx)
+	resp, err := c.ItemsSearch(ctx, query, filters.GetCount())
 	if err != nil {
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
 
-	items, _, warnings := ExtractSourceFromHits[models.APIItem](res.Hits.Hits)
+	items, _, warnings := ExtractSourceFromHits[models.APIItem](resp.Hits.Hits)
 	if warnings != nil {
 		c.Logger.Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
@@ -234,8 +225,8 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 
 	var newPagination models.Pagination
 	// Get the sort value(s) of the last hit.
-	if len(res.Hits.Hits) > 0 {
-		data, err := json.Marshal(res.Hits.Hits[len(res.Hits.Hits)-1].Sort)
+	if len(resp.Hits.Hits) > 0 {
+		data, err := json.Marshal(resp.Hits.Hits[len(resp.Hits.Hits)-1].Sort)
 		if err != nil {
 			c.Logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
 		}
@@ -270,7 +261,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		return nil, ErrGetUserFailed
 	}
 
-	filters.FeedIDs = user.FilterSubscribedFeeds(filters)
+	filters.SetFeeds(user.FilterSubscribedFeeds(filters)...)
 
 	// Get the feed details for the subscribed feeds.
 	feeds, err := c.FeedsSearch(ctx, filters)
@@ -278,10 +269,9 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	// Reset filter categories to calculate counts over all categories.
-	filters.Categories = nil
+	// filters.Categories = nil
 	// Get the unread counts for the feeds.
-	countResults, err := c.ItemsAggregation(ctx, generateItemsQueryClause(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
+	countResults, err := c.ItemsAggregation(ctx, unreadFeedItemsQuery(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
 	if err != nil {
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
@@ -294,18 +284,26 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	}
 
 	unreadCounts := make(map[string]int64)
-	for _, feedID := range filters.FeedIDs {
+	for _, feedID := range filters.GetFeeds() {
 		unreadCounts[feedID] = categoryCounts.GetCount(feedID)
 	}
 
+	validFeeds := make([]*models.APIFeed, 0, len(feeds))
+
 	for _, feed := range feeds {
+		// Add user unread count to feed.
+		feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
+		spew.Dump(user.GetFeedLastRead(feed.ID))
 		// If filtering by unread, ignore feeds with no unread count.
-		if filters.View == models.ViewUnread && int(unreadCounts[feed.ID]) == 0 {
+		if filters.View == models.ViewUnread && feed.GetUserUnreadCount() == 0 {
 			continue
-		} else {
-			// Add user unread count to feed.
-			feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
 		}
+		// If filtering by read, ignore feeds with  unread count.
+		if filters.View == models.ViewRead && feed.GetUserUnreadCount() > 0 {
+			slog.Info("not showing feed", slog.String("feed", feed.GetTitle()))
+			continue
+		}
+
 		// Add user defined name to the feed.
 		if name := user.Subscriptions[feed.ID].Name; name != nil && *name != "" {
 			feed.SetUserName(*name)
@@ -314,10 +312,11 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		if categories := user.Subscriptions[feed.ID].Categories; categories != nil {
 			feed.SetUserCategories(categories)
 		}
-		// Pass the feed through the output channel.
+		// Append to valid feeds list.
+		validFeeds = append(validFeeds, feed)
 	}
 
-	return feeds, nil
+	return validFeeds, nil
 }
 
 func (c *Client) UserActionGetFeed(ctx context.Context, feedID models.FeedID) (*models.APIFeed, error) {
@@ -429,8 +428,8 @@ func generateItemsQueryClause(user *models.User, filters models.APIFilters) Quer
 
 // unreadFeedItemsQuery generates a query for matching unread items using the given filters.
 func unreadFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption {
-	clauses := make([]QueryOption, 0, len(filters.FeedIDs))
-	for _, id := range filters.FeedIDs {
+	clauses := make([]QueryOption, 0, len(filters.GetFeeds()))
+	for _, id := range filters.GetFeeds() {
 		clauses = append(clauses,
 			QueryBool(
 				BoolFilter(
@@ -452,8 +451,8 @@ func unreadFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOpt
 	return QueryBool(
 		BoolFilter(
 			// Must match any of the given feed IDs.
-			QueryByFeedIDs(filters.FeedIDs...),
-			QueryByCategory(filters.Categories...),
+			QueryByFeedIDs(filters.GetFeeds()...),
+			QueryByCategory(filters.GetCategories()...),
 			// And should match one feed clause.
 			QueryBool(
 				BoolShould(clauses...),
@@ -461,46 +460,61 @@ func unreadFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOpt
 		),
 		BoolMustNot(
 			// Must not match any read item IDs.
-			QueryByItemIDs(user.GetItemIDsWithState(models.Read, filters.FeedIDs...)...),
+			QueryByItemIDs(user.GetItemIDsWithState(models.Read, filters.GetFeeds()...)...),
 		),
 	)
 }
 
 // readFeedItemsQuery generates a query for matching read items using the given filters.
 func readFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption {
-	readFeedIDs := make([]models.FeedID, 0, len(filters.FeedIDs))
-	clauses := make([]QueryOption, 0, len(filters.FeedIDs))
+	readFeedIDs := make([]models.FeedID, 0, len(filters.GetFeeds()))
+	clauses := make([]QueryOption, 0, len(filters.GetFeeds()))
 
-	for _, id := range filters.FeedIDs {
-		// Ignore feed if user has never marked it as read.
-		if user.GetFeedLastRead(id) == user.GetMaxHistory() {
-			continue
-		}
-
+	for _, id := range filters.GetFeeds() {
 		// Get any unread items for the feed.
 		readFeedIDs = append(readFeedIDs, id)
-		clauses = append(clauses,
-			QueryBool(
-				BoolFilter(
-					// Must match this feed.
-					QueryByTerm("feed_id", id),
-					// And should be between the user max history and last read time.
-					QueryBool(
-						BoolShould(
-							QueryBetween("publishedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
-							QueryBetween("updatedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
+
+		// Ignore feed if user has never marked it as read.
+		if user.GetFeedLastRead(id) == user.GetMaxHistory() {
+			clauses = append(clauses,
+				QueryBool(
+					BoolFilter(
+						// Must match this feed.
+						QueryByTerm("feed_id", id),
+						// And be published/updated since the user max history.
+						QueryBool(
+							BoolShould(
+								QuerySince("publishedParsed", user.GetMaxHistory()),
+								QuerySince("updatedParsed", user.GetMaxHistory()),
+							),
 						),
 					),
 				),
-			),
-		)
+			)
+		} else {
+			clauses = append(clauses,
+				QueryBool(
+					BoolFilter(
+						// Must match this feed.
+						QueryByTerm("feed_id", id),
+						// And should be between the user max history and last read time.
+						QueryBool(
+							BoolShould(
+								QueryBetween("publishedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
+								QueryBetween("updatedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
+							),
+						),
+					),
+				),
+			)
+		}
 	}
 
 	return QueryBool(
 		BoolFilter(
 			// Must match any of the given feed IDs
 			QueryByFeedIDs(readFeedIDs...),
-			QueryByCategory(filters.Categories...),
+			QueryByCategory(filters.GetCategories()...),
 			// And should match one feed clause.
 			QueryBool(
 				BoolShould(clauses...),

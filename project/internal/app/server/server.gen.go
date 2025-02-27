@@ -9,23 +9,36 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	externalRef0 "github.com/joshuar/go-feed-me/internal/models"
+	"github.com/oapi-codegen/nullable"
 	"github.com/oapi-codegen/runtime"
 )
 
-// Categories is an array of Categories.
-type Categories = []externalRef0.Category
+// MarkMultipleRequest contains data for marking multiple objects.
+type MarkMultipleRequest struct {
+	// Categories is a list of categories.
+	Categories *externalRef0.Categories `form:"categories[]" json:"categories"`
 
-// FeedIDs is an array of Feed IDs.
-type FeedIDs = []externalRef0.FeedID
+	// Feeds is a list of feed IDs.
+	Feeds nullable.Nullable[externalRef0.FeedIDs] `form:"feeds[]" json:"feeds"`
 
-// ItemIDs is an array of Item IDs.
-type ItemIDs = []externalRef0.ItemID
+	// Items is a list of items IDs.
+	Items nullable.Nullable[externalRef0.ItemIDs] `form:"items[]" json:"items"`
+
+	// Mark applies the given mark action to objects.
+	Mark externalRef0.Mark `form:"mark" json:"mark"`
+}
+
+// Categories is a list of categories.
+type Categories = externalRef0.Categories
 
 // Count is the count of items to retrieve with a request.
 type Count = externalRef0.Count
 
 // FeedID is the unique ID of a feed.
 type FeedID = externalRef0.FeedID
+
+// FeedIDs is a list of feed IDs.
+type FeedIDs = externalRef0.FeedIDs
 
 // ItemID is the unique ID of an item.
 type ItemID = externalRef0.ItemID
@@ -35,48 +48,18 @@ type View = externalRef0.View
 
 // HandleShowFeedsParams defines parameters for HandleShowFeeds.
 type HandleShowFeedsParams struct {
-	Feeds      *FeedIDs    `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty"`
+	Categories *Categories `form:"categories[]" json:"categories,omitempty"`
 	View       View        `form:"view" json:"view"`
 	Count      Count       `form:"count" json:"count"`
-}
-
-// HandleMarkFeedsFormdataBody defines parameters for HandleMarkFeeds.
-type HandleMarkFeedsFormdataBody struct {
-	// Categories is an array of Categories.
-	Categories *Categories `form:"categories" json:"categories,omitempty"`
-
-	// Feeds is an array of Feed IDs.
-	Feeds *FeedIDs `form:"feeds" json:"feeds,omitempty"`
-
-	// Items is an array of Item IDs.
-	Items *ItemIDs `form:"items" json:"items,omitempty"`
-
-	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark"`
 }
 
 // HandleShowItemsParams defines parameters for HandleShowItems.
 type HandleShowItemsParams struct {
-	Feeds      *FeedIDs    `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty"`
+	Categories *Categories `form:"categories[]" json:"categories,omitempty"`
 	View       View        `form:"view" json:"view"`
 	Count      Count       `form:"count" json:"count"`
-}
-
-// HandleMarkItemsFormdataBody defines parameters for HandleMarkItems.
-type HandleMarkItemsFormdataBody struct {
-	// Categories is an array of Categories.
-	Categories *Categories `form:"categories" json:"categories,omitempty"`
-
-	// Feeds is an array of Feed IDs.
-	Feeds *FeedIDs `form:"feeds" json:"feeds,omitempty"`
-
-	// Items is an array of Item IDs.
-	Items *ItemIDs `form:"items" json:"items,omitempty"`
-
-	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark"`
 }
 
 // HandleMarkItemFormdataBody defines parameters for HandleMarkItem.
@@ -98,10 +81,10 @@ type AddSubscriptionCategoryFormdataBody struct {
 }
 
 // HandleMarkFeedsFormdataRequestBody defines body for HandleMarkFeeds for application/x-www-form-urlencoded ContentType.
-type HandleMarkFeedsFormdataRequestBody HandleMarkFeedsFormdataBody
+type HandleMarkFeedsFormdataRequestBody = MarkMultipleRequest
 
 // HandleMarkItemsFormdataRequestBody defines body for HandleMarkItems for application/x-www-form-urlencoded ContentType.
-type HandleMarkItemsFormdataRequestBody HandleMarkItemsFormdataBody
+type HandleMarkItemsFormdataRequestBody = MarkMultipleRequest
 
 // HandleMarkItemFormdataRequestBody defines body for HandleMarkItem for application/x-www-form-urlencoded ContentType.
 type HandleMarkItemFormdataRequestBody HandleMarkItemFormdataBody

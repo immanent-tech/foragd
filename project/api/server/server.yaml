@@ -250,45 +250,31 @@ paths:
 components:
   schemas:
     Mark:
-      name: mark
-      description: describes what type of mark to set.
-      schema:
-        $ref: '../models/api.yaml#/components/schemas/Mark'
-    FeedIDs:
-      name: feeds
-      description: is an array of Feed IDs.
-      type: array
-      items:
-        $ref: '../models/models.yaml#/components/schemas/FeedID'
-      x-oapi-codegen-extra-tags:
-        form: 'feeds'
-    ItemIDs:
-      name: items
-      description: is an array of Item IDs.
-      type: array
-      items:
-        $ref: '../models/models.yaml#/components/schemas/ItemID'
-      x-oapi-codegen-extra-tags:
-        form: 'items'
+      $ref: '../models/api.yaml#/components/schemas/Mark'
+    MarkMultipleRequest:
+      description: contains data for marking multiple objects.
+      type: object
+      required:
+        - mark
+      properties:
+        mark:
+          $ref: '../models/api.yaml#/components/schemas/Mark'
+        feeds:
+          $ref: '../models/models.yaml#/components/schemas/FeedIDs'
+        items:
+          $ref: '../models/models.yaml#/components/schemas/ItemIDs'
+        categories:
+          $ref: '../models/models.yaml#/components/schemas/Categories'
     IDs:
       name: ids
       description: An array of either Feed or Item IDs.
       type: array
       items:
         oneOf:
-          - $ref: '#/components/schemas/FeedIDs'
-          - $ref: '#/components/schemas/ItemIDs'
+          - $ref: '../models/models.yaml#/components/schemas/FeedIDs'
+          - $ref: '../models/models.yaml#/components/schemas/ItemIDs'
       x-oapi-codegen-extra-tags:
         form: ids
-    Categories:
-      name: categories
-      description: is an array of Categories.
-      type: array
-      items:
-        $ref: '../models/models.yaml#/components/schemas/Category'
-      x-oapi-codegen-extra-tags:
-        form: 'categories'
-      # x-go-type-skip-optional-pointer: true
   requestBodies:
     Mark:
       description: >
@@ -308,18 +294,7 @@ components:
       content:
         application/x-www-form-urlencoded:
           schema:
-            type: object
-            required:
-              - mark
-            properties:
-              mark:
-                $ref: '../models/api.yaml#/components/schemas/Mark'
-              feeds:
-                $ref: '#/components/schemas/FeedIDs'
-              items:
-                $ref: '#/components/schemas/ItemIDs'
-              categories:
-                $ref: '#/components/schemas/Categories'
+            $ref: '#/components/schemas/MarkMultipleRequest'
     UserSignupRequestBody:
       description: >
         Holds details for adding/saving a user signup.
@@ -382,17 +357,23 @@ components:
       name: feeds
       in: query
       schema:
-        $ref: '#/components/schemas/FeedIDs'
+        $ref: '../models/models.yaml#/components/schemas/FeedIDs'
+      x-oapi-codegen-extra-tags:
+        form: 'feeds[]'
     ItemIDs:
       name: items
       in: query
       schema:
-        $ref: '#/components/schemas/ItemIDs'
+        $ref: '../models/models.yaml#/components/schemas/ItemIDs'
+      x-oapi-codegen-extra-tags:
+        form: 'items[]'
     Categories:
       name: categories
       in: query
       schema:
-        $ref: '#/components/schemas/Categories'
+        $ref: '../models/models.yaml#/components/schemas/Categories'
+      x-oapi-codegen-extra-tags:
+        form: 'categories[]'
   responses:
     htmx:
       description: standard htmx powered response.

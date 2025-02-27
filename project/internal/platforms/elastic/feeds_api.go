@@ -167,8 +167,8 @@ func (c *Client) FeedsSearch(ctx context.Context, filters models.APIFilters) ([]
 			QueryBool(
 				// Match either the FeedID OR the Category.
 				BoolShould(
-					QueryByFeedIDs(filters.FeedIDs...),
-					QueryByCategory(filters.Categories...),
+					QueryByFeedIDs(filters.GetFeeds()...),
+					QueryByCategory(filters.GetCategories()...),
 				),
 			),
 		),

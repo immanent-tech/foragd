@@ -11,11 +11,27 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/oapi-codegen/runtime"
 )
 
-type ParamsOption func(url.Values) url.Values
+var (
+	ErrGenFilters     = errors.New("error generating filters")
+	ErrGetFilterValue = errors.New("error fetching filter value")
+)
 
-var ErrGetFilterValue = errors.New("error fetching filter value")
+const (
+	ParamView       ParamName = "view"
+	ParamCount      ParamName = "count"
+	ParamFeeds      ParamName = "feeds"
+	ParamItems      ParamName = "items"
+	ParamCategories ParamName = "categories"
+	ParamMark       ParamName = "mark"
+)
+
+type ParamName string
+
+type ParamsOption func(url.Values) url.Values
 
 func EncodePagination(decoded []byte) (Pagination, error) {
 	return url.QueryEscape(string(decoded)), nil
@@ -30,20 +46,72 @@ func DecodePagination(encoded Pagination) ([]byte, error) {
 	return []byte(decoded), nil
 }
 
+// GetFeeds gets the list of FeedIDs from the filters.
+func (f *APIFilters) GetFeeds() []FeedID {
+	if f.FeedIDs.IsNull() {
+		return nil
+	}
+
+	feeds, err := f.FeedIDs.Get()
+	if err != nil {
+		return nil
+	}
+
+	return feeds
+}
+
+// SetFeeds sets the feed filters to the given values. Existing values are wiped.
+func (f *APIFilters) SetFeeds(feedIDs ...FeedID) {
+	f.FeedIDs.Set(feedIDs)
+}
+
+// GetItems gets the list of ItemIDs from the filters.
+func (f *APIFilters) GetItems() ItemIDs {
+	if f.ItemIDs.IsNull() {
+		return nil
+	}
+
+	items, err := f.ItemIDs.Get()
+	if err != nil {
+		return nil
+	}
+
+	return items
+}
+
+// GetCategories gets the list of Categories from the filters.
+func (f *APIFilters) GetCategories() Categories {
+	if f.Categories.IsNull() {
+		return nil
+	}
+
+	items, err := f.Categories.Get()
+	if err != nil {
+		return nil
+	}
+
+	return items
+}
+
+// GetCount gets the count value from the filters.
+func (f *APIFilters) GetCount() int {
+	return f.Count
+}
+
 // Params encodes the APIFilter values into a url.Values object.
-func (f APIFilters) Params() url.Values {
+func (f *APIFilters) Params() url.Values {
 	params := make(url.Values)
 
-	if len(f.FeedIDs) > 0 {
-		params.Set("feeds", strings.Join(f.FeedIDs, ","))
+	if f.FeedIDs.IsSpecified() {
+		params.Set("feeds", strings.Join(f.GetFeeds(), ","))
 	}
 
-	if len(f.ItemIDs) > 0 {
-		params.Set("items", strings.Join(f.ItemIDs, ","))
+	if f.ItemIDs.IsSpecified() {
+		params.Set("items", strings.Join(f.GetItems(), ","))
 	}
 
-	if len(f.Categories) > 0 {
-		params.Set("categories", strings.Join(f.Categories, ","))
+	if f.Categories.IsSpecified() {
+		params.Set("categories", strings.Join(f.GetCategories(), ","))
 	}
 
 	params.Set("view", string(f.View))
@@ -54,8 +122,58 @@ func (f APIFilters) Params() url.Values {
 }
 
 // String returns a URL-encoded string of query parameters.
-func (f APIFilters) String() string {
+func (f *APIFilters) String() string {
 	return f.Params().Encode()
+}
+
+// FiltersFromQuery takes a url.Values object and extracts the filters.
+func FiltersFromQuery(values url.Values) (*APIFilters, error) {
+	filters := &APIFilters{}
+
+	var err error
+
+	// ------------- Optional query parameter "feeds" -------------
+
+	// var feedIDs *FeedIDs
+	err = runtime.BindQueryParameter("form", true, false, "feeds", values, &filters.FeedIDs)
+	if err != nil {
+		return nil, errors.Join(ErrGenFilters, err)
+	}
+
+	// filters.SetFeeds(*feedIDs...)
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", values, &filters.Categories)
+	if err != nil {
+		return nil, errors.Join(ErrGenFilters, err)
+	}
+
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := values.Get("view"); paramValue != "" {
+	} else {
+		return nil, errors.Join(ErrGenFilters, err)
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", values, &filters.View)
+	if err != nil {
+		return nil, errors.Join(ErrGenFilters, err)
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := values.Get("count"); paramValue != "" {
+	} else {
+		return nil, errors.Join(ErrGenFilters, err)
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", values, &filters.Count)
+	if err != nil {
+		return nil, errors.Join(ErrGenFilters, err)
+	}
+
+	return filters, nil
 }
 
 // CreateFilters unmarshals the given query parameters passed to a specific route into a

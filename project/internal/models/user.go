@@ -215,7 +215,7 @@ func (u *User) GetCategoryCounts() []CategoryCount {
 // given feed IDs.
 func (u *User) FilterSubscribedFeeds(filters APIFilters) []FeedID {
 	// If there are no relevant filters, return all subscribed Feed IDs.
-	if len(filters.FeedIDs) == 0 && len(filters.Categories) == 0 {
+	if len(filters.GetFeeds()) == 0 && len(filters.GetCategories()) == 0 {
 		return u.GetSubscribedFeedIDs()
 	}
 
@@ -223,8 +223,8 @@ func (u *User) FilterSubscribedFeeds(filters APIFilters) []FeedID {
 
 	switch {
 	// Case 1: FeedID filters specified, no Category filters specified.
-	case len(filters.FeedIDs) > 0 && len(filters.Categories) == 0:
-		for _, id := range filters.FeedIDs {
+	case len(filters.GetFeeds()) > 0 && len(filters.GetCategories()) == 0:
+		for _, id := range filters.GetFeeds() {
 			if u.IsSubscribed(id) {
 				filtered = append(filtered, id)
 			}
@@ -232,10 +232,10 @@ func (u *User) FilterSubscribedFeeds(filters APIFilters) []FeedID {
 
 		return filtered
 	// Case 2: No FeedID filters specified, Category filters specified.
-	case len(filters.FeedIDs) == 0 && len(filters.Categories) > 0:
+	case len(filters.GetFeeds()) == 0 && len(filters.GetCategories()) > 0:
 		for id, details := range u.Subscriptions {
 			for _, category := range details.Categories {
-				if slices.Contains(filters.Categories, category) {
+				if slices.Contains(filters.GetCategories(), category) {
 					filtered = append(filtered, id)
 				}
 			}
@@ -244,9 +244,9 @@ func (u *User) FilterSubscribedFeeds(filters APIFilters) []FeedID {
 		return filtered
 	// Case 3: Both FeedID and Category filters specified
 	default:
-		for _, id := range filters.FeedIDs {
+		for _, id := range filters.GetFeeds() {
 			if u.IsSubscribed(id) {
-				for _, category := range filters.Categories {
+				for _, category := range filters.GetCategories() {
 					if u.SubscriptionHasCategory(id, category) {
 						filtered = append(filtered, id)
 					}
