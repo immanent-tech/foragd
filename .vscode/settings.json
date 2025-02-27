@@ -103,7 +103,9 @@
     "components/breadcrumbs",
     "components/link",
     "session",
-    "api"
+    "api",
+    "classes",
+    "classes/opacity"
   ],
   "emmet.includeLanguages": {
     "templ": "html"

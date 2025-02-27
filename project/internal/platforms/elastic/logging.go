@@ -53,7 +53,7 @@ func (l *ESLogger) LogRoundTrip(req *http.Request, res *http.Response, _ error, 
 		slog.Duration("duration", dur),
 		slog.Int64("req_bytes", nReq),
 		slog.Int64("res_bytes", nRes),
-		slog.Any("body", body),
+		// slog.Any("body", body),
 	)
 
 	return nil
