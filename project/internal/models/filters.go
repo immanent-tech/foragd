@@ -79,6 +79,11 @@ func (f *APIFilters) GetItems() ItemIDs {
 	return items
 }
 
+// SetItems sets the item filters to the given values. Existing values are wiped.
+func (f *APIFilters) SetItems(itemIDs ...ItemID) {
+	f.ItemIDs.Set(itemIDs)
+}
+
 // GetCategories gets the list of Categories from the filters.
 func (f *APIFilters) GetCategories() Categories {
 	if f.Categories.IsNull() {
@@ -91,6 +96,11 @@ func (f *APIFilters) GetCategories() Categories {
 	}
 
 	return items
+}
+
+// SetCategories sets the category filters to the given values. Existing values are wiped.
+func (f *APIFilters) SetCategories(categories ...Category) {
+	f.Categories.Set(categories)
 }
 
 // GetCount gets the count value from the filters.
@@ -130,47 +140,52 @@ func (f *APIFilters) String() string {
 func FiltersFromQuery(values url.Values) (*APIFilters, error) {
 	filters := &APIFilters{}
 
-	var err error
+	var (
+		err        error
+		feedIDs    *FeedIDs
+		itemIDs    *ItemIDs
+		categories *Categories
+	)
 
-	// ------------- Optional query parameter "feeds" -------------
-
-	// var feedIDs *FeedIDs
-	err = runtime.BindQueryParameter("form", true, false, "feeds", values, &filters.FeedIDs)
+	// Parse feeds param.
+	err = runtime.BindQueryParameter("form", true, false, string(ParamFeeds), values, &feedIDs)
 	if err != nil {
 		return nil, errors.Join(ErrGenFilters, err)
 	}
-
-	// filters.SetFeeds(*feedIDs...)
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", values, &filters.Categories)
+	// Set feeds param if present.
+	if feedIDs != nil {
+		filters.SetFeeds(*feedIDs...)
+	}
+	// Parse items param.
+	err = runtime.BindQueryParameter("form", true, false, string(ParamItems), values, &itemIDs)
 	if err != nil {
 		return nil, errors.Join(ErrGenFilters, err)
 	}
-
-	// ------------- Required query parameter "view" -------------
-
-	if paramValue := values.Get("view"); paramValue != "" {
+	// Set items param if present.
+	if itemIDs != nil {
+		filters.SetItems(*itemIDs...)
+	}
+	// Parse categories param.
+	err = runtime.BindQueryParameter("form", true, false, string(ParamCategories), values, &categories)
+	if err != nil {
+		return nil, errors.Join(ErrGenFilters, err)
+	}
+	// Set categories param if present.
+	if categories != nil {
+		filters.SetCategories(*categories...)
+	}
+	// Set view param.
+	if filters.View = View(values.Get(string(ParamView))); filters.View == "" {
+		return nil, errors.Join(ErrGenFilters, err)
+	}
+	// Set count param.
+	if paramValue := values.Get(string(ParamCount)); paramValue == "" {
+		return nil, errors.Join(ErrGenFilters, err)
 	} else {
-		return nil, errors.Join(ErrGenFilters, err)
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", values, &filters.View)
-	if err != nil {
-		return nil, errors.Join(ErrGenFilters, err)
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := values.Get("count"); paramValue != "" {
-	} else {
-		return nil, errors.Join(ErrGenFilters, err)
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", values, &filters.Count)
-	if err != nil {
-		return nil, errors.Join(ErrGenFilters, err)
+		filters.Count, err = strconv.Atoi(paramValue)
+		if err != nil {
+			return nil, errors.Join(ErrGenFilters, err)
+		}
 	}
 
 	return filters, nil
