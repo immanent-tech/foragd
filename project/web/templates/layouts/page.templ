@@ -11,7 +11,7 @@ templ (page *Props) Show() {
 		if len(page.Headers) > 0 {
 			@header(page.Headers)
 		}
-		<body hx-boost="true">
+		<body hx-boost="true" hx-ext="morph">
 			@page.Content
 			<script src="/static/scripts.js"></script>
 		</body>
