@@ -102,7 +102,7 @@ func feedsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 	for _, feed := range feeds {
 		var card *partials.Card
 
-		card, err = partials.NewFeedCard(req.Context(), filters, feed)
+		card, err = partials.NewFeedCard(filters, feed)
 		if err != nil {
 			logging.FromContext(req.Context()).Warn("Could not create card component for feed.",
 				slog.String("feed_id", feed.GetID()),
@@ -187,7 +187,7 @@ func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 	idx := 0
 	// Build item cards.
 	for item := range itemCh {
-		itemCard, err := partials.NewItemCard(req.Context(), filters, &item)
+		itemCard, err := partials.NewItemCard(filters, &item)
 		if err != nil {
 			logging.FromContext(req.Context()).Warn("Could not create card component for item.",
 				slog.String("items_id", item.GetID()),

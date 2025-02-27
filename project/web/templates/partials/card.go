@@ -4,7 +4,6 @@
 package partials
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -76,7 +75,7 @@ func (c *Card) buildMarkButton(label string, mark models.Mark, path string) temp
 }
 
 // buildProps builds the card.Props for the given content.
-func (c *Card) buildProps(ctx context.Context, path string, filters models.APIFilters, options ...card.Option) {
+func (c *Card) buildProps(path string, filters models.APIFilters, options ...card.Option) {
 	var routeOptions []models.RouteOption
 
 	routeOptions = append(routeOptions,
@@ -110,7 +109,7 @@ func (c *Card) buildProps(ctx context.Context, path string, filters models.APIFi
 	c.Props = card.Build(options...)
 }
 
-func NewFeedCard(ctx context.Context, filters models.APIFilters, feed *models.APIFeed) (*Card, error) {
+func NewFeedCard(filters models.APIFilters, feed *models.APIFeed) (*Card, error) {
 	var err error
 
 	feedCard := &Card{
@@ -159,12 +158,12 @@ func NewFeedCard(ctx context.Context, filters models.APIFilters, feed *models.AP
 		cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
 	}
 
-	feedCard.buildProps(ctx, "/home/items", filters, cardOptions...)
+	feedCard.buildProps("/home/items", filters, cardOptions...)
 
 	return feedCard, nil
 }
 
-func NewItemCard(ctx context.Context, filters models.APIFilters, item *models.APIItem) (*Card, error) {
+func NewItemCard(filters models.APIFilters, item *models.APIItem) (*Card, error) {
 	var err error
 
 	itemCard := &Card{
@@ -215,7 +214,7 @@ func NewItemCard(ctx context.Context, filters models.APIFilters, item *models.AP
 		cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
 	}
 
-	itemCard.buildProps(ctx, "/home/"+item.GetFeedID()+"/"+item.GetID(), filters, cardOptions...)
+	itemCard.buildProps("/home/"+item.GetFeedID()+"/"+item.GetID(), filters, cardOptions...)
 
 	return itemCard, nil
 }
