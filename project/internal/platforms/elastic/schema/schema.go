@@ -147,21 +147,8 @@ func UserMappingsTemplate() *putcomponenttemplate.Request {
 						WithKeywordProperty("user_id"),
 						WithDateNanosProperty("created_at"),
 						WithDateNanosProperty("updated_at"),
-						WithObjectProperty("subscriptions", map[string]types.Property{
-							"categories":  asTextAndKeyword(),
-							"name":        asTextAndKeyword(),
-							"created_at":  types.NewDateNanosProperty(),
-							"updated_at":  types.NewDateNanosProperty(),
-							"marked_read": types.NewDateNanosProperty(),
-						}),
-						WithObjectProperty("feed_item_states", map[string]types.Property{
-							"item_states": types.ObjectProperty{
-								Properties: map[string]types.Property{
-									"state":      types.NewKeywordProperty(),
-									"updated_at": types.NewDateNanosProperty(),
-								},
-							},
-						}),
+						WithFlattenedProperty("subscriptions"),
+						WithFlattenedProperty("feed_item_states"),
 					),
 				),
 			),
