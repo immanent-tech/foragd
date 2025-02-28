@@ -14,24 +14,24 @@ type ViewFilter struct {
 	routes map[models.View]templ.Attributes
 }
 
-func BuildViewFilter(activeView models.View, req string) *ViewFilter {
+func BuildViewFilter(activeView models.View, path string) *ViewFilter {
 	attributes := templ.Attributes{
 		"hx-target":   "#content",
 		"hx-push-url": "true",
 		"hx-swap":     "morph:outerHTML",
 	}
 
-	readRoute := models.BuildRoute(req,
+	readRoute := models.BuildRoute(path,
 		models.WithParams(models.WithViewParam(models.ViewRead)),
 		models.WithAttributes(attributes),
 	)
 
-	unreadRoute := models.BuildRoute(req,
+	unreadRoute := models.BuildRoute(path,
 		models.WithParams(models.WithViewParam(models.ViewUnread)),
 		models.WithAttributes(attributes),
 	)
 
-	allRoute := models.BuildRoute(req,
+	allRoute := models.BuildRoute(path,
 		models.WithParams(models.WithViewParam(models.ViewAll)),
 		models.WithAttributes(attributes),
 	)

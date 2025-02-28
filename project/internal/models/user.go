@@ -60,74 +60,44 @@ func (u *User) GetItemIDsWithState(state State, feedIDs ...FeedID) []ItemID {
 
 // HasReadItem checks whether the item with the given ItemID has been marked read by
 // the user.
-func (u *User) HasReadItem(feedID FeedID, itemID ItemID) bool {
-	if u.FeedItemStates == nil {
-		return false
+func (u *User) HasReadItem(item *APIItem) bool {
+	if itemState := u.GetItemState(item); itemState != nil {
+		return itemState.State == Read
 	}
 
-	items, foundFeed := u.FeedItemStates[feedID]
-	if !foundFeed {
-		return false
-	}
-
-	itemState, foundItem := items[itemID]
-	if !foundItem {
-		return false
-	}
-
-	return itemState.State == Read
+	return false
 }
 
 // HasUnreadItem checks whether the item with the given ItemID has been marked unread by
 // the user.
-func (u *User) HasUnreadItem(feedID FeedID, itemID ItemID) bool {
-	if u.FeedItemStates == nil {
-		return false
+func (u *User) HasUnreadItem(item *APIItem) bool {
+	if itemState := u.GetItemState(item); itemState != nil {
+		return itemState.State == Unread
 	}
 
-	items, foundFeed := u.FeedItemStates[feedID]
-	if !foundFeed {
-		return false
-	}
-
-	itemState, foundItem := items[itemID]
-	if !foundItem {
-		return false
-	}
-
-	return itemState.State == Unread
+	return false
 }
 
 // GetItemState retrieves the user's state for the given item. If the item
 // doesn't have a state, it returns nil.
-func (u *User) GetItemState(feedID FeedID, itemID ItemID) *ItemState {
-	if u.FeedItemStates == nil {
-		return nil
+func (u *User) GetItemState(item *APIItem) *ItemState {
+	// If the user has explicitly marked the item, return that state.
+	if u.FeedItemStates != nil {
+		if itemState, found := u.FeedItemStates[item.GetFeedID()][item.GetID()]; found {
+			return &itemState
+		}
 	}
-
-	items, foundFeed := u.FeedItemStates[feedID]
-	if !foundFeed {
-		return nil
+	// Else, if the item was published after the last time the feed was marked
+	// read, return unread state.
+	if item.GetTimestamp().After(u.GetFeedLastRead(item.GetFeedID())) {
+		return &ItemState{State: Unread, UpdatedAt: item.GetTimestamp()}
 	}
-
-	itemState, foundItem := items[itemID]
-	if !foundItem {
-		return nil
-	}
-
-	return &itemState
+	// Else, return read state.
+	return &ItemState{State: Read, UpdatedAt: u.GetFeedLastRead(item.GetFeedID())}
 }
 
 // MarkItem marks an item with the given state for the user.
 func (u *User) MarkItem(feedID FeedID, itemID ItemID, state State) error {
-	if state == Read && u.HasReadItem(feedID, itemID) {
-		return ErrUserAlreadyReadItem
-	}
-
-	if state == Unread && u.HasUnreadItem(feedID, itemID) {
-		return ErrUserAlreadyUnreadItem
-	}
-
 	if u.FeedItemStates[feedID] == nil {
 		u.FeedItemStates[feedID] = make(map[string]ItemState)
 	}
@@ -194,16 +164,16 @@ func (u *User) GetSubscribedFeedIDs() []FeedID {
 func (u *User) GetCategoryCounts() []CategoryCount {
 	counts := make(map[Category]int64)
 
+	// Tally the count of categories across the user's subscriptions.
 	for _, subscription := range u.Subscriptions {
 		for _, category := range subscription.Categories {
-			// if _, found := counts[category]; !found {
 			counts[category]++
-			// }
 		}
 	}
 
-	var categoryCounts []CategoryCount
+	categoryCounts := make([]CategoryCount, 0, len(counts))
 
+	// Reformat counts into CategoryCount objects.
 	for category, count := range counts {
 		categoryCounts = append(categoryCounts, CategoryCount{Name: category, Count: count})
 	}

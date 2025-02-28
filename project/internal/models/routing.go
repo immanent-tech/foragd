@@ -176,13 +176,21 @@ func WithItemsParam(ids ...ItemID) ParamsOption {
 	}
 }
 
-// WithItems option replaces any existing ItemID filters with the given list.
+// WithCategoriesParam option replaces any existing Categories filters with the given list.
 func WithCategoriesParam(categories ...Category) ParamsOption {
 	return func(v url.Values) url.Values {
 		if len(categories) > 0 {
 			v.Set("categories", strings.Join(categories, ","))
 		}
 
+		return v
+	}
+}
+
+// WithoutCategoriesParam option removes any existing Categories filters.
+func WithoutCategoriesParam() ParamsOption {
+	return func(v url.Values) url.Values {
+		v.Del("categories")
 		return v
 	}
 }

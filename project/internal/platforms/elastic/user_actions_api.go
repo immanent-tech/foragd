@@ -234,7 +234,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 
 		for _, item := range items {
 			// Add the state for the item from the user object, to the item object.
-			if itemState := user.GetItemState(item.FeedID, item.ID); itemState != nil {
+			if itemState := user.GetItemState(&item); itemState != nil {
 				item.SetUserItemState(itemState.State)
 			}
 

@@ -34,16 +34,19 @@ func BuildCategoryFilters(filters *models.APIFilters, allCategories []models.Cat
 			active        bool
 		)
 
-		// Base params should include view and count filters.
-		paramsOptions = append(paramsOptions,
-			models.WithViewParam(filters.View),
-			models.WithCountParam(filters.Count),
-		)
+		// // Base params should include view and count filters.
+		// paramsOptions = append(paramsOptions,
+		// 	models.WithFeedsParam(filters.GetFeeds()...),
+		// 	models.WithViewParam(filters.View),
+		// 	models.WithCountParam(filters.Count),
+		// )
 
 		if len(filters.GetCategories()) > 0 {
 			if slices.Contains(filters.GetCategories(), category.Name) {
 				// This category is being used as a filter.
 				active = true
+				// Remove the categories param.
+				paramsOptions = append(paramsOptions, models.WithoutCategoriesParam())
 			} else {
 				// Add the category as a param.
 				paramsOptions = append(paramsOptions, models.WithCategoriesParam(category.Name))
