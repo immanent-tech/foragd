@@ -17,20 +17,7 @@ type FeedCategoryFilter struct {
 	active bool
 }
 
-func NewCategoryFilter(name models.Category, active bool, req string) FeedCategoryFilter {
-	route := models.BuildRoute(req,
-		models.WithAttributes(templ.Attributes{
-			"hx-target":   "#content",
-			"hx-push-url": "true",
-		}),
-	)
-
-	if active {
-		route = route.UnsetCategories()
-	} else {
-		route = route.SetCategories(name)
-	}
-
+func NewCategoryFilter(name models.Category, active bool, route *models.APIRoute) FeedCategoryFilter {
 	return FeedCategoryFilter{
 		name:   name,
 		active: active,
@@ -38,21 +25,45 @@ func NewCategoryFilter(name models.Category, active bool, req string) FeedCatego
 	}
 }
 
-func BuildCategoryFilters(filteredCategories models.Categories, allCategories []models.CategoryCount, path string) []FeedCategoryFilter {
-	// Build category filters from the categories.
-	filters := make([]FeedCategoryFilter, 0, len(allCategories))
+func BuildCategoryFilters(filters *models.APIFilters, allCategories []models.CategoryCount, path string) []FeedCategoryFilter {
+	categoryFilters := make([]FeedCategoryFilter, 0, len(allCategories))
 
 	for _, category := range allCategories {
-		var active bool
+		var (
+			paramsOptions []models.ParamsOption
+			active        bool
+		)
 
-		if filteredCategories != nil {
-			if slices.Contains(filteredCategories, category.Name) {
+		// Base params should include view and count filters.
+		paramsOptions = append(paramsOptions,
+			models.WithViewParam(filters.View),
+			models.WithCountParam(filters.Count),
+		)
+
+		if len(filters.GetCategories()) > 0 {
+			if slices.Contains(filters.GetCategories(), category.Name) {
+				// This category is being used as a filter.
 				active = true
+			} else {
+				// Add the category as a param.
+				paramsOptions = append(paramsOptions, models.WithCategoriesParam(category.Name))
 			}
+		} else {
+			// Add the category as a param.
+			paramsOptions = append(paramsOptions, models.WithCategoriesParam(category.Name))
 		}
 
-		filters = append(filters, NewCategoryFilter(category.Name, active, path))
+		// Create a route for setting/unsetting this category filter.
+		route := models.BuildRoute(path,
+			models.WithAttributes(templ.Attributes{
+				"hx-target":   "#content",
+				"hx-push-url": "true",
+			}),
+			models.WithParams(paramsOptions...),
+		)
+
+		categoryFilters = append(categoryFilters, NewCategoryFilter(category.Name, active, route))
 	}
 
-	return filters
+	return categoryFilters
 }

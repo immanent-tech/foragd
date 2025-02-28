@@ -11,6 +11,7 @@ import "github.com/joshuar/go-templ-daisyui/modifiers/size"
 import "github.com/joshuar/go-templ-daisyui/display/card"
 import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 import "github.com/joshuar/go-templ-daisyui/display/icon"
+import "github.com/joshuar/go-feed-me/internal/models"
 
 func categoryFiltersControl(filters []partials.FeedCategoryFilter) templ.Component {
 	return dropdown.Build(
@@ -56,7 +57,11 @@ func viewFilterControl(filters *partials.ViewFilter) templ.Component {
 	).Show()
 }
 
-templ FullHeader(categoryFilters []partials.FeedCategoryFilter, viewFilter *partials.ViewFilter) {
+// ListHeader generates a content header for list views. It contains filters and
+// controls for altering the display of lists of content.
+templ ListHeader(filters *models.APIFilters, categories []models.CategoryCount, path string) {
+	{{ categoryFilters := partials.BuildCategoryFilters(filters, categories, path) }}
+	{{ viewFilter := partials.BuildViewFilter(filters.View, path) }}
 	<div id="content_header" hx-swap-oob="true" hx-swap="morph:outerHTML">
 		<div class="navbar bg-base-100">
 			<div class="flex-1">

@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/oapi-codegen/nullable"
 	"github.com/oapi-codegen/runtime"
 
@@ -59,6 +60,8 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
+
+	spew.Dump(filters)
 
 	feedsHandler(s.DataAPI(), res, req, *filters)
 }
@@ -367,17 +370,13 @@ func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Conten
 	if req.Method == http.MethodGet {
 		layout = home.BuildLayout(
 			home.WithContent(cards...),
-			home.WithPart(home.Header,
-				home.FullHeader(
-					partials.BuildCategoryFilters(filters.GetCategories(), categories, req.URL.String()),
-					partials.BuildViewFilter(filters.View, req.URL.String()),
-				),
-			),
+			home.WithPart(home.Header, home.ListHeader(filters, categories, req.URL.Path)),
 			home.WithPart(home.Footer, home.FullFooter(backPath)),
 		)
 	} else {
 		layout = home.BuildLayout(
 			home.WithContent(cards...),
+			home.WithPart(home.Header, home.ListHeader(filters, categories, req.URL.Path)),
 		)
 	}
 	// Render /home/feeds page.

@@ -261,7 +261,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	// filters.Categories = nil
+	filters.Categories = nil
 	// Get the unread counts for the feeds.
 	countResults, err := c.ItemsAggregation(ctx, unreadFeedItemsQuery(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
 	if err != nil {
