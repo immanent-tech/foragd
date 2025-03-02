@@ -135,7 +135,8 @@
     "templ": "html"
   },
   "files.associations": {
-    "*.scss": "tailwindcss"
+    "*.scss": "tailwindcss",
+    "*.css": "tailwindcss"
   },
   "yaml.schemas": {
     "https://spec.openapis.org/oas/3.1/schema/2022-10-07": "file:///workspace/project/api/server/api.yaml"

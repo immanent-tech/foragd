@@ -1,16 +1,9 @@
-/* Copyright 2024 Joshua Rich <joshua.rich@gmail.com>. */
-/* SPDX-License-Identifier: 	AGPL-3.0-or-later */
+$fa-font-path: "../node_modules/@fortawesome/fontawesome-free/webfonts";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-$fa-font-path: '../node_modules/@fortawesome/fontawesome-free/webfonts';
-
-@import '~@fortawesome/fontawesome-free/scss/fontawesome';
-@import '~@fortawesome/fontawesome-free/scss/regular';
-@import '~@fortawesome/fontawesome-free/scss/solid';
-@import '~@fortawesome/fontawesome-free/scss/brands';
+@import "~@fortawesome/fontawesome-free/scss/fontawesome";
+@import "~@fortawesome/fontawesome-free/scss/regular";
+@import "~@fortawesome/fontawesome-free/scss/solid";
+@import "~@fortawesome/fontawesome-free/scss/brands";
 
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;

@@ -34,6 +34,7 @@ templ header(customHeaders []templ.Component) {
 		<link rel="icon" href="/static/favicon.png" sizes="any"/>
 		<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet"/>
 		<link href="/static/styles.css" rel="stylesheet"/>
+		<link href="/static/app.css" rel="stylesheet"/>
 		for _, header := range customHeaders {
 			@header
 		}

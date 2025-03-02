@@ -17,8 +17,9 @@ go.work
 # Don't include local server configuration.
 server.toml
 # Don't include generated files.
-static/styles.*
-static/scripts.*
+static/*.css
+static/*.css.map
+static/*.js
 static/*.woff2
 static/*.ttf
 *_templ.go
