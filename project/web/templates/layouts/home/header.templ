@@ -93,6 +93,18 @@ templ ListHeader(filters *models.APIFilters, categories []models.CategoryCount, 
 }
 
 // ArticleHeader generates a content header for article views.
-templ ArticleHeader() {
-	<div id="content_header" hx-swap-oob="true" hx-swap="morph:outerHTML"></div>
+templ ArticleHeader(item models.APIItem) {
+	<div id="content_header" hx-swap-oob="true" hx-swap="morph:outerHTML">
+		<div class="navbar bg-base-100">
+			<div class="flex-1"></div>
+			<div class="justify-end flex-row-reverse">
+				<form action={ templ.URL(item.GetLink()) } hx-boost="false" method="get" target="_blank">
+					@button.Build(
+						button.AsShape(button.Square, false),
+						button.WithContent(icon.Build("fa-globe")),
+					).Show()
+				</form>
+			</div>
+		</div>
+	</div>
 }

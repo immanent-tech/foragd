@@ -95,7 +95,9 @@ templ showItemCardContent(item *models.APIItem) {
 	<div class="flex">
 		@showTitle(item.GetTitle())
 	</div>
-	@showLastUpdated("Last Updated:", item.GetTimestamp())
+	<div class="flex justify-start left-2 bottom-2">
+		@showLastUpdated("Last Updated:", item.GetTimestamp())
+	</div>
 }
 
 templ (c *Card) Show(classes ...string) {

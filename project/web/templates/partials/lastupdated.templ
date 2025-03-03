@@ -13,10 +13,8 @@ func relativeTime(timestamp time.Time) string {
 // showLastUpdated shows the timestamp indicating last update of an item as a
 // relative time in the bottom left corner.
 templ showLastUpdated(description string, updated time.Time) {
-	<div class="flex justify-start left-2 bottom-2">
-		@text.Build(description+" "+relativeTime(updated),
-			text.WithTextSize(text.XS),
-			text.AsItalicText(),
-		).Show()
-	</div>
+	@text.Build(description+" "+relativeTime(updated),
+		text.WithTextSize(text.XS),
+		text.AsItalicText(),
+	).Show()
 }
