@@ -370,13 +370,13 @@ func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Conten
 	if req.Method == http.MethodGet {
 		layout = home.BuildLayout(
 			home.WithContent(cards...),
-			home.WithPart(home.Header, home.ListHeader(filters, categories, req.URL.String())),
+			home.WithPart(home.Header, home.ListHeader(filters, categories, req.URL.Path)),
 			home.WithPart(home.Footer, home.FullFooter(backPath)),
 		)
 	} else {
 		layout = home.BuildLayout(
 			home.WithContent(cards...),
-			home.WithPart(home.Header, home.ListHeader(filters, categories, req.URL.String())),
+			home.WithPart(home.Header, home.ListHeader(filters, categories, req.URL.Path)),
 		)
 	}
 	// Render /home/feeds page.

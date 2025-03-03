@@ -47,7 +47,7 @@ func inputURL(req *models.APISubscriptionRequest) templ.Component {
 		urlInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["URL"])
 	}
 
-	return urlInput.Show("w-full", "max-w-xs")
+	return urlInput.Show()
 }
 
 // inputName generates the text input for the subscription name.
@@ -78,7 +78,7 @@ func inputName(req *models.APISubscriptionRequest) templ.Component {
 		nameInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["Name"])
 	}
 
-	return nameInput.Show("w-full", "max-w-xs")
+	return nameInput.Show()
 }
 
 // inputName generates the text input for adding a category.
@@ -100,7 +100,7 @@ func inputCategory() templ.Component {
 				button.WithContent(icon.Build("fa-plus")),
 			).Show(),
 		),
-	).Show("w-full", "max-w-xs")
+	).Show()
 }
 
 // categoryItem generates a category in a format suitable for a list.
@@ -125,7 +125,7 @@ func categoryItem(category models.Category) templ.Component {
 				}),
 			).Show(),
 		),
-	).Show("w-full", "max-w-xs")
+	).Show()
 }
 
 // categoriesList generates a list of categories assigned to the subscription,

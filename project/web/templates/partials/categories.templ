@@ -8,9 +8,16 @@ import "github.com/joshuar/go-templ-daisyui/modifiers/size"
 import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 
 templ (category *FeedCategoryFilter) Show() {
+	{{ var styleOption badge.Option }}
+	if category.active {
+		{{ styleOption = badge.WithStyle(badge.Outline) }}
+	} else {
+		{{ styleOption = badge.WithStyle(badge.DashedOutline) }}
+	}
 	@badge.Build(
 		badge.WithSize(size.SM),
-		badge.WithThemeColor(color.Accent, category.active),
+		badge.WithThemeColor(color.Neutral),
+		styleOption,
 		badge.WithContent(category.name),
 		badge.WithExtraAttributes(category.route.Attributes()),
 	).Show("p-1 m-1")

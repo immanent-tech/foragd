@@ -27,6 +27,12 @@ const (
 	ParamItems      ParamName = "items"
 	ParamCategories ParamName = "categories"
 	ParamMark       ParamName = "mark"
+
+	MaxUserCount     = 20
+	MinUserCount     = 1
+	DefaultUserCount = 10
+
+	DefaultUserView = ViewUnread
 )
 
 type ParamName string
@@ -103,9 +109,23 @@ func (f *APIFilters) SetCategories(categories ...Category) {
 	f.Categories.Set(categories)
 }
 
-// GetCount gets the count value from the filters.
+// GetCount gets the count value from the filters. If the Count outside the
+// user-selectable range, the default value will be used.
 func (f *APIFilters) GetCount() int {
+	if f.Count < MinUserCount || f.Count > MaxUserCount {
+		return DefaultUserCount
+	}
+
 	return f.Count
+}
+
+// GetView gets the view value from the filters.
+func (f *APIFilters) GetView() View {
+	if f.View == "" {
+		return DefaultUserView
+	}
+
+	return f.View
 }
 
 // Params encodes the APIFilter values into a url.Values object.

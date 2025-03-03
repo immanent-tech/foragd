@@ -30,7 +30,8 @@ templ showCategories(categories ...models.Category) {
 		for _, category := range categories {
 			@badge.Build(
 				badge.WithSize(size.SM),
-				badge.WithThemeColor(color.Accent, true),
+				badge.WithThemeColor(color.Accent),
+				badge.WithStyle(badge.Outline),
 				badge.WithContent(category),
 			).Show("p-1", "m-1")
 		}
@@ -81,7 +82,7 @@ templ showFeedCardContent(feed *models.APIFeed) {
 		if feed.GetUserUnreadCount() > 0 {
 			@badge.Build(
 				badge.WithSize(size.SM),
-				badge.WithThemeColor(color.Primary, false),
+				badge.WithThemeColor(color.Primary),
 				badge.WithContent(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
 			).Show("absolute", "right-2", "top-2", "p-2")
 		}
