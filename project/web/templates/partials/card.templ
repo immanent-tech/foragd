@@ -21,7 +21,7 @@ templ showTitle(title string) {
 	@text.Build(title,
 		text.WithTextWeight(text.Semibold),
 		text.WithTextSize(text.SM),
-	).Show()
+	).Show("flex-1")
 }
 
 // showCategories shows a list of categories as badges.
@@ -79,17 +79,19 @@ func showCardActions(actions ...templ.Component) []templ.Component {
 
 templ showFeedCardContent(feed *models.APIFeed) {
 	<div hx-disable="true">
-		<div class="flex">
+		<div class="flex flex-wrap gap-2">
+			@showTitle(feed.GetTitle())
 			if feed.GetUserUnreadCount() > 0 {
 				@badge.Build(
 					badge.WithSize(size.SM),
 					badge.WithThemeColor(color.Primary),
 					badge.WithContent(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
-				).Show("absolute", "right-2", "top-2", "p-2")
+				).Show()
 			}
-			@showTitle(feed.GetTitle())
 		</div>
-		@text.Build(feed.GetContent(), text.WithTextSize(text.SM)).Show()
+		if feed.GetContent() != "" {
+			@text.Build(feed.GetContent(), text.WithTextSize(text.SM), text.AsItalicText()).Show()
+		}
 	</div>
 }
 
