@@ -78,25 +78,29 @@ func showCardActions(actions ...templ.Component) []templ.Component {
 }
 
 templ showFeedCardContent(feed *models.APIFeed) {
-	<div class="flex">
-		if feed.GetUserUnreadCount() > 0 {
-			@badge.Build(
-				badge.WithSize(size.SM),
-				badge.WithThemeColor(color.Primary),
-				badge.WithContent(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
-			).Show("absolute", "right-2", "top-2", "p-2")
-		}
-		@showTitle(feed.GetTitle())
+	<div hx-disable="true">
+		<div class="flex">
+			if feed.GetUserUnreadCount() > 0 {
+				@badge.Build(
+					badge.WithSize(size.SM),
+					badge.WithThemeColor(color.Primary),
+					badge.WithContent(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
+				).Show("absolute", "right-2", "top-2", "p-2")
+			}
+			@showTitle(feed.GetTitle())
+		</div>
+		@text.Build(feed.GetContent(), text.WithTextSize(text.SM)).Show()
 	</div>
-	@text.Build(feed.GetContent(), text.WithTextSize(text.SM)).Show()
 }
 
 templ showItemCardContent(item *models.APIItem) {
-	<div class="flex">
-		@showTitle(item.GetTitle())
-	</div>
-	<div class="flex justify-start left-2 bottom-2">
-		@showLastUpdated("Last Updated:", item.GetTimestamp())
+	<div hx-disable="true">
+		<div class="flex">
+			@showTitle(item.GetTitle())
+		</div>
+		<div class="flex justify-start left-2 bottom-2">
+			@showLastUpdated("Last Updated:", item.GetTimestamp())
+		</div>
 	</div>
 }
 

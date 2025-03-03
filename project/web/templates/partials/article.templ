@@ -11,24 +11,26 @@ import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 import "github.com/joshuar/go-templ-daisyui/display/text"
 
 templ showItemArticle(item models.APIItem) {
-	<h2>{ item.GetTitle() }</h2>
-	<div class="flex w-full justify-items-end gap-2 p-2">
-		for _, author := range item.Authors {
-			@text.Build(author.Name, text.WithTextSize(text.XS), text.AsItalicText()).Show()
-		}
-		@showLastUpdated("Last Updated:", item.GetTimestamp())
-	</div>
-	<div class="flex flex-wrap justify-items-center">
-		for _, category := range item.GetCategories() {
-			@badge.Build(
-				badge.WithSize(size.SM),
-				badge.WithThemeColor(color.Neutral),
-				badge.WithStyle(badge.Outline),
-				badge.WithContent(category),
-			).Show("p-1", "m-1")
-		}
-	</div>
-	<div id="article_content">
-		@templ.Raw(item.GetContent())
+	<div hx-disable="true">
+		<h2>{ item.GetTitle() }</h2>
+		<div class="flex w-full justify-items-end gap-2 p-2">
+			for _, author := range item.Authors {
+				@text.Build(author.Name, text.WithTextSize(text.XS), text.AsItalicText()).Show()
+			}
+			@showLastUpdated("Last Updated:", item.GetTimestamp())
+		</div>
+		<div class="flex flex-wrap justify-items-center">
+			for _, category := range item.GetCategories() {
+				@badge.Build(
+					badge.WithSize(size.SM),
+					badge.WithThemeColor(color.Neutral),
+					badge.WithStyle(badge.Outline),
+					badge.WithContent(category),
+				).Show("p-1", "m-1")
+			}
+		</div>
+		<div id="article_content">
+			@templ.Raw(item.GetContent())
+		</div>
 	</div>
 }
