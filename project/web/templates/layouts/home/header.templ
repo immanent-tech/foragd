@@ -91,3 +91,8 @@ templ ListHeader(filters *models.APIFilters, categories []models.CategoryCount, 
 		</div>
 	</div>
 }
+
+// ArticleHeader generates a content header for article views.
+templ ArticleHeader() {
+	<div id="content_header" hx-swap-oob="true" hx-swap="morph:outerHTML"></div>
+}

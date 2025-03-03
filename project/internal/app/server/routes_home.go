@@ -237,6 +237,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 
 	layout := home.BuildLayout(
 		home.WithContent(article),
+		home.WithPart(home.Header, home.ArticleHeader()),
 		home.WithPart(home.Footer, home.FullFooter(session.GetRouteState(req.Context(), "/home/items"))),
 	)
 
