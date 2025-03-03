@@ -52,6 +52,8 @@ func NewSessionManager(store scs.Store) {
 	session.Lifetime = sessionLifetime
 	session.Cookie.Name = sessionCookie
 	session.Cookie.Secure = true
+	session.Cookie.HttpOnly = true
+	session.Cookie.SameSite = http.SameSiteLaxMode
 }
 
 func ClearSession(ctx context.Context) error {
