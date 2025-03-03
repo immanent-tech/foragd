@@ -1,0 +1,29 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package layouts
+
+// Show renders the <head></head> element with the given options.
+templ (head *HeadProps) Show() {
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+		<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+		<link rel="dns-prefetch" href="//fonts.googleapis.com"/>
+		<link rel="dns-prefetch" href="//fonts.gstatic.com"/>
+		<link rel="preconnect" href="//fonts.googleapis.com" crossorigin/>
+		<link rel="preconnect" href="//fonts.gstatic.com" crossorigin/>
+		<link rel="manifest" href="/static/manifest.json"/>
+		<link rel="apple-touch-icon" href="/static/apple-touch-icon.png"/>
+		<link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon"/>
+		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
+		<link rel="icon" href="/static/favicon.png" sizes="any"/>
+		<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet"/>
+		<link href="/static/styles.css" rel="stylesheet"/>
+		<link href="/static/app.css" rel="stylesheet"/>
+		for _, header := range head.extraHeaders {
+			@header
+		}
+		<title>{ head.title }</title>
+	</head>
+}

@@ -4,21 +4,13 @@
 package layouts
 
 import (
-	"strings"
-
 	"github.com/a-h/templ"
 )
 
 // Page represents a page on the website.
 type Props struct {
-	// Content is the page content.
-	Content templ.Component `json:"content"`
-
-	// Headers are additional headers to place in the page <head> element.
-	Headers []templ.Component `json:"headers,omitempty"`
-
-	// Title is the page title.
-	Title string `json:"title"`
+	Content templ.Component
+	Header  *HeadProps
 }
 
 // PageOption is an option that can be applied to a Page.
@@ -28,21 +20,9 @@ type PageContent interface {
 	templ.Component
 }
 
-// WithPageKeywords adds the list of keywords to the "keywords" meta tag in the page
-// header.
-func WithPageKeywords(keywords ...string) PageOption {
-	return func(p *Props) {
-		p.Headers = append(p.Headers,
-			pageMetaTag("keywords", strings.Join(keywords, ",")))
-	}
-}
-
-// WithPageDescription adds the given description to the "description" meta tage in
-// the page header.
-func WithPageDescription(description string) PageOption {
-	return func(p *Props) {
-		p.Headers = append(p.Headers,
-			pageMetaTag("description", description))
+func WithHeadOptions(title string, options ...HeadOption) PageOption {
+	return func(page *Props) {
+		page.Header = BuildHeader(title, options...)
 	}
 }
 
@@ -56,10 +36,8 @@ func WithPageContent(content PageContent) PageOption {
 }
 
 // BuildPage builds a page object from the given options.
-func BuildPage(title string, options ...PageOption) *Props {
-	page := &Props{
-		Title: title,
-	}
+func BuildPage(options ...PageOption) *Props {
+	page := &Props{}
 
 	for _, option := range options {
 		option(page)

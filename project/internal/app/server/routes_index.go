@@ -15,10 +15,13 @@ import (
 
 // Index handler handles the index page.
 func (s Server) Index(res http.ResponseWriter, req *http.Request) {
-	indexPage := layouts.BuildPage("Go Feed Me",
-		layouts.WithPageDescription("Welcome to Go Feed Me."),
-		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		layouts.WithPageContent(layouts.IndexLayout()))
+	indexPage := layouts.BuildPage(
+		layouts.WithHeadOptions("Go Feed Me",
+			layouts.WithPageDescription("Welcome to Go Feed Me."),
+			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+		),
+		layouts.WithPageContent(layouts.IndexLayout()),
+	)
 
 	// Render index page template.
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, indexPage.Show()); err != nil {

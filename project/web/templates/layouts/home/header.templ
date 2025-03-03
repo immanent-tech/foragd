@@ -62,6 +62,11 @@ func viewFilterControl(filters *partials.ViewFilter) templ.Component {
 templ ListHeader(filters *models.APIFilters, categories []models.CategoryCount, path string) {
 	{{ categoryFilters := partials.BuildCategoryFilters(filters, categories, path) }}
 	{{ viewFilter := partials.BuildViewFilter(filters, path) }}
+	// if title != "" {
+	// 	<head>
+	// 		<title>{ title }</title>
+	// 	</head>
+	// }
 	<div id="content_header" hx-swap-oob="true" hx-swap="morph:outerHTML">
 		<div class="navbar bg-base-100">
 			<div class="flex-1">
@@ -94,6 +99,9 @@ templ ListHeader(filters *models.APIFilters, categories []models.CategoryCount, 
 
 // ArticleHeader generates a content header for article views.
 templ ArticleHeader(item models.APIItem) {
+	<head>
+		<title>{ item.GetTitle() }</title>
+	</head>
 	<div id="content_header" hx-swap-oob="true" hx-swap="morph:outerHTML">
 		<div class="navbar bg-base-100">
 			<div class="flex-1"></div>

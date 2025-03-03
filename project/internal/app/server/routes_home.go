@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/oapi-codegen/nullable"
 	"github.com/oapi-codegen/runtime"
 
@@ -60,8 +59,6 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
-
-	spew.Dump(filters)
 
 	feedsHandler(s.DataAPI(), res, req, *filters)
 }
@@ -366,11 +363,23 @@ func markHandler(api *elastic.Client, req *http.Request) error {
 }
 
 func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Content, categories []models.CategoryCount, filters *models.APIFilters, backPath string) {
-	var layout *home.LayoutProps
+	var (
+		layout *home.LayoutProps
+		title  string
+	)
+
+	switch req.URL.Path {
+	case "/home/feeds":
+		title = "Feeds"
+	case "/home/items":
+		title = "Items"
+	}
+
 	// Build page layout.
 	if req.Method == http.MethodGet {
 		layout = home.BuildLayout(
 			home.WithContent(cards...),
+			home.WithTitle(title),
 			home.WithPart(home.Header, home.ListHeader(filters, categories, req.URL.Path)),
 			home.WithPart(home.Footer, home.FullFooter(backPath)),
 		)

@@ -22,10 +22,6 @@ var (
 	ErrHomeFullRender    = errors.New("full render of home failed")
 )
 
-var homePage = layouts.BuildPage("Go Feed Me - Home",
-	layouts.WithPageDescription("Your home."),
-	layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"))
-
 const (
 	AppBar LayoutPart = "appbar"
 	Header LayoutPart = "header"
@@ -50,6 +46,7 @@ type LayoutOption func(*LayoutProps)
 type LayoutProps struct {
 	parts   map[LayoutPart]templ.Component
 	content []Content
+	title   string
 }
 
 // WithPart adds a layout "part"; a component that will be OOB swapped into the
@@ -65,6 +62,13 @@ func WithPart(name LayoutPart, part templ.Component) LayoutOption {
 func WithContent(content ...Content) LayoutOption {
 	return func(layout *LayoutProps) {
 		layout.content = content
+	}
+}
+
+// WithTitle will set a new page title.
+func WithTitle(title string) LayoutOption {
+	return func(layout *LayoutProps) {
+		layout.title = title
 	}
 }
 
@@ -86,6 +90,7 @@ func BuildLayout(options ...LayoutOption) *LayoutProps {
 func (layout *LayoutProps) Render(req *http.Request, res http.ResponseWriter) error {
 	header := req.Header.Get(htmx.HeaderTarget)
 
+	// Render page.
 	switch {
 	case "#"+header == ContentTarget:
 		return layout.PartialRender(req.Context(), res)
@@ -104,7 +109,14 @@ func (layout *LayoutProps) FullRender(ctx context.Context, res http.ResponseWrit
 
 	WithPart(AppBar, appbar.AppBar().Show())(layout)
 
-	layouts.WithPageContent(layout.showFullLayout())(homePage)
+	// Build the full page layout.
+	homePage := layouts.BuildPage(
+		layouts.WithHeadOptions(layout.title,
+			layouts.WithPageDescription("Your home."),
+			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+		),
+		layouts.WithPageContent(layout.showFullLayout()),
+	)
 
 	if err := resp.RenderTempl(ctx, res, homePage.Show()); err != nil {
 		return errors.Join(ErrHomeFullRender, err)
@@ -119,6 +131,13 @@ func (layout *LayoutProps) PartialRender(ctx context.Context, res http.ResponseW
 	var warnings error
 
 	resp := htmx.NewResponse()
+
+	if layout.title != "" {
+		head := layouts.BuildHeader(layout.title)
+		if err := resp.RenderTempl(ctx, res, head.Show()); err != nil {
+			warnings = errors.Join(warnings, fmt.Errorf("could update page title: %w", err))
+		}
+	}
 
 	if err := resp.RenderTempl(ctx, res, layout.ShowContent()); err != nil {
 		return errors.Join(ErrHomePartialRender, fmt.Errorf("could not render content: %w", err))
