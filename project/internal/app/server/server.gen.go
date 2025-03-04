@@ -4,6 +4,7 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -13,19 +14,65 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// MarkMultipleRequest contains data for marking multiple objects.
-type MarkMultipleRequest struct {
+// FeedsPagination contains data for paginating through Feeds.
+type FeedsPagination struct {
+	// FeedID is the unique ID of a feed.
+	FeedID externalRef0.FeedID `form:"feed_id" json:"feed_id" validate:"required"`
+
+	// Timestamp is when the document was created.
+	Timestamp *externalRef0.Timestamp `form:"@timestamp" json:"@timestamp" validate:"required"`
+}
+
+// ItemsPagination contains data for paginating through Feeds.
+type ItemsPagination struct {
+	// ItemID is the unique ID of an item.
+	ItemID externalRef0.ItemID `form:"item_id" json:"item_id" validate:"required"`
+
+	// Timestamp is when the document was created.
+	Timestamp *externalRef0.Timestamp `form:"@timestamp" json:"@timestamp" validate:"required"`
+}
+
+// MarkCategories defines model for MarkCategories.
+type MarkCategories struct {
 	// Categories is a list of categories.
 	Categories nullable.Nullable[externalRef0.Categories] `form:"categories[]" json:"categories"`
 
+	// Mark applies the given mark action to objects.
+	Mark externalRef0.Mark `form:"mark" json:"mark"`
+}
+
+// MarkCommon contains common data for marking objects.
+type MarkCommon struct {
+	// Mark applies the given mark action to objects.
+	Mark externalRef0.Mark `form:"mark" json:"mark"`
+}
+
+// MarkFeeds defines model for MarkFeeds.
+type MarkFeeds struct {
 	// Feeds is a list of feed IDs.
 	Feeds nullable.Nullable[externalRef0.FeedIDs] `form:"feeds[]" json:"feeds"`
 
+	// Mark applies the given mark action to objects.
+	Mark externalRef0.Mark `form:"mark" json:"mark"`
+}
+
+// MarkItems defines model for MarkItems.
+type MarkItems struct {
 	// Items is a list of items IDs.
 	Items nullable.Nullable[externalRef0.ItemIDs] `form:"items[]" json:"items"`
 
 	// Mark applies the given mark action to objects.
 	Mark externalRef0.Mark `form:"mark" json:"mark"`
+}
+
+// MarkObjects mark one or more objects
+type MarkObjects struct {
+	union json.RawMessage
+}
+
+// Pagination contains data for paginating through objects.
+type Pagination struct {
+	union json.RawMessage
 }
 
 // Categories is a list of categories.
@@ -57,8 +104,24 @@ type HandleShowFeedsParams struct {
 	Count      Count       `form:"count" json:"count"`
 }
 
+// HandlePaginateFeedsParams defines parameters for HandlePaginateFeeds.
+type HandlePaginateFeedsParams struct {
+	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty"`
+	Categories *Categories `form:"categories[]" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
+}
+
 // HandleShowItemsParams defines parameters for HandleShowItems.
 type HandleShowItemsParams struct {
+	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty"`
+	Categories *Categories `form:"categories[]" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
+}
+
+// HandlePaginateItemsParams defines parameters for HandlePaginateItems.
+type HandlePaginateItemsParams struct {
 	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty"`
 	Categories *Categories `form:"categories[]" json:"categories,omitempty"`
 	View       View        `form:"view" json:"view"`
@@ -78,10 +141,16 @@ type AddSubscriptionCategoryFormdataBody struct {
 }
 
 // HandleMarkFeedsFormdataRequestBody defines body for HandleMarkFeeds for application/x-www-form-urlencoded ContentType.
-type HandleMarkFeedsFormdataRequestBody = MarkMultipleRequest
+type HandleMarkFeedsFormdataRequestBody = MarkObjects
+
+// HandlePaginateFeedsFormdataRequestBody defines body for HandlePaginateFeeds for application/x-www-form-urlencoded ContentType.
+type HandlePaginateFeedsFormdataRequestBody = Pagination
 
 // HandleMarkItemsFormdataRequestBody defines body for HandleMarkItems for application/x-www-form-urlencoded ContentType.
-type HandleMarkItemsFormdataRequestBody = MarkMultipleRequest
+type HandleMarkItemsFormdataRequestBody = MarkObjects
+
+// HandlePaginateItemsFormdataRequestBody defines body for HandlePaginateItems for application/x-www-form-urlencoded ContentType.
+type HandlePaginateItemsFormdataRequestBody = Pagination
 
 // AddSubscriptionCategoryFormdataRequestBody defines body for AddSubscriptionCategory for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
@@ -94,6 +163,156 @@ type SaveSubscriptionFormdataRequestBody = externalRef0.APISubscriptionRequest
 
 // AddUserFormdataRequestBody defines body for AddUser for application/x-www-form-urlencoded ContentType.
 type AddUserFormdataRequestBody = externalRef0.APIUserSignupRequest
+
+// AsMarkFeeds returns the union data inside the MarkObjects as a MarkFeeds
+func (t MarkObjects) AsMarkFeeds() (MarkFeeds, error) {
+	var body MarkFeeds
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromMarkFeeds overwrites any union data inside the MarkObjects as the provided MarkFeeds
+func (t *MarkObjects) FromMarkFeeds(v MarkFeeds) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeMarkFeeds performs a merge with any union data inside the MarkObjects, using the provided MarkFeeds
+func (t *MarkObjects) MergeMarkFeeds(v MarkFeeds) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsMarkItems returns the union data inside the MarkObjects as a MarkItems
+func (t MarkObjects) AsMarkItems() (MarkItems, error) {
+	var body MarkItems
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromMarkItems overwrites any union data inside the MarkObjects as the provided MarkItems
+func (t *MarkObjects) FromMarkItems(v MarkItems) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeMarkItems performs a merge with any union data inside the MarkObjects, using the provided MarkItems
+func (t *MarkObjects) MergeMarkItems(v MarkItems) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsMarkCategories returns the union data inside the MarkObjects as a MarkCategories
+func (t MarkObjects) AsMarkCategories() (MarkCategories, error) {
+	var body MarkCategories
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromMarkCategories overwrites any union data inside the MarkObjects as the provided MarkCategories
+func (t *MarkObjects) FromMarkCategories(v MarkCategories) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeMarkCategories performs a merge with any union data inside the MarkObjects, using the provided MarkCategories
+func (t *MarkObjects) MergeMarkCategories(v MarkCategories) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t MarkObjects) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *MarkObjects) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsFeedsPagination returns the union data inside the Pagination as a FeedsPagination
+func (t Pagination) AsFeedsPagination() (FeedsPagination, error) {
+	var body FeedsPagination
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFeedsPagination overwrites any union data inside the Pagination as the provided FeedsPagination
+func (t *Pagination) FromFeedsPagination(v FeedsPagination) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFeedsPagination performs a merge with any union data inside the Pagination, using the provided FeedsPagination
+func (t *Pagination) MergeFeedsPagination(v FeedsPagination) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsItemsPagination returns the union data inside the Pagination as a ItemsPagination
+func (t Pagination) AsItemsPagination() (ItemsPagination, error) {
+	var body ItemsPagination
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromItemsPagination overwrites any union data inside the Pagination as the provided ItemsPagination
+func (t *Pagination) FromItemsPagination(v ItemsPagination) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeItemsPagination performs a merge with any union data inside the Pagination, using the provided ItemsPagination
+func (t *Pagination) MergeItemsPagination(v ItemsPagination) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Pagination) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Pagination) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -109,12 +328,18 @@ type ServerInterface interface {
 	// Mark feeds.
 	// (POST /home/feeds)
 	HandleMarkFeeds(w http.ResponseWriter, r *http.Request)
+	// Paginate through feeds with optional filtering applied.
+	// (POST /home/feeds/paginate)
+	HandlePaginateFeeds(w http.ResponseWriter, r *http.Request, params HandlePaginateFeedsParams)
 	// Shows items with optional filtering applied.
 	// (GET /home/items)
 	HandleShowItems(w http.ResponseWriter, r *http.Request, params HandleShowItemsParams)
 	// Mark feeds.
 	// (POST /home/items)
 	HandleMarkItems(w http.ResponseWriter, r *http.Request)
+	// Paginate through items with optional filtering applied.
+	// (POST /home/items/paginate)
+	HandlePaginateItems(w http.ResponseWriter, r *http.Request, params HandlePaginateItemsParams)
 	// Show user settings modal
 	// (GET /home/settings)
 	GetHomeSettings(w http.ResponseWriter, r *http.Request)
@@ -198,6 +423,12 @@ func (_ Unimplemented) HandleMarkFeeds(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Paginate through feeds with optional filtering applied.
+// (POST /home/feeds/paginate)
+func (_ Unimplemented) HandlePaginateFeeds(w http.ResponseWriter, r *http.Request, params HandlePaginateFeedsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Shows items with optional filtering applied.
 // (GET /home/items)
 func (_ Unimplemented) HandleShowItems(w http.ResponseWriter, r *http.Request, params HandleShowItemsParams) {
@@ -207,6 +438,12 @@ func (_ Unimplemented) HandleShowItems(w http.ResponseWriter, r *http.Request, p
 // Mark feeds.
 // (POST /home/items)
 func (_ Unimplemented) HandleMarkItems(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Paginate through items with optional filtering applied.
+// (POST /home/items/paginate)
+func (_ Unimplemented) HandlePaginateItems(w http.ResponseWriter, r *http.Request, params HandlePaginateItemsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -432,6 +669,71 @@ func (siw *ServerInterfaceWrapper) HandleMarkFeeds(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// HandlePaginateFeeds operation middleware
+func (siw *ServerInterfaceWrapper) HandlePaginateFeeds(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params HandlePaginateFeedsParams
+
+	// ------------- Optional query parameter "feeds" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HandlePaginateFeeds(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // HandleShowItems operation middleware
 func (siw *ServerInterfaceWrapper) HandleShowItems(w http.ResponseWriter, r *http.Request) {
 
@@ -511,6 +813,71 @@ func (siw *ServerInterfaceWrapper) HandleMarkItems(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// HandlePaginateItems operation middleware
+func (siw *ServerInterfaceWrapper) HandlePaginateItems(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params HandlePaginateItemsParams
+
+	// ------------- Optional query parameter "feeds" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HandlePaginateItems(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetHomeSettings operation middleware
 func (siw *ServerInterfaceWrapper) GetHomeSettings(w http.ResponseWriter, r *http.Request) {
 
@@ -533,7 +900,7 @@ func (siw *ServerInterfaceWrapper) HandleUnsaveItem(w http.ResponseWriter, r *ht
 	// ------------- Path parameter "feed" -------------
 	var feed FeedID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
 		return
@@ -542,7 +909,7 @@ func (siw *ServerInterfaceWrapper) HandleUnsaveItem(w http.ResponseWriter, r *ht
 	// ------------- Path parameter "item" -------------
 	var item ItemID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
 		return
@@ -567,7 +934,7 @@ func (siw *ServerInterfaceWrapper) HandleShowItem(w http.ResponseWriter, r *http
 	// ------------- Path parameter "feed" -------------
 	var feed FeedID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
 		return
@@ -576,7 +943,7 @@ func (siw *ServerInterfaceWrapper) HandleShowItem(w http.ResponseWriter, r *http
 	// ------------- Path parameter "item" -------------
 	var item ItemID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
 		return
@@ -601,7 +968,7 @@ func (siw *ServerInterfaceWrapper) HandleSaveItem(w http.ResponseWriter, r *http
 	// ------------- Path parameter "feed" -------------
 	var feed FeedID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
 		return
@@ -610,7 +977,7 @@ func (siw *ServerInterfaceWrapper) HandleSaveItem(w http.ResponseWriter, r *http
 	// ------------- Path parameter "item" -------------
 	var item ItemID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
 		return
@@ -635,7 +1002,7 @@ func (siw *ServerInterfaceWrapper) HandleMarkItem(w http.ResponseWriter, r *http
 	// ------------- Path parameter "feed" -------------
 	var feed FeedID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
 		return
@@ -644,7 +1011,7 @@ func (siw *ServerInterfaceWrapper) HandleMarkItem(w http.ResponseWriter, r *http
 	// ------------- Path parameter "item" -------------
 	var item ItemID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
 		return
@@ -653,7 +1020,7 @@ func (siw *ServerInterfaceWrapper) HandleMarkItem(w http.ResponseWriter, r *http
 	// ------------- Path parameter "mark" -------------
 	var mark Mark
 
-	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
 		return
@@ -856,7 +1223,7 @@ func (siw *ServerInterfaceWrapper) RemoveSubscription(w http.ResponseWriter, r *
 	// ------------- Path parameter "feed" -------------
 	var feed FeedID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
 		return
@@ -881,7 +1248,7 @@ func (siw *ServerInterfaceWrapper) ShowSubscription(w http.ResponseWriter, r *ht
 	// ------------- Path parameter "feed" -------------
 	var feed FeedID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
 		return
@@ -906,7 +1273,7 @@ func (siw *ServerInterfaceWrapper) SaveSubscription(w http.ResponseWriter, r *ht
 	// ------------- Path parameter "feed" -------------
 	var feed FeedID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: false})
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
 		return
@@ -1077,10 +1444,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/home/feeds", wrapper.HandleMarkFeeds)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/home/feeds/paginate", wrapper.HandlePaginateFeeds)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/items", wrapper.HandleShowItems)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/home/items", wrapper.HandleMarkItems)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/home/items/paginate", wrapper.HandlePaginateItems)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)

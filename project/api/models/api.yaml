@@ -1,10 +1,12 @@
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
-openapi: '3.1.0'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
+openapi: '3.0.0'
 info:
   version: 1.0.0
   title: Common API
   description: Common API objects and fields.
+paths: {}
 components:
   schemas:
     Count:

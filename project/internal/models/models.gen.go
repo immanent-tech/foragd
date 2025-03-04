@@ -23,7 +23,7 @@ const (
 // APIFeed defines model for APIFeed.
 type APIFeed struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt *CreatedAt `json:"created_at,omitempty"`
+	CreatedAt *CreatedAt `form:"created_at" json:"created_at,omitempty"`
 
 	// ID is the unique ID of a feed.
 	ID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
@@ -32,7 +32,7 @@ type APIFeed struct {
 	FeedURL FeedURL `json:"feedLink" validate:"required,url"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt  *UpdatedAt       `json:"updated_at,omitempty"`
+	UpdatedAt  *UpdatedAt       `form:"updated_at" json:"updated_at,omitempty"`
 	Authors    []*gofeed.Person `json:"authors,omitempty"`
 	Categories []Category       `json:"categories,omitempty"`
 	Copyright  string           `json:"copyright,omitempty"`
@@ -63,7 +63,7 @@ type APIFeedState struct {
 	FeedURL FeedURL `json:"feedLink" validate:"required,url"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
+	UpdatedAt *UpdatedAt `form:"updated_at" json:"updated_at,omitempty"`
 }
 
 // APIItem defines model for APIItem.
@@ -151,7 +151,7 @@ type ItemState struct {
 	State State `form:"state" json:"state"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at,omitempty"`
+	UpdatedAt UpdatedAt `form:"updated_at" json:"updated_at,omitempty"`
 }
 
 // ItemURL A URL to view the original item.
@@ -163,10 +163,10 @@ type MarkedRead = time.Time
 // MetadataDB contains common (metadata) fields for database objects.
 type MetadataDB struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt *CreatedAt `json:"created_at,omitempty"`
+	CreatedAt *CreatedAt `form:"created_at" json:"created_at,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
+	UpdatedAt *UpdatedAt `form:"updated_at" json:"updated_at,omitempty"`
 }
 
 // MetadataFeed contains common/metadata fields for feeds and items.
@@ -187,7 +187,7 @@ type MetadataFeed struct {
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt                `json:"created_at,omitempty"`
+	CreatedAt CreatedAt                `form:"created_at" json:"created_at,omitempty"`
 	Data      ScheduledJob_Data        `json:"job_data"`
 	NextRun   time.Time                `json:"job_next_run"`
 	Options   *quartz.JobDetailOptions `json:"job_options,omitempty"`
@@ -211,13 +211,13 @@ type State string
 // SubscriptionState Contains fields to rack a subscription state.
 type SubscriptionState struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at,omitempty"`
+	CreatedAt CreatedAt `form:"created_at" json:"created_at,omitempty"`
 
 	// MarkedRead records when the object was last marked read.
 	MarkedRead *MarkedRead `json:"marked_read,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt  *UpdatedAt `json:"updated_at,omitempty"`
+	UpdatedAt  *UpdatedAt `form:"updated_at" json:"updated_at,omitempty"`
 	Categories []Category `json:"categories,omitempty"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
@@ -243,13 +243,13 @@ type UpdatedAt = time.Time
 // User defines model for User.
 type User struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt *CreatedAt `json:"created_at,omitempty"`
+	CreatedAt *CreatedAt `form:"created_at" json:"created_at,omitempty"`
 
 	// ID is the unique ID of a user.
 	ID UserID `form:"user_id" json:"user_id" validate:"required"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
+	UpdatedAt *UpdatedAt `form:"updated_at" json:"updated_at,omitempty"`
 
 	// FeedItemStates Tracks state of inidividual items per feed.
 	FeedItemStates map[string]map[string]ItemState `json:"feed_item_states,omitempty"`

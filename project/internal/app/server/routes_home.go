@@ -5,7 +5,6 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -63,8 +62,12 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	feedsHandler(s.DataAPI(), res, req, *filters)
 }
 
+func (s Server) HandlePaginateFeeds(res http.ResponseWriter, req *http.Request, params HandlePaginateFeedsParams) {
+	res.WriteHeader(http.StatusNotImplemented)
+}
+
 func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
-	// Create filters for API requests.
+	// Get the view filters for reloading the page.
 	filters, err := models.FiltersFromQuery(models.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
@@ -72,17 +75,66 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 
 		return
 	}
-
-	err = markHandler(s.DataAPI(), req)
-	if err != nil {
+	// Get the mark request.
+	marks, valid, err := forms.DecodeCustom(req, DecodeMarkFeeds)
+	if err != nil || !valid {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 
 		return
 	}
-
+	// Get the list of feeds to mark.
+	feeds, err := marks.Feeds.Get()
+	if err != nil {
+		return
+	}
+	// Mark the feeds.
+	if err := s.DataAPI().UserActionMarkFeeds(req.Context(), marks.Mark, feeds...); err != nil {
+		return
+	}
 	// Reload the home page.
 	feedsHandler(s.DataAPI(), res, req, *filters)
+}
+
+// DecodeMarkFeeds is a custom decoder function to decode a request for marking
+// Feeds.
+func DecodeMarkFeeds(values url.Values) (*MarkFeeds, error) {
+	request := &MarkFeeds{}
+
+	var (
+		err     error
+		feedIDs *models.FeedIDs
+	)
+
+	// Parse feeds param.
+	err = runtime.BindQueryParameter("form", true, false, string(models.ParamFeeds), values, &feedIDs)
+	if err != nil {
+		return nil, errors.Join(ErrParseMarkRequest, err)
+	}
+
+	if feedIDs != nil {
+		request.Feeds = nullable.NewNullableWithValue(*feedIDs)
+	}
+	// Parse mark param.
+	if request.Mark = models.Mark(values.Get(string(models.ParamMark))); request.Mark == "" {
+		return nil, errors.Join(ErrParseMarkRequest, err)
+	}
+
+	return request, nil
+}
+
+// Valid checks that the MarkFeeds object is valid.
+func (f *MarkFeeds) Valid() bool {
+	// Must have valid mark value.
+	if !(f.Mark == models.MarkRead || f.Mark == models.MarkUnread) {
+		return false
+	}
+	// Feeds must be specified.
+	if !f.Feeds.IsSpecified() {
+		return false
+	}
+
+	return true
 }
 
 // feedsHandler handles a list of feeds.
@@ -140,6 +192,10 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 	itemsHandler(s.DataAPI(), res, req, *filters)
 }
 
+func (s Server) HandlePaginateItems(res http.ResponseWriter, req *http.Request, params HandlePaginateItemsParams) {
+	res.WriteHeader(http.StatusNotImplemented)
+}
+
 func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	// Create filters for API requests.
 	filters, err := models.FiltersFromQuery(models.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
@@ -149,17 +205,66 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 
 		return
 	}
-
-	err = markHandler(s.DataAPI(), req)
-	if err != nil {
+	// Get the mark request.
+	marks, valid, err := forms.DecodeCustom(req, DecodeMarkItems)
+	if err != nil || !valid {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 
 		return
 	}
-
+	// Get the list of feeds to mark.
+	items, err := marks.Items.Get()
+	if err != nil {
+		return
+	}
+	// Mark the feeds.
+	if err := s.DataAPI().UserActionMarkItems(req.Context(), marks.Mark, items...); err != nil {
+		return
+	}
 	// Reload page.
 	itemsHandler(s.DataAPI(), res, req, *filters)
+}
+
+// DecodeMarkItems is a custom decoder function to decode a request for marking
+// Items.
+func DecodeMarkItems(values url.Values) (*MarkItems, error) {
+	request := &MarkItems{}
+
+	var (
+		err     error
+		itemIDs *models.ItemIDs
+	)
+
+	// Parse feeds param.
+	err = runtime.BindQueryParameter("form", true, false, string(models.ParamItems), values, &itemIDs)
+	if err != nil {
+		return nil, errors.Join(ErrParseMarkRequest, err)
+	}
+
+	if itemIDs != nil {
+		request.Items = nullable.NewNullableWithValue(*itemIDs)
+	}
+	// Parse mark param.
+	if request.Mark = models.Mark(values.Get(string(models.ParamMark))); request.Mark == "" {
+		return nil, errors.Join(ErrParseMarkRequest, err)
+	}
+
+	return request, nil
+}
+
+// Valid checks that the MarkItems object is valid.
+func (f *MarkItems) Valid() bool {
+	// Must have valid mark value.
+	if !(f.Mark == models.MarkRead || f.Mark == models.MarkUnread) {
+		return false
+	}
+	// Items must be specified.
+	if !f.Items.IsSpecified() {
+		return false
+	}
+
+	return true
 }
 
 // itemsHandler handles a list of items.
@@ -261,105 +366,6 @@ func (s Server) HandleSaveItem(res http.ResponseWriter, req *http.Request, feed 
 
 func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
 	res.WriteHeader(http.StatusNotImplemented)
-}
-
-// DecodeMarkRequest is a custom decoder function to decode the mark request
-// body.
-func DecodeMarkRequest(values url.Values) (*MarkMultipleRequest, error) {
-	request := &MarkMultipleRequest{}
-
-	var (
-		err        error
-		feedIDs    *models.FeedIDs
-		itemIDs    *models.ItemIDs
-		categories *models.Categories
-	)
-
-	// Parse feeds param.
-	err = runtime.BindQueryParameter("form", true, false, string(models.ParamFeeds), values, &feedIDs)
-	if err != nil {
-		return nil, errors.Join(ErrParseMarkRequest, err)
-	}
-
-	if feedIDs != nil {
-		request.Feeds = nullable.NewNullableWithValue(*feedIDs)
-	}
-	// Parse item params.
-	err = runtime.BindQueryParameter("form", true, false, string(models.ParamItems), values, &itemIDs)
-	if err != nil {
-		return nil, errors.Join(ErrParseMarkRequest, err)
-	}
-
-	if itemIDs != nil {
-		request.Items = nullable.NewNullableWithValue(*itemIDs)
-	}
-	// Parse categories param.
-	err = runtime.BindQueryParameter("form", true, false, string(models.ParamCategories), values, &categories)
-	if err != nil {
-		return nil, errors.Join(ErrParseMarkRequest, err)
-	}
-
-	if categories != nil {
-		request.Categories = nullable.NewNullableWithValue(*categories)
-	}
-	// Parse mark param.
-	if request.Mark = models.Mark(values.Get(string(models.ParamMark))); request.Mark == "" {
-		return nil, errors.Join(ErrParseMarkRequest, err)
-	}
-
-	return request, nil
-}
-
-// Valid checks that the MarkMultipleRequest object is valid.
-func (f *MarkMultipleRequest) Valid() bool {
-	// Must have valid mark value.
-	if !(f.Mark == models.MarkRead || f.Mark == models.MarkUnread) {
-		return false
-	}
-	// Feeds or Items must be specified.
-	if !f.Feeds.IsSpecified() && !f.Items.IsSpecified() {
-		return false
-	}
-
-	return true
-}
-
-// markHandler handles parsing a mark request and performing the appropriate
-// mark action on the requested feeds/items/categories.
-func markHandler(api *elastic.Client, req *http.Request) error {
-	// Decode mark parameters.
-	marks, valid, err := forms.DecodeCustom(req, DecodeMarkRequest)
-	if err != nil || !valid {
-		return fmt.Errorf("unable to decode mark form data: %w", err)
-	}
-
-	// Mark any requested feeds.
-	if marks.Feeds.IsSpecified() {
-		// Get the list of feeds to mark.
-		feeds, err := marks.Feeds.Get()
-		if err != nil {
-			return fmt.Errorf("unable to retrieve feeds to mark: %w", err)
-		}
-		// Mark the feeds.
-		if err := api.UserActionMarkFeeds(req.Context(), marks.Mark, feeds...); err != nil {
-			return fmt.Errorf("unable to mark feeds %s: %w", marks.Mark, err)
-		}
-	}
-
-	// Mark any requested items.
-	if marks.Items.IsSpecified() {
-		// Get the list of feeds to mark.
-		items, err := marks.Items.Get()
-		if err != nil {
-			return fmt.Errorf("unable to retrieve items to mark: %w", err)
-		}
-		// Mark feed.
-		if err := api.UserActionMarkItems(req.Context(), marks.Mark, items...); err != nil {
-			return fmt.Errorf("unable to mark items %s: %w", marks.Mark, err)
-		}
-	}
-
-	return nil
 }
 
 func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Content, categories []models.CategoryCount, filters *models.APIFilters, backPath string) {

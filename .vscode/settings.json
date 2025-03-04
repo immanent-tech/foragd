@@ -1,52 +1,28 @@
 {
-  "terminal.integrated.defaultProfile.linux": "fish",
-  "terminal.integrated.cwd": "${workspaceFolder}/project",
-  "editor.formatOnSave": true,
-  "gopls": {
-    "formatting.local": "github.com/joshuar/go-feed-me",
-    "ui.semanticTokens": true,
-    "ui.noSemanticString": true, // delegates string syntax highlighting to vscode
-    "ui.noSemanticNumber": true, // delegates number syntax highlighting to vscode
-    "formatting.gofumpt": true,
-    "ui.diagnostic.analyses": {
-      "unusedvariable": true,
-      "copylocks": false,
+  "[go.mod]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always"
     }
   },
-  "files.exclude": {
-    "**/.git": true,
-    "**/.svn": true,
-    "**/.hg": true,
-    "**/CVS": true,
-    "**/.DS_Store": true,
-    "**/Thumbs.db": true,
-    "**/*_templ.go": true,
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "always",
+      "source.organizeImports": "always"
+    }
   },
-  "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
-  "licenser.license": "AGPLv3",
-  "licenser.useSPDXLicenseFormat": true,
+  "[templ]": {
+    "editor.defaultFormatter": "a-h.templ"
+  },
+  "conventionalCommits.lineBreak": "\\n",
   "conventionalCommits.scopes": [
-    "server",
-    "css",
-    "vscode",
-    "go",
     "devcontainer",
-    "user",
-    "handlers",
-    "git",
-    "templates",
     "platforms/auth0",
-    "resources",
     "templates/components",
-    "platforms/postgres",
-    "git/github",
-    "ci/github",
     "models",
     "platforms/elastic",
-    "templates/meta",
     "components/layout",
     "components/image",
-    "assets",
     "components/card",
     "components/table",
     "components/tabs",
@@ -54,7 +30,6 @@
     "templates/partials",
     "components/tooltip",
     "components/menu",
-    "components",
     "modifiers/size",
     "modifiers/alignment",
     "modifiers/layout",
@@ -69,9 +44,6 @@
     "components/header",
     "components/size",
     "components/article",
-    "middlewares",
-    "models,server",
-    "logging",
     "modifiers/z-index",
     "components/drawer",
     "templates/layouts",
@@ -83,7 +55,6 @@
     "modifiers/mask",
     "modifiers/object",
     "modifiers/color",
-    "routes/home",
     "components/form",
     "components/dropdown",
     "components/alert",
@@ -105,41 +76,54 @@
     "session",
     "api",
     "classes",
-    "classes/opacity"
+    "classes/opacity",
+    "routes/home"
   ],
+  "editor.formatOnSave": true,
   "emmet.includeLanguages": {
     "templ": "html"
   },
-  "conventionalCommits.lineBreak": "\\n",
-  "go.lintTool": "golangci-lint",
+  "files.associations": {
+    "*.css": "tailwindcss",
+    "*.scss": "tailwindcss"
+  },
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/.git": true,
+    "**/.hg": true,
+    "**/.svn": true,
+    "**/*_templ.go": true,
+    "**/CVS": true,
+    "**/Thumbs.db": true
+  },
   "go.lintFlags": [
     "--fast"
   ],
+  "go.lintTool": "golangci-lint",
   "go.useLanguageServer": true,
-  "[go]": {
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": "always",
-      "source.fixAll": "always"
+  "gopls": {
+    "ui.semanticTokens": true,
+    "formatting.gofumpt": true,
+    "formatting.local": "github.com/joshuar/go-feed-me",
+    "ui.diagnostic.analyses": {
+      "copylocks": false,
+      "unusedvariable": true
     }
   },
-  "[go.mod]": {
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": "always"
-    }
-  },
+  "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
+  "licenser.license": "AGPLv3",
+  "licenser.useSPDXLicenseFormat": true,
   "ltex.language": "en-AU",
-  "[templ]": {
-    "editor.defaultFormatter": "a-h.templ"
-  },
   "tailwindCSS.includeLanguages": {
     "templ": "html"
   },
-  "files.associations": {
-    "*.scss": "tailwindcss",
-    "*.css": "tailwindcss"
-  },
+  "terminal.integrated.cwd": "${workspaceFolder}/project",
+  "terminal.integrated.defaultProfile.linux": "fish",
+  "terminal.integrated.scrollback": 10000,
   "yaml.schemas": {
-    "https://spec.openapis.org/oas/3.1/schema/2022-10-07": "file:///workspace/project/api/server/api.yaml"
-  },
-  "terminal.integrated.scrollback": 10000
+    "https://spec.openapis.org/oas/3.0/schema/2021-09-28": "file:///workspace/project/api/server/server.yaml",
+    "https://spec.openapis.org/oas/3.1/schema/2022-10-07": [
+      "file:///workspace/project/api/server/api.yaml"
+    ]
+  }
 }

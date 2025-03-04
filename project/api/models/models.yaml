@@ -1,10 +1,12 @@
 # Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
-openapi: '3.1.0'
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
+openapi: '3.0.0'
 info:
   version: 1.0.0
   title: Common Models
   description: Common objects and fields.
+paths: {}
 components:
   schemas:
     # Common Fields.
@@ -13,17 +15,20 @@ components:
       x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
         json: "@timestamp"
+        form: '@timestamp'
         validate: "required"
     CreatedAt:
       description: records when the object was created in the database.
       x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
         json: 'created_at,omitempty'
+        form: 'created_at'
     UpdatedAt:
       description: records when the object was last updated in the database.
       x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
         json: 'updated_at,omitempty'
+        form: 'updated_at'
     MarkedRead:
       description: records when the object was last marked read.
       x-go-type: 'time.Time'
