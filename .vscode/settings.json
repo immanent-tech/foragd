@@ -9,7 +9,7 @@
     "editor.codeActionsOnSave": {
       "source.fixAll": "always",
       "source.organizeImports": "always"
-    }
+    },
   },
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
@@ -101,14 +101,16 @@
   ],
   "go.lintTool": "golangci-lint",
   "go.useLanguageServer": true,
+  "go.diagnostic.vulncheck": "Imports",
+  "go.formatTool": "goimports",
   "gopls": {
     "ui.semanticTokens": true,
-    "formatting.gofumpt": true,
     "formatting.local": "github.com/joshuar/go-feed-me",
     "ui.diagnostic.analyses": {
       "copylocks": false,
       "unusedvariable": true
-    }
+    },
+    "ui.diagnostic.staticcheck": true
   },
   "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
   "licenser.license": "AGPLv3",

@@ -1,5 +1,6 @@
 run:
   timeout: 5m
+  relative-path-mode: gomod
 
 output:
   sort-results: true
@@ -52,9 +53,9 @@ linters:
     - godot
     # - godox
     # - gofmt # gofumpt includes formatting rules that are a superset of gofmt.
-    - gofumpt
+    # - gofumpt
     - goheader
-    # - goimports # gci has equivalent/better functionality.
+    - goimports # gci has equivalent/better functionality.
     # - gomoddirectives
     # - gomodguard
     - goprintffuncname
@@ -101,11 +102,11 @@ linters:
     - stylecheck
     # - tagalign
     - tagliatelle
-    - tenv
+    # - tenv
     - testableexamples
     - testifylint
     # - testpackage
-    - thelper
+    # - thelper
     # - tparallel
     - typecheck
     - unconvert
@@ -116,29 +117,152 @@ linters:
     # - wastedassign
     # - whitespace
     - wrapcheck
-    - wsl
+    # - wsl
     # - zerologlint
 
 issues:
   exclude-rules:
     - path: '(.+)_test\.go'
       linters:
-        - funlen
-        - varnamelen
-        - wsl
+        - bodyclose
         - dupl
+        - errcheck
+        - funlen
+        - goconst
+        - gosec
+        - noctx
+        - wrapcheck
   exclude-files:
     - '(.+)\.gen\.go$'
-    - '(.+)_generated.go$'
+    - "(.+)_generated.go$"
+  max-same-issues: 50
 
 severity:
-  default-severity: '@linter'
+  default-severity: "@linter"
   case-sensitive: false
 
 linters-settings:
+  cyclop:
+    # The maximal code complexity to report.
+    # Default: 10
+    max-complexity: 30
+    # The maximal average package complexity.
+    # If it's higher than 0.0 (float) the check is enabled
+    # Default: 0.0
+    package-average: 10.0
   errcheck:
     check-blank: true
     check-type-assertions: true
+  exhaustive:
+    # Program elements to check for exhaustiveness.
+    # Default: [ switch ]
+    check:
+      - switch
+      - map
+  exhaustruct:
+    # List of regular expressions to exclude struct packages and their names from checks.
+    # Regular expressions must match complete canonical struct package/name/structname.
+    # Default: []
+    exclude:
+      # std libs
+      - "^net/http.Client$"
+      - "^net/http.Cookie$"
+      - "^net/http.Request$"
+      - "^net/http.Response$"
+      - "^net/http.Server$"
+      - "^net/http.Transport$"
+      - "^net/url.URL$"
+      - "^os/exec.Cmd$"
+      - "^reflect.StructField$"
+  funlen:
+    # Checks the number of lines in a function.
+    # If lower than 0, disable the check.
+    # Default: 60
+    lines: 100
+    # Checks the number of statements in a function.
+    # If lower than 0, disable the check.
+    # Default: 40
+    statements: 50
+    # Ignore comments when counting lines.
+    # Default false
+    ignore-comments: true
+  gochecksumtype:
+    # Presence of `default` case in switch statements satisfies exhaustiveness, if all members are not listed.
+    # Default: true
+    default-signifies-exhaustive: false
+  gocognit:
+    # Minimal code complexity to report.
+    # Default: 30 (but we recommend 10-20)
+    min-complexity: 20
+  gocritic:
+    # Settings passed to gocritic.
+    # The settings key is the name of a supported gocritic checker.
+    # The list of supported checkers can be find in https://go-critic.github.io/overview.
+    settings:
+      captLocal:
+        # Whether to restrict checker to params only.
+        # Default: true
+        paramsOnly: false
+      underef:
+        # Whether to skip (*x).method() calls where x is a pointer receiver.
+        # Default: true
+        skipRecvDeref: false
+  govet:
+    enable-all: true
+    disable:
+      - asmdecl # (not needed) reports mismatches between assembly files and Go declarations.
+      - assign # (dupl staticcheck) detects useless assignments.
+      - cgocall # (not needed) detects some violations of the cgo pointer passing rules.
+      - fieldalignment # (not needed) detects structs that would use less memory if their fields were sorted.
+      - findcall # (not needed) serves as a trivial example and test of the Analysis API.
+      - framepointer # (not needed) reports assembly code that clobbers the frame pointer before saving it.
+      - structtag # (dupl revive struct-tag) defines an Analyzer that checks struct field tags are well formed.
+      - copylocks
+    settings:
+      shadow:
+        # Whether to be strict about shadowing; can be noisy.
+        # Default: false
+        strict: true
+  inamedparam:
+    # Skips check for interface methods with only a single parameter.
+    # Default: false
+    skip-single-param: true
+  mnd:
+    # List of function patterns to exclude from analysis.
+    # Values always ignored: `time.Date`,
+    # `strconv.FormatInt`, `strconv.FormatUint`, `strconv.FormatFloat`,
+    # `strconv.ParseInt`, `strconv.ParseUint`, `strconv.ParseFloat`.
+    # Default: []
+    ignored-functions:
+      - args.Error
+      - flag.Arg
+      - flag.Duration.*
+      - flag.Float.*
+      - flag.Int.*
+      - flag.Uint.*
+      - os.Chmod
+      - os.Mkdir.*
+      - os.OpenFile
+      - os.WriteFile
+  nolintlint:
+    # Exclude following linters from requiring an explanation.
+    # Default: []
+    allow-no-explanation: [funlen, gocognit, lll]
+    # Enable to require an explanation of nonzero length after each nolint directive.
+    # Default: false
+    require-explanation: true
+    # Enable to require nolint directives to mention the specific linter being suppressed.
+    # Default: false
+    require-specific: true
+  perfsprint:
+    errorf: false
+    strconcat: false
+  reassign:
+    # Patterns for global variable names that are checked for reassignment.
+    # See https://github.com/curioswitch/go-reassign#usage
+    # Default: ["EOF", "Err.*"]
+    patterns:
+      - ".*"
   misspell:
     locale: US # US is common spelling.
   tagliatelle:
@@ -241,15 +365,10 @@ linters-settings:
       - name: function-result-limit
         arguments:
           - 3
-  gocyclo:
-    min-complexity: 15
   goimports:
     local-prefixes: github.com/joshuar/go-hass-agent
   dupl:
     threshold: 100
-  funlen:
-    lines: 100
-    statements: 50
   gci:
     sections:
       - blank # Blank section: contains all blank imports.
@@ -260,105 +379,15 @@ linters-settings:
       - prefix(github.com/joshuar) # Custom section: groups all imports with the specified Prefix.
     skip-generated: true
     custom-order: true
-  gocognit:
-    min-complexity: 20
   goconst:
     min-len: 2
     min-occurrences: 3
     ignore-tests: true
-  gocritic:
-    enable-all: true
-    enabled-tags:
-      - diagnostic
-      - experimental
-      - opinionated
-      - performance
-      - style
-    disabled-checks:
-      - appendAssign
-      - badRegexp
-      - badSorting
-      - builtinShadowDecl
-      - codegenComment
-      - dupBranchBody
-      - dupSubExpr
-      - dynamicFmtString
-      - emptyDecl
-      - evalOrder
-      - externalErrorReassign
-      - flagDeref
-      - flagName
-      - nilValReturn
-      - regexpPattern
-      - sortSlice
-      - sqlQuery
-      - syncMapLoadAndDelete
-      - uncheckedInlineErr
-      - unnecessaryDefer
-      - builtinShadow
-      - captLocal
-      - commentFormatting
-      - defaultCaseOrder
-      - deferUnlambda
-      - docStub
-      - dupImport
-      - exposedSyncMutex
-      - hexLiteral
-      - httpNoBody
-      - importShadow
-      - initClause
-      - methodExprCall
-      - newDeref
-      - octalLiteral
-      - paramTypeCombine
-      - regexpMust
-      - ruleguard
-      - singleCaseSwitch
-      - sloppyLen
-      - stringConcatSimplify
-      - switchTrue
-      - timeExprSimplify
-      - tooManyResultsChecker
-      - typeAssertChain
-      - typeDefFirst
-      - typeSwitchVar
-      - typeUnparen
-      - unlabelStmt
-      - unlambda
-      - unnecessaryBlock
-      - valSwap
-      - whyNoLint
-      - yodaStyleExpr
-      - appendCombine
-      - equalFold
-      - indexAlloc
-      - preferDecodeRune
-      - preferWriteByte
-      - rangeExprCopy
-      - sliceClear
-  govet:
-    enable-all: true
-    disable:
-      - asmdecl # (not needed) reports mismatches between assembly files and Go declarations.
-      - assign # (dupl staticcheck) detects useless assignments.
-      - cgocall # (not needed) detects some violations of the cgo pointer passing rules.
-      - fieldalignment # (not needed) detects structs that would use less memory if their fields were sorted.
-      - findcall # (not needed) serves as a trivial example and test of the Analysis API.
-      - framepointer # (not needed) reports assembly code that clobbers the frame pointer before saving it.
-      - structtag # (dupl revive struct-tag) defines an Analyzer that checks struct field tags are well formed.
-      - copylocks
   lll:
     line-length: 140
-  nolintlint:
-    allow-unused: false # report any unused nolint directives
-    require-explanation: false # don't require an explanation for nolint directives
-    require-specific: false # don't require nolint directives to be specific about which linter is being skipped
   gosec:
     excludes:
       - G204
-  perfsprint:
-    errorf: false
-    strconcat: false
   sloglint:
     # Enforce not mixing key-value pairs and attributes.
     # Default: true
