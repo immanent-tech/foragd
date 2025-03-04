@@ -17,34 +17,34 @@ import (
 // MarkCategories defines model for MarkCategories.
 type MarkCategories struct {
 	// Categories is a list of categories.
-	Categories nullable.Nullable[externalRef0.Categories] `form:"categories[]" json:"categories"`
+	Categories nullable.Nullable[externalRef0.Categories] `form:"categories[]" json:"categories" validate:"unique"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
 }
 
 // MarkCommon contains common data for marking objects.
 type MarkCommon struct {
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
 }
 
 // MarkFeeds defines model for MarkFeeds.
 type MarkFeeds struct {
 	// Feeds is a list of feed IDs.
-	Feeds nullable.Nullable[externalRef0.FeedIDs] `form:"feeds[]" json:"feeds"`
+	Feeds nullable.Nullable[externalRef0.FeedIDs] `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
 }
 
 // MarkItems defines model for MarkItems.
 type MarkItems struct {
 	// Items is a list of items IDs.
-	Items nullable.Nullable[externalRef0.ItemIDs] `form:"items[]" json:"items"`
+	Items nullable.Nullable[externalRef0.ItemIDs] `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
 }
 
 // MarkObjects mark one or more objects
@@ -75,34 +75,34 @@ type View = externalRef0.View
 
 // HandleShowFeedsParams defines parameters for HandleShowFeeds.
 type HandleShowFeedsParams struct {
-	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories[]" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
+	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty" validate:"unique,dive,startswith=feed_"`
+	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
+	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
+	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
 }
 
 // HandlePaginateFeedsParams defines parameters for HandlePaginateFeeds.
 type HandlePaginateFeedsParams struct {
-	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories[]" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
+	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty" validate:"unique,dive,startswith=feed_"`
+	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
+	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
+	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
 }
 
 // HandleShowItemsParams defines parameters for HandleShowItems.
 type HandleShowItemsParams struct {
-	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories[]" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
+	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty" validate:"unique,dive,startswith=feed_"`
+	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
+	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
+	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
 }
 
 // HandlePaginateItemsParams defines parameters for HandlePaginateItems.
 type HandlePaginateItemsParams struct {
-	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories[]" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
+	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty" validate:"unique,dive,startswith=feed_"`
+	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
+	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
+	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
 }
 
 // LoginCallbackParams defines parameters for LoginCallback.

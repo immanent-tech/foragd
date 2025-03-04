@@ -362,15 +362,6 @@ components:
         - $ref: "#/components/schemas/MarkFeeds"
         - $ref: "#/components/schemas/MarkItems"
         - $ref: "#/components/schemas/MarkCategories"
-    IDs:
-      description: An array of either Feed or Item IDs.
-      type: array
-      items:
-        oneOf:
-          - $ref: "../models/models.yaml#/components/schemas/FeedIDs"
-          - $ref: "../models/models.yaml#/components/schemas/ItemIDs"
-      x-oapi-codegen-extra-tags:
-        form: ids
   parameters:
     # Path parameters:
     FeedID:
@@ -398,6 +389,8 @@ components:
       required: true
       schema:
         $ref: "../models/api.yaml#/components/schemas/View"
+      x-oapi-codegen-extra-tags:
+        validate: "required,oneof='read unread all'"
     Count:
       name: count
       in: query
@@ -405,11 +398,8 @@ components:
       schema:
         type: string
         $ref: "../models/api.yaml#/components/schemas/Count"
-    IDs:
-      name: ids
-      in: query
-      schema:
-        $ref: "#/components/schemas/IDs"
+      x-oapi-codegen-extra-tags:
+        validate: "required,numeric,gt=0,lt=20"
     FeedIDs:
       name: feeds
       in: query
@@ -417,6 +407,7 @@ components:
         $ref: "../models/models.yaml#/components/schemas/FeedIDs"
       x-oapi-codegen-extra-tags:
         form: "feeds[]"
+        validate: "unique,dive,startswith=feed_"
     ItemIDs:
       name: items
       in: query
@@ -424,6 +415,7 @@ components:
         $ref: "../models/models.yaml#/components/schemas/ItemIDs"
       x-oapi-codegen-extra-tags:
         form: "items[]"
+        validate: "unique,dive,startswith=item_"
     Categories:
       name: categories
       in: query
@@ -431,6 +423,7 @@ components:
         $ref: "../models/models.yaml#/components/schemas/Categories"
       x-oapi-codegen-extra-tags:
         form: "categories[]"
+        validate: "unique"
   requestBodies:
     PaginationRequest:
       description: >

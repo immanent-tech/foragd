@@ -4,14 +4,12 @@
 package models
 
 import (
-	"encoding/json"
 	"net/url"
 
 	"sync"
 
 	"github.com/a-h/templ"
 	"github.com/oapi-codegen/nullable"
-	"github.com/oapi-codegen/runtime"
 )
 
 // Defines values for Mark.
@@ -30,19 +28,19 @@ const (
 // APIFilters contains parameters for searching feeds and items
 type APIFilters struct {
 	// Categories is a list of categories.
-	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories"`
+	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories" validate:"unique"`
 
 	// FeedIDs is a list of feed IDs.
-	FeedIDs nullable.Nullable[FeedIDs] `form:"feeds[]" json:"feeds"`
+	FeedIDs nullable.Nullable[FeedIDs] `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
 
 	// ItemIDs is a list of items IDs.
-	ItemIDs nullable.Nullable[ItemIDs] `form:"items[]" json:"items"`
+	ItemIDs nullable.Nullable[ItemIDs] `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
 
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count"`
 
 	// View The state of objects to view.
-	View View `form:"view" json:"view"`
+	View View `form:"view" json:"view" validate:"required,oneof='read unread all'"`
 }
 
 // APIRoute is a htmx route within the server.
@@ -88,93 +86,11 @@ type APIUserSignupRequest struct {
 // Count is the count of items to retrieve with a request.
 type Count = int
 
-// FeedsPagination contains data for paginating through Feeds.
-type FeedsPagination struct {
-	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `form:"created_at" json:"created_at,omitempty"`
-
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
-}
-
-// ItemsPagination contains data for paginating through Feeds.
-type ItemsPagination struct {
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `form:"item_id" json:"item_id" validate:"required"`
-
-	// Timestamp is when the document was created.
-	Timestamp Timestamp `form:"@timestamp" json:"@timestamp" validate:"required"`
-}
-
 // Mark applies the given mark action to objects.
 type Mark string
 
-// Pagination contains data for paginating through objects.
-type Pagination struct {
-	union json.RawMessage
-}
+// Pagination contains data for paginating through results
+type Pagination = string
 
 // View The state of objects to view.
 type View string
-
-// AsFeedsPagination returns the union data inside the Pagination as a FeedsPagination
-func (t Pagination) AsFeedsPagination() (FeedsPagination, error) {
-	var body FeedsPagination
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFeedsPagination overwrites any union data inside the Pagination as the provided FeedsPagination
-func (t *Pagination) FromFeedsPagination(v FeedsPagination) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeFeedsPagination performs a merge with any union data inside the Pagination, using the provided FeedsPagination
-func (t *Pagination) MergeFeedsPagination(v FeedsPagination) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsItemsPagination returns the union data inside the Pagination as a ItemsPagination
-func (t Pagination) AsItemsPagination() (ItemsPagination, error) {
-	var body ItemsPagination
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromItemsPagination overwrites any union data inside the Pagination as the provided ItemsPagination
-func (t *Pagination) FromItemsPagination(v ItemsPagination) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeItemsPagination performs a merge with any union data inside the Pagination, using the provided ItemsPagination
-func (t *Pagination) MergeItemsPagination(v ItemsPagination) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t Pagination) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *Pagination) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}

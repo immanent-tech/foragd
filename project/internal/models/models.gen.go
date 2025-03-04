@@ -23,10 +23,10 @@ const (
 // APIFeed defines model for APIFeed.
 type APIFeed struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt *CreatedAt `form:"created_at" json:"created_at,omitempty"`
+	CreatedAt *CreatedAt `form:"created_at" json:"created_at" validate:"required"`
 
 	// ID is the unique ID of a feed.
-	ID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
+	ID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// FeedURL The canonical feed URL.
 	FeedURL FeedURL `json:"feedLink" validate:"required,url"`
@@ -38,7 +38,7 @@ type APIFeed struct {
 	Copyright  string           `json:"copyright,omitempty"`
 
 	// Description is a string that can contain HTML.
-	Description HTMLString    `json:"description"`
+	Description HTMLString    `json:"description" validate:"url_encoded"`
 	FeedType    string        `json:"feedType"`
 	FeedVersion string        `json:"feedVersion"`
 	Generator   string        `json:"generator,omitempty"`
@@ -49,7 +49,7 @@ type APIFeed struct {
 	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
 
 	// Title is a string that can contain HTML.
-	Title HTMLString `json:"title"`
+	Title HTMLString `json:"title" validate:"url_encoded"`
 
 	// Updated is when the object was updated.
 	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
@@ -61,7 +61,7 @@ type APIFeed struct {
 // APIFeedState tracks the state of a feed.
 type APIFeedState struct {
 	// ID is the unique ID of a feed.
-	ID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
+	ID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// FeedURL The canonical feed URL.
 	FeedURL FeedURL `json:"feedLink" validate:"required,url"`
@@ -73,10 +73,10 @@ type APIFeedState struct {
 // APIItem defines model for APIItem.
 type APIItem struct {
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// ID is the unique ID of an item.
-	ID ItemID `form:"item_id" json:"item_id" validate:"required"`
+	ID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
 
 	// ItemURL A URL to view the original item.
 	ItemURL    ItemURL          `json:"link" validate:"required,url"`
@@ -84,14 +84,14 @@ type APIItem struct {
 	Categories []Category       `json:"categories,omitempty"`
 
 	// Description is a string that can contain HTML.
-	Description HTMLString    `json:"description"`
+	Description HTMLString    `json:"description" validate:"url_encoded"`
 	Image       *gofeed.Image `json:"image,omitempty"`
 
 	// Published is when the object was published.
 	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
 
 	// Title is a string that can contain HTML.
-	Title HTMLString `json:"title"`
+	Title HTMLString `json:"title" validate:"url_encoded"`
 
 	// Updated is when the object was updated.
 	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
@@ -135,7 +135,7 @@ type FeedIDs = []FeedID
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
 	// ID is the unique ID of a feed.
-	ID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
+	ID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// URL is a URL.
 	URL URL `form:"url" json:"url" validate:"required,url"`
@@ -156,7 +156,7 @@ type ItemIDs = []ItemID
 // ItemState Contains fields to track an individual item's state.
 type ItemState struct {
 	// State Tracks the state of an object.
-	State State `form:"state" json:"state"`
+	State State `form:"state" json:"state" validate:"oneof='read unread saved'"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `form:"updated_at" json:"updated_at,omitempty"`
@@ -171,7 +171,7 @@ type MarkedRead = time.Time
 // MetadataDB contains common (metadata) fields for database objects.
 type MetadataDB struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt *CreatedAt `form:"created_at" json:"created_at,omitempty"`
+	CreatedAt *CreatedAt `form:"created_at" json:"created_at" validate:"required"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `form:"updated_at" json:"updated_at,omitempty"`
@@ -183,14 +183,14 @@ type MetadataFeed struct {
 	Categories []Category       `json:"categories,omitempty"`
 
 	// Description is a string that can contain HTML.
-	Description HTMLString    `json:"description"`
+	Description HTMLString    `json:"description" validate:"url_encoded"`
 	Image       *gofeed.Image `json:"image,omitempty"`
 
 	// Published is when the object was published.
 	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
 
 	// Title is a string that can contain HTML.
-	Title HTMLString `json:"title"`
+	Title HTMLString `json:"title" validate:"url_encoded"`
 
 	// Updated is when the object was updated.
 	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
@@ -205,7 +205,7 @@ type ObjectUpdated = time.Time
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt                `form:"created_at" json:"created_at,omitempty"`
+	CreatedAt CreatedAt                `form:"created_at" json:"created_at" validate:"required"`
 	Data      ScheduledJob_Data        `json:"job_data"`
 	NextRun   time.Time                `json:"job_next_run"`
 	Options   *quartz.JobDetailOptions `json:"job_options,omitempty"`
@@ -229,7 +229,7 @@ type State string
 // SubscriptionState Contains fields to rack a subscription state.
 type SubscriptionState struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `form:"created_at" json:"created_at,omitempty"`
+	CreatedAt CreatedAt `form:"created_at" json:"created_at" validate:"required"`
 
 	// MarkedRead records when the object was last marked read.
 	MarkedRead *MarkedRead `json:"marked_read,omitempty"`
@@ -261,7 +261,7 @@ type UpdatedAt = time.Time
 // User defines model for User.
 type User struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt *CreatedAt `form:"created_at" json:"created_at,omitempty"`
+	CreatedAt *CreatedAt `form:"created_at" json:"created_at" validate:"required"`
 
 	// ID is the unique ID of a user.
 	ID UserID `form:"user_id" json:"user_id" validate:"required"`
@@ -292,7 +292,7 @@ type UserID = string
 // UserItemProperties Tracks user-specific properties of an item.
 type UserItemProperties struct {
 	// State Tracks the state of an object.
-	State *State `form:"state" json:"state"`
+	State *State `form:"state" json:"state" validate:"oneof='read unread saved'"`
 }
 
 // UserSession tracks a user session.

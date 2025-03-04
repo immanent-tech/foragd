@@ -21,8 +21,9 @@ components:
       description: records when the object was created in the database.
       x-go-type: "time.Time"
       x-oapi-codegen-extra-tags:
-        json: "created_at,omitempty"
+        json: "created_at"
         form: "created_at"
+        validate: "required"
     UpdatedAt:
       description: records when the object was last updated in the database.
       x-go-type: "time.Time"
@@ -56,15 +57,18 @@ components:
       x-oapi-codegen-extra-tags:
         json: "state"
         form: "state"
+        validate: "oneof='read unread saved'"
     HTMLString:
       description: is a string that can contain HTML.
       type: string
       x-go-type-skip-optional-pointer: true
+      x-oapi-codegen-extra-tags:
+        validate: "url_encoded"
     FeedID:
       description: is the unique ID of a feed.
       type: string
       x-oapi-codegen-extra-tags:
-        validate: "required"
+        validate: "required,startswith=feed_"
         json: "feed_id"
         form: "feed_id"
     FeedIDs:
@@ -75,6 +79,7 @@ components:
       x-oapi-codegen-extra-tags:
         json: "feeds"
         form: "feeds[]"
+        validate: "unique,dive,startswith=feed_"
       nullable: true
     FeedURL:
       description: The canonical feed URL.
@@ -87,7 +92,7 @@ components:
       description: is the unique ID of an item.
       type: string
       x-oapi-codegen-extra-tags:
-        validate: "required"
+        validate: "required,startswith=item_"
         json: "item_id"
         form: "item_id"
     ItemIDs:
@@ -98,6 +103,7 @@ components:
       x-oapi-codegen-extra-tags:
         json: "items"
         form: "items[]"
+        validate: "unique,dive,startswith=item_"
       nullable: true
     ItemURL:
       description: A URL to view the original item.
@@ -154,6 +160,7 @@ components:
       x-oapi-codegen-extra-tags:
         json: "categories"
         form: "categories[]"
+        validate: "unique"
       nullable: true
     ObjectPublished:
       description: is when the object was published.

@@ -13,11 +13,8 @@ components:
       description: >
         is the count of items to retrieve with a request.
       type: integer
-      minimum: 1
-      maximum: 50
       default: 10
       x-oapi-codegen-extra-tags:
-        # json: 'count'
         form: "count"
     Mark:
       description: >
@@ -26,6 +23,7 @@ components:
       enum: ["read", "unread"]
       x-oapi-codegen-extra-tags:
         form: "mark"
+        validate: "required,oneof='read unread'"
     View:
       description: >
         The state of objects to view.
@@ -33,36 +31,14 @@ components:
       enum: ["read", "unread", "all"]
       default: "unread"
       x-oapi-codegen-extra-tags:
-        # json: 'view'
+        validate: "required,oneof='read unread all'"
         form: "view"
-    FeedsPagination:
-      description: contains data for paginating through Feeds.
-      type: object
-      required:
-        - CreatedAt
-        - FeedID
-      properties:
-        CreatedAt:
-          $ref: "models.yaml#/components/schemas/CreatedAt"
-        FeedID:
-          $ref: "models.yaml#/components/schemas/FeedID"
-    ItemsPagination:
-      description: contains data for paginating through Feeds.
-      type: object
-      required:
-        - Timestamp
-        - ItemID
-      properties:
-        Timestamp:
-          $ref: "models.yaml#/components/schemas/Timestamp"
-        ItemID:
-          $ref: "models.yaml#/components/schemas/ItemID"
     Pagination:
-      description: contains data for paginating through objects.
-      type: object
-      oneOf:
-        - $ref: "#/components/schemas/FeedsPagination"
-        - $ref: "#/components/schemas/ItemsPagination"
+      description: contains data for paginating through results
+      type: string
+      x-oapi-codegen-extra-tags:
+        form: "pagination"
+        validate: "required,url_encoded"
     APIRoute:
       description: >
         is a htmx route within the server.
