@@ -29,19 +29,6 @@ var (
 	ErrConvertFieldValue = errors.New("could not convert field value")
 )
 
-// FieldValueToGoValue converts a types.FieldValue to the appropriate Go value.
-// If the conversion fails, the default value of the Go type is returned along
-// with a non-nil error.
-func FieldValueToGoValue[T any](fieldValue types.FieldValue) (T, error) {
-	value, ok := fieldValue.(T)
-	if !ok {
-		var defaultValue T
-		return defaultValue, ErrConvertFieldValue
-	}
-
-	return value, nil
-}
-
 // ExtractSourceFromHits loops through the given hits array and extracts the `_source`
 // field of each document as type `T`, returning the document sources as an array
 // `[]T`. If there was an issue extracting any source, it will also return a

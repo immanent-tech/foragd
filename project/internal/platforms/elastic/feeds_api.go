@@ -436,8 +436,8 @@ func EncodeFeedsPagination(feed *models.APIFeed, sortValues []types.FieldValue) 
 			feedsPagination.CreatedAt = timeValue
 		}
 
-		idValue, err := FieldValueToGoValue[models.ItemID](value)
-		if err == nil {
+		idValue, ok := value.(models.FeedID)
+		if ok {
 			feedsPagination.FeedID = idValue
 		}
 	}
@@ -461,8 +461,8 @@ func EncodeItemsPagination(item *models.APIItem, sortValues []types.FieldValue) 
 			itemsPagination.Timestamp = timeValue
 		}
 
-		idValue, err := FieldValueToGoValue[models.ItemID](value)
-		if err == nil {
+		idValue, ok := value.(models.ItemID)
+		if ok {
 			itemsPagination.ItemID = idValue
 		}
 	}
