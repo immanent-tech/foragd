@@ -1,7 +1,7 @@
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 # yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
-openapi: '3.0.0'
+openapi: "3.0.0"
 info:
   version: 1.0.0
   title: Common API
@@ -18,29 +18,51 @@ components:
       default: 10
       x-oapi-codegen-extra-tags:
         # json: 'count'
-        form: 'count'
-    Pagination:
-      type: string
-      x-oapi-codegen-extra-tags:
-        json: 'pagination'
-        form: 'pagination'
-      nullable: true
+        form: "count"
     Mark:
       description: >
         applies the given mark action to objects.
       type: string
-      enum: ["read","unread"]
+      enum: ["read", "unread"]
       x-oapi-codegen-extra-tags:
-        form: 'mark'
+        form: "mark"
     View:
       description: >
         The state of objects to view.
       type: string
-      enum: ["read","unread","all"]
+      enum: ["read", "unread", "all"]
       default: "unread"
       x-oapi-codegen-extra-tags:
         # json: 'view'
-        form: 'view'
+        form: "view"
+    FeedsPagination:
+      description: contains data for paginating through Feeds.
+      type: object
+      required:
+        - CreatedAt
+        - FeedID
+      properties:
+        CreatedAt:
+          $ref: "models.yaml#/components/schemas/CreatedAt"
+        FeedID:
+          $ref: "models.yaml#/components/schemas/FeedID"
+    ItemsPagination:
+      description: contains data for paginating through Feeds.
+      type: object
+      required:
+        - Timestamp
+        - ItemID
+      properties:
+        Timestamp:
+          $ref: "models.yaml#/components/schemas/Timestamp"
+        ItemID:
+          $ref: "models.yaml#/components/schemas/ItemID"
+    Pagination:
+      description: contains data for paginating through objects.
+      type: object
+      oneOf:
+        - $ref: "#/components/schemas/FeedsPagination"
+        - $ref: "#/components/schemas/ItemsPagination"
     APIRoute:
       description: >
         is a htmx route within the server.
@@ -54,15 +76,15 @@ components:
           description: is the url object for the route.
           x-go-name: url
           x-oapi-codegen-only-honour-go-name: true
-          x-go-type: 'url.URL'
+          x-go-type: "url.URL"
           x-go-json-ignore: true
         mu:
           description: is a mutex for safe concurrent access.
           x-go-name: mu
           x-oapi-codegen-only-honour-go-name: true
-          x-go-type: 'sync.Mutex'
+          x-go-type: "sync.Mutex"
           x-go-type-import:
-            path: 'sync'
+            path: "sync"
           x-go-json-ignore: true
         method:
           description: is the HTTP method for the route.
@@ -74,9 +96,9 @@ components:
           description: are additional htmx attributes to apply to the route.
           x-go-name: attributes
           x-oapi-codegen-only-honour-go-name: true
-          x-go-type: 'templ.Attributes'
+          x-go-type: "templ.Attributes"
           x-go-type-import:
-            path: 'github.com/a-h/templ'
+            path: "github.com/a-h/templ"
           x-go-json-ignore: true
     APIFilters:
       description: contains parameters for searching feeds and items
@@ -86,15 +108,15 @@ components:
         - count
       properties:
         FeedIDs:
-          $ref: 'models.yaml#/components/schemas/FeedIDs'
+          $ref: "models.yaml#/components/schemas/FeedIDs"
         ItemIDs:
-          $ref: 'models.yaml#/components/schemas/ItemIDs'
+          $ref: "models.yaml#/components/schemas/ItemIDs"
         Categories:
-          $ref: 'models.yaml#/components/schemas/Categories'
+          $ref: "models.yaml#/components/schemas/Categories"
         count:
-          $ref: '#/components/schemas/Count'
+          $ref: "#/components/schemas/Count"
         view:
-          $ref: '#/components/schemas/View'
+          $ref: "#/components/schemas/View"
     APISubscriptionRequest:
       description: represents a new subscription request from a user.
       type: object
@@ -102,22 +124,22 @@ components:
         - url
       properties:
         url:
-          $ref: 'models.yaml#/components/schemas/URL'
+          $ref: "models.yaml#/components/schemas/URL"
         name:
           description: >
             is a friendly name or nickname for the feed given by the user.
           type: string
           x-oapi-codegen-extra-tags:
-            form: 'name'
+            form: "name"
         categories:
           description: >
             is a list of custom categories the user has assigned to
             the feed.
           type: array
           items:
-            $ref: 'models.yaml#/components/schemas/Category'
+            $ref: "models.yaml#/components/schemas/Category"
           x-oapi-codegen-extra-tags:
-            form: 'categories[]'
+            form: "categories[]"
           x-go-type-skip-optional-pointer: true
         validation_errors:
           description: is a map of field name -> validation error for the request.
@@ -126,7 +148,7 @@ components:
             type: string
           x-go-json-ignore: true
           x-oapi-codegen-extra-tags:
-            form: '-'
+            form: "-"
           x-go-type-skip-optional-pointer: true
     APIUserSignupRequest:
       description: >
@@ -139,18 +161,18 @@ components:
         nickname:
           type: string
           x-oapi-codegen-extra-tags:
-            validate: 'omitempty'
-            form: 'nickname,omitempty'
+            validate: "omitempty"
+            form: "nickname,omitempty"
         email:
           type: string
           x-oapi-codegen-extra-tags:
-            validate: 'required,email'
-            form: 'email'
+            validate: "required,email"
+            form: "email"
         password:
           type: string
           x-oapi-codegen-extra-tags:
-            validate: 'required,min=10'
-            form: 'password'
+            validate: "required,min=10"
+            form: "password"
         validation_errors:
           description: is a map of field name -> validation error for the request.
           type: object
@@ -158,5 +180,5 @@ components:
             type: string
           x-go-json-ignore: true
           x-oapi-codegen-extra-tags:
-            form: '-'
+            form: "-"
           x-go-type-skip-optional-pointer: true

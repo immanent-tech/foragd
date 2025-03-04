@@ -27,6 +27,11 @@ type SearchOption Option[*search.Search]
 // CountOption is a functional option to apply to a count request.
 type CountOption Option[*count.Count]
 
+type SearchRequest struct {
+	*search.Search
+	sortKeyOrder []string
+}
+
 // SearchResult represents a search request result.
 type SearchResult struct {
 	*search.Response
@@ -163,9 +168,14 @@ func (c *Client) NewCountRequest(options ...CountOption) *count.Count {
 // SortTimestampDesc returns a sort parameter for a search that will sort
 // results by the @timestamp field in descending order.
 func SortTimestampDesc() map[string]types.FieldSort {
+	return map[string]types.FieldSort{"@timestamp": {Order: &sortorder.Desc}}
+}
+
+// SortByDocID will sort search results by `_doc`, effectively unordered but
+// most efficient sorting. Useful when paginating through *all* docs.
+func SortByDocID(idField string) map[string]types.FieldSort {
 	return map[string]types.FieldSort{
-		"@timestamp": {
-			Order: &sortorder.Desc,
-		},
+		"_doc":  {},
+		idField: {Order: &sortorder.Desc},
 	}
 }

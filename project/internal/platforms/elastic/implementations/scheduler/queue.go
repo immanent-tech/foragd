@@ -220,11 +220,7 @@ func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
 			elastic.QueryMatchAll(),
 		),
 		elastic.WithSearchSize(1),
-		elastic.WithSortOptions(map[string]types.FieldSort{
-			"job_next_run": {
-				Order: &sortorder.Asc,
-			},
-		}),
+		elastic.WithSortOptions(map[string]types.FieldSort{"job_next_run": {Order: &sortorder.Asc}}),
 	).Do(schedCtx)
 	if err != nil {
 		return nil, errors.Join(ErrNoJobFound, err)

@@ -5,7 +5,6 @@ package elastic
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -173,17 +172,15 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID models.FeedID, it
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilters) (chan models.APIItem, models.Pagination, error) {
-	outCh := make(chan models.APIItem)
-
+func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilters) ([]*models.APIItem, *models.Pagination, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return outCh, "", errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+		return nil, nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return outCh, "", ErrGetUserFailed
+		return nil, nil, ErrGetUserFailed
 	}
 
 	// Work out what query to use based on the state filter.
@@ -206,43 +203,30 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 
 	resp, err := c.ItemsSearch(ctx, query, filters.GetCount())
 	if err != nil {
-		return nil, "", errors.Join(ErrUserActionFailed, err)
+		return nil, nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	items, _, warnings := ExtractSourceFromHits[models.APIItem](resp.Hits.Hits)
+	items, lastSortValue, warnings := ExtractSourceFromHits[*models.APIItem](resp.Hits.Hits)
 	if warnings != nil {
 		c.Logger.Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
 	}
 
-	var newPagination models.Pagination
-	// Get the sort value(s) of the last hit.
-	if len(resp.Hits.Hits) > 0 {
-		data, err := json.Marshal(resp.Hits.Hits[len(resp.Hits.Hits)-1].Sort)
-		if err != nil {
-			c.Logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
-		}
+	spew.Dump(lastSortValue)
 
-		newPagination, err = models.EncodePagination(data)
-		if err != nil {
-			c.Logger.Warn("Cannot marshal sort value.", slog.Any("error", err))
+	pagination, err := EncodeItemsPagination(items[len(items)-1], lastSortValue)
+	if err != nil {
+		return nil, nil, errors.Join(ErrUserActionFailed, err)
+	}
+
+	for _, item := range items {
+		// Add the state for the item from the user object, to the item object.
+		if itemState := user.GetItemState(item); itemState != nil {
+			item.SetUserItemState(itemState.State)
 		}
 	}
 
-	go func() {
-		defer close(outCh)
-
-		for _, item := range items {
-			// Add the state for the item from the user object, to the item object.
-			if itemState := user.GetItemState(&item); itemState != nil {
-				item.SetUserItemState(itemState.State)
-			}
-
-			outCh <- item
-		}
-	}()
-
-	return outCh, newPagination, nil
+	return items, pagination, nil
 }
 
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with

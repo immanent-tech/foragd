@@ -39,19 +39,6 @@ type ParamName string
 
 type ParamsOption func(url.Values) url.Values
 
-func EncodePagination(decoded []byte) (Pagination, error) {
-	return url.QueryEscape(string(decoded)), nil
-}
-
-func DecodePagination(encoded Pagination) ([]byte, error) {
-	decoded, err := url.QueryUnescape(encoded)
-	if err != nil {
-		return nil, errors.Join(ErrGetFilterValue, err)
-	}
-
-	return []byte(decoded), nil
-}
-
 // GetFeeds gets the list of FeedIDs from the filters.
 func (f *APIFilters) GetFeeds() []FeedID {
 	if f.FeedIDs.IsNull() {

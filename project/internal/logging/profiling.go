@@ -4,7 +4,6 @@
 package logging
 
 // #nosec G108
-//nolint:gci
 //revive:disable:blank-imports
 import (
 	"fmt"

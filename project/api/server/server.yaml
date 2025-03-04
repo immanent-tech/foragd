@@ -1,7 +1,7 @@
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 # yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
-openapi: '3.0.0'
+openapi: "3.0.0"
 info:
   version: 1.0.0
   title: Server Spec
@@ -13,7 +13,7 @@ paths:
       operationId: index
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /login/{provider}:
     get:
       summary: Process a user login with given provider
@@ -86,23 +86,23 @@ paths:
       operationId: newUser
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
     put:
       summary: >
         Save a new user.
       operationId: addUser
       requestBody:
-        $ref: '#/components/requestBodies/UserSignupRequestBody'
+        $ref: "#/components/requestBodies/UserSignupRequestBody"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /search:
     post:
       summary: Issue a user search request
       operationId: Search
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
         401:
           description: Unauthorized
         500:
@@ -119,7 +119,7 @@ paths:
       operationId: getHomeSettings
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
         401:
           description: Unauthorized
         500:
@@ -131,63 +131,63 @@ paths:
       operationId: newSubscription
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
     put:
       summary: >
         Save a subscription.
       operationId: addSubscription
       requestBody:
-        $ref: '#/components/requestBodies/SubscriptionRequestBody'
+        $ref: "#/components/requestBodies/SubscriptionRequestBody"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /subscription/{feed}:
     get:
       summary: >
         Show a subscription.
       operationId: showSubscription
       parameters:
-        - $ref: '#/components/parameters/FeedID'
+        - $ref: "#/components/parameters/FeedID"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
     put:
       summary: >
         Save a subscription.
       operationId: saveSubscription
       parameters:
-        - $ref: '#/components/parameters/FeedID'
+        - $ref: "#/components/parameters/FeedID"
       requestBody:
-        $ref: '#/components/requestBodies/SubscriptionRequestBody'
+        $ref: "#/components/requestBodies/SubscriptionRequestBody"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
     delete:
       summary: >
         Remove a subscription.
       operationId: removeSubscription
       parameters:
-        - $ref: '#/components/parameters/FeedID'
+        - $ref: "#/components/parameters/FeedID"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /subscription/category:
     put:
       summary: >
         Add a category to a subscription
       operationId: addSubscriptionCategory
       requestBody:
-        $ref: '#/components/requestBodies/CategoryRequestBody'
+        $ref: "#/components/requestBodies/CategoryRequestBody"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
     delete:
       summary: >
         Remove a category from a subscription.
       operationId: removeSubscriptionCategory
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /home:
     get:
       summary: >
@@ -196,108 +196,108 @@ paths:
       operationId: handleHome
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /home/feeds:
     get:
       summary: >
         Shows feeds with optional filtering applied.
       operationId: handleShowFeeds
       parameters:
-        - $ref: '#/components/parameters/FeedIDs'
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/View'
-        - $ref: '#/components/parameters/Count'
+        - $ref: "#/components/parameters/FeedIDs"
+        - $ref: "#/components/parameters/Categories"
+        - $ref: "#/components/parameters/View"
+        - $ref: "#/components/parameters/Count"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
     post:
       summary: >
         Mark feeds.
       operationId: handleMarkFeeds
       requestBody:
-        $ref: '#/components/requestBodies/MarkRequest'
+        $ref: "#/components/requestBodies/MarkRequest"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /home/feeds/paginate:
     post:
       summary: >
         Paginate through feeds with optional filtering applied.
       operationId: handlePaginateFeeds
       parameters:
-        - $ref: '#/components/parameters/FeedIDs'
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/View'
-        - $ref: '#/components/parameters/Count'
+        - $ref: "#/components/parameters/FeedIDs"
+        - $ref: "#/components/parameters/Categories"
+        - $ref: "#/components/parameters/View"
+        - $ref: "#/components/parameters/Count"
       requestBody:
-        $ref: '#/components/requestBodies/PaginationRequest'
+        $ref: "#/components/requestBodies/PaginationRequest"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /home/items:
     get:
       summary: >
         Shows items with optional filtering applied.
       operationId: handleShowItems
       parameters:
-        - $ref: '#/components/parameters/FeedIDs'
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/View'
-        - $ref: '#/components/parameters/Count'
+        - $ref: "#/components/parameters/FeedIDs"
+        - $ref: "#/components/parameters/Categories"
+        - $ref: "#/components/parameters/View"
+        - $ref: "#/components/parameters/Count"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
     post:
       summary: >
         Mark feeds.
       operationId: handleMarkItems
       requestBody:
-        $ref: '#/components/requestBodies/MarkRequest'
+        $ref: "#/components/requestBodies/MarkRequest"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /home/items/paginate:
     post:
       summary: >
         Paginate through items with optional filtering applied.
       operationId: handlePaginateItems
       parameters:
-        - $ref: '#/components/parameters/FeedIDs'
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/View'
-        - $ref: '#/components/parameters/Count'
+        - $ref: "#/components/parameters/FeedIDs"
+        - $ref: "#/components/parameters/Categories"
+        - $ref: "#/components/parameters/View"
+        - $ref: "#/components/parameters/Count"
       requestBody:
-        $ref: '#/components/requestBodies/PaginationRequest'
+        $ref: "#/components/requestBodies/PaginationRequest"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /home/{feed}/{item}:
     summary: >
       Handle item.
     parameters:
-      - $ref: '#/components/parameters/FeedID'
-      - $ref: '#/components/parameters/ItemID'
+      - $ref: "#/components/parameters/FeedID"
+      - $ref: "#/components/parameters/ItemID"
     get:
       summary: >
         Shows a feed item.
       operationId: handleShowItem
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
     put:
       summary: >
         Save a feed item to the user's saved items.
       operationId: handleSaveItem
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
     delete:
       summary: >
         Remove a feed item from the user's saved items.
       operationId: handleUnsaveItem
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
   /home/{feed}/{item}/{mark}:
     summary: >
       Handle marking item.
@@ -306,42 +306,14 @@ paths:
         Mark a feed item.
       operationId: handleMarkItem
       parameters:
-        - $ref: '#/components/parameters/FeedID'
-        - $ref: '#/components/parameters/ItemID'
-        - $ref: '#/components/parameters/Mark'
+        - $ref: "#/components/parameters/FeedID"
+        - $ref: "#/components/parameters/ItemID"
+        - $ref: "#/components/parameters/Mark"
       responses:
         200:
-          $ref: '#/components/responses/htmx'
+          $ref: "#/components/responses/htmx"
 components:
   schemas:
-    FeedsPagination:
-      description: contains data for paginating through Feeds.
-      type: object
-      required:
-        - Timestamp
-        - FeedID
-      properties:
-        timestamp:
-          $ref: '../models/models.yaml#/components/schemas/Timestamp'
-        FeedID:
-          $ref: '../models/models.yaml#/components/schemas/FeedID'
-    ItemsPagination:
-      description: contains data for paginating through Feeds.
-      type: object
-      required:
-        - Timestamp
-        - ItemID
-      properties:
-        timestamp:
-          $ref: '../models/models.yaml#/components/schemas/Timestamp'
-        ItemID:
-          $ref: '../models/models.yaml#/components/schemas/ItemID'
-    Pagination:
-      description: contains data for paginating through objects.
-      type: object
-      oneOf:
-        - $ref: '#/components/schemas/FeedsPagination'
-        - $ref: '#/components/schemas/ItemsPagination'
     MarkCommon:
       description: contains common data for marking objects.
       type: object
@@ -349,54 +321,54 @@ components:
         - mark
       properties:
         mark:
-          $ref: '../models/api.yaml#/components/schemas/Mark'
+          $ref: "../models/api.yaml#/components/schemas/Mark"
     MarkFeeds:
       description: contains data for marking Feeds.
       type: object
       allOf:
-        - $ref: '#/components/schemas/MarkCommon'
+        - $ref: "#/components/schemas/MarkCommon"
         - type: object
           required:
             - feeds
           properties:
             feeds:
-              $ref: '../models/models.yaml#/components/schemas/FeedIDs'
+              $ref: "../models/models.yaml#/components/schemas/FeedIDs"
     MarkItems:
       description: contains data for marking Items.
       type: object
       allOf:
-        - $ref: '#/components/schemas/MarkCommon'
+        - $ref: "#/components/schemas/MarkCommon"
         - type: object
           required:
             - items
           properties:
             items:
-              $ref: '../models/models.yaml#/components/schemas/ItemIDs'
+              $ref: "../models/models.yaml#/components/schemas/ItemIDs"
     MarkCategories:
       description: contains data for marking Categories.
       type: object
       allOf:
-        - $ref: '#/components/schemas/MarkCommon'
+        - $ref: "#/components/schemas/MarkCommon"
         - type: object
           required:
             - categories
           properties:
             categories:
-              $ref: '../models/models.yaml#/components/schemas/Categories'
+              $ref: "../models/models.yaml#/components/schemas/Categories"
     MarkObjects:
       description: mark one or more objects
       type: object
       oneOf:
-        - $ref: '#/components/schemas/MarkFeeds'
-        - $ref: '#/components/schemas/MarkItems'
-        - $ref: '#/components/schemas/MarkCategories'
+        - $ref: "#/components/schemas/MarkFeeds"
+        - $ref: "#/components/schemas/MarkItems"
+        - $ref: "#/components/schemas/MarkCategories"
     IDs:
       description: An array of either Feed or Item IDs.
       type: array
       items:
         oneOf:
-          - $ref: '../models/models.yaml#/components/schemas/FeedIDs'
-          - $ref: '../models/models.yaml#/components/schemas/ItemIDs'
+          - $ref: "../models/models.yaml#/components/schemas/FeedIDs"
+          - $ref: "../models/models.yaml#/components/schemas/ItemIDs"
       x-oapi-codegen-extra-tags:
         form: ids
   parameters:
@@ -406,59 +378,59 @@ components:
       in: path
       required: true
       schema:
-        $ref: '../models/models.yaml#/components/schemas/FeedID'
+        $ref: "../models/models.yaml#/components/schemas/FeedID"
     ItemID:
       name: item
       in: path
       required: true
       schema:
-        $ref: '../models/models.yaml#/components/schemas/ItemID'
+        $ref: "../models/models.yaml#/components/schemas/ItemID"
     Mark:
       name: mark
       in: path
       required: true
       schema:
-        $ref: '../models/api.yaml#/components/schemas/Mark'
+        $ref: "../models/api.yaml#/components/schemas/Mark"
     # Query Parameters:
     View:
       name: view
       in: query
       required: true
       schema:
-        $ref: '../models/api.yaml#/components/schemas/View'
+        $ref: "../models/api.yaml#/components/schemas/View"
     Count:
       name: count
       in: query
       required: true
       schema:
         type: string
-        $ref: '../models/api.yaml#/components/schemas/Count'
+        $ref: "../models/api.yaml#/components/schemas/Count"
     IDs:
       name: ids
       in: query
       schema:
-        $ref: '#/components/schemas/IDs'
+        $ref: "#/components/schemas/IDs"
     FeedIDs:
       name: feeds
       in: query
       schema:
-        $ref: '../models/models.yaml#/components/schemas/FeedIDs'
+        $ref: "../models/models.yaml#/components/schemas/FeedIDs"
       x-oapi-codegen-extra-tags:
-        form: 'feeds[]'
+        form: "feeds[]"
     ItemIDs:
       name: items
       in: query
       schema:
-        $ref: '../models/models.yaml#/components/schemas/ItemIDs'
+        $ref: "../models/models.yaml#/components/schemas/ItemIDs"
       x-oapi-codegen-extra-tags:
-        form: 'items[]'
+        form: "items[]"
     Categories:
       name: categories
       in: query
       schema:
-        $ref: '../models/models.yaml#/components/schemas/Categories'
+        $ref: "../models/models.yaml#/components/schemas/Categories"
       x-oapi-codegen-extra-tags:
-        form: 'categories[]'
+        form: "categories[]"
   requestBodies:
     PaginationRequest:
       description: >
@@ -467,7 +439,7 @@ components:
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: '#/components/schemas/Pagination'
+            $ref: "../models/api.yaml#/components/schemas/Pagination"
     MarkRequest:
       description: >
         Holds options for marking objects.
@@ -475,21 +447,21 @@ components:
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: '#/components/schemas/MarkObjects'
+            $ref: "#/components/schemas/MarkObjects"
     UserSignupRequestBody:
       description: >
         Holds details for adding/saving a user signup.
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: '../models/api.yaml#/components/schemas/APIUserSignupRequest'
+            $ref: "../models/api.yaml#/components/schemas/APIUserSignupRequest"
     SubscriptionRequestBody:
       description: >
         Holds details for adding/saving a subscription.
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: '../models/api.yaml#/components/schemas/APISubscriptionRequest'
+            $ref: "../models/api.yaml#/components/schemas/APISubscriptionRequest"
     CategoryRequestBody:
       description: >
         A list of categories to add/remove from a subscription.
@@ -502,9 +474,9 @@ components:
               - Category
             properties:
               Category:
-                $ref: '../models/models.yaml#/components/schemas/Category'
+                $ref: "../models/models.yaml#/components/schemas/Category"
   responses:
     htmx:
       description: standard htmx powered response.
       content:
-        'text/html;charset=utf-8': {}
+        "text/html;charset=utf-8": {}

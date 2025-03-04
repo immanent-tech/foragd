@@ -4,12 +4,14 @@
 package models
 
 import (
+	"encoding/json"
 	"net/url"
 
 	"sync"
 
 	"github.com/a-h/templ"
 	"github.com/oapi-codegen/nullable"
+	"github.com/oapi-codegen/runtime"
 )
 
 // Defines values for Mark.
@@ -86,11 +88,93 @@ type APIUserSignupRequest struct {
 // Count is the count of items to retrieve with a request.
 type Count = int
 
+// FeedsPagination contains data for paginating through Feeds.
+type FeedsPagination struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `form:"created_at" json:"created_at,omitempty"`
+
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required"`
+}
+
+// ItemsPagination contains data for paginating through Feeds.
+type ItemsPagination struct {
+	// ItemID is the unique ID of an item.
+	ItemID ItemID `form:"item_id" json:"item_id" validate:"required"`
+
+	// Timestamp is when the document was created.
+	Timestamp Timestamp `form:"@timestamp" json:"@timestamp" validate:"required"`
+}
+
 // Mark applies the given mark action to objects.
 type Mark string
 
-// Pagination defines model for Pagination.
-type Pagination = string
+// Pagination contains data for paginating through objects.
+type Pagination struct {
+	union json.RawMessage
+}
 
 // View The state of objects to view.
 type View string
+
+// AsFeedsPagination returns the union data inside the Pagination as a FeedsPagination
+func (t Pagination) AsFeedsPagination() (FeedsPagination, error) {
+	var body FeedsPagination
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFeedsPagination overwrites any union data inside the Pagination as the provided FeedsPagination
+func (t *Pagination) FromFeedsPagination(v FeedsPagination) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFeedsPagination performs a merge with any union data inside the Pagination, using the provided FeedsPagination
+func (t *Pagination) MergeFeedsPagination(v FeedsPagination) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsItemsPagination returns the union data inside the Pagination as a ItemsPagination
+func (t Pagination) AsItemsPagination() (ItemsPagination, error) {
+	var body ItemsPagination
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromItemsPagination overwrites any union data inside the Pagination as the provided ItemsPagination
+func (t *Pagination) FromItemsPagination(v ItemsPagination) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeItemsPagination performs a merge with any union data inside the Pagination, using the provided ItemsPagination
+func (t *Pagination) MergeItemsPagination(v ItemsPagination) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Pagination) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Pagination) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}

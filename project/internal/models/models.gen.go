@@ -44,11 +44,15 @@ type APIFeed struct {
 	Generator   string        `json:"generator,omitempty"`
 	Image       *gofeed.Image `json:"image,omitempty"`
 	Language    string        `json:"language,omitempty"`
-	Published   time.Time     `json:"publishedParsed"`
+
+	// Published is when the object was published.
+	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
 
 	// Title is a string that can contain HTML.
-	Title   HTMLString `json:"title"`
-	Updated time.Time  `json:"updatedParsed"`
+	Title HTMLString `json:"title"`
+
+	// Updated is when the object was updated.
+	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
 
 	// UserProperties Tracks user-specific properties of a feed.
 	UserProperties *UserFeedProperties `json:"user_properties,omitempty"`
@@ -82,11 +86,15 @@ type APIItem struct {
 	// Description is a string that can contain HTML.
 	Description HTMLString    `json:"description"`
 	Image       *gofeed.Image `json:"image,omitempty"`
-	Published   time.Time     `json:"publishedParsed"`
+
+	// Published is when the object was published.
+	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
 
 	// Title is a string that can contain HTML.
-	Title   HTMLString `json:"title"`
-	Updated time.Time  `json:"updatedParsed"`
+	Title HTMLString `json:"title"`
+
+	// Updated is when the object was updated.
+	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
 
 	// UserProperties Tracks user-specific properties of an item.
 	UserProperties *UserItemProperties `json:"-"`
@@ -177,12 +185,22 @@ type MetadataFeed struct {
 	// Description is a string that can contain HTML.
 	Description HTMLString    `json:"description"`
 	Image       *gofeed.Image `json:"image,omitempty"`
-	Published   time.Time     `json:"publishedParsed"`
+
+	// Published is when the object was published.
+	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
 
 	// Title is a string that can contain HTML.
-	Title   HTMLString `json:"title"`
-	Updated time.Time  `json:"updatedParsed"`
+	Title HTMLString `json:"title"`
+
+	// Updated is when the object was updated.
+	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
 }
+
+// ObjectPublished is when the object was published.
+type ObjectPublished = time.Time
+
+// ObjectUpdated is when the object was updated.
+type ObjectUpdated = time.Time
 
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {

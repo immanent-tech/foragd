@@ -14,24 +14,6 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// FeedsPagination contains data for paginating through Feeds.
-type FeedsPagination struct {
-	// FeedID is the unique ID of a feed.
-	FeedID externalRef0.FeedID `form:"feed_id" json:"feed_id" validate:"required"`
-
-	// Timestamp is when the document was created.
-	Timestamp *externalRef0.Timestamp `form:"@timestamp" json:"@timestamp" validate:"required"`
-}
-
-// ItemsPagination contains data for paginating through Feeds.
-type ItemsPagination struct {
-	// ItemID is the unique ID of an item.
-	ItemID externalRef0.ItemID `form:"item_id" json:"item_id" validate:"required"`
-
-	// Timestamp is when the document was created.
-	Timestamp *externalRef0.Timestamp `form:"@timestamp" json:"@timestamp" validate:"required"`
-}
-
 // MarkCategories defines model for MarkCategories.
 type MarkCategories struct {
 	// Categories is a list of categories.
@@ -67,11 +49,6 @@ type MarkItems struct {
 
 // MarkObjects mark one or more objects
 type MarkObjects struct {
-	union json.RawMessage
-}
-
-// Pagination contains data for paginating through objects.
-type Pagination struct {
 	union json.RawMessage
 }
 
@@ -144,13 +121,13 @@ type AddSubscriptionCategoryFormdataBody struct {
 type HandleMarkFeedsFormdataRequestBody = MarkObjects
 
 // HandlePaginateFeedsFormdataRequestBody defines body for HandlePaginateFeeds for application/x-www-form-urlencoded ContentType.
-type HandlePaginateFeedsFormdataRequestBody = Pagination
+type HandlePaginateFeedsFormdataRequestBody = externalRef0.Pagination
 
 // HandleMarkItemsFormdataRequestBody defines body for HandleMarkItems for application/x-www-form-urlencoded ContentType.
 type HandleMarkItemsFormdataRequestBody = MarkObjects
 
 // HandlePaginateItemsFormdataRequestBody defines body for HandlePaginateItems for application/x-www-form-urlencoded ContentType.
-type HandlePaginateItemsFormdataRequestBody = Pagination
+type HandlePaginateItemsFormdataRequestBody = externalRef0.Pagination
 
 // AddSubscriptionCategoryFormdataRequestBody defines body for AddSubscriptionCategory for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
@@ -248,68 +225,6 @@ func (t MarkObjects) MarshalJSON() ([]byte, error) {
 }
 
 func (t *MarkObjects) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsFeedsPagination returns the union data inside the Pagination as a FeedsPagination
-func (t Pagination) AsFeedsPagination() (FeedsPagination, error) {
-	var body FeedsPagination
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFeedsPagination overwrites any union data inside the Pagination as the provided FeedsPagination
-func (t *Pagination) FromFeedsPagination(v FeedsPagination) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeFeedsPagination performs a merge with any union data inside the Pagination, using the provided FeedsPagination
-func (t *Pagination) MergeFeedsPagination(v FeedsPagination) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsItemsPagination returns the union data inside the Pagination as a ItemsPagination
-func (t Pagination) AsItemsPagination() (ItemsPagination, error) {
-	var body ItemsPagination
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromItemsPagination overwrites any union data inside the Pagination as the provided ItemsPagination
-func (t *Pagination) FromItemsPagination(v ItemsPagination) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeItemsPagination performs a merge with any union data inside the Pagination, using the provided ItemsPagination
-func (t *Pagination) MergeItemsPagination(v ItemsPagination) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t Pagination) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *Pagination) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

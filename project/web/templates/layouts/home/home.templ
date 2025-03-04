@@ -55,14 +55,6 @@ templ (home *LayoutProps) ShowContent() {
 	} else {
 		for _, item := range home.content {
 			@item.Show()
-			// switch item.DisplayType {
-			// 	case templates.FeedCard:
-			// 		@ShowFeedCard(ctx, item)
-			// 	case templates.ItemCard:
-			// 		@ShowItemCard(ctx, item)
-			// 	case templates.ItemArticle:
-			// 		@ShowArticle(item)
-			// }
 		}
 	}
 }

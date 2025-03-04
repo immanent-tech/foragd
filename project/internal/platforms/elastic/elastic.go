@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -25,7 +26,22 @@ var (
 	ErrFieldNotFound = errors.New("field not found")
 	ErrReqFailed     = errors.New("api request failed")
 	ErrNotFound      = errors.New("not found")
+
+	ErrConvertFieldValue = errors.New("could not convert field value")
 )
+
+// FieldValueToGoValue converts a types.FieldValue to the appropriate Go value.
+// If the conversion fails, the default value of the Go type is returned along
+// with a non-nil error.
+func FieldValueToGoValue[T any](fieldValue types.FieldValue) (T, error) {
+	value, ok := fieldValue.(T)
+	if !ok {
+		var defaultValue T
+		return defaultValue, ErrConvertFieldValue
+	}
+
+	return value, nil
+}
 
 // ExtractSourceFromHits loops through the given hits array and extracts the `_source`
 // field of each document as type `T`, returning the document sources as an array
@@ -53,6 +69,7 @@ func ExtractSourceFromHits[T any](hits []types.Hit) ([]T, []types.FieldValue, er
 	}
 	// Retrieve the sort value for the last hit.
 	if len(hits) > 0 {
+		spew.Dump(hits[len(hits)-1].Sort)
 		lastSortValue = hits[len(hits)-1].Sort
 	}
 

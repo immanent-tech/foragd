@@ -6,12 +6,14 @@ package elastic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 )
@@ -37,11 +39,29 @@ var defaultItemFields = []string{
 	"image",
 }
 
+var defaultDatetimeFormat = "strict_date_optional_time_nanos"
+
 var (
 	ErrNoFeedID      = errors.New("no feed ID provided")
 	ErrExtractSource = errors.New("could not extract document _source")
 	ErrAddFailed     = errors.New("adding items failed")
 )
+
+// defaultFeedSort sorts Feeds by updated or published date descending.
+func defaultFeedSort() map[string]types.FieldSort {
+	return map[string]types.FieldSort{
+		"created_at": {Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
+		"feed_id":    {Order: &sortorder.Desc},
+	}
+}
+
+// defaultItemSort sorts Items by updated or published date descending.
+func defaultItemSort() map[string]types.FieldSort {
+	return map[string]types.FieldSort{
+		"@timestamp": {Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
+		"item_id":    {Order: &sortorder.Desc},
+	}
+}
 
 // GetNewFeedsSince retrieves a list of feeds that have been updated since the
 // given time.
@@ -70,6 +90,7 @@ func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]model
 			WithSearchQueryOptions(QuerySince("created_at", since)),
 			WithSearchSize(searchSize),
 			WithSearchAfter(pagination),
+			WithSortOptions(SortByDocID("feed_id")),
 		).Do(ctx)
 		if err != nil {
 			return nil, errors.Join(ErrSearchFailed, err)
@@ -102,6 +123,7 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (*models.APIFeed,
 		WithSearchIndex(index),
 		WithFields(defaultFeedFields...),
 		WithSearchQueryOptions(QueryByTerm("feedLink", url)),
+		WithSortOptions(SortByDocID("feed_id")),
 	).Do(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrSearchFailed, err)
@@ -134,6 +156,7 @@ func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]model
 		WithFields("feed_id", "feedLink"),
 		WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
 		WithSearchSize(len(urls)),
+		WithSortOptions(SortByDocID("feed_id")),
 	).Do(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrSearchFailed, err)
@@ -173,6 +196,7 @@ func (c *Client) FeedsSearch(ctx context.Context, filters models.APIFilters) ([]
 			),
 		),
 		WithSearchSize(filters.Count),
+		WithSortOptions(defaultFeedSort()),
 	).Do(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrSearchFailed, err)
@@ -347,7 +371,7 @@ func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, size models
 	req := c.NewSearchRequest(
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
-		WithSortOptions(SortTimestampDesc()),
+		WithSortOptions(defaultItemSort()),
 		WithSearchSize(size),
 	)
 
@@ -370,7 +394,6 @@ func (c *Client) ItemsAggregation(ctx context.Context, query QueryOption, aggreg
 	req := c.NewSearchRequest(
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
-		WithSortOptions(SortTimestampDesc()),
 		WithSearchSize(0),
 		WithAggregations(aggregation),
 	)
@@ -402,4 +425,54 @@ func (c *Client) ItemsCount(ctx context.Context, query QueryOption) (*count.Resp
 	}
 
 	return resp, nil
+}
+
+func EncodeFeedsPagination(feed *models.APIFeed, sortValues []types.FieldValue) (*models.Pagination, error) {
+	feedsPagination := &models.FeedsPagination{}
+
+	for _, value := range sortValues {
+		timeValue, err := time.Parse(time.RFC3339Nano, value.(string))
+		if err == nil {
+			feedsPagination.CreatedAt = timeValue
+		}
+
+		idValue, err := FieldValueToGoValue[models.ItemID](value)
+		if err == nil {
+			feedsPagination.FeedID = idValue
+		}
+	}
+
+	pagination := &models.Pagination{}
+
+	err := pagination.FromFeedsPagination(*feedsPagination)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse feeds pagination: %w", err)
+	}
+
+	return pagination, nil
+}
+
+func EncodeItemsPagination(item *models.APIItem, sortValues []types.FieldValue) (*models.Pagination, error) {
+	itemsPagination := &models.ItemsPagination{}
+
+	for _, value := range sortValues {
+		timeValue, err := time.Parse(time.RFC3339Nano, value.(string))
+		if err == nil {
+			itemsPagination.Timestamp = timeValue
+		}
+
+		idValue, err := FieldValueToGoValue[models.ItemID](value)
+		if err == nil {
+			itemsPagination.ItemID = idValue
+		}
+	}
+
+	pagination := &models.Pagination{}
+
+	err := pagination.FromItemsPagination(*itemsPagination)
+	if err != nil {
+		return nil, fmt.Errorf("cannot parse feeds pagination: %w", err)
+	}
+
+	return pagination, nil
 }
