@@ -19,6 +19,14 @@ func (v Problems) GetErrors(field string) string {
 	return v[field]
 }
 
+// IsValid will check if an object is valid according to the validation tags on
+// the object. It does not return any details of validation issues, only a
+// boolean for valid (true) or invalid (false).
+func IsValid[T any](obj T) bool {
+	err := validate.Struct(obj)
+	return err != nil
+}
+
 //nolint:errorlint,errcheck
 func ValidateStruct[T any](obj T) (bool, Problems) {
 	validationErr := &validator.ValidationErrors{}

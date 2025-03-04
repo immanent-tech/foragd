@@ -10,14 +10,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	externalRef0 "github.com/joshuar/go-feed-me/internal/models"
-	"github.com/oapi-codegen/nullable"
 	"github.com/oapi-codegen/runtime"
 )
 
 // MarkCategories defines model for MarkCategories.
 type MarkCategories struct {
 	// Categories is a list of categories.
-	Categories nullable.Nullable[externalRef0.Categories] `form:"categories[]" json:"categories" validate:"unique"`
+	Categories externalRef0.Categories `form:"categories[]" json:"categories" validate:"unique"`
 
 	// Mark applies the given mark action to objects.
 	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
@@ -32,7 +31,7 @@ type MarkCommon struct {
 // MarkFeeds defines model for MarkFeeds.
 type MarkFeeds struct {
 	// Feeds is a list of feed IDs.
-	Feeds nullable.Nullable[externalRef0.FeedIDs] `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
+	Feeds externalRef0.FeedIDs `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
 
 	// Mark applies the given mark action to objects.
 	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
@@ -41,7 +40,7 @@ type MarkFeeds struct {
 // MarkItems defines model for MarkItems.
 type MarkItems struct {
 	// Items is a list of items IDs.
-	Items nullable.Nullable[externalRef0.ItemIDs] `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
+	Items externalRef0.ItemIDs `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
 
 	// Mark applies the given mark action to objects.
 	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`

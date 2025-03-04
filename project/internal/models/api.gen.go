@@ -9,7 +9,6 @@ import (
 	"sync"
 
 	"github.com/a-h/templ"
-	"github.com/oapi-codegen/nullable"
 )
 
 // Defines values for Mark.
@@ -28,13 +27,13 @@ const (
 // APIFilters contains parameters for searching feeds and items
 type APIFilters struct {
 	// Categories is a list of categories.
-	Categories nullable.Nullable[Categories] `form:"categories[]" json:"categories" validate:"unique"`
+	Categories Categories `form:"categories[]" json:"categories" validate:"unique"`
 
 	// FeedIDs is a list of feed IDs.
-	FeedIDs nullable.Nullable[FeedIDs] `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
+	FeedIDs FeedIDs `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
 
 	// ItemIDs is a list of items IDs.
-	ItemIDs nullable.Nullable[ItemIDs] `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
+	ItemIDs ItemIDs `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
 
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count"`

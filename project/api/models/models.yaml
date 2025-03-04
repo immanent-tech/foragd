@@ -80,7 +80,7 @@ components:
         json: "feeds"
         form: "feeds[]"
         validate: "unique,dive,startswith=feed_"
-      nullable: true
+      x-go-type-skip-optional-pointer: true
     FeedURL:
       description: The canonical feed URL.
       type: string
@@ -104,7 +104,7 @@ components:
         json: "items"
         form: "items[]"
         validate: "unique,dive,startswith=item_"
-      nullable: true
+      x-go-type-skip-optional-pointer: true
     ItemURL:
       description: A URL to view the original item.
       type: string
@@ -161,7 +161,7 @@ components:
         json: "categories"
         form: "categories[]"
         validate: "unique"
-      nullable: true
+      x-go-type-skip-optional-pointer: true
     ObjectPublished:
       description: is when the object was published.
       x-oapi-codegen-extra-tags:

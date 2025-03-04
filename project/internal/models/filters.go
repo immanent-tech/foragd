@@ -41,59 +41,32 @@ type ParamsOption func(url.Values) url.Values
 
 // GetFeeds gets the list of FeedIDs from the filters.
 func (f *APIFilters) GetFeeds() []FeedID {
-	if f.FeedIDs.IsNull() {
-		return nil
-	}
-
-	feeds, err := f.FeedIDs.Get()
-	if err != nil {
-		return nil
-	}
-
-	return feeds
+	return f.FeedIDs
 }
 
 // SetFeeds sets the feed filters to the given values. Existing values are wiped.
 func (f *APIFilters) SetFeeds(feedIDs ...FeedID) {
-	f.FeedIDs.Set(feedIDs)
+	f.FeedIDs = feedIDs
 }
 
 // GetItems gets the list of ItemIDs from the filters.
 func (f *APIFilters) GetItems() ItemIDs {
-	if f.ItemIDs.IsNull() {
-		return nil
-	}
-
-	items, err := f.ItemIDs.Get()
-	if err != nil {
-		return nil
-	}
-
-	return items
+	return f.ItemIDs
 }
 
 // SetItems sets the item filters to the given values. Existing values are wiped.
 func (f *APIFilters) SetItems(itemIDs ...ItemID) {
-	f.ItemIDs.Set(itemIDs)
+	f.ItemIDs = itemIDs
 }
 
 // GetCategories gets the list of Categories from the filters.
 func (f *APIFilters) GetCategories() Categories {
-	if f.Categories.IsNull() {
-		return nil
-	}
-
-	items, err := f.Categories.Get()
-	if err != nil {
-		return nil
-	}
-
-	return items
+	return f.Categories
 }
 
 // SetCategories sets the category filters to the given values. Existing values are wiped.
 func (f *APIFilters) SetCategories(categories ...Category) {
-	f.Categories.Set(categories)
+	f.Categories = categories
 }
 
 // GetCount gets the count value from the filters. If the Count outside the
@@ -119,15 +92,15 @@ func (f *APIFilters) GetView() View {
 func (f *APIFilters) Params() url.Values {
 	params := make(url.Values)
 
-	if f.FeedIDs.IsSpecified() {
+	if len(f.FeedIDs) > 0 {
 		params.Set("feeds", strings.Join(f.GetFeeds(), ","))
 	}
 
-	if f.ItemIDs.IsSpecified() {
+	if len(f.ItemIDs) > 0 {
 		params.Set("items", strings.Join(f.GetItems(), ","))
 	}
 
-	if f.Categories.IsSpecified() {
+	if len(f.Categories) > 0 {
 		params.Set("categories", strings.Join(f.GetCategories(), ","))
 	}
 
