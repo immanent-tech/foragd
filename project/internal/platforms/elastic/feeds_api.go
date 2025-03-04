@@ -6,7 +6,6 @@ package elastic
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -42,9 +41,8 @@ var defaultItemFields = []string{
 var defaultDatetimeFormat = "strict_date_optional_time_nanos"
 
 var (
-	ErrNoFeedID      = errors.New("no feed ID provided")
-	ErrExtractSource = errors.New("could not extract document _source")
-	ErrAddFailed     = errors.New("adding items failed")
+	ErrNoFeedID  = errors.New("no feed ID provided")
+	ErrAddFailed = errors.New("adding items failed")
 )
 
 // defaultFeedSort sorts Feeds by updated or published date descending.
@@ -425,54 +423,4 @@ func (c *Client) ItemsCount(ctx context.Context, query QueryOption) (*count.Resp
 	}
 
 	return resp, nil
-}
-
-func EncodeFeedsPagination(feed *models.APIFeed, sortValues []types.FieldValue) (*models.Pagination, error) {
-	feedsPagination := &models.FeedsPagination{}
-
-	for _, value := range sortValues {
-		timeValue, err := time.Parse(time.RFC3339Nano, value.(string))
-		if err == nil {
-			feedsPagination.CreatedAt = timeValue
-		}
-
-		idValue, ok := value.(models.FeedID)
-		if ok {
-			feedsPagination.FeedID = idValue
-		}
-	}
-
-	pagination := &models.Pagination{}
-
-	err := pagination.FromFeedsPagination(*feedsPagination)
-	if err != nil {
-		return nil, fmt.Errorf("cannot parse feeds pagination: %w", err)
-	}
-
-	return pagination, nil
-}
-
-func EncodeItemsPagination(item *models.APIItem, sortValues []types.FieldValue) (*models.Pagination, error) {
-	itemsPagination := &models.ItemsPagination{}
-
-	for _, value := range sortValues {
-		timeValue, err := time.Parse(time.RFC3339Nano, value.(string))
-		if err == nil {
-			itemsPagination.Timestamp = timeValue
-		}
-
-		idValue, ok := value.(models.ItemID)
-		if ok {
-			itemsPagination.ItemID = idValue
-		}
-	}
-
-	pagination := &models.Pagination{}
-
-	err := pagination.FromItemsPagination(*itemsPagination)
-	if err != nil {
-		return nil, fmt.Errorf("cannot parse feeds pagination: %w", err)
-	}
-
-	return pagination, nil
 }

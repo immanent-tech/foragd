@@ -5,7 +5,6 @@ package elastic
 
 import (
 	"encoding/json"
-	"errors"
 	"log/slog"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/create"
@@ -13,11 +12,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/exists"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/update"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
-)
-
-var (
-	ErrUpdateFailed = errors.New("update failed")
-	ErrExistsFailed = errors.New("exists request failed")
 )
 
 // DocUpdateOption is a functional option for a DocUpdateRequest.

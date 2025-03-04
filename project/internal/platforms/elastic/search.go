@@ -5,7 +5,6 @@ package elastic
 
 import (
 	"encoding/json"
-	"errors"
 	"log/slog"
 	"reflect"
 
@@ -13,12 +12,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
-)
-
-var (
-	ErrSearchFailed = errors.New("search failed")
-	ErrCountFailed  = errors.New("count failed")
-	ErrNoHits       = errors.New("no hits found")
 )
 
 // SearchOption is a functional option to apply to a search request.

@@ -18,7 +18,6 @@ package elastic
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net"
@@ -45,11 +44,6 @@ var defaultTransportConfig = &http.Transport{
 		MinVersion: tls.VersionTLS12,
 	},
 }
-
-var (
-	ErrConnectFailed = errors.New("elasticsearch connection failed")
-	ErrSetupFailed   = errors.New("elasticsearch setup failed")
-)
 
 type Client struct {
 	conn       *elasticsearch.TypedClient

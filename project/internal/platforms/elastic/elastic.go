@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
@@ -18,15 +19,6 @@ var (
 	_ models.FeedJobStateAPI   = (*Client)(nil)
 	_ models.UserActionsAPI    = (*Client)(nil)
 	_ models.UserManagementAPI = (*Client)(nil)
-)
-
-var (
-	ErrNoClient      = errors.New("no client")
-	ErrFieldNotFound = errors.New("field not found")
-	ErrReqFailed     = errors.New("api request failed")
-	ErrNotFound      = errors.New("not found")
-
-	ErrConvertFieldValue = errors.New("could not convert field value")
 )
 
 // ExtractSourceFromHits loops through the given hits array and extracts the `_source`
@@ -147,4 +139,35 @@ func ExtractFieldValue[T any](field string, fields map[string]json.RawMessage) (
 // formatError formats an error cause from Elasticsearch into an error value.
 func formatError(err types.ErrorCause) error {
 	return fmt.Errorf("%s: %s", err.Type, *err.Reason)
+}
+
+// encodePagination will take sort values returned from a query, marshal them to
+// JSON, then HTML-escape the string into a models.Pagination object, which is
+// safe for use in API query parameters.
+func encodePagination(sortValues []types.FieldValue) (models.Pagination, error) {
+	// Marshal sort values into json.
+	data, err := json.Marshal(sortValues)
+	if err != nil {
+		return "", errors.Join(ErrPagination, fmt.Errorf("could not encode pagination values: %w", err))
+	}
+	// Return as HTML encoded string.
+	return url.QueryEscape(string(data)), nil
+}
+
+// decodePagination will take a models.Pagination object, HTML-unescape the
+// string then unmarshal it back into sort values.
+func decodePagination(pagination models.Pagination) ([]types.FieldValue, error) {
+	// Unescape HTML encoded data.
+	data, err := url.QueryUnescape(pagination)
+	if err != nil {
+		return nil, errors.Join(ErrPagination, fmt.Errorf("could not decode pagination values: %w", err))
+	}
+	// Unmarshal sort values.
+	var sortValues []types.FieldValue
+	err = json.Unmarshal([]byte(data), &sortValues)
+	if err != nil {
+		return nil, errors.Join(ErrPagination, fmt.Errorf("could not decode pagination values: %w", err))
+	}
+	// Return sort values.
+	return sortValues, nil
 }

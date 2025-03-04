@@ -4,14 +4,10 @@
 package elastic
 
 import (
-	"errors"
-
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
-
-var ErrGetFailed = errors.New("get request failed")
 
 // MGetOperationOption is a functional option for an mget operation.
 type MGetOperationOption Option[*types.MgetOperation]

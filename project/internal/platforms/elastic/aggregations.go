@@ -4,14 +4,11 @@
 package elastic
 
 import (
-	"errors"
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
-
-var ErrInvalidAggType = errors.New("not requested aggregation type")
 
 // Aggregation represents a named aggregation definition in a search query.
 type Aggregation struct {

@@ -171,51 +171,38 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID models.FeedID, it
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilters) ([]*models.APIItem, *models.Pagination, error) {
+func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilters) ([]*models.APIItem, models.Pagination, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+		return nil, "", errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, nil, ErrGetUserFailed
+		return nil, "", ErrGetUserFailed
 	}
 
 	// Work out what query to use based on the state filter.
 	query := generateItemsQueryClause(user, filters)
 
-	// rawPagination, err := filters.GetPagination()
-	// if err != nil {
-	// 	c.Logger.Debug("Could not get pagination value.",
-	// 		slog.Any("error", err))
-	// }
-
-	// currentPagination, err := models.DecodePagination(rawPagination)
-	// if err != nil {
-	// 	c.Logger.Debug("Could not get pagination value.",
-	// 		slog.Any("error", err))
-	// }
-
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-
 	resp, err := c.ItemsSearch(ctx, query, filters.GetCount())
 	if err != nil {
-		return nil, nil, errors.Join(ErrUserActionFailed, err)
+		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
-
+	// Extract items and pagination values.
 	items, lastSortValue, warnings := ExtractSourceFromHits[*models.APIItem](resp.Hits.Hits)
 	if warnings != nil {
 		c.Logger.Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
 	}
-
-	pagination, err := EncodeItemsPagination(items[len(items)-1], lastSortValue)
+	// Encode the pagination value.
+	pagination, err := encodePagination(lastSortValue)
 	if err != nil {
-		return nil, nil, errors.Join(ErrUserActionFailed, err)
+		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
-
+	// Decorate items with user state.
 	for _, item := range items {
 		// Add the state for the item from the user object, to the item object.
 		if itemState := user.GetItemState(item); itemState != nil {

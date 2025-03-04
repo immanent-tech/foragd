@@ -16,8 +16,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-var ErrPutILMPolicyFailed = errors.New("create ILM policy failed")
-
 // CreateIndexOption is a functional option for a create index request.
 type CreateIndexOption Option[*CreateIndexRequest]
 
