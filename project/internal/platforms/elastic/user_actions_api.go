@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -212,8 +211,6 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 			slog.Any("warnings", err))
 	}
 
-	spew.Dump(lastSortValue)
-
 	pagination, err := EncodeItemsPagination(items[len(items)-1], lastSortValue)
 	if err != nil {
 		return nil, nil, errors.Join(ErrUserActionFailed, err)
@@ -269,7 +266,6 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 	for _, feed := range feeds {
 		// Add user unread count to feed.
 		feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
-		spew.Dump(user.GetFeedLastRead(feed.ID))
 		// If filtering by unread, ignore feeds with no unread count.
 		if filters.View == models.ViewUnread && feed.GetUserUnreadCount() == 0 {
 			continue

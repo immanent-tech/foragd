@@ -172,8 +172,6 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 		}
 
 		allJobs = append(allJobs, jobs...)
-		// Update pagination value.
-		pagination = resp.Hits.Hits[len(resp.Hits.Hits)-1].Sort
 		// Stop if the number of hits is less than the search size (i.e., last set of hits).
 		if len(resp.Hits.Hits) < searchSize {
 			break

@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/oapi-codegen/nullable"
 	"github.com/oapi-codegen/runtime"
 
@@ -271,7 +270,7 @@ func (f *MarkItems) Valid() bool {
 // itemsHandler handles a list of items.
 func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters models.APIFilters) {
 	// Get all items.
-	items, pagination, err := api.UserActionGetItems(req.Context(), filters)
+	items, _, err := api.UserActionGetItems(req.Context(), filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
 			slog.Any("error", err))
@@ -279,8 +278,6 @@ func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 
 		return
 	}
-	spew.Dump(pagination)
-
 	// Get item categories.
 	categories, err := api.UserActionGetItemCategories(req.Context(), filters)
 	if err != nil {
