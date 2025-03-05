@@ -146,8 +146,6 @@ require (
 )
 
 tool (
-	github.com/a-h/templ/cmd/templ
-	github.com/air-verse/air
 	github.com/gowebly/gowebly/v2
 	github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 	golang.org/x/tools/cmd/stringer

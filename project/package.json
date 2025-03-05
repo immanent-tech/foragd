@@ -21,14 +21,13 @@
     "build": "parcel build"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-free": "^6.7.2",
-    "@tailwindcss/forms": "latest",
-    "@tailwindcss/typography": "latest",
-    "daisyui": "5.0.0",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "daisyui": "^5.0.0",
     "htmx-ext-head-support": "^2.0.4",
     "htmx.org": "^2.0.4",
-    "hyperscript.org": "0.9.13",
-    "idiomorph": "^0.7.2",
+    "hyperscript.org": "^0.9.14",
+    "idiomorph": "^0.7.3",
     "tailwindcss": "4.0.9",
     "theme-change": "^2.5.0"
   },
@@ -38,6 +37,6 @@
     "eslint-plugin-prettier": "^5.2.3",
     "parcel": "^2.13.3",
     "postcss": "^8.5.3",
-    "prettier": "latest"
+    "prettier": "^3.5.3"
   }
 }

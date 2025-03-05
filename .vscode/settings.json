@@ -9,11 +9,7 @@
     "editor.codeActionsOnSave": {
       "source.fixAll": "always",
       "source.organizeImports": "always"
-<<<<<<< HEAD
     }
-=======
-    },
->>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
   },
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
@@ -81,25 +77,16 @@
     "api",
     "classes",
     "classes/opacity",
-<<<<<<< HEAD
     "routes/home",
-<<<<<<< Updated upstream
-    "templates/layouts/home"
-=======
-    "routes/home"
->>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
-=======
     "templates/layouts/home",
     "assets/scripts"
->>>>>>> Stashed changes
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {
     "templ": "html"
   },
   "files.associations": {
-    "*.css": "tailwindcss",
-    "*.scss": "tailwindcss"
+    "*.css": "tailwindcss"
   },
   "files.exclude": {
     "**/.DS_Store": true,
@@ -110,13 +97,7 @@
     "**/CVS": true,
     "**/Thumbs.db": true
   },
-<<<<<<< HEAD
   "go.lintFlags": ["--fast"],
-=======
-  "go.lintFlags": [
-    "--fast"
-  ],
->>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
   "go.lintTool": "golangci-lint",
   "go.useLanguageServer": true,
   "go.diagnostic.vulncheck": "Imports",
@@ -127,8 +108,7 @@
     "ui.diagnostic.analyses": {
       "copylocks": false,
       "unusedvariable": true
-    },
-    "ui.diagnostic.staticcheck": true
+    }
   },
   "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
   "licenser.license": "AGPLv3",
@@ -139,11 +119,5 @@
   },
   "terminal.integrated.cwd": "${workspaceFolder}/project",
   "terminal.integrated.defaultProfile.linux": "fish",
-  "terminal.integrated.scrollback": 10000,
-  "yaml.schemas": {
-    "https://spec.openapis.org/oas/3.0/schema/2021-09-28": "file:///workspace/project/api/server/server.yaml",
-    "https://spec.openapis.org/oas/3.1/schema/2022-10-07": [
-      "file:///workspace/project/api/server/api.yaml"
-    ]
-  }
+  "terminal.integrated.scrollback": 10000
 }
