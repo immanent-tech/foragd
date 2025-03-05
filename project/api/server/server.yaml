@@ -1,7 +1,9 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
+
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
-# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
-openapi: "3.0.0"
+
+openapi: "3.0.3"
 info:
   version: 1.0.0
   title: Server Spec
@@ -229,8 +231,7 @@ paths:
         - $ref: "#/components/parameters/Categories"
         - $ref: "#/components/parameters/View"
         - $ref: "#/components/parameters/Count"
-      requestBody:
-        $ref: "#/components/requestBodies/PaginationRequest"
+        - $ref: "#/components/parameters/Pagination"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -266,8 +267,7 @@ paths:
         - $ref: "#/components/parameters/Categories"
         - $ref: "#/components/parameters/View"
         - $ref: "#/components/parameters/Count"
-      requestBody:
-        $ref: "#/components/requestBodies/PaginationRequest"
+        - $ref: "#/components/parameters/Pagination"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -396,7 +396,6 @@ components:
       in: query
       required: true
       schema:
-        type: string
         $ref: "../models/api.yaml#/components/schemas/Count"
       x-oapi-codegen-extra-tags:
         validate: "required,numeric,gt=0,lt=20"
@@ -424,15 +423,15 @@ components:
       x-oapi-codegen-extra-tags:
         form: "categories[]"
         validate: "unique"
-  requestBodies:
-    PaginationRequest:
-      description: >
-        Holds options for paginating through objects.
+    Pagination:
+      name: pagination
+      in: query
       required: true
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            $ref: "../models/api.yaml#/components/schemas/Pagination"
+      schema:
+        $ref: "../models/api.yaml#/components/schemas/Pagination"
+      x-oapi-codegen-extra-tags:
+        validate: "required,url_encoded"
+  requestBodies:
     MarkRequest:
       description: >
         Holds options for marking objects.

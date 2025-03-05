@@ -27,6 +27,7 @@ const (
 	ParamItems      ParamName = "items"
 	ParamCategories ParamName = "categories"
 	ParamMark       ParamName = "mark"
+	ParamPagination ParamName = "pagination"
 
 	MaxUserCount     = 20
 	MinUserCount     = 1

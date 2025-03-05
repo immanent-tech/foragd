@@ -29,17 +29,20 @@ type APIFilters struct {
 	// Categories is a list of categories.
 	Categories Categories `form:"categories[]" json:"categories" validate:"unique"`
 
+	// Count is the count of items to retrieve with a request.
+	Count Count `form:"count" json:"Count"`
+
 	// FeedIDs is a list of feed IDs.
 	FeedIDs FeedIDs `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
 
 	// ItemIDs is a list of items IDs.
 	ItemIDs ItemIDs `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
 
-	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"count"`
+	// Pagination contains data for paginating through results
+	Pagination *Pagination `form:"pagination" json:"Pagination,omitempty" validate:"required,url_encoded"`
 
 	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"required,oneof='read unread all'"`
+	View View `form:"view" json:"View" validate:"required,oneof='read unread all'"`
 }
 
 // APIRoute is a htmx route within the server.

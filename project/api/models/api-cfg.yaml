@@ -1,7 +1,8 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
+
 # Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-# yaml-language-server: $schema=https://raw.githubusercontent.com/oapi-codegen/oapi-codegen/HEAD/configuration-schema.json
 package: models
 output: ../../internal/models/api.gen.go
 generate:
@@ -11,6 +12,6 @@ output-options:
   skip-prune: true
   nullable-type: true
 import-mapping:
-  models.yaml: '-'
+  models.yaml: "-"
 compatibility:
   allow-unexported-struct-field-names: true

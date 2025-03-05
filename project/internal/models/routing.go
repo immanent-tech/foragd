@@ -126,6 +126,11 @@ func (r *APIRoute) SetMark(mark Mark) {
 	r.url.RawQuery = params.Encode()
 }
 
+func (r *APIRoute) SetPagination(pagination Pagination) {
+	params := WithPaginationParam(pagination)(r.url.Query())
+	r.url.RawQuery = params.Encode()
+}
+
 func (r *APIRoute) AddAttribute(key, value string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -212,6 +217,13 @@ func WithMarkParam(mark Mark) ParamsOption {
 func WithCountParam(count int) ParamsOption {
 	return func(v url.Values) url.Values {
 		v.Set("count", strconv.Itoa(count))
+		return v
+	}
+}
+
+func WithPaginationParam(pagination Pagination) ParamsOption {
+	return func(v url.Values) url.Values {
+		v.Set(string(ParamPagination), pagination)
 		return v
 	}
 }

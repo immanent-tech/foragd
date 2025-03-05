@@ -69,6 +69,9 @@ type ItemID = externalRef0.ItemID
 // Mark applies the given mark action to objects.
 type Mark = externalRef0.Mark
 
+// Pagination contains data for paginating through results
+type Pagination = externalRef0.Pagination
+
 // View The state of objects to view.
 type View = externalRef0.View
 
@@ -86,6 +89,7 @@ type HandlePaginateFeedsParams struct {
 	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
 	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
 	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
+	Pagination Pagination  `form:"pagination" json:"pagination" validate:"required,url_encoded"`
 }
 
 // HandleShowItemsParams defines parameters for HandleShowItems.
@@ -102,6 +106,7 @@ type HandlePaginateItemsParams struct {
 	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
 	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
 	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
+	Pagination Pagination  `form:"pagination" json:"pagination" validate:"required,url_encoded"`
 }
 
 // LoginCallbackParams defines parameters for LoginCallback.
@@ -119,14 +124,8 @@ type AddSubscriptionCategoryFormdataBody struct {
 // HandleMarkFeedsFormdataRequestBody defines body for HandleMarkFeeds for application/x-www-form-urlencoded ContentType.
 type HandleMarkFeedsFormdataRequestBody = MarkObjects
 
-// HandlePaginateFeedsFormdataRequestBody defines body for HandlePaginateFeeds for application/x-www-form-urlencoded ContentType.
-type HandlePaginateFeedsFormdataRequestBody = externalRef0.Pagination
-
 // HandleMarkItemsFormdataRequestBody defines body for HandleMarkItems for application/x-www-form-urlencoded ContentType.
 type HandleMarkItemsFormdataRequestBody = MarkObjects
-
-// HandlePaginateItemsFormdataRequestBody defines body for HandlePaginateItems for application/x-www-form-urlencoded ContentType.
-type HandlePaginateItemsFormdataRequestBody = externalRef0.Pagination
 
 // AddSubscriptionCategoryFormdataRequestBody defines body for AddSubscriptionCategory for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
@@ -637,6 +636,21 @@ func (siw *ServerInterfaceWrapper) HandlePaginateFeeds(w http.ResponseWriter, r 
 		return
 	}
 
+	// ------------- Required query parameter "pagination" -------------
+
+	if paramValue := r.URL.Query().Get("pagination"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "pagination"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandlePaginateFeeds(w, r, params)
 	}))
@@ -778,6 +792,21 @@ func (siw *ServerInterfaceWrapper) HandlePaginateItems(w http.ResponseWriter, r 
 	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "pagination" -------------
+
+	if paramValue := r.URL.Query().Get("pagination"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "pagination"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
 		return
 	}
 
