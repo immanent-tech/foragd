@@ -53,8 +53,8 @@ func (l *LayoutProps) Render(res http.ResponseWriter, req *http.Request) error {
 
 	content := make([]templ.Component, 0, len(l.parts))
 
-	// Render parts.
 	if htmx.IsHTMX(req) {
+		// Partial content render.
 		for _, part := range l.parts {
 			content = append(content, part.PartialRender())
 		}
@@ -62,6 +62,7 @@ func (l *LayoutProps) Render(res http.ResponseWriter, req *http.Request) error {
 			return errors.Join(ErrHomePartialRender, err)
 		}
 	} else {
+		// Full page render.
 		content = append(content, commandModal())
 		for _, part := range l.parts {
 			content = append(content, part.FullRender())
