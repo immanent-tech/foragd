@@ -10,10 +10,8 @@ require (
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.17.0
 	github.com/coreos/go-oidc v2.3.0+incompatible
-	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/go-chi/chi/v5 v5.2.1
-	github.com/go-json-experiment/json v0.0.0-20240412061110-8868a69194fa
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.25.0
 	github.com/gowebly/helpers v0.4.0
@@ -30,7 +28,7 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-chi v1.13.1
 	github.com/samber/slog-multi v1.4.0
-	golang.org/x/oauth2 v0.26.0
+	golang.org/x/oauth2 v0.28.0
 )
 
 require (
@@ -70,7 +68,7 @@ require (
 	github.com/PuerkitoBio/goquery v1.10.1 // indirect
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
-	github.com/alecthomas/kong v1.6.1
+	github.com/alecthomas/kong v1.8.1
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
@@ -83,7 +81,7 @@ require (
 	github.com/creack/pty v1.1.23 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
-	github.com/elastic/elastic-transport-go/v8 v8.6.1 // indirect
+	github.com/elastic/elastic-transport-go/v8 v8.6.1
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
@@ -131,7 +129,6 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/tdewolff/parse/v2 v2.7.15 // indirect
-	github.com/veqryn/slog-json v0.3.0
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	go.devnw.com/structs v1.0.0 // indirect
 	go.opentelemetry.io/otel v1.29.0 // indirect
