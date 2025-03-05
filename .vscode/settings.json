@@ -83,10 +83,15 @@
     "classes/opacity",
 <<<<<<< HEAD
     "routes/home",
+<<<<<<< Updated upstream
     "templates/layouts/home"
 =======
     "routes/home"
 >>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
+=======
+    "templates/layouts/home",
+    "assets/scripts"
+>>>>>>> Stashed changes
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

@@ -53,20 +53,14 @@ func (l *LayoutProps) Render(res http.ResponseWriter, req *http.Request) error {
 
 	content := make([]templ.Component, 0, len(l.parts))
 
-<<<<<<< HEAD
 	if htmx.IsHTMX(req) {
 		// Partial content render.
-=======
-	// Render parts.
-	if htmx.IsHTMX(req) {
->>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
 		for _, part := range l.parts {
 			content = append(content, part.PartialRender())
 		}
 		if err := resp.RenderTempl(req.Context(), res, templ.Join(content...)); err != nil {
 			return errors.Join(ErrHomePartialRender, err)
 		}
-<<<<<<< HEAD
 	} else {
 		// Full page render.
 		content = append(content, commandModal())
@@ -84,24 +78,6 @@ func (l *LayoutProps) Render(res http.ResponseWriter, req *http.Request) error {
 		if err := resp.RenderTempl(req.Context(), res, fullPage.Show()); err != nil {
 			return errors.Join(ErrHomePartialRender, err)
 		}
-=======
-	}
-
-	content = append(content, commandModal())
-	for _, part := range l.parts {
-		content = append(content, part.FullRender())
-	}
-	// Render full page.
-	fullPage := layouts.BuildPage(
-		layouts.WithHeadOptions(l.title,
-			layouts.WithPageDescription("Your home."),
-			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		),
-		layouts.WithPageContent(content...),
-	)
-	if err := resp.RenderTempl(req.Context(), res, fullPage.Show()); err != nil {
-		return errors.Join(ErrHomePartialRender, err)
->>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
 	}
 
 	return nil

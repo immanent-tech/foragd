@@ -38,11 +38,7 @@ templ (f *Footer) FullRender() {
 }
 
 templ (h *Footer) PartialRender() {
-<<<<<<< HEAD
 	@h.FullRender()
-=======
-	h.FullRender
->>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
 }
 
 func BuildFooter(backPath string) *Footer {
