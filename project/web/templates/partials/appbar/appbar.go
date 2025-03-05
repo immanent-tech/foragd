@@ -4,6 +4,7 @@
 package appbar
 
 import (
+	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/navbar"
 )
@@ -13,5 +14,10 @@ func AppBar() *navbar.Props {
 		navbar.WithBaseColor(color.Base200),
 		navbar.NavBarStart(appBarTopLeft()),
 		navbar.NavBarEnd(appBarTopRight()),
-		navbar.NavBarCenter(appBarTopCenter()))
+		navbar.NavBarCenter(appBarTopCenter()),
+		navbar.WithExtraAttributes(templ.Attributes{
+			"hx-swap-oob": "true",
+			"hx-swap":     "morph:outerHTML",
+		}),
+	)
 }

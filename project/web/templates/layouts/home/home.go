@@ -61,22 +61,22 @@ func (l *LayoutProps) Render(res http.ResponseWriter, req *http.Request) error {
 		if err := resp.RenderTempl(req.Context(), res, templ.Join(content...)); err != nil {
 			return errors.Join(ErrHomePartialRender, err)
 		}
-	}
-
-	content = append(content, commandModal())
-	for _, part := range l.parts {
-		content = append(content, part.FullRender())
-	}
-	// Render full page.
-	fullPage := layouts.BuildPage(
-		layouts.WithHeadOptions(l.title,
-			layouts.WithPageDescription("Your home."),
-			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		),
-		layouts.WithPageContent(content...),
-	)
-	if err := resp.RenderTempl(req.Context(), res, fullPage.Show()); err != nil {
-		return errors.Join(ErrHomePartialRender, err)
+	} else {
+		content = append(content, commandModal())
+		for _, part := range l.parts {
+			content = append(content, part.FullRender())
+		}
+		// Render full page.
+		fullPage := layouts.BuildPage(
+			layouts.WithHeadOptions(l.title,
+				layouts.WithPageDescription("Your home."),
+				layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+			),
+			layouts.WithPageContent(content...),
+		)
+		if err := resp.RenderTempl(req.Context(), res, fullPage.Show()); err != nil {
+			return errors.Join(ErrHomePartialRender, err)
+		}
 	}
 
 	return nil

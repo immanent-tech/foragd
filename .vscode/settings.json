@@ -9,7 +9,7 @@
     "editor.codeActionsOnSave": {
       "source.fixAll": "always",
       "source.organizeImports": "always"
-    },
+    }
   },
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
@@ -77,7 +77,8 @@
     "api",
     "classes",
     "classes/opacity",
-    "routes/home"
+    "routes/home",
+    "templates/layouts/home"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {
@@ -96,9 +97,7 @@
     "**/CVS": true,
     "**/Thumbs.db": true
   },
-  "go.lintFlags": [
-    "--fast"
-  ],
+  "go.lintFlags": ["--fast"],
   "go.lintTool": "golangci-lint",
   "go.useLanguageServer": true,
   "go.diagnostic.vulncheck": "Imports",

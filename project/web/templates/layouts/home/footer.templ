@@ -38,7 +38,7 @@ templ (f *Footer) FullRender() {
 }
 
 templ (h *Footer) PartialRender() {
-	h.FullRender
+	@h.FullRender()
 }
 
 func BuildFooter(backPath string) *Footer {

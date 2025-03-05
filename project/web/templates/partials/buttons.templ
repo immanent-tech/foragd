@@ -35,6 +35,7 @@ func BackButton(ctx context.Context, path, target string) templ.Component {
 		session.GetRouteState(ctx, path),
 		models.WithAttribute("hx-target", target),
 		models.WithAttribute("hx-push-url", "true"),
+		models.WithAttribute("hx-swap", "morph:innerHTML"),
 	).Attributes()
 
 	return button.Build(
