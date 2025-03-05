@@ -3,6 +3,12 @@
 
 package home
 
+<<<<<<< HEAD
+=======
+import "github.com/joshuar/go-templ-daisyui/feedback/loading"
+import "github.com/joshuar/go-templ-daisyui/modifiers/color"
+
+>>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
 // MainContent of /home consists of zero or more Elements.
 type MainContent struct {
 	content []Element
@@ -45,11 +51,19 @@ templ (c *MainContent) PartialRender() {
 			@part.Show()
 		}
 	}
+<<<<<<< HEAD
 	// @loading.Build(loading.Bars,
 	// 	loading.WithID("content-loading"),
 	// 	loading.AsHTMXIndicator(),
 	// 	loading.WithThemeColor(color.Accent),
 	// ).Show()
+=======
+	@loading.Build(loading.Bars,
+		loading.WithID("content-loading"),
+		loading.AsHTMXIndicator(),
+		loading.WithThemeColor(color.Accent),
+	).Show()
+>>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
 }
 
 func BuildMainContent(elements ...Element) *MainContent {

@@ -9,7 +9,11 @@
     "editor.codeActionsOnSave": {
       "source.fixAll": "always",
       "source.organizeImports": "always"
+<<<<<<< HEAD
     }
+=======
+    },
+>>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
   },
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
@@ -77,8 +81,12 @@
     "api",
     "classes",
     "classes/opacity",
+<<<<<<< HEAD
     "routes/home",
     "templates/layouts/home"
+=======
+    "routes/home"
+>>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {
@@ -97,7 +105,13 @@
     "**/CVS": true,
     "**/Thumbs.db": true
   },
+<<<<<<< HEAD
   "go.lintFlags": ["--fast"],
+=======
+  "go.lintFlags": [
+    "--fast"
+  ],
+>>>>>>> f4c67fd01d2b5d59ff44e69e284ddb727920a4da
   "go.lintTool": "golangci-lint",
   "go.useLanguageServer": true,
   "go.diagnostic.vulncheck": "Imports",
