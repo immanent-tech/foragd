@@ -145,6 +145,9 @@ func formatError(err types.ErrorCause) error {
 // JSON, then HTML-escape the string into a models.Pagination object, which is
 // safe for use in API query parameters.
 func encodePagination(sortValues []types.FieldValue) (models.Pagination, error) {
+	if len(sortValues) == 0 {
+		return "", nil
+	}
 	// Marshal sort values into json.
 	data, err := json.Marshal(sortValues)
 	if err != nil {
@@ -157,6 +160,9 @@ func encodePagination(sortValues []types.FieldValue) (models.Pagination, error) 
 // decodePagination will take a models.Pagination object, HTML-unescape the
 // string then unmarshal it back into sort values.
 func decodePagination(pagination models.Pagination) ([]types.FieldValue, error) {
+	if pagination == "" {
+		return nil, nil
+	}
 	// Unescape HTML encoded data.
 	data, err := url.QueryUnescape(pagination)
 	if err != nil {

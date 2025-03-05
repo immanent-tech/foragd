@@ -39,7 +39,7 @@ type APIFilters struct {
 	ItemIDs ItemIDs `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
 
 	// Pagination contains data for paginating through results
-	Pagination *Pagination `form:"pagination" json:"Pagination,omitempty" validate:"required,url_encoded"`
+	Pagination *Pagination `form:"pagination" json:"Pagination,omitempty" validate:"url_encoded"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"View" validate:"required,oneof='read unread all'"`

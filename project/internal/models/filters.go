@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/url"
 	"strconv"
 	"strings"
@@ -87,6 +86,15 @@ func (f *APIFilters) GetView() View {
 	}
 
 	return f.View
+}
+
+// GetPagination gets the pagination value from the filters.
+func (f *APIFilters) GetPagination() Pagination {
+	if f.Pagination != nil {
+		return *f.Pagination
+	}
+
+	return ""
 }
 
 // Params encodes the APIFilter values into a url.Values object.
@@ -182,17 +190,10 @@ func CreateFilters(params any) (*APIFilters, error) {
 		return nil, fmt.Errorf("could not generate filters: %w", err)
 	}
 
-	slog.Debug("Marshaling params.",
-		slog.Any("params", params),
-		slog.String("data", string(data)))
-
 	err = json.Unmarshal(data, filters)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate filters: %w", err)
 	}
-
-	slog.Debug("Unmarshaling filters.",
-		slog.Any("filters", filters))
 
 	// Validate the count is within an appropriate range and adjust if
 	// necessary.

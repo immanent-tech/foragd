@@ -7,16 +7,13 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"net/url"
-
-	"github.com/oapi-codegen/nullable"
-	"github.com/oapi-codegen/runtime"
 
 	"github.com/joshuar/go-feed-me/internal/app/server/forms"
 	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/validation"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
@@ -62,10 +59,6 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	feedsHandler(s.DataAPI(), res, req, *filters)
 }
 
-func (s Server) HandlePaginateFeeds(res http.ResponseWriter, req *http.Request, params HandlePaginateFeedsParams) {
-	res.WriteHeader(http.StatusNotImplemented)
-}
-
 func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 	// Get the view filters for reloading the page.
 	filters, err := models.FiltersFromQuery(models.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
@@ -76,65 +69,24 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Get the mark request.
-	marks, valid, err := forms.DecodeCustom(req, DecodeMarkFeeds)
+	marks, valid, err := forms.DecodeForm[*MarkFeeds](req)
 	if err != nil || !valid {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 
 		return
 	}
-	// Get the list of feeds to mark.
-	feeds, err := marks.Feeds.Get()
-	if err != nil {
-		return
-	}
 	// Mark the feeds.
-	if err := s.DataAPI().UserActionMarkFeeds(req.Context(), marks.Mark, feeds...); err != nil {
+	if err := s.DataAPI().UserActionMarkFeeds(req.Context(), marks.Mark, marks.Feeds...); err != nil {
 		return
 	}
 	// Reload the home page.
 	feedsHandler(s.DataAPI(), res, req, *filters)
 }
 
-// DecodeMarkFeeds is a custom decoder function to decode a request for marking
-// Feeds.
-func DecodeMarkFeeds(values url.Values) (*MarkFeeds, error) {
-	request := &MarkFeeds{}
-
-	var (
-		err     error
-		feedIDs *models.FeedIDs
-	)
-
-	// Parse feeds param.
-	err = runtime.BindQueryParameter("form", true, false, string(models.ParamFeeds), values, &feedIDs)
-	if err != nil {
-		return nil, errors.Join(ErrParseMarkRequest, err)
-	}
-
-	if feedIDs != nil {
-		request.Feeds = nullable.NewNullableWithValue(*feedIDs)
-	}
-	// Parse mark param.
-	if request.Mark = models.Mark(values.Get(string(models.ParamMark))); request.Mark == "" {
-		return nil, errors.Join(ErrParseMarkRequest, err)
-	}
-
-	return request, nil
-}
-
 // Valid checks that the MarkFeeds object is valid.
 func (f *MarkFeeds) Valid() bool {
-	// Must have valid mark value.
-	if !(f.Mark == models.MarkRead || f.Mark == models.MarkUnread) {
-		return false
-	}
-	// Feeds must be specified.
-	if !f.Feeds.IsSpecified() {
-		return false
-	}
-
-	return true
+	return validation.IsValid(f)
 }
 
 // feedsHandler handles a list of feeds.
@@ -192,10 +144,6 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 	itemsHandler(s.DataAPI(), res, req, *filters)
 }
 
-func (s Server) HandlePaginateItems(res http.ResponseWriter, req *http.Request, params HandlePaginateItemsParams) {
-	res.WriteHeader(http.StatusNotImplemented)
-}
-
 func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	// Create filters for API requests.
 	filters, err := models.FiltersFromQuery(models.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
@@ -206,71 +154,30 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Get the mark request.
-	marks, valid, err := forms.DecodeCustom(req, DecodeMarkItems)
+	marks, valid, err := forms.DecodeForm[*MarkItems](req)
 	if err != nil || !valid {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 
 		return
 	}
-	// Get the list of feeds to mark.
-	items, err := marks.Items.Get()
-	if err != nil {
-		return
-	}
 	// Mark the feeds.
-	if err := s.DataAPI().UserActionMarkItems(req.Context(), marks.Mark, items...); err != nil {
+	if err := s.DataAPI().UserActionMarkItems(req.Context(), marks.Mark, marks.Items...); err != nil {
 		return
 	}
 	// Reload page.
 	itemsHandler(s.DataAPI(), res, req, *filters)
 }
 
-// DecodeMarkItems is a custom decoder function to decode a request for marking
-// Items.
-func DecodeMarkItems(values url.Values) (*MarkItems, error) {
-	request := &MarkItems{}
-
-	var (
-		err     error
-		itemIDs *models.ItemIDs
-	)
-
-	// Parse feeds param.
-	err = runtime.BindQueryParameter("form", true, false, string(models.ParamItems), values, &itemIDs)
-	if err != nil {
-		return nil, errors.Join(ErrParseMarkRequest, err)
-	}
-
-	if itemIDs != nil {
-		request.Items = nullable.NewNullableWithValue(*itemIDs)
-	}
-	// Parse mark param.
-	if request.Mark = models.Mark(values.Get(string(models.ParamMark))); request.Mark == "" {
-		return nil, errors.Join(ErrParseMarkRequest, err)
-	}
-
-	return request, nil
-}
-
 // Valid checks that the MarkItems object is valid.
 func (f *MarkItems) Valid() bool {
-	// Must have valid mark value.
-	if !(f.Mark == models.MarkRead || f.Mark == models.MarkUnread) {
-		return false
-	}
-	// Items must be specified.
-	if !f.Items.IsSpecified() {
-		return false
-	}
-
-	return true
+	return validation.IsValid(f)
 }
 
 // itemsHandler handles a list of items.
 func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters models.APIFilters) {
 	// Get all items.
-	items, _, err := api.UserActionGetItems(req.Context(), filters)
+	items, pagination, err := api.UserActionGetItems(req.Context(), filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
 			slog.Any("error", err))
@@ -289,9 +196,9 @@ func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 	}
 
 	itemCards := make([]home.Content, 0, filters.Count)
-	idx := 0
 	// Build item cards.
-	for _, item := range items {
+	for idx, item := range items {
+		// Create a card for this item.
 		itemCard, err := partials.NewItemCard(filters, item)
 		if err != nil {
 			logging.FromContext(req.Context()).Warn("Could not create card component for item.",
@@ -300,17 +207,11 @@ func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 
 			continue
 		}
-
-		// if idx == len(itemCh)-1 && pagination != "" && len(itemCh) == filters.Count {
-		// 	component.AddAttributes(templ.Attributes{
-		// 		"hx-get":       filepath.Join("home", "show", "items") + "?pagination=" + pagination,
-		// 		"hx-trigger":   "revealed",
-		// 		"hx-swap":      "afterend",
-		// 		"hx-push-url":  "false",
-		// 		"hx-indicator": "#content-loading",
-		// 	})
-		// }
-
+		// Add a pagination action to the last item.
+		if idx == len(items)-1 {
+			itemCard.AddPagination(req.URL, pagination)
+		}
+		// Append the card to the list of cards.
 		itemCards = append(itemCards, itemCard)
 		idx++
 	}

@@ -209,6 +209,7 @@ paths:
         - $ref: "#/components/parameters/Categories"
         - $ref: "#/components/parameters/View"
         - $ref: "#/components/parameters/Count"
+        - $ref: "#/components/parameters/Pagination"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -218,20 +219,6 @@ paths:
       operationId: handleMarkFeeds
       requestBody:
         $ref: "#/components/requestBodies/MarkRequest"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /home/feeds/paginate:
-    post:
-      summary: >
-        Paginate through feeds with optional filtering applied.
-      operationId: handlePaginateFeeds
-      parameters:
-        - $ref: "#/components/parameters/FeedIDs"
-        - $ref: "#/components/parameters/Categories"
-        - $ref: "#/components/parameters/View"
-        - $ref: "#/components/parameters/Count"
-        - $ref: "#/components/parameters/Pagination"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -245,6 +232,7 @@ paths:
         - $ref: "#/components/parameters/Categories"
         - $ref: "#/components/parameters/View"
         - $ref: "#/components/parameters/Count"
+        - $ref: "#/components/parameters/Pagination"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -254,20 +242,6 @@ paths:
       operationId: handleMarkItems
       requestBody:
         $ref: "#/components/requestBodies/MarkRequest"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /home/items/paginate:
-    post:
-      summary: >
-        Paginate through items with optional filtering applied.
-      operationId: handlePaginateItems
-      parameters:
-        - $ref: "#/components/parameters/FeedIDs"
-        - $ref: "#/components/parameters/Categories"
-        - $ref: "#/components/parameters/View"
-        - $ref: "#/components/parameters/Count"
-        - $ref: "#/components/parameters/Pagination"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -426,11 +400,10 @@ components:
     Pagination:
       name: pagination
       in: query
-      required: true
       schema:
         $ref: "../models/api.yaml#/components/schemas/Pagination"
       x-oapi-codegen-extra-tags:
-        validate: "required,url_encoded"
+        validate: "url_encoded"
   requestBodies:
     MarkRequest:
       description: >

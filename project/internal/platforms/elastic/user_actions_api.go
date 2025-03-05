@@ -187,7 +187,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	resp, err := c.ItemsSearch(ctx, query, filters.GetCount())
+	resp, err := c.ItemsSearch(ctx, query, filters.GetCount(), filters.GetPagination())
 	if err != nil {
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}

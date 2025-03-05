@@ -360,22 +360,26 @@ func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
 
 // ItemsSearch performs a search query on feed items with the given query
 // options. It returns the raw search response.
-func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, size models.Count) (*search.Response, error) {
+func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, size models.Count, pagination models.Pagination) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
-	req := c.NewSearchRequest(
+	sortValues, err := decodePagination(pagination)
+	if err != nil {
+		return nil, errors.Join(ErrSearchFailed, err)
+	}
+
+	resp, err := c.NewSearchRequest(
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
 		WithSortOptions(defaultItemSort()),
+		WithSearchAfter(sortValues),
 		WithSearchSize(size),
-	)
-
-	resp, err := req.Do(ctx)
+	).Do(ctx)
 	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
+		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
 	return resp, nil

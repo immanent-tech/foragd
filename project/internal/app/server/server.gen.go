@@ -81,15 +81,7 @@ type HandleShowFeedsParams struct {
 	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
 	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
 	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
-}
-
-// HandlePaginateFeedsParams defines parameters for HandlePaginateFeeds.
-type HandlePaginateFeedsParams struct {
-	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty" validate:"unique,dive,startswith=feed_"`
-	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
-	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
-	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
-	Pagination Pagination  `form:"pagination" json:"pagination" validate:"required,url_encoded"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty" validate:"url_encoded"`
 }
 
 // HandleShowItemsParams defines parameters for HandleShowItems.
@@ -98,15 +90,7 @@ type HandleShowItemsParams struct {
 	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
 	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
 	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
-}
-
-// HandlePaginateItemsParams defines parameters for HandlePaginateItems.
-type HandlePaginateItemsParams struct {
-	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty" validate:"unique,dive,startswith=feed_"`
-	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
-	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
-	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
-	Pagination Pagination  `form:"pagination" json:"pagination" validate:"required,url_encoded"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty" validate:"url_encoded"`
 }
 
 // LoginCallbackParams defines parameters for LoginCallback.
@@ -241,18 +225,12 @@ type ServerInterface interface {
 	// Mark feeds.
 	// (POST /home/feeds)
 	HandleMarkFeeds(w http.ResponseWriter, r *http.Request)
-	// Paginate through feeds with optional filtering applied.
-	// (POST /home/feeds/paginate)
-	HandlePaginateFeeds(w http.ResponseWriter, r *http.Request, params HandlePaginateFeedsParams)
 	// Shows items with optional filtering applied.
 	// (GET /home/items)
 	HandleShowItems(w http.ResponseWriter, r *http.Request, params HandleShowItemsParams)
 	// Mark feeds.
 	// (POST /home/items)
 	HandleMarkItems(w http.ResponseWriter, r *http.Request)
-	// Paginate through items with optional filtering applied.
-	// (POST /home/items/paginate)
-	HandlePaginateItems(w http.ResponseWriter, r *http.Request, params HandlePaginateItemsParams)
 	// Show user settings modal
 	// (GET /home/settings)
 	GetHomeSettings(w http.ResponseWriter, r *http.Request)
@@ -336,12 +314,6 @@ func (_ Unimplemented) HandleMarkFeeds(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Paginate through feeds with optional filtering applied.
-// (POST /home/feeds/paginate)
-func (_ Unimplemented) HandlePaginateFeeds(w http.ResponseWriter, r *http.Request, params HandlePaginateFeedsParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 // Shows items with optional filtering applied.
 // (GET /home/items)
 func (_ Unimplemented) HandleShowItems(w http.ResponseWriter, r *http.Request, params HandleShowItemsParams) {
@@ -351,12 +323,6 @@ func (_ Unimplemented) HandleShowItems(w http.ResponseWriter, r *http.Request, p
 // Mark feeds.
 // (POST /home/items)
 func (_ Unimplemented) HandleMarkItems(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Paginate through items with optional filtering applied.
-// (POST /home/items/paginate)
-func (_ Unimplemented) HandlePaginateItems(w http.ResponseWriter, r *http.Request, params HandlePaginateItemsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -557,6 +523,14 @@ func (siw *ServerInterfaceWrapper) HandleShowFeeds(w http.ResponseWriter, r *htt
 		return
 	}
 
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleShowFeeds(w, r, params)
 	}))
@@ -573,86 +547,6 @@ func (siw *ServerInterfaceWrapper) HandleMarkFeeds(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleMarkFeeds(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// HandlePaginateFeeds operation middleware
-func (siw *ServerInterfaceWrapper) HandlePaginateFeeds(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params HandlePaginateFeedsParams
-
-	// ------------- Optional query parameter "feeds" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "view" -------------
-
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "pagination" -------------
-
-	if paramValue := r.URL.Query().Get("pagination"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "pagination"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "pagination", r.URL.Query(), &params.Pagination)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandlePaginateFeeds(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -716,6 +610,14 @@ func (siw *ServerInterfaceWrapper) HandleShowItems(w http.ResponseWriter, r *htt
 		return
 	}
 
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleShowItems(w, r, params)
 	}))
@@ -732,86 +634,6 @@ func (siw *ServerInterfaceWrapper) HandleMarkItems(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleMarkItems(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// HandlePaginateItems operation middleware
-func (siw *ServerInterfaceWrapper) HandlePaginateItems(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params HandlePaginateItemsParams
-
-	// ------------- Optional query parameter "feeds" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "view" -------------
-
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "pagination" -------------
-
-	if paramValue := r.URL.Query().Get("pagination"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "pagination"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "pagination", r.URL.Query(), &params.Pagination)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandlePaginateItems(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1387,16 +1209,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/home/feeds", wrapper.HandleMarkFeeds)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/feeds/paginate", wrapper.HandlePaginateFeeds)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/items", wrapper.HandleShowItems)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/home/items", wrapper.HandleMarkItems)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/items/paginate", wrapper.HandlePaginateItems)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)

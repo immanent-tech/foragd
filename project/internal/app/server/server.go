@@ -147,11 +147,9 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		// Feeds:
 		homeRouter.Get("/feeds", SetCommonHomeFilters(wrapper.HandleShowFeeds))
 		homeRouter.Post("/feeds", SetCommonHomeFilters(wrapper.HandleMarkFeeds))
-		homeRouter.Post("/feeds/paginate", SetCommonHomeFilters(wrapper.HandlePaginateFeeds))
 		// Items:
 		homeRouter.Get("/items", SetCommonHomeFilters(wrapper.HandleShowItems))
 		homeRouter.Post("/items", SetCommonHomeFilters(wrapper.HandleMarkItems))
-		homeRouter.Post("/items/paginate", SetCommonHomeFilters(wrapper.HandlePaginateItems))
 		// Item:
 		homeRouter.Get("/{feed}/{item}", SetCommonHomeFilters(wrapper.HandleShowItem))
 		homeRouter.Post("/{feed}/{item}/{mark}", SetCommonHomeFilters(wrapper.HandleMarkItem))

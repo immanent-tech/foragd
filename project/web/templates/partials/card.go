@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -74,8 +75,8 @@ func (c *Card) buildMarkButton(label string, mark models.Mark, path string) temp
 	).Show()
 }
 
-// buildProps builds the card.Props for the given content.
-func (c *Card) buildProps(path string, filters models.APIFilters, options ...card.Option) {
+// buildRoute creates a models.APIRoute appropriate for showing content.
+func (c *Card) buildRoute(path string, filters models.APIFilters) *models.APIRoute {
 	var routeOptions []models.RouteOption
 
 	routeOptions = append(routeOptions,
@@ -99,15 +100,21 @@ func (c *Card) buildProps(path string, filters models.APIFilters, options ...car
 		)
 	}
 
-	route := models.BuildRoute(path, routeOptions...)
+	return models.BuildRoute(path, routeOptions...)
+}
 
-	options = append(options,
-		card.Bordered(),
-		card.WithShadow(size.XL),
-		card.WithExtraAttributes(route.Attributes()),
-	)
-
-	c.Props = card.Build(options...)
+// AddPagination adds htmx attributes for triggering pagination to a card.
+func (c *Card) AddPagination(path *url.URL, pagination models.Pagination) {
+	paginateRoute := models.BuildRoute(path,
+		models.WithParams(models.WithPaginationParam(pagination)),
+	).String()
+	c.AddAttributes(templ.Attributes{
+		"hx-get":       paginateRoute,
+		"hx-trigger":   "intersect once",
+		"hx-swap":      "afterend",
+		"hx-push-url":  "false",
+		"hx-indicator": "#content-loading",
+	})
 }
 
 func NewFeedCard(filters models.APIFilters, feed *models.APIFeed) (*Card, error) {
@@ -124,9 +131,10 @@ func NewFeedCard(filters models.APIFilters, feed *models.APIFeed) (*Card, error)
 	if err != nil {
 		return nil, errors.Join(ErrNewCard, err)
 	}
-
-	var cardMenuItems []templ.Component
+	// Build a route for showing feed items.
+	route := feedCard.buildRoute("/home/items", filters)
 	// Add card menu item for marking read/unread.
+	var cardMenuItems []templ.Component
 	if feed.GetUserUnreadCount() > 0 {
 		cardMenuItems = append(cardMenuItems,
 			feedCard.buildMarkButton("Mark Read", models.MarkRead, "/home/feeds"))
@@ -134,14 +142,16 @@ func NewFeedCard(filters models.APIFilters, feed *models.APIFeed) (*Card, error)
 		cardMenuItems = append(cardMenuItems,
 			feedCard.buildMarkButton("Mark Unread", models.MarkUnread, "/home/feeds"))
 	}
-
-	var cardOptions []card.Option
 	// Build card options.
+	var cardOptions []card.Option
 	cardOptions = append(cardOptions,
 		card.WithLayout(card.LayoutSide),
+		card.Bordered(),
+		card.WithShadow(size.XL),
 		card.WithBodyOptions(
 			card.WithContent(showFeedCardContent(feed)),
 			card.WithActions(showCardActions(cardMenuItems...)...),
+			card.WithBodyExtraAttributes(route.Attributes()),
 		),
 		card.WithID(attributes.ID(feed.GetID())),
 	)
@@ -159,7 +169,7 @@ func NewFeedCard(filters models.APIFilters, feed *models.APIFeed) (*Card, error)
 		cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
 	}
 
-	feedCard.buildProps("/home/items", filters, cardOptions...)
+	feedCard.Props = card.Build(cardOptions...)
 
 	return feedCard, nil
 }
@@ -178,9 +188,10 @@ func NewItemCard(filters models.APIFilters, item *models.APIItem) (*Card, error)
 	if err != nil {
 		return nil, errors.Join(ErrNewCard, err)
 	}
-
-	var cardMenuItems []templ.Component
+	// Create a route for showing item.
+	route := itemCard.buildRoute("/home/"+item.GetFeedID()+"/"+item.GetID(), filters)
 	// Add card menu item for marking read/unread.
+	var cardMenuItems []templ.Component
 	if item.GetUserState() == models.Unread {
 		cardMenuItems = append(cardMenuItems,
 			itemCard.buildMarkButton("Mark Read", models.MarkRead, "/home/items"))
@@ -188,13 +199,15 @@ func NewItemCard(filters models.APIFilters, item *models.APIItem) (*Card, error)
 		cardMenuItems = append(cardMenuItems,
 			itemCard.buildMarkButton("Mark Unread", models.MarkUnread, "/home/items"))
 	}
-
-	var cardOptions []card.Option
 	// Build card options.
+	var cardOptions []card.Option
 	cardOptions = append(cardOptions,
+		card.Bordered(),
+		card.WithShadow(size.XL),
 		card.WithBodyOptions(
 			card.WithContent(showItemCardContent(item)),
 			card.WithActions(showCardActions(cardMenuItems...)...),
+			card.WithBodyExtraAttributes(route.Attributes()),
 		),
 		card.WithID(attributes.ID(item.GetID())),
 	)
@@ -215,7 +228,7 @@ func NewItemCard(filters models.APIFilters, item *models.APIItem) (*Card, error)
 		cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
 	}
 
-	itemCard.buildProps("/home/"+item.GetFeedID()+"/"+item.GetID(), filters, cardOptions...)
+	itemCard.Props = card.Build(cardOptions...)
 
 	return itemCard, nil
 }

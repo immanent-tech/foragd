@@ -40,7 +40,7 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         form: "pagination"
-        validate: "required,url_encoded"
+        validate: "url_encoded"
     APIRoute:
       description: >
         is a htmx route within the server.
