@@ -163,6 +163,12 @@ func NewFeedCard(filters models.APIFilters, feed *models.APIFeed) (*Card, error)
 				image.WithLazyLoading(),
 			),
 		)
+	} else {
+		cardOptions = append(cardOptions,
+			card.WithImage("/static/images/square-rss-solid.svg",
+				image.WithLazyLoading(),
+			),
+		)
 	}
 	// Reduce opacity if feed is read.
 	if feed.GetUserUnreadCount() == 0 {
