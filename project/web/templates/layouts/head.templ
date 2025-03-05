@@ -18,9 +18,14 @@ templ (head *HeadProps) Show() {
 		<link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon"/>
 		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
 		<link rel="icon" href="/static/favicon.png" sizes="any"/>
-		<link href="https://fonts.googleapis.com/css2?family=Inter&display=swap" rel="stylesheet"/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
+			rel="stylesheet"
+		/>
+		<script defer src="/static/fontawesome/js/brands.js"></script>
+		<script defer src="/static/fontawesome/js/solid.js"></script>
+		<script defer src="/static/fontawesome/js/fontawesome.js"></script>
 		<link href="/static/styles.css" rel="stylesheet"/>
-		<link href="/static/app.css" rel="stylesheet"/>
 		for _, header := range head.extraHeaders {
 			@header
 		}

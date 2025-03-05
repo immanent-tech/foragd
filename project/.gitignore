@@ -20,8 +20,10 @@ server.toml
 static/*.css
 static/*.css.map
 static/*.js
+static/*.js.map
 static/*.woff2
 static/*.ttf
+static/fontawesome
 *_templ.go
 
 

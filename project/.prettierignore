@@ -5,4 +5,4 @@
 static/
 
 # Ignore templates.
-templates/
+web/templates/

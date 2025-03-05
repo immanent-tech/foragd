@@ -1,14 +1,15 @@
-/** @type {import('prettier').Config} */
-module.exports = {
+// prettier.config.js, .prettierrc.js, prettier.config.mjs, or .prettierrc.mjs
+
+/**
+ * @see https://prettier.io/docs/configuration
+ * @type {import("prettier").Config}
+ */
+const config = {
   trailingComma: 'es5',
-  tabWidth: 2,
+  tabWidth: 4,
   semi: false,
   singleQuote: true,
-
-  overrides: [
-    {
-      files: '.postcssrc',
-      options: { parser: 'json' },
-    },
-  ],
+  plugins: ['prettier-plugin-tailwindcss'],
+  tailwindStylesheet: './assets/app.css',
 }
+export default config
