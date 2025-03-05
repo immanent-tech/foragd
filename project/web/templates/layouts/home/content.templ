@@ -6,6 +6,7 @@ package home
 import "github.com/joshuar/go-templ-daisyui/feedback/loading"
 import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 
+// MainContent of /home consists of zero or more Elements.
 type MainContent struct {
 	content []Element
 }
@@ -31,12 +32,14 @@ templ emptyContent() {
 	</div>
 }
 
+// FullRender will render the elements wrapped in the content div.
 templ (c *MainContent) FullRender() {
 	<div id="content" class="flex flex-wrap p-4 h-full">
 		@c.PartialRender()
 	</div>
 }
 
+// PartialRender will render the elements directly.
 templ (c *MainContent) PartialRender() {
 	if len(c.content) == 0 {
 		@emptyContent()

@@ -22,12 +22,18 @@ const (
 	ContentTarget = "#content"
 )
 
+// Element represents a simple Component that can be rendered on the page with
+// its Show method.
 type Element interface {
 	Show(classes ...string) templ.Component
 }
 
+// Part represents a complex Component that requires different handling
+// depending on whether the request is HTMX powered or not.
 type Part interface {
+	// PartialRender is called when a partial (i.e., HTMX) request is made.
 	PartialRender() templ.Component
+	// FullRender is called when a full (i.e., page reload or request) is made.
 	FullRender() templ.Component
 }
 
@@ -40,11 +46,8 @@ type LayoutProps struct {
 	title string
 }
 
-func (l *LayoutProps) renderComponent(component templ.Component) error {
-
-	return nil
-}
-
+// Render will render the /home layout. This will either be a partial or full
+// render depending on whether the request is htmx powered or not.
 func (l *LayoutProps) Render(res http.ResponseWriter, req *http.Request) error {
 	resp := htmx.NewResponse()
 
@@ -79,8 +82,7 @@ func (l *LayoutProps) Render(res http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-// WithPart adds a layout "part"; a component that will be OOB swapped into the
-// page along with the main content.
+// WithPart adds a Part to the /home page.
 func WithParts(parts ...Part) LayoutOption {
 	return func(layout *LayoutProps) {
 		layout.parts = parts
