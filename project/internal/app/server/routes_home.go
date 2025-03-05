@@ -209,7 +209,7 @@ func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 			continue
 		}
 		// Add a pagination action to the last item.
-		if idx == len(items)-1 {
+		if idx == len(items)-1 && len(items) == filters.Count {
 			itemCard.AddPagination(req.URL, pagination)
 		}
 		// Append the card to the list of cards.
