@@ -4,17 +4,13 @@
 package home
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 )
 
 var (
@@ -23,20 +19,16 @@ var (
 )
 
 const (
-	AppBar LayoutPart = "appbar"
-	Header LayoutPart = "header"
-	Footer LayoutPart = "footer"
-	Card   LayoutPart = "card"
-
 	ContentTarget = "#content"
 )
 
-// LayoutPart defines a part of the home page, usually a component that will be
-// an OOB swap on the page.
-type LayoutPart string
-
-type Content interface {
+type Element interface {
 	Show(classes ...string) templ.Component
+}
+
+type Part interface {
+	PartialRender() templ.Component
+	FullRender() templ.Component
 }
 
 // LayoutOption is an option that can be applied to the home page layout.
@@ -44,24 +36,54 @@ type LayoutOption func(*LayoutProps)
 
 // LayoutProps is the home page layout.
 type LayoutProps struct {
-	parts   map[LayoutPart]templ.Component
-	content []Content
-	title   string
+	parts []Part
+	title string
+}
+
+func (l *LayoutProps) renderComponent(component templ.Component) error {
+
+	return nil
+}
+
+func (l *LayoutProps) Render(res http.ResponseWriter, req *http.Request) error {
+	resp := htmx.NewResponse()
+
+	content := make([]templ.Component, 0, len(l.parts))
+
+	// Render parts.
+	if htmx.IsHTMX(req) {
+		for _, part := range l.parts {
+			content = append(content, part.PartialRender())
+		}
+		if err := resp.RenderTempl(req.Context(), res, templ.Join(content...)); err != nil {
+			return errors.Join(ErrHomePartialRender, err)
+		}
+	}
+
+	content = append(content, commandModal())
+	for _, part := range l.parts {
+		content = append(content, part.FullRender())
+	}
+	// Render full page.
+	fullPage := layouts.BuildPage(
+		layouts.WithHeadOptions(l.title,
+			layouts.WithPageDescription("Your home."),
+			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+		),
+		layouts.WithPageContent(content...),
+	)
+	if err := resp.RenderTempl(req.Context(), res, fullPage.Show()); err != nil {
+		return errors.Join(ErrHomePartialRender, err)
+	}
+
+	return nil
 }
 
 // WithPart adds a layout "part"; a component that will be OOB swapped into the
 // page along with the main content.
-func WithPart(name LayoutPart, part templ.Component) LayoutOption {
+func WithParts(parts ...Part) LayoutOption {
 	return func(layout *LayoutProps) {
-		layout.parts[name] = part
-	}
-}
-
-// WithContent is the content to be loaded into the page. If there is no
-// content, a content placeholder will be loaded instead.
-func WithContent(content ...Content) LayoutOption {
-	return func(layout *LayoutProps) {
-		layout.content = content
+		layout.parts = parts
 	}
 }
 
@@ -74,100 +96,11 @@ func WithTitle(title string) LayoutOption {
 
 // BuildHomeLayout builds the home page layout from the given options.
 func BuildLayout(options ...LayoutOption) *LayoutProps {
-	layout := &LayoutProps{
-		parts: make(map[LayoutPart]templ.Component),
-	}
+	layout := &LayoutProps{}
 
 	for _, option := range options {
 		option(layout)
 	}
 
 	return layout
-}
-
-// Render will render the home page, choosing whether to do a full page load or
-// partial depending on the HTMX headers.
-func (layout *LayoutProps) Render(req *http.Request, res http.ResponseWriter) error {
-	header := req.Header.Get(htmx.HeaderTarget)
-
-	// Render page.
-	switch {
-	case "#"+header == ContentTarget:
-		return layout.PartialRender(req.Context(), res)
-	case strings.HasPrefix(header, "feed_"):
-		return layout.PartRender(req.Context(), res, Card)
-	case header == "":
-		return layout.FullRender(req.Context(), res)
-	default:
-		return errors.New("invalid render target")
-	}
-}
-
-// FullRender is a full home page render with all parts/components that are set.
-func (layout *LayoutProps) FullRender(ctx context.Context, res http.ResponseWriter) error {
-	resp := htmx.NewResponse()
-
-	WithPart(AppBar, appbar.AppBar().Show())(layout)
-
-	// Build the full page layout.
-	homePage := layouts.BuildPage(
-		layouts.WithHeadOptions(layout.title,
-			layouts.WithPageDescription("Your home."),
-			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		),
-		layouts.WithPageContent(layout.showFullLayout()),
-	)
-
-	if err := resp.RenderTempl(ctx, res, homePage.Show()); err != nil {
-		return errors.Join(ErrHomeFullRender, err)
-	}
-
-	return nil
-}
-
-// PartialRender does a partial render, targeting the main content and relying
-// on OOB swaps for the optional parts.
-func (layout *LayoutProps) PartialRender(ctx context.Context, res http.ResponseWriter) error {
-	var warnings error
-
-	resp := htmx.NewResponse()
-
-	if layout.title != "" {
-		head := layouts.BuildHeader(layout.title)
-		if err := resp.RenderTempl(ctx, res, head.Show()); err != nil {
-			warnings = errors.Join(warnings, fmt.Errorf("could update page title: %w", err))
-		}
-	}
-
-	if err := resp.RenderTempl(ctx, res, layout.ShowContent()); err != nil {
-		return errors.Join(ErrHomePartialRender, fmt.Errorf("could not render content: %w", err))
-	}
-
-	for name, part := range layout.parts {
-		if err := resp.RenderTempl(ctx, res, part); err != nil {
-			warnings = errors.Join(warnings, fmt.Errorf("could not render %s: %w", name, err))
-		}
-	}
-
-	if warnings != nil {
-		return errors.Join(ErrHomePartialRender, warnings)
-	}
-
-	return nil
-}
-
-// PartRender renders just the specified part, usually as an OOB swap.
-func (layout *LayoutProps) PartRender(ctx context.Context, res http.ResponseWriter, part LayoutPart) error {
-	resp := htmx.NewResponse()
-
-	component, found := layout.parts[part]
-	if !found {
-		return errors.Join(ErrHomePartialRender, fmt.Errorf("missing part %s", part))
-	}
-
-	if err := resp.RenderTempl(ctx, res, component); err != nil {
-		return errors.Join(ErrHomePartialRender, fmt.Errorf("could not render part %s: %w", part, err))
-	}
-
-	return nil
 }

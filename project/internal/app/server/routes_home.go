@@ -16,6 +16,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/validation"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 )
 
 var (
@@ -101,7 +102,7 @@ func feedsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	feedCards := make([]home.Content, 0, len(feeds))
+	feedCards := make([]home.Element, 0, len(feeds))
 	// Build feed cards.
 	for _, feed := range feeds {
 		var card *partials.Card
@@ -195,7 +196,7 @@ func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	itemCards := make([]home.Content, 0, filters.Count)
+	itemCards := make([]home.Element, 0, filters.Count)
 	// Build item cards.
 	for idx, item := range items {
 		// Create a card for this item.
@@ -239,12 +240,14 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 	}
 
 	layout := home.BuildLayout(
-		home.WithContent(article),
-		home.WithPart(home.Header, home.ArticleHeader(details)),
-		home.WithPart(home.Footer, home.FullFooter(session.GetRouteState(req.Context(), "/home/items"))),
+		home.WithParts(
+			home.BuildMainContent(article),
+			home.BuildHeaders(appbar.AppBar().Show(), home.ArticleHeader(details)),
+			home.BuildFooter("/home/items"),
+		),
 	)
 
-	if err := layout.Render(req, res); err != nil {
+	if err := layout.Render(res, req); err != nil {
 		logging.FromContext(req.Context()).Error("Show item failed.",
 			slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)
@@ -269,7 +272,7 @@ func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, fee
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Content, categories []models.CategoryCount, filters *models.APIFilters, backPath string) {
+func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Element, categories []models.CategoryCount, filters *models.APIFilters, backPath string) {
 	var (
 		layout *home.LayoutProps
 		title  string
@@ -284,20 +287,32 @@ func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Conten
 
 	// Build page layout.
 	if req.Method == http.MethodGet {
-		layout = home.BuildLayout(
-			home.WithContent(cards...),
-			home.WithTitle(title),
-			home.WithPart(home.Header, home.ListHeader(filters, categories, req.URL.Path)),
-			home.WithPart(home.Footer, home.FullFooter(backPath)),
-		)
+		if filters.GetPagination() != "" {
+			layout = home.BuildLayout(
+				home.WithParts(
+					home.BuildMainContent(cards...),
+				),
+			)
+		} else {
+			layout = home.BuildLayout(
+				home.WithParts(
+					home.BuildHeaders(appbar.AppBar().Show(), home.ListHeader(filters, categories, req.URL.Path)),
+					home.BuildMainContent(cards...),
+					home.BuildFooter(backPath),
+				),
+				home.WithTitle(title),
+			)
+		}
 	} else {
 		layout = home.BuildLayout(
-			home.WithContent(cards...),
-			home.WithPart(home.Header, home.ListHeader(filters, categories, req.URL.Path)),
+			home.WithParts(
+				home.BuildHeaders(appbar.AppBar().Show(), home.ListHeader(filters, categories, req.URL.Path)),
+				home.BuildMainContent(cards...),
+			),
 		)
 	}
 	// Render /home/feeds page.
-	if err := layout.Render(req, res); err != nil {
+	if err := layout.Render(res, req); err != nil {
 		logging.FromContext(req.Context()).Error("Show cards failed.",
 			slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)

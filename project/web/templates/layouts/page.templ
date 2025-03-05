@@ -10,7 +10,7 @@ templ (page *Props) Show() {
 	<html lang="en" data-theme="light">
 		@page.Header.Show()
 		<body hx-ext="morph,head-support">
-			@page.Content
+			@templ.Join(page.Content...)
 			<script src="/static/scripts.js"></script>
 		</body>
 	</html>

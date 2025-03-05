@@ -3,11 +3,6 @@
 
 package home
 
-import (
-	"github.com/joshuar/go-templ-daisyui/feedback/loading"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-)
-
 // // homeDrawer renders home page content in a DaisyUI drawer.
 // templ (home *LayoutProps) homeDrawer() {
 // 	<div id="command_modal" class="container mx-auto px-4"></div>
@@ -24,58 +19,6 @@ import (
 // 		</div>
 // 	}
 // }
-
-// showDrawerContent renders the content area of the home drawer.
-templ (home *LayoutProps) showFullLayout() {
+templ commandModal() {
 	<div id="command_modal" class="container mx-auto px-4"></div>
-	<div class="z-50 sticky top-0">
-		if part, found := home.parts[AppBar]; found {
-			@part
-		}
-		if part, found := home.parts[Header]; found {
-			@part
-		}
-	</div>
-	<div id="content" class="flex flex-wrap p-4 h-full">
-		@home.ShowContent()
-	</div>
-	@loading.Build(loading.Bars,
-		loading.WithID("content-loading"),
-		loading.AsHTMXIndicator(),
-		loading.WithThemeColor(color.Accent),
-	).Show()
-	if part, found := home.parts[Footer]; found {
-		@part
-	}
-}
-
-templ (home *LayoutProps) ShowContent() {
-	if len(home.content) == 0 {
-		@emptyContent()
-	} else {
-		for _, item := range home.content {
-			@item.Show()
-		}
-	}
-}
-
-// EmptyContent renders a hero with options for the user when the request
-// returned no other content.
-templ emptyContent() {
-	<div class="hero bg-base-200 min-h-screen">
-		<div class="hero-content text-center">
-			<div class="max-w-md">
-				<h1 class="text-5xl font-bold">Nothing to show.</h1>
-				<p class="py-6">
-					Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
-					quasi. In deleniti eaque aut repudiandae et a id nisi.
-				</p>
-				<button
-					class="btn btn-primary"
-					hx-get="/subscription/new"
-					hx-target="#command_modal"
-				>Add Subscription</button>
-			</div>
-		</div>
-	</div>
 }

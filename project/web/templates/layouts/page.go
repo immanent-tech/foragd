@@ -9,16 +9,12 @@ import (
 
 // Page represents a page on the website.
 type Props struct {
-	Content templ.Component
+	Content []templ.Component
 	Header  *HeadProps
 }
 
 // PageOption is an option that can be applied to a Page.
 type PageOption func(*Props)
-
-type PageContent interface {
-	templ.Component
-}
 
 func WithHeadOptions(title string, options ...HeadOption) PageOption {
 	return func(page *Props) {
@@ -29,7 +25,7 @@ func WithHeadOptions(title string, options ...HeadOption) PageOption {
 // WithPageContent defines the main body content of the page. It takes a list of
 // templ.Components that will be rendered, in the given order in the "body" of
 // the page.
-func WithPageContent(content PageContent) PageOption {
+func WithPageContent(content ...templ.Component) PageOption {
 	return func(p *Props) {
 		p.Content = content
 	}
