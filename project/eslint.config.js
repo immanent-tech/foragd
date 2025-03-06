@@ -1,6 +1,6 @@
-const eslintPluginPrettierRecommended = require('eslint-plugin-prettier/recommended')
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
 
-module.exports = [
+export default [
   // Any other config imports go at the top
   eslintPluginPrettierRecommended,
 ]

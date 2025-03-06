@@ -15,14 +15,12 @@
     }
   },
   "scripts": {
-    "watch": "parcel watch",
+    "watch": "parcel build ./assets/scripts.js ./assets/styles.css ./assets/fontawesome/js/*.js --dist-dir ./static --no-optimize",
     "fmt": "prettier --write .",
-    "dev": "parcel build --no-optimize",
-    "build": "parcel build"
+    "dev": "parcel build ./assets/scripts.js ./assets/styles.css ./assets/fontawesome/js/*.js --dist-dir ./static --no-optimize",
+    "build": "parcel build ./assets/scripts.js ./assets/styles.css ./assets/fontawesome/js/*.js --dist-dir ./static"
   },
   "dependencies": {
-    "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/typography": "^0.5.16",
     "daisyui": "^5.0.0",
     "htmx-ext-head-support": "^2.0.4",
     "htmx.org": "^2.0.4",
@@ -32,11 +30,16 @@
     "theme-change": "^2.5.0"
   },
   "devDependencies": {
+    "@parcel/transformer-css": "^2.13.3",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
     "autoprefixer": "^10.4.20",
     "eslint-config-prettier": "^10.0.2",
     "eslint-plugin-prettier": "^5.2.3",
     "parcel": "^2.13.3",
     "postcss": "^8.5.3",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "prettier-plugin-tailwindcss": "^0.6.11",
+    "prettier-plugin-toml": "^2.0.2"
   }
 }

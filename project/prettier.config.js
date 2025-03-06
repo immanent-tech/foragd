@@ -9,7 +9,7 @@ const config = {
   tabWidth: 4,
   semi: false,
   singleQuote: true,
-  plugins: ['prettier-plugin-tailwindcss'],
-  tailwindStylesheet: './assets/app.css',
+  plugins: ['prettier-plugin-tailwindcss','prettier-plugin-toml'],
+  tailwindStylesheet: './assets/styles.css',
 }
 export default config

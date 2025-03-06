@@ -7,6 +7,6 @@ module.exports = {
   plugins: [
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
-    require('@fortawesome/fontawesome-free'),
+    require('daisyui')
   ],
 }

@@ -82,6 +82,7 @@
     "assets/scripts"
   ],
   "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "emmet.includeLanguages": {
     "templ": "html"
   },
@@ -119,5 +120,8 @@
   },
   "terminal.integrated.cwd": "${workspaceFolder}/project",
   "terminal.integrated.defaultProfile.linux": "fish",
-  "terminal.integrated.scrollback": 10000
+  "terminal.integrated.scrollback": 10000,
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
+  }
 }
