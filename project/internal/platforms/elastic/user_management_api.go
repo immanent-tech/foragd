@@ -11,8 +11,8 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 
-	"github.com/joshuar/go-feed-me/internal/app/server/session"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/session"
 )
 
 var (

@@ -14,13 +14,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/joshuar/go-feed-me/internal/app/server/middlewares"
-	"github.com/joshuar/go-feed-me/internal/app/server/session"
+	"github.com/joshuar/go-feed-me/cmd/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	store "github.com/joshuar/go-feed-me/internal/platforms/elastic/implementations/session"
+	"github.com/joshuar/go-feed-me/internal/session"
 )
 
 const (

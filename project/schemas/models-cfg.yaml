@@ -4,14 +4,10 @@
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package: models
-output: ../../internal/models/api.gen.go
+output: ../internal/models/models.gen.go
 generate:
   models: true
 output-options:
   # to make sure that all types are generated
   skip-prune: true
   nullable-type: true
-import-mapping:
-  models.yaml: "-"
-compatibility:
-  allow-unexported-struct-field-names: true

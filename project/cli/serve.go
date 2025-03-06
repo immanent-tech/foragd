@@ -20,8 +20,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	gowebly "github.com/gowebly/helpers"
 
-	"github.com/joshuar/go-feed-me/internal/app/scheduler"
-	"github.com/joshuar/go-feed-me/internal/app/server"
+	"github.com/joshuar/go-feed-me/cmd/scheduler"
+	"github.com/joshuar/go-feed-me/cmd/server"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 )

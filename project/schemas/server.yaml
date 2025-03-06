@@ -114,7 +114,7 @@ paths:
       #   content:
       #     application/x-www-form-urlencoded:
       #       schema:
-      #         $ref: '../models/models.yaml#/components/schemas/Filters'
+      #         $ref: 'models.yaml#/components/schemas/Filters'
   /home/settings:
     get:
       summary: Show user settings modal
@@ -295,7 +295,7 @@ components:
         - mark
       properties:
         mark:
-          $ref: "../models/api.yaml#/components/schemas/Mark"
+          $ref: "api.yaml#/components/schemas/Mark"
     MarkFeeds:
       description: contains data for marking Feeds.
       type: object
@@ -306,7 +306,7 @@ components:
             - feeds
           properties:
             feeds:
-              $ref: "../models/models.yaml#/components/schemas/FeedIDs"
+              $ref: "models.yaml#/components/schemas/FeedIDs"
     MarkItems:
       description: contains data for marking Items.
       type: object
@@ -317,7 +317,7 @@ components:
             - items
           properties:
             items:
-              $ref: "../models/models.yaml#/components/schemas/ItemIDs"
+              $ref: "models.yaml#/components/schemas/ItemIDs"
     MarkCategories:
       description: contains data for marking Categories.
       type: object
@@ -328,7 +328,7 @@ components:
             - categories
           properties:
             categories:
-              $ref: "../models/models.yaml#/components/schemas/Categories"
+              $ref: "models.yaml#/components/schemas/Categories"
     MarkObjects:
       description: mark one or more objects
       type: object
@@ -343,26 +343,26 @@ components:
       in: path
       required: true
       schema:
-        $ref: "../models/models.yaml#/components/schemas/FeedID"
+        $ref: "models.yaml#/components/schemas/FeedID"
     ItemID:
       name: item
       in: path
       required: true
       schema:
-        $ref: "../models/models.yaml#/components/schemas/ItemID"
+        $ref: "models.yaml#/components/schemas/ItemID"
     Mark:
       name: mark
       in: path
       required: true
       schema:
-        $ref: "../models/api.yaml#/components/schemas/Mark"
+        $ref: "api.yaml#/components/schemas/Mark"
     # Query Parameters:
     View:
       name: view
       in: query
       required: true
       schema:
-        $ref: "../models/api.yaml#/components/schemas/View"
+        $ref: "api.yaml#/components/schemas/View"
       x-oapi-codegen-extra-tags:
         validate: "required,oneof='read unread all'"
     Count:
@@ -370,14 +370,14 @@ components:
       in: query
       required: true
       schema:
-        $ref: "../models/api.yaml#/components/schemas/Count"
+        $ref: "api.yaml#/components/schemas/Count"
       x-oapi-codegen-extra-tags:
         validate: "required,numeric,gt=0,lt=20"
     FeedIDs:
       name: feeds
       in: query
       schema:
-        $ref: "../models/models.yaml#/components/schemas/FeedIDs"
+        $ref: "models.yaml#/components/schemas/FeedIDs"
       x-oapi-codegen-extra-tags:
         form: "feeds[]"
         validate: "unique,dive,startswith=feed_"
@@ -385,7 +385,7 @@ components:
       name: items
       in: query
       schema:
-        $ref: "../models/models.yaml#/components/schemas/ItemIDs"
+        $ref: "models.yaml#/components/schemas/ItemIDs"
       x-oapi-codegen-extra-tags:
         form: "items[]"
         validate: "unique,dive,startswith=item_"
@@ -393,7 +393,7 @@ components:
       name: categories
       in: query
       schema:
-        $ref: "../models/models.yaml#/components/schemas/Categories"
+        $ref: "models.yaml#/components/schemas/Categories"
       x-oapi-codegen-extra-tags:
         form: "categories[]"
         validate: "unique"
@@ -401,7 +401,7 @@ components:
       name: pagination
       in: query
       schema:
-        $ref: "../models/api.yaml#/components/schemas/Pagination"
+        $ref: "api.yaml#/components/schemas/Pagination"
       x-oapi-codegen-extra-tags:
         validate: "url_encoded"
   requestBodies:
@@ -419,14 +419,14 @@ components:
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: "../models/api.yaml#/components/schemas/APIUserSignupRequest"
+            $ref: "api.yaml#/components/schemas/APIUserSignupRequest"
     SubscriptionRequestBody:
       description: >
         Holds details for adding/saving a subscription.
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: "../models/api.yaml#/components/schemas/APISubscriptionRequest"
+            $ref: "api.yaml#/components/schemas/APISubscriptionRequest"
     CategoryRequestBody:
       description: >
         A list of categories to add/remove from a subscription.
@@ -439,7 +439,7 @@ components:
               - Category
             properties:
               Category:
-                $ref: "../models/models.yaml#/components/schemas/Category"
+                $ref: "models.yaml#/components/schemas/Category"
   responses:
     htmx:
       description: standard htmx powered response.

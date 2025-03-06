@@ -8,11 +8,11 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/joshuar/go-feed-me/internal/app/server/forms"
-	"github.com/joshuar/go-feed-me/internal/app/server/session"
+	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/session"
 	"github.com/joshuar/go-feed-me/internal/validation"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-feed-me/web/templates/partials"

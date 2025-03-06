@@ -10,7 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/joshuar/go-feed-me/internal/app/scheduler"
+	"github.com/joshuar/go-feed-me/cmd/scheduler"
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
