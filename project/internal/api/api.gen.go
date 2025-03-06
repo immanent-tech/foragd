@@ -25,8 +25,11 @@ const (
 	ViewUnread View = "unread"
 )
 
-// APIFilters contains parameters for searching feeds and items
-type APIFilters struct {
+// Count is the count of items to retrieve with a request.
+type Count = int
+
+// Filters contains parameters for searching feeds and items
+type Filters struct {
 	// Categories is a list of categories.
 	Categories externalRef0.Categories `form:"categories[]" json:"categories" validate:"unique"`
 
@@ -46,8 +49,14 @@ type APIFilters struct {
 	View View `form:"view" json:"View" validate:"required,oneof='read unread all'"`
 }
 
-// APIRoute is a htmx route within the server.
-type APIRoute struct {
+// Mark applies the given mark action to objects.
+type Mark string
+
+// Pagination contains data for paginating through results
+type Pagination = string
+
+// Route is a htmx route within the server.
+type Route struct {
 	// attributes are additional htmx attributes to apply to the route.
 	attributes templ.Attributes `json:"-"`
 
@@ -61,8 +70,8 @@ type APIRoute struct {
 	url url.URL `json:"-"`
 }
 
-// APISubscriptionRequest represents a new subscription request from a user.
-type APISubscriptionRequest struct {
+// SubscriptionRequest represents a new subscription request from a user.
+type SubscriptionRequest struct {
 	// Categories is a list of custom categories the user has assigned to the feed.
 	Categories []externalRef0.Category `form:"categories[]" json:"categories,omitempty"`
 
@@ -76,8 +85,8 @@ type APISubscriptionRequest struct {
 	ValidationErrors map[string]string `form:"-" json:"-"`
 }
 
-// APIUserSignupRequest contains the details for a user signup request.
-type APIUserSignupRequest struct {
+// UserSignupRequest contains the details for a user signup request.
+type UserSignupRequest struct {
 	Email    string  `form:"email" json:"email" validate:"required,email"`
 	Nickname *string `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
 	Password string  `form:"password" json:"password" validate:"required,min=10"`
@@ -85,15 +94,6 @@ type APIUserSignupRequest struct {
 	// ValidationErrors is a map of field name -> validation error for the request.
 	ValidationErrors map[string]string `form:"-" json:"-"`
 }
-
-// Count is the count of items to retrieve with a request.
-type Count = int
-
-// Mark applies the given mark action to objects.
-type Mark string
-
-// Pagination contains data for paginating through results
-type Pagination = string
 
 // View The state of objects to view.
 type View string

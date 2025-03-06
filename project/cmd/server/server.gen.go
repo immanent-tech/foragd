@@ -116,13 +116,13 @@ type HandleMarkItemsFormdataRequestBody = MarkObjects
 type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
 
 // AddSubscriptionFormdataRequestBody defines body for AddSubscription for application/x-www-form-urlencoded ContentType.
-type AddSubscriptionFormdataRequestBody = externalRef0.APISubscriptionRequest
+type AddSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
 // SaveSubscriptionFormdataRequestBody defines body for SaveSubscription for application/x-www-form-urlencoded ContentType.
-type SaveSubscriptionFormdataRequestBody = externalRef0.APISubscriptionRequest
+type SaveSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
 // AddUserFormdataRequestBody defines body for AddUser for application/x-www-form-urlencoded ContentType.
-type AddUserFormdataRequestBody = externalRef0.APIUserSignupRequest
+type AddUserFormdataRequestBody = externalRef0.UserSignupRequest
 
 // AsMarkFeeds returns the union data inside the MarkObjects as a MarkFeeds
 func (t MarkObjects) AsMarkFeeds() (MarkFeeds, error) {

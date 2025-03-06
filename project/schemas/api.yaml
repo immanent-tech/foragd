@@ -41,7 +41,7 @@ components:
       x-oapi-codegen-extra-tags:
         form: "pagination"
         validate: "url_encoded"
-    APIRoute:
+    Route:
       description: >
         is a htmx route within the server.
       type: object
@@ -78,7 +78,7 @@ components:
           x-go-type-import:
             path: "github.com/a-h/templ"
           x-go-json-ignore: true
-    APIFilters:
+    Filters:
       description: contains parameters for searching feeds and items
       type: object
       required:
@@ -97,7 +97,7 @@ components:
           $ref: "#/components/schemas/View"
         Pagination:
           $ref: "#/components/schemas/Pagination"
-    APISubscriptionRequest:
+    SubscriptionRequest:
       description: represents a new subscription request from a user.
       type: object
       required:
@@ -130,7 +130,7 @@ components:
           x-oapi-codegen-extra-tags:
             form: "-"
           x-go-type-skip-optional-pointer: true
-    APIUserSignupRequest:
+    UserSignupRequest:
       description: >
         contains the details for a user signup request.
       type: object

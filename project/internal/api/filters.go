@@ -42,38 +42,38 @@ type ParamName string
 type ParamsOption func(url.Values) url.Values
 
 // GetFeeds gets the list of FeedIDs from the filters.
-func (f *APIFilters) GetFeeds() []models.FeedID {
+func (f *Filters) GetFeeds() []models.FeedID {
 	return f.FeedIDs
 }
 
 // SetFeeds sets the feed filters to the given values. Existing values are wiped.
-func (f *APIFilters) SetFeeds(feedIDs ...models.FeedID) {
+func (f *Filters) SetFeeds(feedIDs ...models.FeedID) {
 	f.FeedIDs = feedIDs
 }
 
 // GetItems gets the list of ItemIDs from the filters.
-func (f *APIFilters) GetItems() models.ItemIDs {
+func (f *Filters) GetItems() models.ItemIDs {
 	return f.ItemIDs
 }
 
 // SetItems sets the item filters to the given values. Existing values are wiped.
-func (f *APIFilters) SetItems(itemIDs ...models.ItemID) {
+func (f *Filters) SetItems(itemIDs ...models.ItemID) {
 	f.ItemIDs = itemIDs
 }
 
 // GetCategories gets the list of Categories from the filters.
-func (f *APIFilters) GetCategories() models.Categories {
+func (f *Filters) GetCategories() models.Categories {
 	return f.Categories
 }
 
 // SetCategories sets the category filters to the given values. Existing values are wiped.
-func (f *APIFilters) SetCategories(categories ...models.Category) {
+func (f *Filters) SetCategories(categories ...models.Category) {
 	f.Categories = categories
 }
 
 // GetCount gets the count value from the filters. If the Count outside the
 // user-selectable range, the default value will be used.
-func (f *APIFilters) GetCount() int {
+func (f *Filters) GetCount() int {
 	if f.Count < MinUserCount || f.Count > MaxUserCount {
 		return DefaultUserCount
 	}
@@ -82,7 +82,7 @@ func (f *APIFilters) GetCount() int {
 }
 
 // GetView gets the view value from the filters.
-func (f *APIFilters) GetView() View {
+func (f *Filters) GetView() View {
 	if f.View == "" {
 		return DefaultUserView
 	}
@@ -91,7 +91,7 @@ func (f *APIFilters) GetView() View {
 }
 
 // GetPagination gets the pagination value from the filters.
-func (f *APIFilters) GetPagination() Pagination {
+func (f *Filters) GetPagination() Pagination {
 	if f.Pagination != nil {
 		return *f.Pagination
 	}
@@ -100,7 +100,7 @@ func (f *APIFilters) GetPagination() Pagination {
 }
 
 // Params encodes the APIFilter values into a url.Values object.
-func (f *APIFilters) Params() url.Values {
+func (f *Filters) Params() url.Values {
 	params := make(url.Values)
 
 	if len(f.FeedIDs) > 0 {
@@ -123,13 +123,13 @@ func (f *APIFilters) Params() url.Values {
 }
 
 // String returns a URL-encoded string of query parameters.
-func (f *APIFilters) String() string {
+func (f *Filters) String() string {
 	return f.Params().Encode()
 }
 
 // FiltersFromQuery takes a url.Values object and extracts the filters.
-func FiltersFromQuery(values url.Values) (*APIFilters, error) {
-	filters := &APIFilters{}
+func FiltersFromQuery(values url.Values) (*Filters, error) {
+	filters := &Filters{}
 
 	var (
 		err        error
@@ -183,9 +183,9 @@ func FiltersFromQuery(values url.Values) (*APIFilters, error) {
 }
 
 // CreateFilters unmarshals the given query parameters passed to a specific route into a
-// common APIFilters object.
-func CreateFilters(params any) (*APIFilters, error) {
-	filters := &APIFilters{}
+// common Filters object.
+func CreateFilters(params any) (*Filters, error) {
+	filters := &Filters{}
 
 	data, err := json.Marshal(params)
 	if err != nil {

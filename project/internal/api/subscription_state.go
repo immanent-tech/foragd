@@ -9,7 +9,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
-func NewSubscriptionState(details *APISubscriptionRequest) models.SubscriptionState {
+func NewSubscriptionState(details *SubscriptionRequest) models.SubscriptionState {
 	return models.SubscriptionState{
 		CreatedAt:  time.Now().UTC(),
 		Name:       details.Name,

@@ -177,7 +177,7 @@ func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]model
 }
 
 // FeedsSearch searches the feeds index for feeds matching the relevant filters.
-func (c *Client) FeedsSearch(ctx context.Context, filters api.APIFilters) ([]*models.APIFeed, error) {
+func (c *Client) FeedsSearch(ctx context.Context, filters api.Filters) ([]*models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)

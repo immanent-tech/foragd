@@ -11,7 +11,7 @@ import (
 
 var ErrNewSubscriptionRequest = errors.New("could not create new subscription request")
 
-func (r *APISubscriptionRequest) Valid() bool {
+func (r *SubscriptionRequest) Valid() bool {
 	valid, problems := validation.ValidateStruct(r)
 	if valid {
 		return true
@@ -28,6 +28,6 @@ func (r *APISubscriptionRequest) Valid() bool {
 	return false
 }
 
-func (r *APISubscriptionRequest) HasErrors() bool {
+func (r *SubscriptionRequest) HasErrors() bool {
 	return r.ValidationErrors != nil
 }

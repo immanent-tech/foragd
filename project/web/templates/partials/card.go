@@ -76,8 +76,8 @@ func (c *Card) buildMarkButton(label string, mark api.Mark, path string) templ.C
 	).Show()
 }
 
-// buildRoute creates a models.APIRoute appropriate for showing content.
-func (c *Card) buildRoute(path string, filters api.APIFilters) *api.APIRoute {
+// buildRoute creates a models.Route appropriate for showing content.
+func (c *Card) buildRoute(path string, filters api.Filters) *api.Route {
 	var routeOptions []api.RouteOption
 
 	routeOptions = append(routeOptions,
@@ -118,7 +118,7 @@ func (c *Card) AddPagination(path *url.URL, pagination api.Pagination) {
 	})
 }
 
-func NewFeedCard(filters api.APIFilters, feed *models.APIFeed) (*Card, error) {
+func NewFeedCard(filters api.Filters, feed *models.APIFeed) (*Card, error) {
 	var err error
 
 	feedCard := &Card{
@@ -181,7 +181,7 @@ func NewFeedCard(filters api.APIFilters, feed *models.APIFeed) (*Card, error) {
 	return feedCard, nil
 }
 
-func NewItemCard(filters api.APIFilters, item *models.APIItem) (*Card, error) {
+func NewItemCard(filters api.Filters, item *models.APIItem) (*Card, error) {
 	var err error
 
 	itemCard := &Card{

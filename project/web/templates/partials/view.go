@@ -17,7 +17,7 @@ type ViewFilter struct {
 	routes []*badge.Props
 }
 
-func BuildViewFilter(filters *api.APIFilters, path string) *ViewFilter {
+func BuildViewFilter(filters *api.Filters, path string) *ViewFilter {
 	return &ViewFilter{
 		routes: []*badge.Props{
 			newViewFilter(api.ViewRead, filters, path),
@@ -28,7 +28,7 @@ func BuildViewFilter(filters *api.APIFilters, path string) *ViewFilter {
 }
 
 // newViewFilter generates a badge for a view filter.
-func newViewFilter(view api.View, filters *api.APIFilters, path string) *badge.Props {
+func newViewFilter(view api.View, filters *api.Filters, path string) *badge.Props {
 	// Common route attributes.
 	attributes := templ.Attributes{
 		"hx-target":   "#content",

@@ -14,11 +14,11 @@ import (
 
 type FeedCategoryFilter struct {
 	name   models.Category
-	route  *api.APIRoute
+	route  *api.Route
 	active bool
 }
 
-func NewCategoryFilter(name models.Category, active bool, route *api.APIRoute) FeedCategoryFilter {
+func NewCategoryFilter(name models.Category, active bool, route *api.Route) FeedCategoryFilter {
 	return FeedCategoryFilter{
 		name:   name,
 		active: active,
@@ -26,7 +26,7 @@ func NewCategoryFilter(name models.Category, active bool, route *api.APIRoute) F
 	}
 }
 
-func BuildCategoryFilters(filters *api.APIFilters, allCategories []models.CategoryCount, path string) []FeedCategoryFilter {
+func BuildCategoryFilters(filters *api.Filters, allCategories []models.CategoryCount, path string) []FeedCategoryFilter {
 	categoryFilters := make([]FeedCategoryFilter, 0, len(allCategories))
 
 	for _, category := range allCategories {

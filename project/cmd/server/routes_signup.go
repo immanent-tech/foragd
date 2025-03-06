@@ -44,7 +44,7 @@ func (s Server) AddUser(w http.ResponseWriter, r *http.Request) {
 // func (s Server) ProcessSignup(res http.ResponseWriter, req *http.Request) {
 // 	logger := logging.NewHandlerLogger("ProcessSignup", req)
 
-// 	userSignup, valid, err := forms.DecodeForm[*models.APIUserSignupRequest](req)
+// 	userSignup, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
 // 	if err != nil {
 // 		logger.Error("Could not decode submitted signup request.",
 // 			slog.Any("error", err))

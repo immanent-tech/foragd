@@ -24,7 +24,7 @@ import (
 // NewSubscription creates a new APISubscription request and presents it as a
 // form for the user to fill out.
 func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.Modal(&api.APISubscriptionRequest{})); err != nil {
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.Modal(&api.SubscriptionRequest{})); err != nil {
 		logging.FromContext(req.Context()).Error("Cannot display content.",
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
@@ -42,7 +42,7 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	newSubscription, valid, err := forms.DecodeForm[*api.APISubscriptionRequest](req)
+	newSubscription, valid, err := forms.DecodeForm[*api.SubscriptionRequest](req)
 	if err != nil {
 		logging.FromContext(ctx).Error("Could not decode submitted subscription request request.",
 			slog.Any("error", err))
@@ -124,7 +124,7 @@ func (s Server) RemoveSubscriptionCategory(res http.ResponseWriter, req *http.Re
 	}
 }
 
-func addSubscriptionError(ctx context.Context, res http.ResponseWriter, details *api.APISubscriptionRequest, message string) {
+func addSubscriptionError(ctx context.Context, res http.ResponseWriter, details *api.SubscriptionRequest, message string) {
 	var err error
 	resp := htmx.NewResponse()
 

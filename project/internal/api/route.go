@@ -30,20 +30,20 @@ var DefaultRouteMethod = http.MethodGet
 //go:generate go tool golang.org/x/tools/cmd/stringer -type=HTMXMethod -linecomment -output route.gen.go
 type HTMXMethod int
 
-func (r *APIRoute) GetParams() url.Values {
+func (r *Route) GetParams() url.Values {
 	return r.url.Query()
 }
 
-func (r *APIRoute) GetCategoriesParam() []models.Category {
+func (r *Route) GetCategoriesParam() []models.Category {
 	categories := r.url.Query()["categories"]
 	return categories
 }
 
-func (r *APIRoute) GetViewParam() View {
+func (r *Route) GetViewParam() View {
 	return View(r.url.Query().Get("view"))
 }
 
-func (r *APIRoute) GetCountParam() Count {
+func (r *Route) GetCountParam() Count {
 	if count, err := strconv.Atoi(r.url.Query().Get("count")); err != nil {
 		return count
 	}
@@ -52,12 +52,12 @@ func (r *APIRoute) GetCountParam() Count {
 }
 
 // String shows the route URL as a string.
-func (r *APIRoute) String() string {
+func (r *Route) String() string {
 	return r.url.String()
 }
 
 // ShowAttributes will return the htmx attributes for the route.
-func (r *APIRoute) Attributes() templ.Attributes {
+func (r *Route) Attributes() templ.Attributes {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -75,10 +75,10 @@ func (r *APIRoute) Attributes() templ.Attributes {
 	return r.attributes
 }
 
-// Rebuild allows rebuilding an existing APIRoute with different options. All
+// Rebuild allows rebuilding an existing Route with different options. All
 // existing params and attributes are cleared and only the path and method are
 // retained.
-func (r *APIRoute) Rebuild(options ...RouteOption) {
+func (r *Route) Rebuild(options ...RouteOption) {
 	// clear existing attributes
 	clear(r.attributes)
 	// clear existing params
@@ -89,23 +89,23 @@ func (r *APIRoute) Rebuild(options ...RouteOption) {
 	}
 }
 
-// SetView returns a copy of APIRoute with the view query parameter set to the
+// SetView returns a copy of Route with the view query parameter set to the
 // given value.
-func (r *APIRoute) SetView(view View) *APIRoute {
+func (r *Route) SetView(view View) *Route {
 	params := WithViewParam(view)(r.url.Query())
 	r.url.RawQuery = params.Encode()
 
 	return r
 }
 
-func (r *APIRoute) SetCategories(categories ...models.Category) *APIRoute {
+func (r *Route) SetCategories(categories ...models.Category) *Route {
 	params := WithCategoriesParam(categories...)(r.url.Query())
 	r.url.RawQuery = params.Encode()
 
 	return r
 }
 
-func (r *APIRoute) UnsetCategories() *APIRoute {
+func (r *Route) UnsetCategories() *Route {
 	params := r.url.Query()
 	params.Del("categories")
 	r.url.RawQuery = params.Encode()
@@ -113,27 +113,27 @@ func (r *APIRoute) UnsetCategories() *APIRoute {
 	return r
 }
 
-func (r *APIRoute) SetFeeds(feedIDs ...models.FeedID) {
+func (r *Route) SetFeeds(feedIDs ...models.FeedID) {
 	params := WithFeedsParam(feedIDs...)(r.url.Query())
 	r.url.RawQuery = params.Encode()
 }
 
-func (r *APIRoute) SetItems(itemIDs ...models.ItemID) {
+func (r *Route) SetItems(itemIDs ...models.ItemID) {
 	params := WithItemsParam(itemIDs...)(r.url.Query())
 	r.url.RawQuery = params.Encode()
 }
 
-func (r *APIRoute) SetMark(mark Mark) {
+func (r *Route) SetMark(mark Mark) {
 	params := WithMarkParam(mark)(r.url.Query())
 	r.url.RawQuery = params.Encode()
 }
 
-func (r *APIRoute) SetPagination(pagination Pagination) {
+func (r *Route) SetPagination(pagination Pagination) {
 	params := WithPaginationParam(pagination)(r.url.Query())
 	r.url.RawQuery = params.Encode()
 }
 
-func (r *APIRoute) AddAttribute(key, value string) {
+func (r *Route) AddAttribute(key, value string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -142,14 +142,14 @@ func (r *APIRoute) AddAttribute(key, value string) {
 	}
 }
 
-func (r *APIRoute) RemoveAttribute(key string) {
+func (r *Route) RemoveAttribute(key string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	delete(r.attributes, key)
 }
 
-func (r *APIRoute) SetAttributes(attributes templ.Attributes) {
+func (r *Route) SetAttributes(attributes templ.Attributes) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -160,12 +160,12 @@ func (r *APIRoute) SetAttributes(attributes templ.Attributes) {
 	}
 }
 
-func (r *APIRoute) SetMethod(method string) {
+func (r *Route) SetMethod(method string) {
 	r.method = &method
 }
 
-// RouteOption is a functional option to customize a APIRoute.
-type RouteOption Option[*APIRoute]
+// RouteOption is a functional option to customize a Route.
+type RouteOption Option[*Route]
 
 // WithFeedsParam option replaces any existing models.FeedID filters with the given list.
 func WithFeedsParam(ids ...models.FeedID) ParamsOption {
@@ -231,13 +231,13 @@ func WithPaginationParam(pagination Pagination) ParamsOption {
 }
 
 func WithSubPath(path string) RouteOption {
-	return func(a *APIRoute) {
+	return func(a *Route) {
 		a.url = *a.url.JoinPath(path)
 	}
 }
 
 func WithParams(options ...ParamsOption) RouteOption {
-	return func(route *APIRoute) {
+	return func(route *Route) {
 		params := route.url.Query()
 
 		for _, option := range options {
@@ -249,26 +249,26 @@ func WithParams(options ...ParamsOption) RouteOption {
 }
 
 func WithAttribute(key, value string) RouteOption {
-	return func(r *APIRoute) {
+	return func(r *Route) {
 		r.AddAttribute(key, value)
 	}
 }
 
 func WithAttributes(attrs templ.Attributes) RouteOption {
-	return func(r *APIRoute) {
+	return func(r *Route) {
 		r.SetAttributes(attrs)
 	}
 }
 
 func WithMethod(method string) RouteOption {
-	return func(r *APIRoute) {
+	return func(r *Route) {
 		r.method = &method
 	}
 }
 
-// BuildRoute creates a new APIRoute with params defined by the given options.
-func BuildRoute(from any, options ...RouteOption) *APIRoute {
-	route := &APIRoute{
+// BuildRoute creates a new Route with params defined by the given options.
+func BuildRoute(from any, options ...RouteOption) *Route {
+	route := &Route{
 		attributes: make(templ.Attributes),
 		method:     &DefaultRouteMethod,
 		mu:         sync.Mutex{},

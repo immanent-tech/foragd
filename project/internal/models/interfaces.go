@@ -12,7 +12,7 @@ var ErrBackend = errors.New("backend API error")
 
 // // AuthAPI contains methods for handling auth requests.
 // type AuthAPI interface {
-// 	Create(ctx context.Context, user *api.APIUserSignupRequest) (string, error)
+// 	Create(ctx context.Context, user *api.UserSignupRequest) (string, error)
 // }
 
 // UserActionsAPI contains methods for handling user requests.
@@ -20,14 +20,14 @@ var ErrBackend = errors.New("backend API error")
 // 	UserActionMarkItems(ctx context.Context, mark Mark, items ...ItemID) error
 // 	UserActionMarkFeeds(ctx context.Context, mark Mark, feeds ...FeedID) error
 // 	UserActionGetItem(ctx context.Context, feedID FeedID, itemID ItemID) (APIItem, bool, error)
-// 	UserActionGetItems(ctx context.Context, filters APIFilters) ([]*APIItem, Pagination, error)
-// 	UserActionGetFeeds(ctx context.Context, filters APIFilters) ([]*APIFeed, error)
+// 	UserActionGetItems(ctx context.Context, filters Filters) ([]*APIItem, Pagination, error)
+// 	UserActionGetFeeds(ctx context.Context, filters Filters) ([]*APIFeed, error)
 // 	// UserActionCountUnread(ctx context.Context, feedIDs ...FeedID) (int, error)
 // }
 
 // SubscriptionsAPI contains methods for handling user subscriptions.
 // type SubscriptionsAPI interface {
-// 	AddSubscriptions(ctx context.Context, details ...*APISubscriptionRequest) error
+// 	AddSubscriptions(ctx context.Context, details ...*SubscriptionRequest) error
 // }
 
 // UserManagementAPI contains methods for user management.

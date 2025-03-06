@@ -419,14 +419,14 @@ components:
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: "api.yaml#/components/schemas/APIUserSignupRequest"
+            $ref: "api.yaml#/components/schemas/UserSignupRequest"
     SubscriptionRequestBody:
       description: >
         Holds details for adding/saving a subscription.
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: "api.yaml#/components/schemas/APISubscriptionRequest"
+            $ref: "api.yaml#/components/schemas/SubscriptionRequest"
     CategoryRequestBody:
       description: >
         A list of categories to add/remove from a subscription.

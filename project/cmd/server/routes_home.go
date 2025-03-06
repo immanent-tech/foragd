@@ -92,7 +92,7 @@ func (f *MarkFeeds) Valid() bool {
 }
 
 // feedsHandler handles a list of feeds.
-func feedsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.APIFilters) {
+func feedsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.Filters) {
 	// Get feeds.
 	feeds, err := api.UserActionGetFeeds(req.Context(), filters)
 	if err != nil {
@@ -177,7 +177,7 @@ func (f *MarkItems) Valid() bool {
 }
 
 // itemsHandler handles a list of items.
-func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.APIFilters) {
+func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.Filters) {
 	// Get all items.
 	items, pagination, err := api.UserActionGetItems(req.Context(), filters)
 	if err != nil {
@@ -273,7 +273,7 @@ func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, fee
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Element, categories []models.CategoryCount, filters *api.APIFilters, backPath string) {
+func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Element, categories []models.CategoryCount, filters *api.Filters, backPath string) {
 	var (
 		layout *home.LayoutProps
 		title  string
