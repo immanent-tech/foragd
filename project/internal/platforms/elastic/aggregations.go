@@ -22,7 +22,7 @@ type TermsAggregationResults struct {
 }
 
 // GetCount retrieves the document count for the bucket with the given key.
-func (a *TermsAggregationResults) GetCount(key string) int64 {
+func (a *TermsAggregationResults) GetCount(key string) int {
 	switch value := a.Buckets.(type) {
 	case map[string]types.StringTermsBucket:
 		return 0
@@ -34,7 +34,7 @@ func (a *TermsAggregationResults) GetCount(key string) int64 {
 			return 0
 		}
 
-		return value[idx].DocCount
+		return int(value[idx].DocCount)
 	}
 
 	return 0

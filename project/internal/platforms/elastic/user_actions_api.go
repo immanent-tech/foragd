@@ -246,7 +246,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters api.Filters) ([
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	unreadCounts := make(map[string]int64)
+	unreadCounts := make(map[string]int)
 	for _, feedID := range filters.GetFeeds() {
 		unreadCounts[feedID] = categoryCounts.GetCount(feedID)
 	}
@@ -333,18 +333,32 @@ func (c *Client) UserActionGetFeed(ctx context.Context, feedID models.FeedID) (*
 	return feed, nil
 }
 
-func (c *Client) UserActionGetFeedCategories(ctx context.Context) ([]models.CategoryCount, error) {
+func (c *Client) UserActionGetFeedCategories(ctx context.Context) ([]api.CategoryCount, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed
 	}
 
-	// subscriptions := user.GetSubscribedFeedIDs()
+	counts := make(map[models.Category]int)
 
-	return user.GetCategoryCounts(), nil
+	// Tally the count of categories across the user's subscriptions.
+	for _, subscription := range user.Subscriptions {
+		for _, category := range subscription.Categories {
+			counts[category]++
+		}
+	}
+
+	categoryCounts := make([]api.CategoryCount, 0, len(counts))
+
+	// Reformat counts into CategoryCount objects.
+	for category, count := range counts {
+		categoryCounts = append(categoryCounts, api.CategoryCount{Name: category, Count: count})
+	}
+
+	return categoryCounts, nil
 }
 
-func (c *Client) UserActionGetItemCategories(ctx context.Context, filters api.Filters) ([]models.CategoryCount, error) {
+func (c *Client) UserActionGetItemCategories(ctx context.Context, filters api.Filters) ([]api.CategoryCount, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed
@@ -365,10 +379,10 @@ func (c *Client) UserActionGetItemCategories(ctx context.Context, filters api.Fi
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	categories := make([]models.CategoryCount, 0, results.BucketCount())
+	categories := make([]api.CategoryCount, 0, results.BucketCount())
 
 	for _, category := range results.BucketNames() {
-		categories = append(categories, models.CategoryCount{Name: category, Count: results.GetCount(category)})
+		categories = append(categories, api.CategoryCount{Name: category, Count: results.GetCount(category)})
 	}
 
 	return categories, nil

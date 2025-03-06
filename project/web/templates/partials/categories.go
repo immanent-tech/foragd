@@ -26,7 +26,7 @@ func NewCategoryFilter(name models.Category, active bool, route *api.Route) Feed
 	}
 }
 
-func BuildCategoryFilters(filters *api.Filters, allCategories []models.CategoryCount, path string) []FeedCategoryFilter {
+func BuildCategoryFilters(filters *api.Filters, allCategories []api.CategoryCount, path string) []FeedCategoryFilter {
 	categoryFilters := make([]FeedCategoryFilter, 0, len(allCategories))
 
 	for _, category := range allCategories {

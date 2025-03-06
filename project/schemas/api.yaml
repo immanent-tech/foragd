@@ -162,3 +162,15 @@ components:
           x-oapi-codegen-extra-tags:
             form: "-"
           x-go-type-skip-optional-pointer: true
+    CategoryCount:
+      description: holds a category name and count of objects with the category.
+      type: object
+      required:
+        - Name
+        - Count
+      properties:
+        Name:
+          $ref: "models.yaml#/components/schemas/Category"
+        Count:
+          description: is the number of objects with this Category.
+          type: integer

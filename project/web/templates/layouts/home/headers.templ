@@ -60,7 +60,7 @@ func viewFilterControl(filters *partials.ViewFilter) templ.Component {
 
 // ListHeader generates a content header for list views. It contains filters and
 // controls for altering the display of lists of content.
-templ ListHeader(filters *api.Filters, categories []models.CategoryCount, path string) {
+templ ListHeader(filters *api.Filters, categories []api.CategoryCount, path string) {
 	{{ categoryFilters := partials.BuildCategoryFilters(filters, categories, path) }}
 	{{ viewFilter := partials.BuildViewFilter(filters, path) }}
 	// if title != "" {

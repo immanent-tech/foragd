@@ -25,6 +25,15 @@ const (
 	ViewUnread View = "unread"
 )
 
+// CategoryCount holds a category name and count of objects with the category.
+type CategoryCount struct {
+	// Count is the number of objects with this Category.
+	Count int `json:"Count"`
+
+	// Name is a single category.
+	Name externalRef0.Category `form:"category" json:"category"`
+}
+
 // Count is the count of items to retrieve with a request.
 type Count = int
 

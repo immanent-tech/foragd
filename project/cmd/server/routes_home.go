@@ -11,7 +11,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/session"
 	"github.com/joshuar/go-feed-me/internal/validation"
@@ -273,7 +272,7 @@ func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, fee
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Element, categories []models.CategoryCount, filters *api.Filters, backPath string) {
+func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Element, categories []api.CategoryCount, filters *api.Filters, backPath string) {
 	var (
 		layout *home.LayoutProps
 		title  string

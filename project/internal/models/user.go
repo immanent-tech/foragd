@@ -160,26 +160,6 @@ func (u *User) GetSubscribedFeedIDs() []FeedID {
 	return feedIDs
 }
 
-func (u *User) GetCategoryCounts() []CategoryCount {
-	counts := make(map[Category]int64)
-
-	// Tally the count of categories across the user's subscriptions.
-	for _, subscription := range u.Subscriptions {
-		for _, category := range subscription.Categories {
-			counts[category]++
-		}
-	}
-
-	categoryCounts := make([]CategoryCount, 0, len(counts))
-
-	// Reformat counts into CategoryCount objects.
-	for category, count := range counts {
-		categoryCounts = append(categoryCounts, CategoryCount{Name: category, Count: count})
-	}
-
-	return categoryCounts
-}
-
 // GetMaxHistory returns a timestamp in the past after which the user can view
 // items.
 func (u *User) GetMaxHistory() time.Time {
