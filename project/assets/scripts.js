@@ -4,8 +4,6 @@
 // htmx
 import 'htmx.org'
 import './setup-htmx.js'
-// htmx morphdom-swap extension
-import 'htmx.org/dist/ext/morphdom-swap'
 
 // hyperscript
 import _hyperscript from 'hyperscript.org'
