@@ -11,15 +11,15 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/api"
 )
 
-var (
-	_ models.FeedManagementAPI = (*Client)(nil)
-	_ models.FeedJobStateAPI   = (*Client)(nil)
-	_ models.UserActionsAPI    = (*Client)(nil)
-	_ models.UserManagementAPI = (*Client)(nil)
-)
+// var (
+// 	_ models.FeedManagementAPI = (*Client)(nil)
+// 	_ models.FeedJobStateAPI   = (*Client)(nil)
+// 	_ models.UserActionsAPI    = (*Client)(nil)
+// 	_ models.UserManagementAPI = (*Client)(nil)
+// )
 
 // ExtractSourceFromHits loops through the given hits array and extracts the `_source`
 // field of each document as type `T`, returning the document sources as an array
@@ -144,7 +144,7 @@ func formatError(err types.ErrorCause) error {
 // encodePagination will take sort values returned from a query, marshal them to
 // JSON, then HTML-escape the string into a models.Pagination object, which is
 // safe for use in API query parameters.
-func encodePagination(sortValues []types.FieldValue) (models.Pagination, error) {
+func encodePagination(sortValues []types.FieldValue) (api.Pagination, error) {
 	if len(sortValues) == 0 {
 		return "", nil
 	}
@@ -159,7 +159,7 @@ func encodePagination(sortValues []types.FieldValue) (models.Pagination, error) 
 
 // decodePagination will take a models.Pagination object, HTML-unescape the
 // string then unmarshal it back into sort values.
-func decodePagination(pagination models.Pagination) ([]types.FieldValue, error) {
+func decodePagination(pagination api.Pagination) ([]types.FieldValue, error) {
 	if pagination == "" {
 		return nil, nil
 	}

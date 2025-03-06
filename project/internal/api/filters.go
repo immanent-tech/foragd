@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package models
+package api
 
 import (
 	"encoding/json"
@@ -12,6 +12,8 @@ import (
 	"strings"
 
 	"github.com/oapi-codegen/runtime"
+
+	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 var (
@@ -40,32 +42,32 @@ type ParamName string
 type ParamsOption func(url.Values) url.Values
 
 // GetFeeds gets the list of FeedIDs from the filters.
-func (f *APIFilters) GetFeeds() []FeedID {
+func (f *APIFilters) GetFeeds() []models.FeedID {
 	return f.FeedIDs
 }
 
 // SetFeeds sets the feed filters to the given values. Existing values are wiped.
-func (f *APIFilters) SetFeeds(feedIDs ...FeedID) {
+func (f *APIFilters) SetFeeds(feedIDs ...models.FeedID) {
 	f.FeedIDs = feedIDs
 }
 
 // GetItems gets the list of ItemIDs from the filters.
-func (f *APIFilters) GetItems() ItemIDs {
+func (f *APIFilters) GetItems() models.ItemIDs {
 	return f.ItemIDs
 }
 
 // SetItems sets the item filters to the given values. Existing values are wiped.
-func (f *APIFilters) SetItems(itemIDs ...ItemID) {
+func (f *APIFilters) SetItems(itemIDs ...models.ItemID) {
 	f.ItemIDs = itemIDs
 }
 
 // GetCategories gets the list of Categories from the filters.
-func (f *APIFilters) GetCategories() Categories {
+func (f *APIFilters) GetCategories() models.Categories {
 	return f.Categories
 }
 
 // SetCategories sets the category filters to the given values. Existing values are wiped.
-func (f *APIFilters) SetCategories(categories ...Category) {
+func (f *APIFilters) SetCategories(categories ...models.Category) {
 	f.Categories = categories
 }
 
@@ -131,9 +133,9 @@ func FiltersFromQuery(values url.Values) (*APIFilters, error) {
 
 	var (
 		err        error
-		feedIDs    *FeedIDs
-		itemIDs    *ItemIDs
-		categories *Categories
+		feedIDs    *models.FeedIDs
+		itemIDs    *models.ItemIDs
+		categories *models.Categories
 	)
 
 	// Parse feeds param.

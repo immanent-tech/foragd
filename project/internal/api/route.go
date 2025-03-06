@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package models
+package api
 
 import (
 	"maps"
@@ -12,6 +12,8 @@ import (
 	"sync"
 
 	"github.com/a-h/templ"
+
+	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 const (
@@ -25,14 +27,14 @@ const (
 
 var DefaultRouteMethod = http.MethodGet
 
-//go:generate go tool golang.org/x/tools/cmd/stringer -type=HTMXMethod -linecomment -output routing.gen.go
+//go:generate go tool golang.org/x/tools/cmd/stringer -type=HTMXMethod -linecomment -output route.gen.go
 type HTMXMethod int
 
 func (r *APIRoute) GetParams() url.Values {
 	return r.url.Query()
 }
 
-func (r *APIRoute) GetCategoriesParam() []Category {
+func (r *APIRoute) GetCategoriesParam() []models.Category {
 	categories := r.url.Query()["categories"]
 	return categories
 }
@@ -96,7 +98,7 @@ func (r *APIRoute) SetView(view View) *APIRoute {
 	return r
 }
 
-func (r *APIRoute) SetCategories(categories ...Category) *APIRoute {
+func (r *APIRoute) SetCategories(categories ...models.Category) *APIRoute {
 	params := WithCategoriesParam(categories...)(r.url.Query())
 	r.url.RawQuery = params.Encode()
 
@@ -111,12 +113,12 @@ func (r *APIRoute) UnsetCategories() *APIRoute {
 	return r
 }
 
-func (r *APIRoute) SetFeeds(feedIDs ...FeedID) {
+func (r *APIRoute) SetFeeds(feedIDs ...models.FeedID) {
 	params := WithFeedsParam(feedIDs...)(r.url.Query())
 	r.url.RawQuery = params.Encode()
 }
 
-func (r *APIRoute) SetItems(itemIDs ...ItemID) {
+func (r *APIRoute) SetItems(itemIDs ...models.ItemID) {
 	params := WithItemsParam(itemIDs...)(r.url.Query())
 	r.url.RawQuery = params.Encode()
 }
@@ -165,16 +167,16 @@ func (r *APIRoute) SetMethod(method string) {
 // RouteOption is a functional option to customize a APIRoute.
 type RouteOption Option[*APIRoute]
 
-// WithFeedsParam option replaces any existing FeedID filters with the given list.
-func WithFeedsParam(ids ...FeedID) ParamsOption {
+// WithFeedsParam option replaces any existing models.FeedID filters with the given list.
+func WithFeedsParam(ids ...models.FeedID) ParamsOption {
 	return func(v url.Values) url.Values {
 		v.Set("feeds", strings.Join(ids, ","))
 		return v
 	}
 }
 
-// WithItemsParam option replaces any existing ItemID filters with the given list.
-func WithItemsParam(ids ...ItemID) ParamsOption {
+// WithItemsParam option replaces any existing models.ItemID filters with the given list.
+func WithItemsParam(ids ...models.ItemID) ParamsOption {
 	return func(v url.Values) url.Values {
 		v.Set("items", strings.Join(ids, ","))
 		return v
@@ -182,7 +184,7 @@ func WithItemsParam(ids ...ItemID) ParamsOption {
 }
 
 // WithCategoriesParam option replaces any existing Categories filters with the given list.
-func WithCategoriesParam(categories ...Category) ParamsOption {
+func WithCategoriesParam(categories ...models.Category) ParamsOption {
 	return func(v url.Values) url.Values {
 		if len(categories) > 0 {
 			v.Set("categories", strings.Join(categories, ","))

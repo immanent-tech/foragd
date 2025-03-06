@@ -17,6 +17,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -42,30 +43,30 @@ type Card struct {
 }
 
 // buildMarkButton creates a button to mark the card as read/unread.
-func (c *Card) buildMarkButton(label string, mark models.Mark, path string) templ.Component {
-	var paramOption models.RouteOption
+func (c *Card) buildMarkButton(label string, mark api.Mark, path string) templ.Component {
+	var paramOption api.RouteOption
 
 	switch c.Type {
 	case Feed:
-		paramOption = models.WithParams(
-			models.WithFeedsParam(c.ID),
-			models.WithMarkParam(mark),
+		paramOption = api.WithParams(
+			api.WithFeedsParam(c.ID),
+			api.WithMarkParam(mark),
 		)
 	case Item:
-		paramOption = models.WithParams(
-			models.WithItemsParam(c.ID),
-			models.WithMarkParam(mark),
+		paramOption = api.WithParams(
+			api.WithItemsParam(c.ID),
+			api.WithMarkParam(mark),
 		)
 	}
 
-	route := models.BuildRoute(path,
-		models.WithAttributes(templ.Attributes{
+	route := api.BuildRoute(path,
+		api.WithAttributes(templ.Attributes{
 			"_":           "on click halt the event's bubbling",
 			"hx-push-url": "false",
 			"hx-target":   c.Target,
 		}),
 		paramOption,
-		models.WithMethod(http.MethodPost),
+		api.WithMethod(http.MethodPost),
 	)
 
 	return button.Build(
@@ -76,37 +77,37 @@ func (c *Card) buildMarkButton(label string, mark models.Mark, path string) temp
 }
 
 // buildRoute creates a models.APIRoute appropriate for showing content.
-func (c *Card) buildRoute(path string, filters models.APIFilters) *models.APIRoute {
-	var routeOptions []models.RouteOption
+func (c *Card) buildRoute(path string, filters api.APIFilters) *api.APIRoute {
+	var routeOptions []api.RouteOption
 
 	routeOptions = append(routeOptions,
-		models.WithAttributes(templ.Attributes{
+		api.WithAttributes(templ.Attributes{
 			"hx-push-url": "true",
 			"hx-target":   c.Target,
 			"hx-swap":     "morph:innerHTML",
 		}),
-		models.WithParams(
-			models.WithViewParam(filters.View),
-			models.WithCountParam(filters.Count),
+		api.WithParams(
+			api.WithViewParam(filters.View),
+			api.WithCountParam(filters.Count),
 		),
 	)
 
 	switch c.Type {
 	case Feed:
 		routeOptions = append(routeOptions,
-			models.WithParams(
-				models.WithFeedsParam(c.ID),
+			api.WithParams(
+				api.WithFeedsParam(c.ID),
 			),
 		)
 	}
 
-	return models.BuildRoute(path, routeOptions...)
+	return api.BuildRoute(path, routeOptions...)
 }
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
-func (c *Card) AddPagination(path *url.URL, pagination models.Pagination) {
-	paginateRoute := models.BuildRoute(path,
-		models.WithParams(models.WithPaginationParam(pagination)),
+func (c *Card) AddPagination(path *url.URL, pagination api.Pagination) {
+	paginateRoute := api.BuildRoute(path,
+		api.WithParams(api.WithPaginationParam(pagination)),
 	).String()
 	c.AddAttributes(templ.Attributes{
 		"hx-get":       paginateRoute,
@@ -117,7 +118,7 @@ func (c *Card) AddPagination(path *url.URL, pagination models.Pagination) {
 	})
 }
 
-func NewFeedCard(filters models.APIFilters, feed *models.APIFeed) (*Card, error) {
+func NewFeedCard(filters api.APIFilters, feed *models.APIFeed) (*Card, error) {
 	var err error
 
 	feedCard := &Card{
@@ -137,10 +138,10 @@ func NewFeedCard(filters models.APIFilters, feed *models.APIFeed) (*Card, error)
 	var cardMenuItems []templ.Component
 	if feed.GetUserUnreadCount() > 0 {
 		cardMenuItems = append(cardMenuItems,
-			feedCard.buildMarkButton("Mark Read", models.MarkRead, "/home/feeds"))
+			feedCard.buildMarkButton("Mark Read", api.MarkRead, "/home/feeds"))
 	} else {
 		cardMenuItems = append(cardMenuItems,
-			feedCard.buildMarkButton("Mark Unread", models.MarkUnread, "/home/feeds"))
+			feedCard.buildMarkButton("Mark Unread", api.MarkUnread, "/home/feeds"))
 	}
 	// Build card options.
 	var cardOptions []card.Option
@@ -180,7 +181,7 @@ func NewFeedCard(filters models.APIFilters, feed *models.APIFeed) (*Card, error)
 	return feedCard, nil
 }
 
-func NewItemCard(filters models.APIFilters, item *models.APIItem) (*Card, error) {
+func NewItemCard(filters api.APIFilters, item *models.APIItem) (*Card, error) {
 	var err error
 
 	itemCard := &Card{
@@ -200,10 +201,10 @@ func NewItemCard(filters models.APIFilters, item *models.APIItem) (*Card, error)
 	var cardMenuItems []templ.Component
 	if item.GetUserState() == models.Unread {
 		cardMenuItems = append(cardMenuItems,
-			itemCard.buildMarkButton("Mark Read", models.MarkRead, "/home/items"))
+			itemCard.buildMarkButton("Mark Read", api.MarkRead, "/home/items"))
 	} else {
 		cardMenuItems = append(cardMenuItems,
-			itemCard.buildMarkButton("Mark Unread", models.MarkUnread, "/home/items"))
+			itemCard.buildMarkButton("Mark Unread", api.MarkUnread, "/home/items"))
 	}
 	// Build card options.
 	var cardOptions []card.Option
@@ -228,7 +229,7 @@ func NewItemCard(filters models.APIFilters, item *models.APIItem) (*Card, error)
 	}
 	// Reduce opacity if item is read or view is read items.
 	switch {
-	case filters.View == models.ViewRead:
+	case filters.View == api.ViewRead:
 		fallthrough
 	case item.GetUserState() == models.Read:
 		cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))

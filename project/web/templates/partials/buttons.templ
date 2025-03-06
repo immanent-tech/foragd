@@ -5,7 +5,7 @@ package partials
 
 import (
 	"context"
-	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/session"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
@@ -31,11 +31,11 @@ func AddSubscriptionButton() *button.Props {
 // backButton generates a button for going back to the given path. It fetches
 // the last state of the path (i.e., any parameters used) from the user session.
 func BackButton(ctx context.Context, path, target string) templ.Component {
-	attrs := models.BuildRoute(
+	attrs := api.BuildRoute(
 		session.GetRouteState(ctx, path),
-		models.WithAttribute("hx-target", target),
-		models.WithAttribute("hx-push-url", "true"),
-		models.WithAttribute("hx-swap", "morph:innerHTML"),
+		api.WithAttribute("hx-target", target),
+		api.WithAttribute("hx-push-url", "true"),
+		api.WithAttribute("hx-swap", "morph:innerHTML"),
 	).Attributes()
 
 	return button.Build(

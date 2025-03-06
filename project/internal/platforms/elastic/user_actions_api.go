@@ -8,10 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -19,10 +21,11 @@ import (
 // user action request. Typically it should be joined with the actual error
 // returned from any underlying methods.
 var ErrUserActionFailed = errors.New("user action failed")
+var ErrUserAlreadySubscribed = errors.New("user already subscribed")
 
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
-func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Mark, ids ...models.ItemID) error {
-	if mark != models.MarkUnread && mark != models.MarkRead {
+func (c *Client) UserActionMarkItems(ctx context.Context, mark api.Mark, ids ...models.ItemID) error {
+	if mark != api.MarkUnread && mark != api.MarkRead {
 		return fmt.Errorf("unsupported mark")
 	}
 
@@ -77,8 +80,8 @@ func (c *Client) UserActionMarkItems(ctx context.Context, mark models.Mark, ids 
 
 // UserActionMarkFeedsRead will mark the given feeds with the given state for
 // the user.
-func (c *Client) UserActionMarkFeeds(ctx context.Context, mark models.Mark, feedIDs ...models.FeedID) error {
-	if mark != models.MarkRead && mark != models.MarkUnread {
+func (c *Client) UserActionMarkFeeds(ctx context.Context, mark api.Mark, feedIDs ...models.FeedID) error {
+	if mark != api.MarkRead && mark != api.MarkUnread {
 		return errors.Join(ErrUserActionFailed, errors.New("unsupported mark action"))
 	}
 
@@ -94,9 +97,9 @@ func (c *Client) UserActionMarkFeeds(ctx context.Context, mark models.Mark, feed
 	// For read state, this will be the current time.
 	// For unread state, this will be the max history of the user.
 	switch mark {
-	case models.MarkRead:
+	case api.MarkRead:
 		timestamp = time.Now().UTC()
-	case models.MarkUnread:
+	case api.MarkUnread:
 		timestamp = user.GetMaxHistory()
 	}
 
@@ -171,7 +174,7 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID models.FeedID, it
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilters) ([]*models.APIItem, models.Pagination, error) {
+func (c *Client) UserActionGetItems(ctx context.Context, filters api.APIFilters) ([]*models.APIItem, api.Pagination, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, "", errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -215,13 +218,13 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters models.APIFilte
 
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilters) ([]*models.APIFeed, error) {
+func (c *Client) UserActionGetFeeds(ctx context.Context, filters api.APIFilters) ([]*models.APIFeed, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed
 	}
 
-	filters.SetFeeds(user.FilterSubscribedFeeds(filters)...)
+	filters.SetFeeds(filterSubscribedFeeds(user, filters)...)
 
 	// Get the feed details for the subscribed feeds.
 	feeds, err := c.FeedsSearch(ctx, filters)
@@ -254,11 +257,11 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters models.APIFilte
 		// Add user unread count to feed.
 		feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
 		// If filtering by unread, ignore feeds with no unread count.
-		if filters.View == models.ViewUnread && feed.GetUserUnreadCount() == 0 {
+		if filters.View == api.ViewUnread && feed.GetUserUnreadCount() == 0 {
 			continue
 		}
 		// If filtering by read, ignore feeds with  unread count.
-		if filters.View == models.ViewRead && feed.GetUserUnreadCount() > 0 {
+		if filters.View == api.ViewRead && feed.GetUserUnreadCount() > 0 {
 			slog.Info("not showing feed", slog.String("feed", feed.GetTitle()))
 			continue
 		}
@@ -341,7 +344,7 @@ func (c *Client) UserActionGetFeedCategories(ctx context.Context) ([]models.Cate
 	return user.GetCategoryCounts(), nil
 }
 
-func (c *Client) UserActionGetItemCategories(ctx context.Context, filters models.APIFilters) ([]models.CategoryCount, error) {
+func (c *Client) UserActionGetItemCategories(ctx context.Context, filters api.APIFilters) ([]models.CategoryCount, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed
@@ -371,16 +374,39 @@ func (c *Client) UserActionGetItemCategories(ctx context.Context, filters models
 	return categories, nil
 }
 
+// AddSubscription adds a new subscription to the user object.
+func UserActionAddSubscription(ctx context.Context, user *models.User, client *Client, feedID models.FeedID, details *api.APISubscriptionRequest) error {
+	if user.IsSubscribed(feedID) {
+		return ErrUserAlreadySubscribed
+	}
+
+	if user.Subscriptions == nil {
+		user.Subscriptions = make(map[string]models.SubscriptionState)
+	}
+
+	user.Subscriptions[feedID] = api.NewSubscriptionState(details)
+
+	partialUpdate := map[string]any{
+		"subscriptions": user.Subscriptions,
+	}
+
+	if err := client.UpdateUser(ctx, user.ID, partialUpdate); err != nil {
+		return errors.Join(models.ErrUpdateUser, err)
+	}
+
+	return nil
+}
+
 // generateItemsQueryClause selects the appropriate query clause for retrieving
 // items using the given filters.
-func generateItemsQueryClause(user *models.User, filters models.APIFilters) QueryOption {
+func generateItemsQueryClause(user *models.User, filters api.APIFilters) QueryOption {
 	// Work out what query to use based on the state filter.
 	switch filters.View {
-	case models.ViewRead:
+	case api.ViewRead:
 		return readFeedItemsQuery(user, filters)
-	case models.ViewUnread:
+	case api.ViewUnread:
 		return unreadFeedItemsQuery(user, filters)
-	case models.ViewAll:
+	case api.ViewAll:
 		return allFeedItemsQuery(user, filters)
 	default:
 		return unreadFeedItemsQuery(user, filters)
@@ -388,7 +414,7 @@ func generateItemsQueryClause(user *models.User, filters models.APIFilters) Quer
 }
 
 // unreadFeedItemsQuery generates a query for matching unread items using the given filters.
-func unreadFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption {
+func unreadFeedItemsQuery(user *models.User, filters api.APIFilters) QueryOption {
 	clauses := make([]QueryOption, 0, len(filters.GetFeeds()))
 	for _, id := range filters.GetFeeds() {
 		clauses = append(clauses,
@@ -427,7 +453,7 @@ func unreadFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOpt
 }
 
 // readFeedItemsQuery generates a query for matching read items using the given filters.
-func readFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption {
+func readFeedItemsQuery(user *models.User, filters api.APIFilters) QueryOption {
 	readFeedIDs := make([]models.FeedID, 0, len(filters.GetFeeds()))
 	clauses := make([]QueryOption, 0, len(filters.GetFeeds()))
 
@@ -490,7 +516,7 @@ func readFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOptio
 	)
 }
 
-func allFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption {
+func allFeedItemsQuery(user *models.User, filters api.APIFilters) QueryOption {
 	clauses := make([]QueryOption, 0, len(filters.GetFeeds()))
 
 	for _, id := range filters.GetFeeds() {
@@ -522,4 +548,51 @@ func allFeedItemsQuery(user *models.User, filters models.APIFilters) QueryOption
 			),
 		),
 	)
+}
+
+// FilterSubscribedFeeds returns the user's subscribed feeds filtered by the
+// given feed IDs.
+func filterSubscribedFeeds(user *models.User, filters api.APIFilters) []models.FeedID {
+	// If there are no relevant filters, return all subscribed Feed IDs.
+	if len(filters.GetFeeds()) == 0 && len(filters.GetCategories()) == 0 {
+		return user.GetSubscribedFeedIDs()
+	}
+
+	var filtered []models.FeedID
+
+	switch {
+	// Case 1: FeedID filters specified, no Category filters specified.
+	case len(filters.GetFeeds()) > 0 && len(filters.GetCategories()) == 0:
+		for _, id := range filters.GetFeeds() {
+			if user.IsSubscribed(id) {
+				filtered = append(filtered, id)
+			}
+		}
+
+		return filtered
+	// Case 2: No FeedID filters specified, Category filters specified.
+	case len(filters.GetFeeds()) == 0 && len(filters.GetCategories()) > 0:
+		for id, details := range user.Subscriptions {
+			for _, category := range details.Categories {
+				if slices.Contains(filters.GetCategories(), category) {
+					filtered = append(filtered, id)
+				}
+			}
+		}
+
+		return filtered
+	// Case 3: Both FeedID and Category filters specified
+	default:
+		for _, id := range filters.GetFeeds() {
+			if user.IsSubscribed(id) {
+				for _, category := range filters.GetCategories() {
+					if user.SubscriptionHasCategory(id, category) {
+						filtered = append(filtered, id)
+					}
+				}
+			}
+		}
+
+		return filtered
+	}
 }

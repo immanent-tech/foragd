@@ -14,6 +14,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -176,7 +177,7 @@ func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]model
 }
 
 // FeedsSearch searches the feeds index for feeds matching the relevant filters.
-func (c *Client) FeedsSearch(ctx context.Context, filters models.APIFilters) ([]*models.APIFeed, error) {
+func (c *Client) FeedsSearch(ctx context.Context, filters api.APIFilters) ([]*models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -360,7 +361,7 @@ func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
 
 // ItemsSearch performs a search query on feed items with the given query
 // options. It returns the raw search response.
-func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, size models.Count, pagination models.Pagination) (*search.Response, error) {
+func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, size api.Count, pagination api.Pagination) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)

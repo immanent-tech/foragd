@@ -10,25 +10,25 @@ import (
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 
-	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/api"
 )
 
 type ViewFilter struct {
 	routes []*badge.Props
 }
 
-func BuildViewFilter(filters *models.APIFilters, path string) *ViewFilter {
+func BuildViewFilter(filters *api.APIFilters, path string) *ViewFilter {
 	return &ViewFilter{
 		routes: []*badge.Props{
-			newViewFilter(models.ViewRead, filters, path),
-			newViewFilter(models.ViewUnread, filters, path),
-			newViewFilter(models.ViewAll, filters, path),
+			newViewFilter(api.ViewRead, filters, path),
+			newViewFilter(api.ViewUnread, filters, path),
+			newViewFilter(api.ViewAll, filters, path),
 		},
 	}
 }
 
 // newViewFilter generates a badge for a view filter.
-func newViewFilter(view models.View, filters *models.APIFilters, path string) *badge.Props {
+func newViewFilter(view api.View, filters *api.APIFilters, path string) *badge.Props {
 	// Common route attributes.
 	attributes := templ.Attributes{
 		"hx-target":   "#content",
@@ -36,21 +36,21 @@ func newViewFilter(view models.View, filters *models.APIFilters, path string) *b
 		"hx-swap":     "morph:outerHTML",
 	}
 
-	var params []models.ParamsOption
+	var params []api.ParamsOption
 
 	// Common route parameters.
 	params = append(params,
-		models.WithViewParam(view),
-		models.WithCountParam(filters.GetCount()),
+		api.WithViewParam(view),
+		api.WithCountParam(filters.GetCount()),
 	)
 	// If the path is for viewing items, add any feeds filters.
 	if path == "/home/items" {
-		params = append(params, models.WithFeedsParam(filters.GetFeeds()...))
+		params = append(params, api.WithFeedsParam(filters.GetFeeds()...))
 	}
 	// Build the route.
-	route := models.BuildRoute(path,
-		models.WithParams(params...),
-		models.WithAttributes(attributes),
+	route := api.BuildRoute(path,
+		api.WithParams(params...),
+		api.WithAttributes(attributes),
 	)
 	// Create the badge component.
 	viewBadge := badge.Build(

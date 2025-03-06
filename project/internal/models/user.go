@@ -20,7 +20,6 @@ const (
 var (
 	ErrAddUser               = errors.New("add subscription failed")
 	ErrUpdateUser            = errors.New("update user failed")
-	ErrUserAlreadySubscribed = errors.New("user already subscribed")
 	ErrUserAlreadyReadItem   = errors.New("user already read this item")
 	ErrUserAlreadyUnreadItem = errors.New("user already unread this item")
 	ErrNotSubscribed         = errors.New("user not subscribed to feed")
@@ -179,76 +178,6 @@ func (u *User) GetCategoryCounts() []CategoryCount {
 	}
 
 	return categoryCounts
-}
-
-// FilterSubscribedFeeds returns the user's subscribed feeds filtered by the
-// given feed IDs.
-func (u *User) FilterSubscribedFeeds(filters APIFilters) []FeedID {
-	// If there are no relevant filters, return all subscribed Feed IDs.
-	if len(filters.GetFeeds()) == 0 && len(filters.GetCategories()) == 0 {
-		return u.GetSubscribedFeedIDs()
-	}
-
-	var filtered []FeedID
-
-	switch {
-	// Case 1: FeedID filters specified, no Category filters specified.
-	case len(filters.GetFeeds()) > 0 && len(filters.GetCategories()) == 0:
-		for _, id := range filters.GetFeeds() {
-			if u.IsSubscribed(id) {
-				filtered = append(filtered, id)
-			}
-		}
-
-		return filtered
-	// Case 2: No FeedID filters specified, Category filters specified.
-	case len(filters.GetFeeds()) == 0 && len(filters.GetCategories()) > 0:
-		for id, details := range u.Subscriptions {
-			for _, category := range details.Categories {
-				if slices.Contains(filters.GetCategories(), category) {
-					filtered = append(filtered, id)
-				}
-			}
-		}
-
-		return filtered
-	// Case 3: Both FeedID and Category filters specified
-	default:
-		for _, id := range filters.GetFeeds() {
-			if u.IsSubscribed(id) {
-				for _, category := range filters.GetCategories() {
-					if u.SubscriptionHasCategory(id, category) {
-						filtered = append(filtered, id)
-					}
-				}
-			}
-		}
-
-		return filtered
-	}
-}
-
-// AddSubscription adds a new subscription to the user object.
-func (u *User) AddSubscription(ctx context.Context, api UserManagementAPI, feedID FeedID, details *APISubscriptionRequest) error {
-	if u.IsSubscribed(feedID) {
-		return ErrUserAlreadySubscribed
-	}
-
-	if u.Subscriptions == nil {
-		u.Subscriptions = make(map[string]SubscriptionState)
-	}
-
-	u.Subscriptions[feedID] = NewSubscriptionState(details)
-
-	partialUpdate := map[string]any{
-		"subscriptions": u.Subscriptions,
-	}
-
-	if err := api.UpdateUser(ctx, u.ID, partialUpdate); err != nil {
-		return errors.Join(ErrUpdateUser, err)
-	}
-
-	return nil
 }
 
 // GetMaxHistory returns a timestamp in the past after which the user can view

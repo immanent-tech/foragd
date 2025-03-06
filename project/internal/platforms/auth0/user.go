@@ -21,8 +21,8 @@ import (
 	"fmt"
 	"log/slog"
 
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/models"
 
 	"github.com/auth0/go-auth0/authentication"
 	"github.com/auth0/go-auth0/authentication/database"
@@ -80,7 +80,7 @@ func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 	return api, nil
 }
 
-func (u *UserAPI) Create(ctx context.Context, details *models.APIUserSignupRequest) (string, error) {
+func (u *UserAPI) Create(ctx context.Context, details *api.APIUserSignupRequest) (string, error) {
 	userData := database.SignupRequest{
 		Connection: UserDBConnection,
 		Nickname:   *details.Nickname,

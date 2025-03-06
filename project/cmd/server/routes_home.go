@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -52,7 +53,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	session.SetRouteState(req.Context(), req.URL.Path, req.URL.String())
 
 	// Create filters from params.
-	filters, err := models.CreateFilters(params)
+	filters, err := api.CreateFilters(params)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
@@ -62,7 +63,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 
 func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 	// Get the view filters for reloading the page.
-	filters, err := models.FiltersFromQuery(models.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
+	filters, err := api.FiltersFromQuery(api.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
@@ -91,7 +92,7 @@ func (f *MarkFeeds) Valid() bool {
 }
 
 // feedsHandler handles a list of feeds.
-func feedsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters models.APIFilters) {
+func feedsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.APIFilters) {
 	// Get feeds.
 	feeds, err := api.UserActionGetFeeds(req.Context(), filters)
 	if err != nil {
@@ -134,7 +135,7 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 	session.SetRouteState(req.Context(), req.URL.Path, req.URL.String())
 
 	// Create filters for API requests.
-	filters, err := models.CreateFilters(params)
+	filters, err := api.CreateFilters(params)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
@@ -147,7 +148,7 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 
 func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	// Create filters for API requests.
-	filters, err := models.FiltersFromQuery(models.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
+	filters, err := api.FiltersFromQuery(api.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
@@ -176,7 +177,7 @@ func (f *MarkItems) Valid() bool {
 }
 
 // itemsHandler handles a list of items.
-func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters models.APIFilters) {
+func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.APIFilters) {
 	// Get all items.
 	items, pagination, err := api.UserActionGetItems(req.Context(), filters)
 	if err != nil {
@@ -272,7 +273,7 @@ func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, fee
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Element, categories []models.CategoryCount, filters *models.APIFilters, backPath string) {
+func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Element, categories []models.CategoryCount, filters *api.APIFilters, backPath string) {
 	var (
 		layout *home.LayoutProps
 		title  string

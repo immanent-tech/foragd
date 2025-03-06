@@ -4,6 +4,7 @@
 package subscription
 
 import (
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -22,7 +23,7 @@ import (
 )
 
 // inputURL generates the text input for the subscription URL.
-func inputURL(req *models.APISubscriptionRequest) templ.Component {
+func inputURL(req *api.APISubscriptionRequest) templ.Component {
 	urlInput := input.Build(textinput.Build(
 		textinput.Required(),
 		textinput.WithPlaceholder("https://cool.feed.lol/rss"),
@@ -51,7 +52,7 @@ func inputURL(req *models.APISubscriptionRequest) templ.Component {
 }
 
 // inputName generates the text input for the subscription name.
-func inputName(req *models.APISubscriptionRequest) templ.Component {
+func inputName(req *api.APISubscriptionRequest) templ.Component {
 	nameInput := input.Build(
 		textinput.Build(
 			textinput.WithPlaceholder("My custom feed name"),

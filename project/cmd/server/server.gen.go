@@ -9,14 +9,15 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	externalRef0 "github.com/joshuar/go-feed-me/internal/models"
+	externalRef0 "github.com/joshuar/go-feed-me/internal/api"
+	externalRef1 "github.com/joshuar/go-feed-me/internal/models"
 	"github.com/oapi-codegen/runtime"
 )
 
 // MarkCategories defines model for MarkCategories.
 type MarkCategories struct {
 	// Categories is a list of categories.
-	Categories externalRef0.Categories `form:"categories[]" json:"categories" validate:"unique"`
+	Categories externalRef1.Categories `form:"categories[]" json:"categories" validate:"unique"`
 
 	// Mark applies the given mark action to objects.
 	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
@@ -31,7 +32,7 @@ type MarkCommon struct {
 // MarkFeeds defines model for MarkFeeds.
 type MarkFeeds struct {
 	// Feeds is a list of feed IDs.
-	Feeds externalRef0.FeedIDs `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
+	Feeds externalRef1.FeedIDs `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
 
 	// Mark applies the given mark action to objects.
 	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
@@ -40,7 +41,7 @@ type MarkFeeds struct {
 // MarkItems defines model for MarkItems.
 type MarkItems struct {
 	// Items is a list of items IDs.
-	Items externalRef0.ItemIDs `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
+	Items externalRef1.ItemIDs `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
 
 	// Mark applies the given mark action to objects.
 	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
@@ -52,19 +53,19 @@ type MarkObjects struct {
 }
 
 // Categories is a list of categories.
-type Categories = externalRef0.Categories
+type Categories = externalRef1.Categories
 
 // Count is the count of items to retrieve with a request.
 type Count = externalRef0.Count
 
 // FeedID is the unique ID of a feed.
-type FeedID = externalRef0.FeedID
+type FeedID = externalRef1.FeedID
 
 // FeedIDs is a list of feed IDs.
-type FeedIDs = externalRef0.FeedIDs
+type FeedIDs = externalRef1.FeedIDs
 
 // ItemID is the unique ID of an item.
-type ItemID = externalRef0.ItemID
+type ItemID = externalRef1.ItemID
 
 // Mark applies the given mark action to objects.
 type Mark = externalRef0.Mark
@@ -102,7 +103,7 @@ type LoginCallbackParams struct {
 // AddSubscriptionCategoryFormdataBody defines parameters for AddSubscriptionCategory.
 type AddSubscriptionCategoryFormdataBody struct {
 	// Category is a single category.
-	Category externalRef0.Category `form:"category" json:"category"`
+	Category externalRef1.Category `form:"category" json:"category"`
 }
 
 // HandleMarkFeedsFormdataRequestBody defines body for HandleMarkFeeds for application/x-www-form-urlencoded ContentType.

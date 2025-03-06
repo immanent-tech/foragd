@@ -1,12 +1,16 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package models
+package api
 
-import "time"
+import (
+	"time"
 
-func NewSubscriptionState(details *APISubscriptionRequest) SubscriptionState {
-	return SubscriptionState{
+	"github.com/joshuar/go-feed-me/internal/models"
+)
+
+func NewSubscriptionState(details *APISubscriptionRequest) models.SubscriptionState {
+	return models.SubscriptionState{
 		CreatedAt:  time.Now().UTC(),
 		Name:       details.Name,
 		Categories: details.Categories,
