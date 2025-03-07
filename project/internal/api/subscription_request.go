@@ -5,6 +5,7 @@ package api
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/joshuar/go-feed-me/internal/validation"
 )
@@ -22,7 +23,7 @@ func (r *SubscriptionRequest) Valid() bool {
 	}
 
 	for field, problem := range problems {
-		r.ValidationErrors[field] = problem
+		r.ValidationErrors[field] = strings.Join(problem, " ")
 	}
 
 	return false

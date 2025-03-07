@@ -11,6 +11,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/session"
 	"github.com/joshuar/go-feed-me/internal/validation"
@@ -66,7 +67,6 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-
 		return
 	}
 	// Get the mark request.
@@ -74,11 +74,12 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 	if err != nil || !valid {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-
 		return
 	}
 	// Mark the feeds.
 	if err := s.DataAPI().UserActionMarkFeeds(req.Context(), marks.Mark, marks.Feeds...); err != nil {
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}
 	// Reload the home page.
@@ -87,7 +88,11 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 
 // Valid checks that the MarkFeeds object is valid.
 func (f *MarkFeeds) Valid() bool {
-	return validation.IsValid(f)
+	valid, err := validation.ValidateStruct(f)
+	if !valid || err != nil {
+		return false
+	}
+	return true
 }
 
 // feedsHandler handles a list of feeds.
@@ -151,7 +156,6 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-
 		return
 	}
 	// Get the mark request.
@@ -159,11 +163,12 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	if err != nil || !valid {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-
 		return
 	}
 	// Mark the feeds.
 	if err := s.DataAPI().UserActionMarkItems(req.Context(), marks.Mark, marks.Items...); err != nil {
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}
 	// Reload page.
@@ -172,7 +177,11 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 
 // Valid checks that the MarkItems object is valid.
 func (f *MarkItems) Valid() bool {
-	return validation.IsValid(f)
+	valid, err := validation.ValidateStruct(f)
+	if !valid || err != nil {
+		return false
+	}
+	return true
 }
 
 // itemsHandler handles a list of items.
@@ -220,7 +229,7 @@ func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 	renderCards(res, req, itemCards, categories, &filters, "/home/feeds")
 }
 
-func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
+func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed models.FeedID, item models.ItemID) {
 	details, found, err := s.API.elastic.UserActionGetItem(req.Context(), feed, item)
 	if err != nil || !found {
 		logging.FromContext(req.Context()).Warn("Could not retrieve item.",
@@ -255,7 +264,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 }
 
 // HandleMarkItem marks a single item.
-func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feedID FeedID, itemID ItemID, mark Mark) {
+func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, mark api.Mark) {
 	// Mark item.
 	if err := s.DataAPI().UserActionMarkItems(req.Context(), mark, itemID); err != nil {
 		logging.FromContext(req.Context()).Error("Mark item failed.",
@@ -264,11 +273,11 @@ func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feedI
 	}
 }
 
-func (s Server) HandleSaveItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
+func (s Server) HandleSaveItem(res http.ResponseWriter, req *http.Request, feed models.FeedID, item models.ItemID) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, feed FeedID, item ItemID) {
+func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, feed models.FeedID, item models.ItemID) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
 

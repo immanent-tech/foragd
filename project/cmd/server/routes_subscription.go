@@ -76,15 +76,15 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s Server) SaveSubscription(w http.ResponseWriter, r *http.Request, feedID FeedID) {
+func (s Server) SaveSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) ShowSubscription(w http.ResponseWriter, r *http.Request, feedID FeedID) {
+func (s Server) ShowSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) RemoveSubscription(w http.ResponseWriter, r *http.Request, feedID FeedID) {
+func (s Server) RemoveSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 

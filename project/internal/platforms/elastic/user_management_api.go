@@ -81,10 +81,11 @@ func (c *Client) AddUser(ctx context.Context, userID models.UserID) error {
 		return errors.Join(ErrCreateUserFailed, ErrNoIndexInCtx)
 	}
 
-	createdAt := time.Now().UTC()
+	created := time.Now().UTC()
+
 	c.Logger.Debug("adding user.", slog.Any("user", &models.User{
 		ID:        userID,
-		CreatedAt: &createdAt,
+		CreatedAt: created,
 	}))
 
 	resp, err := c.NewDocCreateRequest(
@@ -92,7 +93,7 @@ func (c *Client) AddUser(ctx context.Context, userID models.UserID) error {
 		userID,
 		&models.User{
 			ID:        userID,
-			CreatedAt: &createdAt,
+			CreatedAt: created,
 		},
 		refresh.True).
 		Do(ctx)

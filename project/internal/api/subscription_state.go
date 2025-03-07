@@ -10,9 +10,14 @@ import (
 )
 
 func NewSubscriptionState(details *SubscriptionRequest) models.SubscriptionState {
-	return models.SubscriptionState{
-		CreatedAt:  time.Now().UTC(),
-		Name:       details.Name,
-		Categories: details.Categories,
+	req := models.SubscriptionState{
+		CreatedAt: time.Now().UTC(),
 	}
+	if details.Name != nil {
+		req.Name = *details.Name
+	}
+	if len(details.Categories) > 0 {
+		req.Categories = details.Categories
+	}
+	return req
 }

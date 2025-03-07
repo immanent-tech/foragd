@@ -18,51 +18,89 @@ const (
 	MarkUnread Mark = "unread"
 )
 
+// Defines values for Param.
+const (
+	ParamCategories Param = "categories"
+	ParamCount      Param = "count"
+	ParamFeeds      Param = "feeds"
+	ParamItems      Param = "items"
+	ParamPagination Param = "pagination"
+	ParamSort       Param = "sort"
+	ParamView       Param = "view"
+)
+
+// Defines values for SortOption.
+const (
+	SortOptionUnread  SortOption = "unread"
+	SortOptionUpdated SortOption = "updated"
+)
+
+// Defines values for SortOrder.
+const (
+	Asc  SortOrder = "asc"
+	Desc SortOrder = "desc"
+)
+
 // Defines values for View.
 const (
-	ViewAll    View = "all"
-	ViewRead   View = "read"
-	ViewUnread View = "unread"
+	All    View = "all"
+	Read   View = "read"
+	Unread View = "unread"
 )
+
+// Categories is a list of categories.
+type Categories = []externalRef0.Category
 
 // CategoryCount holds a category name and count of objects with the category.
 type CategoryCount struct {
-	// Count is the number of objects with this Category.
-	Count int `json:"Count"`
+	// Category is a single category.
+	Category externalRef0.Category `json:"category"`
 
-	// Name is a single category.
-	Name externalRef0.Category `form:"category" json:"category"`
+	// Count is the number of objects with this Category.
+	Count int `json:"count"`
 }
 
 // Count is the count of items to retrieve with a request.
 type Count = int
 
+// Feeds is a list of feed IDs.
+type Feeds = []externalRef0.FeedID
+
 // Filters contains parameters for searching feeds and items
 type Filters struct {
 	// Categories is a list of categories.
-	Categories externalRef0.Categories `form:"categories[]" json:"categories" validate:"unique"`
+	Categories Categories `form:"categories" json:"categories" validate:"unique,dive,dive,required"`
 
 	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"Count"`
+	Count Count `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
 
-	// FeedIDs is a list of feed IDs.
-	FeedIDs externalRef0.FeedIDs `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
+	// Feeds is a list of feed IDs.
+	Feeds Feeds `form:"feeds" json:"feeds" validate:"unique,dive,dive,required,startswith=feed_"`
 
-	// ItemIDs is a list of items IDs.
-	ItemIDs externalRef0.ItemIDs `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
+	// Items is a list of items IDs.
+	Items Items `form:"items" json:"items" validate:"unique,dive,dive,required,startswith=item_"`
 
 	// Pagination contains data for paginating through results
-	Pagination *Pagination `form:"pagination" json:"Pagination,omitempty" validate:"url_encoded"`
+	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
+
+	// Sort contains information on sorting Feeds.
+	Sort *Sort `form:"sort" json:"sort"`
 
 	// View The state of objects to view.
-	View View `form:"view" json:"View" validate:"required,oneof='read unread all'"`
+	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
 }
+
+// Items is a list of items IDs.
+type Items = []externalRef0.ItemID
 
 // Mark applies the given mark action to objects.
 type Mark string
 
 // Pagination contains data for paginating through results
 type Pagination = string
+
+// Param is the name of a query parameter.
+type Param string
 
 // Route is a htmx route within the server.
 type Route struct {
@@ -79,16 +117,31 @@ type Route struct {
 	url url.URL `json:"-"`
 }
 
+// Sort contains information on sorting Feeds.
+type Sort struct {
+	// Option is the option to sort on.
+	Option SortOption `json:"option" validate:"oneof:name unread updated"`
+
+	// Order is the ordering for sorting the option.
+	Order SortOrder `json:"order" validate:"oneof:asc desc"`
+}
+
+// SortOption is the option to sort on.
+type SortOption string
+
+// SortOrder is the ordering for sorting the option.
+type SortOrder string
+
 // SubscriptionRequest represents a new subscription request from a user.
 type SubscriptionRequest struct {
-	// Categories is a list of custom categories the user has assigned to the feed.
-	Categories []externalRef0.Category `form:"categories[]" json:"categories,omitempty"`
+	// Categories is a list of categories.
+	Categories Categories `form:"categories" json:"categories" validate:"unique,dive,dive,required"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name *string `form:"name" json:"name,omitempty"`
 
 	// URL is a URL.
-	URL externalRef0.URL `form:"url" json:"url" validate:"required,url"`
+	URL externalRef0.URL `json:"url" validate:"required,url"`
 
 	// ValidationErrors is a map of field name -> validation error for the request.
 	ValidationErrors map[string]string `form:"-" json:"-"`

@@ -144,12 +144,12 @@ paths:
         200:
           $ref: "#/components/responses/htmx"
   /subscription/{feed}:
+    parameters:
+      - $ref: "#/components/parameters/FeedID"
     get:
       summary: >
         Show a subscription.
       operationId: showSubscription
-      parameters:
-        - $ref: "#/components/parameters/FeedID"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -157,8 +157,6 @@ paths:
       summary: >
         Save a subscription.
       operationId: saveSubscription
-      parameters:
-        - $ref: "#/components/parameters/FeedID"
       requestBody:
         $ref: "#/components/requestBodies/SubscriptionRequestBody"
       responses:
@@ -168,8 +166,6 @@ paths:
       summary: >
         Remove a subscription.
       operationId: removeSubscription
-      parameters:
-        - $ref: "#/components/parameters/FeedID"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -205,11 +201,12 @@ paths:
         Shows feeds with optional filtering applied.
       operationId: handleShowFeeds
       parameters:
-        - $ref: "#/components/parameters/FeedIDs"
+        - $ref: "#/components/parameters/Feeds"
         - $ref: "#/components/parameters/Categories"
         - $ref: "#/components/parameters/View"
         - $ref: "#/components/parameters/Count"
         - $ref: "#/components/parameters/Pagination"
+        - $ref: "#/components/parameters/Sort"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -228,11 +225,12 @@ paths:
         Shows items with optional filtering applied.
       operationId: handleShowItems
       parameters:
-        - $ref: "#/components/parameters/FeedIDs"
+        - $ref: "#/components/parameters/Feeds"
         - $ref: "#/components/parameters/Categories"
         - $ref: "#/components/parameters/View"
         - $ref: "#/components/parameters/Count"
         - $ref: "#/components/parameters/Pagination"
+        - $ref: "#/components/parameters/Sort"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -288,47 +286,61 @@ paths:
           $ref: "#/components/responses/htmx"
 components:
   schemas:
-    MarkCommon:
-      description: contains common data for marking objects.
-      type: object
-      required:
-        - mark
-      properties:
-        mark:
-          $ref: "api.yaml#/components/schemas/Mark"
     MarkFeeds:
       description: contains data for marking Feeds.
       type: object
-      allOf:
-        - $ref: "#/components/schemas/MarkCommon"
-        - type: object
-          required:
-            - feeds
-          properties:
-            feeds:
-              $ref: "models.yaml#/components/schemas/FeedIDs"
+      required:
+        - mark
+        - feeds
+      properties:
+        mark:
+          $ref: "api.yaml#/components/schemas/Mark"
+        feeds:
+          description: is a list of Feed IDs to mark.
+          type: array
+          items:
+            $ref: "models.yaml#/components/schemas/FeedID"
+          x-oapi-codegen-extra-tags:
+            json: "feeds"
+            form: "feeds"
+            validate: "required,unique,dive,dive,required,startswith=feed_"
+          x-go-type-skip-optional-pointer: true
     MarkItems:
       description: contains data for marking Items.
       type: object
-      allOf:
-        - $ref: "#/components/schemas/MarkCommon"
-        - type: object
-          required:
-            - items
-          properties:
-            items:
-              $ref: "models.yaml#/components/schemas/ItemIDs"
+      required:
+        - mark
+        - items
+      properties:
+        mark:
+          $ref: "api.yaml#/components/schemas/Mark"
+        items:
+          description: is a list of Items IDs to mark.
+          type: array
+          items:
+            $ref: "models.yaml#/components/schemas/ItemID"
+          x-oapi-codegen-extra-tags:
+            json: "items"
+            form: "items"
+            validate: "required,unique,dive,dive,required,startswith=item_"
     MarkCategories:
       description: contains data for marking Categories.
       type: object
-      allOf:
-        - $ref: "#/components/schemas/MarkCommon"
-        - type: object
-          required:
-            - categories
-          properties:
-            categories:
-              $ref: "models.yaml#/components/schemas/Categories"
+      required:
+        - mark
+        - categories
+      properties:
+        mark:
+          $ref: "api.yaml#/components/schemas/Mark"
+        categories:
+          description: is a list of Categories to mark.
+          type: array
+          items:
+            $ref: "models.yaml#/components/schemas/Category"
+          x-oapi-codegen-extra-tags:
+            json: "categories"
+            form: "categories"
+            validate: "required,unique,dive,required"
     MarkObjects:
       description: mark one or more objects
       type: object
@@ -363,47 +375,37 @@ components:
       required: true
       schema:
         $ref: "api.yaml#/components/schemas/View"
-      x-oapi-codegen-extra-tags:
-        validate: "required,oneof='read unread all'"
     Count:
       name: count
       in: query
       required: true
       schema:
         $ref: "api.yaml#/components/schemas/Count"
-      x-oapi-codegen-extra-tags:
-        validate: "required,numeric,gt=0,lt=20"
-    FeedIDs:
+    Feeds:
       name: feeds
       in: query
       schema:
-        $ref: "models.yaml#/components/schemas/FeedIDs"
-      x-oapi-codegen-extra-tags:
-        form: "feeds[]"
-        validate: "unique,dive,startswith=feed_"
-    ItemIDs:
+        $ref: "api.yaml#/components/schemas/Feeds"
+    Items:
       name: items
       in: query
       schema:
-        $ref: "models.yaml#/components/schemas/ItemIDs"
-      x-oapi-codegen-extra-tags:
-        form: "items[]"
-        validate: "unique,dive,startswith=item_"
+        $ref: "api.yaml#/components/schemas/Items"
     Categories:
       name: categories
       in: query
       schema:
-        $ref: "models.yaml#/components/schemas/Categories"
-      x-oapi-codegen-extra-tags:
-        form: "categories[]"
-        validate: "unique"
+        $ref: "api.yaml#/components/schemas/Categories"
     Pagination:
       name: pagination
       in: query
       schema:
         $ref: "api.yaml#/components/schemas/Pagination"
-      x-oapi-codegen-extra-tags:
-        validate: "url_encoded"
+    Sort:
+      name: sort
+      in: query
+      schema:
+        $ref: "api.yaml#/components/schemas/Sort"
   requestBodies:
     MarkRequest:
       description: >
@@ -436,9 +438,9 @@ components:
           schema:
             type: object
             required:
-              - Category
+              - category
             properties:
-              Category:
+              category:
                 $ref: "models.yaml#/components/schemas/Category"
   responses:
     htmx:

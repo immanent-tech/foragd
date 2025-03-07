@@ -20,9 +20,9 @@ type ViewFilter struct {
 func BuildViewFilter(filters *api.Filters, path string) *ViewFilter {
 	return &ViewFilter{
 		routes: []*badge.Props{
-			newViewFilter(api.ViewRead, filters, path),
-			newViewFilter(api.ViewUnread, filters, path),
-			newViewFilter(api.ViewAll, filters, path),
+			newViewFilter(api.Read, filters, path),
+			newViewFilter(api.Unread, filters, path),
+			newViewFilter(api.All, filters, path),
 		},
 	}
 }

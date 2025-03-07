@@ -11,13 +11,11 @@ info:
 paths: {}
 components:
   schemas:
-    Count:
-      description: >
-        is the count of items to retrieve with a request.
-      type: integer
-      default: 10
-      x-oapi-codegen-extra-tags:
-        form: "count"
+    # Fields:
+    Param:
+      description: is the name of a query parameter.
+      type: string
+      enum: ["feeds","items","categories","count","view","pagination","sort"]
     Mark:
       description: >
         applies the given mark action to objects.
@@ -25,7 +23,45 @@ components:
       enum: ["read", "unread"]
       x-oapi-codegen-extra-tags:
         form: "mark"
-        validate: "required,oneof='read unread'"
+        validate: "required,oneof=read unread"
+    Feeds:
+      description: is a list of feed IDs.
+      type: array
+      items:
+        $ref: "models.yaml#/components/schemas/FeedID"
+      x-oapi-codegen-extra-tags:
+        json: "feeds"
+        form: "feeds"
+        validate: "unique,dive,dive,required,startswith=feed_"
+      x-go-type-skip-optional-pointer: true
+    Items:
+      description: is a list of items IDs.
+      type: array
+      items:
+        $ref: "models.yaml#/components/schemas/ItemID"
+      x-oapi-codegen-extra-tags:
+        json: "items"
+        form: "items"
+        validate: "unique,dive,dive,required,startswith=item_"
+      x-go-type-skip-optional-pointer: true
+    Categories:
+      description: is a list of categories.
+      type: array
+      items:
+        $ref: "models.yaml#/components/schemas/Category"
+      x-oapi-codegen-extra-tags:
+        json: "categories"
+        form: "categories"
+        validate: "unique,dive,dive,required"
+      x-go-type-skip-optional-pointer: true
+    Count:
+      description: >
+        is the count of items to retrieve with a request.
+      type: integer
+      default: "10"
+      x-oapi-codegen-extra-tags:
+        form: "count"
+        validate: "required,numeric,gt=0,lt=20"
     View:
       description: >
         The state of objects to view.
@@ -33,14 +69,58 @@ components:
       enum: ["read", "unread", "all"]
       default: "unread"
       x-oapi-codegen-extra-tags:
-        validate: "required,oneof='read unread all'"
+        validate: "required,oneof=read unread all"
         form: "view"
     Pagination:
       description: contains data for paginating through results
       type: string
       x-oapi-codegen-extra-tags:
         form: "pagination"
-        validate: "url_encoded"
+        validate: "omitempty,url_encoded"
+    Sort:
+      description: contains information on sorting Feeds.
+      type: object
+      required:
+        - option
+        - order
+      properties:
+        option:
+          description: is the option to sort on.
+          type: string
+          enum: ["unread","updated"]
+          x-oapi-codegen-extra-tags:
+            validate: "oneof:name unread updated"
+        order:
+          description: is the ordering for sorting the option.
+          type: string
+          enum: ["asc","desc"]
+          x-oapi-codegen-extra-tags:
+            validate: "oneof:asc desc"
+      x-oapi-codegen-extra-tags:
+        form: "sort"
+        json: "sort"
+    # Objects:
+    Filters:
+      description: contains parameters for searching feeds and items
+      type: object
+      required:
+        - view
+        - count
+      properties:
+        feeds:
+          $ref: "#/components/schemas/Feeds"
+        items:
+          $ref: "#/components/schemas/Items"
+        categories:
+          $ref: "#/components/schemas/Categories"
+        count:
+          $ref: "#/components/schemas/Count"
+        view:
+          $ref: "#/components/schemas/View"
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        sort:
+          $ref: "#/components/schemas/Sort"
     Route:
       description: >
         is a htmx route within the server.
@@ -78,25 +158,6 @@ components:
           x-go-type-import:
             path: "github.com/a-h/templ"
           x-go-json-ignore: true
-    Filters:
-      description: contains parameters for searching feeds and items
-      type: object
-      required:
-        - View
-        - Count
-      properties:
-        FeedIDs:
-          $ref: "models.yaml#/components/schemas/FeedIDs"
-        ItemIDs:
-          $ref: "models.yaml#/components/schemas/ItemIDs"
-        Categories:
-          $ref: "models.yaml#/components/schemas/Categories"
-        Count:
-          $ref: "#/components/schemas/Count"
-        View:
-          $ref: "#/components/schemas/View"
-        Pagination:
-          $ref: "#/components/schemas/Pagination"
     SubscriptionRequest:
       description: represents a new subscription request from a user.
       type: object
@@ -112,15 +173,7 @@ components:
           x-oapi-codegen-extra-tags:
             form: "name"
         categories:
-          description: >
-            is a list of custom categories the user has assigned to
-            the feed.
-          type: array
-          items:
-            $ref: "models.yaml#/components/schemas/Category"
-          x-oapi-codegen-extra-tags:
-            form: "categories[]"
-          x-go-type-skip-optional-pointer: true
+          $ref: "#/components/schemas/Categories"
         validation_errors:
           description: is a map of field name -> validation error for the request.
           type: object
@@ -166,11 +219,11 @@ components:
       description: holds a category name and count of objects with the category.
       type: object
       required:
-        - Name
-        - Count
+        - category
+        - count
       properties:
-        Name:
+        category:
           $ref: "models.yaml#/components/schemas/Category"
-        Count:
+        count:
           description: is the number of objects with this Category.
           type: integer

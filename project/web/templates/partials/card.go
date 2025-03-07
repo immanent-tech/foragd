@@ -229,7 +229,7 @@ func NewItemCard(filters api.Filters, item *models.APIItem) (*Card, error) {
 	}
 	// Reduce opacity if item is read or view is read items.
 	switch {
-	case filters.View == api.ViewRead:
+	case filters.ViewRead():
 		fallthrough
 	case item.GetUserState() == models.Read:
 		cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))

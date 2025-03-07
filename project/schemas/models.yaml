@@ -17,26 +17,18 @@ components:
       x-go-type: "time.Time"
       x-oapi-codegen-extra-tags:
         json: "@timestamp"
-        form: "@timestamp"
         validate: "required"
     CreatedAt:
       description: records when the object was created in the database.
       x-go-type: "time.Time"
       x-oapi-codegen-extra-tags:
         json: "created_at"
-        form: "created_at"
         validate: "required"
     UpdatedAt:
       description: records when the object was last updated in the database.
       x-go-type: "time.Time"
       x-oapi-codegen-extra-tags:
         json: "updated_at,omitempty"
-        form: "updated_at"
-    MarkedRead:
-      description: records when the object was last marked read.
-      x-go-type: "time.Time"
-      x-oapi-codegen-extra-tags:
-        json: "marked_read,omitempty"
     DeletedAt:
       description: records when the object was deleted.
       x-go-type: "time.Time"
@@ -49,7 +41,6 @@ components:
       x-oapi-codegen-extra-tags:
         validate: "required,url"
         json: "url"
-        form: "url"
     State:
       description: >
         Tracks the state of an object.
@@ -58,7 +49,6 @@ components:
       default: "unread"
       x-oapi-codegen-extra-tags:
         json: "state"
-        form: "state"
         validate: "oneof='read unread saved'"
     HTMLString:
       description: is a string that can contain HTML.
@@ -72,17 +62,6 @@ components:
       x-oapi-codegen-extra-tags:
         validate: "required,startswith=feed_"
         json: "feed_id"
-        form: "feed_id"
-    FeedIDs:
-      description: is a list of feed IDs.
-      type: array
-      items:
-        $ref: "#/components/schemas/FeedID"
-      x-oapi-codegen-extra-tags:
-        json: "feeds"
-        form: "feeds[]"
-        validate: "unique,dive,startswith=feed_"
-      x-go-type-skip-optional-pointer: true
     FeedURL:
       description: The canonical feed URL.
       type: string
@@ -96,17 +75,6 @@ components:
       x-oapi-codegen-extra-tags:
         validate: "required,startswith=item_"
         json: "item_id"
-        form: "item_id"
-    ItemIDs:
-      description: is a list of items IDs.
-      type: array
-      items:
-        $ref: "#/components/schemas/ItemID"
-      x-oapi-codegen-extra-tags:
-        json: "items"
-        form: "items[]"
-        validate: "unique,dive,startswith=item_"
-      x-go-type-skip-optional-pointer: true
     ItemURL:
       description: A URL to view the original item.
       type: string
@@ -141,7 +109,6 @@ components:
       x-oapi-codegen-extra-tags:
         validate: "required"
         json: "user_id"
-        form: "user_id"
     SchedulerID:
       description: is the unique ID of a job scheduler instance.
       type: string
@@ -153,7 +120,6 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         json: "category"
-        form: "category"
     Categories:
       description: is a list of categories.
       type: array
@@ -161,8 +127,7 @@ components:
         $ref: "#/components/schemas/Category"
       x-oapi-codegen-extra-tags:
         json: "categories"
-        form: "categories[]"
-        validate: "unique"
+        validate: "unique,dive,dive,required"
       x-go-type-skip-optional-pointer: true
     ObjectPublished:
       description: is when the object was published.
@@ -215,34 +180,38 @@ components:
       required:
         - created_at
       properties:
-        CreatedAt:
+        created_at:
           $ref: "#/components/schemas/CreatedAt"
-        UpdatedAt:
+        updated_at:
           $ref: "#/components/schemas/UpdatedAt"
     ItemState:
       description: Contains fields to track an individual item's state.
       type: object
       required:
-        - State
-        - UpdatedAt
+        - state
+        - updated_at
       properties:
-        UpdatedAt:
+        updated_at:
           $ref: "#/components/schemas/UpdatedAt"
-        State:
+        state:
           $ref: "#/components/schemas/State"
     # Objects.
     SubscriptionState:
       description: Contains fields to rack a subscription state.
       type: object
       required:
-        - CreatedAt
+        - created_at
+        - name
       properties:
-        CreatedAt:
+        created_at:
           $ref: "#/components/schemas/CreatedAt"
-        UpdatedAt:
+        updated_at:
           $ref: "#/components/schemas/UpdatedAt"
-        MarkedRead:
-          $ref: "#/components/schemas/MarkedRead"
+        marked_read:
+          description: records when the subscription was last marked read.
+          x-go-type: "time.Time"
+          x-oapi-codegen-extra-tags:
+            json: "marked_read,omitempty"
         name:
           description: >
             is a friendly name or nickname for the feed given by the user.
@@ -250,10 +219,7 @@ components:
           x-oapi-codegen-extra-tags:
             form: "name"
         categories:
-          type: array
-          items:
-            $ref: "#/components/schemas/Category"
-          x-go-type-skip-optional-pointer: true
+          $ref: "#/components/schemas/Categories"
     User:
       description: is a user of the application.
       type: object
@@ -262,7 +228,7 @@ components:
         - type: object
           required:
             - ID
-            - MaxHistory
+            - max_history
           properties:
             ID:
               $ref: "#/components/schemas/UserID"
@@ -337,7 +303,7 @@ components:
           $ref: "#/components/schemas/FeedID"
         URL:
           $ref: "#/components/schemas/FeedURL"
-        UpdatedAt:
+        updated_at:
           $ref: "#/components/schemas/UpdatedAt"
     APIItem:
       description: represents an individual item (e.g., an individual feed item).
@@ -445,9 +411,9 @@ components:
         - Schedule
         - NextRun
         - Data
-        - CreatedAt
+        - created_at
       properties:
-        CreatedAt:
+        created_at:
           $ref: "#/components/schemas/CreatedAt"
         Schedule:
           type: string
@@ -491,22 +457,16 @@ components:
       description: tracks a user session.
       type: object
       required:
-        - Token
-        - Data
-        - Expiry
+        - token
+        - data
+        - expiry
       properties:
-        Token:
+        token:
           description: the session token for the user.
           type: string
-          x-oapi-codegen-extra-tags:
-            json: "token"
-        Data:
-          description: the session data.
+        data:
+          description: the encoded session data.
           x-go-type: "[]byte"
-          x-oapi-codegen-extra-tags:
-            json: "data"
-        Expiry:
+        expiry:
           description: the time at which this session token expires.
           x-go-type: time.Time
-          x-oapi-codegen-extra-tags:
-            json: "expiry"

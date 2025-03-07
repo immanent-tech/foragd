@@ -25,8 +25,13 @@ var (
 	ErrNotSubscribed         = errors.New("user not subscribed to feed")
 )
 
-func (u *User) Valid(_ context.Context) (bool, validation.Problems) {
+func (u *User) Valid(_ context.Context) (bool, validation.ValidationErrors) {
 	return validation.ValidateStruct(u)
+}
+
+// GetID returns the ID for the user.
+func (u *User) GetID() UserID {
+	return u.ID
 }
 
 // GetItemIDsWithState retrieves ItemIDs for the items the user has explicitly
@@ -141,10 +146,30 @@ func (u *User) IsSubscribed(id FeedID) bool {
 	return found
 }
 
+// GetSubscriptionName returns the user's nickname for the Feed with the given
+// ID. If there is no custom name, an empty string is returned.
+func (u *User) GetSubscriptionName(id FeedID) string {
+	if subscription, found := u.Subscriptions[id]; found {
+		return subscription.Name
+	}
+
+	return ""
+}
+
 // SubscriptionHasCategory returns whether the subscription with the given
 // FeedID contains the given Category.
 func (u *User) SubscriptionHasCategory(id FeedID, category Category) bool {
 	return slices.Contains(u.Subscriptions[id].Categories, category)
+}
+
+// GetSubscriptionCategories returns the user's custom categories for the Feed with the given
+// ID. If there are no custom categories, nil is returned.
+func (u *User) GetSubscriptionCategories(id FeedID) Categories {
+	if subscription, found := u.Subscriptions[id]; found {
+		return subscription.Categories
+	}
+
+	return nil
 }
 
 // GetSubscribedFeedIDs fetches the FeedIDs for all the user's subscriptions.
@@ -163,11 +188,11 @@ func (u *User) GetSubscribedFeedIDs() []FeedID {
 // GetMaxHistory returns a timestamp in the past after which the user can view
 // items.
 func (u *User) GetMaxHistory() time.Time {
-	if u.MaxHistory == nil {
+	if u.MaxHistory == "" {
 		return time.Now().Add(-defaultUserHistory)
 	}
 
-	dur, err := time.ParseDuration(*u.MaxHistory)
+	dur, err := time.ParseDuration(u.MaxHistory)
 	if err != nil {
 		return time.Now().Add(-defaultUserHistory)
 	}

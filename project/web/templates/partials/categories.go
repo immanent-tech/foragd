@@ -26,10 +26,10 @@ func NewCategoryFilter(name models.Category, active bool, route *api.Route) Feed
 	}
 }
 
-func BuildCategoryFilters(filters *api.Filters, allCategories []api.CategoryCount, path string) []FeedCategoryFilter {
-	categoryFilters := make([]FeedCategoryFilter, 0, len(allCategories))
+func BuildCategoryFilters(filters *api.Filters, categoryCounts []api.CategoryCount, path string) []FeedCategoryFilter {
+	categoryFilters := make([]FeedCategoryFilter, 0, len(categoryCounts))
 
-	for _, category := range allCategories {
+	for _, category := range categoryCounts {
 		var (
 			paramsOptions []api.ParamsOption
 			active        bool
@@ -42,18 +42,18 @@ func BuildCategoryFilters(filters *api.Filters, allCategories []api.CategoryCoun
 		)
 
 		if len(filters.GetCategories()) > 0 {
-			if slices.Contains(filters.GetCategories(), category.Name) {
+			if slices.Contains(filters.GetCategories(), category.Category) {
 				// This category is being used as a filter.
 				active = true
 				// Remove the categories param.
 				paramsOptions = append(paramsOptions, api.WithoutCategoriesParam())
 			} else {
 				// Add the category as a param.
-				paramsOptions = append(paramsOptions, api.WithCategoriesParam(category.Name))
+				paramsOptions = append(paramsOptions, api.WithCategoriesParam(category.Category))
 			}
 		} else {
 			// Add the category as a param.
-			paramsOptions = append(paramsOptions, api.WithCategoriesParam(category.Name))
+			paramsOptions = append(paramsOptions, api.WithCategoriesParam(category.Category))
 		}
 
 		// Create a route for setting/unsetting this category filter.
@@ -65,7 +65,7 @@ func BuildCategoryFilters(filters *api.Filters, allCategories []api.CategoryCoun
 			api.WithParams(paramsOptions...),
 		)
 
-		categoryFilters = append(categoryFilters, NewCategoryFilter(category.Name, active, route))
+		categoryFilters = append(categoryFilters, NewCategoryFilter(category.Category, active, route))
 	}
 
 	return categoryFilters

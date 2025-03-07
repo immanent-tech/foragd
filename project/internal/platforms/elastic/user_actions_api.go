@@ -254,26 +254,17 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters api.Filters) ([
 	validFeeds := make([]*models.APIFeed, 0, len(feeds))
 
 	for _, feed := range feeds {
-		// Add user unread count to feed.
-		feed.SetUserUnreadCount(int(unreadCounts[feed.ID]))
 		// If filtering by unread, ignore feeds with no unread count.
-		if filters.View == api.ViewUnread && feed.GetUserUnreadCount() == 0 {
+		if filters.ViewUnread() && feed.GetUserUnreadCount() == 0 {
 			continue
 		}
 		// If filtering by read, ignore feeds with  unread count.
-		if filters.View == api.ViewRead && feed.GetUserUnreadCount() > 0 {
+		if filters.ViewRead() && feed.GetUserUnreadCount() > 0 {
 			slog.Info("not showing feed", slog.String("feed", feed.GetTitle()))
 			continue
 		}
-
-		// Add user defined name to the feed.
-		if name := user.Subscriptions[feed.ID].Name; name != nil && *name != "" {
-			feed.SetUserName(*name)
-		}
-		// Add user defined categories to the feed.
-		if categories := user.Subscriptions[feed.ID].Categories; categories != nil {
-			feed.SetUserCategories(categories)
-		}
+		// Add user data to feed.
+		addUserDataToFeed(user, feed, int(unreadCounts[feed.ID]))
 		// Append to valid feeds list.
 		validFeeds = append(validFeeds, feed)
 	}
@@ -319,16 +310,8 @@ func (c *Client) UserActionGetFeed(ctx context.Context, feedID models.FeedID) (*
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	// Add user unread count to feed.
-	feed.SetUserUnreadCount(int(resp.Count))
-	// Add user defined name to the feed.
-	if name := user.Subscriptions[feed.ID].Name; name != nil && *name != "" {
-		feed.SetUserName(*name)
-	}
-	// Add user defined categories to the feed.
-	if categories := user.Subscriptions[feed.ID].Categories; categories != nil {
-		feed.SetUserCategories(categories)
-	}
+	// Add user data to feed.
+	addUserDataToFeed(user, feed, int(resp.Count))
 
 	return feed, nil
 }
@@ -352,7 +335,7 @@ func (c *Client) UserActionGetFeedCategories(ctx context.Context) ([]api.Categor
 
 	// Reformat counts into CategoryCount objects.
 	for category, count := range counts {
-		categoryCounts = append(categoryCounts, api.CategoryCount{Name: category, Count: count})
+		categoryCounts = append(categoryCounts, api.CategoryCount{Category: category, Count: count})
 	}
 
 	return categoryCounts, nil
@@ -382,7 +365,7 @@ func (c *Client) UserActionGetItemCategories(ctx context.Context, filters api.Fi
 	categories := make([]api.CategoryCount, 0, results.BucketCount())
 
 	for _, category := range results.BucketNames() {
-		categories = append(categories, api.CategoryCount{Name: category, Count: results.GetCount(category)})
+		categories = append(categories, api.CategoryCount{Category: category, Count: results.GetCount(category)})
 	}
 
 	return categories, nil
@@ -404,7 +387,7 @@ func UserActionAddSubscription(ctx context.Context, user *models.User, client *C
 		"subscriptions": user.Subscriptions,
 	}
 
-	if err := client.UpdateUser(ctx, user.ID, partialUpdate); err != nil {
+	if err := client.UpdateUser(ctx, user.GetID(), partialUpdate); err != nil {
 		return errors.Join(models.ErrUpdateUser, err)
 	}
 
@@ -415,12 +398,12 @@ func UserActionAddSubscription(ctx context.Context, user *models.User, client *C
 // items using the given filters.
 func generateItemsQueryClause(user *models.User, filters api.Filters) QueryOption {
 	// Work out what query to use based on the state filter.
-	switch filters.View {
-	case api.ViewRead:
+	switch {
+	case filters.ViewRead():
 		return readFeedItemsQuery(user, filters)
-	case api.ViewUnread:
+	case filters.ViewUnread():
 		return unreadFeedItemsQuery(user, filters)
-	case api.ViewAll:
+	case filters.ViewAll():
 		return allFeedItemsQuery(user, filters)
 	default:
 		return unreadFeedItemsQuery(user, filters)
@@ -608,5 +591,20 @@ func filterSubscribedFeeds(user *models.User, filters api.Filters) []models.Feed
 		}
 
 		return filtered
+	}
+}
+
+// addUserDataToFeed enriches an APIFeed with user specific data. This includes
+// the user's unread count, nickname and custom categories for the Feed.
+func addUserDataToFeed(user *models.User, feed *models.APIFeed, unread int) {
+	// Add user unread count to feed.
+	feed.SetUserUnreadCount(unread)
+	// Add user defined name to the feed.
+	if name := user.GetSubscriptionName(feed.GetID()); name != "" {
+		feed.SetUserName(name)
+	}
+	// Add user defined categories to the feed.
+	if categories := user.GetSubscriptionCategories(feed.GetID()); len(categories) > 0 {
+		feed.SetUserCategories(categories)
 	}
 }

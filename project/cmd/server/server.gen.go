@@ -14,37 +14,31 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
-// MarkCategories defines model for MarkCategories.
+// MarkCategories contains data for marking Categories.
 type MarkCategories struct {
-	// Categories is a list of categories.
-	Categories externalRef1.Categories `form:"categories[]" json:"categories" validate:"unique"`
+	// Categories is a list of Categories to mark.
+	Categories []externalRef1.Category `form:"categories" json:"categories" validate:"required,unique,dive,required"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof=read unread"`
 }
 
-// MarkCommon contains common data for marking objects.
-type MarkCommon struct {
-	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
-}
-
-// MarkFeeds defines model for MarkFeeds.
+// MarkFeeds contains data for marking Feeds.
 type MarkFeeds struct {
-	// Feeds is a list of feed IDs.
-	Feeds externalRef1.FeedIDs `form:"feeds[]" json:"feeds" validate:"unique,dive,startswith=feed_"`
+	// Feeds is a list of Feed IDs to mark.
+	Feeds []externalRef1.FeedID `form:"feeds" json:"feeds" validate:"required,unique,dive,dive,required,startswith=feed_"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof=read unread"`
 }
 
-// MarkItems defines model for MarkItems.
+// MarkItems contains data for marking Items.
 type MarkItems struct {
-	// Items is a list of items IDs.
-	Items externalRef1.ItemIDs `form:"items[]" json:"items" validate:"unique,dive,startswith=item_"`
+	// Items is a list of Items IDs to mark.
+	Items []externalRef1.ItemID `form:"items" json:"items" validate:"required,unique,dive,dive,required,startswith=item_"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof='read unread'"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof=read unread"`
 }
 
 // MarkObjects mark one or more objects
@@ -53,7 +47,7 @@ type MarkObjects struct {
 }
 
 // Categories is a list of categories.
-type Categories = externalRef1.Categories
+type Categories = externalRef0.Categories
 
 // Count is the count of items to retrieve with a request.
 type Count = externalRef0.Count
@@ -61,8 +55,8 @@ type Count = externalRef0.Count
 // FeedID is the unique ID of a feed.
 type FeedID = externalRef1.FeedID
 
-// FeedIDs is a list of feed IDs.
-type FeedIDs = externalRef1.FeedIDs
+// Feeds is a list of feed IDs.
+type Feeds = externalRef0.Feeds
 
 // ItemID is the unique ID of an item.
 type ItemID = externalRef1.ItemID
@@ -73,25 +67,30 @@ type Mark = externalRef0.Mark
 // Pagination contains data for paginating through results
 type Pagination = externalRef0.Pagination
 
+// Sort contains information on sorting Feeds.
+type Sort = externalRef0.Sort
+
 // View The state of objects to view.
 type View = externalRef0.View
 
 // HandleShowFeedsParams defines parameters for HandleShowFeeds.
 type HandleShowFeedsParams struct {
-	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty" validate:"unique,dive,startswith=feed_"`
-	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
-	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
-	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
-	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty" validate:"url_encoded"`
+	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
+	Sort       *Sort       `form:"sort,omitempty" json:"sort,omitempty"`
 }
 
 // HandleShowItemsParams defines parameters for HandleShowItems.
 type HandleShowItemsParams struct {
-	Feeds      *FeedIDs    `form:"feeds[]" json:"feeds,omitempty" validate:"unique,dive,startswith=feed_"`
-	Categories *Categories `form:"categories[]" json:"categories,omitempty" validate:"unique"`
-	View       View        `form:"view" json:"view" validate:"required,oneof='read unread all'"`
-	Count      Count       `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
-	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty" validate:"url_encoded"`
+	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
+	Sort       *Sort       `form:"sort,omitempty" json:"sort,omitempty"`
 }
 
 // LoginCallbackParams defines parameters for LoginCallback.
@@ -532,6 +531,14 @@ func (siw *ServerInterfaceWrapper) HandleShowFeeds(w http.ResponseWriter, r *htt
 		return
 	}
 
+	// ------------- Optional query parameter "sort" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sort", r.URL.Query(), &params.Sort)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleShowFeeds(w, r, params)
 	}))
@@ -616,6 +623,14 @@ func (siw *ServerInterfaceWrapper) HandleShowItems(w http.ResponseWriter, r *htt
 	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "sort" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "sort", r.URL.Query(), &params.Sort)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort", Err: err})
 		return
 	}
 

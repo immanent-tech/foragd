@@ -6,35 +6,26 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
 
-	"github.com/oapi-codegen/runtime"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/validation"
 )
 
 var (
-	ErrGenFilters     = errors.New("error generating filters")
-	ErrGetFilterValue = errors.New("error fetching filter value")
+	ErrParseFilters = errors.New("error parsing filters")
 )
 
 const (
-	ParamView       ParamName = "view"
-	ParamCount      ParamName = "count"
-	ParamFeeds      ParamName = "feeds"
-	ParamItems      ParamName = "items"
-	ParamCategories ParamName = "categories"
-	ParamMark       ParamName = "mark"
-	ParamPagination ParamName = "pagination"
-
 	MaxUserCount     = 20
 	MinUserCount     = 1
 	DefaultUserCount = 10
 
-	DefaultUserView = ViewUnread
+	DefaultUserView = Unread
 )
 
 type ParamName string
@@ -43,22 +34,22 @@ type ParamsOption func(url.Values) url.Values
 
 // GetFeeds gets the list of FeedIDs from the filters.
 func (f *Filters) GetFeeds() []models.FeedID {
-	return f.FeedIDs
+	return f.Feeds
 }
 
 // SetFeeds sets the feed filters to the given values. Existing values are wiped.
 func (f *Filters) SetFeeds(feedIDs ...models.FeedID) {
-	f.FeedIDs = feedIDs
+	f.Feeds = feedIDs
 }
 
 // GetItems gets the list of ItemIDs from the filters.
-func (f *Filters) GetItems() models.ItemIDs {
-	return f.ItemIDs
+func (f *Filters) GetItems() []models.ItemID {
+	return f.Items
 }
 
 // SetItems sets the item filters to the given values. Existing values are wiped.
 func (f *Filters) SetItems(itemIDs ...models.ItemID) {
-	f.ItemIDs = itemIDs
+	f.Items = itemIDs
 }
 
 // GetCategories gets the list of Categories from the filters.
@@ -90,6 +81,21 @@ func (f *Filters) GetView() View {
 	return f.View
 }
 
+// ViewRead returns a boolean indicating whether the view filter is set to "unread".
+func (f *Filters) ViewUnread() bool {
+	return f.GetView() == Unread
+}
+
+// ViewRead returns a boolean indicating whether the view filter is set to "read".
+func (f *Filters) ViewRead() bool {
+	return f.GetView() == Read
+}
+
+// ViewRead returns a boolean indicating whether the view filter is set to "all".
+func (f *Filters) ViewAll() bool {
+	return f.GetView() == All
+}
+
 // GetPagination gets the pagination value from the filters.
 func (f *Filters) GetPagination() Pagination {
 	if f.Pagination != nil {
@@ -103,11 +109,11 @@ func (f *Filters) GetPagination() Pagination {
 func (f *Filters) Params() url.Values {
 	params := make(url.Values)
 
-	if len(f.FeedIDs) > 0 {
+	if len(f.Feeds) > 0 {
 		params.Set("feeds", strings.Join(f.GetFeeds(), ","))
 	}
 
-	if len(f.ItemIDs) > 0 {
+	if len(f.Items) > 0 {
 		params.Set("items", strings.Join(f.GetItems(), ","))
 	}
 
@@ -131,52 +137,42 @@ func (f *Filters) String() string {
 func FiltersFromQuery(values url.Values) (*Filters, error) {
 	filters := &Filters{}
 
-	var (
-		err        error
-		feedIDs    *models.FeedIDs
-		itemIDs    *models.ItemIDs
-		categories *models.Categories
-	)
+	if param := values.Get(string(ParamFeeds)); param != "" {
+		filters.Feeds = strings.Split(param, " ")
+	}
 
-	// Parse feeds param.
-	err = runtime.BindQueryParameter("form", true, false, string(ParamFeeds), values, &feedIDs)
-	if err != nil {
-		return nil, errors.Join(ErrGenFilters, err)
+	if param := values.Get(string(ParamItems)); param != "" {
+		filters.Items = strings.Split(param, " ")
 	}
-	// Set feeds param if present.
-	if feedIDs != nil {
-		filters.SetFeeds(*feedIDs...)
+
+	if param := values.Get(string(ParamCategories)); param != "" {
+		filters.Feeds = strings.Split(param, " ")
 	}
-	// Parse items param.
-	err = runtime.BindQueryParameter("form", true, false, string(ParamItems), values, &itemIDs)
-	if err != nil {
-		return nil, errors.Join(ErrGenFilters, err)
+
+	if param := values.Get(string(ParamPagination)); param != "" {
+		filters.Pagination = &param
 	}
-	// Set items param if present.
-	if itemIDs != nil {
-		filters.SetItems(*itemIDs...)
+
+	if param := values.Get(string(ParamSort)); param != "" {
+		spew.Dump(param)
 	}
-	// Parse categories param.
-	err = runtime.BindQueryParameter("form", true, false, string(ParamCategories), values, &categories)
-	if err != nil {
-		return nil, errors.Join(ErrGenFilters, err)
+
+	if param := values.Get(string(ParamView)); param != "" {
+		spew.Dump(param)
+		filters.View = View(param)
 	}
-	// Set categories param if present.
-	if categories != nil {
-		filters.SetCategories(*categories...)
-	}
-	// Set view param.
-	if filters.View = View(values.Get(string(ParamView))); filters.View == "" {
-		return nil, errors.Join(ErrGenFilters, err)
-	}
-	// Set count param.
-	if paramValue := values.Get(string(ParamCount)); paramValue == "" {
-		return nil, errors.Join(ErrGenFilters, err)
-	} else {
-		filters.Count, err = strconv.Atoi(paramValue)
+
+	if param := values.Get(string(ParamCount)); param != "" {
+		count, err := strconv.Atoi(param)
 		if err != nil {
-			return nil, errors.Join(ErrGenFilters, err)
+			return nil, errors.Join(ErrParseFilters, err)
 		}
+		filters.Count = count
+	}
+
+	if valid, err := validation.ValidateStruct(filters); !valid || err != nil {
+		spew.Dump(valid, err)
+		return nil, errors.Join(ErrParseFilters, errors.New("invalid filters"))
 	}
 
 	return filters, nil
@@ -189,12 +185,12 @@ func CreateFilters(params any) (*Filters, error) {
 
 	data, err := json.Marshal(params)
 	if err != nil {
-		return nil, fmt.Errorf("could not generate filters: %w", err)
+		return nil, errors.Join(ErrParseFilters, err)
 	}
 
 	err = json.Unmarshal(data, filters)
 	if err != nil {
-		return nil, fmt.Errorf("could not generate filters: %w", err)
+		return nil, errors.Join(ErrParseFilters, err)
 	}
 
 	// Validate the count is within an appropriate range and adjust if
@@ -205,7 +201,12 @@ func CreateFilters(params any) (*Filters, error) {
 
 	// Validate view value or set if necessary.
 	if filters.View == "" {
-		filters.View = ViewUnread
+		filters.View = DefaultUserView
+	}
+
+	// Validate all filters.
+	if valid, err := validation.ValidateStruct(filters); !valid || err != nil {
+		return nil, errors.Join(ErrParseFilters, errors.New("invalid filters"))
 	}
 
 	return filters, nil
