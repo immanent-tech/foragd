@@ -10,6 +10,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
@@ -17,6 +18,13 @@ var (
 	ErrHomePartialRender = errors.New("partial render of home failed")
 	ErrHomeFullRender    = errors.New("full render of home failed")
 )
+
+// Common route attributes.
+var commonRouteAttributes = templ.Attributes{
+	"hx-target":   "#content",
+	"hx-push-url": "true",
+	"hx-swap":     "morph:outerHTML",
+}
 
 const (
 	ContentTarget = "#content"
@@ -106,4 +114,32 @@ func BuildLayout(options ...LayoutOption) *LayoutProps {
 	}
 
 	return layout
+}
+
+// buildShowFeedsRoute builds an api.Route for /home/feeds with the given
+// filters. This can be used with components that need to create an action for
+// /home/feeds.
+func buildShowFeedsRoute(filters *api.Filters) *api.Route {
+	return api.BuildRoute("/home/feeds",
+		api.WithParams(
+			api.WithViewParam(filters.GetView()),
+			api.WithCountParam(filters.GetCount()),
+		),
+		api.WithAttributes(commonRouteAttributes),
+	)
+}
+
+// buildShowItemsRoute builds an api.Route for /home/items with the given
+// filters. This can be used with components that need to create an action for
+// /home/items.
+func buildShowItemsRoute(filters *api.Filters) *api.Route {
+	// Build the route.
+	return api.BuildRoute("/home/items",
+		api.WithParams(
+			api.WithViewParam(filters.GetView()),
+			api.WithCountParam(filters.GetCount()),
+			api.WithFeedsParam(filters.GetFeeds()...),
+		),
+		api.WithAttributes(commonRouteAttributes),
+	)
 }

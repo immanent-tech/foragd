@@ -4,6 +4,7 @@
 package api
 
 import (
+	"log/slog"
 	"maps"
 	"net/http"
 	"net/url"
@@ -13,6 +14,7 @@ import (
 
 	"github.com/a-h/templ"
 
+	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -91,11 +93,14 @@ func (r *Route) Rebuild(options ...RouteOption) {
 
 // SetView returns a copy of Route with the view query parameter set to the
 // given value.
-func (r *Route) SetView(view View) *Route {
+func (r *Route) SetView(view View) {
 	params := WithViewParam(view)(r.url.Query())
 	r.url.RawQuery = params.Encode()
+}
 
-	return r
+func (r *Route) SetSort(sort Sort) {
+	params := WithSortParam(sort)(r.url.Query())
+	r.url.RawQuery = params.Encode()
 }
 
 func (r *Route) SetCategories(categories ...models.Category) *Route {
@@ -226,6 +231,17 @@ func WithCountParam(count int) ParamsOption {
 func WithPaginationParam(pagination Pagination) ParamsOption {
 	return func(v url.Values) url.Values {
 		v.Set(string(ParamPagination), pagination)
+		return v
+	}
+}
+
+func WithSortParam(sort Sort) ParamsOption {
+	return func(v url.Values) url.Values {
+		sortValues, err := forms.EncodeForm(&sort)
+		if err != nil {
+			slog.Warn("Problem encoding sort values.", slog.Any("error", err))
+		}
+		maps.Copy(v, sortValues)
 		return v
 	}
 }

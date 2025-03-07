@@ -13,6 +13,7 @@ import (
 )
 
 var decoder = form.NewDecoder()
+var encoder = form.NewEncoder()
 
 // Validator is an object that can be validated.
 type Validator interface {
@@ -76,4 +77,21 @@ func DecodeRequest[T any](req *http.Request) (T, error) {
 	// }
 
 	return obj, nil
+}
+
+// EncodeForm will encode the given object as url.Values, using the struct tags
+// where possible. It will perform validation of the object before attempting
+// encoding. If the object cannot be encoded or validation fails, a non-nil
+// error is returned.
+func EncodeForm[T Validator](obj T) (url.Values, error) {
+	// Validate the object.
+	if ok := obj.Valid(); !ok {
+		return nil, fmt.Errorf("invalid %T", obj)
+	}
+
+	values, err := encoder.Encode(&obj)
+	if err != nil {
+		return nil, fmt.Errorf("encode values: %w", err)
+	}
+	return values, nil
 }

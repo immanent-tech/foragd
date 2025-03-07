@@ -77,27 +77,35 @@ components:
       x-oapi-codegen-extra-tags:
         form: "pagination"
         validate: "omitempty,url_encoded"
+    SortBy:
+      description: >
+        represents the selected field to sort on.
+      type: string
+      enum: ["unread_count","last_updated"]
+      x-oapi-codegen-extra-tags:
+        validate: "oneof=unread_count last_updated"
+        form: "sort_by"
+    SortOrder:
+      description: >
+        represents the order for sorting the selected field.
+      type: string
+      enum: ["asc","desc"]
+      x-enum-varnames: ["SortAsc","SortDesc"]
+      x-oapi-codegen-extra-tags:
+        validate: "oneof=asc desc"
+        form: "sort_order"
     Sort:
       description: contains information on sorting Feeds.
       type: object
       required:
-        - option
-        - order
+        - sort_by
+        - sort_order
       properties:
-        option:
-          description: is the option to sort on.
-          type: string
-          enum: ["unread","updated"]
-          x-oapi-codegen-extra-tags:
-            validate: "oneof:name unread updated"
-        order:
-          description: is the ordering for sorting the option.
-          type: string
-          enum: ["asc","desc"]
-          x-oapi-codegen-extra-tags:
-            validate: "oneof:asc desc"
+        sort_by:
+          $ref: "#/components/schemas/SortBy"
+        sort_order:
+          $ref: "#/components/schemas/SortOrder"
       x-oapi-codegen-extra-tags:
-        form: "sort"
         json: "sort"
     # Objects:
     Filters:

@@ -29,23 +29,23 @@ const (
 	ParamView       Param = "view"
 )
 
-// Defines values for SortOption.
+// Defines values for SortBy.
 const (
-	SortOptionUnread  SortOption = "unread"
-	SortOptionUpdated SortOption = "updated"
+	LastUpdated SortBy = "last_updated"
+	UnreadCount SortBy = "unread_count"
 )
 
 // Defines values for SortOrder.
 const (
-	Asc  SortOrder = "asc"
-	Desc SortOrder = "desc"
+	SortAsc  SortOrder = "asc"
+	SortDesc SortOrder = "desc"
 )
 
 // Defines values for View.
 const (
-	All    View = "all"
-	Read   View = "read"
-	Unread View = "unread"
+	ViewAll    View = "all"
+	ViewRead   View = "read"
+	ViewUnread View = "unread"
 )
 
 // Categories is a list of categories.
@@ -84,7 +84,7 @@ type Filters struct {
 	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
 
 	// Sort contains information on sorting Feeds.
-	Sort *Sort `form:"sort" json:"sort"`
+	Sort *Sort `json:"sort"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
@@ -119,17 +119,17 @@ type Route struct {
 
 // Sort contains information on sorting Feeds.
 type Sort struct {
-	// Option is the option to sort on.
-	Option SortOption `json:"option" validate:"oneof:name unread updated"`
+	// SortBy represents the selected field to sort on.
+	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
 
-	// Order is the ordering for sorting the option.
-	Order SortOrder `json:"order" validate:"oneof:asc desc"`
+	// SortOrder represents the order for sorting the selected field.
+	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
 }
 
-// SortOption is the option to sort on.
-type SortOption string
+// SortBy represents the selected field to sort on.
+type SortBy string
 
-// SortOrder is the ordering for sorting the option.
+// SortOrder represents the order for sorting the selected field.
 type SortOrder string
 
 // SubscriptionRequest represents a new subscription request from a user.

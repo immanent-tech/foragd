@@ -25,12 +25,31 @@ const (
 	MinUserCount     = 1
 	DefaultUserCount = 10
 
-	DefaultUserView = Unread
+	DefaultUserView = ViewUnread
 )
 
-type ParamName string
-
 type ParamsOption func(url.Values) url.Values
+
+// Sort Feeds by last updated, newest->oldest.
+var SortFeedsLastUpdatedDesc = Sort{SortBy: LastUpdated, SortOrder: SortDesc}
+
+// Sort Feeds by last updated, oldest->newest.
+var SortFeedsLastUpdatedAsc = Sort{SortBy: LastUpdated, SortOrder: SortAsc}
+
+// Sort Feeds by unread count, highest->lowest.
+var SortFeedsUnreadCountDesc = Sort{SortBy: UnreadCount, SortOrder: SortDesc}
+
+// Sort Feeds by unread count, lowest->highest.
+var SortFeedsUnreadCountAsc = Sort{SortBy: UnreadCount, SortOrder: SortAsc}
+
+// Valid checks whether the Sort options are valid values.
+func (s *Sort) Valid() bool {
+	valid, err := validation.ValidateStruct(s)
+	if !valid || err != nil {
+		return false
+	}
+	return true
+}
 
 // GetFeeds gets the list of FeedIDs from the filters.
 func (f *Filters) GetFeeds() []models.FeedID {
@@ -98,17 +117,17 @@ func (f *Filters) GetView() View {
 
 // ViewRead returns a boolean indicating whether the view filter is set to "unread".
 func (f *Filters) ViewUnread() bool {
-	return f.GetView() == Unread
+	return f.GetView() == ViewUnread
 }
 
 // ViewRead returns a boolean indicating whether the view filter is set to "read".
 func (f *Filters) ViewRead() bool {
-	return f.GetView() == Read
+	return f.GetView() == ViewRead
 }
 
 // ViewRead returns a boolean indicating whether the view filter is set to "all".
 func (f *Filters) ViewAll() bool {
-	return f.GetView() == All
+	return f.GetView() == ViewAll
 }
 
 // GetPagination gets the pagination value from the filters.

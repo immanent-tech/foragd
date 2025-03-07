@@ -13,6 +13,25 @@ import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 import "github.com/joshuar/go-templ-daisyui/display/icon"
 import "github.com/joshuar/go-feed-me/internal/models"
 import "github.com/joshuar/go-feed-me/internal/api"
+import "github.com/joshuar/go-templ-daisyui/navigation/menu"
+
+templ sorting(filters *api.Filters) {
+	@dropdown.Build(
+		dropdown.WithOpenOptions(
+			dropdown.From(dropdown.OpenBottom, true),
+		),
+		dropdown.WithButton(
+			button.WithSize(size.SM),
+			button.AsShape(button.Square, false),
+			button.WithContent(icon.Build("fa-sort")),
+		),
+		dropdown.WithMenuContent(
+			menu.WithMenuTitle("Sort"),
+			menu.WithBaseColor(color.Base200),
+			menu.WithItems(BuildFeedsSorting(filters)...),
+		),
+	).Show()
+}
 
 func categoryFiltersControl(filters []partials.FeedCategoryFilter) templ.Component {
 	return dropdown.Build(
@@ -38,7 +57,7 @@ templ categoryFilters(categories []partials.FeedCategoryFilter) {
 	</div>
 }
 
-func viewFilterControl(filters *partials.ViewFilter) templ.Component {
+func ViewFilterButton(filters *ViewFilterBadges) templ.Component {
 	return dropdown.Build(
 		dropdown.WithOpenOptions(
 			dropdown.From(dropdown.OpenBottom, true),
@@ -62,7 +81,7 @@ func viewFilterControl(filters *partials.ViewFilter) templ.Component {
 // controls for altering the display of lists of content.
 templ ListHeader(filters *api.Filters, categories []api.CategoryCount, path string) {
 	{{ categoryFilters := partials.BuildCategoryFilters(filters, categories, path) }}
-	{{ viewFilter := partials.BuildViewFilter(filters, path) }}
+	{{ viewFilterBadges := BuildViewFilter(filters, path) }}
 	// if title != "" {
 	// 	<head>
 	// 		<title>{ title }</title>
@@ -74,25 +93,8 @@ templ ListHeader(filters *api.Filters, categories []api.CategoryCount, path stri
 				@categoryFiltersControl(categoryFilters)
 			</div>
 			<div class="flex-none">
-				@viewFilterControl(viewFilter)
-				<details class="dropdown dropdown-end">
-					<summary class="btn btn-sm m-1">
-						<i class="fa-solid fa-sort"></i>
-					</summary>
-					<ul
-						tabindex="0"
-						class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
-					>
-						<li>
-							<a class="justify-between">
-								Profile
-								<span class="badge">New</span>
-							</a>
-						</li>
-						<li><a>Settings</a></li>
-						<li><a>Logout</a></li>
-					</ul>
-				</details>
+				@ViewFilterButton(viewFilterBadges)
+				@sorting(filters)
 			</div>
 		</div>
 	</div>
