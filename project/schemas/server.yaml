@@ -303,7 +303,7 @@ components:
           x-oapi-codegen-extra-tags:
             json: "feeds"
             form: "feeds"
-            validate: "required,unique,dive,dive,required,startswith=feed_"
+            validate: "required,unique,dive,required,startswith=feed_"
           x-go-type-skip-optional-pointer: true
     MarkItems:
       description: contains data for marking Items.
@@ -322,7 +322,7 @@ components:
           x-oapi-codegen-extra-tags:
             json: "items"
             form: "items"
-            validate: "required,unique,dive,dive,required,startswith=item_"
+            validate: "required,unique,dive,required,startswith=item_"
     MarkCategories:
       description: contains data for marking Categories.
       type: object

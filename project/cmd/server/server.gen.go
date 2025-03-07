@@ -26,7 +26,7 @@ type MarkCategories struct {
 // MarkFeeds contains data for marking Feeds.
 type MarkFeeds struct {
 	// Feeds is a list of Feed IDs to mark.
-	Feeds []externalRef1.FeedID `form:"feeds" json:"feeds" validate:"required,unique,dive,dive,required,startswith=feed_"`
+	Feeds []externalRef1.FeedID `form:"feeds" json:"feeds" validate:"required,unique,dive,required,startswith=feed_"`
 
 	// Mark applies the given mark action to objects.
 	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof=read unread"`
@@ -35,7 +35,7 @@ type MarkFeeds struct {
 // MarkItems contains data for marking Items.
 type MarkItems struct {
 	// Items is a list of Items IDs to mark.
-	Items []externalRef1.ItemID `form:"items" json:"items" validate:"required,unique,dive,dive,required,startswith=item_"`
+	Items []externalRef1.ItemID `form:"items" json:"items" validate:"required,unique,dive,required,startswith=item_"`
 
 	// Mark applies the given mark action to objects.
 	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof=read unread"`

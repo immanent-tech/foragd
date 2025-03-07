@@ -79,7 +79,8 @@
     "classes/opacity",
     "routes/home",
     "templates/layouts/home",
-    "assets/scripts"
+    "assets/scripts",
+    "schema/server"
   ],
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
