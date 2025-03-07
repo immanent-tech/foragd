@@ -31,9 +31,9 @@ components:
         $ref: "models.yaml#/components/schemas/FeedID"
       x-oapi-codegen-extra-tags:
         json: "feeds"
-        form: "feeds"
-        validate: "unique,dive,dive,required,startswith=feed_"
-      x-go-type-skip-optional-pointer: true
+        form: "feeds[]"
+        validate: "omitnil,unique,dive,required,startswith=feed_"
+      # x-go-type-skip-optional-pointer: true
     Items:
       description: is a list of items IDs.
       type: array
@@ -41,9 +41,9 @@ components:
         $ref: "models.yaml#/components/schemas/ItemID"
       x-oapi-codegen-extra-tags:
         json: "items"
-        form: "items"
-        validate: "unique,dive,dive,required,startswith=item_"
-      x-go-type-skip-optional-pointer: true
+        form: "items[]"
+        validate: "omitnil,unique,dive,required,startswith=item_"
+      # x-go-type-skip-optional-pointer: true
     Categories:
       description: is a list of categories.
       type: array
@@ -51,9 +51,9 @@ components:
         $ref: "models.yaml#/components/schemas/Category"
       x-oapi-codegen-extra-tags:
         json: "categories"
-        form: "categories"
-        validate: "unique,dive,dive,required"
-      x-go-type-skip-optional-pointer: true
+        form: "categories[]"
+        validate: "omitnil,unique,dive,required"
+      # x-go-type-skip-optional-pointer: true
     Count:
       description: >
         is the count of items to retrieve with a request.

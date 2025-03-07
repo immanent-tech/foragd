@@ -34,32 +34,47 @@ type ParamsOption func(url.Values) url.Values
 
 // GetFeeds gets the list of FeedIDs from the filters.
 func (f *Filters) GetFeeds() []models.FeedID {
-	return f.Feeds
+	if f.Feeds != nil {
+		return *f.Feeds
+	}
+	return nil
 }
 
 // SetFeeds sets the feed filters to the given values. Existing values are wiped.
 func (f *Filters) SetFeeds(feedIDs ...models.FeedID) {
-	f.Feeds = feedIDs
+	feeds := make([]models.FeedID, len(feedIDs))
+	feeds = append(feeds, feedIDs...)
+	f.Feeds = &feeds
 }
 
 // GetItems gets the list of ItemIDs from the filters.
 func (f *Filters) GetItems() []models.ItemID {
-	return f.Items
+	if f.Items != nil {
+		return *f.Items
+	}
+	return nil
 }
 
 // SetItems sets the item filters to the given values. Existing values are wiped.
 func (f *Filters) SetItems(itemIDs ...models.ItemID) {
-	f.Items = itemIDs
+	items := make([]models.ItemID, len(itemIDs))
+	items = append(items, itemIDs...)
+	f.Items = &items
 }
 
 // GetCategories gets the list of Categories from the filters.
 func (f *Filters) GetCategories() models.Categories {
-	return f.Categories
+	if f.Categories != nil {
+		return *f.Categories
+	}
+	return nil
 }
 
 // SetCategories sets the category filters to the given values. Existing values are wiped.
 func (f *Filters) SetCategories(categories ...models.Category) {
-	f.Categories = categories
+	c := make([]models.Category, len(categories))
+	c = append(c, categories...)
+	f.Categories = &c
 }
 
 // GetCount gets the count value from the filters. If the Count outside the
@@ -109,15 +124,18 @@ func (f *Filters) GetPagination() Pagination {
 func (f *Filters) Params() url.Values {
 	params := make(url.Values)
 
-	if len(f.Feeds) > 0 {
+	// if len(f.Feeds) > 0 {
+	if f.Feeds != nil {
 		params.Set("feeds", strings.Join(f.GetFeeds(), ","))
 	}
 
-	if len(f.Items) > 0 {
+	// if len(f.Items) > 0 {
+	if f.Items != nil {
 		params.Set("items", strings.Join(f.GetItems(), ","))
 	}
 
-	if len(f.Categories) > 0 {
+	// if len(f.Categories) > 0 {
+	if f.Categories != nil {
 		params.Set("categories", strings.Join(f.GetCategories(), ","))
 	}
 
@@ -138,15 +156,18 @@ func FiltersFromQuery(values url.Values) (*Filters, error) {
 	filters := &Filters{}
 
 	if param := values.Get(string(ParamFeeds)); param != "" {
-		filters.Feeds = strings.Split(param, " ")
+		feeds := strings.Split(param, " ")
+		filters.Feeds = &feeds
 	}
 
 	if param := values.Get(string(ParamItems)); param != "" {
-		filters.Items = strings.Split(param, " ")
+		items := strings.Split(param, " ")
+		filters.Items = &items
 	}
 
 	if param := values.Get(string(ParamCategories)); param != "" {
-		filters.Feeds = strings.Split(param, " ")
+		categories := strings.Split(param, " ")
+		filters.Categories = &categories
 	}
 
 	if param := values.Get(string(ParamPagination)); param != "" {
@@ -158,7 +179,6 @@ func FiltersFromQuery(values url.Values) (*Filters, error) {
 	}
 
 	if param := values.Get(string(ParamView)); param != "" {
-		spew.Dump(param)
 		filters.View = View(param)
 	}
 

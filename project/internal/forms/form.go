@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-playground/form/v4"
 )
 
@@ -30,7 +29,6 @@ func DecodeForm[T Validator](req *http.Request) (T, bool, error) {
 	if err := req.ParseForm(); err != nil {
 		return obj, false, fmt.Errorf("parse form: %w", err)
 	}
-	spew.Dump(req.Form)
 	// Decode the form values.
 	err := decoder.Decode(&obj, req.Form)
 	if err != nil {

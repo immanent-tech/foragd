@@ -16,8 +16,9 @@ func NewSubscriptionState(details *SubscriptionRequest) models.SubscriptionState
 	if details.Name != nil {
 		req.Name = *details.Name
 	}
-	if len(details.Categories) > 0 {
-		req.Categories = details.Categories
+	if details.Categories != nil {
+		// if len(details.Categories) > 0 {
+		req.Categories = *details.Categories
 	}
 	return req
 }

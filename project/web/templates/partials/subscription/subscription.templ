@@ -132,9 +132,12 @@ func categoryItem(category models.Category) templ.Component {
 // categoriesList generates a list of categories assigned to the subscription,
 // with the ability to remove them.
 func categoriesList(req *api.SubscriptionRequest) templ.Component {
-	categories := make([]templ.Component, 0, len(req.Categories))
+	if req.Categories == nil {
+		return nil
+	}
+	categories := make([]templ.Component, 0, len(*req.Categories))
 
-	for _, category := range req.Categories {
+	for _, category := range *req.Categories {
 		categories = append(categories,
 			categoryItem(category),
 		)

@@ -386,16 +386,19 @@ components:
       in: query
       schema:
         $ref: "api.yaml#/components/schemas/Feeds"
+      # x-go-type-skip-optional-pointer: true
     Items:
       name: items
       in: query
       schema:
         $ref: "api.yaml#/components/schemas/Items"
+      # x-go-type-skip-optional-pointer: true
     Categories:
       name: categories
       in: query
       schema:
         $ref: "api.yaml#/components/schemas/Categories"
+      # x-go-type-skip-optional-pointer: true
     Pagination:
       name: pagination
       in: query

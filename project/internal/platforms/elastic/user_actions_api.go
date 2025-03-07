@@ -254,6 +254,8 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters api.Filters) ([
 	validFeeds := make([]*models.APIFeed, 0, len(feeds))
 
 	for _, feed := range feeds {
+		// Add user data to feed.
+		addUserDataToFeed(user, feed, int(unreadCounts[feed.ID]))
 		// If filtering by unread, ignore feeds with no unread count.
 		if filters.ViewUnread() && feed.GetUserUnreadCount() == 0 {
 			continue
@@ -263,8 +265,6 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters api.Filters) ([
 			slog.Info("not showing feed", slog.String("feed", feed.GetTitle()))
 			continue
 		}
-		// Add user data to feed.
-		addUserDataToFeed(user, feed, int(unreadCounts[feed.ID]))
 		// Append to valid feeds list.
 		validFeeds = append(validFeeds, feed)
 	}

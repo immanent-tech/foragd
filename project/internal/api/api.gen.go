@@ -69,16 +69,16 @@ type Feeds = []externalRef0.FeedID
 // Filters contains parameters for searching feeds and items
 type Filters struct {
 	// Categories is a list of categories.
-	Categories Categories `form:"categories" json:"categories" validate:"unique,dive,dive,required"`
+	Categories *Categories `form:"categories[]" json:"categories" validate:"omitnil,unique,dive,required"`
 
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
 
 	// Feeds is a list of feed IDs.
-	Feeds Feeds `form:"feeds" json:"feeds" validate:"unique,dive,dive,required,startswith=feed_"`
+	Feeds *Feeds `form:"feeds[]" json:"feeds" validate:"omitnil,unique,dive,required,startswith=feed_"`
 
 	// Items is a list of items IDs.
-	Items Items `form:"items" json:"items" validate:"unique,dive,dive,required,startswith=item_"`
+	Items *Items `form:"items[]" json:"items" validate:"omitnil,unique,dive,required,startswith=item_"`
 
 	// Pagination contains data for paginating through results
 	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
@@ -135,7 +135,7 @@ type SortOrder string
 // SubscriptionRequest represents a new subscription request from a user.
 type SubscriptionRequest struct {
 	// Categories is a list of categories.
-	Categories Categories `form:"categories" json:"categories" validate:"unique,dive,dive,required"`
+	Categories *Categories `form:"categories[]" json:"categories" validate:"omitnil,unique,dive,required"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name *string `form:"name" json:"name,omitempty"`
