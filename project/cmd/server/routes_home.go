@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -58,6 +60,8 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
+
+	spew.Dump(filters)
 
 	feedsHandler(s.DataAPI(), res, req, *filters)
 }
