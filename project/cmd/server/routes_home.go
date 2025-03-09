@@ -7,6 +7,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/forms"
@@ -30,12 +31,12 @@ func SetCommonHomeFilters(next http.HandlerFunc) http.HandlerFunc {
 		ctx := req.Context()
 
 		params := req.URL.Query()
-		if !params.Has("count") {
-			params.Set("count", "10")
+		if !params.Has(string(api.ParamCount)) {
+			params.Set(string(api.ParamCount), strconv.Itoa(api.DefaultUserCount))
 		}
 
-		if !params.Has("view") {
-			params.Set("view", "unread")
+		if !params.Has(string(api.ParamView)) {
+			params.Set(string(api.ParamView), string(api.DefaultUserView))
 		}
 
 		req.URL.RawQuery = params.Encode()

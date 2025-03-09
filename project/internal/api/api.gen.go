@@ -25,7 +25,8 @@ const (
 	ParamFeeds      Param = "feeds"
 	ParamItems      Param = "items"
 	ParamPagination Param = "pagination"
-	ParamSort       Param = "sort"
+	ParamSortBy     Param = "sort_by"
+	ParamSortOrder  Param = "sort_order"
 	ParamView       Param = "view"
 )
 

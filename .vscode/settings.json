@@ -80,7 +80,8 @@
     "routes/home",
     "templates/layouts/home",
     "assets/scripts",
-    "schema/server"
+    "schema/server",
+    "schema/api"
   ],
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",

@@ -193,7 +193,7 @@ func FiltersFromQuery(values url.Values) (*Filters, error) {
 		filters.Pagination = &param
 	}
 
-	if param := values.Get(string(ParamSort)); param != "" {
+	if param := values.Get(string(ParamSortBy)); param != "" {
 		spew.Dump(param)
 	}
 

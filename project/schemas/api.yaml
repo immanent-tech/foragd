@@ -15,7 +15,7 @@ components:
     Param:
       description: is the name of a query parameter.
       type: string
-      enum: ["feeds","items","categories","count","view","pagination","sort"]
+      enum: ["feeds","items","categories","count","view","pagination","sort_by","sort_order"]
     Mark:
       description: >
         applies the given mark action to objects.
