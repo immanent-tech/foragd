@@ -1,6 +1,9 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+// Package config provides a global config store that other packages can utilise
+// for fetching/storing configuration. The config store supports both file and
+// environment configuration.
 package config
 
 import (
