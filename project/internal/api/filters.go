@@ -20,17 +20,17 @@ var (
 	ErrParseFilters = errors.New("error parsing filters")
 )
 
-// Sort Feeds by last updated, newest->oldest.
-var SortFeedsLastUpdatedDesc = Sort{SortBy: LastUpdated, SortOrder: SortDesc}
+// Sort by last updated, newest->oldest.
+var SortLastUpdatedDesc = Sort{SortBy: LastUpdated, SortOrder: SortDesc}
 
-// Sort Feeds by last updated, oldest->newest.
-var SortFeedsLastUpdatedAsc = Sort{SortBy: LastUpdated, SortOrder: SortAsc}
+// Sort by last updated, oldest->newest.
+var SortLastUpdatedAsc = Sort{SortBy: LastUpdated, SortOrder: SortAsc}
 
-// Sort Feeds by unread count, highest->lowest.
-var SortFeedsUnreadCountDesc = Sort{SortBy: UnreadCount, SortOrder: SortDesc}
+// Sort by unread count, highest->lowest.
+var SortUnreadCountDesc = Sort{SortBy: UnreadCount, SortOrder: SortDesc}
 
-// Sort Feeds by unread count, lowest->highest.
-var SortFeedsUnreadCountAsc = Sort{SortBy: UnreadCount, SortOrder: SortAsc}
+// Sort by unread count, lowest->highest.
+var SortUnreadCountAsc = Sort{SortBy: UnreadCount, SortOrder: SortAsc}
 
 const (
 	MaxUserCount = 20
