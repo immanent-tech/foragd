@@ -12,12 +12,22 @@ import (
 )
 
 func BuildFeedsSorting(filters *api.Filters) []templ.Component {
-	return []templ.Component{
+	var sorts []templ.Component
+
+	// Add sorting options for updated date.
+	sorts = append(sorts,
 		sortLink("Updated: Newest->Oldest", api.SortFeedsLastUpdatedDesc, filters),
 		sortLink("Updated: Oldest->Newest", api.SortFeedsLastUpdatedAsc, filters),
-		sortLink("Unread Count: Desc", api.SortFeedsUnreadCountDesc, filters),
-		sortLink("Unread Count: Asc", api.SortFeedsUnreadCountAsc, filters),
+	)
+	// If not viewing read items, add additional sorting options on unread count.
+	if !filters.ViewRead() {
+		sorts = append(sorts,
+			sortLink("Unread Count: Desc", api.SortFeedsUnreadCountDesc, filters),
+			sortLink("Unread Count: Asc", api.SortFeedsUnreadCountAsc, filters),
+		)
 	}
+
+	return sorts
 }
 
 func sortLink(text string, sort api.Sort, filters *api.Filters) templ.Component {

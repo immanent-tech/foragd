@@ -270,7 +270,8 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters api.Filters) ([
 		validFeeds = append(validFeeds, feed)
 	}
 	// If the sort_by filters is unread count, sort the list of feeds by user
-	// unread count.
+	// unread count. We can't do this in Elasticsearch as the unread count comes
+	// from an aggregation and is not a field on the feed documents.
 	if filters.GetSort().SortBy == api.UnreadCount {
 		slices.SortFunc(validFeeds, cmpFeedUnreadCount)
 		if filters.GetSort().SortOrder == api.SortDesc {
@@ -618,6 +619,9 @@ func addUserDataToFeed(user *models.User, feed *models.APIFeed, unread int) {
 	}
 }
 
+// cmpFeedUnreadCount is a helper function for sorting Feeds by unread count, in
+// ascending order. If descending order is required, slices.Reverse can be
+// called after sorting the slice with this function.
 func cmpFeedUnreadCount(a, b *models.APIFeed) int {
 	return cmp.Compare(a.GetUserUnreadCount(), b.GetUserUnreadCount())
 }
