@@ -103,19 +103,15 @@ func (r *Route) SetSort(sort Sort) {
 	r.url.RawQuery = params.Encode()
 }
 
-func (r *Route) SetCategories(categories ...models.Category) *Route {
+func (r *Route) SetCategories(categories ...models.Category) {
 	params := WithCategoriesParam(categories...)(r.url.Query())
 	r.url.RawQuery = params.Encode()
-
-	return r
 }
 
-func (r *Route) UnsetCategories() *Route {
+func (r *Route) UnsetCategories() {
 	params := r.url.Query()
 	params.Del("categories")
 	r.url.RawQuery = params.Encode()
-
-	return r
 }
 
 func (r *Route) SetFeeds(feedIDs ...models.FeedID) {

@@ -57,8 +57,8 @@ func sortLink(text string, sort api.Sort, path string, filters *api.Filters) tem
 	case "/home/items":
 		route = buildShowItemsRoute(filters)
 	}
-
 	route.SetSort(sort)
+
 	return link.Build(
 		link.WithContent(text),
 		link.WithExtraAttributes(route.Attributes()),

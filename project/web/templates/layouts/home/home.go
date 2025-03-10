@@ -19,14 +19,16 @@ var (
 	ErrHomeFullRender    = errors.New("full render of home failed")
 )
 
-// Common route attributes.
+// Common route attributes are common attributes that most actions on /home
+// routes will use to update/change content.
 var commonRouteAttributes = templ.Attributes{
-	"hx-target":   "#content",
+	"hx-target":   ContentTarget,
 	"hx-push-url": "true",
 	"hx-swap":     "morph:outerHTML",
 }
 
 const (
+	// ContentTarget is the target ID for most htmx requests on /home routes.
 	ContentTarget = "#content"
 )
 
@@ -124,6 +126,7 @@ func buildShowFeedsRoute(filters *api.Filters) *api.Route {
 		api.WithParams(
 			api.WithViewParam(filters.GetView()),
 			api.WithCountParam(filters.GetCount()),
+			api.WithSortParam(filters.GetSort()),
 		),
 		api.WithAttributes(commonRouteAttributes),
 	)
@@ -139,6 +142,7 @@ func buildShowItemsRoute(filters *api.Filters) *api.Route {
 			api.WithViewParam(filters.GetView()),
 			api.WithCountParam(filters.GetCount()),
 			api.WithFeedsParam(filters.GetFeeds()...),
+			api.WithSortParam(filters.GetSort()),
 		),
 		api.WithAttributes(commonRouteAttributes),
 	)
