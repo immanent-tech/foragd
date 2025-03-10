@@ -95,7 +95,7 @@ components:
         validate: "oneof=asc desc"
         form: "sort_order"
     Sort:
-      description: contains information on sorting Feeds.
+      description: contains information on sorting objects.
       type: object
       required:
         - sort_by
@@ -114,6 +114,8 @@ components:
       required:
         - view
         - count
+        - sort_by
+        - sort_order
       properties:
         feeds:
           $ref: "#/components/schemas/Feeds"
@@ -127,8 +129,10 @@ components:
           $ref: "#/components/schemas/View"
         pagination:
           $ref: "#/components/schemas/Pagination"
-        sort:
-          $ref: "#/components/schemas/Sort"
+        sort_by:
+          $ref: "#/components/schemas/SortBy"
+        sort_order:
+          $ref: "#/components/schemas/SortOrder"
     Route:
       description: >
         is a htmx route within the server.

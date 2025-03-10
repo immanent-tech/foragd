@@ -20,16 +20,6 @@ var (
 	ErrParseFilters = errors.New("error parsing filters")
 )
 
-const (
-	MaxUserCount     = 20
-	MinUserCount     = 1
-	DefaultUserCount = 10
-
-	DefaultUserView = ViewUnread
-)
-
-type ParamsOption func(url.Values) url.Values
-
 // Sort Feeds by last updated, newest->oldest.
 var SortFeedsLastUpdatedDesc = Sort{SortBy: LastUpdated, SortOrder: SortDesc}
 
@@ -42,6 +32,22 @@ var SortFeedsUnreadCountDesc = Sort{SortBy: UnreadCount, SortOrder: SortDesc}
 // Sort Feeds by unread count, lowest->highest.
 var SortFeedsUnreadCountAsc = Sort{SortBy: UnreadCount, SortOrder: SortAsc}
 
+const (
+	MaxUserCount = 20
+	MinUserCount = 1
+
+	// DefaultCount is to show 10 objects.
+	DefaultCount = 10
+	// DefaultView is to show unread objects.
+	DefaultView = ViewUnread
+	// DefaultSortBy is to sort on updated.
+	DefaultSortBy = LastUpdated
+	// DefaultSortOrder is to sort newest->oldest.
+	DefaultSortOrder = SortDesc
+)
+
+type ParamsOption func(url.Values) url.Values
+
 // Valid checks whether the Sort options are valid values.
 func (s *Sort) Valid() bool {
 	valid, err := validation.ValidateStruct(s)
@@ -49,6 +55,80 @@ func (s *Sort) Valid() bool {
 		return false
 	}
 	return true
+}
+
+// SetValidSortBy takes a string value and returns the SortBy value it
+// represents. If the string is not a valid SortBy value, the default SortBy
+// value is returned.
+func SetValidSortBy(value string) SortBy {
+	switch value {
+	case string(UnreadCount):
+		return UnreadCount
+	case string(LastUpdated):
+		return LastUpdated
+	default:
+		return DefaultSortBy
+	}
+}
+
+// SetValidSortOrder takes a string value and returns the SortOrder value it
+// represents. If the string is not a valid SortOrder value, the default SortOrder
+// value is returned.
+func SetValidSortOrder(value string) SortOrder {
+	switch value {
+	case string(SortAsc):
+		return SortAsc
+	case string(SortDesc):
+		return SortDesc
+	default:
+		return DefaultSortOrder
+	}
+}
+
+// SetValidCount takes a value representing a count and returns a valid Count it
+// represents. If the value is not a valid Count, the default Count is
+// returned.
+func SetValidCount(input any) Count {
+	var (
+		value Count
+		err   error
+	)
+
+	switch v := input.(type) {
+	case int:
+		value = v
+	case int64:
+		value = int(v)
+	case uint64:
+		value = int(v)
+	case string:
+		value, err = strconv.Atoi(v)
+		if err != nil {
+			value = DefaultCount
+		}
+	}
+
+	if value < MinUserCount || value > MaxUserCount {
+		return DefaultCount
+	}
+
+	return value
+}
+
+// SetValidView takes a string representing a View and returns a valid View it
+// represents. If the value is not a valid View, the default View is
+// returned.
+func SetValidView(value string) View {
+	switch value {
+	case string(ViewAll):
+		return ViewAll
+	case string(ViewRead):
+		return ViewRead
+	case string(ViewUnread):
+		return ViewUnread
+	default:
+		return DefaultView
+	}
 }
 
 // GetFeeds gets the list of FeedIDs from the filters.
@@ -100,7 +180,7 @@ func (f *Filters) SetCategories(categories ...models.Category) {
 // user-selectable range, the default value will be used.
 func (f *Filters) GetCount() int {
 	if f.Count < MinUserCount || f.Count > MaxUserCount {
-		return DefaultUserCount
+		return DefaultCount
 	}
 
 	return f.Count
@@ -109,7 +189,7 @@ func (f *Filters) GetCount() int {
 // GetView gets the view value from the filters.
 func (f *Filters) GetView() View {
 	if f.View == "" {
-		return DefaultUserView
+		return DefaultView
 	}
 
 	return f.View
@@ -143,6 +223,7 @@ func (f *Filters) GetPagination() Pagination {
 func (f *Filters) Params() url.Values {
 	params := make(url.Values)
 
+	// Optional parameters:
 	// if len(f.Feeds) > 0 {
 	if f.Feeds != nil {
 		params.Set("feeds", strings.Join(f.GetFeeds(), ","))
@@ -157,9 +238,10 @@ func (f *Filters) Params() url.Values {
 	if f.Categories != nil {
 		params.Set("categories", strings.Join(f.GetCategories(), ","))
 	}
-
+	// Required parameters:
+	params.Set("sort_by", string(f.SortBy))
+	params.Set("sort_order", string(f.SortOrder))
 	params.Set("view", string(f.View))
-
 	params.Set("count", strconv.Itoa(f.Count))
 
 	return params
@@ -193,21 +275,10 @@ func FiltersFromQuery(values url.Values) (*Filters, error) {
 		filters.Pagination = &param
 	}
 
-	if param := values.Get(string(ParamSortBy)); param != "" {
-		spew.Dump(param)
-	}
-
-	if param := values.Get(string(ParamView)); param != "" {
-		filters.View = View(param)
-	}
-
-	if param := values.Get(string(ParamCount)); param != "" {
-		count, err := strconv.Atoi(param)
-		if err != nil {
-			return nil, errors.Join(ErrParseFilters, err)
-		}
-		filters.Count = count
-	}
+	filters.SortBy = SetValidSortBy(values.Get(string(ParamSortBy)))
+	filters.SortOrder = SetValidSortOrder(values.Get(string(ParamSortOrder)))
+	filters.Count = SetValidCount(values.Get(string(ParamCount)))
+	filters.View = SetValidView(values.Get(string(ParamView)))
 
 	if valid, err := validation.ValidateStruct(filters); !valid || err != nil {
 		spew.Dump(valid, err)
@@ -234,13 +305,13 @@ func CreateFilters(params any) (*Filters, error) {
 
 	// Validate the count is within an appropriate range and adjust if
 	// necessary.
-	if filters.Count == 0 || filters.Count > 20 {
-		filters.Count = 10
+	if filters.Count < MinUserCount || filters.Count > MaxUserCount {
+		filters.Count = DefaultCount
 	}
 
 	// Validate view value or set if necessary.
 	if filters.View == "" {
-		filters.View = DefaultUserView
+		filters.View = DefaultView
 	}
 
 	// Validate all filters.

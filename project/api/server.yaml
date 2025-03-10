@@ -206,7 +206,8 @@ paths:
         - $ref: "#/components/parameters/View"
         - $ref: "#/components/parameters/Count"
         - $ref: "#/components/parameters/Pagination"
-        - $ref: "#/components/parameters/Sort"
+        - $ref: "#/components/parameters/SortBy"
+        - $ref: "#/components/parameters/SortOrder"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -230,7 +231,8 @@ paths:
         - $ref: "#/components/parameters/View"
         - $ref: "#/components/parameters/Count"
         - $ref: "#/components/parameters/Pagination"
-        - $ref: "#/components/parameters/Sort"
+        - $ref: "#/components/parameters/SortBy"
+        - $ref: "#/components/parameters/SortOrder"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -404,11 +406,18 @@ components:
       in: query
       schema:
         $ref: "api.yaml#/components/schemas/Pagination"
-    Sort:
-      name: sort
+    SortBy:
+      name: sort_by
       in: query
+      required: true
       schema:
-        $ref: "api.yaml#/components/schemas/Sort"
+        $ref: "api.yaml#/components/schemas/SortBy"
+    SortOrder:
+      name: sort_order
+      in: query
+      required: true
+      schema:
+        $ref: "api.yaml#/components/schemas/SortOrder"
   requestBodies:
     MarkRequest:
       description: >

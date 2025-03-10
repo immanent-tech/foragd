@@ -84,8 +84,11 @@ type Filters struct {
 	// Pagination contains data for paginating through results
 	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
 
-	// Sort contains information on sorting Feeds.
-	Sort *Sort `json:"sort"`
+	// SortBy represents the selected field to sort on.
+	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
+
+	// SortOrder represents the order for sorting the selected field.
+	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
@@ -118,7 +121,7 @@ type Route struct {
 	url url.URL `json:"-"`
 }
 
-// Sort contains information on sorting Feeds.
+// Sort contains information on sorting objects.
 type Sort struct {
 	// SortBy represents the selected field to sort on.
 	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`

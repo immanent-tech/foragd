@@ -67,8 +67,11 @@ type Mark = externalRef0.Mark
 // Pagination contains data for paginating through results
 type Pagination = externalRef0.Pagination
 
-// Sort contains information on sorting Feeds.
-type Sort = externalRef0.Sort
+// SortBy represents the selected field to sort on.
+type SortBy = externalRef0.SortBy
+
+// SortOrder represents the order for sorting the selected field.
+type SortOrder = externalRef0.SortOrder
 
 // View The state of objects to view.
 type View = externalRef0.View
@@ -80,7 +83,8 @@ type HandleShowFeedsParams struct {
 	View       View        `form:"view" json:"view"`
 	Count      Count       `form:"count" json:"count"`
 	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
-	Sort       *Sort       `form:"sort,omitempty" json:"sort,omitempty"`
+	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
+	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
 }
 
 // HandleShowItemsParams defines parameters for HandleShowItems.
@@ -90,7 +94,8 @@ type HandleShowItemsParams struct {
 	View       View        `form:"view" json:"view"`
 	Count      Count       `form:"count" json:"count"`
 	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
-	Sort       *Sort       `form:"sort,omitempty" json:"sort,omitempty"`
+	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
+	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
 }
 
 // LoginCallbackParams defines parameters for LoginCallback.
@@ -531,11 +536,33 @@ func (siw *ServerInterfaceWrapper) HandleShowFeeds(w http.ResponseWriter, r *htt
 		return
 	}
 
-	// ------------- Optional query parameter "sort" -------------
+	// ------------- Required query parameter "sort_by" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "sort", r.URL.Query(), &params.Sort)
+	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_order" -------------
+
+	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
 		return
 	}
 
@@ -626,11 +653,33 @@ func (siw *ServerInterfaceWrapper) HandleShowItems(w http.ResponseWriter, r *htt
 		return
 	}
 
-	// ------------- Optional query parameter "sort" -------------
+	// ------------- Required query parameter "sort_by" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "sort", r.URL.Query(), &params.Sort)
+	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_order" -------------
+
+	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
 		return
 	}
 

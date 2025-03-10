@@ -7,9 +7,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strconv"
-
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/forms"
@@ -28,25 +25,6 @@ var (
 	ErrParseMarkRequest             = errors.New("could not parse mark request")
 )
 
-func SetCommonHomeFilters(next http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := req.Context()
-
-		params := req.URL.Query()
-		if !params.Has(string(api.ParamCount)) {
-			params.Set(string(api.ParamCount), strconv.Itoa(api.DefaultUserCount))
-		}
-
-		if !params.Has(string(api.ParamView)) {
-			params.Set(string(api.ParamView), string(api.DefaultUserView))
-		}
-
-		req.URL.RawQuery = params.Encode()
-
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
 func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
@@ -60,8 +38,6 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
-
-	spew.Dump(filters)
 
 	feedsHandler(s.DataAPI(), res, req, *filters)
 }

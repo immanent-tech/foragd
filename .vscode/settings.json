@@ -81,7 +81,8 @@
     "templates/layouts/home",
     "assets/scripts",
     "schema/server",
-    "schema/api"
+    "schema/api",
+    "server"
   ],
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
