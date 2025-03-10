@@ -8,6 +8,7 @@ import (
 
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
@@ -88,6 +89,7 @@ func BuildSortMenu(path string, filters *api.Filters) templ.Component {
 		dropdown.WithMenuContent(
 			menu.WithMenuTitle("Sort"),
 			menu.WithBaseColor(color.Base200),
+			menu.WithExtraClasses(width.W52),
 			menu.WithItems(sortItems...),
 		),
 	).Show()

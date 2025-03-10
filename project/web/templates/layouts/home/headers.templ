@@ -4,64 +4,16 @@
 
 package home
 
-import "github.com/joshuar/go-templ-daisyui/actions/dropdown"
 import "github.com/joshuar/go-templ-daisyui/actions/button"
-import "github.com/joshuar/go-templ-daisyui/modifiers/size"
-import "github.com/joshuar/go-templ-daisyui/display/card"
-import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 import "github.com/joshuar/go-templ-daisyui/display/icon"
 import "github.com/joshuar/go-feed-me/internal/models"
 import "github.com/joshuar/go-feed-me/internal/api"
-
-func categoryFiltersControl(filters []FeedCategoryFilter) templ.Component {
-	return dropdown.Build(
-		dropdown.WithButton(
-			button.WithSize(size.SM),
-			button.WithContent("Categories"),
-		),
-		dropdown.WithCardContent(
-			card.WithBaseColor(color.Base100),
-			card.WithLayout(card.LayoutCompact),
-			card.WithBodyOptions(
-				card.WithContent(categoryFilters(filters)),
-			),
-		),
-	).Show()
-}
-
-templ categoryFilters(categories []FeedCategoryFilter) {
-	<div class="flex flex-wrap">
-		for _, category := range categories {
-			@category.Show()
-		}
-	</div>
-}
-
-func ViewFilterButton(filters *ViewFilterBadges) templ.Component {
-	return dropdown.Build(
-		dropdown.WithOpenOptions(
-			dropdown.From(dropdown.OpenBottom, true),
-		),
-		dropdown.WithButton(
-			button.WithSize(size.SM),
-			button.AsShape(button.Square, false),
-			button.WithContent(icon.Build("fa-sliders")),
-		),
-		dropdown.WithCardContent(
-			card.WithBaseColor(color.Base100),
-			card.WithLayout(card.LayoutCompact),
-			card.WithBodyOptions(
-				card.WithContent(filters.Show()),
-			),
-		),
-	).Show()
-}
 
 // ListHeader generates a content header for list views. It contains filters and
 // controls for altering the display of lists of content.
 templ ListHeader(filters *api.Filters, categories []api.CategoryCount, path string) {
 	{{ categoryFilters := BuildCategoryFilters(filters, categories, path) }}
-	{{ viewFilterBadges := BuildViewFilter(filters, path) }}
+	{{ viewFilterBadges := BuildViewFilters(filters, path) }}
 	// if title != "" {
 	// 	<head>
 	// 		<title>{ title }</title>
@@ -70,10 +22,10 @@ templ ListHeader(filters *api.Filters, categories []api.CategoryCount, path stri
 	<div id="content_header" hx-swap-oob="true" hx-swap="morph:outerHTML">
 		<div class="navbar bg-base-100">
 			<div class="flex-1">
-				@categoryFiltersControl(categoryFilters)
+				// @categoryFiltersControl(categoryFilters)
 			</div>
 			<div class="flex-none">
-				@ViewFilterButton(viewFilterBadges)
+				@BuildFiltersMenu(viewFilterBadges, categoryFilters)
 				@BuildSortMenu(path, filters)
 			</div>
 		</div>
