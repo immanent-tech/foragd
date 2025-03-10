@@ -195,6 +195,14 @@ func (f *Filters) GetView() View {
 	return f.View
 }
 
+// GetSort gets the sort values from the filters.
+func (f *Filters) GetSort() Sort {
+	return Sort{
+		SortBy:    f.SortBy,
+		SortOrder: f.SortOrder,
+	}
+}
+
 // ViewRead returns a boolean indicating whether the view filter is set to "unread".
 func (f *Filters) ViewUnread() bool {
 	return f.GetView() == ViewUnread

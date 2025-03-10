@@ -4,6 +4,7 @@
 package elastic
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -190,7 +191,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters api.Filters) ([
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	resp, err := c.ItemsSearch(ctx, query, filters.GetCount(), filters.GetPagination())
+	resp, err := c.ItemsSearch(ctx, query, filters)
 	if err != nil {
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
@@ -267,6 +268,14 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters api.Filters) ([
 		}
 		// Append to valid feeds list.
 		validFeeds = append(validFeeds, feed)
+	}
+	// If the sort_by filters is unread count, sort the list of feeds by user
+	// unread count.
+	if filters.GetSort().SortBy == api.UnreadCount {
+		slices.SortFunc(validFeeds, cmpFeedUnreadCount)
+		if filters.GetSort().SortOrder == api.SortDesc {
+			slices.Reverse(validFeeds)
+		}
 	}
 
 	return validFeeds, nil
@@ -607,4 +616,8 @@ func addUserDataToFeed(user *models.User, feed *models.APIFeed, unread int) {
 	if categories := user.GetSubscriptionCategories(feed.GetID()); len(categories) > 0 {
 		feed.SetUserCategories(categories)
 	}
+}
+
+func cmpFeedUnreadCount(a, b *models.APIFeed) int {
+	return cmp.Compare(a.GetUserUnreadCount(), b.GetUserUnreadCount())
 }

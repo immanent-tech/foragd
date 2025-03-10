@@ -39,7 +39,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
 
-	feedsHandler(s.DataAPI(), res, req, *filters)
+	displayFeeds(s.DataAPI(), res, req, *filters)
 }
 
 func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
@@ -64,7 +64,7 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Reload the home page.
-	feedsHandler(s.DataAPI(), res, req, *filters)
+	displayFeeds(s.DataAPI(), res, req, *filters)
 }
 
 // Valid checks that the MarkFeeds object is valid.
@@ -76,8 +76,8 @@ func (f *MarkFeeds) Valid() bool {
 	return true
 }
 
-// feedsHandler handles a list of feeds.
-func feedsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.Filters) {
+// displayFeeds handles showing a list of Feeds as cards with the given filters applied.
+func displayFeeds(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.Filters) {
 	// Get feeds.
 	feeds, err := api.UserActionGetFeeds(req.Context(), filters)
 	if err != nil {
@@ -128,7 +128,7 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 		return
 	}
 
-	itemsHandler(s.DataAPI(), res, req, *filters)
+	displayItems(s.DataAPI(), res, req, *filters)
 }
 
 func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
@@ -153,7 +153,7 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Reload page.
-	itemsHandler(s.DataAPI(), res, req, *filters)
+	displayItems(s.DataAPI(), res, req, *filters)
 }
 
 // Valid checks that the MarkItems object is valid.
@@ -165,8 +165,8 @@ func (f *MarkItems) Valid() bool {
 	return true
 }
 
-// itemsHandler handles a list of items.
-func itemsHandler(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.Filters) {
+// displayItems handles showing list of Items as cards with the given filters applied.
+func displayItems(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.Filters) {
 	// Get all items.
 	items, pagination, err := api.UserActionGetItems(req.Context(), filters)
 	if err != nil {

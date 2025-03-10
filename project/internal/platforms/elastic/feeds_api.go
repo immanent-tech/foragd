@@ -46,22 +46,6 @@ var (
 	ErrAddFailed = errors.New("adding items failed")
 )
 
-// defaultFeedSort sorts Feeds by updated or published date descending.
-func defaultFeedSort() map[string]types.FieldSort {
-	return map[string]types.FieldSort{
-		"created_at": {Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
-		"feed_id":    {Order: &sortorder.Desc},
-	}
-}
-
-// defaultItemSort sorts Items by updated or published date descending.
-func defaultItemSort() map[string]types.FieldSort {
-	return map[string]types.FieldSort{
-		"@timestamp": {Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
-		"item_id":    {Order: &sortorder.Desc},
-	}
-}
-
 // GetNewFeedsSince retrieves a list of feeds that have been updated since the
 // given time.
 func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error) {
@@ -194,8 +178,8 @@ func (c *Client) FeedsSearch(ctx context.Context, filters api.Filters) ([]*model
 				),
 			),
 		),
-		WithSearchSize(filters.Count),
-		WithSortOptions(defaultFeedSort()),
+		WithSearchSize(filters.GetCount()),
+		WithSortOptions(setFeedSort(filters.GetSort())),
 	).Do(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrSearchFailed, err)
@@ -227,7 +211,7 @@ func (c *Client) GetFeedCategories(ctx context.Context, feedIDs ...models.FeedID
 		WithSearchQueryOptions(
 			QueryByFeedIDs(feedIDs...),
 		),
-		WithSortOptions(SortTimestampDesc()),
+		WithSortOptions(defaultFeedSort()),
 		WithSearchSize(0),
 		WithAggregations(NewTermsAggregation("Categories", "categories.raw")),
 	)
@@ -361,13 +345,13 @@ func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
 
 // ItemsSearch performs a search query on feed items with the given query
 // options. It returns the raw search response.
-func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, size api.Count, pagination api.Pagination) (*search.Response, error) {
+func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, filters api.Filters) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
-	sortValues, err := decodePagination(pagination)
+	sortValues, err := decodePagination(filters.GetPagination())
 	if err != nil {
 		return nil, errors.Join(ErrSearchFailed, err)
 	}
@@ -375,9 +359,9 @@ func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, size api.Co
 	resp, err := c.NewSearchRequest(
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
-		WithSortOptions(defaultItemSort()),
 		WithSearchAfter(sortValues),
-		WithSearchSize(size),
+		WithSearchSize(filters.GetCount()),
+		WithSortOptions(setItemSort(filters.GetSort())),
 	).Do(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrSearchFailed, err)
@@ -399,6 +383,7 @@ func (c *Client) ItemsAggregation(ctx context.Context, query QueryOption, aggreg
 		WithSearchQueryOptions(query),
 		WithSearchSize(0),
 		WithAggregations(aggregation),
+		WithSortOptions(defaultItemSort()),
 	)
 
 	resp, err := req.Do(ctx)
@@ -428,4 +413,74 @@ func (c *Client) ItemsCount(ctx context.Context, query QueryOption) (*count.Resp
 	}
 
 	return resp, nil
+}
+
+// defaultFeedSort sorts Feeds by updated or published date descending.
+func defaultFeedSort() map[string]types.FieldSort {
+	return map[string]types.FieldSort{
+		"created_at": {Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
+		"feed_id":    {Order: &sortorder.Desc},
+	}
+}
+
+// defaultItemSort sorts Items by updated or published date descending.
+func defaultItemSort() map[string]types.FieldSort {
+	return map[string]types.FieldSort{
+		"@timestamp": {Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
+		"item_id":    {Order: &sortorder.Desc},
+	}
+}
+
+func setFeedSort(sort api.Sort) map[string]types.FieldSort {
+	sortOptions := make(map[string]types.FieldSort)
+	sortOptions["feed_id"] = types.FieldSort{Order: &sortorder.Desc}
+
+	var (
+		sortField string
+		sortOrder sortorder.SortOrder
+	)
+
+	switch sort.SortBy {
+	case api.LastUpdated:
+		sortField = "created_at"
+		switch sort.SortOrder {
+		case api.SortAsc:
+			sortOrder = sortorder.Asc
+		case api.SortDesc:
+			sortOrder = sortorder.Desc
+		}
+	default:
+		return defaultFeedSort()
+	}
+
+	sortOptions[sortField] = types.FieldSort{Order: &sortOrder, Format: &defaultDatetimeFormat}
+
+	return sortOptions
+}
+
+func setItemSort(sort api.Sort) map[string]types.FieldSort {
+	sortOptions := make(map[string]types.FieldSort)
+	sortOptions["item_id"] = types.FieldSort{Order: &sortorder.Desc}
+
+	var (
+		sortField string
+		sortOrder sortorder.SortOrder
+	)
+
+	switch sort.SortBy {
+	case api.LastUpdated:
+		sortField = "@timestamp"
+		switch sort.SortOrder {
+		case api.SortAsc:
+			sortOrder = sortorder.Asc
+		case api.SortDesc:
+			sortOrder = sortorder.Desc
+		}
+	default:
+		return defaultItemSort()
+	}
+
+	sortOptions[sortField] = types.FieldSort{Order: &sortOrder, Format: &defaultDatetimeFormat}
+
+	return sortOptions
 }
