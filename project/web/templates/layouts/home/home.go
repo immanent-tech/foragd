@@ -127,6 +127,7 @@ func buildShowFeedsRoute(filters *api.Filters) *api.Route {
 			api.WithViewParam(filters.GetView()),
 			api.WithCountParam(filters.GetCount()),
 			api.WithSortParam(filters.GetSort()),
+			api.WithCategoriesParam(filters.GetCategories()...),
 		),
 		api.WithAttributes(commonRouteAttributes),
 	)
@@ -143,6 +144,7 @@ func buildShowItemsRoute(filters *api.Filters) *api.Route {
 			api.WithCountParam(filters.GetCount()),
 			api.WithFeedsParam(filters.GetFeeds()...),
 			api.WithSortParam(filters.GetSort()),
+			api.WithCategoriesParam(filters.GetCategories()...),
 		),
 		api.WithAttributes(commonRouteAttributes),
 	)
