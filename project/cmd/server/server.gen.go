@@ -236,6 +236,9 @@ type ServerInterface interface {
 	// Mark feeds.
 	// (POST /home/items)
 	HandleMarkItems(w http.ResponseWriter, r *http.Request)
+	// Endpoint point for SSE events regarding /home.
+	// (GET /home/notifications)
+	HandleHomeNotifications(w http.ResponseWriter, r *http.Request)
 	// Show user settings modal
 	// (GET /home/settings)
 	GetHomeSettings(w http.ResponseWriter, r *http.Request)
@@ -328,6 +331,12 @@ func (_ Unimplemented) HandleShowItems(w http.ResponseWriter, r *http.Request, p
 // Mark feeds.
 // (POST /home/items)
 func (_ Unimplemented) HandleMarkItems(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Endpoint point for SSE events regarding /home.
+// (GET /home/notifications)
+func (_ Unimplemented) HandleHomeNotifications(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -699,6 +708,20 @@ func (siw *ServerInterfaceWrapper) HandleMarkItems(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleMarkItems(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// HandleHomeNotifications operation middleware
+func (siw *ServerInterfaceWrapper) HandleHomeNotifications(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HandleHomeNotifications(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1278,6 +1301,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/home/items", wrapper.HandleMarkItems)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/home/notifications", wrapper.HandleHomeNotifications)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)

@@ -3,6 +3,7 @@
 
 import "idiomorph";
 import "htmx-ext-head-support";
+import "htmx-ext-sse";
 
 window.htmx = require("htmx.org");
 

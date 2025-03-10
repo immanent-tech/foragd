@@ -4,9 +4,12 @@
 package server
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/forms"
@@ -27,6 +30,34 @@ var (
 
 func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusNotImplemented)
+}
+
+func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Request) {
+	// Set headers for SSE
+	res.Header().Set("Content-Type", "text/event-stream")
+	res.Header().Set("Cache-Control", "no-cache")
+	res.Header().Set("Connection", "keep-alive")
+
+	// Create a channel to send data
+	dataCh := make(chan string)
+
+	// Create a context for handling client disconnection
+	_, cancel := context.WithCancel(req.Context())
+	defer cancel()
+
+	// Send data to the client
+	go func() {
+		for data := range dataCh {
+			fmt.Fprintf(res, "event: notification\ndata: %s\n\n", data)
+			res.(http.Flusher).Flush()
+		}
+	}()
+
+	// Simulate sending data periodically
+	for {
+		dataCh <- time.Now().Format(time.TimeOnly)
+		time.Sleep(5 * time.Second)
+	}
 }
 
 func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {

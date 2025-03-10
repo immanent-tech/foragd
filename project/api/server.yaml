@@ -195,6 +195,14 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/htmx"
+  /home/notifications:
+    get:
+      summary: >
+        Endpoint point for SSE events regarding /home.
+      operationId: handleHomeNotifications
+      responses:
+        200:
+          $ref: "#/components/responses/htmx"
   /home/feeds:
     get:
       summary: >

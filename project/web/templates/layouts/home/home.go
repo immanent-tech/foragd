@@ -73,7 +73,7 @@ func (l *LayoutProps) Render(res http.ResponseWriter, req *http.Request) error {
 		}
 	} else {
 		// Full page render.
-		content = append(content, commandModal())
+		content = append(content, commandModal(), notifications())
 		for _, part := range l.parts {
 			content = append(content, part.FullRender())
 		}

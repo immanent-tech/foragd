@@ -22,3 +22,22 @@ package home
 templ commandModal() {
 	<div id="command_modal" class="container mx-auto px-4"></div>
 }
+
+templ notifications() {
+	<!-- Open the modal using ID.showModal() method -->
+	<div class="container mx-auto">
+		<button class="btn" onclick="my_modal_1.showModal()">open modal</button>
+		<dialog id="my_modal_1" class="modal modal-top">
+			<div role="alert" class="modal-box alert alert-info alert-soft">
+				Foobar
+				<div class="modal-action">
+					<form method="dialog">
+						<!-- if there is a button in form, it will close the modal -->
+						<button class="btn">Close</button>
+					</form>
+				</div>
+			</div>
+		</dialog>
+	</div>
+	// <div hx-ext="sse" sse-connect="/home/notifications" sse-swap="notification"></div>
+}
