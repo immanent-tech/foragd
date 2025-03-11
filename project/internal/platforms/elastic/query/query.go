@@ -1,7 +1,8 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package elastic
+// Package query contains methods for building Elasticsearch queries.
+package query
 
 import (
 	"reflect"
@@ -12,28 +13,28 @@ import (
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
-// QueryOption is a functional option for queries.
-type QueryOption Option[*types.Query]
+// Option is a functional option for queries.
+type Option func(*types.Query)
 
-// NumberRangeQueryOption is a functional option for a number range query.
-type NumberRangeQueryOption Option[*types.NumberRangeQuery]
+// NumberRangeOption is a functional option for a number range query.
+type NumberRangeOption func(*types.NumberRangeQuery)
 
-// BoolQueryOption is a functional option for a boolean query.
-type BoolQueryOption Option[*types.BoolQuery]
+// BoolOption is a functional option for a boolean query.
+type BoolOption func(*types.BoolQuery)
 
-// QueryMatchAll adds a "Match All" clause.
+// MatchAll adds a "Match All" clause.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-match-all-query.html
-func QueryMatchAll() QueryOption {
+func MatchAll() Option {
 	return func(query *types.Query) {
 		query.MatchAll = types.NewMatchAllQuery()
 	}
 }
 
-// QueryByTerm adds a "Term" query on the given field with the given value.
+// Term adds a "Term" query on the given field with the given value.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
-func QueryByTerm(field string, value any) QueryOption {
+func Term(field string, value any) Option {
 	return func(query *types.Query) {
 		if value != nil {
 			query.Term = map[string]types.TermQuery{
@@ -43,8 +44,8 @@ func QueryByTerm(field string, value any) QueryOption {
 	}
 }
 
-// QueryByFeedIDs adds a "Terms" clause with the given Feed IDs.
-func QueryByFeedIDs(feedIDs ...models.FeedID) QueryOption {
+// FeedIDs adds a "Terms" clause with the given Feed IDs.
+func FeedIDs(feedIDs ...models.FeedID) Option {
 	return func(query *types.Query) {
 		if len(feedIDs) > 0 {
 			query.Terms = &types.TermsQuery{
@@ -56,8 +57,8 @@ func QueryByFeedIDs(feedIDs ...models.FeedID) QueryOption {
 	}
 }
 
-// QueryByItemIDs adds a "Terms" clause with the given Item IDs.
-func QueryByItemIDs(itemIDs ...models.ItemID) QueryOption {
+// ItemIDs adds a "Terms" clause with the given Item IDs.
+func ItemIDs(itemIDs ...models.ItemID) Option {
 	return func(query *types.Query) {
 		if len(itemIDs) > 0 {
 			query.Terms = &types.TermsQuery{
@@ -69,8 +70,8 @@ func QueryByItemIDs(itemIDs ...models.ItemID) QueryOption {
 	}
 }
 
-// QueryByURLs adds a "Terms" clause to query the given field with a list of URLs.
-func QueryByURLs(field string, urls ...string) QueryOption {
+// URLs adds a "Terms" clause to query the given field with a list of URLs.
+func URLs(field string, urls ...string) Option {
 	return func(query *types.Query) {
 		if len(urls) > 0 {
 			query.Terms = &types.TermsQuery{
@@ -82,8 +83,8 @@ func QueryByURLs(field string, urls ...string) QueryOption {
 	}
 }
 
-// QueryByCategory adds a "Terms" clause to query by the given list of category names.
-func QueryByCategory(categories ...models.Category) QueryOption {
+// Categories adds a "Terms" clause to query by the given list of category names.
+func Categories(categories ...models.Category) Option {
 	return func(query *types.Query) {
 		if len(categories) > 0 {
 			query.Terms = &types.TermsQuery{
@@ -95,10 +96,10 @@ func QueryByCategory(categories ...models.Category) QueryOption {
 	}
 }
 
-// QuerySince adds a "Range" query to find documents newer than the given time.
+// Since adds a "Range" query to find documents newer than the given time.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
-func QuerySince(field string, since time.Time) QueryOption {
+func Since(field string, since time.Time) Option {
 	return func(query *types.Query) {
 		var sinceStr string
 		if since.IsZero() {
@@ -118,7 +119,7 @@ func QuerySince(field string, since time.Time) QueryOption {
 // QuerySince adds a "Range" query to find documents between (or equal to) the given times.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
-func QueryBetween(field string, from time.Time, to time.Time) QueryOption {
+func Between(field string, from time.Time, to time.Time) Option {
 	return func(query *types.Query) {
 		var fromStr, toStr string
 
@@ -136,7 +137,7 @@ func QueryBetween(field string, from time.Time, to time.Time) QueryOption {
 	}
 }
 
-func IntLessThan(value int64) Option[*types.NumberRangeQuery] {
+func IntLessThan(value int64) NumberRangeOption {
 	return func(numberRange *types.NumberRangeQuery) {
 		lt := types.Float64(value)
 		numberRange.Lt = &lt
@@ -145,7 +146,7 @@ func IntLessThan(value int64) Option[*types.NumberRangeQuery] {
 
 // QueryBool constructs a bool query with the given query options and adds it to
 // the query.
-func QueryNumberRange(field string, options ...NumberRangeQueryOption) QueryOption {
+func NumberRange(field string, options ...NumberRangeOption) Option {
 	return func(query *types.Query) {
 		rangeQuery := &types.NumberRangeQuery{}
 
@@ -163,8 +164,8 @@ func QueryNumberRange(field string, options ...NumberRangeQueryOption) QueryOpti
 	}
 }
 
-// BoolFilter sets the given query options as the "filter" clause of the bool query.
-func BoolFilter(queryOptions ...QueryOption) BoolQueryOption {
+// Filter sets the given query options as the "filter" clause of the bool query.
+func Filter(queryOptions ...Option) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		var filters []types.Query
 		// Create queries for each of the passed in query options and append to
@@ -185,8 +186,8 @@ func BoolFilter(queryOptions ...QueryOption) BoolQueryOption {
 	}
 }
 
-// BoolMust sets the given query options as the "must" clause of the bool query.
-func BoolMust(queryOptions ...QueryOption) BoolQueryOption {
+// Must sets the given query options as the "must" clause of the bool query.
+func Must(queryOptions ...Option) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		var musts []types.Query
 		// Create queries for each of the passed in query options and append to
@@ -206,8 +207,8 @@ func BoolMust(queryOptions ...QueryOption) BoolQueryOption {
 	}
 }
 
-// BoolMustNot sets the given query options as the "must_not" clause of the bool query.
-func BoolMustNot(queryOptions ...QueryOption) BoolQueryOption {
+// MustNot sets the given query options as the "must_not" clause of the bool query.
+func MustNot(queryOptions ...Option) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		var mustNots []types.Query
 		// Create queries for each of the passed in query options and append to
@@ -228,7 +229,7 @@ func BoolMustNot(queryOptions ...QueryOption) BoolQueryOption {
 }
 
 // BoolMustNot sets the given query options as the "must_not" clause of the bool query.
-func BoolShould(queryOptions ...QueryOption) BoolQueryOption {
+func Should(queryOptions ...Option) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		var shoulds []types.Query
 		// Create queries for each of the passed in query options and append to
@@ -248,9 +249,9 @@ func BoolShould(queryOptions ...QueryOption) BoolQueryOption {
 	}
 }
 
-// QueryBool constructs a bool query with the given query options and adds it to
+// Bool constructs a bool query with the given query options and adds it to
 // the query.
-func QueryBool(options ...BoolQueryOption) QueryOption {
+func Bool(options ...BoolOption) Option {
 	return func(query *types.Query) {
 		boolQuery := &types.BoolQuery{}
 
@@ -264,7 +265,8 @@ func QueryBool(options ...BoolQueryOption) QueryOption {
 	}
 }
 
-func BuildQuery(options ...QueryOption) *types.Query {
+// Build creates a query from the given options.
+func Build(options ...Option) *types.Query {
 	queryOptions := &types.Query{}
 
 	for _, option := range options {

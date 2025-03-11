@@ -16,6 +16,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
@@ -131,7 +132,7 @@ func (s *Store) All() (map[string][]byte, error) {
 
 		resp, err := elastic.NewSearchRequest(s.client.GetAPI(),
 			elastic.WithSearchIndex(s.index),
-			elastic.WithSearchQueryOptions(elastic.QuerySince("expiry", time.Now().UTC())),
+			elastic.WithSearchQueryOptions(query.Since("expiry", time.Now().UTC())),
 			elastic.WithSearchSize(searchSize),
 			elastic.WithSearchAfter(pagination),
 		).Do(sessionCtx)

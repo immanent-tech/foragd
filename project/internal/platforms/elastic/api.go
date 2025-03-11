@@ -6,7 +6,6 @@ package elastic
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -17,54 +16,23 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 )
 
+// ElasticAPI is an object that provides access to the Elasticsearch API.
 type ElasticAPI struct {
 	*typedapi.API
 	logger *slog.Logger
 }
 
+// Log can be used to write log messages decorated by the API.
 func (a *ElasticAPI) Log() *slog.Logger {
 	return a.logger
 }
 
-// NewRequest creates a new bulk requesst object with the given options.
-// After creation, document operations can be added with the AddOperations method.
-func (a *ElasticAPI) NewBulkRequest(ctx context.Context, options ...bulk.BulkOption) (chan bulk.BulkOperation, chan error) {
-	req := &bulk.BulkRequest{
-		Bulk: a.Bulk(),
-	}
-
-	for _, option := range options {
-		option(req)
-	}
-
-	bulkOps := make(chan bulk.BulkOperation)
-	errorCh := make(chan error)
-
-	go func() {
-		defer close(errorCh)
-
-		for op := range bulkOps {
-			if err := req.AddOperation(op); err != nil {
-				logging.FromContext(ctx).Warn("Could not add operation to bulk request.",
-					slog.Any("error", err))
-			}
-		}
-
-		resp, err := req.Do(ctx)
-		// Handle response.
-		switch {
-		case err != nil:
-			errorCh <- fmt.Errorf("bulk index failed: %w", err)
-		case resp.Errors:
-			errorCh <- fmt.Errorf("bulk index completed with some errors: %w", resp.Items)
-		default:
-			errorCh <- nil
-		}
-	}()
-
-	return bulkOps, errorCh
+// GetAPI returns the raw API object.
+func (a *ElasticAPI) GetAPI() *typedapi.API {
+	return a.API
 }
 
 // AddItems will bulk index the given items.
@@ -74,7 +42,7 @@ func (a *ElasticAPI) AddItems(ctx context.Context, items ...models.Item) error {
 		return ErrNoIndexInCtx
 	}
 
-	bulkOps, err := a.NewBulkRequest(ctx)
+	bulkOps, err := bulk.NewRequest(ctx, a)
 
 	go func() {
 		defer close(bulkOps)
@@ -86,7 +54,7 @@ func (a *ElasticAPI) AddItems(ctx context.Context, items ...models.Item) error {
 				slog.String("feed_id", item.FeedID),
 			)
 
-			bulkOps <- bulk.NewOp(&item,
+			bulkOps <- bulk.NewOperation(&item,
 				bulk.SetDocID(item.ID),
 				bulk.ToIndex(index),
 			)
@@ -102,7 +70,7 @@ func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
 		return ErrNoIndexInCtx
 	}
 
-	bulkOps, err := a.NewBulkRequest(ctx)
+	bulkOps, err := bulk.NewRequest(ctx, a)
 
 	go func() {
 		defer close(bulkOps)
@@ -114,7 +82,7 @@ func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
 				slog.String("item_id", feed.ID),
 			)
 
-			bulkOps <- bulk.NewOp(&feed,
+			bulkOps <- bulk.NewOperation(&feed,
 				bulk.SetDocID(feed.ID),
 				bulk.ToIndex(index),
 			)
@@ -198,7 +166,7 @@ func (a *ElasticAPI) GetNewFeedsSince(ctx context.Context, since time.Time) ([]m
 
 		resp, err := NewSearchRequest(a.API,
 			WithSearchIndex(index),
-			WithSearchQueryOptions(QuerySince("created_at", since)),
+			WithSearchQueryOptions(query.Since("created_at", since)),
 			WithSearchSize(searchSize),
 			WithSearchAfter(pagination),
 			WithSortOptions(SortByDocID("feed_id")),

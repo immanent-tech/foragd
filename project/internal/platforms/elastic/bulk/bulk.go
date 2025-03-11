@@ -4,9 +4,12 @@
 package bulk
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/bulk"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
@@ -20,16 +23,19 @@ const (
 	BulkUpdate
 )
 
-type Option[T any] func(T)
+type Client interface {
+	GetAPI() *typedapi.API
+	Log() *slog.Logger
+}
 
 // BulkOpType represents the type of bulk operation to perform.
 type BulkOpType int
 
 // BulkOpOption is a functional option for a bulk operation.
-type BulkOpOption Option[*BulkOperation]
+type BulkOpOption func(*BulkOperation)
 
 // BulkOption is a functional option for a bulk request.
-type BulkOption Option[*BulkRequest]
+type BulkOption func(*BulkRequest)
 
 // BulkRequest represents a bulk request.
 type BulkRequest struct {
@@ -107,8 +113,8 @@ func ToIndex(index string) BulkOpOption {
 	}
 }
 
-// NewOp creates a new bulk operation for a document with the given options.
-func NewOp(doc any, options ...BulkOpOption) BulkOperation {
+// NewOperation creates a new bulk operation for a document with the given options.
+func NewOperation(doc any, options ...BulkOpOption) BulkOperation {
 	operation := &BulkOperation{
 		document: doc,
 	}
@@ -118,4 +124,43 @@ func NewOp(doc any, options ...BulkOpOption) BulkOperation {
 	}
 
 	return *operation
+}
+
+// NewRequest creates a new bulk requesst object with the given options.
+// After creation, document operations can be added with the AddOperations method.
+func NewRequest(ctx context.Context, client Client, options ...BulkOption) (chan BulkOperation, chan error) {
+	req := &BulkRequest{
+		Bulk: client.GetAPI().Bulk(),
+	}
+
+	for _, option := range options {
+		option(req)
+	}
+
+	bulkOps := make(chan BulkOperation)
+	errorCh := make(chan error)
+
+	go func() {
+		defer close(errorCh)
+
+		for op := range bulkOps {
+			if err := req.AddOperation(op); err != nil {
+				client.Log().Warn("Could not add operation to bulk request.",
+					slog.Any("error", err))
+			}
+		}
+
+		resp, err := req.Do(ctx)
+		// Handle response.
+		switch {
+		case err != nil:
+			errorCh <- fmt.Errorf("bulk index failed: %w", err)
+		case resp.Errors:
+			errorCh <- fmt.Errorf("bulk index completed with some errors: %w", resp.Items)
+		default:
+			errorCh <- nil
+		}
+	}()
+
+	return bulkOps, errorCh
 }

@@ -17,6 +17,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
@@ -152,7 +153,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 		resp, err := elastic.NewSearchRequest(jq.client.GetAPI(),
 			elastic.WithSearchIndex(jq.index),
-			elastic.WithSearchQueryOptions(elastic.QueryMatchAll()),
+			elastic.WithSearchQueryOptions(query.MatchAll()),
 			elastic.WithSearchSize(searchSize),
 			elastic.WithSearchAfter(pagination),
 		).Do(schedCtx)
@@ -191,7 +192,7 @@ func (jq *JobQueue) Size() (int, error) {
 	resp, err := elastic.NewCountRequest(jq.client.GetAPI(),
 		elastic.WithCountIndex(jq.index),
 		elastic.WithCountQueryOptions(
-			elastic.QueryMatchAll(),
+			query.MatchAll(),
 		),
 	).Do(schedCtx)
 	if err != nil {
@@ -214,7 +215,7 @@ func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
 	resp, err := elastic.NewSearchRequest(jq.client.GetAPI(),
 		elastic.WithSearchIndex(jq.index),
 		elastic.WithSearchQueryOptions(
-			elastic.QueryMatchAll(),
+			query.MatchAll(),
 		),
 		elastic.WithSearchSize(1),
 		elastic.WithSortOptions(map[string]types.FieldSort{"job_next_run": {Order: &sortorder.Asc}}),

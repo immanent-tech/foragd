@@ -6,8 +6,8 @@
 openapi: "3.0.3"
 info:
   version: 1.0.0
-  title: Common Models
-  description: Common objects and fields.
+  title: Scheduler Models
+  description: Models for scheduler backend.
 paths: {}
 components:
   schemas:

@@ -12,6 +12,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
+
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 )
 
 // SearchOption is a functional option to apply to a search request.
@@ -51,9 +53,9 @@ func WithAggregations(definitions ...Aggregation) SearchOption {
 }
 
 // WithSearchQueryOptions adds the given query options (conditions) to the search.
-func WithSearchQueryOptions(options ...QueryOption) SearchOption {
+func WithSearchQueryOptions(options ...query.Option) SearchOption {
 	return func(search *search.Search) {
-		if query := BuildQuery(options...); query != nil {
+		if query := query.Build(options...); query != nil {
 			search.Query(query)
 		}
 	}
@@ -129,7 +131,7 @@ func WithCountIndex(index string) CountOption {
 }
 
 // WithCountQueryOptions adds the given query options (conditions) to the count.
-func WithCountQueryOptions(options ...QueryOption) CountOption {
+func WithCountQueryOptions(options ...query.Option) CountOption {
 	return func(count *count.Count) {
 		queryOptions := &types.Query{}
 

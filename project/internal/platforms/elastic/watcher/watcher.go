@@ -5,18 +5,22 @@ package watcher
 
 import (
 	"encoding/json"
+	"log/slog"
 	"sync"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/conditionop"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/watcher/putwatch"
-
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 )
 
+type Client interface {
+	GetAPI() *typedapi.API
+	Log() *slog.Logger
+}
+
 // WatchOption is a functional option to apply to a watch request.
-type WatchOption elastic.Option[*putwatch.Request]
+type WatchOption func(*putwatch.Request)
 
 // WatchRequest contains data for an Elasticsearch Watch.
 type WatchRequest struct {
@@ -105,7 +109,7 @@ func WithAction(name string, action types.WatcherAction) WatchOption {
 	}
 }
 
-func NewWatch(api *typedapi.API, name string, options ...WatchOption) *putwatch.PutWatch {
+func NewWatch(client Client, name string, options ...WatchOption) *putwatch.PutWatch {
 	request := &WatchRequest{
 		Request: putwatch.NewRequest(),
 	}
@@ -116,5 +120,5 @@ func NewWatch(api *typedapi.API, name string, options ...WatchOption) *putwatch.
 		option(request.Request)
 	}
 
-	return api.Watcher.PutWatch(name).Request(request.Request)
+	return client.GetAPI().Watcher.PutWatch(name).Request(request.Request)
 }

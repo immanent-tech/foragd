@@ -7,6 +7,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 )
 
 type SearchInputOption elastic.Option[*types.SearchInput]
@@ -31,9 +32,9 @@ func WithIndices(index ...string) SearchInputOption {
 }
 
 // WithQueryOptions defines the query options for the search input.
-func WithQueryOptions(options ...elastic.QueryOption) SearchInputOption {
+func WithQueryOptions(options ...query.Option) SearchInputOption {
 	return func(input *types.SearchInput) {
-		if query := elastic.BuildQuery(options...); query != nil {
+		if query := query.Build(options...); query != nil {
 			input.Request.Body.Query = *query
 		}
 	}

@@ -18,6 +18,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 )
 
 var defaultFeedFields = []string{
@@ -57,7 +58,7 @@ func GetFeedByURL(ctx context.Context, api *typedapi.API, url string) (*models.A
 	resp, err := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithFields(defaultFeedFields...),
-		WithSearchQueryOptions(QueryByTerm("feedLink", url)),
+		WithSearchQueryOptions(query.Term("feedLink", url)),
 		WithSortOptions(SortByDocID("feed_id")),
 	).Do(ctx)
 	if err != nil {
@@ -89,7 +90,7 @@ func GetFeedsByURL(ctx context.Context, api *typedapi.API, urls ...models.URL) (
 	resp, err := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithFields("feed_id", "feedLink"),
-		WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
+		WithSearchQueryOptions(query.URLs("feedLink", urls...)),
 		WithSearchSize(len(urls)),
 		WithSortOptions(SortByDocID("feed_id")),
 	).Do(ctx)
@@ -122,11 +123,11 @@ func FeedsSearch(ctx context.Context, api *typedapi.API, filters api.Filters) ([
 	resp, err := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithSearchQueryOptions(
-			QueryBool(
+			query.Bool(
 				// Match either the FeedID OR the Category.
-				BoolShould(
-					QueryByFeedIDs(filters.GetFeeds()...),
-					QueryByCategory(filters.GetCategories()...),
+				query.Should(
+					query.FeedIDs(filters.GetFeeds()...),
+					query.Categories(filters.GetCategories()...),
 				),
 			),
 		),
@@ -161,7 +162,7 @@ func GetFeedCategories(ctx context.Context, api *typedapi.API, feedIDs ...models
 	req := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithSearchQueryOptions(
-			QueryByFeedIDs(feedIDs...),
+			query.FeedIDs(feedIDs...),
 		),
 		WithSortOptions(defaultFeedSort()),
 		WithSearchSize(0),
@@ -244,7 +245,7 @@ func (c *Client) GetFeedByID(ctx context.Context, feedID models.FeedID) (*models
 
 // ItemsSearch performs a search query on feed items with the given query
 // options. It returns the raw search response.
-func ItemsSearch(ctx context.Context, api *typedapi.API, query QueryOption, filters api.Filters) (*search.Response, error) {
+func ItemsSearch(ctx context.Context, api *typedapi.API, query query.Option, filters api.Filters) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -271,7 +272,7 @@ func ItemsSearch(ctx context.Context, api *typedapi.API, query QueryOption, filt
 
 // ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
 // options. It returns the raw search response.
-func ItemsAggregation(ctx context.Context, api *typedapi.API, query QueryOption, aggregation Aggregation) (*search.Response, error) {
+func ItemsAggregation(ctx context.Context, api *typedapi.API, query query.Option, aggregation Aggregation) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -295,7 +296,7 @@ func ItemsAggregation(ctx context.Context, api *typedapi.API, query QueryOption,
 
 // ItemsCount performs a count query on feed items with the given query
 // options. It returns the raw count response.
-func ItemsCount(ctx context.Context, api *typedapi.API, query QueryOption) (*count.Response, error) {
+func ItemsCount(ctx context.Context, api *typedapi.API, query query.Option) (*count.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrCountFailed, ErrNoIndexInCtx)
