@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package models
+package scheduler
 
 import (
 	"context"
@@ -13,16 +13,10 @@ import (
 
 	"github.com/reugn/go-quartz/quartz"
 
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
-)
-
-const (
-	// defaultJobTrigger is a cron schedule to run a job every 5 minutes.
-	defaultJobTrigger = "0 */5 * * * *"
-	// FeedJobGroup is a scheduler group key for jobs to fetch new items for
-	// feeds.
-	FeedJobGroup = "get_items"
+	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 var (
@@ -38,7 +32,13 @@ var (
 	ErrNoJob            = errors.New("no job found")
 )
 
-// ScheduledJob satisfies quartz.ScheduledJob through the following methods.
+const (
+	// defaultJobTrigger is a cron schedule to run a job every 5 minutes.
+	defaultJobTrigger = "0 */5 * * * *"
+	// FeedJobGroup is a scheduler group key for jobs to fetch new items for
+	// feeds.
+	FeedJobGroup = "get_items"
+)
 
 func (sj *ScheduledJob) JobDetail() *quartz.JobDetail {
 	job, err := sj.Data.AsFeedJob()
@@ -85,17 +85,15 @@ func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
 	return serialized, nil
 }
 
-// FeedJob satisfies quartz.Job through the following methods.
-
 // Execute is called by the scheduler when the job is scheduled to run.
 func (job *FeedJob) Execute(ctx context.Context) error {
-	api := FeedManagementAPIFromCtx(ctx)
-	if api == nil {
+	esapi := FeedManagementAPIFromCtx(ctx)
+	if esapi == nil {
 		return errors.Join(ErrExecuteJobFailed, fmt.Errorf("no feed management api in context"))
 	}
 
 	// Get the time the feed items were last fetched.
-	state, err := api.GetFeedJobState(ctx, job.ID)
+	state, err := esapi.GetFeedJobState(ctx, job.ID)
 	if err != nil && !errors.Is(err, ErrNoJob) {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
@@ -114,18 +112,19 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 	if err != nil {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
-	// Cache the new items.
-	if err := api.AddItems(ctx, items...); err != nil {
-		return errors.Join(ErrExecuteJobFailed, err)
+	if len(items) > 0 {
+		if err := esapi.AddItems(ctx, items...); err != nil {
+			return errors.Join(ErrExecuteJobFailed, err)
+		}
 	}
 
 	updated := time.Now().UTC()
-	update := &APIFeedState{
+	update := &api.FeedState{
 		ID:        job.ID,
 		UpdatedAt: &updated,
 	}
 
-	if err := api.UpdateFeedJobState(ctx, update); err != nil {
+	if err := esapi.UpdateFeedJobState(ctx, update); err != nil {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
 
@@ -140,21 +139,21 @@ func (job *FeedJob) Description() string {
 // getItemsSince retrieves the feed items that are newer than the given time.
 //
 //nolint:prealloc
-func (job *FeedJob) getItemsSince(since time.Time) ([]Item, error) {
-	var items []Item
+func (job *FeedJob) getItemsSince(since time.Time) ([]models.Item, error) {
+	var items []models.Item
 
-	details, err := parser.ParseURL(job.URL)
+	details, err := models.Parser.ParseURL(job.URL)
 	if err != nil {
-		return nil, errors.Join(ErrParseFeed, err)
+		return nil, errors.Join(models.ErrParseFeed, err)
 	}
 
 	for _, i := range details.Items {
-		item, err := NewFeedItem(job.ID, i)
+		item, err := models.NewFeedItem(job.ID, i)
 		if err != nil {
 			continue
 		}
 
-		if !item.isNewer(since) {
+		if !item.IsNewer(since) {
 			continue
 		}
 
@@ -165,7 +164,7 @@ func (job *FeedJob) getItemsSince(since time.Time) ([]Item, error) {
 }
 
 // NewFeedJob creates a job that can be scheduled from the given feed data.
-func NewFeedJob(feed APIFeed) (*ScheduledJob, error) {
+func NewFeedJob(feed models.APIFeed) (*ScheduledJob, error) {
 	job := &ScheduledJob{
 		CreatedAt: time.Now().UTC(),
 		Schedule:  defaultJobTrigger,

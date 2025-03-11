@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package queue
+package scheduler
 
 import (
 	"context"
@@ -16,7 +16,6 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
-	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
@@ -60,13 +59,13 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 		slog.Time("next_run", time.Unix(0, job.NextRunTime())),
 	)
 
-	data, err := models.MarshalJob(job)
+	data, err := MarshalJob(job)
 	if err != nil {
 		return errors.Join(ErrPushJobFailed, err)
 	}
 
 	// Add to Elasticsearch.
-	_, err = jq.client.NewDocCreateRequest(
+	_, err = elastic.NewDocCreateRequest(jq.client.GetAPI(),
 		jq.index,
 		job.JobDetail().JobKey().String(),
 		data,
@@ -107,7 +106,7 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 // Get returns the scheduled job with the specified key without removing it
 // from the queue.
 func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
-	resp, err := jq.client.NewGetRequest(
+	resp, err := elastic.NewGetRequest(jq.client.GetAPI(),
 		jq.index,
 		jobKey.String(),
 	).Do(schedCtx)
@@ -115,7 +114,7 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 		return nil, errors.Join(ErrGetJobFailed, err)
 	}
 
-	job, err := elastic.ExtractSource[models.ScheduledJob](resp.Source_)
+	job, err := elastic.ExtractSource[ScheduledJob](resp.Source_)
 	if err != nil {
 		return nil, errors.Join(ErrGetJobFailed, err)
 	}
@@ -141,17 +140,17 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]) ([]quartz.ScheduledJob, error) {
 	searchSize := 1000
 	pagination := make([]types.FieldValue, 0)
-	allJobs := make([]models.ScheduledJob, 0)
+	allJobs := make([]ScheduledJob, 0)
 	jobs := make([]quartz.ScheduledJob, 0)
 
 	// Loop until we've paginated through all results.
 	for {
 		var (
-			jobs     []models.ScheduledJob
+			jobs     []ScheduledJob
 			warnings error
 		)
 
-		resp, err := jq.client.NewSearchRequest(
+		resp, err := elastic.NewSearchRequest(jq.client.GetAPI(),
 			elastic.WithSearchIndex(jq.index),
 			elastic.WithSearchQueryOptions(elastic.QueryMatchAll()),
 			elastic.WithSearchSize(searchSize),
@@ -165,7 +164,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 			return nil, nil
 		}
 		// Loop through this set of results.
-		jobs, pagination, warnings = elastic.ExtractSourceFromHits[models.ScheduledJob](resp.Hits.Hits)
+		jobs, pagination, warnings = elastic.ExtractSourceFromHits[ScheduledJob](resp.Hits.Hits)
 		if warnings != nil {
 			jq.logger.Warn("Could not extract all jobs.",
 				slog.Any("warnings", warnings))
@@ -189,7 +188,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 // Size returns the size of the job queue.
 func (jq *JobQueue) Size() (int, error) {
-	resp, err := jq.client.NewCountRequest(
+	resp, err := elastic.NewCountRequest(jq.client.GetAPI(),
 		elastic.WithCountIndex(jq.index),
 		elastic.WithCountQueryOptions(
 			elastic.QueryMatchAll(),
@@ -212,7 +211,7 @@ func (jq *JobQueue) Clear() error {
 }
 
 func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
-	resp, err := jq.client.NewSearchRequest(
+	resp, err := elastic.NewSearchRequest(jq.client.GetAPI(),
 		elastic.WithSearchIndex(jq.index),
 		elastic.WithSearchQueryOptions(
 			elastic.QueryMatchAll(),
@@ -229,7 +228,7 @@ func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
 	}
 
 	// Loop through this set of results.
-	nextJob, err := elastic.ExtractSource[models.ScheduledJob](resp.Hits.Hits[0].Source_)
+	nextJob, err := elastic.ExtractSource[ScheduledJob](resp.Hits.Hits[0].Source_)
 	if err != nil {
 		return nil, errors.Join(ErrParseJobFailed, err)
 	}
@@ -241,7 +240,7 @@ func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
 
 // delete removes the job doc from Elasticsearch.
 func (jq *JobQueue) delete(id string) error {
-	_, err := jq.client.NewDocDeleteRequest(
+	_, err := elastic.NewDocDeleteRequest(jq.client.GetAPI(),
 		jq.index,
 		id,
 		refresh.True,

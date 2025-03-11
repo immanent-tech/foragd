@@ -9,8 +9,10 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 
+	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/session"
 )
@@ -23,7 +25,7 @@ var (
 )
 
 // GetUser fetches the user record from Elasticsearch.
-func (c *Client) GetUser(ctx context.Context) (*models.User, error) {
+func GetUser(ctx context.Context, api *typedapi.API) (*models.User, error) {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrGetFailed, ErrNoIndexInCtx)
@@ -34,7 +36,7 @@ func (c *Client) GetUser(ctx context.Context) (*models.User, error) {
 		return nil, errors.Join(ErrGetFailed, ErrNoUserCtx, err)
 	}
 
-	resp, err := c.NewGetRequest(index, userID).Do(ctx)
+	resp, err := NewGetRequest(api, index, userID).Do(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrGetFailed, err)
 	}
@@ -60,13 +62,13 @@ func (c *Client) GetUser(ctx context.Context) (*models.User, error) {
 }
 
 // UserExists checks if a user record exists in Elasticsearch for the given user ID.
-func (c *Client) UserExists(ctx context.Context, userID models.UserID) (bool, error) {
+func UserExists(ctx context.Context, api *typedapi.API, userID models.UserID) (bool, error) {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return false, errors.Join(ErrExistsFailed, ErrNoIndexInCtx)
 	}
 
-	found, err := c.NewDocExistsRequest(index, userID).Do(ctx)
+	found, err := NewDocExistsRequest(api, index, userID).Do(ctx)
 	if err != nil {
 		return false, errors.Join(ErrExistsFailed, err)
 	}
@@ -75,7 +77,7 @@ func (c *Client) UserExists(ctx context.Context, userID models.UserID) (bool, er
 }
 
 // AddUser creates a new user record.
-func (c *Client) AddUser(ctx context.Context, userID models.UserID) error {
+func AddUser(ctx context.Context, api *typedapi.API, userID models.UserID) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrCreateUserFailed, ErrNoIndexInCtx)
@@ -83,12 +85,12 @@ func (c *Client) AddUser(ctx context.Context, userID models.UserID) error {
 
 	created := time.Now().UTC()
 
-	c.Logger.Debug("adding user.", slog.Any("user", &models.User{
+	logging.FromContext(ctx).Debug("adding user.", slog.Any("user", &models.User{
 		ID:        userID,
 		CreatedAt: created,
 	}))
 
-	resp, err := c.NewDocCreateRequest(
+	resp, err := NewDocCreateRequest(api,
 		index,
 		userID,
 		&models.User{
@@ -101,14 +103,14 @@ func (c *Client) AddUser(ctx context.Context, userID models.UserID) error {
 		return errors.Join(ErrCreateUserFailed, err)
 	}
 
-	c.Logger.Debug("Added user.",
+	logging.FromContext(ctx).Debug("Added user.",
 		slog.String("result", resp.Result.String()),
 		slog.Int64("version", resp.Version_))
 
 	return nil
 }
 
-func (c *Client) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) error {
+func UpdateUser(ctx context.Context, api *typedapi.API, id models.UserID, partialUpdate map[string]any) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)
@@ -118,7 +120,7 @@ func (c *Client) UpdateUser(ctx context.Context, id models.UserID, partialUpdate
 	partialUpdate["updated_at"] = time.Now().UTC()
 
 	// Update the user in the store with the new list of read items.
-	resp, err := c.NewDocUpdateRequest(index, id,
+	resp, err := NewDocUpdateRequest(api, index, id,
 		WithPartialDocUpdate(partialUpdate),
 	).Do(ctx)
 	if err != nil {

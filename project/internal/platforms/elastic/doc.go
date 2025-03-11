@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"log/slog"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/create"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/delete"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/exists"
@@ -77,7 +78,7 @@ func WithForcedRefresh() DocUpdateOption {
 }
 
 // NewDocUpdateRequest creates a new update request with the given options.
-func (c *Client) NewDocUpdateRequest(index, id string, options ...DocUpdateOption) *update.Update {
+func NewDocUpdateRequest(api *typedapi.API, index, id string, options ...DocUpdateOption) *update.Update {
 	req := &DocUpdateRequest{
 		Request: update.NewRequest(),
 	}
@@ -86,20 +87,20 @@ func (c *Client) NewDocUpdateRequest(index, id string, options ...DocUpdateOptio
 		option(req)
 	}
 
-	return c.API.Update(index, id).Request(req.Request)
+	return api.Update(index, id).Request(req.Request)
 }
 
 // NewDocExistsRequest creates a new document exists request.
-func (c *Client) NewDocExistsRequest(index, id string) *exists.Exists {
-	return c.API.Exists(index, id)
+func NewDocExistsRequest(api *typedapi.API, index, id string) *exists.Exists {
+	return api.Exists(index, id)
 }
 
 // NewExistsRequest creates a new document index request.
-func (c *Client) NewDocCreateRequest(index, id string, doc any, refreshValue refresh.Refresh) *create.Create {
-	return c.API.Create(index, id).Document(doc).Refresh(refreshValue)
+func NewDocCreateRequest(api *typedapi.API, index, id string, doc any, refreshValue refresh.Refresh) *create.Create {
+	return api.Create(index, id).Document(doc).Refresh(refreshValue)
 }
 
 // NewExistsRequest creates a new document delete request.
-func (c *Client) NewDocDeleteRequest(index, id string, refreshValue refresh.Refresh) *delete.Delete {
-	return c.API.Delete(index, id).Refresh(refreshValue)
+func NewDocDeleteRequest(api *typedapi.API, index, id string, refreshValue refresh.Refresh) *delete.Delete {
+	return api.Delete(index, id).Refresh(refreshValue)
 }

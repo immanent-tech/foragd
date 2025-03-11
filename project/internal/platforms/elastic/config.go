@@ -87,7 +87,7 @@ func genConfig(logger *slog.Logger, environment string) (*elasticsearch.Config, 
 
 		generated = &elasticsearch.Config{
 			Addresses: elasticConfig.Development.URLs,
-			Logger:    &elastictransport.ColorLogger{Output: os.Stderr},
+			Logger:    &elastictransport.ColorLogger{EnableRequestBody: true, EnableResponseBody: true, Output: os.Stderr},
 			Username:  elasticConfig.Development.Username,
 			Password:  elasticConfig.Development.Password,
 			CACert:    caFileData,
@@ -95,9 +95,7 @@ func genConfig(logger *slog.Logger, environment string) (*elasticsearch.Config, 
 		}
 	case "production":
 		generated = &elasticsearch.Config{
-			Logger: &ESLogger{
-				Logger: logger,
-			},
+			Logger:    &elastictransport.ColorLogger{Output: os.Stderr},
 			CloudID:   elasticConfig.Production.CloudID,
 			APIKey:    elasticConfig.Production.APIKey,
 			Transport: defaultTransportConfig,

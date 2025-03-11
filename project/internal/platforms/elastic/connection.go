@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 
@@ -46,10 +47,20 @@ var defaultTransportConfig = &http.Transport{
 }
 
 type Client struct {
-	conn       *elasticsearch.TypedClient
-	API        *typedapi.API
-	Logger     *slog.Logger
-	bulkStream chan []*BulkOperation
+	conn   *elasticsearch.TypedClient
+	Logger *slog.Logger
+}
+
+type API struct {
+
+}
+
+func (c *Client) GetTransport() *elastictransport.Interface {
+	return &c.conn.Transport
+}
+
+func (c *Client) GetAPI() *typedapi.API {
+	return typedapi.New(c.conn)
 }
 
 func Connect(ctx context.Context) (*Client, error) {
@@ -66,17 +77,11 @@ func Connect(ctx context.Context) (*Client, error) {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
 
-	client := &Client{API: typedapi.New(esclient), conn: esclient, Logger: logger}
+	client := &Client{conn: esclient, Logger: logger}
 
 	// if err := client.Setup(ctx); err != nil {
 	// 	return nil, fmt.Errorf("%w: %w", ErrSetupFailed, err)
 	// }
-
-	client.bulkStream = make(chan []*BulkOperation)
-	go func() {
-		defer close(client.bulkStream)
-		client.bulkStreamWorker(ctx)
-	}()
 
 	return client, nil
 }

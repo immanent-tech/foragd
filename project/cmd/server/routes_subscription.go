@@ -57,13 +57,13 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Find any existing feed with the subscription URL or create a new feed.
-	feedID, err := models.FindOrAddFeed(ctx, s.API.elastic, newSubscription.URL)
+	feedID, err := elastic.FindOrAddFeed(ctx, s.DataAPI().GetAPI(), newSubscription.URL)
 	if err != nil {
 		addSubscriptionError(ctx, res, newSubscription, "Unable to verify URL maps to a feed.")
 		return
 	}
 
-	err = elastic.UserActionAddSubscription(ctx, user, s.API.elastic, feedID, newSubscription)
+	err = elastic.UserActionAddSubscription(ctx, s.DataAPI().GetAPI(), user, feedID, newSubscription)
 	if err != nil {
 		addSubscriptionError(ctx, res, newSubscription, "There was a temporary problem adding a subscription. Please try again.")
 		return

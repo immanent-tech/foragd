@@ -82,7 +82,9 @@
     "assets/scripts",
     "schema/server",
     "schema/api",
-    "server"
+    "server",
+    "classes/width",
+    "config"
   ],
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",

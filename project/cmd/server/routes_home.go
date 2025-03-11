@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi"
+
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -70,7 +72,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 	}
 
-	displayFeeds(s.DataAPI(), res, req, *filters)
+	displayFeeds(s.DataAPI().GetAPI(), res, req, *filters)
 }
 
 func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
@@ -89,13 +91,13 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Mark the feeds.
-	if err := s.DataAPI().UserActionMarkFeeds(req.Context(), marks.Mark, marks.Feeds...); err != nil {
+	if err := elastic.UserActionMarkFeeds(req.Context(), s.DataAPI().GetAPI(), marks.Mark, marks.Feeds...); err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}
 	// Reload the home page.
-	displayFeeds(s.DataAPI(), res, req, *filters)
+	displayFeeds(s.DataAPI().GetAPI(), res, req, *filters)
 }
 
 // Valid checks that the MarkFeeds object is valid.
@@ -108,9 +110,9 @@ func (f *MarkFeeds) Valid() bool {
 }
 
 // displayFeeds handles showing a list of Feeds as cards with the given filters applied.
-func displayFeeds(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.Filters) {
+func displayFeeds(api *typedapi.API, res http.ResponseWriter, req *http.Request, filters api.Filters) {
 	// Get feeds.
-	feeds, err := api.UserActionGetFeeds(req.Context(), filters)
+	feeds, err := elastic.UserActionGetFeeds(req.Context(), api, filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
 			slog.Any("error", err))
@@ -137,7 +139,7 @@ func displayFeeds(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 	}
 
 	// Retrieve the feed categories and the unread counts.
-	categories, err := api.UserActionGetFeedCategories(req.Context())
+	categories, err := elastic.UserActionGetFeedCategories(req.Context(), api)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
 			slog.Any("error", err))
@@ -159,7 +161,7 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 		return
 	}
 
-	displayItems(s.DataAPI(), res, req, *filters)
+	displayItems(s.DataAPI().GetAPI(), res, req, *filters)
 }
 
 func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
@@ -178,13 +180,13 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Mark the feeds.
-	if err := s.DataAPI().UserActionMarkItems(req.Context(), marks.Mark, marks.Items...); err != nil {
+	if err := elastic.UserActionMarkItems(req.Context(), s.DataAPI().GetAPI(), marks.Mark, marks.Items...); err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}
 	// Reload page.
-	displayItems(s.DataAPI(), res, req, *filters)
+	displayItems(s.DataAPI().GetAPI(), res, req, *filters)
 }
 
 // Valid checks that the MarkItems object is valid.
@@ -197,9 +199,9 @@ func (f *MarkItems) Valid() bool {
 }
 
 // displayItems handles showing list of Items as cards with the given filters applied.
-func displayItems(api *elastic.Client, res http.ResponseWriter, req *http.Request, filters api.Filters) {
+func displayItems(api *typedapi.API, res http.ResponseWriter, req *http.Request, filters api.Filters) {
 	// Get all items.
-	items, pagination, err := api.UserActionGetItems(req.Context(), filters)
+	items, pagination, err := elastic.UserActionGetItems(req.Context(), api, filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
 			slog.Any("error", err))
@@ -208,7 +210,7 @@ func displayItems(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 		return
 	}
 	// Get item categories.
-	categories, err := api.UserActionGetItemCategories(req.Context(), filters)
+	categories, err := elastic.UserActionGetItemCategories(req.Context(), api, filters)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Could not retrieve items.",
 			slog.Any("error", err))
@@ -242,7 +244,7 @@ func displayItems(api *elastic.Client, res http.ResponseWriter, req *http.Reques
 }
 
 func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed models.FeedID, item models.ItemID) {
-	details, found, err := s.API.elastic.UserActionGetItem(req.Context(), feed, item)
+	details, found, err := elastic.UserActionGetItem(req.Context(), s.DataAPI().GetAPI(), feed, item)
 	if err != nil || !found {
 		logging.FromContext(req.Context()).Warn("Could not retrieve item.",
 			slog.Any("error", err))
@@ -278,7 +280,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 // HandleMarkItem marks a single item.
 func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, mark api.Mark) {
 	// Mark item.
-	if err := s.DataAPI().UserActionMarkItems(req.Context(), mark, itemID); err != nil {
+	if err := elastic.UserActionMarkItems(req.Context(), s.DataAPI().GetAPI(), mark, itemID); err != nil {
 		logging.FromContext(req.Context()).Error("Mark item failed.",
 			slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)

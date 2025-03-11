@@ -19,7 +19,7 @@ import (
 // Ensures we statisfy the ServerInterface interface.
 // var _ panes.Feed = (*APIFeed)(nil)
 
-var parser = gofeed.NewParser()
+var Parser = gofeed.NewParser()
 
 var (
 	ErrParseFeed       = errors.New("could not parse feed")
@@ -30,7 +30,7 @@ var (
 
 // GetItemsSince retrieves the feed items that are newer than the given time.
 func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
-	details, err := parser.ParseURL(f.FeedURL)
+	details, err := Parser.ParseURL(f.FeedURL)
 	if err != nil {
 		logging.FromContext(ctx).Warn("Problem getting feed details.", slog.Any("error", err))
 	}
@@ -44,7 +44,7 @@ func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 			continue
 		}
 
-		if !item.isNewer(since) {
+		if !item.IsNewer(since) {
 			continue
 		}
 
@@ -156,42 +156,9 @@ func (f *APIFeed) SetUserUnreadCount(count int) {
 	f.UserProperties.UnreadCount = &count
 }
 
-func AddFeedByURL(ctx context.Context, api FeedManagementAPI, url URL) (FeedID, error) {
-	feed, err := newFeedFromURL(ctx, url)
-	if err != nil {
-		return "", err
-	}
-	// Add the feed.
-	if err = api.AddFeeds(ctx, *feed); err != nil {
-		return "", errors.Join(ErrAddFeed, err)
-	}
-
-	return feed.ID, nil
-}
-
-func FindOrAddFeed(ctx context.Context, api FeedManagementAPI, url URL) (FeedID, error) {
-	var feedID FeedID
-	// Find any existing feed with the given subscription URL.
-	feed, err := api.GetFeedByURL(ctx, url)
-	if err != nil && !errors.Is(err, ErrNoFeed) {
-		return "", errors.Join(ErrBackend, err)
-	}
-	// If there is no existing feed, create a new feed.
-	if errors.Is(err, ErrNoFeed) {
-		feedID, err = AddFeedByURL(ctx, api, url)
-		if err != nil {
-			return "", errors.Join(ErrBackend, err)
-		}
-	} else {
-		feedID = feed.ID
-	}
-
-	return feedID, nil
-}
-
-// newFeedFromURL creates a new feed model from the given URL as its canonical
+// NewFeedFromURL creates a new feed model from the given URL as its canonical
 // data source.
-func newFeedFromURL(ctx context.Context, url string) (*Feed, error) {
+func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 	var err error
 
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
@@ -202,7 +169,7 @@ func newFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 		return nil, fmt.Errorf("%w (%s)", err, url)
 	}
 
-	details, err := parser.ParseURLWithContext(url, ctx)
+	details, err := Parser.ParseURLWithContext(url, ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w (%s)", ErrParseFeed, err, url)
 	}

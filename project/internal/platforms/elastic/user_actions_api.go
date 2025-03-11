@@ -12,9 +12,11 @@ import (
 	"slices"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/api"
+	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -25,7 +27,7 @@ var ErrUserActionFailed = errors.New("user action failed")
 var ErrUserAlreadySubscribed = errors.New("user already subscribed")
 
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
-func (c *Client) UserActionMarkItems(ctx context.Context, mark api.Mark, ids ...models.ItemID) error {
+func UserActionMarkItems(ctx context.Context, esapi *typedapi.API, mark api.Mark, ids ...models.ItemID) error {
 	if mark != api.MarkUnread && mark != api.MarkRead {
 		return fmt.Errorf("unsupported mark")
 	}
@@ -40,7 +42,7 @@ func (c *Client) UserActionMarkItems(ctx context.Context, mark api.Mark, ids ...
 		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)
 	}
 
-	resp, err := c.NewSearchRequest(
+	resp, err := NewSearchRequest(esapi,
 		WithSearchIndex(index),
 		WithFields("feed_id"),
 		WithSearchQueryOptions(
@@ -56,7 +58,7 @@ func (c *Client) UserActionMarkItems(ctx context.Context, mark api.Mark, ids ...
 
 	feedIDs, warnings := ExtractFieldFromHits[models.FeedID]("feed_id", resp.Hits.Hits)
 	if warnings != nil {
-		c.Logger.Warn("Problems occurred while extracting source from docs.",
+		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", warnings))
 	}
 
@@ -68,12 +70,12 @@ func (c *Client) UserActionMarkItems(ctx context.Context, mark api.Mark, ids ...
 		}
 
 		if err := user.MarkItem(feedID, itemID, models.State(mark)); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
-			c.Logger.Warn("Could not mark item read", slog.Any("error", err))
+			logging.FromContext(ctx).Warn("Could not mark item read", slog.Any("error", err))
 		}
 	}
 
 	// Update the user object.
-	return c.UpdateUser(ctx, user.ID, map[string]any{
+	return UpdateUser(ctx, esapi, user.ID, map[string]any{
 		"feed_item_states": user.FeedItemStates,
 		"updated_at":       time.Now().UTC(),
 	})
@@ -81,7 +83,7 @@ func (c *Client) UserActionMarkItems(ctx context.Context, mark api.Mark, ids ...
 
 // UserActionMarkFeedsRead will mark the given feeds with the given state for
 // the user.
-func (c *Client) UserActionMarkFeeds(ctx context.Context, mark api.Mark, feedIDs ...models.FeedID) error {
+func UserActionMarkFeeds(ctx context.Context, esapi *typedapi.API, mark api.Mark, feedIDs ...models.FeedID) error {
 	if mark != api.MarkRead && mark != api.MarkUnread {
 		return errors.Join(ErrUserActionFailed, errors.New("unsupported mark action"))
 	}
@@ -107,12 +109,12 @@ func (c *Client) UserActionMarkFeeds(ctx context.Context, mark api.Mark, feedIDs
 	// Mark all items read in the user object. Any items already marked read are ignored.
 	for _, feed := range feedIDs {
 		if err := user.MarkFeedRead(feed, timestamp); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
-			c.Logger.Warn("Could not mark item read", slog.Any("error", err))
+			logging.FromContext(ctx).Warn("Could not mark item read", slog.Any("error", err))
 		}
 	}
 
 	// Update the user object.
-	return c.UpdateUser(ctx, user.ID, map[string]any{
+	return UpdateUser(ctx, esapi, user.ID, map[string]any{
 		"feed_item_states": user.FeedItemStates,
 		"subscriptions":    user.Subscriptions,
 		"updated_at":       time.Now().UTC(),
@@ -122,7 +124,7 @@ func (c *Client) UserActionMarkFeeds(ctx context.Context, mark api.Mark, feedIDs
 // GetItem retrieves the specified item with the given id and from the given
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
-func (c *Client) UserActionGetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (models.APIItem, bool, error) {
+func UserActionGetItem(ctx context.Context, api *typedapi.API, feedID models.FeedID, itemID models.ItemID) (models.APIItem, bool, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return models.APIItem{}, false, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -137,7 +139,7 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID models.FeedID, it
 		return models.APIItem{}, false, ErrNoUserCtx
 	}
 
-	req := c.NewSearchRequest(
+	req := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
@@ -175,7 +177,7 @@ func (c *Client) UserActionGetItem(ctx context.Context, feedID models.FeedID, it
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (c *Client) UserActionGetItems(ctx context.Context, filters api.Filters) ([]*models.APIItem, api.Pagination, error) {
+func UserActionGetItems(ctx context.Context, api *typedapi.API, filters api.Filters) ([]*models.APIItem, api.Pagination, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, "", errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -191,14 +193,14 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters api.Filters) ([
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	resp, err := c.ItemsSearch(ctx, query, filters)
+	resp, err := ItemsSearch(ctx, api, query, filters)
 	if err != nil {
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
 	// Extract items and pagination values.
 	items, lastSortValue, warnings := ExtractSourceFromHits[*models.APIItem](resp.Hits.Hits)
 	if warnings != nil {
-		c.Logger.Warn("Problems occurred while extracting source from docs.",
+		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
 	}
 	// Encode the pagination value.
@@ -219,7 +221,7 @@ func (c *Client) UserActionGetItems(ctx context.Context, filters api.Filters) ([
 
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func (c *Client) UserActionGetFeeds(ctx context.Context, filters api.Filters) ([]*models.APIFeed, error) {
+func UserActionGetFeeds(ctx context.Context, esapi *typedapi.API, filters api.Filters) ([]*models.APIFeed, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed
@@ -228,14 +230,14 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters api.Filters) ([
 	filters.SetFeeds(filterSubscribedFeeds(user, filters)...)
 
 	// Get the feed details for the subscribed feeds.
-	feeds, err := c.FeedsSearch(ctx, filters)
+	feeds, err := FeedsSearch(ctx, esapi, filters)
 	if err != nil {
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
 	filters.Categories = nil
 	// Get the unread counts for the feeds.
-	countResults, err := c.ItemsAggregation(ctx, unreadFeedItemsQuery(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
+	countResults, err := ItemsAggregation(ctx, esapi, unreadFeedItemsQuery(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
 	if err != nil {
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
@@ -282,7 +284,7 @@ func (c *Client) UserActionGetFeeds(ctx context.Context, filters api.Filters) ([
 	return validFeeds, nil
 }
 
-func (c *Client) UserActionGetFeed(ctx context.Context, feedID models.FeedID) (*models.APIFeed, error) {
+func (c *Client) UserActionGetFeed(ctx context.Context, esapi *typedapi.API, feedID models.FeedID) (*models.APIFeed, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed
@@ -315,7 +317,7 @@ func (c *Client) UserActionGetFeed(ctx context.Context, feedID models.FeedID) (*
 		),
 	)
 
-	resp, err := c.ItemsCount(ctx, query)
+	resp, err := ItemsCount(ctx, esapi, query)
 	if err != nil {
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
@@ -326,7 +328,7 @@ func (c *Client) UserActionGetFeed(ctx context.Context, feedID models.FeedID) (*
 	return feed, nil
 }
 
-func (c *Client) UserActionGetFeedCategories(ctx context.Context) ([]api.CategoryCount, error) {
+func UserActionGetFeedCategories(ctx context.Context, esapi *typedapi.API) ([]api.CategoryCount, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed
@@ -351,7 +353,7 @@ func (c *Client) UserActionGetFeedCategories(ctx context.Context) ([]api.Categor
 	return categoryCounts, nil
 }
 
-func (c *Client) UserActionGetItemCategories(ctx context.Context, filters api.Filters) ([]api.CategoryCount, error) {
+func UserActionGetItemCategories(ctx context.Context, esapi *typedapi.API, filters api.Filters) ([]api.CategoryCount, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrGetUserFailed
@@ -360,7 +362,7 @@ func (c *Client) UserActionGetItemCategories(ctx context.Context, filters api.Fi
 	// Unset the category filter.
 	filters.Categories = nil
 
-	resp, err := c.ItemsAggregation(ctx, generateItemsQueryClause(user, filters), NewTermsAggregation("categories", "categories.raw"))
+	resp, err := ItemsAggregation(ctx, esapi, generateItemsQueryClause(user, filters), NewTermsAggregation("categories", "categories.raw"))
 	if err != nil {
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
@@ -382,7 +384,7 @@ func (c *Client) UserActionGetItemCategories(ctx context.Context, filters api.Fi
 }
 
 // AddSubscription adds a new subscription to the user object.
-func UserActionAddSubscription(ctx context.Context, user *models.User, client *Client, feedID models.FeedID, details *api.SubscriptionRequest) error {
+func UserActionAddSubscription(ctx context.Context, esapi *typedapi.API, user *models.User, feedID models.FeedID, details *api.SubscriptionRequest) error {
 	if user.IsSubscribed(feedID) {
 		return ErrUserAlreadySubscribed
 	}
@@ -397,7 +399,7 @@ func UserActionAddSubscription(ctx context.Context, user *models.User, client *C
 		"subscriptions": user.Subscriptions,
 	}
 
-	if err := client.UpdateUser(ctx, user.GetID(), partialUpdate); err != nil {
+	if err := UpdateUser(ctx, esapi, user.GetID(), partialUpdate); err != nil {
 		return errors.Join(models.ErrUpdateUser, err)
 	}
 

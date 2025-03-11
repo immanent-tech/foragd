@@ -263,3 +263,17 @@ func QueryBool(options ...BoolQueryOption) QueryOption {
 		}
 	}
 }
+
+func BuildQuery(options ...QueryOption) *types.Query {
+	queryOptions := &types.Query{}
+
+	for _, option := range options {
+		option(queryOptions)
+	}
+
+	if !reflect.DeepEqual(queryOptions, &types.Query{}) {
+		return queryOptions
+	}
+
+	return nil
+}

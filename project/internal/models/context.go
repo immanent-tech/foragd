@@ -34,19 +34,6 @@ func UserFromCtx(ctx context.Context) (*User, bool) {
 	return user, true
 }
 
-func FeedManagementAPIToCtx(ctx context.Context, api FeedManagementAPI) context.Context {
-	return context.WithValue(ctx, feedManagementAPICtxKey, api)
-}
-
-func FeedManagementAPIFromCtx(ctx context.Context) FeedManagementAPI {
-	api, found := ctx.Value(feedManagementAPICtxKey).(FeedManagementAPI)
-	if !found {
-		return nil
-	}
-
-	return api
-}
-
 // func PageNavigationToCtx(ctx context.Context, navigation *APIPageNavigation) context.Context {
 // 	return context.WithValue(ctx, pageNavigationCtxKey, navigation)
 // }

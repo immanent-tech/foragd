@@ -79,9 +79,9 @@ func (i *APIItem) SetUserItemState(state State) {
 	i.UserProperties.State = &state
 }
 
-// isNewer returns a boolean indicating whether this item has been updated or
+// IsNewer returns a boolean indicating whether this item has been updated or
 // published after the given time.
-func (i *Item) isNewer(since time.Time) bool {
+func (i *Item) IsNewer(since time.Time) bool {
 	var itemTime time.Time
 
 	if i.UpdatedParsed != nil {

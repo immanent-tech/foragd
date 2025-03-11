@@ -19,8 +19,8 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
-	store "github.com/joshuar/go-feed-me/internal/platforms/elastic/implementations/session"
 	"github.com/joshuar/go-feed-me/internal/session"
+	store "github.com/joshuar/go-feed-me/internal/session/store"
 )
 
 const (
@@ -113,7 +113,7 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		middlewares.CORS(config.Environment()),
 		middlewares.CSP(serverConfig.CSP),
 		middlewares.ElasticMiddleware(),
-		middlewares.RequireAuthentication(protectedRoutes, svr.API.elastic),
+		middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI().GetAPI()),
 		middlewares.RequireHTMX(htmxOnlyRoutes),
 		session.LoadAndSave())
 

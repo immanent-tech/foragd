@@ -239,3 +239,16 @@ components:
         count:
           description: is the number of objects with this Category.
           type: integer
+    FeedState:
+      description: tracks the state of a feed.
+      type: object
+      required:
+        - ID
+        - URL
+      properties:
+        ID:
+          $ref: "models.yaml#/components/schemas/FeedID"
+        URL:
+          $ref: "models.yaml#/components/schemas/FeedURL"
+        updated_at:
+          $ref: "models.yaml#/components/schemas/UpdatedAt"

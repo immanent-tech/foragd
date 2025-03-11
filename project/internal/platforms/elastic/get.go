@@ -4,6 +4,7 @@
 package elastic
 
 import (
+	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
@@ -48,8 +49,8 @@ func GetFromIndex(index string) MGetOption {
 }
 
 // NewMGetRequest creates a new mget object with the given options.
-func (c *Client) NewMGetRequest(options ...MGetOption) *mget.Mget {
-	req := c.API.Mget()
+func NewMGetRequest(api *typedapi.API, options ...MGetOption) *mget.Mget {
+	req := api.Mget()
 
 	for _, option := range options {
 		option(req)
@@ -58,6 +59,6 @@ func (c *Client) NewMGetRequest(options ...MGetOption) *mget.Mget {
 	return req
 }
 
-func (c *Client) NewGetRequest(index, id string) *get.Get {
-	return c.API.Get(index, id)
+func NewGetRequest(api *typedapi.API, index, id string) *get.Get {
+	return api.Get(index, id)
 }

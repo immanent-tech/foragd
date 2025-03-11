@@ -44,7 +44,7 @@ type Store struct {
 // session store. If the token does not exist then Delete should be a no-op
 // and return nil (not an error).
 func (s *Store) Delete(token string) error {
-	_, err := s.client.NewDocDeleteRequest(
+	_, err := elastic.NewDocDeleteRequest(s.client.GetAPI(),
 		s.index,
 		token,
 		refresh.True,
@@ -62,7 +62,7 @@ func (s *Store) Delete(token string) error {
 // or malformed tokens should result in a found return value of false and a
 // nil err value. The err return value should be used for system errors only.
 func (s *Store) Find(token string) ([]byte, bool, error) {
-	resp, err := s.client.NewGetRequest(
+	resp, err := elastic.NewGetRequest(s.client.GetAPI(),
 		s.index,
 		token,
 	).Do(sessionCtx)
@@ -100,7 +100,7 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 		slog.String("token", session.Token),
 		slog.Time("expiry", session.Expiry))
 
-	_, err := s.client.NewDocUpdateRequest(
+	_, err := elastic.NewDocUpdateRequest(s.client.GetAPI(),
 		s.index,
 		token,
 		elastic.WithDocUpdate(session, true),
@@ -129,7 +129,7 @@ func (s *Store) All() (map[string][]byte, error) {
 			warnings error
 		)
 
-		resp, err := s.client.NewSearchRequest(
+		resp, err := elastic.NewSearchRequest(s.client.GetAPI(),
 			elastic.WithSearchIndex(s.index),
 			elastic.WithSearchQueryOptions(elastic.QuerySince("expiry", time.Now().UTC())),
 			elastic.WithSearchSize(searchSize),

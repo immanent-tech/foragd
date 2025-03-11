@@ -6,18 +6,19 @@ package scheduler
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"sync"
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
 
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
-	queue "github.com/joshuar/go-feed-me/internal/platforms/elastic/implementations/scheduler"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
@@ -26,14 +27,16 @@ var (
 	ErrFetchNewFeedsFailed = errors.New("could not fetch new feeds")
 )
 
-type databaseAPI interface {
+type DataAPI interface {
 	GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error)
+	GetFeedJobState(ctx context.Context, feedID models.FeedID) (*api.FeedState, error)
+	UpdateFeedJobState(ctx context.Context, state *api.FeedState) error
 	AddItems(ctx context.Context, items ...models.Item) error
 }
 
 type Manager struct {
 	id         string
-	db         databaseAPI
+	db         *elastic.Client
 	queue      quartz.JobQueue
 	scheduler  quartz.Scheduler
 	logger     *slog.Logger
@@ -53,11 +56,15 @@ func Run(ctx context.Context) error {
 		return errors.Join(ErrRunFailed, err)
 	}
 
-	ctx = models.FeedManagementAPIToCtx(ctx, esClient)
+	db := &elastic.ElasticAPI{
+		API: esClient.GetAPI(),
+	}
+
+	ctx = FeedManagementAPIToCtx(ctx, db)
 	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
 	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 
-	jobQueue, err := queue.NewJobQueue(ctx, esClient)
+	jobQueue, err := NewJobQueue(ctx, esClient)
 	if err != nil {
 		return errors.Join(ErrRunFailed, err)
 	}
@@ -112,7 +119,12 @@ func Run(ctx context.Context) error {
 }
 
 func (m *Manager) CheckFeeds(ctx context.Context) error {
-	feeds, err := m.db.GetNewFeedsSince(ctx, m.checkpoint)
+	esapi := FeedManagementAPIFromCtx(ctx)
+	if esapi == nil {
+		return errors.Join(ErrExecuteJobFailed, fmt.Errorf("no feed management api in context"))
+	}
+
+	feeds, err := esapi.GetNewFeedsSince(ctx, m.checkpoint)
 	if err != nil {
 		return errors.Join(ErrFetchNewFeedsFailed, err)
 	}
@@ -122,8 +134,8 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 	for _, feed := range feeds {
 		var job quartz.ScheduledJob
 		// Fetch any existing job.
-		if existingJob, err := m.queue.Get(models.GenerateJobKey(feed.GetID())); err == nil {
-			if details, ok := existingJob.(*models.ScheduledJob); ok {
+		if existingJob, err := m.queue.Get(GenerateJobKey(feed.GetID())); err == nil {
+			if details, ok := existingJob.(*ScheduledJob); ok {
 				// If the existing job is scheduled by this scheduler instance,
 				// ignore this feed.
 				if details.SchedulerID == m.id {
@@ -132,7 +144,7 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 				// Otherwise, set the scheduler ID for the job to this scheduler
 				details.SchedulerID = m.id
 				// Delete the existing job.
-				if err = m.scheduler.DeleteJob(models.GenerateJobKey(feed.GetID())); err != nil {
+				if err = m.scheduler.DeleteJob(GenerateJobKey(feed.GetID())); err != nil {
 					m.logger.Warn("Could not reset existing job for feed .",
 						slog.String("feed_id", feed.GetID()),
 						slog.Any("error", err))
@@ -143,7 +155,7 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 				job = quartz.ScheduledJob(details)
 			}
 		} else {
-			job, err = models.NewFeedJob(feed)
+			job, err = NewFeedJob(feed)
 			if err != nil {
 				m.logger.Warn("Failed to schedule job for feed.",
 					slog.String("feed_id", feed.GetID()),

@@ -38,17 +38,17 @@ type UserManagementAPI interface {
 	UpdateUser(ctx context.Context, userID UserID, update map[string]any) error
 }
 
-type FeedJobStateAPI interface {
-	GetFeedJobState(ctx context.Context, feedID FeedID) (*APIFeedState, error)
-	UpdateFeedJobState(ctx context.Context, state *APIFeedState) error
-}
+// type FeedJobStateAPI interface {
+// 	GetFeedJobState(ctx context.Context, feedID FeedID) (*APIFeedState, error)
+// 	UpdateFeedJobState(ctx context.Context, state *APIFeedState) error
+// }
 
 // FeedManagementAPI contains methods for feed/item management.
 type FeedManagementAPI interface {
 	GetFeedByURL(ctx context.Context, url URL) (*APIFeed, error)
 	AddFeeds(ctx context.Context, feeds ...Feed) error
 	AddItems(ctx context.Context, items ...Item) error
-	FeedJobStateAPI
+	// FeedJobStateAPI
 }
 
 // SessionManagementAPI contains methods for session management.

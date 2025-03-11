@@ -64,6 +64,18 @@ type CategoryCount struct {
 // Count is the count of items to retrieve with a request.
 type Count = int
 
+// FeedState tracks the state of a feed.
+type FeedState struct {
+	// ID is the unique ID of a feed.
+	ID externalRef0.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+
+	// FeedURL The canonical feed URL.
+	FeedURL externalRef0.FeedURL `json:"feedLink" validate:"required,url"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt *externalRef0.UpdatedAt `json:"updated_at,omitempty"`
+}
+
 // Feeds is a list of feed IDs.
 type Feeds = []externalRef0.FeedID
 

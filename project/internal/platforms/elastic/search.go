@@ -6,8 +6,8 @@ package elastic
 import (
 	"encoding/json"
 	"log/slog"
-	"reflect"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
@@ -53,14 +53,8 @@ func WithAggregations(definitions ...Aggregation) SearchOption {
 // WithSearchQueryOptions adds the given query options (conditions) to the search.
 func WithSearchQueryOptions(options ...QueryOption) SearchOption {
 	return func(search *search.Search) {
-		queryOptions := &types.Query{}
-
-		for _, option := range options {
-			option(queryOptions)
-		}
-
-		if !reflect.DeepEqual(queryOptions, &types.Query{}) {
-			search.Query(queryOptions)
+		if query := BuildQuery(options...); query != nil {
+			search.Query(query)
 		}
 	}
 }
@@ -117,8 +111,8 @@ func WithSearchAfter(value any) SearchOption {
 }
 
 // NewSearchRequest creates a new search request with the given options.
-func (c *Client) NewSearchRequest(options ...SearchOption) *search.Search {
-	req := c.API.Search()
+func NewSearchRequest(api *typedapi.API, options ...SearchOption) *search.Search {
+	req := api.Search()
 
 	for _, option := range options {
 		option(req)
@@ -148,8 +142,8 @@ func WithCountQueryOptions(options ...QueryOption) CountOption {
 }
 
 // NewCountRequest creates a new count request with the given options.
-func (c *Client) NewCountRequest(options ...CountOption) *count.Count {
-	req := c.API.Count()
+func NewCountRequest(api *typedapi.API, options ...CountOption) *count.Count {
+	req := api.Count()
 
 	for _, option := range options {
 		option(req)

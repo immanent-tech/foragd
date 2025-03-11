@@ -4,13 +4,10 @@
 package models
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/coreos/go-oidc"
 	"github.com/mmcdole/gofeed"
-	"github.com/oapi-codegen/runtime"
-	"github.com/reugn/go-quartz/quartz"
 )
 
 // Defines values for State.
@@ -56,18 +53,6 @@ type APIFeed struct {
 
 	// UserProperties Tracks user-specific properties of a feed.
 	UserProperties *UserFeedProperties `json:"user_properties,omitempty"`
-}
-
-// APIFeedState tracks the state of a feed.
-type APIFeedState struct {
-	// ID is the unique ID of a feed.
-	ID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-
-	// FeedURL The canonical feed URL.
-	FeedURL FeedURL `json:"feedLink" validate:"required,url"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 }
 
 // APIItem defines model for APIItem.
@@ -129,15 +114,6 @@ type DeletedAt = time.Time
 // FeedID is the unique ID of a feed.
 type FeedID = string
 
-// FeedJob represents a job that fetches new items for a feed.
-type FeedJob struct {
-	// ID is the unique ID of a feed.
-	ID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-
-	// URL is a URL.
-	URL URL `json:"url" validate:"required,url"`
-}
-
 // FeedURL The canonical feed URL.
 type FeedURL = string
 
@@ -192,28 +168,6 @@ type ObjectPublished = time.Time
 
 // ObjectUpdated is when the object was updated.
 type ObjectUpdated = time.Time
-
-// ScheduledJob represents a job that has been scheduled by the job scheduler.
-type ScheduledJob struct {
-	Data     ScheduledJob_Data        `json:"job_data"`
-	NextRun  time.Time                `json:"job_next_run"`
-	Options  *quartz.JobDetailOptions `json:"job_options,omitempty"`
-	Schedule string                   `json:"job_trigger" validate:"required,cron"`
-
-	// SchedulerID is the unique ID of a job scheduler instance.
-	SchedulerID SchedulerID `json:"scheduler_id" validate:"required"`
-
-	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at" validate:"required"`
-}
-
-// ScheduledJob_Data defines model for ScheduledJob.Data.
-type ScheduledJob_Data struct {
-	union json.RawMessage
-}
-
-// SchedulerID is the unique ID of a job scheduler instance.
-type SchedulerID = string
 
 // State Tracks the state of an object.
 type State string
@@ -299,40 +253,4 @@ type UserSession struct {
 
 	// Token the session token for the user.
 	Token string `json:"token"`
-}
-
-// AsFeedJob returns the union data inside the ScheduledJob_Data as a FeedJob
-func (t ScheduledJob_Data) AsFeedJob() (FeedJob, error) {
-	var body FeedJob
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFeedJob overwrites any union data inside the ScheduledJob_Data as the provided FeedJob
-func (t *ScheduledJob_Data) FromFeedJob(v FeedJob) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeFeedJob performs a merge with any union data inside the ScheduledJob_Data, using the provided FeedJob
-func (t *ScheduledJob_Data) MergeFeedJob(v FeedJob) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t ScheduledJob_Data) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *ScheduledJob_Data) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
 }

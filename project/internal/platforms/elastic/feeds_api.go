@@ -7,14 +7,16 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
 	"github.com/joshuar/go-feed-me/internal/api"
+	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -46,63 +48,13 @@ var (
 	ErrAddFailed = errors.New("adding items failed")
 )
 
-// GetNewFeedsSince retrieves a list of feeds that have been updated since the
-// given time.
-func (c *Client) GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error) {
+func GetFeedByURL(ctx context.Context, api *typedapi.API, url string) (*models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
-	c.Logger.Debug("Finding new feeds.",
-		slog.Time("since", since))
-
-	var newFeeds []models.APIFeed
-
-	searchSize := 100
-	pagination := make([]types.FieldValue, 0)
-
-	for {
-		var (
-			feeds    []models.APIFeed
-			warnings error
-		)
-
-		resp, err := c.NewSearchRequest(
-			WithSearchIndex(index),
-			WithSearchQueryOptions(QuerySince("created_at", since)),
-			WithSearchSize(searchSize),
-			WithSearchAfter(pagination),
-			WithSortOptions(SortByDocID("feed_id")),
-		).Do(ctx)
-		if err != nil {
-			return nil, errors.Join(ErrSearchFailed, err)
-		}
-
-		feeds, pagination, warnings = ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
-		if warnings != nil {
-			c.Logger.Warn("Problems occurred while extracting source from docs.",
-				slog.Any("warnings", err))
-		}
-
-		newFeeds = append(newFeeds, feeds...)
-
-		// Stop if we are at the end of the results.
-		if int(resp.Hits.Total.Value) < searchSize {
-			break
-		}
-	}
-
-	return newFeeds, nil
-}
-
-func (c *Client) GetFeedByURL(ctx context.Context, url string) (*models.APIFeed, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
-	}
-
-	resp, err := c.NewSearchRequest(
+	resp, err := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithFields(defaultFeedFields...),
 		WithSearchQueryOptions(QueryByTerm("feedLink", url)),
@@ -126,7 +78,7 @@ func (c *Client) GetFeedByURL(ctx context.Context, url string) (*models.APIFeed,
 }
 
 // GetFeedsByURL retrieves a list of APIFeeds based on the given URLs.
-func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]models.APIFeed, error) {
+func GetFeedsByURL(ctx context.Context, api *typedapi.API, urls ...models.URL) ([]models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -134,7 +86,7 @@ func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]model
 
 	feeds := make([]models.APIFeed, 0, len(urls))
 
-	resp, err := c.NewSearchRequest(
+	resp, err := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithFields("feed_id", "feedLink"),
 		WithSearchQueryOptions(QueryByURLs("feedLink", urls...)),
@@ -151,7 +103,7 @@ func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]model
 	// Loop through this set of results.
 	sources, _, warnings := ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
 	if warnings != nil {
-		c.Logger.Warn("Problems occurred while extracting source from docs.",
+		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
 	}
 
@@ -161,13 +113,13 @@ func (c *Client) GetFeedsByURL(ctx context.Context, urls ...models.URL) ([]model
 }
 
 // FeedsSearch searches the feeds index for feeds matching the relevant filters.
-func (c *Client) FeedsSearch(ctx context.Context, filters api.Filters) ([]*models.APIFeed, error) {
+func FeedsSearch(ctx context.Context, api *typedapi.API, filters api.Filters) ([]*models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
-	resp, err := c.NewSearchRequest(
+	resp, err := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithSearchQueryOptions(
 			QueryBool(
@@ -191,14 +143,14 @@ func (c *Client) FeedsSearch(ctx context.Context, filters api.Filters) ([]*model
 	// Loop through this set of results.
 	sources, _, warnings := ExtractSourceFromHits[*models.APIFeed](resp.Hits.Hits)
 	if warnings != nil {
-		c.Logger.Warn("Problems occurred while extracting source from docs.",
+		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
 	}
 
 	return sources, nil
 }
 
-func (c *Client) GetFeedCategories(ctx context.Context, feedIDs ...models.FeedID) (*TermsAggregationResults, error) {
+func GetFeedCategories(ctx context.Context, api *typedapi.API, feedIDs ...models.FeedID) (*TermsAggregationResults, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -206,7 +158,7 @@ func (c *Client) GetFeedCategories(ctx context.Context, feedIDs ...models.FeedID
 
 	// Find all feeds with the given IDs, build a terms aggregation on the
 	// categories field.
-	req := c.NewSearchRequest(
+	req := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithSearchQueryOptions(
 			QueryByFeedIDs(feedIDs...),
@@ -246,7 +198,7 @@ func (c *Client) GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) ([]
 	}
 
 	// Get the feed details.
-	req := c.NewMGetRequest(
+	req := NewMGetRequest(c.GetAPI(),
 		GetFromIndex(index),
 		GetIDs(feedIDs...),
 	)
@@ -290,62 +242,9 @@ func (c *Client) GetFeedByID(ctx context.Context, feedID models.FeedID) (*models
 	return feeds[0], nil
 }
 
-func (c *Client) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return errors.Join(ErrAddFailed, ErrNoIndexInCtx)
-	}
-
-	docs := make([]*BulkOperation, len(feeds))
-
-	for iter, feed := range feeds {
-		feed.Items = nil // don't index items in feed.
-		c.Logger.Debug("Adding feed",
-			slog.String("name", feed.Title),
-			slog.String("item_id", feed.ID),
-		)
-
-		docs[iter] = NewBulkOperation(&feed,
-			SetDocID(feed.ID),
-			ToIndex(index),
-		)
-	}
-
-	c.bulkStream <- docs
-
-	return nil
-}
-
-// AddItems will bulk index the given items to the Elasticsearch cache.
-func (c *Client) AddItems(ctx context.Context, items ...models.Item) error {
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return errors.Join(ErrAddFailed, ErrNoIndexInCtx)
-	}
-
-	docs := make([]*BulkOperation, len(items))
-
-	for iter, item := range items {
-		c.Logger.Debug("Adding item",
-			slog.String("name", item.Title),
-			slog.String("item_id", item.ID),
-			slog.String("feed_id", item.FeedID),
-		)
-
-		docs[iter] = NewBulkOperation(&item,
-			SetDocID(item.ID),
-			ToIndex(index),
-		)
-	}
-
-	c.bulkStream <- docs
-
-	return nil
-}
-
 // ItemsSearch performs a search query on feed items with the given query
 // options. It returns the raw search response.
-func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, filters api.Filters) (*search.Response, error) {
+func ItemsSearch(ctx context.Context, api *typedapi.API, query QueryOption, filters api.Filters) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
@@ -356,7 +255,7 @@ func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, filters api
 		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
-	resp, err := c.NewSearchRequest(
+	resp, err := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
 		WithSearchAfter(sortValues),
@@ -372,13 +271,13 @@ func (c *Client) ItemsSearch(ctx context.Context, query QueryOption, filters api
 
 // ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
 // options. It returns the raw search response.
-func (c *Client) ItemsAggregation(ctx context.Context, query QueryOption, aggregation Aggregation) (*search.Response, error) {
+func ItemsAggregation(ctx context.Context, api *typedapi.API, query QueryOption, aggregation Aggregation) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
 	}
 
-	req := c.NewSearchRequest(
+	req := NewSearchRequest(api,
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
 		WithSearchSize(0),
@@ -396,13 +295,13 @@ func (c *Client) ItemsAggregation(ctx context.Context, query QueryOption, aggreg
 
 // ItemsCount performs a count query on feed items with the given query
 // options. It returns the raw count response.
-func (c *Client) ItemsCount(ctx context.Context, query QueryOption) (*count.Response, error) {
+func ItemsCount(ctx context.Context, api *typedapi.API, query QueryOption) (*count.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrCountFailed, ErrNoIndexInCtx)
 	}
 
-	req := c.NewCountRequest(
+	req := NewCountRequest(api,
 		WithCountIndex(index),
 		WithCountQueryOptions(query),
 	)
@@ -483,4 +382,52 @@ func setItemSort(sort api.Sort) map[string]types.FieldSort {
 	sortOptions[sortField] = types.FieldSort{Order: &sortOrder, Format: &defaultDatetimeFormat}
 
 	return sortOptions
+}
+
+func AddFeedByURL(ctx context.Context, api *typedapi.API, url models.URL) (models.FeedID, error) {
+	feed, err := models.NewFeedFromURL(ctx, url)
+	if err != nil {
+		return "", err
+	}
+
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return "", ErrNoIndexInCtx
+	}
+
+	resp, err := NewDocCreateRequest(api,
+		index,
+		feed.ID,
+		feed,
+		refresh.True).
+		Do(ctx)
+	if err != nil {
+		return "", errors.Join(ErrAddFailed, err)
+	}
+
+	logging.FromContext(ctx).Debug("Added feed.",
+		slog.String("result", resp.Result.String()),
+		slog.Int64("version", resp.Version_))
+
+	return feed.ID, nil
+}
+
+func FindOrAddFeed(ctx context.Context, api *typedapi.API, url models.URL) (models.FeedID, error) {
+	var feedID models.FeedID
+	// Find any existing feed with the given subscription URL.
+	feed, err := GetFeedByURL(ctx, api, url)
+	if err != nil && !errors.Is(err, models.ErrNoFeed) {
+		return "", errors.Join(models.ErrBackend, err)
+	}
+	// If there is no existing feed, create a new feed.
+	if errors.Is(err, models.ErrNoFeed) {
+		feedID, err = AddFeedByURL(ctx, api, url)
+		if err != nil {
+			return "", errors.Join(models.ErrBackend, err)
+		}
+	} else {
+		feedID = feed.ID
+	}
+
+	return feedID, nil
 }

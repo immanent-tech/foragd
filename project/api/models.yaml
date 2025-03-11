@@ -109,12 +109,6 @@ components:
       x-oapi-codegen-extra-tags:
         validate: "required"
         json: "user_id"
-    SchedulerID:
-      description: is the unique ID of a job scheduler instance.
-      type: string
-      x-oapi-codegen-extra-tags:
-        validate: "required"
-        json: "scheduler_id"
     Category:
       description: is a single category.
       type: string
@@ -292,19 +286,6 @@ components:
               x-go-type-skip-optional-pointer: true
             user_properties:
               $ref: "#/components/schemas/UserFeedProperties"
-    APIFeedState:
-      description: tracks the state of a feed.
-      type: object
-      required:
-        - ID
-        - URL
-      properties:
-        ID:
-          $ref: "#/components/schemas/FeedID"
-        URL:
-          $ref: "#/components/schemas/FeedURL"
-        updated_at:
-          $ref: "#/components/schemas/UpdatedAt"
     APIItem:
       description: represents an individual item (e.g., an individual feed item).
       type: object
@@ -403,56 +384,6 @@ components:
           x-oapi-codegen-extra-tags:
             json: "iat"
           x-go-type-skip-optional-pointer: true
-    ScheduledJob:
-      description: represents a job that has been scheduled by the job scheduler.
-      type: object
-      required:
-        - SchedulerID
-        - Schedule
-        - NextRun
-        - Data
-        - created_at
-      properties:
-        created_at:
-          $ref: "#/components/schemas/CreatedAt"
-        Schedule:
-          type: string
-          x-oapi-codegen-extra-tags:
-            json: "job_trigger"
-            validate: "required,cron"
-          x-go-type-skip-optional-pointer: true
-        NextRun:
-          x-go-type: "time.Time"
-          x-oapi-codegen-extra-tags:
-            json: "job_next_run"
-          x-go-type-skip-optional-pointer: true
-        Options:
-          x-go-type: "*quartz.JobDetailOptions"
-          x-go-type-import:
-            path: "github.com/reugn/go-quartz/quartz"
-          x-oapi-codegen-extra-tags:
-            json: "job_options,omitempty"
-          x-go-type-skip-optional-pointer: true
-        Data:
-          type: object
-          oneOf:
-            - $ref: "#/components/schemas/FeedJob"
-          x-oapi-codegen-extra-tags:
-            json: "job_data"
-          x-go-type-skip-optional-pointer: true
-        SchedulerID:
-          $ref: "#/components/schemas/SchedulerID"
-    FeedJob:
-      description: represents a job that fetches new items for a feed.
-      type: object
-      required:
-        - ID
-        - URL
-      properties:
-        ID:
-          $ref: "#/components/schemas/FeedID"
-        URL:
-          $ref: "#/components/schemas/URL"
     UserSession:
       description: tracks a user session.
       type: object

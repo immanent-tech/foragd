@@ -21,6 +21,8 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi"
+
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
@@ -29,14 +31,14 @@ import (
 
 // RequireAuthentication ensures there is a valid user for the given protected
 // routes.
-func RequireAuthentication(protectedRoutes []string, userMgmtAPI models.UserManagementAPI) func(next http.Handler) http.Handler {
+func RequireAuthentication(protectedRoutes []string, api *typedapi.API) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			if slices.ContainsFunc(protectedRoutes, func(path string) bool {
 				return strings.HasPrefix(req.URL.Path, path)
 			}) {
 				// Fetch the user from the user management API.
-				user, err := userMgmtAPI.GetUser(elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix))
+				user, err := elastic.GetUser(elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix), api)
 				//  If no user can be found, redirect back to the home page.
 				if err != nil {
 					logging.LogReq(req, http.StatusUnauthorized).
