@@ -5,14 +5,19 @@ import "idiomorph";
 import "htmx-ext-head-support";
 import "htmx-ext-sse";
 
-window.htmx = require("htmx.org");
+import htmx from "htmx.org/dist/htmx.esm";
+window.htmx = htmx;
 
-// https://v1.htmx.org/docs/#logging
-htmx.logger = function (elt, event, data) {
-  if (console) {
-    console.log(event, elt, data);
+// Allow event logging.
+//
+// https://htmx.org/docs/#logging
+htmx.logger = function(elt, event, data) {
+  if(console) {
+      console.log(event, elt, data);
   }
-};
+}
 
+// Log all events.
+//
 // https://v1.htmx.org/docs/#debugging
-// htmx.logAll();
+htmx.logAll();
