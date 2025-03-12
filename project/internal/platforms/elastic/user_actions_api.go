@@ -238,7 +238,7 @@ func UserActionGetFeeds(ctx context.Context, esapi *typedapi.API, filters api.Fi
 
 	filters.Categories = nil
 	// Get the unread counts for the feeds.
-	countResults, err := ItemsAggregation(ctx, esapi, unreadFeedItemsQuery(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
+	countResults, err := ItemsAggregation(ctx, esapi, unreadFeedItemsQuery(user, filters, time.Time{}), NewTermsAggregation("UnreadCounts", "feed_id"))
 	if err != nil {
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
@@ -264,9 +264,8 @@ func UserActionGetFeeds(ctx context.Context, esapi *typedapi.API, filters api.Fi
 		if filters.ViewUnread() && feed.GetUserUnreadCount() == 0 {
 			continue
 		}
-		// If filtering by read, ignore feeds with  unread count.
+		// If filtering by read, ignore feeds with an unread count.
 		if filters.ViewRead() && feed.GetUserUnreadCount() > 0 {
-			slog.Info("not showing feed", slog.String("feed", feed.GetTitle()))
 			continue
 		}
 		// Append to valid feeds list.
@@ -415,18 +414,30 @@ func generateItemsQueryClause(user *models.User, filters api.Filters) query.Opti
 	case filters.ViewRead():
 		return readFeedItemsQuery(user, filters)
 	case filters.ViewUnread():
-		return unreadFeedItemsQuery(user, filters)
+		return unreadFeedItemsQuery(user, filters, time.Time{})
 	case filters.ViewAll():
 		return allFeedItemsQuery(user, filters)
 	default:
-		return unreadFeedItemsQuery(user, filters)
+		return unreadFeedItemsQuery(user, filters, time.Time{})
 	}
 }
 
-// unreadFeedItemsQuery generates a query for matching unread items using the given filters.
-func unreadFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
+// unreadFeedItemsQuery generates a query for matching unread items using the
+// given filters. An optional duration can be specified, which will further
+// restrict the match to items published since the current time minus the
+// duration.
+func unreadFeedItemsQuery(user *models.User, filters api.Filters, since time.Time) query.Option {
+	var cutoff time.Time
+
 	clauses := make([]query.Option, 0, len(filters.GetFeeds()))
 	for _, id := range filters.GetFeeds() {
+		if since.IsZero() {
+			// Use feed last read as cutoff.
+			cutoff = user.GetFeedLastRead(id)
+		} else {
+			// Calculate a cutoff from current time.
+			cutoff = since
+		}
 		clauses = append(clauses,
 			query.Bool(
 				query.Filter(
@@ -435,8 +446,10 @@ func unreadFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
 					// And should be newer than last read or explicitly marked unread.
 					query.Bool(
 						query.Should(
-							query.Since("publishedParsed", user.GetFeedLastRead(id)),
-							query.Since("updatedParsed", user.GetFeedLastRead(id)),
+							// query.Since("publishedParsed", user.GetFeedLastRead(id)),
+							// query.Since("updatedParsed", user.GetFeedLastRead(id)),
+							query.Since("publishedParsed", cutoff),
+							query.Since("updatedParsed", cutoff),
 							query.ItemIDs(user.GetItemIDsWithState(models.Unread, id)...),
 						),
 					),
@@ -556,6 +569,47 @@ func allFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
 			query.Bool(
 				query.Should(clauses...),
 			),
+		),
+	)
+}
+
+// unreadFeedItemsQuery generates a query for matching unread items using the given filters.
+func newItemsQuery(user *models.User, filters api.Filters, since time.Duration) query.Option {
+	cutoff := time.Now().Add(since)
+
+	clauses := make([]query.Option, 0, len(filters.GetFeeds()))
+	for _, id := range filters.GetFeeds() {
+		clauses = append(clauses,
+			query.Bool(
+				query.Filter(
+					// Must match this feed.
+					query.Term("feed_id", id),
+					// And should be newer than last read or explicitly marked unread.
+					query.Bool(
+						query.Should(
+							query.Since("publishedParsed", cutoff),
+							query.Since("updatedParsed", cutoff),
+							query.ItemIDs(user.GetItemIDsWithState(models.Unread, id)...),
+						),
+					),
+				),
+			),
+		)
+	}
+
+	return query.Bool(
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.FeedIDs(filters.GetFeeds()...),
+			query.Categories(filters.GetCategories()...),
+			// And should match one feed clause.
+			query.Bool(
+				query.Should(clauses...),
+			),
+		),
+		query.MustNot(
+			// Must not match any read item IDs.
+			query.ItemIDs(user.GetItemIDsWithState(models.Read, filters.GetFeeds()...)...),
 		),
 	)
 }

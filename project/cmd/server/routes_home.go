@@ -4,7 +4,6 @@
 package server
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -35,30 +34,54 @@ func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Request) {
-	// Set headers for SSE
+	// // Set headers for SSE
 	res.Header().Set("Content-Type", "text/event-stream")
-	res.Header().Set("Cache-Control", "no-cache")
-	res.Header().Set("Connection", "keep-alive")
+	res.WriteHeader(http.StatusOK)
+	// res.Header().Set("Cache-Control", "no-cache")
+	// res.Header().Set("Connection", "keep-alive")
 
 	// Create a channel to send data
 	dataCh := make(chan string)
+	defer close(dataCh)
 
-	// Create a context for handling client disconnection
-	_, cancel := context.WithCancel(req.Context())
-	defer cancel()
-
-	// Send data to the client
 	go func() {
-		for data := range dataCh {
-			fmt.Fprintf(res, "event: notification\ndata: %s\n\n", data)
-			res.(http.Flusher).Flush()
+		s.Logger.Debug("Started listening for notifications...")
+		for {
+			select {
+			case <-req.Context().Done():
+				s.Logger.Debug("Stopped listening for notifications...")
+				return
+			case data := <-dataCh:
+				fmt.Fprintf(res, "event: notification\ndata: %s\n\n", data)
+				res.(http.Flusher).Flush()
+
+			}
 		}
 	}()
 
+	// Get the view filters for reloading the page.
+	filters, err := api.FiltersFromQuery(api.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
+		return
+	}
+
 	// Simulate sending data periodically
 	for {
-		dataCh <- time.Now().Format(time.TimeOnly)
-		time.Sleep(5 * time.Second)
+		// Get feeds.
+		feeds, err := elastic.UserActionGetFeeds(req.Context(), s.DataAPI().GetAPI(), *filters)
+		if err != nil {
+			logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
+				slog.Any("error", err))
+			http.Error(res, err.Error(), http.StatusInternalServerError)
+
+			return
+		}
+		if len(feeds) > 0 {
+			dataCh <- "Feeds updated at: " + time.Now().Format(time.TimeOnly)
+		}
+		time.Sleep(time.Minute)
 	}
 }
 

@@ -202,7 +202,7 @@ paths:
       operationId: handleHomeNotifications
       responses:
         200:
-          $ref: "#/components/responses/htmx"
+          $ref: "#/components/responses/sse"
   /home/feeds:
     get:
       summary: >
@@ -467,3 +467,7 @@ components:
       description: standard htmx powered response.
       content:
         "text/html;charset=utf-8": {}
+    sse:
+      description: server sent event
+      content:
+        "text/event-stream;charset=utf-8": {}
