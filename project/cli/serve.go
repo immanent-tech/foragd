@@ -26,17 +26,18 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
+var ErrStartServerFailed = errors.New("could not start server")
+
 const (
 	ServerReadTimeout  = 5 * time.Second
 	ServerWriteTimeout = 10 * time.Second
 )
 
-var ErrStartServerFailed = errors.New("could not start server")
-
 // ServeCmd: `go-feed-me serve`.
 type ServeCmd struct{}
 
 func (r *ServeCmd) Run(opts *CmdOpts) error {
+
 	// Creating a waiting group that waits until the graceful shutdown procedure is done
 	var wg sync.WaitGroup
 
@@ -59,10 +60,9 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 	handler := server.GenerateHandler(svr, router)
 
 	serverObj := &http.Server{
-		Handler:      handler,
-		Addr:         fmt.Sprintf(":%d", server.Port()),
-		ReadTimeout:  ServerReadTimeout,
-		WriteTimeout: ServerWriteTimeout,
+		Handler:           handler,
+		Addr:              fmt.Sprintf(":%d", server.Port()),
+		ReadHeaderTimeout: ServerReadTimeout,
 	}
 
 	wg.Add(1)
@@ -98,7 +98,7 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 		slog.String("environment", config.Environment()))
 
 	// And we serve HTTP until the world ends.
-	err = serverObj.ListenAndServe()
+	err = serverObj.ListenAndServeTLS("localhost.crt", "localhost.key")
 	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
 		svr.Logger.Info("commencing server shutdown...")
 		wg.Wait()

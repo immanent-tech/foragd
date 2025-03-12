@@ -5,8 +5,10 @@ volumes:
   es03-data:
   kibana-data:
   filebeat-registry:
+  stepca:
 networks:
   go-feed-me:
+    enable_ipv6: false
 services:
   devcontainer:
     image: mcr.microsoft.com/devcontainers/base:ubuntu@sha256:08a925b41755bcff957285d31e9bf5f0b7fc74962f455a929c15dc341b984b6f
@@ -23,7 +25,21 @@ services:
     hostname: devcontainer
     networks:
       - go-feed-me
-
+  stepca:
+    hostname: stepca
+    image: docker.io/smallstep/step-ca
+    networks:
+      - go-feed-me
+    restart: always
+    volumes:
+      - stepca:/home/step
+    environment:
+      - DOCKER_STEPCA_INIT_NAME=GOFEEDME
+      - DOCKER_STEPCA_INIT_DNS_NAMES=localhost,stepca
+      - DOCKER_STEPCA_INIT_REMOTE_MANAGEMENT=true
+      - DOCKER_STEPCA_INIT_REMOTE_MANAGEMENT=acme
+    ports:
+      - 9000:9000
   setup:
     env_file:
       - .env

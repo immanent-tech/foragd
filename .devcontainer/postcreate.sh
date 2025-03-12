@@ -7,6 +7,10 @@ sudo apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && sudo apt-get -y install --no-install-recommends micro pre-commit \
     && sudo apt-get -y autoremove && sudo apt-get -y clean && sudo rm -rf /var/lib/apt/lists/*
 
+# Install step cli.
+wget https://dl.smallstep.com/cli/docs-ca-install/latest/step-cli_amd64.deb -O deployments/step-cli_amd64.deb
+sudo dpkg -i deployments/step-cli_amd64.deb
+
 # Install starship prompt.
 # cd /tmp && curl -sS https://starship.rs/install.sh | sh -s -- -y || exit -1
 mkdir -p ~/.config/fish

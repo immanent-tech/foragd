@@ -71,7 +71,7 @@ func NewServer(ctx context.Context) (Server, error) {
 		return svr, errors.Join(ErrStartServer, err)
 	}
 	// Load the authenticator backend.
-	auth0API, err := auth0.NewAuthenticator(ctx, "http://localhost:"+strconv.Itoa(serverConfig.Port))
+	auth0API, err := auth0.NewAuthenticator(ctx, "https://localhost:"+strconv.Itoa(serverConfig.Port))
 	if err != nil {
 		return svr, errors.Join(ErrStartServer, err)
 	}
