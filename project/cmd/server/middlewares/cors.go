@@ -28,10 +28,10 @@ const (
 
 func CORS(env string) func(next http.Handler) http.Handler {
 	options := cors.Options{
-		AllowCredentials:   true,
-		MaxAge:             CORSMaxAge,
-		AllowedMethods:     []string{"GET", "POST", "OPTIONS"},
-		OptionsPassthrough: true,
+		AllowCredentials:    true,
+		MaxAge:              CORSMaxAge,
+		AllowPrivateNetwork: true,
+		OptionsPassthrough:  true,
 	}
 
 	if env == "development" {
@@ -41,7 +41,6 @@ func CORS(env string) func(next http.Handler) http.Handler {
 
 	options.AllowedHeaders = []string{
 		"Accept", "Authorization", "Content-Type", "X-CSRF-Token",
-		"GoFeedMe-Backlink",
 		htmx.HeaderBoosted,
 		htmx.HeaderCurrentURL,
 		htmx.HeaderHistoryRestoreRequest,
@@ -54,7 +53,6 @@ func CORS(env string) func(next http.Handler) http.Handler {
 
 	options.ExposedHeaders = []string{
 		"Link",
-		"GoFeedMe-Backlink",
 		htmx.HeaderLocation,
 		htmx.HeaderPushURL,
 		htmx.HeaderRedirect,
