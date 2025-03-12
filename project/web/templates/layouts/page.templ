@@ -9,9 +9,8 @@ templ (page *Props) Show() {
 	<!DOCTYPE html>
 	<html lang="en" data-theme="light">
 		@page.Header.Show()
-		<body hx-ext="morph,head-support">
+		<body hx-ext="morph,head-support,sse">
 			@templ.Join(page.Content...)
-			<script src="/static/scripts.js"></script>
 		</body>
 	</html>
 }
