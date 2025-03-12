@@ -23,9 +23,14 @@ var defaultCSP = []string{
 	"default-src 'self' https://dev-zuc8oqf6gd86s4rw.us.auth0.com;",
 	"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;",
 	"font-src 'self' data: https://fonts.gstatic.com;",
-	"script-src 'self' https://unpkg.com 'unsafe-inline' 'unsafe-eval';",
-	"connect-src 'self' ws://localhost:* https://dev-zuc8oqf6gd86s4rw.us.auth0.com;",
+	"script-src 'self';",
+	"connect-src 'self' wss://localhost:*  https://dev-zuc8oqf6gd86s4rw.us.auth0.com;",
 	"img-src 'self' https: data:;",
+	"frame-ancestors 'self';",
+	"form-action 'self'",
+	"object-src 'none';",
+	"base-uri 'none';",
+	"upgrade-insecure-requests;",
 }
 
 // Define default server configuration options.
