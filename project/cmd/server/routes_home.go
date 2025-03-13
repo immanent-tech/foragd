@@ -4,14 +4,15 @@
 package server
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 
 	"github.com/joshuar/go-feed-me/internal/api"
@@ -46,7 +47,7 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 	dataCh := make(chan string)
 	defer close(dataCh)
 
-	resp := htmx.NewResponse()
+	// resp := htmx.NewResponse()
 
 	go func() {
 		s.Logger.Debug("Started listening for notifications...")
@@ -56,10 +57,13 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 				s.Logger.Debug("Stopped listening for notifications...")
 				return
 			case data := <-dataCh:
-				if err := resp.RenderTempl(req.Context(), res, home.Notify(data)); err != nil {
+				s.Logger.Debug("notification!")
+				var foo strings.Builder
+				if err := home.Notify(data).Render(req.Context(), &foo); err != nil {
+					// if err := resp.RenderTempl(req.Context(), res, home.Notify(data)); err != nil {
 					s.Logger.Warn("error rendering", slog.Any("error", err))
 				}
-				// fmt.Fprintf(res, "event: notification\ndata: %s\n\n", data)
+				fmt.Fprintf(res, "event: notification\ndata: %s\n\n", foo.String())
 				res.(http.Flusher).Flush()
 
 			}
@@ -78,18 +82,20 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 
 	// Simulate sending data periodically
 	for {
+		ctx, cancelFunc := context.WithCancel(req.Context())
+		defer cancelFunc()
 		// Get feeds.
-		count, err := elastic.UserActionCountUnread(req.Context(), s.DataAPI().GetAPI(), *filters)
+		_, err := elastic.UserActionCountUnread(ctx, s.DataAPI().GetAPI(), *filters)
 		if err != nil {
-			logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
+			logging.FromContext(ctx).Warn("Could not retrieve feeds.",
 				slog.Any("error", err))
-			http.Error(res, err.Error(), http.StatusInternalServerError)
+			// http.Error(res, err.Error(), http.StatusInternalServerError)
 
-			return
+			// return
 		}
-		if count > 0 {
-			dataCh <- "Feeds updated at: " + time.Now().Format(time.TimeOnly)
-		}
+		// if count > 0 {
+		dataCh <- "Feeds updated at: " + time.Now().Format(time.TimeOnly)
+		// }
 		time.Sleep(time.Minute)
 	}
 }
@@ -296,7 +302,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feed 
 
 	layout := home.BuildLayout(
 		home.WithParts(
-			home.BuildMainContent(article),
+			home.BuildMainContent(details.GetTitle(), article),
 			home.BuildHeaders(appbar.AppBar().Show(), home.ArticleHeader(details)),
 			home.BuildFooter("/home/items"),
 		),
@@ -345,24 +351,23 @@ func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Elemen
 		if filters.GetPagination() != "" {
 			layout = home.BuildLayout(
 				home.WithParts(
-					home.BuildMainContent(cards...),
+					home.BuildMainContent(title, cards...),
 				),
 			)
 		} else {
 			layout = home.BuildLayout(
 				home.WithParts(
 					home.BuildHeaders(appbar.AppBar().Show(), home.ListHeader(filters, categories, req.URL.Path)),
-					home.BuildMainContent(cards...),
+					home.BuildMainContent(title, cards...),
 					home.BuildFooter(backPath),
 				),
-				home.WithTitle(title),
 			)
 		}
 	} else {
 		layout = home.BuildLayout(
 			home.WithParts(
 				home.BuildHeaders(appbar.AppBar().Show(), home.ListHeader(filters, categories, req.URL.Path)),
-				home.BuildMainContent(cards...),
+				home.BuildMainContent(title, cards...),
 			),
 		)
 	}

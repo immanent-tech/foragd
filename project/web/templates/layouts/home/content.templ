@@ -9,6 +9,7 @@ import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 // MainContent of /home consists of zero or more Elements.
 type MainContent struct {
 	content []Element
+	title   string
 }
 
 // EmptyContent renders a hero with options for the user when the request
@@ -41,6 +42,9 @@ templ (c *MainContent) FullRender() {
 
 // PartialRender will render the elements directly.
 templ (c *MainContent) PartialRender() {
+	if c.title != "" {
+		<title>{ c.title }</title>
+	}
 	if len(c.content) == 0 {
 		@emptyContent()
 	} else {
@@ -64,8 +68,9 @@ templ (c *MainContent) PartialRender() {
 	// ></div>
 }
 
-func BuildMainContent(elements ...Element) *MainContent {
+func BuildMainContent(title string, elements ...Element) *MainContent {
 	return &MainContent{
+		title:   title,
 		content: elements,
 	}
 }

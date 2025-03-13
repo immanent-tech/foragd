@@ -41,15 +41,13 @@ templ notifications() {
 			</div>
 		</dialog>
 	</div>
-	<div>
-		<div
-			id="test-toast"
-			class="toast toast-end z-50"
-			sse-connect="/home/notifications"
-			sse-swap="notification"
-			hx-swap="innerHTML"
-		></div>
-	</div>
+	<div
+		id="test-toast"
+		class="toast toast-end z-50"
+		hx-ext="sse"
+		sse-connect="/home/notifications"
+		sse-swap="notification"
+	></div>
 	// <div sse-connect="/home/notifications" sse-swap="notification"></div>
 	// <div
 	// 	hx-get="/home/notifications"
@@ -77,8 +75,6 @@ templ SSE(data chan string) {
 }
 
 templ Notify(data string) {
-	event: notification
-	data:
 	@alert.Build(alert.WithID("test-alert")).Alert() {
 		<div>
 			<h3 class="font-bold">New message!</h3>

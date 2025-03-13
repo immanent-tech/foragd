@@ -86,6 +86,9 @@ templ showFeedCardContent(feed *models.APIFeed) {
 					badge.WithSize(size.SM),
 					badge.WithThemeColor(color.Primary),
 					badge.WithContent(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
+					badge.WithExtraAttributes(templ.Attributes{
+						"sse-swap": feed.GetID() + "_unread",
+					}),
 				).Show()
 			}
 		</div>

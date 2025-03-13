@@ -9,7 +9,7 @@ templ (page *Props) Show() {
 	<!DOCTYPE html>
 	<html lang="en" data-theme="light">
 		@page.Header.Show()
-		<body hx-ext="morph,head-support,sse">
+		<body hx-ext="morph,sse">
 			@templ.Join(page.Content...)
 		</body>
 	</html>
