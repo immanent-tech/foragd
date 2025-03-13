@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 
 	"github.com/joshuar/go-feed-me/internal/api"
@@ -44,6 +46,8 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 	dataCh := make(chan string)
 	defer close(dataCh)
 
+	resp := htmx.NewResponse()
+
 	go func() {
 		s.Logger.Debug("Started listening for notifications...")
 		for {
@@ -52,7 +56,10 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 				s.Logger.Debug("Stopped listening for notifications...")
 				return
 			case data := <-dataCh:
-				fmt.Fprintf(res, "event: notification\ndata: %s\n\n", data)
+				if err := resp.RenderTempl(req.Context(), res, home.Notify(data)); err != nil {
+					s.Logger.Warn("error rendering", slog.Any("error", err))
+				}
+				// fmt.Fprintf(res, "event: notification\ndata: %s\n\n", data)
 				res.(http.Flusher).Flush()
 
 			}
@@ -67,10 +74,12 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 		return
 	}
 
+	filters.SetSince("1m")
+
 	// Simulate sending data periodically
 	for {
 		// Get feeds.
-		feeds, err := elastic.UserActionGetFeeds(req.Context(), s.DataAPI().GetAPI(), *filters)
+		count, err := elastic.UserActionCountUnread(req.Context(), s.DataAPI().GetAPI(), *filters)
 		if err != nil {
 			logging.FromContext(req.Context()).Warn("Could not retrieve feeds.",
 				slog.Any("error", err))
@@ -78,7 +87,7 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 
 			return
 		}
-		if len(feeds) > 0 {
+		if count > 0 {
 			dataCh <- "Feeds updated at: " + time.Now().Format(time.TimeOnly)
 		}
 		time.Sleep(time.Minute)
@@ -363,4 +372,30 @@ func renderCards(res http.ResponseWriter, req *http.Request, cards []home.Elemen
 			slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func HomeStreamTest(res http.ResponseWriter, req *http.Request) {
+	// Create a channel to send data to the template.
+	data := make(chan string)
+	// Run a background process that will take 10 seconds to complete.
+	go func() {
+		// Always remember to close the channel.
+		defer close(data)
+		for i := 0; i < 10; i++ {
+			select {
+			case <-req.Context().Done():
+				// Quit early if the client is no longer connected.
+				return
+			case <-time.After(time.Second):
+				// Send a new piece of data to the channel.
+				data <- fmt.Sprintf("Part %d", i+1)
+			}
+		}
+	}()
+
+	// Pass the channel to the template.
+	component := home.SSE(data)
+
+	// Serve using the streaming mode of the handler.
+	templ.Handler(component, templ.WithStreaming()).ServeHTTP(res, req)
 }

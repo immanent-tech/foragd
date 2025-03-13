@@ -3,6 +3,8 @@
 
 package home
 
+import "github.com/joshuar/go-templ-daisyui/feedback/alert"
+
 // // homeDrawer renders home page content in a DaisyUI drawer.
 // templ (home *LayoutProps) homeDrawer() {
 // 	<div id="command_modal" class="container mx-auto px-4"></div>
@@ -39,5 +41,49 @@ templ notifications() {
 			</div>
 		</dialog>
 	</div>
-	<div sse-connect="/home/notifications" sse-swap="notification"></div>
+	<div>
+		<div
+			id="test-toast"
+			class="toast toast-end z-50"
+			sse-connect="/home/notifications"
+			sse-swap="notification"
+			hx-swap="innerHTML"
+		></div>
+	</div>
+	// <div sse-connect="/home/notifications" sse-swap="notification"></div>
+	// <div
+	// 	hx-get="/home/notifications"
+	// 	hx-trigger="load delay:1s"
+	// 	hx-swap="outerHTML"
+	// ></div>
+}
+
+templ SSE(data chan string) {
+	<div id="test-toast" class="toast toast-end z-50">
+		for d := range data {
+			@templ.Flush() {
+				// event: notification
+				// data:
+				@alert.Build(alert.WithID(d)).Alert() {
+					<div>
+						<h3 class="font-bold">New message!</h3>
+						<div class="text-xs">You have 1 unread message</div>
+					</div>
+					<button class="btn btn-sm" _="on click remove #{ d }">See</button>
+				}
+			}
+		}
+	</div>
+}
+
+templ Notify(data string) {
+	event: notification
+	data:
+	@alert.Build(alert.WithID("test-alert")).Alert() {
+		<div>
+			<h3 class="font-bold">New message!</h3>
+			<div class="text-xs">{ data }</div>
+		</div>
+		<button class="btn btn-sm" _="on click remove #test-alert">See</button>
+	}
 }

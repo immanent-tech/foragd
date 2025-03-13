@@ -64,7 +64,7 @@ type ItemID = externalRef1.ItemID
 // Mark applies the given mark action to objects.
 type Mark = externalRef0.Mark
 
-// Pagination contains data for paginating through results
+// Pagination contains data for paginating through results.
 type Pagination = externalRef0.Pagination
 
 // SortBy represents the selected field to sort on.

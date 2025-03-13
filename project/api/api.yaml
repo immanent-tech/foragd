@@ -15,7 +15,7 @@ components:
     Param:
       description: is the name of a query parameter.
       type: string
-      enum: ["feeds","items","categories","count","view","pagination","sort_by","sort_order"]
+      enum: ["feeds","items","categories","count","view","pagination","sort_by","sort_order","since"]
     Mark:
       description: >
         applies the given mark action to objects.
@@ -72,11 +72,17 @@ components:
         validate: "required,oneof=read unread all"
         form: "view"
     Pagination:
-      description: contains data for paginating through results
+      description: contains data for paginating through results.
       type: string
       x-oapi-codegen-extra-tags:
         form: "pagination"
         validate: "omitempty,url_encoded"
+    Since:
+      description: is a duration to filter results.
+      x-go-type: time.Duration
+      x-oapi-codegen-extra-tags:
+        form: "since"
+        validate: "omitempty"
     SortBy:
       description: >
         represents the selected field to sort on.
@@ -129,6 +135,8 @@ components:
           $ref: "#/components/schemas/View"
         pagination:
           $ref: "#/components/schemas/Pagination"
+        since:
+          $ref: "#/components/schemas/Since"
         sort_by:
           $ref: "#/components/schemas/SortBy"
         sort_order:

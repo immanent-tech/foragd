@@ -10,6 +10,7 @@ require (
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.17.0
 	github.com/coreos/go-oidc v2.3.0+incompatible
+	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v8 v8.17.1
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-playground/form/v4 v4.2.1
@@ -44,7 +45,6 @@ require (
 	github.com/charmbracelet/x/ansi v0.8.0 // indirect
 	github.com/charmbracelet/x/exp/strings v0.0.0-20250131172436-6251e772efa1 // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
-	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/google/wire v0.6.0 // indirect

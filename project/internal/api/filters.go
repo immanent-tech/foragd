@@ -6,9 +6,11 @@ package api
 import (
 	"encoding/json"
 	"errors"
+	"math"
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/davecgh/go-spew/spew"
 
@@ -44,6 +46,8 @@ const (
 	DefaultSortBy = LastUpdated
 	// DefaultSortOrder is to sort newest->oldest.
 	DefaultSortOrder = SortDesc
+	// DefaultSince is maximum duration (approx 290 years).
+	DefaultSince = math.MaxInt64
 )
 
 type ParamsOption func(url.Values) url.Values
@@ -55,80 +59,6 @@ func (s *Sort) Valid() bool {
 		return false
 	}
 	return true
-}
-
-// SetValidSortBy takes a string value and returns the SortBy value it
-// represents. If the string is not a valid SortBy value, the default SortBy
-// value is returned.
-func SetValidSortBy(value string) SortBy {
-	switch value {
-	case string(UnreadCount):
-		return UnreadCount
-	case string(LastUpdated):
-		return LastUpdated
-	default:
-		return DefaultSortBy
-	}
-}
-
-// SetValidSortOrder takes a string value and returns the SortOrder value it
-// represents. If the string is not a valid SortOrder value, the default SortOrder
-// value is returned.
-func SetValidSortOrder(value string) SortOrder {
-	switch value {
-	case string(SortAsc):
-		return SortAsc
-	case string(SortDesc):
-		return SortDesc
-	default:
-		return DefaultSortOrder
-	}
-}
-
-// SetValidCount takes a value representing a count and returns a valid Count it
-// represents. If the value is not a valid Count, the default Count is
-// returned.
-func SetValidCount(input any) Count {
-	var (
-		value Count
-		err   error
-	)
-
-	switch v := input.(type) {
-	case int:
-		value = v
-	case int64:
-		value = int(v)
-	case uint64:
-		value = int(v)
-	case string:
-		value, err = strconv.Atoi(v)
-		if err != nil {
-			value = DefaultCount
-		}
-	}
-
-	if value < MinUserCount || value > MaxUserCount {
-		return DefaultCount
-	}
-
-	return value
-}
-
-// SetValidView takes a string representing a View and returns a valid View it
-// represents. If the value is not a valid View, the default View is
-// returned.
-func SetValidView(value string) View {
-	switch value {
-	case string(ViewAll):
-		return ViewAll
-	case string(ViewRead):
-		return ViewRead
-	case string(ViewUnread):
-		return ViewUnread
-	default:
-		return DefaultView
-	}
 }
 
 // GetFeeds gets the list of FeedIDs from the filters.
@@ -186,6 +116,11 @@ func (f *Filters) GetCount() int {
 	return f.Count
 }
 
+// SetCount sets the count value.
+func (f *Filters) SetCount(value any) {
+	f.Count = setValidCount(value)
+}
+
 // GetView gets the view value from the filters.
 func (f *Filters) GetView() View {
 	if f.View == "" {
@@ -195,12 +130,9 @@ func (f *Filters) GetView() View {
 	return f.View
 }
 
-// GetSort gets the sort values from the filters.
-func (f *Filters) GetSort() Sort {
-	return Sort{
-		SortBy:    f.SortBy,
-		SortOrder: f.SortOrder,
-	}
+// SetCount sets the count value.
+func (f *Filters) SetView(value string) {
+	f.View = setValidView(value)
 }
 
 // ViewRead returns a boolean indicating whether the view filter is set to "unread".
@@ -218,13 +150,44 @@ func (f *Filters) ViewAll() bool {
 	return f.GetView() == ViewAll
 }
 
+// GetSort gets the sort values from the filters.
+func (f *Filters) GetSort() Sort {
+	return Sort{
+		SortBy:    f.SortBy,
+		SortOrder: f.SortOrder,
+	}
+}
+
+// SetSortBy sets the SortBy value .
+func (f *Filters) SetSortBy(value string) {
+	f.SortBy = setValidSortBy(value)
+}
+
+// SetSortOrder sets the SortOrder value .
+func (f *Filters) SetSortOrder(value string) {
+	f.SortOrder = setValidSortOrder(value)
+}
+
 // GetPagination gets the pagination value from the filters.
 func (f *Filters) GetPagination() Pagination {
 	if f.Pagination != nil {
 		return *f.Pagination
 	}
-
 	return ""
+}
+
+// GetSince returns the since value from the filters.
+func (f *Filters) GetSince() Since {
+	if f.Since != nil {
+		return *f.Since
+	}
+	return DefaultSince
+}
+
+// SetSince returns the since value from the filters.
+func (f *Filters) SetSince(value string) {
+	since := setValidSince(value)
+	f.Since = &since
 }
 
 // Params encodes the APIFilter values into a url.Values object.
@@ -283,10 +246,15 @@ func FiltersFromQuery(values url.Values) (*Filters, error) {
 		filters.Pagination = &param
 	}
 
-	filters.SortBy = SetValidSortBy(values.Get(string(ParamSortBy)))
-	filters.SortOrder = SetValidSortOrder(values.Get(string(ParamSortOrder)))
-	filters.Count = SetValidCount(values.Get(string(ParamCount)))
-	filters.View = SetValidView(values.Get(string(ParamView)))
+	if param := values.Get(string(ParamSince)); param != "" {
+		since := setValidSince(param)
+		filters.Since = &since
+	}
+
+	filters.SetSortBy(values.Get(string(ParamSortBy)))
+	filters.SetSortOrder(values.Get(string(ParamSortOrder)))
+	filters.SetCount(values.Get(string(ParamCount)))
+	filters.SetView(values.Get(string(ParamView)))
 
 	if valid, err := validation.ValidateStruct(filters); !valid || err != nil {
 		spew.Dump(valid, err)
@@ -328,4 +296,90 @@ func CreateFilters(params any) (*Filters, error) {
 	}
 
 	return filters, nil
+}
+
+// setValidSortBy takes a string value and returns the SortBy value it
+// represents. If the string is not a valid SortBy value, the default SortBy
+// value is returned.
+func setValidSortBy(value string) SortBy {
+	switch value {
+	case string(UnreadCount):
+		return UnreadCount
+	case string(LastUpdated):
+		return LastUpdated
+	default:
+		return DefaultSortBy
+	}
+}
+
+// setValidSortOrder takes a string value and returns the SortOrder value it
+// represents. If the string is not a valid SortOrder value, the default SortOrder
+// value is returned.
+func setValidSortOrder(value string) SortOrder {
+	switch value {
+	case string(SortAsc):
+		return SortAsc
+	case string(SortDesc):
+		return SortDesc
+	default:
+		return DefaultSortOrder
+	}
+}
+
+// setValidCount takes a value representing a count and returns a valid Count it
+// represents. If the value is not a valid Count, the default Count is
+// returned.
+func setValidCount(input any) Count {
+	var (
+		value Count
+		err   error
+	)
+
+	switch v := input.(type) {
+	case int:
+		value = v
+	case int64:
+		value = int(v)
+	case uint64:
+		value = int(v)
+	case string:
+		value, err = strconv.Atoi(v)
+		if err != nil {
+			value = DefaultCount
+		}
+	}
+
+	if value < MinUserCount || value > MaxUserCount {
+		return DefaultCount
+	}
+
+	return value
+}
+
+// setValidView takes a string representing a View and returns a valid View it
+// represents. If the value is not a valid View, the default View is
+// returned.
+func setValidView(value string) View {
+	switch value {
+	case string(ViewAll):
+		return ViewAll
+	case string(ViewRead):
+		return ViewRead
+	case string(ViewUnread):
+		return ViewUnread
+	default:
+		return DefaultView
+	}
+}
+
+// setValidSince parses string representing a duration and returns the valid
+// Since value it represents. If the value cannot be parsed, the default Since
+// value is returned.
+func setValidSince(value string) Since {
+	since, err := time.ParseDuration(value)
+	if err != nil {
+		return DefaultSince
+	}
+
+	return since
 }

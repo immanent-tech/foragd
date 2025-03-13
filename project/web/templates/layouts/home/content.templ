@@ -3,6 +3,9 @@
 
 package home
 
+import "github.com/joshuar/go-templ-daisyui/feedback/loading"
+import "github.com/joshuar/go-templ-daisyui/modifiers/color"
+
 // MainContent of /home consists of zero or more Elements.
 type MainContent struct {
 	content []Element
@@ -45,11 +48,20 @@ templ (c *MainContent) PartialRender() {
 			@part.Show()
 		}
 	}
-	// @loading.Build(loading.Bars,
-	// 	loading.WithID("content-loading"),
-	// 	loading.AsHTMXIndicator(),
-	// 	loading.WithThemeColor(color.Accent),
-	// ).Show()
+	<div id="content-loading" class="flex items-center justify-center">
+		@loading.Build(loading.Bars,
+			loading.AsHTMXIndicator(),
+			loading.WithThemeColor(color.Accent),
+		).Show()
+	</div>
+	// <div sse-connect="/home/notifications" sse-swap="notification">
+	// 	<div id="test-toast" class="toast toast-end z-50"></div>
+	// </div>
+	// <div
+	// 	hx-get="/home/notifications"
+	// 	hx-trigger="load"
+	// 	hx-swap="outerHTML"
+	// ></div>
 }
 
 func BuildMainContent(elements ...Element) *MainContent {

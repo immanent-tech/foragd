@@ -238,7 +238,7 @@ func UserActionGetFeeds(ctx context.Context, esapi *typedapi.API, filters api.Fi
 
 	filters.Categories = nil
 	// Get the unread counts for the feeds.
-	countResults, err := ItemsAggregation(ctx, esapi, unreadFeedItemsQuery(user, filters, time.Time{}), NewTermsAggregation("UnreadCounts", "feed_id"))
+	countResults, err := ItemsAggregation(ctx, esapi, unreadFeedItemsQuery(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
 	if err != nil {
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
@@ -282,6 +282,25 @@ func UserActionGetFeeds(ctx context.Context, esapi *typedapi.API, filters api.Fi
 	}
 
 	return validFeeds, nil
+}
+
+// UserActionCountUnread will return a total count of unread items across all
+// feeds (with the given filters applied) for the user.
+func UserActionCountUnread(ctx context.Context, esapi *typedapi.API, filters api.Filters) (int64, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return 0, ErrGetUserFailed
+	}
+
+	filters.SetFeeds(filterSubscribedFeeds(user, filters)...)
+
+	// Get the unread counts for the feeds.
+	resp, err := ItemsCount(ctx, esapi, unreadFeedItemsQuery(user, filters))
+	if err != nil {
+		return 0, errors.Join(ErrUserActionFailed, err)
+	}
+
+	return resp.Count, nil
 }
 
 func (c *Client) UserActionGetFeed(ctx context.Context, esapi *typedapi.API, feedID models.FeedID) (*models.APIFeed, error) {
@@ -414,11 +433,11 @@ func generateItemsQueryClause(user *models.User, filters api.Filters) query.Opti
 	case filters.ViewRead():
 		return readFeedItemsQuery(user, filters)
 	case filters.ViewUnread():
-		return unreadFeedItemsQuery(user, filters, time.Time{})
+		return unreadFeedItemsQuery(user, filters)
 	case filters.ViewAll():
 		return allFeedItemsQuery(user, filters)
 	default:
-		return unreadFeedItemsQuery(user, filters, time.Time{})
+		return unreadFeedItemsQuery(user, filters)
 	}
 }
 
@@ -426,17 +445,17 @@ func generateItemsQueryClause(user *models.User, filters api.Filters) query.Opti
 // given filters. An optional duration can be specified, which will further
 // restrict the match to items published since the current time minus the
 // duration.
-func unreadFeedItemsQuery(user *models.User, filters api.Filters, since time.Time) query.Option {
+func unreadFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
 	var cutoff time.Time
 
 	clauses := make([]query.Option, 0, len(filters.GetFeeds()))
 	for _, id := range filters.GetFeeds() {
-		if since.IsZero() {
+		if filters.GetSince() == api.DefaultSince {
 			// Use feed last read as cutoff.
 			cutoff = user.GetFeedLastRead(id)
 		} else {
 			// Calculate a cutoff from current time.
-			cutoff = since
+			cutoff = time.Now().Add(-filters.GetSince())
 		}
 		clauses = append(clauses,
 			query.Bool(

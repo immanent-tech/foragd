@@ -5,6 +5,7 @@ package api
 
 import (
 	"net/url"
+	"time"
 
 	"sync"
 
@@ -25,6 +26,7 @@ const (
 	ParamFeeds      Param = "feeds"
 	ParamItems      Param = "items"
 	ParamPagination Param = "pagination"
+	ParamSince      Param = "since"
 	ParamSortBy     Param = "sort_by"
 	ParamSortOrder  Param = "sort_order"
 	ParamView       Param = "view"
@@ -93,8 +95,11 @@ type Filters struct {
 	// Items is a list of items IDs.
 	Items *Items `form:"items[]" json:"items" validate:"omitnil,unique,dive,required,startswith=item_"`
 
-	// Pagination contains data for paginating through results
+	// Pagination contains data for paginating through results.
 	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
+
+	// Since is a duration to filter results.
+	Since *Since `form:"since" json:"since,omitempty" validate:"omitempty"`
 
 	// SortBy represents the selected field to sort on.
 	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
@@ -112,7 +117,7 @@ type Items = []externalRef0.ItemID
 // Mark applies the given mark action to objects.
 type Mark string
 
-// Pagination contains data for paginating through results
+// Pagination contains data for paginating through results.
 type Pagination = string
 
 // Param is the name of a query parameter.
@@ -132,6 +137,9 @@ type Route struct {
 	// url is the url object for the route.
 	url url.URL `json:"-"`
 }
+
+// Since is a duration to filter results.
+type Since = time.Duration
 
 // Sort contains information on sorting objects.
 type Sort struct {
