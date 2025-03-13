@@ -84,7 +84,8 @@
     "schema/api",
     "server",
     "classes/width",
-    "config"
+    "config",
+    "templates"
   ],
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",

@@ -53,7 +53,7 @@ templ (view *ViewFilters) Show(classes ...string) {
 	</div>
 }
 
-templ BuildFiltersMenu(viewFilters templates.Component, categoryFilters templates.Component) {
+templ BuildFiltersMenu(viewFilters templates.Element, categoryFilters templates.Element) {
 	<div id="content-filters" hx-swap-oob="true">
 		@dropdown.Build(
 			dropdown.WithOpenOptions(

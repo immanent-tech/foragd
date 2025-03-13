@@ -189,14 +189,14 @@ func (f *MarkFeeds) Valid() bool {
 
 // getFeedList retrieves a filtered list of Feeds as components that
 // can be rendered on a page.
-func getFeedList(ctx context.Context, esapi *typedapi.API, filters *api.Filters) (templates.Components, error) {
+func getFeedList(ctx context.Context, esapi *typedapi.API, filters *api.Filters) (templates.Elements, error) {
 	// Get feeds.
 	feeds, err := elastic.UserActionGetFeeds(ctx, esapi, *filters)
 	if err != nil {
 		return nil, fmt.Errorf("could not retrieve feeds: %w", err)
 	}
 
-	feedList := make(templates.Components, 0, len(feeds))
+	feedList := make(templates.Elements, 0, len(feeds))
 	// Build feed cards.
 	for _, feed := range feeds {
 		var card *partials.Card
@@ -218,7 +218,7 @@ func getFeedList(ctx context.Context, esapi *typedapi.API, filters *api.Filters)
 
 // getFeedCategoryCounts creates a list of categories that can be displayed as a
 // filter option on a page.
-func getFeedCategoryCounts(ctx context.Context, api *typedapi.API, filters *api.Filters) (templates.Component, error) {
+func getFeedCategoryCounts(ctx context.Context, api *typedapi.API, filters *api.Filters) (templates.Element, error) {
 	// Retrieve the feed categories and the unread counts.
 	categoryCounts, err := elastic.UserActionGetFeedCategories(ctx, api)
 	if err != nil {
@@ -240,7 +240,7 @@ func displayFeeds(api *typedapi.API, res http.ResponseWriter, req *http.Request,
 		return
 	}
 
-	var content templates.Components
+	var content templates.Elements
 	if htmx.IsHTMX(req) {
 		content = feeds
 	} else {
@@ -313,14 +313,14 @@ func (f *MarkItems) Valid() bool {
 
 // getItemList retrieves items filtered by the given parameters as components
 // that can be rendered on a page.
-func getItemList(ctx context.Context, esapi *typedapi.API, path *url.URL, filters *api.Filters) (templates.Components, error) {
+func getItemList(ctx context.Context, esapi *typedapi.API, path *url.URL, filters *api.Filters) (templates.Elements, error) {
 	// Get all items.
 	items, pagination, err := elastic.UserActionGetItems(ctx, esapi, *filters)
 	if err != nil {
 		return nil, fmt.Errorf("could not retrieve items: %w", err)
 	}
 
-	itemList := make(templates.Components, 0, filters.Count)
+	itemList := make(templates.Elements, 0, filters.Count)
 	// Build item cards.
 	for idx, item := range items {
 		// Create a card for this item.
@@ -343,7 +343,7 @@ func getItemList(ctx context.Context, esapi *typedapi.API, path *url.URL, filter
 	return itemList, nil
 }
 
-func getItemCategoryCounts(ctx context.Context, esapi *typedapi.API, filters *api.Filters) (templates.Component, error) {
+func getItemCategoryCounts(ctx context.Context, esapi *typedapi.API, filters *api.Filters) (templates.Element, error) {
 	// Get item categories.
 	categoryCounts, err := elastic.UserActionGetItemCategories(ctx, esapi, *filters)
 	if err != nil {
@@ -365,7 +365,7 @@ func displayItems(esapi *typedapi.API, res http.ResponseWriter, req *http.Reques
 		return
 	}
 
-	var content templates.Components
+	var content templates.Elements
 	if htmx.IsHTMX(req) {
 		content = items
 	} else {
@@ -398,7 +398,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedI
 
 	article := partials.NewArticle(&details)
 
-	var content templates.Components
+	var content templates.Elements
 	if htmx.IsHTMX(req) {
 		content = append(content, article)
 	} else {
@@ -432,7 +432,7 @@ func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, fee
 // displayHome will render a /home page. It will select either a full (i.e.,
 // non-htmx request) or partial (i.e., htmx request) render. The given title
 // will be updated as well.
-func displayHome(res http.ResponseWriter, req *http.Request, title string, content ...templates.Component) {
+func displayHome(res http.ResponseWriter, req *http.Request, title string, content ...templates.Element) {
 	// Generate the given content as templ.Components.
 	parts := make([]templ.Component, 0, len(content))
 	for _, c := range content {

@@ -16,7 +16,7 @@ import "github.com/joshuar/go-templ-daisyui/feedback/loading"
 // }
 
 type MainContent struct {
-	content templates.Components
+	content templates.Elements
 }
 
 // Show the main content. In addition to rendering content objects, this will
@@ -60,7 +60,7 @@ templ emptyContent() {
 
 // BuildMainContent will create a new main content object with an optional title
 // and the given content.
-func BuildMainContent(content ...templates.Component) *MainContent {
+func BuildMainContent(content ...templates.Element) *MainContent {
 	main := &MainContent{}
 
 	main.content = content

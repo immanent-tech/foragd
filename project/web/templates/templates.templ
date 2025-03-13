@@ -5,20 +5,20 @@ package templates
 
 import "errors"
 
-var ErrRenderTempl = errors.New("failed to render template")
+var ErrRenderElement = errors.New("failed to render template element")
 
-// Component represents a single templ.Component that can be rendered on the page with
+// Element represents a single templ.Component that can be rendered on the page with
 // its Show method.
-type Component interface {
+type Element interface {
 	Show(classes ...string) templ.Component
 }
 
 // Components represents a list of components that should be rendered together.
-type Components []Component
+type Elements []Element
 
 // Show will render a list of components. An optional list of classes can be
 // provided that all components will inherit.
-templ (c Components) Show(classes ...string) {
+templ (c Elements) Show(classes ...string) {
 	for _, component := range c {
 		@component.Show(classes...)
 	}
