@@ -57,7 +57,8 @@ templ BuildFiltersMenu(viewFilters templates.Element, categoryFilters templates.
 	<div id="content-filters" hx-swap-oob="true">
 		@dropdown.Build(
 			dropdown.WithOpenOptions(
-				dropdown.From(dropdown.OpenBottom, true),
+				dropdown.From(dropdown.OpenTop),
+				dropdown.Align(dropdown.AlignCenter),
 			),
 			dropdown.WithButton(
 				button.WithSize(size.SM),

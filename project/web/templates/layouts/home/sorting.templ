@@ -17,7 +17,8 @@ templ BuildSortingMenu(filters *api.Filters, path string) {
 	<div id="content-sorting" hx-swap-oob="true">
 		@dropdown.Build(
 			dropdown.WithOpenOptions(
-				dropdown.From(dropdown.OpenBottom, true),
+				dropdown.From(dropdown.OpenTop),
+				dropdown.Align(dropdown.AlignEnd),
 			),
 			dropdown.WithButton(
 				button.WithSize(size.SM),

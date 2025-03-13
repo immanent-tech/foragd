@@ -255,10 +255,11 @@ func displayFeeds(api *typedapi.API, res http.ResponseWriter, req *http.Request,
 	}
 	views := home.BuildViewFilters(filters, "/home/feeds")
 
-	header := home.BuildListHeader(home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/feeds"))
-	footer := home.BuildFooter("/home")
+	// header := home.BuildListHeader(home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/feeds"))
+	// footer := home.BuildFooter("/home")
+	footer := home.BuildListFooter("/home", home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/feeds"))
 
-	displayHome(res, req, "Feeds", header, content, footer)
+	displayHome(res, req, "Feeds", content, footer)
 }
 
 func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, params HandleShowItemsParams) {
@@ -380,10 +381,12 @@ func displayItems(esapi *typedapi.API, res http.ResponseWriter, req *http.Reques
 	}
 	views := home.BuildViewFilters(filters, "/home/items")
 
-	header := home.BuildListHeader(home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/items"))
-	footer := home.BuildFooter("/home/feeds")
+	// header := home.BuildListHeader(home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/items"))
+	// footer := home.BuildFooter("/home/feeds")
 
-	displayHome(res, req, "Items", header, content, footer)
+	footer := home.BuildListFooter("/home/feeds", home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/items"))
+
+	displayHome(res, req, "Items", content, footer)
 }
 
 func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID) {
@@ -405,10 +408,11 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedI
 		content = append(content, home.BuildMainContent(article))
 	}
 
-	header := home.BuildArticleHeader(&details)
-	footer := home.BuildFooter("/home/items")
+	// header := home.BuildArticleHeader(&details)
+	// footer := home.BuildFooter("/home/items")
+	footer := home.BuildArticleFooter("/home/items", &details)
 
-	displayHome(res, req, details.GetTitle(), header, content, footer)
+	displayHome(res, req, details.GetTitle(), content, footer)
 }
 
 // HandleMarkItem marks a single item.

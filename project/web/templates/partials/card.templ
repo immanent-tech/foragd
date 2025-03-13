@@ -64,7 +64,8 @@ func showCardActions(actions ...templ.Component) []templ.Component {
 				}),
 			),
 			dropdown.WithOpenOptions(
-				dropdown.From(dropdown.OpenTop, true),
+				dropdown.From(dropdown.OpenTop),
+				dropdown.Align(dropdown.AlignEnd),
 			),
 			dropdown.WithMenuContent(
 				// menu.WithSize(size.SM),

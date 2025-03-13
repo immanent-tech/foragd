@@ -5,6 +5,7 @@
 package home
 
 import (
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
@@ -12,6 +13,71 @@ import (
 
 type Footer struct {
 	backPath string
+}
+
+// ListHeader represents the content header for a list of objects.
+type ListFooter struct {
+	backPath    string
+	filtersMenu templ.Component
+	sortMenu    templ.Component
+}
+
+templ (f *ListFooter) Show(classes ...string) {
+	<div
+		id="content-footer"
+		hx-swap-oob="true"
+		hx-swap="morph:outerHTML"
+		class="bg-base-200 dock dock-sm"
+	>
+		<div class="basis-xs">
+			@partials.BackButton(ctx, f.backPath, ContentTarget)
+		</div>
+		<div class="basis-xs">
+			@f.filtersMenu
+		</div>
+		<div class="basis-xs">
+			@f.sortMenu
+		</div>
+	</div>
+}
+
+func BuildListFooter(backPath string, filters templ.Component, sorts templ.Component) *ListFooter {
+	return &ListFooter{
+		backPath:    backPath,
+		filtersMenu: filters,
+		sortMenu:    sorts,
+	}
+}
+
+// ArticleHeader represents the content header for an individual article.
+type ArticleFooter struct {
+	backPath string
+	item     *models.APIItem
+}
+
+templ (f *ArticleFooter) Show(classes ...string) {
+	<div
+		id="content-footer"
+		hx-swap-oob="true"
+		hx-swap="morph:outerHTML"
+		class="bg-base-200 dock dock-sm"
+	>
+		<div class="basis-xs">
+			@partials.BackButton(ctx, f.backPath, ContentTarget)
+		</div>
+		<div class="basis-xs">
+			<a href={ templ.URL(f.item.GetLink()) } target="_blank">
+				@icon.Build("fa-globe").Show()
+			</a>
+		</div>
+	</div>
+}
+
+func BuildArticleFooter(backPath string, item *models.APIItem) *ArticleFooter {
+	return &ArticleFooter{
+		backPath: backPath,
+		item:     item,
+	}
 }
 
 templ (f *Footer) Show(classes ...string) {
