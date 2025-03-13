@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 import "idiomorph";
-import "htmx-ext-head-support";
 import "htmx-ext-sse";
 
 import htmx from "htmx.org/dist/htmx.esm";

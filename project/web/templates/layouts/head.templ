@@ -3,6 +3,8 @@
 
 package layouts
 
+import "github.com/joshuar/go-feed-me/web/templates/partials"
+
 // Show renders the <head></head> element with the given options.
 templ (head *HeadProps) Show() {
 	<head>
@@ -30,11 +32,6 @@ templ (head *HeadProps) Show() {
 			@header
 		}
 		<script src="/static/scripts.js"></script>
-		@Title(head.title)
+		@partials.NewTitle(head.title).Show()
 	</head>
-}
-
-// Title will render a <title></title> tag with the given value.
-templ Title(title string) {
-	<title>{ title }</title>
 }
