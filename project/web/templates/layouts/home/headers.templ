@@ -4,10 +4,10 @@
 
 package home
 
-import "github.com/joshuar/go-templ-daisyui/actions/button"
 import "github.com/joshuar/go-templ-daisyui/display/icon"
 import "github.com/joshuar/go-feed-me/internal/models"
 
+// ListHeader represents the content header for a list of objects.
 type ListHeader struct {
 	filtersMenu templ.Component
 	sortMenu    templ.Component
@@ -32,48 +32,25 @@ func BuildListHeader(filters templ.Component, sorts templ.Component) *ListHeader
 	}
 }
 
-// ArticleHeader generates a content header for article views.
-templ ArticleHeader(item models.APIItem) {
-	<head>
-		<title>{ item.GetTitle() }</title>
-	</head>
-	<div id="content_header" hx-swap-oob="true" hx-swap="morph:outerHTML">
-		<div class="navbar bg-base-100">
-			<div class="flex-1"></div>
-			<div class="justify-end flex-row-reverse">
-				<form action={ templ.URL(item.GetLink()) } hx-boost="false" method="get" target="_blank">
-					@button.Build(
-						button.AsShape(button.Square, false),
-						button.WithContent(icon.Build("fa-globe")),
-					).Show()
-				</form>
+// ArticleHeader represents the content header for an individual article.
+type ArticleHeader struct {
+	item *models.APIItem
+}
+
+templ (h *ArticleHeader) Show(classes ...string) {
+	<div id="list-header" hx-swap-oob="true">
+		<div class="navbar bg-base-100 justify-end">
+			<div class="flex flex-row">
+				<a href={ templ.URL(h.item.GetLink()) } target="_blank">
+					@icon.Build("fa-globe").Show()
+				</a>
 			</div>
 		</div>
 	</div>
 }
 
-type Header struct {
-	content []templ.Component
-}
-
-templ (h *Header) FullRender() {
-	if len(h.content) > 0 {
-		<div class="z-50 sticky top-0">
-			for _, element := range h.content {
-				@element
-			}
-		</div>
-	}
-}
-
-templ (h *Header) PartialRender() {
-	for _, element := range h.content {
-		@element
-	}
-}
-
-func BuildHeaders(elements ...templ.Component) *Header {
-	return &Header{
-		content: elements,
+func BuildArticleHeader(item *models.APIItem) *ArticleHeader {
+	return &ArticleHeader{
+		item: item,
 	}
 }

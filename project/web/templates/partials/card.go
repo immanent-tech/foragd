@@ -11,7 +11,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/image"
@@ -34,6 +33,7 @@ const (
 
 type CardType int
 
+// Card is a display component that shows a DaisyUI Card for the given data.
 type Card struct {
 	ID     string
 	Target string
@@ -154,7 +154,7 @@ func NewFeedCard(filters api.Filters, feed *models.APIFeed) (*Card, error) {
 			card.WithActions(showCardActions(cardMenuItems...)...),
 			card.WithBodyExtraAttributes(route.Attributes()),
 		),
-		card.WithID(attributes.ID(feed.GetID())),
+		card.WithID(feed.GetID()),
 	)
 	// Add an image if present.
 	if cardImage := feed.GetImage(); cardImage != nil {
@@ -216,7 +216,7 @@ func NewItemCard(filters api.Filters, item *models.APIItem) (*Card, error) {
 			card.WithActions(showCardActions(cardMenuItems...)...),
 			card.WithBodyExtraAttributes(route.Attributes()),
 		),
-		card.WithID(attributes.ID(item.GetID())),
+		card.WithID(item.GetID()),
 	)
 	// Add an image if present.
 	if itemImage := item.GetImage(); itemImage != nil {

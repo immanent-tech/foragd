@@ -4,33 +4,43 @@
 
 package partials
 
-import "github.com/joshuar/go-feed-me/internal/models"
 import "github.com/joshuar/go-templ-daisyui/display/badge"
 import "github.com/joshuar/go-templ-daisyui/modifiers/size"
 import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 import "github.com/joshuar/go-templ-daisyui/display/text"
+import "github.com/joshuar/go-templ-daisyui/display/article"
 
-templ showItemArticle(item models.APIItem) {
-	<div hx-disable="true">
-		<h2>{ item.GetTitle() }</h2>
-		<div class="flex w-full justify-items-end gap-2 p-2">
-			for _, author := range item.Authors {
-				@text.Build(author.Name, text.WithTextSize(text.XS), text.AsItalicText()).Show()
-			}
-			@showLastUpdated("Last Updated:", item.GetTimestamp())
-		</div>
-		<div class="flex flex-wrap justify-items-center">
-			for _, category := range item.GetCategories() {
-				@badge.Build(
-					badge.WithSize(size.SM),
-					badge.WithThemeColor(color.Neutral),
-					badge.WithStyle(badge.Outline),
-					badge.WithContent(category),
-				).Show("p-1", "m-1")
-			}
-		</div>
-		<div id="article_content">
-			@templ.Raw(item.GetContent())
-		</div>
+templ (a *Article) Show(classes ...string) {
+	@article.Build(
+		a.showItemArticle(),
+		article.WithExtraAttributes(templ.Attributes{
+			"hx-post":     "/home/" + a.GetFeedID() + "/" + a.GetID() + "/read",
+			"hx-swap":     "none",
+			"hx-push-url": "false",
+			"hx-trigger":  "load delay:2s",
+		}),
+	).Show(classes...)
+}
+
+templ (a *Article) showItemArticle() {
+	<h2 hx-disable="true">{ a.GetTitle() }</h2>
+	<div class="flex w-full justify-items-end gap-2 p-2">
+		for _, author := range a.Authors {
+			@text.Build(author.Name, text.WithTextSize(text.XS), text.AsItalicText()).Show()
+		}
+		@showLastUpdated("Last Updated:", a.GetTimestamp())
+	</div>
+	<div class="flex flex-wrap justify-items-center">
+		for _, category := range a.GetCategories() {
+			@badge.Build(
+				badge.WithSize(size.SM),
+				badge.WithThemeColor(color.Neutral),
+				badge.WithStyle(badge.Outline),
+				badge.WithContent(category),
+			).Show("p-1", "m-1")
+		}
+	</div>
+	<div id="article_content" hx-disable="true">
+		@templ.Raw(a.GetContent())
 	</div>
 }
