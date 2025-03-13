@@ -6,14 +6,7 @@ package home
 import (
 	"github.com/a-h/templ"
 
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
-	"github.com/joshuar/go-templ-daisyui/classes/width"
-	"github.com/joshuar/go-templ-daisyui/display/icon"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 
 	"github.com/joshuar/go-feed-me/internal/api"
 )
@@ -67,30 +60,13 @@ func sortLink(text string, sort api.Sort, path string, filters *api.Filters) tem
 	).Show()
 }
 
-func BuildSortMenu(path string, filters *api.Filters) templ.Component {
-	var sortItems []templ.Component
-
+func generateSortOptions(filters *api.Filters, path string) []templ.Component {
 	switch path {
 	case "/home/feeds":
-		sortItems = feedsSortOptions(path, filters)
+		return feedsSortOptions(path, filters)
 	case "/home/items":
-		sortItems = itemsSortOptions(path, filters)
+		return itemsSortOptions(path, filters)
+	default:
+		return nil
 	}
-
-	return dropdown.Build(
-		dropdown.WithOpenOptions(
-			dropdown.From(dropdown.OpenBottom, true),
-		),
-		dropdown.WithButton(
-			button.WithSize(size.SM),
-			button.AsShape(button.Square, false),
-			button.WithContent(icon.Build("fa-sort")),
-		),
-		dropdown.WithMenuContent(
-			menu.WithMenuTitle("Sort"),
-			menu.WithBaseColor(color.Base200),
-			menu.WithExtraClasses(width.W52),
-			menu.WithItems(sortItems...),
-		),
-	).Show()
 }

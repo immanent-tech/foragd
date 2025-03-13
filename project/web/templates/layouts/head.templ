@@ -30,6 +30,11 @@ templ (head *HeadProps) Show() {
 			@header
 		}
 		<script src="/static/scripts.js"></script>
-		<title>{ head.title }</title>
+		@Title(head.title)
 	</head>
+}
+
+// Title will render a <title></title> tag with the given value.
+templ Title(title string) {
+	<title>{ title }</title>
 }

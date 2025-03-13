@@ -24,7 +24,7 @@ var (
 var commonRouteAttributes = templ.Attributes{
 	"hx-target":   ContentTarget,
 	"hx-push-url": "true",
-	"hx-swap":     "morph:outerHTML",
+	"hx-swap":     "morph:innerHTML",
 }
 
 const (

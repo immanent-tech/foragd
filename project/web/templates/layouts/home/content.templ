@@ -3,13 +3,41 @@
 
 package home
 
-import "github.com/joshuar/go-templ-daisyui/feedback/loading"
 import "github.com/joshuar/go-templ-daisyui/modifiers/color"
+import "github.com/joshuar/go-feed-me/web/templates"
 
-// MainContent of /home consists of zero or more Elements.
+import "github.com/joshuar/go-templ-daisyui/feedback/loading"
+
+// MainContent represents the content area of /home pages. This is where lists
+// of objects, single objects or search results will be displayed.
+// type MainContent struct {
+// 	content templates.Component
+// 	title   string
+// }
+
 type MainContent struct {
-	content []Element
-	title   string
+	content templates.Components
+}
+
+// Show the main content. In addition to rendering content objects, this will
+// also update the page title if set.
+templ (c *MainContent) Show(classes ...string) {
+	// if c.title != "" {
+	// 	@layouts.Title(c.title)
+	// }
+	<div id="content" class="flex flex-wrap p-4 h-full">
+		if c.content != nil {
+			@c.content.Show(classes...)
+		} else {
+			@emptyContent()
+		}
+	</div>
+	<div id="content-loading" class="flex items-center justify-center">
+		@loading.Build(loading.Bars,
+			loading.AsHTMXIndicator(),
+			loading.WithThemeColor(color.Accent),
+		).Show()
+	</div>
 }
 
 // EmptyContent renders a hero with options for the user when the request
@@ -33,44 +61,12 @@ templ emptyContent() {
 	</div>
 }
 
-// FullRender will render the elements wrapped in the content div.
-templ (c *MainContent) FullRender() {
-	<div id="content" class="flex flex-wrap p-4 h-full">
-		@c.PartialRender()
-	</div>
-}
+// BuildMainContent will create a new main content object with an optional title
+// and the given content.
+func BuildMainContent(content ...templates.Component) *MainContent {
+	main := &MainContent{}
 
-// PartialRender will render the elements directly.
-templ (c *MainContent) PartialRender() {
-	if c.title != "" {
-		<title>{ c.title }</title>
-	}
-	if len(c.content) == 0 {
-		@emptyContent()
-	} else {
-		for _, part := range c.content {
-			@part.Show()
-		}
-	}
-	<div id="content-loading" class="flex items-center justify-center">
-		@loading.Build(loading.Bars,
-			loading.AsHTMXIndicator(),
-			loading.WithThemeColor(color.Accent),
-		).Show()
-	</div>
-	// <div sse-connect="/home/notifications" sse-swap="notification">
-	// 	<div id="test-toast" class="toast toast-end z-50"></div>
-	// </div>
-	// <div
-	// 	hx-get="/home/notifications"
-	// 	hx-trigger="load"
-	// 	hx-swap="outerHTML"
-	// ></div>
-}
+	main.content = content
 
-func BuildMainContent(title string, elements ...Element) *MainContent {
-	return &MainContent{
-		title:   title,
-		content: elements,
-	}
+	return main
 }

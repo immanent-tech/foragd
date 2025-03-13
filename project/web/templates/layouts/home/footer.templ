@@ -14,7 +14,7 @@ type Footer struct {
 	backPath string
 }
 
-templ (f *Footer) FullRender() {
+templ (f *Footer) Show(classes ...string) {
 	<div
 		id="content-footer"
 		hx-swap-oob="true"
@@ -35,10 +35,6 @@ templ (f *Footer) FullRender() {
 			).Show()
 		</div>
 	</div>
-}
-
-templ (h *Footer) PartialRender() {
-	@h.FullRender()
 }
 
 func BuildFooter(backPath string) *Footer {

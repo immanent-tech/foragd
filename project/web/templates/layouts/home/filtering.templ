@@ -5,6 +5,7 @@
 package home
 
 import (
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/classes/width"
@@ -16,16 +17,16 @@ import (
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 )
 
-templ (filters CategoryFilters) Show() {
+templ (filters CategoryFilters) Show(classes ...string) {
 	@text.Build("Categories:", text.WithTextWeight(text.Semibold), text.WithTextSize(text.XS)).Show()
 	<div class="flex flex-wrap">
 		for _, filter := range filters {
-			@filter.Show()
+			@filter.Show(classes...)
 		}
 	</div>
 }
 
-templ (filter *CategoryFilter) Show() {
+templ (filter *CategoryFilter) Show(classes ...string) {
 	{{ var styleOption badge.Option }}
 	if filter.active {
 		{{ styleOption = badge.WithStyle(badge.Outline) }}
@@ -38,34 +39,37 @@ templ (filter *CategoryFilter) Show() {
 		styleOption,
 		badge.WithContent(filter.name),
 		badge.WithExtraAttributes(filter.route.Attributes()),
-	).Show("p-1 m-1")
+	).Show(classes...)
 }
 
 // Show renders the view filter as a set of badges joined together.
-templ (view *ViewFilters) Show() {
+templ (view *ViewFilters) Show(classes ...string) {
+	{{ classes = append(classes, "join-item") }}
 	@text.Build("View:", text.WithTextWeight(text.Semibold), text.WithTextSize(text.XS)).Show()
 	<div class="join">
 		for _, view := range view.badges {
-			@view.Show("join-item")
+			@view.Show(classes...)
 		}
 	</div>
 }
 
-templ BuildFiltersMenu(viewFilters *ViewFilters, categoryFilters CategoryFilters) {
-	@dropdown.Build(
-		dropdown.WithOpenOptions(
-			dropdown.From(dropdown.OpenBottom, true),
-		),
-		dropdown.WithButton(
-			button.WithSize(size.SM),
-			button.AsShape(button.Square, false),
-			button.WithContent(icon.Build("fa-sliders")),
-		),
-		dropdown.WithMenuContent(
-			menu.WithMenuTitle("Filters"),
-			menu.WithBaseColor(color.Base200),
-			menu.WithExtraClasses(width.W52),
-			menu.WithItems(viewFilters.Show(), categoryFilters.Show()),
-		),
-	).Show()
+templ BuildFiltersMenu(viewFilters templates.Component, categoryFilters templates.Component) {
+	<div id="content-filters" hx-swap-oob="true">
+		@dropdown.Build(
+			dropdown.WithOpenOptions(
+				dropdown.From(dropdown.OpenBottom, true),
+			),
+			dropdown.WithButton(
+				button.WithSize(size.SM),
+				button.AsShape(button.Square, false),
+				button.WithContent(icon.Build("fa-sliders")),
+			),
+			dropdown.WithMenuContent(
+				menu.WithMenuTitle("Filters"),
+				menu.WithBaseColor(color.Base200),
+				menu.WithExtraClasses(width.W52),
+				menu.WithItems(viewFilters.Show(), categoryFilters.Show()),
+			),
+		).Show()
+	</div>
 }
