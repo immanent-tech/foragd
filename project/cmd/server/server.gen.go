@@ -12,7 +12,24 @@ import (
 	externalRef0 "github.com/joshuar/go-feed-me/internal/api"
 	externalRef1 "github.com/joshuar/go-feed-me/internal/models"
 	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+// ImportFromFile allows importing feeds from an OPML file
+type ImportFromFile struct {
+	File openapi_types.File `json:"file"`
+}
+
+// ImportFromOPML allows importing feeds from a URL pointing to an OPML file.
+type ImportFromOPML struct {
+	// URL is a URL.
+	URL externalRef1.URL `json:"url" validate:"required,url"`
+}
+
+// ImportFromURLs allows importing feeds from an list of feed URLs.
+type ImportFromURLs struct {
+	Urls []externalRef1.URL `json:"urls"`
+}
 
 // MarkCategories contains data for marking Categories.
 type MarkCategories struct {
@@ -110,6 +127,11 @@ type AddSubscriptionCategoryFormdataBody struct {
 	Category externalRef1.Category `form:"category" json:"category"`
 }
 
+// ProcessImportMultipartBody defines parameters for ProcessImport.
+type ProcessImportMultipartBody struct {
+	union json.RawMessage
+}
+
 // HandleMarkFeedsFormdataRequestBody defines body for HandleMarkFeeds for application/x-www-form-urlencoded ContentType.
 type HandleMarkFeedsFormdataRequestBody = MarkObjects
 
@@ -118,6 +140,9 @@ type HandleMarkItemsFormdataRequestBody = MarkObjects
 
 // AddSubscriptionCategoryFormdataRequestBody defines body for AddSubscriptionCategory for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
+
+// ProcessImportMultipartRequestBody defines body for ProcessImport for multipart/form-data ContentType.
+type ProcessImportMultipartRequestBody ProcessImportMultipartBody
 
 // AddSubscriptionFormdataRequestBody defines body for AddSubscription for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
@@ -273,6 +298,12 @@ type ServerInterface interface {
 	// (PUT /subscription/category)
 	AddSubscriptionCategory(w http.ResponseWriter, r *http.Request)
 
+	// (GET /subscription/import)
+	ManageImport(w http.ResponseWriter, r *http.Request)
+	// Save imported subscriptions.
+	// (POST /subscription/import)
+	ProcessImport(w http.ResponseWriter, r *http.Request)
+
 	// (GET /subscription/new)
 	NewSubscription(w http.ResponseWriter, r *http.Request)
 	// Save a subscription.
@@ -403,6 +434,17 @@ func (_ Unimplemented) RemoveSubscriptionCategory(w http.ResponseWriter, r *http
 // Add a category to a subscription
 // (PUT /subscription/category)
 func (_ Unimplemented) AddSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /subscription/import)
+func (_ Unimplemented) ManageImport(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Save imported subscriptions.
+// (POST /subscription/import)
+func (_ Unimplemented) ProcessImport(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1040,6 +1082,34 @@ func (siw *ServerInterfaceWrapper) AddSubscriptionCategory(w http.ResponseWriter
 	handler.ServeHTTP(w, r)
 }
 
+// ManageImport operation middleware
+func (siw *ServerInterfaceWrapper) ManageImport(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ManageImport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ProcessImport operation middleware
+func (siw *ServerInterfaceWrapper) ProcessImport(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ProcessImport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // NewSubscription operation middleware
 func (siw *ServerInterfaceWrapper) NewSubscription(w http.ResponseWriter, r *http.Request) {
 
@@ -1337,6 +1407,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/subscription/category", wrapper.AddSubscriptionCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/subscription/import", wrapper.ManageImport)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/subscription/import", wrapper.ProcessImport)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscription/new", wrapper.NewSubscription)

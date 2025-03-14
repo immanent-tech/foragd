@@ -143,6 +143,23 @@ paths:
       responses:
         200:
           $ref: "#/components/responses/htmx"
+  /subscription/import:
+    get:
+      description: >
+        Import subscriptions via OPML.
+      operationId: manageImport
+      responses:
+        200:
+          $ref: "#/components/responses/htmx"
+    post:
+      summary: >
+        Save imported subscriptions.
+      operationId: processImport
+      requestBody:
+        $ref: "#/components/requestBodies/ImportRequest"
+      responses:
+        200:
+          $ref: "#/components/responses/htmx"
   /subscription/{feed}:
     parameters:
       - $ref: "#/components/parameters/FeedID"
@@ -296,6 +313,36 @@ paths:
           $ref: "#/components/responses/htmx"
 components:
   schemas:
+    ImportFromOPML:
+      description: >
+        allows importing feeds from a URL pointing to an OPML file.
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          $ref: "models.yaml#/components/schemas/URL"
+    ImportFromFile:
+      description: >
+        allows importing feeds from an OPML file
+      type: object
+      required:
+        - file
+      properties:
+        file:
+          type: string
+          format: binary
+    ImportFromURLs:
+      description: >
+        allows importing feeds from an list of feed URLs.
+      type: object
+      required:
+        - urls
+      properties:
+        urls:
+          type: array
+          items:
+            $ref: "models.yaml#/components/schemas/URL"
     MarkFeeds:
       description: contains data for marking Feeds.
       type: object
@@ -427,6 +474,17 @@ components:
       schema:
         $ref: "api.yaml#/components/schemas/SortOrder"
   requestBodies:
+    ImportRequest:
+      description: >
+        Holds data for importing subscriptions
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            oneOf:
+              - $ref: "#/components/schemas/ImportFromOPML"
+              - $ref: "#/components/schemas/ImportFromFile"
+              - $ref: "#/components/schemas/ImportFromURLs"
     MarkRequest:
       description: >
         Holds options for marking objects.

@@ -85,7 +85,8 @@
     "server",
     "classes/width",
     "config",
-    "templates"
+    "templates",
+    "attributes"
   ],
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",

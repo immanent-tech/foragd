@@ -76,6 +76,14 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func (s Server) ManageImport(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+func (s Server) ProcessImport(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 func (s Server) SaveSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }

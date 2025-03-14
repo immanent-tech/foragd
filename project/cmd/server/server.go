@@ -139,8 +139,6 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	router.Post("/search", wrapper.Search)
 
-	// /subscription routes.
-
 	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
 		homeRouter.Get("/", wrapper.HandleHome)
@@ -161,6 +159,8 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	router.Route("/subscription", func(subscription chi.Router) {
 		subscription.Get("/new", wrapper.NewSubscription)
 		subscription.Put("/new", wrapper.AddSubscription)
+		subscription.Get("/import", wrapper.ManageImport)
+		subscription.Post("/import", wrapper.ProcessImport)
 		// Existing subscription management:
 		subscription.Get("/{subscription}", wrapper.ShowSubscription)
 		subscription.Put("/{subscription}", wrapper.SaveSubscription)
