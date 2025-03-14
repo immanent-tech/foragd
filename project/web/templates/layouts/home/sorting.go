@@ -43,14 +43,7 @@ func itemsSortOptions(path string, filters *api.Filters) []templ.Component {
 }
 
 func sortLink(text string, sort api.Sort, path string, filters *api.Filters) templ.Component {
-	var route *api.Route
-
-	switch path {
-	case "/home/feeds":
-		route = buildShowFeedsRoute(filters)
-	case "/home/items":
-		route = buildShowItemsRoute(filters)
-	}
+	route := buildHomeRoute(path, filters)
 	route.SetSort(sort)
 
 	return link.Build(
@@ -62,9 +55,9 @@ func sortLink(text string, sort api.Sort, path string, filters *api.Filters) tem
 
 func generateSortOptions(filters *api.Filters, path string) []templ.Component {
 	switch path {
-	case "/home/feeds":
+	case api.FeedsRoute:
 		return feedsSortOptions(path, filters)
-	case "/home/items":
+	case api.ItemsRoute:
 		return itemsSortOptions(path, filters)
 	default:
 		return nil

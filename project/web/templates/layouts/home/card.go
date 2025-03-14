@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package partials
+package home
 
 import (
 	"encoding/json"
@@ -14,6 +14,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/image"
+	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 
 	"github.com/joshuar/go-feed-me/internal/api"
@@ -21,10 +22,6 @@ import (
 )
 
 var ErrNewCard = errors.New("could not create new card")
-
-const (
-	ContentTarget = "#content"
-)
 
 const (
 	Feed CardType = iota
@@ -124,7 +121,7 @@ func NewFeedCard(filters api.Filters, feed *models.APIFeed) (*Card, error) {
 	feedCard := &Card{
 		Type:   Feed,
 		ID:     feed.GetID(),
-		Target: ContentTarget,
+		Target: ContentID.Target(),
 	}
 
 	// Embed the Feed.
@@ -138,10 +135,10 @@ func NewFeedCard(filters api.Filters, feed *models.APIFeed) (*Card, error) {
 	var cardMenuItems []templ.Component
 	if feed.GetUserUnreadCount() > 0 {
 		cardMenuItems = append(cardMenuItems,
-			feedCard.buildMarkButton("Mark Read", api.MarkRead, "/home/feeds"))
+			feedCard.buildMarkButton("Mark Read", api.MarkRead, api.FeedsRoute))
 	} else {
 		cardMenuItems = append(cardMenuItems,
-			feedCard.buildMarkButton("Mark Unread", api.MarkUnread, "/home/feeds"))
+			feedCard.buildMarkButton("Mark Unread", api.MarkUnread, api.FeedsRoute))
 	}
 	// Build card options.
 	var cardOptions []card.Option
@@ -162,6 +159,7 @@ func NewFeedCard(filters api.Filters, feed *models.APIFeed) (*Card, error) {
 			card.WithImage(cardImage.URL,
 				image.WithAltText(cardImage.Title),
 				image.WithLazyLoading(),
+				image.WithMask(mask.MaskSquircle),
 			),
 		)
 	} else {
@@ -187,7 +185,7 @@ func NewItemCard(filters api.Filters, item *models.APIItem) (*Card, error) {
 	itemCard := &Card{
 		Type:   Item,
 		ID:     item.GetID(),
-		Target: ContentTarget,
+		Target: ContentID.Target(),
 	}
 
 	// Embed the Item.
@@ -224,6 +222,7 @@ func NewItemCard(filters api.Filters, item *models.APIItem) (*Card, error) {
 			card.WithImage(itemImage.URL,
 				image.WithAltText(itemImage.Title),
 				image.WithLazyLoading(),
+				image.WithMask(mask.MaskSquircle),
 			),
 		)
 	}

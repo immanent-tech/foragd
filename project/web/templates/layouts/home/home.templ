@@ -3,27 +3,11 @@
 
 package home
 
-import "github.com/joshuar/go-templ-daisyui/feedback/alert"
-
-// // homeDrawer renders home page content in a DaisyUI drawer.
-// templ (home *LayoutProps) homeDrawer() {
-// 	<div id="command_modal" class="container mx-auto px-4"></div>
-// 	@drawer.Build("home_drawer", home.showDrawerContent(), home.showDrawerSide(),
-// 		drawer.WithDrawerVisibility(size.LG),
-// 	).Show()
-// }
-
-// // showDrawerSide renders the side rail of the home drawer.
-// templ (home *LayoutProps) showDrawerSide() {
-// 	if home.SideBar != nil {
-// 		<div class="bg-base-200 min-h-full p-4">
-// 			@home.SideBar.Show()
-// 		</div>
-// 	}
-// }
-templ commandModal() {
-	<div id="command_modal" class="container mx-auto px-4"></div>
-}
+import (
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/feedback/alert"
+	"time"
+)
 
 templ notifications() {
 	<!-- Open the modal using ID.showModal() method -->
@@ -82,4 +66,17 @@ templ Notify(data string) {
 		</div>
 		<button class="btn btn-sm" _="on click remove #test-alert">See</button>
 	}
+}
+
+func relativeTime(timestamp time.Time) string {
+	return timestamp.Format("Mon Jan 2 15:04")
+}
+
+// showLastUpdated shows the timestamp indicating last update of an item as a
+// relative time in the bottom left corner.
+templ showLastUpdated(description string, updated time.Time) {
+	@text.Build(description+" "+relativeTime(updated),
+		text.WithTextSize(text.XS),
+		text.AsItalicText(),
+	).Show()
 }

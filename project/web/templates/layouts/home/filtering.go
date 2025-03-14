@@ -26,18 +26,9 @@ func BuildCategoryFilters(filters *api.Filters, categoryCounts []api.CategoryCou
 	categoryFilters := make([]CategoryFilter, 0, len(categoryCounts))
 
 	for _, category := range categoryCounts {
-		var (
-			route  *api.Route
-			active bool
-		)
+		var active bool
 
-		switch path {
-		case "/home/feeds":
-			route = buildShowFeedsRoute(filters)
-		case "/home/items":
-			route = buildShowItemsRoute(filters)
-		}
-
+		route := buildHomeRoute(path, filters)
 		route.SetCategories()
 
 		if len(filters.GetCategories()) > 0 {
@@ -68,13 +59,7 @@ type ViewFilters struct {
 
 // viewFilterBadge generates a badge for a view filter.
 func viewFilterBadge(view api.View, filters *api.Filters, path string) *badge.Props {
-	var route *api.Route
-	switch path {
-	case "/home/feeds":
-		route = buildShowFeedsRoute(filters)
-	case "/home/items":
-		route = buildShowItemsRoute(filters)
-	}
+	route := buildHomeRoute(path, filters)
 	route.SetView(view)
 
 	// Create the badge component.

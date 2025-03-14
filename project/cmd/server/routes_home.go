@@ -199,9 +199,9 @@ func getFeedList(ctx context.Context, esapi *typedapi.API, filters *api.Filters)
 	feedList := make(templates.Elements, 0, len(feeds))
 	// Build feed cards.
 	for _, feed := range feeds {
-		var card *partials.Card
+		var card *home.Card
 
-		card, err = partials.NewFeedCard(*filters, feed)
+		card, err = home.NewFeedCard(*filters, feed)
 		if err != nil {
 			logging.FromContext(ctx).Warn("Could not create card component for feed.",
 				slog.String("feed_id", feed.GetID()),
@@ -325,7 +325,7 @@ func getItemList(ctx context.Context, esapi *typedapi.API, path *url.URL, filter
 	// Build item cards.
 	for idx, item := range items {
 		// Create a card for this item.
-		itemCard, err := partials.NewItemCard(*filters, item)
+		itemCard, err := home.NewItemCard(*filters, item)
 		if err != nil {
 			logging.FromContext(ctx).Warn("Could not create card component for item.",
 				slog.String("items_id", item.GetID()),
@@ -399,7 +399,7 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedI
 		return
 	}
 
-	article := partials.NewArticle(&details)
+	article := home.NewArticle(&details)
 
 	var content templates.Elements
 	if htmx.IsHTMX(req) {
@@ -456,7 +456,7 @@ func displayHome(res http.ResponseWriter, req *http.Request, title string, conte
 		}
 	} else {
 		// Full render. Add the Appbar then build a full page layout to render.
-		parts = slices.Insert(parts, 0, appbar.AppBar().Show())
+		parts = slices.Insert(parts, 0, partials.CommandModal(), appbar.AppBar().Show())
 		fullPage := layouts.BuildPage(
 			layouts.WithHeadOptions(title,
 				layouts.WithPageDescription("Your home."),

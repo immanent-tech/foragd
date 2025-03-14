@@ -19,6 +19,13 @@ import (
 )
 
 const (
+	// FeedsRoute is the base path for showing a list of feeds.
+	FeedsRoute = "/home/feeds"
+	// ItemsRoute is the base path for showing a list of items.
+	ItemsRoute = "/home/items"
+)
+
+const (
 	Get    HTMXMethod = iota // hx-get
 	Put                      // hx-put
 	Post                     // hx-post
