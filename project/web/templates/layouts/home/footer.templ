@@ -22,6 +22,7 @@ type ListFooter struct {
 	backPath    string
 	filtersMenu templ.Component
 	sortMenu    templ.Component
+	actions     []templ.Component
 }
 
 templ (f *ListFooter) Show(classes ...string) {
@@ -41,16 +42,17 @@ templ (f *ListFooter) Show(classes ...string) {
 			@f.sortMenu
 		</div>
 		<div class="basis-xs">
-			@BuildActionsMenu(AddSubscriptionAction())
+			@BuildActionsMenu(f.actions...)
 		</div>
 	</div>
 }
 
-func BuildListFooter(backPath string, filters templ.Component, sorts templ.Component) *ListFooter {
+func BuildListFooter(backPath string, filters templ.Component, sorts templ.Component, actions ...templ.Component) *ListFooter {
 	return &ListFooter{
 		backPath:    backPath,
 		filtersMenu: filters,
 		sortMenu:    sorts,
+		actions:     actions,
 	}
 }
 

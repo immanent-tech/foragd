@@ -31,6 +31,20 @@ func AddSubscriptionAction() templ.Component {
 	).Show()
 }
 
+// ImportAction creates a button for displaying a modal to import feeds (i.e.
+// via opml).
+func ImportAction() templ.Component {
+	return link.Build(
+		link.WithContent("Import..."),
+		link.WithExtraAttributes(templ.Attributes{
+			"hx-get":    "/subscription/import",
+			"hx-target": partials.CommandModalID.Target(),
+			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
+		}),
+		link.WithUnderlineOnHover(),
+	).Show()
+}
+
 // backButton generates a button for going back to the given path. It fetches
 // the last state of the path (i.e., any parameters used) from the user session.
 func BackButton(ctx context.Context, path string) templ.Component {

@@ -257,7 +257,11 @@ func displayFeeds(api *typedapi.API, res http.ResponseWriter, req *http.Request,
 
 	// header := home.BuildListHeader(home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/feeds"))
 	// footer := home.BuildFooter("/home")
-	footer := home.BuildListFooter("/home", home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/feeds"))
+	footer := home.BuildListFooter("/home",
+		home.BuildFiltersMenu(views, categories),
+		home.BuildSortingMenu(filters, "/home/feeds"),
+		home.AddSubscriptionAction(), home.ImportAction(),
+	)
 
 	displayHome(res, req, "Feeds", content, footer)
 }
@@ -384,7 +388,10 @@ func displayItems(esapi *typedapi.API, res http.ResponseWriter, req *http.Reques
 	// header := home.BuildListHeader(home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/items"))
 	// footer := home.BuildFooter("/home/feeds")
 
-	footer := home.BuildListFooter("/home/feeds", home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/items"))
+	footer := home.BuildListFooter("/home/feeds",
+		home.BuildFiltersMenu(views, categories),
+		home.BuildSortingMenu(filters, "/home/items"),
+	)
 
 	displayHome(res, req, "Items", content, footer)
 }
