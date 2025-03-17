@@ -146,20 +146,34 @@ paths:
   /subscription/import:
     get:
       description: >
-        Import subscriptions via OPML.
-      operationId: manageImport
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
+        Start an import.
+      operationId: startImport
+    put:
+      description: >
+        Set the import method.
+      operationId: setImportMethod
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - from
+              properties:
+                from:
+                  $ref: "api.yaml#/components/schemas/ImportSource"
+      # parameters:
+      #   - $ref: "api.yaml#/components/parameters/ImportSource"
     post:
-      summary: >
-        Save imported subscriptions.
+      description: >
+        Process an import.
       operationId: processImport
       requestBody:
         $ref: "#/components/requestBodies/ImportRequest"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
+    responses:
+      200:
+        $ref: "#/components/responses/htmx"
   /subscription/{feed}:
     parameters:
       - $ref: "#/components/parameters/FeedID"
@@ -313,36 +327,49 @@ paths:
           $ref: "#/components/responses/htmx"
 components:
   schemas:
-    ImportFromOPML:
+    ImportOPML:
       description: >
         allows importing feeds from a URL pointing to an OPML file.
-      type: object
-      required:
-        - url
-      properties:
-        url:
-          $ref: "models.yaml#/components/schemas/URL"
-    ImportFromFile:
+      type: string
+      x-oapi-codegen-extra-tags:
+        json: "opml_url"
+        form: "opml_url"
+        validate: "url"
+    ImportFile:
       description: >
         allows importing feeds from an OPML file
-      type: object
-      required:
-        - file
-      properties:
-        file:
-          type: string
-          format: binary
-    ImportFromURLs:
+      type: string
+      format: binary
+      x-oapi-codegen-extra-tags:
+        json: "opml_file"
+        form: "opml_file"
+    ImportURLs:
       description: >
         allows importing feeds from an list of feed URLs.
+      type: array
+      items:
+        type: string
+      x-oapi-codegen-extra-tags:
+        json: "url_list"
+        form: "url_list"
+        validate: "unique,dive,dive,required,url"
+    Import:
+      description: >
+        contains data for importing.
       type: object
       required:
-        - urls
+        - from
+        - data
       properties:
-        urls:
-          type: array
-          items:
-            $ref: "models.yaml#/components/schemas/URL"
+        from:
+          $ref: "api.yaml#/components/schemas/ImportSource"
+        data:
+          oneOf:
+            - $ref: "#/components/schemas/ImportOPML"
+            - $ref: "#/components/schemas/ImportFile"
+            - $ref: "#/components/schemas/ImportURLs"
+          x-oapi-codegen-extra-tags:
+            form: "data"
     MarkFeeds:
       description: contains data for marking Feeds.
       type: object
@@ -473,6 +500,12 @@ components:
       required: true
       schema:
         $ref: "api.yaml#/components/schemas/SortOrder"
+    ImportSource:
+      name: import_source
+      in: query
+      required: true
+      schema:
+        $ref: "api.yaml#/components/schemas/ImportSource"
   requestBodies:
     ImportRequest:
       description: >
@@ -481,10 +514,7 @@ components:
       content:
         multipart/form-data:
           schema:
-            oneOf:
-              - $ref: "#/components/schemas/ImportFromOPML"
-              - $ref: "#/components/schemas/ImportFromFile"
-              - $ref: "#/components/schemas/ImportFromURLs"
+            $ref: "#/components/schemas/Import"
     MarkRequest:
       description: >
         Holds options for marking objects.

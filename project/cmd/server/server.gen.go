@@ -15,21 +15,27 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-// ImportFromFile allows importing feeds from an OPML file
-type ImportFromFile struct {
-	File openapi_types.File `json:"file"`
+// Import contains data for importing.
+type Import struct {
+	Data Import_Data `form:"data" json:"data"`
+
+	// From defines the source that will be used for an import.
+	From externalRef0.ImportSource `form:"source" json:"source" validate:"oneof=opml_file opml_url url_list"`
 }
 
-// ImportFromOPML allows importing feeds from a URL pointing to an OPML file.
-type ImportFromOPML struct {
-	// URL is a URL.
-	URL externalRef1.URL `json:"url" validate:"required,url"`
+// Import_Data defines model for Import.Data.
+type Import_Data struct {
+	union json.RawMessage
 }
 
-// ImportFromURLs allows importing feeds from an list of feed URLs.
-type ImportFromURLs struct {
-	Urls []externalRef1.URL `json:"urls"`
-}
+// ImportFile allows importing feeds from an OPML file
+type ImportFile = openapi_types.File
+
+// ImportOPML allows importing feeds from a URL pointing to an OPML file.
+type ImportOPML = string
+
+// ImportURLs allows importing feeds from an list of feed URLs.
+type ImportURLs = []string
 
 // MarkCategories contains data for marking Categories.
 type MarkCategories struct {
@@ -127,9 +133,10 @@ type AddSubscriptionCategoryFormdataBody struct {
 	Category externalRef1.Category `form:"category" json:"category"`
 }
 
-// ProcessImportMultipartBody defines parameters for ProcessImport.
-type ProcessImportMultipartBody struct {
-	union json.RawMessage
+// SetImportMethodFormdataBody defines parameters for SetImportMethod.
+type SetImportMethodFormdataBody struct {
+	// From defines the source that will be used for an import.
+	From externalRef0.ImportSource `form:"source" json:"source" validate:"oneof=opml_file opml_url url_list"`
 }
 
 // HandleMarkFeedsFormdataRequestBody defines body for HandleMarkFeeds for application/x-www-form-urlencoded ContentType.
@@ -142,7 +149,10 @@ type HandleMarkItemsFormdataRequestBody = MarkObjects
 type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
 
 // ProcessImportMultipartRequestBody defines body for ProcessImport for multipart/form-data ContentType.
-type ProcessImportMultipartRequestBody ProcessImportMultipartBody
+type ProcessImportMultipartRequestBody = Import
+
+// SetImportMethodFormdataRequestBody defines body for SetImportMethod for application/x-www-form-urlencoded ContentType.
+type SetImportMethodFormdataRequestBody SetImportMethodFormdataBody
 
 // AddSubscriptionFormdataRequestBody defines body for AddSubscription for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
@@ -152,6 +162,94 @@ type SaveSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
 // AddUserFormdataRequestBody defines body for AddUser for application/x-www-form-urlencoded ContentType.
 type AddUserFormdataRequestBody = externalRef0.UserSignupRequest
+
+// AsImportOPML returns the union data inside the Import_Data as a ImportOPML
+func (t Import_Data) AsImportOPML() (ImportOPML, error) {
+	var body ImportOPML
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromImportOPML overwrites any union data inside the Import_Data as the provided ImportOPML
+func (t *Import_Data) FromImportOPML(v ImportOPML) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeImportOPML performs a merge with any union data inside the Import_Data, using the provided ImportOPML
+func (t *Import_Data) MergeImportOPML(v ImportOPML) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsImportFile returns the union data inside the Import_Data as a ImportFile
+func (t Import_Data) AsImportFile() (ImportFile, error) {
+	var body ImportFile
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromImportFile overwrites any union data inside the Import_Data as the provided ImportFile
+func (t *Import_Data) FromImportFile(v ImportFile) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeImportFile performs a merge with any union data inside the Import_Data, using the provided ImportFile
+func (t *Import_Data) MergeImportFile(v ImportFile) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsImportURLs returns the union data inside the Import_Data as a ImportURLs
+func (t Import_Data) AsImportURLs() (ImportURLs, error) {
+	var body ImportURLs
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromImportURLs overwrites any union data inside the Import_Data as the provided ImportURLs
+func (t *Import_Data) FromImportURLs(v ImportURLs) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeImportURLs performs a merge with any union data inside the Import_Data, using the provided ImportURLs
+func (t *Import_Data) MergeImportURLs(v ImportURLs) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Import_Data) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Import_Data) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // AsMarkFeeds returns the union data inside the MarkObjects as a MarkFeeds
 func (t MarkObjects) AsMarkFeeds() (MarkFeeds, error) {
@@ -299,10 +397,13 @@ type ServerInterface interface {
 	AddSubscriptionCategory(w http.ResponseWriter, r *http.Request)
 
 	// (GET /subscription/import)
-	ManageImport(w http.ResponseWriter, r *http.Request)
-	// Save imported subscriptions.
+	StartImport(w http.ResponseWriter, r *http.Request)
+
 	// (POST /subscription/import)
 	ProcessImport(w http.ResponseWriter, r *http.Request)
+
+	// (PUT /subscription/import)
+	SetImportMethod(w http.ResponseWriter, r *http.Request)
 
 	// (GET /subscription/new)
 	NewSubscription(w http.ResponseWriter, r *http.Request)
@@ -438,13 +539,17 @@ func (_ Unimplemented) AddSubscriptionCategory(w http.ResponseWriter, r *http.Re
 }
 
 // (GET /subscription/import)
-func (_ Unimplemented) ManageImport(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) StartImport(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Save imported subscriptions.
 // (POST /subscription/import)
 func (_ Unimplemented) ProcessImport(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PUT /subscription/import)
+func (_ Unimplemented) SetImportMethod(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1082,11 +1187,11 @@ func (siw *ServerInterfaceWrapper) AddSubscriptionCategory(w http.ResponseWriter
 	handler.ServeHTTP(w, r)
 }
 
-// ManageImport operation middleware
-func (siw *ServerInterfaceWrapper) ManageImport(w http.ResponseWriter, r *http.Request) {
+// StartImport operation middleware
+func (siw *ServerInterfaceWrapper) StartImport(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ManageImport(w, r)
+		siw.Handler.StartImport(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1101,6 +1206,20 @@ func (siw *ServerInterfaceWrapper) ProcessImport(w http.ResponseWriter, r *http.
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.ProcessImport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetImportMethod operation middleware
+func (siw *ServerInterfaceWrapper) SetImportMethod(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetImportMethod(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1409,10 +1528,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/subscription/category", wrapper.AddSubscriptionCategory)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/subscription/import", wrapper.ManageImport)
+		r.Get(options.BaseURL+"/subscription/import", wrapper.StartImport)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/subscription/import", wrapper.ProcessImport)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/subscription/import", wrapper.SetImportMethod)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscription/new", wrapper.NewSubscription)

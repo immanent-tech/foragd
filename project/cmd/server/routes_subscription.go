@@ -8,18 +8,41 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"mime"
+	"mime/multipart"
 	"net/http"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/validation"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
+
+type OPMLFile struct {
+	data multipart.File
+	hdr  *multipart.FileHeader
+}
+
+func (f *OPMLFile) Load(data multipart.File, hdr *multipart.FileHeader) error {
+	f.data = data
+	f.hdr = hdr
+	return nil
+}
+
+func (f *OPMLFile) Valid() bool {
+	mediaType, _, err := mime.ParseMediaType(f.hdr.Header.Get("Content-Type"))
+	if err != nil {
+		return false
+	}
+	return mediaType == "text/x-opml+xml"
+}
 
 // NewSubscription creates a new APISubscription request and presents it as a
 // form for the user to fill out.
@@ -76,12 +99,58 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s Server) ManageImport(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.ImportModal()); err != nil {
+		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
+
+	// w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) ProcessImport(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+func (f *SetImportMethodFormdataBody) Valid() bool {
+	valid, err := validation.ValidateStruct(f)
+	if !valid || err != nil {
+		spew.Dump(err)
+		return false
+	}
+	return true
+}
+
+func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
+	importMethod, valid, err := forms.DecodeForm[*SetImportMethodFormdataBody](req)
+	switch {
+	case err != nil:
+		slog.Error("error parsing form", slog.Any("error", err))
+	case !valid:
+		slog.Error("invalid input")
+	}
+
+	var form templ.Component
+	switch importMethod.From {
+	case "opml_file":
+		form = subscription.ImportFromOPML()
+	}
+
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, form); err != nil {
+		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
+}
+
+func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
+	opmlFile := &OPMLFile{}
+	opmlFile, valid, err := forms.DecodeFile(req, "data", opmlFile)
+	switch {
+	case err != nil:
+		slog.Error("error decoding file", slog.Any("error", err))
+	case !valid:
+		slog.Error("invalid file")
+	}
+
+	spew.Dump(opmlFile)
 }
 
 func (s Server) SaveSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {

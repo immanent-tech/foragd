@@ -19,7 +19,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/layout/list"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
-	"github.com/joshuar/go-templ-daisyui/modifiers/state"
 )
 
 // inputURL generates the text input for the subscription URL.
@@ -44,7 +43,7 @@ func inputURL(req *api.SubscriptionRequest) templ.Component {
 	}
 	// Check for validation errors and mark the field with error status.
 	if req.ValidationErrors["URL"] != "" {
-		urlInput.Input.SetStateColor(state.Error)
+		// urlInput.Input.SetStateColor(state.Error)
 		urlInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["URL"])
 	}
 
@@ -75,7 +74,7 @@ func inputName(req *api.SubscriptionRequest) templ.Component {
 	}
 	// Check for validation errors and mark the field with error status.
 	if req.ValidationErrors["Name"] != "" {
-		nameInput.Input.SetStateColor(state.Error)
+		// nameInput.Input.SetStateColor(state.Error)
 		nameInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["Name"])
 	}
 

@@ -6,6 +6,7 @@ package forms
 import (
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 
@@ -15,9 +16,18 @@ import (
 var decoder = form.NewDecoder()
 var encoder = form.NewEncoder()
 
+// DefaultMaxSize for a multipart for submission is 32 MB.
+const DefaultMaxSize = 32 << 20
+
 // Validator is an object that can be validated.
 type Validator interface {
 	Valid() bool
+}
+
+// File is an object to store an uploaded file.
+type File interface {
+	Valid() bool
+	Load(data multipart.File, hdr *multipart.FileHeader) error
 }
 
 // DecodeForm will decode submitted form contents into the passed in type. It
@@ -64,6 +74,33 @@ func DecodeCustom[T Validator](req *http.Request, decoderFunc func(params url.Va
 	}
 
 	return obj, true, nil
+}
+
+// DecodeFile will the file represented by the given field in a multipart form
+// submission. It will perform validation of the file and will return the file
+// object and a boolean true if it is valid. If decoding fails, a non-nill error
+// is returned.
+func DecodeFile[T File](req *http.Request, field string, file T) (T, bool, error) {
+	// Parse form values in request.
+	if err := req.ParseMultipartForm(DefaultMaxSize); err != nil {
+		return file, false, fmt.Errorf("parse form: %w", err)
+	}
+	// Decode the form values.
+	data, hdr, err := req.FormFile(field)
+	if err != nil {
+		return file, false, fmt.Errorf("decode file: %w", err)
+	}
+	// Load file data.
+	err = file.Load(data, hdr)
+	if err != nil {
+		return file, false, fmt.Errorf("load file: %w", err)
+	}
+	// Validate the file data.
+	if ok := file.Valid(); !ok {
+		return file, false, fmt.Errorf("invalid file %T", file)
+	}
+
+	return file, true, nil
 }
 
 func DecodeRequest[T any](req *http.Request) (T, error) {

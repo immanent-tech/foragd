@@ -86,7 +86,10 @@
     "classes/width",
     "config",
     "templates",
-    "attributes"
+    "attributes",
+    "components/fieldset",
+    "assets",
+    "templates/partials/subscription"
   ],
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",

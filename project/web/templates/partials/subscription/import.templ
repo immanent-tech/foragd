@@ -1,0 +1,100 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package subscription
+
+import "github.com/joshuar/go-templ-daisyui/input/fileinput"
+import "github.com/joshuar/go-templ-daisyui/input/fieldset"
+import "github.com/joshuar/go-templ-daisyui/input/hiddeninput"
+import "github.com/joshuar/go-templ-daisyui/input/option"
+import "github.com/joshuar/go-templ-daisyui/actions/modal"
+import "github.com/joshuar/go-templ-daisyui/actions/button"
+import "github.com/joshuar/go-templ-daisyui/attributes"
+import "github.com/joshuar/go-templ-daisyui/display/text"
+import "github.com/joshuar/go-templ-daisyui/input/form"
+import "github.com/joshuar/go-feed-me/internal/api"
+import "github.com/joshuar/go-feed-me/web/templates/partials"
+
+// ImportFormID is the id attribute for the import form.
+var ImportFormID = attributes.ID("import-form")
+
+// ImportModalID is the id attribute for the import modal.
+var ImportModalID = attributes.ID("import-modal")
+
+// ImportOptions are the methods that can be used for importing.
+var ImportOptions = []option.Value{
+	{Label: "From OPML URL", Value: string(api.ImportFromURL)},
+	{Label: "From OPML File", Value: string(api.ImportFromFile)},
+	{Label: "From a list URLs", Value: string(api.ImportFromList)},
+}
+
+// ShowImportFrom shows a input select for the user to choose a method for the
+// import. the chosen method will load the form with appropriate inputs for
+// importing via the chosen method.
+templ ShowImportFrom() {
+	<div>
+		@option.Build(
+			option.WithLabel("Pick Import Method:"),
+			option.Required(),
+			option.WithValues(ImportOptions...),
+			option.WithName("source"),
+			option.WithExtraAttributes(templ.Attributes{
+				"hx-put":    "/subscription/import",
+				"hx-target": ImportFormID.Target(),
+			}),
+		).Show()
+	</div>
+	<div>
+		@form.BuildForm(
+			form.WithID("import-form"),
+			form.WithExtraAttributes(
+				templ.Attributes{
+					"hx-post":     "/subscription/import",
+					"hx-encoding": "multipart/form-data",
+					"_":           "on htmx:xhr:progress(loaded, total) set #import-form-progress.value to (loaded/total)*100",
+				},
+			),
+		).Show()
+	</div>
+}
+
+// ImportFromOPML shows inputs for choosing an OPML file as the input source.
+templ ImportFromOPML() {
+	@fieldset.Build(
+		fieldset.WithLegend("Select the OPML file to use:"),
+		fieldset.WithField("",
+			hiddeninput.Build(
+				hiddeninput.WithName("source"),
+				hiddeninput.WithValue(string(api.ImportFromFile)),
+			),
+		),
+		fieldset.WithField("",
+			fileinput.Build(
+				fileinput.WithName("data"),
+				fileinput.Required(),
+			),
+		),
+		fieldset.WithField("",
+			button.Build(
+				button.WithContent("Import"),
+			),
+		),
+	).Show()
+	<progress id="import-form-progress" class="progress" value="0" max="100"></progress>
+}
+
+// NewSubscriptionModal displays a modal for a user to enter new subscription details.
+templ ImportModal() {
+	@modal.Build(
+		modal.WithID(ImportModalID.String()),
+		modal.WithModalCloseOutside(),
+		modal.OpenModalInitially(),
+	).Show() {
+		@partials.CloseModalButton(ImportModalID.Target())
+		@text.Build("Import Your Feeds", text.WithTextSize(text.LG), text.WithTextWeight(text.Semibold)).Show()
+		<div id="import-modal-content">
+			@ShowImportFrom()
+		</div>
+		<div id="import-modal-feedback"></div>
+	}
+}

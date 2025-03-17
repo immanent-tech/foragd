@@ -5,9 +5,27 @@
 package partials
 
 import "github.com/joshuar/go-templ-daisyui/attributes"
+import "github.com/joshuar/go-templ-daisyui/actions/button"
+import "github.com/joshuar/go-templ-daisyui/modifiers/size"
+import "github.com/joshuar/go-templ-daisyui/display/icon"
 
 var CommandModalID = attributes.ID("command-modal")
 
 templ CommandModal() {
 	<div id={ CommandModalID.String() } class="container mx-auto px-4"></div>
+}
+
+// CloseModalButton will position a button in the top-right of a modal that can
+// be used to close the modal.
+templ CloseModalButton(modalID string) {
+	<div class="absolute right-2 top-2 m-2">
+		@button.Build(
+			button.AsShape(button.Circle, false),
+			button.WithSize(size.SM),
+			button.WithContent(icon.Build("fa-xmark")),
+			button.WithExtraAttributes(templ.Attributes{
+				"_": "on click or keyup[key=='Esc'] take .modal-open from " + modalID + " wait 200ms then remove " + modalID,
+			}),
+		).Show()
+	</div>
 }

@@ -260,3 +260,13 @@ components:
           $ref: "models.yaml#/components/schemas/FeedURL"
         updated_at:
           $ref: "models.yaml#/components/schemas/UpdatedAt"
+    ImportSource:
+      description: >
+        defines the source that will be used for an import.
+      type: string
+      enum: ["opml_file","opml_url","url_list"]
+      x-enum-varnames: ["ImportFromFile","ImportFromURL","ImportFromList"]
+      x-oapi-codegen-extra-tags:
+        json: "source"
+        form: "source"
+        validate: "oneof=opml_file opml_url url_list"

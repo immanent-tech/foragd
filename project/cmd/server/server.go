@@ -159,7 +159,8 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	router.Route("/subscription", func(subscription chi.Router) {
 		subscription.Get("/new", wrapper.NewSubscription)
 		subscription.Put("/new", wrapper.AddSubscription)
-		subscription.Get("/import", wrapper.ManageImport)
+		subscription.Get("/import", wrapper.StartImport)
+		subscription.Put("/import", wrapper.SetImportMethod)
 		subscription.Post("/import", wrapper.ProcessImport)
 		// Existing subscription management:
 		subscription.Get("/{subscription}", wrapper.ShowSubscription)

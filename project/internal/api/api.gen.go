@@ -13,6 +13,13 @@ import (
 	externalRef0 "github.com/joshuar/go-feed-me/internal/models"
 )
 
+// Defines values for ImportSource.
+const (
+	ImportFromFile ImportSource = "opml_file"
+	ImportFromList ImportSource = "url_list"
+	ImportFromURL  ImportSource = "opml_url"
+)
+
 // Defines values for Mark.
 const (
 	MarkRead   Mark = "read"
@@ -110,6 +117,9 @@ type Filters struct {
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
 }
+
+// ImportSource defines the source that will be used for an import.
+type ImportSource string
 
 // Items is a list of items IDs.
 type Items = []externalRef0.ItemID
