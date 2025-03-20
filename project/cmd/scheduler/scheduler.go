@@ -19,6 +19,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
@@ -31,7 +32,7 @@ type DataAPI interface {
 	GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error)
 	GetFeedJobState(ctx context.Context, feedID models.FeedID) (*api.FeedState, error)
 	UpdateFeedJobState(ctx context.Context, state *api.FeedState) error
-	AddItems(ctx context.Context, items ...models.Item) error
+	AddItems(ctx context.Context, items ...models.Item) (*bulk.Response, error)
 }
 
 type Manager struct {

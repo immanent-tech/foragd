@@ -25,7 +25,7 @@ var (
 	ErrNotSubscribed         = errors.New("user not subscribed to feed")
 )
 
-func (u *User) Valid(_ context.Context) (bool, validation.ValidationErrors) {
+func (u *User) Valid(_ context.Context) (bool, error) {
 	return validation.ValidateStruct(u)
 }
 

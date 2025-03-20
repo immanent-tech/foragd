@@ -52,7 +52,7 @@ type APIFeed struct {
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
 
 	// UserProperties Tracks user-specific properties of a feed.
-	UserProperties *UserFeedProperties `json:"user_properties,omitempty"`
+	UserProperties *UserFeedProperties `json:"-"`
 }
 
 // APIItem defines model for APIItem.
@@ -175,7 +175,7 @@ type State string
 // SubscriptionState Contains fields to rack a subscription state.
 type SubscriptionState struct {
 	// Categories is a list of categories.
-	Categories Categories `json:"categories" validate:"unique,dive,dive,required"`
+	Categories Categories `json:"categories" validate:"unique"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`

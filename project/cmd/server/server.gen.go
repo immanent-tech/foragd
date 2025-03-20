@@ -43,7 +43,7 @@ type MarkCategories struct {
 	Categories []externalRef1.Category `form:"categories" json:"categories" validate:"required,unique,dive,required"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof=read unread"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 }
 
 // MarkFeeds contains data for marking Feeds.
@@ -52,7 +52,7 @@ type MarkFeeds struct {
 	Feeds []externalRef1.FeedID `form:"feeds" json:"feeds" validate:"required,unique,dive,required,startswith=feed_"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof=read unread"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 }
 
 // MarkItems contains data for marking Items.
@@ -61,7 +61,7 @@ type MarkItems struct {
 	Items []externalRef1.ItemID `form:"items" json:"items" validate:"required,unique,dive,required,startswith=item_"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"required,oneof=read unread"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 }
 
 // MarkObjects mark one or more objects
@@ -70,7 +70,7 @@ type MarkObjects struct {
 }
 
 // Categories is a list of categories.
-type Categories = externalRef0.Categories
+type Categories = []externalRef1.Category
 
 // Count is the count of items to retrieve with a request.
 type Count = externalRef0.Count
@@ -78,8 +78,8 @@ type Count = externalRef0.Count
 // FeedID is the unique ID of a feed.
 type FeedID = externalRef1.FeedID
 
-// Feeds is a list of feed IDs.
-type Feeds = externalRef0.Feeds
+// Feeds defines model for Feeds.
+type Feeds = []externalRef1.FeedID
 
 // ItemID is the unique ID of an item.
 type ItemID = externalRef1.ItemID
@@ -102,7 +102,7 @@ type View = externalRef0.View
 // HandleShowFeedsParams defines parameters for HandleShowFeeds.
 type HandleShowFeedsParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Categories Categories  `form:"categories,omitempty" json:"categories,omitempty"`
 	View       View        `form:"view" json:"view"`
 	Count      Count       `form:"count" json:"count"`
 	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
@@ -113,7 +113,7 @@ type HandleShowFeedsParams struct {
 // HandleShowItemsParams defines parameters for HandleShowItems.
 type HandleShowItemsParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	Categories Categories  `form:"categories,omitempty" json:"categories,omitempty"`
 	View       View        `form:"view" json:"view"`
 	Count      Count       `form:"count" json:"count"`
 	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`

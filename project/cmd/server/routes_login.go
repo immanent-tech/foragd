@@ -22,21 +22,21 @@ var (
 
 // Login handler handles login requests.
 func (s Server) Login(res http.ResponseWriter, req *http.Request, provider string) {
-	logger := s.Logger.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
+	logger := s.Log.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
 	ctx := logging.ToContext(req.Context(), logger)
 
 	switch provider {
 	case "auth0":
 		auth0.LoginHandler(res, req.WithContext(ctx), s.API.auth)
 	default:
-		s.Logger.Warn("No provider to satisfy login.")
+		s.Log.Warn("No provider to satisfy login.")
 		http.NotFound(res, req)
 	}
 }
 
 // LoginCallback handles the callback from login providers.
 func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provider string, params LoginCallbackParams) {
-	logger := s.Logger.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
+	logger := s.Log.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
 	ctx := logging.ToContext(req.Context(), logger)
 
 	if params.Code == "" {

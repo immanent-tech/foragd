@@ -14,12 +14,18 @@ import "github.com/joshuar/go-templ-daisyui/display/text"
 import "github.com/joshuar/go-templ-daisyui/input/form"
 import "github.com/joshuar/go-feed-me/internal/api"
 import "github.com/joshuar/go-feed-me/web/templates/partials"
+import "github.com/joshuar/go-templ-daisyui/feedback/alert"
+import "github.com/joshuar/go-templ-daisyui/modifiers/state"
+import "github.com/joshuar/go-templ-daisyui/modifiers/style"
+import "github.com/joshuar/go-templ-daisyui/feedback/loading"
 
 // ImportFormID is the id attribute for the import form.
 var ImportFormID = attributes.ID("import-form")
 
 // ImportModalID is the id attribute for the import modal.
 var ImportModalID = attributes.ID("import-modal")
+
+var ImportFeedBackID = attributes.ID("import-modal-feedback")
 
 // ImportOptions are the methods that can be used for importing.
 var ImportOptions = []option.Value{
@@ -49,13 +55,20 @@ templ ShowImportFrom() {
 			form.WithID("import-form"),
 			form.WithExtraAttributes(
 				templ.Attributes{
-					"hx-post":     "/subscription/import",
-					"hx-encoding": "multipart/form-data",
-					"_":           "on htmx:xhr:progress(loaded, total) set #import-form-progress.value to (loaded/total)*100",
+					"hx-post":      "/subscription/import",
+					"hx-encoding":  "multipart/form-data",
+					"hx-indicator": "#import-processing",
+					// "_":           "on htmx:xhr:progress(loaded, total) set #import-form-progress.value to (loaded/total)*100",
 				},
 			),
 		).Show()
 	</div>
+	<center>
+		@loading.Build(loading.Infinity,
+			loading.AsHTMXIndicator(),
+			loading.WithID("import-processing"),
+		).Show()
+	</center>
 }
 
 // ImportFromOPML shows inputs for choosing an OPML file as the input source.
@@ -80,7 +93,7 @@ templ ImportFromOPML() {
 			),
 		),
 	).Show()
-	<progress id="import-form-progress" class="progress" value="0" max="100"></progress>
+	// <progress id="import-form-progress" class="progress" value="0" max="100"></progress>
 }
 
 // NewSubscriptionModal displays a modal for a user to enter new subscription details.
@@ -95,6 +108,24 @@ templ ImportModal() {
 		<div id="import-modal-content">
 			@ShowImportFrom()
 		</div>
-		<div id="import-modal-feedback"></div>
+		<div id={ ImportFeedBackID.String() }></div>
+	}
+}
+
+templ ImportError(problems *api.ExternalError) {
+	@alert.Build(state.Error,
+		alert.WithID("import-error"),
+		alert.WithStyle(style.Soft),
+		alert.WithText(problems.Summary),
+	).Show() {
+		{ problems.Details }
+		@button.Build(
+			button.WithContent("Okay"),
+			button.WithStateColor(state.Error, false),
+			button.WithStyle(style.Soft),
+			button.WithExtraAttributes(templ.Attributes{
+				"_": "on click remove #import-error",
+			}),
+		).Show()
 	}
 }

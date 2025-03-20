@@ -8,10 +8,12 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strconv"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/bulk"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/operationtype"
 )
 
 var ErrAddOp = errors.New("could not add operation to bulk request")
@@ -32,19 +34,19 @@ type Client interface {
 type BulkOpType int
 
 // BulkOpOption is a functional option for a bulk operation.
-type BulkOpOption func(*BulkOperation)
+type BulkOpOption func(*Operation)
 
 // BulkOption is a functional option for a bulk request.
-type BulkOption func(*BulkRequest)
+type BulkOption func(*Request)
 
-// BulkRequest represents a bulk request.
-type BulkRequest struct {
+// Request represents a bulk request.
+type Request struct {
 	*bulk.Bulk
 }
 
 // WithPipeline defines the ingest pipeline to use on each document.
 func WithPipeline(pipeline string) BulkOption {
-	return func(b *BulkRequest) {
+	return func(b *Request) {
 		if pipeline != "" {
 			b.Pipeline(pipeline)
 		}
@@ -53,13 +55,13 @@ func WithPipeline(pipeline string) BulkOption {
 
 // WithIndex defines the index on which the request will operate.
 func WithOverallIndex(index string) BulkOption {
-	return func(b *BulkRequest) {
+	return func(b *Request) {
 		b.Index(index)
 	}
 }
 
 // AddOperations adds document operations to the bulk request.
-func (r *BulkRequest) AddOperation(operation BulkOperation) error {
+func (r *Request) AddOperation(operation Operation) error {
 	var err error
 
 	switch operation.opType {
@@ -84,8 +86,52 @@ func (r *BulkRequest) AddOperation(operation BulkOperation) error {
 	return nil
 }
 
-// BulkOperation represents an individual document's bulk operation.
-type BulkOperation struct {
+type Response struct {
+	Err       error
+	Responses []*OperationResponse
+}
+
+// FailedDocs returns the doc IDs of all documents whose operation failed.
+func (r *Response) FailedDocs() []string {
+	var failedDocIDs []string
+	for _, resp := range r.Responses {
+		// Ignore unknown operation responses.
+		if resp.Id_ == nil {
+			continue
+		}
+		if _, err := resp.State(); err != nil {
+			failedDocIDs = append(failedDocIDs, *resp.Id_)
+		}
+	}
+	return failedDocIDs
+}
+
+type OperationResponse struct {
+	*types.ResponseItem
+}
+
+func (r *OperationResponse) State() (string, error) {
+	var status string
+	if r.Result != nil {
+		status = fmt.Sprintf("%d: %s", r.Status, *r.Result)
+	} else {
+		status = strconv.Itoa(r.Status)
+	}
+
+	var err error
+	if r.Error != nil {
+		if r.Error.Reason != nil {
+			err = fmt.Errorf("%s: %s", r.Error.Type, *r.Error.Reason)
+		} else {
+			err = fmt.Errorf("%s", r.Error.Type)
+		}
+	}
+
+	return status, err
+}
+
+// Operation represents an individual document's bulk operation.
+type Operation struct {
 	document any
 	index    string
 	opType   BulkOpType
@@ -93,7 +139,7 @@ type BulkOperation struct {
 }
 
 func SetDocID(id string) BulkOpOption {
-	return func(operation *BulkOperation) {
+	return func(operation *Operation) {
 		operation.id = id
 	}
 }
@@ -101,21 +147,21 @@ func SetDocID(id string) BulkOpOption {
 // AsOperationType specifies the type of bulk operation to perform. If this option is
 // not specified, the operation will default to a create operation.
 func AsOperationType(opType BulkOpType) BulkOpOption {
-	return func(operation *BulkOperation) {
+	return func(operation *Operation) {
 		operation.opType = opType
 	}
 }
 
 // ToIndex sets the index containing the document.
 func ToIndex(index string) BulkOpOption {
-	return func(operation *BulkOperation) {
+	return func(operation *Operation) {
 		operation.index = index
 	}
 }
 
 // NewOperation creates a new bulk operation for a document with the given options.
-func NewOperation(doc any, options ...BulkOpOption) BulkOperation {
-	operation := &BulkOperation{
+func NewOperation(doc any, options ...BulkOpOption) Operation {
+	operation := &Operation{
 		document: doc,
 	}
 
@@ -128,8 +174,8 @@ func NewOperation(doc any, options ...BulkOpOption) BulkOperation {
 
 // NewRequest creates a new bulk requesst object with the given options.
 // After creation, document operations can be added with the AddOperations method.
-func NewRequest(ctx context.Context, client Client, options ...BulkOption) (chan BulkOperation, chan error) {
-	req := &BulkRequest{
+func NewRequest(ctx context.Context, client Client, options ...BulkOption) (chan Operation, chan Response) {
+	req := &Request{
 		Bulk: client.GetAPI().Bulk(),
 	}
 
@@ -137,11 +183,11 @@ func NewRequest(ctx context.Context, client Client, options ...BulkOption) (chan
 		option(req)
 	}
 
-	bulkOps := make(chan BulkOperation)
-	errorCh := make(chan error)
+	bulkOps := make(chan Operation)
+	respCh := make(chan Response)
 
 	go func() {
-		defer close(errorCh)
+		defer close(respCh)
 
 		for op := range bulkOps {
 			if err := req.AddOperation(op); err != nil {
@@ -154,13 +200,23 @@ func NewRequest(ctx context.Context, client Client, options ...BulkOption) (chan
 		// Handle response.
 		switch {
 		case err != nil:
-			errorCh <- fmt.Errorf("bulk index failed: %w", err)
+			respCh <- Response{Err: err}
 		case resp.Errors:
-			errorCh <- fmt.Errorf("bulk index completed with some errors: %w", resp.Items)
+			respCh <- Response{Err: errors.New("bulk request completed with some errors"), Responses: GetOperationResponses(resp.Items)}
 		default:
-			errorCh <- nil
+			respCh <- Response{Responses: GetOperationResponses(resp.Items)}
 		}
 	}()
 
-	return bulkOps, errorCh
+	return bulkOps, respCh
+}
+
+func GetOperationResponses(resp []map[operationtype.OperationType]types.ResponseItem) []*OperationResponse {
+	responses := make([]*OperationResponse, 0, len(resp))
+	for _, op := range resp {
+		for _, doc := range op {
+			responses = append(responses, &OperationResponse{ResponseItem: &doc})
+		}
+	}
+	return responses
 }

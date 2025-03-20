@@ -6,6 +6,8 @@ package models
 import (
 	"context"
 	"errors"
+
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 )
 
 var ErrBackend = errors.New("backend API error")
@@ -46,8 +48,8 @@ type UserManagementAPI interface {
 // FeedManagementAPI contains methods for feed/item management.
 type FeedManagementAPI interface {
 	GetFeedByURL(ctx context.Context, url URL) (*APIFeed, error)
-	AddFeeds(ctx context.Context, feeds ...Feed) error
-	AddItems(ctx context.Context, items ...Item) error
+	AddFeeds(ctx context.Context, feeds ...Feed) (*bulk.Response, error)
+	AddItems(ctx context.Context, items ...Item) (*bulk.Response, error)
 	// FeedJobStateAPI
 }
 

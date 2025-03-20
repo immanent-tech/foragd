@@ -19,6 +19,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/layout/list"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"github.com/joshuar/go-templ-daisyui/modifiers/state"
 )
 
 // inputURL generates the text input for the subscription URL.
@@ -42,10 +43,10 @@ func inputURL(req *api.SubscriptionRequest) templ.Component {
 		urlInput.Input.SetValue(attributes.Value(req.URL))
 	}
 	// Check for validation errors and mark the field with error status.
-	if req.ValidationErrors["URL"] != "" {
-		// urlInput.Input.SetStateColor(state.Error)
-		urlInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["URL"])
-	}
+	// if req.ValidationErrors["URL"] != "" {
+	// 	// urlInput.Input.SetStateColor(state.Error)
+	// 	urlInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["URL"])
+	// }
 
 	return urlInput.Show()
 }
@@ -73,10 +74,10 @@ func inputName(req *api.SubscriptionRequest) templ.Component {
 		nameInput.Input.SetValue(attributes.Value(*req.Name))
 	}
 	// Check for validation errors and mark the field with error status.
-	if req.ValidationErrors["Name"] != "" {
-		// nameInput.Input.SetStateColor(state.Error)
-		nameInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["Name"])
-	}
+	// if req.ValidationErrors["Name"] != "" {
+	// 	// nameInput.Input.SetStateColor(state.Error)
+	// 	nameInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["Name"])
+	// }
 
 	return nameInput.Show()
 }
@@ -240,7 +241,7 @@ templ AddSubscriptionSuccess() {
 		modal.WithModalCloseOutside(),
 		modal.OpenModalInitially(),
 	).Show() {
-		@alert.Build(alert.WithText("Subscription Saved!")).Success()
+		@alert.Build(state.Success, alert.WithText("Subscription Saved!")).Show()
 		// <div class="p-8 flex items-center justify-center"></div>
 		<div class="modal-action">
 			@button.Build(
@@ -267,10 +268,9 @@ templ AddSubscriptionSuccess() {
 
 templ AddSubscriptionWarning(message string) {
 	<div id="warnings_toast" hx-swap-oob="true">
-		@alert.Build(
-			alert.WithID("warning"),
+		@alert.Build(state.Warning,
 			alert.WithText(message),
-		).Warning() {
+		).Show() {
 			@button.Build(
 				button.WithSize(size.SM),
 				button.WithContent("Okay"),

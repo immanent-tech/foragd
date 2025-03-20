@@ -3,4 +3,23 @@
 
 package api
 
+import "iter"
+
+// Option is a generic functional option that can be used by any type that needs
+// to implement its own options.
 type Option[T any] func(T)
+
+// filterSlice is an iterator to filter slice values.
+//
+// https://www.dolthub.com/blog/2024-12-20-collection-functions-in-go-1-23/#the-missing-methods-slicesmap-and-slicesfilter
+func filterSlice[S any](s []S, fn func(S) bool) iter.Seq[S] {
+	return func(yield func(s S) bool) {
+		for _, v := range s {
+			if fn(v) {
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
+}

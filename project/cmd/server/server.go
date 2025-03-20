@@ -34,8 +34,8 @@ type API struct {
 }
 
 type Server struct {
-	API    *API
-	Logger *slog.Logger
+	API *API
+	Log *slog.Logger
 }
 
 // Ensures we statisfy the ServerInterface interface.
@@ -59,7 +59,7 @@ func NewServer(ctx context.Context) (Server, error) {
 		serverConfig.Secret = secret
 	}
 	// Set up the logger
-	svr.Logger = logging.FromContext(ctx)
+	svr.Log = logging.FromContext(ctx)
 	// Load the auth0UserAPI backend.
 	auth0UserAPI, err := auth0.NewUserAPI(ctx)
 	if err != nil {
@@ -104,11 +104,11 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	}
 
 	// Use chi middlewares.
-	svr.Logger.Debug("Setting up middleware...")
+	svr.Log.Debug("Setting up middleware...")
 	wrapper.HandlerMiddlewares = append(wrapper.HandlerMiddlewares,
 		middleware.RequestID,
 		middleware.RealIP,
-		middlewares.Logger(svr.Logger, config.LogLevel(), requestIDKey),
+		middlewares.Logger(svr.Log, config.LogLevel(), requestIDKey),
 		middleware.Recoverer,
 		middlewares.CORS(config.Environment()),
 		middlewares.CSP(serverConfig.CSP),
@@ -117,7 +117,7 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		middlewares.RequireHTMX(htmxOnlyRoutes),
 		session.LoadAndSave())
 
-	svr.Logger.Debug("Setting up routes...")
+	svr.Log.Debug("Setting up routes...")
 
 	if config.Environment() == "development" {
 		router.Mount("/debug", middleware.Profiler())

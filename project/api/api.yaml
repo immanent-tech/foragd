@@ -23,45 +23,47 @@ components:
       enum: ["read", "unread"]
       x-oapi-codegen-extra-tags:
         form: "mark"
-        validate: "required,oneof=read unread"
-    Feeds:
-      description: is a list of feed IDs.
-      type: array
-      items:
-        $ref: "models.yaml#/components/schemas/FeedID"
-      x-oapi-codegen-extra-tags:
-        json: "feeds"
-        form: "feeds[]"
-        validate: "omitnil,unique,dive,required,startswith=feed_"
-      # x-go-type-skip-optional-pointer: true
-    Items:
-      description: is a list of items IDs.
-      type: array
-      items:
-        $ref: "models.yaml#/components/schemas/ItemID"
-      x-oapi-codegen-extra-tags:
-        json: "items"
-        form: "items[]"
-        validate: "omitnil,unique,dive,required,startswith=item_"
-      # x-go-type-skip-optional-pointer: true
-    Categories:
-      description: is a list of categories.
-      type: array
-      items:
-        $ref: "models.yaml#/components/schemas/Category"
-      x-oapi-codegen-extra-tags:
-        json: "categories"
-        form: "categories[]"
-        validate: "omitnil,unique,dive,required"
-      # x-go-type-skip-optional-pointer: true
+        validate: "oneof=read unread"
+    # Feeds:
+    #   description: is a list of feed IDs.
+    #   type: array
+    #   items:
+    #     $ref: "models.yaml#/components/schemas/FeedID"
+    #   x-oapi-codegen-extra-tags:
+    #     json: "feeds"
+    #     form: "feeds[]"
+    #     validate: "omitnil,unique,dive,startswith=feed_"
+    #   x-go-type-skip-optional-pointer: true
+    # Items:
+    #   description: is a list of items IDs.
+    #   type: array
+    #   items:
+    #     $ref: "models.yaml#/components/schemas/ItemID"
+    #   x-oapi-codegen-extra-tags:
+    #     json: "items"
+    #     form: "items[]"
+    #     validate: "omitnil,unique,dive,startswith=item_"
+    #   x-go-type-skip-optional-pointer: true
+    # Categories:
+    #   description: is a list of categories.
+    #   type: array
+    #   items:
+    #     $ref: "models.yaml#/components/schemas/Category"
+    #   x-oapi-codegen-extra-tags:
+    #     json: "categories"
+    #     form: "categories[]"
+    #     validate: "omitnil,unique"
+    #   x-go-type-skip-optional-pointer: true
     Count:
       description: >
         is the count of items to retrieve with a request.
       type: integer
       default: "10"
+      minimum: 1
+      maximum: 20
       x-oapi-codegen-extra-tags:
         form: "count"
-        validate: "required,numeric,gt=0,lt=20"
+        validate: "numeric,gt=0,lt=20"
     View:
       description: >
         The state of objects to view.
@@ -69,7 +71,7 @@ components:
       enum: ["read", "unread", "all"]
       default: "unread"
       x-oapi-codegen-extra-tags:
-        validate: "required,oneof=read unread all"
+        validate: "oneof=read unread all"
         form: "view"
     Pagination:
       description: contains data for paginating through results.
@@ -113,7 +115,62 @@ components:
           $ref: "#/components/schemas/SortOrder"
       x-oapi-codegen-extra-tags:
         json: "sort"
+    ErrorCode:
+      description: >
+        is a globally unique string for the error within the service.
+      type: string
     # Objects:
+    Error:
+      description: >
+        represents an error from within the API or service.
+      type: object
+      required:
+        - context
+        - message
+        - err
+      properties:
+        context:
+          description: >
+            is a string that adds additional context to an error for internal
+            use.
+          type: string
+        message:
+          description: >
+            is a short description for this error.
+          type: string
+        err:
+          description: >
+            contains any lower-level wrapped error(s).
+          x-go-type: error
+    ExternalError:
+      description: >
+        represents an error that can be shown externally (i.e. to users).
+      type: object
+      required:
+        - retryable
+        - summary
+        - err
+      properties:
+        retryable:
+          description: >
+            indicates whether this error is temporary and the request/action
+            that caused it can be retried.
+          type: boolean
+          default: false
+        summary:
+          description: >
+            is a brief description of the error.
+          type: string
+        details:
+          description: >
+            is a longer description of the error, its cause and any
+            actions/steps that need to be taken.
+          type: string
+          x-go-type-skip-optional-pointer: true
+        err:
+          description: >
+            contains any lower-level internal error(s).
+          x-go-type: error
     Filters:
       description: contains parameters for searching feeds and items
       type: object
@@ -124,11 +181,35 @@ components:
         - sort_order
       properties:
         feeds:
-          $ref: "#/components/schemas/Feeds"
+          description: is a list of feed IDs.
+          type: array
+          items:
+            $ref: "models.yaml#/components/schemas/FeedID"
+          x-oapi-codegen-extra-tags:
+            json: "feeds"
+            form: "feeds[]"
+            validate: "omitnil,unique,dive,startswith=feed_"
+          x-go-type-skip-optional-pointer: true
         items:
-          $ref: "#/components/schemas/Items"
+          description: is a list of items IDs.
+          type: array
+          items:
+            $ref: "models.yaml#/components/schemas/ItemID"
+          x-oapi-codegen-extra-tags:
+            json: "items"
+            form: "items[]"
+            validate: "omitnil,unique,dive,startswith=item_"
+          x-go-type-skip-optional-pointer: true
         categories:
-          $ref: "#/components/schemas/Categories"
+          description: is a list of categories.
+          type: array
+          items:
+            $ref: "models.yaml#/components/schemas/Category"
+          x-oapi-codegen-extra-tags:
+            json: "categories"
+            form: "categories[]"
+            validate: "omitnil,unique"
+          x-go-type-skip-optional-pointer: true
         count:
           $ref: "#/components/schemas/Count"
         view:
@@ -178,31 +259,16 @@ components:
           x-go-type-import:
             path: "github.com/a-h/templ"
           x-go-json-ignore: true
-    SubscriptionRequest:
-      description: represents a new subscription request from a user.
+    SubscriptionResponse:
+      description: >
+        represents the response details for a subscription request.
       type: object
-      required:
-        - url
-      properties:
-        url:
-          $ref: "models.yaml#/components/schemas/URL"
-        name:
-          description: >
-            is a friendly name or nickname for the feed given by the user.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: "name"
-        categories:
-          $ref: "#/components/schemas/Categories"
-        validation_errors:
-          description: is a map of field name -> validation error for the request.
-          type: object
-          additionalProperties:
-            type: string
-          x-go-json-ignore: true
-          x-oapi-codegen-extra-tags:
-            form: "-"
-          x-go-type-skip-optional-pointer: true
+      allOf:
+        - $ref: "#/components/schemas/SubscriptionRequest"
+        - type: object
+          properties:
+            err:
+              $ref: "#/components/schemas/Error"
     UserSignupRequest:
       description: >
         contains the details for a user signup request.
@@ -270,3 +336,110 @@ components:
         json: "source"
         form: "source"
         validate: "oneof=opml_file opml_url url_list"
+    UserSubscriptionProperties:
+      description: >
+        represents the properties of a subscription a user can customize.
+      properties:
+        name:
+          description: >
+            is a friendly name or nickname for the feed given by the user.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: "name"
+        categories:
+          description: >
+            is a user-defined list of Category names for the subscription.
+          type: array
+          items:
+            $ref: "models.yaml#/components/schemas/Category"
+          x-oapi-codegen-extra-tags:
+            json: "categories"
+            form: "categories[]"
+            validate: "unique"
+          x-go-type-skip-optional-pointer: true
+    Subscription:
+      description: >
+        represents a feed a user has subscribed to.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/UserSubscriptionProperties"
+        - type: object
+          required:
+            - created_at
+            - FeedID
+            - UserID
+          properties:
+            created_at:
+              $ref: "models.yaml#/components/schemas/CreatedAt"
+            updated_at:
+              $ref: "models.yaml#/components/schemas/UpdatedAt"
+            marked_read:
+              description: records when the subscription was last marked read.
+              x-go-type: "time.Time"
+              x-oapi-codegen-extra-tags:
+                validate: "omitnil"
+            read_items:
+              description: >
+                is a list of ItemIDs that the user has explicitly marked as read.
+              type: array
+              items:
+                $ref: "models.yaml#/components/schemas/ItemID"
+              x-oapi-codegen-extra-tags:
+                json: "read_items"
+                validate: "unique,dive,startswith=item_"
+              x-go-type-skip-optional-pointer: true
+            unread_items:
+              description: >
+                is a list of ItemIDs that the user has explicitly marked as unread.
+              type: array
+              items:
+                $ref: "models.yaml#/components/schemas/ItemID"
+              x-oapi-codegen-extra-tags:
+                json: "unread_items"
+                validate: "unique,dive,startswith=item_"
+              x-go-type-skip-optional-pointer: true
+            FeedID:
+              $ref: "models.yaml#/components/schemas/FeedID"
+            UserID:
+              $ref: "models.yaml#/components/schemas/UserID"
+    SubscriptionRequest:
+      description: >
+        represents a request to add or edit a subscription.
+      type: object
+      allOf:
+        - $ref: "api.yaml#/components/schemas/UserSubscriptionProperties"
+        - type: object
+          required:
+            - FeedID
+            - UserID
+            - URL
+          properties:
+            FeedID:
+              $ref: "models.yaml#/components/schemas/FeedID"
+            UserID:
+              $ref: "models.yaml#/components/schemas/UserID"
+            URL:
+              description: >
+                is the canonical URL to the feed.
+              type: string
+              x-oapi-codegen-extra-tags:
+                form: "url"
+                json: "url"
+                validate: "required,url"
+            Feed:
+              description: >
+                is a Feed for the subscription that needs to be added.
+              x-go-type: "models.Feed"
+              x-oapi-codegen-extra-tags:
+                form: "-"
+                json: "-"
+                validate: "-"
+            err:
+              description: >
+                contains any lower-level wrapped error(s).
+              x-go-type: error
+              x-oapi-codegen-extra-tags:
+                form: "-"
+                json: "-"
+                validate: "-"
+              x-go-type-skip-optional-pointer: true

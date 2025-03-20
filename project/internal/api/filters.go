@@ -63,47 +63,49 @@ func (s *Sort) Valid() bool {
 
 // GetFeeds gets the list of FeedIDs from the filters.
 func (f *Filters) GetFeeds() []models.FeedID {
-	if f.Feeds != nil {
-		return *f.Feeds
-	}
-	return nil
+	// if f.Feeds != nil {
+	// 	return *f.Feeds
+	// }
+	// return nil
+	return f.Feeds
 }
 
 // SetFeeds sets the feed filters to the given values. Existing values are wiped.
 func (f *Filters) SetFeeds(feedIDs ...models.FeedID) {
-	feeds := make([]models.FeedID, len(feedIDs))
-	feeds = append(feeds, feedIDs...)
-	f.Feeds = &feeds
+	f.Feeds = make([]models.FeedID, len(feedIDs))
+	f.Feeds = append(f.Feeds, feedIDs...)
 }
 
 // GetItems gets the list of ItemIDs from the filters.
 func (f *Filters) GetItems() []models.ItemID {
-	if f.Items != nil {
-		return *f.Items
-	}
-	return nil
+	// if f.Items != nil {
+	// 	return *f.Items
+	// }
+	// return nil
+	return f.Items
 }
 
 // SetItems sets the item filters to the given values. Existing values are wiped.
 func (f *Filters) SetItems(itemIDs ...models.ItemID) {
-	items := make([]models.ItemID, len(itemIDs))
-	items = append(items, itemIDs...)
-	f.Items = &items
+	f.Items = make([]models.ItemID, len(itemIDs))
+	f.Items = append(f.Items, itemIDs...)
+	// f.Items = &items
 }
 
 // GetCategories gets the list of Categories from the filters.
 func (f *Filters) GetCategories() models.Categories {
-	if f.Categories != nil {
-		return *f.Categories
-	}
-	return nil
+	// if f.Categories != nil {
+	// 	return *f.Categories
+	// }
+	// return nil
+	return f.Categories
 }
 
 // SetCategories sets the category filters to the given values. Existing values are wiped.
 func (f *Filters) SetCategories(categories ...models.Category) {
-	c := make([]models.Category, len(categories))
-	c = append(c, categories...)
-	f.Categories = &c
+	f.Categories = make([]models.Category, len(categories))
+	f.Categories = append(f.Categories, categories...)
+	// f.Categories = &c
 }
 
 // GetCount gets the count value from the filters. If the Count outside the
@@ -229,17 +231,17 @@ func FiltersFromQuery(values url.Values) (*Filters, error) {
 
 	if param := values.Get(string(ParamFeeds)); param != "" {
 		feeds := strings.Split(param, " ")
-		filters.Feeds = &feeds
+		filters.Feeds = feeds
 	}
 
 	if param := values.Get(string(ParamItems)); param != "" {
 		items := strings.Split(param, " ")
-		filters.Items = &items
+		filters.Items = items
 	}
 
 	if param := values.Get(string(ParamCategories)); param != "" {
 		categories := strings.Split(param, " ")
-		filters.Categories = &categories
+		filters.Categories = categories
 	}
 
 	if param := values.Get(string(ParamPagination)); param != "" {

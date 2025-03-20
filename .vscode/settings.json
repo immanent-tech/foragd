@@ -89,7 +89,8 @@
     "attributes",
     "components/fieldset",
     "assets",
-    "templates/partials/subscription"
+    "templates/partials/subscription",
+    "pkg/opml"
   ],
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",

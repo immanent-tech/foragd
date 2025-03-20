@@ -18,7 +18,7 @@ func NewSubscriptionState(details *SubscriptionRequest) models.SubscriptionState
 	}
 	if details.Categories != nil {
 		// if len(details.Categories) > 0 {
-		req.Categories = *details.Categories
+		req.Categories = details.Categories
 	}
 	return req
 }

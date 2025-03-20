@@ -87,20 +87,20 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 	go func() {
 		defer wg.Done()
 		if err := scheduler.Run(ctx); err != nil {
-			svr.Logger.Error("Error running scheduler.",
+			svr.Log.Error("Error running scheduler.",
 				slog.Any("error", err))
 			cancelFunc()
 		}
 	}()
 
-	svr.Logger.Info("Starting server...",
+	svr.Log.Info("Starting server...",
 		slog.Int("port", server.Port()),
 		slog.String("environment", config.Environment()))
 
 	// And we serve HTTP until the world ends.
 	err = serverObj.ListenAndServeTLS("localhost.crt", "localhost.key")
 	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
-		svr.Logger.Info("commencing server shutdown...")
+		svr.Log.Info("commencing server shutdown...")
 		wg.Wait()
 	} else if err != nil {
 		return fmt.Errorf("error shutting down server: %w", err)

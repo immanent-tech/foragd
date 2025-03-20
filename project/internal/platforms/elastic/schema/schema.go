@@ -12,13 +12,14 @@ import (
 )
 
 const (
-	MappingsSuffix        = "_mappings"
-	SettingsSuffix        = "_settings"
-	FeedsSchemaPrefix     = "feeds"
-	FeedItemsSchemaPrefix = "feeditems"
-	UsersSchemaPrefix     = "users"
-	SchedulerJobsPrefix   = "scheduler_jobs"
-	SessionsPrefix        = "sessions"
+	MappingsSuffix            = "_mappings"
+	SettingsSuffix            = "_settings"
+	FeedsSchemaPrefix         = "feeds"
+	FeedItemsSchemaPrefix     = "feeditems"
+	UsersSchemaPrefix         = "users"
+	SchedulerJobsPrefix       = "scheduler_jobs"
+	SessionsPrefix            = "sessions"
+	SubscriptionsSchemaPrefix = "subscriptions"
 
 	IngestPipelineID = "gofeed"
 
@@ -26,6 +27,8 @@ const (
 	FeedsSettings         = FeedsSchemaPrefix + SettingsSuffix
 	FeedsItemsMappings    = FeedItemsSchemaPrefix + MappingsSuffix
 	FeedsItemsSettings    = FeedItemsSchemaPrefix + SettingsSuffix
+	SubscriptionMappings  = SubscriptionsSchemaPrefix + MappingsSuffix
+	SubscriptionSettings  = SubscriptionsSchemaPrefix + SettingsSuffix
 	UsersMappings         = UsersSchemaPrefix + MappingsSuffix
 	UsersSettings         = UsersSchemaPrefix + SettingsSuffix
 	SchedulerJobsMappings = SchedulerJobsPrefix + MappingsSuffix

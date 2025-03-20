@@ -5,6 +5,7 @@ package validation
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -12,36 +13,23 @@ import (
 
 var validate = validator.New(validator.WithRequiredStructEnabled())
 
-var ErrValidationFailed = errors.New("internal validation error")
-
-// ValidationErrors is a map of fields and their validation errors.
-//
-//nolint:errname
-//revive:disable:exported
-type ValidationErrors map[string][]string
-
-// Error allows ValidationErrors to be treated as an error.
-func (p ValidationErrors) Error() string {
-	var message strings.Builder
-	for field, problems := range p {
-		// Write the field name.
-		message.WriteString(fmt.Sprintf("field %s: ", field))
-		// Write each problem with the field.
-		for _, problem := range problems {
-			message.WriteString(problem)
-		}
-
-		message.WriteRune(' ')
-	}
-
-	return message.String()
+// Error is a map of fields and their validation errors.
+type Error struct {
+	Details string
+	fields  map[string]string
 }
 
-// Problems is a map of fields and their validation errors.
-type Problems map[string]string
+func (e *Error) Error() string {
+	return fmt.Sprintf("invalid data: %s", e.Details)
+}
 
-func (v Problems) GetErrors(field string) string {
-	return v[field]
+// FieldError returns the error for the field with the given name. If the field
+// has no error, a nil value is returned.
+func (e *Error) FieldError(name string) error {
+	if field, ok := e.fields[name]; ok {
+		return fmt.Errorf("%s: %s", field, e.fields[name])
+	}
+	return nil
 }
 
 // IsValid will check if an object is valid according to the validation tags on
@@ -58,15 +46,13 @@ func IsValid[T any](obj T) bool {
 // struct field names and an array of validation errors for that field.
 //
 //nolint:errorlint,errcheck
-func ValidateStruct[T any](obj T) (bool, ValidationErrors) {
+func ValidateStruct[T any](obj T) (bool, error) {
 	validationErr := &validator.ValidationErrors{}
 
 	err := validate.Struct(obj)
 	if err != nil {
 		if !errors.As(err, validationErr) {
-			return false, map[string][]string{
-				"internal": {ErrValidationFailed.Error()},
-			}
+			return false, &Error{Details: "internal validation error"}
 		}
 
 		problems := parseStructValidationErrors(err.(validator.ValidationErrors))
@@ -92,14 +78,17 @@ func ValidateVariable(variable any, rule string) (bool, error) {
 // parseStructValidationErrors takes the underlying validation errors and
 // formats them so that each struct field has an array of all validation errors
 // associated with it.
-func parseStructValidationErrors(validationErrors validator.ValidationErrors) ValidationErrors {
-	problems := make(ValidationErrors)
-
-	for _, err := range validationErrors {
-		field := err.Field()
-
-		problems[field] = append(problems[field], fmt.Sprintf("%s: %s", err.Tag(), err.Error()))
+func parseStructValidationErrors(validationErrors validator.ValidationErrors) *Error {
+	fields := make(map[string]string)
+	// Generate details of fields that failed validation.
+	var details strings.Builder
+	for err := range slices.Values(validationErrors) {
+		details.WriteString(err.Field() + " " + err.Error())
+		details.WriteRune('\n')
+		fields[err.Field()] = err.Error()
 	}
-
-	return problems
+	return &Error{
+		Details: details.String(),
+		fields:  fields,
+	}
 }

@@ -17,7 +17,6 @@ components:
       x-go-type: "time.Time"
       x-oapi-codegen-extra-tags:
         json: "@timestamp"
-        validate: "required"
     CreatedAt:
       description: records when the object was created in the database.
       x-go-type: "time.Time"
@@ -29,17 +28,19 @@ components:
       x-go-type: "time.Time"
       x-oapi-codegen-extra-tags:
         json: "updated_at,omitempty"
+        validate: "omitnil"
     DeletedAt:
       description: records when the object was deleted.
       x-go-type: "time.Time"
       x-oapi-codegen-extra-tags:
         json: "deleted_at,omitempty"
+        validate: "omitnil"
     URL: &URL
       description: is a URL.
       type: string
       x-go-name: "URL"
       x-oapi-codegen-extra-tags:
-        validate: "required,url"
+        validate: "url"
         json: "url"
     State:
       description: >
@@ -103,12 +104,14 @@ components:
             $ref: "#/components/schemas/Category"
         nickname:
           type: string
+      x-oapi-codegen-extra-tags:
+        json: "-"
     UserID:
       description: is the unique ID of a user.
       type: string
       x-oapi-codegen-extra-tags:
-        validate: "required"
         json: "user_id"
+        validate: "required"
     Category:
       description: is a single category.
       type: string
@@ -121,7 +124,7 @@ components:
         $ref: "#/components/schemas/Category"
       x-oapi-codegen-extra-tags:
         json: "categories"
-        validate: "unique,dive,dive,required"
+        validate: "unique"
       x-go-type-skip-optional-pointer: true
     ObjectPublished:
       description: is when the object was published.

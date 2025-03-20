@@ -6,14 +6,22 @@ package elastic
 import (
 	"context"
 	"errors"
+
+	"github.com/joshuar/go-feed-me/internal/api"
 )
 
-var ErrNoIndexInCtx = errors.New("no index name/pattern found in context")
+var (
+	ErrFetchCtx = api.WrapError(
+		errors.New("no index name/pattern found in context"),
+		"elastic",
+		"backend is not initialized properly")
+)
 
 const (
 	userIndexCtxKey     contextKey = "users"
 	feedsIndexCtxKey    contextKey = "feeds"
 	itemsIndexCtxKey    contextKey = "items"
+	subscriptionsCtxKey contextKey = "subscriptions"
 	jobsIndexCtxKey     contextKey = "jobs"
 	queueIndexCtxKey    contextKey = "queue"
 	sessionIndexCtxKey  contextKey = "session"
@@ -80,6 +88,18 @@ func FeedsIndexToCtx(ctx context.Context, index string) context.Context {
 // requests, from the given context.
 func FeedsIndexFromCtx(ctx context.Context) string {
 	if value, ok := ctx.Value(feedsIndexCtxKey).(string); ok {
+		return value
+	}
+
+	return ""
+}
+
+func SubscriptionsIndexToCtx(ctx context.Context, index string) context.Context {
+	return context.WithValue(ctx, subscriptionsCtxKey, index)
+}
+
+func SubscriptionsIndexFromCtx(ctx context.Context) string {
+	if value, ok := ctx.Value(subscriptionsCtxKey).(string); ok {
 		return value
 	}
 

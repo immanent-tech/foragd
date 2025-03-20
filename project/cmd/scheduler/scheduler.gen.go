@@ -18,7 +18,7 @@ type FeedJob struct {
 	ID externalRef1.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
 
 	// URL is a URL.
-	URL externalRef1.URL `json:"url" validate:"required,url"`
+	URL externalRef1.URL `json:"url" validate:"url"`
 }
 
 // ScheduledJob represents a job that has been scheduled by the job scheduler.

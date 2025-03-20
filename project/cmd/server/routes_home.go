@@ -55,18 +55,18 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 	// resp := htmx.NewResponse()
 
 	go func() {
-		s.Logger.Debug("Started listening for notifications...")
+		s.Log.Debug("Started listening for notifications...")
 		for {
 			select {
 			case <-req.Context().Done():
-				s.Logger.Debug("Stopped listening for notifications...")
+				s.Log.Debug("Stopped listening for notifications...")
 				return
 			case data := <-dataCh:
-				s.Logger.Debug("notification!")
+				s.Log.Debug("notification!")
 				var foo strings.Builder
 				if err := home.Notify(data).Render(req.Context(), &foo); err != nil {
 					// if err := resp.RenderTempl(req.Context(), res, home.Notify(data)); err != nil {
-					s.Logger.Warn("error rendering", slog.Any("error", err))
+					s.Log.Warn("error rendering", slog.Any("error", err))
 				}
 				fmt.Fprintf(res, "event: notification\ndata: %s\n\n", foo.String())
 				res.(http.Flusher).Flush()

@@ -6,6 +6,7 @@ package home
 import (
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
+	"github.com/joshuar/go-templ-daisyui/modifiers/state"
 	"time"
 )
 
@@ -42,11 +43,11 @@ templ notifications() {
 
 templ SSE(data chan string) {
 	<div id="test-toast" class="toast toast-end z-50">
-		for d := range data {
+		for range data {
 			@templ.Flush() {
 				// event: notification
 				// data:
-				@alert.Build(alert.WithID(d)).Alert() {
+				@alert.Build(state.Info).Show() {
 					<div>
 						<h3 class="font-bold">New message!</h3>
 						<div class="text-xs">You have 1 unread message</div>
@@ -59,7 +60,7 @@ templ SSE(data chan string) {
 }
 
 templ Notify(data string) {
-	@alert.Build(alert.WithID("test-alert")).Alert() {
+	@alert.Build(state.Info).Show() {
 		<div>
 			<h3 class="font-bold">New message!</h3>
 			<div class="text-xs">{ data }</div>

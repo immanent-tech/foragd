@@ -14,7 +14,7 @@ import (
 
 // Logout handler handles user logout.
 func (s Server) Logout(res http.ResponseWriter, req *http.Request, provider string) {
-	logger := s.Logger.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
+	logger := s.Log.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
 
 	switch provider {
 	case "auth0":

@@ -139,7 +139,7 @@ paths:
         Save a subscription.
       operationId: addSubscription
       requestBody:
-        $ref: "#/components/requestBodies/SubscriptionRequestBody"
+        $ref: "#/components/requestBodies/SubscriptionRequest"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -189,7 +189,7 @@ paths:
         Save a subscription.
       operationId: saveSubscription
       requestBody:
-        $ref: "#/components/requestBodies/SubscriptionRequestBody"
+        $ref: "#/components/requestBodies/SubscriptionRequest"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -469,19 +469,41 @@ components:
       name: feeds
       in: query
       schema:
-        $ref: "api.yaml#/components/schemas/Feeds"
+        type: array
+        items:
+          $ref: "models.yaml#/components/schemas/FeedID"
+        x-oapi-codegen-extra-tags:
+          json: "feeds"
+          form: "feeds[]"
+          validate: "omitnil,unique,dive,startswith=feed_"
       # x-go-type-skip-optional-pointer: true
     Items:
       name: items
       in: query
       schema:
-        $ref: "api.yaml#/components/schemas/Items"
+        description: is a list of items IDs.
+        type: array
+        items:
+          $ref: "models.yaml#/components/schemas/ItemID"
+        x-oapi-codegen-extra-tags:
+          json: "items"
+          form: "items[]"
+          validate: "omitnil,unique,dive,startswith=item_"
+        x-go-type-skip-optional-pointer: true
       # x-go-type-skip-optional-pointer: true
     Categories:
       name: categories
       in: query
       schema:
-        $ref: "api.yaml#/components/schemas/Categories"
+        description: is a list of categories.
+        type: array
+        items:
+          $ref: "models.yaml#/components/schemas/Category"
+        x-oapi-codegen-extra-tags:
+          json: "categories"
+          form: "categories[]"
+          validate: "omitnil,unique"
+        x-go-type-skip-optional-pointer: true
       # x-go-type-skip-optional-pointer: true
     Pagination:
       name: pagination
@@ -530,7 +552,7 @@ components:
         application/x-www-form-urlencoded:
           schema:
             $ref: "api.yaml#/components/schemas/UserSignupRequest"
-    SubscriptionRequestBody:
+    SubscriptionRequest:
       description: >
         Holds details for adding/saving a subscription.
       content:

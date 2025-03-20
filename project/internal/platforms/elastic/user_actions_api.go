@@ -40,7 +40,7 @@ func UserActionMarkItems(ctx context.Context, esapi *typedapi.API, mark api.Mark
 
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)
+		return errors.Join(ErrUpdateFailed, ErrFetchCtx)
 	}
 
 	resp, err := NewSearchRequest(esapi,
@@ -128,7 +128,7 @@ func UserActionMarkFeeds(ctx context.Context, esapi *typedapi.API, mark api.Mark
 func UserActionGetItem(ctx context.Context, api *typedapi.API, feedID models.FeedID, itemID models.ItemID) (models.APIItem, bool, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return models.APIItem{}, false, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+		return models.APIItem{}, false, errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 
 	user, found := models.UserFromCtx(ctx)
@@ -181,7 +181,7 @@ func UserActionGetItem(ctx context.Context, api *typedapi.API, feedID models.Fee
 func UserActionGetItems(ctx context.Context, api *typedapi.API, filters api.Filters) ([]*models.APIItem, api.Pagination, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, "", errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 
 	user, found := models.UserFromCtx(ctx)
@@ -400,29 +400,6 @@ func UserActionGetItemCategories(ctx context.Context, esapi *typedapi.API, filte
 	}
 
 	return categories, nil
-}
-
-// AddSubscription adds a new subscription to the user object.
-func UserActionAddSubscription(ctx context.Context, esapi *typedapi.API, user *models.User, feedID models.FeedID, details *api.SubscriptionRequest) error {
-	if user.IsSubscribed(feedID) {
-		return ErrUserAlreadySubscribed
-	}
-
-	if user.Subscriptions == nil {
-		user.Subscriptions = make(map[string]models.SubscriptionState)
-	}
-
-	user.Subscriptions[feedID] = api.NewSubscriptionState(details)
-
-	partialUpdate := map[string]any{
-		"subscriptions": user.Subscriptions,
-	}
-
-	if err := UpdateUser(ctx, esapi, user.GetID(), partialUpdate); err != nil {
-		return errors.Join(models.ErrUpdateUser, err)
-	}
-
-	return nil
 }
 
 // generateItemsQueryClause selects the appropriate query clause for retrieving

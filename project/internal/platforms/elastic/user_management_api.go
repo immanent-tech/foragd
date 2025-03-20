@@ -28,7 +28,7 @@ var (
 func GetUser(ctx context.Context, api *typedapi.API) (*models.User, error) {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
-		return nil, errors.Join(ErrGetFailed, ErrNoIndexInCtx)
+		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
 	}
 
 	userID, err := session.UserID(ctx)
@@ -65,7 +65,7 @@ func GetUser(ctx context.Context, api *typedapi.API) (*models.User, error) {
 func UserExists(ctx context.Context, api *typedapi.API, userID models.UserID) (bool, error) {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
-		return false, errors.Join(ErrExistsFailed, ErrNoIndexInCtx)
+		return false, errors.Join(ErrExistsFailed, ErrFetchCtx)
 	}
 
 	found, err := NewDocExistsRequest(api, index, userID).Do(ctx)
@@ -80,7 +80,7 @@ func UserExists(ctx context.Context, api *typedapi.API, userID models.UserID) (b
 func AddUser(ctx context.Context, api *typedapi.API, userID models.UserID) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
-		return errors.Join(ErrCreateUserFailed, ErrNoIndexInCtx)
+		return errors.Join(ErrCreateUserFailed, ErrFetchCtx)
 	}
 
 	created := time.Now().UTC()
@@ -113,7 +113,7 @@ func AddUser(ctx context.Context, api *typedapi.API, userID models.UserID) error
 func UpdateUser(ctx context.Context, api *typedapi.API, id models.UserID, partialUpdate map[string]any) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
-		return errors.Join(ErrUpdateFailed, ErrNoIndexInCtx)
+		return errors.Join(ErrUpdateFailed, ErrFetchCtx)
 	}
 
 	// Updated the `updated_at` timestamp.

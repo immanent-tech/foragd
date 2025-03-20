@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/a-h/templ"
+	"github.com/joshuar/go-feed-me/internal/models"
 	externalRef0 "github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -58,9 +59,6 @@ const (
 	ViewUnread View = "unread"
 )
 
-// Categories is a list of categories.
-type Categories = []externalRef0.Category
-
 // CategoryCount holds a category name and count of objects with the category.
 type CategoryCount struct {
 	// Category is a single category.
@@ -72,6 +70,36 @@ type CategoryCount struct {
 
 // Count is the count of items to retrieve with a request.
 type Count = int
+
+// Error represents an error from within the API or service.
+type Error struct {
+	// Context is a string that adds additional context to an error for internal use.
+	Context string `json:"context"`
+
+	// Err contains any lower-level wrapped error(s).
+	Err error `json:"err"`
+
+	// Message is a short description for this error.
+	Message string `json:"message"`
+}
+
+// ErrorCode is a globally unique string for the error within the service.
+type ErrorCode = string
+
+// ExternalError represents an error that can be shown externally (i.e. to users).
+type ExternalError struct {
+	// Details is a longer description of the error, its cause and any actions/steps that need to be taken.
+	Details string `json:"details,omitempty"`
+
+	// Err contains any lower-level internal error(s).
+	Err error `json:"err"`
+
+	// Retryable indicates whether this error is temporary and the request/action that caused it can be retried.
+	Retryable bool `json:"retryable"`
+
+	// Summary is a brief description of the error.
+	Summary string `json:"summary"`
+}
 
 // FeedState tracks the state of a feed.
 type FeedState struct {
@@ -85,22 +113,19 @@ type FeedState struct {
 	UpdatedAt *externalRef0.UpdatedAt `json:"updated_at,omitempty"`
 }
 
-// Feeds is a list of feed IDs.
-type Feeds = []externalRef0.FeedID
-
 // Filters contains parameters for searching feeds and items
 type Filters struct {
 	// Categories is a list of categories.
-	Categories *Categories `form:"categories[]" json:"categories" validate:"omitnil,unique,dive,required"`
+	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"omitnil,unique"`
 
 	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"count" validate:"required,numeric,gt=0,lt=20"`
+	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
 
 	// Feeds is a list of feed IDs.
-	Feeds *Feeds `form:"feeds[]" json:"feeds" validate:"omitnil,unique,dive,required,startswith=feed_"`
+	Feeds []externalRef0.FeedID `form:"feeds[]" json:"feeds" validate:"omitnil,unique,dive,startswith=feed_"`
 
 	// Items is a list of items IDs.
-	Items *Items `form:"items[]" json:"items" validate:"omitnil,unique,dive,required,startswith=item_"`
+	Items []externalRef0.ItemID `form:"items[]" json:"items" validate:"omitnil,unique,dive,startswith=item_"`
 
 	// Pagination contains data for paginating through results.
 	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
@@ -115,14 +140,11 @@ type Filters struct {
 	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
 
 	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"required,oneof=read unread all"`
+	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
 // ImportSource defines the source that will be used for an import.
 type ImportSource string
-
-// Items is a list of items IDs.
-type Items = []externalRef0.ItemID
 
 // Mark applies the given mark action to objects.
 type Mark string
@@ -166,19 +188,82 @@ type SortBy string
 // SortOrder represents the order for sorting the selected field.
 type SortOrder string
 
-// SubscriptionRequest represents a new subscription request from a user.
-type SubscriptionRequest struct {
-	// Categories is a list of categories.
-	Categories *Categories `form:"categories[]" json:"categories" validate:"omitnil,unique,dive,required"`
+// Subscription defines model for Subscription.
+type Subscription struct {
+	// FeedID is the unique ID of a feed.
+	FeedID externalRef0.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+
+	// UserID is the unique ID of a user.
+	UserID externalRef0.UserID `json:"user_id" validate:"required"`
+
+	// Categories is a user-defined list of Category names for the subscription.
+	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"unique"`
+
+	// CreatedAt records when the object was created in the database.
+	CreatedAt externalRef0.CreatedAt `json:"created_at" validate:"required"`
+
+	// MarkedRead records when the subscription was last marked read.
+	MarkedRead *time.Time `json:"marked_read,omitempty"`
 
 	// Name is a friendly name or nickname for the feed given by the user.
 	Name *string `form:"name" json:"name,omitempty"`
 
-	// URL is a URL.
-	URL externalRef0.URL `json:"url" validate:"required,url"`
+	// ReadItems is a list of ItemIDs that the user has explicitly marked as read.
+	ReadItems []externalRef0.ItemID `json:"read_items" validate:"unique,dive,startswith=item_"`
 
-	// ValidationErrors is a map of field name -> validation error for the request.
-	ValidationErrors map[string]string `form:"-" json:"-"`
+	// UnreadItems is a list of ItemIDs that the user has explicitly marked as unread.
+	UnreadItems []externalRef0.ItemID `json:"unread_items" validate:"unique,dive,startswith=item_"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt *externalRef0.UpdatedAt `json:"updated_at,omitempty"`
+}
+
+// SubscriptionRequest defines model for SubscriptionRequest.
+type SubscriptionRequest struct {
+	// Feed is a Feed for the subscription that needs to be added.
+	Feed *models.Feed `form:"-" json:"-" validate:"-"`
+
+	// FeedID is the unique ID of a feed.
+	FeedID externalRef0.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+
+	// URL is the canonical URL to the feed.
+	URL string `form:"url" json:"url" validate:"required,url"`
+
+	// UserID is the unique ID of a user.
+	UserID externalRef0.UserID `json:"user_id" validate:"required"`
+
+	// Categories is a user-defined list of Category names for the subscription.
+	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"unique"`
+
+	// Err contains any lower-level wrapped error(s).
+	Err error `form:"-" json:"-" validate:"-"`
+
+	// Name is a friendly name or nickname for the feed given by the user.
+	Name *string `form:"name" json:"name,omitempty"`
+}
+
+// SubscriptionResponse defines model for SubscriptionResponse.
+type SubscriptionResponse struct {
+	// Feed is a Feed for the subscription that needs to be added.
+	Feed *models.Feed `form:"-" json:"-" validate:"-"`
+
+	// FeedID is the unique ID of a feed.
+	FeedID externalRef0.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+
+	// URL is the canonical URL to the feed.
+	URL string `form:"url" json:"url" validate:"required,url"`
+
+	// UserID is the unique ID of a user.
+	UserID externalRef0.UserID `json:"user_id" validate:"required"`
+
+	// Categories is a user-defined list of Category names for the subscription.
+	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"unique"`
+
+	// Err represents an error from within the API or service.
+	Err *Error `json:"err,omitempty"`
+
+	// Name is a friendly name or nickname for the feed given by the user.
+	Name *string `form:"name" json:"name,omitempty"`
 }
 
 // UserSignupRequest contains the details for a user signup request.
@@ -189,6 +274,15 @@ type UserSignupRequest struct {
 
 	// ValidationErrors is a map of field name -> validation error for the request.
 	ValidationErrors map[string]string `form:"-" json:"-"`
+}
+
+// UserSubscriptionProperties represents the properties of a subscription a user can customize.
+type UserSubscriptionProperties struct {
+	// Categories is a user-defined list of Category names for the subscription.
+	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"unique"`
+
+	// Name is a friendly name or nickname for the feed given by the user.
+	Name *string `form:"name" json:"name,omitempty"`
 }
 
 // View The state of objects to view.

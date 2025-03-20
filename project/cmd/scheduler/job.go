@@ -113,7 +113,7 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
 	if len(items) > 0 {
-		if err := esapi.AddItems(ctx, items...); err != nil {
+		if resp, err := esapi.AddItems(ctx, items...); err != nil || resp.Err != nil {
 			return errors.Join(ErrExecuteJobFailed, err)
 		}
 	}

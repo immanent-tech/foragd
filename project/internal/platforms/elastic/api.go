@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
@@ -36,13 +37,13 @@ func (a *ElasticAPI) GetAPI() *typedapi.API {
 }
 
 // AddItems will bulk index the given items.
-func (a *ElasticAPI) AddItems(ctx context.Context, items ...models.Item) error {
+func (a *ElasticAPI) AddItems(ctx context.Context, items ...models.Item) (*bulk.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return ErrNoIndexInCtx
+		return nil, ErrFetchCtx
 	}
 
-	bulkOps, err := bulk.NewRequest(ctx, a)
+	bulkOps, respCh := bulk.NewRequest(ctx, a)
 
 	go func() {
 		defer close(bulkOps)
@@ -61,16 +62,18 @@ func (a *ElasticAPI) AddItems(ctx context.Context, items ...models.Item) error {
 		}
 	}()
 
-	return <-err
+	resp := <-respCh
+
+	return &resp, nil
 }
 
-func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
+func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
-		return ErrNoIndexInCtx
+		return nil, ErrFetchCtx
 	}
 
-	bulkOps, err := bulk.NewRequest(ctx, a)
+	bulkOps, respCh := bulk.NewRequest(ctx, a)
 
 	go func() {
 		defer close(bulkOps)
@@ -79,7 +82,7 @@ func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
 			feed.Items = nil // don't index items in feed.
 			logging.FromContext(ctx).Debug("Adding feed",
 				slog.String("name", feed.Title),
-				slog.String("item_id", feed.ID),
+				slog.String("feed_id", feed.ID),
 			)
 
 			bulkOps <- bulk.NewOperation(&feed,
@@ -89,13 +92,43 @@ func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...models.Feed) error {
 		}
 	}()
 
-	return <-err
+	resp := <-respCh
+
+	return &resp, nil
+}
+
+func (a *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions ...*api.Subscription) (*bulk.Response, error) {
+	index := SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, ErrFetchCtx
+	}
+
+	bulkOps, respCh := bulk.NewRequest(ctx, a)
+
+	go func() {
+		defer close(bulkOps)
+
+		for subscription := range slices.Values(subscriptions) {
+			logging.FromContext(ctx).Debug("Adding subscription",
+				slog.String("feed_id", subscription.FeedID),
+				slog.String("user_id", subscription.UserID),
+			)
+
+			bulkOps <- bulk.NewOperation(&subscription,
+				bulk.ToIndex(index),
+			)
+		}
+	}()
+
+	resp := <-respCh
+
+	return &resp, nil
 }
 
 func (a *ElasticAPI) GetFeedJobState(ctx context.Context, feedID models.FeedID) (*api.FeedState, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, errors.Join(ErrGetFailed, ErrNoIndexInCtx)
+		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
 	}
 
 	resp, err := NewGetRequest(a.API, index, feedID).Do(ctx)
@@ -123,7 +156,7 @@ func (a *ElasticAPI) GetFeedJobState(ctx context.Context, feedID models.FeedID) 
 func (a *ElasticAPI) UpdateFeedJobState(ctx context.Context, state *api.FeedState) error {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
-		return errors.Join(ErrGetFailed, ErrNoIndexInCtx)
+		return errors.Join(ErrGetFailed, ErrFetchCtx)
 	}
 
 	if state.UpdatedAt.IsZero() {
@@ -147,7 +180,7 @@ func (a *ElasticAPI) UpdateFeedJobState(ctx context.Context, state *api.FeedStat
 func (a *ElasticAPI) GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrNoIndexInCtx)
+		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 
 	logging.FromContext(ctx).Debug("Finding new feeds.",

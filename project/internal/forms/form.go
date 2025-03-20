@@ -76,11 +76,11 @@ func DecodeCustom[T Validator](req *http.Request, decoderFunc func(params url.Va
 	return obj, true, nil
 }
 
-// DecodeFile will the file represented by the given field in a multipart form
+// DecodeMultipartFile will the file represented by the given field in a multipart form
 // submission. It will perform validation of the file and will return the file
 // object and a boolean true if it is valid. If decoding fails, a non-nill error
 // is returned.
-func DecodeFile[T File](req *http.Request, field string, file T) (T, bool, error) {
+func DecodeMultipartFile[T File](req *http.Request, field string, file T) (T, bool, error) {
 	// Parse form values in request.
 	if err := req.ParseMultipartForm(DefaultMaxSize); err != nil {
 		return file, false, fmt.Errorf("parse form: %w", err)
@@ -101,6 +101,19 @@ func DecodeFile[T File](req *http.Request, field string, file T) (T, bool, error
 	}
 
 	return file, true, nil
+}
+
+// DecodeMultipartFile will the file represented by the given field in a multipart form
+// submission. It will perform validation of the file and will return the file
+// object and a boolean true if it is valid. If decoding fails, a non-nill error
+// is returned.
+func DecodeMultipartValue(req *http.Request, field string) (string, error) {
+	// Parse form values in request.
+	if err := req.ParseMultipartForm(DefaultMaxSize); err != nil {
+		return "", fmt.Errorf("parse form: %w", err)
+	}
+	// Decode the form values.
+	return req.FormValue(field), nil
 }
 
 func DecodeRequest[T any](req *http.Request) (T, error) {
