@@ -14,7 +14,7 @@ import "github.com/joshuar/go-templ-daisyui/display/text"
 import "github.com/joshuar/go-templ-daisyui/input/form"
 import "github.com/joshuar/go-feed-me/internal/api"
 import "github.com/joshuar/go-feed-me/web/templates/partials"
-import "github.com/joshuar/go-templ-daisyui/feedback/alert"
+
 import "github.com/joshuar/go-templ-daisyui/modifiers/state"
 import "github.com/joshuar/go-templ-daisyui/modifiers/style"
 import "github.com/joshuar/go-templ-daisyui/feedback/loading"
@@ -29,9 +29,9 @@ var ImportFeedBackID = attributes.ID("import-modal-feedback")
 
 // ImportOptions are the methods that can be used for importing.
 var ImportOptions = []option.Value{
-	{Label: "From OPML URL", Value: string(api.ImportFromURL)},
-	{Label: "From OPML File", Value: string(api.ImportFromFile)},
-	{Label: "From a list URLs", Value: string(api.ImportFromList)},
+	{Label: "From OPML URL", Value: string(api.ImportSourceOPMLURL)},
+	{Label: "From OPML File", Value: string(api.ImportSourceOPMLFile)},
+	{Label: "From a list URLs", Value: string(api.ImportSourceURLs)},
 }
 
 // ShowImportFrom shows a input select for the user to choose a method for the
@@ -55,9 +55,10 @@ templ ShowImportFrom() {
 			form.WithID("import-form"),
 			form.WithExtraAttributes(
 				templ.Attributes{
-					"hx-post":      "/subscription/import",
-					"hx-encoding":  "multipart/form-data",
-					"hx-indicator": "#import-processing",
+					"hx-post":     "/subscription/import",
+					"hx-encoding": "multipart/form-data",
+					"hx-target":   ImportFeedBackID.Target(),
+					// "hx-indicator": "#import-processing",
 					// "_":           "on htmx:xhr:progress(loaded, total) set #import-form-progress.value to (loaded/total)*100",
 				},
 			),
@@ -78,7 +79,7 @@ templ ImportFromOPML() {
 		fieldset.WithField("",
 			hiddeninput.Build(
 				hiddeninput.WithName("source"),
-				hiddeninput.WithValue(string(api.ImportFromFile)),
+				hiddeninput.WithValue(string(api.ImportSourceOPMLFile)),
 			),
 		),
 		fieldset.WithField("",
@@ -113,19 +114,41 @@ templ ImportModal() {
 }
 
 templ ImportError(problems *api.ExternalError) {
-	@alert.Build(state.Error,
-		alert.WithID("import-error"),
-		alert.WithStyle(style.Soft),
-		alert.WithText(problems.Summary),
-	).Show() {
-		{ problems.Details }
-		@button.Build(
-			button.WithContent("Okay"),
-			button.WithStateColor(state.Error, false),
-			button.WithStyle(style.Soft),
-			button.WithExtraAttributes(templ.Attributes{
-				"_": "on click remove #import-error",
-			}),
-		).Show()
+	// @alert.Build(state.Error,
+	// 	alert.WithID("import-error"),
+	// 	alert.WithStyle(style.Soft),
+	// ).Show() {
+	<div
+		id="import-error"
+		tabindex="0"
+		class="collapse collapse-arrow bg-error
+	border"
+	>
+		<input type="checkbox"/>
+		<div class="collapse-title font-semibold text-sm text-error-content">Error: { problems.Summary }</div>
+		<div class="collapse-content text-error-content text-sm">
+			{ problems.Details }
+			@button.Build(
+				button.WithContent("Okay"),
+				button.WithStateColor(state.Error, false),
+				button.WithStyle(style.Soft),
+				button.WithExtraAttributes(templ.Attributes{
+					"_": "on click remove #import-error",
+				}),
+			).Show()
+		</div>
+	</div>
+	// }
+}
+
+templ ImportStatus(text string) {
+	<div class="text-sm">{ text }</div>
+}
+
+templ ImportProcessing(partCh chan string) {
+	for part := range partCh {
+		@templ.Flush() {
+			{ part }
+		}
 	}
 }

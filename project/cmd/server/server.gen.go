@@ -43,7 +43,7 @@ type MarkCategories struct {
 	Categories []externalRef1.Category `form:"categories" json:"categories" validate:"required,unique,dive,required"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
+	Mark externalRef1.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 }
 
 // MarkFeeds contains data for marking Feeds.
@@ -52,7 +52,7 @@ type MarkFeeds struct {
 	Feeds []externalRef1.FeedID `form:"feeds" json:"feeds" validate:"required,unique,dive,required,startswith=feed_"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
+	Mark externalRef1.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 }
 
 // MarkItems contains data for marking Items.
@@ -61,7 +61,7 @@ type MarkItems struct {
 	Items []externalRef1.ItemID `form:"items" json:"items" validate:"required,unique,dive,required,startswith=item_"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
+	Mark externalRef1.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 }
 
 // MarkObjects mark one or more objects
@@ -85,7 +85,7 @@ type Feeds = []externalRef1.FeedID
 type ItemID = externalRef1.ItemID
 
 // Mark applies the given mark action to objects.
-type Mark = externalRef0.Mark
+type Mark = externalRef1.Mark
 
 // Pagination contains data for paginating through results.
 type Pagination = externalRef0.Pagination

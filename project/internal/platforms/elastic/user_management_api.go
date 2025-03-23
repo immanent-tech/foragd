@@ -25,7 +25,7 @@ var (
 )
 
 // GetUser fetches the user record from Elasticsearch.
-func GetUser(ctx context.Context, api *typedapi.API) (*models.User, error) {
+func (e *ElasticAPI) GetUser(ctx context.Context) (*models.User, error) {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
@@ -36,7 +36,7 @@ func GetUser(ctx context.Context, api *typedapi.API) (*models.User, error) {
 		return nil, errors.Join(ErrGetFailed, ErrNoUserCtx, err)
 	}
 
-	resp, err := NewGetRequest(api, index, userID).Do(ctx)
+	resp, err := NewGetRequest(e.GetAPI(), index, userID).Do(ctx)
 	if err != nil {
 		return nil, errors.Join(ErrGetFailed, err)
 	}
@@ -48,14 +48,6 @@ func GetUser(ctx context.Context, api *typedapi.API) (*models.User, error) {
 	user, err := ExtractSource[models.User](resp.Source_)
 	if err != nil {
 		return nil, errors.Join(ErrGetFailed, err)
-	}
-
-	if user.Subscriptions == nil {
-		user.Subscriptions = make(map[string]models.SubscriptionState)
-	}
-
-	if user.FeedItemStates == nil {
-		user.FeedItemStates = make(map[string]map[string]models.ItemState)
 	}
 
 	return &user, nil
@@ -110,7 +102,7 @@ func AddUser(ctx context.Context, api *typedapi.API, userID models.UserID) error
 	return nil
 }
 
-func UpdateUser(ctx context.Context, api *typedapi.API, id models.UserID, partialUpdate map[string]any) error {
+func (e *ElasticAPI) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrUpdateFailed, ErrFetchCtx)
@@ -120,7 +112,7 @@ func UpdateUser(ctx context.Context, api *typedapi.API, id models.UserID, partia
 	partialUpdate["updated_at"] = time.Now().UTC()
 
 	// Update the user in the store with the new list of read items.
-	resp, err := NewDocUpdateRequest(api, index, id,
+	resp, err := NewDocUpdateRequest(e.GetAPI(), index, id,
 		WithPartialDocUpdate(partialUpdate),
 	).Do(ctx)
 	if err != nil {

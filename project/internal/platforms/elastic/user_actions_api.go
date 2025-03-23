@@ -4,7 +4,6 @@
 package elastic
 
 import (
-	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -82,43 +81,23 @@ func UserActionMarkItems(ctx context.Context, esapi *typedapi.API, mark api.Mark
 	})
 }
 
-// UserActionMarkFeedsRead will mark the given feeds with the given state for
-// the user.
-func UserActionMarkFeeds(ctx context.Context, esapi *typedapi.API, mark api.Mark, feedIDs ...models.FeedID) error {
-	if mark != api.MarkRead && mark != api.MarkUnread {
+// UserActionMarkSubscriptions will mark user subscriptions with the given state.
+func (e *ElasticAPI) MarkSubscriptions(ctx context.Context, mark models.Mark, feedIDs ...models.FeedID) error {
+	if mark != models.MarkRead && mark != models.MarkUnread {
 		return errors.Join(ErrUserActionFailed, errors.New("unsupported mark action"))
 	}
-
-	var timestamp time.Time
 
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx
 	}
 
-	// Based on the requested state change, calculate the marked read timestamp
-	// for the feed.
-	// For read state, this will be the current time.
-	// For unread state, this will be the max history of the user.
-	switch mark {
-	case api.MarkRead:
-		timestamp = time.Now().UTC()
-	case api.MarkUnread:
-		timestamp = user.GetMaxHistory()
-	}
-
-	// Mark all items read in the user object. Any items already marked read are ignored.
-	for _, feed := range feedIDs {
-		if err := user.MarkFeedRead(feed, timestamp); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
-			logging.FromContext(ctx).Warn("Could not mark item read", slog.Any("error", err))
-		}
-	}
+	user.MarkSubscriptions(mark, feedIDs...)
 
 	// Update the user object.
-	return UpdateUser(ctx, esapi, user.ID, map[string]any{
-		"feed_item_states": user.FeedItemStates,
-		"subscriptions":    user.Subscriptions,
-		"updated_at":       time.Now().UTC(),
+	return e.UpdateUser(ctx, user.ID, map[string]any{
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
 	})
 }
 
@@ -178,23 +157,23 @@ func UserActionGetItem(ctx context.Context, api *typedapi.API, feedID models.Fee
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func UserActionGetItems(ctx context.Context, api *typedapi.API, filters api.Filters) ([]*models.APIItem, api.Pagination, error) {
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
-	}
-
+func (e *ElasticAPI) GetItems(ctx context.Context, filters *api.Filters) (models.Items, api.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", ErrGetUserFailed
+		return nil, "", api.WrapError(ErrNoUserCtx, "elastic", "get items failed")
 	}
 
+	// Get subscriptions matching the filters.
+	subscriptions := user.GetSubscriptions().
+		FilterByFeedID(filters.Feeds...).
+		FilterByCategory(filters.Categories...)
+
 	// Work out what query to use based on the state filter.
-	query := generateItemsQueryClause(user, filters)
+	query := generateItemsQueryClause(filters.View, user, subscriptions)
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	resp, err := ItemsSearch(ctx, api, query, filters)
+	resp, err := e.ItemsSearch(ctx, query, filters, "")
 	if err != nil {
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
@@ -209,12 +188,13 @@ func UserActionGetItems(ctx context.Context, api *typedapi.API, filters api.Filt
 	if err != nil {
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
+
 	// Decorate items with user state.
-	for _, item := range items {
+	subscriptionsByFeed := subscriptions.ByFeed()
+	for item := range slices.Values(items) {
 		// Add the state for the item from the user object, to the item object.
-		if itemState := user.GetItemState(item); itemState != nil {
-			item.SetUserItemState(itemState.State)
-		}
+		itemState := subscriptionsByFeed[item.GetFeedID()].GetItemState(item.GetID())
+		item.SetUserItemState(itemState)
 	}
 
 	return items, pagination, nil
@@ -222,66 +202,64 @@ func UserActionGetItems(ctx context.Context, api *typedapi.API, filters api.Filt
 
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func UserActionGetFeeds(ctx context.Context, esapi *typedapi.API, filters api.Filters) ([]*models.APIFeed, error) {
+func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *api.Filters) (models.Subscriptions, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, ErrGetUserFailed
+		return nil, api.WrapError(ErrNoUserCtx, "elastic", "get subscriptions failed")
 	}
 
-	filters.SetFeeds(filterSubscribedFeeds(user, filters)...)
+	// Get subscriptions matching the filters.
+	subscriptions := user.GetSubscriptions().
+		FilterByFeedID(filters.Feeds...).
+		FilterByCategory(filters.Categories...)
 
-	// Get the feed details for the subscribed feeds.
-	feeds, err := FeedsSearch(ctx, esapi, filters)
+	// Add unread counts to feeds.
+	err := e.GetSubscriptionUnreadCounts(ctx, subscriptions)
 	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
+		return nil, api.WrapError(err, "elastic", "get subscriptions failed")
 	}
 
-	filters.Categories = nil
-	// Get the unread counts for the feeds.
-	countResults, err := ItemsAggregation(ctx, esapi, unreadFeedItemsQuery(user, filters), NewTermsAggregation("UnreadCounts", "feed_id"))
-	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
+	// Filter the feeds by view filter.
+	if filters.View == api.ViewRead {
+		subscriptions = subscriptions.FilterByRead()
+	}
+	if filters.View == api.ViewUnread {
+		subscriptions = subscriptions.FilterByUnread()
 	}
 
-	var categoryCounts TermsAggregationResults
-
-	categoryCounts.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](countResults, "UnreadCounts")
-	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
-	}
-
-	unreadCounts := make(map[string]int)
-	for _, feedID := range filters.GetFeeds() {
-		unreadCounts[feedID] = categoryCounts.GetCount(feedID)
-	}
-
-	validFeeds := make([]*models.APIFeed, 0, len(feeds))
-
-	for _, feed := range feeds {
-		// Add user data to feed.
-		addUserDataToFeed(user, feed, int(unreadCounts[feed.ID]))
-		// If filtering by unread, ignore feeds with no unread count.
-		if filters.ViewUnread() && feed.GetUserUnreadCount() == 0 {
-			continue
-		}
-		// If filtering by read, ignore feeds with an unread count.
-		if filters.ViewRead() && feed.GetUserUnreadCount() > 0 {
-			continue
-		}
-		// Append to valid feeds list.
-		validFeeds = append(validFeeds, feed)
-	}
 	// If the sort_by filters is unread count, sort the list of feeds by user
 	// unread count. We can't do this in Elasticsearch as the unread count comes
 	// from an aggregation and is not a field on the feed documents.
-	if filters.GetSort().SortBy == api.UnreadCount {
-		slices.SortFunc(validFeeds, cmpFeedUnreadCount)
-		if filters.GetSort().SortOrder == api.SortDesc {
-			slices.Reverse(validFeeds)
+	if filters.Sort().SortBy == api.SortByUnreadCount {
+		slices.SortFunc(subscriptions, models.CompareSubscriptionUnreadCount)
+		if filters.Sort().SortOrder == api.SortOrderDesc {
+			slices.Reverse(subscriptions)
 		}
 	}
 
-	return validFeeds, nil
+	return subscriptions, nil
+}
+
+// GetFeedUnreadCounts performs an aggregation over the items index to calculate
+// unread counts for the given feed subscriptions.
+func (e *ElasticAPI) GetSubscriptionUnreadCounts(ctx context.Context, subscriptions models.Subscriptions) error {
+	countResults, err := e.ItemsAggregation(ctx, unreadFeedItemsQuery(subscriptions), NewTermsAggregation("UnreadCounts", "feed_id"))
+	if err != nil {
+		return api.WrapError(err, "elastic", "get feed unread counts failed")
+	}
+	var categoryCounts TermsAggregationResults
+	categoryCounts.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](countResults, "UnreadCounts")
+	if err != nil {
+		return api.WrapError(err, "elastic", "get feed unread counts failed")
+	}
+	unreadCounts := make(map[models.FeedID]int)
+	for feedID := range slices.Values(subscriptions.GetFeedIDs()) {
+		unreadCounts[feedID] = categoryCounts.GetCount(feedID)
+	}
+
+	subscriptions.UpdateUnreadCounts(unreadCounts)
+
+	return nil
 }
 
 // UserActionCountUnread will return a total count of unread items across all
@@ -303,74 +281,49 @@ func UserActionCountUnread(ctx context.Context, esapi *typedapi.API, filters api
 	return resp.Count, nil
 }
 
-func (c *Client) UserActionGetFeed(ctx context.Context, esapi *typedapi.API, feedID models.FeedID) (*models.APIFeed, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, ErrGetUserFailed
-	}
+// func (c *Client) UserActionGetFeed(ctx context.Context, esapi *typedapi.API, feedID models.FeedID) (*models.APIFeed, error) {
+// 	user, found := models.UserFromCtx(ctx)
+// 	if !found {
+// 		return nil, ErrGetUserFailed
+// 	}
 
-	if !user.IsSubscribed(feedID) {
-		return nil, errors.Join(ErrUserActionFailed, ErrNoHits)
-	}
+// 	if !user.IsSubscribed(feedID) {
+// 		return nil, errors.Join(ErrUserActionFailed, ErrNoHits)
+// 	}
 
-	// Get the feed.
-	feed, err := c.GetFeedByID(ctx, feedID)
-	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
-	}
+// 	// Get the feed.
+// 	feed, err := c.GetFeedByID(ctx, feedID)
+// 	if err != nil {
+// 		return nil, errors.Join(ErrUserActionFailed, err)
+// 	}
 
-	query := query.Bool(
-		query.Filter(
-			// Must match this feed.
-			query.Term("feed_id", feedID),
-			// Must not match any read item IDs.
-			query.ItemIDs(user.GetItemIDsWithState(models.Read, feedID)...),
-			// And should be newer than last read or explicitly marked unread.
-			query.Bool(
-				query.Should(
-					query.Since("publishedParsed", user.GetFeedLastRead(feedID)),
-					query.Since("updatedParsed", user.GetFeedLastRead(feedID)),
-					query.ItemIDs(user.GetItemIDsWithState(models.Unread, feedID)...),
-				),
-			),
-		),
-	)
+// 	query := query.Bool(
+// 		query.Filter(
+// 			// Must match this feed.
+// 			query.Term("feed_id", feedID),
+// 			// Must not match any read item IDs.
+// 			query.ItemIDs(user.GetItemIDsWithState(models.Read, feedID)...),
+// 			// And should be newer than last read or explicitly marked unread.
+// 			query.Bool(
+// 				query.Should(
+// 					query.Since("publishedParsed", user.GetFeedLastRead(feedID)),
+// 					query.Since("updatedParsed", user.GetFeedLastRead(feedID)),
+// 					query.ItemIDs(user.GetItemIDsWithState(models.Unread, feedID)...),
+// 				),
+// 			),
+// 		),
+// 	)
 
-	resp, err := ItemsCount(ctx, esapi, query)
-	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
-	}
+// 	resp, err := ItemsCount(ctx, esapi, query)
+// 	if err != nil {
+// 		return nil, errors.Join(ErrUserActionFailed, err)
+// 	}
 
-	// Add user data to feed.
-	addUserDataToFeed(user, feed, int(resp.Count))
+// 	// Add user data to feed.
+// 	addUserDataToFeed(user, feed, int(resp.Count))
 
-	return feed, nil
-}
-
-func UserActionGetFeedCategories(ctx context.Context, esapi *typedapi.API) ([]api.CategoryCount, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, ErrGetUserFailed
-	}
-
-	counts := make(map[models.Category]int)
-
-	// Tally the count of categories across the user's subscriptions.
-	for _, subscription := range user.Subscriptions {
-		for _, category := range subscription.Categories {
-			counts[category]++
-		}
-	}
-
-	categoryCounts := make([]api.CategoryCount, 0, len(counts))
-
-	// Reformat counts into CategoryCount objects.
-	for category, count := range counts {
-		categoryCounts = append(categoryCounts, api.CategoryCount{Category: category, Count: count})
-	}
-
-	return categoryCounts, nil
-}
+// 	return feed, nil
+// }
 
 func UserActionGetItemCategories(ctx context.Context, esapi *typedapi.API, filters api.Filters) ([]api.CategoryCount, error) {
 	user, found := models.UserFromCtx(ctx)
@@ -404,17 +357,17 @@ func UserActionGetItemCategories(ctx context.Context, esapi *typedapi.API, filte
 
 // generateItemsQueryClause selects the appropriate query clause for retrieving
 // items using the given filters.
-func generateItemsQueryClause(user *models.User, filters api.Filters) query.Option {
+func generateItemsQueryClause(view api.View, user *models.User, subscriptions models.Subscriptions) query.Option {
 	// Work out what query to use based on the state filter.
-	switch {
-	case filters.ViewRead():
-		return readFeedItemsQuery(user, filters)
-	case filters.ViewUnread():
-		return unreadFeedItemsQuery(user, filters)
-	case filters.ViewAll():
-		return allFeedItemsQuery(user, filters)
+	switch view {
+	case api.ViewRead:
+		return readFeedItemsQuery(user, subscriptions)
+	case api.ViewUnread:
+		return unreadFeedItemsQuery(subscriptions)
+	case api.ViewAll:
+		return allFeedItemsQuery(user, subscriptions)
 	default:
-		return unreadFeedItemsQuery(user, filters)
+		return unreadFeedItemsQuery(subscriptions)
 	}
 }
 
@@ -422,31 +375,25 @@ func generateItemsQueryClause(user *models.User, filters api.Filters) query.Opti
 // given filters. An optional duration can be specified, which will further
 // restrict the match to items published since the current time minus the
 // duration.
-func unreadFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
-	var cutoff time.Time
-
-	clauses := make([]query.Option, 0, len(filters.GetFeeds()))
-	for _, id := range filters.GetFeeds() {
-		if filters.GetSince() == api.DefaultSince {
-			// Use feed last read as cutoff.
-			cutoff = user.GetFeedLastRead(id)
-		} else {
-			// Calculate a cutoff from current time.
-			cutoff = time.Now().Add(-filters.GetSince())
-		}
+func unreadFeedItemsQuery(subscriptions models.Subscriptions) query.Option {
+	clauses := make([]query.Option, 0, len(subscriptions))
+	for subscription := range slices.Values(subscriptions) {
 		clauses = append(clauses,
 			query.Bool(
+				query.BoolQueryName(subscription.GetFeedID()+"_match"),
 				query.Filter(
 					// Must match this feed.
-					query.Term("feed_id", id),
+					query.Term("feed_id", subscription.GetFeedID()),
 					// And should be newer than last read or explicitly marked unread.
 					query.Bool(
 						query.Should(
-							// query.Since("publishedParsed", user.GetFeedLastRead(id)),
-							// query.Since("updatedParsed", user.GetFeedLastRead(id)),
-							query.Since("publishedParsed", cutoff),
-							query.Since("updatedParsed", cutoff),
-							query.ItemIDs(user.GetItemIDsWithState(models.Unread, id)...),
+							query.Since("publishedParsed", subscription.GetMarkedRead()),
+							query.Since("updatedParsed", subscription.GetMarkedRead()),
+							query.ItemIDs(subscription.GetUnreadItems()...),
+						),
+						// Must not match any read items for the feed
+						query.MustNot(
+							query.ItemIDs(subscription.GetReadItems()...),
 						),
 					),
 				),
@@ -455,44 +402,42 @@ func unreadFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
 	}
 
 	return query.Bool(
+		query.BoolQueryName("unread_items"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.FeedIDs(filters.GetFeeds()...),
-			query.Categories(filters.GetCategories()...),
+			query.FeedIDs(subscriptions.GetFeedIDs()...),
+			query.Categories(subscriptions.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
 				query.Should(clauses...),
 			),
 		),
-		query.MustNot(
-			// Must not match any read item IDs.
-			query.ItemIDs(user.GetItemIDsWithState(models.Read, filters.GetFeeds()...)...),
-		),
 	)
 }
 
 // readFeedItemsQuery generates a query for matching read items using the given filters.
-func readFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
-	readFeedIDs := make([]models.FeedID, 0, len(filters.GetFeeds()))
-	clauses := make([]query.Option, 0, len(filters.GetFeeds()))
+func readFeedItemsQuery(user *models.User, subscriptions models.Subscriptions) query.Option {
+	clauses := make([]query.Option, 0, len(subscriptions))
 
-	for _, id := range filters.GetFeeds() {
-		// Get any unread items for the feed.
-		readFeedIDs = append(readFeedIDs, id)
-
+	for feedID, info := range subscriptions.ByFeed() {
 		// Ignore feed if user has never marked it as read.
-		if user.GetFeedLastRead(id) == user.GetMaxHistory() {
+		if info.GetMarkedRead() == user.GetMaxHistory() {
 			clauses = append(clauses,
 				query.Bool(
+					query.BoolQueryName(feedID+"_match"),
 					query.Filter(
 						// Must match this feed.
-						query.Term("feed_id", id),
+						query.Term("feed_id", feedID),
 						// And be published/updated since the user max history.
 						query.Bool(
 							query.Should(
 								query.Since("publishedParsed", user.GetMaxHistory()),
 								query.Since("updatedParsed", user.GetMaxHistory()),
-								query.ItemIDs(user.GetItemIDsWithState(models.Read, id)...),
+								query.ItemIDs(info.GetReadItems()...),
+							),
+							// Must not match any unread items for the feed
+							query.MustNot(
+								query.ItemIDs(info.GetUnreadItems()...),
 							),
 						),
 					),
@@ -503,13 +448,17 @@ func readFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
 				query.Bool(
 					query.Filter(
 						// Must match this feed.
-						query.Term("feed_id", id),
+						query.Term("feed_id", feedID),
 						// And should be between the user max history and last read time.
 						query.Bool(
 							query.Should(
-								query.Between("publishedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
-								query.Between("updatedParsed", user.GetMaxHistory(), user.GetFeedLastRead(id)),
-								query.ItemIDs(user.GetItemIDsWithState(models.Read, id)...),
+								query.Between("publishedParsed", user.GetMaxHistory(), info.GetMarkedRead()),
+								query.Between("updatedParsed", user.GetMaxHistory(), info.GetMarkedRead()),
+								query.ItemIDs(info.GetReadItems()...),
+							),
+							// Must not match any unread items for the feed
+							query.MustNot(
+								query.ItemIDs(info.GetUnreadItems()...),
 							),
 						),
 					),
@@ -519,31 +468,28 @@ func readFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
 	}
 
 	return query.Bool(
+		query.BoolQueryName("read_items"),
 		query.Filter(
 			// Must match any of the given feed IDs
-			query.FeedIDs(readFeedIDs...),
-			query.Categories(filters.GetCategories()...),
+			query.FeedIDs(subscriptions.GetFeedIDs()...),
+			query.Categories(subscriptions.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
 				query.Should(clauses...),
 			),
 		),
-		query.MustNot(
-			// Must not match an unread item.
-			query.ItemIDs(user.GetItemIDsWithState(models.Unread, readFeedIDs...)...),
-		),
 	)
 }
 
-func allFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
-	clauses := make([]query.Option, 0, len(filters.GetFeeds()))
+func allFeedItemsQuery(user *models.User, subscriptions models.Subscriptions) query.Option {
+	clauses := make([]query.Option, 0, len(subscriptions))
 
-	for _, id := range filters.GetFeeds() {
+	for feedID := range subscriptions.ByFeed() {
 		clauses = append(clauses,
 			query.Bool(
 				query.Filter(
 					// Must match this feed.
-					query.Term("feed_id", id),
+					query.Term("feed_id", feedID),
 					// And be published/updated since the user max history.
 					query.Bool(
 						query.Should(
@@ -559,8 +505,8 @@ func allFeedItemsQuery(user *models.User, filters api.Filters) query.Option {
 	return query.Bool(
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.FeedIDs(filters.GetFeeds()...),
-			query.Categories(filters.GetCategories()...),
+			query.FeedIDs(subscriptions.GetFeedIDs()...),
+			query.Categories(subscriptions.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
 				query.Should(clauses...),
@@ -608,73 +554,4 @@ func newItemsQuery(user *models.User, filters api.Filters, since time.Duration) 
 			query.ItemIDs(user.GetItemIDsWithState(models.Read, filters.GetFeeds()...)...),
 		),
 	)
-}
-
-// FilterSubscribedFeeds returns the user's subscribed feeds filtered by the
-// given feed IDs.
-func filterSubscribedFeeds(user *models.User, filters api.Filters) []models.FeedID {
-	// If there are no relevant filters, return all subscribed Feed IDs.
-	if len(filters.GetFeeds()) == 0 && len(filters.GetCategories()) == 0 {
-		return user.GetSubscribedFeedIDs()
-	}
-
-	var filtered []models.FeedID
-
-	switch {
-	// Case 1: FeedID filters specified, no Category filters specified.
-	case len(filters.GetFeeds()) > 0 && len(filters.GetCategories()) == 0:
-		for _, id := range filters.GetFeeds() {
-			if user.IsSubscribed(id) {
-				filtered = append(filtered, id)
-			}
-		}
-
-		return filtered
-	// Case 2: No FeedID filters specified, Category filters specified.
-	case len(filters.GetFeeds()) == 0 && len(filters.GetCategories()) > 0:
-		for id, details := range user.Subscriptions {
-			for _, category := range details.Categories {
-				if slices.Contains(filters.GetCategories(), category) {
-					filtered = append(filtered, id)
-				}
-			}
-		}
-
-		return filtered
-	// Case 3: Both FeedID and Category filters specified
-	default:
-		for _, id := range filters.GetFeeds() {
-			if user.IsSubscribed(id) {
-				for _, category := range filters.GetCategories() {
-					if user.SubscriptionHasCategory(id, category) {
-						filtered = append(filtered, id)
-					}
-				}
-			}
-		}
-
-		return filtered
-	}
-}
-
-// addUserDataToFeed enriches an APIFeed with user specific data. This includes
-// the user's unread count, nickname and custom categories for the Feed.
-func addUserDataToFeed(user *models.User, feed *models.APIFeed, unread int) {
-	// Add user unread count to feed.
-	feed.SetUserUnreadCount(unread)
-	// Add user defined name to the feed.
-	if name := user.GetSubscriptionName(feed.GetID()); name != "" {
-		feed.SetUserName(name)
-	}
-	// Add user defined categories to the feed.
-	if categories := user.GetSubscriptionCategories(feed.GetID()); len(categories) > 0 {
-		feed.SetUserCategories(categories)
-	}
-}
-
-// cmpFeedUnreadCount is a helper function for sorting Feeds by unread count, in
-// ascending order. If descending order is required, slices.Reverse can be
-// called after sorting the slice with this function.
-func cmpFeedUnreadCount(a, b *models.APIFeed) int {
-	return cmp.Compare(a.GetUserUnreadCount(), b.GetUserUnreadCount())
 }

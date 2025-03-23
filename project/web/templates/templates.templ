@@ -3,7 +3,10 @@
 
 package templates
 
-import "errors"
+import (
+	"errors"
+	"slices"
+)
 
 var ErrRenderElement = errors.New("failed to render template element")
 
@@ -19,7 +22,7 @@ type Elements []Element
 // Show will render a list of components. An optional list of classes can be
 // provided that all components will inherit.
 templ (c Elements) Show(classes ...string) {
-	for _, component := range c {
+	for  component := range slices.Values(c) {
 		@component.Show(classes...)
 	}
 }

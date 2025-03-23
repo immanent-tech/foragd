@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"slices"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
@@ -19,6 +18,8 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 )
+
+const InternalPaginationSearchCount = 1000
 
 // ElasticAPI is an object that provides access to the Elasticsearch API.
 type ElasticAPI struct {
@@ -87,34 +88,6 @@ func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk
 
 			bulkOps <- bulk.NewOperation(&feed,
 				bulk.SetDocID(feed.ID),
-				bulk.ToIndex(index),
-			)
-		}
-	}()
-
-	resp := <-respCh
-
-	return &resp, nil
-}
-
-func (a *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions ...*api.Subscription) (*bulk.Response, error) {
-	index := SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ErrFetchCtx
-	}
-
-	bulkOps, respCh := bulk.NewRequest(ctx, a)
-
-	go func() {
-		defer close(bulkOps)
-
-		for subscription := range slices.Values(subscriptions) {
-			logging.FromContext(ctx).Debug("Adding subscription",
-				slog.String("feed_id", subscription.FeedID),
-				slog.String("user_id", subscription.UserID),
-			)
-
-			bulkOps <- bulk.NewOperation(&subscription,
 				bulk.ToIndex(index),
 			)
 		}

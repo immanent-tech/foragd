@@ -43,12 +43,13 @@ func itemsSortOptions(path string, filters *api.Filters) []templ.Component {
 }
 
 func sortLink(text string, sort api.Sort, path string, filters *api.Filters) templ.Component {
-	route := buildHomeRoute(path, filters)
-	route.SetSort(sort)
+	action := buildHomeAction(path, filters)
+	action.AddAttribute(api.ParamSortBy, string(sort.SortBy))
+	action.AddAttribute(api.ParamSortOrder, string(sort.SortOrder))
 
 	return link.Build(
 		link.WithContent(text),
-		link.WithExtraAttributes(route.Attributes()),
+		link.WithExtraAttributes(action.Attributes()),
 		link.WithUnderlineOnHover(),
 	).Show()
 }

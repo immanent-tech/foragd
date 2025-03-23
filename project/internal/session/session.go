@@ -14,6 +14,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -27,6 +28,8 @@ const (
 	preferencesSessionKey = "preferences"
 	stateSessionKey       = "state"
 	routeStateSessionKey  = "route_state"
+	feedFiltersKey        = "feed_filters"
+	itemFiltersKey        = "item_filters"
 )
 
 var (
@@ -43,6 +46,7 @@ var session = &manager{logger: slog.Default()}
 
 func init() {
 	gob.Register(models.Tokens{})
+	gob.Register(api.Filters{})
 }
 
 func NewSessionManager(store scs.Store) {
@@ -70,4 +74,28 @@ func ClearSession(ctx context.Context) error {
 
 func LoadAndSave() func(next http.Handler) http.Handler {
 	return session.LoadAndSave
+}
+
+func StoreFeedFilters(ctx context.Context, filters *api.Filters) {
+	session.Put(ctx, feedFiltersKey, *filters)
+}
+
+func GetFeedFilters(ctx context.Context) (*api.Filters, error) {
+	filters, ok := session.Get(ctx, feedFiltersKey).(api.Filters)
+	if !ok {
+		return nil, api.WrapError(ErrDataNotFound, "session", "no feed filters in session")
+	}
+	return &filters, nil
+}
+
+func StoreItemFilters(ctx context.Context, filters *api.Filters) {
+	session.Put(ctx, itemFiltersKey, *filters)
+}
+
+func GetItemFilters(ctx context.Context) (*api.Filters, error) {
+	filters, ok := session.Get(ctx, itemFiltersKey).(api.Filters)
+	if !ok {
+		return nil, api.WrapError(ErrDataNotFound, "session", "no item filters in session")
+	}
+	return &filters, nil
 }

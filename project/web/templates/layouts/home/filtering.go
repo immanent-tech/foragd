@@ -12,42 +12,38 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 )
 
 type CategoryFilters []CategoryFilter
 
 type CategoryFilter struct {
-	name   models.Category
-	route  *api.Route
+	models.CategoryCount
+	action *templates.Action
 	active bool
 }
 
-func BuildCategoryFilters(filters *api.Filters, categoryCounts []api.CategoryCount, path string) CategoryFilters {
-	categoryFilters := make([]CategoryFilter, 0, len(categoryCounts))
+func BuildCategoryFilters(filters *api.Filters, categoryCounts models.CategoryCounts, path string) CategoryFilters {
+	categoryFilters := make(CategoryFilters, 0, len(categoryCounts))
 
-	for _, category := range categoryCounts {
+	for categoryCount := range slices.Values(categoryCounts) {
+		action := templates.BuildAction(path,
+			templates.WithQueryParams(filters.ToQueryParams()),
+			templates.WithAttributes(commonRouteAttributes),
+		)
 		var active bool
+		if slices.Contains(filters.Categories, categoryCount.Category) {
+			active = true
+			action.RemoveParameter(api.ParamCategories)
 
-		route := buildHomeRoute(path, filters)
-		route.SetCategories()
-
-		if len(filters.GetCategories()) > 0 {
-			if slices.Contains(filters.GetCategories(), category.Category) {
-				// This category is being used as a filter.
-				active = true
-				// Remove the categories param.
-				route.UnsetCategories()
-			} else {
-				// Add the category as a param.
-				route.SetCategories(category.Category)
-			}
 		} else {
-			// Add the category as a param.
-			route.SetCategories(category.Category)
+			action.AddParameter(api.ParamCategories, categoryCount.Category)
 		}
-
-		categoryFilters = append(categoryFilters,
-			CategoryFilter{name: category.Category, active: active, route: route})
+		categoryFilters = append(categoryFilters, CategoryFilter{
+			CategoryCount: categoryCount,
+			action:        action,
+			active:        active,
+		})
 	}
 
 	return categoryFilters
@@ -59,18 +55,21 @@ type ViewFilters struct {
 
 // viewFilterBadge generates a badge for a view filter.
 func viewFilterBadge(view api.View, filters *api.Filters, path string) *badge.Props {
-	route := buildHomeRoute(path, filters)
-	route.SetView(view)
+	action := templates.BuildAction(path,
+		templates.WithQueryParams(filters.ToQueryParams()),
+		templates.WithAttributes(commonRouteAttributes),
+	)
+	action.AddParameter(api.ParamView, string(view))
 
 	// Create the badge component.
 	viewBadge := badge.Build(
 		badge.WithSize(size.SM),
 		badge.WithThemeColor(color.Neutral),
 		badge.WithContent(string(view)),
-		badge.WithExtraAttributes(route.Attributes()),
+		badge.WithExtraAttributes(action.Attributes()),
 	)
 	// Style based on which view is active.
-	if view == filters.GetView() {
+	if view == filters.View {
 		badge.WithStyle(badge.Outline)(viewBadge)
 	} else {
 		badge.WithStyle(badge.DashedOutline)(viewBadge)

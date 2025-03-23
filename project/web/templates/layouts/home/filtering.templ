@@ -37,8 +37,8 @@ templ (filter *CategoryFilter) Show(classes ...string) {
 		badge.WithSize(size.SM),
 		badge.WithThemeColor(color.Neutral),
 		styleOption,
-		badge.WithContent(filter.name),
-		badge.WithExtraAttributes(filter.route.Attributes()),
+		badge.WithContent(filter.Category),
+		badge.WithExtraAttributes(filter.action.Attributes()),
 	).Show(classes...)
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/attributes"
 
 	"github.com/joshuar/go-feed-me/internal/api"
+	"github.com/joshuar/go-feed-me/web/templates"
 )
 
 // ContentID is the id attribute for the main content area.
@@ -22,46 +23,35 @@ var commonRouteAttributes = templ.Attributes{
 	"hx-swap":     "morph:innerHTML",
 }
 
-// buildShowFeedsRoute builds an api.Route for /home/feeds with the given
+// buildShowFeedsAction builds an api.Route for /home/feeds with the given
 // filters. This can be used with components that need to create an action for
 // /home/feeds.
-func buildShowFeedsRoute(filters *api.Filters) *api.Route {
-	return api.BuildRoute(api.FeedsRoute,
-		api.WithParams(
-			api.WithViewParam(filters.GetView()),
-			api.WithCountParam(filters.GetCount()),
-			api.WithSortParam(filters.GetSort()),
-			api.WithCategoriesParam(filters.GetCategories()...),
-		),
-		api.WithAttributes(commonRouteAttributes),
+func buildShowFeedsAction(filters *api.Filters) *templates.Action {
+	return templates.BuildAction(api.FeedsRoute,
+		templates.WithQueryParams(filters.ToQueryParams()),
+		templates.WithAttributes(commonRouteAttributes),
 	)
 }
 
-// buildShowItemsRoute builds an api.Route for /home/items with the given
+// buildShowItemsAction builds an api.Route for /home/items with the given
 // filters. This can be used with components that need to create an action for
 // /home/items.
-func buildShowItemsRoute(filters *api.Filters) *api.Route {
+func buildShowItemsAction(filters *api.Filters) *templates.Action {
 	// Build the route.
-	return api.BuildRoute(api.ItemsRoute,
-		api.WithParams(
-			api.WithViewParam(filters.GetView()),
-			api.WithCountParam(filters.GetCount()),
-			api.WithFeedsParam(filters.GetFeeds()...),
-			api.WithSortParam(filters.GetSort()),
-			api.WithCategoriesParam(filters.GetCategories()...),
-		),
-		api.WithAttributes(commonRouteAttributes),
+	return templates.BuildAction(api.ItemsRoute,
+		templates.WithQueryParams(filters.ToQueryParams()),
+		templates.WithAttributes(commonRouteAttributes),
 	)
 }
 
-// buildHomeRoute will build the appropriate /home route for the given path
+// buildHomeAction will build the appropriate /home route for the given path
 // string and filters.
-func buildHomeRoute(path string, filters *api.Filters) *api.Route {
+func buildHomeAction(path string, filters *api.Filters) *templates.Action {
 	switch path {
 	case api.FeedsRoute:
-		return buildShowFeedsRoute(filters)
+		return buildShowFeedsAction(filters)
 	case api.ItemsRoute:
-		return buildShowItemsRoute(filters)
+		return buildShowItemsAction(filters)
 	}
 
 	return nil

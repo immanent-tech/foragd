@@ -4,52 +4,29 @@
 package api
 
 import (
-	"net/url"
 	"time"
 
-	"sync"
-
-	"github.com/a-h/templ"
 	"github.com/joshuar/go-feed-me/internal/models"
 	externalRef0 "github.com/joshuar/go-feed-me/internal/models"
 )
 
 // Defines values for ImportSource.
 const (
-	ImportFromFile ImportSource = "opml_file"
-	ImportFromList ImportSource = "url_list"
-	ImportFromURL  ImportSource = "opml_url"
-)
-
-// Defines values for Mark.
-const (
-	MarkRead   Mark = "read"
-	MarkUnread Mark = "unread"
-)
-
-// Defines values for Param.
-const (
-	ParamCategories Param = "categories"
-	ParamCount      Param = "count"
-	ParamFeeds      Param = "feeds"
-	ParamItems      Param = "items"
-	ParamPagination Param = "pagination"
-	ParamSince      Param = "since"
-	ParamSortBy     Param = "sort_by"
-	ParamSortOrder  Param = "sort_order"
-	ParamView       Param = "view"
+	ImportSourceOPMLFile ImportSource = "opml_file"
+	ImportSourceOPMLURL  ImportSource = "opml_url"
+	ImportSourceURLs     ImportSource = "url_list"
 )
 
 // Defines values for SortBy.
 const (
-	LastUpdated SortBy = "last_updated"
-	UnreadCount SortBy = "unread_count"
+	SortByLastUpdated SortBy = "last_updated"
+	SortByUnreadCount SortBy = "unread_count"
 )
 
 // Defines values for SortOrder.
 const (
-	SortAsc  SortOrder = "asc"
-	SortDesc SortOrder = "desc"
+	SortOrderAsc  SortOrder = "asc"
+	SortOrderDesc SortOrder = "desc"
 )
 
 // Defines values for View.
@@ -110,13 +87,13 @@ type FeedState struct {
 	FeedURL externalRef0.FeedURL `json:"feedLink" validate:"required,url"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *externalRef0.UpdatedAt `json:"updated_at,omitempty"`
+	UpdatedAt *externalRef0.UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
-// Filters contains parameters for searching feeds and items
+// Filters defines model for Filters.
 type Filters struct {
 	// Categories is a list of categories.
-	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"omitnil,unique"`
+	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
 
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
@@ -126,12 +103,6 @@ type Filters struct {
 
 	// Items is a list of items IDs.
 	Items []externalRef0.ItemID `form:"items[]" json:"items" validate:"omitnil,unique,dive,startswith=item_"`
-
-	// Pagination contains data for paginating through results.
-	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
-
-	// Since is a duration to filter results.
-	Since *Since `form:"since" json:"since,omitempty" validate:"omitempty"`
 
 	// SortBy represents the selected field to sort on.
 	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
@@ -146,28 +117,22 @@ type Filters struct {
 // ImportSource defines the source that will be used for an import.
 type ImportSource string
 
-// Mark applies the given mark action to objects.
-type Mark string
-
 // Pagination contains data for paginating through results.
 type Pagination = string
 
-// Param is the name of a query parameter.
-type Param string
+// RequiredFilters contains filter parameters that are always required across different kinds of operations.
+type RequiredFilters struct {
+	// Count is the count of items to retrieve with a request.
+	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
 
-// Route is a htmx route within the server.
-type Route struct {
-	// attributes are additional htmx attributes to apply to the route.
-	attributes templ.Attributes `json:"-"`
+	// SortBy represents the selected field to sort on.
+	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
 
-	// method is the HTTP method for the route.
-	method *string `json:"-"`
+	// SortOrder represents the order for sorting the selected field.
+	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
 
-	// mu is a mutex for safe concurrent access.
-	mu sync.Mutex `json:"-"`
-
-	// url is the url object for the route.
-	url url.URL `json:"-"`
+	// View The state of objects to view.
+	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
 // Since is a duration to filter results.
@@ -188,82 +153,28 @@ type SortBy string
 // SortOrder represents the order for sorting the selected field.
 type SortOrder string
 
-// Subscription defines model for Subscription.
-type Subscription struct {
-	// FeedID is the unique ID of a feed.
-	FeedID externalRef0.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-
-	// UserID is the unique ID of a user.
-	UserID externalRef0.UserID `json:"user_id" validate:"required"`
-
-	// Categories is a user-defined list of Category names for the subscription.
-	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"unique"`
-
-	// CreatedAt records when the object was created in the database.
-	CreatedAt externalRef0.CreatedAt `json:"created_at" validate:"required"`
-
-	// MarkedRead records when the subscription was last marked read.
-	MarkedRead *time.Time `json:"marked_read,omitempty"`
-
-	// Name is a friendly name or nickname for the feed given by the user.
-	Name *string `form:"name" json:"name,omitempty"`
-
-	// ReadItems is a list of ItemIDs that the user has explicitly marked as read.
-	ReadItems []externalRef0.ItemID `json:"read_items" validate:"unique,dive,startswith=item_"`
-
-	// UnreadItems is a list of ItemIDs that the user has explicitly marked as unread.
-	UnreadItems []externalRef0.ItemID `json:"unread_items" validate:"unique,dive,startswith=item_"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *externalRef0.UpdatedAt `json:"updated_at,omitempty"`
-}
-
 // SubscriptionRequest defines model for SubscriptionRequest.
 type SubscriptionRequest struct {
-	// Feed is a Feed for the subscription that needs to be added.
-	Feed *models.Feed `form:"-" json:"-" validate:"-"`
-
 	// FeedID is the unique ID of a feed.
 	FeedID externalRef0.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
 
-	// URL is the canonical URL to the feed.
+	// ID is the unique ID of a subscription.
+	ID externalRef0.SubscriptionID `json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// URL the canonical URL to the feed.
 	URL string `form:"url" json:"url" validate:"required,url"`
 
-	// UserID is the unique ID of a user.
-	UserID externalRef0.UserID `json:"user_id" validate:"required"`
+	// Err represents an error that can be shown externally (i.e. to users).
+	Err *ExternalError `json:"-"`
 
-	// Categories is a user-defined list of Category names for the subscription.
-	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"unique"`
-
-	// Err contains any lower-level wrapped error(s).
-	Err error `form:"-" json:"-" validate:"-"`
-
-	// Name is a friendly name or nickname for the feed given by the user.
-	Name *string `form:"name" json:"name,omitempty"`
-}
-
-// SubscriptionResponse defines model for SubscriptionResponse.
-type SubscriptionResponse struct {
 	// Feed is a Feed for the subscription that needs to be added.
 	Feed *models.Feed `form:"-" json:"-" validate:"-"`
 
-	// FeedID is the unique ID of a feed.
-	FeedID externalRef0.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	// UserCategories is a user-defined list of Category names for the subscription.
+	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"unique"`
 
-	// URL is the canonical URL to the feed.
-	URL string `form:"url" json:"url" validate:"required,url"`
-
-	// UserID is the unique ID of a user.
-	UserID externalRef0.UserID `json:"user_id" validate:"required"`
-
-	// Categories is a user-defined list of Category names for the subscription.
-	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"unique"`
-
-	// Err represents an error from within the API or service.
-	Err *Error `json:"err,omitempty"`
-
-	// Name is a friendly name or nickname for the feed given by the user.
-	Name *string `form:"name" json:"name,omitempty"`
+	// UserNickname is a friendly name or nickname for the feed given by the user.
+	UserNickname *string `form:"user_nickname" json:"user_nickname,omitempty"`
 }
 
 // UserSignupRequest contains the details for a user signup request.
@@ -274,15 +185,6 @@ type UserSignupRequest struct {
 
 	// ValidationErrors is a map of field name -> validation error for the request.
 	ValidationErrors map[string]string `form:"-" json:"-"`
-}
-
-// UserSubscriptionProperties represents the properties of a subscription a user can customize.
-type UserSubscriptionProperties struct {
-	// Categories is a user-defined list of Category names for the subscription.
-	Categories []externalRef0.Category `form:"categories[]" json:"categories" validate:"unique"`
-
-	// Name is a friendly name or nickname for the feed given by the user.
-	Name *string `form:"name" json:"name,omitempty"`
 }
 
 // View The state of objects to view.

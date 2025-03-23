@@ -29,12 +29,12 @@ func (r *SubscriptionRequest) GetURL() string {
 
 // ToSubscription converts a SubscriptionRequest to a Subscription using the
 // request details and the given feed and user IDs.
-func (r *SubscriptionRequest) ToSubscription() (*Subscription, error) {
+func (r *SubscriptionRequest) ToSubscription() (*models.Subscription, error) {
 	if valid, err := r.Valid(); !valid {
 		return nil, err
 	}
 
-	var subscription Subscription
+	var subscription models.Subscription
 
 	data, err := json.Marshal(r)
 	if err != nil {

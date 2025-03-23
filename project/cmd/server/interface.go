@@ -17,7 +17,6 @@ package server
 
 import (
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 )
 
 func (s Server) AppSecret() string {
@@ -36,7 +35,7 @@ func (s Server) UserAPI() *auth0.UserAPI {
 
 // DataAPI returns the API endpoint for the backend data-store which holds
 // cache/temp/non-permanent data.
-func (s Server) DataAPI() *elastic.Client {
+func (s Server) DataAPI() DataAPI {
 	return s.API.elastic
 }
 

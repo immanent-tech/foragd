@@ -10,11 +10,17 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
+// Defines values for Mark.
+const (
+	MarkRead   Mark = "read"
+	MarkUnread Mark = "unread"
+)
+
 // Defines values for State.
 const (
-	Read   State = "read"
-	Saved  State = "saved"
-	Unread State = "unread"
+	StateRead   State = "read"
+	StateSaved  State = "saved"
+	StateUnread State = "unread"
 )
 
 // APIFeed defines model for APIFeed.
@@ -49,10 +55,7 @@ type APIFeed struct {
 	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
-
-	// UserProperties Tracks user-specific properties of a feed.
-	UserProperties *UserFeedProperties `json:"-"`
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
 // APIItem defines model for APIItem.
@@ -75,21 +78,25 @@ type APIItem struct {
 	// Published is when the object was published.
 	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
 
+	// State contains the user state for the item.
+	State *ItemState `json:"-"`
+
 	// Title is a string that can contain HTML.
 	Title HTMLString `json:"title" validate:"url_encoded"`
 
 	// Updated is when the object was updated.
 	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
-
-	// UserProperties Tracks user-specific properties of an item.
-	UserProperties *UserItemProperties `json:"-"`
 }
-
-// Categories is a list of categories.
-type Categories = []Category
 
 // Category is a single category.
 type Category = string
+
+// CategoryCount holds a category and the count of its occurence. The count will be contextual. i.e., across subscriptions, items, etc.
+type CategoryCount struct {
+	// Category is a single category.
+	Category Category `json:"category"`
+	Count    int      `json:"count"`
+}
 
 // Claims defines model for Claims.
 type Claims struct {
@@ -114,6 +121,28 @@ type DeletedAt = time.Time
 // FeedID is the unique ID of a feed.
 type FeedID = string
 
+// FeedMetadata contains common/metadata fields for feeds and items.
+type FeedMetadata struct {
+	Authors    []*gofeed.Person `json:"authors,omitempty"`
+	Categories []Category       `json:"categories,omitempty"`
+
+	// Description is a string that can contain HTML.
+	Description HTMLString    `json:"description" validate:"url_encoded"`
+	Image       *gofeed.Image `json:"image,omitempty"`
+
+	// Title is a string that can contain HTML.
+	Title HTMLString `json:"title" validate:"url_encoded"`
+}
+
+// FeedState contains fields for tracking feed/item state.
+type FeedState struct {
+	// Published is when the object was published.
+	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
+
+	// Updated is when the object was updated.
+	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
+}
+
 // FeedURL The canonical feed URL.
 type FeedURL = string
 
@@ -123,45 +152,17 @@ type HTMLString = string
 // ItemID is the unique ID of an item.
 type ItemID = string
 
-// ItemState Contains fields to track an individual item's state.
+// ItemState contains the user state for the item.
 type ItemState struct {
 	// State Tracks the state of an object.
 	State State `json:"state" validate:"oneof='read unread saved'"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at,omitempty"`
 }
 
 // ItemURL A URL to view the original item.
 type ItemURL = string
 
-// MetadataDB contains common (metadata) fields for database objects.
-type MetadataDB struct {
-	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at" validate:"required"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
-}
-
-// MetadataFeed contains common/metadata fields for feeds and items.
-type MetadataFeed struct {
-	Authors    []*gofeed.Person `json:"authors,omitempty"`
-	Categories []Category       `json:"categories,omitempty"`
-
-	// Description is a string that can contain HTML.
-	Description HTMLString    `json:"description" validate:"url_encoded"`
-	Image       *gofeed.Image `json:"image,omitempty"`
-
-	// Published is when the object was published.
-	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
-
-	// Title is a string that can contain HTML.
-	Title HTMLString `json:"title" validate:"url_encoded"`
-
-	// Updated is when the object was updated.
-	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
-}
+// Mark applies the given mark action to objects.
+type Mark string
 
 // ObjectPublished is when the object was published.
 type ObjectPublished = time.Time
@@ -172,26 +173,80 @@ type ObjectUpdated = time.Time
 // State Tracks the state of an object.
 type State string
 
-// SubscriptionState Contains fields to rack a subscription state.
-type SubscriptionState struct {
-	// Categories is a list of categories.
-	Categories Categories `json:"categories" validate:"unique"`
+// Subscription defines model for Subscription.
+type Subscription struct {
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+
+	// ID is the unique ID of a subscription.
+	ID SubscriptionID `json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
-	// MarkedRead records when the subscription was last marked read.
-	MarkedRead *time.Time `json:"marked_read,omitempty"`
+	// FeedDetails contains common/metadata fields for feeds and items.
+	FeedDetails FeedMetadata `json:"feed_details"`
 
-	// Name is a friendly name or nickname for the feed given by the user.
-	Name string `form:"name" json:"name"`
+	// State contains properties tracking the state of the subscription.
+	State SubscriptionState `json:"state"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+
+	// UserCategories is a user-defined list of Category names for the subscription.
+	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"unique"`
+
+	// UserNickname is a friendly name or nickname for the feed given by the user.
+	UserNickname *string `form:"user_nickname" json:"user_nickname,omitempty"`
+}
+
+// SubscriptionCustomisation represents the properties of a subscription a user can customize.
+type SubscriptionCustomisation struct {
+	// UserCategories is a user-defined list of Category names for the subscription.
+	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"unique"`
+
+	// UserNickname is a friendly name or nickname for the feed given by the user.
+	UserNickname *string `form:"user_nickname" json:"user_nickname,omitempty"`
+}
+
+// SubscriptionID is the unique ID of a subscription.
+type SubscriptionID = string
+
+// SubscriptionMetadata contains metadata for tracking a subscription.
+type SubscriptionMetadata struct {
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+
+	// ID is the unique ID of a subscription.
+	ID SubscriptionID `json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
+// SubscriptionState contains properties tracking the state of the subscription.
+type SubscriptionState struct {
+	// MarkedRead records when the subscription was last marked read.
+	MarkedRead time.Time `json:"marked_read" validate:"required"`
+
+	// ReadItems is a list of ItemIDs that the user has explicitly marked as read.
+	ReadItems []ItemID `json:"read_items" validate:"unique,dive,startswith=item_"`
+
+	// UnreadCount indicates how many items are unread.
+	UnreadCount int `form:"-" json:"-" validate:"numeric,gte=0"`
+
+	// UnreadItems is a list of ItemIDs that the user has explicitly marked as unread.
+	UnreadItems []ItemID `json:"unread_items" validate:"unique,dive,startswith=item_"`
 }
 
 // Timestamp is when the document was created.
 type Timestamp = time.Time
+
+// Timestamps contains common (metadata) fields for database objects.
+type Timestamps struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+}
 
 // Tokens defines model for Tokens.
 type Tokens struct {
@@ -214,34 +269,18 @@ type User struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
-	// FeedItemStates Tracks state of inidividual items per feed.
-	FeedItemStates map[string]map[string]ItemState `json:"feed_item_states,omitempty"`
-
 	// MaxHistory Represents the maximum time-frame over which the user can view items.
 	MaxHistory string `json:"max_history"`
 
-	// Subscriptions is the list of user subscriptions.
-	Subscriptions map[string]SubscriptionState `json:"subscriptions,omitempty"`
+	// Subscriptions is the list of subscriptions for the user.
+	Subscriptions []Subscription `json:"subscriptions,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty"`
-}
-
-// UserFeedProperties Tracks user-specific properties of a feed.
-type UserFeedProperties struct {
-	Categories  *[]Category `json:"categories,omitempty"`
-	Nickname    *string     `json:"nickname,omitempty"`
-	UnreadCount *int        `json:"unread_count,omitempty"`
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
 // UserID is the unique ID of a user.
 type UserID = string
-
-// UserItemProperties Tracks user-specific properties of an item.
-type UserItemProperties struct {
-	// State Tracks the state of an object.
-	State *State `json:"state" validate:"oneof='read unread saved'"`
-}
 
 // UserSession tracks a user session.
 type UserSession struct {

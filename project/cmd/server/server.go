@@ -15,8 +15,10 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/joshuar/go-feed-me/cmd/server/middlewares"
+	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/session"
@@ -27,9 +29,19 @@ const (
 	requestIDKey = "request_id"
 )
 
+type DataAPI interface {
+	// User methods:
+	GetUser(ctx context.Context) (*models.User, error)
+	// Subscription methods:
+	GetSubscriptions(ctx context.Context, filters *api.Filters) (models.Subscriptions, error)
+	MarkSubscriptions(ctx context.Context, mark models.Mark, feedIDs ...models.FeedID) error
+	// Item methods:
+	GetItems(ctx context.Context, filters *api.Filters) (models.Items, api.Pagination, error)
+}
+
 type API struct {
 	user    *auth0.UserAPI
-	elastic *elastic.Client
+	elastic DataAPI
 	auth    *auth0.Authenticator
 }
 
@@ -113,7 +125,7 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		middlewares.CORS(config.Environment()),
 		middlewares.CSP(serverConfig.CSP),
 		middlewares.ElasticMiddleware(),
-		middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI().GetAPI()),
+		middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI()),
 		middlewares.RequireHTMX(htmxOnlyRoutes),
 		session.LoadAndSave())
 

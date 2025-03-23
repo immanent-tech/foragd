@@ -40,6 +40,10 @@ func IsValid[T any](obj T) bool {
 	return err != nil
 }
 
+func AddStructValidationFunc(fn validator.StructLevelFunc, types ...any) {
+	validate.RegisterStructValidation(fn, types...)
+}
+
 // ValidateStruct will validate a struct using the validate tags assigned on the
 // struct fields. It returns a boolean representing whether the struct is valid.
 // If the struct is not valid, the second return value will be a non-nil map of

@@ -6,6 +6,8 @@ package models
 import (
 	"errors"
 	"html"
+	"maps"
+	"slices"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -14,6 +16,25 @@ import (
 )
 
 var ErrGetItem = errors.New("could not retrieve item")
+
+type Items []*APIItem
+
+// GetCategoryCounts returns a count of the occurrence of a Category across all
+// the Items.
+func (i Items) GetCategoryCounts() CategoryCounts {
+	countsMap := make(map[Category]int)
+	for item := range slices.Values(i) {
+		for category := range slices.Values(item.GetCategories()) {
+			countsMap[category]++
+		}
+	}
+	var counts CategoryCounts
+	for category, count := range maps.All(countsMap) {
+		counts = append(counts, CategoryCount{Category: category, Count: count})
+	}
+
+	return counts
+}
 
 func (i *APIItem) GetTitle() string {
 	return html.UnescapeString(safePrinter.Sanitize(i.Title))
@@ -35,14 +56,11 @@ func (i *APIItem) GetImage() *gofeed.Image {
 	return i.Image
 }
 
+// GetCategories retrieves a list of Categories assigned to the Item.
 func (i *APIItem) GetCategories() []string {
-	cleaned := make([]string, 0, len(i.Categories))
-
-	for _, category := range i.Categories {
-		cleaned = append(cleaned, CleanCategory(category))
-	}
-
-	return cleaned
+	categories := slices.Clone(i.Categories)
+	slices.Sort(categories)
+	return categories
 }
 
 func (i *APIItem) GetContent() string {
@@ -61,22 +79,22 @@ func (i *APIItem) GetTimestamp() time.Time {
 	return itemTime
 }
 
-func (i *APIItem) GetUserState() State {
-	if i.UserProperties != nil {
-		if i.UserProperties.State != nil {
-			return *i.UserProperties.State
-		}
-	}
+func (i *APIItem) HasState() bool {
+	return i.State != nil
+}
 
-	return Unread
+func (i *APIItem) GetUserState() State {
+	if i.HasState() {
+		return i.State.State
+	}
+	return StateUnread
 }
 
 func (i *APIItem) SetUserItemState(state State) {
-	if i.UserProperties == nil {
-		i.UserProperties = &UserItemProperties{}
+	newState := &ItemState{
+		State: state,
 	}
-
-	i.UserProperties.State = &state
+	i.State = newState
 }
 
 // IsNewer returns a boolean indicating whether this item has been updated or

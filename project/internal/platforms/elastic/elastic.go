@@ -108,7 +108,6 @@ func ExtractFieldFromHits[T any](field string, hits []types.Hit) (map[string]T, 
 				fmt.Errorf("error extracting field value from doc %s: %w", *hit.Id_, err))
 			continue
 		}
-
 		values[*hit.Id_] = value
 	}
 

@@ -37,7 +37,7 @@ type DataAPI interface {
 
 type Manager struct {
 	id         string
-	db         *elastic.Client
+	db         *elastic.ElasticAPI
 	queue      quartz.JobQueue
 	scheduler  quartz.Scheduler
 	logger     *slog.Logger

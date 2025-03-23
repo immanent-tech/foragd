@@ -132,58 +132,100 @@ func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
-	// Decode the import source.
-	importMethod, err := forms.DecodeMultipartValue(req, "source")
-	if err != nil {
-		logging.FromContext(req.Context()).Warn("Import processing failed.",
-			slog.Any("error", err))
-		importError(req.Context(), res, &api.ExternalError{
-			Summary: "processing import failed",
-			Details: "A backend error occurred processing the import data. Please try again.",
-			Err:     err,
-		})
-		return
-	}
-	// Generate subscription requests using the import source.
-	var requests api.SubscriptionRequests
-	switch importMethod {
-	case string(api.ImportFromFile):
-		requests, err = processOPMLFileImport(res, req)
-	default:
-		importError(req.Context(), res, &api.ExternalError{
-			Summary: "processing import failed",
-			Details: "A backend error occurred processing the import data. Please try again.",
-			Err:     err,
-		})
-		return
-	}
-	if err != nil {
-		logging.FromContext(req.Context()).Warn("Import processing failed.",
-			slog.Any("error", err))
-		importError(req.Context(), res, &api.ExternalError{
-			Summary: "processing import failed",
-			Details: "A backend error occurred processing the import data. Please try again.",
-			Err:     err,
-		})
-		return
-	}
+	// data := make(chan templ.Component)
+	data := make(chan string)
 
-	user, found := models.UserFromCtx(req.Context())
-	if !found {
-		logging.FromContext(req.Context()).Warn("Import processing failed.",
-			slog.Any("error", err))
-		importError(req.Context(), res, &api.ExternalError{
-			Summary: "processing import failed",
-			Details: "A backend error occurred processing the import data. Please try again.",
-			Err:     err,
-		})
-	}
-	// Process the requests.
-	processRequests(req.Context(), s.DataAPI().GetAPI(), user, requests)
+	// Serve using the streaming mode of the handler.
+	go func() {
+		defer close(data)
+		// data <- subscription.ImportStatus("Decoding form data...")
+		data <- "Decoding form data..."
+		// Decode the import source.
+		importMethod, err := forms.DecodeMultipartValue(req, "source")
+		if err != nil {
+			logging.FromContext(req.Context()).Warn("Import processing failed.",
+				slog.Any("error", err))
+			// data <- subscription.ImportError(&api.ExternalError{
+			// 	Summary: "invalid input",
+			// 	Details: "There is a problem with the inputs. Please check and try again.",
+			// 	Err:     err,
+			// })
+			return
+		}
+		// Generate subscription requests using the import source.
+		var requests api.SubscriptionRequests
+		switch importMethod {
+		case string(api.ImportSourceOPMLFile):
+			// data <- subscription.ImportStatus("Processing OPML file...")
+			data <- "Processing OPML file..."
+			requests, err = processOPMLFileImport(req)
+			if err != nil {
+				// data <- subscription.ImportError(&api.ExternalError{
+				// 	Summary: "failed processing OPML file",
+				// 	Details: "The provided OPML file is invalid or contains problems. Please check the file and re-upload.",
+				// 	Err:     err,
+				// })
+				return
+			}
+		}
 
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			logging.FromContext(req.Context()).Warn("Import processing failed.",
+				slog.Any("error", err))
+			// data <- subscription.ImportError(&api.ExternalError{
+			// 	Summary: "invalid user data",
+			// 	Details: "There was an internal (likely temporary) problem. Please try again.",
+			// 	Err:     err,
+			// })
+			return
+		}
+		// data <- subscription.ImportStatus("Processing list of subscription requests...")
+		data <- "Processing list of subscription requests..."
+
+		// Process the requests.
+		processRequests(req.Context(), data, s.DataAPI(), user, requests)
+		for request := range slices.Values(requests) {
+
+			if request.Err != nil {
+				if errors.Is(request.Err, &api.ExternalError{}) {
+					slog.Warn("request has error",
+						slog.String("url", request.URL),
+						slog.String("feed_id", request.FeedID),
+						slog.Any("error", request.Err))
+				} else {
+					slog.Warn("request has error",
+						slog.String("url", request.URL),
+						slog.String("feed_id", request.FeedID),
+						slog.Any("error", "unknown"))
+				}
+			} else {
+				slog.Info("request ready",
+					slog.String("url", request.URL),
+					slog.String("feed_id", request.FeedID),
+					slog.Bool("new_feed", request.Feed != nil))
+			}
+		}
+		logging.FromContext(req.Context()).Debug("Import finished")
+	}()
+
+	resp := htmx.NewResponse()
+	resp.Write(res)
+
+	// templ.Handler(subscription.ImportProcessing(data),
+	// templ.WithStreaming()).ServeHTTP(res, req)
+
+	if err := resp.RenderTempl(req.Context(), res, subscription.ImportProcessing(data)); err != nil {
+		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
+	logging.FromContext(req.Context()).Debug("Stopped processing")
+
+	// spew.Dump(requests)
 }
 
-func processOPMLFileImport(res http.ResponseWriter, req *http.Request) (api.SubscriptionRequests, error) {
+func processOPMLFileImport(req *http.Request) (api.SubscriptionRequests, error) {
 	// Decode the OPML file form input.
 	opmlFile := &OPMLFile{}
 	opmlFile, valid, err := forms.DecodeMultipartFile(req, "data", opmlFile)
@@ -284,10 +326,14 @@ func importError(ctx context.Context, res http.ResponseWriter, problem *api.Exte
 	}
 }
 
-func processRequests(ctx context.Context, es *elastic.ElasticAPI, user *models.User, requests api.SubscriptionRequests) {
+func processRequests(ctx context.Context, data chan string, es *elastic.ElasticAPI, user *models.User, requests api.SubscriptionRequests) {
 	// Add any new feeds required for subscriptions.
+	// data <- subscription.ImportStatus("Gathering feed data...")
+	data <- "Gathering feed data..."
 	addSubscriptionFeeds(ctx, es, user, requests)
 	// Add subscriptions.
+	// data <- subscription.ImportStatus("Adding new subscriptions...")
+	data <- "Adding new subscriptions..."
 	addSubscriptions(ctx, es, requests)
 }
 
@@ -295,6 +341,7 @@ func processRequests(ctx context.Context, es *elastic.ElasticAPI, user *models.U
 func addSubscriptionFeeds(ctx context.Context, es *elastic.ElasticAPI, user *models.User, requests api.SubscriptionRequests) {
 	// Generate feed information for each valid subscription request.
 	generateFeedDetails(ctx, es.GetAPI(), user, requests.FilterValid())
+	return
 	// Add the new feeds.
 	newFeedsResp, err := es.AddFeeds(ctx, requests.Feeds()...)
 	// If the request failed and no new feeds were created, add a request error
@@ -345,7 +392,6 @@ func generateFeedDetails(ctx context.Context, esapi *typedapi.API, user *models.
 	// Loop through requests and generate subscriptions for each one. If a new
 	// feed needs to be added, also create those.
 	for request := range slices.Values(requests) {
-		request.UserID = user.GetID()
 		if idx := slices.IndexFunc(existingFeeds, func(feed models.APIFeed) bool {
 			return request.GetURL() == feed.GetLink()
 		}); idx != -1 {
@@ -371,6 +417,7 @@ func generateFeedDetails(ctx context.Context, esapi *typedapi.API, user *models.
 // addSubscriptions will add new subscriptions for all valid subscription requests.
 func addSubscriptions(ctx context.Context, es *elastic.ElasticAPI, requests api.SubscriptionRequests) {
 	subscriptions := generateSubscriptions(requests.FilterValid())
+	return
 	// Add the new subscriptions.
 	newSubsResp, err := es.AddSubscriptions(ctx, subscriptions...)
 	// If the request failed and no new feeds were created, add a request error
@@ -404,8 +451,8 @@ func addSubscriptions(ctx context.Context, es *elastic.ElasticAPI, requests api.
 }
 
 // generateSubscriptions will generate subscription objects for all valid subscription requests.
-func generateSubscriptions(requests api.SubscriptionRequests) []*api.Subscription {
-	subscriptions := make([]*api.Subscription, 0, len(requests))
+func generateSubscriptions(requests api.SubscriptionRequests) []*models.Subscription {
+	subscriptions := make([]*models.Subscription, 0, len(requests))
 	for request := range slices.Values(requests) {
 		subscription, err := request.ToSubscription()
 		if err != nil {

@@ -70,8 +70,8 @@ func inputName(req *api.SubscriptionRequest) templ.Component {
 		)),
 	)
 	// Check for validation or input errors and mark the field with error status.
-	if req.Name != nil {
-		nameInput.Input.SetValue(attributes.Value(*req.Name))
+	if req.UserNickname != nil {
+		nameInput.Input.SetValue(attributes.Value(*req.UserNickname))
 	}
 	// Check for validation errors and mark the field with error status.
 	// if req.ValidationErrors["Name"] != "" {
@@ -135,9 +135,9 @@ func categoriesList(req *api.SubscriptionRequest) templ.Component {
 	if req.Categories == nil {
 		return nil
 	}
-	categories := make([]templ.Component, 0, len(*req.Categories))
+	categories := make([]templ.Component, 0, len(req.Categories))
 
-	for _, category := range *req.Categories {
+	for _, category := range req.Categories {
 		categories = append(categories,
 			categoryItem(category),
 		)

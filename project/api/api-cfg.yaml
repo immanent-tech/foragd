@@ -15,3 +15,4 @@ import-mapping:
   models.yaml: github.com/joshuar/go-feed-me/internal/models
 compatibility:
   allow-unexported-struct-field-names: true
+  always-prefix-enum-values: true

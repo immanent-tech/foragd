@@ -378,7 +378,7 @@ components:
         - feeds
       properties:
         mark:
-          $ref: "api.yaml#/components/schemas/Mark"
+          $ref: "models.yaml#/components/schemas/Mark"
         feeds:
           description: is a list of Feed IDs to mark.
           type: array
@@ -397,7 +397,7 @@ components:
         - items
       properties:
         mark:
-          $ref: "api.yaml#/components/schemas/Mark"
+          $ref: "models.yaml#/components/schemas/Mark"
         items:
           description: is a list of Items IDs to mark.
           type: array
@@ -415,7 +415,7 @@ components:
         - categories
       properties:
         mark:
-          $ref: "api.yaml#/components/schemas/Mark"
+          $ref: "models.yaml#/components/schemas/Mark"
         categories:
           description: is a list of Categories to mark.
           type: array
@@ -451,7 +451,7 @@ components:
       in: path
       required: true
       schema:
-        $ref: "api.yaml#/components/schemas/Mark"
+        $ref: "models.yaml#/components/schemas/Mark"
     # Query Parameters:
     View:
       name: view

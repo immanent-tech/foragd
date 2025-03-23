@@ -19,14 +19,11 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"log/slog"
 	"net"
 	"net/http"
 	"time"
 
-	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
-	"github.com/elastic/go-elasticsearch/v8/typedapi"
 
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -46,24 +43,7 @@ var defaultTransportConfig = &http.Transport{
 	},
 }
 
-type Client struct {
-	conn   *elasticsearch.TypedClient
-	Logger *slog.Logger
-}
-
-type API struct {
-
-}
-
-func (c *Client) GetTransport() *elastictransport.Interface {
-	return &c.conn.Transport
-}
-
-func (c *Client) GetAPI() *typedapi.API {
-	return typedapi.New(c.conn)
-}
-
-func Connect(ctx context.Context) (*Client, error) {
+func Connect(ctx context.Context) (*ElasticAPI, error) {
 	// Retrieve a logger from the context.
 	logger := logging.FromContext(ctx).WithGroup("elastic")
 
@@ -77,7 +57,7 @@ func Connect(ctx context.Context) (*Client, error) {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
 
-	client := &Client{conn: esclient, Logger: logger}
+	client := &ElasticAPI{API: esclient.API, logger: logger}
 
 	// if err := client.Setup(ctx); err != nil {
 	// 	return nil, fmt.Errorf("%w: %w", ErrSetupFailed, err)

@@ -5,6 +5,13 @@ package api
 
 import "iter"
 
+const (
+	// FeedsRoute is the base path for showing a list of feeds.
+	FeedsRoute = "/home/feeds"
+	// ItemsRoute is the base path for showing a list of items.
+	ItemsRoute = "/home/items"
+)
+
 // Option is a generic functional option that can be used by any type that needs
 // to implement its own options.
 type Option[T any] func(T)

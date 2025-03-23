@@ -42,7 +42,7 @@ var (
 // JobQueue implements the quartz.JobQueue interface, using Elasticsearch as the
 // persistence layer.
 type JobQueue struct {
-	client *elastic.Client
+	client *elastic.ElasticAPI
 	logger *slog.Logger
 	index  string
 }
@@ -265,7 +265,7 @@ func isMatch(job quartz.ScheduledJob, matchers []quartz.Matcher[quartz.Scheduled
 }
 
 // NewJobQueue initializes and returns an empty jobQueue.
-func NewJobQueue(ctx context.Context, client *elastic.Client) (*JobQueue, error) {
+func NewJobQueue(ctx context.Context, client *elastic.ElasticAPI) (*JobQueue, error) {
 	schedCtx = ctx
 
 	return &JobQueue{

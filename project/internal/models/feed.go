@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/mmcdole/gofeed"
@@ -27,6 +28,17 @@ var (
 	ErrNoFeed          = errors.New("feed does not exist")
 	ErrNoSubscriptions = errors.New("no user subscriptions")
 )
+
+type Feeds []*APIFeed
+
+// GetIDs returns the Feed IDs for the Feeds.
+func (f Feeds) GetIDs() []FeedID {
+	feedIDs := make([]FeedID, len(f))
+	for feed := range slices.Values(f) {
+		feedIDs = append(feedIDs, feed.GetID())
+	}
+	return feedIDs
+}
 
 // GetItemsSince retrieves the feed items that are newer than the given time.
 func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
@@ -61,13 +73,9 @@ func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 	return items
 }
 
+// GetTitle retrieves either a user-set nickname for the feed or the feed's
+// original title.
 func (f *APIFeed) GetTitle() string {
-	if userProps := f.UserProperties; userProps != nil {
-		if userProps.Nickname != nil {
-			return safePrinter.Sanitize(*userProps.Nickname)
-		}
-	}
-
 	return safePrinter.Sanitize(f.Title)
 }
 
@@ -85,25 +93,8 @@ func (f *APIFeed) GetImage() *gofeed.Image {
 
 // GetCategories retrieves the list of user-defined and feed-defined categories
 // for the Feed.
-//
-//nolint:prealloc // it would be complicated to pre-allocate the slice.
 func (f *APIFeed) GetCategories() []Category {
-	var categories []Category
-
-	// Add any user-defined categories.
-	if userProps := f.UserProperties; userProps != nil {
-		if userProps.Categories != nil {
-			for _, category := range *userProps.Categories {
-				categories = append(categories, CleanCategory(category))
-			}
-		}
-	}
-	// Add any feed categories.
-	for _, category := range f.Categories {
-		categories = append(categories, CleanCategory(category))
-	}
-
-	return categories
+	return CleanCategories(f.Categories...)
 }
 
 func (f *APIFeed) GetContent() string {
@@ -116,44 +107,6 @@ func (f *APIFeed) GetTimestamp() time.Time {
 	}
 
 	return time.Time{}
-}
-
-func (f *APIFeed) GetUserUnreadCount() int {
-	if userProps := f.UserProperties; userProps != nil {
-		if userProps.UnreadCount != nil {
-			return *userProps.UnreadCount
-		}
-	}
-
-	return 0
-}
-
-// SetUserName sets the user-defined name in the user properties of the Feed.
-func (f *APIFeed) SetUserName(name string) {
-	if f.UserProperties == nil {
-		f.UserProperties = &UserFeedProperties{}
-	}
-
-	f.UserProperties.Nickname = &name
-}
-
-// SetUserCategories sets any user-defined categories in the user properties of
-// the Feed.
-func (f *APIFeed) SetUserCategories(categories []Category) {
-	if f.UserProperties == nil {
-		f.UserProperties = &UserFeedProperties{}
-	}
-
-	f.UserProperties.Categories = &categories
-}
-
-// SetUserUnreadCount sets the unread count in the user properties of the Feed.
-func (f *APIFeed) SetUserUnreadCount(count int) {
-	if f.UserProperties == nil {
-		f.UserProperties = &UserFeedProperties{}
-	}
-
-	f.UserProperties.UnreadCount = &count
 }
 
 // NewFeedFromURL creates a new feed model from the given URL as its canonical
@@ -180,4 +133,8 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 			Feed:      details,
 		},
 		nil
+}
+
+func (m *FeedMetadata) GetImage() *gofeed.Image {
+	return m.Image
 }

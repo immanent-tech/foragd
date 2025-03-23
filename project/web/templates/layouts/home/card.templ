@@ -78,23 +78,23 @@ func showCardActions(actions ...templ.Component) []templ.Component {
 	return menus
 }
 
-templ showFeedCardContent(feed *models.APIFeed) {
+templ showFeedCardContent(subscription *models.Subscription) {
 	<div hx-disable="true">
 		<div class="flex flex-wrap gap-2">
-			@showTitle(feed.GetTitle())
-			if feed.GetUserUnreadCount() > 0 {
+			@showTitle(subscription.GetTitle())
+			if subscription.GetUnreadCount() > 0 {
 				@badge.Build(
 					badge.WithSize(size.SM),
 					badge.WithThemeColor(color.Primary),
-					badge.WithContent(strconv.Itoa(feed.GetUserUnreadCount())+" Unread"),
+					badge.WithContent(strconv.Itoa(subscription.GetUnreadCount())+" Unread"),
 					badge.WithExtraAttributes(templ.Attributes{
-						"sse-swap": feed.GetID() + "_unread",
+						"sse-swap": subscription.GetFeedID() + "_unread",
 					}),
 				).Show()
 			}
 		</div>
-		if feed.GetContent() != "" {
-			@text.Build(feed.GetContent(), text.WithTextSize(text.SM), text.AsItalicText()).Show()
+		if details := subscription.FeedDetails.Description; details != "" {
+			@text.Build(details, text.WithTextSize(text.SM), text.AsItalicText()).Show()
 		}
 	</div>
 }

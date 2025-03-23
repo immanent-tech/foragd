@@ -44,6 +44,17 @@ func Term(field string, value any) Option {
 	}
 }
 
+// User adds a "Term" query to search for docs with the given User ID.
+func User(user models.UserID) Option {
+	return func(query *types.Query) {
+		if user != "" {
+			query.Term = map[string]types.TermQuery{
+				"user_id": {Value: user},
+			}
+		}
+	}
+}
+
 // FeedIDs adds a "Terms" clause with the given Feed IDs.
 func FeedIDs(feedIDs ...models.FeedID) Option {
 	return func(query *types.Query) {
@@ -228,7 +239,7 @@ func MustNot(queryOptions ...Option) BoolOption {
 	}
 }
 
-// BoolMustNot sets the given query options as the "must_not" clause of the bool query.
+// Should sets the given query options as the "should" clause of the bool query.
 func Should(queryOptions ...Option) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
 		var shoulds []types.Query
@@ -249,8 +260,22 @@ func Should(queryOptions ...Option) BoolOption {
 	}
 }
 
+// BoolQueryName assigns the given string as the name of the query, which allows
+// tracking when this bool clause matches documents.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html#named-queries
+func BoolQueryName(name string) BoolOption {
+	return func(boolQueryClause *types.BoolQuery) {
+		if name != "" {
+			boolQueryClause.QueryName_ = &name
+		}
+	}
+}
+
 // Bool constructs a bool query with the given query options and adds it to
 // the query.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-bool-query.html
 func Bool(options ...BoolOption) Option {
 	return func(query *types.Query) {
 		boolQuery := &types.BoolQuery{}

@@ -5,6 +5,7 @@ package models
 
 import (
 	"errors"
+	"iter"
 
 	"github.com/mmcdole/gofeed"
 )
@@ -33,4 +34,25 @@ type Item struct {
 type UserData struct {
 	*Tokens
 	*User
+}
+
+func sliceToMap2[K comparable, V any, S any](s []S, mapFn func(S) (K, V)) map[K]V {
+	m := make(map[K]V)
+	for _, k := range s {
+		key, val := mapFn(k)
+		m[key] = val
+	}
+	return m
+}
+
+func filtered[S any](s []S, fn func(S) bool) iter.Seq[S] {
+	return func(yield func(s S) bool) {
+		for _, v := range s {
+			if fn(v) {
+				if !yield(v) {
+					return
+				}
+			}
+		}
+	}
 }

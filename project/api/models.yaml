@@ -42,6 +42,14 @@ components:
       x-oapi-codegen-extra-tags:
         validate: "url"
         json: "url"
+    Mark:
+      description: >
+        applies the given mark action to objects.
+      type: string
+      enum: ["read", "unread"]
+      x-oapi-codegen-extra-tags:
+        form: "mark"
+        validate: "oneof=read unread"
     State:
       description: >
         Tracks the state of an object.
@@ -83,27 +91,21 @@ components:
       x-oapi-codegen-extra-tags:
         json: "link"
         validate: "required,url"
-    UserItemProperties:
-      description: Tracks user-specific properties of an item.
-      type: object
-      properties:
-        State:
-          $ref: "#/components/schemas/State"
+    SubscriptionID:
+      description: is the unique ID of a subscription.
+      type: string
       x-oapi-codegen-extra-tags:
-        json: "-"
-    UserFeedProperties:
-      description: Tracks user-specific properties of a feed.
+        validate: "required,startswith=sub_"
+        json: "subscription_id"
+    ItemState:
+      description: >
+        contains the user state for the item.
       type: object
+      required:
+        - state
       properties:
-        unread_count:
-          type: integer
-          minimum: 0
-        categories:
-          type: array
-          items:
-            $ref: "#/components/schemas/Category"
-        nickname:
-          type: string
+        state:
+          $ref: "#/components/schemas/State"
       x-oapi-codegen-extra-tags:
         json: "-"
     UserID:
@@ -117,15 +119,20 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         json: "category"
-    Categories:
-      description: is a list of categories.
-      type: array
-      items:
-        $ref: "#/components/schemas/Category"
-      x-oapi-codegen-extra-tags:
-        json: "categories"
-        validate: "unique"
-      x-go-type-skip-optional-pointer: true
+    CategoryCount:
+      description: >
+        holds a category and the count of its occurence. The count will be
+        contextual. i.e., across subscriptions, items, etc.
+      type: object
+      required:
+        - category
+        - count
+      properties:
+        category:
+          $ref: "#/components/schemas/Category"
+        count:
+          type: integer
+          minimum: 0
     ObjectPublished:
       description: is when the object was published.
       x-oapi-codegen-extra-tags:
@@ -141,7 +148,7 @@ components:
       x-go-type: "time.Time"
       x-go-type-skip-optional-pointer: true
     # Metadata Objects.
-    MetadataFeed:
+    FeedMetadata:
       description: contains common/metadata fields for feeds and items.
       type: object
       required:
@@ -167,11 +174,16 @@ components:
           x-go-type-import:
             path: github.com/mmcdole/gofeed
           x-go-type-skip-optional-pointer: true
+    FeedState:
+      description: >
+        contains fields for tracking feed/item state.
+      type: object
+      properties:
         published:
           $ref: "#/components/schemas/ObjectPublished"
         updated:
           $ref: "#/components/schemas/ObjectUpdated"
-    MetadataDB:
+    Timestamps:
       description: contains common (metadata) fields for database objects.
       type: object
       required:
@@ -181,47 +193,12 @@ components:
           $ref: "#/components/schemas/CreatedAt"
         updated_at:
           $ref: "#/components/schemas/UpdatedAt"
-    ItemState:
-      description: Contains fields to track an individual item's state.
-      type: object
-      required:
-        - state
-        - updated_at
-      properties:
-        updated_at:
-          $ref: "#/components/schemas/UpdatedAt"
-        state:
-          $ref: "#/components/schemas/State"
     # Objects.
-    SubscriptionState:
-      description: Contains fields to rack a subscription state.
-      type: object
-      required:
-        - created_at
-        - name
-      properties:
-        created_at:
-          $ref: "#/components/schemas/CreatedAt"
-        updated_at:
-          $ref: "#/components/schemas/UpdatedAt"
-        marked_read:
-          description: records when the subscription was last marked read.
-          x-go-type: "time.Time"
-          x-oapi-codegen-extra-tags:
-            json: "marked_read,omitempty"
-        name:
-          description: >
-            is a friendly name or nickname for the feed given by the user.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: "name"
-        categories:
-          $ref: "#/components/schemas/Categories"
     User:
       description: is a user of the application.
       type: object
       allOf:
-        - $ref: "#/components/schemas/MetadataDB"
+        - $ref: "#/components/schemas/Timestamps"
         - type: object
           required:
             - ID
@@ -234,31 +211,20 @@ components:
                 Represents the maximum time-frame over which the user
                 can view items.
               type: string
-            feed_item_states:
-              description: Tracks state of inidividual items per feed.
-              type: object
-              additionalProperties:
-                type: object
-                additionalProperties:
-                  $ref: "#/components/schemas/ItemState"
-              x-go-type-skip-optional-pointer: true
             subscriptions:
-              description: is the list of user subscriptions.
-              type: object
-              additionalProperties:
-                $ref: "#/components/schemas/SubscriptionState"
+              description: >
+                is the list of subscriptions for the user.
+              type: array
+              items:
+                $ref: "#/components/schemas/Subscription"
               x-go-type-skip-optional-pointer: true
     APIFeed:
       description: represents a feed object for API endpoints.
       type: object
-      required:
-        - title
-        - description
-        - URL
-        - ID
       allOf:
-        - $ref: "#/components/schemas/MetadataFeed"
-        - $ref: "#/components/schemas/MetadataDB"
+        - $ref: "#/components/schemas/FeedMetadata"
+        - $ref: "#/components/schemas/FeedState"
+        - $ref: "#/components/schemas/Timestamps"
         - type: object
           required:
             - ID
@@ -287,20 +253,12 @@ components:
               x-oapi-codegen-extra-tags:
                 json: "feedVersion"
               x-go-type-skip-optional-pointer: true
-            user_properties:
-              $ref: "#/components/schemas/UserFeedProperties"
     APIItem:
       description: represents an individual item (e.g., an individual feed item).
       type: object
-      required:
-        - timestamp
-        - ID
-        - FeedID
-        - URL
-        - title
-        - description
       allOf:
-        - $ref: "#/components/schemas/MetadataFeed"
+        - $ref: "#/components/schemas/FeedMetadata"
+        - $ref: "#/components/schemas/FeedState"
         - type: object
           required:
             - ID
@@ -313,8 +271,8 @@ components:
               $ref: "#/components/schemas/FeedID"
             URL:
               $ref: "#/components/schemas/ItemURL"
-            user_properties:
-              $ref: "#/components/schemas/UserItemProperties"
+            state:
+              $ref: "#/components/schemas/ItemState"
     Tokens:
       type: object
       required:
@@ -404,3 +362,97 @@ components:
         expiry:
           description: the time at which this session token expires.
           x-go-type: time.Time
+    SubscriptionMetadata:
+      description: >
+        contains metadata for tracking a subscription.
+      type: object
+      required:
+        - ID
+        - FeedID
+        - URL
+      properties:
+        ID:
+          $ref: "#/components/schemas/SubscriptionID"
+        FeedID:
+          $ref: "#/components/schemas/FeedID"
+    SubscriptionCustomisation:
+      description: >
+        represents the properties of a subscription a user can customize.
+      type: object
+      properties:
+        user_nickname:
+          description: >
+            is a friendly name or nickname for the feed given by the user.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: "user_nickname"
+        user_categories:
+          description: >
+            is a user-defined list of Category names for the subscription.
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+          x-oapi-codegen-extra-tags:
+            json: "user_categories"
+            form: "user_categories[]"
+            validate: "unique"
+          x-go-type-skip-optional-pointer: true
+    SubscriptionState:
+      description: >
+        contains properties tracking the state of the subscription.
+      type: object
+      required:
+        - marked_read
+      properties:
+        marked_read:
+          description: records when the subscription was last marked read.
+          x-go-type: "time.Time"
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        read_items:
+          description: >
+            is a list of ItemIDs that the user has explicitly marked as read.
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemID"
+          x-oapi-codegen-extra-tags:
+            json: "read_items"
+            validate: "unique,dive,startswith=item_"
+          x-go-type-skip-optional-pointer: true
+        unread_items:
+          description: >
+            is a list of ItemIDs that the user has explicitly marked as unread.
+          type: array
+          items:
+            $ref: "#/components/schemas/ItemID"
+          x-oapi-codegen-extra-tags:
+            json: "unread_items"
+            validate: "unique,dive,startswith=item_"
+          x-go-type-skip-optional-pointer: true
+        unread_count:
+          description: >
+            indicates how many items are unread.
+          type: integer
+          minimum: 0
+          x-oapi-codegen-extra-tags:
+            json: "-"
+            form: "-"
+            validate: "numeric,gte=0"
+          x-go-type-skip-optional-pointer: true
+    Subscription:
+      description: >
+        represents a feed a user has subscribed to.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - $ref: "#/components/schemas/SubscriptionMetadata"
+        - $ref: "#/components/schemas/SubscriptionCustomisation"
+        - type: object
+          required:
+            - state
+            - feed_details
+          properties:
+            feed_details:
+              $ref: "#/components/schemas/FeedMetadata"
+            state:
+              $ref: "#/components/schemas/SubscriptionState"

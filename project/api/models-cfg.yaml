@@ -11,3 +11,6 @@ output-options:
   # to make sure that all types are generated
   skip-prune: true
   nullable-type: true
+compatibility:
+  allow-unexported-struct-field-names: true
+  always-prefix-enum-values: true

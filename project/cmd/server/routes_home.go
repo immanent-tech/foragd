@@ -4,19 +4,16 @@
 package server
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/elastic/go-elasticsearch/v8/typedapi"
 
 	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/forms"
@@ -42,80 +39,84 @@ func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Request) {
-	// // Set headers for SSE
-	res.Header().Set("Content-Type", "text/event-stream")
-	res.WriteHeader(http.StatusOK)
-	// res.Header().Set("Cache-Control", "no-cache")
-	// res.Header().Set("Connection", "keep-alive")
+	res.WriteHeader(http.StatusNotImplemented)
+}
 
-	// Create a channel to send data
-	dataCh := make(chan string)
-	defer close(dataCh)
+// 	// // Set headers for SSE
+// 	res.Header().Set("Content-Type", "text/event-stream")
+// 	res.WriteHeader(http.StatusOK)
+// 	// res.Header().Set("Cache-Control", "no-cache")
+// 	// res.Header().Set("Connection", "keep-alive")
 
-	// resp := htmx.NewResponse()
+// 	// Create a channel to send data
+// 	dataCh := make(chan string)
+// 	defer close(dataCh)
 
-	go func() {
-		s.Log.Debug("Started listening for notifications...")
-		for {
-			select {
-			case <-req.Context().Done():
-				s.Log.Debug("Stopped listening for notifications...")
-				return
-			case data := <-dataCh:
-				s.Log.Debug("notification!")
-				var foo strings.Builder
-				if err := home.Notify(data).Render(req.Context(), &foo); err != nil {
-					// if err := resp.RenderTempl(req.Context(), res, home.Notify(data)); err != nil {
-					s.Log.Warn("error rendering", slog.Any("error", err))
-				}
-				fmt.Fprintf(res, "event: notification\ndata: %s\n\n", foo.String())
-				res.(http.Flusher).Flush()
+// 	// resp := htmx.NewResponse()
 
-			}
-		}
-	}()
+// 	go func() {
+// 		s.Log.Debug("Started listening for notifications...")
+// 		for {
+// 			select {
+// 			case <-req.Context().Done():
+// 				s.Log.Debug("Stopped listening for notifications...")
+// 				return
+// 			case data := <-dataCh:
+// 				s.Log.Debug("notification!")
+// 				var foo strings.Builder
+// 				if err := home.Notify(data).Render(req.Context(), &foo); err != nil {
+// 					// if err := resp.RenderTempl(req.Context(), res, home.Notify(data)); err != nil {
+// 					s.Log.Warn("error rendering", slog.Any("error", err))
+// 				}
+// 				fmt.Fprintf(res, "event: notification\ndata: %s\n\n", foo.String())
+// 				res.(http.Flusher).Flush()
 
-	// Get the view filters for reloading the page.
-	filters, err := api.FiltersFromQuery(api.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
+// 			}
+// 		}
+// 	}()
+
+// 	// Get the view filters for reloading the page.
+// 	filters, err := api.FiltersFromQuery(api.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
+// 	if err != nil {
+// 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+// 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
+// 		return
+// 	}
+
+// 	filters.SetSince("1m")
+
+// 	// Simulate sending data periodically
+// 	for {
+// 		ctx, cancelFunc := context.WithCancel(req.Context())
+// 		defer cancelFunc()
+// 		// Get feeds.
+// 		_, err := elastic.UserActionCountUnread(ctx, s.DataAPI().GetAPI(), *filters)
+// 		if err != nil {
+// 			logging.FromContext(ctx).Warn("Could not retrieve feeds.",
+// 				slog.Any("error", err))
+// 			// http.Error(res, err.Error(), http.StatusInternalServerError)
+
+// 			// return
+// 		}
+// 		// if count > 0 {
+// 		dataCh <- "Feeds updated at: " + time.Now().Format(time.TimeOnly)
+// 		// }
+// 		time.Sleep(time.Minute)
+// 	}
+// }
+
+func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
+	filters := api.NewFilters()
+	err := filters.Generate(params)
 	if err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		logging.FromContext(req.Context()).Warn("Invalid parameters.", slog.Any("error", err))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}
 
-	filters.SetSince("1m")
+	session.StoreFeedFilters(req.Context(), filters)
 
-	// Simulate sending data periodically
-	for {
-		ctx, cancelFunc := context.WithCancel(req.Context())
-		defer cancelFunc()
-		// Get feeds.
-		_, err := elastic.UserActionCountUnread(ctx, s.DataAPI().GetAPI(), *filters)
-		if err != nil {
-			logging.FromContext(ctx).Warn("Could not retrieve feeds.",
-				slog.Any("error", err))
-			// http.Error(res, err.Error(), http.StatusInternalServerError)
-
-			// return
-		}
-		// if count > 0 {
-		dataCh <- "Feeds updated at: " + time.Now().Format(time.TimeOnly)
-		// }
-		time.Sleep(time.Minute)
-	}
-}
-
-func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
-	// Save route state.
-	session.SetRouteState(req.Context(), req.URL.Path, req.URL.String())
-
-	// Create filters from params.
-	filters, err := api.CreateFilters(params)
-	if err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-	}
-
-	displayFeeds(s.DataAPI().GetAPI(), res, req, filters)
+	displayFeeds(s.DataAPI(), res, req, filters)
 }
 
 // func (s Server) HandleFeedsPagination(res http.ResponseWriter, req *http.Request, pagination api.Pagination) {
@@ -154,13 +155,6 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 // }
 
 func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
-	// Get the view filters for reloading the page.
-	filters, err := api.FiltersFromQuery(api.BuildRoute(session.GetRouteState(req.Context(), req.URL.Path)).GetParams())
-	if err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-		return
-	}
 	// Get the mark request.
 	marks, valid, err := forms.DecodeForm[*MarkFeeds](req)
 	if err != nil || !valid {
@@ -169,13 +163,22 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	// Mark the feeds.
-	if err := elastic.UserActionMarkFeeds(req.Context(), s.DataAPI().GetAPI(), marks.Mark, marks.Feeds...); err != nil {
+	if err := s.DataAPI().MarkSubscriptions(req.Context(), marks.Mark, marks.Feeds...); err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}
+
+	// Get the view filters for reloading the page.
+	filters, err := session.GetFeedFilters(req.Context())
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
+		return
+	}
+
 	// Reload the home page.
-	displayFeeds(s.DataAPI().GetAPI(), res, req, filters)
+	displayFeeds(s.DataAPI(), res, req, filters)
 }
 
 // Valid checks that the MarkFeeds object is valid.
@@ -187,53 +190,40 @@ func (f *MarkFeeds) Valid() bool {
 	return true
 }
 
-// getFeedList retrieves a filtered list of Feeds as components that
+// buildSubscriptionCards retrieves a filtered list of Feeds as components that
 // can be rendered on a page.
-func getFeedList(ctx context.Context, esapi *typedapi.API, filters *api.Filters) (templates.Elements, error) {
-	// Get feeds.
-	feeds, err := elastic.UserActionGetFeeds(ctx, esapi, *filters)
-	if err != nil {
-		return nil, fmt.Errorf("could not retrieve feeds: %w", err)
-	}
-
-	feedList := make(templates.Elements, 0, len(feeds))
+func buildSubscriptionCards(filters *api.Filters, subscriptions models.Subscriptions) (templates.Elements, error) {
+	subscriptionCards := make(templates.Elements, 0, len(subscriptions))
 	// Build feed cards.
-	for _, feed := range feeds {
-		var card *home.Card
-
-		card, err = home.NewFeedCard(*filters, feed)
+	for subscription := range slices.Values(subscriptions) {
+		card, err := home.NewFeedCard(*filters, subscription)
 		if err != nil {
-			logging.FromContext(ctx).Warn("Could not create card component for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
+			// logging.FromContext(ctx).Warn("Could not create card component for subscription.",
+			// 	slog.String("subscription_id", subscription.GetID()),
+			// 	slog.String("feed_id", subscription.GetFeedID()),
+			// 	slog.Any("error", err))
 
 			continue
 		}
 
-		feedList = append(feedList, card)
+		subscriptionCards = append(subscriptionCards, card)
 	}
 
-	return feedList, nil
-}
-
-// getFeedCategoryCounts creates a list of categories that can be displayed as a
-// filter option on a page.
-func getFeedCategoryCounts(ctx context.Context, api *typedapi.API, filters *api.Filters) (templates.Element, error) {
-	// Retrieve the feed categories and the unread counts.
-	categoryCounts, err := elastic.UserActionGetFeedCategories(ctx, api)
-	if err != nil {
-		return nil, fmt.Errorf("could not retrieve user categories: %w", err)
-	}
-
-	categories := home.BuildCategoryFilters(filters, categoryCounts, "/home/feeds")
-
-	return categories, nil
+	return subscriptionCards, nil
 }
 
 // displayFeeds handles showing a list of Feeds as cards with the given filters applied.
-func displayFeeds(api *typedapi.API, res http.ResponseWriter, req *http.Request, filters *api.Filters) {
+func displayFeeds(api DataAPI, res http.ResponseWriter, req *http.Request, filters *api.Filters) {
+	// Get feeds.
+	subscriptions, err := api.GetSubscriptions(req.Context(), filters)
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
+		return
+	}
+
 	// Get the list of feeds to display.
-	feeds, err := getFeedList(req.Context(), api, filters)
+	feeds, err := buildSubscriptionCards(filters, subscriptions)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
@@ -247,18 +237,13 @@ func displayFeeds(api *typedapi.API, res http.ResponseWriter, req *http.Request,
 		content = append(content, home.BuildMainContent(feeds...))
 	}
 
-	categories, err := getFeedCategoryCounts(req.Context(), api, filters)
-	if err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-		return
-	}
-	views := home.BuildViewFilters(filters, "/home/feeds")
+	viewFilters := home.BuildViewFilters(filters, "/home/feeds")
+	categoryFilters := home.BuildCategoryFilters(filters, subscriptions.GetCategoryCounts(), "/home/feeds")
 
 	// header := home.BuildListHeader(home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/feeds"))
 	// footer := home.BuildFooter("/home")
 	footer := home.BuildListFooter("/home",
-		home.BuildFiltersMenu(views, categories),
+		home.BuildFiltersMenu(viewFilters, categoryFilters),
 		home.BuildSortingMenu(filters, "/home/feeds"),
 		home.AddSubscriptionAction(), home.ImportAction(),
 	)
@@ -267,19 +252,17 @@ func displayFeeds(api *typedapi.API, res http.ResponseWriter, req *http.Request,
 }
 
 func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, params HandleShowItemsParams) {
-	// Save list items filters in session storage.
-	session.SetRouteState(req.Context(), req.URL.Path, req.URL.String())
-
-	// Create filters for API requests.
-	filters, err := api.CreateFilters(params)
+	filters := api.NewFilters()
+	err := filters.Generate(params)
 	if err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		logging.FromContext(req.Context()).Warn("Invalid parameters.", slog.Any("error", err))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-
 		return
 	}
 
-	displayItems(s.DataAPI().GetAPI(), res, req, filters)
+	session.StoreItemFilters(req.Context(), filters)
+
+	displayItems(s.DataAPI(), res, req, filters)
 }
 
 func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
@@ -316,54 +299,42 @@ func (f *MarkItems) Valid() bool {
 	return true
 }
 
-// getItemList retrieves items filtered by the given parameters as components
-// that can be rendered on a page.
-func getItemList(ctx context.Context, esapi *typedapi.API, path *url.URL, filters *api.Filters) (templates.Elements, error) {
-	// Get all items.
-	items, pagination, err := elastic.UserActionGetItems(ctx, esapi, *filters)
-	if err != nil {
-		return nil, fmt.Errorf("could not retrieve items: %w", err)
-	}
-
-	itemList := make(templates.Elements, 0, filters.Count)
+func buildItemCards(filters *api.Filters, reqURL *url.URL, pagination api.Pagination, items models.Items) (templates.Elements, error) {
+	itemCards := make(templates.Elements, 0, filters.Count)
 	// Build item cards.
 	for idx, item := range items {
 		// Create a card for this item.
 		itemCard, err := home.NewItemCard(*filters, item)
 		if err != nil {
-			logging.FromContext(ctx).Warn("Could not create card component for item.",
-				slog.String("items_id", item.GetID()),
-				slog.Any("error", err))
+			// logging.FromContext(ctx).Warn("Could not create card component for item.",
+			// 	slog.String("items_id", item.GetID()),
+			// 	slog.Any("error", err))
 
 			continue
 		}
 		// Add a pagination action to the last item.
 		if idx == len(items)-1 && len(items) == filters.Count {
-			itemCard.AddPagination(path, pagination)
+			itemCard.AddPagination(reqURL, pagination)
 		}
 		// Append the card to the list of cards.
-		itemList = append(itemList, itemCard)
+		itemCards = append(itemCards, itemCard)
 	}
 
-	return itemList, nil
-}
-
-func getItemCategoryCounts(ctx context.Context, esapi *typedapi.API, filters *api.Filters) (templates.Element, error) {
-	// Get item categories.
-	categoryCounts, err := elastic.UserActionGetItemCategories(ctx, esapi, *filters)
-	if err != nil {
-		return nil, fmt.Errorf("could not retrieve item categories: %w", err)
-	}
-
-	categories := home.BuildCategoryFilters(filters, categoryCounts, "/home/items")
-
-	return categories, nil
+	return itemCards, nil
 }
 
 // displayItems handles showing list of Items as cards with the given filters applied.
-func displayItems(esapi *typedapi.API, res http.ResponseWriter, req *http.Request, filters *api.Filters) {
-	// Get the list of items to display.
-	items, err := getItemList(req.Context(), esapi, req.URL, filters)
+func displayItems(esapi DataAPI, res http.ResponseWriter, req *http.Request, filters *api.Filters) {
+	// Get all items.
+	items, pagination, err := esapi.GetItems(req.Context(), filters)
+	if err != nil {
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
+		return
+	}
+
+	// Get the list of feeds to display.
+	itemCards, err := buildItemCards(filters, req.URL, pagination, items)
 	if err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
@@ -372,24 +343,19 @@ func displayItems(esapi *typedapi.API, res http.ResponseWriter, req *http.Reques
 
 	var content templates.Elements
 	if htmx.IsHTMX(req) {
-		content = items
+		content = itemCards
 	} else {
-		content = append(content, home.BuildMainContent(items...))
+		content = append(content, home.BuildMainContent(itemCards...))
 	}
 
-	categories, err := getItemCategoryCounts(req.Context(), esapi, filters)
-	if err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-		return
-	}
-	views := home.BuildViewFilters(filters, "/home/items")
+	viewFilters := home.BuildViewFilters(filters, "/home/items")
+	categoryFilters := home.BuildCategoryFilters(filters, items.GetCategoryCounts(), "/home/items")
 
 	// header := home.BuildListHeader(home.BuildFiltersMenu(views, categories), home.BuildSortingMenu(filters, "/home/items"))
 	// footer := home.BuildFooter("/home/feeds")
 
 	footer := home.BuildListFooter("/home/feeds",
-		home.BuildFiltersMenu(views, categories),
+		home.BuildFiltersMenu(viewFilters, categoryFilters),
 		home.BuildSortingMenu(filters, "/home/items"),
 	)
 
