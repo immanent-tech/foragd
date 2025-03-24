@@ -5,7 +5,7 @@ package home
 
 import (
 	"context"
-	"github.com/joshuar/go-feed-me/internal/api"
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/session"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -54,12 +54,12 @@ func ImportAction() templ.Component {
 // the last state of the path (i.e., any parameters used) from the user session.
 func BackButton(ctx context.Context, path string) templ.Component {
 	var (
-		filters *api.Filters
+		filters *models.Filters
 	)
 	switch path {
-	case api.FeedsRoute:
+	case models.FeedsRoute:
 		filters, _ = session.GetFeedFilters(ctx)
-	case api.ItemsRoute:
+	case models.ItemsRoute:
 		filters, _ = session.GetItemFilters(ctx)
 	}
 	attrs := templates.BuildAction(path,

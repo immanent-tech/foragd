@@ -134,15 +134,6 @@ type FeedMetadata struct {
 	Title HTMLString `json:"title" validate:"url_encoded"`
 }
 
-// FeedState contains fields for tracking feed/item state.
-type FeedState struct {
-	// Published is when the object was published.
-	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
-
-	// Updated is when the object was updated.
-	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
-}
-
 // FeedURL The canonical feed URL.
 type FeedURL = string
 
@@ -166,6 +157,15 @@ type Mark string
 
 // ObjectPublished is when the object was published.
 type ObjectPublished = time.Time
+
+// ObjectState contains fields for tracking feed/item state.
+type ObjectState struct {
+	// Published is when the object was published.
+	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
+
+	// Updated is when the object was updated.
+	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
+}
 
 // ObjectUpdated is when the object was updated.
 type ObjectUpdated = time.Time

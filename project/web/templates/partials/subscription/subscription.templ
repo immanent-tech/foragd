@@ -4,7 +4,6 @@
 package subscription
 
 import (
-	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -23,7 +22,7 @@ import (
 )
 
 // inputURL generates the text input for the subscription URL.
-func inputURL(req *api.SubscriptionRequest) templ.Component {
+func inputURL(req *models.SubscriptionRequest) templ.Component {
 	urlInput := input.Build(textinput.Build(
 		textinput.Required(),
 		textinput.WithPlaceholder("https://cool.feed.lol/rss"),
@@ -52,7 +51,7 @@ func inputURL(req *api.SubscriptionRequest) templ.Component {
 }
 
 // inputName generates the text input for the subscription name.
-func inputName(req *api.SubscriptionRequest) templ.Component {
+func inputName(req *models.SubscriptionRequest) templ.Component {
 	nameInput := input.Build(
 		textinput.Build(
 			textinput.WithPlaceholder("My custom feed name"),
@@ -131,13 +130,13 @@ func categoryItem(category models.Category) templ.Component {
 
 // categoriesList generates a list of categories assigned to the subscription,
 // with the ability to remove them.
-func categoriesList(req *api.SubscriptionRequest) templ.Component {
-	if req.Categories == nil {
+func categoriesList(req *models.SubscriptionRequest) templ.Component {
+	if req.UserCategories == nil {
 		return nil
 	}
-	categories := make([]templ.Component, 0, len(req.Categories))
+	categories := make([]templ.Component, 0, len(req.UserCategories))
 
-	for _, category := range req.Categories {
+	for _, category := range req.UserCategories {
 		categories = append(categories,
 			categoryItem(category),
 		)
@@ -153,7 +152,7 @@ func categoriesList(req *api.SubscriptionRequest) templ.Component {
 	).Show(categories...)
 }
 
-templ Form(req *api.SubscriptionRequest) {
+templ Form(req *models.SubscriptionRequest) {
 	<div id="add_subscription_form" hx-target="this" class="p-4">
 		// Form inputs for URL and name.
 		@form.BuildForm(
@@ -202,7 +201,7 @@ templ Form(req *api.SubscriptionRequest) {
 }
 
 // NewSubscriptionModal displays a modal for a user to enter new subscription details.
-templ Modal(req *api.SubscriptionRequest) {
+templ Modal(req *models.SubscriptionRequest) {
 	@modal.Build(
 		modal.WithID("add_subscription_modal"),
 		modal.WithModalCloseOutside(),

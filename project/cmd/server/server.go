@@ -15,12 +15,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/joshuar/go-feed-me/cmd/server/middlewares"
-	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/session"
 	store "github.com/joshuar/go-feed-me/internal/session/store"
 )
@@ -33,10 +33,15 @@ type DataAPI interface {
 	// User methods:
 	GetUser(ctx context.Context) (*models.User, error)
 	// Subscription methods:
-	GetSubscriptions(ctx context.Context, filters *api.Filters) (models.Subscriptions, error)
+	GetSubscriptions(ctx context.Context, filters *models.Filters) (models.Subscriptions, error)
 	MarkSubscriptions(ctx context.Context, mark models.Mark, feedIDs ...models.FeedID) error
+	// Feeds methods:
+	GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
+	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
-	GetItems(ctx context.Context, filters *api.Filters) (models.Items, api.Pagination, error)
+	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.APIItem, bool, error)
+	GetItems(ctx context.Context, filters *models.Filters) (models.Items, models.Pagination, error)
+	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error
 }
 
 type API struct {
@@ -169,18 +174,16 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	})
 
 	router.Route("/subscription", func(subscription chi.Router) {
-		subscription.Get("/new", wrapper.NewSubscription)
-		subscription.Put("/new", wrapper.AddSubscription)
+		subscription.Get("/new", wrapper.SubscriptionNew)
+		subscription.Patch("/new", wrapper.SubscriptionEditNew)
 		subscription.Get("/import", wrapper.StartImport)
 		subscription.Put("/import", wrapper.SetImportMethod)
 		subscription.Post("/import", wrapper.ProcessImport)
 		// Existing subscription management:
 		subscription.Get("/{subscription}", wrapper.ShowSubscription)
+		subscription.Patch("/{subscription}", wrapper.EditSubscription)
 		subscription.Put("/{subscription}", wrapper.SaveSubscription)
 		subscription.Delete("/{subscription}", wrapper.RemoveSubscription)
-		// Subscription category management:
-		subscription.Put("/category", wrapper.AddSubscriptionCategory)
-		subscription.Delete("/category", wrapper.RemoveSubscriptionCategory)
 	})
 
 	return router

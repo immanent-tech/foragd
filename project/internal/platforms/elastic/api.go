@@ -12,7 +12,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
@@ -98,7 +97,7 @@ func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk
 	return &resp, nil
 }
 
-func (a *ElasticAPI) GetFeedJobState(ctx context.Context, feedID models.FeedID) (*api.FeedState, error) {
+func (a *ElasticAPI) GetFeedJobState(ctx context.Context, feedID models.FeedID) (*models.FeedState, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
@@ -115,7 +114,7 @@ func (a *ElasticAPI) GetFeedJobState(ctx context.Context, feedID models.FeedID) 
 	}
 
 	// Loop through this set of results.
-	state, err := ExtractSource[api.FeedState](resp.Source_)
+	state, err := ExtractSource[models.FeedState](resp.Source_)
 	if err != nil {
 		return nil, errors.Join(ErrGetFailed, err)
 	}
@@ -126,7 +125,7 @@ func (a *ElasticAPI) GetFeedJobState(ctx context.Context, feedID models.FeedID) 
 // UpdateFeedJobState will update the job for a feed in the scheduler jobs
 // index. Specifically, it will update the last_fetched value indicating when
 // the feed last fetched its items.
-func (a *ElasticAPI) UpdateFeedJobState(ctx context.Context, state *api.FeedState) error {
+func (a *ElasticAPI) UpdateFeedJobState(ctx context.Context, state *models.FeedState) error {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrGetFailed, ErrFetchCtx)

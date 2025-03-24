@@ -13,7 +13,6 @@ import (
 
 	"github.com/reugn/go-quartz/quartz"
 
-	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -87,13 +86,13 @@ func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
 
 // Execute is called by the scheduler when the job is scheduled to run.
 func (job *FeedJob) Execute(ctx context.Context) error {
-	esapi := FeedManagementAPIFromCtx(ctx)
-	if esapi == nil {
+	api := FeedManagementAPIFromCtx(ctx)
+	if api == nil {
 		return errors.Join(ErrExecuteJobFailed, fmt.Errorf("no feed management api in context"))
 	}
 
 	// Get the time the feed items were last fetched.
-	state, err := esapi.GetFeedJobState(ctx, job.ID)
+	state, err := api.GetFeedJobState(ctx, job.ID)
 	if err != nil && !errors.Is(err, ErrNoJob) {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
@@ -113,18 +112,18 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
 	if len(items) > 0 {
-		if resp, err := esapi.AddItems(ctx, items...); err != nil || resp.Err != nil {
+		if resp, err := api.AddItems(ctx, items...); err != nil || resp.Err != nil {
 			return errors.Join(ErrExecuteJobFailed, err)
 		}
 	}
 
 	updated := time.Now().UTC()
-	update := &api.FeedState{
+	update := &models.FeedState{
 		ID:        job.ID,
 		UpdatedAt: &updated,
 	}
 
-	if err := esapi.UpdateFeedJobState(ctx, update); err != nil {
+	if err := api.UpdateFeedJobState(ctx, update); err != nil {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
 

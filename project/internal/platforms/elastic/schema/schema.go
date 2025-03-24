@@ -150,8 +150,8 @@ func UserMappingsTemplate() *putcomponenttemplate.Request {
 						WithKeywordProperty("user_id"),
 						WithDateNanosProperty("created_at"),
 						WithDateNanosProperty("updated_at"),
-						WithFlattenedProperty("subscriptions"),
-						WithFlattenedProperty("feed_item_states"),
+						WithKeywordProperty("max_history"),
+						WithObjectProperty("subscriptions", SubscriptionMappingTemplate()),
 					),
 				),
 			),
@@ -349,6 +349,43 @@ func DefaultILMPolicy() *putlifecycle.Request {
 			WithActions(WithDelete()),
 		),
 	)
+}
+
+func SubscriptionMappingTemplate() map[string]types.Property {
+	return map[string]types.Property{
+		"feed_id":         types.NewKeywordProperty(),
+		"subscription_id": types.NewKeywordProperty(),
+		"created_at":      types.NewDateNanosProperty(),
+		"updated_at":      types.NewDateNanosProperty(),
+		"user_nickname":   asTextAndKeyword(),
+		"user_categories": asTextAndKeyword(),
+		"feed_details": types.ObjectProperty{
+			Properties: map[string]types.Property{
+				"authors": types.ObjectProperty{
+					Properties: map[string]types.Property{
+						"name":  asTextAndKeyword(),
+						"email": asTextAndKeyword(),
+					},
+				},
+				"categories":  asTextAndKeyword(),
+				"description": types.NewTextProperty(),
+				"title":       asTextAndKeyword(),
+				"image": types.ObjectProperty{
+					Properties: map[string]types.Property{
+						"url":   types.NewKeywordProperty(),
+						"title": asTextAndKeyword(),
+					},
+				},
+			},
+		},
+		"state": types.ObjectProperty{
+			Properties: map[string]types.Property{
+				"marked_read":  types.NewDateNanosProperty(),
+				"read_items":   types.NewKeywordProperty(),
+				"unread_items": types.NewKeywordProperty(),
+			},
+		},
+	}
 }
 
 func DublinCoreMappingsTemplate() map[string]types.Property {

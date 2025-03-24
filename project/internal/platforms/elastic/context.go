@@ -7,11 +7,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/joshuar/go-feed-me/internal/api"
+	"github.com/joshuar/go-feed-me/internal/models"
 )
 
 var (
-	ErrFetchCtx = api.WrapError(
+	ErrFetchCtx = models.WrapError(
 		errors.New("no index name/pattern found in context"),
 		"elastic",
 		"backend is not initialized properly")

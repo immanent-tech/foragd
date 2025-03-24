@@ -5,9 +5,15 @@ package models
 
 import (
 	"cmp"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"maps"
 	"slices"
 	"time"
+
+	"github.com/joshuar/go-feed-me/internal/id"
+	"github.com/joshuar/go-feed-me/internal/validation"
 )
 
 // Subscriptions is a list of subscriptions.
@@ -175,4 +181,108 @@ func (s *Subscription) GetItemState(itemID ItemID) State {
 // called after sorting the slice with this function.
 func CompareSubscriptionUnreadCount(a, b *Subscription) int {
 	return cmp.Compare(a.GetUnreadCount(), b.GetUnreadCount())
+}
+
+// Valid returns a boolean indicating whether the SubscriptionRequest is valid,
+// and any validation errors if applicable.
+func (r *SubscriptionRequest) Valid() (bool, error) {
+	if r.URL == "" {
+		return false, errors.New("no URL specified")
+	}
+	return validation.ValidateStruct(r)
+}
+
+func (r *SubscriptionRequest) GetURL() string {
+	return r.URL
+}
+
+// ToSubscription converts a SubscriptionRequest to a Subscription using the
+// request details and the given feed and user IDs.
+func (r *SubscriptionRequest) ToSubscription() (*Subscription, error) {
+	if valid, err := r.Valid(); !valid {
+		return nil, err
+	}
+
+	var subscription Subscription
+
+	data, err := json.Marshal(r)
+	if err != nil {
+		return nil, fmt.Errorf("could not marshal request: %w", err)
+	}
+
+	err = json.Unmarshal(data, &subscription)
+	if err != nil {
+		return nil, fmt.Errorf("could not unmarshal subscription: %w", err)
+	}
+
+	subscription.CreatedAt = time.Now().UTC()
+
+	return &subscription, nil
+}
+
+func NewSubscriptionRequest() *SubscriptionRequest {
+	id, _ := id.NewID(id.Subscription)
+	return &SubscriptionRequest{
+		ID: id,
+	}
+
+}
+
+// SubscriptionRequests is a list of subscription requests.
+type SubscriptionRequests []*SubscriptionRequest
+
+// // Validate will inspect each SubscriptionRequest and validate it. If a request
+// // is invalid, its Err field will be set to a non-nil validation.ValidationErrors.
+// func (r SubscriptionRequests) Validate() {
+// 	for request := range slices.Values(r) {
+// 		if valid, problems := request.Valid(); !valid {
+// 			request.Err = WrapError(problems, "api", "subscription is invalid")
+// 		}
+// 	}
+// }
+
+// FilterValid returns a slice of SubscriptionRequest containing only those
+// requests that are valid (i.e., do not have an error).
+func (r SubscriptionRequests) FilterValid() SubscriptionRequests {
+	return slices.Collect(filtered(r, func(request *SubscriptionRequest) bool {
+		return request.Err == nil
+	}))
+}
+
+// FilterInValid returns a slice of SubscriptionRequest containing only those
+// requests that are invalid (i.e., have an error).
+func (r SubscriptionRequests) FilterInValid() SubscriptionRequests {
+	return slices.Collect(filtered(r, func(request *SubscriptionRequest) bool {
+		return request.Err != nil
+	}))
+}
+
+// FilterValid returns a slice of SubscriptionRequest containing only those
+// requests that are valid (i.e., do not have an error).
+func (r SubscriptionRequests) FilterFeedNeeded() SubscriptionRequests {
+	return slices.Collect(filtered(r, func(request *SubscriptionRequest) bool {
+		return request.Feed != nil
+	}))
+}
+
+// Feeds extracts and returns a list of Feeds from the requests.
+func (r SubscriptionRequests) Feeds() []*Feed {
+	feeds := make([]*Feed, 0, len(r))
+	for request := range slices.Values(r) {
+		if request.Feed != nil {
+			feeds = append(feeds, request.Feed)
+		}
+	}
+	return feeds
+}
+
+// URLs extracts and returns a list of URLs from the requests.
+func (r SubscriptionRequests) URLs() []URL {
+	urls := make([]URL, 0, len(r))
+	for request := range slices.Values(r) {
+		if url := request.GetURL(); url != "" {
+			urls = append(urls, url)
+		}
+	}
+	return urls
 }

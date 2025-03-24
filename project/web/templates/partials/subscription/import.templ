@@ -12,12 +12,13 @@ import "github.com/joshuar/go-templ-daisyui/actions/button"
 import "github.com/joshuar/go-templ-daisyui/attributes"
 import "github.com/joshuar/go-templ-daisyui/display/text"
 import "github.com/joshuar/go-templ-daisyui/input/form"
-import "github.com/joshuar/go-feed-me/internal/api"
+
 import "github.com/joshuar/go-feed-me/web/templates/partials"
 
 import "github.com/joshuar/go-templ-daisyui/modifiers/state"
 import "github.com/joshuar/go-templ-daisyui/modifiers/style"
 import "github.com/joshuar/go-templ-daisyui/feedback/loading"
+import "github.com/joshuar/go-feed-me/internal/models"
 
 // ImportFormID is the id attribute for the import form.
 var ImportFormID = attributes.ID("import-form")
@@ -29,9 +30,9 @@ var ImportFeedBackID = attributes.ID("import-modal-feedback")
 
 // ImportOptions are the methods that can be used for importing.
 var ImportOptions = []option.Value{
-	{Label: "From OPML URL", Value: string(api.ImportSourceOPMLURL)},
-	{Label: "From OPML File", Value: string(api.ImportSourceOPMLFile)},
-	{Label: "From a list URLs", Value: string(api.ImportSourceURLs)},
+	{Label: "From OPML URL", Value: string(models.ImportSourceOPMLURL)},
+	{Label: "From OPML File", Value: string(models.ImportSourceOPMLFile)},
+	{Label: "From a list URLs", Value: string(models.ImportSourceURLs)},
 }
 
 // ShowImportFrom shows a input select for the user to choose a method for the
@@ -79,7 +80,7 @@ templ ImportFromOPML() {
 		fieldset.WithField("",
 			hiddeninput.Build(
 				hiddeninput.WithName("source"),
-				hiddeninput.WithValue(string(api.ImportSourceOPMLFile)),
+				hiddeninput.WithValue(string(models.ImportSourceOPMLFile)),
 			),
 		),
 		fieldset.WithField("",
@@ -113,7 +114,7 @@ templ ImportModal() {
 	}
 }
 
-templ ImportError(problems *api.ExternalError) {
+templ ImportError(problems *models.ExternalError) {
 	// @alert.Build(state.Error,
 	// 	alert.WithID("import-error"),
 	// 	alert.WithStyle(style.Soft),

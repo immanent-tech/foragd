@@ -9,8 +9,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	externalRef0 "github.com/joshuar/go-feed-me/internal/api"
-	externalRef1 "github.com/joshuar/go-feed-me/internal/models"
+	externalRef0 "github.com/joshuar/go-feed-me/internal/models"
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
@@ -40,28 +39,28 @@ type ImportURLs = []string
 // MarkCategories contains data for marking Categories.
 type MarkCategories struct {
 	// Categories is a list of Categories to mark.
-	Categories []externalRef1.Category `form:"categories" json:"categories" validate:"required,unique,dive,required"`
+	Categories []externalRef0.Category `form:"categories" json:"categories" validate:"required,unique,dive,required"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef1.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 }
 
 // MarkFeeds contains data for marking Feeds.
 type MarkFeeds struct {
 	// Feeds is a list of Feed IDs to mark.
-	Feeds []externalRef1.FeedID `form:"feeds" json:"feeds" validate:"required,unique,dive,required,startswith=feed_"`
+	Feeds []externalRef0.FeedID `form:"feeds" json:"feeds" validate:"required,unique,dive,required,startswith=feed_"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef1.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 }
 
 // MarkItems contains data for marking Items.
 type MarkItems struct {
 	// Items is a list of Items IDs to mark.
-	Items []externalRef1.ItemID `form:"items" json:"items" validate:"required,unique,dive,required,startswith=item_"`
+	Items []externalRef0.ItemID `form:"items" json:"items" validate:"required,unique,dive,required,startswith=item_"`
 
 	// Mark applies the given mark action to objects.
-	Mark externalRef1.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
+	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 }
 
 // MarkObjects mark one or more objects
@@ -70,22 +69,22 @@ type MarkObjects struct {
 }
 
 // Categories is a list of categories.
-type Categories = []externalRef1.Category
+type Categories = []externalRef0.Category
 
 // Count is the count of items to retrieve with a request.
 type Count = externalRef0.Count
 
 // FeedID is the unique ID of a feed.
-type FeedID = externalRef1.FeedID
+type FeedID = externalRef0.FeedID
 
 // Feeds defines model for Feeds.
-type Feeds = []externalRef1.FeedID
+type Feeds = []externalRef0.FeedID
 
 // ItemID is the unique ID of an item.
-type ItemID = externalRef1.ItemID
+type ItemID = externalRef0.ItemID
 
 // Mark applies the given mark action to objects.
-type Mark = externalRef1.Mark
+type Mark = externalRef0.Mark
 
 // Pagination contains data for paginating through results.
 type Pagination = externalRef0.Pagination
@@ -95,6 +94,9 @@ type SortBy = externalRef0.SortBy
 
 // SortOrder represents the order for sorting the selected field.
 type SortOrder = externalRef0.SortOrder
+
+// SubscriptionID is the unique ID of a subscription.
+type SubscriptionID = externalRef0.SubscriptionID
 
 // View The state of objects to view.
 type View = externalRef0.View
@@ -127,12 +129,6 @@ type LoginCallbackParams struct {
 	State string `form:"state" json:"state"`
 }
 
-// AddSubscriptionCategoryFormdataBody defines parameters for AddSubscriptionCategory.
-type AddSubscriptionCategoryFormdataBody struct {
-	// Category is a single category.
-	Category externalRef1.Category `form:"category" json:"category"`
-}
-
 // SetImportMethodFormdataBody defines parameters for SetImportMethod.
 type SetImportMethodFormdataBody struct {
 	// From defines the source that will be used for an import.
@@ -145,8 +141,8 @@ type HandleMarkFeedsFormdataRequestBody = MarkObjects
 // HandleMarkItemsFormdataRequestBody defines body for HandleMarkItems for application/x-www-form-urlencoded ContentType.
 type HandleMarkItemsFormdataRequestBody = MarkObjects
 
-// AddSubscriptionCategoryFormdataRequestBody defines body for AddSubscriptionCategory for application/x-www-form-urlencoded ContentType.
-type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
+// SubscriptionEditNewFormdataRequestBody defines body for SubscriptionEditNew for application/x-www-form-urlencoded ContentType.
+type SubscriptionEditNewFormdataRequestBody = externalRef0.SubscriptionRequest
 
 // ProcessImportMultipartRequestBody defines body for ProcessImport for multipart/form-data ContentType.
 type ProcessImportMultipartRequestBody = Import
@@ -154,8 +150,8 @@ type ProcessImportMultipartRequestBody = Import
 // SetImportMethodFormdataRequestBody defines body for SetImportMethod for application/x-www-form-urlencoded ContentType.
 type SetImportMethodFormdataRequestBody SetImportMethodFormdataBody
 
-// AddSubscriptionFormdataRequestBody defines body for AddSubscription for application/x-www-form-urlencoded ContentType.
-type AddSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
+// EditSubscriptionFormdataRequestBody defines body for EditSubscription for application/x-www-form-urlencoded ContentType.
+type EditSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
 // SaveSubscriptionFormdataRequestBody defines body for SaveSubscription for application/x-www-form-urlencoded ContentType.
 type SaveSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
@@ -389,12 +385,12 @@ type ServerInterface interface {
 	// Issue a user search request
 	// (POST /search)
 	Search(w http.ResponseWriter, r *http.Request)
-	// Remove a category from a subscription.
-	// (DELETE /subscription/category)
-	RemoveSubscriptionCategory(w http.ResponseWriter, r *http.Request)
-	// Add a category to a subscription
-	// (PUT /subscription/category)
-	AddSubscriptionCategory(w http.ResponseWriter, r *http.Request)
+	// Add a new subscription.
+	// (GET /subscription/add)
+	SubscriptionNew(w http.ResponseWriter, r *http.Request)
+	// Apply changes or edit a new subscription.
+	// (PATCH /subscription/add)
+	SubscriptionEditNew(w http.ResponseWriter, r *http.Request)
 
 	// (GET /subscription/import)
 	StartImport(w http.ResponseWriter, r *http.Request)
@@ -404,21 +400,18 @@ type ServerInterface interface {
 
 	// (PUT /subscription/import)
 	SetImportMethod(w http.ResponseWriter, r *http.Request)
-
-	// (GET /subscription/new)
-	NewSubscription(w http.ResponseWriter, r *http.Request)
-	// Save a subscription.
-	// (PUT /subscription/new)
-	AddSubscription(w http.ResponseWriter, r *http.Request)
 	// Remove a subscription.
-	// (DELETE /subscription/{feed})
-	RemoveSubscription(w http.ResponseWriter, r *http.Request, feed FeedID)
+	// (DELETE /subscription/{subscription})
+	RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
 	// Show a subscription.
-	// (GET /subscription/{feed})
-	ShowSubscription(w http.ResponseWriter, r *http.Request, feed FeedID)
+	// (GET /subscription/{subscription})
+	ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
+	// Edit a subscription.
+	// (PATCH /subscription/{subscription})
+	EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
 	// Save a subscription.
-	// (PUT /subscription/{feed})
-	SaveSubscription(w http.ResponseWriter, r *http.Request, feed FeedID)
+	// (PUT /subscription/{subscription})
+	SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
 
 	// (GET /user/new)
 	NewUser(w http.ResponseWriter, r *http.Request)
@@ -526,15 +519,15 @@ func (_ Unimplemented) Search(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Remove a category from a subscription.
-// (DELETE /subscription/category)
-func (_ Unimplemented) RemoveSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
+// Add a new subscription.
+// (GET /subscription/add)
+func (_ Unimplemented) SubscriptionNew(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Add a category to a subscription
-// (PUT /subscription/category)
-func (_ Unimplemented) AddSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
+// Apply changes or edit a new subscription.
+// (PATCH /subscription/add)
+func (_ Unimplemented) SubscriptionEditNew(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -553,32 +546,27 @@ func (_ Unimplemented) SetImportMethod(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// (GET /subscription/new)
-func (_ Unimplemented) NewSubscription(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Save a subscription.
-// (PUT /subscription/new)
-func (_ Unimplemented) AddSubscription(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 // Remove a subscription.
-// (DELETE /subscription/{feed})
-func (_ Unimplemented) RemoveSubscription(w http.ResponseWriter, r *http.Request, feed FeedID) {
+// (DELETE /subscription/{subscription})
+func (_ Unimplemented) RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Show a subscription.
-// (GET /subscription/{feed})
-func (_ Unimplemented) ShowSubscription(w http.ResponseWriter, r *http.Request, feed FeedID) {
+// (GET /subscription/{subscription})
+func (_ Unimplemented) ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Edit a subscription.
+// (PATCH /subscription/{subscription})
+func (_ Unimplemented) EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Save a subscription.
-// (PUT /subscription/{feed})
-func (_ Unimplemented) SaveSubscription(w http.ResponseWriter, r *http.Request, feed FeedID) {
+// (PUT /subscription/{subscription})
+func (_ Unimplemented) SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1159,11 +1147,11 @@ func (siw *ServerInterfaceWrapper) Search(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r)
 }
 
-// RemoveSubscriptionCategory operation middleware
-func (siw *ServerInterfaceWrapper) RemoveSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
+// SubscriptionNew operation middleware
+func (siw *ServerInterfaceWrapper) SubscriptionNew(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.RemoveSubscriptionCategory(w, r)
+		siw.Handler.SubscriptionNew(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1173,11 +1161,11 @@ func (siw *ServerInterfaceWrapper) RemoveSubscriptionCategory(w http.ResponseWri
 	handler.ServeHTTP(w, r)
 }
 
-// AddSubscriptionCategory operation middleware
-func (siw *ServerInterfaceWrapper) AddSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
+// SubscriptionEditNew operation middleware
+func (siw *ServerInterfaceWrapper) SubscriptionEditNew(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AddSubscriptionCategory(w, r)
+		siw.Handler.SubscriptionEditNew(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1229,50 +1217,22 @@ func (siw *ServerInterfaceWrapper) SetImportMethod(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
-// NewSubscription operation middleware
-func (siw *ServerInterfaceWrapper) NewSubscription(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.NewSubscription(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// AddSubscription operation middleware
-func (siw *ServerInterfaceWrapper) AddSubscription(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AddSubscription(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // RemoveSubscription operation middleware
 func (siw *ServerInterfaceWrapper) RemoveSubscription(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
+	// ------------- Path parameter "subscription" -------------
+	var subscription SubscriptionID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.RemoveSubscription(w, r, feed)
+		siw.Handler.RemoveSubscription(w, r, subscription)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1287,17 +1247,42 @@ func (siw *ServerInterfaceWrapper) ShowSubscription(w http.ResponseWriter, r *ht
 
 	var err error
 
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
+	// ------------- Path parameter "subscription" -------------
+	var subscription SubscriptionID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ShowSubscription(w, r, feed)
+		siw.Handler.ShowSubscription(w, r, subscription)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// EditSubscription operation middleware
+func (siw *ServerInterfaceWrapper) EditSubscription(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "subscription" -------------
+	var subscription SubscriptionID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.EditSubscription(w, r, subscription)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1312,17 +1297,17 @@ func (siw *ServerInterfaceWrapper) SaveSubscription(w http.ResponseWriter, r *ht
 
 	var err error
 
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
+	// ------------- Path parameter "subscription" -------------
+	var subscription SubscriptionID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.SaveSubscription(w, r, feed)
+		siw.Handler.SaveSubscription(w, r, subscription)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1522,10 +1507,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/search", wrapper.Search)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/subscription/category", wrapper.RemoveSubscriptionCategory)
+		r.Get(options.BaseURL+"/subscription/add", wrapper.SubscriptionNew)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/subscription/category", wrapper.AddSubscriptionCategory)
+		r.Patch(options.BaseURL+"/subscription/add", wrapper.SubscriptionEditNew)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscription/import", wrapper.StartImport)
@@ -1537,19 +1522,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/subscription/import", wrapper.SetImportMethod)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/subscription/new", wrapper.NewSubscription)
+		r.Delete(options.BaseURL+"/subscription/{subscription}", wrapper.RemoveSubscription)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/subscription/new", wrapper.AddSubscription)
+		r.Get(options.BaseURL+"/subscription/{subscription}", wrapper.ShowSubscription)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/subscription/{feed}", wrapper.RemoveSubscription)
+		r.Patch(options.BaseURL+"/subscription/{subscription}", wrapper.EditSubscription)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/subscription/{feed}", wrapper.ShowSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/subscription/{feed}", wrapper.SaveSubscription)
+		r.Put(options.BaseURL+"/subscription/{subscription}", wrapper.SaveSubscription)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/user/new", wrapper.NewUser)

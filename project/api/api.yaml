@@ -258,31 +258,6 @@ components:
           x-oapi-codegen-extra-tags:
             form: "-"
           x-go-type-skip-optional-pointer: true
-    CategoryCount:
-      description: holds a category name and count of objects with the category.
-      type: object
-      required:
-        - category
-        - count
-      properties:
-        category:
-          $ref: "models.yaml#/components/schemas/Category"
-        count:
-          description: is the number of objects with this Category.
-          type: integer
-    FeedState:
-      description: tracks the state of a feed.
-      type: object
-      required:
-        - ID
-        - URL
-      properties:
-        ID:
-          $ref: "models.yaml#/components/schemas/FeedID"
-        URL:
-          $ref: "models.yaml#/components/schemas/FeedURL"
-        updated_at:
-          $ref: "models.yaml#/components/schemas/UpdatedAt"
     ImportSource:
       description: >
         defines the source that will be used for an import.
@@ -315,10 +290,23 @@ components:
             feed:
               description: >
                 is a Feed for the subscription that needs to be added.
-              x-go-type: "models.Feed"
+              x-go-type: "Feed"
               x-oapi-codegen-extra-tags:
                 form: "-"
                 json: "-"
                 validate: "-"
             err:
               $ref: "#/components/schemas/ExternalError"
+    FeedState:
+      description: tracks the state of a feed.
+      type: object
+      required:
+        - ID
+        - URL
+      properties:
+        ID:
+          $ref: "models.yaml#/components/schemas/FeedID"
+        URL:
+          $ref: "models.yaml#/components/schemas/FeedURL"
+        updated_at:
+          $ref: "models.yaml#/components/schemas/UpdatedAt"

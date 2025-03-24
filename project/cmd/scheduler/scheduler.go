@@ -13,7 +13,6 @@ import (
 
 	"github.com/reugn/go-quartz/quartz"
 
-	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -30,8 +29,8 @@ var (
 
 type DataAPI interface {
 	GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error)
-	GetFeedJobState(ctx context.Context, feedID models.FeedID) (*api.FeedState, error)
-	UpdateFeedJobState(ctx context.Context, state *api.FeedState) error
+	GetFeedJobState(ctx context.Context, feedID models.FeedID) (*models.FeedState, error)
+	UpdateFeedJobState(ctx context.Context, state *models.FeedState) error
 	AddItems(ctx context.Context, items ...models.Item) (*bulk.Response, error)
 }
 

@@ -14,7 +14,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
-	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -49,7 +48,7 @@ var (
 	ErrAddFailed = errors.New("adding items failed")
 )
 
-func FeedExists(ctx context.Context, esapi *typedapi.API, value string) (bool, *api.Error) {
+func FeedExists(ctx context.Context, esapi *typedapi.API, value string) (bool, *models.Error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return false, ErrFetchCtx
@@ -70,7 +69,7 @@ func FeedExists(ctx context.Context, esapi *typedapi.API, value string) (bool, *
 		WithSortOptions(SortByDocID("feed_id")),
 	).Do(ctx)
 	if err != nil {
-		return false, api.WrapError(ErrSearchFailed, "elastic", "backend error occurred")
+		return false, models.WrapError(ErrSearchFailed, "elastic", "backend error occurred")
 	}
 
 	if resp.Hits.Total.Value == 0 {
@@ -110,15 +109,15 @@ func GetFeedByURL(ctx context.Context, api *typedapi.API, url string) (*models.A
 }
 
 // GetFeedsByURL retrieves a list of APIFeeds based on the given URLs.
-func GetFeedsByURL(ctx context.Context, esapi *typedapi.API, urls ...models.URL) ([]models.APIFeed, error) {
+func (e *ElasticAPI) GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, ErrFetchCtx
 	}
 
-	feeds := make([]models.APIFeed, 0, len(urls))
+	feeds := make([]*models.APIFeed, 0, len(urls))
 
-	resp, err := NewSearchRequest(esapi,
+	resp, err := NewSearchRequest(e.GetAPI(),
 		WithSearchIndex(index),
 		WithFields("feed_id", "feedLink"),
 		WithSearchQueryOptions(query.URLs("feedLink", urls...)),
@@ -126,14 +125,14 @@ func GetFeedsByURL(ctx context.Context, esapi *typedapi.API, urls ...models.URL)
 		WithSortOptions(SortByDocID("feed_id")),
 	).Do(ctx)
 	if err != nil {
-		return nil, api.WrapError(ErrSearchFailed, "elastic", "backend request failed")
+		return nil, models.WrapError(ErrSearchFailed, "elastic", "backend request failed")
 	}
 	// Stop if there are no hits
 	if len(resp.Hits.Hits) == 0 {
 		return nil, nil
 	}
 	// Loop through this set of results.
-	sources, _, warnings := ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
+	sources, _, warnings := ExtractSourceFromHits[*models.APIFeed](resp.Hits.Hits)
 	if warnings != nil {
 		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
@@ -145,7 +144,7 @@ func GetFeedsByURL(ctx context.Context, esapi *typedapi.API, urls ...models.URL)
 }
 
 // FeedsSearch searches the feeds index for feeds matching the relevant filters.
-func (e *ElasticAPI) FeedsSearch(ctx context.Context, filters *api.Filters, pagination *api.Pagination) (models.Feeds, error) {
+func (e *ElasticAPI) FeedsSearch(ctx context.Context, filters *models.Filters, pagination *models.Pagination) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -282,7 +281,7 @@ func (e *ElasticAPI) FeedsSearch(ctx context.Context, filters *api.Filters, pagi
 
 // ItemsSearch performs a search query on feed items with the given query
 // options. It returns the raw search response.
-func (e *ElasticAPI) ItemsSearch(ctx context.Context, query query.Option, filters *api.Filters, pagination api.Pagination) (*search.Response, error) {
+func (e *ElasticAPI) ItemsSearch(ctx context.Context, query query.Option, filters *models.Filters, pagination models.Pagination) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -368,7 +367,7 @@ func defaultItemSort() map[string]types.FieldSort {
 	}
 }
 
-func setFeedSort(sort api.Sort) map[string]types.FieldSort {
+func setFeedSort(sort models.Sort) map[string]types.FieldSort {
 	sortOptions := make(map[string]types.FieldSort)
 	sortOptions["feed_id"] = types.FieldSort{Order: &sortorder.Desc}
 
@@ -378,12 +377,12 @@ func setFeedSort(sort api.Sort) map[string]types.FieldSort {
 	)
 
 	switch sort.SortBy {
-	case api.SortByLastUpdated:
+	case models.SortByLastUpdated:
 		sortField = "created_at"
 		switch sort.SortOrder {
-		case api.SortOrderAsc:
+		case models.SortOrderAsc:
 			sortOrder = sortorder.Asc
-		case api.SortOrderDesc:
+		case models.SortOrderDesc:
 			sortOrder = sortorder.Desc
 		}
 	default:
@@ -395,7 +394,7 @@ func setFeedSort(sort api.Sort) map[string]types.FieldSort {
 	return sortOptions
 }
 
-func setItemSort(sort api.Sort) map[string]types.FieldSort {
+func setItemSort(sort models.Sort) map[string]types.FieldSort {
 	sortOptions := make(map[string]types.FieldSort)
 	sortOptions["item_id"] = types.FieldSort{Order: &sortorder.Desc}
 
@@ -405,12 +404,12 @@ func setItemSort(sort api.Sort) map[string]types.FieldSort {
 	)
 
 	switch sort.SortBy {
-	case api.SortByLastUpdated:
+	case models.SortByLastUpdated:
 		sortField = "@timestamp"
 		switch sort.SortOrder {
-		case api.SortOrderAsc:
+		case models.SortOrderAsc:
 			sortOrder = sortorder.Asc
-		case api.SortOrderDesc:
+		case models.SortOrderDesc:
 			sortOrder = sortorder.Desc
 		}
 	default:

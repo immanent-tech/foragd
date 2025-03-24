@@ -174,7 +174,7 @@ components:
           x-go-type-import:
             path: github.com/mmcdole/gofeed
           x-go-type-skip-optional-pointer: true
-    FeedState:
+    ObjectState:
       description: >
         contains fields for tracking feed/item state.
       type: object
@@ -223,7 +223,7 @@ components:
       type: object
       allOf:
         - $ref: "#/components/schemas/FeedMetadata"
-        - $ref: "#/components/schemas/FeedState"
+        - $ref: "#/components/schemas/ObjectState"
         - $ref: "#/components/schemas/Timestamps"
         - type: object
           required:
@@ -258,7 +258,7 @@ components:
       type: object
       allOf:
         - $ref: "#/components/schemas/FeedMetadata"
-        - $ref: "#/components/schemas/FeedState"
+        - $ref: "#/components/schemas/ObjectState"
         - type: object
           required:
             - ID

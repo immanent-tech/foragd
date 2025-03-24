@@ -18,7 +18,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 
-	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 )
@@ -56,10 +55,10 @@ func (c *Card) buildMarkButton(label string, mark models.Mark, path string) temp
 	// Set query parameters based on card type.
 	switch c.Type {
 	case Feed:
-		action.AddParameter(api.ParamFeeds, c.GetID())
+		action.AddParameter(models.ParamFeeds, c.GetID())
 		action.AddParameter("mark", string(mark))
 	case Item:
-		action.AddParameter(api.ParamItems, c.GetID())
+		action.AddParameter(models.ParamItems, c.GetID())
 		action.AddParameter("mark", string(mark))
 	}
 
@@ -71,7 +70,7 @@ func (c *Card) buildMarkButton(label string, mark models.Mark, path string) temp
 }
 
 // buildRoute creates a models.Route appropriate for showing content.
-func (c *Card) buildRoute(path string, filters api.Filters) *templates.Action {
+func (c *Card) buildRoute(path string, filters models.Filters) *templates.Action {
 	// Build action options.
 	action := templates.BuildAction(path,
 		templates.WithAttributes(templ.Attributes{
@@ -81,19 +80,19 @@ func (c *Card) buildRoute(path string, filters api.Filters) *templates.Action {
 		}),
 		templates.WithMethod(http.MethodPost),
 	)
-	action.AddParameter(api.ParamView, string(filters.View))
-	action.AddParameter(api.ParamCount, strconv.Itoa(filters.Count))
+	action.AddParameter(models.ParamView, string(filters.View))
+	action.AddParameter(models.ParamCount, strconv.Itoa(filters.Count))
 
 	switch c.Type {
 	case Feed:
-		action.AddParameter(api.ParamFeeds, c.GetID())
+		action.AddParameter(models.ParamFeeds, c.GetID())
 	}
 
 	return action
 }
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
-func (c *Card) AddPagination(reqURL *url.URL, pagination api.Pagination) {
+func (c *Card) AddPagination(reqURL *url.URL, pagination models.Pagination) {
 	action := templates.BuildAction(reqURL.Path,
 		templates.WithQueryParams(reqURL.Query()),
 		templates.WithAttributes(templ.Attributes{
@@ -103,11 +102,11 @@ func (c *Card) AddPagination(reqURL *url.URL, pagination api.Pagination) {
 			"hx-indicator": "#content-loading",
 		}),
 	)
-	action.AddParameter(api.ParamPagination, pagination)
+	action.AddParameter(models.ParamPagination, pagination)
 	c.AddAttributes(action.Attributes())
 }
 
-func NewFeedCard(filters api.Filters, subscription *models.Subscription) (*Card, error) {
+func NewFeedCard(filters models.Filters, subscription *models.Subscription) (*Card, error) {
 
 	feedCard := &Card{
 		Type:   Feed,
@@ -126,10 +125,10 @@ func NewFeedCard(filters api.Filters, subscription *models.Subscription) (*Card,
 	var cardMenuItems []templ.Component
 	if subscription.GetUnreadCount() > 0 {
 		cardMenuItems = append(cardMenuItems,
-			feedCard.buildMarkButton("Mark Read", models.MarkRead, api.FeedsRoute))
+			feedCard.buildMarkButton("Mark Read", models.MarkRead, models.FeedsRoute))
 	} else {
 		cardMenuItems = append(cardMenuItems,
-			feedCard.buildMarkButton("Mark Unread", models.MarkUnread, api.FeedsRoute))
+			feedCard.buildMarkButton("Mark Unread", models.MarkUnread, models.FeedsRoute))
 	}
 	// Build card options.
 	var cardOptions []card.Option
@@ -170,7 +169,7 @@ func NewFeedCard(filters api.Filters, subscription *models.Subscription) (*Card,
 	return feedCard, nil
 }
 
-func NewItemCard(filters api.Filters, item *models.APIItem) (*Card, error) {
+func NewItemCard(filters models.Filters, item *models.APIItem) (*Card, error) {
 	var err error
 
 	itemCard := &Card{

@@ -100,9 +100,22 @@ func (u *User) MarkSubscriptions(mark Mark, feedIDs ...FeedID) {
 	// Mark the subscriptions.
 	for subscription := range slices.Values(u.Subscriptions) {
 		if slices.Contains(feedIDs, subscription.GetFeedID()) {
+			updated := time.Now().UTC()
 			subscription.State.MarkedRead = markedAt
 			subscription.State.UnreadItems = nil
 			subscription.State.ReadItems = nil
+			subscription.UpdatedAt = &updated
 		}
 	}
+}
+
+func (u *User) IsSubscribed(feedID FeedID) bool {
+	subscriptions := u.GetSubscriptions().FilterByFeedID(feedID)
+	return len(subscriptions) > 0
+}
+
+// GetReadItems retrieves a list of ItemIDs for the subscription feed that
+// user has explicitly marked as read.
+func (u *User) MarkItems(mark Mark, itemIDs ...ItemID) {
+	return
 }

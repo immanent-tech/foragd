@@ -11,10 +11,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
@@ -27,12 +25,12 @@ var ErrUserActionFailed = errors.New("user action failed")
 var ErrUserAlreadySubscribed = errors.New("user already subscribed")
 
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
-func UserActionMarkItems(ctx context.Context, esapi *typedapi.API, mark api.Mark, ids ...models.ItemID) error {
-	if mark != api.MarkUnread && mark != api.MarkRead {
+func (e *ElasticAPI) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error {
+	if mark != models.MarkUnread && mark != models.MarkRead {
 		return fmt.Errorf("unsupported mark")
 	}
 
-	user, found := models.UserFromCtx(ctx)
+	_, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx
 	}
@@ -42,43 +40,45 @@ func UserActionMarkItems(ctx context.Context, esapi *typedapi.API, mark api.Mark
 		return errors.Join(ErrUpdateFailed, ErrFetchCtx)
 	}
 
-	resp, err := NewSearchRequest(esapi,
+	resp, err := NewSearchRequest(e.GetAPI(),
 		WithSearchIndex(index),
 		WithFields("feed_id"),
 		WithSearchQueryOptions(
 			// Must have the  itemID
-			query.ItemIDs(ids...),
+			query.ItemIDs(itemIDs...),
 		),
 		WithSortOptions(SortTimestampDesc()),
-		WithSearchSize(len(ids)),
+		WithSearchSize(len(itemIDs)),
 	).Do(ctx)
 	if err != nil {
 		return errors.Join(ErrUpdateFailed, err)
 	}
 
-	feedIDs, warnings := ExtractFieldFromHits[models.FeedID]("feed_id", resp.Hits.Hits)
+	_, warnings := ExtractFieldFromHits[models.FeedID]("feed_id", resp.Hits.Hits)
 	if warnings != nil {
 		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", warnings))
 	}
 
-	// Mark all items with the given state.
-	for _, itemID := range ids {
-		feedID, found := feedIDs[itemID]
-		if !found {
-			continue
-		}
+	// // Mark all items with the given state.
+	// for _, itemID := range itemIDs {
+	// 	// feedID, found := feedIDs[itemID]
+	// 	if !found {
+	// 		continue
+	// 	}
 
-		if err := user.MarkItem(feedID, itemID, models.State(mark)); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
-			logging.FromContext(ctx).Warn("Could not mark item read", slog.Any("error", err))
-		}
-	}
+	// 	// if err := user.MarkItems(feedID, itemID, models.State(mark)); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
+	// 	// 	logging.FromContext(ctx).Warn("Could not mark item read", slog.Any("error", err))
+	// 	// }
+	// }
 
 	// Update the user object.
-	return UpdateUser(ctx, esapi, user.ID, map[string]any{
-		"feed_item_states": user.FeedItemStates,
-		"updated_at":       time.Now().UTC(),
-	})
+	// return UpdateUser(ctx, esapi, user.ID, map[string]any{
+	// 	"feed_item_states": user.FeedItemStates,
+	// 	"updated_at":       time.Now().UTC(),
+	// })
+
+	return nil
 }
 
 // UserActionMarkSubscriptions will mark user subscriptions with the given state.
@@ -104,22 +104,22 @@ func (e *ElasticAPI) MarkSubscriptions(ctx context.Context, mark models.Mark, fe
 // GetItem retrieves the specified item with the given id and from the given
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
-func UserActionGetItem(ctx context.Context, api *typedapi.API, feedID models.FeedID, itemID models.ItemID) (models.APIItem, bool, error) {
+func (e *ElasticAPI) GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.APIItem, bool, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return models.APIItem{}, false, errors.Join(ErrSearchFailed, ErrFetchCtx)
+		return nil, false, errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return models.APIItem{}, false, ErrNoUserCtx
+		return nil, false, ErrNoUserCtx
 	}
 
 	if !user.IsSubscribed(feedID) {
-		return models.APIItem{}, false, ErrNoUserCtx
+		return nil, false, ErrNoUserCtx
 	}
 
-	req := NewSearchRequest(api,
+	req := NewSearchRequest(e.GetAPI(),
 		WithSearchIndex(index),
 		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
@@ -131,8 +131,8 @@ func UserActionGetItem(ctx context.Context, api *typedapi.API, feedID models.Fee
 					// Must be published or updated after the user max history.
 					query.Bool(
 						query.Should(
-							query.Since("publishedParsed", user.GetFeedLastRead(feedID)),
-							query.Since("updatedParsed", user.GetFeedLastRead(feedID)),
+							query.Since("publishedParsed", user.GetMarkedRead(feedID)),
+							query.Since("updatedParsed", user.GetMarkedRead(feedID)),
 						),
 					),
 				),
@@ -143,12 +143,12 @@ func UserActionGetItem(ctx context.Context, api *typedapi.API, feedID models.Fee
 
 	res, err := req.Do(ctx)
 	if err != nil {
-		return models.APIItem{}, false, errors.Join(ErrSearchFailed, err)
+		return nil, false, errors.Join(ErrSearchFailed, err)
 	}
 
-	item, err := ExtractSource[models.APIItem](res.Hits.Hits[0].Source_)
+	item, err := ExtractSource[*models.APIItem](res.Hits.Hits[0].Source_)
 	if err != nil {
-		return models.APIItem{}, false, errors.Join(ErrSearchFailed, err)
+		return nil, false, errors.Join(ErrSearchFailed, err)
 	}
 
 	return item, true, nil
@@ -157,10 +157,10 @@ func UserActionGetItem(ctx context.Context, api *typedapi.API, feedID models.Fee
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (e *ElasticAPI) GetItems(ctx context.Context, filters *api.Filters) (models.Items, api.Pagination, error) {
+func (e *ElasticAPI) GetItems(ctx context.Context, filters *models.Filters) (models.Items, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", api.WrapError(ErrNoUserCtx, "elastic", "get items failed")
+		return nil, "", models.WrapError(ErrNoUserCtx, "elastic", "get items failed")
 	}
 
 	// Get subscriptions matching the filters.
@@ -202,10 +202,10 @@ func (e *ElasticAPI) GetItems(ctx context.Context, filters *api.Filters) (models
 
 // UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *api.Filters) (models.Subscriptions, error) {
+func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *models.Filters) (models.Subscriptions, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, api.WrapError(ErrNoUserCtx, "elastic", "get subscriptions failed")
+		return nil, models.WrapError(ErrNoUserCtx, "elastic", "get subscriptions failed")
 	}
 
 	// Get subscriptions matching the filters.
@@ -216,23 +216,23 @@ func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *api.Filters)
 	// Add unread counts to feeds.
 	err := e.GetSubscriptionUnreadCounts(ctx, subscriptions)
 	if err != nil {
-		return nil, api.WrapError(err, "elastic", "get subscriptions failed")
+		return nil, models.WrapError(err, "elastic", "get subscriptions failed")
 	}
 
 	// Filter the feeds by view filter.
-	if filters.View == api.ViewRead {
+	if filters.View == models.ViewRead {
 		subscriptions = subscriptions.FilterByRead()
 	}
-	if filters.View == api.ViewUnread {
+	if filters.View == models.ViewUnread {
 		subscriptions = subscriptions.FilterByUnread()
 	}
 
 	// If the sort_by filters is unread count, sort the list of feeds by user
 	// unread count. We can't do this in Elasticsearch as the unread count comes
 	// from an aggregation and is not a field on the feed documents.
-	if filters.Sort().SortBy == api.SortByUnreadCount {
+	if filters.Sort().SortBy == models.SortByUnreadCount {
 		slices.SortFunc(subscriptions, models.CompareSubscriptionUnreadCount)
-		if filters.Sort().SortOrder == api.SortOrderDesc {
+		if filters.Sort().SortOrder == models.SortOrderDesc {
 			slices.Reverse(subscriptions)
 		}
 	}
@@ -245,12 +245,12 @@ func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *api.Filters)
 func (e *ElasticAPI) GetSubscriptionUnreadCounts(ctx context.Context, subscriptions models.Subscriptions) error {
 	countResults, err := e.ItemsAggregation(ctx, unreadFeedItemsQuery(subscriptions), NewTermsAggregation("UnreadCounts", "feed_id"))
 	if err != nil {
-		return api.WrapError(err, "elastic", "get feed unread counts failed")
+		return models.WrapError(err, "elastic", "get feed unread counts failed")
 	}
 	var categoryCounts TermsAggregationResults
 	categoryCounts.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](countResults, "UnreadCounts")
 	if err != nil {
-		return api.WrapError(err, "elastic", "get feed unread counts failed")
+		return models.WrapError(err, "elastic", "get feed unread counts failed")
 	}
 	unreadCounts := make(map[models.FeedID]int)
 	for feedID := range slices.Values(subscriptions.GetFeedIDs()) {
@@ -262,26 +262,26 @@ func (e *ElasticAPI) GetSubscriptionUnreadCounts(ctx context.Context, subscripti
 	return nil
 }
 
-// UserActionCountUnread will return a total count of unread items across all
-// feeds (with the given filters applied) for the user.
-func UserActionCountUnread(ctx context.Context, esapi *typedapi.API, filters api.Filters) (int64, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return 0, ErrGetUserFailed
-	}
+// // UserActionCountUnread will return a total count of unread items across all
+// // feeds (with the given filters applied) for the user.
+// func UserActionCountUnread(ctx context.Context, esapi *typedmodels.API, filters models.Filters) (int64, error) {
+// 	user, found := models.UserFromCtx(ctx)
+// 	if !found {
+// 		return 0, ErrGetUserFailed
+// 	}
 
-	filters.SetFeeds(filterSubscribedFeeds(user, filters)...)
+// 	filters.SetFeeds(filterSubscribedFeeds(user, filters)...)
 
-	// Get the unread counts for the feeds.
-	resp, err := ItemsCount(ctx, esapi, unreadFeedItemsQuery(user, filters))
-	if err != nil {
-		return 0, errors.Join(ErrUserActionFailed, err)
-	}
+// 	// Get the unread counts for the feeds.
+// 	resp, err := ItemsCount(ctx, esapi, unreadFeedItemsQuery(user, filters))
+// 	if err != nil {
+// 		return 0, errors.Join(ErrUserActionFailed, err)
+// 	}
 
-	return resp.Count, nil
-}
+// 	return resp.Count, nil
+// }
 
-// func (c *Client) UserActionGetFeed(ctx context.Context, esapi *typedapi.API, feedID models.FeedID) (*models.APIFeed, error) {
+// func (c *Client) UserActionGetFeed(ctx context.Context, esapi *typedmodels.API, feedID models.FeedID) (*models.APIFeed, error) {
 // 	user, found := models.UserFromCtx(ctx)
 // 	if !found {
 // 		return nil, ErrGetUserFailed
@@ -325,46 +325,46 @@ func UserActionCountUnread(ctx context.Context, esapi *typedapi.API, filters api
 // 	return feed, nil
 // }
 
-func UserActionGetItemCategories(ctx context.Context, esapi *typedapi.API, filters api.Filters) ([]api.CategoryCount, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, ErrGetUserFailed
-	}
+// func UserActionGetItemCategories(ctx context.Context, esapi *typedmodels.API, filters models.Filters) ([]models.CategoryCount, error) {
+// 	user, found := models.UserFromCtx(ctx)
+// 	if !found {
+// 		return nil, ErrGetUserFailed
+// 	}
 
-	// Unset the category filter.
-	filters.Categories = nil
+// 	// Unset the category filter.
+// 	filters.Categories = nil
 
-	resp, err := ItemsAggregation(ctx, esapi, generateItemsQueryClause(user, filters), NewTermsAggregation("categories", "categories.raw"))
-	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
-	}
+// 	resp, err := ItemsAggregation(ctx, esapi, generateItemsQueryClause(user, filters), NewTermsAggregation("categories", "categories.raw"))
+// 	if err != nil {
+// 		return nil, errors.Join(ErrUserActionFailed, err)
+// 	}
 
-	var results TermsAggregationResults
+// 	var results TermsAggregationResults
 
-	results.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](resp, "categories")
-	if err != nil {
-		return nil, errors.Join(ErrUserActionFailed, err)
-	}
+// 	results.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](resp, "categories")
+// 	if err != nil {
+// 		return nil, errors.Join(ErrUserActionFailed, err)
+// 	}
 
-	categories := make([]api.CategoryCount, 0, results.BucketCount())
+// 	categories := make([]models.CategoryCount, 0, results.BucketCount())
 
-	for _, category := range results.BucketNames() {
-		categories = append(categories, api.CategoryCount{Category: category, Count: results.GetCount(category)})
-	}
+// 	for _, category := range results.BucketNames() {
+// 		categories = append(categories, models.CategoryCount{Category: category, Count: results.GetCount(category)})
+// 	}
 
-	return categories, nil
-}
+// 	return categories, nil
+// }
 
 // generateItemsQueryClause selects the appropriate query clause for retrieving
 // items using the given filters.
-func generateItemsQueryClause(view api.View, user *models.User, subscriptions models.Subscriptions) query.Option {
+func generateItemsQueryClause(view models.View, user *models.User, subscriptions models.Subscriptions) query.Option {
 	// Work out what query to use based on the state filter.
 	switch view {
-	case api.ViewRead:
+	case models.ViewRead:
 		return readFeedItemsQuery(user, subscriptions)
-	case api.ViewUnread:
+	case models.ViewUnread:
 		return unreadFeedItemsQuery(subscriptions)
-	case api.ViewAll:
+	case models.ViewAll:
 		return allFeedItemsQuery(user, subscriptions)
 	default:
 		return unreadFeedItemsQuery(subscriptions)
@@ -515,43 +515,43 @@ func allFeedItemsQuery(user *models.User, subscriptions models.Subscriptions) qu
 	)
 }
 
-// unreadFeedItemsQuery generates a query for matching unread items using the given filters.
-func newItemsQuery(user *models.User, filters api.Filters, since time.Duration) query.Option {
-	cutoff := time.Now().Add(since)
+// // unreadFeedItemsQuery generates a query for matching unread items using the given filters.
+// func newItemsQuery(user *models.User, filters models.Filters, since time.Duration) query.Option {
+// 	cutoff := time.Now().Add(since)
 
-	clauses := make([]query.Option, 0, len(filters.GetFeeds()))
-	for _, id := range filters.GetFeeds() {
-		clauses = append(clauses,
-			query.Bool(
-				query.Filter(
-					// Must match this feed.
-					query.Term("feed_id", id),
-					// And should be newer than last read or explicitly marked unread.
-					query.Bool(
-						query.Should(
-							query.Since("publishedParsed", cutoff),
-							query.Since("updatedParsed", cutoff),
-							query.ItemIDs(user.GetItemIDsWithState(models.Unread, id)...),
-						),
-					),
-				),
-			),
-		)
-	}
+// 	clauses := make([]query.Option, 0, len(filters.GetFeeds()))
+// 	for _, id := range filters.GetFeeds() {
+// 		clauses = append(clauses,
+// 			query.Bool(
+// 				query.Filter(
+// 					// Must match this feed.
+// 					query.Term("feed_id", id),
+// 					// And should be newer than last read or explicitly marked unread.
+// 					query.Bool(
+// 						query.Should(
+// 							query.Since("publishedParsed", cutoff),
+// 							query.Since("updatedParsed", cutoff),
+// 							query.ItemIDs(user.GetItemIDsWithState(models.Unread, id)...),
+// 						),
+// 					),
+// 				),
+// 			),
+// 		)
+// 	}
 
-	return query.Bool(
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.FeedIDs(filters.GetFeeds()...),
-			query.Categories(filters.GetCategories()...),
-			// And should match one feed clause.
-			query.Bool(
-				query.Should(clauses...),
-			),
-		),
-		query.MustNot(
-			// Must not match any read item IDs.
-			query.ItemIDs(user.GetItemIDsWithState(models.Read, filters.GetFeeds()...)...),
-		),
-	)
-}
+// 	return query.Bool(
+// 		query.Filter(
+// 			// Must match any of the given feed IDs.
+// 			query.FeedIDs(filters.GetFeeds()...),
+// 			query.Categories(filters.GetCategories()...),
+// 			// And should match one feed clause.
+// 			query.Bool(
+// 				query.Should(clauses...),
+// 			),
+// 		),
+// 		query.MustNot(
+// 			// Must not match any read item IDs.
+// 			query.ItemIDs(user.GetItemIDsWithState(models.Read, filters.GetFeeds()...)...),
+// 		),
+// 	)
+// }
