@@ -5,15 +5,16 @@
 package home
 
 import "github.com/joshuar/go-templ-daisyui/actions/dropdown"
-import "github.com/joshuar/go-feed-me/internal/api"
+
 import "github.com/joshuar/go-templ-daisyui/modifiers/size"
 import "github.com/joshuar/go-templ-daisyui/actions/button"
 import "github.com/joshuar/go-templ-daisyui/display/icon"
 import "github.com/joshuar/go-templ-daisyui/navigation/menu"
 import "github.com/joshuar/go-templ-daisyui/classes/width"
 import "github.com/joshuar/go-templ-daisyui/modifiers/color"
+import "github.com/joshuar/go-feed-me/internal/models"
 
-templ BuildSortingMenu(filters *api.Filters, path string) {
+templ BuildSortingMenu(filters *models.Filters, path string) {
 	<div id="content-sorting" hx-swap-oob="true">
 		@dropdown.Build(
 			dropdown.WithOpenOptions(

@@ -10,7 +10,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 
-	"github.com/joshuar/go-feed-me/internal/api"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 )
@@ -23,7 +22,7 @@ type CategoryFilter struct {
 	active bool
 }
 
-func BuildCategoryFilters(filters *api.Filters, categoryCounts models.CategoryCounts, path string) CategoryFilters {
+func BuildCategoryFilters(filters *models.Filters, categoryCounts models.CategoryCounts, path string) CategoryFilters {
 	categoryFilters := make(CategoryFilters, 0, len(categoryCounts))
 
 	for categoryCount := range slices.Values(categoryCounts) {
@@ -34,10 +33,10 @@ func BuildCategoryFilters(filters *api.Filters, categoryCounts models.CategoryCo
 		var active bool
 		if slices.Contains(filters.Categories, categoryCount.Category) {
 			active = true
-			action.RemoveParameter(api.ParamCategories)
+			action.RemoveParameter(models.ParamCategories)
 
 		} else {
-			action.AddParameter(api.ParamCategories, categoryCount.Category)
+			action.AddParameter(models.ParamCategories, categoryCount.Category)
 		}
 		categoryFilters = append(categoryFilters, CategoryFilter{
 			CategoryCount: categoryCount,
@@ -54,12 +53,12 @@ type ViewFilters struct {
 }
 
 // viewFilterBadge generates a badge for a view filter.
-func viewFilterBadge(view api.View, filters *api.Filters, path string) *badge.Props {
+func viewFilterBadge(view models.View, filters *models.Filters, path string) *badge.Props {
 	action := templates.BuildAction(path,
 		templates.WithQueryParams(filters.ToQueryParams()),
 		templates.WithAttributes(commonRouteAttributes),
 	)
-	action.AddParameter(api.ParamView, string(view))
+	action.AddParameter(models.ParamView, string(view))
 
 	// Create the badge component.
 	viewBadge := badge.Build(
@@ -78,12 +77,12 @@ func viewFilterBadge(view api.View, filters *api.Filters, path string) *badge.Pr
 	return viewBadge
 }
 
-func BuildViewFilters(filters *api.Filters, path string) *ViewFilters {
+func BuildViewFilters(filters *models.Filters, path string) *ViewFilters {
 	return &ViewFilters{
 		badges: []*badge.Props{
-			viewFilterBadge(api.ViewRead, filters, path),
-			viewFilterBadge(api.ViewUnread, filters, path),
-			viewFilterBadge(api.ViewAll, filters, path),
+			viewFilterBadge(models.ViewRead, filters, path),
+			viewFilterBadge(models.ViewUnread, filters, path),
+			viewFilterBadge(models.ViewAll, filters, path),
 		},
 	}
 }

@@ -8,7 +8,7 @@ import (
 
 	"github.com/joshuar/go-templ-daisyui/attributes"
 
-	"github.com/joshuar/go-feed-me/internal/api"
+	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 )
 
@@ -23,22 +23,22 @@ var commonRouteAttributes = templ.Attributes{
 	"hx-swap":     "morph:innerHTML",
 }
 
-// buildShowFeedsAction builds an api.Route for /home/feeds with the given
+// buildShowFeedsAction builds an models.Route for /home/feeds with the given
 // filters. This can be used with components that need to create an action for
 // /home/feeds.
-func buildShowFeedsAction(filters *api.Filters) *templates.Action {
-	return templates.BuildAction(api.FeedsRoute,
+func buildShowFeedsAction(filters *models.Filters) *templates.Action {
+	return templates.BuildAction(models.FeedsRoute,
 		templates.WithQueryParams(filters.ToQueryParams()),
 		templates.WithAttributes(commonRouteAttributes),
 	)
 }
 
-// buildShowItemsAction builds an api.Route for /home/items with the given
+// buildShowItemsAction builds an models.Route for /home/items with the given
 // filters. This can be used with components that need to create an action for
 // /home/items.
-func buildShowItemsAction(filters *api.Filters) *templates.Action {
+func buildShowItemsAction(filters *models.Filters) *templates.Action {
 	// Build the route.
-	return templates.BuildAction(api.ItemsRoute,
+	return templates.BuildAction(models.ItemsRoute,
 		templates.WithQueryParams(filters.ToQueryParams()),
 		templates.WithAttributes(commonRouteAttributes),
 	)
@@ -46,11 +46,11 @@ func buildShowItemsAction(filters *api.Filters) *templates.Action {
 
 // buildHomeAction will build the appropriate /home route for the given path
 // string and filters.
-func buildHomeAction(path string, filters *api.Filters) *templates.Action {
+func buildHomeAction(path string, filters *models.Filters) *templates.Action {
 	switch path {
-	case api.FeedsRoute:
+	case models.FeedsRoute:
 		return buildShowFeedsAction(filters)
-	case api.ItemsRoute:
+	case models.ItemsRoute:
 		return buildShowItemsAction(filters)
 	}
 

@@ -81,7 +81,7 @@ func showCardActions(actions ...templ.Component) []templ.Component {
 templ showFeedCardContent(subscription *models.Subscription) {
 	<div hx-disable="true">
 		<div class="flex flex-wrap gap-2">
-			@showTitle(subscription.GetTitle())
+			@showTitle(subscription.GetName())
 			if subscription.GetUnreadCount() > 0 {
 				@badge.Build(
 					badge.WithSize(size.SM),
