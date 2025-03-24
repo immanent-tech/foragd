@@ -87,15 +87,15 @@ func (f *Filters) Valid() (bool, error) {
 	return validation.ValidateStruct(f)
 }
 
-// MarshalJSON ensures Filters satisfies the json.Marshaler interface.
-func (f *Filters) MarshalJSON() ([]byte, error) {
-	return json.Marshal(f)
-}
+// // MarshalJSON ensures Filters satisfies the json.Marshaler interface.
+// func (f *Filters) MarshalJSON() ([]byte, error) {
+// 	return json.Marshal(f)
+// }
 
-// MarshalJSON ensures Filters satisfies the json.Unmarshaler interface.
-func (f *Filters) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, f)
-}
+// // MarshalJSON ensures Filters satisfies the json.Unmarshaler interface.
+// func (f *Filters) UnmarshalJSON(data []byte) error {
+// 	return json.Unmarshal(data, f)
+// }
 
 // ViewRead returns a boolean indicating whether the Filters are set to view
 // read items.
@@ -133,7 +133,7 @@ func (f *Filters) Generate(params any) error {
 		return WrapError(err, "api", "unable to marshal params")
 	}
 	// Unmarshal JSON to filters.
-	err = filters.UnmarshalJSON(data)
+	err = json.Unmarshal(data, f)
 	if err != nil {
 		return WrapError(err, "api", "unable to unmarshal filters from params")
 	}

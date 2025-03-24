@@ -24,6 +24,8 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
 type UserAPI interface {
@@ -35,11 +37,13 @@ type UserAPI interface {
 func RequireAuthentication(protectedRoutes []string, api UserAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix)
+
 			if slices.ContainsFunc(protectedRoutes, func(path string) bool {
 				return strings.HasPrefix(req.URL.Path, path)
 			}) {
 				// Fetch the user from the user management API.
-				user, err := api.GetUser(req.Context())
+				user, err := api.GetUser(ctx)
 				//  If no user can be found, redirect back to the home page.
 				if err != nil {
 					logging.LogReq(req, http.StatusUnauthorized).
@@ -49,7 +53,7 @@ func RequireAuthentication(protectedRoutes []string, api UserAPI) func(next http
 				}
 				// Else load the user into the context and pass the new context
 				// to the next request.
-				req = req.WithContext(models.UserToCtx(req.Context(), user))
+				req = req.WithContext(models.UserToCtx(ctx, user))
 			}
 
 			next.ServeHTTP(res, req)

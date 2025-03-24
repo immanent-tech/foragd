@@ -92,6 +92,7 @@ func BuildAction(path string, options ...ActionOption) *Action {
 		method:     http.MethodGet,
 		attributes: make(templ.Attributes),
 		mu:         sync.Mutex{},
+		parameters: make(url.Values),
 	}
 
 	for _, option := range options {

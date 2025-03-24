@@ -119,3 +119,21 @@ func (u *User) IsSubscribed(feedID FeedID) bool {
 func (u *User) MarkItems(mark Mark, itemIDs ...ItemID) {
 	return
 }
+
+func (u *UserSignupRequest) Valid() bool {
+	valid, problems := validation.ValidateStruct(u)
+	if problems != nil {
+		u.Err = &ExternalError{
+			Summary:   "the details are invalid",
+			Details:   problems.Error(),
+			Retryable: true,
+			Err:       problems,
+		}
+	}
+
+	return valid
+}
+
+func NewUserSignup() *UserSignupRequest {
+	return &UserSignupRequest{}
+}

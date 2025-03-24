@@ -104,7 +104,6 @@ func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
 func (f *SetImportMethodFormdataBody) Valid() bool {
 	valid, err := validation.ValidateStruct(f)
 	if !valid || err != nil {
-		spew.Dump(err)
 		return false
 	}
 	return true

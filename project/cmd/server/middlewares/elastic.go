@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/joshuar/go-feed-me/internal/config"
+	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
@@ -20,7 +21,7 @@ func ElasticMiddleware() func(next http.Handler) http.Handler {
 			ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
 			ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
 			ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
-			ctx = elastic.SubscriptionsIndexToCtx(ctx, schema.SubscriptionsSchemaPrefix)
+			logging.FromContext(ctx).Debug("Loaded index patterns to context.")
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

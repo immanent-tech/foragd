@@ -141,6 +141,9 @@ type HandleMarkFeedsFormdataRequestBody = MarkObjects
 // HandleMarkItemsFormdataRequestBody defines body for HandleMarkItems for application/x-www-form-urlencoded ContentType.
 type HandleMarkItemsFormdataRequestBody = MarkObjects
 
+// ProcessSignUpFormdataRequestBody defines body for ProcessSignUp for application/x-www-form-urlencoded ContentType.
+type ProcessSignUpFormdataRequestBody = externalRef0.UserSignupRequest
+
 // SubscriptionEditNewFormdataRequestBody defines body for SubscriptionEditNew for application/x-www-form-urlencoded ContentType.
 type SubscriptionEditNewFormdataRequestBody = externalRef0.SubscriptionRequest
 
@@ -155,9 +158,6 @@ type EditSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
 // SaveSubscriptionFormdataRequestBody defines body for SaveSubscription for application/x-www-form-urlencoded ContentType.
 type SaveSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
-
-// AddUserFormdataRequestBody defines body for AddUser for application/x-www-form-urlencoded ContentType.
-type AddUserFormdataRequestBody = externalRef0.UserSignupRequest
 
 // AsImportOPML returns the union data inside the Import_Data as a ImportOPML
 func (t Import_Data) AsImportOPML() (ImportOPML, error) {
@@ -385,6 +385,12 @@ type ServerInterface interface {
 	// Issue a user search request
 	// (POST /search)
 	Search(w http.ResponseWriter, r *http.Request)
+	// Show the sign-up form.
+	// (GET /signup)
+	SignUp(w http.ResponseWriter, r *http.Request)
+	// Process a sign-up request.
+	// (POST /signup)
+	ProcessSignUp(w http.ResponseWriter, r *http.Request)
 	// Add a new subscription.
 	// (GET /subscription/add)
 	SubscriptionNew(w http.ResponseWriter, r *http.Request)
@@ -412,12 +418,6 @@ type ServerInterface interface {
 	// Save a subscription.
 	// (PUT /subscription/{subscription})
 	SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
-
-	// (GET /user/new)
-	NewUser(w http.ResponseWriter, r *http.Request)
-	// Save a new user.
-	// (PUT /user/new)
-	AddUser(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -519,6 +519,18 @@ func (_ Unimplemented) Search(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Show the sign-up form.
+// (GET /signup)
+func (_ Unimplemented) SignUp(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Process a sign-up request.
+// (POST /signup)
+func (_ Unimplemented) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Add a new subscription.
 // (GET /subscription/add)
 func (_ Unimplemented) SubscriptionNew(w http.ResponseWriter, r *http.Request) {
@@ -567,17 +579,6 @@ func (_ Unimplemented) EditSubscription(w http.ResponseWriter, r *http.Request, 
 // Save a subscription.
 // (PUT /subscription/{subscription})
 func (_ Unimplemented) SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// (GET /user/new)
-func (_ Unimplemented) NewUser(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Save a new user.
-// (PUT /user/new)
-func (_ Unimplemented) AddUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1147,6 +1148,34 @@ func (siw *ServerInterfaceWrapper) Search(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r)
 }
 
+// SignUp operation middleware
+func (siw *ServerInterfaceWrapper) SignUp(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SignUp(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ProcessSignUp operation middleware
+func (siw *ServerInterfaceWrapper) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ProcessSignUp(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // SubscriptionNew operation middleware
 func (siw *ServerInterfaceWrapper) SubscriptionNew(w http.ResponseWriter, r *http.Request) {
 
@@ -1308,34 +1337,6 @@ func (siw *ServerInterfaceWrapper) SaveSubscription(w http.ResponseWriter, r *ht
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SaveSubscription(w, r, subscription)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// NewUser operation middleware
-func (siw *ServerInterfaceWrapper) NewUser(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.NewUser(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// AddUser operation middleware
-func (siw *ServerInterfaceWrapper) AddUser(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AddUser(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1507,6 +1508,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/search", wrapper.Search)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/signup", wrapper.SignUp)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/signup", wrapper.ProcessSignUp)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscription/add", wrapper.SubscriptionNew)
 	})
 	r.Group(func(r chi.Router) {
@@ -1532,12 +1539,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/subscription/{subscription}", wrapper.SaveSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/user/new", wrapper.NewUser)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/user/new", wrapper.AddUser)
 	})
 
 	return r

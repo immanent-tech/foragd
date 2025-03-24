@@ -69,7 +69,7 @@ func UserExists(ctx context.Context, api *typedapi.API, userID models.UserID) (b
 }
 
 // AddUser creates a new user record.
-func AddUser(ctx context.Context, api *typedapi.API, userID models.UserID) error {
+func (e *ElasticAPI) AddUser(ctx context.Context, userID models.UserID) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrCreateUserFailed, ErrFetchCtx)
@@ -82,7 +82,7 @@ func AddUser(ctx context.Context, api *typedapi.API, userID models.UserID) error
 		CreatedAt: created,
 	}))
 
-	resp, err := NewDocCreateRequest(api,
+	resp, err := NewDocCreateRequest(e.GetAPI(),
 		index,
 		userID,
 		&models.User{

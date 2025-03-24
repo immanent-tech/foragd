@@ -104,6 +104,7 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 // }
 
 func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
+
 	filters := models.NewFilters()
 	err := filters.Generate(params)
 	if err != nil {
@@ -111,7 +112,6 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}
-
 	session.StoreFeedFilters(req.Context(), filters)
 
 	displayFeeds(s.DataAPI(), res, req, filters)

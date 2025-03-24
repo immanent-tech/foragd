@@ -22,7 +22,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/session"
-	store "github.com/joshuar/go-feed-me/internal/session/store"
+	"github.com/joshuar/go-feed-me/internal/session/store"
 )
 
 const (
@@ -31,6 +31,7 @@ const (
 
 type DataAPI interface {
 	// User methods:
+	AddUser(ctx context.Context, userID models.UserID) error
 	GetUser(ctx context.Context) (*models.User, error)
 	// Subscription methods:
 	GetSubscriptions(ctx context.Context, filters *models.Filters) (models.Subscriptions, error)
@@ -119,7 +120,6 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	wrapper := ServerInterfaceWrapper{
 		Handler: svr,
 	}
-
 	// Use chi middlewares.
 	svr.Log.Debug("Setting up middleware...")
 	wrapper.HandlerMiddlewares = append(wrapper.HandlerMiddlewares,
@@ -149,13 +149,18 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	router.Get("/logout/{provider}", wrapper.Logout)
 
 	// Sign up routes.
-	router.Route("/user", func(signupRouter chi.Router) {
-		signupRouter.Get("/new", wrapper.NewUser)
-		signupRouter.Put("/new", wrapper.AddUser)
-	})
+	router.Get("/signup", wrapper.SignUp)
+	router.Post("/signup", wrapper.ProcessSignUp)
 
 	router.Post("/search", wrapper.Search)
 
+	// router.Group(func(r chi.Router) {
+	// 	for m := range slices.Values(wrapper.HandlerMiddlewares) {
+	// 		r.Use(m)
+	// 	}
+	// r.Use(middlewares.ElasticMiddleware())
+	// r.Use(middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI()))
+	// r.Use(session.LoadAndSave())
 	// /home navigation
 	router.Route("/home", func(homeRouter chi.Router) {
 		homeRouter.Get("/", wrapper.HandleHome)
@@ -172,6 +177,24 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 		homeRouter.Put("/{feed}/{item}", wrapper.HandleSaveItem)
 		homeRouter.Delete("/{feed}/{item}", wrapper.HandleUnsaveItem)
 	})
+	// })
+
+	// // /home navigation
+	// router.Route("/home", func(homeRouter chi.Router) {
+	// 	homeRouter.Get("/", wrapper.HandleHome)
+	// 	homeRouter.Get("/notifications", wrapper.HandleHomeNotifications)
+	// 	// Feeds:
+	// 	homeRouter.Get("/feeds", middlewares.CheckRequiredFilters(wrapper.HandleShowFeeds))
+	// 	homeRouter.Post("/feeds", wrapper.HandleMarkFeeds)
+	// 	// Items:
+	// 	homeRouter.Get("/items", middlewares.CheckRequiredFilters(wrapper.HandleShowItems))
+	// 	homeRouter.Post("/items", wrapper.HandleMarkItems)
+	// 	// Item:
+	// 	homeRouter.Get("/{feed}/{item}", wrapper.HandleShowItem)
+	// 	homeRouter.Post("/{feed}/{item}/{mark}", wrapper.HandleMarkItem)
+	// 	homeRouter.Put("/{feed}/{item}", wrapper.HandleSaveItem)
+	// 	homeRouter.Delete("/{feed}/{item}", wrapper.HandleUnsaveItem)
+	// })
 
 	router.Route("/subscription", func(subscription chi.Router) {
 		subscription.Get("/new", wrapper.SubscriptionNew)

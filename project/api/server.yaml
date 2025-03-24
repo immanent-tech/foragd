@@ -81,18 +81,20 @@ paths:
           description: Redirect to provider
         500:
           description: Problem with request
-  /user/new:
+  /signup:
     get:
+      summary: >
+        Show the sign-up form.
       description: >
-        Add a new user.
-      operationId: newUser
+        Provides a form for new users to sign-up to the service.
+      operationId: signUp
       responses:
         200:
           $ref: "#/components/responses/htmx"
-    put:
+    post:
       summary: >
-        Save a new user.
-      operationId: addUser
+        Process a sign-up request.
+      operationId: processSignUp
       requestBody:
         $ref: "#/components/requestBodies/UserSignupRequestBody"
       responses:

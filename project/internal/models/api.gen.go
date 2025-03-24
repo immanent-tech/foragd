@@ -167,12 +167,12 @@ type SubscriptionRequest struct {
 
 // UserSignupRequest contains the details for a user signup request.
 type UserSignupRequest struct {
-	Email    string  `form:"email" json:"email" validate:"required,email"`
-	Nickname *string `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
-	Password string  `form:"password" json:"password" validate:"required,min=10"`
+	Email string `form:"email" json:"email" validate:"required,email"`
 
-	// ValidationErrors is a map of field name -> validation error for the request.
-	ValidationErrors map[string]string `form:"-" json:"-"`
+	// Err represents an error that can be shown externally (i.e. to users).
+	Err      *ExternalError `json:"-"`
+	Nickname string         `form:"nickname,omitempty" json:"nickname,omitempty" validate:"omitempty"`
+	Password string         `form:"password" json:"password" validate:"required,min=10"`
 }
 
 // View The state of objects to view.

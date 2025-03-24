@@ -239,6 +239,7 @@ components:
           x-oapi-codegen-extra-tags:
             validate: "omitempty"
             form: "nickname,omitempty"
+          x-go-type-skip-optional-pointer: true
         email:
           type: string
           x-oapi-codegen-extra-tags:
@@ -249,15 +250,8 @@ components:
           x-oapi-codegen-extra-tags:
             validate: "required,min=10"
             form: "password"
-        validation_errors:
-          description: is a map of field name -> validation error for the request.
-          type: object
-          additionalProperties:
-            type: string
-          x-go-json-ignore: true
-          x-oapi-codegen-extra-tags:
-            form: "-"
-          x-go-type-skip-optional-pointer: true
+        err:
+          $ref: "#/components/schemas/ExternalError"
     ImportSource:
       description: >
         defines the source that will be used for an import.

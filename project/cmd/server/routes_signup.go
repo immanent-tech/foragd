@@ -5,91 +5,82 @@
 package server
 
 import (
+	"context"
+	"errors"
+	"log/slog"
 	"net/http"
+
+	"github.com/angelofallars/htmx-go"
+
+	"github.com/joshuar/go-feed-me/internal/forms"
+	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/layouts/signup"
 )
 
-// (GET /user/new)
-func (s Server) NewUser(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+// SignUp handles presenting a form for the user to enter sign-up details.
+func (s Server) SignUp(res http.ResponseWriter, req *http.Request) {
+	resp := htmx.NewResponse()
+
+	fullPage := layouts.BuildPage(
+		layouts.WithHeadOptions("Sign-up to Go Feed Me",
+			layouts.WithPageDescription("Your home."),
+			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
+		),
+		layouts.WithPageContent(signup.Show(models.NewUserSignup())),
+	)
+	if err := resp.RenderTempl(req.Context(), res, fullPage.Show()); err != nil {
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
+		return
+	}
 }
 
-// Save a new user.
-// (PUT /user/new)
-func (s Server) AddUser(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
+// ProcessSignUp handles validating and processing a user sign-up request.
+func (s Server) ProcessSignUp(res http.ResponseWriter, req *http.Request) {
+	resp := htmx.NewResponse()
+	// Decode and validate the user sign-up request.
+	userSignup, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
+	if err != nil || !valid {
+		if err := resp.RenderTempl(req.Context(), res, signup.SignupForm(userSignup)); err != nil {
+			logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", err))
+			http.Error(res, "user signup failed!", http.StatusInternalServerError)
+		}
+		return
+	}
+	// Process the user sign-up and create the new user.
+	if err := s.addUser(req.Context(), userSignup); err != nil {
+		userSignup.Err = &models.ExternalError{Summary: "the backend produced an error.", Details: err.Error(), Err: err}
+		if err := resp.RenderTempl(req.Context(), res, signup.SignupForm(userSignup)); err != nil {
+			logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", err))
+			http.Error(res, "user signup failed!", http.StatusInternalServerError)
+		}
+		return
+	}
+	// Display success and prompt user to log in with new account.
+	if err := resp.Retarget(signup.SignupDetailsID.Target()).Reswap(htmx.SwapOuterHTML).RenderTempl(req.Context(), res, signup.SignupSuccess()); err != nil {
+		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", err))
+		http.Error(res, "user signup failed!", http.StatusInternalServerError)
+	}
 }
 
-// // SignUp serves the user sign up page.
-// // GET(/signup).
-// func (s Server) Signup(res http.ResponseWriter, req *http.Request) {
-// 	var page templ.Component
+func (s Server) addUser(ctx context.Context, userSignup *models.UserSignupRequest) error {
+	// Create the user in the auth backend.
+	userID, err := s.API.user.Create(ctx, userSignup)
+	if err != nil {
+		return models.WrapError(err, "routes/signup", "could not create user in auth backend")
+	}
 
-// 	logger := s.Logger.With(slog.String("handler", "Signup"))
+	// Create new user in the database backend.
+	addUserCtx := elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 
-// 	ctx := layouts.UserSignupToCtx(req.Context(), models.NewUserSignup())
+	err = s.DataAPI().AddUser(addUserCtx, userID)
+	if err != nil {
+		return models.WrapError(err, "routes/signup", "could not create user in database backend")
+	}
 
-// 	page = layouts.Page("Go Feed Me - Sign-up",
-// 		layouts.WithPageDescription("Sign-up to Go Feed Me."),
-// 		layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-// 		layouts.WithPageContent(layouts.SignupLayout()))
-
-// 	if err := htmx.NewResponse().RenderTempl(ctx, res, page); err != nil {
-// 		logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-// 		http.Error(res, "Problem!", http.StatusInternalServerError)
-// 	}
-// }
-
-// // PostSignup processes the user sign up request.
-// // POST(/signup).
-// func (s Server) ProcessSignup(res http.ResponseWriter, req *http.Request) {
-// 	logger := logging.NewHandlerLogger("ProcessSignup", req)
-
-// 	userSignup, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
-// 	if err != nil {
-// 		logger.Error("Could not decode submitted signup request.",
-// 			slog.Any("error", err))
-// 		return
-// 	}
-
-// 	if !valid {
-// 		ctx := layouts.UserSignupToCtx(req.Context(), userSignup)
-// 		if err = htmx.NewResponse().RenderTempl(ctx, res, userSignup.Form()); err != nil {
-// 			logger.Error("Cannot display content.", slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-// 			http.Error(res, "Problem!", http.StatusInternalServerError)
-// 		}
-
-// 		return
-// 	}
-
-// 	// Create the user in the auth backend.
-// 	userID, err := s.API.user.Create(req.Context(), userSignup)
-// 	if err != nil {
-// 		logger.Error("Could not create user account.", slog.Any("error", err))
-
-// 		if err = htmx.NewResponse().RenderTempl(req.Context(), res, layouts.SignupError()); err != nil {
-// 			logger.Error("Cannot render sign up error.", slog.Any("error", err))
-// 			res.WriteHeader(http.StatusInternalServerError)
-// 		}
-
-// 		return
-// 	}
-
-// 	// Create new user in the database backend.
-// 	addUserCtx := elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix)
-
-// 	err = s.API.elastic.AddUser(addUserCtx, userID)
-// 	if err != nil {
-// 		logger.Error("Could not create user account.", slog.Any("error", err))
-
-// 		if err = htmx.NewResponse().RenderTempl(req.Context(), res, layouts.SignupError()); err != nil {
-// 			logger.Error("Cannot render sign up error.", slog.Any("error", err))
-// 			res.WriteHeader(http.StatusInternalServerError)
-// 		}
-// 	}
-
-// 	// Show success message.
-// 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, layouts.SignupSuccess()); err != nil {
-// 		logger.Error("Cannot render sign up error.", slog.Any("error", err))
-// 		res.WriteHeader(http.StatusInternalServerError)
-// 	}
-// }
+	return nil
+}

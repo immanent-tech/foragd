@@ -19,6 +19,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
+	"net/url"
 )
 
 var AddSubscriptionModalID = attributes.ID("add_subscription_modal")
@@ -55,6 +56,7 @@ func ImportAction() templ.Component {
 func BackButton(ctx context.Context, path string) templ.Component {
 	var (
 		filters *models.Filters
+		params  url.Values
 	)
 	switch path {
 	case models.FeedsRoute:
@@ -62,8 +64,11 @@ func BackButton(ctx context.Context, path string) templ.Component {
 	case models.ItemsRoute:
 		filters, _ = session.GetItemFilters(ctx)
 	}
+	if filters != nil {
+		params = filters.ToQueryParams()
+	}
 	attrs := templates.BuildAction(path,
-		templates.WithQueryParams(filters.ToQueryParams()),
+		templates.WithQueryParams(params),
 		templates.WithAttributes(templ.Attributes{
 			"hx-target":   ContentID.Target(),
 			"hx-push-url": "true",

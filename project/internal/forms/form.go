@@ -47,7 +47,7 @@ func DecodeForm[T Validator](req *http.Request) (T, bool, error) {
 	}
 	// Validate the object.
 	if ok := obj.Valid(); !ok {
-		return obj, false, fmt.Errorf("invalid %T", obj)
+		return obj, false, fmt.Errorf("invalid %T: %w", obj, err)
 	}
 	return obj, true, nil
 }
@@ -70,7 +70,7 @@ func DecodeCustom[T Validator](req *http.Request, decoderFunc func(params url.Va
 	}
 	// Validate the object.
 	if ok := obj.Valid(); !ok {
-		return obj, false, fmt.Errorf("invalid %T", obj)
+		return obj, false, fmt.Errorf("invalid %T: %w", obj, err)
 	}
 
 	return obj, true, nil
