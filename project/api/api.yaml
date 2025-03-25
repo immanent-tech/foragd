@@ -134,37 +134,6 @@ components:
           description: >
             contains any lower-level wrapped error(s).
           x-go-type: error
-    ExternalError:
-      description: >
-        represents an error that can be shown externally (i.e. to users).
-      type: object
-      required:
-        - retryable
-        - summary
-        - err
-      properties:
-        retryable:
-          description: >
-            indicates whether this error is temporary and the request/action
-            that caused it can be retried.
-          type: boolean
-          default: false
-        summary:
-          description: >
-            is a brief description of the error.
-          type: string
-        details:
-          description: >
-            is a longer description of the error, its cause and any
-            actions/steps that need to be taken.
-          type: string
-          x-go-type-skip-optional-pointer: true
-        err:
-          description: >
-            contains any lower-level internal error(s).
-          x-go-type: error
-      x-oapi-codegen-extra-tags:
-        json: "-"
     RequiredFilters:
       description: >
         contains filter parameters that are always required across different kinds of
@@ -250,8 +219,8 @@ components:
           x-oapi-codegen-extra-tags:
             validate: "required,min=10"
             form: "password"
-        err:
-          $ref: "#/components/schemas/ExternalError"
+        msg:
+          $ref: "#/components/schemas/Message"
     ImportSource:
       description: >
         defines the source that will be used for an import.
@@ -267,12 +236,14 @@ components:
         represents a request to add or edit a subscription.
       type: object
       allOf:
-        - $ref: "models.yaml#/components/schemas/SubscriptionMetadata"
         - $ref: "models.yaml#/components/schemas/SubscriptionCustomisation"
         - type: object
           required:
             - URL
+            - ID
           properties:
+            ID:
+              $ref: "models.yaml#/components/schemas/SubscriptionID"
             URL:
               description: the canonical URL to the feed.
               type: string
@@ -281,16 +252,8 @@ components:
                 json: "url"
                 form: "url"
                 validate: "required,url"
-            feed:
-              description: >
-                is a Feed for the subscription that needs to be added.
-              x-go-type: "Feed"
-              x-oapi-codegen-extra-tags:
-                form: "-"
-                json: "-"
-                validate: "-"
-            err:
-              $ref: "#/components/schemas/ExternalError"
+            msg:
+              $ref: "#/components/schemas/Message"
     FeedState:
       description: tracks the state of a feed.
       type: object
@@ -304,3 +267,37 @@ components:
           $ref: "models.yaml#/components/schemas/FeedURL"
         updated_at:
           $ref: "models.yaml#/components/schemas/UpdatedAt"
+    Message:
+      description: >
+        represents a message, such as an error message or log message, generated
+        by some part of the service
+      type: object
+      required:
+        - summary
+        - status
+      properties:
+        summary:
+          description: >
+            is a brief description for the message, which can be used as a title
+            or summary.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        status:
+          description: >
+            indicates the severity or importance of the message.
+          type: string
+          enum: ["info","success","warning","error"]
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        details:
+          description: >
+            is a longer description and/or background details about the message.
+          type: string
+        err:
+          description: >
+            is any error that is associated with the message.
+          x-go-type: error
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: "-"

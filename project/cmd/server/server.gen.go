@@ -129,6 +129,18 @@ type LoginCallbackParams struct {
 	State string `form:"state" json:"state"`
 }
 
+// DelSubscriptionCategoryFormdataBody defines parameters for DelSubscriptionCategory.
+type DelSubscriptionCategoryFormdataBody struct {
+	// Category is a single category.
+	Category externalRef0.Category `form:"category" json:"category"`
+}
+
+// AddSubscriptionCategoryFormdataBody defines parameters for AddSubscriptionCategory.
+type AddSubscriptionCategoryFormdataBody struct {
+	// Category is a single category.
+	Category externalRef0.Category `form:"category" json:"category"`
+}
+
 // SetImportMethodFormdataBody defines parameters for SetImportMethod.
 type SetImportMethodFormdataBody struct {
 	// From defines the source that will be used for an import.
@@ -144,20 +156,23 @@ type HandleMarkItemsFormdataRequestBody = MarkObjects
 // ProcessSignUpFormdataRequestBody defines body for ProcessSignUp for application/x-www-form-urlencoded ContentType.
 type ProcessSignUpFormdataRequestBody = externalRef0.UserSignupRequest
 
-// SubscriptionEditNewFormdataRequestBody defines body for SubscriptionEditNew for application/x-www-form-urlencoded ContentType.
-type SubscriptionEditNewFormdataRequestBody = externalRef0.SubscriptionRequest
+// AddSubscriptionFormdataRequestBody defines body for AddSubscription for application/x-www-form-urlencoded ContentType.
+type AddSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
+
+// DelSubscriptionCategoryFormdataRequestBody defines body for DelSubscriptionCategory for application/x-www-form-urlencoded ContentType.
+type DelSubscriptionCategoryFormdataRequestBody DelSubscriptionCategoryFormdataBody
+
+// AddSubscriptionCategoryFormdataRequestBody defines body for AddSubscriptionCategory for application/x-www-form-urlencoded ContentType.
+type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
+
+// SaveSubscriptionFormdataRequestBody defines body for SaveSubscription for application/x-www-form-urlencoded ContentType.
+type SaveSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
 // ProcessImportMultipartRequestBody defines body for ProcessImport for multipart/form-data ContentType.
 type ProcessImportMultipartRequestBody = Import
 
 // SetImportMethodFormdataRequestBody defines body for SetImportMethod for application/x-www-form-urlencoded ContentType.
 type SetImportMethodFormdataRequestBody SetImportMethodFormdataBody
-
-// EditSubscriptionFormdataRequestBody defines body for EditSubscription for application/x-www-form-urlencoded ContentType.
-type EditSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
-
-// SaveSubscriptionFormdataRequestBody defines body for SaveSubscription for application/x-www-form-urlencoded ContentType.
-type SaveSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
 // AsImportOPML returns the union data inside the Import_Data as a ImportOPML
 func (t Import_Data) AsImportOPML() (ImportOPML, error) {
@@ -392,11 +407,23 @@ type ServerInterface interface {
 	// (POST /signup)
 	ProcessSignUp(w http.ResponseWriter, r *http.Request)
 	// Add a new subscription.
-	// (GET /subscription/add)
-	SubscriptionNew(w http.ResponseWriter, r *http.Request)
-	// Apply changes or edit a new subscription.
-	// (PATCH /subscription/add)
-	SubscriptionEditNew(w http.ResponseWriter, r *http.Request)
+	// (PUT /subscription/add)
+	AddSubscription(w http.ResponseWriter, r *http.Request)
+	// Remove a category from a subscription.
+	// (DELETE /subscription/edit/category)
+	DelSubscriptionCategory(w http.ResponseWriter, r *http.Request)
+	// Add a category to a subscription.
+	// (PUT /subscription/edit/category)
+	AddSubscriptionCategory(w http.ResponseWriter, r *http.Request)
+	// Remove a subscription.
+	// (DELETE /subscription/edit/{subscription})
+	RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
+	// Show a subscription.
+	// (GET /subscription/edit/{subscription})
+	ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
+	// Save a subscription.
+	// (PUT /subscription/edit/{subscription})
+	SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
 
 	// (GET /subscription/import)
 	StartImport(w http.ResponseWriter, r *http.Request)
@@ -406,18 +433,9 @@ type ServerInterface interface {
 
 	// (PUT /subscription/import)
 	SetImportMethod(w http.ResponseWriter, r *http.Request)
-	// Remove a subscription.
-	// (DELETE /subscription/{subscription})
-	RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
-	// Show a subscription.
-	// (GET /subscription/{subscription})
-	ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
-	// Edit a subscription.
-	// (PATCH /subscription/{subscription})
-	EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
-	// Save a subscription.
-	// (PUT /subscription/{subscription})
-	SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
+	// Add a new subscription.
+	// (GET /subscription/new)
+	NewSubscription(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -532,14 +550,38 @@ func (_ Unimplemented) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add a new subscription.
-// (GET /subscription/add)
-func (_ Unimplemented) SubscriptionNew(w http.ResponseWriter, r *http.Request) {
+// (PUT /subscription/add)
+func (_ Unimplemented) AddSubscription(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Apply changes or edit a new subscription.
-// (PATCH /subscription/add)
-func (_ Unimplemented) SubscriptionEditNew(w http.ResponseWriter, r *http.Request) {
+// Remove a category from a subscription.
+// (DELETE /subscription/edit/category)
+func (_ Unimplemented) DelSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Add a category to a subscription.
+// (PUT /subscription/edit/category)
+func (_ Unimplemented) AddSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove a subscription.
+// (DELETE /subscription/edit/{subscription})
+func (_ Unimplemented) RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Show a subscription.
+// (GET /subscription/edit/{subscription})
+func (_ Unimplemented) ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Save a subscription.
+// (PUT /subscription/edit/{subscription})
+func (_ Unimplemented) SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -558,27 +600,9 @@ func (_ Unimplemented) SetImportMethod(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Remove a subscription.
-// (DELETE /subscription/{subscription})
-func (_ Unimplemented) RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Show a subscription.
-// (GET /subscription/{subscription})
-func (_ Unimplemented) ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Edit a subscription.
-// (PATCH /subscription/{subscription})
-func (_ Unimplemented) EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Save a subscription.
-// (PUT /subscription/{subscription})
-func (_ Unimplemented) SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
+// Add a new subscription.
+// (GET /subscription/new)
+func (_ Unimplemented) NewSubscription(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1176,11 +1200,11 @@ func (siw *ServerInterfaceWrapper) ProcessSignUp(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
-// SubscriptionNew operation middleware
-func (siw *ServerInterfaceWrapper) SubscriptionNew(w http.ResponseWriter, r *http.Request) {
+// AddSubscription operation middleware
+func (siw *ServerInterfaceWrapper) AddSubscription(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.SubscriptionNew(w, r)
+		siw.Handler.AddSubscription(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1190,11 +1214,11 @@ func (siw *ServerInterfaceWrapper) SubscriptionNew(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
-// SubscriptionEditNew operation middleware
-func (siw *ServerInterfaceWrapper) SubscriptionEditNew(w http.ResponseWriter, r *http.Request) {
+// DelSubscriptionCategory operation middleware
+func (siw *ServerInterfaceWrapper) DelSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.SubscriptionEditNew(w, r)
+		siw.Handler.DelSubscriptionCategory(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1204,39 +1228,11 @@ func (siw *ServerInterfaceWrapper) SubscriptionEditNew(w http.ResponseWriter, r 
 	handler.ServeHTTP(w, r)
 }
 
-// StartImport operation middleware
-func (siw *ServerInterfaceWrapper) StartImport(w http.ResponseWriter, r *http.Request) {
+// AddSubscriptionCategory operation middleware
+func (siw *ServerInterfaceWrapper) AddSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.StartImport(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ProcessImport operation middleware
-func (siw *ServerInterfaceWrapper) ProcessImport(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ProcessImport(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// SetImportMethod operation middleware
-func (siw *ServerInterfaceWrapper) SetImportMethod(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.SetImportMethod(w, r)
+		siw.Handler.AddSubscriptionCategory(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1296,31 +1292,6 @@ func (siw *ServerInterfaceWrapper) ShowSubscription(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
-// EditSubscription operation middleware
-func (siw *ServerInterfaceWrapper) EditSubscription(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "subscription" -------------
-	var subscription SubscriptionID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.EditSubscription(w, r, subscription)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // SaveSubscription operation middleware
 func (siw *ServerInterfaceWrapper) SaveSubscription(w http.ResponseWriter, r *http.Request) {
 
@@ -1337,6 +1308,62 @@ func (siw *ServerInterfaceWrapper) SaveSubscription(w http.ResponseWriter, r *ht
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.SaveSubscription(w, r, subscription)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// StartImport operation middleware
+func (siw *ServerInterfaceWrapper) StartImport(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StartImport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ProcessImport operation middleware
+func (siw *ServerInterfaceWrapper) ProcessImport(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ProcessImport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetImportMethod operation middleware
+func (siw *ServerInterfaceWrapper) SetImportMethod(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetImportMethod(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// NewSubscription operation middleware
+func (siw *ServerInterfaceWrapper) NewSubscription(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.NewSubscription(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1514,10 +1541,22 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/signup", wrapper.ProcessSignUp)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/subscription/add", wrapper.SubscriptionNew)
+		r.Put(options.BaseURL+"/subscription/add", wrapper.AddSubscription)
 	})
 	r.Group(func(r chi.Router) {
-		r.Patch(options.BaseURL+"/subscription/add", wrapper.SubscriptionEditNew)
+		r.Delete(options.BaseURL+"/subscription/edit/category", wrapper.DelSubscriptionCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/subscription/edit/category", wrapper.AddSubscriptionCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/subscription/edit/{subscription}", wrapper.RemoveSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/subscription/edit/{subscription}", wrapper.ShowSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/subscription/edit/{subscription}", wrapper.SaveSubscription)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscription/import", wrapper.StartImport)
@@ -1529,16 +1568,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/subscription/import", wrapper.SetImportMethod)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/subscription/{subscription}", wrapper.RemoveSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/subscription/{subscription}", wrapper.ShowSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Patch(options.BaseURL+"/subscription/{subscription}", wrapper.EditSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/subscription/{subscription}", wrapper.SaveSubscription)
+		r.Get(options.BaseURL+"/subscription/new", wrapper.NewSubscription)
 	})
 
 	return r

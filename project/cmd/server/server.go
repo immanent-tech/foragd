@@ -36,6 +36,7 @@ type DataAPI interface {
 	// Subscription methods:
 	GetSubscriptions(ctx context.Context, filters *models.Filters) (models.Subscriptions, error)
 	MarkSubscriptions(ctx context.Context, mark models.Mark, feedIDs ...models.FeedID) error
+	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error
 	// Feeds methods:
 	GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
@@ -197,16 +198,17 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	// })
 
 	router.Route("/subscription", func(subscription chi.Router) {
-		subscription.Get("/new", wrapper.SubscriptionNew)
-		subscription.Patch("/new", wrapper.SubscriptionEditNew)
+		subscription.Get("/new", wrapper.NewSubscription)
+		subscription.Put("/add", wrapper.AddSubscription)
 		subscription.Get("/import", wrapper.StartImport)
 		subscription.Put("/import", wrapper.SetImportMethod)
 		subscription.Post("/import", wrapper.ProcessImport)
 		// Existing subscription management:
-		subscription.Get("/{subscription}", wrapper.ShowSubscription)
-		subscription.Patch("/{subscription}", wrapper.EditSubscription)
-		subscription.Put("/{subscription}", wrapper.SaveSubscription)
-		subscription.Delete("/{subscription}", wrapper.RemoveSubscription)
+		subscription.Get("/edit/{subscription}", wrapper.ShowSubscription)
+		subscription.Put("/edit/{subscription}", wrapper.SaveSubscription)
+		subscription.Delete("/edit/{subscription}", wrapper.RemoveSubscription)
+		subscription.Put("/edit/category", wrapper.AddSubscriptionCategory)
+		subscription.Delete("/edit/category", wrapper.DelSubscriptionCategory)
 	})
 
 	return router

@@ -25,7 +25,7 @@ import (
 var AddSubscriptionModalID = attributes.ID("add_subscription_modal")
 
 // AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
-func AddSubscriptionAction() templ.Component {
+func AddSubscriptionAction(classes ...string) templ.Component {
 	return link.Build(
 		link.WithContent("Add Subscription"),
 		link.WithExtraAttributes(templ.Attributes{
@@ -34,12 +34,12 @@ func AddSubscriptionAction() templ.Component {
 			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to " + AddSubscriptionModalID.Target(),
 		}),
 		link.WithUnderlineOnHover(),
-	).Show()
+	).Show(classes...)
 }
 
 // ImportAction creates a button for displaying a modal to import feeds (i.e.
 // via opml).
-func ImportAction() templ.Component {
+func ImportAction(classes ...string) templ.Component {
 	return link.Build(
 		link.WithContent("Import..."),
 		link.WithExtraAttributes(templ.Attributes{
@@ -48,7 +48,7 @@ func ImportAction() templ.Component {
 			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to" + subscription.ImportModalID.Target(),
 		}),
 		link.WithUnderlineOnHover(),
-	).Show()
+	).Show(classes...)
 }
 
 // backButton generates a button for going back to the given path. It fetches

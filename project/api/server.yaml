@@ -128,23 +128,21 @@ paths:
           description: Unauthorized
         500:
           description: Problem with request
-  /subscription/add:
+  /subscription/new:
     get:
       summary: >
         Add a new subscription.
       description: >
         Presents a form for the user to enter details to add a new subscription.
-      operationId: subscriptionNew
+      operationId: newSubscription
       responses:
         200:
           $ref: "#/components/responses/htmx"
-    patch:
+  /subscription/add:
+    put:
       summary: >
-        Apply changes or edit a new subscription.
-      description: >
-        When creating a new subscription, supports the user to make edits to the
-        name, URL or add/remove categories.
-      operationId: subscriptionEditNew
+        Add a new subscription.
+      operationId: addSubscription
       requestBody:
         $ref: "#/components/requestBodies/SubscriptionRequest"
       responses:
@@ -181,22 +179,13 @@ paths:
     responses:
       200:
         $ref: "#/components/responses/htmx"
-  /subscription/{subscription}:
+  /subscription/edit/{subscription}:
     parameters:
       - $ref: "#/components/parameters/SubscriptionID"
     get:
       summary: >
         Show a subscription.
       operationId: showSubscription
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-    patch:
-      summary: >
-        Edit a subscription.
-      operationId: editSubscription
-      requestBody:
-        $ref: "#/components/requestBodies/SubscriptionRequest"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -213,6 +202,25 @@ paths:
       summary: >
         Remove a subscription.
       operationId: removeSubscription
+      responses:
+        200:
+          $ref: "#/components/responses/htmx"
+  /subscription/edit/category:
+    put:
+      summary: >
+        Add a category to a subscription.
+      operationId: addSubscriptionCategory
+      requestBody:
+        $ref: "#/components/requestBodies/CategoryRequest"
+      responses:
+        200:
+          $ref: "#/components/responses/htmx"
+    delete:
+      summary: >
+        Remove a category from a subscription.
+      operationId: delSubscriptionCategory
+      requestBody:
+        $ref: "#/components/requestBodies/CategoryRequest"
       responses:
         200:
           $ref: "#/components/responses/htmx"
@@ -564,7 +572,7 @@ components:
         application/x-www-form-urlencoded:
           schema:
             $ref: "api.yaml#/components/schemas/SubscriptionRequest"
-    CategoryRequestBody:
+    CategoryRequest:
       description: >
         A list of categories to add/remove from a subscription.
       required: true

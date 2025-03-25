@@ -12,6 +12,7 @@ import "github.com/joshuar/go-templ-daisyui/attributes"
 import "github.com/joshuar/go-templ-daisyui/feedback/alert"
 import "github.com/joshuar/go-templ-daisyui/modifiers/style"
 import "github.com/joshuar/go-templ-daisyui/modifiers/state"
+import "github.com/joshuar/go-feed-me/web/templates/partials"
 
 const SignupPath = "/signup"
 
@@ -37,8 +38,8 @@ templ Show(userDetails *models.UserSignupRequest) {
 }
 
 templ SignupForm(userDetails *models.UserSignupRequest) {
-	if userDetails.Err != nil {
-		@SignupError(userDetails.Err)
+	if userDetails.Msg != nil {
+		@partials.NewUserMessage(userDetails.Msg).Show()
 	}
 	@form.BuildForm(
 		form.WithID(SignupFormID.String()),
@@ -100,25 +101,4 @@ templ SignupSuccess() {
 		hx-boost="false"
 		href="/login/auth0"
 	>Login</a>
-}
-
-templ SignupError(err *models.ExternalError) {
-	<div
-		tabindex="0"
-		class="collapse collapse-arrow bg-error/50"
-	>
-		<input type="checkbox"/>
-		<div
-			class="collapse-title font-semibold text-justify text-sm text-error-content"
-		>Problem: { err.Summary }</div>
-		<div class="collapse-content text-error-content text-xs">
-			if err.Retryable {
-				<p>Please check the inputs and try again.</p>
-			}
-			if err.Details != "" {
-				<p class="font-semibold">Technical Details:</p>
-				<p class="text-justify">{ err.Details }</p>
-			}
-		</div>
-	</div>
 }

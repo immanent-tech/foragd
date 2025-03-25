@@ -1,0 +1,70 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import "github.com/joshuar/go-feed-me/internal/models"
+
+type UserMessage struct {
+	*models.Message
+}
+
+func (msg *UserMessage) applyBackgroundColor() string {
+	switch msg.Status {
+	case models.MessageStatusError:
+		return "bg-error/50"
+	case models.MessageStatusWarning:
+		return "bg-warning/50"
+	case models.MessageStatusSuccess:
+		return "bg-success/50"
+	case models.MessageStatusInfo:
+		fallthrough
+	default:
+		return "bg-info/50"
+	}
+}
+
+func (msg *UserMessage) applyTextColor() string {
+	switch msg.Status {
+	case models.MessageStatusError:
+		return "text-error-content"
+	case models.MessageStatusWarning:
+		return "text-warning-content"
+	case models.MessageStatusSuccess:
+		return "text-success-content"
+	case models.MessageStatusInfo:
+		fallthrough
+	default:
+		return "text-info-content"
+	}
+}
+
+templ (msg *UserMessage) Show() {
+	<div
+		tabindex="0"
+		class={ "collapse",
+		 "collapse-arrow",
+		 msg.applyBackgroundColor() }
+	>
+		<input type="checkbox"/>
+		<div
+			class={ "collapse-title",
+			 "font-semibold", "text-justify", "text-sm",
+			 msg.applyTextColor() }
+		>{ msg.Summary }</div>
+		<div class={ "collapse-content", "text-xs", msg.applyTextColor() }>
+			if msg.HasDetails() {
+				<p class="font-semibold">Details:</p>
+				<p class="text-justify">{ *msg.Details }</p>
+			}
+		</div>
+	</div>
+}
+
+// NewUserMessage will create a UserMessage from the given models.Message
+// object.
+func NewUserMessage(msg *models.Message) *UserMessage {
+	return &UserMessage{
+		Message: msg,
+	}
+}

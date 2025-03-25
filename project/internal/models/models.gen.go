@@ -179,7 +179,7 @@ type Subscription struct {
 	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
 
 	// ID is the unique ID of a subscription.
-	ID SubscriptionID `json:"subscription_id" validate:"required,startswith=sub_"`
+	ID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
@@ -194,32 +194,23 @@ type Subscription struct {
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
 	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"unique"`
+	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
 
 	// UserNickname is a friendly name or nickname for the feed given by the user.
-	UserNickname *string `form:"user_nickname" json:"user_nickname,omitempty"`
+	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
 }
 
 // SubscriptionCustomisation represents the properties of a subscription a user can customize.
 type SubscriptionCustomisation struct {
 	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"unique"`
+	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
 
 	// UserNickname is a friendly name or nickname for the feed given by the user.
-	UserNickname *string `form:"user_nickname" json:"user_nickname,omitempty"`
+	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
-
-// SubscriptionMetadata contains metadata for tracking a subscription.
-type SubscriptionMetadata struct {
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-
-	// ID is the unique ID of a subscription.
-	ID SubscriptionID `json:"subscription_id" validate:"required,startswith=sub_"`
-}
 
 // SubscriptionState contains properties tracking the state of the subscription.
 type SubscriptionState struct {

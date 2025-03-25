@@ -53,7 +53,10 @@ func (s Server) ProcessSignUp(res http.ResponseWriter, req *http.Request) {
 	}
 	// Process the user sign-up and create the new user.
 	if err := s.addUser(req.Context(), userSignup); err != nil {
-		userSignup.Err = &models.ExternalError{Summary: "the backend produced an error.", Details: err.Error(), Err: err}
+		userSignup.Msg = models.NewMessage("the backend produced an error.",
+			models.WithDetails(err.Error()),
+			models.WithError(err),
+		)
 		if err := resp.RenderTempl(req.Context(), res, signup.SignupForm(userSignup)); err != nil {
 			logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", err))
 			http.Error(res, "user signup failed!", http.StatusInternalServerError)

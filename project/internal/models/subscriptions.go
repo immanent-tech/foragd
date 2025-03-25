@@ -5,9 +5,6 @@ package models
 
 import (
 	"cmp"
-	"encoding/json"
-	"errors"
-	"fmt"
 	"maps"
 	"slices"
 	"time"
@@ -31,7 +28,7 @@ func (s Subscriptions) UpdateUnreadCounts(unreadCounts map[FeedID]int) {
 
 // ByFeed returns a map of Subscriptions by FeedID.
 func (s Subscriptions) ByFeed() map[FeedID]*Subscription {
-	return sliceToMap2(s, func(v *Subscription) (FeedID, *Subscription) {
+	return SliceToMap(s, func(v *Subscription) (FeedID, *Subscription) {
 		return v.FeedID, v
 	})
 }
@@ -76,7 +73,7 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 // FeedIDs. If no IDs are provided, the full list is returned.
 func (s Subscriptions) FilterByFeedID(feedIDs ...FeedID) Subscriptions {
 	if len(feedIDs) > 0 {
-		return slices.Collect(filtered(s, func(v *Subscription) bool {
+		return slices.Collect(FilterSlice(s, func(v *Subscription) bool {
 			return slices.Contains(feedIDs, v.GetFeedID())
 		}))
 	}
@@ -87,7 +84,7 @@ func (s Subscriptions) FilterByFeedID(feedIDs ...FeedID) Subscriptions {
 // Categories. If no categories are provided, the full list is returned.
 func (s Subscriptions) FilterByCategory(categories ...Category) Subscriptions {
 	if len(categories) > 0 {
-		return slices.Collect(filtered(s, func(v *Subscription) bool {
+		return slices.Collect(FilterSlice(s, func(v *Subscription) bool {
 			var hasCategory bool
 			for subscriptionCategory := range slices.Values(v.GetCategories()) {
 				if slices.Contains(categories, subscriptionCategory) {
@@ -102,14 +99,14 @@ func (s Subscriptions) FilterByCategory(categories ...Category) Subscriptions {
 
 // FilterByUnread will filter subscriptions by those that have unread items.
 func (s Subscriptions) FilterByUnread() Subscriptions {
-	return slices.Collect(filtered(s, func(v *Subscription) bool {
+	return slices.Collect(FilterSlice(s, func(v *Subscription) bool {
 		return v.GetUnreadCount() > 0
 	}))
 }
 
 // FilterByRead will filter subscriptions by those that are read.
 func (s Subscriptions) FilterByRead() Subscriptions {
-	return slices.Collect(filtered(s, func(v *Subscription) bool {
+	return slices.Collect(FilterSlice(s, func(v *Subscription) bool {
 		return v.GetUnreadCount() == 0
 	}))
 }
@@ -139,8 +136,8 @@ func (s *Subscription) GetUnreadCount() int {
 
 // GetName retrieves any custom name set by the user or an empty string if unset.
 func (s *Subscription) GetName() string {
-	if s.UserNickname != nil {
-		return *s.UserNickname
+	if s.UserNickname != "" {
+		return s.UserNickname
 	}
 	return s.FeedDetails.Title
 }
@@ -185,47 +182,20 @@ func CompareSubscriptionUnreadCount(a, b *Subscription) int {
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
-func (r *SubscriptionRequest) Valid() (bool, error) {
-	if r.URL == "" {
-		return false, errors.New("no URL specified")
+func (r *SubscriptionRequest) Valid() bool {
+	valid, err := validation.ValidateStruct(r)
+	if !valid || err != nil {
+		r.Msg = NewMessage("Details are invalid",
+			WithError(err),
+			WithStatus(MessageStatusError),
+		)
+		return false
 	}
-	return validation.ValidateStruct(r)
+	return true
 }
 
 func (r *SubscriptionRequest) GetURL() string {
 	return r.URL
-}
-
-// ToSubscription converts a SubscriptionRequest to a Subscription using the
-// request details and the given feed and user IDs.
-func (r *SubscriptionRequest) ToSubscription() (*Subscription, error) {
-	if valid, err := r.Valid(); !valid {
-		return nil, err
-	}
-
-	var subscription Subscription
-
-	data, err := json.Marshal(r)
-	if err != nil {
-		return nil, fmt.Errorf("could not marshal request: %w", err)
-	}
-
-	err = json.Unmarshal(data, &subscription)
-	if err != nil {
-		return nil, fmt.Errorf("could not unmarshal subscription: %w", err)
-	}
-
-	subscription.CreatedAt = time.Now().UTC()
-
-	return &subscription, nil
-}
-
-func NewSubscriptionRequest() *SubscriptionRequest {
-	id, _ := id.NewID(id.Subscription)
-	return &SubscriptionRequest{
-		ID: id,
-	}
-
 }
 
 // SubscriptionRequests is a list of subscription requests.
@@ -244,36 +214,17 @@ type SubscriptionRequests []*SubscriptionRequest
 // FilterValid returns a slice of SubscriptionRequest containing only those
 // requests that are valid (i.e., do not have an error).
 func (r SubscriptionRequests) FilterValid() SubscriptionRequests {
-	return slices.Collect(filtered(r, func(request *SubscriptionRequest) bool {
-		return request.Err == nil
+	return slices.Collect(FilterSlice(r, func(request *SubscriptionRequest) bool {
+		return request.Msg == nil
 	}))
 }
 
 // FilterInValid returns a slice of SubscriptionRequest containing only those
 // requests that are invalid (i.e., have an error).
 func (r SubscriptionRequests) FilterInValid() SubscriptionRequests {
-	return slices.Collect(filtered(r, func(request *SubscriptionRequest) bool {
-		return request.Err != nil
+	return slices.Collect(FilterSlice(r, func(request *SubscriptionRequest) bool {
+		return request.Msg != nil
 	}))
-}
-
-// FilterValid returns a slice of SubscriptionRequest containing only those
-// requests that are valid (i.e., do not have an error).
-func (r SubscriptionRequests) FilterFeedNeeded() SubscriptionRequests {
-	return slices.Collect(filtered(r, func(request *SubscriptionRequest) bool {
-		return request.Feed != nil
-	}))
-}
-
-// Feeds extracts and returns a list of Feeds from the requests.
-func (r SubscriptionRequests) Feeds() []*Feed {
-	feeds := make([]*Feed, 0, len(r))
-	for request := range slices.Values(r) {
-		if request.Feed != nil {
-			feeds = append(feeds, request.Feed)
-		}
-	}
-	return feeds
 }
 
 // URLs extracts and returns a list of URLs from the requests.
@@ -285,4 +236,28 @@ func (r SubscriptionRequests) URLs() []URL {
 		}
 	}
 	return urls
+}
+
+func NewSubscriptionRequest() *SubscriptionRequest {
+	id, _ := id.NewID(id.Subscription)
+	return &SubscriptionRequest{
+		ID: id,
+	}
+}
+
+func NewSubscription(request *SubscriptionRequest, feed FeedInterface) *Subscription {
+	return &Subscription{
+		CreatedAt:      time.Now().UTC(),
+		ID:             request.ID,
+		UserCategories: request.UserCategories,
+		UserNickname:   request.UserNickname,
+		FeedID:         feed.GetID(),
+		FeedDetails: FeedMetadata{
+			Title:       feed.GetTitle(),
+			Description: feed.GetDescription(),
+			Image:       feed.GetImage(),
+			Categories:  feed.GetCategories(),
+			Authors:     feed.GetAuthors(),
+		},
+	}
 }

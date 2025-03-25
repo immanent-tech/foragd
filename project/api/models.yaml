@@ -96,6 +96,7 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         validate: "required,startswith=sub_"
+        form: "subscription_id"
         json: "subscription_id"
     ItemState:
       description: >
@@ -362,19 +363,6 @@ components:
         expiry:
           description: the time at which this session token expires.
           x-go-type: time.Time
-    SubscriptionMetadata:
-      description: >
-        contains metadata for tracking a subscription.
-      type: object
-      required:
-        - ID
-        - FeedID
-        - URL
-      properties:
-        ID:
-          $ref: "#/components/schemas/SubscriptionID"
-        FeedID:
-          $ref: "#/components/schemas/FeedID"
     SubscriptionCustomisation:
       description: >
         represents the properties of a subscription a user can customize.
@@ -386,6 +374,8 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: "user_nickname"
+            validate: "omitempty"
+          x-go-type-skip-optional-pointer: true
         user_categories:
           description: >
             is a user-defined list of Category names for the subscription.
@@ -395,7 +385,7 @@ components:
           x-oapi-codegen-extra-tags:
             json: "user_categories"
             form: "user_categories[]"
-            validate: "unique"
+            validate: "omitempty,unique"
           x-go-type-skip-optional-pointer: true
     SubscriptionState:
       description: >
@@ -445,13 +435,18 @@ components:
       type: object
       allOf:
         - $ref: "#/components/schemas/Timestamps"
-        - $ref: "#/components/schemas/SubscriptionMetadata"
         - $ref: "#/components/schemas/SubscriptionCustomisation"
         - type: object
           required:
+            - ID
+            - FeedID
             - state
             - feed_details
           properties:
+            ID:
+              $ref: "#/components/schemas/SubscriptionID"
+            FeedID:
+              $ref: "#/components/schemas/FeedID"
             feed_details:
               $ref: "#/components/schemas/FeedMetadata"
             state:

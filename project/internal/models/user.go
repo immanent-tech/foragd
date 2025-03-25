@@ -109,6 +109,13 @@ func (u *User) MarkSubscriptions(mark Mark, feedIDs ...FeedID) {
 	}
 }
 
+// AddSubscriptions adds the given Subscriptions to the User.
+func (u *User) AddSubscriptions(subscriptions Subscriptions) {
+	for subscription := range slices.Values(subscriptions) {
+		u.Subscriptions = append(u.Subscriptions, *subscription)
+	}
+}
+
 func (u *User) IsSubscribed(feedID FeedID) bool {
 	subscriptions := u.GetSubscriptions().FilterByFeedID(feedID)
 	return len(subscriptions) > 0
@@ -123,12 +130,11 @@ func (u *User) MarkItems(mark Mark, itemIDs ...ItemID) {
 func (u *UserSignupRequest) Valid() bool {
 	valid, problems := validation.ValidateStruct(u)
 	if problems != nil {
-		u.Err = &ExternalError{
-			Summary:   "the details are invalid",
-			Details:   problems.Error(),
-			Retryable: true,
-			Err:       problems,
-		}
+		u.Msg = NewMessage("the details are invalid",
+			WithStatus(MessageStatusInfo),
+			WithDetails(problems.Error()),
+			WithError(problems),
+		)
 	}
 
 	return valid

@@ -114,7 +114,7 @@ templ ImportModal() {
 	}
 }
 
-templ ImportError(problems *models.ExternalError) {
+templ ImportError(problems *models.Message) {
 	// @alert.Build(state.Error,
 	// 	alert.WithID("import-error"),
 	// 	alert.WithStyle(style.Soft),
@@ -128,7 +128,9 @@ templ ImportError(problems *models.ExternalError) {
 		<input type="checkbox"/>
 		<div class="collapse-title font-semibold text-sm text-error-content">Error: { problems.Summary }</div>
 		<div class="collapse-content text-error-content text-sm">
-			{ problems.Details }
+			if problems.HasDetails() {
+				{ *problems.Details }
+			}
 			@button.Build(
 				button.WithContent("Okay"),
 				button.WithStateColor(state.Error, false),

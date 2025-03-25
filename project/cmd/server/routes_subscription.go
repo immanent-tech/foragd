@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"maps"
 	"mime"
 	"mime/multipart"
 	"net/http"
@@ -22,23 +23,25 @@ import (
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/validation"
 	"github.com/joshuar/go-feed-me/pkg/opml"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
 
-type OPMLFile struct {
+type opmlFile struct {
 	data multipart.File
 	hdr  *multipart.FileHeader
 }
 
-func (f *OPMLFile) Load(data multipart.File, hdr *multipart.FileHeader) error {
+func (f *opmlFile) Load(data multipart.File, hdr *multipart.FileHeader) error {
 	f.data = data
 	f.hdr = hdr
 	return nil
 }
 
-func (f *OPMLFile) Valid() bool {
+func (f *opmlFile) Valid() bool {
 	mediaType, _, err := mime.ParseMediaType(f.hdr.Header.Get("Content-Type"))
 	if err != nil {
 		return false
@@ -46,9 +49,15 @@ func (f *OPMLFile) Valid() bool {
 	return mediaType == "text/x-opml+xml"
 }
 
-// NewSubscription creates a new APISubscription request and presents it as a
-// form for the user to fill out.
-func (s Server) SubscriptionNew(res http.ResponseWriter, req *http.Request) {
+// subscriptionRequests maps a Subscription to a Feed that needs to be created
+// for the Subscription.
+type subscriptionRequests map[*models.Subscription]*models.Feed
+
+// subscriptionRequestResults maps a SubscriptionID for a SubscriptionRequest to
+// message indicating the result of processing the SubscriptionRequest.
+type subscriptionRequestResults map[models.SubscriptionID]*models.Message
+
+func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.Modal(models.NewSubscriptionRequest())); err != nil {
 		logging.FromContext(req.Context()).Error("Cannot display content.",
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
@@ -56,39 +65,17 @@ func (s Server) SubscriptionNew(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func (s Server) SubscriptionEditNew(res http.ResponseWriter, req *http.Request) {
-	res.WriteHeader(http.StatusNotImplemented)
-}
+func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
+	request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
+	if !valid || err != nil {
+		if err := htmx.NewResponse().Retarget("#warnings_toast").RenderTempl(req.Context(), res, partials.NewUserMessage(request.Msg).Show()); err != nil {
+			logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", err))
+			http.Error(res, "user signup failed!", http.StatusInternalServerError)
+		}
+	}
 
-func (s Server) SubscriptionAdd(res http.ResponseWriter, req *http.Request) {
-	res.WriteHeader(http.StatusNotImplemented)
-
-	// ctx := req.Context()
-
-	// user, found := models.UserFromCtx(ctx)
-	// if !found {
-	// 	logging.FromContext(ctx).Error("No user found?")
-	// 	http.Error(res, "Problem!", http.StatusInternalServerError)
-
-	// 	return
-	// }
-
-	// newSubscription, _, err := forms.DecodeForm[*models.SubscriptionRequest](req)
-	// if err != nil {
-	// 	logging.FromContext(ctx).Error("Could not decode submitted subscription request request.",
-	// 		slog.Any("error", err))
-	// 	http.Error(res, "Problem!", http.StatusInternalServerError)
-
-	// 	return
-	// }
-
-	// addNewSubscription(req.Context(), s.DataAPI().GetAPI(), user, *newSubscription)
-
-	// if err := htmx.NewResponse().Retarget("#command_modal").RenderTempl(ctx, res, subscription.AddSubscriptionSuccess()); err != nil {
-	// 	logging.FromContext(ctx).Error("Cannot display content.",
-	// 		slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-	// 	http.Error(res, "Problem!", http.StatusInternalServerError)
-	// }
+	results := processSubscriptionRequests(req.Context(), s.DataAPI(), models.SubscriptionRequests{request})
+	spew.Dump(request, results)
 }
 
 func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
@@ -169,41 +156,26 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			logging.FromContext(req.Context()).Warn("Import processing failed.",
-				slog.Any("error", err))
-			// data <- subscription.ImportError(&models.ExternalError{
-			// 	Summary: "invalid user data",
-			// 	Details: "There was an internal (likely temporary) problem. Please try again.",
-			// 	Err:     err,
-			// })
-			return
-		}
 		// data <- subscription.ImportStatus("Processing list of subscription requests...")
 		data <- "Processing list of subscription requests..."
 
 		// Process the requests.
-		processRequests(req.Context(), data, s.DataAPI(), user, requests)
+		processSubscriptionRequests(req.Context(), s.DataAPI(), requests)
 		for request := range slices.Values(requests) {
 
-			if request.Err != nil {
-				if errors.Is(request.Err, &models.ExternalError{}) {
+			if request.Msg != nil {
+				if errors.Is(request.Msg, &models.Message{}) {
 					slog.Warn("request has error",
 						slog.String("url", request.URL),
-						slog.String("feed_id", request.FeedID),
-						slog.Any("error", request.Err))
+						slog.Any("error", request.Msg.Error()))
 				} else {
 					slog.Warn("request has error",
 						slog.String("url", request.URL),
-						slog.String("feed_id", request.FeedID),
 						slog.Any("error", "unknown"))
 				}
 			} else {
 				slog.Info("request ready",
-					slog.String("url", request.URL),
-					slog.String("feed_id", request.FeedID),
-					slog.Bool("new_feed", request.Feed != nil))
+					slog.String("url", request.URL))
 			}
 		}
 		logging.FromContext(req.Context()).Debug("Import finished")
@@ -227,7 +199,7 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 
 func processOPMLFileImport(req *http.Request) (models.SubscriptionRequests, error) {
 	// Decode the OPML file form input.
-	opmlFile := &OPMLFile{}
+	opmlFile := &opmlFile{}
 	opmlFile, valid, err := forms.DecodeMultipartFile(req, "data", opmlFile)
 	if err != nil || !valid {
 		return nil, fmt.Errorf("decode OPML file data failed: %w", err)
@@ -257,11 +229,11 @@ func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, sub
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) SaveSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
+func (s Server) ShowSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) ShowSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
+func (s Server) SaveSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -269,33 +241,26 @@ func (s Server) RemoveSubscription(w http.ResponseWriter, r *http.Request, feedI
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// func (f *AddSubscriptionCategoryFormdataRequestBody) Valid() bool {
-// 	return f.Category != ""
-// }
+func (f *AddSubscriptionCategoryFormdataBody) Valid() bool {
+	return f.Category != ""
+}
 
-// func (s Server) AddSubscriptionCategory(res http.ResponseWriter, req *http.Request) {
-// 	var response templ.Component
+func (s Server) AddSubscriptionCategory(res http.ResponseWriter, req *http.Request) {
+	data, valid, err := forms.DecodeForm[*AddSubscriptionCategoryFormdataBody](req)
+	if !valid || err != nil {
+		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
 
-// 	data, valid, err := forms.DecodeForm[*AddSubscriptionCategoryFormdataRequestBody](req)
-// 	if !valid {
-// 		response = subscription.AddSubscriptionWarning("Invalid ")
-// 	} else {
-// 		response = subscription.AddCategory(data.Category)
-// 	}
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.ShowCategory(data.Category)); err != nil {
+		logging.FromContext(req.Context()).Error("Cannot display content.",
+			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+		http.Error(res, "Problem!", http.StatusInternalServerError)
+	}
+}
 
-// 	if err != nil {
-// 		logging.FromContext(req.Context()).Error("Cannot display content.",
-// 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-// 	}
-
-// 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, response); err != nil {
-// 		logging.FromContext(req.Context()).Error("Cannot display content.",
-// 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-// 		http.Error(res, "Problem!", http.StatusInternalServerError)
-// 	}
-// }
-
-func (s Server) RemoveSubscriptionCategory(res http.ResponseWriter, req *http.Request) {
+func (s Server) DelSubscriptionCategory(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 
 	if _, err := res.Write(nil); err != nil {
@@ -305,92 +270,119 @@ func (s Server) RemoveSubscriptionCategory(res http.ResponseWriter, req *http.Re
 	}
 }
 
-func addSubscriptionError(ctx context.Context, res http.ResponseWriter, details *models.SubscriptionRequest, message string) {
-	var err error
-	resp := htmx.NewResponse()
-
-	if err = resp.RenderTempl(ctx, res, subscription.AddSubscriptionWarning(message)); err != nil {
-		logging.FromContext(ctx).Error("Cannot display content.",
-			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-		http.Error(res, "Problem!", http.StatusInternalServerError)
-	}
-
-	if err = resp.RenderTempl(ctx, res, subscription.Form(details)); err != nil {
-		logging.FromContext(ctx).Error("Cannot display content.",
-			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-		http.Error(res, "Problem!", http.StatusInternalServerError)
-	}
-}
-
-func importError(ctx context.Context, res http.ResponseWriter, problem *models.ExternalError) {
-	if err := htmx.NewResponse().Retarget(subscription.ImportFeedBackID.Target()).RenderTempl(ctx, res, subscription.ImportError(problem)); err != nil {
-		logging.FromContext(ctx).Error("Cannot display content.",
-			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
-		http.Error(res, "Problem!", http.StatusInternalServerError)
-	}
-}
-
-func processRequests(ctx context.Context, data chan string, esapi DataAPI, user *models.User, requests models.SubscriptionRequests) {
-	// Add any new feeds required for subscriptions.
-	// data <- subscription.ImportStatus("Gathering feed data...")
-	data <- "Gathering feed data..."
-	addSubscriptionFeeds(ctx, esapi, user, requests)
-	// Add subscriptions.
-	// data <- subscription.ImportStatus("Adding new subscriptions...")
-	data <- "Adding new subscriptions..."
-	addSubscriptions(ctx, esapi, requests)
-}
-
-// addSubscriptionFeeds will add new feeds for any subscriptions that require them.
-func addSubscriptionFeeds(ctx context.Context, api DataAPI, user *models.User, requests models.SubscriptionRequests) {
-	// Generate feed information for each valid subscription request.
-	generateFeedDetails(ctx, api, user, requests.FilterValid())
-	return
-	// Add the new feeds.
-	newFeedsResp, err := api.AddFeeds(ctx, requests.Feeds()...)
-	// If the request failed and no new feeds were created, add a request error
-	// indicating they are failed.
-	if err != nil || (newFeedsResp.Err != nil && len(newFeedsResp.Responses) == 0) {
-		for request := range slices.Values(requests.FilterFeedNeeded()) {
-			request.Err = &models.ExternalError{
-				Summary: "subscription could not be added",
-				Details: "The subscription could not be added due to a temporary backend error. Please re-try.",
-				Err:     err,
-			}
-		}
-	}
-	// Check the response results and add an error to each request that failed.
-	for _, response := range newFeedsResp.Responses {
-		if response.Id_ == nil {
-			continue
-		}
-		_, err := response.State()
+// processSubscriptionRequests is the main action loop for processing
+// subscription requests. It handles generating the subscriptions, adding any
+// new feeds that are required and updating the user object. As it processes
+// requests, results are gathered. It will return a map of results.
+func processSubscriptionRequests(ctx context.Context, api DataAPI, requests models.SubscriptionRequests) subscriptionRequestResults {
+	results := make(subscriptionRequestResults)
+	// Generate subscriptions.
+	subscriptions, warnings := generateSubscriptions(ctx, api, requests...)
+	maps.Insert(results, maps.All(warnings))
+	// Add any new feeds required.
+	warnings = addFeedsForSubscriptions(ctx, api, filterFeedNeeded(subscriptions))
+	maps.Insert(results, maps.All(warnings))
+	// Filter subscriptions that have failed results.
+	subscriptions = maps.Collect(models.FilterMap(subscriptions, func(s *models.Subscription, _ *models.Feed) bool {
+		return !slices.ContainsFunc(slices.Collect(maps.Keys(results)), func(i models.SubscriptionID) bool { return i == s.ID })
+	}))
+	err := api.AddSubscriptions(ctx, slices.Collect(maps.Keys(subscriptions)))
+	// If the request to add subscriptions failed, record failure for all subscriptions.
+	for sub := range maps.Keys(subscriptions) {
 		if err != nil {
-			if idx := slices.IndexFunc(requests.FilterFeedNeeded(), func(request *models.SubscriptionRequest) bool { return *response.Id_ == request.FeedID }); idx != -1 {
-				requests[idx].Err = &models.ExternalError{
-					Summary: "subscription could not be added",
-					Details: "The subscription could not be added due to a temporary backend error. Please re-try.",
-					Err:     err,
-				}
-
-			}
+			results[sub.ID] = models.NewMessage(
+				fmt.Sprintf("could not create a subscription for feed %s", sub.GetName()),
+				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
+				models.WithStatus(models.MessageStatusWarning),
+				models.WithError(err),
+			)
+		} else {
+			results[sub.ID] = models.NewMessage(
+				fmt.Sprintf("Subscription for feed %s created!", sub.GetName()),
+				models.WithStatus(models.MessageStatusSuccess),
+				models.WithError(err))
 		}
 	}
+	return results
 }
 
-// generateFeedDetails adds details of the Feed that is associated with the
+// addFeedsForSubscriptions will take a map of Subscriptions needing Feeds and
+// try to create new Feed objects for them. It returns a map of the
+// SubscriptionID and either a nil value (feed created) or non-nil Message
+// (error occurred).
+func addFeedsForSubscriptions(ctx context.Context, api DataAPI, subscriptions map[*models.Subscription]*models.Feed) subscriptionRequestResults {
+	// No-op if there are no Subscriptions needing Feeds.
+	if len(subscriptions) == 0 {
+		return nil
+	}
+	results := make(subscriptionRequestResults)
+	// Add the new feeds.
+	newFeedsResp, err := api.AddFeeds(ctx, slices.Collect(maps.Values(subscriptions))...)
+	// If the request failed and no new feeds were created return all
+	// subscriptions with fail messages.
+	if err != nil || (newFeedsResp.Err != nil && len(newFeedsResp.Responses) == 0) {
+		for sub := range maps.Keys(subscriptions) {
+			results[sub.ID] = models.NewMessage(
+				fmt.Sprintf("could not create a subscription for feed %s", sub.GetName()),
+				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
+				models.WithStatus(models.MessageStatusWarning),
+				models.WithError(err),
+			)
+		}
+		return results
+	}
+	// Else loop through the results, adding fail messages for any subscriptions
+	// that failed to have their feed created.
+	for sub := range maps.Keys(subscriptions) {
+		// Match a response result to a subscription.
+		idx := slices.IndexFunc(newFeedsResp.Responses,
+			func(v *bulk.OperationResponse) bool {
+				if v.Id_ != nil {
+					return *v.Id_ == sub.ID
+				}
+				return false
+			})
+		if idx != -1 {
+			// For a matched response, check if the response indicates an error.
+			// If it does, add a message.
+			if _, err = newFeedsResp.Responses[idx].State(); err != nil {
+				results[sub.ID] = models.NewMessage(
+					fmt.Sprintf("could not create a subscription for feed %s", sub.GetName()),
+					models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
+					models.WithStatus(models.MessageStatusWarning),
+					models.WithError(err),
+				)
+			}
+			results[sub.ID] = nil
+		} else {
+			results[sub.ID] = models.NewMessage(
+				fmt.Sprintf("could not create a subscription for feed %s", sub.GetName()),
+				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
+				models.WithStatus(models.MessageStatusWarning),
+				models.WithError(err),
+			)
+		}
+	}
+
+	return results
+}
+
+// generateSubscriptions adds details of the Feed that is associated with the
 // subscription request. For non-existing feeds, the request will have a feed
 // object added that can be used to add the feed as well.
-func generateFeedDetails(ctx context.Context, api DataAPI, user *models.User, requests models.SubscriptionRequests) {
+func generateSubscriptions(ctx context.Context, api DataAPI, requests ...*models.SubscriptionRequest) (subscriptionRequests, subscriptionRequestResults) {
+	newSubscriptions := make(subscriptionRequests)
+	results := make(subscriptionRequestResults)
 	// Collect existing feeds matching the URls.
-	existingFeeds, err := api.GetFeedsByURL(ctx, requests.URLs()...)
+	existingFeeds, err := api.GetFeedsByURL(ctx, models.SubscriptionRequests(requests).URLs()...)
 	if err != nil {
 		for request := range slices.Values(requests) {
-			request.Err = &models.ExternalError{
-				Summary: fmt.Sprintf("could not create a subscription for feed URL %s", request.GetURL()),
-				Details: "A subscription could not be created as temporary backend error. Please check the URL and/or try again.",
-				Err:     err,
-			}
+			results[request.ID] = models.NewMessage(
+				fmt.Sprintf("could not create a subscription for feed with URL %s", request.GetURL()),
+				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
+				models.WithStatus(models.MessageStatusWarning),
+				models.WithError(err),
+			)
 		}
 	}
 	// Loop through requests and generate subscriptions for each one. If a new
@@ -399,75 +391,29 @@ func generateFeedDetails(ctx context.Context, api DataAPI, user *models.User, re
 		if idx := slices.IndexFunc(existingFeeds, func(feed *models.APIFeed) bool {
 			return request.GetURL() == feed.GetLink()
 		}); idx != -1 {
-			// Existing feed. Add existing FeedID to request.
-			request.FeedID = existingFeeds[idx].GetID()
+			// Existing Ffeed. Create Subscription using existing Feed details.
+			s := models.NewSubscription(request, existingFeeds[idx])
+			newSubscriptions[s] = nil
 		} else {
-			// New feed. Create feed and add FeedID and Feed to request.
+			// New Feed. Create Feed then create Subscription with new Feed details.
 			newFeed, err := models.NewFeedFromURL(ctx, request.GetURL())
 			if err != nil {
-				request.Err = &models.ExternalError{
-					Summary: fmt.Sprintf("could not create a subscription for feed URL %s", request.GetURL()),
-					Details: "A subscription could not be created as there was an error trying to parse the feed at the given URL. Please check the URL and/or try again.",
-					Err:     err,
-				}
+				results[request.ID] = models.NewMessage(fmt.Sprintf("could not create a subscription for feed with URL %s", request.GetURL()),
+					models.WithDetails("A subscription could not be created as there was an error trying to parse the feed at the given URL. Please check the URL and/or try again."),
+					models.WithStatus(models.MessageStatusWarning),
+					models.WithError(err),
+				)
 			} else {
-				request.FeedID = newFeed.ID
-				request.Feed = newFeed
+				s := models.NewSubscription(request, existingFeeds[idx])
+				newSubscriptions[s] = newFeed
 			}
 		}
 	}
+	return newSubscriptions, results
 }
 
-// addSubscriptions will add new subscriptions for all valid subscription requests.
-func addSubscriptions(ctx context.Context, esapi DataAPI, requests models.SubscriptionRequests) {
-	subscriptions := generateSubscriptions(requests.FilterValid())
-	spew.Dump(subscriptions)
-	return
-	// // Add the new subscriptions.
-	// // If the request failed and no new feeds were created, add a request error
-	// // indicating they are failed.
-	// if err != nil || (newSubsResp.Err != nil && len(newSubsResp.Responses) == 0) {
-	// 	for request := range slices.Values(requests) {
-	// 		request.Err = &models.ExternalError{
-	// 			Summary: "subscription could not be added",
-	// 			Details: "The subscription could not be added due to a temporary backend error. Please re-try.",
-	// 			Err:     err,
-	// 		}
-	// 	}
-	// }
-	// // Check the response results and add an error to each request that failed.
-	// for _, response := range newSubsResp.Responses {
-	// 	if response.Id_ == nil {
-	// 		continue
-	// 	}
-	// 	_, err := response.State()
-	// 	if err != nil {
-	// 		if idx := slices.IndexFunc(requests, func(request *models.SubscriptionRequest) bool { return *response.Id_ == request.FeedID }); idx != -1 {
-	// 			requests[idx].Err = &models.ExternalError{
-	// 				Summary: "subscription could not be added",
-	// 				Details: "The subscription could not be added due to a temporary backend error. Please re-try.",
-	// 				Err:     err,
-	// 			}
-
-	// 		}
-	// 	}
-	// }
-}
-
-// generateSubscriptions will generate subscription objects for all valid subscription requests.
-func generateSubscriptions(requests models.SubscriptionRequests) []*models.Subscription {
-	subscriptions := make([]*models.Subscription, 0, len(requests))
-	for request := range slices.Values(requests) {
-		subscription, err := request.ToSubscription()
-		if err != nil {
-			request.Err = &models.ExternalError{
-				Summary: "invalid subscription data",
-				Details: "The subscription contains invalid data. Please check the input and try again.",
-				Err:     err,
-			}
-		} else {
-			subscriptions = append(subscriptions, subscription)
-		}
-	}
-	return subscriptions
+func filterFeedNeeded(subscriptions map[*models.Subscription]*models.Feed) map[*models.Subscription]*models.Feed {
+	return maps.Collect(models.FilterMap(subscriptions, func(_ *models.Subscription, f *models.Feed) bool {
+		return f != nil
+	}))
 }

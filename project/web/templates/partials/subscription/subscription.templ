@@ -11,193 +11,110 @@ import (
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/text"
-	"github.com/joshuar/go-templ-daisyui/feedback/alert"
-	"github.com/joshuar/go-templ-daisyui/input"
+	"github.com/joshuar/go-templ-daisyui/input/fieldset"
 	"github.com/joshuar/go-templ-daisyui/input/form"
+	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
-	"github.com/joshuar/go-templ-daisyui/layout/list"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
-	"github.com/joshuar/go-templ-daisyui/modifiers/state"
+	"slices"
 )
 
-// inputURL generates the text input for the subscription URL.
-func inputURL(req *models.SubscriptionRequest) templ.Component {
-	urlInput := input.Build(textinput.Build(
-		textinput.Required(),
-		textinput.WithPlaceholder("https://cool.feed.lol/rss"),
+var SubscriptionRequestID = attributes.ID("subscription-request-form")
+var CategoryChangeID = attributes.ID("category-change-form")
+var CategoryListID = attributes.ID("category-list")
+
+type SubscriptionRequest struct {
+	*models.SubscriptionRequest
+}
+
+func (r *SubscriptionRequest) inputURL() *textinput.Props {
+	return textinput.Build(
 		textinput.WithName("url"),
-		textinput.WithID("url"),
-		textinput.WithSize(size.SM),
-		textinput.WithExtraAttributes(templ.Attributes{
-			"onkeydown": "if (event.keyCode === 13) event.preventDefault();",
-		}),
-	),
-		input.WithFormControlLabel(input.TopRight, "Required"),
-		input.WithLabel(input.Left, "URL"),
-		input.WithLabel(input.Right, partials.HelperDropDown("The URL for the feed.")),
+		textinput.AsType(textinput.TypeURL),
+		textinput.WithPlaceholder("https://awesomefeed.lol.rss"),
+		textinput.Required(),
+		textinput.Validate(),
+		textinput.ValidateHint("A valid URL to a feed is required."),
+		textinput.WithValue(r.URL),
 	)
-	// Add the value if set.
-	if req.URL != "" {
-		urlInput.Input.SetValue(attributes.Value(req.URL))
-	}
-	// Check for validation errors and mark the field with error status.
-	// if req.ValidationErrors["URL"] != "" {
-	// 	// urlInput.Input.SetStateColor(state.Error)
-	// 	urlInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["URL"])
-	// }
-
-	return urlInput.Show()
 }
 
-// inputName generates the text input for the subscription name.
-func inputName(req *models.SubscriptionRequest) templ.Component {
-	nameInput := input.Build(
-		textinput.Build(
-			textinput.WithPlaceholder("My custom feed name"),
-			textinput.WithName("name"),
-			textinput.WithID("name"),
-			textinput.WithSize(size.SM),
-			textinput.WithExtraAttributes(templ.Attributes{
-				"onkeydown": "if (event.keyCode === 13) event.preventDefault();",
-			}),
-		),
-		input.WithFormControlLabel(input.TopRight, "Optional"),
-		input.WithLabel(input.Left, "Name"),
-		input.WithLabel(input.Right, partials.HelperDropDown(
-			"Replace the name of the feed with your own custom nickname. If not specified, will default the feed name.",
-		)),
+func (r *SubscriptionRequest) inputNickname() *textinput.Props {
+	return textinput.Build(
+		textinput.WithName("user_nickname"),
+		textinput.WithValue(r.UserNickname),
+		textinput.WithPlaceholder("My memorable feed name"),
 	)
-	// Check for validation or input errors and mark the field with error status.
-	if req.UserNickname != nil {
-		nameInput.Input.SetValue(attributes.Value(*req.UserNickname))
-	}
-	// Check for validation errors and mark the field with error status.
-	// if req.ValidationErrors["Name"] != "" {
-	// 	// nameInput.Input.SetStateColor(state.Error)
-	// 	nameInput.FormControl.SetFormControlLabel(input.BottomRight, req.ValidationErrors["Name"])
-	// }
-
-	return nameInput.Show()
 }
 
-// inputName generates the text input for adding a category.
-func inputCategory() templ.Component {
-	return input.Build(
-		textinput.Build(
-			textinput.WithPlaceholder("CoolStuff"),
-			textinput.WithName("category"),
-			textinput.WithID("category"),
-			textinput.WithSize(size.SM),
+templ (r *SubscriptionRequest) Form() {
+	if r.Msg != nil {
+		@partials.NewUserMessage(r.Msg).Show()
+	}
+	// Display the Subscription details.
+	@form.BuildForm(
+		form.WithID(SubscriptionRequestID.String()),
+		form.WithExtraAttributes(
+			templ.Attributes{
+				"hx-put":    "/subscription/add",
+				"hx-target": SubscriptionRequestID.Target(),
+				"hx-swap":   "morph:outerHTML",
+			},
 		),
-		input.WithFormControlLabel(input.TopRight, "Optional"),
-		input.WithLabel(input.Left, "Category"),
-		input.WithLabel(input.Right,
-			button.Build(
-				button.AsShape(button.Circle, true),
-				button.WithSize(size.SM),
-				button.WithThemeColor(color.Primary, false),
-				button.WithContent(icon.Build("fa-plus")),
+		form.WithElements(
+			fieldset.Build(
+				fieldset.WithField("",
+					hiddeninput.Build(
+						hiddeninput.WithName("subscription_id"),
+						hiddeninput.WithValue(r.ID),
+					),
+				),
+				fieldset.WithLegend("Subscription details:"),
+				fieldset.WithField("URL", r.inputURL()),
+				fieldset.WithField("Nickname (optional)", r.inputNickname()),
 			).Show(),
 		),
 	).Show()
-}
-
-// categoryItem generates a category in a format suitable for a list.
-func categoryItem(category models.Category) templ.Component {
-	return input.Build(
-		textinput.Build(
-			textinput.ReadOnly(),
-			textinput.WithName("categories[]"),
-			textinput.WithValue(attributes.Value(category)),
-			textinput.WithExtraAttributes(templ.Attributes{
-				"form": "new_subscription",
-			}),
+	// Display an input to add a Category to the Subscription.
+	@form.BuildForm(
+		form.WithID(CategoryChangeID.String()),
+		form.WithExtraAttributes(
+			templ.Attributes{
+				"hx-put":               "/subscription/edit/category",
+				"hx-swap":              "beforeend",
+				"hx-on::after-request": "if(event.detail.successful) this.reset()",
+				"hx-target":            CategoryListID.Target(),
+			},
 		),
-		input.WithLabel(input.Right,
-			button.Build(
-				button.AsShape(button.Circle, true),
-				button.WithSize(size.SM),
-				button.WithThemeColor(color.Primary, false),
-				button.WithContent(icon.Build("fa-minus")),
-				button.WithExtraAttributes(templ.Attributes{
-					"hx-delete": "/subscription/category",
-				}),
+		form.WithElements(
+			fieldset.Build(
+				fieldset.WithField("Category (optional)", newCategoryInput()),
 			).Show(),
 		),
 	).Show()
-}
-
-// categoriesList generates a list of categories assigned to the subscription,
-// with the ability to remove them.
-func categoriesList(req *models.SubscriptionRequest) templ.Component {
-	if req.UserCategories == nil {
-		return nil
-	}
-	categories := make([]templ.Component, 0, len(req.UserCategories))
-
-	for _, category := range req.UserCategories {
-		categories = append(categories,
-			categoryItem(category),
-		)
-	}
-
-	// Categories in an unordered list.
-	return list.BuildUnordered(
-		list.WithID("categories"),
-		list.WithExtraAttributes(templ.Attributes{
-			"hx-target": "closest li",
-			"hx-swap":   "outerHTML swap:1s",
-		}),
-	).Show(categories...)
-}
-
-templ Form(req *models.SubscriptionRequest) {
-	<div id="add_subscription_form" hx-target="this" class="p-4">
-		// Form inputs for URL and name.
-		@form.BuildForm(
-			form.WithID("new_subscription"),
-			form.WithExtraAttributes(
-				templ.Attributes{
-					"hx-put": "/subscription/new",
-				},
-			),
-			form.WithElements(
-				inputURL(req),
-				inputName(req),
-			),
-		).Show()
-		// Form input for adding categories.
-		@form.BuildForm(
-			form.WithID("add_category_form"),
-			form.WithExtraAttributes(
-				templ.Attributes{
-					"hx-put":               "/subscription/category",
-					"hx-target":            "#categories",
-					"hx-swap":              "beforeend",
-					"hx-on::after-request": "if(event.detail.successful) this.reset()",
-				},
-			),
-			form.WithElements(
-				inputCategory(),
-			),
-		).Show()
-		// Categories list.
-		@text.Build("Existing Categories:").Show()
-		@categoriesList(req)
-		// Form submit button.
-		@input.Build(
-			button.Build(
-				button.WithID("add"),
-				button.WithContent("Add"),
-				button.WithThemeColor(color.Primary, true),
-				button.WithExtraAttributes(templ.Attributes{
-					"form": "new_subscription",
-				}),
-			),
-			input.AsFormControl(),
-		).Show()
+	// Display any Categories assigned to the Subscription with a button to
+	// remove them.
+	<div id={ CategoryListID.String() } hx-target="closest div" hx-swap="outerHTML swap:1s">
+		for category := range slices.Values(r.UserCategories) {
+			@ShowCategory(category)
+		}
 	</div>
+	// Add a button to submit the Subscription details when finished editing.
+	@fieldset.Build(
+		fieldset.WithField("",
+			button.Build(
+				button.WithContent("Make it so!"),
+				button.WithExtraAttributes(templ.Attributes{
+					"form": SubscriptionRequestID.String(),
+				})),
+		),
+	).Show()
+}
+
+func NewSubscriptionRequest(req *models.SubscriptionRequest) *SubscriptionRequest {
+	return &SubscriptionRequest{
+		SubscriptionRequest: req,
+	}
 }
 
 // NewSubscriptionModal displays a modal for a user to enter new subscription details.
@@ -213,7 +130,6 @@ templ Modal(req *models.SubscriptionRequest) {
 				button.AsShape(button.Circle, false),
 				button.WithID("close"),
 				button.WithSize(size.SM),
-				button.WithThemeColor(color.Primary, true),
 				button.WithContent(icon.Build("fa-xmark")),
 				button.WithExtraAttributes(templ.Attributes{
 					"_": "on click or keyup[key=='Esc'] take .modal-open from #add_subscription_modal wait 200ms then remove #add_subscription_modal",
@@ -221,63 +137,8 @@ templ Modal(req *models.SubscriptionRequest) {
 			).Show()
 		</div>
 		@text.Build("Add a new subscription", text.WithTextSize(text.LG)).Show()
-		@text.Build("Enter the details and click Add", text.AsItalicText()).Show()
 		if req != nil {
-			@Form(req)
+			@NewSubscriptionRequest(req).Form()
 		}
 	}
-}
-
-templ AddCategory(category models.Category) {
-	<li>
-		@categoryItem(category)
-	</li>
-}
-
-templ AddSubscriptionSuccess() {
-	@modal.Build(
-		modal.WithID("subscription_added_modal"),
-		modal.WithModalCloseOutside(),
-		modal.OpenModalInitially(),
-	).Show() {
-		@alert.Build(state.Success, alert.WithText("Subscription Saved!")).Show()
-		// <div class="p-8 flex items-center justify-center"></div>
-		<div class="modal-action">
-			@button.Build(
-				button.WithSize(size.SM),
-				button.WithContent("Add another?"),
-				button.WithExtraAttributes(templ.Attributes{
-					"hx-get":    "/subscription/new",
-					"hx-target": "#command_modal",
-				}),
-			).Show()
-			// <form method="dialog">
-			@button.Build(
-				button.WithSize(size.SM),
-				button.WithContent("Close"),
-				button.WithAutoFocus(),
-				button.WithExtraAttributes(templ.Attributes{
-					"_": "on click trigger closeModal",
-				}),
-			).Show()
-			// </form>
-		</div>
-	}
-}
-
-templ AddSubscriptionWarning(message string) {
-	<div id="warnings_toast" hx-swap-oob="true">
-		@alert.Build(state.Warning,
-			alert.WithText(message),
-		).Show() {
-			@button.Build(
-				button.WithSize(size.SM),
-				button.WithContent("Okay"),
-				button.WithAutoFocus(),
-				button.WithExtraAttributes(templ.Attributes{
-					"_": "on click remove #warning",
-				}),
-			).Show()
-		}
-	</div>
 }

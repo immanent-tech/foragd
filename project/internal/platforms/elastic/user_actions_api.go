@@ -81,26 +81,6 @@ func (e *ElasticAPI) MarkItems(ctx context.Context, mark models.Mark, itemIDs ..
 	return nil
 }
 
-// UserActionMarkSubscriptions will mark user subscriptions with the given state.
-func (e *ElasticAPI) MarkSubscriptions(ctx context.Context, mark models.Mark, feedIDs ...models.FeedID) error {
-	if mark != models.MarkRead && mark != models.MarkUnread {
-		return errors.Join(ErrUserActionFailed, errors.New("unsupported mark action"))
-	}
-
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return ErrNoUserCtx
-	}
-
-	user.MarkSubscriptions(mark, feedIDs...)
-
-	// Update the user object.
-	return e.UpdateUser(ctx, user.ID, map[string]any{
-		"subscriptions": user.Subscriptions,
-		"updated_at":    time.Now().UTC(),
-	})
-}
-
 // GetItem retrieves the specified item with the given id and from the given
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
@@ -260,6 +240,42 @@ func (e *ElasticAPI) GetSubscriptionUnreadCounts(ctx context.Context, subscripti
 	subscriptions.UpdateUnreadCounts(unreadCounts)
 
 	return nil
+}
+
+// AddSubscriptions will add Subscriptions to a User.
+func (e *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.WrapError(ErrNoUserCtx, "elastic", "get subscriptions failed")
+	}
+	// Add the subscriptions to the user.
+	user.AddSubscriptions(subscriptions)
+	return nil
+	// Update the user object.
+	// return e.UpdateUser(ctx, user.ID, map[string]any{
+	// 	"subscriptions": user.Subscriptions,
+	// 	"updated_at":    time.Now().UTC(),
+	// })
+}
+
+// UserActionMarkSubscriptions will mark user subscriptions with the given state.
+func (e *ElasticAPI) MarkSubscriptions(ctx context.Context, mark models.Mark, feedIDs ...models.FeedID) error {
+	if mark != models.MarkRead && mark != models.MarkUnread {
+		return errors.Join(ErrUserActionFailed, errors.New("unsupported mark action"))
+	}
+
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return ErrNoUserCtx
+	}
+
+	user.MarkSubscriptions(mark, feedIDs...)
+
+	// Update the user object.
+	return e.UpdateUser(ctx, user.ID, map[string]any{
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
+	})
 }
 
 // // UserActionCountUnread will return a total count of unread items across all

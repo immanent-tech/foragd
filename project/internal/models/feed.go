@@ -29,6 +29,15 @@ var (
 	ErrNoSubscriptions = errors.New("no user subscriptions")
 )
 
+type FeedInterface interface {
+	GetID() FeedID
+	GetTitle() string
+	GetDescription() string
+	GetAuthors() []*gofeed.Person
+	GetCategories() []Category
+	GetImage() *gofeed.Image
+}
+
 type Feeds []*APIFeed
 
 // GetIDs returns the Feed IDs for the Feeds.
@@ -77,6 +86,18 @@ func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
 // original title.
 func (f *APIFeed) GetTitle() string {
 	return safePrinter.Sanitize(f.Title)
+}
+
+// GetTitle retrieves either a user-set nickname for the feed or the feed's
+// original title.
+func (f *APIFeed) GetDescription() string {
+	return safePrinter.Sanitize(f.Description)
+}
+
+// GetTitle retrieves either a user-set nickname for the feed or the feed's
+// original title.
+func (f *APIFeed) GetAuthors() []*gofeed.Person {
+	return f.Authors
 }
 
 func (f *APIFeed) GetID() string {
