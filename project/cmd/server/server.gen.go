@@ -406,7 +406,7 @@ type ServerInterface interface {
 	// Process a sign-up request.
 	// (POST /signup)
 	ProcessSignUp(w http.ResponseWriter, r *http.Request)
-	// Add a new subscription.
+	// Add a subscription.
 	// (PUT /subscription/add)
 	AddSubscription(w http.ResponseWriter, r *http.Request)
 	// Remove a category from a subscription.
@@ -433,7 +433,7 @@ type ServerInterface interface {
 
 	// (PUT /subscription/import)
 	SetImportMethod(w http.ResponseWriter, r *http.Request)
-	// Add a new subscription.
+	// New subscription handling.
 	// (GET /subscription/new)
 	NewSubscription(w http.ResponseWriter, r *http.Request)
 }
@@ -549,7 +549,7 @@ func (_ Unimplemented) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Add a new subscription.
+// Add a subscription.
 // (PUT /subscription/add)
 func (_ Unimplemented) AddSubscription(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
@@ -600,7 +600,7 @@ func (_ Unimplemented) SetImportMethod(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Add a new subscription.
+// New subscription handling.
 // (GET /subscription/new)
 func (_ Unimplemented) NewSubscription(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)

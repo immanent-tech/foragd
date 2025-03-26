@@ -15,6 +15,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
+	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -104,12 +105,10 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 // }
 
 func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
-
 	filters := models.NewFilters()
 	err := filters.Generate(params)
 	if err != nil {
-		logging.FromContext(req.Context()).Warn("Invalid parameters.", slog.Any("error", err))
-		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
+		handlers.InternalServerError(res, req, err)
 		return
 	}
 	session.StoreFeedFilters(req.Context(), filters)
@@ -180,12 +179,12 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 }
 
 // Valid checks that the MarkFeeds object is valid.
-func (f *MarkFeeds) Valid() bool {
+func (f *MarkFeeds) Valid() (bool, error) {
 	valid, err := validation.ValidateStruct(f)
 	if !valid || err != nil {
-		return false
+		return false, err
 	}
-	return true
+	return true, nil
 }
 
 // buildSubscriptionCards retrieves a filtered list of Feeds as components that
@@ -215,17 +214,13 @@ func displayFeeds(api DataAPI, res http.ResponseWriter, req *http.Request, filte
 	// Get feeds.
 	subscriptions, err := api.GetSubscriptions(req.Context(), filters)
 	if err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-		return
+		logging.FromContext(req.Context()).Warn("No subscriptions for user.")
 	}
 
 	// Get the list of feeds to display.
 	feeds, err := buildSubscriptionCards(filters, subscriptions)
 	if err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-		return
+		logging.FromContext(req.Context()).Warn("No subscriptions for user.")
 	}
 
 	var content templates.Elements
@@ -290,12 +285,12 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 }
 
 // Valid checks that the MarkItems object is valid.
-func (f *MarkItems) Valid() bool {
+func (f *MarkItems) Valid() (bool, error) {
 	valid, err := validation.ValidateStruct(f)
 	if !valid || err != nil {
-		return false
+		return false, err
 	}
-	return true
+	return true, nil
 }
 
 func buildItemCards(filters *models.Filters, reqURL *url.URL, pagination models.Pagination, items models.Items) (templates.Elements, error) {

@@ -131,7 +131,7 @@ paths:
   /subscription/new:
     get:
       summary: >
-        Add a new subscription.
+        New subscription handling.
       description: >
         Presents a form for the user to enter details to add a new subscription.
       operationId: newSubscription
@@ -141,7 +141,9 @@ paths:
   /subscription/add:
     put:
       summary: >
-        Add a new subscription.
+        Add a subscription.
+      description: >
+        Adds a subscription for a user.
       operationId: addSubscription
       requestBody:
         $ref: "#/components/requestBodies/SubscriptionRequest"
@@ -586,8 +588,14 @@ components:
               category:
                 $ref: "models.yaml#/components/schemas/Category"
   responses:
+    html:
+      description: >
+        regular html response, usually a full page.
+      content:
+        "text/html;charset=utf-8": {}
     htmx:
-      description: standard htmx powered response.
+      description: >
+        htmx powered response, which might be partial or full page content.
       content:
         "text/html;charset=utf-8": {}
     sse:

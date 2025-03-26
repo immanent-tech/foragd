@@ -184,8 +184,8 @@ type Subscription struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
-	// FeedDetails contains common/metadata fields for feeds and items.
-	FeedDetails FeedMetadata `json:"feed_details"`
+	// FeedDetails contains details about the Feed for which the Subscription is associated with.
+	FeedDetails SubscriptionFeed `json:"feed_details"`
 
 	// State contains properties tracking the state of the subscription.
 	State SubscriptionState `json:"state"`
@@ -207,6 +207,21 @@ type SubscriptionCustomisation struct {
 
 	// UserNickname is a friendly name or nickname for the feed given by the user.
 	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
+}
+
+// SubscriptionFeed defines model for SubscriptionFeed.
+type SubscriptionFeed struct {
+	// URL is a URL.
+	URL        URL              `json:"url" validate:"url"`
+	Authors    []*gofeed.Person `json:"authors,omitempty"`
+	Categories []Category       `json:"categories,omitempty"`
+
+	// Description is a string that can contain HTML.
+	Description HTMLString    `json:"description" validate:"url_encoded"`
+	Image       *gofeed.Image `json:"image,omitempty"`
+
+	// Title is a string that can contain HTML.
+	Title HTMLString `json:"title" validate:"url_encoded"`
 }
 
 // SubscriptionID is the unique ID of a subscription.

@@ -252,8 +252,6 @@ components:
                 json: "url"
                 form: "url"
                 validate: "required,url"
-            msg:
-              $ref: "#/components/schemas/Message"
     FeedState:
       description: tracks the state of a feed.
       type: object

@@ -182,16 +182,16 @@ func CompareSubscriptionUnreadCount(a, b *Subscription) int {
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
-func (r *SubscriptionRequest) Valid() bool {
+func (r *SubscriptionRequest) Valid() (bool, error) {
 	valid, err := validation.ValidateStruct(r)
 	if !valid || err != nil {
-		r.Msg = NewMessage("Details are invalid",
+		msg := NewMessage("Details are invalid",
 			WithError(err),
 			WithStatus(MessageStatusError),
 		)
-		return false
+		return false, msg
 	}
-	return true
+	return true, nil
 }
 
 func (r *SubscriptionRequest) GetURL() string {
@@ -211,21 +211,21 @@ type SubscriptionRequests []*SubscriptionRequest
 // 	}
 // }
 
-// FilterValid returns a slice of SubscriptionRequest containing only those
-// requests that are valid (i.e., do not have an error).
-func (r SubscriptionRequests) FilterValid() SubscriptionRequests {
-	return slices.Collect(FilterSlice(r, func(request *SubscriptionRequest) bool {
-		return request.Msg == nil
-	}))
-}
+// // FilterValid returns a slice of SubscriptionRequest containing only those
+// // requests that are valid (i.e., do not have an error).
+// func (r SubscriptionRequests) FilterValid() SubscriptionRequests {
+// 	return slices.Collect(FilterSlice(r, func(request *SubscriptionRequest) bool {
+// 		return request.Msg == nil
+// 	}))
+// }
 
-// FilterInValid returns a slice of SubscriptionRequest containing only those
-// requests that are invalid (i.e., have an error).
-func (r SubscriptionRequests) FilterInValid() SubscriptionRequests {
-	return slices.Collect(FilterSlice(r, func(request *SubscriptionRequest) bool {
-		return request.Msg != nil
-	}))
-}
+// // FilterInValid returns a slice of SubscriptionRequest containing only those
+// // requests that are invalid (i.e., have an error).
+// func (r SubscriptionRequests) FilterInValid() SubscriptionRequests {
+// 	return slices.Collect(FilterSlice(r, func(request *SubscriptionRequest) bool {
+// 		return request.Msg != nil
+// 	}))
+// }
 
 // URLs extracts and returns a list of URLs from the requests.
 func (r SubscriptionRequests) URLs() []URL {
@@ -238,10 +238,11 @@ func (r SubscriptionRequests) URLs() []URL {
 	return urls
 }
 
-func NewSubscriptionRequest() *SubscriptionRequest {
+func NewSubscriptionRequest(url string) *SubscriptionRequest {
 	id, _ := id.NewID(id.Subscription)
 	return &SubscriptionRequest{
-		ID: id,
+		ID:  id,
+		URL: url,
 	}
 }
 
@@ -252,12 +253,13 @@ func NewSubscription(request *SubscriptionRequest, feed FeedInterface) *Subscrip
 		UserCategories: request.UserCategories,
 		UserNickname:   request.UserNickname,
 		FeedID:         feed.GetID(),
-		FeedDetails: FeedMetadata{
-			Title:       feed.GetTitle(),
+		FeedDetails: SubscriptionFeed{
+			URL:         feed.GetLink(),
+			Authors:     feed.GetAuthors(),
+			Categories:  feed.GetCategories(),
 			Description: feed.GetDescription(),
 			Image:       feed.GetImage(),
-			Categories:  feed.GetCategories(),
-			Authors:     feed.GetAuthors(),
+			Title:       feed.GetTitle(),
 		},
 	}
 }

@@ -127,7 +127,7 @@ func (u *User) MarkItems(mark Mark, itemIDs ...ItemID) {
 	return
 }
 
-func (u *UserSignupRequest) Valid() bool {
+func (u *UserSignupRequest) Valid() (bool, error) {
 	valid, problems := validation.ValidateStruct(u)
 	if problems != nil {
 		u.Msg = NewMessage("the details are invalid",
@@ -137,7 +137,7 @@ func (u *UserSignupRequest) Valid() bool {
 		)
 	}
 
-	return valid
+	return valid, problems
 }
 
 func NewUserSignup() *UserSignupRequest {

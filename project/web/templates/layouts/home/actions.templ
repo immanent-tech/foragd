@@ -12,7 +12,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
-	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
@@ -22,8 +21,6 @@ import (
 	"net/url"
 )
 
-var AddSubscriptionModalID = attributes.ID("add_subscription_modal")
-
 // AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
 func AddSubscriptionAction(classes ...string) templ.Component {
 	return link.Build(
@@ -31,7 +28,7 @@ func AddSubscriptionAction(classes ...string) templ.Component {
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/new",
 			"hx-target": partials.CommandModalID.Target(),
-			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to " + AddSubscriptionModalID.Target(),
+			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to " + subscription.SubscriptionModalID.Target(),
 		}),
 		link.WithUnderlineOnHover(),
 	).Show(classes...)
@@ -45,7 +42,7 @@ func ImportAction(classes ...string) templ.Component {
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/import",
 			"hx-target": partials.CommandModalID.Target(),
-			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to" + subscription.ImportModalID.Target(),
+			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to " + subscription.ImportModalID.Target(),
 		}),
 		link.WithUnderlineOnHover(),
 	).Show(classes...)

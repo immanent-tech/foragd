@@ -144,7 +144,7 @@ func NewFeedCard(filters models.Filters, subscription *models.Subscription) (*Ca
 		card.WithID(subscription.GetFeedID()),
 	)
 	// Add an image if present.
-	if cardImage := subscription.FeedDetails.GetImage(); cardImage != nil {
+	if cardImage := subscription.FeedDetails.Image; cardImage != nil {
 		cardOptions = append(cardOptions,
 			card.WithImage(cardImage.URL,
 				image.WithAltText(cardImage.Title),

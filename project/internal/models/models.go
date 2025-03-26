@@ -48,6 +48,10 @@ func (f *Feed) GetImage() *gofeed.Image {
 	return f.Image
 }
 
+func (f *Feed) GetLink() URL {
+	return f.FeedLink
+}
+
 // Item represents an item of a feed. It embeds the gofeed.Item object and adds additional
 // fields required.
 type Item struct {

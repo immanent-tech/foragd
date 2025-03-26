@@ -4,13 +4,17 @@
 package partials
 
 import "github.com/joshuar/go-feed-me/internal/models"
+import "github.com/joshuar/go-templ-daisyui/actions/button"
 
-type UserMessage struct {
-	*models.Message
+import "github.com/joshuar/go-templ-daisyui/modifiers/size"
+
+// hsCopyText is hyperscript to insert the given text into the clipboard.
+func hsCopyText(text string) string {
+	return "on click writeText(" + text + ") on navigator.clipboard put 'Copied!' into me wait 1s put 'Copy' into me"
 }
 
-func (msg *UserMessage) applyBackgroundColor() string {
-	switch msg.Status {
+func applyBackgroundColor(status models.MessageStatus) string {
+	switch status {
 	case models.MessageStatusError:
 		return "bg-error/50"
 	case models.MessageStatusWarning:
@@ -24,8 +28,8 @@ func (msg *UserMessage) applyBackgroundColor() string {
 	}
 }
 
-func (msg *UserMessage) applyTextColor() string {
-	switch msg.Status {
+func applyTextColor(status models.MessageStatus) string {
+	switch status {
 	case models.MessageStatusError:
 		return "text-error-content"
 	case models.MessageStatusWarning:
@@ -39,32 +43,31 @@ func (msg *UserMessage) applyTextColor() string {
 	}
 }
 
-templ (msg *UserMessage) Show() {
-	<div
-		tabindex="0"
-		class={ "collapse",
-		 "collapse-arrow",
-		 msg.applyBackgroundColor() }
-	>
+// ShowMessage will show a models.Message as a collapsable component, with the summary shown and details revealed when
+// the collapse is opened.
+templ ShowMessage(msg *models.Message) {
+	<div tabindex="0" class={ "collapse", "collapse-arrow", applyBackgroundColor(msg.Status) }>
 		<input type="checkbox"/>
-		<div
-			class={ "collapse-title",
-			 "font-semibold", "text-justify", "text-sm",
-			 msg.applyTextColor() }
-		>{ msg.Summary }</div>
-		<div class={ "collapse-content", "text-xs", msg.applyTextColor() }>
+		<div class={ "collapse-title", "font-semibold", "text-justify", "text-sm", applyTextColor(msg.Status) }>
+			{ msg.Summary } @CopyTextButton(msg.String())
+		</div>
+		<div class={ "collapse-content", "text-xs", "text-justify", applyTextColor(msg.Status) }>
 			if msg.HasDetails() {
-				<p class="font-semibold">Details:</p>
-				<p class="text-justify">{ *msg.Details }</p>
+				{ *msg.Details }
 			}
 		</div>
 	</div>
 }
 
-// NewUserMessage will create a UserMessage from the given models.Message
-// object.
-func NewUserMessage(msg *models.Message) *UserMessage {
-	return &UserMessage{
-		Message: msg,
-	}
+// CopyTextButton builds a button that will copy the given text to the clipboard when clicked.
+templ CopyTextButton(text string) {
+	<div>
+		@button.Build(
+			button.WithContent("Copy"),
+			button.WithSize(size.SM),
+			button.WithExtraAttributes(templ.Attributes{
+				"_": hsCopyText(text),
+			}),
+		).Show()
+	</div>
 }

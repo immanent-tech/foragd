@@ -36,6 +36,7 @@ type FeedInterface interface {
 	GetAuthors() []*gofeed.Person
 	GetCategories() []Category
 	GetImage() *gofeed.Image
+	GetLink() URL
 }
 
 type Feeds []*APIFeed

@@ -429,6 +429,18 @@ components:
             form: "-"
             validate: "numeric,gte=0"
           x-go-type-skip-optional-pointer: true
+    SubscriptionFeed:
+      description: >
+        contains details about the Feed for which the Subscription is associated with.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/FeedMetadata"
+        - type: object
+          required:
+            - URL
+          properties:
+            URL:
+              $ref: "#/components/schemas/URL"
     Subscription:
       description: >
         represents a feed a user has subscribed to.
@@ -448,6 +460,6 @@ components:
             FeedID:
               $ref: "#/components/schemas/FeedID"
             feed_details:
-              $ref: "#/components/schemas/FeedMetadata"
+              $ref: "#/components/schemas/SubscriptionFeed"
             state:
               $ref: "#/components/schemas/SubscriptionState"

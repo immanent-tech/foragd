@@ -52,7 +52,7 @@ templ ShowCategory(category models.Category) {
 			textinput.WithName("user_categories[]"),
 			textinput.WithValue(category),
 			textinput.WithExtraAttributes(templ.Attributes{
-				"form": SubscriptionRequestID.String(),
+				"form": AddSubscriptionDetailsFormID.String(),
 			}),
 		).Show("join-item"),
 		button.Build(

@@ -11,6 +11,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -250,6 +251,7 @@ func (e *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions models.
 	}
 	// Add the subscriptions to the user.
 	user.AddSubscriptions(subscriptions)
+	spew.Dump(user)
 	return nil
 	// Update the user object.
 	// return e.UpdateUser(ctx, user.ID, map[string]any{

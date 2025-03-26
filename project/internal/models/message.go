@@ -6,6 +6,7 @@ package models
 import (
 	"fmt"
 	"slices"
+	"strings"
 )
 
 // MessageOption is a functional option to apply to a Message.
@@ -15,8 +16,18 @@ func (msg *Message) HasDetails() bool {
 	return msg.Details != nil
 }
 
-// Error returns an error string representing the Message. This allows
-// Message to satisfy the Error interface and be used as an error.
+// String returns the message as a formatted string. This allows Message to satisfy the Stringer interface.
+func (msg *Message) String() string {
+	var str strings.Builder
+	str.WriteString(fmt.Sprintf("%s: %s", strings.ToTitle(string(msg.Status)), msg.Summary))
+	if msg.Details != nil {
+		str.WriteString(fmt.Sprintf(" (%s)", *msg.Details))
+	}
+	return str.String()
+}
+
+// Error returns an error string representing the Message. This allows Message to satisfy the Error interface and be
+// used as an error.
 func (msg *Message) Error() string {
 	return fmt.Sprintf("%s: %v", msg.Summary, msg.Err)
 }
