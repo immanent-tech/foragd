@@ -373,6 +373,7 @@ func SubscriptionMappingTemplate() map[string]types.Property {
 						"title": asTextAndKeyword(),
 					},
 				},
+				"url": types.NewKeywordProperty(),
 			},
 		},
 		"state": types.ObjectProperty{
