@@ -92,7 +92,8 @@
     "templates/partials/subscription",
     "pkg/opml",
     "validation",
-    "modifiers/style"
+    "modifiers/style",
+    "pkg/feeds"
   ],
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",

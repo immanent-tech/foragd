@@ -14,23 +14,40 @@ components:
     ContentEncoded:
       description: >
         is an element whose contents are the entity-encoded or CDATA-escaped version of the content of the item.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        json: "content_encoded,omitempty"
+        xml: "encoded,omitempty"
+    UpdatePeriod:
       type: object
       required:
         - XMLName
         - value
       properties:
         XMLName:
-          x-go-type: "xml.Name"
-          x-oapi-codegen-extra-tags:
-            xml: "encoded"
-            json: "xml"
+          $ref: "types.yaml#/components/schemas/XMLName"
         value:
           type: string
+          enum: ["hourly","daily","weekly","monthly","yearly"]
           x-oapi-codegen-extra-tags:
             xml: ",chardata"
-            json: "encoded"
-            validate: "required,html_encoded"
+            validate: "required,oneof=hourly daily weekly monthly yearly"
       x-oapi-codegen-extra-tags:
-        json: "content_encoded,omitempty"
+        json: "updatePeriod,omitempty"
+        xml: "updatePeriod,omitempty"
+    UpdateFrequency:
+      type: integer
+      minimum: 0
+      x-oapi-codegen-extra-tags:
+        json: "updateFrequency,omitempty"
+        xml: "updateFrequency,omitempty"
+        validate: "omitempty,number,gte=0"
+    UpdateBase:
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Date"
+      x-oapi-codegen-extra-tags:
+        json: "updateBase,omitempty"
+        xml: "updateBase,omitempty"
 
 

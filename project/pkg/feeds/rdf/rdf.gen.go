@@ -4,11 +4,33 @@
 package rdf
 
 import (
-	"encoding/xml"
+	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-// ContentEncoded is an element whose contents are the entity-encoded or CDATA-escaped version of the content of the item.
-type ContentEncoded struct {
-	XMLName xml.Name `json:"xml" xml:"encoded"`
-	Value   string   `json:"encoded" validate:"required,html_encoded" xml:",chardata"`
+// Defines values for UpdatePeriodValue.
+const (
+	Daily   UpdatePeriodValue = "daily"
+	Hourly  UpdatePeriodValue = "hourly"
+	Monthly UpdatePeriodValue = "monthly"
+	Weekly  UpdatePeriodValue = "weekly"
+	Yearly  UpdatePeriodValue = "yearly"
+)
+
+// ContentEncoded is a XML element that has a namespace and a value.
+type ContentEncoded = externalRef0.Element
+
+// UpdateBase is a point or period of time associated with an event in the lifecycle of the resource.
+type UpdateBase = externalRef0.Date
+
+// UpdateFrequency defines model for UpdateFrequency.
+type UpdateFrequency = int
+
+// UpdatePeriod defines model for UpdatePeriod.
+type UpdatePeriod struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+	Value   UpdatePeriodValue    `json:"value" validate:"required,oneof=hourly daily weekly monthly yearly" xml:",chardata"`
 }
+
+// UpdatePeriodValue defines model for UpdatePeriod.Value.
+type UpdatePeriodValue string

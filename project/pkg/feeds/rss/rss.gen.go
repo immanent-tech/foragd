@@ -6,7 +6,8 @@ package rss
 import (
 	"encoding/xml"
 
-	externalRef2 "github.com/joshuar/go-feed-me/pkg/feeds/rdf"
+	externalRef1 "github.com/joshuar/go-feed-me/pkg/feeds/rdf"
+	externalRef2 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
 // Defines values for LinkRel.
@@ -42,7 +43,7 @@ type Category struct {
 	Domain *string `json:"domain,omitempty" xml:"domain,attr,omitempty"`
 
 	// Value represents a value of a element.
-	Value Value `json:"value" validate:"required,html_encoded" xml:",chardata"`
+	Value externalRef2.Value `json:"value" validate:"required,html_encoded" xml:",chardata"`
 }
 
 // Channel contains information about the channel (metadata) and its contents.
@@ -65,7 +66,7 @@ type Channel struct {
 	Creator  []Creator `json:"creator,omitempty" validate:"omitempty,dive,unique" xml:"creator,omitempty"`
 
 	// Description is a phrase or sentence describing the channel.
-	Description Element `json:"description" validate:"required" xml:"description"`
+	Description externalRef2.Element `json:"description" validate:"required" xml:"description"`
 
 	// Docs A URL that points to the documentation for the format used in the RSS file. It's probably a pointer to this page. It's for people who might stumble across an RSS file on a Web server 25 years from now and wonder what it is.
 	Docs *string `json:"docs,omitempty" validate:"omitempty,url" xml:"docs,omitempty"`
@@ -89,7 +90,7 @@ type Channel struct {
 	Language *Language `json:"language,omitempty" xml:"language,omitempty"`
 
 	// LastBuildDate is the last time the content of the channel changed.
-	LastBuildDate *Date `json:"lastBuildDate,omitempty" xml:"lastBuildDate,omitempty"`
+	LastBuildDate *externalRef2.Date `json:"lastBuildDate,omitempty" xml:"lastBuildDate,omitempty"`
 
 	// Link is the URL to the HTML website corresponding to the channel.
 	Link []Link `json:"link" validate:"required" xml:"link"`
@@ -98,7 +99,7 @@ type Channel struct {
 	ManagingEditor *string `json:"managingEditor,omitempty" xml:"managingEditor,omitempty"`
 
 	// PubDate is the publication date of the content.
-	PubDate *Date `json:"pubDate,omitempty" xml:"pubDate,omitempty"`
+	PubDate *externalRef2.Date `json:"pubDate,omitempty" xml:"pubDate,omitempty"`
 
 	// Publisher is an entity responsible for making the resource available.
 	Publisher *Publisher `json:"publisher,omitempty" xml:"publisher,omitempty"`
@@ -128,42 +129,29 @@ type Channel struct {
 	TextInput *TextInput `json:"textInput,omitempty" xml:"textInput,omitempty"`
 
 	// Title is the name of the channel. It's how people refer to your service. If you have an HTML website that contains the same information as your RSS file, the title of your channel should be the same as the title of your website.
-	Title Element `json:"title" validate:"required" xml:"title"`
+	Title externalRef2.Element `json:"title" validate:"required" xml:"title"`
 
 	// TTL stands for time to live. It's a number of minutes that indicates how long a channel can be cached before refreshing from the source.
 	TTL *int `json:"ttl,omitempty" validate:"omitempty,gte=0" xml:"ttl,omitempty"`
 
 	// Type is the nature or genre of the resource.
-	Type *Type `json:"type,omitempty" xml:"type,omitempty"`
+	Type            *Type                         `json:"type,omitempty" xml:"type,omitempty"`
+	UpdateBase      *externalRef1.UpdateBase      `json:"updateBase,omitempty" xml:"updateBase,omitempty"`
+	UpdateFrequency *externalRef1.UpdateFrequency `json:"updateFrequency,omitempty" validate:"omitempty,number,gte=0" xml:"updateFrequency,omitempty"`
+	UpdatePeriod    *externalRef1.UpdatePeriod    `json:"updatePeriod,omitempty" xml:"updatePeriod,omitempty"`
 
 	// WebMaster is the email address for person responsible for technical issues relating to channel.
 	WebMaster *string `json:"webMaster,omitempty" xml:"webMaster,omitempty"`
 }
 
 // Contributor is a XML element that has a namespace and a value.
-type Contributor = Element
+type Contributor = externalRef2.Element
 
 // Coverage is a XML element that has a namespace and a value.
-type Coverage = Element
+type Coverage = externalRef2.Element
 
 // Creator is a XML element that has a namespace and a value.
-type Creator = Element
-
-// Date is a point or period of time associated with an event in the lifecycle of the resource.
-type Date struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName XMLName  `json:"xml" validate:"required"`
-	Value   DateTime `json:"value" validate:"required,datetime" xml:",chardata"`
-}
-
-// Element is a XML element that has a namespace and a value.
-type Element struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName XMLName `json:"xml" validate:"required"`
-
-	// Value represents a value of a element.
-	Value Value `json:"value" validate:"required,html_encoded" xml:",chardata"`
-}
+type Creator = externalRef2.Element
 
 // Enclosure describes a media object.
 type Enclosure struct {
@@ -178,7 +166,7 @@ type Enclosure struct {
 }
 
 // Format is a XML element that has a namespace and a value.
-type Format = Element
+type Format = externalRef2.Element
 
 // GUID is a string that uniquely identifies an item.
 type GUID struct {
@@ -186,11 +174,11 @@ type GUID struct {
 	IsPermaLink *bool `json:"isPermaLink,omitempty" xml:"isPermaLink,attr,omitempty"`
 
 	// Value represents a value of a element.
-	Value Value `json:"value" validate:"required,html_encoded" xml:",chardata"`
+	Value externalRef2.Value `json:"value" validate:"required,html_encoded" xml:",chardata"`
 }
 
 // Identifier is a XML element that has a namespace and a value.
-type Identifier = Element
+type Identifier = externalRef2.Element
 
 // Image contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
 type Image struct {
@@ -215,8 +203,7 @@ type Image struct {
 
 // Item An item may represent a "story" -- much like a story in a newspaper or magazine; if so its description is a synopsis of the story, and the link points to the full story. An item may also be complete in itself, if so, the description contains the text (entity-encoded HTML is allowed; see examples), and the link and title may be omitted. All elements of an item are optional, however at least one of title or description must be present.
 type Item struct {
-	// ContentEncoded is an element whose contents are the entity-encoded or CDATA-escaped version of the content of the item.
-	ContentEncoded *externalRef2.ContentEncoded `json:"content_encoded,omitempty"`
+	ContentEncoded *externalRef1.ContentEncoded `json:"content_encoded,omitempty" xml:"encoded,omitempty"`
 
 	// Author is the email address of the author of the item. For newspapers and magazines syndicating via RSS, the author is the person who wrote the article that the <item> describes. For collaborative weblogs, the author of the item might be different from the managing editor or webmaster. For a weblog authored by a single individual it would make sense to omit the <author> element.
 	Author []string `json:"author,omitempty" xml:"author,omitempty"`
@@ -235,7 +222,7 @@ type Item struct {
 	Creator  []Creator `json:"creator,omitempty" validate:"omitempty,dive,unique" xml:"creator,omitempty"`
 
 	// Description is a phrase or sentence describing the channel.
-	Description *Element `json:"description,omitempty" xml:"description"`
+	Description *externalRef2.Element `json:"description,omitempty" xml:"description"`
 
 	// Enclosure describes a media object.
 	Enclosure *Enclosure `json:"enclosure,omitempty" xml:"enclosure,omitempty"`
@@ -256,7 +243,7 @@ type Item struct {
 	Link *[]Link `json:"link,omitempty" xml:"link,omitempty"`
 
 	// PubDate is the publish date of the item.
-	PubDate *Date `json:"pubDate,omitempty" xml:"pubDate,omitempty"`
+	PubDate *externalRef2.Date `json:"pubDate,omitempty" xml:"pubDate,omitempty"`
 
 	// Publisher is an entity responsible for making the resource available.
 	Publisher *Publisher `json:"publisher,omitempty" xml:"publisher,omitempty"`
@@ -274,7 +261,7 @@ type Item struct {
 	Subject *Subject `json:"subject,omitempty" xml:"subject,omitempty"`
 
 	// Title is the title of the item.
-	Title *Element `json:"title,omitempty" xml:"title,omitempty"`
+	Title *externalRef2.Element `json:"title,omitempty" xml:"title,omitempty"`
 
 	// Type is the nature or genre of the resource.
 	Type *Type `json:"type,omitempty" xml:"type,omitempty"`
@@ -283,8 +270,8 @@ type Item struct {
 // Language identifies the language used by the related resource using an HTML language code.
 type Language struct {
 	// XMLName represents the XML namespace of an element.
-	XMLName XMLName `json:"xml" validate:"required"`
-	Value   string  `json:"value" validate:"required,bcp47_language_tag" xml:",chardata"`
+	XMLName externalRef2.XMLName `json:"xml" validate:"required"`
+	Value   string               `json:"value" validate:"required,bcp47_language_tag" xml:",chardata"`
 }
 
 // Link defines model for Link.
@@ -310,19 +297,19 @@ type Link struct {
 	Type *string `json:"type,omitempty" xml:"type,attr,omitempty"`
 
 	// Value represents a value of a element.
-	Value *Value `json:"value,omitempty" validate:"required,html_encoded" xml:",chardata"`
+	Value *externalRef2.Value `json:"value,omitempty" validate:"required,html_encoded" xml:",chardata"`
 }
 
 // LinkRel contains a keyword that identifies the nature of the relationship between the linked resouce and the element.
 type LinkRel string
 
 // Publisher is a XML element that has a namespace and a value.
-type Publisher = Element
+type Publisher = externalRef2.Element
 
 // RSS represents an RSS document.
 type RSS struct {
 	// XMLName represents the XML namespace of an element.
-	XMLName XMLName `json:"xml" validate:"required"`
+	XMLName externalRef2.XMLName `json:"xml" validate:"required"`
 
 	// Channel contains information about the channel (metadata) and its contents.
 	Channel Channel `json:"channel" xml:"channel"`
@@ -345,10 +332,10 @@ type RSSCloud struct {
 type RSSCloudProtocol string
 
 // Relation is a XML element that has a namespace and a value.
-type Relation = Element
+type Relation = externalRef2.Element
 
 // Rights is a XML element that has a namespace and a value.
-type Rights = Element
+type Rights = externalRef2.Element
 
 // SkipDays is a hint for aggregators telling them which days they can skip. This
 type SkipDays struct {
@@ -366,15 +353,15 @@ type SkipHours struct {
 // Source defines model for Source.
 type Source struct {
 	// XMLName represents the XML namespace of an element.
-	XMLName XMLName `json:"xml" validate:"required"`
-	URL     *string `json:"url,omitempty" validate:"url" xml:"url,attr"`
+	XMLName externalRef2.XMLName `json:"xml" validate:"required"`
+	URL     *string              `json:"url,omitempty" validate:"url" xml:"url,attr"`
 
 	// Value represents a value of a element.
-	Value Value `json:"value" validate:"required,html_encoded" xml:",chardata"`
+	Value externalRef2.Value `json:"value" validate:"required,html_encoded" xml:",chardata"`
 }
 
 // Subject is a XML element that has a namespace and a value.
-type Subject = Element
+type Subject = externalRef2.Element
 
 // TextInput The purpose of the <textInput> element is something of a mystery. You can use it to specify a search engine box. Or to allow a reader to provide feedback. Most aggregators ignore it.
 type TextInput struct {
@@ -392,10 +379,4 @@ type TextInput struct {
 }
 
 // Type is a XML element that has a namespace and a value.
-type Type = Element
-
-// Value represents a value of a element.
-type Value = string
-
-// XMLName represents the XML namespace of an element.
-type XMLName = xml.Name
+type Type = externalRef2.Element

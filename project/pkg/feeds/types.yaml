@@ -1,0 +1,57 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
+# Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+openapi: "3.0.3"
+info:
+  version: 1.0.0
+  title: RSS
+  description: >
+    A representation of the RSS 2.0 specification, with extensions, as openapi schema.
+  license:
+    name: AGPL-3.0-or-later
+    url: https://spdx.org/licenses/AGPL-3.0-only.html
+paths: {}
+components:
+  schemas:
+    Value:
+      description: >
+        represents a value of a element.
+      type: string
+      x-oapi-codegen-extra-tags:
+        xml: ",chardata"
+        validate: "required,html_encoded"
+    XMLName:
+      description: >
+        represents the XML namespace of an element.
+      x-go-type: "xml.Name"
+      x-oapi-codegen-extra-tags:
+        json: "xml"
+        validate: "required"
+    Element:
+      description: >
+        is a XML element that has a namespace and a value.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "#/components/schemas/XMLName"
+        value:
+          $ref: "#/components/schemas/Value"
+    Date:
+      description: >
+        is a point or period of time associated with an event in the lifecycle of the resource.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "#/components/schemas/XMLName"
+        value:
+          x-go-type: DateTime
+          x-oapi-codegen-extra-tags:
+            xml: ",chardata"
+            validate: "required,datetime"
+      x-oapi-codegen-extra-tags:
+        xml: "date,omitempty"

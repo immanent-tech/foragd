@@ -14,38 +14,12 @@ info:
 paths: {}
 components:
   schemas:
-    Value:
-      description: >
-        represents a value of a element.
-      type: string
-      x-oapi-codegen-extra-tags:
-        xml: ",chardata"
-        validate: "required,html_encoded"
-    XMLName:
-      description: >
-        represents the XML namespace of an element.
-      x-go-type: "xml.Name"
-      x-oapi-codegen-extra-tags:
-        json: "xml"
-        validate: "required"
-    Element:
-      description: >
-        is a XML element that has a namespace and a value.
-      type: object
-      required:
-        - XMLName
-        - value
-      properties:
-        XMLName:
-          $ref: "#/components/schemas/XMLName"
-        value:
-          $ref: "#/components/schemas/Value"
     Contributor:
       description: >
         is an entity responsible for making contributions to the resource.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
       x-oapi-codegen-extra-tags:
         xml: "contributor,omitempty"
     Coverage:
@@ -54,7 +28,7 @@ components:
         which the resource is relevant.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
       x-oapi-codegen-extra-tags:
         xml: "coverage,omitempty"
     Creator:
@@ -62,32 +36,15 @@ components:
         is an entity primarily responsible for making the resource.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
       x-oapi-codegen-extra-tags:
         xml: "creator,omitempty"
-    Date:
-      description: >
-        is a point or period of time associated with an event in the lifecycle of the resource.
-      type: object
-      required:
-        - XMLName
-        - value
-      properties:
-        XMLName:
-          $ref: "#/components/schemas/XMLName"
-        value:
-          x-go-type: DateTime
-          x-oapi-codegen-extra-tags:
-            xml: ",chardata"
-            validate: "required,datetime"
-      x-oapi-codegen-extra-tags:
-        xml: "date,omitempty"
     Format:
       description: >
         is the file format, physical medium, or dimensions of the resource.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
       x-oapi-codegen-extra-tags:
         xml: "format,omitempty"
     Identifier:
@@ -95,7 +52,7 @@ components:
         is an unambiguous reference to the resource within a given context.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
       x-oapi-codegen-extra-tags:
         xml: "identifier,omitempty"
     Publisher:
@@ -103,7 +60,7 @@ components:
         is an entity responsible for making the resource available.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
       x-oapi-codegen-extra-tags:
         xml: "publisher,omitempty"
     Relation:
@@ -111,7 +68,7 @@ components:
         is a related resource.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
       x-oapi-codegen-extra-tags:
         xml: "relation,omitempty"
     Rights:
@@ -119,7 +76,7 @@ components:
         is information about rights held in and over the resource.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
       x-oapi-codegen-extra-tags:
         xml: "rights,omitempty"
     Subject:
@@ -127,7 +84,7 @@ components:
         is the topic of the resource.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
       x-oapi-codegen-extra-tags:
         xml: "subject,omitempty"
     Type:
@@ -135,7 +92,7 @@ components:
         is the nature or genre of the resource.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
       x-oapi-codegen-extra-tags:
         xml: "type,omitempty"
     Category:
@@ -147,7 +104,7 @@ components:
         - value
       properties:
         value:
-          $ref: "#/components/schemas/Value"
+          $ref: "types.yaml#/components/schemas/Value"
         domain:
           description: >
             is a string that identifies a categorization taxonomy.
@@ -205,7 +162,7 @@ components:
         - value
       properties:
         value:
-          $ref: "#/components/schemas/Value"
+          $ref: "types.yaml#/components/schemas/Value"
         isPermaLink:
           description: >
             If true the guid is assumed to be a URL. If its value is false, the guid may not be assumed to be a url, or
@@ -224,7 +181,7 @@ components:
         is a related resource from which the described resource is derived.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Element"
+        - $ref: "types.yaml#/components/schemas/Element"
         - type: object
           properties:
             url:
@@ -405,7 +362,7 @@ components:
         - type: object
           properties:
             value:
-              $ref: "#/components/schemas/Value"
+              $ref: "types.yaml#/components/schemas/Value"
     Language:
       description: >
         identifies the language used by the related resource using an HTML language code.
@@ -415,7 +372,7 @@ components:
         - value
       properties:
         XMLName:
-          $ref: "#/components/schemas/XMLName"
+          $ref: "types.yaml#/components/schemas/XMLName"
         value:
           type: string
           x-oapi-codegen-extra-tags:
@@ -464,7 +421,7 @@ components:
         - channel
       properties:
         XMLName:
-          $ref: "#/components/schemas/XMLName"
+          $ref: "types.yaml#/components/schemas/XMLName"
         channel:
           $ref: "#/components/schemas/Channel"
         version:
@@ -492,7 +449,7 @@ components:
             the same information as your RSS file, the title of your channel should be the same as the title of your
             website.
           allOf:
-            - $ref: "#/components/schemas/Element"
+            - $ref: "types.yaml#/components/schemas/Element"
           x-oapi-codegen-extra-tags:
             xml: "title"
             validate: "required"
@@ -511,7 +468,7 @@ components:
           description: >
             is a phrase or sentence describing the channel.
           allOf:
-            - $ref: "#/components/schemas/Element"
+            - $ref: "types.yaml#/components/schemas/Element"
           x-oapi-codegen-extra-tags:
             xml: "description"
             validate: "required"
@@ -544,14 +501,14 @@ components:
           description: >
             is the publication date of the content.
           allOf:
-            - $ref: "#/components/schemas/Date"
+            - $ref: "types.yaml#/components/schemas/Date"
           x-oapi-codegen-extra-tags:
             xml: "pubDate,omitempty"
         lastBuildDate:
           description: >
             is the last time the content of the channel changed.
           allOf:
-            - $ref: "#/components/schemas/Date"
+            - $ref: "types.yaml#/components/schemas/Date"
           x-oapi-codegen-extra-tags:
             xml: "lastBuildDate,omitempty"
         categories:
@@ -656,6 +613,12 @@ components:
             xml: "item,omitempty"
             validate: "omitempty,dive,unique"
           x-go-type-skip-optional-pointer: true
+        updatePeriod:
+          $ref: "rdf.yaml#/components/schemas/UpdatePeriod"
+        updateFrequency:
+          $ref: "rdf.yaml#/components/schemas/UpdateFrequency"
+        updateBase:
+          $ref: "rdf.yaml#/components/schemas/UpdateBase"
     Item:
       description: >
         An item may represent a "story" -- much like a story in a newspaper or magazine; if so its description is a
@@ -670,7 +633,7 @@ components:
           description: >
             is the title of the item.
           allOf:
-            - $ref: "#/components/schemas/Element"
+            - $ref: "types.yaml#/components/schemas/Element"
           x-oapi-codegen-extra-tags:
             xml: "title,omitempty"
           example:
@@ -687,7 +650,7 @@ components:
           description: >
             is a phrase or sentence describing the channel.
           allOf:
-            - $ref: "#/components/schemas/Element"
+            - $ref: "types.yaml#/components/schemas/Element"
           x-oapi-codegen-extra-tags:
             xml: "description"
           example:
@@ -741,7 +704,7 @@ components:
           description: >
             is the publish date of the item.
           allOf:
-            - $ref: "#/components/schemas/Date"
+            - $ref: "types.yaml#/components/schemas/Date"
           x-oapi-codegen-extra-tags:
             xml: "pubDate,omitempty"
         enclosure:
@@ -753,7 +716,11 @@ components:
         image:
           $ref: "#/components/schemas/Image"
         ContentEncoded:
-          $ref: "rdf.yaml#/components/schemas/ContentEncoded"
+          allOf:
+            - $ref: "rdf.yaml#/components/schemas/ContentEncoded"
+          x-oapi-codegen-extra-tags:
+            xml: "encoded,omitempty"
+            json: "content_encoded,omitempty"
         subject:
           $ref: "#/components/schemas/Subject"
         publisher:
