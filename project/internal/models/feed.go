@@ -139,22 +139,29 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	feedID, err := id.NewID(id.Feed)
-	if err != nil {
-		return nil, fmt.Errorf("%w (%s)", err, url)
-	}
-
 	details, err := Parser.ParseURLWithContext(url, ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w (%s)", ErrParseFeed, err, url)
 	}
 
-	return &Feed{
-			CreatedAt: time.Now().UTC(),
-			ID:        feedID,
-			Feed:      details,
-		},
-		nil
+	feed := &Feed{
+		CreatedAt: time.Now().UTC(),
+		ID:        id.NewID(id.Feed),
+		URL:       url,
+		Feed:      details,
+	}
+
+	// Adjust FeedLink for misbehaving feeds. It appears that either the parser or the feed source fail to set or expose
+	// the wrong url for the canonical feed source URL. In these cases, set it to the given URL which we know at this
+	// point will point to an actual feed source.
+	if feed.FeedLink == "" {
+		feed.FeedLink = url
+	}
+	if feed.FeedLink != url {
+		feed.FeedLink = url
+	}
+
+	return feed, nil
 }
 
 func (m *FeedMetadata) GetImage() *gofeed.Image {

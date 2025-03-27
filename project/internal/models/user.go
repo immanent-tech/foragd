@@ -65,7 +65,7 @@ func (u *User) GetMarkedRead(id FeedID) time.Time {
 
 // GetSubscriptions retrieves all Subscriptions for the user.
 func (u *User) GetSubscriptions() Subscriptions {
-	subscriptions := make(Subscriptions, len(u.Subscriptions))
+	subscriptions := make(Subscriptions, 0, len(u.Subscriptions))
 	for subscription := range slices.Values(u.Subscriptions) {
 		subscriptions = append(subscriptions, &subscription)
 	}

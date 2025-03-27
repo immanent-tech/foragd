@@ -1,36 +1,40 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//go:generate go run golang.org/x/tools/cmd/stringer -type=Prefix -linecomment -output id_generated.go
+//go:generate go tool golang.org/x/tools/cmd/stringer -type=Prefix -linecomment -output id_generated.go
 package id
 
 import (
-	"fmt"
 	"strings"
 
 	nanoid "github.com/matoous/go-nanoid"
 )
 
 const (
-	Unknown      Prefix = iota // unknown
-	Subscription               // sub
-	Feed                       // feed
-	Item                       // item
-	Scheduler                  // scheduler
+	Invalid Prefix = iota + 0
+	Min
+	Subscription // sub
+	Feed         // feed
+	Item         // item
+	Scheduler    // scheduler
+	Max
 )
 
 // Prefix represents a type of ID. Specific types share a common prefix.
 type Prefix int
 
+// Valid returns a boolean indicating whether the prefix is valid.
+func (p Prefix) Valid() bool {
+	return p > Min && p < Max
+}
+
 // NewID generates a new unique ID for the given type option. If an ID cannot be
 // generated, a non-nil error is returned.
-func NewID(option Prefix) (string, error) {
-	id, err := nanoid.Nanoid()
-	if err != nil {
-		return "", fmt.Errorf("could not generate username: %w", err)
-	}
-
-	return option.String() + "_" + id, nil
+//
+//nolint:errcheck
+func NewID(option Prefix) string {
+	id, _ := nanoid.Nanoid()
+	return option.String() + "_" + id
 }
 
 // IdentifyID takes an ID and returns the type of ID it represents.
@@ -44,6 +48,6 @@ func IdentifyID(id string) Prefix {
 	case Subscription.String():
 		return Subscription
 	default:
-		return Unknown
+		return Invalid
 	}
 }

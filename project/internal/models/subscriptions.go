@@ -111,6 +111,12 @@ func (s Subscriptions) FilterByRead() Subscriptions {
 	}))
 }
 
+// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
+// (false) a non-nil error is also returned which contains validation issues.
+func (s *Subscription) Valid() (bool, error) {
+	return validation.ValidateStruct(s)
+}
+
 // GetFeedID retrieves the FeedID associated with the subscription.
 func (s *Subscription) GetFeedID() FeedID {
 	return s.FeedID
@@ -201,32 +207,6 @@ func (r *SubscriptionRequest) GetURL() string {
 // SubscriptionRequests is a list of subscription requests.
 type SubscriptionRequests []*SubscriptionRequest
 
-// // Validate will inspect each SubscriptionRequest and validate it. If a request
-// // is invalid, its Err field will be set to a non-nil validation.ValidationErrors.
-// func (r SubscriptionRequests) Validate() {
-// 	for request := range slices.Values(r) {
-// 		if valid, problems := request.Valid(); !valid {
-// 			request.Err = WrapError(problems, "api", "subscription is invalid")
-// 		}
-// 	}
-// }
-
-// // FilterValid returns a slice of SubscriptionRequest containing only those
-// // requests that are valid (i.e., do not have an error).
-// func (r SubscriptionRequests) FilterValid() SubscriptionRequests {
-// 	return slices.Collect(FilterSlice(r, func(request *SubscriptionRequest) bool {
-// 		return request.Msg == nil
-// 	}))
-// }
-
-// // FilterInValid returns a slice of SubscriptionRequest containing only those
-// // requests that are invalid (i.e., have an error).
-// func (r SubscriptionRequests) FilterInValid() SubscriptionRequests {
-// 	return slices.Collect(FilterSlice(r, func(request *SubscriptionRequest) bool {
-// 		return request.Msg != nil
-// 	}))
-// }
-
 // URLs extracts and returns a list of URLs from the requests.
 func (r SubscriptionRequests) URLs() []URL {
 	urls := make([]URL, 0, len(r))
@@ -239,13 +219,13 @@ func (r SubscriptionRequests) URLs() []URL {
 }
 
 func NewSubscriptionRequest(url string) *SubscriptionRequest {
-	id, _ := id.NewID(id.Subscription)
 	return &SubscriptionRequest{
-		ID:  id,
+		ID:  id.NewID(id.Subscription),
 		URL: url,
 	}
 }
 
+// NewSubscription creates a Subscription from the request and feed details.
 func NewSubscription(request *SubscriptionRequest, feed FeedInterface) *Subscription {
 	return &Subscription{
 		CreatedAt:      time.Now().UTC(),
@@ -260,6 +240,9 @@ func NewSubscription(request *SubscriptionRequest, feed FeedInterface) *Subscrip
 			Description: feed.GetDescription(),
 			Image:       feed.GetImage(),
 			Title:       feed.GetTitle(),
+		},
+		State: SubscriptionState{
+			MarkedRead: time.Unix(0, 0),
 		},
 	}
 }

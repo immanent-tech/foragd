@@ -245,6 +245,9 @@ func (e *ElasticAPI) GetSubscriptionUnreadCounts(ctx context.Context, subscripti
 
 // AddSubscriptions will add Subscriptions to a User.
 func (e *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error {
+	if len(subscriptions) == 0 {
+		return nil
+	}
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return models.WrapError(ErrNoUserCtx, "elastic", "get subscriptions failed")
@@ -252,12 +255,11 @@ func (e *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions models.
 	// Add the subscriptions to the user.
 	user.AddSubscriptions(subscriptions)
 	spew.Dump(user)
-	return nil
 	// Update the user object.
-	// return e.UpdateUser(ctx, user.ID, map[string]any{
-	// 	"subscriptions": user.Subscriptions,
-	// 	"updated_at":    time.Now().UTC(),
-	// })
+	return e.UpdateUser(ctx, user.ID, map[string]any{
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
+	})
 }
 
 // UserActionMarkSubscriptions will mark user subscriptions with the given state.

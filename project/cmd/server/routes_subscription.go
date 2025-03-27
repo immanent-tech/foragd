@@ -36,12 +36,8 @@ type subscriptionRequests map[*models.Subscription]*models.Feed
 type subscriptionRequestResults map[*models.Subscription]*models.Message
 
 func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
-	if err := htmx.NewResponse().
-		RenderTempl(req.Context(), res,
-			subscription.NewSubscriptionModal(models.NewSubscriptionRequest(""), nil)); err != nil {
-		handlers.InternalServerError(res, req, err)
-		return
-	}
+	handler := handlers.HandleHTMXResponse(htmx.NewResponse(), subscription.NewSubscriptionModal(models.NewSubscriptionRequest(""), nil))
+	handler.ServeHTTP(res, req)
 }
 
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
@@ -62,8 +58,17 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 		showRequestResponse(res, req, request, msg)
 		return
 	}
+	user, found := models.UserFromCtx(req.Context())
+	if !found {
+		msg := models.NewMessage("Invalid request data.",
+			models.WithDetails("The request contains invalid data. Please check and try again."),
+			models.WithError(err),
+		)
+		showRequestResponse(res, req, request, msg)
+		return
+	}
 
-	results := processSubscriptionRequests(req.Context(), s.DataAPI(), models.SubscriptionRequests{request})
+	results := processSubscriptionRequests(req.Context(), s.DataAPI(), user, models.SubscriptionRequests{request})
 	for msg := range maps.Values(results) {
 		if err := htmx.NewResponse().
 			Retarget(subscription.SubscriptionModalID.Target()).
@@ -72,15 +77,12 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 			handlers.InternalServerError(res, req, err)
 			return
 		}
-		spew.Dump(msg)
 	}
 }
 
 func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.ImportModal()); err != nil {
-		handlers.InternalServerError(res, req, err)
-		return
-	}
+	handler := handlers.HandleHTMXResponse(htmx.NewResponse(), subscription.ImportModal())
+	handler.ServeHTTP(res, req)
 }
 
 func (f *SetImportMethodFormdataBody) Valid() (bool, error) {
@@ -127,6 +129,15 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 		showImportFailed(res, req, msg)
 		return
 	}
+	user, found := models.UserFromCtx(req.Context())
+	if !found {
+		msg := models.NewMessage("Error reading import source data.",
+			models.WithDetails("There was an error setting up the import. Please try again."),
+			models.WithStatus(models.MessageStatusError),
+			models.WithError(err))
+		showImportFailed(res, req, msg)
+		return
+	}
 	// Generate subscription requests using the import source.
 	switch importMethod {
 	case string(models.ImportSourceOPMLFile):
@@ -141,7 +152,7 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 		}
 	}
 	// Process the requests.
-	results = processSubscriptionRequests(req.Context(), s.DataAPI(), requests)
+	results = processSubscriptionRequests(req.Context(), s.DataAPI(), user, requests)
 	// Show results.
 	showImportResults(res, req, results)
 }
@@ -220,24 +231,41 @@ func (s Server) DelSubscriptionCategory(res http.ResponseWriter, req *http.Reque
 // subscription requests. It handles generating the subscriptions, adding any
 // new feeds that are required and updating the user object. As it processes
 // requests, results are gathered. It will return a map of results.
-func processSubscriptionRequests(ctx context.Context, api DataAPI, requests models.SubscriptionRequests) subscriptionRequestResults {
+func processSubscriptionRequests(ctx context.Context, api DataAPI, user *models.User, requests models.SubscriptionRequests) subscriptionRequestResults {
 	results := make(subscriptionRequestResults)
 	// Generate subscriptions.
-	subscriptions, warnings := generateSubscriptions(ctx, api, requests...)
+	subscriptions, warnings := generateSubscriptions(ctx, api, user, requests...)
 	maps.Copy(results, warnings)
-	for sub := range maps.Keys(subscriptions) {
-		results[sub] = models.NewMessage(
-			fmt.Sprintf("Subscription for feed %s created!", sub.GetName()),
-			models.WithStatus(models.MessageStatusSuccess))
-	}
-	return results
 	// Add any new feeds required.
-	warnings = addFeedsForSubscriptions(ctx, api, filterFeedNeeded(subscriptions))
-	maps.Copy(results, warnings)
-	// Filter subscriptions that have failed results.
-	validSubscriptions := maps.Collect(models.FilterMap(subscriptions, func(s *models.Subscription, _ *models.Feed) bool {
-		return !slices.ContainsFunc(slices.Collect(maps.Keys(results)), func(v *models.Subscription) bool { return v.ID == s.ID })
+	feedsNeeded := maps.Collect(models.FilterMap(subscriptions, func(_ *models.Subscription, f *models.Feed) bool {
+		return f != nil
 	}))
+	warnings = addFeedsForSubscriptions(ctx, api, feedsNeeded)
+	maps.Copy(results, warnings)
+	spew.Dump(results)
+	// Filter subscriptions that have failed results.
+	validSubscriptions := maps.Collect(models.FilterMap(subscriptions, func(sub *models.Subscription, _ *models.Feed) bool {
+		// If it is already marked with results, filter it out.
+		if slices.ContainsFunc(slices.Collect(maps.Keys(results)), func(v *models.Subscription) bool { return v.ID == sub.ID }) {
+			return false
+		}
+		// Check if the details are valid. If not, add to results and return false.
+		if valid, err := sub.Valid(); !valid || err != nil {
+			results[sub] = models.NewMessage(
+				fmt.Sprintf("subscription details for feed %s are invalid", sub.GetName()),
+				models.WithDetails("A subscription could not be created as the generated subscription data is invalid."),
+				models.WithStatus(models.MessageStatusError),
+				models.WithError(err),
+			)
+			spew.Dump(sub)
+			spew.Dump(results[sub])
+			return false
+		}
+		// Subscription is valid.
+		return true
+	}))
+	spew.Dump(validSubscriptions)
+	// Add valid subscriptions.
 	err := api.AddSubscriptions(ctx, slices.Collect(maps.Keys(validSubscriptions)))
 	// If the request to add subscriptions failed, record failure for all subscriptions.
 	for sub := range maps.Keys(validSubscriptions) {
@@ -271,7 +299,7 @@ func addFeedsForSubscriptions(ctx context.Context, api DataAPI, subscriptions ma
 	newFeedsResp, err := api.AddFeeds(ctx, slices.Collect(maps.Values(subscriptions))...)
 	// If the request failed and no new feeds were created return all
 	// subscriptions with fail messages.
-	if err != nil || (newFeedsResp.Err != nil && len(newFeedsResp.Responses) == 0) {
+	if err != nil || newFeedsResp.Err != nil {
 		for sub := range maps.Keys(subscriptions) {
 			results[sub] = models.NewMessage(
 				fmt.Sprintf("could not create a subscription for feed %s", sub.GetName()),
@@ -289,7 +317,7 @@ func addFeedsForSubscriptions(ctx context.Context, api DataAPI, subscriptions ma
 		idx := slices.IndexFunc(newFeedsResp.Responses,
 			func(v *bulk.OperationResponse) bool {
 				if v.Id_ != nil {
-					return *v.Id_ == sub.ID
+					return *v.Id_ == sub.GetFeedID()
 				}
 				return false
 			})
@@ -304,7 +332,6 @@ func addFeedsForSubscriptions(ctx context.Context, api DataAPI, subscriptions ma
 					models.WithError(err),
 				)
 			}
-			results[sub] = nil
 		} else {
 			results[sub] = models.NewMessage(
 				fmt.Sprintf("could not create a subscription for feed %s", sub.GetName()),
@@ -321,7 +348,7 @@ func addFeedsForSubscriptions(ctx context.Context, api DataAPI, subscriptions ma
 // generateSubscriptions adds details of the Feed that is associated with the
 // subscription request. For non-existing feeds, the request will have a feed
 // object added that can be used to add the feed as well.
-func generateSubscriptions(ctx context.Context, api DataAPI, requests ...*models.SubscriptionRequest) (subscriptionRequests, subscriptionRequestResults) {
+func generateSubscriptions(ctx context.Context, api DataAPI, user *models.User, requests ...*models.SubscriptionRequest) (subscriptionRequests, subscriptionRequestResults) {
 	newSubscriptions := make(subscriptionRequests)
 	results := make(subscriptionRequestResults)
 
@@ -344,9 +371,17 @@ func generateSubscriptions(ctx context.Context, api DataAPI, requests ...*models
 		if idx := slices.IndexFunc(existingFeeds, func(feed *models.APIFeed) bool {
 			return request.GetURL() == feed.GetLink()
 		}); idx != -1 {
-			// Existing Ffeed. Create Subscription using existing Feed details.
-			s := models.NewSubscription(request, existingFeeds[idx])
-			newSubscriptions[s] = nil
+			// Existing Feed. Check if user already subscribed.
+			if user.IsSubscribed(existingFeeds[idx].GetID()) {
+				results[&models.Subscription{ID: request.ID}] = models.NewMessage(fmt.Sprintf("Already subscribed to %s", request.GetURL()),
+					models.WithDetails("Already subscribed to the feed with the given URL."),
+					models.WithStatus(models.MessageStatusInfo),
+				)
+			} else {
+				// Create Subscription using existing Feed details.
+				s := models.NewSubscription(request, existingFeeds[idx])
+				newSubscriptions[s] = nil
+			}
 		} else {
 			// New Feed. Create Feed then create Subscription with new Feed details.
 			newFeed, err := models.NewFeedFromURL(ctx, request.GetURL())
@@ -363,13 +398,6 @@ func generateSubscriptions(ctx context.Context, api DataAPI, requests ...*models
 		}
 	}
 	return newSubscriptions, results
-}
-
-func filterFeedNeeded(subscriptions map[*models.Subscription]*models.Feed) map[*models.Subscription]*models.Feed {
-	return maps.Collect(models.FilterMap(subscriptions, func(s *models.Subscription, f *models.Feed) bool {
-		spew.Dump(s.ID, f != nil)
-		return f != nil
-	}))
 }
 
 func showRequestResponse(res http.ResponseWriter, req *http.Request, request *models.SubscriptionRequest, msg *models.Message) {

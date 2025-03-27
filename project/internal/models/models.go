@@ -21,7 +21,8 @@ var ErrInvalidID = errors.New("error generating unique ID")
 type Feed struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 	*gofeed.Feed
-	ID FeedID `json:"feed_id" validate:"required"`
+	ID  FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	URL URL    `json:"url" validate:"required,url"`
 }
 
 func (f *Feed) GetID() FeedID {
@@ -49,7 +50,7 @@ func (f *Feed) GetImage() *gofeed.Image {
 }
 
 func (f *Feed) GetLink() URL {
-	return f.FeedLink
+	return f.URL
 }
 
 // Item represents an item of a feed. It embeds the gofeed.Item object and adds additional

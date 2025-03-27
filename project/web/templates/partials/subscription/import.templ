@@ -99,9 +99,9 @@ templ ImportFromOPML() {
 templ ImportModal() {
 	@modal.Build(
 		modal.WithID(ImportModalID.String()),
-		modal.WithModalCloseButton(),
-		modal.WithModalCloseOutside(),
-		modal.OpenModalInitially(),
+		modal.WithCloseButton(),
+		modal.WithCloseOutside(),
+		modal.OpenInitially(),
 	).Show() {
 		@text.Build("Import Your Feeds", text.WithTextSize(text.LG), text.WithTextWeight(text.Semibold)).Show()
 		<div id="import-modal-content" hx-disabled-elt="find button">
@@ -114,9 +114,9 @@ templ ImportModal() {
 templ ImportResultsModal(content templ.Component) {
 	@modal.Build(
 		modal.WithID(ImportModalID.String()),
-		modal.WithModalCloseButton(),
-		modal.WithModalCloseOutside(),
-		modal.OpenModalInitially(),
+		modal.WithCloseButton(),
+		modal.WithCloseOutside(),
+		modal.OpenInitially(),
 	).Show() {
 		@content
 	}

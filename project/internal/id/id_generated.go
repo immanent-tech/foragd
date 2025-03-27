@@ -8,16 +8,18 @@ func _() {
 	// An "invalid array index" compiler error signifies that the constant values have changed.
 	// Re-run the stringer command to generate them again.
 	var x [1]struct{}
-	_ = x[Unknown-0]
-	_ = x[Subscription-1]
-	_ = x[Feed-2]
-	_ = x[Item-3]
-	_ = x[Scheduler-4]
+	_ = x[Invalid-0]
+	_ = x[Min-1]
+	_ = x[Subscription-2]
+	_ = x[Feed-3]
+	_ = x[Item-4]
+	_ = x[Scheduler-5]
+	_ = x[Max-6]
 }
 
-const _Prefix_name = "unknownsubfeeditemscheduler"
+const _Prefix_name = "InvalidMinsubfeeditemschedulerMax"
 
-var _Prefix_index = [...]uint8{0, 7, 10, 14, 18, 27}
+var _Prefix_index = [...]uint8{0, 7, 10, 13, 17, 21, 30, 33}
 
 func (i Prefix) String() string {
 	if i < 0 || i >= Prefix(len(_Prefix_index)-1) {

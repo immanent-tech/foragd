@@ -46,11 +46,6 @@ type Manager struct {
 var manager *Manager
 
 func Run(ctx context.Context) error {
-	schedulerID, err := id.NewID(id.Scheduler)
-	if err != nil {
-		return errors.Join(ErrRunFailed, err)
-	}
-
 	esClient, err := elastic.Connect(ctx)
 	if err != nil {
 		return errors.Join(ErrRunFailed, err)
@@ -78,7 +73,7 @@ func Run(ctx context.Context) error {
 	}
 
 	manager = &Manager{
-		id:         schedulerID,
+		id:         id.NewID(id.Scheduler),
 		db:         esClient,
 		queue:      jobQueue,
 		scheduler:  scheduler,

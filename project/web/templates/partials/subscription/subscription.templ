@@ -10,6 +10,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/input/fieldset"
 	"github.com/joshuar/go-templ-daisyui/input/form"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
@@ -68,9 +69,10 @@ templ (r *SubscriptionRequest) Form(msg *models.Message) {
 			form.WithID(AddSubscriptionDetailsFormID.String()),
 			form.WithExtraAttributes(
 				templ.Attributes{
-					"hx-put":    "/subscription/add",
-					"hx-target": SubscriptionDetailsID.Target(),
-					"hx-swap":   "morph:outerHTML",
+					"hx-put":       "/subscription/add",
+					"hx-target":    SubscriptionDetailsID.Target(),
+					"hx-swap":      "morph:outerHTML",
+					"hx-indicator": "#add-processing",
 				},
 			),
 			form.WithElements(
@@ -121,6 +123,10 @@ templ (r *SubscriptionRequest) Form(msg *models.Message) {
 					})),
 			),
 		).Show()
+		<center id="add-processing" class="htmx-indicator">
+			Adding
+			@loading.Build(loading.Infinity).Show()
+		</center>
 	</div>
 }
 
@@ -134,9 +140,9 @@ func NewSubscriptionRequest(req *models.SubscriptionRequest) *SubscriptionReques
 templ NewSubscriptionModal(req *models.SubscriptionRequest, msg *models.Message) {
 	@modal.Build(
 		modal.WithID(SubscriptionModalID.String()),
-		modal.WithModalCloseButton(),
-		modal.WithModalCloseOutside(),
-		modal.OpenModalInitially(),
+		modal.WithCloseButton(),
+		modal.WithCloseOutside(),
+		modal.OpenInitially(),
 	).Show() {
 		@text.Build("Add a new subscription", text.WithTextSize(text.LG)).Show()
 		if req != nil {
@@ -149,19 +155,21 @@ templ NewSubscriptionModal(req *models.SubscriptionRequest, msg *models.Message)
 templ NewSubscriptionResultsModal(msg *models.Message) {
 	@modal.Build(
 		modal.WithID(SubscriptionModalID.String()),
-		modal.WithModalCloseButton(),
-		modal.WithModalCloseOutside(),
-		modal.OpenModalInitially(),
+		modal.WithCloseButton(),
+		modal.WithCloseOutside(),
+		modal.OpenInitially(),
+		modal.WithActions(
+			button.Build(
+				button.WithSize(size.SM),
+				button.WithContent("Add another?"),
+				button.WithExtraAttributes(templ.Attributes{
+					"hx-get":    "/subscription/new",
+					"hx-target": partials.CommandModalID.Target(),
+					// "_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to " + SubscriptionModalID.Target(),
+				}),
+			),
+		),
 	).Show() {
 		@partials.ShowMessage(msg)
-		@button.Build(
-			button.WithSize(size.SM),
-			button.WithContent("Add another?"),
-			button.WithExtraAttributes(templ.Attributes{
-				"hx-get":    "/subscription/new",
-				"hx-target": partials.CommandModalID.Target(),
-				// "_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to " + SubscriptionModalID.Target(),
-			}),
-		).Show()
 	}
 }

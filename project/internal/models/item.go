@@ -114,16 +114,9 @@ func (i *Item) IsNewer(since time.Time) bool {
 // NewFeedItem creates a new Feed object from the given item details, using the
 // given feed ID.
 func NewFeedItem(feedID string, details *gofeed.Item) (*Item, error) {
-	var err error
-
-	itemID, err := id.NewID(id.Item)
-	if err != nil {
-		return nil, errors.Join(ErrInvalidID, err)
-	}
-
 	return &Item{
 			CreatedAt: time.Now().UTC(),
-			ID:        itemID,
+			ID:        id.NewID(id.Item),
 			FeedID:    feedID,
 			Item:      details,
 		},
