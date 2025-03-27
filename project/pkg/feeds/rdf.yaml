@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
+
+# Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+# SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+openapi: "3.0.3"
+info:
+  version: 1.0.0
+  title: RSS
+  description: RSS specification
+paths: {}
+components:
+  schemas:
+    ContentEncoded:
+      description: >
+        is an element whose contents are the entity-encoded or CDATA-escaped version of the content of the item.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          x-go-type: "xml.Name"
+          x-oapi-codegen-extra-tags:
+            xml: "encoded"
+            json: "xml"
+        value:
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: ",chardata"
+            json: "encoded"
+            validate: "required,html_encoded"
+      x-oapi-codegen-extra-tags:
+        json: "content_encoded,omitempty"
+
+

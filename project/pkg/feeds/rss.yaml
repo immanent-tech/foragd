@@ -1,0 +1,774 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
+
+# Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+
+openapi: "3.0.3"
+info:
+  version: 1.0.0
+  title: RSS
+  description: >
+    A representation of the RSS 2.0 specification, with extensions, as openapi schema.
+  license:
+    name: AGPL-3.0-or-later
+    url: https://spdx.org/licenses/AGPL-3.0-only.html
+paths: {}
+components:
+  schemas:
+    Value:
+      description: >
+        represents a value of a element.
+      type: string
+      x-oapi-codegen-extra-tags:
+        xml: ",chardata"
+        validate: "required,html_encoded"
+    XMLName:
+      description: >
+        represents the XML namespace of an element.
+      x-go-type: "xml.Name"
+      x-oapi-codegen-extra-tags:
+        json: "xml"
+        validate: "required"
+    Element:
+      description: >
+        is a XML element that has a namespace and a value.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "#/components/schemas/XMLName"
+        value:
+          $ref: "#/components/schemas/Value"
+    Contributor:
+      description: >
+        is an entity responsible for making contributions to the resource.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "contributor,omitempty"
+    Coverage:
+      description: >
+        is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under
+        which the resource is relevant.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "coverage,omitempty"
+    Creator:
+      description: >
+        is an entity primarily responsible for making the resource.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "creator,omitempty"
+    Date:
+      description: >
+        is a point or period of time associated with an event in the lifecycle of the resource.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "#/components/schemas/XMLName"
+        value:
+          x-go-type: DateTime
+          x-oapi-codegen-extra-tags:
+            xml: ",chardata"
+            validate: "required,datetime"
+      x-oapi-codegen-extra-tags:
+        xml: "date,omitempty"
+    Format:
+      description: >
+        is the file format, physical medium, or dimensions of the resource.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "format,omitempty"
+    Identifier:
+      description: >
+        is an unambiguous reference to the resource within a given context.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "identifier,omitempty"
+    Publisher:
+      description: >
+        is an entity responsible for making the resource available.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "publisher,omitempty"
+    Relation:
+      description: >
+        is a related resource.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "relation,omitempty"
+    Rights:
+      description: >
+        is information about rights held in and over the resource.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "rights,omitempty"
+    Subject:
+      description: >
+        is the topic of the resource.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "subject,omitempty"
+    Type:
+      description: >
+        is the nature or genre of the resource.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "type,omitempty"
+    Category:
+      description: >
+        is a forward-slash-separated string that identifies a hierarchic location in the indicated taxonomy. Processors
+        may establish conventions for the interpretation of categories.
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          $ref: "#/components/schemas/Value"
+        domain:
+          description: >
+            is a string that identifies a categorization taxonomy.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "domain,attr,omitempty"
+      x-oapi-codegen-extra-tags:
+        xml: "category,omitempty"
+    Enclosure:
+      description: >
+        describes a media object.
+      type: object
+      required:
+        - url
+        - length
+        - type
+      properties:
+        url:
+          description: >
+            indicates where the enclosure is located.
+          type: string
+          x-go-name: URL
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "url,attr"
+            validate: "required,url"
+        length:
+          description: >
+            indicates how big the enclosure is in bytes.
+          type: integer
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "length,attr"
+            validate: "required,number"
+        type:
+          description: >
+            indicates the MIME type of the enclosure.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "type,attr"
+            validate: "required"
+      x-oapi-codegen-extra-tags:
+        xml: "enclosure,omitempty"
+    GUID:
+      description: >
+        is a string that uniquely identifies an item.
+      type: object
+      required:
+        - value
+      properties:
+        value:
+          $ref: "#/components/schemas/Value"
+        isPermaLink:
+          description: >
+            If true the guid is assumed to be a URL. If its value is false, the guid may not be assumed to be a url, or
+            a url to anything in particular.
+          type: boolean
+          default: true
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "isPermaLink,attr,omitempty"
+      x-go-name: GUID
+      x-oapi-codegen-extra-tags:
+        xml: "guid,omitempty"
+    Source:
+      description: >
+        is a related resource from which the described resource is derived.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/Element"
+        - type: object
+          properties:
+            url:
+              type: string
+              x-go-name: URL
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "url,attr"
+                validate: "url"
+      x-oapi-codegen-extra-tags:
+        xml: "source,omitempty"
+    RSSCloud:
+      description: >
+        specifies a web service that supports the rssCloud interface which can be implemented in HTTP-POST, XML-RPC or
+        SOAP 1.1.
+
+        Its purpose is to allow processes to register with a cloud to be notified of updates to the channel,
+        implementing a lightweight publish-subscribe protocol for RSS feeds.
+      type: object
+      required:
+        - domain
+        - port
+        - path
+        - registerProcedure
+        - protocol
+      properties:
+        domain:
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "domain,attr"
+            validate: "required"
+        port:
+          type: integer
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "port,attr"
+            validate: "required"
+        path:
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "path,attr"
+            validate: "required"
+        registerProcedure:
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "registerProcedure,attr"
+            validate: "required"
+        protocol:
+          type: string
+          enum: ["xml-rpc","soap","http-post"]
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "protocol,attr"
+            validate: "required"
+      x-oapi-codegen-extra-tags:
+        xml: "cloud,omitempty"
+      example:
+        domain: rpc.sys.com
+        port: 80
+        path: "/RPC2"
+        registerProcedure: "pingMe"
+        protocol: "soap"
+    TextInput:
+      description: >
+        The purpose of the <textInput> element is something of a mystery. You can use it to specify a search engine box.
+        Or to allow a reader to provide feedback. Most aggregators ignore it.
+      type: object
+      required:
+        - title
+        - description
+        - name
+        - link
+      properties:
+        title:
+          description: >
+            is the label of the Submit button in the text input area.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "title"
+            validate: "required,html_encoded"
+        description:
+          description: >
+            explains the text input area.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "description"
+            validate: "required,html_encoded"
+        name:
+          description: >
+            is the name of the text object in the text input area.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "name"
+            validate: "required,html_encoded"
+        link:
+          description: >
+            is the URL of the CGI script that processes text input requests.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "link"
+            validate: "required,url"
+      x-oapi-codegen-extra-tags:
+        xml: "textInput,omitempty"
+    Image:
+      description: >
+        contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
+      type: object
+      required:
+        - url
+        - title
+        - link
+      properties:
+        url:
+          description: >
+            is the URL of a GIF, JPEG or PNG image that represents the channel.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            xml: "url"
+            validate: "required,url"
+        title:
+          description: >
+            describes the image, it's used in the ALT attribute of the HTML <img> tag when the channel is rendered in HTML.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "title"
+            validate: "required,title"
+        link:
+          description: >
+            is the URL of the site, when the channel is rendered, the image is a link to the site. (Note, in practice
+            the image <title> and <link> should have the same value as the channel's <title> and <link>.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "link"
+            validate: "required,link"
+        width:
+          description: >
+            indicates the width of the image in pixels.
+          type: integer
+          maximum: 144
+          default: 88
+          x-oapi-codegen-extra-tags:
+            xml: "width,omitempty"
+            validate: "omitempty,gt=0,lte=144"
+        height:
+          description: >
+            indicates the height of the image in pixels.
+          type: integer
+          maximum: 400
+          default: 31
+          x-oapi-codegen-extra-tags:
+            xml: "height,omitempty"
+            validate: "omitempty,gt=0,lte=400"
+        description:
+          description: >
+            contains text that is included in the TITLE attribute of the link formed around the image in the HTML
+            rendering.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "description,omitempty"
+      x-oapi-codegen-extra-tags:
+        xml: "image,omitempty"
+    Link:
+      description: >
+        is the URL to a HTML website corresponding to the resource.
+      type: object
+      allOf:
+        - $ref: "atom.yaml#/components/schemas/Link"
+        - type: object
+          properties:
+            value:
+              $ref: "#/components/schemas/Value"
+    Language:
+      description: >
+        identifies the language used by the related resource using an HTML language code.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "#/components/schemas/XMLName"
+        value:
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: ",chardata"
+            validate: "required,bcp47_language_tag"
+      x-oapi-codegen-extra-tags:
+        xml: "language,omitempty"
+    SkipHours:
+      description: >
+        is a hint for aggregators telling them which hours they can skip.
+      type: object
+      properties:
+        hour:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 23
+          x-oapi-codegen-extra-tags:
+            xml: "hour"
+            validate: "omitempty,gte=0,lte=23"
+      x-oapi-codegen-extra-tags:
+        xml: "skipHours,omitempty"
+    SkipDays:
+      description: >
+        is a hint for aggregators telling them which days they can skip. This
+      type: object
+      properties:
+        day:
+          type: array
+          items:
+            type: string
+            enum: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+          x-oapi-codegen-extra-tags:
+            xml: "day"
+      x-oapi-codegen-extra-tags:
+        xml: "skipDays,omitempty"
+    RSS:
+      description: >
+        represents an RSS document.
+      type: object
+      x-go-name: RSS
+      required:
+        - XMLName
+        - version
+        - channel
+      properties:
+        XMLName:
+          $ref: "#/components/schemas/XMLName"
+        channel:
+          $ref: "#/components/schemas/Channel"
+        version:
+          description: >
+            specifies the version of RSS that the document conforms to.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "version,attr"
+          xml:
+            attribute: true
+    Channel:
+      description: >
+        contains information about the channel (metadata) and its contents.
+      type: object
+      required:
+        - title
+        - link
+        - description
+      x-oapi-codegen-extra-tags:
+        xml: "channel"
+      properties:
+        title:
+          description: >
+            is the name of the channel. It's how people refer to your service. If you have an HTML website that contains
+            the same information as your RSS file, the title of your channel should be the same as the title of your
+            website.
+          allOf:
+            - $ref: "#/components/schemas/Element"
+          x-oapi-codegen-extra-tags:
+            xml: "title"
+            validate: "required"
+          example:
+            title: GoUpstate.com News Headlines
+        link:
+          description: >
+            is the URL to the HTML website corresponding to the channel.
+          type: array
+          items:
+            $ref: "#/components/schemas/Link"
+          x-oapi-codegen-extra-tags:
+            xml: "link"
+            validate: "required"
+        description:
+          description: >
+            is a phrase or sentence describing the channel.
+          allOf:
+            - $ref: "#/components/schemas/Element"
+          x-oapi-codegen-extra-tags:
+            xml: "description"
+            validate: "required"
+          example:
+            description: >
+              The latest news from GoUpstate.com, a Spartanburg Herald-Journal Web site.
+        language:
+          $ref: "#/components/schemas/Language"
+        copyright:
+          description: >
+            is the copyright notice for content in the channel.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "copyright,omitempty"
+          example:
+            copyright: Copyright 2002, Spartanburg Herald-Journal
+        managingEditor:
+          description: >
+            is the email address for person responsible for editorial content.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "managingEditor,omitempty"
+        webMaster:
+          description: >
+            is the email address for person responsible for technical issues relating to channel.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "webMaster,omitempty"
+        pubDate:
+          description: >
+            is the publication date of the content.
+          allOf:
+            - $ref: "#/components/schemas/Date"
+          x-oapi-codegen-extra-tags:
+            xml: "pubDate,omitempty"
+        lastBuildDate:
+          description: >
+            is the last time the content of the channel changed.
+          allOf:
+            - $ref: "#/components/schemas/Date"
+          x-oapi-codegen-extra-tags:
+            xml: "lastBuildDate,omitempty"
+        categories:
+          description: >
+            is a list of categories associated with the channel.
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+          xml:
+            name: category
+          x-oapi-codegen-extra-tags:
+            json: "category,omitempty"
+            xml: "category,omitempty"
+            validate: "omitempty,dive,unique"
+          x-go-type-skip-optional-pointer: true
+        generator:
+          description: >
+            is a string indicating the program used to generate the channel.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "generator,omitempty"
+          example:
+            generator: MightyInHouse Content System v2.3
+        docs:
+          description: >
+            A URL that points to the documentation for the format used in the RSS file. It's probably a pointer to this
+            page. It's for people who might stumble across an RSS file on a Web server 25 years from now and wonder what
+            it is.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "docs,omitempty"
+            validate: "omitempty,url"
+          example:
+            docs: https://www.rssboard.org/rss-specification
+        cloud:
+          $ref: "#/components/schemas/RSSCloud"
+        ttl:
+          description: >
+            stands for time to live. It's a number of minutes that indicates how long a channel can be cached before
+            refreshing from the source.
+          type: integer
+          minimum: 0
+          x-go-name: TTL
+          x-oapi-codegen-extra-tags:
+            xml: "ttl,omitempty"
+            validate: "omitempty,gte=0"
+        image:
+          $ref: "#/components/schemas/Image"
+        rating:
+          description: >
+            is the PICS rating for the channel.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "rating,omitempty"
+        skipHours:
+          $ref: "#/components/schemas/SkipHours"
+        skipDays:
+          $ref: "#/components/schemas/SkipDays"
+        textInput:
+          $ref: "#/components/schemas/TextInput"
+        creator:
+          type: array
+          items:
+            $ref: "#/components/schemas/Creator"
+          xml:
+            name: creator
+          x-oapi-codegen-extra-tags:
+            json: "creator,omitempty"
+            xml: "creator,omitempty"
+            validate: "omitempty,dive,unique"
+          x-go-type-skip-optional-pointer: true
+        subject:
+          $ref: "#/components/schemas/Subject"
+        publisher:
+          $ref: "#/components/schemas/Publisher"
+        contributor:
+          $ref: "#/components/schemas/Contributor"
+        type:
+          $ref: "#/components/schemas/Type"
+        format:
+          $ref: "#/components/schemas/Format"
+        identifier:
+          $ref: "#/components/schemas/Identifier"
+        source:
+          $ref: "#/components/schemas/Source"
+        relation:
+          $ref: "#/components/schemas/Relation"
+        coverage:
+          $ref: "#/components/schemas/Coverage"
+        rights:
+          $ref: "#/components/schemas/Rights"
+        items:
+          description: >
+            is a list of the current items published to the channel.
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+          xml:
+            name: item
+          x-oapi-codegen-extra-tags:
+            json: "item,omitempty"
+            xml: "item,omitempty"
+            validate: "omitempty,dive,unique"
+          x-go-type-skip-optional-pointer: true
+    Item:
+      description: >
+        An item may represent a "story" -- much like a story in a newspaper or magazine; if so its description is a
+        synopsis of the story, and the link points to the full story. An item may also be complete in itself, if so, the
+        description contains the text (entity-encoded HTML is allowed; see examples), and the link and title may be
+        omitted. All elements of an item are optional, however at least one of title or description must be present.
+      type: object
+      x-oapi-codegen-extra-tags:
+        xml: "item"
+      properties:
+        title:
+          description: >
+            is the title of the item.
+          allOf:
+            - $ref: "#/components/schemas/Element"
+          x-oapi-codegen-extra-tags:
+            xml: "title,omitempty"
+          example:
+            title: Venice Film Festival Tries to Quit Sinking
+        link:
+          description: >
+            is the URL to a webpage corresponding to the item.
+          type: array
+          items:
+            $ref: "#/components/schemas/Link"
+          x-oapi-codegen-extra-tags:
+            xml: "link,omitempty"
+        description:
+          description: >
+            is a phrase or sentence describing the channel.
+          allOf:
+            - $ref: "#/components/schemas/Element"
+          x-oapi-codegen-extra-tags:
+            xml: "description"
+          example:
+            description: >
+              Some of the most heated chatter at the Venice Film Festival this week was about the way that the arrival
+              of the stars at the Palazzo del Cinema was being staged.
+        author:
+          description: >
+            is the email address of the author of the item. For newspapers and magazines syndicating via RSS, the
+            author is the person who wrote the article that the <item> describes. For collaborative weblogs, the author
+            of the item might be different from the managing editor or webmaster. For a weblog authored by a single
+            individual it would make sense to omit the <author> element.
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            xml: "author,omitempty"
+          x-go-type-skip-optional-pointer: true
+        creator:
+          type: array
+          items:
+            $ref: "#/components/schemas/Creator"
+          xml:
+            name: creator
+          x-oapi-codegen-extra-tags:
+            json: "creator,omitempty"
+            xml: "creator,omitempty"
+            validate: "omitempty,dive,unique"
+          x-go-type-skip-optional-pointer: true
+        categories:
+          description: >
+            is a list of categories associated with the channel.
+          type: array
+          items:
+            $ref: "#/components/schemas/Category"
+          xml:
+            name: category
+          x-oapi-codegen-extra-tags:
+            json: "category,omitempty"
+            xml: "category,omitempty"
+            validate: "omitempty,dive,unique"
+          x-go-type-skip-optional-pointer: true
+        comments:
+          description: >
+            is the url of the comments page for the item.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "comments,omitempty"
+            validate: "omitempty,url"
+        pubDate:
+          description: >
+            is the publish date of the item.
+          allOf:
+            - $ref: "#/components/schemas/Date"
+          x-oapi-codegen-extra-tags:
+            xml: "pubDate,omitempty"
+        enclosure:
+          $ref: "#/components/schemas/Enclosure"
+        guid:
+          $ref: "#/components/schemas/GUID"
+        source:
+          $ref: "#/components/schemas/Source"
+        image:
+          $ref: "#/components/schemas/Image"
+        ContentEncoded:
+          $ref: "rdf.yaml#/components/schemas/ContentEncoded"
+        subject:
+          $ref: "#/components/schemas/Subject"
+        publisher:
+          $ref: "#/components/schemas/Publisher"
+        contributor:
+          $ref: "#/components/schemas/Contributor"
+        type:
+          $ref: "#/components/schemas/Type"
+        format:
+          $ref: "#/components/schemas/Format"
+        identifier:
+          $ref: "#/components/schemas/Identifier"
+        relation:
+          $ref: "#/components/schemas/Relation"
+        coverage:
+          $ref: "#/components/schemas/Coverage"
+        rights:
+          $ref: "#/components/schemas/Rights"

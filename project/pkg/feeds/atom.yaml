@@ -1,0 +1,84 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
+
+# Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+# SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+openapi: "3.0.3"
+info:
+  version: 1.0.0
+  title: RSS
+  description: RSS specification
+paths: {}
+components:
+  schemas:
+    Link:
+      description: >
+        defines a relationship between a web resource (such as a page) and an RSS channel or item.
+      type: object
+      required:
+        - XMLName
+        - href
+      properties:
+        XMLName:
+          x-go-type: "xml.Name"
+          x-oapi-codegen-extra-tags:
+            xml: "link"
+            json: "xml"
+        href:
+          description: >
+            contains the URL of the related resource.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "href,attr"
+            validate: "required,url"
+        hreflang:
+          description: >
+            identifies the language used by the related resource using an HTML language code.
+          type: string
+          x-go-name: HrefLang
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "hreflang,attr,omitempty"
+            validate: "omitempty,bcp47_language_tag"
+          example:
+            language: en-us
+        length:
+          description: >
+            contains the resource's size, in bytes.
+          type: integer
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "length,attr,omitempty"
+            validate: "omitempty,number"
+        title:
+          description: >
+            provides a human-readable description of the resource.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "title,attr,omitempty"
+            validate: "omitempty,html_encoded"
+        type:
+          description: >
+            identifies the resource's MIME media type.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "type,attr,omitempty"
+        rel:
+          description: >
+            contains a keyword that identifies the nature of the relationship between the linked resouce and the
+            element.
+          type: string
+          enum: ["alternate","enclosure","related","self","via"]
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "rel,attr,omitempty"
+
