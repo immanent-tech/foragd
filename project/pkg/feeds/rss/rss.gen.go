@@ -4,6 +4,8 @@
 package rss
 
 import (
+	"encoding/xml"
+
 	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/atom"
 	externalRef1 "github.com/joshuar/go-feed-me/pkg/feeds/rdf"
 	externalRef2 "github.com/joshuar/go-feed-me/pkg/feeds/types"
@@ -11,20 +13,20 @@ import (
 
 // Defines values for RSSCloudProtocol.
 const (
-	RSSCloudProtocolHttpPost RSSCloudProtocol = "http-post"
-	RSSCloudProtocolSoap     RSSCloudProtocol = "soap"
-	RSSCloudProtocolXmlRpc   RSSCloudProtocol = "xml-rpc"
+	HttpPost RSSCloudProtocol = "http-post"
+	Soap     RSSCloudProtocol = "soap"
+	XmlRpc   RSSCloudProtocol = "xml-rpc"
 )
 
 // Defines values for SkipDaysDay.
 const (
-	SkipDaysDayFriday    SkipDaysDay = "Friday"
-	SkipDaysDayMonday    SkipDaysDay = "Monday"
-	SkipDaysDaySaturday  SkipDaysDay = "Saturday"
-	SkipDaysDaySunday    SkipDaysDay = "Sunday"
-	SkipDaysDayThursday  SkipDaysDay = "Thursday"
-	SkipDaysDayTuesday   SkipDaysDay = "Tuesday"
-	SkipDaysDayWednesday SkipDaysDay = "Wednesday"
+	SkipFriday    SkipDaysDay = "Friday"
+	SkipMonday    SkipDaysDay = "Monday"
+	SkipSaturday  SkipDaysDay = "Saturday"
+	SkipSunday    SkipDaysDay = "Sunday"
+	SkipThursday  SkipDaysDay = "Thursday"
+	SkipTuesday   SkipDaysDay = "Tuesday"
+	SkipWednesday SkipDaysDay = "Wednesday"
 )
 
 // Author is the email address of the author of the item. For newspapers and magazines syndicating via RSS, the author is the person who wrote the article that the <item> describes. For collaborative weblogs, the author of the item might be different from the managing editor or webmaster. For a weblog authored by a single individual it would make sense to omit the <author> element.
@@ -35,8 +37,8 @@ type Category struct {
 	// Domain is a string that identifies a categorization taxonomy.
 	Domain *string `json:"domain,omitempty" xml:"domain,attr,omitempty"`
 
-	// Value represents a value of a element.
-	Value externalRef2.Value `json:"value" xml:",chardata"`
+	// Value is an element value that is required.
+	Value externalRef2.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
 // Channel defines model for Channel.
@@ -68,6 +70,9 @@ type Channel struct {
 
 	// Docs A URL that points to the documentation for the format used in the RSS file. It's probably a pointer to this page. It's for people who might stumble across an RSS file on a Web server 25 years from now and wonder what it is.
 	Docs *Docs `json:"docs,omitempty" validate:"omitempty,url" xml:"docs,omitempty"`
+
+	// Extensions records any elements that are unknown extensions to the schema.
+	Extensions []externalRef2.Extension `json:"extensions,omitempty" xml:",any"`
 
 	// Format is the file format, physical medium, or dimensions of the resource.
 	Format *externalRef1.Format `json:"format,omitempty" xml:"format,omitempty"`
@@ -280,8 +285,8 @@ type GUID struct {
 	// IsPermaLink If true the guid is assumed to be a URL. If its value is false, the guid may not be assumed to be a url, or a url to anything in particular.
 	IsPermaLink *bool `json:"isPermaLink,omitempty" xml:"isPermaLink,attr,omitempty"`
 
-	// Value represents a value of a element.
-	Value externalRef2.Value `json:"value" xml:",chardata"`
+	// Value is an element value that is required.
+	Value externalRef2.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
 // Generator is a string indicating the program used to generate the channel.
@@ -340,6 +345,9 @@ type Item struct {
 	// Enclosure describes a media object.
 	Enclosure *Enclosure `json:"enclosure,omitempty" xml:"enclosure,omitempty"`
 
+	// Extensions records any elements that are unknown extensions to the schema.
+	Extensions []externalRef2.Extension `json:"extensions,omitempty" xml:",any"`
+
 	// Format is the file format, physical medium, or dimensions of the resource.
 	Format *externalRef1.Format `json:"format,omitempty" xml:"format,omitempty"`
 
@@ -392,7 +400,8 @@ type PubDate = externalRef1.Date
 // RSS represents an RSS document.
 type RSS struct {
 	// XMLName represents the XML namespace of an element.
-	XMLName externalRef2.XMLName `json:"xml" validate:"required"`
+	XMLName    externalRef2.XMLName `json:"xml" validate:"required"`
+	Attributes []xml.Attr           `json:"attributes" xml:",any,attr"`
 
 	// Channel contains information about the channel (metadata) and its contents.
 	Channel Channel `json:"channel" xml:"channel"`
@@ -419,25 +428,25 @@ type Rating = string
 
 // SkipDays is a hint for aggregators telling them which days they can skip. This
 type SkipDays struct {
-	Day *[]SkipDaysDay `json:"day,omitempty" xml:"day"`
+	Day []SkipDaysDay `json:"day,omitempty" validate:"omitempty,dive,oneof=Monday Tuesday Wednesday Thursday Friday Saturday Sunday" xml:"day,omitempty"`
 }
 
-// SkipDaysDay defines model for SkipDays.Day.
+// SkipDaysDay is a day of the week to skip.
 type SkipDaysDay string
 
 // SkipHours is a hint for aggregators telling them which hours they can skip.
 type SkipHours struct {
-	Hour *[]int `json:"hour,omitempty" validate:"omitempty,gte=0,lte=23" xml:"hour"`
+	Hour []int `json:"hour,omitempty" validate:"omitempty,dive,gte=0,lte=23" xml:"hour,omitempty"`
 }
 
-// Source defines model for Source.
+// Source The RSS channel that the item came from.
 type Source struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef2.XMLName `json:"xml" validate:"required"`
 	URL     *string              `json:"url,omitempty" validate:"url" xml:"url,attr"`
 
-	// Value represents a value of a element.
-	Value externalRef2.Value `json:"value" xml:",chardata"`
+	// Value is an element value that is required.
+	Value externalRef2.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
 // TTL stands for time to live. It's a number of minutes that indicates how long a channel can be cached before refreshing from the source.

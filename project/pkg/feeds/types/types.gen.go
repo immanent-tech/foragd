@@ -7,17 +7,21 @@ import (
 	"encoding/xml"
 )
 
-// Element is a XML element that has a namespace and a value.
-type Element struct {
+// Extension defines model for Extension.
+type Extension struct {
 	// XMLName represents the XML namespace of an element.
-	XMLName XMLName `json:"xml" validate:"required"`
+	XMLName    XMLName    `json:"xml" validate:"required"`
+	Attributes []xml.Attr `json:"attributes" xml:",any,attr"`
 
-	// Value represents a value of a element.
-	Value Value `json:"value" xml:",chardata"`
+	// Value is an element value that is optional.
+	Value *OptionalValue `json:"value,omitempty" xml:",chardata"`
 }
 
-// Value represents a value of a element.
-type Value = string
+// OptionalValue is an element value that is optional.
+type OptionalValue = string
+
+// RequiredValue is an element value that is required.
+type RequiredValue = string
 
 // XMLName represents the XML namespace of an element.
 type XMLName = xml.Name

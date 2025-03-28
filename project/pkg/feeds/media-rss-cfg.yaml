@@ -4,13 +4,11 @@
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package: rss
-output: rss/rss.gen.go
+output: rss/media.gen.go
 generate:
   models: true
 output-options:
   # to make sure that all types are generated
   skip-prune: true
 import-mapping:
-  rdf.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/rdf"
-  atom.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/atom"
   types.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/types"

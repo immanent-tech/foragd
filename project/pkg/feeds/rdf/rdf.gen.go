@@ -9,24 +9,48 @@ import (
 
 // Defines values for UpdatePeriodValue.
 const (
-	Daily   UpdatePeriodValue = "daily"
-	Hourly  UpdatePeriodValue = "hourly"
-	Monthly UpdatePeriodValue = "monthly"
-	Weekly  UpdatePeriodValue = "weekly"
-	Yearly  UpdatePeriodValue = "yearly"
+	UpdatedDaily   UpdatePeriodValue = "daily"
+	UpdatedHourly  UpdatePeriodValue = "hourly"
+	UpdatedMonthly UpdatePeriodValue = "monthly"
+	UpdatedWeekly  UpdatePeriodValue = "weekly"
+	UpdatedYearly  UpdatePeriodValue = "yearly"
 )
 
-// ContentEncoded is a XML element that has a namespace and a value.
-type ContentEncoded = externalRef0.Element
+// ContentEncoded is an element whose contents are the entity-encoded or CDATA-escaped version of the content of the item.
+type ContentEncoded struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
-// Contributor is a XML element that has a namespace and a value.
-type Contributor = externalRef0.Element
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
-// Coverage is a XML element that has a namespace and a value.
-type Coverage = externalRef0.Element
+// Contributor is an entity responsible for making contributions to the resource.
+type Contributor struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
-// Creator is a XML element that has a namespace and a value.
-type Creator = externalRef0.Element
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Coverage is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant.
+type Coverage struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Creator is an entity primarily responsible for making the resource.
+type Creator struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
 // Date is a point or period of time associated with an event in the lifecycle of the resource.
 type Date struct {
@@ -35,14 +59,32 @@ type Date struct {
 	Value   DateTime             `json:"value" validate:"required,datetime" xml:",chardata"`
 }
 
-// Description is a XML element that has a namespace and a value.
-type Description = externalRef0.Element
+// Description may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content.
+type Description struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
-// Format is a XML element that has a namespace and a value.
-type Format = externalRef0.Element
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
-// Identifier is a XML element that has a namespace and a value.
-type Identifier = externalRef0.Element
+// Format is the file format, physical medium, or dimensions of the resource.
+type Format struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Identifier is an unambiguous reference to the resource within a given context.
+type Identifier struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
 // Language identifies the language used by the related resource using an HTML language code.
 type Language struct {
@@ -51,26 +93,68 @@ type Language struct {
 	Value   string               `json:"value" validate:"required,bcp47_language_tag" xml:",chardata"`
 }
 
-// Publisher is a XML element that has a namespace and a value.
-type Publisher = externalRef0.Element
+// Publisher is an entity responsible for making the resource available.
+type Publisher struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
-// Relation is a XML element that has a namespace and a value.
-type Relation = externalRef0.Element
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
-// Rights is a XML element that has a namespace and a value.
-type Rights = externalRef0.Element
+// Relation is a related resource.
+type Relation struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
-// Source is a XML element that has a namespace and a value.
-type Source = externalRef0.Element
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
-// Subject is a XML element that has a namespace and a value.
-type Subject = externalRef0.Element
+// Rights is information about rights held in and over the resource.
+type Rights struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
-// Title is a XML element that has a namespace and a value.
-type Title = externalRef0.Element
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
-// Type is a XML element that has a namespace and a value.
-type Type = externalRef0.Element
+// Source is a related resource from which the described resource is derived.
+type Source struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Subject is the topic of the resource.
+type Subject struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Title is a name by which the resource is formally known.
+type Title struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Type is the nature or genre of the resource.
+type Type struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
 // UpdateBase is a point or period of time associated with an event in the lifecycle of the resource.
 type UpdateBase = Date

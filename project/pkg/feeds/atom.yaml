@@ -6,8 +6,14 @@
 openapi: "3.0.3"
 info:
   version: 1.0.0
-  title: RSS
-  description: RSS specification
+  title: Atom
+  description: >
+    Atom specification as openapi schema
+
+    https://www.rfc-editor.org/rfc/rfc4287
+  license:
+    name: AGPL-3.0-or-later
+    url: https://spdx.org/licenses/AGPL-3.0-only.html
 paths: {}
 components:
   schemas:
@@ -36,6 +42,7 @@ components:
           x-oapi-codegen-extra-tags:
             xml: "lang,attr,omitempty"
             json: "lang,omitempty"
+            validate: "omitempty,bcp47_language_tag"
     URI:
       description: >
         is an element that conveys an IRI (URI).
@@ -195,11 +202,15 @@ components:
         is an element that conveys information about a category associated with an entry or feed.
       allOf:
         - $ref: "#/components/schemas/CommonAttributes"
-        - $ref: "types.yaml#/components/schemas/Element"
         - type: object
           required:
+            - XMLName
             - term
           properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
+            value:
+              $ref: "types.yaml#/components/schemas/OptionalValue"
             term:
               description: >
                 is a string that identifies the category to which the entry or feed belongs.
@@ -233,9 +244,14 @@ components:
         is an element identifies the agent used to generate a feed.
       allOf:
         - $ref: "#/components/schemas/CommonAttributes"
-        - $ref: "types.yaml#/components/schemas/Element"
         - type: object
+          required:
+            - XMLName
           properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
+            value:
+              $ref: "types.yaml#/components/schemas/OptionalValue"
             uri:
               type: string
               x-go-name: URI
@@ -476,6 +492,14 @@ components:
               x-oapi-codegen-extra-tags:
                 xml: "entry,omitempty"
                 json: "entry,omitempty"
+              x-go-type-skip-optional-pointer: true
+            attributes:
+              type: array
+              items:
+                x-go-type: xml.Attr
+              x-oapi-codegen-extra-tags:
+                xml: ",any,attr"
+                json: "attributes"
               x-go-type-skip-optional-pointer: true
     Source:
       description: >

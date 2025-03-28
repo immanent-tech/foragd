@@ -3,9 +3,9 @@
 openapi: "3.0.3"
 info:
   version: 1.0.0
-  title: RSS
+  title: RSS 2.0
   description: >
-    A representation of the RSS 2.0 specification as openapi schema.
+    RSS 2.0 specification as openapi schema.
 
     https://www.rssboard.org/rss-specification
   license:
@@ -23,7 +23,7 @@ components:
         - value
       properties:
         value:
-          $ref: "types.yaml#/components/schemas/Value"
+          $ref: "types.yaml#/components/schemas/RequiredValue"
         domain:
           description: >
             is a string that identifies a categorization taxonomy.
@@ -160,7 +160,7 @@ components:
         - value
       properties:
         value:
-          $ref: "types.yaml#/components/schemas/Value"
+          $ref: "types.yaml#/components/schemas/RequiredValue"
         isPermaLink:
           description: >
             If true the guid is assumed to be a URL. If its value is false, the guid may not be assumed to be a url, or
@@ -336,18 +336,23 @@ components:
     Source:
       description: >
         The RSS channel that the item came from.
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-        - type: object
-          properties:
-            url:
-              type: string
-              x-go-name: URL
-              xml:
-                attribute: true
-              x-oapi-codegen-extra-tags:
-                xml: "url,attr"
-                validate: "url"
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        url:
+          type: string
+          x-go-name: URL
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "url,attr"
+            validate: "url"
       x-oapi-codegen-extra-tags:
         xml: "source,omitempty"
     SkipHours:
@@ -358,12 +363,15 @@ components:
         hour:
           type: array
           items:
+            description: >
+              is the hour of the day to skip.
             type: integer
             minimum: 0
             maximum: 23
           x-oapi-codegen-extra-tags:
-            xml: "hour"
-            validate: "omitempty,gte=0,lte=23"
+            xml: "hour,omitempty"
+            validate: "omitempty,dive,gte=0,lte=23"
+          x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         xml: "skipHours,omitempty"
     SkipDays:
@@ -374,34 +382,17 @@ components:
         day:
           type: array
           items:
+            description: >
+              is a day of the week to skip.
             type: string
             enum: ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"]
+            x-enum-varnames: ["SkipMonday","SkipTuesday","SkipWednesday","SkipThursday","SkipFriday","SkipSaturday","SkipSunday"]
           x-oapi-codegen-extra-tags:
-            xml: "day"
+            xml: "day,omitempty"
+            validate: "omitempty,dive,oneof=Monday Tuesday Wednesday Thursday Friday Saturday Sunday"
+          x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         xml: "skipDays,omitempty"
-    RSS:
-      description: >
-        represents an RSS document.
-      type: object
-      x-go-name: RSS
-      required:
-        - XMLName
-        - version
-        - channel
-      properties:
-        XMLName:
-          $ref: "types.yaml#/components/schemas/XMLName"
-        channel:
-          $ref: "#/components/schemas/Channel"
-        version:
-          description: >
-            specifies the version of RSS that the document conforms to.
-          type: string
-          x-oapi-codegen-extra-tags:
-            xml: "version,attr"
-          xml:
-            attribute: true
     ChannelMetadata:
       description: >
         contains information about the channel (metadata).
@@ -565,6 +556,16 @@ components:
                 xml: "item,omitempty"
                 validate: "omitempty,dive,unique"
               x-go-type-skip-optional-pointer: true
+            extensions:
+              description: >
+                records any elements that are unknown extensions to the schema.
+              type: array
+              items:
+                $ref: "types.yaml#/components/schemas/Extension"
+              x-oapi-codegen-extra-tags:
+                json: "extensions,omitempty"
+                xml: ",any"
+              x-go-type-skip-optional-pointer: true
     Item:
       description: >
         An item may represent a "story" -- much like a story in a newspaper or magazine; if so its description is a
@@ -678,3 +679,44 @@ components:
           $ref: "rdf.yaml#/components/schemas/Language"
         date:
           $ref: "rdf.yaml#/components/schemas/Date"
+        extensions:
+          description: >
+            records any elements that are unknown extensions to the schema.
+          type: array
+          items:
+            $ref: "types.yaml#/components/schemas/Extension"
+          x-oapi-codegen-extra-tags:
+            json: "extensions,omitempty"
+            xml: ",any"
+          x-go-type-skip-optional-pointer: true
+    RSS:
+      description: >
+        represents an RSS document.
+      type: object
+      x-go-name: RSS
+      required:
+        - XMLName
+        - version
+        - channel
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        channel:
+          $ref: "#/components/schemas/Channel"
+        version:
+          description: >
+            specifies the version of RSS that the document conforms to.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "version,attr"
+          xml:
+            attribute: true
+        attributes:
+          type: array
+          items:
+            x-go-type: xml.Attr
+          x-oapi-codegen-extra-tags:
+            xml: ",any,attr"
+            json: "attributes"
+          x-go-type-skip-optional-pointer: true
+

@@ -3,18 +3,25 @@
 openapi: "3.0.3"
 info:
   version: 1.0.0
-  title: RSS
+  title: Common Feed Types
   description: >
-    A representation of the RSS 2.0 specification, with extensions, as openapi schema.
+    Some common or shared types across schemas
   license:
     name: AGPL-3.0-or-later
     url: https://spdx.org/licenses/AGPL-3.0-only.html
 paths: {}
 components:
   schemas:
-    Value:
+    RequiredValue:
       description: >
-        represents a value of a element.
+        is an element value that is required.
+      type: string
+      x-oapi-codegen-extra-tags:
+        xml: ",chardata"
+        validate: "required"
+    OptionalValue:
+      description: >
+        is an element value that is optional.
       type: string
       x-oapi-codegen-extra-tags:
         xml: ",chardata"
@@ -25,15 +32,20 @@ components:
       x-oapi-codegen-extra-tags:
         json: "xml"
         validate: "required"
-    Element:
-      description: >
-        is a XML element that has a namespace and a value.
+    Extension:
       type: object
       required:
         - XMLName
-        - value
       properties:
         XMLName:
           $ref: "#/components/schemas/XMLName"
         value:
-          $ref: "#/components/schemas/Value"
+          $ref: "#/components/schemas/OptionalValue"
+        attributes:
+          type: array
+          items:
+            x-go-type: xml.Attr
+          x-oapi-codegen-extra-tags:
+            xml: ",any,attr"
+            json: "attributes"
+          x-go-type-skip-optional-pointer: true

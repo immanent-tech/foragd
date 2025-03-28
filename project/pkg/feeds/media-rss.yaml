@@ -1,0 +1,16 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
+# Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+openapi: "3.0.3"
+info:
+  version: 1.0.0
+  title: Media RSS
+  description: >
+    Media RSS specification, a namespace for RSS 2.0, as openapi schema.
+
+    https://www.rssboard.org/media-rss
+  license:
+    name: AGPL-3.0-or-later
+    url: https://spdx.org/licenses/AGPL-3.0-only.html
+paths: {}
+components:
+  schemas:
