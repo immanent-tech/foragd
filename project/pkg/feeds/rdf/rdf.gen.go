@@ -19,13 +19,66 @@ const (
 // ContentEncoded is a XML element that has a namespace and a value.
 type ContentEncoded = externalRef0.Element
 
-// UpdateBase is a point or period of time associated with an event in the lifecycle of the resource.
-type UpdateBase = externalRef0.Date
+// Contributor is a XML element that has a namespace and a value.
+type Contributor = externalRef0.Element
 
-// UpdateFrequency defines model for UpdateFrequency.
+// Coverage is a XML element that has a namespace and a value.
+type Coverage = externalRef0.Element
+
+// Creator is a XML element that has a namespace and a value.
+type Creator = externalRef0.Element
+
+// Date is a point or period of time associated with an event in the lifecycle of the resource.
+type Date struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+	Value   DateTime             `json:"value" validate:"required,datetime" xml:",chardata"`
+}
+
+// Description is a XML element that has a namespace and a value.
+type Description = externalRef0.Element
+
+// Format is a XML element that has a namespace and a value.
+type Format = externalRef0.Element
+
+// Identifier is a XML element that has a namespace and a value.
+type Identifier = externalRef0.Element
+
+// Language identifies the language used by the related resource using an HTML language code.
+type Language struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+	Value   string               `json:"value" validate:"required,bcp47_language_tag" xml:",chardata"`
+}
+
+// Publisher is a XML element that has a namespace and a value.
+type Publisher = externalRef0.Element
+
+// Relation is a XML element that has a namespace and a value.
+type Relation = externalRef0.Element
+
+// Rights is a XML element that has a namespace and a value.
+type Rights = externalRef0.Element
+
+// Source is a XML element that has a namespace and a value.
+type Source = externalRef0.Element
+
+// Subject is a XML element that has a namespace and a value.
+type Subject = externalRef0.Element
+
+// Title is a XML element that has a namespace and a value.
+type Title = externalRef0.Element
+
+// Type is a XML element that has a namespace and a value.
+type Type = externalRef0.Element
+
+// UpdateBase is a point or period of time associated with an event in the lifecycle of the resource.
+type UpdateBase = Date
+
+// UpdateFrequency describes the frequency of updates in relation to the update period.
 type UpdateFrequency = int
 
-// UpdatePeriod defines model for UpdatePeriod.
+// UpdatePeriod is the period over which the channel format is updated.
 type UpdatePeriod struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`

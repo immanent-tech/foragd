@@ -1,13 +1,18 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
-
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-# SPDX-License-Identifier: 	AGPL-3.0-or-later
-
 openapi: "3.0.3"
 info:
   version: 1.0.0
-  title: RSS
-  description: RSS specification
+  title: RDF
+  description: >
+    RDF Site Summary (RSS) 1.0 specification as openapi schema.
+
+    Includes Dublin Core, Syndication and Content modules.
+
+    https://web.resource.org/rss/1.0/
+  license:
+    name: AGPL-3.0-or-later
+    url: https://spdx.org/licenses/AGPL-3.0-only.html
 paths: {}
 components:
   schemas:
@@ -20,6 +25,8 @@ components:
         json: "content_encoded,omitempty"
         xml: "encoded,omitempty"
     UpdatePeriod:
+      description: >
+         is the period over which the channel format is updated.
       type: object
       required:
         - XMLName
@@ -29,6 +36,7 @@ components:
           $ref: "types.yaml#/components/schemas/XMLName"
         value:
           type: string
+          default: "daily"
           enum: ["hourly","daily","weekly","monthly","yearly"]
           x-oapi-codegen-extra-tags:
             xml: ",chardata"
@@ -37,17 +45,147 @@ components:
         json: "updatePeriod,omitempty"
         xml: "updatePeriod,omitempty"
     UpdateFrequency:
+      description: >
+        describes the frequency of updates in relation to the update period.
       type: integer
-      minimum: 0
+      minimum: 1
+      default: 1
       x-oapi-codegen-extra-tags:
         json: "updateFrequency,omitempty"
         xml: "updateFrequency,omitempty"
-        validate: "omitempty,number,gte=0"
+        validate: "omitempty,number,gte=1"
     UpdateBase:
+      description: >
+        is a base date to be used in concert with updatePeriod and updateFrequency to calculate the publishing schedule.
       allOf:
-        - $ref: "types.yaml#/components/schemas/Date"
+        - $ref: "#/components/schemas/Date"
       x-oapi-codegen-extra-tags:
         json: "updateBase,omitempty"
         xml: "updateBase,omitempty"
-
+    Title:
+      description: >
+        is a name by which the resource is formally known.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "title,omitempty"
+    Description:
+      description: >
+        may include but is not limited to: an abstract, table of contents, reference to a graphical representation of
+        content or a free-text account of the content.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "description,omitempty"
+    Contributor:
+      description: >
+        is an entity responsible for making contributions to the resource.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "contributor,omitempty"
+    Creator:
+      description: >
+        is an entity primarily responsible for making the resource.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "creator,omitempty"
+    Coverage:
+      description: >
+        is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under
+        which the resource is relevant.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "coverage,omitempty"
+    Format:
+      description: >
+        is the file format, physical medium, or dimensions of the resource.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "format,omitempty"
+    Identifier:
+      description: >
+        is an unambiguous reference to the resource within a given context.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "identifier,omitempty"
+    Publisher:
+      description: >
+        is an entity responsible for making the resource available.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "publisher,omitempty"
+    Relation:
+      description: >
+        is a related resource.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "relation,omitempty"
+    Rights:
+      description: >
+        is information about rights held in and over the resource.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "rights,omitempty"
+    Subject:
+      description: >
+        is the topic of the resource.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "subject,omitempty"
+    Type:
+      description: >
+        is the nature or genre of the resource.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "type,omitempty"
+    Source:
+      description: >
+        is a related resource from which the described resource is derived.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+      x-oapi-codegen-extra-tags:
+        xml: "source,omitempty"
+    Language:
+      description: >
+        identifies the language used by the related resource using an HTML language code.
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: ",chardata"
+            validate: "required,bcp47_language_tag"
+      x-oapi-codegen-extra-tags:
+        xml: "language,omitempty"
+    Date:
+      description: >
+        is a point or period of time associated with an event in the lifecycle of the resource.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          x-go-type: DateTime
+          x-oapi-codegen-extra-tags:
+            xml: ",chardata"
+            validate: "required,datetime"
+      x-oapi-codegen-extra-tags:
+        xml: "date,omitempty"
 

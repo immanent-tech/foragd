@@ -7,20 +7,13 @@ import (
 	"encoding/xml"
 )
 
-// Date is a point or period of time associated with an event in the lifecycle of the resource.
-type Date struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName XMLName  `json:"xml" validate:"required"`
-	Value   DateTime `json:"value" validate:"required,datetime" xml:",chardata"`
-}
-
 // Element is a XML element that has a namespace and a value.
 type Element struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName XMLName `json:"xml" validate:"required"`
 
 	// Value represents a value of a element.
-	Value Value `json:"value" validate:"required,html_encoded" xml:",chardata"`
+	Value Value `json:"value" xml:",chardata"`
 }
 
 // Value represents a value of a element.

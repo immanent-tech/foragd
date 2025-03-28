@@ -11,74 +11,537 @@ info:
 paths: {}
 components:
   schemas:
-    Link:
+    CommonAttributes:
       description: >
-        defines a relationship between a web resource (such as a page) and an RSS channel or item.
+        are common attributes across Atom elements.
+      type: object
+      properties:
+        Base:
+          description: >
+            establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the
+            xml:base attribute.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "base,attr,omitempty"
+            json: "base,omitempty"
+            validate: "omitempty,uri"
+        Lang:
+          description: >
+            indicates the natural language for the element and its descendents.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "lang,attr,omitempty"
+            json: "lang,omitempty"
+    URI:
+      description: >
+        is an element that conveys an IRI (URI).
       type: object
       required:
         - XMLName
-        - href
+        - value
       properties:
         XMLName:
-          x-go-type: "xml.Name"
-          x-oapi-codegen-extra-tags:
-            xml: "link"
-            json: "xml"
-        href:
-          description: >
-            contains the URL of the related resource.
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
           type: string
-          xml:
-            attribute: true
           x-oapi-codegen-extra-tags:
-            xml: "href,attr"
-            validate: "required,url"
-        hreflang:
-          description: >
-            identifies the language used by the related resource using an HTML language code.
+            json: "value"
+            xml: ",chardata"
+            validate: "required,uri"
+      x-go-name: URI
+      x-oapi-codegen-extra-tags:
+        xml: "uri,omitempty"
+        json: "uri,omitempty"
+    Name:
+      description: >
+        is an element that conveys a human-readable name.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
           type: string
-          x-go-name: HrefLang
-          xml:
-            attribute: true
           x-oapi-codegen-extra-tags:
-            xml: "hreflang,attr,omitempty"
-            validate: "omitempty,bcp47_language_tag"
-          example:
-            language: en-us
-        length:
-          description: >
-            contains the resource's size, in bytes.
-          type: integer
-          xml:
-            attribute: true
-          x-oapi-codegen-extra-tags:
-            xml: "length,attr,omitempty"
-            validate: "omitempty,number"
-        title:
-          description: >
-            provides a human-readable description of the resource.
+            json: "value"
+            xml: ",chardata"
+            validate: "required"
+      x-oapi-codegen-extra-tags:
+        xml: "name,omitempty"
+        json: "name,omitempty"
+    Email:
+      description: >
+        is an element that conveys an email address.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
           type: string
-          xml:
-            attribute: true
           x-oapi-codegen-extra-tags:
-            xml: "title,attr,omitempty"
-            validate: "omitempty,html_encoded"
-        type:
-          description: >
-            identifies the resource's MIME media type.
-          type: string
-          xml:
-            attribute: true
-          x-oapi-codegen-extra-tags:
-            xml: "type,attr,omitempty"
-        rel:
-          description: >
-            contains a keyword that identifies the nature of the relationship between the linked resouce and the
-            element.
-          type: string
-          enum: ["alternate","enclosure","related","self","via"]
-          xml:
-            attribute: true
-          x-oapi-codegen-extra-tags:
-            xml: "rel,attr,omitempty"
-
+            json: "value"
+            xml: ",chardata"
+            validate: "required,email"
+      x-oapi-codegen-extra-tags:
+        xml: "email,omitempty"
+        json: "email,omitempty"
+    Type:
+      description: >
+        is an attribute that indicates the type of text enclosed.
+      type: string
+      enum: ["text","html","xhtml"]
+      default: "text"
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "type,attr,omitempty"
+        json: "type,omitempty"
+    TextConstruct:
+      description:
+        contains human-readable text, usually in small quantities.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - type: object
+          required:
+            - value
+          properties:
+            value:
+              type: string
+              x-oapi-codegen-extra-tags:
+                xml: ",chardata"
+                json: "value"
+            type:
+              $ref: "#/components/schemas/Type"
+    PersonConstruct:
+      description:
+        describes a person, corporation, or similar entity
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - type: object
+          required:
+            - name
+          properties:
+            name:
+              allOf:
+                - $ref: "#/components/schemas/Name"
+              x-oapi-codegen-extra-tags:
+                xml: "name"
+                json: "name"
+                validate: "required"
+            uri:
+              $ref: "#/components/schemas/URI"
+            email:
+              $ref: "#/components/schemas/Email"
+    DateConstruct:
+      description: >
+        is an element whose content MUST conform to the "date-time" production in [RFC3339].
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - type: object
+          required:
+            - XMLName
+            - value
+          properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
+            value:
+              x-go-type: DateTime
+              x-oapi-codegen-extra-tags:
+                json: "value"
+                xml: ",chardata"
+                validate: "required,datetime"
+    ID:
+      description: >
+        is an element that conveys a permanent, universally unique identifier for an entry or feed.
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - $ref: "#/components/schemas/URI"
+      x-go-name: ID
+      x-oapi-codegen-extra-tags:
+        xml: "id"
+        json: "id"
+        validate: "required"
+    Title:
+      description: >
+        is an element of type Text construct that conveys a human-readable title for an entry or feed.
+      allOf:
+        - $ref: "#/components/schemas/TextConstruct"
+      x-oapi-codegen-extra-tags:
+        xml: "title"
+        json: "title"
+        validate: "required"
+    Updated:
+      description: >
+        is an element of type Date construct indicating the most recent instant in time when an entry or feed was modified in a
+        way the publisher considers significant.
+      allOf:
+        - $ref: "#/components/schemas/DateConstruct"
+      x-oapi-codegen-extra-tags:
+        xml: "updated"
+        json: "updated"
+        validate: "required"
+    Category:
+      description: >
+        is an element that conveys information about a category associated with an entry or feed.
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - $ref: "types.yaml#/components/schemas/Element"
+        - type: object
+          required:
+            - term
+          properties:
+            term:
+              description: >
+                is a string that identifies the category to which the entry or feed belongs.
+              x-go-type: xml.Attr
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "term,attr"
+                json: "term"
+                validate: "required"
+            scheme:
+              description: >
+                is an IRI that identifies a categorization scheme.
+              x-go-type: xml.Attr
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "scheme,attr,omitempty"
+                json: "scheme,omitempty"
+            label:
+              description: >
+                provides a human-readable label for display in end-user applications.
+              x-go-type: xml.Attr
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "label,attr,omitempty"
+                json: "label,omitempty"
+    Generator:
+      description: >
+        is an element identifies the agent used to generate a feed.
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - $ref: "types.yaml#/components/schemas/Element"
+        - type: object
+          properties:
+            uri:
+              type: string
+              x-go-name: URI
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "uri,attr,omitempty"
+                json: "uri,omitempty"
+                validate: "omitempty,uri"
+            version:
+              type: string
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "version,attr,omitempty"
+                json: "version,omitempty"
+      x-oapi-codegen-extra-tags:
+        xml: "generator,omitempty"
+        json: "generator,omitempty"
+    Icon:
+      description: >
+        is an element that contains a URI to an icon suitable for representing a feed.
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - $ref: "#/components/schemas/URI"
+      x-oapi-codegen-extra-tags:
+        xml: "icon,omitempty"
+        json: "icon,omitempty"
+    Link:
+      description: >
+        defines a relationship between a web resource (such as a page) and an RSS channel or item.
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - $ref: "#/components/schemas/URI"
+        - type: object
+          required:
+            - href
+          properties:
+            href:
+              description: >
+                contains the URL of the related resource.
+              type: string
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "href,attr"
+                validate: "required,url"
+            hreflang:
+              description: >
+                identifies the language used by the related resource using an HTML language code.
+              type: string
+              x-go-name: HrefLang
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "hreflang,attr,omitempty"
+                validate: "omitempty,bcp47_language_tag"
+              example:
+                language: en-us
+            length:
+              description: >
+                contains the resource's size, in bytes.
+              type: integer
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "length,attr,omitempty"
+                validate: "omitempty,number"
+            title:
+              description: >
+                provides a human-readable description of the resource.
+              type: string
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "title,attr,omitempty"
+                validate: "omitempty,html_encoded"
+            type:
+              description: >
+                identifies the resource's MIME media type.
+              type: string
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "type,attr,omitempty"
+            rel:
+              description: >
+                contains a keyword that identifies the nature of the relationship between the linked resouce and the
+                element.
+              type: string
+              enum: ["alternate","enclosure","related","self","via"]
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "rel,attr,omitempty"
+      x-oapi-codegen-extra-tags:
+        xml: "link,omitempty"
+        json: "link,omitempty"
+    Logo:
+      description: >
+        is an element that contains a URI to an logo suitable for representing a feed.
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - $ref: "#/components/schemas/URI"
+      x-oapi-codegen-extra-tags:
+        xml: "logo,omitempty"
+        json: "logo,omitempty"
+    Rights:
+      description: >
+        is an element of type Text construct that conveys information about rights held in and over an entry or feed.
+      allOf:
+        - $ref: "#/components/schemas/TextConstruct"
+      x-oapi-codegen-extra-tags:
+        xml: "rights,omitempty"
+        json: "rights,omitempty"
+    Published:
+      description: >
+        is an element of type Date construct indicating an instant in time associated with an event early in the life
+        cycle of the entry.
+      allOf:
+        - $ref: "#/components/schemas/DateConstruct"
+      x-oapi-codegen-extra-tags:
+        xml: "published,omitempty"
+        json: "published,omitempty"
+    Subtitle:
+      description: >
+        is an element of type Text construct that conveys a human-readable subtitle for an entry or feed.
+      allOf:
+        - $ref: "#/components/schemas/TextConstruct"
+      x-oapi-codegen-extra-tags:
+        xml: "subtitle,omitempty"
+        json: "subtitle,omitempty"
+    Summary:
+      description: >
+        is an element of type Text construct that conveys a short summary, abstract, or excerpt of an entry.
+      allOf:
+        - $ref: "#/components/schemas/TextConstruct"
+      x-oapi-codegen-extra-tags:
+        xml: "summary,omitempty"
+        json: "summary,omitempty"
+    Content:
+      description: >
+        either contains or links to the content of the entry.
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - type: object
+          properties:
+            type:
+              $ref: "#/components/schemas/Type"
+            src:
+              description: >
+                is an attribute that links to the source content.
+              type: string
+              x-go-name: Source
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "src,attr,omitempty"
+                json: "src,omitempty"
+                validate: "omitempty,uri"
+            value:
+              type: string
+              x-oapi-codegen-extra-tags:
+                xml: ",chardata"
+                json: "value,omitempty"
+      x-oapi-codegen-extra-tags:
+        xml: "content,omitempty"
+        json: "content,omitempty"
+    FeedMetadata:
+      description: >
+        is the feed metadata.
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - type: object
+          required:
+            - XMLName
+            - ID
+            - title
+            - updated
+          properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
+            ID:
+              $ref: "#/components/schemas/ID"
+            title:
+              $ref: "#/components/schemas/Title"
+            updated:
+              $ref: "#/components/schemas/Updated"
+            author:
+              description: >
+                a list of persons who maintain authorship of the feed.
+              type: array
+              items:
+                $ref: "#/components/schemas/PersonConstruct"
+              x-oapi-codegen-extra-tags:
+                xml: "author,omitempty"
+              x-go-type-skip-optional-pointer: true
+            category:
+              description: >
+                a list of categories associated with the feed.
+              type: array
+              items:
+                $ref: "#/components/schemas/Category"
+              x-oapi-codegen-extra-tags:
+                xml: "category,omitempty"
+              x-go-type-skip-optional-pointer: true
+            contributor:
+              description: >
+                a list of persons who contributed to the feed.
+              type: array
+              items:
+                $ref: "#/components/schemas/PersonConstruct"
+              x-oapi-codegen-extra-tags:
+                xml: "contributor,omitempty"
+              x-go-type-skip-optional-pointer: true
+            generator:
+              $ref: "#/components/schemas/Generator"
+            link:
+              $ref: "#/components/schemas/Link"
+            logo:
+              $ref: "#/components/schemas/Logo"
+            rights:
+              $ref: "#/components/schemas/Rights"
+            subtitle:
+              $ref: "#/components/schemas/Subtitle"
+    Feed:
+      description: >
+        is the document (i.e., top-level) element of an Atom Feed Document, acting as a container for metadata and data
+        associated with the feed.
+      allOf:
+        - $ref: "#/components/schemas/FeedMetadata"
+        - type: object
+          properties:
+            item:
+              type: array
+              items:
+                $ref: "#/components/schemas/Entry"
+              x-oapi-codegen-extra-tags:
+                xml: "entry,omitempty"
+                json: "entry,omitempty"
+              x-go-type-skip-optional-pointer: true
+    Source:
+      description: >
+        contains the metadata from the source feed for the entry.
+      allOf:
+        - $ref: "#/components/schemas/FeedMetadata"
+      x-oapi-codegen-extra-tags:
+        xml: "source,omitempty"
+        json: "source,omitempty"
+    Entry:
+      description: >
+        represents an individual entry, acting as a container for metadata and data associated with the entry.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/CommonAttributes"
+        - type: object
+          required:
+            - XMLName
+            - ID
+            - title
+            - updated
+          properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
+            ID:
+              $ref: "#/components/schemas/ID"
+            title:
+              $ref: "#/components/schemas/Title"
+            updated:
+              $ref: "#/components/schemas/Updated"
+            author:
+              description: >
+                a list of persons who maintain authorship of the feed.
+              type: array
+              items:
+                $ref: "#/components/schemas/PersonConstruct"
+              x-oapi-codegen-extra-tags:
+                xml: "author,omitempty"
+              x-go-type-skip-optional-pointer: true
+            category:
+              description: >
+                a list of categories associated with the feed.
+              type: array
+              items:
+                $ref: "#/components/schemas/Category"
+              x-oapi-codegen-extra-tags:
+                xml: "category,omitempty"
+              x-go-type-skip-optional-pointer: true
+            content:
+              $ref: "#/components/schemas/Content"
+            contributor:
+              description: >
+                a list of persons who contributed to the feed.
+              type: array
+              items:
+                $ref: "#/components/schemas/PersonConstruct"
+              x-oapi-codegen-extra-tags:
+                xml: "contributor,omitempty"
+              x-go-type-skip-optional-pointer: true
+            link:
+              $ref: "#/components/schemas/Link"
+            published:
+              $ref: "#/components/schemas/Published"
+            rights:
+              $ref: "#/components/schemas/Rights"
+            source:
+              $ref: "#/components/schemas/Source"
+            summary:
+              $ref: "#/components/schemas/Summary"

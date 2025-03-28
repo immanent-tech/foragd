@@ -1,100 +1,19 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
-
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
-
 openapi: "3.0.3"
 info:
   version: 1.0.0
   title: RSS
   description: >
-    A representation of the RSS 2.0 specification, with extensions, as openapi schema.
+    A representation of the RSS 2.0 specification as openapi schema.
+
+    https://www.rssboard.org/rss-specification
   license:
     name: AGPL-3.0-or-later
     url: https://spdx.org/licenses/AGPL-3.0-only.html
 paths: {}
 components:
   schemas:
-    Contributor:
-      description: >
-        is an entity responsible for making contributions to the resource.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-      x-oapi-codegen-extra-tags:
-        xml: "contributor,omitempty"
-    Coverage:
-      description: >
-        is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under
-        which the resource is relevant.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-      x-oapi-codegen-extra-tags:
-        xml: "coverage,omitempty"
-    Creator:
-      description: >
-        is an entity primarily responsible for making the resource.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-      x-oapi-codegen-extra-tags:
-        xml: "creator,omitempty"
-    Format:
-      description: >
-        is the file format, physical medium, or dimensions of the resource.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-      x-oapi-codegen-extra-tags:
-        xml: "format,omitempty"
-    Identifier:
-      description: >
-        is an unambiguous reference to the resource within a given context.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-      x-oapi-codegen-extra-tags:
-        xml: "identifier,omitempty"
-    Publisher:
-      description: >
-        is an entity responsible for making the resource available.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-      x-oapi-codegen-extra-tags:
-        xml: "publisher,omitempty"
-    Relation:
-      description: >
-        is a related resource.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-      x-oapi-codegen-extra-tags:
-        xml: "relation,omitempty"
-    Rights:
-      description: >
-        is information about rights held in and over the resource.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-      x-oapi-codegen-extra-tags:
-        xml: "rights,omitempty"
-    Subject:
-      description: >
-        is the topic of the resource.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-      x-oapi-codegen-extra-tags:
-        xml: "subject,omitempty"
-    Type:
-      description: >
-        is the nature or genre of the resource.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-      x-oapi-codegen-extra-tags:
-        xml: "type,omitempty"
     Category:
       description: >
         is a forward-slash-separated string that identifies a hierarchic location in the indicated taxonomy. Processors
@@ -176,24 +95,6 @@ components:
       x-go-name: GUID
       x-oapi-codegen-extra-tags:
         xml: "guid,omitempty"
-    Source:
-      description: >
-        is a related resource from which the described resource is derived.
-      type: object
-      allOf:
-        - $ref: "types.yaml#/components/schemas/Element"
-        - type: object
-          properties:
-            url:
-              type: string
-              x-go-name: URL
-              xml:
-                attribute: true
-              x-oapi-codegen-extra-tags:
-                xml: "url,attr"
-                validate: "url"
-      x-oapi-codegen-extra-tags:
-        xml: "source,omitempty"
     RSSCloud:
       description: >
         specifies a web service that supports the rssCloud interface which can be implemented in HTTP-POST, XML-RPC or
@@ -363,23 +264,25 @@ components:
           properties:
             value:
               $ref: "types.yaml#/components/schemas/Value"
-    Language:
-      description: >
-        identifies the language used by the related resource using an HTML language code.
-      type: object
-      required:
-        - XMLName
-        - value
-      properties:
-        XMLName:
-          $ref: "types.yaml#/components/schemas/XMLName"
-        value:
-          type: string
-          x-oapi-codegen-extra-tags:
-            xml: ",chardata"
-            validate: "required,bcp47_language_tag"
       x-oapi-codegen-extra-tags:
-        xml: "language,omitempty"
+        xml: "link,omitempty"
+    Source:
+      description: >
+        The RSS channel that the item came from.
+      allOf:
+        - $ref: "types.yaml#/components/schemas/Element"
+        - type: object
+          properties:
+            url:
+              type: string
+              x-go-name: URL
+              xml:
+                attribute: true
+              x-oapi-codegen-extra-tags:
+                xml: "url,attr"
+                validate: "url"
+      x-oapi-codegen-extra-tags:
+        xml: "source,omitempty"
     SkipHours:
       description: >
         is a hint for aggregators telling them which hours they can skip.
@@ -449,7 +352,7 @@ components:
             the same information as your RSS file, the title of your channel should be the same as the title of your
             website.
           allOf:
-            - $ref: "types.yaml#/components/schemas/Element"
+            - $ref: "rdf.yaml#/components/schemas/Title"
           x-oapi-codegen-extra-tags:
             xml: "title"
             validate: "required"
@@ -468,15 +371,13 @@ components:
           description: >
             is a phrase or sentence describing the channel.
           allOf:
-            - $ref: "types.yaml#/components/schemas/Element"
+            - $ref: "rdf.yaml#/components/schemas/Description"
           x-oapi-codegen-extra-tags:
             xml: "description"
             validate: "required"
           example:
             description: >
               The latest news from GoUpstate.com, a Spartanburg Herald-Journal Web site.
-        language:
-          $ref: "#/components/schemas/Language"
         copyright:
           description: >
             is the copyright notice for content in the channel.
@@ -501,14 +402,14 @@ components:
           description: >
             is the publication date of the content.
           allOf:
-            - $ref: "types.yaml#/components/schemas/Date"
+            - $ref: "rdf.yaml#/components/schemas/Date"
           x-oapi-codegen-extra-tags:
             xml: "pubDate,omitempty"
         lastBuildDate:
           description: >
             is the last time the content of the channel changed.
           allOf:
-            - $ref: "types.yaml#/components/schemas/Date"
+            - $ref: "rdf.yaml#/components/schemas/Date"
           x-oapi-codegen-extra-tags:
             xml: "lastBuildDate,omitempty"
         categories:
@@ -569,10 +470,21 @@ components:
           $ref: "#/components/schemas/SkipDays"
         textInput:
           $ref: "#/components/schemas/TextInput"
+        contributor:
+          type: array
+          items:
+            $ref: "rdf.yaml#/components/schemas/Contributor"
+          xml:
+            name: contributor
+          x-oapi-codegen-extra-tags:
+            json: "contributor,omitempty"
+            xml: "contributor,omitempty"
+            validate: "omitempty,dive,unique"
+          x-go-type-skip-optional-pointer: true
         creator:
           type: array
           items:
-            $ref: "#/components/schemas/Creator"
+            $ref: "rdf.yaml#/components/schemas/Creator"
           xml:
             name: creator
           x-oapi-codegen-extra-tags:
@@ -580,26 +492,28 @@ components:
             xml: "creator,omitempty"
             validate: "omitempty,dive,unique"
           x-go-type-skip-optional-pointer: true
-        subject:
-          $ref: "#/components/schemas/Subject"
-        publisher:
-          $ref: "#/components/schemas/Publisher"
-        contributor:
-          $ref: "#/components/schemas/Contributor"
-        type:
-          $ref: "#/components/schemas/Type"
-        format:
-          $ref: "#/components/schemas/Format"
-        identifier:
-          $ref: "#/components/schemas/Identifier"
-        source:
-          $ref: "#/components/schemas/Source"
-        relation:
-          $ref: "#/components/schemas/Relation"
         coverage:
-          $ref: "#/components/schemas/Coverage"
+          $ref: "rdf.yaml#/components/schemas/Coverage"
+        format:
+          $ref: "rdf.yaml#/components/schemas/Format"
+        identifier:
+          $ref: "rdf.yaml#/components/schemas/Identifier"
+        publisher:
+          $ref: "rdf.yaml#/components/schemas/Publisher"
+        relation:
+          $ref: "rdf.yaml#/components/schemas/Relation"
         rights:
-          $ref: "#/components/schemas/Rights"
+          $ref: "rdf.yaml#/components/schemas/Rights"
+        subject:
+          $ref: "rdf.yaml#/components/schemas/Subject"
+        type:
+          $ref: "rdf.yaml#/components/schemas/Type"
+        source:
+          $ref: "rdf.yaml#/components/schemas/Source"
+        language:
+          $ref: "rdf.yaml#/components/schemas/Language"
+        date:
+          $ref: "rdf.yaml#/components/schemas/Date"
         items:
           description: >
             is a list of the current items published to the channel.
@@ -633,7 +547,7 @@ components:
           description: >
             is the title of the item.
           allOf:
-            - $ref: "types.yaml#/components/schemas/Element"
+            - $ref: "rdf.yaml#/components/schemas/Title"
           x-oapi-codegen-extra-tags:
             xml: "title,omitempty"
           example:
@@ -650,7 +564,7 @@ components:
           description: >
             is a phrase or sentence describing the channel.
           allOf:
-            - $ref: "types.yaml#/components/schemas/Element"
+            - $ref: "rdf.yaml#/components/schemas/Description"
           x-oapi-codegen-extra-tags:
             xml: "description"
           example:
@@ -663,23 +577,9 @@ components:
             author is the person who wrote the article that the <item> describes. For collaborative weblogs, the author
             of the item might be different from the managing editor or webmaster. For a weblog authored by a single
             individual it would make sense to omit the <author> element.
-          type: array
-          items:
-            type: string
+          type: string
           x-oapi-codegen-extra-tags:
             xml: "author,omitempty"
-          x-go-type-skip-optional-pointer: true
-        creator:
-          type: array
-          items:
-            $ref: "#/components/schemas/Creator"
-          xml:
-            name: creator
-          x-oapi-codegen-extra-tags:
-            json: "creator,omitempty"
-            xml: "creator,omitempty"
-            validate: "omitempty,dive,unique"
-          x-go-type-skip-optional-pointer: true
         categories:
           description: >
             is a list of categories associated with the channel.
@@ -704,15 +604,13 @@ components:
           description: >
             is the publish date of the item.
           allOf:
-            - $ref: "types.yaml#/components/schemas/Date"
+            - $ref: "rdf.yaml#/components/schemas/Date"
           x-oapi-codegen-extra-tags:
             xml: "pubDate,omitempty"
         enclosure:
           $ref: "#/components/schemas/Enclosure"
         guid:
           $ref: "#/components/schemas/GUID"
-        source:
-          $ref: "#/components/schemas/Source"
         image:
           $ref: "#/components/schemas/Image"
         ContentEncoded:
@@ -721,21 +619,47 @@ components:
           x-oapi-codegen-extra-tags:
             xml: "encoded,omitempty"
             json: "content_encoded,omitempty"
-        subject:
-          $ref: "#/components/schemas/Subject"
-        publisher:
-          $ref: "#/components/schemas/Publisher"
         contributor:
-          $ref: "#/components/schemas/Contributor"
-        type:
-          $ref: "#/components/schemas/Type"
-        format:
-          $ref: "#/components/schemas/Format"
-        identifier:
-          $ref: "#/components/schemas/Identifier"
-        relation:
-          $ref: "#/components/schemas/Relation"
+          type: array
+          items:
+            $ref: "rdf.yaml#/components/schemas/Contributor"
+          xml:
+            name: contributor
+          x-oapi-codegen-extra-tags:
+            json: "contributor,omitempty"
+            xml: "contributor,omitempty"
+            validate: "omitempty,dive,unique"
+          x-go-type-skip-optional-pointer: true
+        creator:
+          type: array
+          items:
+            $ref: "rdf.yaml#/components/schemas/Creator"
+          xml:
+            name: creator
+          x-oapi-codegen-extra-tags:
+            json: "creator,omitempty"
+            xml: "creator,omitempty"
+            validate: "omitempty,dive,unique"
+          x-go-type-skip-optional-pointer: true
         coverage:
-          $ref: "#/components/schemas/Coverage"
+          $ref: "rdf.yaml#/components/schemas/Coverage"
+        format:
+          $ref: "rdf.yaml#/components/schemas/Format"
+        identifier:
+          $ref: "rdf.yaml#/components/schemas/Identifier"
+        publisher:
+          $ref: "rdf.yaml#/components/schemas/Publisher"
+        relation:
+          $ref: "rdf.yaml#/components/schemas/Relation"
         rights:
-          $ref: "#/components/schemas/Rights"
+          $ref: "rdf.yaml#/components/schemas/Rights"
+        subject:
+          $ref: "rdf.yaml#/components/schemas/Subject"
+        type:
+          $ref: "rdf.yaml#/components/schemas/Type"
+        source:
+          $ref: "#/components/schemas/Source"
+        language:
+          $ref: "rdf.yaml#/components/schemas/Language"
+        date:
+          $ref: "rdf.yaml#/components/schemas/Date"
