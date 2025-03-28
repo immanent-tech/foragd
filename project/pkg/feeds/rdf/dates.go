@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-var DateTimeFormats = []string{time.RFC1123Z, time.RFC1123}
+var DateTimeFormats = []string{time.RFC1123Z, time.RFC1123, time.RFC3339}
 
 type DateTime struct {
 	time.Time
