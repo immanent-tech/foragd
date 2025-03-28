@@ -154,7 +154,8 @@ type Feed struct {
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
 
 	// XMLName represents the XML namespace of an element.
-	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+	XMLName    externalRef0.XMLName `json:"xml" validate:"required"`
+	Attributes []xml.Attr           `json:"attributes" xml:",any,attr"`
 
 	// Author a list of persons who maintain authorship of the feed.
 	Author []PersonConstruct `json:"author,omitempty" xml:"author,omitempty"`

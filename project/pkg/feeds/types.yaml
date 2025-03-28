@@ -42,6 +42,8 @@ components:
         value:
           $ref: "#/components/schemas/OptionalValue"
         attributes:
+          description: >
+            are any attributes of the extension element.
           type: array
           items:
             x-go-type: xml.Attr
