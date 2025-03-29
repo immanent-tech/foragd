@@ -7,8 +7,10 @@ import (
 	"encoding/xml"
 
 	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/atom"
-	externalRef1 "github.com/joshuar/go-feed-me/pkg/feeds/rdf"
-	externalRef2 "github.com/joshuar/go-feed-me/pkg/feeds/types"
+	externalRef1 "github.com/joshuar/go-feed-me/pkg/feeds/dc"
+	externalRef2 "github.com/joshuar/go-feed-me/pkg/feeds/mrss"
+	externalRef3 "github.com/joshuar/go-feed-me/pkg/feeds/rdf"
+	externalRef4 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
 // Defines values for RSSCloudProtocol.
@@ -38,7 +40,7 @@ type Category struct {
 	Domain *string `json:"domain,omitempty" xml:"domain,attr,omitempty"`
 
 	// Value is an element value that is required.
-	Value externalRef2.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+	Value externalRef4.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
 // Channel defines model for Channel.
@@ -65,14 +67,14 @@ type Channel struct {
 	// Date is a point or period of time associated with an event in the lifecycle of the resource.
 	Date *externalRef1.Date `json:"date,omitempty" xml:"date,omitempty"`
 
-	// Description is a phrase or sentence describing the channel.
-	Description externalRef1.Description `json:"description" validate:"required" xml:"description"`
+	// Descriptions is a list of variations of description.
+	Descriptions *[]Description `json:"descriptions,omitempty" validate:"required" xml:"description"`
 
 	// Docs A URL that points to the documentation for the format used in the RSS file. It's probably a pointer to this page. It's for people who might stumble across an RSS file on a Web server 25 years from now and wonder what it is.
 	Docs *Docs `json:"docs,omitempty" validate:"omitempty,url" xml:"docs,omitempty"`
 
 	// Extensions records any elements that are unknown extensions to the schema.
-	Extensions []externalRef2.Extension `json:"extensions,omitempty" xml:",any"`
+	Extensions []externalRef4.Extension `json:"extensions,omitempty" xml:",any"`
 
 	// Format is the file format, physical medium, or dimensions of the resource.
 	Format *externalRef1.Format `json:"format,omitempty" xml:"format,omitempty"`
@@ -84,7 +86,7 @@ type Channel struct {
 	Identifier *externalRef1.Identifier `json:"identifier,omitempty" xml:"identifier,omitempty"`
 
 	// Image contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
-	Image *Image `json:"image,omitempty" xml:"image,omitempty"`
+	Image *ImageDetails `json:"image,omitempty" xml:"image,omitempty"`
 
 	// Items is a list of the current items published to the channel.
 	Items []Item `json:"item,omitempty" validate:"omitempty,dive,unique" xml:"item,omitempty"`
@@ -131,8 +133,8 @@ type Channel struct {
 	// TextInput The purpose of the <textInput> element is something of a mystery. You can use it to specify a search engine box. Or to allow a reader to provide feedback. Most aggregators ignore it.
 	TextInput *TextInput `json:"textInput,omitempty" xml:"textInput,omitempty"`
 
-	// Title is the name of the channel. It's how people refer to your service. If you have an HTML website that contains the same information as your RSS file, the title of your channel should be the same as the title of your website.
-	Title externalRef1.Title `json:"title" validate:"required" xml:"title"`
+	// Titles is a list of title variations for the channel.
+	Titles []Title `json:"titles,omitempty" validate:"required" xml:"title"`
 
 	// TTL stands for time to live. It's a number of minutes that indicates how long a channel can be cached before refreshing from the source.
 	TTL *TTL `json:"ttl,omitempty" validate:"omitempty,gte=1" xml:"ttl,omitempty"`
@@ -141,13 +143,13 @@ type Channel struct {
 	Type *externalRef1.Type `json:"type,omitempty" xml:"type,omitempty"`
 
 	// UpdateBase is a base date to be used in concert with updatePeriod and updateFrequency to calculate the publishing schedule.
-	UpdateBase *externalRef1.UpdateBase `json:"updateBase,omitempty" xml:"updateBase,omitempty"`
+	UpdateBase *externalRef3.UpdateBase `json:"updateBase,omitempty" xml:"updateBase,omitempty"`
 
 	// UpdateFrequency describes the frequency of updates in relation to the update period.
-	UpdateFrequency *externalRef1.UpdateFrequency `json:"updateFrequency,omitempty" validate:"omitempty,number,gte=1" xml:"updateFrequency,omitempty"`
+	UpdateFrequency *externalRef3.UpdateFrequency `json:"updateFrequency,omitempty" validate:"omitempty,number,gte=1" xml:"updateFrequency,omitempty"`
 
 	// UpdatePeriod is the period over which the channel format is updated.
-	UpdatePeriod *externalRef1.UpdatePeriod `json:"updatePeriod,omitempty" xml:"updatePeriod,omitempty"`
+	UpdatePeriod *externalRef3.UpdatePeriod `json:"updatePeriod,omitempty" xml:"updatePeriod,omitempty"`
 
 	// WebMaster is the email address for person responsible for technical issues relating to channel.
 	WebMaster *WebMaster `json:"webMaster,omitempty" xml:"webMaster,omitempty"`
@@ -177,8 +179,8 @@ type ChannelMetadata struct {
 	// Date is a point or period of time associated with an event in the lifecycle of the resource.
 	Date *externalRef1.Date `json:"date,omitempty" xml:"date,omitempty"`
 
-	// Description is a phrase or sentence describing the channel.
-	Description externalRef1.Description `json:"description" validate:"required" xml:"description"`
+	// Descriptions is a list of variations of description.
+	Descriptions *[]Description `json:"descriptions,omitempty" validate:"required" xml:"description"`
 
 	// Docs A URL that points to the documentation for the format used in the RSS file. It's probably a pointer to this page. It's for people who might stumble across an RSS file on a Web server 25 years from now and wonder what it is.
 	Docs *Docs `json:"docs,omitempty" validate:"omitempty,url" xml:"docs,omitempty"`
@@ -193,7 +195,7 @@ type ChannelMetadata struct {
 	Identifier *externalRef1.Identifier `json:"identifier,omitempty" xml:"identifier,omitempty"`
 
 	// Image contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
-	Image *Image `json:"image,omitempty" xml:"image,omitempty"`
+	Image *ImageDetails `json:"image,omitempty" xml:"image,omitempty"`
 
 	// Language identifies the language used by the related resource using an HTML language code.
 	Language *externalRef1.Language `json:"language,omitempty" xml:"language,omitempty"`
@@ -237,8 +239,8 @@ type ChannelMetadata struct {
 	// TextInput The purpose of the <textInput> element is something of a mystery. You can use it to specify a search engine box. Or to allow a reader to provide feedback. Most aggregators ignore it.
 	TextInput *TextInput `json:"textInput,omitempty" xml:"textInput,omitempty"`
 
-	// Title is the name of the channel. It's how people refer to your service. If you have an HTML website that contains the same information as your RSS file, the title of your channel should be the same as the title of your website.
-	Title externalRef1.Title `json:"title" validate:"required" xml:"title"`
+	// Titles is a list of title variations for the channel.
+	Titles []Title `json:"titles,omitempty" validate:"required" xml:"title"`
 
 	// TTL stands for time to live. It's a number of minutes that indicates how long a channel can be cached before refreshing from the source.
 	TTL *TTL `json:"ttl,omitempty" validate:"omitempty,gte=1" xml:"ttl,omitempty"`
@@ -247,13 +249,13 @@ type ChannelMetadata struct {
 	Type *externalRef1.Type `json:"type,omitempty" xml:"type,omitempty"`
 
 	// UpdateBase is a base date to be used in concert with updatePeriod and updateFrequency to calculate the publishing schedule.
-	UpdateBase *externalRef1.UpdateBase `json:"updateBase,omitempty" xml:"updateBase,omitempty"`
+	UpdateBase *externalRef3.UpdateBase `json:"updateBase,omitempty" xml:"updateBase,omitempty"`
 
 	// UpdateFrequency describes the frequency of updates in relation to the update period.
-	UpdateFrequency *externalRef1.UpdateFrequency `json:"updateFrequency,omitempty" validate:"omitempty,number,gte=1" xml:"updateFrequency,omitempty"`
+	UpdateFrequency *externalRef3.UpdateFrequency `json:"updateFrequency,omitempty" validate:"omitempty,number,gte=1" xml:"updateFrequency,omitempty"`
 
 	// UpdatePeriod is the period over which the channel format is updated.
-	UpdatePeriod *externalRef1.UpdatePeriod `json:"updatePeriod,omitempty" xml:"updatePeriod,omitempty"`
+	UpdatePeriod *externalRef3.UpdatePeriod `json:"updatePeriod,omitempty" xml:"updatePeriod,omitempty"`
 
 	// WebMaster is the email address for person responsible for technical issues relating to channel.
 	WebMaster *WebMaster `json:"webMaster,omitempty" xml:"webMaster,omitempty"`
@@ -264,6 +266,18 @@ type Comments = string
 
 // Copyright is the copyright notice for content in the channel.
 type Copyright = string
+
+// Description defines model for Description.
+type Description struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef4.XMLName `json:"xml" validate:"required"`
+
+	// Type specifies the type of text embedded in the element.
+	Type *externalRef2.TextType `json:"type,omitempty" validate:"omitempty,oneof=plain html" xml:"type,attr,omitempty"`
+
+	// Value is an element value that is required.
+	Value externalRef4.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
 // Docs A URL that points to the documentation for the format used in the RSS file. It's probably a pointer to this page. It's for people who might stumble across an RSS file on a Web server 25 years from now and wonder what it is.
 type Docs = string
@@ -286,14 +300,14 @@ type GUID struct {
 	IsPermaLink *bool `json:"isPermaLink,omitempty" xml:"isPermaLink,attr,omitempty"`
 
 	// Value is an element value that is required.
-	Value externalRef2.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+	Value externalRef4.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
 // Generator is a string indicating the program used to generate the channel.
 type Generator = string
 
-// Image contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
-type Image struct {
+// ImageDetails contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
+type ImageDetails struct {
 	// Description contains text that is included in the TITLE attribute of the link formed around the image in the HTML rendering.
 	Description *string `json:"description,omitempty" xml:"description,omitempty"`
 
@@ -316,7 +330,7 @@ type Image struct {
 // Item An item may represent a "story" -- much like a story in a newspaper or magazine; if so its description is a synopsis of the story, and the link points to the full story. An item may also be complete in itself, if so, the description contains the text (entity-encoded HTML is allowed; see examples), and the link and title may be omitted. All elements of an item are optional, however at least one of title or description must be present.
 type Item struct {
 	// ContentEncoded is an element whose contents are the entity-encoded or CDATA-escaped version of the content of the item.
-	ContentEncoded *externalRef1.ContentEncoded `json:"content_encoded,omitempty" xml:"encoded,omitempty"`
+	ContentEncoded *externalRef3.ContentEncoded `json:"content_encoded,omitempty" xml:"encoded,omitempty"`
 
 	// Author is the email address of the author of the item. For newspapers and magazines syndicating via RSS, the author is the person who wrote the article that the <item> describes. For collaborative weblogs, the author of the item might be different from the managing editor or webmaster. For a weblog authored by a single individual it would make sense to omit the <author> element.
 	Author *Author `json:"author,omitempty" xml:"author,omitempty"`
@@ -339,14 +353,14 @@ type Item struct {
 	// Date is a point or period of time associated with an event in the lifecycle of the resource.
 	Date *externalRef1.Date `json:"date,omitempty" xml:"date,omitempty"`
 
-	// Description is a phrase or sentence describing the channel.
-	Description *externalRef1.Description `json:"description,omitempty" xml:"description"`
+	// Descriptions is a list of variations of description.
+	Descriptions *[]Description `json:"descriptions,omitempty" xml:"description"`
 
 	// Enclosure describes a media object.
 	Enclosure *Enclosure `json:"enclosure,omitempty" xml:"enclosure,omitempty"`
 
 	// Extensions records any elements that are unknown extensions to the schema.
-	Extensions []externalRef2.Extension `json:"extensions,omitempty" xml:",any"`
+	Extensions []externalRef4.Extension `json:"extensions,omitempty" xml:",any"`
 
 	// Format is the file format, physical medium, or dimensions of the resource.
 	Format *externalRef1.Format `json:"format,omitempty" xml:"format,omitempty"`
@@ -358,7 +372,7 @@ type Item struct {
 	Identifier *externalRef1.Identifier `json:"identifier,omitempty" xml:"identifier,omitempty"`
 
 	// Image contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
-	Image *Image `json:"image,omitempty" xml:"image,omitempty"`
+	Image *ImageDetails `json:"image,omitempty" xml:"image,omitempty"`
 
 	// Language identifies the language used by the related resource using an HTML language code.
 	Language *externalRef1.Language `json:"language,omitempty" xml:"language,omitempty"`
@@ -384,8 +398,8 @@ type Item struct {
 	// Subject is the topic of the resource.
 	Subject *externalRef1.Subject `json:"subject,omitempty" xml:"subject,omitempty"`
 
-	// Title is the title of the item.
-	Title *externalRef1.Title `json:"title,omitempty" xml:"title,omitempty"`
+	// Titles is a list of title variations for the item.
+	Titles []Title `json:"titles,omitempty" xml:"title,omitempty"`
 
 	// Type is the nature or genre of the resource.
 	Type *externalRef1.Type `json:"type,omitempty" xml:"type,omitempty"`
@@ -400,7 +414,7 @@ type PubDate = externalRef1.Date
 // RSS represents an RSS document.
 type RSS struct {
 	// XMLName represents the XML namespace of an element.
-	XMLName    externalRef2.XMLName `json:"xml" validate:"required"`
+	XMLName    externalRef4.XMLName `json:"xml" validate:"required"`
 	Attributes []xml.Attr           `json:"attributes" xml:",any,attr"`
 
 	// Channel contains information about the channel (metadata) and its contents.
@@ -442,11 +456,11 @@ type SkipHours struct {
 // Source The RSS channel that the item came from.
 type Source struct {
 	// XMLName represents the XML namespace of an element.
-	XMLName externalRef2.XMLName `json:"xml" validate:"required"`
+	XMLName externalRef4.XMLName `json:"xml" validate:"required"`
 	URL     *string              `json:"url,omitempty" validate:"url" xml:"url,attr"`
 
 	// Value is an element value that is required.
-	Value externalRef2.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+	Value externalRef4.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
 // TTL stands for time to live. It's a number of minutes that indicates how long a channel can be cached before refreshing from the source.
@@ -465,6 +479,18 @@ type TextInput struct {
 
 	// Title is the label of the Submit button in the text input area.
 	Title string `json:"title" validate:"required,html_encoded" xml:"title"`
+}
+
+// Title defines model for Title.
+type Title struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef4.XMLName `json:"xml" validate:"required"`
+
+	// Type specifies the type of text embedded in the element.
+	Type *externalRef2.TextType `json:"type,omitempty" validate:"omitempty,oneof=plain html" xml:"type,attr,omitempty"`
+
+	// Value is an element value that is required.
+	Value externalRef4.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
 // WebMaster is the email address for person responsible for technical issues relating to channel.

@@ -11,6 +11,8 @@ output-options:
   # to make sure that all types are generated
   skip-prune: true
 import-mapping:
+  dc.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/dc"
   rdf.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/rdf"
+  media-rss.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/mrss"
   atom.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/atom"
   types.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/types"

@@ -51,3 +51,13 @@ components:
             xml: ",any,attr"
             json: "attributes"
           x-go-type-skip-optional-pointer: true
+        extensions:
+          descriptions: >
+            is any child extensions.
+          type: array
+          items:
+            $ref: "#/components/schemas/Extension"
+          x-oapi-codegen-extra-tags:
+            json: "extensions,omitempty"
+            xml: ",any"
+          x-go-type-skip-optional-pointer: true

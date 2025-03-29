@@ -14,6 +14,26 @@ info:
 paths: {}
 components:
   schemas:
+    Title:
+      description: >
+        is the name of the channel or item. This element can include attributes from either dublin core or media
+        extensions.
+      allOf:
+        - $ref: "dc.yaml#/components/schemas/Title"
+        - type: object
+          properties:
+            type:
+              $ref: "media-rss.yaml#/components/schemas/TextType"
+    Description:
+      description: >
+        is the description of the channel or item. This element can include attributes from either dublin core or media
+        extensions.
+      allOf:
+        - $ref: "dc.yaml#/components/schemas/Description"
+        - type: object
+          properties:
+            type:
+              $ref: "media-rss.yaml#/components/schemas/TextType"
     Category:
       description: >
         is a forward-slash-separated string that identifies a hierarchic location in the indicated taxonomy. Processors
@@ -109,7 +129,7 @@ components:
       description: >
         is the publication date of the content.
       allOf:
-        - $ref: "rdf.yaml#/components/schemas/Date"
+        - $ref: "dc.yaml#/components/schemas/Date"
       x-oapi-codegen-extra-tags:
         xml: "pubDate,omitempty"
         json: "pubDate,omitempty"
@@ -274,7 +294,7 @@ components:
             validate: "required,url"
       x-oapi-codegen-extra-tags:
         xml: "textInput,omitempty"
-    Image:
+    ImageDetails:
       description: >
         contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
       type: object
@@ -402,18 +422,18 @@ components:
         - link
         - description
       properties:
-        title:
+        titles:
           description: >
-            is the name of the channel. It's how people refer to your service. If you have an HTML website that contains
-            the same information as your RSS file, the title of your channel should be the same as the title of your
-            website.
-          allOf:
-            - $ref: "rdf.yaml#/components/schemas/Title"
+            is a list of title variations for the channel.
+          type: array
+          items:
+            $ref: "#/components/schemas/Title"
+          xml:
+            name: title
           x-oapi-codegen-extra-tags:
             xml: "title"
             validate: "required"
-          example:
-            title: GoUpstate.com News Headlines
+          x-go-type-skip-optional-pointer: true
         links:
           description: >
             is a list of links related to the channel.
@@ -423,17 +443,17 @@ components:
           x-oapi-codegen-extra-tags:
             xml: "link"
             validate: "required"
-        description:
+        descriptions:
           description: >
-            is a phrase or sentence describing the channel.
-          allOf:
-            - $ref: "rdf.yaml#/components/schemas/Description"
+            is a list of variations of description.
+          type: array
+          items:
+            $ref: "#/components/schemas/Description"
+          xml:
+            name: description
           x-oapi-codegen-extra-tags:
             xml: "description"
             validate: "required"
-          example:
-            description: >
-              The latest news from GoUpstate.com, a Spartanburg Herald-Journal Web site.
         copyright:
           $ref: "#/components/schemas/Copyright"
         managingEditor:
@@ -446,7 +466,7 @@ components:
           description: >
             is the last time the content of the channel changed.
           allOf:
-            - $ref: "rdf.yaml#/components/schemas/Date"
+            - $ref: "dc.yaml#/components/schemas/Date"
           x-oapi-codegen-extra-tags:
             xml: "lastBuildDate,omitempty"
         categories:
@@ -471,7 +491,7 @@ components:
         ttl:
           $ref: "#/components/schemas/TTL"
         image:
-          $ref: "#/components/schemas/Image"
+          $ref: "#/components/schemas/ImageDetails"
         rating:
           $ref: "#/components/schemas/Rating"
         skipHours:
@@ -485,7 +505,7 @@ components:
             is a list of contributors to the channel.
           type: array
           items:
-            $ref: "rdf.yaml#/components/schemas/Contributor"
+            $ref: "dc.yaml#/components/schemas/Contributor"
           xml:
             name: contributor
           x-oapi-codegen-extra-tags:
@@ -498,7 +518,7 @@ components:
             is a list of creators of the channel.
           type: array
           items:
-            $ref: "rdf.yaml#/components/schemas/Creator"
+            $ref: "dc.yaml#/components/schemas/Creator"
           xml:
             name: creator
           x-oapi-codegen-extra-tags:
@@ -507,27 +527,27 @@ components:
             validate: "omitempty,dive,unique"
           x-go-type-skip-optional-pointer: true
         coverage:
-          $ref: "rdf.yaml#/components/schemas/Coverage"
+          $ref: "dc.yaml#/components/schemas/Coverage"
         format:
-          $ref: "rdf.yaml#/components/schemas/Format"
+          $ref: "dc.yaml#/components/schemas/Format"
         identifier:
-          $ref: "rdf.yaml#/components/schemas/Identifier"
+          $ref: "dc.yaml#/components/schemas/Identifier"
         publisher:
-          $ref: "rdf.yaml#/components/schemas/Publisher"
+          $ref: "dc.yaml#/components/schemas/Publisher"
         relation:
-          $ref: "rdf.yaml#/components/schemas/Relation"
+          $ref: "dc.yaml#/components/schemas/Relation"
         rights:
-          $ref: "rdf.yaml#/components/schemas/Rights"
+          $ref: "dc.yaml#/components/schemas/Rights"
         subject:
-          $ref: "rdf.yaml#/components/schemas/Subject"
+          $ref: "dc.yaml#/components/schemas/Subject"
         type:
-          $ref: "rdf.yaml#/components/schemas/Type"
+          $ref: "dc.yaml#/components/schemas/Type"
         source:
-          $ref: "rdf.yaml#/components/schemas/Source"
+          $ref: "dc.yaml#/components/schemas/Source"
         language:
-          $ref: "rdf.yaml#/components/schemas/Language"
+          $ref: "dc.yaml#/components/schemas/Language"
         date:
-          $ref: "rdf.yaml#/components/schemas/Date"
+          $ref: "dc.yaml#/components/schemas/Date"
         updatePeriod:
           $ref: "rdf.yaml#/components/schemas/UpdatePeriod"
         updateFrequency:
@@ -576,15 +596,15 @@ components:
       x-oapi-codegen-extra-tags:
         xml: "item"
       properties:
-        title:
+        titles:
           description: >
-            is the title of the item.
-          allOf:
-            - $ref: "rdf.yaml#/components/schemas/Title"
+            is a list of title variations for the item.
+          type: array
+          items:
+            $ref: "#/components/schemas/Title"
           x-oapi-codegen-extra-tags:
             xml: "title,omitempty"
-          example:
-            title: Venice Film Festival Tries to Quit Sinking
+          x-go-type-skip-optional-pointer: true
         links:
           description: >
             is a list of links related to the item.
@@ -593,17 +613,16 @@ components:
             $ref: "atom.yaml#/components/schemas/Link"
           x-oapi-codegen-extra-tags:
             xml: "link,omitempty"
-        description:
+        descriptions:
           description: >
-            is a phrase or sentence describing the channel.
-          allOf:
-            - $ref: "rdf.yaml#/components/schemas/Description"
+            is a list of variations of description.
+          type: array
+          items:
+            $ref: "#/components/schemas/Description"
+          xml:
+            name: description
           x-oapi-codegen-extra-tags:
             xml: "description"
-          example:
-            description: >
-              Some of the most heated chatter at the Venice Film Festival this week was about the way that the arrival
-              of the stars at the Palazzo del Cinema was being staged.
         author:
           $ref: "#/components/schemas/Author"
         categories:
@@ -628,7 +647,7 @@ components:
         guid:
           $ref: "#/components/schemas/GUID"
         image:
-          $ref: "#/components/schemas/Image"
+          $ref: "#/components/schemas/ImageDetails"
         ContentEncoded:
           $ref: "rdf.yaml#/components/schemas/ContentEncoded"
         contributors:
@@ -636,7 +655,7 @@ components:
             is a list of contributors to the item.
           type: array
           items:
-            $ref: "rdf.yaml#/components/schemas/Contributor"
+            $ref: "dc.yaml#/components/schemas/Contributor"
           xml:
             name: contributor
           x-oapi-codegen-extra-tags:
@@ -649,7 +668,7 @@ components:
             is a list of creators of the item.
           type: array
           items:
-            $ref: "rdf.yaml#/components/schemas/Creator"
+            $ref: "dc.yaml#/components/schemas/Creator"
           xml:
             name: creator
           x-oapi-codegen-extra-tags:
@@ -658,27 +677,27 @@ components:
             validate: "omitempty,dive,unique"
           x-go-type-skip-optional-pointer: true
         coverage:
-          $ref: "rdf.yaml#/components/schemas/Coverage"
+          $ref: "dc.yaml#/components/schemas/Coverage"
         format:
-          $ref: "rdf.yaml#/components/schemas/Format"
+          $ref: "dc.yaml#/components/schemas/Format"
         identifier:
-          $ref: "rdf.yaml#/components/schemas/Identifier"
+          $ref: "dc.yaml#/components/schemas/Identifier"
         publisher:
-          $ref: "rdf.yaml#/components/schemas/Publisher"
+          $ref: "dc.yaml#/components/schemas/Publisher"
         relation:
-          $ref: "rdf.yaml#/components/schemas/Relation"
+          $ref: "dc.yaml#/components/schemas/Relation"
         rights:
-          $ref: "rdf.yaml#/components/schemas/Rights"
+          $ref: "dc.yaml#/components/schemas/Rights"
         subject:
-          $ref: "rdf.yaml#/components/schemas/Subject"
+          $ref: "dc.yaml#/components/schemas/Subject"
         type:
-          $ref: "rdf.yaml#/components/schemas/Type"
+          $ref: "dc.yaml#/components/schemas/Type"
         source:
           $ref: "#/components/schemas/Source"
         language:
-          $ref: "rdf.yaml#/components/schemas/Language"
+          $ref: "dc.yaml#/components/schemas/Language"
         date:
-          $ref: "rdf.yaml#/components/schemas/Date"
+          $ref: "dc.yaml#/components/schemas/Date"
         extensions:
           description: >
             records any elements that are unknown extensions to the schema.

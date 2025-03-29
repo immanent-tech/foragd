@@ -5,6 +5,7 @@ package rss
 
 import (
 	"bytes"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 
@@ -24,4 +25,17 @@ func New(b []byte) (*RSS, error) {
 	}
 
 	return &feed, nil
+}
+
+func (r *RSS) Metadata() (*ChannelMetadata, error) {
+	data, err := json.Marshal(r.Channel)
+	if err != nil {
+		return nil, err
+	}
+	var metadata ChannelMetadata
+	err = json.Unmarshal(data, &metadata)
+	if err != nil {
+		return nil, err
+	}
+	return &metadata, nil
 }

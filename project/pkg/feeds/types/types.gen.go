@@ -13,7 +13,8 @@ type Extension struct {
 	XMLName XMLName `json:"xml" validate:"required"`
 
 	// Attributes are any attributes of the extension element.
-	Attributes []xml.Attr `json:"attributes" xml:",any,attr"`
+	Attributes []xml.Attr  `json:"attributes" xml:",any,attr"`
+	Extensions []Extension `json:"extensions,omitempty" xml:",any"`
 
 	// Value is an element value that is optional.
 	Value *OptionalValue `json:"value,omitempty" xml:",chardata"`

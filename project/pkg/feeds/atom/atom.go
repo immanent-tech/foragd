@@ -9,10 +9,12 @@ import (
 	"fmt"
 
 	"golang.org/x/net/html/charset"
+
+	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-// New generates an Atom object from the given byte array.
-func New(b []byte) (*Feed, error) {
+// From generates an Atom object from the given byte array.
+func From(b []byte) (*Feed, error) {
 	var feed Feed
 
 	reader := bytes.NewReader(b)
@@ -24,4 +26,12 @@ func New(b []byte) (*Feed, error) {
 	}
 
 	return &feed, nil
+}
+
+func (a *Feed) Metadata() (*FeedMetadata, error) {
+	data, err := types.Encode(a)
+	if err != nil {
+		return nil, err
+	}
+	return types.Decode[*FeedMetadata](data)
 }

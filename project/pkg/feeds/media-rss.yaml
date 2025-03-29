@@ -14,3 +14,286 @@ info:
 paths: {}
 components:
   schemas:
+    URL:
+      description: >
+        should specify the direct URL to the media object.
+      type: string
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "url,attr,omitempty"
+        validate: "omitempty,url"
+    FileSize:
+      description: >
+        is the number of bytes of the media object.
+      type: integer
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "fileSize,attr,omitempty"
+    MimeType:
+      description: >
+        is the standard MIME type of the object.
+      type: string
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "type,attr,omitempty"
+    Medium:
+      description: >
+        is the type of object.
+      type: string
+      enum: ["image","audio","video","document","executable"]
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "medium,attr,omitempty"
+        validate: "omitempty,oneof=image audio video document executable"
+    IsDefault:
+      description: >
+        determines if this is the default object that should be used for the <media:group>.
+      type: boolean
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "isDefault,attr,omitempty"
+    Expression:
+      description: >
+        determines if the object is a sample or the full version of the object, or even if it is a continuous stream.
+      type: string
+      enum: ["sample","full","nonstop"]
+      default: "full"
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "expression,attr,omitempty"
+        validate: "omitempty,oneof=sample full nonstop"
+    Bitrate:
+      description: >
+        is the kilobits per second rate of media.
+      type: integer
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "bitrate,attr,omitempty"
+    Framerate:
+      description: >
+        is the number of frames per second for the media object.
+      type: integer
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "framerate,attr,omitempty"
+    Samplerate:
+      description: >
+        is the number of samples per second taken to create the media object. It is expressed in thousands of samples
+        per second (kHz).
+      type: integer
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "samplingrate,attr,omitempty"
+    Channels:
+      description: >
+        is number of audio channels in the media object.
+      type: integer
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "channels,attr,omitempty"
+    Duration:
+      description: >
+        is the number of seconds the media object plays.
+      type: integer
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "duration,attr,omitempty"
+    Height:
+      description: >
+        is the height of the media object.
+      type: integer
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "height,attr,omitempty"
+        validate: "omitempty,number"
+    Width:
+      description: >
+        is the height of the media object.
+      type: integer
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "width,attr,omitempty"
+        validate: "omitempty,number"
+    Lang:
+      description: >
+        is the primary language encapsulated in the media object. Language codes possible are detailed in RFC 3066.
+      type: integer
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "lang,attr,omitempty"
+        validate: "omitempty,bcp47_language_tag"
+    TextType:
+      description: >
+        specifies the type of text embedded in the element.
+      type: string
+      enum: ["plain","html"]
+      default: "plain"
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "type,attr,omitempty"
+        validate: "omitempty,oneof=plain html"
+    MediaRating:
+      description: >
+        allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions
+        are necessary.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        scheme:
+          description: >
+            is the URI that identifies the rating scheme.
+          type: string
+          default: "urn:simple"
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "scheme,attr,omitempty"
+      x-oapi-codegen-extra-tags:
+        xml: "rating,omitempty"
+    MediaTitle:
+      description: >
+        is the title of the particular media object.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        type:
+          $ref: "#/components/schemas/TextType"
+      x-oapi-codegen-extra-tags:
+        xml: "title,omitempty"
+    MediaDescription:
+      description: >
+        is a short description describing the media object typically a sentence in length.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        type:
+          $ref: "#/components/schemas/TextType"
+      x-oapi-codegen-extra-tags:
+        xml: "description,omitempty"
+    MediaKeywords:
+      description: >
+        are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and
+        phrases should be comma-delimited.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+      x-oapi-codegen-extra-tags:
+        xml: "keywords,omitempty"
+    MediaContent:
+      description: >
+        can be used to publish any type of media.
+      type: object
+      required:
+        - XMLName
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        url:
+          $ref: "#/components/schemas/URL"
+        fileSize:
+          $ref: "#/components/schemas/FileSize"
+        type:
+          $ref: "#/components/schemas/MimeType"
+        medium:
+          $ref: "#/components/schemas/Medium"
+        isDefault:
+          $ref: "#/components/schemas/IsDefault"
+        expression:
+          $ref: "#/components/schemas/Expression"
+        bitrate:
+          $ref: "#/components/schemas/Bitrate"
+        framerate:
+          $ref: "#/components/schemas/Framerate"
+        samplingrate:
+          $ref: "#/components/schemas/Samplerate"
+        channels:
+          $ref: "#/components/schemas/Channels"
+        duration:
+          $ref: "#/components/schemas/Duration"
+        height:
+          $ref: "#/components/schemas/Height"
+        width:
+          $ref: "#/components/schemas/Width"
+        lang:
+          $ref: "#/components/schemas/Lang"
+        rating:
+          $ref: "#/components/schemas/MediaRating"
+        title:
+          $ref: "#/components/schemas/MediaTitle"
+        description:
+          $ref: "#/components/schemas/MediaDescription"
+        keywords:
+          $ref: "#/components/schemas/MediaKeywords"
+      x-oapi-codegen-extra-tags:
+        json: "content_encoded,omitempty"
+        xml: "encoded,omitempty"
+    MediaGroup:
+      description: >
+        allows grouping of <media:content> elements that are effectively the same content, yet different
+        representations. For instance: the same song recorded in both the WAV and MP3 format.
+      type: object
+      required:
+        - XMLName
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        Content:
+          description: >
+            is the list of <media:content> elements
+          type: array
+          items:
+            $ref: "#/components/schemas/MediaContent"
+          xml:
+            name: content
+          x-oapi-codegen-extra-tags:
+            json: "content,omitempty"
+            xml: "content,omitempty"
+            validate: "omitempty,dive,unique"
+          x-go-type-skip-optional-pointer: true
+        rating:
+          $ref: "#/components/schemas/MediaRating"
+        title:
+          $ref: "#/components/schemas/MediaTitle"
+        description:
+          $ref: "#/components/schemas/MediaDescription"
+        keywords:
+          $ref: "#/components/schemas/MediaKeywords"

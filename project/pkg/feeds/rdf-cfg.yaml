@@ -11,4 +11,5 @@ output-options:
   # to make sure that all types are generated
   skip-prune: true
 import-mapping:
+  dc.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/dc"
   types.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/types"
