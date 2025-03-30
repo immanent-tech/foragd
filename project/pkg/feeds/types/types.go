@@ -5,17 +5,19 @@ package types
 
 import (
 	"bytes"
+
 	"encoding/xml"
 	"fmt"
 
 	"golang.org/x/net/html/charset"
 )
 
-func Decode[T any](b []byte) (T, error) {
+func Decode[T any](namespace string, b []byte) (T, error) {
 	var feed T
 
 	reader := bytes.NewReader(b)
 	decoder := xml.NewDecoder(reader)
+	decoder.DefaultSpace = namespace
 	decoder.CharsetReader = charset.NewReaderLabel
 	err := decoder.Decode(&feed)
 	if err != nil {

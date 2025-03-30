@@ -17,6 +17,18 @@ info:
 paths: {}
 components:
   schemas:
+    Type:
+      description: >
+        represents what the content of the element is.
+      type: string
+      enum: ["text","html","xhtml"]
+      default: "text"
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "type,attr,omitempty"
+        json: "type,omitempty"
+        validate: "omitempty,oneof=text html xhtml"
     CommonAttributes:
       description: >
         are common attributes across Atom elements.
@@ -24,8 +36,8 @@ components:
       properties:
         Base:
           description: >
-            establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the
-            xml:base attribute.
+            establishes the base URI (or IRI) for resolving any relative references found within the effective scope of
+            the xml:base attribute.
           type: string
           xml:
             attribute: true
@@ -101,17 +113,6 @@ components:
       x-oapi-codegen-extra-tags:
         xml: "email,omitempty"
         json: "email,omitempty"
-    Type:
-      description: >
-        is an attribute that indicates the type of text enclosed.
-      type: string
-      enum: ["text","html","xhtml"]
-      default: "text"
-      xml:
-        attribute: true
-      x-oapi-codegen-extra-tags:
-        xml: "type,attr,omitempty"
-        json: "type,omitempty"
     TextConstruct:
       description:
         contains human-readable text, usually in small quantities.

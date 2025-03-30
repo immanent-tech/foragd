@@ -69,8 +69,8 @@ type Content struct {
 	// Source is an attribute that links to the source content.
 	Source *string `json:"src,omitempty" validate:"omitempty,uri" xml:"src,attr,omitempty"`
 
-	// Type is an attribute that indicates the type of text enclosed.
-	Type  *Type   `json:"type,omitempty" xml:"type,attr,omitempty"`
+	// Type represents what the content of the element is.
+	Type  *Type   `json:"type,omitempty" validate:"omitempty,oneof=text html xhtml" xml:"type,attr,omitempty"`
 	Value *string `json:"value,omitempty" xml:",chardata"`
 }
 
@@ -370,15 +370,15 @@ type TextConstruct struct {
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
 
-	// Type is an attribute that indicates the type of text enclosed.
-	Type  *Type  `json:"type,omitempty" xml:"type,attr,omitempty"`
+	// Type represents what the content of the element is.
+	Type  *Type  `json:"type,omitempty" validate:"omitempty,oneof=text html xhtml" xml:"type,attr,omitempty"`
 	Value string `json:"value" xml:",chardata"`
 }
 
 // Title contains human-readable text, usually in small quantities.
 type Title = TextConstruct
 
-// Type is an attribute that indicates the type of text enclosed.
+// Type represents what the content of the element is.
 type Type string
 
 // URI is an element that conveys an IRI (URI).

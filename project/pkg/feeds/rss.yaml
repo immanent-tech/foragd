@@ -16,28 +16,94 @@ components:
   schemas:
     Title:
       description: >
-        is the name of the channel or item. This element can include attributes from either dublin core or media
-        extensions.
+        is the name of the channel or item.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+    Link:
+      description: >
+        identifies a web address associated with the channel or item. A link may be either a RSS or Atom link element.
       allOf:
-        - $ref: "dc.yaml#/components/schemas/Title"
-        - type: object
-          properties:
-            type:
-              $ref: "media-rss.yaml#/components/schemas/TextType"
+        - $ref: "atom.yaml#/components/schemas/Link"
     Description:
       description: >
-        is the description of the channel or item. This element can include attributes from either dublin core or media
-        extensions.
+        is the description of the channel or item.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+    Language:
+      description: >
+        The language the channel is written in. This allows aggregators to group all Italian language sites, for
+        example, on a single page.
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          allOf:
+            - $ref: "types.yaml#/components/schemas/RequiredValue"
+          x-oapi-codegen-extra-tags:
+            xml: ",chardata"
+            validate: "required,bcp47_language_tag"
+      x-oapi-codegen-extra-tags:
+        xml: "language,omitempty"
+    Copyright:
+      description: >
+        Copyright notice for content in the channel.
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+      x-oapi-codegen-extra-tags:
+        xml: "copyright,omitempty"
+    ManagingEditor:
+      description: >
+        is the email address for person responsible for editorial content.
+      type: string
+      x-oapi-codegen-extra-tags:
+        xml: "managingEditor,omitempty"
+    WebMaster:
+      description: >
+        is the email address for person responsible for technical issues relating to channel.
+      type: string
+      x-oapi-codegen-extra-tags:
+        xml: "webMaster,omitempty"
+    PubDate:
+      description: >
+        is the publication date of the content.
       allOf:
-        - $ref: "dc.yaml#/components/schemas/Description"
-        - type: object
-          properties:
-            type:
-              $ref: "media-rss.yaml#/components/schemas/TextType"
+        - $ref: "dc.yaml#/components/schemas/Date"
+      x-oapi-codegen-extra-tags:
+        xml: "pubDate,omitempty"
+        json: "pubDate,omitempty"
+    LastBuildDate:
+      description: >
+        is the last time the content of the channel changed.
+      allOf:
+        - $ref: "dc.yaml#/components/schemas/Date"
+      x-oapi-codegen-extra-tags:
+        xml: "lastBuildDate,omitempty"
     Category:
       description: >
-        is a forward-slash-separated string that identifies a hierarchic location in the indicated taxonomy. Processors
-        may establish conventions for the interpretation of categories.
+        allows a taxonomy to be set on the channel or item.
       type: object
       required:
         - value
@@ -54,26 +120,6 @@ components:
             xml: "domain,attr,omitempty"
       x-oapi-codegen-extra-tags:
         xml: "category,omitempty"
-    Copyright:
-      description: >
-        is the copyright notice for content in the channel.
-      type: string
-      x-oapi-codegen-extra-tags:
-        xml: "copyright,omitempty"
-      example:
-        copyright: Copyright 2002, Spartanburg Herald-Journal
-    ManagingEditor:
-      description: >
-        is the email address for person responsible for editorial content.
-      type: string
-      x-oapi-codegen-extra-tags:
-        xml: "managingEditor,omitempty"
-    WebMaster:
-      description: >
-        is the email address for person responsible for technical issues relating to channel.
-      type: string
-      x-oapi-codegen-extra-tags:
-        xml: "webMaster,omitempty"
     Generator:
       description: >
         is a string indicating the program used to generate the channel.
@@ -93,6 +139,65 @@ components:
         validate: "omitempty,url"
       example:
         docs: https://www.rssboard.org/rss-specification
+    Cloud:
+      description: >
+        specifies a web service that supports the rssCloud interface which can be implemented in HTTP-POST, XML-RPC or
+        SOAP 1.1.
+
+        Its purpose is to allow processes to register with a cloud to be notified of updates to the channel,
+        implementing a lightweight publish-subscribe protocol for RSS feeds.
+      type: object
+      required:
+        - domain
+        - port
+        - path
+        - registerProcedure
+        - protocol
+      properties:
+        domain:
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "domain,attr"
+            validate: "required"
+        port:
+          type: integer
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "port,attr"
+            validate: "required"
+        path:
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "path,attr"
+            validate: "required"
+        registerProcedure:
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "registerProcedure,attr"
+            validate: "required"
+        protocol:
+          type: string
+          enum: ["xml-rpc","soap","http-post"]
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "protocol,attr"
+            validate: "required"
+      x-oapi-codegen-extra-tags:
+        xml: "cloud,omitempty"
+      example:
+        domain: rpc.sys.com
+        port: 80
+        path: "/RPC2"
+        registerProcedure: "pingMe"
+        protocol: "soap"
     TTL:
       description: >
         stands for time to live. It's a number of minutes that indicates how long a channel can be cached before
@@ -103,12 +208,133 @@ components:
       x-oapi-codegen-extra-tags:
         xml: "ttl,omitempty"
         validate: "omitempty,gte=1"
+    Image:
+      description: >
+        contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
+      type: object
+      required:
+        - url
+        - title
+        - link
+      properties:
+        url:
+          description: >
+            is the URL of a GIF, JPEG or PNG image that represents the channel.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            xml: "url"
+            validate: "required,url"
+        title:
+          description: >
+            describes the image, it's used in the ALT attribute of the HTML <img> tag when the channel is rendered in HTML.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "title"
+            validate: "required,title"
+        link:
+          description: >
+            is the URL of the site, when the channel is rendered, the image is a link to the site. (Note, in practice
+            the image <title> and <link> should have the same value as the channel's <title> and <link>.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "link"
+            validate: "required,link"
+        width:
+          description: >
+            indicates the width of the image in pixels.
+          type: integer
+          maximum: 144
+          default: 88
+          x-oapi-codegen-extra-tags:
+            xml: "width,omitempty"
+            validate: "omitempty,gt=0,lte=144"
+        height:
+          description: >
+            indicates the height of the image in pixels.
+          type: integer
+          maximum: 400
+          default: 31
+          x-oapi-codegen-extra-tags:
+            xml: "height,omitempty"
+            validate: "omitempty,gt=0,lte=400"
+        description:
+          description: >
+            contains text that is included in the TITLE attribute of the link formed around the image in the HTML
+            rendering.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "description,omitempty"
+      x-oapi-codegen-extra-tags:
+        xml: "image,omitempty"
     Rating:
       description: >
-        is the PICS rating for the channel.
-      type: string
+        contains a rating for the element.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        scheme:
+          $ref: "media-rss.yaml#/components/schemas/Scheme"
       x-oapi-codegen-extra-tags:
         xml: "rating,omitempty"
+    TextInput:
+      description: >
+        The purpose of the <textInput> element is something of a mystery. You can use it to specify a search engine box.
+        Or to allow a reader to provide feedback. Most aggregators ignore it.
+      type: object
+      required:
+        - title
+        - description
+        - name
+        - link
+      properties:
+        title:
+          description: >
+            is the label of the Submit button in the text input area.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "title"
+            validate: "required,html_encoded"
+        description:
+          description: >
+            explains the text input area.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "description"
+            validate: "required,html_encoded"
+        name:
+          description: >
+            is the name of the text object in the text input area.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "name"
+            validate: "required,html_encoded"
+        link:
+          description: >
+            is the URL of the CGI script that processes text input requests.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "link"
+            validate: "required,url"
+      x-oapi-codegen-extra-tags:
+        xml: "textInput,omitempty"
+    Syndication:
+      description: >
+        describes the syndication properties.
+      type: object
+      properties:
+        updatePeriod:
+          $ref: "rdf.yaml#/components/schemas/UpdatePeriod"
+        updateFrequency:
+          $ref: "rdf.yaml#/components/schemas/UpdateFrequency"
+        updateBase:
+          $ref: "rdf.yaml#/components/schemas/UpdateBase"
     Author:
       description: >
         is the email address of the author of the item. For newspapers and magazines syndicating via RSS, the
@@ -125,14 +351,6 @@ components:
       x-oapi-codegen-extra-tags:
         xml: "comments,omitempty"
         validate: "omitempty,url"
-    PubDate:
-      description: >
-        is the publication date of the content.
-      allOf:
-        - $ref: "dc.yaml#/components/schemas/Date"
-      x-oapi-codegen-extra-tags:
-        xml: "pubDate,omitempty"
-        json: "pubDate,omitempty"
     Enclosure:
       description: >
         describes a media object.
@@ -194,165 +412,6 @@ components:
       x-go-name: GUID
       x-oapi-codegen-extra-tags:
         xml: "guid,omitempty"
-    RSSCloud:
-      description: >
-        specifies a web service that supports the rssCloud interface which can be implemented in HTTP-POST, XML-RPC or
-        SOAP 1.1.
-
-        Its purpose is to allow processes to register with a cloud to be notified of updates to the channel,
-        implementing a lightweight publish-subscribe protocol for RSS feeds.
-      type: object
-      required:
-        - domain
-        - port
-        - path
-        - registerProcedure
-        - protocol
-      properties:
-        domain:
-          type: string
-          xml:
-            attribute: true
-          x-oapi-codegen-extra-tags:
-            xml: "domain,attr"
-            validate: "required"
-        port:
-          type: integer
-          xml:
-            attribute: true
-          x-oapi-codegen-extra-tags:
-            xml: "port,attr"
-            validate: "required"
-        path:
-          type: string
-          xml:
-            attribute: true
-          x-oapi-codegen-extra-tags:
-            xml: "path,attr"
-            validate: "required"
-        registerProcedure:
-          type: string
-          xml:
-            attribute: true
-          x-oapi-codegen-extra-tags:
-            xml: "registerProcedure,attr"
-            validate: "required"
-        protocol:
-          type: string
-          enum: ["xml-rpc","soap","http-post"]
-          xml:
-            attribute: true
-          x-oapi-codegen-extra-tags:
-            xml: "protocol,attr"
-            validate: "required"
-      x-oapi-codegen-extra-tags:
-        xml: "cloud,omitempty"
-      example:
-        domain: rpc.sys.com
-        port: 80
-        path: "/RPC2"
-        registerProcedure: "pingMe"
-        protocol: "soap"
-    TextInput:
-      description: >
-        The purpose of the <textInput> element is something of a mystery. You can use it to specify a search engine box.
-        Or to allow a reader to provide feedback. Most aggregators ignore it.
-      type: object
-      required:
-        - title
-        - description
-        - name
-        - link
-      properties:
-        title:
-          description: >
-            is the label of the Submit button in the text input area.
-          type: string
-          x-oapi-codegen-extra-tags:
-            xml: "title"
-            validate: "required,html_encoded"
-        description:
-          description: >
-            explains the text input area.
-          type: string
-          x-oapi-codegen-extra-tags:
-            xml: "description"
-            validate: "required,html_encoded"
-        name:
-          description: >
-            is the name of the text object in the text input area.
-          type: string
-          x-oapi-codegen-extra-tags:
-            xml: "name"
-            validate: "required,html_encoded"
-        link:
-          description: >
-            is the URL of the CGI script that processes text input requests.
-          type: string
-          x-oapi-codegen-extra-tags:
-            xml: "link"
-            validate: "required,url"
-      x-oapi-codegen-extra-tags:
-        xml: "textInput,omitempty"
-    ImageDetails:
-      description: >
-        contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
-      type: object
-      required:
-        - url
-        - title
-        - link
-      properties:
-        url:
-          description: >
-            is the URL of a GIF, JPEG or PNG image that represents the channel.
-          type: string
-          x-go-name: URL
-          x-oapi-codegen-extra-tags:
-            xml: "url"
-            validate: "required,url"
-        title:
-          description: >
-            describes the image, it's used in the ALT attribute of the HTML <img> tag when the channel is rendered in HTML.
-          type: string
-          x-oapi-codegen-extra-tags:
-            xml: "title"
-            validate: "required,title"
-        link:
-          description: >
-            is the URL of the site, when the channel is rendered, the image is a link to the site. (Note, in practice
-            the image <title> and <link> should have the same value as the channel's <title> and <link>.
-          type: string
-          x-oapi-codegen-extra-tags:
-            xml: "link"
-            validate: "required,link"
-        width:
-          description: >
-            indicates the width of the image in pixels.
-          type: integer
-          maximum: 144
-          default: 88
-          x-oapi-codegen-extra-tags:
-            xml: "width,omitempty"
-            validate: "omitempty,gt=0,lte=144"
-        height:
-          description: >
-            indicates the height of the image in pixels.
-          type: integer
-          maximum: 400
-          default: 31
-          x-oapi-codegen-extra-tags:
-            xml: "height,omitempty"
-            validate: "omitempty,gt=0,lte=400"
-        description:
-          description: >
-            contains text that is included in the TITLE attribute of the link formed around the image in the HTML
-            rendering.
-          type: string
-          x-oapi-codegen-extra-tags:
-            xml: "description,omitempty"
-      x-oapi-codegen-extra-tags:
-        xml: "image,omitempty"
     Source:
       description: >
         The RSS channel that the item came from.
@@ -413,118 +472,32 @@ components:
           x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         xml: "skipDays,omitempty"
-    ChannelMetadata:
+    DublinCore:
       description: >
-        contains information about the channel (metadata).
+        contains Dublin Core extension elements for the channel or item.
       type: object
-      required:
-        - title
-        - link
-        - description
       properties:
-        titles:
-          description: >
-            is a list of title variations for the channel.
-          type: array
-          items:
-            $ref: "#/components/schemas/Title"
-          xml:
-            name: title
-          x-oapi-codegen-extra-tags:
-            xml: "title"
-            validate: "required"
-          x-go-type-skip-optional-pointer: true
-        links:
-          description: >
-            is a list of links related to the channel.
-          type: array
-          items:
-            $ref: "atom.yaml#/components/schemas/Link"
-          x-oapi-codegen-extra-tags:
-            xml: "link"
-            validate: "required"
-        descriptions:
-          description: >
-            is a list of variations of description.
-          type: array
-          items:
-            $ref: "#/components/schemas/Description"
-          xml:
-            name: description
-          x-oapi-codegen-extra-tags:
-            xml: "description"
-            validate: "required"
-        copyright:
-          $ref: "#/components/schemas/Copyright"
-        managingEditor:
-          $ref: "#/components/schemas/ManagingEditor"
-        webMaster:
-          $ref: "#/components/schemas/WebMaster"
-        pubDate:
-          $ref: "#/components/schemas/PubDate"
-        lastBuildDate:
-          description: >
-            is the last time the content of the channel changed.
-          allOf:
-            - $ref: "dc.yaml#/components/schemas/Date"
-          x-oapi-codegen-extra-tags:
-            xml: "lastBuildDate,omitempty"
-        categories:
-          description: >
-            is a list of categories associated with the channel.
-          type: array
-          items:
-            $ref: "#/components/schemas/Category"
-          xml:
-            name: category
-          x-oapi-codegen-extra-tags:
-            json: "category,omitempty"
-            xml: "category,omitempty"
-            validate: "omitempty,dive,unique"
-          x-go-type-skip-optional-pointer: true
-        generator:
-          $ref: "#/components/schemas/Generator"
-        docs:
-          $ref: "#/components/schemas/Docs"
-        cloud:
-          $ref: "#/components/schemas/RSSCloud"
-        ttl:
-          $ref: "#/components/schemas/TTL"
-        image:
-          $ref: "#/components/schemas/ImageDetails"
-        rating:
-          $ref: "#/components/schemas/Rating"
-        skipHours:
-          $ref: "#/components/schemas/SkipHours"
-        skipDays:
-          $ref: "#/components/schemas/SkipDays"
-        textInput:
-          $ref: "#/components/schemas/TextInput"
-        contributors:
-          description: >
-            is a list of contributors to the channel.
+        title:
+          $ref: "dc.yaml#/components/schemas/Title"
+        description:
+          $ref: "dc.yaml#/components/schemas/Description"
+        contributor:
           type: array
           items:
             $ref: "dc.yaml#/components/schemas/Contributor"
           xml:
             name: contributor
           x-oapi-codegen-extra-tags:
-            json: "contributor,omitempty"
             xml: "contributor,omitempty"
-            validate: "omitempty,dive,unique"
           x-go-type-skip-optional-pointer: true
-        creators:
-          description: >
-            is a list of creators of the channel.
+        creator:
           type: array
           items:
             $ref: "dc.yaml#/components/schemas/Creator"
           xml:
             name: creator
           x-oapi-codegen-extra-tags:
-            json: "creator,omitempty"
             xml: "creator,omitempty"
-            validate: "omitempty,dive,unique"
           x-go-type-skip-optional-pointer: true
         coverage:
           $ref: "dc.yaml#/components/schemas/Coverage"
@@ -548,12 +521,87 @@ components:
           $ref: "dc.yaml#/components/schemas/Language"
         date:
           $ref: "dc.yaml#/components/schemas/Date"
-        updatePeriod:
-          $ref: "rdf.yaml#/components/schemas/UpdatePeriod"
-        updateFrequency:
-          $ref: "rdf.yaml#/components/schemas/UpdateFrequency"
-        updateBase:
-          $ref: "rdf.yaml#/components/schemas/UpdateBase"
+    ChannelMetadata:
+      description: >
+        contains information about the channel (metadata).
+      allOf:
+        - $ref: "#/components/schemas/Syndication"
+        - $ref: "#/components/schemas/DublinCore"
+        - type: object
+          required:
+            - title
+            - link
+            - description
+          properties:
+            title:
+              description: >
+                the title of the channel.
+              allOf:
+                - $ref: "#/components/schemas/Title"
+              x-oapi-codegen-extra-tags:
+                xml: "title"
+                validate: "required"
+            links:
+              description: >
+                is a list of links related to the channel.
+              type: array
+              items:
+                $ref: "#/components/schemas/Link"
+              x-oapi-codegen-extra-tags:
+                xml: "link"
+                validate: "required"
+              x-go-type-skip-optional-pointer: true
+            description:
+              description: >
+                the description of the channel.
+              allOf:
+                - $ref: "#/components/schemas/Description"
+              x-oapi-codegen-extra-tags:
+                xml: "description"
+                validate: "required"
+            language:
+              $ref: "#/components/schemas/Language"
+            copyright:
+              $ref: "#/components/schemas/Copyright"
+            managingEditor:
+              $ref: "#/components/schemas/ManagingEditor"
+            webMaster:
+              $ref: "#/components/schemas/WebMaster"
+            pubDate:
+              $ref: "#/components/schemas/PubDate"
+            lastBuildDate:
+              $ref: "#/components/schemas/LastBuildDate"
+            categories:
+              description: >
+                is a list of categories associated with the channel.
+              type: array
+              items:
+                $ref: "#/components/schemas/Category"
+              xml:
+                name: category
+              x-oapi-codegen-extra-tags:
+                json: "category,omitempty"
+                xml: "category,omitempty"
+                validate: "omitempty,dive,unique"
+              x-go-type-skip-optional-pointer: true
+            generator:
+              $ref: "#/components/schemas/Generator"
+            docs:
+              $ref: "#/components/schemas/Docs"
+            cloud:
+              $ref: "#/components/schemas/Cloud"
+            ttl:
+              $ref: "#/components/schemas/TTL"
+            image:
+              $ref: "#/components/schemas/Image"
+            rating:
+              $ref: "#/components/schemas/Rating"
+            textInput:
+              $ref: "#/components/schemas/TextInput"
+            skipHours:
+              $ref: "#/components/schemas/SkipHours"
+            skipDays:
+              $ref: "#/components/schemas/SkipDays"
     Channel:
       description: >
         contains information about the channel (metadata) and its contents.
@@ -592,122 +640,70 @@ components:
         synopsis of the story, and the link points to the full story. An item may also be complete in itself, if so, the
         description contains the text (entity-encoded HTML is allowed; see examples), and the link and title may be
         omitted. All elements of an item are optional, however at least one of title or description must be present.
-      type: object
-      x-oapi-codegen-extra-tags:
-        xml: "item"
-      properties:
-        titles:
-          description: >
-            is a list of title variations for the item.
-          type: array
-          items:
-            $ref: "#/components/schemas/Title"
+      allOf:
+        - $ref: "#/components/schemas/DublinCore"
+        - type: object
           x-oapi-codegen-extra-tags:
-            xml: "title,omitempty"
-          x-go-type-skip-optional-pointer: true
-        links:
-          description: >
-            is a list of links related to the item.
-          type: array
-          items:
-            $ref: "atom.yaml#/components/schemas/Link"
-          x-oapi-codegen-extra-tags:
-            xml: "link,omitempty"
-        descriptions:
-          description: >
-            is a list of variations of description.
-          type: array
-          items:
-            $ref: "#/components/schemas/Description"
-          xml:
-            name: description
-          x-oapi-codegen-extra-tags:
-            xml: "description"
-        author:
-          $ref: "#/components/schemas/Author"
-        categories:
-          description: >
-            is a list of categories associated with the channel.
-          type: array
-          items:
-            $ref: "#/components/schemas/Category"
-          xml:
-            name: category
-          x-oapi-codegen-extra-tags:
-            json: "category,omitempty"
-            xml: "category,omitempty"
-            validate: "omitempty,dive,unique"
-          x-go-type-skip-optional-pointer: true
-        comments:
-          $ref: "#/components/schemas/Comments"
-        pubDate:
-          $ref: "#/components/schemas/PubDate"
-        enclosure:
-          $ref: "#/components/schemas/Enclosure"
-        guid:
-          $ref: "#/components/schemas/GUID"
-        image:
-          $ref: "#/components/schemas/ImageDetails"
-        ContentEncoded:
-          $ref: "rdf.yaml#/components/schemas/ContentEncoded"
-        contributors:
-          description: >
-            is a list of contributors to the item.
-          type: array
-          items:
-            $ref: "dc.yaml#/components/schemas/Contributor"
-          xml:
-            name: contributor
-          x-oapi-codegen-extra-tags:
-            json: "contributor,omitempty"
-            xml: "contributor,omitempty"
-            validate: "omitempty,dive,unique"
-          x-go-type-skip-optional-pointer: true
-        creators:
-          description: >
-            is a list of creators of the item.
-          type: array
-          items:
-            $ref: "dc.yaml#/components/schemas/Creator"
-          xml:
-            name: creator
-          x-oapi-codegen-extra-tags:
-            json: "creator,omitempty"
-            xml: "creator,omitempty"
-            validate: "omitempty,dive,unique"
-          x-go-type-skip-optional-pointer: true
-        coverage:
-          $ref: "dc.yaml#/components/schemas/Coverage"
-        format:
-          $ref: "dc.yaml#/components/schemas/Format"
-        identifier:
-          $ref: "dc.yaml#/components/schemas/Identifier"
-        publisher:
-          $ref: "dc.yaml#/components/schemas/Publisher"
-        relation:
-          $ref: "dc.yaml#/components/schemas/Relation"
-        rights:
-          $ref: "dc.yaml#/components/schemas/Rights"
-        subject:
-          $ref: "dc.yaml#/components/schemas/Subject"
-        type:
-          $ref: "dc.yaml#/components/schemas/Type"
-        source:
-          $ref: "#/components/schemas/Source"
-        language:
-          $ref: "dc.yaml#/components/schemas/Language"
-        date:
-          $ref: "dc.yaml#/components/schemas/Date"
-        extensions:
-          description: >
-            records any elements that are unknown extensions to the schema.
-          type: array
-          items:
-            $ref: "types.yaml#/components/schemas/Extension"
-          x-oapi-codegen-extra-tags:
-            json: "extensions,omitempty"
-            xml: ",any"
-          x-go-type-skip-optional-pointer: true
+            xml: "item"
+          properties:
+            title:
+              description: >
+                is the title of the item.
+              allOf:
+                - $ref: "#/components/schemas/Title"
+              x-oapi-codegen-extra-tags:
+                xml: "title,omitempty"
+            links:
+              description: >
+                is a list of links related to the item.
+              type: array
+              items:
+                $ref: "#/components/schemas/Link"
+              x-oapi-codegen-extra-tags:
+                xml: "link,omitempty"
+              x-go-type-skip-optional-pointer: true
+            description:
+              description: >
+                is the description of the item.
+              allOf:
+                - $ref: "#/components/schemas/Description"
+              x-oapi-codegen-extra-tags:
+                xml: "description"
+            author:
+              $ref: "#/components/schemas/Author"
+            categories:
+              description: >
+                is a list of categories associated with the channel.
+              type: array
+              items:
+                $ref: "#/components/schemas/Category"
+              xml:
+                name: category
+              x-oapi-codegen-extra-tags:
+                json: "category,omitempty"
+                xml: "category,omitempty"
+                validate: "omitempty,dive,unique"
+              x-go-type-skip-optional-pointer: true
+            comments:
+              $ref: "#/components/schemas/Comments"
+            enclosure:
+              $ref: "#/components/schemas/Enclosure"
+            guid:
+              $ref: "#/components/schemas/GUID"
+            pubDate:
+              $ref: "#/components/schemas/PubDate"
+            ContentEncoded:
+              $ref: "rdf.yaml#/components/schemas/ContentEncoded"
+            extensions:
+              description: >
+                records any elements that are unknown extensions to the schema.
+              type: array
+              items:
+                $ref: "types.yaml#/components/schemas/Extension"
+              x-oapi-codegen-extra-tags:
+                json: "extensions,omitempty"
+                xml: ",any"
+              x-go-type-skip-optional-pointer: true
     RSS:
       description: >
         represents an RSS document.

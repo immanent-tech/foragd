@@ -7,6 +7,12 @@ import (
 	"encoding/xml"
 )
 
+// Defines values for NameSpace.
+const (
+	NameSpaceDublinCore NameSpace = "http://purl.org/dc/elements/1.1/"
+	NameSpaceMediaRSS   NameSpace = "http://search.yahoo.com/mrss/"
+)
+
 // Extension defines model for Extension.
 type Extension struct {
 	// XMLName represents the XML namespace of an element.
@@ -19,6 +25,9 @@ type Extension struct {
 	// Value is an element value that is optional.
 	Value *OptionalValue `json:"value,omitempty" xml:",chardata"`
 }
+
+// NameSpace is a URL for a specific namespace.
+type NameSpace string
 
 // OptionalValue is an element value that is optional.
 type OptionalValue = string

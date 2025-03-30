@@ -14,6 +14,12 @@ const (
 	Sample  Expression = "sample"
 )
 
+// Defines values for HashAlgo.
+const (
+	Md5  HashAlgo = "md5"
+	Sha1 HashAlgo = "sha-1"
+)
+
 // Defines values for Medium.
 const (
 	Audio      Medium = "audio"
@@ -21,6 +27,19 @@ const (
 	Executable Medium = "executable"
 	Image      Medium = "image"
 	Video      Medium = "video"
+)
+
+// Defines values for RestrictionRelationship.
+const (
+	Allow RestrictionRelationship = "allow"
+	Deny  RestrictionRelationship = "deny"
+)
+
+// Defines values for RestrictionType.
+const (
+	Country RestrictionType = "country"
+	Sharing RestrictionType = "sharing"
+	Uri     RestrictionType = "uri"
 )
 
 // Defines values for TextType.
@@ -32,43 +51,100 @@ const (
 // Bitrate is the kilobits per second rate of media.
 type Bitrate = int
 
+// Category allows a taxonomy to be set that gives an indication of the type of media content, and its particular contents.
+type Category struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Label is the human readable label that can be displayed in end user applications.
+	Label *Label `json:"label,omitempty" xml:"label,attr,omitempty"`
+
+	// Scheme is the URI that identifies the scheme used by the element.
+	Scheme *Scheme `json:"scheme,omitempty" validate:"omitempty,uri" xml:"scheme,attr,omitempty"`
+}
+
 // Channels is number of audio channels in the media object.
 type Channels = int
 
-// Duration is the number of seconds the media object plays.
-type Duration = int
+// Comment is a comments a media object has received.
+type Comment struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
-// Expression determines if the object is a sample or the full version of the object, or even if it is a continuous stream.
-type Expression string
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
-// FileSize is the number of bytes of the media object.
-type FileSize = int
+// Comments is a list of comments the media object has received.
+type Comments = []Comment
 
-// Framerate is the number of frames per second for the media object.
-type Framerate = int
+// Community stands for the community related content. This allows inclusion of the user perception about a media object in the form of view count, ratings and tags.
+type Community struct {
+	// StarRating specifies the rating-related information about a media object.
+	StarRating *CommunityStarRating `json:"starRating,omitemtpy" xml:"starRating,omitemtpy"`
 
-// Height is the height of the media object.
-type Height = int
+	// Statistics specifies various statistics about a media object like the view count and the favorite count.
+	Statistics *CommunityStatistics `json:"statistics,omitemtpy" xml:"statistics,omitemtpy"`
 
-// IsDefault determines if this is the default object that should be used for the <media:group>.
-type IsDefault = bool
+	// Tags contains user-generated tags separated by commas in the decreasing order of each tag's weight. Each tag can be assigned an integer weight in tag_name:weight format. It's up to the provider to choose the way weight is determined for a tag; for example, number of occurences can be one way to decide weight of a particular tag.
+	Tags *CommunityTags `json:"tags,omitemtpy" xml:"tags,omitemtpy"`
+}
 
-// Lang is the primary language encapsulated in the media object. Language codes possible are detailed in RFC 3066.
-type Lang = int
+// CommunityStarRating specifies the rating-related information about a media object.
+type CommunityStarRating struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+	Average int                  `json:"average" xml:"average,attr"`
+	Count   int                  `json:"count" xml:"count,attr"`
+	Max     int                  `json:"max" xml:"max,attr"`
+	Min     int                  `json:"min" xml:"min,attr"`
+}
 
-// MediaContent can be used to publish any type of media.
-type MediaContent struct {
+// CommunityStatistics specifies various statistics about a media object like the view count and the favorite count.
+type CommunityStatistics struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName   externalRef0.XMLName `json:"xml" validate:"required"`
+	Favorites int                  `json:"favorites" xml:"favorites,attr"`
+	Views     int                  `json:"views" xml:"views,attr"`
+}
+
+// CommunityTags contains user-generated tags separated by commas in the decreasing order of each tag's weight. Each tag can be assigned an integer weight in tag_name:weight format. It's up to the provider to choose the way weight is determined for a tag; for example, number of occurences can be one way to decide weight of a particular tag.
+type CommunityTags struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Content can be used to publish any type of media.
+type Content struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
 	// Bitrate is the kilobits per second rate of media.
 	Bitrate *Bitrate `json:"bitrate,omitempty" xml:"bitrate,attr,omitempty"`
 
+	// Category allows a taxonomy to be set that gives an indication of the type of media content, and its particular contents.
+	Category *Category `json:"category,omitempty"`
+
 	// Channels is number of audio channels in the media object.
 	Channels *Channels `json:"channels,omitempty" xml:"channels,attr,omitempty"`
 
+	// Comments is a list of comments the media object has received.
+	Comments Comments `json:"comments,omitempty" xml:"comments,omitempty"`
+
+	// Community stands for the community related content. This allows inclusion of the user perception about a media object in the form of view count, ratings and tags.
+	Community *Community `json:"community,omitempty"`
+
+	// Copyright is copyright information for the media object.
+	Copyright *Copyright `json:"copyright,omitempty"`
+
+	// Credits a list of credits for the object.
+	Credits Credits `json:"credits,omitempty" xml:"credit,omitempty"`
+
 	// Description is a short description describing the media object typically a sentence in length.
-	Description *MediaDescription `json:"description,omitempty" xml:"description,omitempty"`
+	Description *Description `json:"description,omitempty" xml:"description,omitempty"`
 
 	// Duration is the number of seconds the media object plays.
 	Duration *Duration `json:"duration,omitempty" xml:"duration,attr,omitempty"`
@@ -82,6 +158,9 @@ type MediaContent struct {
 	// Framerate is the number of frames per second for the media object.
 	Framerate *Framerate `json:"framerate,omitempty" xml:"framerate,attr,omitempty"`
 
+	// Hashes a list of hashes for the object.
+	Hashes Hashes `json:"hashes,omitempty" xml:"hash,omitempty"`
+
 	// Height is the height of the media object.
 	Height *Height `json:"height,omitempty" validate:"omitempty,number" xml:"height,attr,omitempty"`
 
@@ -89,7 +168,7 @@ type MediaContent struct {
 	IsDefault *IsDefault `json:"isDefault,omitempty" xml:"isDefault,attr,omitempty"`
 
 	// Keywords are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and phrases should be comma-delimited.
-	Keywords *MediaKeywords `json:"keywords,omitempty" xml:"keywords,omitempty"`
+	Keywords *Keywords `json:"keywords,omitempty" xml:"keywords,omitempty"`
 
 	// Lang is the primary language encapsulated in the media object. Language codes possible are detailed in RFC 3066.
 	Lang *Lang `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -97,14 +176,26 @@ type MediaContent struct {
 	// Medium is the type of object.
 	Medium *Medium `json:"medium,omitempty" validate:"omitempty,oneof=image audio video document executable" xml:"medium,attr,omitempty"`
 
+	// Player allows the media object to be accessed through a web browser media player console.
+	Player *Player `json:"player,omitempty"`
+
 	// Rating allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions are necessary.
-	Rating *MediaRating `json:"rating,omitempty" xml:"rating,omitempty"`
+	Rating *Rating `json:"rating,omitempty" xml:"rating,omitempty"`
+
+	// Restriction allows restrictions to be placed on the aggregator rendering the media in the feed.
+	Restriction *Restriction `json:"restriction,omitempty"`
 
 	// Samplingrate is the number of samples per second taken to create the media object. It is expressed in thousands of samples per second (kHz).
 	Samplingrate *Samplerate `json:"samplingrate,omitempty" xml:"samplingrate,attr,omitempty"`
 
+	// Texts a list of texts for the object.
+	Texts Texts `json:"texts,omitempty" xml:"text,omitempty"`
+
+	// Thumbnails a list of thumbnails for the object.
+	Thumbnails Thumbnails `json:"thumbnails,omitempty" xml:"thumbnail,omitempty"`
+
 	// Title is the title of the particular media object.
-	Title *MediaTitle `json:"title,omitempty" xml:"title,omitempty"`
+	Title *Title `json:"title,omitempty" xml:"title,omitempty"`
 
 	// Type is the standard MIME type of the object.
 	Type *MimeType `json:"type,omitempty" xml:"type,attr,omitempty"`
@@ -116,8 +207,38 @@ type MediaContent struct {
 	Width *Width `json:"width,omitempty" validate:"omitempty,number" xml:"width,attr,omitempty"`
 }
 
-// MediaDescription is a short description describing the media object typically a sentence in length.
-type MediaDescription struct {
+// Copyright is copyright information for the media object.
+type Copyright struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Url should specify the direct URL to the media object.
+	Url *URL `json:"url,omitempty" validate:"omitempty,url" xml:"url,attr,omitempty"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Credit Notable entity and the contribution to the creation of the media object. Current entities can include people, companies, locations, etc. Specific entities can have multiple roles, and several entities can have the same role.
+type Credit struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Role specifies the role the entity played.
+	Role *string `json:"role,omitempty" validate:"omitempty,lowercase" xml:"role,attr,omitempty"`
+
+	// Scheme is the URI that identifies the scheme used by the element.
+	Scheme *Scheme `json:"scheme,omitempty" validate:"omitempty,uri" xml:"scheme,attr,omitempty"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Credits a list of credits for the object.
+type Credits = []Credit
+
+// Description is a short description describing the media object typically a sentence in length.
+type Description struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -128,29 +249,137 @@ type MediaDescription struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// MediaGroup allows grouping of <media:content> elements that are effectively the same content, yet different representations. For instance: the same song recorded in both the WAV and MP3 format.
-type MediaGroup struct {
+// Duration is the number of seconds the media object plays.
+type Duration = int
+
+// Expression determines if the object is a sample or the full version of the object, or even if it is a continuous stream.
+type Expression string
+
+// FileSize is the number of bytes of the media object.
+type FileSize = int
+
+// Framerate is the number of frames per second for the media object.
+type Framerate = int
+
+// Group defines model for Group.
+type Group struct {
 	// Content is the list of <media:content> elements
-	Content []MediaContent `json:"content,omitempty" validate:"omitempty,dive,unique" xml:"content,omitempty"`
+	Content []Content `json:"content,omitempty" validate:"omitempty,dive,unique" xml:"content,omitempty"`
 
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Bitrate is the kilobits per second rate of media.
+	Bitrate *Bitrate `json:"bitrate,omitempty" xml:"bitrate,attr,omitempty"`
+
+	// Category allows a taxonomy to be set that gives an indication of the type of media content, and its particular contents.
+	Category *Category `json:"category,omitempty"`
+
+	// Channels is number of audio channels in the media object.
+	Channels *Channels `json:"channels,omitempty" xml:"channels,attr,omitempty"`
+
+	// Comments is a list of comments the media object has received.
+	Comments Comments `json:"comments,omitempty" xml:"comments,omitempty"`
+
+	// Community stands for the community related content. This allows inclusion of the user perception about a media object in the form of view count, ratings and tags.
+	Community *Community `json:"community,omitempty"`
+
+	// Copyright is copyright information for the media object.
+	Copyright *Copyright `json:"copyright,omitempty"`
+
+	// Credits a list of credits for the object.
+	Credits Credits `json:"credits,omitempty" xml:"credit,omitempty"`
 
 	// Description is a short description describing the media object typically a sentence in length.
-	Description *MediaDescription `json:"description,omitempty" xml:"description,omitempty"`
+	Description *Description `json:"description,omitempty" xml:"description,omitempty"`
+
+	// Duration is the number of seconds the media object plays.
+	Duration *Duration `json:"duration,omitempty" xml:"duration,attr,omitempty"`
+
+	// Expression determines if the object is a sample or the full version of the object, or even if it is a continuous stream.
+	Expression *Expression `json:"expression,omitempty" validate:"omitempty,oneof=sample full nonstop" xml:"expression,attr,omitempty"`
+
+	// FileSize is the number of bytes of the media object.
+	FileSize *FileSize `json:"fileSize,omitempty" xml:"fileSize,attr,omitempty"`
+
+	// Framerate is the number of frames per second for the media object.
+	Framerate *Framerate `json:"framerate,omitempty" xml:"framerate,attr,omitempty"`
+
+	// Hashes a list of hashes for the object.
+	Hashes Hashes `json:"hashes,omitempty" xml:"hash,omitempty"`
+
+	// Height is the height of the media object.
+	Height *Height `json:"height,omitempty" validate:"omitempty,number" xml:"height,attr,omitempty"`
+
+	// IsDefault determines if this is the default object that should be used for the <media:group>.
+	IsDefault *IsDefault `json:"isDefault,omitempty" xml:"isDefault,attr,omitempty"`
 
 	// Keywords are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and phrases should be comma-delimited.
-	Keywords *MediaKeywords `json:"keywords,omitempty" xml:"keywords,omitempty"`
+	Keywords *Keywords `json:"keywords,omitempty" xml:"keywords,omitempty"`
+
+	// Lang is the primary language encapsulated in the media object. Language codes possible are detailed in RFC 3066.
+	Lang *Lang `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
+
+	// Medium is the type of object.
+	Medium *Medium `json:"medium,omitempty" validate:"omitempty,oneof=image audio video document executable" xml:"medium,attr,omitempty"`
+
+	// Player allows the media object to be accessed through a web browser media player console.
+	Player *Player `json:"player,omitempty"`
 
 	// Rating allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions are necessary.
-	Rating *MediaRating `json:"rating,omitempty" xml:"rating,omitempty"`
+	Rating *Rating `json:"rating,omitempty" xml:"rating,omitempty"`
+
+	// Restriction allows restrictions to be placed on the aggregator rendering the media in the feed.
+	Restriction *Restriction `json:"restriction,omitempty"`
+
+	// Samplingrate is the number of samples per second taken to create the media object. It is expressed in thousands of samples per second (kHz).
+	Samplingrate *Samplerate `json:"samplingrate,omitempty" xml:"samplingrate,attr,omitempty"`
+
+	// Texts a list of texts for the object.
+	Texts Texts `json:"texts,omitempty" xml:"text,omitempty"`
+
+	// Thumbnails a list of thumbnails for the object.
+	Thumbnails Thumbnails `json:"thumbnails,omitempty" xml:"thumbnail,omitempty"`
 
 	// Title is the title of the particular media object.
-	Title *MediaTitle `json:"title,omitempty" xml:"title,omitempty"`
+	Title *Title `json:"title,omitempty" xml:"title,omitempty"`
+
+	// Type is the standard MIME type of the object.
+	Type *MimeType `json:"type,omitempty" xml:"type,attr,omitempty"`
+
+	// Url should specify the direct URL to the media object.
+	Url *URL `json:"url,omitempty" validate:"omitempty,url" xml:"url,attr,omitempty"`
+
+	// Width is the height of the media object.
+	Width *Width `json:"width,omitempty" validate:"omitempty,number" xml:"width,attr,omitempty"`
 }
 
-// MediaKeywords are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and phrases should be comma-delimited.
-type MediaKeywords struct {
+// Hash is the hash of the binary media file. Elements represents hashes in different alogrithms.
+type Hash struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Algo indicates the algorithm used to create the hash.
+	Algo *HashAlgo `json:"algo,omitempty" xml:"algo,attr,omitempty"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// HashAlgo indicates the algorithm used to create the hash.
+type HashAlgo string
+
+// Hashes a list of hashes for the object.
+type Hashes = []Hash
+
+// Height is the height of the media object.
+type Height = int
+
+// IsDefault determines if this is the default object that should be used for the <media:group>.
+type IsDefault = bool
+
+// Keywords are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and phrases should be comma-delimited.
+type Keywords struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -158,29 +387,11 @@ type MediaKeywords struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// MediaRating allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions are necessary.
-type MediaRating struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+// Label is the human readable label that can be displayed in end user applications.
+type Label = string
 
-	// Scheme is the URI that identifies the rating scheme.
-	Scheme *string `json:"scheme,omitempty" xml:"scheme,attr,omitempty"`
-
-	// Value is an element value that is required.
-	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
-}
-
-// MediaTitle is the title of the particular media object.
-type MediaTitle struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-
-	// Type specifies the type of text embedded in the element.
-	Type *TextType `json:"type,omitempty" validate:"omitempty,oneof=plain html" xml:"type,attr,omitempty"`
-
-	// Value is an element value that is required.
-	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
-}
+// Lang is the primary language encapsulated in the media object. Language codes possible are detailed in RFC 3066.
+type Lang = int
 
 // Medium is the type of object.
 type Medium string
@@ -188,11 +399,115 @@ type Medium string
 // MimeType is the standard MIME type of the object.
 type MimeType = string
 
+// Player allows the media object to be accessed through a web browser media player console.
+type Player struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Height is the height of the media object.
+	Height *Height `json:"height,omitempty" validate:"omitempty,number" xml:"height,attr,omitempty"`
+	Url    URL     `json:"url" validate:"required,url" xml:"url,attr"`
+
+	// Width is the height of the media object.
+	Width *Width `json:"width,omitempty" validate:"omitempty,number" xml:"width,attr,omitempty"`
+}
+
+// Rating allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions are necessary.
+type Rating struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Scheme is the URI that identifies the scheme used by the element.
+	Scheme *Scheme `json:"scheme,omitempty" validate:"omitempty,uri" xml:"scheme,attr,omitempty"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Restriction allows restrictions to be placed on the aggregator rendering the media in the feed.
+type Restriction struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Relationship indicates the type of relationship that the restriction represents.
+	Relationship RestrictionRelationship `json:"relationship" xml:"relationship,attr"`
+
+	// Type specifies the type of restriction.
+	Type *RestrictionType `json:"type,omitempty" xml:"sharing,attr,omitempty"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// RestrictionRelationship indicates the type of relationship that the restriction represents.
+type RestrictionRelationship string
+
+// RestrictionType specifies the type of restriction.
+type RestrictionType string
+
 // Samplerate is the number of samples per second taken to create the media object. It is expressed in thousands of samples per second (kHz).
 type Samplerate = int
 
+// Scheme is the URI that identifies the scheme used by the element.
+type Scheme = string
+
+// Text allows the inclusion of a text transcript, closed captioning or lyrics of the media content.
+type Text struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// End specifies the end time offset that the text ends being relevant to the media object. An example of this would be for closed captioning. It uses the NTP time code format.
+	End *string `json:"end,omitempty" xml:"end,attr,omitempty"`
+
+	// Lang is the primary language encapsulated in the media object. Language codes possible are detailed in RFC 3066.
+	Lang *Lang `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
+
+	// Start specifies the start time offset that the text starts being relevant to the media object. An example of this would be for closed captioning. It uses the NTP time code format.
+	Start *string `json:"start,omitempty" xml:"start,attr,omitempty"`
+
+	// Type specifies the type of text embedded in the element.
+	Type *TextType `json:"type,omitempty" validate:"omitempty,oneof=plain html" xml:"type,attr,omitempty"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
 // TextType specifies the type of text embedded in the element.
 type TextType string
+
+// Texts a list of texts for the object.
+type Texts = []Text
+
+// Thumbnail allows a particular images to be used as a representative image for the media object.
+type Thumbnail struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Height is the height of the media object.
+	Height *Height `json:"height,omitempty" validate:"omitempty,number" xml:"height,attr,omitempty"`
+
+	// Time specifies the time offset in relation to the media object. Typically this is used when creating multiple keyframes within a single video. The format for this attribute should be in the DSM-CC's Normal Play Time (NTP) as used in RTSP
+	Time *string `json:"time,omitempty" xml:"time,attr,omitempty"`
+	Url  URL     `json:"url" validate:"required,url" xml:"url,attr"`
+
+	// Width is the height of the media object.
+	Width *Width `json:"width,omitempty" validate:"omitempty,number" xml:"width,attr,omitempty"`
+}
+
+// Thumbnails a list of thumbnails for the object.
+type Thumbnails = []Thumbnail
+
+// Title is the title of the particular media object.
+type Title struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Type specifies the type of text embedded in the element.
+	Type *TextType `json:"type,omitempty" validate:"omitempty,oneof=plain html" xml:"type,attr,omitempty"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
 // URL should specify the direct URL to the media object.
 type URL = string

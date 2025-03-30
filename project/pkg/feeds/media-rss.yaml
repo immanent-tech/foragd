@@ -136,6 +136,15 @@ components:
       x-oapi-codegen-extra-tags:
         xml: "lang,attr,omitempty"
         validate: "omitempty,bcp47_language_tag"
+    Scheme:
+      description: >
+        is the URI that identifies the scheme used by the element.
+      type: string
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "scheme,attr,omitempty"
+        validate: "omitempty,uri"
     TextType:
       description: >
         specifies the type of text embedded in the element.
@@ -147,7 +156,15 @@ components:
       x-oapi-codegen-extra-tags:
         xml: "type,attr,omitempty"
         validate: "omitempty,oneof=plain html"
-    MediaRating:
+    Label:
+      description: >
+        is the human readable label that can be displayed in end user applications.
+      type: string
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "label,attr,omitempty"
+    Rating:
       description: >
         allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions
         are necessary.
@@ -161,17 +178,10 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
         scheme:
-          description: >
-            is the URI that identifies the rating scheme.
-          type: string
-          default: "urn:simple"
-          xml:
-            attribute: true
-          x-oapi-codegen-extra-tags:
-            xml: "scheme,attr,omitempty"
+          $ref: "#/components/schemas/Scheme"
       x-oapi-codegen-extra-tags:
         xml: "rating,omitempty"
-    MediaTitle:
+    Title:
       description: >
         is the title of the particular media object.
       type: object
@@ -187,7 +197,7 @@ components:
           $ref: "#/components/schemas/TextType"
       x-oapi-codegen-extra-tags:
         xml: "title,omitempty"
-    MediaDescription:
+    Description:
       description: >
         is a short description describing the media object typically a sentence in length.
       type: object
@@ -203,7 +213,7 @@ components:
           $ref: "#/components/schemas/TextType"
       x-oapi-codegen-extra-tags:
         xml: "description,omitempty"
-    MediaKeywords:
+    Keywords:
       description: >
         are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and
         phrases should be comma-delimited.
@@ -218,7 +228,338 @@ components:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
         xml: "keywords,omitempty"
-    MediaContent:
+    Thumbnail:
+      description: >
+        allows a particular images to be used as a representative image for the media object.
+      type: object
+      required:
+        - XMLName
+        - url
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        url:
+          allOf:
+            - $ref: "#/components/schemas/URL"
+          x-oapi-codegen-extra-tags:
+            xml: "url,attr"
+            validate: "required,url"
+        height:
+          $ref: "#/components/schemas/Height"
+        width:
+          $ref: "#/components/schemas/Width"
+        time:
+          description: >
+            specifies the time offset in relation to the media object. Typically this is used when creating multiple
+            keyframes within a single video. The format for this attribute should be in the DSM-CC's Normal Play Time
+            (NTP) as used in RTSP
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "time,attr,omitempty"
+      x-oapi-codegen-extra-tags:
+        xml: "thumbnail,omitempty"
+    Thumbnails:
+      description: >
+        a list of thumbnails for the object.
+      type: array
+      items:
+        $ref: "#/components/schemas/Thumbnail"
+      xml:
+        name: thumbnail
+      x-oapi-codegen-extra-tags:
+        xml: "thumbnail,omitempty"
+      x-go-type-skip-optional-pointer: true
+    Category:
+      description: >
+        allows a taxonomy to be set that gives an indication of the type of media content, and its particular contents.
+      type: object
+      required:
+        - XMLName
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        scheme:
+          $ref: "#/components/schemas/Scheme"
+        label:
+          $ref: "#/components/schemas/Label"
+    Hash:
+      description: >
+        is the hash of the binary media file. Elements represents hashes in different alogrithms.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        algo:
+          description: >
+            indicates the algorithm used to create the hash.
+          type: string
+          enum: ["md5","sha-1"]
+          default: "md5"
+          x-oapi-codegen-extra-tags:
+            xml: "algo,attr,omitempty"
+    Hashes:
+      description: >
+        a list of hashes for the object.
+      type: array
+      items:
+        $ref: "#/components/schemas/Hash"
+      xml:
+        name: hash
+      x-oapi-codegen-extra-tags:
+        xml: "hash,omitempty"
+      x-go-type-skip-optional-pointer: true
+    Player:
+      description: >
+        allows the media object to be accessed through a web browser media player console.
+      type: object
+      required:
+        - XMLName
+        - url
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        url:
+          allOf:
+            - $ref: "#/components/schemas/URL"
+          x-oapi-codegen-extra-tags:
+            xml: "url,attr"
+            validate: "required,url"
+        height:
+          $ref: "#/components/schemas/Height"
+        width:
+          $ref: "#/components/schemas/Width"
+    Credit:
+      description: >
+        Notable entity and the contribution to the creation of the media object. Current entities can include people,
+        companies, locations, etc. Specific entities can have multiple roles, and several entities can have the same
+        role.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        role:
+          description: >
+            specifies the role the entity played.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "role,attr,omitempty"
+            validate: "omitempty,lowercase"
+        scheme:
+          $ref: "#/components/schemas/Scheme"
+    Credits:
+      description: >
+        a list of credits for the object.
+      type: array
+      items:
+        $ref: "#/components/schemas/Credit"
+      xml:
+        name: credit
+      x-oapi-codegen-extra-tags:
+        xml: "credit,omitempty"
+      x-go-type-skip-optional-pointer: true
+    Copyright:
+      description: >
+        is copyright information for the media object.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        url:
+          $ref: "#/components/schemas/URL"
+    Text:
+      description: >
+        allows the inclusion of a text transcript, closed captioning or lyrics of the media content.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        type:
+          $ref: "#/components/schemas/TextType"
+        lang:
+          $ref: "#/components/schemas/Lang"
+        start:
+          description: >
+            specifies the start time offset that the text starts being relevant to the media object. An example of this
+            would be for closed captioning. It uses the NTP time code format.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "start,attr,omitempty"
+        end:
+          description: >
+            specifies the end time offset that the text ends being relevant to the media object. An example of this
+            would be for closed captioning. It uses the NTP time code format.
+          type: string
+          x-oapi-codegen-extra-tags:
+            xml: "end,attr,omitempty"
+    Texts:
+      description: >
+        a list of texts for the object.
+      type: array
+      items:
+        $ref: "#/components/schemas/Text"
+      xml:
+        name: text
+      x-oapi-codegen-extra-tags:
+        xml: "text,omitempty"
+      x-go-type-skip-optional-pointer: true
+    Restriction:
+      description:
+        allows restrictions to be placed on the aggregator rendering the media in the feed.
+      type: object
+      required:
+        - XMLName
+        - value
+        - relationship
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        relationship:
+          description: >
+            indicates the type of relationship that the restriction represents.
+          type: string
+          enum: ["allow","deny"]
+          x-oapi-codegen-extra-tags:
+            xml: "relationship,attr"
+        type:
+          description: >
+            specifies the type of restriction.
+          type: string
+          enum: ["country","uri","sharing"]
+          x-oapi-codegen-extra-tags:
+            xml: "sharing,attr,omitempty"
+    CommunityStarRating:
+      description: >
+        specifies the rating-related information about a media object.
+      type: object
+      required:
+        - XMLName
+        - average
+        - count
+        - min
+        - max
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        average:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            xml: "average,attr"
+        count:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            xml: "count,attr"
+        min:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            xml: "min,attr"
+        max:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            xml: "max,attr"
+      x-oapi-codegen-extra-tags:
+        xml: "starRating,omitemtpy"
+        json: "starRating,omitemtpy"
+    CommunityStatistics:
+      description: >
+        specifies various statistics about a media object like the view count and the favorite count.
+      type: object
+      required:
+        - XMLName
+        - views
+        - favorites
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        views:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            xml: "views,attr"
+        favorites:
+          type: integer
+          x-oapi-codegen-extra-tags:
+            xml: "favorites,attr"
+      x-oapi-codegen-extra-tags:
+        xml: "statistics,omitemtpy"
+        json: "statistics,omitemtpy"
+    CommunityTags:
+      description: >
+        contains user-generated tags separated by commas in the decreasing order of each tag's weight. Each tag can be
+        assigned an integer weight in tag_name:weight format. It's up to the provider to choose the way weight is
+        determined for a tag; for example, number of occurences can be one way to decide weight of a particular tag.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+      x-oapi-codegen-extra-tags:
+        xml: "tags,omitemtpy"
+        json: "tags,omitemtpy"
+    Community:
+      description: >
+        stands for the community related content. This allows inclusion of the user perception about a media object in
+        the form of view count, ratings and tags.
+      type: object
+      properties:
+        starRating:
+          $ref: "#/components/schemas/CommunityStarRating"
+        statistics:
+          $ref: "#/components/schemas/CommunityStatistics"
+        tags:
+          $ref: "#/components/schemas/CommunityTags"
+    Comment:
+      description: >
+        is a comments a media object has received.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+      x-oapi-codegen-extra-tags:
+        xml: "comment,omitempty"
+    Comments:
+      description: >
+        is a list of comments the media object has received.
+      type: array
+      items:
+        $ref: "#/components/schemas/Comment"
+      xml:
+        name: comments
+      x-oapi-codegen-extra-tags:
+        xml: "comments,omitempty"
+      x-go-type-skip-optional-pointer: true
+    Content:
       description: >
         can be used to publish any type of media.
       type: object
@@ -256,44 +597,58 @@ components:
         lang:
           $ref: "#/components/schemas/Lang"
         rating:
-          $ref: "#/components/schemas/MediaRating"
+          $ref: "#/components/schemas/Rating"
         title:
-          $ref: "#/components/schemas/MediaTitle"
+          $ref: "#/components/schemas/Title"
         description:
-          $ref: "#/components/schemas/MediaDescription"
+          $ref: "#/components/schemas/Description"
         keywords:
-          $ref: "#/components/schemas/MediaKeywords"
+          $ref: "#/components/schemas/Keywords"
+        thumbnails:
+          $ref: "#/components/schemas/Thumbnails"
+        category:
+          $ref: "#/components/schemas/Category"
+        hashes:
+          $ref: "#/components/schemas/Hashes"
+        player:
+          $ref: "#/components/schemas/Player"
+        credits:
+          $ref: "#/components/schemas/Credits"
+        copyright:
+          $ref: "#/components/schemas/Copyright"
+        texts:
+          $ref: "#/components/schemas/Texts"
+        restriction:
+          $ref: "#/components/schemas/Restriction"
+        community:
+          $ref: "#/components/schemas/Community"
+        comments:
+          $ref: "#/components/schemas/Comments"
       x-oapi-codegen-extra-tags:
         json: "content_encoded,omitempty"
-        xml: "encoded,omitempty"
-    MediaGroup:
+        xml: "content,omitempty"
+    Group:
       description: >
         allows grouping of <media:content> elements that are effectively the same content, yet different
         representations. For instance: the same song recorded in both the WAV and MP3 format.
-      type: object
-      required:
-        - XMLName
-      properties:
-        XMLName:
-          $ref: "types.yaml#/components/schemas/XMLName"
-        Content:
-          description: >
-            is the list of <media:content> elements
-          type: array
-          items:
-            $ref: "#/components/schemas/MediaContent"
-          xml:
-            name: content
-          x-oapi-codegen-extra-tags:
-            json: "content,omitempty"
-            xml: "content,omitempty"
-            validate: "omitempty,dive,unique"
-          x-go-type-skip-optional-pointer: true
-        rating:
-          $ref: "#/components/schemas/MediaRating"
-        title:
-          $ref: "#/components/schemas/MediaTitle"
-        description:
-          $ref: "#/components/schemas/MediaDescription"
-        keywords:
-          $ref: "#/components/schemas/MediaKeywords"
+      allOf:
+        - $ref: "#/components/schemas/Content"
+        - type: object
+          required:
+            - XMLName
+          properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
+            Content:
+              description: >
+                is the list of <media:content> elements
+              type: array
+              items:
+                $ref: "#/components/schemas/Content"
+              xml:
+                name: content
+              x-oapi-codegen-extra-tags:
+                json: "content,omitempty"
+                xml: "content,omitempty"
+                validate: "omitempty,dive,unique"
+              x-go-type-skip-optional-pointer: true

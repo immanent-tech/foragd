@@ -33,5 +33,5 @@ func (a *Feed) Metadata() (*FeedMetadata, error) {
 	if err != nil {
 		return nil, err
 	}
-	return types.Decode[*FeedMetadata](data)
+	return types.Decode[*FeedMetadata]("atom", data)
 }

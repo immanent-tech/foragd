@@ -12,6 +12,16 @@ info:
 paths: {}
 components:
   schemas:
+    NameSpace:
+      description: >
+        is a URL for a specific namespace.
+      type: string
+      enum:
+        - "http://purl.org/dc/elements/1.1/"
+        - "http://search.yahoo.com/mrss/"
+      x-enum-varnames:
+        - DublinCore
+        - MediaRSS
     RequiredValue:
       description: >
         is an element value that is required.
