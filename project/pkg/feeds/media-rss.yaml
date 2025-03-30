@@ -20,8 +20,18 @@ components:
       type: string
       xml:
         attribute: true
+      x-go-name: URL
       x-oapi-codegen-extra-tags:
         xml: "url,attr,omitempty"
+        validate: "omitempty,url"
+    Href:
+      description: >
+        should specify the direct URL to the media object.
+      type: string
+      xml:
+        attribute: true
+      x-oapi-codegen-extra-tags:
+        xml: "href,attr,omitempty"
         validate: "omitempty,url"
     FileSize:
       description: >
@@ -465,7 +475,7 @@ components:
         XMLName:
           $ref: "types.yaml#/components/schemas/XMLName"
         average:
-          type: integer
+          type: number
           x-oapi-codegen-extra-tags:
             xml: "average,attr"
         count:
@@ -473,11 +483,11 @@ components:
           x-oapi-codegen-extra-tags:
             xml: "count,attr"
         min:
-          type: integer
+          type: number
           x-oapi-codegen-extra-tags:
             xml: "min,attr"
         max:
-          type: integer
+          type: number
           x-oapi-codegen-extra-tags:
             xml: "max,attr"
       x-oapi-codegen-extra-tags:
@@ -534,6 +544,8 @@ components:
           $ref: "#/components/schemas/CommunityStatistics"
         tags:
           $ref: "#/components/schemas/CommunityTags"
+      x-oapi-codegen-extra-tags:
+        xml: "community,omitempty"
     Comment:
       description: >
         is a comments a media object has received.
@@ -551,13 +563,328 @@ components:
     Comments:
       description: >
         is a list of comments the media object has received.
-      type: array
-      items:
-        $ref: "#/components/schemas/Comment"
-      xml:
-        name: comments
+      type: object
+      properties:
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Comment"
+          x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         xml: "comments,omitempty"
+    Param:
+      description: >
+        is a key-value pair that defines player-specific values for an Embed element.
+      type: object
+      required:
+        - XMLName
+        - value
+        - name
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+        name:
+          description: >
+            is the name of the param.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "name,attr"
+      x-oapi-codegen-extra-tags:
+        xml: "param,omitempty"
+    Embed:
+      description: >
+        allows inclusion of player-specific information in the form of key-value (Param) pairs.
+      allOf:
+        - $ref: "#/components/schemas/Player"
+        - type: object
+          properties:
+            params:
+              description: >
+                is a list of player-specific parameters.
+              type: array
+              items:
+                $ref: "#/components/schemas/Param"
+              xml:
+                name: param
+              x-oapi-codegen-extra-tags:
+                xml: "param,omitempty"
+                json: "param,omitempty"
+              x-go-type-skip-optional-pointer: true
+      xml:
+        name: embed
+      x-oapi-codegen-extra-tags:
+        xml: "embed,omitempty"
+    Response:
+      description: >
+        is a response a media object has received.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+      x-oapi-codegen-extra-tags:
+        xml: "response,omitempty"
+    Responses:
+      description: >
+        allows inclusion of a list of all media responses a media object has received.
+      type: array
+      items:
+        $ref: "#/components/schemas/Response"
+      xml:
+        name: responses
+      x-oapi-codegen-extra-tags:
+        xml: "responses,omitempty"
+      x-go-type-skip-optional-pointer: true
+    Backlink:
+      description: >
+        is a backlink pointing to the media object.
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+      x-oapi-codegen-extra-tags:
+        xml: "backLink,omitempty"
+        json: "backLink,omitempty"
+    Backlinks:
+      description: >
+        allows inclusion of all the URLs pointing to a media object.
+      type: array
+      items:
+        $ref: "#/components/schemas/Backlink"
+      xml:
+        name: backLinks
+      x-oapi-codegen-extra-tags:
+        xml: "backLinks,omitempty"
+        json: "backLinks,omitempty"
+      x-go-type-skip-optional-pointer: true
+    Status:
+      description: >
+        specifies the status of a media object -- whether it's still active or it has been blocked/deleted.
+      type: object
+      required:
+        - XMLName
+        - state
+        - reason
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        state:
+          description: >
+            indicates the status.
+          type: string
+          enum: ["active","blocked","deleted"]
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "state,attr"
+            validate: "omitempty,oneof=active blocked deleted"
+        reason:
+          description: >
+            is a reason explaining why a media object has been blocked/deleted.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "reason,attr"
+    Price:
+      description: >
+        includes pricing information about a media object. If this tag is not present, the media object is supposed to
+        be free.
+      type: object
+      required:
+        - XMLName
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        type:
+          description: >
+            is the type of pricing for the media object.
+          type: string
+          enum: ["rent","purchase","package","subscription"]
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "type,attr,omitempty"
+            validate: "omitempty,oneof=rent purchase package subscription"
+        info:
+          description: >
+            is a URL pointing to package or subscription information.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "info,attr,omitempty"
+            validate: "omitempty,url"
+        price:
+          description: >
+            is the price of the media object.
+          type: number
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "price,attr,omitempty"
+            validate: "omitempty,numeric"
+        currency:
+          description: >
+            is the currency code of the price.
+          type: string
+          xml:
+            attribute: true
+          x-oapi-codegen-extra-tags:
+            xml: "currency,attr,omitempty"
+            validate: "omitempty,iso4217"
+    License:
+      description: >
+        link to specify the machine-readable license associated with the content.
+      type: object
+      required:
+        - XMLName
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        type:
+          $ref: "#/components/schemas/TextType"
+        href:
+          $ref: "#/components/schemas/Href"
+    Subtitle:
+      description: >
+        contains subtitle/CC link.
+      type: object
+      required:
+        - XMLName
+        - type
+        - lang
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        type:
+          $ref: "#/components/schemas/TextType"
+        lang:
+          $ref: "#/components/schemas/Lang"
+        href:
+          $ref: "#/components/schemas/Href"
+    PeerLink:
+      description: >
+        contains P2P link.
+      type: object
+      required:
+        - XMLName
+        - type
+        - href
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        type:
+          $ref: "#/components/schemas/TextType"
+        href:
+          $ref: "#/components/schemas/Href"
+    Rights:
+      description: >
+        specifies the rights information of a media object.
+      type: object
+      required:
+        - XMLName
+        - status
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        status:
+          description: >
+            is the status of the media object saying whether a media object has been created by the publisher or they
+            have rights to circulate it.
+          type: string
+          enum: ["userCreated","official"]
+          x-oapi-codegen-extra-tags:
+            xml: "status,attr"
+            validate: "omitempty,oneof=userCreated official"
+    SceneTitle:
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+      x-oapi-codegen-extra-tags:
+        xml: "sceneTitle,omitempty"
+        json: "sceneTitle,omitempty"
+    SceneDescription:
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+      x-oapi-codegen-extra-tags:
+        xml: "sceneDescription,omitempty"
+        json: "sceneDescription,omitempty"
+    SceneStartTime:
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+      x-oapi-codegen-extra-tags:
+        xml: "sceneStartTime,omitempty"
+        json: "sceneStartTime,omitempty"
+    SceneEndTime:
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          $ref: "types.yaml#/components/schemas/RequiredValue"
+      x-oapi-codegen-extra-tags:
+        xml: "sceneEndTime,omitempty"
+        json: "sceneEndTime,omitempty"
+    Scene:
+      description: >
+        contains information about a particular scene.
+      type: object
+      properties:
+        sceneTitle:
+          $ref: "#/components/schemas/SceneTitle"
+        sceneDescription:
+          $ref: "#/components/schemas/SceneDescription"
+        sceneStartTime:
+          $ref: "#/components/schemas/SceneStartTime"
+        sceneEndTime:
+          $ref: "#/components/schemas/SceneEndTime"
+    Scenes:
+      description: >
+        specifies various scenes within a media object.
+      type: array
+      items:
+        $ref: "#/components/schemas/Scene"
+      xml:
+        name: scenes
+      x-oapi-codegen-extra-tags:
+        xml: "scenes,omitempty"
       x-go-type-skip-optional-pointer: true
     Content:
       description: >
@@ -624,6 +951,34 @@ components:
           $ref: "#/components/schemas/Community"
         comments:
           $ref: "#/components/schemas/Comments"
+        embed:
+          $ref: "#/components/schemas/Embed"
+        responses:
+          $ref: "#/components/schemas/Responses"
+        backLinks:
+          $ref: "#/components/schemas/Backlinks"
+        status:
+          $ref: "#/components/schemas/Status"
+        price:
+          $ref: "#/components/schemas/Price"
+        license:
+          $ref: "#/components/schemas/License"
+        subtitle:
+          $ref: "#/components/schemas/Subtitle"
+        rights:
+          $ref: "#/components/schemas/Rights"
+        scenes:
+          $ref: "#/components/schemas/Scenes"
+        extensions:
+          description: >
+            records any elements that are unknown extensions to the schema.
+          type: array
+          items:
+            $ref: "types.yaml#/components/schemas/Extension"
+          x-oapi-codegen-extra-tags:
+            json: "extensions,omitempty"
+            xml: ",any"
+          x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
         json: "content_encoded,omitempty"
         xml: "content,omitempty"
@@ -639,7 +994,7 @@ components:
           properties:
             XMLName:
               $ref: "types.yaml#/components/schemas/XMLName"
-            Content:
+            content:
               description: >
                 is the list of <media:content> elements
               type: array
@@ -651,4 +1006,14 @@ components:
                 json: "content,omitempty"
                 xml: "content,omitempty"
                 validate: "omitempty,dive,unique"
+              x-go-type-skip-optional-pointer: true
+            extensions:
+              description: >
+                records any elements that are unknown extensions to the schema.
+              type: array
+              items:
+                $ref: "types.yaml#/components/schemas/Extension"
+              x-oapi-codegen-extra-tags:
+                json: "extensions,omitempty"
+                xml: ",any"
               x-go-type-skip-optional-pointer: true

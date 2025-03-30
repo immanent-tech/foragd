@@ -482,6 +482,8 @@ components:
         description:
           $ref: "dc.yaml#/components/schemas/Description"
         contributor:
+          description: >
+            is a list of Dublin Core contributor elements.
           type: array
           items:
             $ref: "dc.yaml#/components/schemas/Contributor"
@@ -491,6 +493,8 @@ components:
             xml: "contributor,omitempty"
           x-go-type-skip-optional-pointer: true
         creator:
+          description: >
+            is a list of Dublin Core creator elements.
           type: array
           items:
             $ref: "dc.yaml#/components/schemas/Creator"
@@ -692,8 +696,25 @@ components:
               $ref: "#/components/schemas/GUID"
             pubDate:
               $ref: "#/components/schemas/PubDate"
+            source:
+              $ref: "#/components/schemas/Source"
+            image:
+              $ref: "#/components/schemas/Image"
             ContentEncoded:
               $ref: "rdf.yaml#/components/schemas/ContentEncoded"
+            content:
+              description: >
+                is a list of RSS media content elements.
+              type: array
+              items:
+                $ref: "media-rss.yaml#/components/schemas/Content"
+              xml:
+                name: content
+              x-oapi-codegen-extra-tags:
+                json: "content,omitempty"
+                xml: "content,omitempty"
+                validate: "omitempty,dive,unique"
+              x-go-type-skip-optional-pointer: true
             extensions:
               description: >
                 records any elements that are unknown extensions to the schema.

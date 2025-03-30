@@ -50,7 +50,9 @@ type Channel struct {
 
 	// Cloud specifies a web service that supports the rssCloud interface which can be implemented in HTTP-POST, XML-RPC or SOAP 1.1.
 	// Its purpose is to allow processes to register with a cloud to be notified of updates to the channel, implementing a lightweight publish-subscribe protocol for RSS feeds.
-	Cloud       *Cloud                     `json:"cloud,omitempty" xml:"cloud,omitempty"`
+	Cloud *Cloud `json:"cloud,omitempty" xml:"cloud,omitempty"`
+
+	// Contributor is a list of Dublin Core contributor elements.
 	Contributor []externalRef1.Contributor `json:"contributor,omitempty" xml:"contributor,omitempty"`
 
 	// Copyright Copyright notice for content in the channel.
@@ -58,7 +60,9 @@ type Channel struct {
 
 	// Coverage is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant.
 	Coverage *externalRef1.Coverage `json:"coverage,omitempty" xml:"coverage,omitempty"`
-	Creator  []externalRef1.Creator `json:"creator,omitempty" xml:"creator,omitempty"`
+
+	// Creator is a list of Dublin Core creator elements.
+	Creator []externalRef1.Creator `json:"creator,omitempty" xml:"creator,omitempty"`
 
 	// Date is a point or period of time associated with an event in the lifecycle of the resource.
 	Date *externalRef1.Date `json:"date,omitempty" xml:"date,omitempty"`
@@ -158,7 +162,9 @@ type ChannelMetadata struct {
 
 	// Cloud specifies a web service that supports the rssCloud interface which can be implemented in HTTP-POST, XML-RPC or SOAP 1.1.
 	// Its purpose is to allow processes to register with a cloud to be notified of updates to the channel, implementing a lightweight publish-subscribe protocol for RSS feeds.
-	Cloud       *Cloud                     `json:"cloud,omitempty" xml:"cloud,omitempty"`
+	Cloud *Cloud `json:"cloud,omitempty" xml:"cloud,omitempty"`
+
+	// Contributor is a list of Dublin Core contributor elements.
 	Contributor []externalRef1.Contributor `json:"contributor,omitempty" xml:"contributor,omitempty"`
 
 	// Copyright Copyright notice for content in the channel.
@@ -166,7 +172,9 @@ type ChannelMetadata struct {
 
 	// Coverage is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant.
 	Coverage *externalRef1.Coverage `json:"coverage,omitempty" xml:"coverage,omitempty"`
-	Creator  []externalRef1.Creator `json:"creator,omitempty" xml:"creator,omitempty"`
+
+	// Creator is a list of Dublin Core creator elements.
+	Creator []externalRef1.Creator `json:"creator,omitempty" xml:"creator,omitempty"`
 
 	// Date is a point or period of time associated with an event in the lifecycle of the resource.
 	Date *externalRef1.Date `json:"date,omitempty" xml:"date,omitempty"`
@@ -292,11 +300,14 @@ type Docs = string
 
 // DublinCore contains Dublin Core extension elements for the channel or item.
 type DublinCore struct {
+	// Contributor is a list of Dublin Core contributor elements.
 	Contributor []externalRef1.Contributor `json:"contributor,omitempty" xml:"contributor,omitempty"`
 
 	// Coverage is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant.
 	Coverage *externalRef1.Coverage `json:"coverage,omitempty" xml:"coverage,omitempty"`
-	Creator  []externalRef1.Creator `json:"creator,omitempty" xml:"creator,omitempty"`
+
+	// Creator is a list of Dublin Core creator elements.
+	Creator []externalRef1.Creator `json:"creator,omitempty" xml:"creator,omitempty"`
 
 	// Date is a point or period of time associated with an event in the lifecycle of the resource.
 	Date *externalRef1.Date `json:"date,omitempty" xml:"date,omitempty"`
@@ -392,12 +403,19 @@ type Item struct {
 	Categories []Category `json:"category,omitempty" validate:"omitempty,dive,unique" xml:"category,omitempty"`
 
 	// Comments is the url of the comments page for the item.
-	Comments    *Comments                  `json:"comments,omitempty" validate:"omitempty,url" xml:"comments,omitempty"`
+	Comments *Comments `json:"comments,omitempty" validate:"omitempty,url" xml:"comments,omitempty"`
+
+	// Content is a list of RSS media content elements.
+	Content []externalRef2.Content `json:"content,omitempty" validate:"omitempty,dive,unique" xml:"item>content,omitempty"`
+
+	// Contributor is a list of Dublin Core contributor elements.
 	Contributor []externalRef1.Contributor `json:"contributor,omitempty" xml:"contributor,omitempty"`
 
 	// Coverage is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant.
 	Coverage *externalRef1.Coverage `json:"coverage,omitempty" xml:"coverage,omitempty"`
-	Creator  []externalRef1.Creator `json:"creator,omitempty" xml:"creator,omitempty"`
+
+	// Creator is a list of Dublin Core creator elements.
+	Creator []externalRef1.Creator `json:"creator,omitempty" xml:"creator,omitempty"`
 
 	// Date is a point or period of time associated with an event in the lifecycle of the resource.
 	Date *externalRef1.Date `json:"date,omitempty" xml:"date,omitempty"`
@@ -420,6 +438,9 @@ type Item struct {
 	// Identifier is an unambiguous reference to the resource within a given context.
 	Identifier *externalRef1.Identifier `json:"identifier,omitempty" xml:"identifier,omitempty"`
 
+	// Image contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
+	Image *Image `json:"image,omitempty" xml:"image,omitempty"`
+
 	// Language identifies the language used by the related resource using an HTML language code.
 	Language *externalRef1.Language `json:"language,omitempty" xml:"language,omitempty"`
 
@@ -438,8 +459,8 @@ type Item struct {
 	// Rights is information about rights held in and over the resource.
 	Rights *externalRef1.Rights `json:"rights,omitempty" xml:"rights,omitempty"`
 
-	// Source is a related resource from which the described resource is derived.
-	Source *externalRef1.Source `json:"source,omitempty" xml:"source,omitempty"`
+	// Source The RSS channel that the item came from.
+	Source *Source `json:"source,omitempty" xml:"source,omitempty"`
 
 	// Subject is the topic of the resource.
 	Subject *externalRef1.Subject `json:"subject,omitempty" xml:"subject,omitempty"`
