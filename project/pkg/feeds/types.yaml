@@ -43,6 +43,8 @@ components:
         json: "xml"
         validate: "required"
     Extension:
+      description: >
+        represents an element that is not defined in the schema.
       type: object
       required:
         - XMLName
@@ -51,16 +53,16 @@ components:
           $ref: "#/components/schemas/XMLName"
         value:
           $ref: "#/components/schemas/OptionalValue"
-        # attributes:
-        #   description: >
-        #     are any attributes of the extension element.
-        #   type: array
-        #   items:
-        #     x-go-type: xml.Attr
-        #   x-oapi-codegen-extra-tags:
-        #     xml: ",any,attr"
-        #     json: "attributes"
-        #   x-go-type-skip-optional-pointer: true
+        attributes:
+          description: >
+            are any attributes of the extension element.
+          type: array
+          items:
+            x-go-type: xml.Attr
+          x-oapi-codegen-extra-tags:
+            xml: ",any,attr"
+            json: "attributes"
+          x-go-type-skip-optional-pointer: true
         extensions:
           descriptions: >
             is any child extensions.
@@ -71,3 +73,13 @@ components:
             json: "extensions,omitempty"
             xml: ",any"
           x-go-type-skip-optional-pointer: true
+    Extensions:
+      description: >
+        records any elements that are unknown extensions to the schema.
+      type: array
+      items:
+        $ref: "#/components/schemas/Extension"
+      x-oapi-codegen-extra-tags:
+        json: "extensions,omitempty"
+        xml: ",any"
+      x-go-type-skip-optional-pointer: true

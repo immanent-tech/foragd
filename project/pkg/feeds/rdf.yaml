@@ -59,18 +59,51 @@ components:
     SYUpdateFrequency:
       description: >
         describes the frequency of updates in relation to the update period.
-      type: integer
-      minimum: 1
-      default: 1
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          type: integer
+          minimum: 1
+          default: 1
+          x-oapi-codegen-extra-tags:
+            json: "value"
+            xml: ",chardata"
+            validate: "omitempty,number,gte=1"
       x-oapi-codegen-extra-tags:
         json: "sy_updateFrequency,omitempty"
         xml: "http://purl.org/rss/1.0/modules/syndication/ updateFrequency,omitempty"
-        validate: "omitempty,number,gte=1"
     SYUpdateBase:
       description: >
         is a base date to be used in concert with updatePeriod and updateFrequency to calculate the publishing schedule.
-      allOf:
-        - $ref: "dc.yaml#/components/schemas/DCDate"
+      type: object
+      required:
+        - XMLName
+        - value
+      properties:
+        XMLName:
+          $ref: "types.yaml#/components/schemas/XMLName"
+        value:
+          x-go-type: types.DateTime
+          x-oapi-codegen-extra-tags:
+            json: "value"
+            xml: ",chardata"
+            validate: "omitempty,datetime"
       x-oapi-codegen-extra-tags:
         json: "sy_updateBase,omitempty"
         xml: "http://purl.org/rss/1.0/modules/syndication/ updateBase,omitempty"
+    SyndicationElements:
+      description: >
+        contains all syndication extension elements.
+      type: object
+      properties:
+        SYUdatePeriod:
+          $ref: "#/components/schemas/SYUpdatePeriod"
+        SYUpdateFrequency:
+          $ref: "#/components/schemas/SYUpdateFrequency"
+        SYUpdateBase:
+          $ref: "#/components/schemas/SYUpdateBase"

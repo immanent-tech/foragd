@@ -13,15 +13,21 @@ const (
 	NameSpaceMediaRSS   NameSpace = "http://search.yahoo.com/mrss/"
 )
 
-// Extension defines model for Extension.
+// Extension represents an element that is not defined in the schema.
 type Extension struct {
 	// XMLName represents the XML namespace of an element.
-	XMLName    XMLName     `json:"xml" validate:"required"`
+	XMLName XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the extension element.
+	Attributes []xml.Attr  `json:"attributes" xml:",any,attr"`
 	Extensions []Extension `json:"extensions,omitempty" xml:",any"`
 
 	// Value is an element value that is optional.
 	Value *OptionalValue `json:"value,omitempty" xml:",chardata"`
 }
+
+// Extensions records any elements that are unknown extensions to the schema.
+type Extensions = []Extension
 
 // NameSpace is a URL for a specific namespace.
 type NameSpace string

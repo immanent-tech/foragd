@@ -4,7 +4,7 @@
 package rdf
 
 import (
-	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/dc"
+	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 	externalRef1 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
@@ -26,11 +26,19 @@ type ContentEncoded struct {
 	Value externalRef1.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// SYUpdateBase is a point or period of time associated with an event in the lifecycle of the resource.
-type SYUpdateBase = externalRef0.DCDate
+// SYUpdateBase is a base date to be used in concert with updatePeriod and updateFrequency to calculate the publishing schedule.
+type SYUpdateBase struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef1.XMLName `json:"xml" validate:"required"`
+	Value   types.DateTime       `json:"value" validate:"omitempty,datetime" xml:",chardata"`
+}
 
 // SYUpdateFrequency describes the frequency of updates in relation to the update period.
-type SYUpdateFrequency = int
+type SYUpdateFrequency struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef1.XMLName `json:"xml" validate:"required"`
+	Value   int                  `json:"value" validate:"omitempty,number,gte=1" xml:",chardata"`
+}
 
 // SYUpdatePeriod is the period over which the channel format is updated.
 type SYUpdatePeriod struct {
@@ -41,3 +49,15 @@ type SYUpdatePeriod struct {
 
 // SYUpdatePeriodValue defines model for SYUpdatePeriod.Value.
 type SYUpdatePeriodValue string
+
+// SyndicationElements contains all syndication extension elements.
+type SyndicationElements struct {
+	// SYUdatePeriod is the period over which the channel format is updated.
+	SYUdatePeriod *SYUpdatePeriod `json:"sy_updatePeriod,omitempty" xml:"http://purl.org/rss/1.0/modules/syndication/ updatePeriod,omitempty"`
+
+	// SYUpdateBase is a base date to be used in concert with updatePeriod and updateFrequency to calculate the publishing schedule.
+	SYUpdateBase *SYUpdateBase `json:"sy_updateBase,omitempty" xml:"http://purl.org/rss/1.0/modules/syndication/ updateBase,omitempty"`
+
+	// SYUpdateFrequency describes the frequency of updates in relation to the update period.
+	SYUpdateFrequency *SYUpdateFrequency `json:"sy_updateFrequency,omitempty" xml:"http://purl.org/rss/1.0/modules/syndication/ updateFrequency,omitempty"`
+}

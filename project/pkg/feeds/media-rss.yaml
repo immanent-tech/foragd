@@ -276,7 +276,7 @@ components:
       items:
         $ref: "#/components/schemas/MediaThumbnail"
       x-oapi-codegen-extra-tags:
-        xml: "http://search.yahoo.com/mrss/ thumbnails>thumbnail,omitempty"
+        xml: "http://search.yahoo.com/mrss/ thumbnail,omitempty"
       x-go-type-skip-optional-pointer: true
     MediaCategory:
       description: >

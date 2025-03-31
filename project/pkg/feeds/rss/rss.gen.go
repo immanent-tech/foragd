@@ -93,11 +93,83 @@ type Channel struct {
 	// DCType is the nature or genre of the resource.
 	DCType *externalRef1.DCType `json:"dc_type,omitempty" xml:"http://purl.org/dc/elements/1.1/ type,omitempty"`
 
+	// MediaBackLinks allows inclusion of all the URLs pointing to a media object.
+	MediaBackLinks externalRef2.MediaBacklinks `json:"backLinks,omitempty" xml:"http://search.yahoo.com/mrss/ backLinks>backLink,omitempty"`
+
+	// MediaCategory allows a taxonomy to be set that gives an indication of the type of media content, and its particular contents.
+	MediaCategory *externalRef2.MediaCategory `json:"MediaCategory,omitempty" xml:"http://search.yahoo.com/mrss/ category,omitempty"`
+
+	// MediaComments is a list of comments the media object has received.
+	MediaComments externalRef2.MediaComments `json:"MediaComments,omitempty" xml:"http://search.yahoo.com/mrss/ comments>comment,omitempty"`
+
+	// MediaCommunity stands for the community related content. This allows inclusion of the user perception about a media object in the form of view count, ratings and tags.
+	MediaCommunity *externalRef2.MediaCommunity `json:"MediaCommunity,omitempty" xml:"http://search.yahoo.com/mrss/ community,omitempty"`
+
 	// MediaContent can be used to publish any type of media.
 	MediaContent *externalRef2.MediaContent `json:"media_content,omitempty" xml:"http://search.yahoo.com/mrss/ content,omitempty"`
 
+	// MediaCopyright is copyright information for the media object.
+	MediaCopyright *externalRef2.MediaCopyright `json:"MediaCopyright,omitempty" xml:"http://search.yahoo.com/mrss/ copyright,omitempty"`
+
+	// MediaCredits a list of credits for the object.
+	MediaCredits externalRef2.MediaCredits `json:"MediaCredits,omitempty" xml:"http://search.yahoo.com/mrss/ credits>credit,omitempty"`
+
+	// MediaDescription is a short description describing the media object typically a sentence in length.
+	MediaDescription *externalRef2.MediaDescription `json:"MediaDescription,omitempty" xml:"http://search.yahoo.com/mrss/ description,omitempty"`
+
+	// MediaEmbed allows inclusion of player-specific information in the form of key-value (Param) pairs.
+	MediaEmbed *externalRef2.MediaEmbed `json:"MediaEmbed,omitempty" xml:"http://search.yahoo.com/mrss/ embed,omitempty"`
+
 	// MediaGroup allows grouping of <media:content> elements that are effectively the same content, yet different representations. For instance: the same song recorded in both the WAV and MP3 format.
 	MediaGroup *externalRef2.MediaGroup `json:"MediaGroup,omitempty"`
+
+	// MediaHashes a list of hashes for the object.
+	MediaHashes externalRef2.MediaHashes `json:"MediaHashes,omitempty" xml:"http://search.yahoo.com/mrss/ hash,omitempty"`
+
+	// MediaKeywords are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and phrases should be comma-delimited.
+	MediaKeywords *externalRef2.MediaKeywords `json:"MediaKeywords,omitempty" xml:"http://search.yahoo.com/mrss/ keywords,omitempty"`
+
+	// MediaLicense link to specify the machine-readable license associated with the content.
+	MediaLicense *externalRef2.MediaLicense `json:"MediaLicense,omitempty" xml:"http://search.yahoo.com/mrss/ license,omitempty"`
+
+	// MediaPeerLink contains P2P link.
+	MediaPeerLink *externalRef2.MediaPeerLink `json:"MediaPeerLink,omitempty" xml:"http://search.yahoo.com/mrss/ peerLink,omitempty"`
+
+	// MediaPlayer allows the media object to be accessed through a web browser media player console.
+	MediaPlayer *externalRef2.MediaPlayer `json:"MediaPlayer,omitempty" xml:"http://search.yahoo.com/mrss/ player,omitempty"`
+
+	// MediaPrice includes pricing information about a media object. If this tag is not present, the media object is supposed to be free.
+	MediaPrice *externalRef2.MediaPrice `json:"MediaPrice,omitempty" xml:"http://search.yahoo.com/mrss/ price,omitempty"`
+
+	// MediaRating allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions are necessary.
+	MediaRating *externalRef2.MediaRating `json:"MediaRating,omitempty" xml:"http://search.yahoo.com/mrss/ rating,omitempty"`
+
+	// MediaResponses allows inclusion of a list of all media responses a media object has received.
+	MediaResponses externalRef2.MediaResponses `json:"MediaResponses,omitempty" xml:"http://search.yahoo.com/mrss/ responses>response,omitempty"`
+
+	// MediaRestriction allows restrictions to be placed on the aggregator rendering the media in the feed.
+	MediaRestriction *externalRef2.MediaRestriction `json:"MediaRestriction,omitempty" xml:"http://search.yahoo.com/mrss/ restriction,omitempty"`
+
+	// MediaRights specifies the rights information of a media object.
+	MediaRights *externalRef2.MediaRights `json:"MediaRights,omitempty" xml:"http://search.yahoo.com/mrss/ rights,omitempty"`
+
+	// MediaScenes specifies various scenes within a media object.
+	MediaScenes externalRef2.MediaScenes `json:"MediaScenes,omitempty" xml:"http://search.yahoo.com/mrss/ scenes>scene,omitempty"`
+
+	// MediaStatus specifies the status of a media object -- whether it's still active or it has been blocked/deleted.
+	MediaStatus *externalRef2.MediaStatus `json:"MediaStatus,omitempty" xml:"http://search.yahoo.com/mrss/ status,omitempty"`
+
+	// MediaSubTitle contains subtitle/CC link.
+	MediaSubTitle *externalRef2.MediaSubTitle `json:"subTitle,omitempty" xml:"http://search.yahoo.com/mrss/ subTitle,omitempty"`
+
+	// MediaTexts a list of texts for the object.
+	MediaTexts externalRef2.MediaTexts `json:"MediaTexts,omitempty" xml:"http://search.yahoo.com/mrss/ texts>text,omitempty"`
+
+	// MediaThumbnails a list of thumbnails for the object.
+	MediaThumbnails externalRef2.MediaThumbnails `json:"MediaThumbnails,omitempty" xml:"http://search.yahoo.com/mrss/ thumbnail,omitempty"`
+
+	// MediaTitle is the title of the particular media object.
+	MediaTitle *externalRef2.MediaTitle `json:"MediaTitle,omitempty" xml:"http://search.yahoo.com/mrss/ title,omitempty"`
 
 	// SYUdatePeriod is the period over which the channel format is updated.
 	SYUdatePeriod *externalRef3.SYUpdatePeriod `json:"sy_updatePeriod,omitempty" xml:"http://purl.org/rss/1.0/modules/syndication/ updatePeriod,omitempty"`
@@ -106,7 +178,7 @@ type Channel struct {
 	SYUpdateBase *externalRef3.SYUpdateBase `json:"sy_updateBase,omitempty" xml:"http://purl.org/rss/1.0/modules/syndication/ updateBase,omitempty"`
 
 	// SYUpdateFrequency describes the frequency of updates in relation to the update period.
-	SYUpdateFrequency *externalRef3.SYUpdateFrequency `json:"sy_updateFrequency,omitempty" validate:"omitempty,number,gte=1" xml:"http://purl.org/rss/1.0/modules/syndication/ updateFrequency,omitempty"`
+	SYUpdateFrequency *externalRef3.SYUpdateFrequency `json:"sy_updateFrequency,omitempty" xml:"http://purl.org/rss/1.0/modules/syndication/ updateFrequency,omitempty"`
 
 	// Categories is a list of categories associated with the channel.
 	Categories []Category `json:"category,omitempty" validate:"omitempty,dive,unique" xml:"category,omitempty"`
@@ -125,7 +197,7 @@ type Channel struct {
 	Docs *Docs `json:"docs,omitempty" validate:"omitempty,url" xml:"docs,omitempty"`
 
 	// Extensions records any elements that are unknown extensions to the schema.
-	Extensions []externalRef4.Extension `json:"extensions,omitempty" xml:",any"`
+	Extensions externalRef4.Extensions `json:"extensions,omitempty" xml:",any"`
 
 	// Generator is a string indicating the program used to generate the channel.
 	Generator *Generator `json:"generator,omitempty" xml:"generator,omitempty"`
@@ -171,63 +243,9 @@ type Channel struct {
 	WebMaster *WebMaster `json:"webMaster,omitempty" xml:"webMaster,omitempty"`
 }
 
-// ChannelMetadata defines model for ChannelMetadata.
-type ChannelMetadata struct {
+// ChannelElements contains all Channel elements (i.e., Channel metadata).
+type ChannelElements struct {
 	AtomLink *externalRef0.Link `json:"AtomLink,omitempty" xml:"http://www.w3.org/2005/Atom link,omitempty"`
-
-	// DCContributor is an entity responsible for making contributions to the resource.
-	DCContributor *externalRef1.DCContributor `json:"dc_contributor,omitempty" xml:"http://purl.org/dc/elements/1.1/ contributor,omitempty"`
-
-	// DCCoverage is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant.
-	DCCoverage *externalRef1.DCCoverage `json:"dc_coverage,omitempty" xml:"http://purl.org/dc/elements/1.1/ coverage,omitempty"`
-
-	// DCCreator is an entity primarily responsible for making the resource.
-	DCCreator *externalRef1.DCCreator `json:"dc_creator,omitempty" xml:"http://purl.org/dc/elements/1.1/ creator,omitempty"`
-
-	// DCDate is a point or period of time associated with an event in the lifecycle of the resource.
-	DCDate *externalRef1.DCDate `json:"dc_date,omitempty" xml:"http://purl.org/dc/elements/1.1/ date,omitempty"`
-
-	// DCDescription may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content.
-	DCDescription *externalRef1.DCDescription `json:"dc_description,omitempty" xml:"http://purl.org/dc/elements/1.1/ description,omitempty"`
-
-	// DCFormat is the file format, physical medium, or dimensions of the resource.
-	DCFormat *externalRef1.DCFormat `json:"dc_format,omitempty" xml:"http://purl.org/dc/elements/1.1/ format,omitempty"`
-
-	// DCIdentifier is an unambiguous reference to the resource within a given context.
-	DCIdentifier *externalRef1.DCIdentifier `json:"dc_identifier,omitempty" xml:"http://purl.org/dc/elements/1.1/ identifier,omitempty"`
-
-	// DCLanguage identifies the language used by the related resource using an HTML language code.
-	DCLanguage *externalRef1.DCLanguage `json:"dc_language,omitempty" xml:"http://purl.org/dc/elements/1.1/ language,omitempty"`
-
-	// DCPublisher is an entity responsible for making the resource available.
-	DCPublisher *externalRef1.DCPublisher `json:"dc_publisher,omitempty" xml:"http://purl.org/dc/elements/1.1/ publisher,omitempty"`
-
-	// DCRelation is a related resource.
-	DCRelation *externalRef1.DCRelation `json:"dc_relation,omitempty" xml:"http://purl.org/dc/elements/1.1/ relation,omitempty"`
-
-	// DCRights is information about rights held in and over the resource.
-	DCRights *externalRef1.DCRights `json:"dc_rights,omitempty" xml:"http://purl.org/dc/elements/1.1/ rights,omitempty"`
-
-	// DCSource is a related resource from which the described resource is derived.
-	DCSource *externalRef1.DCSource `json:"dc_source,omitempty" xml:"http://purl.org/dc/elements/1.1/ source,omitempty"`
-
-	// DCSubject is the topic of the resource.
-	DCSubject *externalRef1.DCSubject `json:"dc_subject,omitempty" xml:"http://purl.org/dc/elements/1.1/ subject,omitempty"`
-
-	// DCTitle is a name by which the resource is formally known.
-	DCTitle *externalRef1.DCTitle `json:"dc_title,omitempty" xml:"http://purl.org/dc/elements/1.1/ title,omitempty"`
-
-	// DCType is the nature or genre of the resource.
-	DCType *externalRef1.DCType `json:"dc_type,omitempty" xml:"http://purl.org/dc/elements/1.1/ type,omitempty"`
-
-	// SYUdatePeriod is the period over which the channel format is updated.
-	SYUdatePeriod *externalRef3.SYUpdatePeriod `json:"sy_updatePeriod,omitempty" xml:"http://purl.org/rss/1.0/modules/syndication/ updatePeriod,omitempty"`
-
-	// SYUpdateBase is a base date to be used in concert with updatePeriod and updateFrequency to calculate the publishing schedule.
-	SYUpdateBase *externalRef3.SYUpdateBase `json:"sy_updateBase,omitempty" xml:"http://purl.org/rss/1.0/modules/syndication/ updateBase,omitempty"`
-
-	// SYUpdateFrequency describes the frequency of updates in relation to the update period.
-	SYUpdateFrequency *externalRef3.SYUpdateFrequency `json:"sy_updateFrequency,omitempty" validate:"omitempty,number,gte=1" xml:"http://purl.org/rss/1.0/modules/syndication/ updateFrequency,omitempty"`
 
 	// Categories is a list of categories associated with the channel.
 	Categories []Category `json:"category,omitempty" validate:"omitempty,dive,unique" xml:"category,omitempty"`
@@ -310,54 +328,6 @@ type Description = string
 
 // Docs A URL that points to the documentation for the format used in the RSS file. It's probably a pointer to this page. It's for people who might stumble across an RSS file on a Web server 25 years from now and wonder what it is.
 type Docs = string
-
-// DublinCore contains Dublin Core extension elements for the channel or item.
-type DublinCore struct {
-	// DCContributor is an entity responsible for making contributions to the resource.
-	DCContributor *externalRef1.DCContributor `json:"dc_contributor,omitempty" xml:"http://purl.org/dc/elements/1.1/ contributor,omitempty"`
-
-	// DCCoverage is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant.
-	DCCoverage *externalRef1.DCCoverage `json:"dc_coverage,omitempty" xml:"http://purl.org/dc/elements/1.1/ coverage,omitempty"`
-
-	// DCCreator is an entity primarily responsible for making the resource.
-	DCCreator *externalRef1.DCCreator `json:"dc_creator,omitempty" xml:"http://purl.org/dc/elements/1.1/ creator,omitempty"`
-
-	// DCDate is a point or period of time associated with an event in the lifecycle of the resource.
-	DCDate *externalRef1.DCDate `json:"dc_date,omitempty" xml:"http://purl.org/dc/elements/1.1/ date,omitempty"`
-
-	// DCDescription may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content.
-	DCDescription *externalRef1.DCDescription `json:"dc_description,omitempty" xml:"http://purl.org/dc/elements/1.1/ description,omitempty"`
-
-	// DCFormat is the file format, physical medium, or dimensions of the resource.
-	DCFormat *externalRef1.DCFormat `json:"dc_format,omitempty" xml:"http://purl.org/dc/elements/1.1/ format,omitempty"`
-
-	// DCIdentifier is an unambiguous reference to the resource within a given context.
-	DCIdentifier *externalRef1.DCIdentifier `json:"dc_identifier,omitempty" xml:"http://purl.org/dc/elements/1.1/ identifier,omitempty"`
-
-	// DCLanguage identifies the language used by the related resource using an HTML language code.
-	DCLanguage *externalRef1.DCLanguage `json:"dc_language,omitempty" xml:"http://purl.org/dc/elements/1.1/ language,omitempty"`
-
-	// DCPublisher is an entity responsible for making the resource available.
-	DCPublisher *externalRef1.DCPublisher `json:"dc_publisher,omitempty" xml:"http://purl.org/dc/elements/1.1/ publisher,omitempty"`
-
-	// DCRelation is a related resource.
-	DCRelation *externalRef1.DCRelation `json:"dc_relation,omitempty" xml:"http://purl.org/dc/elements/1.1/ relation,omitempty"`
-
-	// DCRights is information about rights held in and over the resource.
-	DCRights *externalRef1.DCRights `json:"dc_rights,omitempty" xml:"http://purl.org/dc/elements/1.1/ rights,omitempty"`
-
-	// DCSource is a related resource from which the described resource is derived.
-	DCSource *externalRef1.DCSource `json:"dc_source,omitempty" xml:"http://purl.org/dc/elements/1.1/ source,omitempty"`
-
-	// DCSubject is the topic of the resource.
-	DCSubject *externalRef1.DCSubject `json:"dc_subject,omitempty" xml:"http://purl.org/dc/elements/1.1/ subject,omitempty"`
-
-	// DCTitle is a name by which the resource is formally known.
-	DCTitle *externalRef1.DCTitle `json:"dc_title,omitempty" xml:"http://purl.org/dc/elements/1.1/ title,omitempty"`
-
-	// DCType is the nature or genre of the resource.
-	DCType *externalRef1.DCType `json:"dc_type,omitempty" xml:"http://purl.org/dc/elements/1.1/ type,omitempty"`
-}
 
 // Enclosure describes a media object.
 type Enclosure struct {
@@ -527,7 +497,7 @@ type Item struct {
 	MediaTexts externalRef2.MediaTexts `json:"MediaTexts,omitempty" xml:"http://search.yahoo.com/mrss/ texts>text,omitempty"`
 
 	// MediaThumbnails a list of thumbnails for the object.
-	MediaThumbnails externalRef2.MediaThumbnails `json:"MediaThumbnails,omitempty" xml:"http://search.yahoo.com/mrss/ thumbnails>thumbnail,omitempty"`
+	MediaThumbnails externalRef2.MediaThumbnails `json:"MediaThumbnails,omitempty" xml:"http://search.yahoo.com/mrss/ thumbnail,omitempty"`
 
 	// MediaTitle is the title of the particular media object.
 	MediaTitle *externalRef2.MediaTitle `json:"MediaTitle,omitempty" xml:"http://search.yahoo.com/mrss/ title,omitempty"`
@@ -548,7 +518,43 @@ type Item struct {
 	Enclosure *Enclosure `json:"enclosure,omitempty" xml:"enclosure,omitempty"`
 
 	// Extensions records any elements that are unknown extensions to the schema.
-	Extensions []externalRef4.Extension `json:"extensions,omitempty" xml:",any"`
+	Extensions externalRef4.Extensions `json:"extensions,omitempty" xml:",any"`
+
+	// GUID is a string that uniquely identifies an item.
+	GUID *GUID `json:"guid,omitempty" xml:"guid,omitempty"`
+
+	// Image contains details of a GIF, JPEG or PNG image that can be displayed with the channel or item.
+	Image *Image `json:"image,omitempty" xml:"image,omitempty"`
+
+	// Link identifies a web address associated with the channel or item. A link may be either a RSS or Atom link element.
+	Link *Link `json:"link,omitempty"`
+
+	// PubDate is the publication date of the content.
+	PubDate *PubDate `json:"pubDate,omitempty" xml:"pubDate,omitempty"`
+
+	// Source The RSS channel that the item came from.
+	Source *Source `json:"source,omitempty" xml:"source,omitempty"`
+
+	// Title is the name of the channel or item.
+	Title *Title `json:"title,omitempty" xml:"title,omitempty"`
+}
+
+// ItemElements contains all Item elements.
+type ItemElements struct {
+	// Author is the email address of the author of the item. For newspapers and magazines syndicating via RSS, the author is the person who wrote the article that the <item> describes. For collaborative weblogs, the author of the item might be different from the managing editor or webmaster. For a weblog authored by a single individual it would make sense to omit the <author> element.
+	Author *Author `json:"author,omitempty" xml:"author,omitempty"`
+
+	// Categories is a list of categories associated with the channel.
+	Categories []Category `json:"categories,omitempty" validate:"omitempty,dive,unique" xml:"category,omitempty"`
+
+	// Comments is the url of the comments page for the item.
+	Comments *Comments `json:"comments,omitempty" xml:",omitempty"`
+
+	// Description is the description of the channel or item.
+	Description *Description `json:"description,omitempty" xml:"description,omitempty"`
+
+	// Enclosure describes a media object.
+	Enclosure *Enclosure `json:"enclosure,omitempty" xml:"enclosure,omitempty"`
 
 	// GUID is a string that uniquely identifies an item.
 	GUID *GUID `json:"guid,omitempty" xml:"guid,omitempty"`
@@ -587,10 +593,12 @@ type PubDate = types.DateTime
 // RSS represents an RSS document.
 type RSS struct {
 	// XMLName represents the XML namespace of an element.
-	XMLName    externalRef4.XMLName `json:"xml" validate:"required"`
-	Attributes []xml.Attr           `json:"attributes" xml:",any,attr"`
+	XMLName externalRef4.XMLName `json:"xml" validate:"required"`
 
-	// Channel contains information about the channel (metadata) and its contents.
+	// Attributes contains any additional attributes (including namespaces).
+	Attributes []xml.Attr `json:"attributes" xml:",any,attr"`
+
+	// Channel is the element containing metadata (Channel elements) and items.
 	Channel Channel `json:"channel" xml:"channel"`
 
 	// Version specifies the version of RSS that the document conforms to.
@@ -619,18 +627,6 @@ type Source struct {
 
 	// Value is an element value that is required.
 	Value externalRef4.RequiredValue `json:"value" validate:"required" xml:",chardata"`
-}
-
-// Syndication describes the syndication properties.
-type Syndication struct {
-	// SYUdatePeriod is the period over which the channel format is updated.
-	SYUdatePeriod *externalRef3.SYUpdatePeriod `json:"sy_updatePeriod,omitempty" xml:"http://purl.org/rss/1.0/modules/syndication/ updatePeriod,omitempty"`
-
-	// SYUpdateBase is a base date to be used in concert with updatePeriod and updateFrequency to calculate the publishing schedule.
-	SYUpdateBase *externalRef3.SYUpdateBase `json:"sy_updateBase,omitempty" xml:"http://purl.org/rss/1.0/modules/syndication/ updateBase,omitempty"`
-
-	// SYUpdateFrequency describes the frequency of updates in relation to the update period.
-	SYUpdateFrequency *externalRef3.SYUpdateFrequency `json:"sy_updateFrequency,omitempty" validate:"omitempty,number,gte=1" xml:"http://purl.org/rss/1.0/modules/syndication/ updateFrequency,omitempty"`
 }
 
 // TTL stands for time to live. It's a number of minutes that indicates how long a channel can be cached before refreshing from the source.

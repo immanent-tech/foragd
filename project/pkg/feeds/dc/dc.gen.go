@@ -137,3 +137,51 @@ type DCType struct {
 	// Value is an element value that is required.
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
+
+// DublinCoreElements contains Dublin Core extension elements.
+type DublinCoreElements struct {
+	// DCContributor is an entity responsible for making contributions to the resource.
+	DCContributor *DCContributor `json:"dc_contributor,omitempty" xml:"http://purl.org/dc/elements/1.1/ contributor,omitempty"`
+
+	// DCCoverage is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant.
+	DCCoverage *DCCoverage `json:"dc_coverage,omitempty" xml:"http://purl.org/dc/elements/1.1/ coverage,omitempty"`
+
+	// DCCreator is an entity primarily responsible for making the resource.
+	DCCreator *DCCreator `json:"dc_creator,omitempty" xml:"http://purl.org/dc/elements/1.1/ creator,omitempty"`
+
+	// DCDate is a point or period of time associated with an event in the lifecycle of the resource.
+	DCDate *DCDate `json:"dc_date,omitempty" xml:"http://purl.org/dc/elements/1.1/ date,omitempty"`
+
+	// DCDescription may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content.
+	DCDescription *DCDescription `json:"dc_description,omitempty" xml:"http://purl.org/dc/elements/1.1/ description,omitempty"`
+
+	// DCFormat is the file format, physical medium, or dimensions of the resource.
+	DCFormat *DCFormat `json:"dc_format,omitempty" xml:"http://purl.org/dc/elements/1.1/ format,omitempty"`
+
+	// DCIdentifier is an unambiguous reference to the resource within a given context.
+	DCIdentifier *DCIdentifier `json:"dc_identifier,omitempty" xml:"http://purl.org/dc/elements/1.1/ identifier,omitempty"`
+
+	// DCLanguage identifies the language used by the related resource using an HTML language code.
+	DCLanguage *DCLanguage `json:"dc_language,omitempty" xml:"http://purl.org/dc/elements/1.1/ language,omitempty"`
+
+	// DCPublisher is an entity responsible for making the resource available.
+	DCPublisher *DCPublisher `json:"dc_publisher,omitempty" xml:"http://purl.org/dc/elements/1.1/ publisher,omitempty"`
+
+	// DCRelation is a related resource.
+	DCRelation *DCRelation `json:"dc_relation,omitempty" xml:"http://purl.org/dc/elements/1.1/ relation,omitempty"`
+
+	// DCRights is information about rights held in and over the resource.
+	DCRights *DCRights `json:"dc_rights,omitempty" xml:"http://purl.org/dc/elements/1.1/ rights,omitempty"`
+
+	// DCSource is a related resource from which the described resource is derived.
+	DCSource *DCSource `json:"dc_source,omitempty" xml:"http://purl.org/dc/elements/1.1/ source,omitempty"`
+
+	// DCSubject is the topic of the resource.
+	DCSubject *DCSubject `json:"dc_subject,omitempty" xml:"http://purl.org/dc/elements/1.1/ subject,omitempty"`
+
+	// DCTitle is a name by which the resource is formally known.
+	DCTitle *DCTitle `json:"dc_title,omitempty" xml:"http://purl.org/dc/elements/1.1/ title,omitempty"`
+
+	// DCType is the nature or genre of the resource.
+	DCType *DCType `json:"dc_type,omitempty" xml:"http://purl.org/dc/elements/1.1/ type,omitempty"`
+}

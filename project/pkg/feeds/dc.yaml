@@ -246,4 +246,39 @@ components:
       x-oapi-codegen-extra-tags:
         json: "dc_date,omitempty"
         xml: "http://purl.org/dc/elements/1.1/ date,omitempty"
+    DublinCoreElements:
+      description: >
+        contains Dublin Core extension elements.
+      type: object
+      properties:
+        DCTitle:
+          $ref: "#/components/schemas/DCTitle"
+        DCDescription:
+          $ref: "#/components/schemas/DCDescription"
+        DCContributor:
+          $ref: "#/components/schemas/DCContributor"
+        DCCreator:
+          $ref: "#/components/schemas/DCCreator"
+        DCCoverage:
+          $ref: "#/components/schemas/DCCoverage"
+        DCFormat:
+          $ref: "#/components/schemas/DCFormat"
+        DCIdentifier:
+          $ref: "#/components/schemas/DCIdentifier"
+        DCPublisher:
+          $ref: "#/components/schemas/DCPublisher"
+        DCRelation:
+          $ref: "#/components/schemas/DCRelation"
+        DCRights:
+          $ref: "#/components/schemas/DCRights"
+        DCSubject:
+          $ref: "#/components/schemas/DCSubject"
+        DCType:
+          $ref: "#/components/schemas/DCType"
+        DCSource:
+          $ref: "#/components/schemas/DCSource"
+        DCLanguage:
+          $ref: "#/components/schemas/DCLanguage"
+        DCDate:
+          $ref: "#/components/schemas/DCDate"
 
