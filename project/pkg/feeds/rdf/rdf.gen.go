@@ -8,13 +8,13 @@ import (
 	externalRef1 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-// Defines values for UpdatePeriodValue.
+// Defines values for SYUpdatePeriodValue.
 const (
-	UpdatedDaily   UpdatePeriodValue = "daily"
-	UpdatedHourly  UpdatePeriodValue = "hourly"
-	UpdatedMonthly UpdatePeriodValue = "monthly"
-	UpdatedWeekly  UpdatePeriodValue = "weekly"
-	UpdatedYearly  UpdatePeriodValue = "yearly"
+	UpdatedDaily   SYUpdatePeriodValue = "daily"
+	UpdatedHourly  SYUpdatePeriodValue = "hourly"
+	UpdatedMonthly SYUpdatePeriodValue = "monthly"
+	UpdatedWeekly  SYUpdatePeriodValue = "weekly"
+	UpdatedYearly  SYUpdatePeriodValue = "yearly"
 )
 
 // ContentEncoded is an element whose contents are the entity-encoded or CDATA-escaped version of the content of the item.
@@ -26,18 +26,18 @@ type ContentEncoded struct {
 	Value externalRef1.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// UpdateBase is a point or period of time associated with an event in the lifecycle of the resource.
-type UpdateBase = externalRef0.Date
+// SYUpdateBase is a point or period of time associated with an event in the lifecycle of the resource.
+type SYUpdateBase = externalRef0.DCDate
 
-// UpdateFrequency describes the frequency of updates in relation to the update period.
-type UpdateFrequency = int
+// SYUpdateFrequency describes the frequency of updates in relation to the update period.
+type SYUpdateFrequency = int
 
-// UpdatePeriod is the period over which the channel format is updated.
-type UpdatePeriod struct {
+// SYUpdatePeriod is the period over which the channel format is updated.
+type SYUpdatePeriod struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef1.XMLName `json:"xml" validate:"required"`
-	Value   UpdatePeriodValue    `json:"value" validate:"required,oneof=hourly daily weekly monthly yearly" xml:",chardata"`
+	Value   SYUpdatePeriodValue  `json:"value" validate:"required,oneof=hourly daily weekly monthly yearly" xml:",chardata"`
 }
 
-// UpdatePeriodValue defines model for UpdatePeriod.Value.
-type UpdatePeriodValue string
+// SYUpdatePeriodValue defines model for SYUpdatePeriod.Value.
+type SYUpdatePeriodValue string

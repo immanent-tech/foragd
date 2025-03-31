@@ -7,8 +7,8 @@ import (
 	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-// Contributor is an entity responsible for making contributions to the resource.
-type Contributor struct {
+// DCContributor is an entity responsible for making contributions to the resource.
+type DCContributor struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -16,8 +16,8 @@ type Contributor struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Coverage is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant.
-type Coverage struct {
+// DCCoverage is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under which the resource is relevant.
+type DCCoverage struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -25,8 +25,8 @@ type Coverage struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Creator is an entity primarily responsible for making the resource.
-type Creator struct {
+// DCCreator is an entity primarily responsible for making the resource.
+type DCCreator struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -34,15 +34,15 @@ type Creator struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Date is a point or period of time associated with an event in the lifecycle of the resource.
-type Date struct {
+// DCDate is a point or period of time associated with an event in the lifecycle of the resource.
+type DCDate struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 	Value   DateTime             `json:"value" validate:"required,datetime" xml:",chardata"`
 }
 
-// Description may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content.
-type Description struct {
+// DCDescription may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content.
+type DCDescription struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -50,8 +50,8 @@ type Description struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Format is the file format, physical medium, or dimensions of the resource.
-type Format struct {
+// DCFormat is the file format, physical medium, or dimensions of the resource.
+type DCFormat struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -59,8 +59,8 @@ type Format struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Identifier is an unambiguous reference to the resource within a given context.
-type Identifier struct {
+// DCIdentifier is an unambiguous reference to the resource within a given context.
+type DCIdentifier struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -68,15 +68,15 @@ type Identifier struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Language identifies the language used by the related resource using an HTML language code.
-type Language struct {
+// DCLanguage identifies the language used by the related resource using an HTML language code.
+type DCLanguage struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 	Value   string               `json:"value" validate:"required,bcp47_language_tag" xml:",chardata"`
 }
 
-// Publisher is an entity responsible for making the resource available.
-type Publisher struct {
+// DCPublisher is an entity responsible for making the resource available.
+type DCPublisher struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -84,8 +84,8 @@ type Publisher struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Relation is a related resource.
-type Relation struct {
+// DCRelation is a related resource.
+type DCRelation struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -93,8 +93,8 @@ type Relation struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Rights is information about rights held in and over the resource.
-type Rights struct {
+// DCRights is information about rights held in and over the resource.
+type DCRights struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -102,8 +102,8 @@ type Rights struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Source is a related resource from which the described resource is derived.
-type Source struct {
+// DCSource is a related resource from which the described resource is derived.
+type DCSource struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -111,8 +111,8 @@ type Source struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Subject is the topic of the resource.
-type Subject struct {
+// DCSubject is the topic of the resource.
+type DCSubject struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -120,8 +120,8 @@ type Subject struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Title is a name by which the resource is formally known.
-type Title struct {
+// DCTitle is a name by which the resource is formally known.
+type DCTitle struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -129,8 +129,8 @@ type Title struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Type is the nature or genre of the resource.
-type Type struct {
+// DCType is the nature or genre of the resource.
+type DCType struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 

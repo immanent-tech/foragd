@@ -6,6 +6,7 @@ package types
 import (
 	"bytes"
 
+	// "github.com/nbio/xml"
 	"encoding/xml"
 	"fmt"
 
@@ -17,7 +18,7 @@ func Decode[T any](namespace string, b []byte) (T, error) {
 
 	reader := bytes.NewReader(b)
 	decoder := xml.NewDecoder(reader)
-	decoder.DefaultSpace = namespace
+	// decoder.DefaultSpace = namespace
 	decoder.CharsetReader = charset.NewReaderLabel
 	err := decoder.Decode(&feed)
 	if err != nil {

@@ -5,14 +5,16 @@ info:
   version: 1.0.0
   title: Dublin Core RSS Extension
   description: >
-    Dublin Core RSS extension schema.
+    RDF Site Summary 1.0 Modules: Dublin Core OpenAPI model schema.
+
+    https://web.resource.org/rss/1.0/modules/dc/
   license:
     name: AGPL-3.0-or-later
     url: https://spdx.org/licenses/AGPL-3.0-only.html
 paths: {}
 components:
   schemas:
-    Title:
+    DCTitle:
       description: >
         is a name by which the resource is formally known.
       type: object
@@ -25,8 +27,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "title,omitempty"
-    Description:
+        json: "dc_title,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ title,omitempty"
+    DCDescription:
       description: >
         may include but is not limited to: an abstract, table of contents, reference to a graphical representation of
         content or a free-text account of the content.
@@ -40,8 +43,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "description,omitempty"
-    Contributor:
+        json: "dc_description,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ description,omitempty"
+    DCContributor:
       description: >
         is an entity responsible for making contributions to the resource.
       type: object
@@ -54,8 +58,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "contributor,omitempty"
-    Creator:
+        json: "dc_contributor,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ contributor,omitempty"
+    DCCreator:
       description: >
         is an entity primarily responsible for making the resource.
       type: object
@@ -68,8 +73,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "creator,omitempty"
-    Coverage:
+        json: "dc_creator,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ creator,omitempty"
+    DCCoverage:
       description: >
         is the spatial or temporal topic of the resource, spatial applicability of the resource, or jurisdiction under
         which the resource is relevant.
@@ -83,8 +89,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "coverage,omitempty"
-    Format:
+        json: "dc_coverage,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ coverage,omitempty"
+    DCFormat:
       description: >
         is the file format, physical medium, or dimensions of the resource.
       type: object
@@ -97,8 +104,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "format,omitempty"
-    Identifier:
+        json: "dc_format,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ format,omitempty"
+    DCIdentifier:
       description: >
         is an unambiguous reference to the resource within a given context.
       type: object
@@ -111,8 +119,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "identifier,omitempty"
-    Publisher:
+        json: "dc_identifier,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ identifier,omitempty"
+    DCPublisher:
       description: >
         is an entity responsible for making the resource available.
       type: object
@@ -125,8 +134,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "publisher,omitempty"
-    Relation:
+        json: "dc_publisher,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ publisher,omitempty"
+    DCRelation:
       description: >
         is a related resource.
       type: object
@@ -139,8 +149,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "relation,omitempty"
-    Rights:
+        json: "dc_relation,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ relation,omitempty"
+    DCRights:
       description: >
         is information about rights held in and over the resource.
       type: object
@@ -153,8 +164,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "rights,omitempty"
-    Subject:
+        json: "dc_rights,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ rights,omitempty"
+    DCSubject:
       description: >
         is the topic of the resource.
       type: object
@@ -167,8 +179,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "subject,omitempty"
-    Type:
+        json: "dc_subject,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ subject,omitempty"
+    DCType:
       description: >
         is the nature or genre of the resource.
       type: object
@@ -181,8 +194,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "type,omitempty"
-    Source:
+        json: "dc_type,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ type,omitempty"
+    DCSource:
       description: >
         is a related resource from which the described resource is derived.
       type: object
@@ -195,8 +209,9 @@ components:
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
-        xml: "source,omitempty"
-    Language:
+        json: "dc_source,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ source,omitempty"
+    DCLanguage:
       description: >
         identifies the language used by the related resource using an HTML language code.
       required:
@@ -211,8 +226,9 @@ components:
             xml: ",chardata"
             validate: "required,bcp47_language_tag"
       x-oapi-codegen-extra-tags:
-        xml: "language,omitempty"
-    Date:
+        json: "dc_language,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ language,omitempty"
+    DCDate:
       description: >
         is a point or period of time associated with an event in the lifecycle of the resource.
       type: object
@@ -228,5 +244,6 @@ components:
             xml: ",chardata"
             validate: "required,datetime"
       x-oapi-codegen-extra-tags:
-        xml: "date,omitempty"
+        json: "dc_date,omitempty"
+        xml: "http://purl.org/dc/elements/1.1/ date,omitempty"
 

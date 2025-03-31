@@ -5,7 +5,7 @@ info:
   version: 1.0.0
   title: RSS 2.0
   description: >
-    RSS 2.0 specification as openapi schema.
+    RSS 2.0 OpenAPI schema.
 
     https://www.rssboard.org/rss-specification
   license:
@@ -17,15 +17,9 @@ components:
     Title:
       description: >
         is the name of the channel or item.
-      type: object
-      required:
-        - XMLName
-        - value
-      properties:
-        XMLName:
-          $ref: "types.yaml#/components/schemas/XMLName"
-        value:
-          $ref: "types.yaml#/components/schemas/RequiredValue"
+      type: string
+      x-oapi-codegen-extra-tags:
+        xml: "title,omitempty"
     Link:
       description: >
         identifies a web address associated with the channel or item. A link may be either a RSS or Atom link element.
@@ -34,44 +28,21 @@ components:
     Description:
       description: >
         is the description of the channel or item.
-      type: object
-      required:
-        - XMLName
-        - value
-      properties:
-        XMLName:
-          $ref: "types.yaml#/components/schemas/XMLName"
-        value:
-          $ref: "types.yaml#/components/schemas/RequiredValue"
+      type: string
+      x-oapi-codegen-extra-tags:
+        xml: "description,omitempty"
     Language:
       description: >
         The language the channel is written in. This allows aggregators to group all Italian language sites, for
         example, on a single page.
-      required:
-        - XMLName
-        - value
-      properties:
-        XMLName:
-          $ref: "types.yaml#/components/schemas/XMLName"
-        value:
-          allOf:
-            - $ref: "types.yaml#/components/schemas/RequiredValue"
-          x-oapi-codegen-extra-tags:
-            xml: ",chardata"
-            validate: "required,bcp47_language_tag"
+      type: string
       x-oapi-codegen-extra-tags:
         xml: "language,omitempty"
+        validate: "required,bcp47_language_tag"
     Copyright:
       description: >
         Copyright notice for content in the channel.
-      required:
-        - XMLName
-        - value
-      properties:
-        XMLName:
-          $ref: "types.yaml#/components/schemas/XMLName"
-        value:
-          $ref: "types.yaml#/components/schemas/RequiredValue"
+      type: string
       x-oapi-codegen-extra-tags:
         xml: "copyright,omitempty"
     ManagingEditor:
@@ -89,16 +60,14 @@ components:
     PubDate:
       description: >
         is the publication date of the content.
-      allOf:
-        - $ref: "dc.yaml#/components/schemas/Date"
+      x-go-type: types.DateTime
       x-oapi-codegen-extra-tags:
         xml: "pubDate,omitempty"
         json: "pubDate,omitempty"
     LastBuildDate:
       description: >
         is the last time the content of the channel changed.
-      allOf:
-        - $ref: "dc.yaml#/components/schemas/Date"
+      x-go-type: types.DateTime
       x-oapi-codegen-extra-tags:
         xml: "lastBuildDate,omitempty"
     Category:
@@ -270,17 +239,7 @@ components:
     Rating:
       description: >
         contains a rating for the element.
-      type: object
-      required:
-        - XMLName
-        - value
-      properties:
-        XMLName:
-          $ref: "types.yaml#/components/schemas/XMLName"
-        value:
-          $ref: "types.yaml#/components/schemas/RequiredValue"
-        scheme:
-          $ref: "media-rss.yaml#/components/schemas/Scheme"
+      type: string
       x-oapi-codegen-extra-tags:
         xml: "rating,omitempty"
     TextInput:
@@ -329,12 +288,12 @@ components:
         describes the syndication properties.
       type: object
       properties:
-        updatePeriod:
-          $ref: "rdf.yaml#/components/schemas/UpdatePeriod"
-        updateFrequency:
-          $ref: "rdf.yaml#/components/schemas/UpdateFrequency"
-        updateBase:
-          $ref: "rdf.yaml#/components/schemas/UpdateBase"
+        SYUdatePeriod:
+          $ref: "rdf.yaml#/components/schemas/SYUpdatePeriod"
+        SYUpdateFrequency:
+          $ref: "rdf.yaml#/components/schemas/SYUpdateFrequency"
+        SYUpdateBase:
+          $ref: "rdf.yaml#/components/schemas/SYUpdateBase"
     Author:
       description: >
         is the email address of the author of the item. For newspapers and magazines syndicating via RSS, the
@@ -349,8 +308,7 @@ components:
         is the url of the comments page for the item.
       type: string
       x-oapi-codegen-extra-tags:
-        xml: "comments,omitempty"
-        validate: "omitempty,url"
+        xml: ",omitempty"
     Enclosure:
       description: >
         describes a media object.
@@ -417,11 +375,8 @@ components:
         The RSS channel that the item came from.
       type: object
       required:
-        - XMLName
         - value
       properties:
-        XMLName:
-          $ref: "types.yaml#/components/schemas/XMLName"
         value:
           $ref: "types.yaml#/components/schemas/RequiredValue"
         url:
@@ -477,54 +432,36 @@ components:
         contains Dublin Core extension elements for the channel or item.
       type: object
       properties:
-        title:
-          $ref: "dc.yaml#/components/schemas/Title"
-        description:
-          $ref: "dc.yaml#/components/schemas/Description"
-        contributor:
-          description: >
-            is a list of Dublin Core contributor elements.
-          type: array
-          items:
-            $ref: "dc.yaml#/components/schemas/Contributor"
-          xml:
-            name: contributor
-          x-oapi-codegen-extra-tags:
-            xml: "contributor,omitempty"
-          x-go-type-skip-optional-pointer: true
-        creator:
-          description: >
-            is a list of Dublin Core creator elements.
-          type: array
-          items:
-            $ref: "dc.yaml#/components/schemas/Creator"
-          xml:
-            name: creator
-          x-oapi-codegen-extra-tags:
-            xml: "creator,omitempty"
-          x-go-type-skip-optional-pointer: true
-        coverage:
-          $ref: "dc.yaml#/components/schemas/Coverage"
-        format:
-          $ref: "dc.yaml#/components/schemas/Format"
-        identifier:
-          $ref: "dc.yaml#/components/schemas/Identifier"
-        publisher:
-          $ref: "dc.yaml#/components/schemas/Publisher"
-        relation:
-          $ref: "dc.yaml#/components/schemas/Relation"
-        rights:
-          $ref: "dc.yaml#/components/schemas/Rights"
-        subject:
-          $ref: "dc.yaml#/components/schemas/Subject"
-        type:
-          $ref: "dc.yaml#/components/schemas/Type"
-        source:
-          $ref: "dc.yaml#/components/schemas/Source"
-        language:
-          $ref: "dc.yaml#/components/schemas/Language"
-        date:
-          $ref: "dc.yaml#/components/schemas/Date"
+        DCTitle:
+          $ref: "dc.yaml#/components/schemas/DCTitle"
+        DCDescription:
+          $ref: "dc.yaml#/components/schemas/DCDescription"
+        DCContributor:
+          $ref: "dc.yaml#/components/schemas/DCContributor"
+        DCCreator:
+          $ref: "dc.yaml#/components/schemas/DCCreator"
+        DCCoverage:
+          $ref: "dc.yaml#/components/schemas/DCCoverage"
+        DCFormat:
+          $ref: "dc.yaml#/components/schemas/DCFormat"
+        DCIdentifier:
+          $ref: "dc.yaml#/components/schemas/DCIdentifier"
+        DCPublisher:
+          $ref: "dc.yaml#/components/schemas/DCPublisher"
+        DCRelation:
+          $ref: "dc.yaml#/components/schemas/DCRelation"
+        DCRights:
+          $ref: "dc.yaml#/components/schemas/DCRights"
+        DCSubject:
+          $ref: "dc.yaml#/components/schemas/DCSubject"
+        DCType:
+          $ref: "dc.yaml#/components/schemas/DCType"
+        DCSource:
+          $ref: "dc.yaml#/components/schemas/DCSource"
+        DCLanguage:
+          $ref: "dc.yaml#/components/schemas/DCLanguage"
+        DCDate:
+          $ref: "dc.yaml#/components/schemas/DCDate"
     ChannelMetadata:
       description: >
         contains information about the channel (metadata).
@@ -545,16 +482,26 @@ components:
               x-oapi-codegen-extra-tags:
                 xml: "title"
                 validate: "required"
-            links:
-              description: >
-                is a list of links related to the channel.
-              type: array
-              items:
-                $ref: "#/components/schemas/Link"
+            link:
+              allOf:
+                - $ref: "types.yaml#/components/schemas/RequiredValue"
               x-oapi-codegen-extra-tags:
                 xml: "link"
-                validate: "required"
-              x-go-type-skip-optional-pointer: true
+            AtomLink:
+              allOf:
+                - $ref: "atom.yaml#/components/schemas/Link"
+              x-oapi-codegen-extra-tags:
+                xml: "http://www.w3.org/2005/Atom link,omitempty"
+            # links:
+            #   description: >
+            #     is a list of links related to the channel.
+            #   type: array
+            #   items:
+            #     $ref: "#/components/schemas/Link"
+            #   x-oapi-codegen-extra-tags:
+            #     xml: "link"
+            #     validate: "required"
+            #   x-go-type-skip-optional-pointer: true
             description:
               description: >
                 the description of the channel.
@@ -624,10 +571,13 @@ components:
               xml:
                 name: item
               x-oapi-codegen-extra-tags:
-                json: "item,omitempty"
                 xml: "item,omitempty"
                 validate: "omitempty,dive,unique"
               x-go-type-skip-optional-pointer: true
+            MediaContent:
+              $ref: "media-rss.yaml#/components/schemas/MediaContent"
+            MediaGroup:
+              $ref: "media-rss.yaml#/components/schemas/MediaGroup"
             extensions:
               description: >
                 records any elements that are unknown extensions to the schema.
@@ -646,33 +596,17 @@ components:
         omitted. All elements of an item are optional, however at least one of title or description must be present.
       allOf:
         - $ref: "#/components/schemas/DublinCore"
+        - $ref: "media-rss.yaml#/components/schemas/MediaElements"
         - type: object
           x-oapi-codegen-extra-tags:
             xml: "item"
           properties:
             title:
-              description: >
-                is the title of the item.
-              allOf:
-                - $ref: "#/components/schemas/Title"
-              x-oapi-codegen-extra-tags:
-                xml: "title,omitempty"
-            links:
-              description: >
-                is a list of links related to the item.
-              type: array
-              items:
-                $ref: "#/components/schemas/Link"
-              x-oapi-codegen-extra-tags:
-                xml: "link,omitempty"
-              x-go-type-skip-optional-pointer: true
+              $ref: "#/components/schemas/Title"
+            link:
+              $ref: "#/components/schemas/Link"
             description:
-              description: >
-                is the description of the item.
-              allOf:
-                - $ref: "#/components/schemas/Description"
-              x-oapi-codegen-extra-tags:
-                xml: "description"
+              $ref: "#/components/schemas/Description"
             author:
               $ref: "#/components/schemas/Author"
             categories:
@@ -684,7 +618,6 @@ components:
               xml:
                 name: category
               x-oapi-codegen-extra-tags:
-                json: "category,omitempty"
                 xml: "category,omitempty"
                 validate: "omitempty,dive,unique"
               x-go-type-skip-optional-pointer: true
@@ -702,19 +635,10 @@ components:
               $ref: "#/components/schemas/Image"
             ContentEncoded:
               $ref: "rdf.yaml#/components/schemas/ContentEncoded"
-            content:
-              description: >
-                is a list of RSS media content elements.
-              type: array
-              items:
-                $ref: "media-rss.yaml#/components/schemas/Content"
-              xml:
-                name: content
-              x-oapi-codegen-extra-tags:
-                json: "content,omitempty"
-                xml: "content,omitempty"
-                validate: "omitempty,dive,unique"
-              x-go-type-skip-optional-pointer: true
+            MediaContent:
+              $ref: "media-rss.yaml#/components/schemas/MediaContent"
+            MediaGroup:
+              $ref: "media-rss.yaml#/components/schemas/MediaGroup"
             extensions:
               description: >
                 records any elements that are unknown extensions to the schema.
@@ -747,6 +671,10 @@ components:
             xml: "version,attr"
           xml:
             attribute: true
+        # content:
+        #   x-go-type: string
+        #   x-oapi-codegen-extra-tags:
+        #     xml: "http://purl.org/rss/1.0/modules/content/ xmlns:content,attr"
         attributes:
           type: array
           items:
@@ -755,4 +683,5 @@ components:
             xml: ",any,attr"
             json: "attributes"
           x-go-type-skip-optional-pointer: true
-
+      x-oapi-codegen-extra-tags:
+        xml: "rss"

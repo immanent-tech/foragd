@@ -3,9 +3,9 @@
 openapi: "3.0.3"
 info:
   version: 1.0.0
-  title: Common Feed Types
+  title: Common Types
   description: >
-    Some common or shared types across schemas
+    Common/shared types across schemas.
   license:
     name: AGPL-3.0-or-later
     url: https://spdx.org/licenses/AGPL-3.0-only.html
@@ -51,16 +51,16 @@ components:
           $ref: "#/components/schemas/XMLName"
         value:
           $ref: "#/components/schemas/OptionalValue"
-        attributes:
-          description: >
-            are any attributes of the extension element.
-          type: array
-          items:
-            x-go-type: xml.Attr
-          x-oapi-codegen-extra-tags:
-            xml: ",any,attr"
-            json: "attributes"
-          x-go-type-skip-optional-pointer: true
+        # attributes:
+        #   description: >
+        #     are any attributes of the extension element.
+        #   type: array
+        #   items:
+        #     x-go-type: xml.Attr
+        #   x-oapi-codegen-extra-tags:
+        #     xml: ",any,attr"
+        #     json: "attributes"
+        #   x-go-type-skip-optional-pointer: true
         extensions:
           descriptions: >
             is any child extensions.

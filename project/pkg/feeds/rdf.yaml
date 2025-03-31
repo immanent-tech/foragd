@@ -5,11 +5,15 @@ info:
   version: 1.0.0
   title: RSS 1.0
   description: >
-    RDF Site Summary (RSS) 1.0 specification as openapi schema.
+    RDF Site Summary (RSS) 1.0 OpenAPI schema.
 
     Includes Syndication and Content modules.
 
     https://web.resource.org/rss/1.0/
+
+    https://web.resource.org/rss/1.0/modules/syndication/
+
+    http://purl.org/rss/1.0/modules/content/
   license:
     name: AGPL-3.0-or-later
     url: https://spdx.org/licenses/AGPL-3.0-only.html
@@ -30,8 +34,8 @@ components:
           $ref: "types.yaml#/components/schemas/RequiredValue"
       x-oapi-codegen-extra-tags:
         json: "content_encoded,omitempty"
-        xml: "encoded,omitempty"
-    UpdatePeriod:
+        xml: "http://purl.org/rss/1.0/modules/content/ encoded,omitempty"
+    SYUpdatePeriod:
       description: >
          is the period over which the channel format is updated.
       type: object
@@ -50,23 +54,23 @@ components:
             xml: ",chardata"
             validate: "required,oneof=hourly daily weekly monthly yearly"
       x-oapi-codegen-extra-tags:
-        json: "updatePeriod,omitempty"
-        xml: "updatePeriod,omitempty"
-    UpdateFrequency:
+        json: "sy_updatePeriod,omitempty"
+        xml: "http://purl.org/rss/1.0/modules/syndication/ updatePeriod,omitempty"
+    SYUpdateFrequency:
       description: >
         describes the frequency of updates in relation to the update period.
       type: integer
       minimum: 1
       default: 1
       x-oapi-codegen-extra-tags:
-        json: "updateFrequency,omitempty"
-        xml: "updateFrequency,omitempty"
+        json: "sy_updateFrequency,omitempty"
+        xml: "http://purl.org/rss/1.0/modules/syndication/ updateFrequency,omitempty"
         validate: "omitempty,number,gte=1"
-    UpdateBase:
+    SYUpdateBase:
       description: >
         is a base date to be used in concert with updatePeriod and updateFrequency to calculate the publishing schedule.
       allOf:
-        - $ref: "dc.yaml#/components/schemas/Date"
+        - $ref: "dc.yaml#/components/schemas/DCDate"
       x-oapi-codegen-extra-tags:
-        json: "updateBase,omitempty"
-        xml: "updateBase,omitempty"
+        json: "sy_updateBase,omitempty"
+        xml: "http://purl.org/rss/1.0/modules/syndication/ updateBase,omitempty"

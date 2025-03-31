@@ -5,27 +5,14 @@ package feeds
 
 import (
 	"errors"
-	"time"
+
+	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
 var ErrInvalidFormat = errors.New("invalid data format")
 
-type Metadata interface{}
-
-type Item interface{}
-
-type Feed interface {
-	GetTitle() string
-	GetGenerator() string
-	GetHomepage() string
-	GetSourceURL() string
-	GetCopyright() string
-	GetLastUpdated() time.Time
-	// Items() []Item
-}
-
-type Object struct {
-	Feed
+type NamespacedElement interface {
+	GetNamespace() types.NameSpace
 }
 
 // // FromAtomFeed overwrites any union data inside the Feed as the provided AtomFeed.

@@ -8,7 +8,7 @@ info:
   version: 1.0.0
   title: Atom
   description: >
-    Atom specification as openapi schema
+    Atom OpenAPI schema.
 
     https://www.rfc-editor.org/rfc/rfc4287
   license:

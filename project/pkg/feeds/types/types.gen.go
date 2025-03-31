@@ -16,10 +16,7 @@ const (
 // Extension defines model for Extension.
 type Extension struct {
 	// XMLName represents the XML namespace of an element.
-	XMLName XMLName `json:"xml" validate:"required"`
-
-	// Attributes are any attributes of the extension element.
-	Attributes []xml.Attr  `json:"attributes" xml:",any,attr"`
+	XMLName    XMLName     `json:"xml" validate:"required"`
 	Extensions []Extension `json:"extensions,omitempty" xml:",any"`
 
 	// Value is an element value that is optional.

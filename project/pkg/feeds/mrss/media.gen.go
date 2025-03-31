@@ -14,10 +14,44 @@ const (
 	Sample  Expression = "sample"
 )
 
-// Defines values for HashAlgo.
+// Defines values for MediaHashAlgo.
 const (
-	Md5  HashAlgo = "md5"
-	Sha1 HashAlgo = "sha-1"
+	Md5  MediaHashAlgo = "md5"
+	Sha1 MediaHashAlgo = "sha-1"
+)
+
+// Defines values for MediaPriceType.
+const (
+	Package      MediaPriceType = "package"
+	Purchase     MediaPriceType = "purchase"
+	Rent         MediaPriceType = "rent"
+	Subscription MediaPriceType = "subscription"
+)
+
+// Defines values for MediaRestrictionRelationship.
+const (
+	Allow MediaRestrictionRelationship = "allow"
+	Deny  MediaRestrictionRelationship = "deny"
+)
+
+// Defines values for MediaRestrictionType.
+const (
+	Country MediaRestrictionType = "country"
+	Sharing MediaRestrictionType = "sharing"
+	Uri     MediaRestrictionType = "uri"
+)
+
+// Defines values for MediaRightsStatus.
+const (
+	Official    MediaRightsStatus = "official"
+	UserCreated MediaRightsStatus = "userCreated"
+)
+
+// Defines values for MediaStatusState.
+const (
+	Active  MediaStatusState = "active"
+	Blocked MediaStatusState = "blocked"
+	Deleted MediaStatusState = "deleted"
 )
 
 // Defines values for Medium.
@@ -29,48 +63,47 @@ const (
 	Video      Medium = "video"
 )
 
-// Defines values for PriceType.
-const (
-	Package      PriceType = "package"
-	Purchase     PriceType = "purchase"
-	Rent         PriceType = "rent"
-	Subscription PriceType = "subscription"
-)
-
-// Defines values for RestrictionRelationship.
-const (
-	Allow RestrictionRelationship = "allow"
-	Deny  RestrictionRelationship = "deny"
-)
-
-// Defines values for RestrictionType.
-const (
-	Country RestrictionType = "country"
-	Sharing RestrictionType = "sharing"
-	Uri     RestrictionType = "uri"
-)
-
-// Defines values for RightsStatus.
-const (
-	Official    RightsStatus = "official"
-	UserCreated RightsStatus = "userCreated"
-)
-
-// Defines values for StatusState.
-const (
-	Active  StatusState = "active"
-	Blocked StatusState = "blocked"
-	Deleted StatusState = "deleted"
-)
-
 // Defines values for TextType.
 const (
 	Html  TextType = "html"
 	Plain TextType = "plain"
 )
 
-// Backlink is a backlink pointing to the media object.
-type Backlink struct {
+// Bitrate is the kilobits per second rate of media.
+type Bitrate = int
+
+// Channels is number of audio channels in the media object.
+type Channels = int
+
+// Duration is the number of seconds the media object plays.
+type Duration = int
+
+// Expression determines if the object is a sample or the full version of the object, or even if it is a continuous stream.
+type Expression string
+
+// FileSize is the number of bytes of the media object.
+type FileSize = int
+
+// Framerate is the number of frames per second for the media object.
+type Framerate = int
+
+// Height is the height of the media object.
+type Height = int
+
+// Href should specify the direct URL to the media object.
+type Href = string
+
+// IsDefault determines if this is the default object that should be used for the <media:group>.
+type IsDefault = bool
+
+// Label is the human readable label that can be displayed in end user applications.
+type Label = string
+
+// Lang is the primary language encapsulated in the media object. Language codes possible are detailed in RFC 3066.
+type Lang = string
+
+// MediaBacklink is a backlink pointing to the media object.
+type MediaBacklink struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -78,14 +111,11 @@ type Backlink struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Backlinks allows inclusion of all the URLs pointing to a media object.
-type Backlinks = []Backlink
+// MediaBacklinks allows inclusion of all the URLs pointing to a media object.
+type MediaBacklinks = []MediaBacklink
 
-// Bitrate is the kilobits per second rate of media.
-type Bitrate = int
-
-// Category allows a taxonomy to be set that gives an indication of the type of media content, and its particular contents.
-type Category struct {
+// MediaCategory allows a taxonomy to be set that gives an indication of the type of media content, and its particular contents.
+type MediaCategory struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -96,11 +126,8 @@ type Category struct {
 	Scheme *Scheme `json:"scheme,omitempty" validate:"omitempty,uri" xml:"scheme,attr,omitempty"`
 }
 
-// Channels is number of audio channels in the media object.
-type Channels = int
-
-// Comment is a comments a media object has received.
-type Comment struct {
+// MediaComment is a comments a media object has received.
+type MediaComment struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -108,25 +135,23 @@ type Comment struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Comments is a list of comments the media object has received.
-type Comments struct {
-	Comments []Comment `json:"comments,omitempty"`
-}
+// MediaComments is a list of comments the media object has received.
+type MediaComments = []MediaComment
 
-// Community stands for the community related content. This allows inclusion of the user perception about a media object in the form of view count, ratings and tags.
-type Community struct {
+// MediaCommunity stands for the community related content. This allows inclusion of the user perception about a media object in the form of view count, ratings and tags.
+type MediaCommunity struct {
 	// StarRating specifies the rating-related information about a media object.
-	StarRating *CommunityStarRating `json:"starRating,omitemtpy" xml:"starRating,omitemtpy"`
+	StarRating *MediaCommunityStarRating `json:"starRating,omitemtpy" xml:"http://search.yahoo.com/mrss/ starRating,omitemtpy"`
 
 	// Statistics specifies various statistics about a media object like the view count and the favorite count.
-	Statistics *CommunityStatistics `json:"statistics,omitemtpy" xml:"statistics,omitemtpy"`
+	Statistics *MediaCommunityStatistics `json:"statistics,omitemtpy" xml:"http://search.yahoo.com/mrss/ statistics,omitemtpy"`
 
 	// Tags contains user-generated tags separated by commas in the decreasing order of each tag's weight. Each tag can be assigned an integer weight in tag_name:weight format. It's up to the provider to choose the way weight is determined for a tag; for example, number of occurences can be one way to decide weight of a particular tag.
-	Tags *CommunityTags `json:"tags,omitemtpy" xml:"tags,omitemtpy"`
+	Tags *MediaCommunityTags `json:"tags,omitemtpy" xml:"http://search.yahoo.com/mrss/ tags,omitemtpy"`
 }
 
-// CommunityStarRating specifies the rating-related information about a media object.
-type CommunityStarRating struct {
+// MediaCommunityStarRating specifies the rating-related information about a media object.
+type MediaCommunityStarRating struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 	Average float32              `json:"average" xml:"average,attr"`
@@ -135,16 +160,16 @@ type CommunityStarRating struct {
 	Min     float32              `json:"min" xml:"min,attr"`
 }
 
-// CommunityStatistics specifies various statistics about a media object like the view count and the favorite count.
-type CommunityStatistics struct {
+// MediaCommunityStatistics specifies various statistics about a media object like the view count and the favorite count.
+type MediaCommunityStatistics struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName   externalRef0.XMLName `json:"xml" validate:"required"`
 	Favorites int                  `json:"favorites" xml:"favorites,attr"`
 	Views     int                  `json:"views" xml:"views,attr"`
 }
 
-// CommunityTags contains user-generated tags separated by commas in the decreasing order of each tag's weight. Each tag can be assigned an integer weight in tag_name:weight format. It's up to the provider to choose the way weight is determined for a tag; for example, number of occurences can be one way to decide weight of a particular tag.
-type CommunityTags struct {
+// MediaCommunityTags contains user-generated tags separated by commas in the decreasing order of each tag's weight. Each tag can be assigned an integer weight in tag_name:weight format. It's up to the provider to choose the way weight is determined for a tag; for example, number of occurences can be one way to decide weight of a particular tag.
+type MediaCommunityTags struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -152,43 +177,40 @@ type CommunityTags struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Content can be used to publish any type of media.
-type Content struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-
+// MediaContent can be used to publish any type of media.
+type MediaContent struct {
 	// BackLinks allows inclusion of all the URLs pointing to a media object.
-	BackLinks Backlinks `json:"backLinks,omitempty" xml:"backLinks,omitempty"`
+	BackLinks MediaBacklinks `json:"backLinks,omitempty" xml:"http://search.yahoo.com/mrss/ backLinks>backLink,omitempty"`
 
 	// Bitrate is the kilobits per second rate of media.
 	Bitrate *Bitrate `json:"bitrate,omitempty" xml:"bitrate,attr,omitempty"`
 
 	// Category allows a taxonomy to be set that gives an indication of the type of media content, and its particular contents.
-	Category *Category `json:"category,omitempty"`
+	Category *MediaCategory `json:"category,omitempty" xml:"http://search.yahoo.com/mrss/ category,omitempty"`
 
 	// Channels is number of audio channels in the media object.
 	Channels *Channels `json:"channels,omitempty" xml:"channels,attr,omitempty"`
 
 	// Comments is a list of comments the media object has received.
-	Comments *Comments `json:"comments,omitempty" xml:"comments,omitempty"`
+	Comments MediaComments `json:"comments,omitempty" xml:"http://search.yahoo.com/mrss/ comments>comment,omitempty"`
 
 	// Community stands for the community related content. This allows inclusion of the user perception about a media object in the form of view count, ratings and tags.
-	Community *Community `json:"community,omitempty" xml:"community,omitempty"`
+	Community *MediaCommunity `json:"community,omitempty" xml:"http://search.yahoo.com/mrss/ community,omitempty"`
 
 	// Copyright is copyright information for the media object.
-	Copyright *Copyright `json:"copyright,omitempty"`
+	Copyright *MediaCopyright `json:"copyright,omitempty" xml:"http://search.yahoo.com/mrss/ copyright,omitempty"`
 
 	// Credits a list of credits for the object.
-	Credits Credits `json:"credits,omitempty" xml:"credit,omitempty"`
+	Credits MediaCredits `json:"credits,omitempty" xml:"http://search.yahoo.com/mrss/ credits>credit,omitempty"`
 
 	// Description is a short description describing the media object typically a sentence in length.
-	Description *Description `json:"description,omitempty" xml:"description,omitempty"`
+	Description *MediaDescription `json:"description,omitempty" xml:"http://search.yahoo.com/mrss/ description,omitempty"`
 
 	// Duration is the number of seconds the media object plays.
 	Duration *Duration `json:"duration,omitempty" xml:"duration,attr,omitempty"`
 
 	// Embed allows inclusion of player-specific information in the form of key-value (Param) pairs.
-	Embed *Embed `json:"embed,omitempty" xml:"embed,omitempty"`
+	Embed *MediaEmbed `json:"embed,omitempty" xml:"http://search.yahoo.com/mrss/ embed,omitempty"`
 
 	// Expression determines if the object is a sample or the full version of the object, or even if it is a continuous stream.
 	Expression *Expression `json:"expression,omitempty" validate:"omitempty,oneof=sample full nonstop" xml:"expression,attr,omitempty"`
@@ -203,7 +225,7 @@ type Content struct {
 	Framerate *Framerate `json:"framerate,omitempty" xml:"framerate,attr,omitempty"`
 
 	// Hashes a list of hashes for the object.
-	Hashes Hashes `json:"hashes,omitempty" xml:"hash,omitempty"`
+	Hashes MediaHashes `json:"hashes,omitempty" xml:"http://search.yahoo.com/mrss/ hash,omitempty"`
 
 	// Height is the height of the media object.
 	Height *Height `json:"height,omitempty" validate:"omitempty,number" xml:"height,attr,omitempty"`
@@ -212,55 +234,58 @@ type Content struct {
 	IsDefault *IsDefault `json:"isDefault,omitempty" xml:"isDefault,attr,omitempty"`
 
 	// Keywords are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and phrases should be comma-delimited.
-	Keywords *Keywords `json:"keywords,omitempty" xml:"keywords,omitempty"`
+	Keywords *MediaKeywords `json:"keywords,omitempty" xml:"http://search.yahoo.com/mrss/ keywords,omitempty"`
 
 	// Lang is the primary language encapsulated in the media object. Language codes possible are detailed in RFC 3066.
 	Lang *Lang `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
 
 	// License link to specify the machine-readable license associated with the content.
-	License *License `json:"license,omitempty"`
+	License *MediaLicense `json:"license,omitempty" xml:"http://search.yahoo.com/mrss/ license,omitempty"`
 
 	// Medium is the type of object.
 	Medium *Medium `json:"medium,omitempty" validate:"omitempty,oneof=image audio video document executable" xml:"medium,attr,omitempty"`
 
+	// PeerLink contains P2P link.
+	PeerLink *MediaPeerLink `json:"peerLink,omitempty" xml:"http://search.yahoo.com/mrss/ peerLink,omitempty"`
+
 	// Player allows the media object to be accessed through a web browser media player console.
-	Player *Player `json:"player,omitempty"`
+	Player *MediaPlayer `json:"player,omitempty" xml:"http://search.yahoo.com/mrss/ player,omitempty"`
 
 	// Price includes pricing information about a media object. If this tag is not present, the media object is supposed to be free.
-	Price *Price `json:"price,omitempty"`
+	Price *MediaPrice `json:"price,omitempty" xml:"http://search.yahoo.com/mrss/ price,omitempty"`
 
 	// Rating allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions are necessary.
-	Rating *Rating `json:"rating,omitempty" xml:"rating,omitempty"`
+	Rating *MediaRating `json:"rating,omitempty" xml:"http://search.yahoo.com/mrss/ rating,omitempty"`
 
 	// Responses allows inclusion of a list of all media responses a media object has received.
-	Responses Responses `json:"responses,omitempty" xml:"responses,omitempty"`
+	Responses MediaResponses `json:"responses,omitempty" xml:"http://search.yahoo.com/mrss/ responses>response,omitempty"`
 
 	// Restriction allows restrictions to be placed on the aggregator rendering the media in the feed.
-	Restriction *Restriction `json:"restriction,omitempty"`
+	Restriction *MediaRestriction `json:"restriction,omitempty" xml:"http://search.yahoo.com/mrss/ restriction,omitempty"`
 
 	// Rights specifies the rights information of a media object.
-	Rights *Rights `json:"rights,omitempty"`
+	Rights *MediaRights `json:"rights,omitempty" xml:"http://search.yahoo.com/mrss/ rights,omitempty"`
 
 	// Samplingrate is the number of samples per second taken to create the media object. It is expressed in thousands of samples per second (kHz).
 	Samplingrate *Samplerate `json:"samplingrate,omitempty" xml:"samplingrate,attr,omitempty"`
 
 	// Scenes specifies various scenes within a media object.
-	Scenes Scenes `json:"scenes,omitempty" xml:"scenes,omitempty"`
+	Scenes MediaScenes `json:"scenes,omitempty" xml:"http://search.yahoo.com/mrss/ scenes>scene,omitempty"`
 
 	// Status specifies the status of a media object -- whether it's still active or it has been blocked/deleted.
-	Status *Status `json:"status,omitempty"`
+	Status *MediaStatus `json:"status,omitempty" xml:"http://search.yahoo.com/mrss/ status,omitempty"`
 
-	// Subtitle contains subtitle/CC link.
-	Subtitle *Subtitle `json:"subtitle,omitempty"`
+	// SubTitle contains subtitle/CC link.
+	SubTitle *MediaSubTitle `json:"subTitle,omitempty" xml:"http://search.yahoo.com/mrss/ subTitle,omitempty"`
 
 	// Texts a list of texts for the object.
-	Texts Texts `json:"texts,omitempty" xml:"text,omitempty"`
+	Texts MediaTexts `json:"texts,omitempty" xml:"http://search.yahoo.com/mrss/ texts>text,omitempty"`
 
 	// Thumbnails a list of thumbnails for the object.
-	Thumbnails Thumbnails `json:"thumbnails,omitempty" xml:"thumbnail,omitempty"`
+	Thumbnails MediaThumbnails `json:"thumbnails,omitempty" xml:"http://search.yahoo.com/mrss/ thumbnails>thumbnail,omitempty"`
 
 	// Title is the title of the particular media object.
-	Title *Title `json:"title,omitempty" xml:"title,omitempty"`
+	Title *MediaTitle `json:"title,omitempty" xml:"http://search.yahoo.com/mrss/ title,omitempty"`
 
 	// Type is the standard MIME type of the object.
 	Type *MimeType `json:"type,omitempty" xml:"type,attr,omitempty"`
@@ -272,8 +297,8 @@ type Content struct {
 	Width *Width `json:"width,omitempty" validate:"omitempty,number" xml:"width,attr,omitempty"`
 }
 
-// Copyright is copyright information for the media object.
-type Copyright struct {
+// MediaCopyright is copyright information for the media object.
+type MediaCopyright struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -284,8 +309,8 @@ type Copyright struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Credit Notable entity and the contribution to the creation of the media object. Current entities can include people, companies, locations, etc. Specific entities can have multiple roles, and several entities can have the same role.
-type Credit struct {
+// MediaCredit Notable entity and the contribution to the creation of the media object. Current entities can include people, companies, locations, etc. Specific entities can have multiple roles, and several entities can have the same role.
+type MediaCredit struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -299,11 +324,11 @@ type Credit struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Credits a list of credits for the object.
-type Credits = []Credit
+// MediaCredits a list of credits for the object.
+type MediaCredits = []MediaCredit
 
-// Description is a short description describing the media object typically a sentence in length.
-type Description struct {
+// MediaDescription is a short description describing the media object typically a sentence in length.
+type MediaDescription struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -314,11 +339,83 @@ type Description struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Duration is the number of seconds the media object plays.
-type Duration = int
+// MediaElements is the list of optional elements that can be sub-elements of <media:group>, <media:content>, <channel> or <item> elements.
+type MediaElements struct {
+	// MediaBackLinks allows inclusion of all the URLs pointing to a media object.
+	MediaBackLinks MediaBacklinks `json:"backLinks,omitempty" xml:"http://search.yahoo.com/mrss/ backLinks>backLink,omitempty"`
 
-// Embed defines model for Embed.
-type Embed struct {
+	// MediaCategory allows a taxonomy to be set that gives an indication of the type of media content, and its particular contents.
+	MediaCategory *MediaCategory `json:"MediaCategory,omitempty" xml:"http://search.yahoo.com/mrss/ category,omitempty"`
+
+	// MediaComments is a list of comments the media object has received.
+	MediaComments MediaComments `json:"MediaComments,omitempty" xml:"http://search.yahoo.com/mrss/ comments>comment,omitempty"`
+
+	// MediaCommunity stands for the community related content. This allows inclusion of the user perception about a media object in the form of view count, ratings and tags.
+	MediaCommunity *MediaCommunity `json:"MediaCommunity,omitempty" xml:"http://search.yahoo.com/mrss/ community,omitempty"`
+
+	// MediaCopyright is copyright information for the media object.
+	MediaCopyright *MediaCopyright `json:"MediaCopyright,omitempty" xml:"http://search.yahoo.com/mrss/ copyright,omitempty"`
+
+	// MediaCredits a list of credits for the object.
+	MediaCredits MediaCredits `json:"MediaCredits,omitempty" xml:"http://search.yahoo.com/mrss/ credits>credit,omitempty"`
+
+	// MediaDescription is a short description describing the media object typically a sentence in length.
+	MediaDescription *MediaDescription `json:"MediaDescription,omitempty" xml:"http://search.yahoo.com/mrss/ description,omitempty"`
+
+	// MediaEmbed allows inclusion of player-specific information in the form of key-value (Param) pairs.
+	MediaEmbed *MediaEmbed `json:"MediaEmbed,omitempty" xml:"http://search.yahoo.com/mrss/ embed,omitempty"`
+
+	// MediaHashes a list of hashes for the object.
+	MediaHashes MediaHashes `json:"MediaHashes,omitempty" xml:"http://search.yahoo.com/mrss/ hash,omitempty"`
+
+	// MediaKeywords are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and phrases should be comma-delimited.
+	MediaKeywords *MediaKeywords `json:"MediaKeywords,omitempty" xml:"http://search.yahoo.com/mrss/ keywords,omitempty"`
+
+	// MediaLicense link to specify the machine-readable license associated with the content.
+	MediaLicense *MediaLicense `json:"MediaLicense,omitempty" xml:"http://search.yahoo.com/mrss/ license,omitempty"`
+
+	// MediaPeerLink contains P2P link.
+	MediaPeerLink *MediaPeerLink `json:"MediaPeerLink,omitempty" xml:"http://search.yahoo.com/mrss/ peerLink,omitempty"`
+
+	// MediaPlayer allows the media object to be accessed through a web browser media player console.
+	MediaPlayer *MediaPlayer `json:"MediaPlayer,omitempty" xml:"http://search.yahoo.com/mrss/ player,omitempty"`
+
+	// MediaPrice includes pricing information about a media object. If this tag is not present, the media object is supposed to be free.
+	MediaPrice *MediaPrice `json:"MediaPrice,omitempty" xml:"http://search.yahoo.com/mrss/ price,omitempty"`
+
+	// MediaRating allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions are necessary.
+	MediaRating *MediaRating `json:"MediaRating,omitempty" xml:"http://search.yahoo.com/mrss/ rating,omitempty"`
+
+	// MediaResponses allows inclusion of a list of all media responses a media object has received.
+	MediaResponses MediaResponses `json:"MediaResponses,omitempty" xml:"http://search.yahoo.com/mrss/ responses>response,omitempty"`
+
+	// MediaRestriction allows restrictions to be placed on the aggregator rendering the media in the feed.
+	MediaRestriction *MediaRestriction `json:"MediaRestriction,omitempty" xml:"http://search.yahoo.com/mrss/ restriction,omitempty"`
+
+	// MediaRights specifies the rights information of a media object.
+	MediaRights *MediaRights `json:"MediaRights,omitempty" xml:"http://search.yahoo.com/mrss/ rights,omitempty"`
+
+	// MediaScenes specifies various scenes within a media object.
+	MediaScenes MediaScenes `json:"MediaScenes,omitempty" xml:"http://search.yahoo.com/mrss/ scenes>scene,omitempty"`
+
+	// MediaStatus specifies the status of a media object -- whether it's still active or it has been blocked/deleted.
+	MediaStatus *MediaStatus `json:"MediaStatus,omitempty" xml:"http://search.yahoo.com/mrss/ status,omitempty"`
+
+	// MediaSubTitle contains subtitle/CC link.
+	MediaSubTitle *MediaSubTitle `json:"subTitle,omitempty" xml:"http://search.yahoo.com/mrss/ subTitle,omitempty"`
+
+	// MediaTexts a list of texts for the object.
+	MediaTexts MediaTexts `json:"MediaTexts,omitempty" xml:"http://search.yahoo.com/mrss/ texts>text,omitempty"`
+
+	// MediaThumbnails a list of thumbnails for the object.
+	MediaThumbnails MediaThumbnails `json:"MediaThumbnails,omitempty" xml:"http://search.yahoo.com/mrss/ thumbnails>thumbnail,omitempty"`
+
+	// MediaTitle is the title of the particular media object.
+	MediaTitle *MediaTitle `json:"MediaTitle,omitempty" xml:"http://search.yahoo.com/mrss/ title,omitempty"`
+}
+
+// MediaEmbed defines model for MediaEmbed.
+type MediaEmbed struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -326,62 +423,50 @@ type Embed struct {
 	Height *Height `json:"height,omitempty" validate:"omitempty,number" xml:"height,attr,omitempty"`
 
 	// Params is a list of player-specific parameters.
-	Params []Param `json:"param,omitempty" xml:"param,omitempty"`
-	Url    URL     `json:"url" validate:"required,url" xml:"url,attr"`
+	Params []MediaParam `json:"param,omitempty" xml:"http://search.yahoo.com/mrss/ param,omitempty"`
+	Url    URL          `json:"url" validate:"required,url" xml:"url,attr"`
 
 	// Width is the height of the media object.
 	Width *Width `json:"width,omitempty" validate:"omitempty,number" xml:"width,attr,omitempty"`
 }
 
-// Expression determines if the object is a sample or the full version of the object, or even if it is a continuous stream.
-type Expression string
-
-// FileSize is the number of bytes of the media object.
-type FileSize = int
-
-// Framerate is the number of frames per second for the media object.
-type Framerate = int
-
-// Group defines model for Group.
-type Group struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-
+// MediaGroup defines model for MediaGroup.
+type MediaGroup struct {
 	// BackLinks allows inclusion of all the URLs pointing to a media object.
-	BackLinks Backlinks `json:"backLinks,omitempty" xml:"backLinks,omitempty"`
+	BackLinks MediaBacklinks `json:"backLinks,omitempty" xml:"http://search.yahoo.com/mrss/ backLinks>backLink,omitempty"`
 
 	// Bitrate is the kilobits per second rate of media.
 	Bitrate *Bitrate `json:"bitrate,omitempty" xml:"bitrate,attr,omitempty"`
 
 	// Category allows a taxonomy to be set that gives an indication of the type of media content, and its particular contents.
-	Category *Category `json:"category,omitempty"`
+	Category *MediaCategory `json:"category,omitempty" xml:"http://search.yahoo.com/mrss/ category,omitempty"`
 
 	// Channels is number of audio channels in the media object.
 	Channels *Channels `json:"channels,omitempty" xml:"channels,attr,omitempty"`
 
 	// Comments is a list of comments the media object has received.
-	Comments *Comments `json:"comments,omitempty" xml:"comments,omitempty"`
+	Comments MediaComments `json:"comments,omitempty" xml:"http://search.yahoo.com/mrss/ comments>comment,omitempty"`
 
 	// Community stands for the community related content. This allows inclusion of the user perception about a media object in the form of view count, ratings and tags.
-	Community *Community `json:"community,omitempty" xml:"community,omitempty"`
+	Community *MediaCommunity `json:"community,omitempty" xml:"http://search.yahoo.com/mrss/ community,omitempty"`
 
-	// Content is the list of <media:content> elements
-	Content []Content `json:"content,omitempty" validate:"omitempty,dive,unique" xml:"content,omitempty"`
+	// Contents is the list of <media:content> elements
+	Contents []MediaContent `json:"media_contents,omitempty" validate:"omitempty,dive,unique" xml:"http://search.yahoo.com/mrss/ content,omitempty"`
 
 	// Copyright is copyright information for the media object.
-	Copyright *Copyright `json:"copyright,omitempty"`
+	Copyright *MediaCopyright `json:"copyright,omitempty" xml:"http://search.yahoo.com/mrss/ copyright,omitempty"`
 
 	// Credits a list of credits for the object.
-	Credits Credits `json:"credits,omitempty" xml:"credit,omitempty"`
+	Credits MediaCredits `json:"credits,omitempty" xml:"http://search.yahoo.com/mrss/ credits>credit,omitempty"`
 
 	// Description is a short description describing the media object typically a sentence in length.
-	Description *Description `json:"description,omitempty" xml:"description,omitempty"`
+	Description *MediaDescription `json:"description,omitempty" xml:"http://search.yahoo.com/mrss/ description,omitempty"`
 
 	// Duration is the number of seconds the media object plays.
 	Duration *Duration `json:"duration,omitempty" xml:"duration,attr,omitempty"`
 
 	// Embed allows inclusion of player-specific information in the form of key-value (Param) pairs.
-	Embed *Embed `json:"embed,omitempty" xml:"embed,omitempty"`
+	Embed *MediaEmbed `json:"embed,omitempty" xml:"http://search.yahoo.com/mrss/ embed,omitempty"`
 
 	// Expression determines if the object is a sample or the full version of the object, or even if it is a continuous stream.
 	Expression *Expression `json:"expression,omitempty" validate:"omitempty,oneof=sample full nonstop" xml:"expression,attr,omitempty"`
@@ -396,7 +481,7 @@ type Group struct {
 	Framerate *Framerate `json:"framerate,omitempty" xml:"framerate,attr,omitempty"`
 
 	// Hashes a list of hashes for the object.
-	Hashes Hashes `json:"hashes,omitempty" xml:"hash,omitempty"`
+	Hashes MediaHashes `json:"hashes,omitempty" xml:"http://search.yahoo.com/mrss/ hash,omitempty"`
 
 	// Height is the height of the media object.
 	Height *Height `json:"height,omitempty" validate:"omitempty,number" xml:"height,attr,omitempty"`
@@ -405,55 +490,58 @@ type Group struct {
 	IsDefault *IsDefault `json:"isDefault,omitempty" xml:"isDefault,attr,omitempty"`
 
 	// Keywords are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and phrases should be comma-delimited.
-	Keywords *Keywords `json:"keywords,omitempty" xml:"keywords,omitempty"`
+	Keywords *MediaKeywords `json:"keywords,omitempty" xml:"http://search.yahoo.com/mrss/ keywords,omitempty"`
 
 	// Lang is the primary language encapsulated in the media object. Language codes possible are detailed in RFC 3066.
 	Lang *Lang `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
 
 	// License link to specify the machine-readable license associated with the content.
-	License *License `json:"license,omitempty"`
+	License *MediaLicense `json:"license,omitempty" xml:"http://search.yahoo.com/mrss/ license,omitempty"`
 
 	// Medium is the type of object.
 	Medium *Medium `json:"medium,omitempty" validate:"omitempty,oneof=image audio video document executable" xml:"medium,attr,omitempty"`
 
+	// PeerLink contains P2P link.
+	PeerLink *MediaPeerLink `json:"peerLink,omitempty" xml:"http://search.yahoo.com/mrss/ peerLink,omitempty"`
+
 	// Player allows the media object to be accessed through a web browser media player console.
-	Player *Player `json:"player,omitempty"`
+	Player *MediaPlayer `json:"player,omitempty" xml:"http://search.yahoo.com/mrss/ player,omitempty"`
 
 	// Price includes pricing information about a media object. If this tag is not present, the media object is supposed to be free.
-	Price *Price `json:"price,omitempty"`
+	Price *MediaPrice `json:"price,omitempty" xml:"http://search.yahoo.com/mrss/ price,omitempty"`
 
 	// Rating allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions are necessary.
-	Rating *Rating `json:"rating,omitempty" xml:"rating,omitempty"`
+	Rating *MediaRating `json:"rating,omitempty" xml:"http://search.yahoo.com/mrss/ rating,omitempty"`
 
 	// Responses allows inclusion of a list of all media responses a media object has received.
-	Responses Responses `json:"responses,omitempty" xml:"responses,omitempty"`
+	Responses MediaResponses `json:"responses,omitempty" xml:"http://search.yahoo.com/mrss/ responses>response,omitempty"`
 
 	// Restriction allows restrictions to be placed on the aggregator rendering the media in the feed.
-	Restriction *Restriction `json:"restriction,omitempty"`
+	Restriction *MediaRestriction `json:"restriction,omitempty" xml:"http://search.yahoo.com/mrss/ restriction,omitempty"`
 
 	// Rights specifies the rights information of a media object.
-	Rights *Rights `json:"rights,omitempty"`
+	Rights *MediaRights `json:"rights,omitempty" xml:"http://search.yahoo.com/mrss/ rights,omitempty"`
 
 	// Samplingrate is the number of samples per second taken to create the media object. It is expressed in thousands of samples per second (kHz).
 	Samplingrate *Samplerate `json:"samplingrate,omitempty" xml:"samplingrate,attr,omitempty"`
 
 	// Scenes specifies various scenes within a media object.
-	Scenes Scenes `json:"scenes,omitempty" xml:"scenes,omitempty"`
+	Scenes MediaScenes `json:"scenes,omitempty" xml:"http://search.yahoo.com/mrss/ scenes>scene,omitempty"`
 
 	// Status specifies the status of a media object -- whether it's still active or it has been blocked/deleted.
-	Status *Status `json:"status,omitempty"`
+	Status *MediaStatus `json:"status,omitempty" xml:"http://search.yahoo.com/mrss/ status,omitempty"`
 
-	// Subtitle contains subtitle/CC link.
-	Subtitle *Subtitle `json:"subtitle,omitempty"`
+	// SubTitle contains subtitle/CC link.
+	SubTitle *MediaSubTitle `json:"subTitle,omitempty" xml:"http://search.yahoo.com/mrss/ subTitle,omitempty"`
 
 	// Texts a list of texts for the object.
-	Texts Texts `json:"texts,omitempty" xml:"text,omitempty"`
+	Texts MediaTexts `json:"texts,omitempty" xml:"http://search.yahoo.com/mrss/ texts>text,omitempty"`
 
 	// Thumbnails a list of thumbnails for the object.
-	Thumbnails Thumbnails `json:"thumbnails,omitempty" xml:"thumbnail,omitempty"`
+	Thumbnails MediaThumbnails `json:"thumbnails,omitempty" xml:"http://search.yahoo.com/mrss/ thumbnails>thumbnail,omitempty"`
 
 	// Title is the title of the particular media object.
-	Title *Title `json:"title,omitempty" xml:"title,omitempty"`
+	Title *MediaTitle `json:"title,omitempty" xml:"http://search.yahoo.com/mrss/ title,omitempty"`
 
 	// Type is the standard MIME type of the object.
 	Type *MimeType `json:"type,omitempty" xml:"type,attr,omitempty"`
@@ -465,35 +553,26 @@ type Group struct {
 	Width *Width `json:"width,omitempty" validate:"omitempty,number" xml:"width,attr,omitempty"`
 }
 
-// Hash is the hash of the binary media file. Elements represents hashes in different alogrithms.
-type Hash struct {
+// MediaHash is the hash of the binary media file. Elements represents hashes in different alogrithms.
+type MediaHash struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
 	// Algo indicates the algorithm used to create the hash.
-	Algo *HashAlgo `json:"algo,omitempty" xml:"algo,attr,omitempty"`
+	Algo *MediaHashAlgo `json:"algo,omitempty" xml:"algo,attr,omitempty"`
 
 	// Value is an element value that is required.
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// HashAlgo indicates the algorithm used to create the hash.
-type HashAlgo string
+// MediaHashAlgo indicates the algorithm used to create the hash.
+type MediaHashAlgo string
 
-// Hashes a list of hashes for the object.
-type Hashes = []Hash
+// MediaHashes a list of hashes for the object.
+type MediaHashes = []MediaHash
 
-// Height is the height of the media object.
-type Height = int
-
-// Href should specify the direct URL to the media object.
-type Href = string
-
-// IsDefault determines if this is the default object that should be used for the <media:group>.
-type IsDefault = bool
-
-// Keywords are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and phrases should be comma-delimited.
-type Keywords struct {
+// MediaKeywords are highly relevant keywords describing the media object with typically a maximum of 10 words. The keywords and phrases should be comma-delimited.
+type MediaKeywords struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -501,14 +580,8 @@ type Keywords struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Label is the human readable label that can be displayed in end user applications.
-type Label = string
-
-// Lang is the primary language encapsulated in the media object. Language codes possible are detailed in RFC 3066.
-type Lang = int
-
-// License link to specify the machine-readable license associated with the content.
-type License struct {
+// MediaLicense link to specify the machine-readable license associated with the content.
+type MediaLicense struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -517,16 +590,13 @@ type License struct {
 
 	// Type specifies the type of text embedded in the element.
 	Type *TextType `json:"type,omitempty" validate:"omitempty,oneof=plain html" xml:"type,attr,omitempty"`
+
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Medium is the type of object.
-type Medium string
-
-// MimeType is the standard MIME type of the object.
-type MimeType = string
-
-// Param is a key-value pair that defines player-specific values for an Embed element.
-type Param struct {
+// MediaParam is a key-value pair that defines player-specific values for an Embed element.
+type MediaParam struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -537,8 +607,8 @@ type Param struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// PeerLink contains P2P link.
-type PeerLink struct {
+// MediaPeerLink contains P2P link.
+type MediaPeerLink struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -549,8 +619,8 @@ type PeerLink struct {
 	Type TextType `json:"type" validate:"omitempty,oneof=plain html" xml:"type,attr,omitempty"`
 }
 
-// Player allows the media object to be accessed through a web browser media player console.
-type Player struct {
+// MediaPlayer allows the media object to be accessed through a web browser media player console.
+type MediaPlayer struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -562,8 +632,8 @@ type Player struct {
 	Width *Width `json:"width,omitempty" validate:"omitempty,number" xml:"width,attr,omitempty"`
 }
 
-// Price includes pricing information about a media object. If this tag is not present, the media object is supposed to be free.
-type Price struct {
+// MediaPrice includes pricing information about a media object. If this tag is not present, the media object is supposed to be free.
+type MediaPrice struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -577,14 +647,14 @@ type Price struct {
 	Price *float32 `json:"price,omitempty" validate:"omitempty,numeric" xml:"price,attr,omitempty"`
 
 	// Type is the type of pricing for the media object.
-	Type *PriceType `json:"type,omitempty" validate:"omitempty,oneof=rent purchase package subscription" xml:"type,attr,omitempty"`
+	Type *MediaPriceType `json:"type,omitempty" validate:"omitempty,oneof=rent purchase package subscription" xml:"type,attr,omitempty"`
 }
 
-// PriceType is the type of pricing for the media object.
-type PriceType string
+// MediaPriceType is the type of pricing for the media object.
+type MediaPriceType string
 
-// Rating allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions are necessary.
-type Rating struct {
+// MediaRating allows the permissible audience to be declared. If this element is not included, it assumes that no restrictions are necessary.
+type MediaRating struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -595,8 +665,8 @@ type Rating struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Response is a response a media object has received.
-type Response struct {
+// MediaResponse is a response a media object has received.
+type MediaResponse struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -604,97 +674,55 @@ type Response struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// Responses allows inclusion of a list of all media responses a media object has received.
-type Responses = []Response
+// MediaResponses allows inclusion of a list of all media responses a media object has received.
+type MediaResponses = []MediaResponse
 
-// Restriction allows restrictions to be placed on the aggregator rendering the media in the feed.
-type Restriction struct {
+// MediaRestriction allows restrictions to be placed on the aggregator rendering the media in the feed.
+type MediaRestriction struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
 	// Relationship indicates the type of relationship that the restriction represents.
-	Relationship RestrictionRelationship `json:"relationship" xml:"relationship,attr"`
+	Relationship MediaRestrictionRelationship `json:"relationship" xml:"relationship,attr"`
 
 	// Type specifies the type of restriction.
-	Type *RestrictionType `json:"type,omitempty" xml:"sharing,attr,omitempty"`
+	Type *MediaRestrictionType `json:"type,omitempty" xml:"sharing,attr,omitempty"`
 
 	// Value is an element value that is required.
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// RestrictionRelationship indicates the type of relationship that the restriction represents.
-type RestrictionRelationship string
+// MediaRestrictionRelationship indicates the type of relationship that the restriction represents.
+type MediaRestrictionRelationship string
 
-// RestrictionType specifies the type of restriction.
-type RestrictionType string
+// MediaRestrictionType specifies the type of restriction.
+type MediaRestrictionType string
 
-// Rights specifies the rights information of a media object.
-type Rights struct {
+// MediaRights specifies the rights information of a media object.
+type MediaRights struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
 	// Status is the status of the media object saying whether a media object has been created by the publisher or they have rights to circulate it.
-	Status RightsStatus `json:"status" validate:"omitempty,oneof=userCreated official" xml:"status,attr"`
+	Status MediaRightsStatus `json:"status" validate:"omitempty,oneof=userCreated official" xml:"status,attr"`
 }
 
-// RightsStatus is the status of the media object saying whether a media object has been created by the publisher or they have rights to circulate it.
-type RightsStatus string
+// MediaRightsStatus is the status of the media object saying whether a media object has been created by the publisher or they have rights to circulate it.
+type MediaRightsStatus string
 
-// Samplerate is the number of samples per second taken to create the media object. It is expressed in thousands of samples per second (kHz).
-type Samplerate = int
-
-// Scene contains information about a particular scene.
-type Scene struct {
+// MediaScene contains information about a particular scene.
+type MediaScene struct {
 	SceneDescription *SceneDescription `json:"sceneDescription,omitempty" xml:"sceneDescription,omitempty"`
 	SceneEndTime     *SceneEndTime     `json:"sceneEndTime,omitempty" xml:"sceneEndTime,omitempty"`
 	SceneStartTime   *SceneStartTime   `json:"sceneStartTime,omitempty" xml:"sceneStartTime,omitempty"`
 	SceneTitle       *SceneTitle       `json:"sceneTitle,omitempty" xml:"sceneTitle,omitempty"`
 }
 
-// SceneDescription defines model for SceneDescription.
-type SceneDescription struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+// MediaScenes specifies various scenes within a media object.
+type MediaScenes = []MediaScene
 
-	// Value is an element value that is required.
-	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
-}
-
-// SceneEndTime defines model for SceneEndTime.
-type SceneEndTime struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-
-	// Value is an element value that is required.
-	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
-}
-
-// SceneStartTime defines model for SceneStartTime.
-type SceneStartTime struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-
-	// Value is an element value that is required.
-	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
-}
-
-// SceneTitle defines model for SceneTitle.
-type SceneTitle struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-
-	// Value is an element value that is required.
-	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
-}
-
-// Scenes specifies various scenes within a media object.
-type Scenes = []Scene
-
-// Scheme is the URI that identifies the scheme used by the element.
-type Scheme = string
-
-// Status specifies the status of a media object -- whether it's still active or it has been blocked/deleted.
-type Status struct {
+// MediaStatus specifies the status of a media object -- whether it's still active or it has been blocked/deleted.
+type MediaStatus struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -702,14 +730,14 @@ type Status struct {
 	Reason string `json:"reason" xml:"reason,attr"`
 
 	// State indicates the status.
-	State StatusState `json:"state" validate:"omitempty,oneof=active blocked deleted" xml:"state,attr"`
+	State MediaStatusState `json:"state" validate:"omitempty,oneof=active blocked deleted" xml:"state,attr"`
 }
 
-// StatusState indicates the status.
-type StatusState string
+// MediaStatusState indicates the status.
+type MediaStatusState string
 
-// Subtitle contains subtitle/CC link.
-type Subtitle struct {
+// MediaSubTitle contains subtitle/CC link.
+type MediaSubTitle struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -723,8 +751,8 @@ type Subtitle struct {
 	Type TextType `json:"type" validate:"omitempty,oneof=plain html" xml:"type,attr,omitempty"`
 }
 
-// Text allows the inclusion of a text transcript, closed captioning or lyrics of the media content.
-type Text struct {
+// MediaText allows the inclusion of a text transcript, closed captioning or lyrics of the media content.
+type MediaText struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -744,14 +772,11 @@ type Text struct {
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
-// TextType specifies the type of text embedded in the element.
-type TextType string
+// MediaTexts a list of texts for the object.
+type MediaTexts = []MediaText
 
-// Texts a list of texts for the object.
-type Texts = []Text
-
-// Thumbnail allows a particular images to be used as a representative image for the media object.
-type Thumbnail struct {
+// MediaThumbnail allows a particular images to be used as a representative image for the media object.
+type MediaThumbnail struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -766,11 +791,11 @@ type Thumbnail struct {
 	Width *Width `json:"width,omitempty" validate:"omitempty,number" xml:"width,attr,omitempty"`
 }
 
-// Thumbnails a list of thumbnails for the object.
-type Thumbnails = []Thumbnail
+// MediaThumbnails a list of thumbnails for the object.
+type MediaThumbnails = []MediaThumbnail
 
-// Title is the title of the particular media object.
-type Title struct {
+// MediaTitle is the title of the particular media object.
+type MediaTitle struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
@@ -780,6 +805,45 @@ type Title struct {
 	// Value is an element value that is required.
 	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
+
+// Medium is the type of object.
+type Medium string
+
+// MimeType is the standard MIME type of the object.
+type MimeType = string
+
+// Samplerate is the number of samples per second taken to create the media object. It is expressed in thousands of samples per second (kHz).
+type Samplerate = int
+
+// SceneDescription defines model for SceneDescription.
+type SceneDescription struct {
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// SceneEndTime defines model for SceneEndTime.
+type SceneEndTime struct {
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// SceneStartTime defines model for SceneStartTime.
+type SceneStartTime struct {
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// SceneTitle defines model for SceneTitle.
+type SceneTitle struct {
+	// Value is an element value that is required.
+	Value externalRef0.RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Scheme is the URI that identifies the scheme used by the element.
+type Scheme = string
+
+// TextType specifies the type of text embedded in the element.
+type TextType string
 
 // URL should specify the direct URL to the media object.
 type URL = string
