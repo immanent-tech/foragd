@@ -11,7 +11,12 @@ import (
 
 var ErrInvalidFormat = errors.New("invalid data format")
 
-type NamespacedElement interface {
+type Element[T any] interface {
+	GetValue() T
+}
+
+type NamespacedElement[T any] interface {
+	Element[T]
 	GetNamespace() types.NameSpace
 }
 

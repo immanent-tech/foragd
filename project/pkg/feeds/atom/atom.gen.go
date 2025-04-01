@@ -25,6 +25,12 @@ const (
 	TypeXhtml Type = "xhtml"
 )
 
+// Authors a list of persons who maintain authorship of the feed.
+type Authors = []PersonConstruct
+
+// Categories a list of categories associated with the feed.
+type Categories = []Category
+
 // Category defines model for Category.
 type Category struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
@@ -35,6 +41,9 @@ type Category struct {
 
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
 
 	// Label provides a human-readable label for display in end-user applications.
 	Label *xml.Attr `json:"label,omitempty" xml:"label,attr,omitempty"`
@@ -56,6 +65,9 @@ type CommonAttributes struct {
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
 }
 
 // Content defines model for Content.
@@ -66,6 +78,12 @@ type Content struct {
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
 
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+
 	// Source is an attribute that links to the source content.
 	Source *string `json:"src,omitempty" validate:"omitempty,uri" xml:"src,attr,omitempty"`
 
@@ -73,6 +91,9 @@ type Content struct {
 	Type  *Type   `json:"type,omitempty" validate:"omitempty,oneof=text html xhtml" xml:"type,attr,omitempty"`
 	Value *string `json:"value,omitempty" xml:",chardata"`
 }
+
+// Contributors a list of persons who contributed to the feed.
+type Contributors = []PersonConstruct
 
 // DateConstruct defines model for DateConstruct.
 type DateConstruct struct {
@@ -84,7 +105,10 @@ type DateConstruct struct {
 
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-	Value   DateTime             `json:"value" validate:"required,datetime" xml:",chardata"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+	Value      DateTime                `json:"value" validate:"required,datetime" xml:",chardata"`
 }
 
 // Email is an element that conveys an email address.
@@ -108,20 +132,26 @@ type Entry struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
-	// Author a list of persons who maintain authorship of the feed.
-	Author []PersonConstruct `json:"author,omitempty" xml:"author,omitempty"`
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
 
-	// Category a list of categories associated with the feed.
-	Category []Category `json:"category,omitempty" xml:"category,omitempty"`
+	// Authors a list of persons who maintain authorship of the feed.
+	Authors Authors `json:"authors,omitempty" xml:"author,omitempty"`
+
+	// Categories a list of categories associated with the feed.
+	Categories Categories `json:"categories,omitempty" xml:"category,omitempty"`
 
 	// Content either contains or links to the content of the entry.
 	Content *Content `json:"content,omitempty" xml:"content,omitempty"`
 
-	// Contributor a list of persons who contributed to the feed.
-	Contributor []PersonConstruct `json:"contributor,omitempty" xml:"contributor,omitempty"`
+	// Contributors a list of persons who contributed to the feed.
+	Contributors Contributors `json:"contributors,omitempty" xml:"contributor,omitempty"`
 
-	// Link defines a relationship between a web resource (such as a page) and an RSS channel or item.
-	Link *Link `json:"link,omitempty" xml:"link,omitempty"`
+	// Extensions records any elements that are unknown extensions to the schema.
+	Extensions externalRef0.Extensions `json:"extensions,omitempty" xml:",any"`
+
+	// Links a list of links associated with the feed.
+	Links Links `json:"links,omitempty" xml:"link,omitempty"`
 
 	// Published is an element of type Date construct indicating an instant in time associated with an event early in the life cycle of the entry.
 	Published *Published `json:"published,omitempty" xml:"published,omitempty"`
@@ -154,24 +184,31 @@ type Feed struct {
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
 
 	// XMLName represents the XML namespace of an element.
-	XMLName    externalRef0.XMLName `json:"xml" validate:"required"`
-	Attributes []xml.Attr           `json:"attributes" xml:",any,attr"`
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
-	// Author a list of persons who maintain authorship of the feed.
-	Author []PersonConstruct `json:"author,omitempty" xml:"author,omitempty"`
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
 
-	// Category a list of categories associated with the feed.
-	Category []Category `json:"category,omitempty" xml:"category,omitempty"`
+	// Authors a list of persons who maintain authorship of the feed.
+	Authors Authors `json:"authors,omitempty" xml:"author,omitempty"`
 
-	// Contributor a list of persons who contributed to the feed.
-	Contributor []PersonConstruct `json:"contributor,omitempty" xml:"contributor,omitempty"`
+	// Categories a list of categories associated with the feed.
+	Categories Categories `json:"categories,omitempty" xml:"category,omitempty"`
+
+	// Contributors a list of persons who contributed to the feed.
+	Contributors Contributors `json:"contributors,omitempty" xml:"contributor,omitempty"`
+
+	// Entries is the list of <entry> elements for the feed.
+	Entries []Entry `json:"entry,omitempty" xml:"entry,omitempty"`
+
+	// Extensions records any elements that are unknown extensions to the schema.
+	Extensions externalRef0.Extensions `json:"extensions,omitempty" xml:",any"`
 
 	// Generator is an element identifies the agent used to generate a feed.
 	Generator *Generator `json:"generator,omitempty" xml:"generator,omitempty"`
-	Item      []Entry    `json:"entry,omitempty" xml:"entry,omitempty"`
 
-	// Link defines a relationship between a web resource (such as a page) and an RSS channel or item.
-	Link *Link `json:"link,omitempty" xml:"link,omitempty"`
+	// Links a list of links associated with the feed.
+	Links Links `json:"links,omitempty" xml:"link,omitempty"`
 
 	// Logo is an element that contains a URI to an logo suitable for representing a feed.
 	Logo *Logo `json:"logo,omitempty" xml:"logo,omitempty"`
@@ -203,20 +240,23 @@ type FeedMetadata struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
 
-	// Author a list of persons who maintain authorship of the feed.
-	Author []PersonConstruct `json:"author,omitempty" xml:"author,omitempty"`
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
 
-	// Category a list of categories associated with the feed.
-	Category []Category `json:"category,omitempty" xml:"category,omitempty"`
+	// Authors a list of persons who maintain authorship of the feed.
+	Authors Authors `json:"authors,omitempty" xml:"author,omitempty"`
 
-	// Contributor a list of persons who contributed to the feed.
-	Contributor []PersonConstruct `json:"contributor,omitempty" xml:"contributor,omitempty"`
+	// Categories a list of categories associated with the feed.
+	Categories Categories `json:"categories,omitempty" xml:"category,omitempty"`
+
+	// Contributors a list of persons who contributed to the feed.
+	Contributors Contributors `json:"contributors,omitempty" xml:"contributor,omitempty"`
 
 	// Generator is an element identifies the agent used to generate a feed.
 	Generator *Generator `json:"generator,omitempty" xml:"generator,omitempty"`
 
-	// Link defines a relationship between a web resource (such as a page) and an RSS channel or item.
-	Link *Link `json:"link,omitempty" xml:"link,omitempty"`
+	// Links a list of links associated with the feed.
+	Links Links `json:"links,omitempty" xml:"link,omitempty"`
 
 	// Logo is an element that contains a URI to an logo suitable for representing a feed.
 	Logo *Logo `json:"logo,omitempty" xml:"logo,omitempty"`
@@ -244,7 +284,10 @@ type Generator struct {
 
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-	URI     *string              `json:"uri,omitempty" validate:"omitempty,uri" xml:"uri,attr,omitempty"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+	URI        *string                 `json:"uri,omitempty" validate:"omitempty,uri" xml:"uri,attr,omitempty"`
 
 	// Value is an element value that is optional.
 	Value   *externalRef0.OptionalValue `json:"value,omitempty" xml:",chardata"`
@@ -261,7 +304,10 @@ type ID struct {
 
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-	Value   string               `json:"value" validate:"required,uri" xml:",chardata"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+	Value      string                  `json:"value" validate:"required,uri" xml:",chardata"`
 }
 
 // Icon defines model for Icon.
@@ -274,7 +320,10 @@ type Icon struct {
 
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-	Value   string               `json:"value" validate:"required,uri" xml:",chardata"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+	Value      string                  `json:"value" validate:"required,uri" xml:",chardata"`
 }
 
 // Link defines model for Link.
@@ -287,6 +336,9 @@ type Link struct {
 
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
 
 	// Href contains the URL of the related resource.
 	Href string `json:"href" validate:"required,url" xml:"href,attr"`
@@ -311,6 +363,9 @@ type Link struct {
 // LinkRel contains a keyword that identifies the nature of the relationship between the linked resouce and the element.
 type LinkRel string
 
+// Links a list of links associated with the feed.
+type Links = []Link
+
 // Logo defines model for Logo.
 type Logo struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
@@ -321,7 +376,10 @@ type Logo struct {
 
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-	Value   string               `json:"value" validate:"required,uri" xml:",chardata"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+	Value      string                  `json:"value" validate:"required,uri" xml:",chardata"`
 }
 
 // Name is an element that conveys a human-readable name.
@@ -339,28 +397,95 @@ type PersonConstruct struct {
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
 
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+
 	// Email is an element that conveys an email address.
 	Email *Email `json:"email,omitempty" xml:"email,omitempty"`
-	Name  Name   `json:"name" validate:"required" xml:"name"`
+
+	// Extensions records any elements that are unknown extensions to the schema.
+	Extensions externalRef0.Extensions `json:"extensions,omitempty" xml:",any"`
+	Name       Name                    `json:"name" validate:"required" xml:"name"`
 
 	// URI is an element that conveys an IRI (URI).
 	URI *URI `json:"uri,omitempty" xml:"uri,omitempty"`
 }
 
-// Published is an element whose content MUST conform to the "date-time" production in [RFC3339].
-type Published = DateConstruct
+// Published defines model for Published.
+type Published struct {
+	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
+	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
 
-// Rights contains human-readable text, usually in small quantities.
-type Rights = TextConstruct
+	// Lang indicates the natural language for the element and its descendents.
+	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
+
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+	Value      DateTime                `json:"value" validate:"required,datetime" xml:",chardata"`
+}
+
+// Rights defines model for Rights.
+type Rights struct {
+	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
+	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+
+	// Lang indicates the natural language for the element and its descendents.
+	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
+
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+
+	// Type represents what the content of the element is.
+	Type  *Type  `json:"type,omitempty" validate:"omitempty,oneof=text html xhtml" xml:"type,attr,omitempty"`
+	Value string `json:"value" xml:",chardata"`
+}
 
 // Source is the feed metadata.
 type Source = FeedMetadata
 
-// Subtitle contains human-readable text, usually in small quantities.
-type Subtitle = TextConstruct
+// Subtitle defines model for Subtitle.
+type Subtitle struct {
+	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
+	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
 
-// Summary contains human-readable text, usually in small quantities.
-type Summary = TextConstruct
+	// Lang indicates the natural language for the element and its descendents.
+	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
+
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+
+	// Type represents what the content of the element is.
+	Type  *Type  `json:"type,omitempty" validate:"omitempty,oneof=text html xhtml" xml:"type,attr,omitempty"`
+	Value string `json:"value" xml:",chardata"`
+}
+
+// Summary defines model for Summary.
+type Summary struct {
+	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
+	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+
+	// Lang indicates the natural language for the element and its descendents.
+	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
+
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+
+	// Type represents what the content of the element is.
+	Type  *Type  `json:"type,omitempty" validate:"omitempty,oneof=text html xhtml" xml:"type,attr,omitempty"`
+	Value string `json:"value" xml:",chardata"`
+}
 
 // TextConstruct defines model for TextConstruct.
 type TextConstruct struct {
@@ -370,13 +495,32 @@ type TextConstruct struct {
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
 
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+
 	// Type represents what the content of the element is.
 	Type  *Type  `json:"type,omitempty" validate:"omitempty,oneof=text html xhtml" xml:"type,attr,omitempty"`
 	Value string `json:"value" xml:",chardata"`
 }
 
-// Title contains human-readable text, usually in small quantities.
-type Title = TextConstruct
+// Title defines model for Title.
+type Title struct {
+	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
+	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+
+	// Lang indicates the natural language for the element and its descendents.
+	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
+
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+
+	// Type represents what the content of the element is.
+	Type  *Type  `json:"type,omitempty" validate:"omitempty,oneof=text html xhtml" xml:"type,attr,omitempty"`
+	Value string `json:"value" xml:",chardata"`
+}
 
 // Type represents what the content of the element is.
 type Type string
@@ -388,5 +532,18 @@ type URI struct {
 	Value   string               `json:"value" validate:"required,uri" xml:",chardata"`
 }
 
-// Updated is an element whose content MUST conform to the "date-time" production in [RFC3339].
-type Updated = DateConstruct
+// Updated defines model for Updated.
+type Updated struct {
+	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
+	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+
+	// Lang indicates the natural language for the element and its descendents.
+	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
+
+	// XMLName represents the XML namespace of an element.
+	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the element.
+	Attributes externalRef0.Attributes `json:"attributes" xml:",any,attr"`
+	Value      DateTime                `json:"value" validate:"required,datetime" xml:",chardata"`
+}

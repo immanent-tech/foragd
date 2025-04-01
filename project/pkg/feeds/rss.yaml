@@ -22,9 +22,11 @@ components:
         xml: "title,omitempty"
     Link:
       description: >
-        identifies a web address associated with the channel or item. A link may be either a RSS or Atom link element.
-      allOf:
-        - $ref: "atom.yaml#/components/schemas/Link"
+        identifies a web address associated with the channel or item.
+      type: string
+      x-oapi-codegen-extra-tags:
+        xml: "link,omitempty"
+        validate: "omitempty,uri"
     Description:
       description: >
         is the description of the channel or item.
@@ -63,13 +65,14 @@ components:
       x-go-type: types.DateTime
       x-oapi-codegen-extra-tags:
         xml: "pubDate,omitempty"
-        json: "pubDate,omitempty"
+        validate: "omitempty,datetime"
     LastBuildDate:
       description: >
         is the last time the content of the channel changed.
       x-go-type: types.DateTime
       x-oapi-codegen-extra-tags:
         xml: "lastBuildDate,omitempty"
+        validate: "omitempty,datetime"
     Category:
       description: >
         allows a taxonomy to be set on the channel or item.
@@ -95,8 +98,6 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         xml: "generator,omitempty"
-      example:
-        generator: MightyInHouse Content System v2.3
     Docs:
       description: >
         A URL that points to the documentation for the format used in the RSS file. It's probably a pointer to this
@@ -105,9 +106,7 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         xml: "docs,omitempty"
-        validate: "omitempty,url"
-      example:
-        docs: https://www.rssboard.org/rss-specification
+        validate: "omitempty,uri"
     Cloud:
       description: >
         specifies a web service that supports the rssCloud interface which can be implemented in HTTP-POST, XML-RPC or
@@ -193,14 +192,14 @@ components:
           x-go-name: URL
           x-oapi-codegen-extra-tags:
             xml: "url"
-            validate: "required,url"
+            validate: "required,uri"
         title:
           description: >
             describes the image, it's used in the ALT attribute of the HTML <img> tag when the channel is rendered in HTML.
           type: string
           x-oapi-codegen-extra-tags:
             xml: "title"
-            validate: "required,title"
+            validate: "required"
         link:
           description: >
             is the URL of the site, when the channel is rendered, the image is a link to the site. (Note, in practice
@@ -208,7 +207,7 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             xml: "link"
-            validate: "required,link"
+            validate: "required,uri"
         width:
           description: >
             indicates the width of the image in pixels.
@@ -259,28 +258,28 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             xml: "title"
-            validate: "required,html_encoded"
+            validate: "required"
         description:
           description: >
             explains the text input area.
           type: string
           x-oapi-codegen-extra-tags:
             xml: "description"
-            validate: "required,html_encoded"
+            validate: "required"
         name:
           description: >
             is the name of the text object in the text input area.
           type: string
           x-oapi-codegen-extra-tags:
             xml: "name"
-            validate: "required,html_encoded"
+            validate: "required"
         link:
           description: >
             is the URL of the CGI script that processes text input requests.
           type: string
           x-oapi-codegen-extra-tags:
             xml: "link"
-            validate: "required,url"
+            validate: "required,uri"
       x-oapi-codegen-extra-tags:
         xml: "textInput,omitempty"
     Author:
@@ -316,7 +315,7 @@ components:
             attribute: true
           x-oapi-codegen-extra-tags:
             xml: "url,attr"
-            validate: "required,url"
+            validate: "required,uri"
         length:
           description: >
             indicates how big the enclosure is in bytes.
@@ -375,7 +374,7 @@ components:
             attribute: true
           x-oapi-codegen-extra-tags:
             xml: "url,attr"
-            validate: "url"
+            validate: "uri"
       x-oapi-codegen-extra-tags:
         xml: "source,omitempty"
     SkipHours:
@@ -524,6 +523,7 @@ components:
               $ref: "types.yaml#/components/schemas/Extensions"
       x-oapi-codegen-extra-tags:
         xml: "channel"
+        validate: "required"
     ItemElements:
       description: >
         contains all Item elements.
@@ -603,6 +603,7 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             xml: "version,attr"
+            validate: "required,oneof=0.91 0.92 2.0 2.0.1"
           xml:
             attribute: true
         attributes:

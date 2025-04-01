@@ -6,7 +6,6 @@ package types
 import (
 	"bytes"
 
-	// "github.com/nbio/xml"
 	"encoding/xml"
 	"fmt"
 
@@ -18,7 +17,7 @@ func Decode[T any](namespace string, b []byte) (T, error) {
 
 	reader := bytes.NewReader(b)
 	decoder := xml.NewDecoder(reader)
-	// decoder.DefaultSpace = namespace
+	decoder.DefaultSpace = namespace
 	decoder.CharsetReader = charset.NewReaderLabel
 	err := decoder.Decode(&feed)
 	if err != nil {
@@ -39,4 +38,44 @@ func Encode[T any](feed T) ([]byte, error) {
 	}
 
 	return reader.Bytes(), nil
+}
+
+type ObjectMetadata interface {
+	GetTitle() string
+	GetDescription() string
+	GetLink() string
+	GetPublishedDate() DateTime
+}
+
+type ObjectAttribution interface {
+	GetAuthors() []string
+	GetContributors() []string
+}
+
+type ObjectContent interface {
+	GetContent() string
+}
+
+type ObjectTaxonomy interface {
+	GetCategories() []Category
+}
+
+type ObjectSource interface {
+	GetSourceURL() string
+}
+
+type Item interface {
+	ObjectMetadata
+	ObjectAttribution
+	ObjectContent
+	ObjectTaxonomy
+	GetID() string
+	GetImage() Image
+}
+
+type Feed interface {
+	ObjectMetadata
+	ObjectSource
+	ObjectAttribution
+	ObjectTaxonomy
 }

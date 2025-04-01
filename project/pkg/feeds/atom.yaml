@@ -55,6 +55,8 @@ components:
             xml: "lang,attr,omitempty"
             json: "lang,omitempty"
             validate: "omitempty,bcp47_language_tag"
+        attributes:
+          $ref: "types.yaml#/components/schemas/Attributes"
     URI:
       description: >
         is an element that conveys an IRI (URI).
@@ -150,6 +152,8 @@ components:
               $ref: "#/components/schemas/URI"
             email:
               $ref: "#/components/schemas/Email"
+            extensions:
+              $ref: "types.yaml#/components/schemas/Extensions"
     DateConstruct:
       description: >
         is an element whose content MUST conform to the "date-time" production in [RFC3339].
@@ -184,6 +188,12 @@ components:
         is an element of type Text construct that conveys a human-readable title for an entry or feed.
       allOf:
         - $ref: "#/components/schemas/TextConstruct"
+        - type: object
+          required:
+            - XMLName
+          properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
       x-oapi-codegen-extra-tags:
         xml: "title"
         json: "title"
@@ -194,6 +204,12 @@ components:
         way the publisher considers significant.
       allOf:
         - $ref: "#/components/schemas/DateConstruct"
+        - type: object
+          required:
+            - XMLName
+          properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
       x-oapi-codegen-extra-tags:
         xml: "updated"
         json: "updated"
@@ -240,6 +256,18 @@ components:
               x-oapi-codegen-extra-tags:
                 xml: "label,attr,omitempty"
                 json: "label,omitempty"
+      x-oapi-codegen-extra-tags:
+        xml: "category,omitempty"
+        json: "category,omitempty"
+    Categories:
+      description: >
+        a list of categories associated with the feed.
+      type: array
+      items:
+        $ref: "#/components/schemas/Category"
+      x-oapi-codegen-extra-tags:
+        xml: "category,omitempty"
+      x-go-type-skip-optional-pointer: true
     Generator:
       description: >
         is an element identifies the agent used to generate a feed.
@@ -351,6 +379,15 @@ components:
       x-oapi-codegen-extra-tags:
         xml: "link,omitempty"
         json: "link,omitempty"
+    Links:
+      description: >
+        a list of links associated with the feed.
+      type: array
+      items:
+        $ref: "#/components/schemas/Link"
+      x-oapi-codegen-extra-tags:
+        xml: "link,omitempty"
+      x-go-type-skip-optional-pointer: true
     Logo:
       description: >
         is an element that contains a URI to an logo suitable for representing a feed.
@@ -365,6 +402,12 @@ components:
         is an element of type Text construct that conveys information about rights held in and over an entry or feed.
       allOf:
         - $ref: "#/components/schemas/TextConstruct"
+        - type: object
+          required:
+            - XMLName
+          properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
       x-oapi-codegen-extra-tags:
         xml: "rights,omitempty"
         json: "rights,omitempty"
@@ -374,6 +417,12 @@ components:
         cycle of the entry.
       allOf:
         - $ref: "#/components/schemas/DateConstruct"
+        - type: object
+          required:
+            - XMLName
+          properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
       x-oapi-codegen-extra-tags:
         xml: "published,omitempty"
         json: "published,omitempty"
@@ -382,6 +431,12 @@ components:
         is an element of type Text construct that conveys a human-readable subtitle for an entry or feed.
       allOf:
         - $ref: "#/components/schemas/TextConstruct"
+        - type: object
+          required:
+            - XMLName
+          properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
       x-oapi-codegen-extra-tags:
         xml: "subtitle,omitempty"
         json: "subtitle,omitempty"
@@ -390,6 +445,12 @@ components:
         is an element of type Text construct that conveys a short summary, abstract, or excerpt of an entry.
       allOf:
         - $ref: "#/components/schemas/TextConstruct"
+        - type: object
+          required:
+            - XMLName
+          properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
       x-oapi-codegen-extra-tags:
         xml: "summary,omitempty"
         json: "summary,omitempty"
@@ -399,7 +460,11 @@ components:
       allOf:
         - $ref: "#/components/schemas/CommonAttributes"
         - type: object
+          required:
+            - XMLName
           properties:
+            XMLName:
+              $ref: "types.yaml#/components/schemas/XMLName"
             type:
               $ref: "#/components/schemas/Type"
             src:
@@ -421,6 +486,24 @@ components:
       x-oapi-codegen-extra-tags:
         xml: "content,omitempty"
         json: "content,omitempty"
+    Contributors:
+      description: >
+        a list of persons who contributed to the feed.
+      type: array
+      items:
+        $ref: "#/components/schemas/PersonConstruct"
+      x-oapi-codegen-extra-tags:
+        xml: "contributor,omitempty"
+      x-go-type-skip-optional-pointer: true
+    Authors:
+      description: >
+        a list of persons who maintain authorship of the feed.
+      type: array
+      items:
+        $ref: "#/components/schemas/PersonConstruct"
+      x-oapi-codegen-extra-tags:
+        xml: "author,omitempty"
+      x-go-type-skip-optional-pointer: true
     FeedMetadata:
       description: >
         is the feed metadata.
@@ -441,37 +524,16 @@ components:
               $ref: "#/components/schemas/Title"
             updated:
               $ref: "#/components/schemas/Updated"
-            author:
-              description: >
-                a list of persons who maintain authorship of the feed.
-              type: array
-              items:
-                $ref: "#/components/schemas/PersonConstruct"
-              x-oapi-codegen-extra-tags:
-                xml: "author,omitempty"
-              x-go-type-skip-optional-pointer: true
-            category:
-              description: >
-                a list of categories associated with the feed.
-              type: array
-              items:
-                $ref: "#/components/schemas/Category"
-              x-oapi-codegen-extra-tags:
-                xml: "category,omitempty"
-              x-go-type-skip-optional-pointer: true
-            contributor:
-              description: >
-                a list of persons who contributed to the feed.
-              type: array
-              items:
-                $ref: "#/components/schemas/PersonConstruct"
-              x-oapi-codegen-extra-tags:
-                xml: "contributor,omitempty"
-              x-go-type-skip-optional-pointer: true
+            authors:
+              $ref: "#/components/schemas/Authors"
+            categories:
+              $ref: "#/components/schemas/Categories"
+            contributors:
+              $ref: "#/components/schemas/Contributors"
             generator:
               $ref: "#/components/schemas/Generator"
-            link:
-              $ref: "#/components/schemas/Link"
+            links:
+              $ref: "#/components/schemas/Links"
             logo:
               $ref: "#/components/schemas/Logo"
             rights:
@@ -486,7 +548,9 @@ components:
         - $ref: "#/components/schemas/FeedMetadata"
         - type: object
           properties:
-            item:
+            entries:
+              description: >
+                is the list of <entry> elements for the feed.
               type: array
               items:
                 $ref: "#/components/schemas/Entry"
@@ -494,14 +558,11 @@ components:
                 xml: "entry,omitempty"
                 json: "entry,omitempty"
               x-go-type-skip-optional-pointer: true
-            attributes:
-              type: array
-              items:
-                x-go-type: xml.Attr
-              x-oapi-codegen-extra-tags:
-                xml: ",any,attr"
-                json: "attributes"
-              x-go-type-skip-optional-pointer: true
+            extensions:
+              $ref: "types.yaml#/components/schemas/Extensions"
+      x-oapi-codegen-extra-tags:
+        xml: "feed"
+        json: "feed"
     Source:
       description: >
         contains the metadata from the source feed for the entry.
@@ -531,37 +592,16 @@ components:
               $ref: "#/components/schemas/Title"
             updated:
               $ref: "#/components/schemas/Updated"
-            author:
-              description: >
-                a list of persons who maintain authorship of the feed.
-              type: array
-              items:
-                $ref: "#/components/schemas/PersonConstruct"
-              x-oapi-codegen-extra-tags:
-                xml: "author,omitempty"
-              x-go-type-skip-optional-pointer: true
-            category:
-              description: >
-                a list of categories associated with the feed.
-              type: array
-              items:
-                $ref: "#/components/schemas/Category"
-              x-oapi-codegen-extra-tags:
-                xml: "category,omitempty"
-              x-go-type-skip-optional-pointer: true
+            authors:
+              $ref: "#/components/schemas/Authors"
+            categories:
+              $ref: "#/components/schemas/Categories"
             content:
               $ref: "#/components/schemas/Content"
-            contributor:
-              description: >
-                a list of persons who contributed to the feed.
-              type: array
-              items:
-                $ref: "#/components/schemas/PersonConstruct"
-              x-oapi-codegen-extra-tags:
-                xml: "contributor,omitempty"
-              x-go-type-skip-optional-pointer: true
-            link:
-              $ref: "#/components/schemas/Link"
+            contributors:
+              $ref: "#/components/schemas/Contributors"
+            links:
+              $ref: "#/components/schemas/Links"
             published:
               $ref: "#/components/schemas/Published"
             rights:
@@ -570,3 +610,8 @@ components:
               $ref: "#/components/schemas/Source"
             summary:
               $ref: "#/components/schemas/Summary"
+            extensions:
+              $ref: "types.yaml#/components/schemas/Extensions"
+      x-oapi-codegen-extra-tags:
+        xml: "entry"
+        json: "entry"

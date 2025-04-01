@@ -10,21 +10,32 @@ import (
 	"time"
 )
 
+// ErrInvalidDateTimeFormat indicates that the value of the datetime is not one of the defined DateTimeFormats. In most
+// cases, this indicates the feed not using a valid datetime format according to its specification.
+var ErrInvalidDateTimeFormat = errors.New("invalid datetime format")
+
+// DateTimeFormats are the valid datetime formats across different feed specifications. A DateTime object will try to
+// parse a given value as one of these formats.
 var DateTimeFormats = []string{time.RFC1123Z, time.RFC1123, time.RFC3339}
 
+// DateTime is a datetime value for a feed (or item) object, such as its published/updated date.
 type DateTime struct {
 	time.Time
 }
 
 func (d DateTime) MarshalJSON() ([]byte, error) {
-	return json.Marshal(d.Time.Format(DateTimeFormats[0]))
+	date, err := json.Marshal(d.Time.Format(DateTimeFormats[0]))
+	if err != nil {
+		return nil, errors.Join(ErrInvalidDateTimeFormat, err)
+	}
+	return date, nil
 }
 
 func (d *DateTime) UnmarshalJSON(data []byte) error {
 	var dateStr string
 	err := json.Unmarshal(data, &dateStr)
 	if err != nil {
-		return err
+		return errors.Join(ErrInvalidDateTimeFormat, err)
 	}
 	parsed, err := tryFormats(dateStr)
 	if err != nil {
@@ -57,7 +68,7 @@ func tryFormats(data string) (time.Time, error) {
 		parsed = value
 	}
 	if parsed.IsZero() {
-		return parsed, errors.New("unsupported format")
+		return parsed, ErrInvalidDateTimeFormat
 	}
 	return parsed, nil
 }

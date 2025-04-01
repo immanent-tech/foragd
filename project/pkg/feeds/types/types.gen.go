@@ -9,17 +9,53 @@ import (
 
 // Defines values for NameSpace.
 const (
-	NameSpaceDublinCore NameSpace = "http://purl.org/dc/elements/1.1/"
-	NameSpaceMediaRSS   NameSpace = "http://search.yahoo.com/mrss/"
+	NameSpaceAtom        NameSpace = "http://www.w3.org/2005/Atom"
+	NameSpaceContent     NameSpace = "http://purl.org/rss/1.0/modules/content/"
+	NameSpaceDublinCore  NameSpace = "http://purl.org/dc/elements/1.1/"
+	NameSpaceMediaRSS    NameSpace = "http://search.yahoo.com/mrss/"
+	NameSpaceSyndication NameSpace = "http://purl.org/rss/1.0/modules/syndication/"
 )
+
+// Attributes are any attributes of the element.
+type Attributes = []xml.Attr
+
+// Category is an abstraction of a Category across different types of specifications.
+type Category struct {
+	// Attributes are any attributes of the element.
+	Attributes Attributes `json:"attributes" xml:",any,attr"`
+
+	// Value is an element value that is required.
+	Value RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
+
+// Content is an abstraction of element content across different types of specifications.
+type Content struct {
+	// Attributes are any attributes of the element.
+	Attributes Attributes `json:"attributes" xml:",any,attr"`
+
+	// Value is the URL to the image.
+	Value *string `json:"value,omitempty" xml:",chardata"`
+}
+
+// CustomTypeBase defines model for CustomTypeBase.
+type CustomTypeBase struct {
+	// XMLName represents the XML namespace of an element.
+	XMLName *XMLName `json:"xml" validate:"required"`
+
+	// Attributes are any attributes of the element.
+	Attributes Attributes `json:"attributes" xml:",any,attr"`
+
+	// Value is an element value that is required.
+	Value RequiredValue `json:"value" validate:"required" xml:",chardata"`
+}
 
 // Extension represents an element that is not defined in the schema.
 type Extension struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName XMLName `json:"xml" validate:"required"`
 
-	// Attributes are any attributes of the extension element.
-	Attributes []xml.Attr  `json:"attributes" xml:",any,attr"`
+	// Attributes are any attributes of the element.
+	Attributes Attributes  `json:"attributes" xml:",any,attr"`
 	Extensions []Extension `json:"extensions,omitempty" xml:",any"`
 
 	// Value is an element value that is optional.
@@ -29,7 +65,19 @@ type Extension struct {
 // Extensions records any elements that are unknown extensions to the schema.
 type Extensions = []Extension
 
-// NameSpace is a URL for a specific namespace.
+// Image is an abstraction of an Image across different types of specifications.
+type Image struct {
+	// URL is the URL to the image.
+	URL *string `json:"url,omitempty" xml:"url,attr,omitempty"`
+
+	// Attributes are any attributes of the element.
+	Attributes Attributes `json:"attributes" xml:",any,attr"`
+
+	// Value is the URL to the image.
+	Value *string `json:"value,omitempty" xml:",chardata"`
+}
+
+// NameSpace maps namespace URL identifiers to a easy-to-use string type.
 type NameSpace string
 
 // OptionalValue is an element value that is optional.
