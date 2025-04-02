@@ -785,7 +785,7 @@ type MediaThumbnail struct {
 
 	// Time specifies the time offset in relation to the media object. Typically this is used when creating multiple keyframes within a single video. The format for this attribute should be in the DSM-CC's Normal Play Time (NTP) as used in RTSP
 	Time *string `json:"time,omitempty" xml:"time,attr,omitempty"`
-	Url  URL     `json:"url" validate:"required,url" xml:"url,attr"`
+	URL  URL     `json:"url" validate:"required,url" xml:"url,attr"`
 
 	// Width is the height of the media object.
 	Width *Width `json:"width,omitempty" validate:"omitempty,number" xml:"width,attr,omitempty"`

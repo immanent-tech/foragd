@@ -13,11 +13,17 @@ import (
 
 // GetTitle retrieves the <title> (if any) of the Channel.
 func (c *Channel) GetTitle() string {
+	if c.DCTitle != nil {
+		return c.DCTitle.String()
+	}
 	return c.Title
 }
 
 // GetDescription retrieves the <description> (if any) of the Channel.
 func (c *Channel) GetDescription() string {
+	if c.DCDescription != nil {
+		return c.DCDescription.String()
+	}
 	return c.Description
 }
 
@@ -43,7 +49,7 @@ func (c *Channel) GetLink() string {
 func (c *Channel) GetAuthors() []string {
 	var authors []string
 	if c.DCCreator != nil {
-		authors = append(authors, c.DCCreator.GetValue())
+		authors = append(authors, c.DCCreator.String())
 	}
 	return authors
 }
@@ -53,7 +59,7 @@ func (c *Channel) GetAuthors() []string {
 func (c *Channel) GetContributors() []string {
 	var contributors []string
 	if c.DCContributor != nil {
-		contributors = append(contributors, c.DCContributor.GetValue())
+		contributors = append(contributors, c.DCContributor.String())
 	}
 	return contributors
 }
@@ -66,11 +72,13 @@ func (c *Channel) GetContributors() []string {
 func (c *Channel) GetCategories() []*types.Category {
 	categories := make([]*types.Category, 0, len(c.Categories))
 	for category := range slices.Values(c.Categories) {
-		genericCategory, err := types.AsCategory(category)
-		if err != nil {
-			continue
+		c := &types.Category{Value: category.String()}
+		// If the domain attribute has a value, copy it across.
+		if category.Domain != nil {
+			domainAttr := types.NewXMLAttr("domain", *category.Domain, "")
+			c.Attributes = types.Attributes{domainAttr}
 		}
-		categories = append(categories, genericCategory)
+		categories = append(categories, c)
 	}
 	return categories
 }
@@ -79,22 +87,21 @@ func (c *Channel) GetCategories() []*types.Category {
 // the first found of either any <image> or <media:thumbnail> element. Any errors is retrieving the image will result in a
 // nil result being returned.
 func (c *Channel) GetImage() *types.Image {
-	var (
-		image *types.Image
-		err   error
-	)
 	switch {
 	case c.Image != nil:
-		image, err = types.AsImage(c.Image)
+		return &types.Image{
+			Value: c.Image.Link,
+			Title: &c.Image.Title,
+		}
 	case len(c.MediaThumbnails) > 0:
-		image, err = types.AsImage(c.MediaThumbnails[0])
+		// Use the first thumbnail found.
+		thumbnail := c.MediaThumbnails[0]
+		return &types.Image{
+			Value: thumbnail.URL,
+		}
 	default:
 		return nil
 	}
-	if err != nil {
-		return nil
-	}
-	return image
 }
 
 // GetPublishedDate returns the <pubDate> of the Item (if any). If there is no publish date, it will return a
@@ -104,4 +111,10 @@ func (c *Channel) GetPublishedDate() types.DateTime {
 		return *c.PubDate
 	}
 	return types.DateTime{Time: time.Unix(0, 0)}
+}
+
+// GetUpdatedDate returns the <pubDate> of the Item (if any). If there is no publish date, it will return a
+// DateTime equal to Unix epoch.
+func (c *Channel) GetUpdatedDate() types.DateTime {
+	return c.GetPublishedDate()
 }

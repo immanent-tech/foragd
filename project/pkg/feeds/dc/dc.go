@@ -3,10 +3,18 @@
 
 package dc
 
-func (c *DCCreator) GetValue() string {
+func (c *DCCreator) String() string {
 	return c.Value
 }
 
-func (c *DCContributor) GetValue() string {
+func (c *DCContributor) String() string {
+	return c.Value
+}
+
+func (c *DCTitle) String() string {
+	return c.Value
+}
+
+func (c *DCDescription) String() string {
 	return c.Value
 }

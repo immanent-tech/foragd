@@ -167,7 +167,7 @@ components:
             XMLName:
               $ref: "types.yaml#/components/schemas/XMLName"
             value:
-              x-go-type: DateTime
+              x-go-type: types.DateTime
               x-oapi-codegen-extra-tags:
                 json: "value"
                 xml: ",chardata"
@@ -546,6 +546,8 @@ components:
         associated with the feed.
       allOf:
         - $ref: "#/components/schemas/FeedMetadata"
+        - $ref: "media-rss.yaml#/components/schemas/MediaElements"
+        - $ref: "dc.yaml#/components/schemas/DublinCoreElements"
         - type: object
           properties:
             entries:
@@ -577,6 +579,8 @@ components:
       type: object
       allOf:
         - $ref: "#/components/schemas/CommonAttributes"
+        - $ref: "media-rss.yaml#/components/schemas/MediaElements"
+        - $ref: "dc.yaml#/components/schemas/DublinCoreElements"
         - type: object
           required:
             - XMLName

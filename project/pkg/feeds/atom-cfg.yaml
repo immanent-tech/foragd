@@ -14,3 +14,5 @@ compatibility:
   always-prefix-enum-values: true
 import-mapping:
   types.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/types"
+  media-rss.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/mrss"
+  dc.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/dc"

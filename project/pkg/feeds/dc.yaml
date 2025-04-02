@@ -239,7 +239,7 @@ components:
         XMLName:
           $ref: "types.yaml#/components/schemas/XMLName"
         value:
-          x-go-type: DateTime
+          x-go-type: types.DateTime
           x-oapi-codegen-extra-tags:
             xml: ",chardata"
             validate: "required,datetime"

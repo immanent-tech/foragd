@@ -4,34 +4,41 @@
 package atom
 
 import (
-	"bytes"
-	"encoding/xml"
 	"fmt"
-
-	"golang.org/x/net/html/charset"
-
-	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-// From generates an Atom object from the given byte array.
-func From(b []byte) (*Feed, error) {
-	var feed Feed
-
-	reader := bytes.NewReader(b)
-	decoder := xml.NewDecoder(reader)
-	decoder.CharsetReader = charset.NewReaderLabel
-	err := decoder.Decode(&feed)
-	if err != nil {
-		return nil, fmt.Errorf("could not decode byte array to RSS: %w", err)
+// String returns string-ified format of the PersonConstruct. This will be the format "name (email)". The email part is
+// omitted if the PersonConstruct has no email.
+func (p *PersonConstruct) String() string {
+	if p.Email != nil {
+		return fmt.Sprintf("%s (%s)", p.Name.Value, p.Email)
 	}
-
-	return &feed, nil
+	return p.Name.Value
 }
 
-func (a *Feed) Metadata() (*FeedMetadata, error) {
-	data, err := types.Encode(a)
-	if err != nil {
-		return nil, err
+// String returns the string-ified format of the Category. It will return the first found of: any human-readable label,
+// the element value or the term attribute value, in that order.
+func (c *Category) String() string {
+	// Use the label attribute if present.
+	if c.Label != nil && c.Label.Value != "" {
+		return c.Label.Value
 	}
-	return types.Decode[*FeedMetadata]("atom", data)
+	// Use any value if present.
+	if c.Value != nil && *c.Value != "" {
+		return *c.Value
+	}
+	// Use the term attribute.
+	return c.Term.Value
+}
+
+func (t *Title) String() string {
+	return t.Value
+}
+
+func (t *Subtitle) String() string {
+	return t.Value
+}
+
+func (s *Summary) String() string {
+	return s.Value
 }

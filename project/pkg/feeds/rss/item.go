@@ -21,10 +21,14 @@ func (i *Item) GetID() string {
 
 // GetTitle retrieves the <title> (if any) of the Item.
 func (i *Item) GetTitle() string {
-	if i.Title != nil {
+	switch {
+	case i.DCTitle != nil:
+		return i.DCTitle.String()
+	case i.Title != nil:
 		return *i.Title
+	default:
+		return ""
 	}
-	return ""
 }
 
 // GetLink retrieves the <link> (if any) of the Item.
@@ -37,10 +41,14 @@ func (i *Item) GetLink() string {
 
 // GetDescription retrieves the <description> (if any) of the Item.
 func (i *Item) GetDescription() string {
-	if i.Description != nil {
+	switch {
+	case i.DCDescription != nil:
+		return i.DCDescription.String()
+	case i.Description != nil:
 		return *i.Description
+	default:
+		return ""
 	}
-	return ""
 }
 
 // GetAuthors retrieves the authors (if any) of the Item. This will be the list of values from any <author> and
@@ -51,7 +59,7 @@ func (i *Item) GetAuthors() []string {
 		authors = append(authors, *i.Author)
 	}
 	if i.DCCreator != nil {
-		authors = append(authors, i.DCCreator.GetValue())
+		authors = append(authors, i.DCCreator.String())
 	}
 	return authors
 }
@@ -61,7 +69,7 @@ func (i *Item) GetAuthors() []string {
 func (i *Item) GetContributors() []string {
 	var contributors []string
 	if i.DCContributor != nil {
-		contributors = append(contributors, i.DCContributor.GetValue())
+		contributors = append(contributors, i.DCContributor.String())
 	}
 	return contributors
 }
@@ -74,11 +82,13 @@ func (i *Item) GetContributors() []string {
 func (i *Item) GetCategories() []*types.Category {
 	categories := make([]*types.Category, 0, len(i.Categories))
 	for category := range slices.Values(i.Categories) {
-		genericCategory, err := types.AsCategory(category)
-		if err != nil {
-			continue
+		c := &types.Category{Value: category.String()}
+		// If the domain attribute has a value, copy it across.
+		if category.Domain != nil {
+			domainAttr := types.NewXMLAttr("domain", *category.Domain, "")
+			c.Attributes = types.Attributes{domainAttr}
 		}
-		categories = append(categories, genericCategory)
+		categories = append(categories, c)
 	}
 	return categories
 }
@@ -87,22 +97,21 @@ func (i *Item) GetCategories() []*types.Category {
 // the first found of either any <image> or <media:thumbnail> element. Any errors is retrieving the image will result in a
 // nil result being returned.
 func (i *Item) GetImage() *types.Image {
-	var (
-		image *types.Image
-		err   error
-	)
 	switch {
 	case i.Image != nil:
-		image, err = types.AsImage(i.Image)
+		return &types.Image{
+			Value: i.Image.Link,
+			Title: &i.Image.Title,
+		}
 	case len(i.MediaThumbnails) > 0:
-		image, err = types.AsImage(i.MediaThumbnails[0])
+		// Use the first thumbnail found.
+		thumbnail := i.MediaThumbnails[0]
+		return &types.Image{
+			Value: thumbnail.URL,
+		}
 	default:
 		return nil
 	}
-	if err != nil {
-		return nil
-	}
-	return image
 }
 
 // GetPublishedDate returns the <pubDate> of the Item (if any). If there is no publish date, it will return a
@@ -114,14 +123,18 @@ func (i *Item) GetPublishedDate() types.DateTime {
 	return types.DateTime{Time: time.Unix(0, 0)}
 }
 
+// GetUpdatedDate returns the <pubDate> of the Item (if any). If there is no publish date, it will return a
+// DateTime equal to Unix epoch.
+func (i *Item) GetUpdatedDate() types.DateTime {
+	return i.GetPublishedDate()
+}
+
 // GetContent returns the content of the Item (if any). This will be taken from any <content:encoded> element.
 func (i *Item) GetContent() *types.Content {
 	if i.ContentEncoded != nil {
-		content, err := types.AsContent(i.ContentEncoded)
-		if err != nil {
-			return nil
+		return &types.Content{
+			Value: i.ContentEncoded.Value,
 		}
-		return content
 	}
 	return nil
 }

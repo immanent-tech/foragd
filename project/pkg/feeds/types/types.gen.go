@@ -19,23 +19,11 @@ const (
 // Attributes are any attributes of the element.
 type Attributes = []xml.Attr
 
-// Category is an abstraction of a Category across different types of specifications.
-type Category struct {
-	// Attributes are any attributes of the element.
-	Attributes Attributes `json:"attributes" xml:",any,attr"`
+// Category defines model for Category.
+type Category = CustomTypeBase
 
-	// Value is an element value that is required.
-	Value RequiredValue `json:"value" validate:"required" xml:",chardata"`
-}
-
-// Content is an abstraction of element content across different types of specifications.
-type Content struct {
-	// Attributes are any attributes of the element.
-	Attributes Attributes `json:"attributes" xml:",any,attr"`
-
-	// Value is the URL to the image.
-	Value *string `json:"value,omitempty" xml:",chardata"`
-}
+// Content defines model for Content.
+type Content = CustomTypeBase
 
 // CustomTypeBase defines model for CustomTypeBase.
 type CustomTypeBase struct {
@@ -65,16 +53,19 @@ type Extension struct {
 // Extensions records any elements that are unknown extensions to the schema.
 type Extensions = []Extension
 
-// Image is an abstraction of an Image across different types of specifications.
+// Image defines model for Image.
 type Image struct {
-	// URL is the URL to the image.
-	URL *string `json:"url,omitempty" xml:"url,attr,omitempty"`
+	// XMLName represents the XML namespace of an element.
+	XMLName *XMLName `json:"xml" validate:"required"`
 
 	// Attributes are any attributes of the element.
 	Attributes Attributes `json:"attributes" xml:",any,attr"`
 
-	// Value is the URL to the image.
-	Value *string `json:"value,omitempty" xml:",chardata"`
+	// Title the description or alt tag of the image
+	Title *string `json:"title,omitempty"`
+
+	// Value is an element value that is required.
+	Value RequiredValue `json:"value" validate:"required" xml:",chardata"`
 }
 
 // NameSpace maps namespace URL identifiers to a easy-to-use string type.

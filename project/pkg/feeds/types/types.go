@@ -12,6 +12,11 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
+// String will return the value of the object.
+func (c *CustomTypeBase) String() string {
+	return c.Value
+}
+
 func Decode[T any](namespace string, b []byte) (T, error) {
 	var feed T
 
@@ -45,6 +50,7 @@ type ObjectMetadata interface {
 	GetDescription() string
 	GetLink() string
 	GetPublishedDate() DateTime
+	GetUpdatedDate() DateTime
 }
 
 type ObjectAttribution interface {
@@ -53,11 +59,11 @@ type ObjectAttribution interface {
 }
 
 type ObjectContent interface {
-	GetContent() string
+	GetContent() *Content
 }
 
 type ObjectTaxonomy interface {
-	GetCategories() []Category
+	GetCategories() []*Category
 }
 
 type ObjectSource interface {
@@ -70,7 +76,7 @@ type Item interface {
 	ObjectContent
 	ObjectTaxonomy
 	GetID() string
-	GetImage() Image
+	GetImage() *Image
 }
 
 type Feed interface {
@@ -78,4 +84,17 @@ type Feed interface {
 	ObjectSource
 	ObjectAttribution
 	ObjectTaxonomy
+	GetItems() []Item
+}
+
+// NewXMLAttr is a convienience function to create an xml.Attr from a name/value/namespace combination. The namespace
+// value is optional, but the name and value should be provided.
+func NewXMLAttr(name, value, namespace string) xml.Attr {
+	return xml.Attr{
+		Name: xml.Name{
+			Space: namespace,
+			Local: name,
+		},
+		Value: value,
+	}
 }

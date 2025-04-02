@@ -106,48 +106,22 @@ components:
           $ref: "#/components/schemas/Attributes"
     Category:
       description: >
-        is an abstraction of a Category across different types of specifications.
-      type: object
-      required:
-        - value
-      properties:
-        value:
-          $ref: "#/components/schemas/RequiredValue"
-        attributes:
-          $ref: "#/components/schemas/Attributes"
+        represents a taxonomy value assigned to an element.
+      allOf:
+        - $ref: "#/components/schemas/CustomTypeBase"
     Image:
       description: >
         is an abstraction of an Image across different types of specifications.
-      type: object
-      properties:
-        URL:
-          description: >
-            is the URL to the image.
-          type: string
-          x-go-name: URL
-          x-oapi-codegen-extra-tags:
-            json: "url,omitempty"
-            xml: "url,attr,omitempty"
-        value:
-          description:
-            is the URL to the image.
-          type: string
-          x-oapi-codegen-extra-tags:
-            json: "value,omitempty"
-            xml: ",chardata"
-        attributes:
-          $ref: "#/components/schemas/Attributes"
+      allOf:
+        - $ref: "#/components/schemas/CustomTypeBase"
+        - type: object
+          properties:
+            title:
+              description: >
+                the description or alt tag of the image
+              type: string
     Content:
       description: >
         is an abstraction of element content across different types of specifications.
-      type: object
-      properties:
-        value:
-          description:
-            is the URL to the image.
-          type: string
-          x-oapi-codegen-extra-tags:
-            json: "value,omitempty"
-            xml: ",chardata"
-        attributes:
-          $ref: "#/components/schemas/Attributes"
+      allOf:
+        - $ref: "#/components/schemas/CustomTypeBase"

@@ -252,6 +252,7 @@ components:
         url:
           allOf:
             - $ref: "#/components/schemas/URL"
+          x-go-name: URL
           x-oapi-codegen-extra-tags:
             xml: "url,attr"
             validate: "required,url"
