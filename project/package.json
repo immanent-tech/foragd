@@ -21,7 +21,7 @@
     "build": "parcel build ./assets/scripts.js ./assets/styles.css ./assets/fontawesome/js/*.js --dist-dir ./static"
   },
   "dependencies": {
-    "daisyui": "^5.0.4",
+    "daisyui": "^5.0.12",
     "htmx-ext-sse": "^2.2.3",
     "htmx.org": "^2.0.4",
     "hyperscript.org": "^0.9.14",
@@ -30,16 +30,16 @@
     "theme-change": "^2.5.0"
   },
   "devDependencies": {
-    "@parcel/transformer-css": "^2.13.3",
+    "@parcel/transformer-css": "^2.14.4",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "autoprefixer": "^10.4.21",
     "eslint-config-prettier": "^10.1.1",
-    "eslint-plugin-prettier": "^5.2.3",
-    "parcel": "^2.13.3",
+    "eslint-plugin-prettier": "^5.2.6",
+    "parcel": "^2.14.4",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
-    "prettier-plugin-toml": "^2.0.2"
+    "prettier-plugin-toml": "^2.0.3"
   }
 }

@@ -116,7 +116,11 @@
   "go.lintTool": "golangci-lint",
   "go.useLanguageServer": true,
   "go.diagnostic.vulncheck": "Imports",
-  "go.formatTool": "goimports",
+  "go.formatTool": "custom",
+  "go.alternateTools": {
+    "customFormatter": "golangci-lint"
+  },
+  "go.formatFlags": ["fmt", "--stdin"],
   "gopls": {
     "ui.semanticTokens": true,
     "formatting.local": "github.com/joshuar/go-feed-me",
