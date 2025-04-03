@@ -7,9 +7,7 @@ import (
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-var (
-	_ types.FeedSource = (*RSS)(nil)
-)
+var _ types.FeedSource = (*RSS)(nil)
 
 // String returns the value of the Category.
 func (c *Category) String() string {
@@ -60,6 +58,17 @@ func (r *RSS) GetImage() *types.Image {
 	return r.Channel.GetImage()
 }
 
-func (r *RSS) GetItems() []types.Item {
+func (r *RSS) GetItems() []types.ItemSource {
 	return r.Channel.GetItems()
 }
+
+// func (r *RSS) UnmarshalJSON(v []byte) error {
+// 	spew.Dump(v)
+// 	var rss RSS
+// 	if err := json.Unmarshal(v, &rss); err != nil {
+// 		return err
+// 	} else {
+// 		r = &rss
+// 		return nil
+// 	}
+// }

@@ -55,13 +55,6 @@ type ItemSource interface {
 	ObjectMedia
 }
 
-// Item represents a single item or entry (or article) in a feed.
-type Item struct {
-	ItemSource
-}
-
-type Items []Item
-
 // FeedSource is an abstraction representing any type of Feed.
 type FeedSource interface {
 	ObjectMetadata
@@ -69,10 +62,5 @@ type FeedSource interface {
 	ObjectAttribution
 	ObjectTaxonomy
 	ObjectMedia
-	GetItems() []Item
-}
-
-// Feed represents any feed type containing a number of items.
-type Feed struct {
-	FeedSource
+	GetItems() []ItemSource
 }

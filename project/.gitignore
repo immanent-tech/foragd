@@ -71,3 +71,5 @@ lerna-debug.log*
 
 localhost.crt
 localhost.key
+
+pkg/feeds/test

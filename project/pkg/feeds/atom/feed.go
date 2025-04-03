@@ -9,9 +9,7 @@ import (
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-var (
-	_ types.FeedSource = (*Feed)(nil)
-)
+var _ types.FeedSource = (*Feed)(nil)
 
 // GetTitle retrieves the <title> of the Feed.
 func (f *Feed) GetTitle() string {
@@ -134,10 +132,20 @@ func (f *Feed) GetUpdatedDate() types.DateTime {
 	return f.Updated.Value
 }
 
-func (f *Feed) GetItems() []types.Item {
-	items := make([]types.Item, 0, len(f.Entries))
+func (f *Feed) GetItems() []types.ItemSource {
+	items := make([]types.ItemSource, 0, len(f.Entries))
 	for item := range slices.Values(f.Entries) {
-		items = append(items, types.Item{ItemSource: &item})
+		items = append(items, &item)
 	}
 	return items
 }
+
+// func (f *Feed) UnmarshalJSON(v []byte) error {
+// 	var feed Feed
+// 	if err := json.Unmarshal(v, &feed); err != nil {
+// 		return err
+// 	} else {
+// 		f = &feed
+// 		return nil
+// 	}
+// }

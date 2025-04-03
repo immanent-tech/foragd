@@ -11,9 +11,7 @@ import (
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-var (
-	_ types.FeedSource = (*Channel)(nil)
-)
+var _ types.FeedSource = (*Channel)(nil)
 
 // GetTitle retrieves the <title> (if any) of the Channel.
 func (c *Channel) GetTitle() string {
@@ -133,10 +131,20 @@ func (c *Channel) GetUpdatedDate() types.DateTime {
 	return c.GetPublishedDate()
 }
 
-func (c *Channel) GetItems() []types.Item {
-	items := make([]types.Item, 0, len(c.Items))
+func (c *Channel) GetItems() []types.ItemSource {
+	items := make([]types.ItemSource, 0, len(c.Items))
 	for item := range slices.Values(c.Items) {
-		items = append(items, types.Item{ItemSource: &item})
+		items = append(items, &item)
 	}
 	return items
 }
+
+// func (c *Channel) UnmarshalJSON(v []byte) error {
+// 	var channel Channel
+// 	if err := json.Unmarshal(v, &channel); err != nil {
+// 		return err
+// 	} else {
+// 		c = &channel
+// 		return nil
+// 	}
+// }

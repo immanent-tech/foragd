@@ -14,3 +14,5 @@ output-options:
 compatibility:
   allow-unexported-struct-field-names: true
   always-prefix-enum-values: true
+import-mapping:
+  types.yaml: github.com/joshuar/go-feed-me/pkg/feeds/types

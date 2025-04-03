@@ -11,9 +11,11 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
-var MimeTypesRSS = []string{"application/rss+xml", "application/rdf+xml"}
-var MimeTypesAtom = []string{"application/atom+xml"}
-var MimeTypesIndeterminate = []string{"application/xml", "text/xml"}
+var (
+	MimeTypesRSS           = []string{"application/rss+xml", "application/rdf+xml"}
+	MimeTypesAtom          = []string{"application/atom+xml"}
+	MimeTypesIndeterminate = []string{"application/xml", "text/xml"}
+)
 
 // String will return the value of the object.
 func (c *CustomTypeBase) String() string {
