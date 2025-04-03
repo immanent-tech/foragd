@@ -10,6 +10,7 @@ import (
 	"mime"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/go-resty/resty/v2"
 
@@ -20,6 +21,14 @@ import (
 )
 
 var ErrParseFeed = errors.New("unable to parse feed")
+
+// ParseURLResult is returned when calling NewFeedsFromURLs and contains the results for parsing an individual URL. It
+// will contain the original URL and either a new Feed or a non-nil error.
+type ParseURLResult struct {
+	URL  string
+	Feed *types.Feed
+	Err  error
+}
 
 // NewFeedFromBytes will create a new Feed of the given type from the given byte array.
 func NewFeedFromBytes[T any](data []byte) (*types.Feed, error) {
@@ -54,20 +63,47 @@ func NewFeedFromSource[T types.FeedSource](source T) *types.Feed {
 	}
 }
 
-func NewFeedFromURL(ctx context.Context, url string) (*types.Feed, error) {
+// NewFeedsFromURLs will attempt to create new Feed objects from the given list of URLs. It returns a slice containing:
+// the URL, any Feed object that was created, else, an non-nil error explaining the problem creating the Feed.
+func NewFeedsFromURLs(ctx context.Context, urls ...string) []ParseURLResult {
 	client := resty.New()
 	// Set the mimetypes we accept. Who knows if this helps but at least we are honest to the server with what mimetypes
 	// we want.
 	client.SetHeader("Accept", strings.Join(slices.Concat(types.MimeTypesAtom, types.MimeTypesRSS), ","))
+
+	results := make([]ParseURLResult, 0, len(urls))
+	workerCh := make(chan ParseURLResult)
+	var wg sync.WaitGroup
+
+	go func() {
+		defer close(workerCh)
+		for url := range slices.Values(urls) {
+			wg.Add(1)
+			go func(url string) {
+				defer wg.Done()
+				workerCh <- parseFeedURL(ctx, client, url)
+			}(url)
+		}
+		wg.Wait()
+	}()
+	// Gather results.
+	for result := range workerCh {
+		results = append(results, result)
+	}
+
+	return results
+}
+
+func parseFeedURL(ctx context.Context, client *resty.Client, url string) ParseURLResult {
 	// Get the feed data.
 	resp, err := client.R().SetContext(ctx).Get(url)
 	if err != nil {
-		return nil, errors.Join(ErrParseFeed, err)
+		return ParseURLResult{URL: url, Err: fmt.Errorf("%w: could not access feed URL: %w", ErrParseFeed, err)}
 	}
 	// Retrieve the contentType header so we know what format we are dealing with.
 	contentType := resp.Header().Get("Content-Type")
 	if contentType == "" {
-		return nil, fmt.Errorf("%w: unable to determine feed type", ErrParseFeed)
+		return ParseURLResult{URL: url, Err: fmt.Errorf("%w: unable to determine feed type", ErrParseFeed)}
 	}
 
 	var feed *types.Feed
@@ -84,11 +120,11 @@ func NewFeedFromURL(ctx context.Context, url string) (*types.Feed, error) {
 			feed, err = NewFeedFromBytes[*atom.Feed](resp.Body())
 		}
 	default:
-		return nil, fmt.Errorf("%w: unsupported format %s", ErrParseFeed, contentType)
+		err = fmt.Errorf("unsupported file format %s", contentType)
 	}
 	// (╯°益°)╯彡┻━┻
 	if err != nil {
-		return nil, err
+		return ParseURLResult{URL: url, Err: err}
 	}
 
 	// If the source URL is not set, set it.
@@ -96,7 +132,7 @@ func NewFeedFromURL(ctx context.Context, url string) (*types.Feed, error) {
 		feed.SetSourceURL(url)
 	}
 
-	return feed, nil
+	return ParseURLResult{URL: url, Feed: feed}
 }
 
 func isRSS(contentType string) bool {
