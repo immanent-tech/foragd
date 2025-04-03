@@ -10,6 +10,10 @@ import (
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
+var (
+	_ types.ItemSource = (*Entry)(nil)
+)
+
 // GetID returns an "id" for the Entry. This will be the value of the <id> element, if present, or an empty string if
 // not present.
 func (e *Entry) GetID() string {
@@ -130,7 +134,7 @@ func (e *Entry) GetContent() *types.Content {
 		switch {
 		case e.Content.Value != nil:
 			return &types.Content{
-				Value: *e.Content.Value,
+				Value: types.SanitizeString(*e.Content.Value),
 			}
 		case e.Content.Source != nil:
 			return &types.Content{

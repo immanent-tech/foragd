@@ -3,18 +3,20 @@
 
 package dc
 
+import "github.com/joshuar/go-feed-me/pkg/feeds/types"
+
 func (c *DCCreator) String() string {
-	return c.Value
+	return types.SanitizeString(c.Value)
 }
 
 func (c *DCContributor) String() string {
-	return c.Value
+	return types.SanitizeString(c.Value)
 }
 
 func (c *DCTitle) String() string {
-	return c.Value
+	return types.SanitizeString(c.Value)
 }
 
 func (c *DCDescription) String() string {
-	return c.Value
+	return types.SanitizeString(c.Value)
 }

@@ -9,6 +9,10 @@ import (
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
+var (
+	_ types.FeedSource = (*Feed)(nil)
+)
+
 // GetTitle retrieves the <title> of the Feed.
 func (f *Feed) GetTitle() string {
 	switch {
@@ -42,6 +46,12 @@ func (f *Feed) GetSourceURL() string {
 		}
 	}
 	return ""
+}
+
+// SetSourceURL will set a source URL, indicating the URL of the Atom document, in the Feed.
+func (f *Feed) SetSourceURL(url string) {
+	rel := LinkRelSelf
+	f.Links = append(f.Links, Link{Href: url, Rel: &rel})
 }
 
 // GetLink retrieves the <link> of the Feed. This is the link to the website associated with the RSS feed.
@@ -127,7 +137,7 @@ func (f *Feed) GetUpdatedDate() types.DateTime {
 func (f *Feed) GetItems() []types.Item {
 	items := make([]types.Item, 0, len(f.Entries))
 	for item := range slices.Values(f.Entries) {
-		items = append(items, &item)
+		items = append(items, types.Item{ItemSource: &item})
 	}
 	return items
 }

@@ -5,6 +5,8 @@ package atom
 
 import (
 	"fmt"
+
+	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
 // String returns string-ified format of the PersonConstruct. This will be the format "name (email)". The email part is
@@ -21,24 +23,24 @@ func (p *PersonConstruct) String() string {
 func (c *Category) String() string {
 	// Use the label attribute if present.
 	if c.Label != nil && c.Label.Value != "" {
-		return c.Label.Value
+		return types.SanitizeString(c.Label.Value)
 	}
 	// Use any value if present.
 	if c.Value != nil && *c.Value != "" {
-		return *c.Value
+		return types.SanitizeString(*c.Value)
 	}
 	// Use the term attribute.
-	return c.Term.Value
+	return types.SanitizeString(c.Term.Value)
 }
 
 func (t *Title) String() string {
-	return t.Value
+	return types.SanitizeString(t.Value)
 }
 
 func (t *Subtitle) String() string {
-	return t.Value
+	return types.SanitizeString(t.Value)
 }
 
 func (s *Summary) String() string {
-	return s.Value
+	return types.SanitizeString(s.Value)
 }

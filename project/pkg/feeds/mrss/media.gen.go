@@ -451,7 +451,7 @@ type MediaGroup struct {
 	Community *MediaCommunity `json:"community,omitempty" xml:"http://search.yahoo.com/mrss/ community,omitempty"`
 
 	// Contents is the list of <media:content> elements
-	Contents []MediaContent `json:"media_contents,omitempty" validate:"omitempty,dive,unique" xml:"http://search.yahoo.com/mrss/ content,omitempty"`
+	Contents []MediaContent `json:"media_contents,omitempty" xml:"http://search.yahoo.com/mrss/ content,omitempty"`
 
 	// Copyright is copyright information for the media object.
 	Copyright *MediaCopyright `json:"copyright,omitempty" xml:"http://search.yahoo.com/mrss/ copyright,omitempty"`

@@ -39,7 +39,7 @@ type DCCreator struct {
 type DCDate struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef0.XMLName `json:"xml" validate:"required"`
-	Value   types.DateTime       `json:"value" validate:"required,datetime" xml:",chardata"`
+	Value   types.DateTime       `json:"value" validate:"required" xml:",chardata"`
 }
 
 // DCDescription may include but is not limited to: an abstract, table of contents, reference to a graphical representation of content or a free-text account of the content.

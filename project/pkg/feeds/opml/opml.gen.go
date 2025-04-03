@@ -6,6 +6,7 @@ package opml
 import (
 	"encoding/xml"
 
+	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
@@ -66,7 +67,7 @@ type CommentState string
 type Body = []Outline
 
 // Date is a date-time.
-type Date = DateTime
+type Date = types.DateTime
 
 // Head represents the OPML <head> element.
 type Head struct {

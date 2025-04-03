@@ -3,13 +3,9 @@
 openapi: "3.0.3"
 info:
   version: 1.0.0
-  title: RSS 1.0
+  title: RSS Extensions Schema
   description: >
-    RDF Site Summary (RSS) 1.0 OpenAPI schema.
-
-    Includes Syndication and Content modules.
-
-    https://web.resource.org/rss/1.0/
+    RSS extensions for Syndication and Content modules.
 
     https://web.resource.org/rss/1.0/modules/syndication/
 
@@ -52,7 +48,7 @@ components:
           x-enum-varnames: ["UpdatedHourly","UpdatedDaily","UpdatedWeekly","UpdatedMonthly","UpdatedYearly"]
           x-oapi-codegen-extra-tags:
             xml: ",chardata"
-            validate: "required,oneof=hourly daily weekly monthly yearly"
+            # validate: "required,oneof=hourly daily weekly monthly yearly"
       x-oapi-codegen-extra-tags:
         json: "sy_updatePeriod,omitempty"
         xml: "http://purl.org/rss/1.0/modules/syndication/ updatePeriod,omitempty"
@@ -92,7 +88,7 @@ components:
           x-oapi-codegen-extra-tags:
             json: "value"
             xml: ",chardata"
-            validate: "omitempty,datetime"
+            validate: "omitempty"
       x-oapi-codegen-extra-tags:
         json: "sy_updateBase,omitempty"
         xml: "http://purl.org/rss/1.0/modules/syndication/ updateBase,omitempty"

@@ -242,7 +242,7 @@ components:
           x-go-type: types.DateTime
           x-oapi-codegen-extra-tags:
             xml: ",chardata"
-            validate: "required,datetime"
+            validate: "required"
       x-oapi-codegen-extra-tags:
         json: "dc_date,omitempty"
         xml: "http://purl.org/dc/elements/1.1/ date,omitempty"

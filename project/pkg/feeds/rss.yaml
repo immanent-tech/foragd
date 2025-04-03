@@ -40,7 +40,7 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         xml: "language,omitempty"
-        validate: "required,bcp47_language_tag"
+        validate: "omitempty,bcp47_language_tag"
     Copyright:
       description: >
         Copyright notice for content in the channel.
@@ -65,14 +65,14 @@ components:
       x-go-type: types.DateTime
       x-oapi-codegen-extra-tags:
         xml: "pubDate,omitempty"
-        validate: "omitempty,datetime"
+        validate: "omitempty"
     LastBuildDate:
       description: >
         is the last time the content of the channel changed.
       x-go-type: types.DateTime
       x-oapi-codegen-extra-tags:
         xml: "lastBuildDate,omitempty"
-        validate: "omitempty,datetime"
+        validate: "omitempty"
     Category:
       description: >
         allows a taxonomy to be set on the channel or item.
@@ -207,7 +207,7 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             xml: "link"
-            validate: "required,uri"
+            validate: "omitempty,uri"
         width:
           description: >
             indicates the width of the image in pixels.
@@ -434,7 +434,7 @@ components:
             validate: "required"
         link:
           allOf:
-            - $ref: "types.yaml#/components/schemas/RequiredValue"
+            - $ref: "types.yaml#/components/schemas/OptionalValue"
           x-oapi-codegen-extra-tags:
             xml: "link"
         AtomLink:
@@ -449,7 +449,6 @@ components:
             - $ref: "#/components/schemas/Description"
           x-oapi-codegen-extra-tags:
             xml: "description"
-            validate: "required"
         language:
           $ref: "#/components/schemas/Language"
         copyright:
@@ -473,7 +472,6 @@ components:
           x-oapi-codegen-extra-tags:
             json: "category,omitempty"
             xml: "category,omitempty"
-            validate: "omitempty,dive,unique"
           x-go-type-skip-optional-pointer: true
         generator:
           $ref: "#/components/schemas/Generator"
@@ -498,7 +496,7 @@ components:
         is the element containing metadata (Channel elements) and items.
       allOf:
         - $ref: "#/components/schemas/ChannelElements"
-        - $ref: "rdf.yaml#/components/schemas/SyndicationElements"
+        - $ref: "rss-ext.yaml#/components/schemas/SyndicationElements"
         - $ref: "dc.yaml#/components/schemas/DublinCoreElements"
         - $ref: "media-rss.yaml#/components/schemas/MediaElements"
         - type: object
@@ -513,7 +511,6 @@ components:
                 name: item
               x-oapi-codegen-extra-tags:
                 xml: "item,omitempty"
-                validate: "omitempty,dive,unique"
               x-go-type-skip-optional-pointer: true
             MediaContent:
               $ref: "media-rss.yaml#/components/schemas/MediaContent"
@@ -547,7 +544,6 @@ components:
             name: category
           x-oapi-codegen-extra-tags:
             xml: "category,omitempty"
-            validate: "omitempty,dive,unique"
           x-go-type-skip-optional-pointer: true
         comments:
           $ref: "#/components/schemas/Comments"
@@ -574,7 +570,7 @@ components:
         - type: object
           properties:
             ContentEncoded:
-              $ref: "rdf.yaml#/components/schemas/ContentEncoded"
+              $ref: "rss-ext.yaml#/components/schemas/ContentEncoded"
             MediaContent:
               $ref: "media-rss.yaml#/components/schemas/MediaContent"
             MediaGroup:

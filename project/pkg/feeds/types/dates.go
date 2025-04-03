@@ -6,7 +6,9 @@ package types
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -16,7 +18,18 @@ var ErrInvalidDateTimeFormat = errors.New("invalid datetime format")
 
 // DateTimeFormats are the valid datetime formats across different feed specifications. A DateTime object will try to
 // parse a given value as one of these formats.
-var DateTimeFormats = []string{time.RFC1123Z, time.RFC1123, time.RFC3339}
+var DateTimeFormats = []string{
+	time.RFC1123Z,
+	time.RFC1123,
+	"Mon, 2 Jan 2006 15:04:05 -0700", // RFC1123Z without leading zero on day
+	"Mon, 2 Jan 2006 15:04:05 MST",   // RFC1123 without leading zero on day
+	"Mon, 02 Jan 2006 15:04 -0700",   // RFC1123Z without seconds
+	"Mon, 02 Jan 2006 15:04 MST",     // RFC1123 without seconds
+	"Mon, 2 Jan 2006 15:04 -0700",    // RFC1123Z without leading zero on day or seconds
+	"Mon, 2 Jan 2006 15:04 MST",      // RFC1123 without leading zero on day or seconds
+	time.RFC3339,
+	time.DateTime,
+}
 
 // DateTime is a datetime value for a feed (or item) object, such as its published/updated date.
 type DateTime struct {
@@ -61,6 +74,7 @@ func (d *DateTime) UnmarshalText(data []byte) error {
 func tryFormats(data string) (time.Time, error) {
 	var parsed time.Time
 	for format := range slices.Values(DateTimeFormats) {
+		data = strings.TrimSpace(data)
 		value, err := time.Parse(format, data)
 		if err != nil {
 			continue
@@ -68,7 +82,7 @@ func tryFormats(data string) (time.Time, error) {
 		parsed = value
 	}
 	if parsed.IsZero() {
-		return parsed, ErrInvalidDateTimeFormat
+		return parsed, fmt.Errorf("%w: got zero value", ErrInvalidDateTimeFormat)
 	}
 	return parsed, nil
 }

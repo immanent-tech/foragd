@@ -22,8 +22,7 @@ components:
         - version
       properties:
         XMLName:
-          x-go-type: "xml.Name"
-          # x-go-type-import: "encoding/xml"
+          x-go-type: xml.Name
           x-oapi-codegen-extra-tags:
             xml: "opml"
             json: "opml"

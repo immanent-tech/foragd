@@ -37,7 +37,7 @@ type Categories = []Category
 // Category defines model for Category.
 type Category struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -64,7 +64,7 @@ type Category struct {
 // CommonAttributes are common attributes across Atom elements.
 type CommonAttributes struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -76,7 +76,7 @@ type CommonAttributes struct {
 // Content defines model for Content.
 type Content struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -101,7 +101,7 @@ type Contributors = []PersonConstruct
 // DateConstruct defines model for DateConstruct.
 type DateConstruct struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -111,20 +111,20 @@ type DateConstruct struct {
 
 	// Attributes are any attributes of the element.
 	Attributes externalRef2.Attributes `json:"attributes" xml:",any,attr"`
-	Value      types.DateTime          `json:"value" validate:"required,datetime" xml:",chardata"`
+	Value      types.DateTime          `json:"value" validate:"required" xml:",chardata"`
 }
 
 // Email is an element that conveys an email address.
 type Email struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef2.XMLName `json:"xml" validate:"required"`
-	Value   string               `json:"value" validate:"required,email" xml:",chardata"`
+	Value   string               `json:"value" xml:",chardata"`
 }
 
 // Entry defines model for Entry.
 type Entry struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// DCContributor is an entity responsible for making contributions to the resource.
 	DCContributor *externalRef0.DCContributor `json:"dc_contributor,omitempty" xml:"http://purl.org/dc/elements/1.1/ contributor,omitempty"`
@@ -295,7 +295,7 @@ type Entry struct {
 // Feed defines model for Feed.
 type Feed struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// DCContributor is an entity responsible for making contributions to the resource.
 	DCContributor *externalRef0.DCContributor `json:"dc_contributor,omitempty" xml:"http://purl.org/dc/elements/1.1/ contributor,omitempty"`
@@ -466,7 +466,7 @@ type Feed struct {
 // FeedMetadata defines model for FeedMetadata.
 type FeedMetadata struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// ID is an element that conveys a permanent, universally unique identifier for an entry or feed.
 	ID ID `json:"id" validate:"required" xml:"id"`
@@ -514,7 +514,7 @@ type FeedMetadata struct {
 // Generator defines model for Generator.
 type Generator struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -534,7 +534,7 @@ type Generator struct {
 // ID defines model for ID.
 type ID struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -544,13 +544,13 @@ type ID struct {
 
 	// Attributes are any attributes of the element.
 	Attributes externalRef2.Attributes `json:"attributes" xml:",any,attr"`
-	Value      string                  `json:"value" validate:"required,uri" xml:",chardata"`
+	Value      string                  `json:"value" xml:",chardata"`
 }
 
 // Icon defines model for Icon.
 type Icon struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -560,13 +560,13 @@ type Icon struct {
 
 	// Attributes are any attributes of the element.
 	Attributes externalRef2.Attributes `json:"attributes" xml:",any,attr"`
-	Value      string                  `json:"value" validate:"required,uri" xml:",chardata"`
+	Value      string                  `json:"value" xml:",chardata"`
 }
 
 // Link defines model for Link.
 type Link struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -594,7 +594,7 @@ type Link struct {
 
 	// Type identifies the resource's MIME media type.
 	Type  *string `json:"type,omitempty" xml:"type,attr,omitempty"`
-	Value string  `json:"value" validate:"required,uri" xml:",chardata"`
+	Value string  `json:"value" xml:",chardata"`
 }
 
 // LinkRel contains a keyword that identifies the nature of the relationship between the linked resouce and the element.
@@ -606,7 +606,7 @@ type Links = []Link
 // Logo defines model for Logo.
 type Logo struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -616,7 +616,7 @@ type Logo struct {
 
 	// Attributes are any attributes of the element.
 	Attributes externalRef2.Attributes `json:"attributes" xml:",any,attr"`
-	Value      string                  `json:"value" validate:"required,uri" xml:",chardata"`
+	Value      string                  `json:"value" xml:",chardata"`
 }
 
 // Name is an element that conveys a human-readable name.
@@ -629,7 +629,7 @@ type Name struct {
 // PersonConstruct defines model for PersonConstruct.
 type PersonConstruct struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -651,7 +651,7 @@ type PersonConstruct struct {
 // Published defines model for Published.
 type Published struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -661,13 +661,13 @@ type Published struct {
 
 	// Attributes are any attributes of the element.
 	Attributes externalRef2.Attributes `json:"attributes" xml:",any,attr"`
-	Value      types.DateTime          `json:"value" validate:"required,datetime" xml:",chardata"`
+	Value      types.DateTime          `json:"value" validate:"required" xml:",chardata"`
 }
 
 // Rights defines model for Rights.
 type Rights struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -689,7 +689,7 @@ type Source = FeedMetadata
 // Subtitle defines model for Subtitle.
 type Subtitle struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -708,7 +708,7 @@ type Subtitle struct {
 // Summary defines model for Summary.
 type Summary struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -727,7 +727,7 @@ type Summary struct {
 // TextConstruct defines model for TextConstruct.
 type TextConstruct struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -743,7 +743,7 @@ type TextConstruct struct {
 // Title defines model for Title.
 type Title struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -766,13 +766,13 @@ type Type string
 type URI struct {
 	// XMLName represents the XML namespace of an element.
 	XMLName externalRef2.XMLName `json:"xml" validate:"required"`
-	Value   string               `json:"value" validate:"required,uri" xml:",chardata"`
+	Value   string               `json:"value" xml:",chardata"`
 }
 
 // Updated defines model for Updated.
 type Updated struct {
 	// Base establishes the base URI (or IRI) for resolving any relative references found within the effective scope of the xml:base attribute.
-	Base *string `json:"base,omitempty" validate:"omitempty,uri" xml:"base,attr,omitempty"`
+	Base *string `json:"base,omitempty" validate:"omitempty" xml:"base,attr,omitempty"`
 
 	// Lang indicates the natural language for the element and its descendents.
 	Lang *string `json:"lang,omitempty" validate:"omitempty,bcp47_language_tag" xml:"lang,attr,omitempty"`
@@ -782,5 +782,5 @@ type Updated struct {
 
 	// Attributes are any attributes of the element.
 	Attributes externalRef2.Attributes `json:"attributes" xml:",any,attr"`
-	Value      types.DateTime          `json:"value" validate:"required,datetime" xml:",chardata"`
+	Value      types.DateTime          `json:"value" validate:"required" xml:",chardata"`
 }

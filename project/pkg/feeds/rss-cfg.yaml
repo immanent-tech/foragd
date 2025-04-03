@@ -12,7 +12,7 @@ output-options:
   skip-prune: true
 import-mapping:
   dc.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/dc"
-  rdf.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/rdf"
+  rss-ext.yaml: "-"
   media-rss.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/mrss"
   atom.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/atom"
   types.yaml: "github.com/joshuar/go-feed-me/pkg/feeds/types"

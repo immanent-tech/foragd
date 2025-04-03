@@ -11,20 +11,28 @@ import (
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
+var (
+	_ types.FeedSource = (*Channel)(nil)
+)
+
 // GetTitle retrieves the <title> (if any) of the Channel.
 func (c *Channel) GetTitle() string {
-	if c.DCTitle != nil {
+	switch {
+	case c.DCTitle != nil:
 		return c.DCTitle.String()
+	default:
+		return types.SanitizeString(c.Title)
 	}
-	return c.Title
 }
 
 // GetDescription retrieves the <description> (if any) of the Channel.
 func (c *Channel) GetDescription() string {
-	if c.DCDescription != nil {
+	switch {
+	case c.DCDescription != nil:
 		return c.DCDescription.String()
+	default:
+		return types.SanitizeString(c.Description)
 	}
-	return c.Description
 }
 
 // GetSourceURL retrieves the URL that links to the RSS file for the channel. This will be any <atom:link> element
@@ -37,6 +45,12 @@ func (c *Channel) GetSourceURL() string {
 		return c.AtomLink.Href
 	}
 	return ""
+}
+
+// SetSourceURL will set a source URL, indicating the URL to the RSS file, in the Channel.
+func (c *Channel) SetSourceURL(url string) {
+	rel := atom.LinkRelSelf
+	c.AtomLink = &atom.Link{Href: url, Rel: &rel}
 }
 
 // GetLink retrieves the <link> (if any) of the Channel. This is the link to the website associated with the RSS feed.
@@ -117,4 +131,12 @@ func (c *Channel) GetPublishedDate() types.DateTime {
 // DateTime equal to Unix epoch.
 func (c *Channel) GetUpdatedDate() types.DateTime {
 	return c.GetPublishedDate()
+}
+
+func (c *Channel) GetItems() []types.Item {
+	items := make([]types.Item, 0, len(c.Items))
+	for item := range slices.Values(c.Items) {
+		items = append(items, types.Item{ItemSource: &item})
+	}
+	return items
 }

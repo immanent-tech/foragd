@@ -4,14 +4,16 @@
 package rss
 
 import (
-	"slices"
-
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
+)
+
+var (
+	_ types.FeedSource = (*RSS)(nil)
 )
 
 // String returns the value of the Category.
 func (c *Category) String() string {
-	return c.Value
+	return types.SanitizeString(c.Value)
 }
 
 func (r *RSS) GetTitle() string {
@@ -24,6 +26,10 @@ func (r *RSS) GetDescription() string {
 
 func (r *RSS) GetSourceURL() string {
 	return r.Channel.GetSourceURL()
+}
+
+func (r *RSS) SetSourceURL(url string) {
+	r.Channel.SetSourceURL(url)
 }
 
 func (r *RSS) GetLink() string {
@@ -55,9 +61,5 @@ func (r *RSS) GetImage() *types.Image {
 }
 
 func (r *RSS) GetItems() []types.Item {
-	items := make([]types.Item, 0, len(r.Channel.Items))
-	for item := range slices.Values(r.Channel.Items) {
-		items = append(items, &item)
-	}
-	return items
+	return r.Channel.GetItems()
 }

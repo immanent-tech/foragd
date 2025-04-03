@@ -1059,7 +1059,6 @@ components:
               x-oapi-codegen-extra-tags:
                 json: "media_contents,omitempty"
                 xml: "http://search.yahoo.com/mrss/ content,omitempty"
-                validate: "omitempty,dive,unique"
               x-go-type-skip-optional-pointer: true
             extensions:
               description: >

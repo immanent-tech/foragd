@@ -10,6 +10,10 @@ import (
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
+var (
+	_ types.ItemSource = (*Item)(nil)
+)
+
 // GetID returns an "id" for the item. This will be the value of the <guid> element, if present, or an empty string if
 // not present.
 func (i *Item) GetID() string {
@@ -25,7 +29,7 @@ func (i *Item) GetTitle() string {
 	case i.DCTitle != nil:
 		return i.DCTitle.String()
 	case i.Title != nil:
-		return *i.Title
+		return types.SanitizeString(*i.Title)
 	default:
 		return ""
 	}
@@ -45,7 +49,7 @@ func (i *Item) GetDescription() string {
 	case i.DCDescription != nil:
 		return i.DCDescription.String()
 	case i.Description != nil:
-		return *i.Description
+		return types.SanitizeString(*i.Description)
 	default:
 		return ""
 	}
@@ -133,7 +137,7 @@ func (i *Item) GetUpdatedDate() types.DateTime {
 func (i *Item) GetContent() *types.Content {
 	if i.ContentEncoded != nil {
 		return &types.Content{
-			Value: i.ContentEncoded.Value,
+			Value: types.SanitizeString(i.ContentEncoded.Value),
 		}
 	}
 	return nil
