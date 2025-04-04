@@ -5,6 +5,8 @@ package models
 
 import (
 	"time"
+
+	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
 // Defines values for ImportSource.
@@ -61,11 +63,11 @@ type ErrorCode = string
 
 // FeedState tracks the state of a feed.
 type FeedState struct {
-	// ID is the unique ID of a feed.
-	ID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
 
-	// FeedURL The canonical feed URL.
-	FeedURL FeedURL `json:"feedLink" validate:"required,url"`
+	// URL is a URL.
+	URL URL `json:"url" validate:"url"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -154,14 +156,14 @@ type SortOrder string
 
 // SubscriptionRequest defines model for SubscriptionRequest.
 type SubscriptionRequest struct {
-	// ID is the unique ID of a subscription.
-	ID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// URL the canonical URL to the feed.
 	URL string `form:"url" json:"url" validate:"required,url"`
 
 	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
+	UserCategories []externalRef0.Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
 
 	// UserNickname is a friendly name or nickname for the feed given by the user.
 	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`

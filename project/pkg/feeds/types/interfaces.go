@@ -27,6 +27,7 @@ type ObjectMetadata interface {
 type ObjectAttribution interface {
 	GetAuthors() []string
 	GetContributors() []string
+	GetRights() string
 }
 
 // ObjectContent contains methods for retrieving any embedded content of the Object.
@@ -36,7 +37,12 @@ type ObjectContent interface {
 
 // ObjectTaxonomy contains methods for retrieving categorization and taxonomy values of an Object.
 type ObjectTaxonomy interface {
-	GetCategories() []*Category
+	GetCategories() []Category
+}
+
+// ObjectLocalization contains methods for retrieving localization information of an Object.
+type ObjectLocalization interface {
+	GetLanguage() string
 }
 
 // ObjectSource contains methods for retrieving or setting the source of the Object.
@@ -49,6 +55,7 @@ type ObjectSource interface {
 type ItemSource interface {
 	ObjectMetadata
 	ObjectAttribution
+	ObjectLocalization
 	ObjectContent
 	ObjectTaxonomy
 	ObjectID
@@ -60,6 +67,7 @@ type FeedSource interface {
 	ObjectMetadata
 	ObjectSource
 	ObjectAttribution
+	ObjectLocalization
 	ObjectTaxonomy
 	ObjectMedia
 	GetItems() []ItemSource

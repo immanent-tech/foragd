@@ -5,7 +5,6 @@ package feeds
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"mime"
@@ -26,120 +25,23 @@ var (
 	ErrUnmarshal = errors.New("unable to unmarshal")
 )
 
-const (
-	TypeRSS  SourceType = "RSS"
-	TypeAtom SourceType = "Atom"
-)
-
-// SourceType is a string constant that indicates the underlying source data type of a Feed/Item object. This is mainly
-// used when unmarshaling from JSON where the JSON structure of the source types can be ambiguous.
-type SourceType string
-
-// Item represents a single item or entry (or article) in a feed.
-type Item struct {
-	types.ItemSource `json:"source"`
-	SourceType       SourceType `json:"type"`
-}
-
-func (i *Item) UnmarshalJSON(v []byte) error {
-	// Unmarshal the FeedSource based on the type field value.
-	sourceType, source, err := sourceFromBytes(v)
-	if err != nil {
-		return err
-	}
-	switch sourceType {
-	case TypeAtom:
-		i.SourceType = TypeAtom
-		i.ItemSource, err = unMarshalSource[*atom.Entry](source)
-		if err != nil {
-			return fmt.Errorf("%w: unable to unmarshal Atom data: %w", ErrUnmarshal, err)
-		}
-		return nil
-	case TypeRSS:
-		i.SourceType = TypeRSS
-		i.ItemSource, err = unMarshalSource[*rss.Item](source)
-		if err != nil {
-			return fmt.Errorf("%w: unable to unmarshal RSS data: %w", ErrUnmarshal, err)
-		}
-		return nil
-	}
-	return fmt.Errorf("%w: unknown data type", ErrUnmarshal)
-}
-
-// Feed represents any feed type containing a number of items.
-type Feed struct {
-	types.FeedSource `json:"source"`
-	SourceType       SourceType `json:"type"`
-}
-
-func (f *Feed) GetItems() []Item {
-	var items []Item
-	for item := range slices.Values(f.FeedSource.GetItems()) {
-		items = append(items, Item{ItemSource: item, SourceType: f.SourceType})
-	}
-	return items
-}
-
-func (f *Feed) UnmarshalJSON(v []byte) error {
-	// Unmarshal the FeedSource based on the type field value.
-	sourceType, source, err := sourceFromBytes(v)
-	if err != nil {
-		return err
-	}
-	switch sourceType {
-	case TypeAtom:
-		f.SourceType = TypeAtom
-		f.FeedSource, err = unMarshalSource[*atom.Feed](source)
-		if err != nil {
-			return fmt.Errorf("%w: unable to unmarshal Atom data: %w", ErrUnmarshal, err)
-		}
-		return nil
-	case TypeRSS:
-		f.SourceType = TypeRSS
-		f.FeedSource, err = unMarshalSource[*rss.RSS](source)
-		if err != nil {
-			return fmt.Errorf("%w: unable to unmarshal RSS data: %w", ErrUnmarshal, err)
-		}
-		return nil
-	}
-	return fmt.Errorf("%w: unknown data type", ErrUnmarshal)
-}
-
-func sourceFromBytes(v []byte) (SourceType, json.RawMessage, error) {
-	topLevel := make(map[string]json.RawMessage)
-	err := json.Unmarshal(v, &topLevel)
-	if err != nil {
-		return "", nil, fmt.Errorf("%w: %w", ErrUnmarshal, err)
-	}
-	// Check for a type field and unmarshal its value if found.
-	rawType, found := topLevel["type"]
-	if !found {
-		return "", nil, fmt.Errorf("%w: unknown data type", ErrUnmarshal)
-	}
-	var sourceType SourceType
-	err = json.Unmarshal(rawType, &sourceType)
-	if err != nil {
-		return "", nil, fmt.Errorf("%w: %w", ErrUnmarshal, err)
-	}
-	return sourceType, topLevel["source"], nil
-}
-
-func unMarshalSource[T any](v json.RawMessage) (T, error) {
-	var source T
-	err := json.Unmarshal(v, &source)
-	if err != nil {
-		return source, err
-	}
-	return source, nil
-}
-
-// ParseURLResult is returned when calling NewFeedsFromURLs and contains the results for parsing an individual URL. It
+// FeedResult is returned when calling NewFeedsFromURLs and contains the results for parsing an individual URL. It
 // will contain the original URL and either a new Feed or a non-nil error.
-type ParseURLResult struct {
+type FeedResult struct {
 	URL  string
 	Feed *Feed
 	Err  error
 }
+
+type FeedItemsResult struct {
+	URL   string
+	Items []Item
+	Err   error
+}
+
+// ItemsResult is returned when calling NewItemsFromURLs and contains the results for parsing an individual Feed URL. It
+// will contain the original URL and either a slice of Items or a non-nil error.
+type ItemsResult []FeedItemsResult
 
 // NewFeedFromBytes will create a new Feed of the given type from the given byte array.
 func NewFeedFromBytes[T any](data []byte) (*Feed, error) {
@@ -147,7 +49,7 @@ func NewFeedFromBytes[T any](data []byte) (*Feed, error) {
 		original T
 		feed     *Feed
 	)
-	original, err := types.Decode[T]("", data)
+	original, err := Decode[T]("", data)
 	// err := xml.Unmarshal(data, &original)
 	if err != nil {
 		return nil, errors.Join(ErrParseFeed, err)
@@ -179,14 +81,11 @@ func NewFeedFromSource[T types.FeedSource](source T) *Feed {
 
 // NewFeedsFromURLs will attempt to create new Feed objects from the given list of URLs. It returns a slice containing:
 // the URL, any Feed object that was created, else, an non-nil error explaining the problem creating the Feed.
-func NewFeedsFromURLs(ctx context.Context, urls ...string) []ParseURLResult {
-	client := resty.New()
-	// Set the mimetypes we accept. Who knows if this helps but at least we are honest to the server with what mimetypes
-	// we want.
-	client.SetHeader("Accept", strings.Join(slices.Concat(types.MimeTypesAtom, types.MimeTypesRSS), ","))
+func NewFeedsFromURLs(ctx context.Context, urls ...string) []FeedResult {
+	client := newWebClient()
 
-	results := make([]ParseURLResult, 0, len(urls))
-	workerCh := make(chan ParseURLResult)
+	results := make([]FeedResult, 0, len(urls))
+	workerCh := make(chan FeedResult)
 	var wg sync.WaitGroup
 
 	go func() {
@@ -208,16 +107,55 @@ func NewFeedsFromURLs(ctx context.Context, urls ...string) []ParseURLResult {
 	return results
 }
 
-func parseFeedURL(ctx context.Context, client *resty.Client, url string) ParseURLResult {
+// NewItemsFromURLs will attempt to create new Item objects from the given list of Feed URLs. It returns a slice
+// containing: the Feed URL, a slice of Items for that Feed URL, else, an non-nil error explaining the problem fetching
+// Items.
+func NewItemsFromURLs(ctx context.Context, urls ...string) ItemsResult {
+	client := newWebClient()
+	results := make(ItemsResult, 0, len(urls))
+	workerCh := make(chan FeedItemsResult)
+	var wg sync.WaitGroup
+
+	go func() {
+		defer close(workerCh)
+		for url := range slices.Values(urls) {
+			wg.Add(1)
+			go func(url string) {
+				defer wg.Done()
+				result := parseFeedURL(ctx, client, url)
+				if result.Err != nil {
+					workerCh <- FeedItemsResult{
+						URL: url,
+						Err: result.Err,
+					}
+				} else {
+					workerCh <- FeedItemsResult{
+						URL:   url,
+						Items: result.Feed.GetItems(),
+					}
+				}
+			}(url)
+		}
+		wg.Wait()
+	}()
+	// Gather results.
+	for result := range workerCh {
+		results = append(results, result)
+	}
+
+	return results
+}
+
+func parseFeedURL(ctx context.Context, client *resty.Client, url string) FeedResult {
 	// Get the feed data.
 	resp, err := client.R().SetContext(ctx).Get(url)
 	if err != nil {
-		return ParseURLResult{URL: url, Err: fmt.Errorf("%w: could not access feed URL: %w", ErrParseFeed, err)}
+		return FeedResult{URL: url, Err: fmt.Errorf("%w: could not access feed URL: %w", ErrParseFeed, err)}
 	}
 	// Retrieve the contentType header so we know what format we are dealing with.
 	contentType := resp.Header().Get("Content-Type")
 	if contentType == "" {
-		return ParseURLResult{URL: url, Err: fmt.Errorf("%w: unable to determine feed type", ErrParseFeed)}
+		return FeedResult{URL: url, Err: fmt.Errorf("%w: unable to determine feed type", ErrParseFeed)}
 	}
 
 	var feed *Feed
@@ -238,7 +176,7 @@ func parseFeedURL(ctx context.Context, client *resty.Client, url string) ParseUR
 	}
 	// (╯°益°)╯彡┻━┻
 	if err != nil {
-		return ParseURLResult{URL: url, Err: err}
+		return FeedResult{URL: url, Err: err}
 	}
 
 	// If the source URL is not set, set it.
@@ -246,7 +184,7 @@ func parseFeedURL(ctx context.Context, client *resty.Client, url string) ParseUR
 		feed.SetSourceURL(url)
 	}
 
-	return ParseURLResult{URL: url, Feed: feed}
+	return FeedResult{URL: url, Feed: feed}
 }
 
 // isRSS returns a boolean indicating whether the Content Type header indicates RSS.
@@ -287,4 +225,13 @@ func determineSourceType[T any](source T) SourceType {
 	default:
 		return ""
 	}
+}
+
+func newWebClient() *resty.Client {
+	client := resty.New()
+	// Set the mimetypes we accept. Who knows if this helps but at least we are honest to the server with what mimetypes
+	// we want.
+	client.SetHeader("Accept", strings.Join(slices.Concat(types.MimeTypesAtom, types.MimeTypesRSS), ","))
+
+	return client
 }

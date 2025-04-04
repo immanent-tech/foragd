@@ -17,6 +17,7 @@ components:
       x-go-type: "time.Time"
       x-oapi-codegen-extra-tags:
         json: "@timestamp"
+        validate: "required"
     CreatedAt:
       description: records when the object was created in the database.
       x-go-type: "time.Time"
@@ -38,7 +39,7 @@ components:
     URL: &URL
       description: is a URL.
       type: string
-      x-go-name: "URL"
+      x-go-name: URL
       x-oapi-codegen-extra-tags:
         validate: "url"
         json: "url"
@@ -68,32 +69,21 @@ components:
     FeedID:
       description: is the unique ID of a feed.
       type: string
+      x-go-name: FeedID
       x-oapi-codegen-extra-tags:
         validate: "required,startswith=feed_"
         json: "feed_id"
-    FeedURL:
-      description: The canonical feed URL.
-      type: string
-      x-go-name: "FeedURL"
-      x-oapi-codegen-extra-tags:
-        json: "feedLink"
-        validate: "required,url"
     ItemID:
       description: is the unique ID of an item.
       type: string
+      x-go-name: ItemID
       x-oapi-codegen-extra-tags:
         validate: "required,startswith=item_"
         json: "item_id"
-    ItemURL:
-      description: A URL to view the original item.
-      type: string
-      x-go-name: "ItemURL"
-      x-oapi-codegen-extra-tags:
-        json: "link"
-        validate: "required,url"
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
+      x-go-name: SubscriptionID
       x-oapi-codegen-extra-tags:
         validate: "required,startswith=sub_"
         form: "subscription_id"
@@ -112,14 +102,14 @@ components:
     UserID:
       description: is the unique ID of a user.
       type: string
+      x-go-name: UserID
       x-oapi-codegen-extra-tags:
         json: "user_id"
         validate: "required"
     Category:
-      description: is a single category.
+      description: >
+        represents a taxonomy applied to an object.
       type: string
-      x-oapi-codegen-extra-tags:
-        json: "category"
     CategoryCount:
       description: >
         holds a category and the count of its occurence. The count will be
@@ -134,56 +124,6 @@ components:
         count:
           type: integer
           minimum: 0
-    ObjectPublished:
-      description: is when the object was published.
-      x-oapi-codegen-extra-tags:
-        json: "publishedParsed"
-        form: "published_at"
-      x-go-type: "time.Time"
-      x-go-type-skip-optional-pointer: true
-    ObjectUpdated:
-      description: is when the object was updated.
-      x-oapi-codegen-extra-tags:
-        json: "updatedParsed"
-        form: "updated_at"
-      x-go-type: "time.Time"
-      x-go-type-skip-optional-pointer: true
-    # Metadata Objects.
-    FeedMetadata:
-      description: contains common/metadata fields for feeds and items.
-      type: object
-      required:
-        - title
-        - description
-      properties:
-        title:
-          $ref: "#/components/schemas/HTMLString"
-        description:
-          $ref: "#/components/schemas/HTMLString"
-        categories:
-          type: array
-          items:
-            $ref: "#/components/schemas/Category"
-          x-go-type-skip-optional-pointer: true
-        image:
-          x-go-type: "*gofeed.Image"
-          x-go-type-import:
-            path: github.com/mmcdole/gofeed
-          x-go-type-skip-optional-pointer: true
-        authors:
-          x-go-type: "[]*gofeed.Person"
-          x-go-type-import:
-            path: github.com/mmcdole/gofeed
-          x-go-type-skip-optional-pointer: true
-    ObjectState:
-      description: >
-        contains fields for tracking feed/item state.
-      type: object
-      properties:
-        published:
-          $ref: "#/components/schemas/ObjectPublished"
-        updated:
-          $ref: "#/components/schemas/ObjectUpdated"
     Timestamps:
       description: contains common (metadata) fields for database objects.
       type: object
@@ -202,10 +142,10 @@ components:
         - $ref: "#/components/schemas/Timestamps"
         - type: object
           required:
-            - ID
+            - user_id
             - max_history
           properties:
-            ID:
+            user_id:
               $ref: "#/components/schemas/UserID"
             max_history:
               description: >
@@ -219,61 +159,144 @@ components:
               items:
                 $ref: "#/components/schemas/Subscription"
               x-go-type-skip-optional-pointer: true
-    APIFeed:
-      description: represents a feed object for API endpoints.
+    ObjectCommon:
+      description: contains common fields across objects.
       type: object
-      allOf:
-        - $ref: "#/components/schemas/FeedMetadata"
-        - $ref: "#/components/schemas/ObjectState"
-        - $ref: "#/components/schemas/Timestamps"
-        - type: object
-          required:
-            - ID
-            - URL
-          properties:
-            ID:
-              $ref: "#/components/schemas/FeedID"
-            URL:
-              $ref: "#/components/schemas/FeedURL"
-            language:
-              type: string
-              x-go-type-skip-optional-pointer: true
-            copyright:
-              type: string
-              x-go-type-skip-optional-pointer: true
-            generator:
-              type: string
-              x-go-type-skip-optional-pointer: true
-            feed_type:
-              type: string
-              x-oapi-codegen-extra-tags:
-                json: "feedType"
-              x-go-type-skip-optional-pointer: true
-            feed_version:
-              type: string
-              x-oapi-codegen-extra-tags:
-                json: "feedVersion"
-              x-go-type-skip-optional-pointer: true
-    APIItem:
-      description: represents an individual item (e.g., an individual feed item).
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/FeedMetadata"
-        - $ref: "#/components/schemas/ObjectState"
-        - type: object
-          required:
-            - ID
-            - FeedID
-            - URL
-          properties:
-            ID:
-              $ref: "#/components/schemas/ItemID"
-            FeedID:
-              $ref: "#/components/schemas/FeedID"
-            URL:
-              $ref: "#/components/schemas/ItemURL"
-            state:
-              $ref: "#/components/schemas/ItemState"
+      required:
+        - source_type
+        - title
+        - description
+        - url
+        - published
+      properties:
+        source_type:
+          description: >
+            indicates what type of source the object came from.
+          type: string
+          enum: ["RSS","Atom","JSONFeed"]
+        title:
+          description: >
+            is the title of the feed or item.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        description:
+          description: >
+            is a short summary or description of the feed or item.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        url:
+          description: >
+            is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is
+            sourced from. For an item, this is most likely the webpage containing the full item contents.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: "required,url"
+        published:
+          description: >
+            is the datetime at which the feed or item was published.
+          x-go-type: types.DateTime
+          x-go-type-import:
+            path: github.com/joshuar/go-feed-me/pkg/feeds/types
+        updated:
+          description: >
+            is the datetime at which the feed or item was updated.
+          x-go-type: types.DateTime
+          x-go-type-import:
+            path: github.com/joshuar/go-feed-me/pkg/feeds/types
+          x-go-type-skip-optional-pointer: true
+        categories:
+          description: >
+            is a list of categories that define a taxonomy for the feed or item.
+          type: array
+          items:
+            $ref: "../pkg/feeds/types.yaml#/components/schemas/Category"
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,unique"
+          x-go-type-skip-optional-pointer: true
+        authors:
+          description: >
+            is a list of people (names, nicknames and/or emails) who "authored" the object content.
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,unique"
+          x-go-type-skip-optional-pointer: true
+        contributors:
+          description: >
+            is a list of people (names, nicknames and/or emails) who "contributed" the object content.
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,unique"
+          x-go-type-skip-optional-pointer: true
+        image:
+          $ref: "../pkg/feeds/types.yaml#/components/schemas/Image"
+        language:
+          type: string
+          x-go-type-skip-optional-pointer: true
+        copyright:
+          type: string
+          x-go-type-skip-optional-pointer: true
+    # APIFeed:
+    #   description: represents a feed object for API endpoints.
+    #   type: object
+    #   allOf:
+    #     - $ref: "#/components/schemas/FeedMetadata"
+    #     - $ref: "#/components/schemas/ObjectState"
+    #     - $ref: "#/components/schemas/Timestamps"
+    #     - type: object
+    #       required:
+    #         - ID
+    #         - URL
+    #       properties:
+    #         ID:
+    #           $ref: "#/components/schemas/FeedID"
+    #         URL:
+    #           $ref: "#/components/schemas/FeedURL"
+    #         language:
+    #           type: string
+    #           x-go-type-skip-optional-pointer: true
+    #         copyright:
+    #           type: string
+    #           x-go-type-skip-optional-pointer: true
+    #         generator:
+    #           type: string
+    #           x-go-type-skip-optional-pointer: true
+    #         feed_type:
+    #           type: string
+    #           x-oapi-codegen-extra-tags:
+    #             json: "feedType"
+    #           x-go-type-skip-optional-pointer: true
+    #         feed_version:
+    #           type: string
+    #           x-oapi-codegen-extra-tags:
+    #             json: "feedVersion"
+    #           x-go-type-skip-optional-pointer: true
+    # APIItem:
+    #   description: represents an individual item (e.g., an individual feed item).
+    #   type: object
+    #   allOf:
+    #     - $ref: "#/components/schemas/FeedMetadata"
+    #     - $ref: "#/components/schemas/ObjectState"
+    #     - type: object
+    #       required:
+    #         - ID
+    #         - FeedID
+    #         - URL
+    #       properties:
+    #         ID:
+    #           $ref: "#/components/schemas/ItemID"
+    #         FeedID:
+    #           $ref: "#/components/schemas/FeedID"
+    #         URL:
+    #           $ref: "#/components/schemas/ItemURL"
+    #         state:
+    #           $ref: "#/components/schemas/ItemState"
     Tokens:
       type: object
       required:
@@ -381,7 +404,7 @@ components:
             is a user-defined list of Category names for the subscription.
           type: array
           items:
-            $ref: "#/components/schemas/Category"
+            $ref: "../pkg/feeds/types.yaml#/components/schemas/Category"
           x-oapi-codegen-extra-tags:
             json: "user_categories"
             form: "user_categories[]"
@@ -429,18 +452,6 @@ components:
             form: "-"
             validate: "numeric,gte=0"
           x-go-type-skip-optional-pointer: true
-    SubscriptionFeed:
-      description: >
-        contains details about the Feed for which the Subscription is associated with.
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/FeedMetadata"
-        - type: object
-          required:
-            - URL
-          properties:
-            URL:
-              $ref: "#/components/schemas/URL"
     Subscription:
       description: >
         represents a feed a user has subscribed to.
@@ -450,16 +461,58 @@ components:
         - $ref: "#/components/schemas/SubscriptionCustomisation"
         - type: object
           required:
-            - ID
-            - FeedID
+            - subscription_id
             - state
-            - feed_details
+            - feed
           properties:
-            ID:
+            subscription_id:
               $ref: "#/components/schemas/SubscriptionID"
-            FeedID:
-              $ref: "#/components/schemas/FeedID"
-            feed_details:
-              $ref: "#/components/schemas/SubscriptionFeed"
+            feed:
+              $ref: "#/components/schemas/Feed"
             state:
               $ref: "#/components/schemas/SubscriptionState"
+    Feed:
+      description: represents a feed object.
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/ObjectCommon"
+        - type: object
+          required:
+            - feed_id
+            - source
+            - created_at
+          properties:
+            feed_id:
+              $ref: "#/components/schemas/FeedID"
+            source:
+              description: >
+                is a URL to the source Feed document.
+              allOf:
+                - $ref: "#/components/schemas/URL"
+              x-go-name: SourceURL
+              x-oapi-codegen-extra-tags:
+                validate: "required,url"
+            created_at:
+              $ref: "#/components/schemas/CreatedAt"
+    Item:
+      description: represents an individual item (e.g., an individual feed item).
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/ObjectCommon"
+        - type: object
+          required:
+            - item_id
+            - feed_id
+            - "@timestamp"
+          properties:
+            "@timestamp":
+              $ref: "#/components/schemas/Timestamp"
+            item_id:
+              $ref: "#/components/schemas/ItemID"
+            feed_id:
+              $ref: "#/components/schemas/FeedID"
+            state:
+              $ref: "#/components/schemas/ItemState"
+            content:
+              $ref: "../pkg/feeds/types.yaml#/components/schemas/Content"
+

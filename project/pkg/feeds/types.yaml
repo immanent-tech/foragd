@@ -98,8 +98,6 @@ components:
       required:
         - value
       properties:
-        XMLName:
-          $ref: "#/components/schemas/XMLName"
         value:
           $ref: "#/components/schemas/RequiredValue"
         attributes:

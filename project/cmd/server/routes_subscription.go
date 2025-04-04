@@ -246,7 +246,7 @@ func processSubscriptionRequests(ctx context.Context, api DataAPI, user *models.
 	// Filter subscriptions that have failed results.
 	validSubscriptions := maps.Collect(models.FilterMap(subscriptions, func(sub *models.Subscription, _ *models.Feed) bool {
 		// If it is already marked with results, filter it out.
-		if slices.ContainsFunc(slices.Collect(maps.Keys(results)), func(v *models.Subscription) bool { return v.ID == sub.ID }) {
+		if slices.ContainsFunc(slices.Collect(maps.Keys(results)), func(v *models.Subscription) bool { return v.SubscriptionID == sub.SubscriptionID }) {
 			return false
 		}
 		// Check if the details are valid. If not, add to results and return false.
@@ -356,7 +356,7 @@ func generateSubscriptions(ctx context.Context, api DataAPI, user *models.User, 
 	existingFeeds, err := api.GetFeedsByURL(ctx, models.SubscriptionRequests(requests).URLs()...)
 	if err != nil {
 		for request := range slices.Values(requests) {
-			results[&models.Subscription{ID: request.ID}] = models.NewMessage(
+			results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = models.NewMessage(
 				fmt.Sprintf("could not create a subscription for feed with URL %s", request.GetURL()),
 				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
 				models.WithStatus(models.MessageStatusWarning),
@@ -368,12 +368,12 @@ func generateSubscriptions(ctx context.Context, api DataAPI, user *models.User, 
 	// Loop through requests and generate subscriptions for each one. If a new
 	// feed needs to be added, also create those.
 	for request := range slices.Values(requests) {
-		if idx := slices.IndexFunc(existingFeeds, func(feed *models.APIFeed) bool {
+		if idx := slices.IndexFunc(existingFeeds, func(feed *models.Feed) bool {
 			return request.GetURL() == feed.GetLink()
 		}); idx != -1 {
 			// Existing Feed. Check if user already subscribed.
 			if user.IsSubscribed(existingFeeds[idx].GetID()) {
-				results[&models.Subscription{ID: request.ID}] = models.NewMessage(fmt.Sprintf("Already subscribed to %s", request.GetURL()),
+				results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = models.NewMessage(fmt.Sprintf("Already subscribed to %s", request.GetURL()),
 					models.WithDetails("Already subscribed to the feed with the given URL."),
 					models.WithStatus(models.MessageStatusInfo),
 				)
@@ -386,7 +386,7 @@ func generateSubscriptions(ctx context.Context, api DataAPI, user *models.User, 
 			// New Feed. Create Feed then create Subscription with new Feed details.
 			newFeed, err := models.NewFeedFromURL(ctx, request.GetURL())
 			if err != nil {
-				results[&models.Subscription{ID: request.ID}] = models.NewMessage(fmt.Sprintf("could not create a subscription for feed with URL %s", request.GetURL()),
+				results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = models.NewMessage(fmt.Sprintf("could not create a subscription for feed with URL %s", request.GetURL()),
 					models.WithDetails("A subscription could not be created as there was an error trying to parse the feed at the given URL. Please check the URL and/or try again."),
 					models.WithStatus(models.MessageStatusWarning),
 					models.WithError(err),
@@ -433,7 +433,7 @@ func showImportResults(res http.ResponseWriter, req *http.Request, results subsc
 		if k.GetName() != "" {
 			name = k.GetName()
 		} else {
-			name = k.FeedDetails.URL
+			name = k.Feed.GetSourceURL()
 		}
 		if v.Details != nil {
 			details = *v.Details

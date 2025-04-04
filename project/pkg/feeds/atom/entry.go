@@ -7,12 +7,11 @@ import (
 	"slices"
 	"time"
 
+	"github.com/joshuar/go-feed-me/pkg/feeds/sanitization"
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-var (
-	_ types.ItemSource = (*Entry)(nil)
-)
+var _ types.ItemSource = (*Entry)(nil)
 
 // GetID returns an "id" for the Entry. This will be the value of the <id> element, if present, or an empty string if
 // not present.
@@ -82,15 +81,41 @@ func (e *Entry) GetContributors() []string {
 	return contributors
 }
 
+// GetRights retrieves the rights (copyright) of the Entry. This will be the first value found from either <dc:rights>
+// or <rights> elements.
+func (e *Entry) GetRights() string {
+	switch {
+	case e.DCRights != nil:
+		return e.DCRights.String()
+	case e.Rights != nil:
+		return e.Rights.Value
+	default:
+		return ""
+	}
+}
+
+// GetLanguage retrieves the language of the Entry. This will be the first value found from either <dc:language>
+// or <lang> elements.
+func (e *Entry) GetLanguage() string {
+	switch {
+	case e.DCLanguage != nil:
+		return e.DCLanguage.String()
+	case e.Lang != nil:
+		return *e.Lang
+	default:
+		return ""
+	}
+}
+
 // GetCategories retrieves the categories (if any) of the Entry. The categories are returned as types.Category objects,
 // which tries to encapsulate an Atom category element in a portable format across schemas. Malformed categories will be
 // discarded.
 //
 // If you prefer not to use the types.Category object, just retrieve the categories from Item.Categories directly.
-func (e *Entry) GetCategories() []*types.Category {
-	categories := make([]*types.Category, 0, len(e.Categories))
+func (e *Entry) GetCategories() []types.Category {
+	categories := make([]types.Category, 0, len(e.Categories))
 	for category := range slices.Values(e.Categories) {
-		c := &types.Category{Value: category.String()}
+		c := types.Category{Value: category.String()}
 		// If there is a scheme value, copy that across.
 		if category.Scheme != nil {
 			domainAttr := types.NewXMLAttr("scheme", category.Scheme.Value, "")
@@ -134,7 +159,7 @@ func (e *Entry) GetContent() *types.Content {
 		switch {
 		case e.Content.Value != nil:
 			return &types.Content{
-				Value: types.SanitizeString(*e.Content.Value),
+				Value: sanitization.SanitizeString(*e.Content.Value),
 			}
 		case e.Content.Source != nil:
 			return &types.Content{

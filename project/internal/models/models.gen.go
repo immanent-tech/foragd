@@ -7,13 +7,35 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc"
-	"github.com/mmcdole/gofeed"
+	"github.com/joshuar/go-feed-me/pkg/feeds/types"
+	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/types"
+)
+
+// Defines values for FeedSourceType.
+const (
+	FeedSourceTypeAtom     FeedSourceType = "Atom"
+	FeedSourceTypeJSONFeed FeedSourceType = "JSONFeed"
+	FeedSourceTypeRSS      FeedSourceType = "RSS"
+)
+
+// Defines values for ItemSourceType.
+const (
+	ItemSourceTypeAtom     ItemSourceType = "Atom"
+	ItemSourceTypeJSONFeed ItemSourceType = "JSONFeed"
+	ItemSourceTypeRSS      ItemSourceType = "RSS"
 )
 
 // Defines values for Mark.
 const (
 	MarkRead   Mark = "read"
 	MarkUnread Mark = "unread"
+)
+
+// Defines values for ObjectCommonSourceType.
+const (
+	ObjectCommonSourceTypeAtom     ObjectCommonSourceType = "Atom"
+	ObjectCommonSourceTypeJSONFeed ObjectCommonSourceType = "JSONFeed"
+	ObjectCommonSourceTypeRSS      ObjectCommonSourceType = "RSS"
 )
 
 // Defines values for State.
@@ -23,77 +45,12 @@ const (
 	StateUnread State = "unread"
 )
 
-// APIFeed defines model for APIFeed.
-type APIFeed struct {
-	// ID is the unique ID of a feed.
-	ID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-
-	// FeedURL The canonical feed URL.
-	FeedURL    FeedURL          `json:"feedLink" validate:"required,url"`
-	Authors    []*gofeed.Person `json:"authors,omitempty"`
-	Categories []Category       `json:"categories,omitempty"`
-	Copyright  string           `json:"copyright,omitempty"`
-
-	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at" validate:"required"`
-
-	// Description is a string that can contain HTML.
-	Description HTMLString    `json:"description" validate:"url_encoded"`
-	FeedType    string        `json:"feedType"`
-	FeedVersion string        `json:"feedVersion"`
-	Generator   string        `json:"generator,omitempty"`
-	Image       *gofeed.Image `json:"image,omitempty"`
-	Language    string        `json:"language,omitempty"`
-
-	// Published is when the object was published.
-	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
-
-	// Title is a string that can contain HTML.
-	Title HTMLString `json:"title" validate:"url_encoded"`
-
-	// Updated is when the object was updated.
-	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
-}
-
-// APIItem defines model for APIItem.
-type APIItem struct {
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-
-	// ID is the unique ID of an item.
-	ID ItemID `json:"item_id" validate:"required,startswith=item_"`
-
-	// ItemURL A URL to view the original item.
-	ItemURL    ItemURL          `json:"link" validate:"required,url"`
-	Authors    []*gofeed.Person `json:"authors,omitempty"`
-	Categories []Category       `json:"categories,omitempty"`
-
-	// Description is a string that can contain HTML.
-	Description HTMLString    `json:"description" validate:"url_encoded"`
-	Image       *gofeed.Image `json:"image,omitempty"`
-
-	// Published is when the object was published.
-	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
-
-	// State contains the user state for the item.
-	State *ItemState `json:"-"`
-
-	// Title is a string that can contain HTML.
-	Title HTMLString `json:"title" validate:"url_encoded"`
-
-	// Updated is when the object was updated.
-	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
-}
-
-// Category is a single category.
+// Category represents a taxonomy applied to an object.
 type Category = string
 
 // CategoryCount holds a category and the count of its occurence. The count will be contextual. i.e., across subscriptions, items, etc.
 type CategoryCount struct {
-	// Category is a single category.
+	// Category represents a taxonomy applied to an object.
 	Category Category `json:"category"`
 	Count    int      `json:"count"`
 }
@@ -118,27 +75,111 @@ type CreatedAt = time.Time
 // DeletedAt records when the object was deleted.
 type DeletedAt = time.Time
 
+// Feed defines model for Feed.
+type Feed struct {
+	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
+	Authors []string `json:"authors,omitempty" validate:"omitempty,unique"`
+
+	// Categories is a list of categories that define a taxonomy for the feed or item.
+	Categories []externalRef0.Category `json:"categories,omitempty" validate:"omitempty,unique"`
+
+	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
+	Contributors []string `json:"contributors,omitempty" validate:"omitempty,unique"`
+	Copyright    string   `json:"copyright,omitempty"`
+
+	// CreatedAt records when the object was created in the database.
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+
+	// Description is a short summary or description of the feed or item.
+	Description string `json:"description" validate:"required"`
+
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+
+	// Image is an abstraction of an Image across different types of specifications.
+	Image    *externalRef0.Image `json:"image,omitempty"`
+	Language string              `json:"language,omitempty"`
+
+	// Published is the datetime at which the feed or item was published.
+	Published types.DateTime `json:"published"`
+
+	// SourceURL is a URL to the source Feed document.
+	SourceURL URL `json:"source" validate:"required,url"`
+
+	// SourceType indicates what type of source the object came from.
+	SourceType FeedSourceType `json:"source_type"`
+
+	// Title is the title of the feed or item.
+	Title string `json:"title" validate:"required"`
+
+	// Updated is the datetime at which the feed or item was updated.
+	Updated types.DateTime `json:"updated,omitempty"`
+
+	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
+	URL string `json:"url" validate:"required,url"`
+}
+
+// FeedSourceType indicates what type of source the object came from.
+type FeedSourceType string
+
 // FeedID is the unique ID of a feed.
 type FeedID = string
 
-// FeedMetadata contains common/metadata fields for feeds and items.
-type FeedMetadata struct {
-	Authors    []*gofeed.Person `json:"authors,omitempty"`
-	Categories []Category       `json:"categories,omitempty"`
-
-	// Description is a string that can contain HTML.
-	Description HTMLString    `json:"description" validate:"url_encoded"`
-	Image       *gofeed.Image `json:"image,omitempty"`
-
-	// Title is a string that can contain HTML.
-	Title HTMLString `json:"title" validate:"url_encoded"`
-}
-
-// FeedURL The canonical feed URL.
-type FeedURL = string
-
 // HTMLString is a string that can contain HTML.
 type HTMLString = string
+
+// Item defines model for Item.
+type Item struct {
+	// Timestamp is when the document was created.
+	Timestamp Timestamp `json:"@timestamp" validate:"required"`
+
+	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
+	Authors []string `json:"authors,omitempty" validate:"omitempty,unique"`
+
+	// Categories is a list of categories that define a taxonomy for the feed or item.
+	Categories []externalRef0.Category `json:"categories,omitempty" validate:"omitempty,unique"`
+
+	// Content is an abstraction of element content across different types of specifications.
+	Content *externalRef0.Content `json:"content,omitempty"`
+
+	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
+	Contributors []string `json:"contributors,omitempty" validate:"omitempty,unique"`
+	Copyright    string   `json:"copyright,omitempty"`
+
+	// Description is a short summary or description of the feed or item.
+	Description string `json:"description" validate:"required"`
+
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+
+	// Image is an abstraction of an Image across different types of specifications.
+	Image *externalRef0.Image `json:"image,omitempty"`
+
+	// ItemID is the unique ID of an item.
+	ItemID   ItemID `json:"item_id" validate:"required,startswith=item_"`
+	Language string `json:"language,omitempty"`
+
+	// Published is the datetime at which the feed or item was published.
+	Published types.DateTime `json:"published"`
+
+	// SourceType indicates what type of source the object came from.
+	SourceType ItemSourceType `json:"source_type"`
+
+	// State contains the user state for the item.
+	State *ItemState `json:"-"`
+
+	// Title is the title of the feed or item.
+	Title string `json:"title" validate:"required"`
+
+	// Updated is the datetime at which the feed or item was updated.
+	Updated types.DateTime `json:"updated,omitempty"`
+
+	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
+	URL string `json:"url" validate:"required,url"`
+}
+
+// ItemSourceType indicates what type of source the object came from.
+type ItemSourceType string
 
 // ItemID is the unique ID of an item.
 type ItemID = string
@@ -149,52 +190,69 @@ type ItemState struct {
 	State State `json:"state" validate:"oneof='read unread saved'"`
 }
 
-// ItemURL A URL to view the original item.
-type ItemURL = string
-
 // Mark applies the given mark action to objects.
 type Mark string
 
-// ObjectPublished is when the object was published.
-type ObjectPublished = time.Time
+// ObjectCommon contains common fields across objects.
+type ObjectCommon struct {
+	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
+	Authors []string `json:"authors,omitempty" validate:"omitempty,unique"`
 
-// ObjectState contains fields for tracking feed/item state.
-type ObjectState struct {
-	// Published is when the object was published.
-	Published ObjectPublished `form:"published_at" json:"publishedParsed"`
+	// Categories is a list of categories that define a taxonomy for the feed or item.
+	Categories []externalRef0.Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
-	// Updated is when the object was updated.
-	Updated ObjectUpdated `form:"updated_at" json:"updatedParsed"`
+	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
+	Contributors []string `json:"contributors,omitempty" validate:"omitempty,unique"`
+	Copyright    string   `json:"copyright,omitempty"`
+
+	// Description is a short summary or description of the feed or item.
+	Description string `json:"description" validate:"required"`
+
+	// Image is an abstraction of an Image across different types of specifications.
+	Image    *externalRef0.Image `json:"image,omitempty"`
+	Language string              `json:"language,omitempty"`
+
+	// Published is the datetime at which the feed or item was published.
+	Published types.DateTime `json:"published"`
+
+	// SourceType indicates what type of source the object came from.
+	SourceType ObjectCommonSourceType `json:"source_type"`
+
+	// Title is the title of the feed or item.
+	Title string `json:"title" validate:"required"`
+
+	// Updated is the datetime at which the feed or item was updated.
+	Updated types.DateTime `json:"updated,omitempty"`
+
+	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
+	URL string `json:"url" validate:"required,url"`
 }
 
-// ObjectUpdated is when the object was updated.
-type ObjectUpdated = time.Time
+// ObjectCommonSourceType indicates what type of source the object came from.
+type ObjectCommonSourceType string
 
 // State Tracks the state of an object.
 type State string
 
 // Subscription defines model for Subscription.
 type Subscription struct {
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-
-	// ID is the unique ID of a subscription.
-	ID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
-	// FeedDetails contains details about the Feed for which the Subscription is associated with.
-	FeedDetails SubscriptionFeed `json:"feed_details"`
+	// Feed represents a feed object.
+	Feed Feed `json:"feed"`
 
 	// State contains properties tracking the state of the subscription.
 	State SubscriptionState `json:"state"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
 	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
+	UserCategories []externalRef0.Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
 
 	// UserNickname is a friendly name or nickname for the feed given by the user.
 	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
@@ -203,25 +261,10 @@ type Subscription struct {
 // SubscriptionCustomisation represents the properties of a subscription a user can customize.
 type SubscriptionCustomisation struct {
 	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
+	UserCategories []externalRef0.Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
 
 	// UserNickname is a friendly name or nickname for the feed given by the user.
 	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
-}
-
-// SubscriptionFeed defines model for SubscriptionFeed.
-type SubscriptionFeed struct {
-	// URL is a URL.
-	URL        URL              `json:"url" validate:"url"`
-	Authors    []*gofeed.Person `json:"authors,omitempty"`
-	Categories []Category       `json:"categories,omitempty"`
-
-	// Description is a string that can contain HTML.
-	Description HTMLString    `json:"description" validate:"url_encoded"`
-	Image       *gofeed.Image `json:"image,omitempty"`
-
-	// Title is a string that can contain HTML.
-	Title HTMLString `json:"title" validate:"url_encoded"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
@@ -269,9 +312,6 @@ type UpdatedAt = time.Time
 
 // User defines model for User.
 type User struct {
-	// ID is the unique ID of a user.
-	ID UserID `json:"user_id" validate:"required"`
-
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
@@ -283,6 +323,9 @@ type User struct {
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+
+	// UserID is the unique ID of a user.
+	UserID UserID `json:"user_id" validate:"required"`
 }
 
 // UserID is the unique ID of a user.

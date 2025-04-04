@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/joshuar/go-feed-me/pkg/feeds/atom"
+	"github.com/joshuar/go-feed-me/pkg/feeds/sanitization"
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
@@ -19,7 +20,7 @@ func (c *Channel) GetTitle() string {
 	case c.DCTitle != nil:
 		return c.DCTitle.String()
 	default:
-		return types.SanitizeString(c.Title)
+		return sanitization.SanitizeString(c.Title)
 	}
 }
 
@@ -29,7 +30,7 @@ func (c *Channel) GetDescription() string {
 	case c.DCDescription != nil:
 		return c.DCDescription.String()
 	default:
-		return types.SanitizeString(c.Description)
+		return sanitization.SanitizeString(c.Description)
 	}
 }
 
@@ -66,7 +67,7 @@ func (c *Channel) GetAuthors() []string {
 	return authors
 }
 
-// GetContributors retrieves the contributors (if any) of the Item. This will be the list of values from the
+// GetContributors retrieves the contributors (if any) of the Channel. This will be the list of values from the
 // <dc:contributor> element.
 func (c *Channel) GetContributors() []string {
 	var contributors []string
@@ -76,15 +77,41 @@ func (c *Channel) GetContributors() []string {
 	return contributors
 }
 
-// GetCategories retrieves the categories (if any) of the Item. The categories are returned as types.Category objects,
-// which tries to encapsulate an RSS category element in a portable format across schemas. Malformed categories will be
-// discarded.
+// GetRights retrieves the rights (copyright) of the Channel. This will be the first value found from either <dc:rights>
+// or <copyright> elements.
+func (c *Channel) GetRights() string {
+	switch {
+	case c.DCRights != nil:
+		return c.DCRights.String()
+	case c.Copyright != nil:
+		return *c.Copyright
+	default:
+		return ""
+	}
+}
+
+// GetLanguage retrieves the language of the Channel. This will be the first value found from either <dc:language>
+// or <lang> elements.
+func (c *Channel) GetLanguage() string {
+	switch {
+	case c.DCLanguage != nil:
+		return c.DCLanguage.String()
+	case c.Language != nil:
+		return *c.Language
+	default:
+		return ""
+	}
+}
+
+// GetCategories retrieves the categories (if any) of the Channel. The categories are returned as types.Category
+// objects, which tries to encapsulate an RSS category element in a portable format across schemas. Malformed categories
+// will be discarded.
 //
 // If you prefer not to use the types.Category object, just retrieve the categories from Item.Categories directly.
-func (c *Channel) GetCategories() []*types.Category {
-	categories := make([]*types.Category, 0, len(c.Categories))
+func (c *Channel) GetCategories() []types.Category {
+	categories := make([]types.Category, 0, len(c.Categories))
 	for category := range slices.Values(c.Categories) {
-		c := &types.Category{Value: category.String()}
+		c := types.Category{Value: category.String()}
 		// If the domain attribute has a value, copy it across.
 		if category.Domain != nil {
 			domainAttr := types.NewXMLAttr("domain", *category.Domain, "")
@@ -138,13 +165,3 @@ func (c *Channel) GetItems() []types.ItemSource {
 	}
 	return items
 }
-
-// func (c *Channel) UnmarshalJSON(v []byte) error {
-// 	var channel Channel
-// 	if err := json.Unmarshal(v, &channel); err != nil {
-// 		return err
-// 	} else {
-// 		c = &channel
-// 		return nil
-// 	}
-// }

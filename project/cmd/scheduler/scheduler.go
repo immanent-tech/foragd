@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"sync"
 	"time"
 
@@ -28,10 +29,10 @@ var (
 )
 
 type DataAPI interface {
-	GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error)
+	GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error)
 	GetFeedJobState(ctx context.Context, feedID models.FeedID) (*models.FeedState, error)
 	UpdateFeedJobState(ctx context.Context, state *models.FeedState) error
-	AddItems(ctx context.Context, items ...models.Item) (*bulk.Response, error)
+	AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error)
 }
 
 type Manager struct {
@@ -126,7 +127,7 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 
 	m.checkpoint = time.Now().UTC()
 
-	for _, feed := range feeds {
+	for feed := range slices.Values(feeds) {
 		var job quartz.ScheduledJob
 		// Fetch any existing job.
 		if existingJob, err := m.queue.Get(GenerateJobKey(feed.GetID())); err == nil {
@@ -150,7 +151,7 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 				job = quartz.ScheduledJob(details)
 			}
 		} else {
-			job, err = NewFeedJob(feed)
+			job, err = NewFeedJob(feed.GetID(), feed.GetSourceURL())
 			if err != nil {
 				m.logger.Warn("Failed to schedule job for feed.",
 					slog.String("feed_id", feed.GetID()),

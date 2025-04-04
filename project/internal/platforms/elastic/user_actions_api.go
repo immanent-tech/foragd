@@ -22,8 +22,10 @@ import (
 // ErrUserActionFailed is a generic error indicating something went wrong with a
 // user action request. Typically it should be joined with the actual error
 // returned from any underlying methods.
-var ErrUserActionFailed = errors.New("user action failed")
-var ErrUserAlreadySubscribed = errors.New("user already subscribed")
+var (
+	ErrUserActionFailed      = errors.New("user action failed")
+	ErrUserAlreadySubscribed = errors.New("user already subscribed")
+)
 
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
 func (e *ElasticAPI) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error {
@@ -85,7 +87,7 @@ func (e *ElasticAPI) MarkItems(ctx context.Context, mark models.Mark, itemIDs ..
 // GetItem retrieves the specified item with the given id and from the given
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
-func (e *ElasticAPI) GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.APIItem, bool, error) {
+func (e *ElasticAPI) GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, false, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -127,7 +129,7 @@ func (e *ElasticAPI) GetItem(ctx context.Context, feedID models.FeedID, itemID m
 		return nil, false, errors.Join(ErrSearchFailed, err)
 	}
 
-	item, err := ExtractSource[*models.APIItem](res.Hits.Hits[0].Source_)
+	item, err := ExtractSource[*models.Item](res.Hits.Hits[0].Source_)
 	if err != nil {
 		return nil, false, errors.Join(ErrSearchFailed, err)
 	}
@@ -159,7 +161,7 @@ func (e *ElasticAPI) GetItems(ctx context.Context, filters *models.Filters) (mod
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
 	// Extract items and pagination values.
-	items, lastSortValue, warnings := ExtractSourceFromHits[*models.APIItem](resp.Hits.Hits)
+	items, lastSortValue, warnings := ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
 	if warnings != nil {
 		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
@@ -256,7 +258,7 @@ func (e *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions models.
 	user.AddSubscriptions(subscriptions)
 	spew.Dump(user)
 	// Update the user object.
-	return e.UpdateUser(ctx, user.ID, map[string]any{
+	return e.UpdateUser(ctx, user.GetID(), map[string]any{
 		"subscriptions": user.Subscriptions,
 		"updated_at":    time.Now().UTC(),
 	})
@@ -276,7 +278,7 @@ func (e *ElasticAPI) MarkSubscriptions(ctx context.Context, mark models.Mark, fe
 	user.MarkSubscriptions(mark, feedIDs...)
 
 	// Update the user object.
-	return e.UpdateUser(ctx, user.ID, map[string]any{
+	return e.UpdateUser(ctx, user.GetID(), map[string]any{
 		"subscriptions": user.Subscriptions,
 		"updated_at":    time.Now().UTC(),
 	})

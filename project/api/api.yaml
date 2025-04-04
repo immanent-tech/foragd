@@ -262,7 +262,7 @@ components:
         ID:
           $ref: "models.yaml#/components/schemas/FeedID"
         URL:
-          $ref: "models.yaml#/components/schemas/FeedURL"
+          $ref: "models.yaml#/components/schemas/URL"
         updated_at:
           $ref: "models.yaml#/components/schemas/UpdatedAt"
     Message:

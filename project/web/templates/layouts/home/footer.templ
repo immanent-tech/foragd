@@ -59,7 +59,7 @@ func BuildListFooter(backPath string, filters templ.Component, sorts templ.Compo
 // ArticleHeader represents the content header for an individual article.
 type ArticleFooter struct {
 	backPath string
-	item     *models.APIItem
+	item     *models.Item
 }
 
 templ (f *ArticleFooter) Show(classes ...string) {
@@ -80,7 +80,7 @@ templ (f *ArticleFooter) Show(classes ...string) {
 	</div>
 }
 
-func BuildArticleFooter(backPath string, item *models.APIItem) *ArticleFooter {
+func BuildArticleFooter(backPath string, item *models.Item) *ArticleFooter {
 	return &ArticleFooter{
 		backPath: backPath,
 		item:     item,

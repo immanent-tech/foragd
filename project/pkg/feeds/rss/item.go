@@ -7,12 +7,11 @@ import (
 	"slices"
 	"time"
 
+	"github.com/joshuar/go-feed-me/pkg/feeds/sanitization"
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-var (
-	_ types.ItemSource = (*Item)(nil)
-)
+var _ types.ItemSource = (*Item)(nil)
 
 // GetID returns an "id" for the item. This will be the value of the <guid> element, if present, or an empty string if
 // not present.
@@ -29,7 +28,7 @@ func (i *Item) GetTitle() string {
 	case i.DCTitle != nil:
 		return i.DCTitle.String()
 	case i.Title != nil:
-		return types.SanitizeString(*i.Title)
+		return sanitization.SanitizeString(*i.Title)
 	default:
 		return ""
 	}
@@ -49,7 +48,7 @@ func (i *Item) GetDescription() string {
 	case i.DCDescription != nil:
 		return i.DCDescription.String()
 	case i.Description != nil:
-		return types.SanitizeString(*i.Description)
+		return sanitization.SanitizeString(*i.Description)
 	default:
 		return ""
 	}
@@ -78,15 +77,34 @@ func (i *Item) GetContributors() []string {
 	return contributors
 }
 
+// GetRights retrieves the rights (copyright) of the Channel. This will be the value of <dc:rights>, if found.
+func (i *Item) GetRights() string {
+	if i.DCRights != nil {
+		return i.DCRights.String()
+	}
+	return ""
+}
+
+// GetLanguage retrieves the language of the Item. This will be the value found from the <dc:language> element, if
+// present.
+func (i *Item) GetLanguage() string {
+	switch {
+	case i.DCLanguage != nil:
+		return i.DCLanguage.String()
+	default:
+		return ""
+	}
+}
+
 // GetCategories retrieves the categories (if any) of the Item. The categories are returned as types.Category objects,
 // which tries to encapsulate an RSS category element in a portable format across schemas. Malformed categories will be
 // discarded.
 //
 // If you prefer not to use the types.Category object, just retrieve the categories from Item.Categories directly.
-func (i *Item) GetCategories() []*types.Category {
-	categories := make([]*types.Category, 0, len(i.Categories))
+func (i *Item) GetCategories() []types.Category {
+	categories := make([]types.Category, 0, len(i.Categories))
 	for category := range slices.Values(i.Categories) {
-		c := &types.Category{Value: category.String()}
+		c := types.Category{Value: category.String()}
 		// If the domain attribute has a value, copy it across.
 		if category.Domain != nil {
 			domainAttr := types.NewXMLAttr("domain", *category.Domain, "")
@@ -137,7 +155,7 @@ func (i *Item) GetUpdatedDate() types.DateTime {
 func (i *Item) GetContent() *types.Content {
 	if i.ContentEncoded != nil {
 		return &types.Content{
-			Value: types.SanitizeString(i.ContentEncoded.Value),
+			Value: sanitization.SanitizeString(i.ContentEncoded.Value),
 		}
 	}
 	return nil

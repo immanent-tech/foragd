@@ -20,7 +20,7 @@ type Subscriptions []*Subscription
 // each feed.
 func (s Subscriptions) UpdateUnreadCounts(unreadCounts map[FeedID]int) {
 	for subscription := range slices.Values(s) {
-		if count, found := unreadCounts[subscription.FeedID]; found {
+		if count, found := unreadCounts[subscription.GetFeedID()]; found {
 			subscription.SetUnreadCount(count)
 		}
 	}
@@ -29,7 +29,7 @@ func (s Subscriptions) UpdateUnreadCounts(unreadCounts map[FeedID]int) {
 // ByFeed returns a map of Subscriptions by FeedID.
 func (s Subscriptions) ByFeed() map[FeedID]*Subscription {
 	return SliceToMap(s, func(v *Subscription) (FeedID, *Subscription) {
-		return v.FeedID, v
+		return v.GetFeedID(), v
 	})
 }
 
@@ -43,8 +43,8 @@ func (s Subscriptions) GetFeedIDs() []FeedID {
 }
 
 // GetCategories returns all the Categories for the Subscriptions.
-func (s Subscriptions) GetCategories() []Category {
-	var categories []Category
+func (s Subscriptions) GetCategories() []string {
+	var categories []string
 	for subscription := range slices.Values(s) {
 		categories = append(categories, subscription.GetCategories()...)
 	}
@@ -119,13 +119,16 @@ func (s *Subscription) Valid() (bool, error) {
 
 // GetFeedID retrieves the FeedID associated with the subscription.
 func (s *Subscription) GetFeedID() FeedID {
-	return s.FeedID
+	return s.Feed.GetID()
 }
 
 // GetCategories retrieves any custom categories set by the user of nil if
 // unset.
 func (s *Subscription) GetCategories() []Category {
-	categories := slices.Concat(s.UserCategories, s.FeedDetails.Categories)
+	categories := make([]Category, 0, len(s.UserCategories)+len(s.Feed.GetCategories()))
+	for category := range slices.Values(slices.Concat(s.UserCategories, s.Feed.GetCategories())) {
+		categories = append(categories, category.String())
+	}
 	slices.Sort(categories)
 	return slices.Compact(categories)
 }
@@ -145,7 +148,7 @@ func (s *Subscription) GetName() string {
 	if s.UserNickname != "" {
 		return s.UserNickname
 	}
-	return s.FeedDetails.Title
+	return s.Feed.GetTitle()
 }
 
 // GetMarkedRead retrieves the timestamp when the user last marked the
@@ -204,6 +207,10 @@ func (r *SubscriptionRequest) GetURL() string {
 	return r.URL
 }
 
+func (r *SubscriptionRequest) GetID() string {
+	return r.SubscriptionID
+}
+
 // SubscriptionRequests is a list of subscription requests.
 type SubscriptionRequests []*SubscriptionRequest
 
@@ -220,27 +227,19 @@ func (r SubscriptionRequests) URLs() []URL {
 
 func NewSubscriptionRequest(url string) *SubscriptionRequest {
 	return &SubscriptionRequest{
-		ID:  id.NewID(id.Subscription),
-		URL: url,
+		SubscriptionID: id.NewID(id.Subscription),
+		URL:            url,
 	}
 }
 
 // NewSubscription creates a Subscription from the request and feed details.
-func NewSubscription(request *SubscriptionRequest, feed FeedInterface) *Subscription {
+func NewSubscription(request *SubscriptionRequest, feed *Feed) *Subscription {
 	return &Subscription{
 		CreatedAt:      time.Now().UTC(),
-		ID:             request.ID,
+		SubscriptionID: request.SubscriptionID,
 		UserCategories: request.UserCategories,
 		UserNickname:   request.UserNickname,
-		FeedID:         feed.GetID(),
-		FeedDetails: SubscriptionFeed{
-			URL:         feed.GetLink(),
-			Authors:     feed.GetAuthors(),
-			Categories:  feed.GetCategories(),
-			Description: feed.GetDescription(),
-			Image:       feed.GetImage(),
-			Title:       feed.GetTitle(),
-		},
+		Feed:           *feed,
 		State: SubscriptionState{
 			MarkedRead: time.Unix(0, 0),
 		},

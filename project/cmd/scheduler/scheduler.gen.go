@@ -14,8 +14,8 @@ import (
 
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
-	// ID is the unique ID of a feed.
-	ID externalRef1.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	// FeedID is the unique ID of a feed.
+	FeedID externalRef1.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
 
 	// URL is a URL.
 	URL externalRef1.URL `json:"url" validate:"url"`

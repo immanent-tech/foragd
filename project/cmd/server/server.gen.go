@@ -131,13 +131,13 @@ type LoginCallbackParams struct {
 
 // DelSubscriptionCategoryFormdataBody defines parameters for DelSubscriptionCategory.
 type DelSubscriptionCategoryFormdataBody struct {
-	// Category is a single category.
+	// Category represents a taxonomy applied to an object.
 	Category externalRef0.Category `form:"category" json:"category"`
 }
 
 // AddSubscriptionCategoryFormdataBody defines parameters for AddSubscriptionCategory.
 type AddSubscriptionCategoryFormdataBody struct {
-	// Category is a single category.
+	// Category represents a taxonomy applied to an object.
 	Category externalRef0.Category `form:"category" json:"category"`
 }
 

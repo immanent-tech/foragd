@@ -93,13 +93,13 @@ templ showFeedCardContent(subscription *models.Subscription) {
 				).Show()
 			}
 		</div>
-		if details := subscription.FeedDetails.Description; details != "" {
+		if details := subscription.Feed.GetDescription(); details != "" {
 			@text.Build(details, text.WithTextSize(text.SM), text.AsItalicText()).Show()
 		}
 	</div>
 }
 
-templ showItemCardContent(item *models.APIItem) {
+templ showItemCardContent(item *models.Item) {
 	<div hx-disable="true">
 		<div class="flex">
 			@showTitle(item.GetTitle())

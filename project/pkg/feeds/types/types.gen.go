@@ -27,9 +27,6 @@ type Content = CustomTypeBase
 
 // CustomTypeBase defines model for CustomTypeBase.
 type CustomTypeBase struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName *XMLName `json:"xml" validate:"required"`
-
 	// Attributes are any attributes of the element.
 	Attributes Attributes `json:"attributes" xml:",any,attr"`
 
@@ -55,9 +52,6 @@ type Extensions = []Extension
 
 // Image defines model for Image.
 type Image struct {
-	// XMLName represents the XML namespace of an element.
-	XMLName *XMLName `json:"xml" validate:"required"`
-
 	// Attributes are any attributes of the element.
 	Attributes Attributes `json:"attributes" xml:",any,attr"`
 

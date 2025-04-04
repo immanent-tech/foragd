@@ -6,6 +6,7 @@ package elastic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
@@ -79,7 +80,7 @@ func FeedExists(ctx context.Context, esapi *typedapi.API, value string) (bool, *
 	return true, nil
 }
 
-func GetFeedByURL(ctx context.Context, api *typedapi.API, url string) (*models.APIFeed, error) {
+func GetFeedByURL(ctx context.Context, api *typedapi.API, url string) (*models.Feed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -97,10 +98,10 @@ func GetFeedByURL(ctx context.Context, api *typedapi.API, url string) (*models.A
 
 	// If there are no hits, just return an empty APIFeed object.
 	if resp.Hits.Total.Value == 0 {
-		return nil, models.ErrNoFeed
+		return nil, fmt.Errorf("%w: no feeds found", ErrSearchFailed)
 	}
 
-	feed, err := ExtractSource[*models.APIFeed](resp.Hits.Hits[0].Source_)
+	feed, err := ExtractSource[*models.Feed](resp.Hits.Hits[0].Source_)
 	if err != nil {
 		return nil, errors.Join(ErrSearchFailed, err)
 	}
@@ -115,7 +116,7 @@ func (e *ElasticAPI) GetFeedsByURL(ctx context.Context, urls ...models.URL) (mod
 		return nil, ErrFetchCtx
 	}
 
-	feeds := make([]*models.APIFeed, 0, len(urls))
+	feeds := make([]*models.Feed, 0, len(urls))
 
 	resp, err := NewSearchRequest(e.GetAPI(),
 		WithSearchIndex(index),
@@ -132,7 +133,7 @@ func (e *ElasticAPI) GetFeedsByURL(ctx context.Context, urls ...models.URL) (mod
 		return nil, nil
 	}
 	// Loop through this set of results.
-	sources, _, warnings := ExtractSourceFromHits[*models.APIFeed](resp.Hits.Hits)
+	sources, _, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
 	if warnings != nil {
 		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
@@ -178,7 +179,7 @@ func (e *ElasticAPI) FeedsSearch(ctx context.Context, filters *models.Filters, p
 		return nil, nil
 	}
 	// Loop through this set of results.
-	sources, _, warnings := ExtractSourceFromHits[*models.APIFeed](resp.Hits.Hits)
+	sources, _, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
 	if warnings != nil {
 		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))

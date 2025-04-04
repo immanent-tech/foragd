@@ -34,7 +34,7 @@ func BuildListHeader(filters templ.Component, sorts templ.Component) *ListHeader
 
 // ArticleHeader represents the content header for an individual article.
 type ArticleHeader struct {
-	item *models.APIItem
+	item *models.Item
 }
 
 templ (h *ArticleHeader) Show(classes ...string) {

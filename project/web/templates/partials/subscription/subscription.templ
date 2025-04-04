@@ -80,7 +80,7 @@ templ (r *SubscriptionRequest) Form(msg *models.Message) {
 					fieldset.WithField("",
 						hiddeninput.Build(
 							hiddeninput.WithName("subscription_id"),
-							hiddeninput.WithValue(r.ID),
+							hiddeninput.WithValue(r.GetID()),
 						),
 					),
 					fieldset.WithLegend("Subscription details:"),
@@ -110,7 +110,7 @@ templ (r *SubscriptionRequest) Form(msg *models.Message) {
 		// remove them.
 		<div id={ CategoryListID.String() } hx-target="closest div" hx-swap="outerHTML swap:1s">
 			for category := range slices.Values(r.UserCategories) {
-				@ShowCategory(category)
+				@ShowCategory(category.String())
 			}
 		</div>
 		// Add a button to submit the Subscription details when finished editing.

@@ -5,41 +5,18 @@ package models
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"log/slog"
 	"slices"
 	"time"
 
-	"github.com/mmcdole/gofeed"
-
 	"github.com/joshuar/go-feed-me/internal/id"
-	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/pkg/feeds"
+	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-// Ensures we statisfy the ServerInterface interface.
-// var _ panes.Feed = (*APIFeed)(nil)
+var _ types.FeedSource = (*Feed)(nil)
 
-var Parser = gofeed.NewParser()
-
-var (
-	ErrParseFeed       = errors.New("could not parse feed")
-	ErrAddFeed         = errors.New("could not add feed")
-	ErrNoFeed          = errors.New("feed does not exist")
-	ErrNoSubscriptions = errors.New("no user subscriptions")
-)
-
-type FeedInterface interface {
-	GetID() FeedID
-	GetTitle() string
-	GetDescription() string
-	GetAuthors() []*gofeed.Person
-	GetCategories() []Category
-	GetImage() *gofeed.Image
-	GetLink() URL
-}
-
-type Feeds []*APIFeed
+type Feeds []*Feed
 
 // GetIDs returns the Feed IDs for the Feeds.
 func (f Feeds) GetIDs() []FeedID {
@@ -50,120 +27,104 @@ func (f Feeds) GetIDs() []FeedID {
 	return feedIDs
 }
 
-// GetItemsSince retrieves the feed items that are newer than the given time.
-func (f *APIFeed) GetItemsSince(ctx context.Context, since time.Time) []Item {
-	details, err := Parser.ParseURL(f.FeedURL)
-	if err != nil {
-		logging.FromContext(ctx).Warn("Problem getting feed details.", slog.Any("error", err))
-	}
-
-	items := make([]Item, 0, len(details.Items))
-
-	for _, i := range details.Items {
-		item, err := NewFeedItem(f.ID, i)
-		if err != nil {
-			logging.FromContext(ctx).Warn("Problem creating new item.", slog.Any("error", err))
-			continue
-		}
-
-		if !item.IsNewer(since) {
-			continue
-		}
-
-		items = append(items, *item)
-	}
-
-	if len(items) > 0 {
-		logging.FromContext(ctx).Debug("Found new items.",
-			slog.String("feed", f.GetTitle()),
-			slog.String("id", f.GetID()),
-			slog.Int("count", len(items)))
-	}
-
-	return items
+func (f *Feed) GetID() FeedID {
+	return f.FeedID
 }
 
-// GetTitle retrieves either a user-set nickname for the feed or the feed's
-// original title.
-func (f *APIFeed) GetTitle() string {
-	return safePrinter.Sanitize(f.Title)
+func (f *Feed) GetSourceURL() URL {
+	return f.SourceURL
 }
 
-// GetTitle retrieves either a user-set nickname for the feed or the feed's
-// original title.
-func (f *APIFeed) GetDescription() string {
-	return safePrinter.Sanitize(f.Description)
+func (f *Feed) SetSourceURL(url string) {
+	f.SourceURL = url
 }
 
-// GetTitle retrieves either a user-set nickname for the feed or the feed's
-// original title.
-func (f *APIFeed) GetAuthors() []*gofeed.Person {
+func (f *Feed) GetLink() URL {
+	return f.URL
+}
+
+func (f *Feed) GetTitle() string {
+	return f.Title
+}
+
+func (f *Feed) GetDescription() string {
+	return f.Description
+}
+
+func (f *Feed) GetAuthors() []string {
 	return f.Authors
 }
 
-func (f *APIFeed) GetID() string {
-	return f.ID
+func (f *Feed) GetContributors() []string {
+	return f.Contributors
 }
 
-func (f *APIFeed) GetLink() string {
-	return f.FeedURL
+func (f *Feed) GetCategories() []types.Category {
+	return f.Categories
 }
 
-func (f *APIFeed) GetImage() *gofeed.Image {
+func (f *Feed) GetImage() *types.Image {
 	return f.Image
 }
 
-// GetCategories retrieves the list of user-defined and feed-defined categories
-// for the Feed.
-func (f *APIFeed) GetCategories() []Category {
-	return CleanCategories(f.Categories...)
+func (f *Feed) GetItems() []types.ItemSource {
+	return nil
 }
 
-func (f *APIFeed) GetContent() string {
-	return safePrinter.Sanitize(f.Description)
+func (f *Feed) GetLanguage() string {
+	return f.Language
 }
 
-func (f *APIFeed) GetTimestamp() time.Time {
-	if f.UpdatedAt != nil {
-		return *f.UpdatedAt
-	}
-
-	return time.Time{}
+func (f *Feed) GetPublishedDate() types.DateTime {
+	return f.Published
 }
 
-// NewFeedFromURL creates a new feed model from the given URL as its canonical
-// data source.
+func (f *Feed) GetUpdatedDate() types.DateTime {
+	return f.Updated
+}
+
+func (f *Feed) GetRights() string {
+	return f.Copyright
+}
+
+// NewFeedFromURL generates a new Feed object from the given URL. If there is a problem generating the object, a non-nil
+// error is returned.
 func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
-	var err error
+	var feed *Feed
 
 	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
 	defer cancel()
 
-	details, err := Parser.ParseURLWithContext(url, ctx)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w (%s)", ErrParseFeed, err, url)
-	}
-
-	feed := &Feed{
-		CreatedAt: time.Now().UTC(),
-		ID:        id.NewID(id.Feed),
-		URL:       url,
-		Feed:      details,
-	}
-
-	// Adjust FeedLink for misbehaving feeds. It appears that either the parser or the feed source fail to set or expose
-	// the wrong url for the canonical feed source URL. In these cases, set it to the given URL which we know at this
-	// point will point to an actual feed source.
-	if feed.FeedLink == "" {
-		feed.FeedLink = url
-	}
-	if feed.FeedLink != url {
-		feed.FeedLink = url
+	results := feeds.NewFeedsFromURLs(ctx, url)
+	for result := range slices.Values(results) {
+		if result.Err != nil {
+			return nil, fmt.Errorf("unable to fetch feed source: %w", result.Err)
+		}
+		feed = NewFeedFromSource(result.Feed.FeedSource, string(result.Feed.SourceType))
 	}
 
 	return feed, nil
 }
 
-func (m *FeedMetadata) GetImage() *gofeed.Image {
-	return m.Image
+// NewFeedFromSource converts the raw types.FeedSource into a Feed object.
+func NewFeedFromSource[T types.FeedSource](source T, sourceType string) *Feed {
+	feed := &Feed{
+		FeedID:       id.NewID(id.Feed),
+		CreatedAt:    time.Now().UTC(),
+		Published:    source.GetPublishedDate(),
+		Updated:      source.GetUpdatedDate(),
+		Title:        source.GetTitle(),
+		Description:  source.GetDescription(),
+		SourceType:   FeedSourceType(sourceType),
+		SourceURL:    source.GetSourceURL(),
+		URL:          source.GetLink(),
+		Authors:      source.GetAuthors(),
+		Contributors: source.GetContributors(),
+		Copyright:    source.GetRights(),
+		Language:     source.GetLanguage(),
+		Categories:   source.GetCategories(),
+		Image:        source.GetImage(),
+	}
+
+	return feed
 }

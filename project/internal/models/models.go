@@ -8,59 +8,11 @@ import (
 	"iter"
 	"maps"
 	"slices"
-
-	"github.com/mmcdole/gofeed"
 )
 
 type Option[T any] func(T)
 
 var ErrInvalidID = errors.New("error generating unique ID")
-
-// Feed represents a feed. It embeds the gofeed.Feed object and adds additional
-// fields required.
-type Feed struct {
-	CreatedAt CreatedAt `json:"created_at" validate:"required"`
-	*gofeed.Feed
-	ID  FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-	URL URL    `json:"url" validate:"required,url"`
-}
-
-func (f *Feed) GetID() FeedID {
-	return f.ID
-}
-
-func (f *Feed) GetTitle() string {
-	return f.Title
-}
-
-func (f *Feed) GetDescription() string {
-	return f.Description
-}
-
-func (f *Feed) GetCategories() []Category {
-	return f.Categories
-}
-
-func (f *Feed) GetAuthors() []*gofeed.Person {
-	return f.Authors
-}
-
-func (f *Feed) GetImage() *gofeed.Image {
-	return f.Image
-}
-
-func (f *Feed) GetLink() URL {
-	return f.URL
-}
-
-// Item represents an item of a feed. It embeds the gofeed.Item object and adds additional
-// fields required.
-type Item struct {
-	CreatedAt CreatedAt `json:"@timestamp" validate:"required"`
-	*gofeed.Item
-	ID     ItemID `json:"item_id"`
-	FeedID FeedID `json:"feed_id"`
-}
 
 type UserData struct {
 	*Tokens

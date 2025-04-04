@@ -30,7 +30,7 @@ func (u *User) Valid(_ context.Context) (bool, error) {
 
 // GetID returns the ID for the user.
 func (u *User) GetID() UserID {
-	return u.ID
+	return u.UserID
 }
 
 // GetMaxHistory returns a timestamp in the past from which the user can view
@@ -52,7 +52,7 @@ func (u *User) GetMaxHistory() time.Time {
 // as read. If the Feed is unread, it will return the user's max history limit.
 func (u *User) GetMarkedRead(id FeedID) time.Time {
 	idx := slices.IndexFunc(u.Subscriptions, func(v Subscription) bool {
-		return v.FeedID == id
+		return v.GetFeedID() == id
 	})
 	if idx != -1 {
 		if u.Subscriptions[idx].State.MarkedRead.IsZero() {

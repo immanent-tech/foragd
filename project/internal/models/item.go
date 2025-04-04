@@ -4,20 +4,30 @@
 package models
 
 import (
+	"context"
 	"errors"
-	"html"
+	"fmt"
 	"maps"
 	"slices"
 	"time"
 
-	"github.com/mmcdole/gofeed"
-
 	"github.com/joshuar/go-feed-me/internal/id"
+	"github.com/joshuar/go-feed-me/pkg/feeds"
+	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
+
+var _ types.ItemSource = (*Item)(nil)
 
 var ErrGetItem = errors.New("could not retrieve item")
 
-type Items []*APIItem
+type Items []*Item
+
+// FilterSince filters the given slice of Items to ones which are newer than the given timestamp.
+func (i Items) FilterSince(since time.Time) Items {
+	return slices.Collect(FilterSlice(i, func(v *Item) bool {
+		return v.IsNewer(since)
+	}))
+}
 
 // GetCategoryCounts returns a count of the occurrence of a Category across all
 // the Items.
@@ -25,7 +35,7 @@ func (i Items) GetCategoryCounts() CategoryCounts {
 	countsMap := make(map[Category]int)
 	for item := range slices.Values(i) {
 		for category := range slices.Values(item.GetCategories()) {
-			countsMap[category]++
+			countsMap[category.String()]++
 		}
 	}
 	var counts CategoryCounts
@@ -36,89 +46,134 @@ func (i Items) GetCategoryCounts() CategoryCounts {
 	return counts
 }
 
-func (i *APIItem) GetTitle() string {
-	return html.UnescapeString(safePrinter.Sanitize(i.Title))
+func (i *Item) GetID() ItemID {
+	return i.ItemID
 }
 
-func (i *APIItem) GetID() string {
-	return i.ID
-}
-
-func (i *APIItem) GetFeedID() string {
+func (i *Item) GetFeedID() FeedID {
 	return i.FeedID
 }
 
-func (i *APIItem) GetLink() string {
-	return i.ItemURL
+func (i *Item) GetLink() URL {
+	return i.URL
 }
 
-func (i *APIItem) GetImage() *gofeed.Image {
+func (i *Item) GetTitle() string {
+	return i.Title
+}
+
+func (i *Item) GetDescription() string {
+	return i.Description
+}
+
+func (i *Item) GetAuthors() []string {
+	return i.Authors
+}
+
+func (i *Item) GetContributors() []string {
+	return i.Contributors
+}
+
+func (i *Item) GetCategories() []types.Category {
+	return i.Categories
+}
+
+func (i *Item) GetImage() *types.Image {
 	return i.Image
 }
 
-// GetCategories retrieves a list of Categories assigned to the Item.
-func (i *APIItem) GetCategories() []string {
-	categories := slices.Clone(i.Categories)
-	slices.Sort(categories)
-	return categories
+func (i *Item) GetLanguage() string {
+	return i.Language
 }
 
-func (i *APIItem) GetContent() string {
-	return safePrinter.Sanitize(i.Description)
+func (i *Item) GetPublishedDate() types.DateTime {
+	return i.Published
 }
 
-func (i *APIItem) GetTimestamp() time.Time {
-	var itemTime time.Time
-
-	if !i.Published.IsZero() {
-		itemTime = i.Published
-	} else {
-		itemTime = i.Updated
-	}
-
-	return itemTime
+func (i *Item) GetUpdatedDate() types.DateTime {
+	return i.Updated
 }
 
-func (i *APIItem) HasState() bool {
+func (i *Item) GetRights() string {
+	return i.Copyright
+}
+
+func (i *Item) GetContent() *types.Content {
+	return i.Content
+}
+
+func (i *Item) HasState() bool {
 	return i.State != nil
 }
 
-func (i *APIItem) GetUserState() State {
+func (i *Item) GetUserState() State {
 	if i.HasState() {
 		return i.State.State
 	}
 	return StateUnread
 }
 
-func (i *APIItem) SetUserItemState(state State) {
+func (i *Item) SetUserItemState(state State) {
 	newState := &ItemState{
 		State: state,
 	}
 	i.State = newState
 }
 
+func (i *Item) GetTimestamp() time.Time {
+	if valid, _ := i.GetUpdatedDate().Valid(); valid {
+		return i.GetUpdatedDate().Time
+	} else if valid, _ := i.GetPublishedDate().Valid(); valid {
+		return i.GetUpdatedDate().Time
+	} else {
+		return i.Timestamp
+	}
+}
+
 // IsNewer returns a boolean indicating whether this item has been updated or
 // published after the given time.
 func (i *Item) IsNewer(since time.Time) bool {
-	var itemTime time.Time
-
-	if i.UpdatedParsed != nil {
-		itemTime = *i.UpdatedParsed
-	} else {
-		itemTime = *i.PublishedParsed
-	}
-
-	return itemTime.After(since)
+	return i.GetTimestamp().After(since)
 }
 
-// NewFeedItem creates a new Feed object from the given item details, using the
-// given feed ID.
-func NewFeedItem(feedID string, details *gofeed.Item) (*Item, error) {
-	return &Item{
-			CreatedAt: time.Now().UTC(),
-			ID:        id.NewID(id.Item),
-			FeedID:    feedID,
-			Item:      details,
-		},
-		nil
+func GetFeedItems(ctx context.Context, id FeedID, url string) (Items, error) {
+	var items Items
+
+	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
+	defer cancel()
+
+	results := feeds.NewItemsFromURLs(ctx, url)
+	for result := range slices.Values(results) {
+		if result.Err != nil {
+			return nil, fmt.Errorf("unable to fetch feed items: %w", result.Err)
+		}
+		for item := range slices.Values(result.Items) {
+			items = append(items, newItemFromSource(item.ItemSource, id, string(item.SourceType)))
+		}
+	}
+	return items, nil
+}
+
+// newFeedFromSource converts the raw types.FeedSource into a Feed object.
+func newItemFromSource[T types.ItemSource](source T, feedID FeedID, sourceType string) *Item {
+	item := &Item{
+		ItemID:       id.NewID(id.Item),
+		FeedID:       feedID,
+		Timestamp:    time.Now().UTC(),
+		Published:    source.GetPublishedDate(),
+		Updated:      source.GetUpdatedDate(),
+		Title:        source.GetTitle(),
+		Description:  source.GetDescription(),
+		SourceType:   ItemSourceType(sourceType),
+		URL:          source.GetLink(),
+		Authors:      source.GetAuthors(),
+		Contributors: source.GetContributors(),
+		Copyright:    source.GetRights(),
+		Language:     source.GetLanguage(),
+		Categories:   source.GetCategories(),
+		Image:        source.GetImage(),
+		Content:      source.GetContent(),
+	}
+
+	return item
 }

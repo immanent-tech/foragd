@@ -46,10 +46,10 @@ func (sj *ScheduledJob) JobDetail() *quartz.JobDetail {
 	}
 
 	if sj.Options != nil {
-		return quartz.NewJobDetailWithOptions(&job, GenerateJobKey(job.ID), sj.Options)
+		return quartz.NewJobDetailWithOptions(&job, GenerateJobKey(job.FeedID), sj.Options)
 	}
 
-	return quartz.NewJobDetail(&job, GenerateJobKey(job.ID))
+	return quartz.NewJobDetail(&job, GenerateJobKey(job.FeedID))
 }
 
 func (sj *ScheduledJob) Trigger() quartz.Trigger {
@@ -92,7 +92,7 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 	}
 
 	// Get the time the feed items were last fetched.
-	state, err := api.GetFeedJobState(ctx, job.ID)
+	state, err := api.GetFeedJobState(ctx, job.FeedID)
 	if err != nil && !errors.Is(err, ErrNoJob) {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
@@ -103,7 +103,7 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 	}
 
 	logging.FromContext(ctx).Debug("Checking for feed updates.",
-		slog.String("feed_id", job.ID),
+		slog.String("feed_id", job.FeedID),
 		slog.Time("since", *state.UpdatedAt))
 
 	// Get new items since the last fetch.
@@ -119,7 +119,7 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 
 	updated := time.Now().UTC()
 	update := &models.FeedState{
-		ID:        job.ID,
+		FeedID:    job.FeedID,
 		UpdatedAt: &updated,
 	}
 
@@ -136,42 +136,25 @@ func (job *FeedJob) Description() string {
 }
 
 // getItemsSince retrieves the feed items that are newer than the given time.
-//
-//nolint:prealloc
-func (job *FeedJob) getItemsSince(since time.Time) ([]models.Item, error) {
-	var items []models.Item
-
-	details, err := models.Parser.ParseURL(job.URL)
+func (job *FeedJob) getItemsSince(since time.Time) ([]*models.Item, error) {
+	items, err := models.GetFeedItems(schedCtx, job.FeedID, job.URL)
 	if err != nil {
-		return nil, errors.Join(models.ErrParseFeed, err)
+		return nil, fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
 
-	for _, i := range details.Items {
-		item, err := models.NewFeedItem(job.ID, i)
-		if err != nil {
-			continue
-		}
-
-		if !item.IsNewer(since) {
-			continue
-		}
-
-		items = append(items, *item)
-	}
-
-	return items, nil
+	return items.FilterSince(since), nil
 }
 
 // NewFeedJob creates a job that can be scheduled from the given feed data.
-func NewFeedJob(feed models.APIFeed) (*ScheduledJob, error) {
+func NewFeedJob(id models.FeedID, url models.URL) (*ScheduledJob, error) {
 	job := &ScheduledJob{
 		CreatedAt: time.Now().UTC(),
 		Schedule:  defaultJobTrigger,
 	}
 
 	if err := job.Data.FromFeedJob(FeedJob{
-		ID:  feed.GetID(),
-		URL: feed.GetLink(),
+		FeedID: id,
+		URL:    url,
 	}); err != nil {
 		return nil, errors.Join(ErrCreateJobFailed, err)
 	}

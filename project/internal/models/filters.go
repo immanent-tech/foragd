@@ -17,9 +17,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/validation"
 )
 
-var (
-	ErrParseFilters = errors.New("error parsing filters")
-)
+var ErrParseFilters = errors.New("error parsing filters")
 
 // Sort by last updated, newest->oldest.
 var SortLastUpdatedDesc = Sort{SortBy: SortByLastUpdated, SortOrder: SortOrderDesc}

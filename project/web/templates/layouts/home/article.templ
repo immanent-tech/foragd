@@ -26,7 +26,7 @@ templ (a *Article) showItemArticle() {
 	<h2 hx-disable="true">{ a.GetTitle() }</h2>
 	<div class="flex w-full justify-items-end gap-2 p-2">
 		for _, author := range a.Authors {
-			@text.Build(author.Name, text.WithTextSize(text.XS), text.AsItalicText()).Show()
+			@text.Build(author, text.WithTextSize(text.XS), text.AsItalicText()).Show()
 		}
 		@showLastUpdated("Last Updated:", a.GetTimestamp())
 	</div>
@@ -41,6 +41,6 @@ templ (a *Article) showItemArticle() {
 		}
 	</div>
 	<div id="article_content" hx-disable="true">
-		@templ.Raw(a.GetContent())
+		@templ.Raw(a.GetContent().String())
 	</div>
 }

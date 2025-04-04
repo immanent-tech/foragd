@@ -47,7 +47,7 @@ type UserManagementAPI interface {
 
 // FeedManagementAPI contains methods for feed/item management.
 type FeedManagementAPI interface {
-	GetFeedByURL(ctx context.Context, url URL) (*APIFeed, error)
+	GetFeedByURL(ctx context.Context, url URL) (*Feed, error)
 	AddFeeds(ctx context.Context, feeds ...Feed) (*bulk.Response, error)
 	AddItems(ctx context.Context, items ...Item) (*bulk.Response, error)
 	// FeedJobStateAPI

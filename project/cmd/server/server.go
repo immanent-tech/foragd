@@ -41,7 +41,7 @@ type DataAPI interface {
 	GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
-	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.APIItem, bool, error)
+	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)
 	GetItems(ctx context.Context, filters *models.Filters) (models.Items, models.Pagination, error)
 	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error
 }

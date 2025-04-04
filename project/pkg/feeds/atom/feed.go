@@ -92,15 +92,41 @@ func (f *Feed) GetContributors() []string {
 	return contributors
 }
 
+// GetRights retrieves the rights (copyright) of the Feed. This will be the first value found from either <dc:rights>
+// or <rights> elements.
+func (f *Feed) GetRights() string {
+	switch {
+	case f.DCRights != nil:
+		return f.DCRights.String()
+	case f.Rights != nil:
+		return f.Rights.Value
+	default:
+		return ""
+	}
+}
+
+// GetLanguage retrieves the language of the Feed. This will be the first value found from either <dc:language>
+// or <lang> elements.
+func (f *Feed) GetLanguage() string {
+	switch {
+	case f.DCLanguage != nil:
+		return f.DCLanguage.String()
+	case f.Lang != nil:
+		return *f.Lang
+	default:
+		return ""
+	}
+}
+
 // GetCategories retrieves the categories (if any) of the Feed. The categories are returned as types.Category objects,
 // which tries to encapsulate an Atom category element in a portable format across schemas. Malformed categories will be
 // discarded.
 //
 // If you prefer not to use the types.Category object, just retrieve the categories from Item.Categories directly.
-func (f *Feed) GetCategories() []*types.Category {
-	categories := make([]*types.Category, 0, len(f.Categories))
+func (f *Feed) GetCategories() []types.Category {
+	categories := make([]types.Category, 0, len(f.Categories))
 	for category := range slices.Values(f.Categories) {
-		c := &types.Category{Value: category.String()}
+		c := types.Category{Value: category.String()}
 		// If there is a scheme value, copy that across.
 		if category.Scheme != nil {
 			domainAttr := types.NewXMLAttr("scheme", category.Scheme.Value, "")
@@ -139,13 +165,3 @@ func (f *Feed) GetItems() []types.ItemSource {
 	}
 	return items
 }
-
-// func (f *Feed) UnmarshalJSON(v []byte) error {
-// 	var feed Feed
-// 	if err := json.Unmarshal(v, &feed); err != nil {
-// 		return err
-// 	} else {
-// 		f = &feed
-// 		return nil
-// 	}
-// }

@@ -4,6 +4,7 @@
 package rss
 
 import (
+	"github.com/joshuar/go-feed-me/pkg/feeds/sanitization"
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
@@ -11,7 +12,7 @@ var _ types.FeedSource = (*RSS)(nil)
 
 // String returns the value of the Category.
 func (c *Category) String() string {
-	return types.SanitizeString(c.Value)
+	return sanitization.SanitizeString(c.Value)
 }
 
 func (r *RSS) GetTitle() string {
@@ -42,7 +43,7 @@ func (r *RSS) GetPublishedDate() types.DateTime {
 	return r.Channel.GetPublishedDate()
 }
 
-func (r *RSS) GetCategories() []*types.Category {
+func (r *RSS) GetCategories() []types.Category {
 	return r.Channel.GetCategories()
 }
 
@@ -54,6 +55,14 @@ func (r *RSS) GetContributors() []string {
 	return r.Channel.GetContributors()
 }
 
+func (r *RSS) GetRights() string {
+	return r.Channel.GetRights()
+}
+
+func (r *RSS) GetLanguage() string {
+	return r.Channel.GetLanguage()
+}
+
 func (r *RSS) GetImage() *types.Image {
 	return r.Channel.GetImage()
 }
@@ -61,14 +70,3 @@ func (r *RSS) GetImage() *types.Image {
 func (r *RSS) GetItems() []types.ItemSource {
 	return r.Channel.GetItems()
 }
-
-// func (r *RSS) UnmarshalJSON(v []byte) error {
-// 	spew.Dump(v)
-// 	var rss RSS
-// 	if err := json.Unmarshal(v, &rss); err != nil {
-// 		return err
-// 	} else {
-// 		r = &rss
-// 		return nil
-// 	}
-// }

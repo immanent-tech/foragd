@@ -78,7 +78,7 @@ func (e *ElasticAPI) AddUser(ctx context.Context, userID models.UserID) error {
 	created := time.Now().UTC()
 
 	logging.FromContext(ctx).Debug("adding user.", slog.Any("user", &models.User{
-		ID:        userID,
+		UserID:    userID,
 		CreatedAt: created,
 	}))
 
@@ -86,7 +86,7 @@ func (e *ElasticAPI) AddUser(ctx context.Context, userID models.UserID) error {
 		index,
 		userID,
 		&models.User{
-			ID:        userID,
+			UserID:    userID,
 			CreatedAt: created,
 		},
 		refresh.True).

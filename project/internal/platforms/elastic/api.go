@@ -37,7 +37,7 @@ func (a *ElasticAPI) GetAPI() *typedapi.API {
 }
 
 // AddItems will bulk index the given items.
-func (a *ElasticAPI) AddItems(ctx context.Context, items ...models.Item) (*bulk.Response, error) {
+func (a *ElasticAPI) AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, ErrFetchCtx
@@ -50,13 +50,13 @@ func (a *ElasticAPI) AddItems(ctx context.Context, items ...models.Item) (*bulk.
 
 		for _, item := range items {
 			logging.FromContext(ctx).Debug("Adding item",
-				slog.String("name", item.Title),
-				slog.String("item_id", item.ID),
-				slog.String("feed_id", item.FeedID),
+				slog.String("name", item.GetTitle()),
+				slog.String("item_id", item.GetID()),
+				slog.String("feed_id", item.GetFeedID()),
 			)
 
 			bulkOps <- bulk.NewOperation(&item,
-				bulk.SetDocID(item.ID),
+				bulk.SetDocID(item.GetID()),
 				bulk.ToIndex(index),
 			)
 		}
@@ -79,14 +79,13 @@ func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk
 		defer close(bulkOps)
 
 		for _, feed := range feeds {
-			feed.Items = nil // don't index items in feed.
 			logging.FromContext(ctx).Debug("Adding feed",
-				slog.String("name", feed.Title),
-				slog.String("feed_id", feed.ID),
+				slog.String("name", feed.GetTitle()),
+				slog.String("feed_id", feed.GetID()),
 			)
 
 			bulkOps <- bulk.NewOperation(&feed,
-				bulk.SetDocID(feed.ID),
+				bulk.SetDocID(feed.GetID()),
 				bulk.ToIndex(index),
 			)
 		}
@@ -136,7 +135,7 @@ func (a *ElasticAPI) UpdateFeedJobState(ctx context.Context, state *models.FeedS
 		state.UpdatedAt = &updated
 	}
 
-	if _, err := NewDocUpdateRequest(a.API, index, state.ID,
+	if _, err := NewDocUpdateRequest(a.API, index, state.FeedID,
 		WithPartialDocUpdate(map[string]any{
 			"updated_at": state.UpdatedAt,
 		}),
@@ -149,7 +148,7 @@ func (a *ElasticAPI) UpdateFeedJobState(ctx context.Context, state *models.FeedS
 
 // GetNewFeedsSince retrieves a list of feeds that have been updated since the
 // given time.
-func (a *ElasticAPI) GetNewFeedsSince(ctx context.Context, since time.Time) ([]models.APIFeed, error) {
+func (a *ElasticAPI) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -158,14 +157,14 @@ func (a *ElasticAPI) GetNewFeedsSince(ctx context.Context, since time.Time) ([]m
 	logging.FromContext(ctx).Debug("Finding new feeds.",
 		slog.Time("since", since))
 
-	var newFeeds []models.APIFeed
+	var newFeeds models.Feeds
 
 	searchSize := 100
 	pagination := make([]types.FieldValue, 0)
 
 	for {
 		var (
-			feeds    []models.APIFeed
+			feeds    models.Feeds
 			warnings error
 		)
 
@@ -180,7 +179,7 @@ func (a *ElasticAPI) GetNewFeedsSince(ctx context.Context, since time.Time) ([]m
 			return nil, errors.Join(ErrSearchFailed, err)
 		}
 
-		feeds, pagination, warnings = ExtractSourceFromHits[models.APIFeed](resp.Hits.Hits)
+		feeds, pagination, warnings = ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
 		if warnings != nil {
 			logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
 				slog.Any("warnings", err))

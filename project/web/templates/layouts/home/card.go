@@ -107,7 +107,6 @@ func (c *Card) AddPagination(reqURL *url.URL, pagination models.Pagination) {
 }
 
 func NewFeedCard(filters models.Filters, subscription *models.Subscription) (*Card, error) {
-
 	feedCard := &Card{
 		Type:   Feed,
 		ID:     subscription.GetFeedID(),
@@ -144,10 +143,10 @@ func NewFeedCard(filters models.Filters, subscription *models.Subscription) (*Ca
 		card.WithID(subscription.GetFeedID()),
 	)
 	// Add an image if present.
-	if cardImage := subscription.FeedDetails.Image; cardImage != nil {
+	if cardImage := subscription.Feed.GetImage(); cardImage != nil {
 		cardOptions = append(cardOptions,
-			card.WithImage(cardImage.URL,
-				image.WithAltText(cardImage.Title),
+			card.WithImage(cardImage.URL(),
+				image.WithAltText(cardImage.String()),
 				image.WithLazyLoading(),
 				image.WithMask(mask.MaskSquircle),
 			),
@@ -169,7 +168,7 @@ func NewFeedCard(filters models.Filters, subscription *models.Subscription) (*Ca
 	return feedCard, nil
 }
 
-func NewItemCard(filters models.Filters, item *models.APIItem) (*Card, error) {
+func NewItemCard(filters models.Filters, item *models.Item) (*Card, error) {
 	var err error
 
 	itemCard := &Card{
@@ -209,8 +208,8 @@ func NewItemCard(filters models.Filters, item *models.APIItem) (*Card, error) {
 	// Add an image if present.
 	if itemImage := item.GetImage(); itemImage != nil {
 		cardOptions = append(cardOptions,
-			card.WithImage(itemImage.URL,
-				image.WithAltText(itemImage.Title),
+			card.WithImage(itemImage.URL(),
+				image.WithAltText(itemImage.String()),
 				image.WithLazyLoading(),
 				image.WithMask(mask.MaskSquircle),
 			),
