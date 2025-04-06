@@ -49,7 +49,7 @@ templ (h *ArticleHeader) Show(classes ...string) {
 	</div>
 }
 
-func BuildArticleHeader(item *models.APIItem) *ArticleHeader {
+func BuildArticleHeader(item *models.Item) *ArticleHeader {
 	return &ArticleHeader{
 		item: item,
 	}
