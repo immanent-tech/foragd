@@ -126,7 +126,7 @@ func (e *ElasticAPI) GetFeedsByURL(ctx context.Context, urls ...models.URL) (mod
 		WithSortOptions(SortByDocID("feed_id")),
 	).Do(ctx)
 	if err != nil {
-		return nil, models.WrapError(ErrSearchFailed, "elastic", "backend request failed")
+		return nil, models.NewMessage("Fetching feeds failed.", models.MessageStatusError, models.WithError(err))
 	}
 	// Stop if there are no hits
 	if len(resp.Hits.Hits) == 0 {

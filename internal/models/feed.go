@@ -5,7 +5,7 @@ package models
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"slices"
 	"time"
 
@@ -16,6 +16,10 @@ import (
 
 var _ types.FeedSource = (*Feed)(nil)
 
+// ErrNewFeed is returned when there was a problem creating a new Feed.
+var ErrNewFeed = errors.New("could not create new feed")
+
+// Feeds is a slice of Feed objects.
 type Feeds []*Feed
 
 // GetIDs returns the Feed IDs for the Feeds.
@@ -98,7 +102,7 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 	results := feeds.NewFeedsFromURLs(ctx, url)
 	for result := range slices.Values(results) {
 		if result.Err != nil {
-			return nil, fmt.Errorf("unable to fetch feed source: %w", result.Err)
+			return nil, NewMessage("Could not create feed from URL "+url, MessageStatusError, WithError(result.Err))
 		}
 		feed = NewFeedFromSource(result.Feed.FeedSource, string(result.Feed.SourceType))
 	}

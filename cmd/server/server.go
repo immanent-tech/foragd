@@ -213,3 +213,10 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 
 	return router
 }
+
+func backendErrorMsg(err error) *models.Message {
+	return models.NewMessage(
+		"A backend error occurred.",
+		models.MessageStatusError,
+		models.WithError(err))
+}

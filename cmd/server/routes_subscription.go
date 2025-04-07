@@ -42,27 +42,24 @@ func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 	if err != nil {
-		msg := models.NewMessage("Error parsing request.",
-			models.WithDetails("The request could not be parsed. This is likely a temporary problem. Please try again."),
-			models.WithError(err),
-		)
+		msg := models.NewMessage(
+			"Error parsing form.",
+			models.MessageStatusError,
+			models.WithError(err))
 		showRequestResponse(res, req, models.NewSubscriptionRequest(""), msg)
 		return
 	}
 	if !valid {
-		msg := models.NewMessage("Invalid request data.",
-			models.WithDetails("The request contains invalid data. Please check and try again."),
-			models.WithError(err),
-		)
+		msg := models.NewMessage(
+			"Details are invalid.",
+			models.MessageStatusError,
+			models.WithError(err))
 		showRequestResponse(res, req, request, msg)
 		return
 	}
 	user, found := models.UserFromCtx(req.Context())
 	if !found {
-		msg := models.NewMessage("Invalid request data.",
-			models.WithDetails("The request contains invalid data. Please check and try again."),
-			models.WithError(err),
-		)
+		msg := backendErrorMsg(err)
 		showRequestResponse(res, req, request, msg)
 		return
 	}
@@ -95,9 +92,9 @@ func (f *SetImportMethodFormdataBody) Valid() (bool, error) {
 func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
 	importMethod, valid, err := forms.DecodeForm[*SetImportMethodFormdataBody](req)
 	if err != nil || !valid {
-		msg := models.NewMessage("Error setting up import.",
-			models.WithDetails("There was an error setting up the import. Please try again."),
-			models.WithStatus(models.MessageStatusError),
+		msg := models.NewMessage(
+			"Error processing import.",
+			models.MessageStatusError,
 			models.WithError(err))
 		showImportFailed(res, req, msg)
 		return
@@ -121,18 +118,18 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 	// Decode the import source.
 	importMethod, err := forms.DecodeMultipartValue(req, "source")
 	if err != nil {
-		msg := models.NewMessage("Error reading import source data.",
-			models.WithDetails("There was an error setting up the import. Please try again."),
-			models.WithStatus(models.MessageStatusError),
+		msg := models.NewMessage(
+			"Error processing OPML import.",
+			models.MessageStatusError,
 			models.WithError(err))
 		showImportFailed(res, req, msg)
 		return
 	}
 	user, found := models.UserFromCtx(req.Context())
 	if !found {
-		msg := models.NewMessage("Error reading import source data.",
-			models.WithDetails("There was an error setting up the import. Please try again."),
-			models.WithStatus(models.MessageStatusError),
+		msg := models.NewMessage(
+			"Error processing OPML import.",
+			models.MessageStatusError,
 			models.WithError(err))
 		showImportFailed(res, req, msg)
 		return
@@ -142,9 +139,9 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 	case string(models.ImportSourceOPMLFile):
 		requests, err = processOPMLFileImport(req)
 		if err != nil {
-			msg := models.NewMessage("Error processing OPML file.",
-				models.WithDetails("There was an error processing the OPML file. Please try again."),
-				models.WithStatus(models.MessageStatusError),
+			msg := models.NewMessage(
+				"Error processing OPML import.",
+				models.MessageStatusError,
 				models.WithError(err))
 			showImportFailed(res, req, msg)
 			return
@@ -250,11 +247,9 @@ func processSubscriptionRequests(ctx context.Context, api DataAPI, user *models.
 		// Check if the details are valid. If not, add to results and return false.
 		if valid, err := sub.Valid(); !valid || err != nil {
 			results[sub] = models.NewMessage(
-				fmt.Sprintf("subscription details for feed %s are invalid", sub.GetName()),
-				models.WithDetails("A subscription could not be created as the generated subscription data is invalid."),
-				models.WithStatus(models.MessageStatusError),
-				models.WithError(err),
-			)
+				"Add subscription failed.",
+				models.MessageStatusError,
+				models.WithError(err))
 			return false
 		}
 		// Subscription is valid.
@@ -266,15 +261,13 @@ func processSubscriptionRequests(ctx context.Context, api DataAPI, user *models.
 	for sub := range maps.Keys(validSubscriptions) {
 		if err != nil {
 			results[sub] = models.NewMessage(
-				fmt.Sprintf("could not create a subscription for feed %s", sub.GetName()),
-				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
-				models.WithStatus(models.MessageStatusWarning),
-				models.WithError(err),
-			)
+				"Add subscription failed.",
+				models.MessageStatusError,
+				models.WithError(err))
 		} else {
 			results[sub] = models.NewMessage(
 				fmt.Sprintf("Subscription for feed %s created!", sub.GetName()),
-				models.WithStatus(models.MessageStatusSuccess))
+				models.MessageStatusSuccess)
 		}
 	}
 	return results
@@ -296,16 +289,12 @@ func addFeedsForSubscriptions(ctx context.Context, api DataAPI, subscriptions ma
 	// subscriptions with fail messages.
 	if err != nil || newFeedsResp.Err != nil {
 		for sub := range maps.Keys(subscriptions) {
-			results[sub] = models.NewMessage(
-				"could not create a subscription for feed "+sub.GetName(),
-				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
-				models.WithStatus(models.MessageStatusWarning),
-			)
+			results[sub] = models.NewMessage("Add subscription failed.", models.MessageStatusError)
 			switch {
 			case err != nil:
-				results[sub].Err = err
+				results[sub].InternalError = err
 			case newFeedsResp.Err != nil:
-				results[sub].Err = newFeedsResp.Err
+				results[sub].InternalError = newFeedsResp.Err
 			}
 		}
 		return results
@@ -325,20 +314,10 @@ func addFeedsForSubscriptions(ctx context.Context, api DataAPI, subscriptions ma
 			// For a matched response, check if the response indicates an error.
 			// If it does, add a message.
 			if _, err = newFeedsResp.Responses[idx].State(); err != nil {
-				results[sub] = models.NewMessage(
-					"could not create a subscription for feed "+sub.GetName(),
-					models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
-					models.WithStatus(models.MessageStatusWarning),
-					models.WithError(err),
-				)
+				results[sub] = models.NewMessage("Add subscription failed.", models.MessageStatusError, models.WithError(err))
 			}
 		} else {
-			results[sub] = models.NewMessage(
-				"could not create a subscription for feed "+sub.GetName(),
-				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
-				models.WithStatus(models.MessageStatusWarning),
-				models.WithError(err),
-			)
+			results[sub] = models.NewMessage("Add subscription failed.", models.MessageStatusError)
 		}
 	}
 
@@ -355,13 +334,12 @@ func generateSubscriptions(ctx context.Context, api DataAPI, user *models.User, 
 	// Collect existing feeds matching the URls.
 	existingFeeds, err := api.GetFeedsByURL(ctx, models.SubscriptionRequests(requests).URLs()...)
 	if err != nil {
+		var msg *models.Message
+		if !errors.As(err, msg) {
+			msg = addSubscriptionGenericError()
+		}
 		for request := range slices.Values(requests) {
-			results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = models.NewMessage(
-				"could not create a subscription for feed with URL "+request.GetURL(),
-				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
-				models.WithStatus(models.MessageStatusWarning),
-				models.WithError(err),
-			)
+			results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = msg
 		}
 		return nil, results
 	}
@@ -373,10 +351,8 @@ func generateSubscriptions(ctx context.Context, api DataAPI, user *models.User, 
 		}); idx != -1 {
 			// Existing Feed. Check if user already subscribed.
 			if user.IsSubscribed(existingFeeds[idx].GetID()) {
-				results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = models.NewMessage(fmt.Sprintf("Already subscribed to %s", request.GetURL()),
-					models.WithDetails("Already subscribed to the feed with the given URL."),
-					models.WithStatus(models.MessageStatusInfo),
-				)
+				msg := models.NewMessage("Already subscribed to "+request.GetURL(), models.MessageStatusWarning)
+				results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = msg
 			} else {
 				// Create Subscription using existing Feed details.
 				s := models.NewSubscription(request, existingFeeds[idx])
@@ -386,11 +362,12 @@ func generateSubscriptions(ctx context.Context, api DataAPI, user *models.User, 
 			// New Feed. Create Feed then create Subscription with new Feed details.
 			newFeed, err := models.NewFeedFromURL(ctx, request.GetURL())
 			if err != nil {
-				results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = models.NewMessage(fmt.Sprintf("could not create a subscription for feed with URL %s", request.GetURL()),
-					models.WithDetails("A subscription could not be created as there was an error trying to parse the feed at the given URL. Please check the URL and/or try again."),
-					models.WithStatus(models.MessageStatusWarning),
-					models.WithError(err),
-				)
+				var msg *models.Message
+				if errors.As(err, msg) {
+					results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = msg
+				} else {
+					results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = addSubscriptionGenericError()
+				}
 			} else {
 				s := models.NewSubscription(request, newFeed)
 				newSubscriptions[s] = newFeed
@@ -450,4 +427,8 @@ func showImportResults(res http.ResponseWriter, req *http.Request, results subsc
 		); err != nil {
 		handlers.InternalServerError(res, req, err)
 	}
+}
+
+func addSubscriptionGenericError() *models.Message {
+	return models.NewMessage("an error occurred while processing the request", models.MessageStatusError)
 }

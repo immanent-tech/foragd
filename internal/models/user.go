@@ -130,8 +130,9 @@ func (u *User) MarkItems(mark Mark, itemIDs ...ItemID) {
 func (u *UserSignupRequest) Valid() (bool, error) {
 	valid, problems := validation.ValidateStruct(u)
 	if problems != nil {
-		u.Msg = NewMessage("the details are invalid",
-			WithStatus(MessageStatusInfo),
+		u.Msg = NewMessage(
+			"User details are invalid.",
+			MessageStatusWarning,
 			WithDetails(problems.Error()),
 			WithError(problems),
 		)

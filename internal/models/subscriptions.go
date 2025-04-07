@@ -199,11 +199,7 @@ func CompareSubscriptionUnreadCount(a, b *Subscription) int {
 func (r *SubscriptionRequest) Valid() (bool, error) {
 	valid, err := validation.ValidateStruct(r)
 	if !valid || err != nil {
-		msg := NewMessage("Details are invalid",
-			WithError(err),
-			WithStatus(MessageStatusError),
-		)
-		return false, msg
+		return false, NewMessage("Details are invalid", MessageStatusError, WithError(err))
 	}
 	return true, nil
 }

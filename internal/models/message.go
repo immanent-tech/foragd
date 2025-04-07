@@ -4,10 +4,13 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
 )
+
+var ErrUnknown = errors.New("an unknown error occurred")
 
 // MessageOption is a functional option to apply to a Message.
 type MessageOption func(*Message)
@@ -29,15 +32,10 @@ func (msg *Message) String() string {
 // Error returns an error string representing the Message. This allows Message to satisfy the Error interface and be
 // used as an error.
 func (msg *Message) Error() string {
-	return fmt.Sprintf("%s: %v", msg.Summary, msg.Err)
-}
-
-// WithStatus option sets the level on the notice. If this option is not
-// provided, the notice will default to the "info" level.
-func WithStatus(status MessageStatus) MessageOption {
-	return func(notice *Message) {
-		notice.Status = status
+	if msg.InternalError != nil {
+		return msg.InternalError.Error()
 	}
+	return ErrUnknown.Error()
 }
 
 // WithDetails option sets the details, or extra information on the Message.
@@ -50,11 +48,11 @@ func WithDetails(details string) MessageOption {
 // WithError option sets the internal error for the Message.
 func WithError(err error) MessageOption {
 	return func(notice *Message) {
-		notice.Err = err
+		notice.InternalError = err
 	}
 }
 
-func NewMessage(summary string, options ...MessageOption) *Message {
+func NewMessage(summary string, status MessageStatus, options ...MessageOption) *Message {
 	notice := &Message{
 		Summary: summary,
 		Status:  MessageStatusInfo,

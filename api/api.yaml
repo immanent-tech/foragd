@@ -281,6 +281,10 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             validate: "required"
+        details:
+          description: >
+            is a longer description and/or background details about the message.
+          type: string
         status:
           description: >
             indicates the severity or importance of the message.
@@ -288,11 +292,7 @@ components:
           enum: ["info","success","warning","error"]
           x-oapi-codegen-extra-tags:
             validate: "required"
-        details:
-          description: >
-            is a longer description and/or background details about the message.
-          type: string
-        err:
+        internal_error:
           description: >
             is any error that is associated with the message.
           x-go-type: error

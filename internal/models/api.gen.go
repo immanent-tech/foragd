@@ -103,8 +103,8 @@ type Message struct {
 	// Details is a longer description and/or background details about the message.
 	Details *string `json:"details,omitempty"`
 
-	// Err is any error that is associated with the message.
-	Err error `json:"-"`
+	// InternalError is any error that is associated with the message.
+	InternalError error `json:"-"`
 
 	// Status indicates the severity or importance of the message.
 	Status MessageStatus `json:"status" validate:"required"`

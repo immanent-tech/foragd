@@ -252,7 +252,10 @@ func (e *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions models.
 	}
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return models.WrapError(ErrNoUserCtx, "elastic", "get subscriptions failed")
+		return models.NewMessage(
+			"Unable to add subscriptions.",
+			models.MessageStatusError,
+			models.WithError(ErrNoUserCtx))
 	}
 	// Add the subscriptions to the user.
 	user.AddSubscriptions(subscriptions)
