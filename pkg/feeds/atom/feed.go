@@ -5,6 +5,7 @@ package atom
 
 import (
 	"slices"
+	"time"
 
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
@@ -149,13 +150,13 @@ func (f *Feed) GetImage() *types.Image {
 	return nil
 }
 
-func (f *Feed) GetPublishedDate() types.DateTime {
-	return f.Updated.Value
+func (f *Feed) GetPublishedDate() time.Time {
+	return f.Updated.Value.Time
 }
 
 // GetUpdatedDate returns the <updated> of the Feed.
-func (f *Feed) GetUpdatedDate() types.DateTime {
-	return f.Updated.Value
+func (f *Feed) GetUpdatedDate() time.Time {
+	return f.Updated.Value.Time
 }
 
 func (f *Feed) GetItems() []types.ItemSource {

@@ -3,6 +3,8 @@
 
 package types
 
+import "time"
+
 // ObjectID contains methods for retrieving an Objects unique ID.
 type ObjectID interface {
 	GetID() string
@@ -18,8 +20,8 @@ type ObjectMetadata interface {
 	GetTitle() string
 	GetDescription() string
 	GetLink() string
-	GetPublishedDate() DateTime
-	GetUpdatedDate() DateTime
+	GetPublishedDate() time.Time
+	GetUpdatedDate() time.Time
 }
 
 // ObjectAttribution contains methods for retrieving values that relate to the copyright, rights, authors and

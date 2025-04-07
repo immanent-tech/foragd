@@ -140,16 +140,16 @@ func (e *Entry) GetImage() *types.Image {
 
 // GetPublishedDate returns the <published> of the Entry (if any). If there is no publish date, it will return a
 // DateTime equal to Unix epoch.
-func (e *Entry) GetPublishedDate() types.DateTime {
+func (e *Entry) GetPublishedDate() time.Time {
 	if e.Published != nil {
-		return e.Published.Value
+		return e.Published.Value.Time
 	}
-	return types.DateTime{Time: time.Unix(0, 0)}
+	return time.Unix(0, 0)
 }
 
 // GetUpdatedDate returns the <updated> of the Entry.
-func (e *Entry) GetUpdatedDate() types.DateTime {
-	return e.Updated.Value
+func (e *Entry) GetUpdatedDate() time.Time {
+	return e.Updated.Value.Time
 }
 
 // GetContent returns the content of the Entry (if any). This will be either the <content> element value or its source

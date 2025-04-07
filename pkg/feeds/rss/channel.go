@@ -145,16 +145,16 @@ func (c *Channel) GetImage() *types.Image {
 
 // GetPublishedDate returns the <pubDate> of the Item (if any). If there is no publish date, it will return a
 // DateTime equal to Unix epoch.
-func (c *Channel) GetPublishedDate() types.DateTime {
+func (c *Channel) GetPublishedDate() time.Time {
 	if c.PubDate != nil {
-		return *c.PubDate
+		return c.PubDate.Time
 	}
-	return types.DateTime{Time: time.Unix(0, 0)}
+	return time.Unix(0, 0)
 }
 
 // GetUpdatedDate returns the <pubDate> of the Item (if any). If there is no publish date, it will return a
 // DateTime equal to Unix epoch.
-func (c *Channel) GetUpdatedDate() types.DateTime {
+func (c *Channel) GetUpdatedDate() time.Time {
 	return c.GetPublishedDate()
 }
 

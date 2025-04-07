@@ -138,16 +138,16 @@ func (i *Item) GetImage() *types.Image {
 
 // GetPublishedDate returns the <pubDate> of the Item (if any). If there is no publish date, it will return a
 // DateTime equal to Unix epoch.
-func (i *Item) GetPublishedDate() types.DateTime {
+func (i *Item) GetPublishedDate() time.Time {
 	if i.PubDate != nil {
-		return *i.PubDate
+		return i.PubDate.Time
 	}
-	return types.DateTime{Time: time.Unix(0, 0)}
+	return time.Unix(0, 0)
 }
 
 // GetUpdatedDate returns the <pubDate> of the Item (if any). If there is no publish date, it will return a
 // DateTime equal to Unix epoch.
-func (i *Item) GetUpdatedDate() types.DateTime {
+func (i *Item) GetUpdatedDate() time.Time {
 	return i.GetPublishedDate()
 }
 

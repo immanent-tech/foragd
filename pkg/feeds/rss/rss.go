@@ -4,6 +4,8 @@
 package rss
 
 import (
+	"time"
+
 	"github.com/joshuar/go-feed-me/pkg/feeds/sanitization"
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
@@ -35,11 +37,11 @@ func (r *RSS) GetLink() string {
 	return r.Channel.GetLink()
 }
 
-func (r *RSS) GetUpdatedDate() types.DateTime {
+func (r *RSS) GetUpdatedDate() time.Time {
 	return r.Channel.GetUpdatedDate()
 }
 
-func (r *RSS) GetPublishedDate() types.DateTime {
+func (r *RSS) GetPublishedDate() time.Time {
 	return r.Channel.GetPublishedDate()
 }
 
