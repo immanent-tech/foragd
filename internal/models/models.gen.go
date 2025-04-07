@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/coreos/go-oidc"
-	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
@@ -91,7 +90,7 @@ type Feed struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Description is a short summary or description of the feed or item.
-	Description string `json:"description" validate:"required"`
+	Description string `json:"description"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
@@ -101,7 +100,7 @@ type Feed struct {
 	Language string              `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
-	Published types.DateTime `json:"published"`
+	Published time.Time `json:"published"`
 
 	// SourceURL is a URL to the source Feed document.
 	SourceURL URL `json:"source" validate:"required,url"`
@@ -113,7 +112,7 @@ type Feed struct {
 	Title string `json:"title" validate:"required"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated types.DateTime `json:"updated,omitempty"`
+	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url" validate:"required,url"`
@@ -147,7 +146,7 @@ type Item struct {
 	Copyright    string   `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
-	Description string `json:"description" validate:"required"`
+	Description string `json:"description"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
@@ -160,7 +159,7 @@ type Item struct {
 	Language string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
-	Published types.DateTime `json:"published"`
+	Published time.Time `json:"published"`
 
 	// SourceType indicates what type of source the object came from.
 	SourceType ItemSourceType `json:"source_type"`
@@ -172,7 +171,7 @@ type Item struct {
 	Title string `json:"title" validate:"required"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated types.DateTime `json:"updated,omitempty"`
+	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url" validate:"required,url"`
@@ -206,14 +205,14 @@ type ObjectCommon struct {
 	Copyright    string   `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
-	Description string `json:"description" validate:"required"`
+	Description string `json:"description"`
 
 	// Image is an abstraction of an Image across different types of specifications.
 	Image    *externalRef0.Image `json:"image,omitempty"`
 	Language string              `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
-	Published types.DateTime `json:"published"`
+	Published time.Time `json:"published"`
 
 	// SourceType indicates what type of source the object came from.
 	SourceType ObjectCommonSourceType `json:"source_type"`
@@ -222,7 +221,7 @@ type ObjectCommon struct {
 	Title string `json:"title" validate:"required"`
 
 	// Updated is the datetime at which the feed or item was updated.
-	Updated types.DateTime `json:"updated,omitempty"`
+	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url" validate:"required,url"`
@@ -252,7 +251,7 @@ type Subscription struct {
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
 	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []externalRef0.Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
+	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
 
 	// UserNickname is a friendly name or nickname for the feed given by the user.
 	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
@@ -261,7 +260,7 @@ type Subscription struct {
 // SubscriptionCustomisation represents the properties of a subscription a user can customize.
 type SubscriptionCustomisation struct {
 	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []externalRef0.Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
+	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
 
 	// UserNickname is a friendly name or nickname for the feed given by the user.
 	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`

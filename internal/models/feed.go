@@ -75,11 +75,11 @@ func (f *Feed) GetLanguage() string {
 	return f.Language
 }
 
-func (f *Feed) GetPublishedDate() types.DateTime {
+func (f *Feed) GetPublishedDate() time.Time {
 	return f.Published
 }
 
-func (f *Feed) GetUpdatedDate() types.DateTime {
+func (f *Feed) GetUpdatedDate() time.Time {
 	return f.Updated
 }
 

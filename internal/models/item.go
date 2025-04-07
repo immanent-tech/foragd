@@ -86,11 +86,11 @@ func (i *Item) GetLanguage() string {
 	return i.Language
 }
 
-func (i *Item) GetPublishedDate() types.DateTime {
+func (i *Item) GetPublishedDate() time.Time {
 	return i.Published
 }
 
-func (i *Item) GetUpdatedDate() types.DateTime {
+func (i *Item) GetUpdatedDate() time.Time {
 	return i.Updated
 }
 
@@ -121,10 +121,10 @@ func (i *Item) SetUserItemState(state State) {
 }
 
 func (i *Item) GetTimestamp() time.Time {
-	if valid, _ := i.GetUpdatedDate().Valid(); valid {
-		return i.GetUpdatedDate().Time
-	} else if valid, _ := i.GetPublishedDate().Valid(); valid {
-		return i.GetUpdatedDate().Time
+	if valid, _ := ValidateDatetime(i.GetUpdatedDate()); valid {
+		return i.GetUpdatedDate()
+	} else if valid, _ := ValidateDatetime(i.GetPublishedDate()); valid {
+		return i.GetUpdatedDate()
 	} else {
 		return i.Timestamp
 	}

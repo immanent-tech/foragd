@@ -184,8 +184,6 @@ components:
           description: >
             is a short summary or description of the feed or item.
           type: string
-          x-oapi-codegen-extra-tags:
-            validate: "required"
         url:
           description: >
             is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is
@@ -197,15 +195,11 @@ components:
         published:
           description: >
             is the datetime at which the feed or item was published.
-          x-go-type: types.DateTime
-          x-go-type-import:
-            path: github.com/joshuar/go-feed-me/pkg/feeds/types
+          x-go-type: time.Time
         updated:
           description: >
             is the datetime at which the feed or item was updated.
-          x-go-type: types.DateTime
-          x-go-type-import:
-            path: github.com/joshuar/go-feed-me/pkg/feeds/types
+          x-go-type: time.Time
           x-go-type-skip-optional-pointer: true
         categories:
           description: >
@@ -404,7 +398,7 @@ components:
             is a user-defined list of Category names for the subscription.
           type: array
           items:
-            $ref: "../pkg/feeds/types.yaml#/components/schemas/Category"
+            $ref: "#/components/schemas/Category"
           x-oapi-codegen-extra-tags:
             json: "user_categories"
             form: "user_categories[]"

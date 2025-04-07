@@ -35,7 +35,7 @@ func (s Subscriptions) ByFeed() map[FeedID]*Subscription {
 
 // GetFeedIDs returns all the FeedIDs for the Subscriptions.
 func (s Subscriptions) GetFeedIDs() []FeedID {
-	feedIDs := make([]FeedID, len(s))
+	feedIDs := make([]FeedID, 0, len(s))
 	for subscription := range slices.Values(s) {
 		feedIDs = append(feedIDs, subscription.GetFeedID())
 	}
@@ -126,8 +126,13 @@ func (s *Subscription) GetFeedID() FeedID {
 // unset.
 func (s *Subscription) GetCategories() []Category {
 	categories := make([]Category, 0, len(s.UserCategories)+len(s.Feed.GetCategories()))
-	for category := range slices.Values(slices.Concat(s.UserCategories, s.Feed.GetCategories())) {
+	// Get feed categories.
+	for category := range slices.Values(s.Feed.GetCategories()) {
 		categories = append(categories, category.String())
+	}
+	// Get user custom categories.
+	for category := range slices.Values(s.UserCategories) {
+		categories = append(categories, category)
 	}
 	slices.Sort(categories)
 	return slices.Compact(categories)

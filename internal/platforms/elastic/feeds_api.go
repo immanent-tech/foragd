@@ -120,8 +120,8 @@ func (e *ElasticAPI) GetFeedsByURL(ctx context.Context, urls ...models.URL) (mod
 
 	resp, err := NewSearchRequest(e.GetAPI(),
 		WithSearchIndex(index),
-		WithFields("feed_id", "feedLink"),
-		WithSearchQueryOptions(query.URLs("feedLink", urls...)),
+		WithFields("feed_id", "source"),
+		WithSearchQueryOptions(query.URLs("source", urls...)),
 		WithSearchSize(len(urls)),
 		WithSortOptions(SortByDocID("feed_id")),
 	).Do(ctx)

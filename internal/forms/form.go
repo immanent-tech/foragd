@@ -13,11 +13,15 @@ import (
 	"github.com/go-playground/form/v4"
 )
 
-var ErrDecode = errors.New("error in decoding")
-var ErrEncode = errors.New("error in encoding")
+var (
+	ErrDecode = errors.New("error in decoding")
+	ErrEncode = errors.New("error in encoding")
+)
 
-var decoder = form.NewDecoder()
-var encoder = form.NewEncoder()
+var (
+	decoder = form.NewDecoder()
+	encoder = form.NewEncoder()
+)
 
 // DefaultMaxSize for a multipart for submission is 32 MB.
 const DefaultMaxSize = 32 << 20

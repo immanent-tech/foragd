@@ -38,6 +38,8 @@ const (
 
 var defaultMetadata = NewMetadata(WithMetadataField("version", schemaVersion))
 
+var datetimeFormats = "EEE, dd MMM yyyy HH:mm:ss z||EEE, dd MMM yyyy HH:mm:ss Z||EEE, dd MMM yyyy HH:mm z||EEE, dd MMM yyyy HH:mm z||strict_date_optional_time||epoch_millis" //nolint:lll
+
 // Option is a reusable generic function for applying options to a type.
 type Option[T any] func(T) T
 
@@ -47,7 +49,9 @@ var SubscriptionMappings = map[string]types.Property{
 	"updated_at":      types.NewDateNanosProperty(),
 	"user_nickname":   asTextAndKeyword(),
 	"user_categories": asTextAndKeyword(),
-	"feed":            FeedMappings,
+	"feed": types.ObjectProperty{
+		Properties: FeedMappings,
+	},
 	"state": types.ObjectProperty{
 		Properties: map[string]types.Property{
 			"marked_read":  types.NewDateNanosProperty(),

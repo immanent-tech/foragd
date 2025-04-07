@@ -32,7 +32,7 @@ type Options struct {
 	NoLogFile bool   `name:"no-log-file" help:"Don't write to a log file." default:"false"`
 }
 
-var DefaultLogFile = "../deployments/server.log"
+var DefaultLogFile = "deployments/server.log"
 
 //revive:disable:flag-parameter
 func New(options Options) *slog.Logger {

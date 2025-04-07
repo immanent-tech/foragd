@@ -5,14 +5,21 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"iter"
 	"maps"
 	"slices"
+	"time"
 )
 
 type Option[T any] func(T)
 
-var ErrInvalidID = errors.New("error generating unique ID")
+var (
+	ErrInvalidID             = errors.New("error generating unique ID")
+	ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
+)
+
+var UnixEpoch = time.Unix(0, 0)
 
 type UserData struct {
 	*Tokens
@@ -57,4 +64,16 @@ func FilterMap[K comparable, V any](m map[K]V, fn func(K, V) bool) iter.Seq2[K, 
 // FilterMapValues will filter map values by the given function.
 func FilterMapValues[K comparable, V any](s map[K]V, fn func(V) bool) iter.Seq[V] {
 	return FilterSlice(slices.Collect(maps.Values(s)), fn)
+}
+
+// ValidateDatetime will check whether a time.Time is not either the zero value or equal to the Unix epoch.
+func ValidateDatetime(dt time.Time) (bool, error) {
+	switch {
+	case dt.IsZero():
+		return false, fmt.Errorf("%w: is zero time value", ErrInvalidDateTimeFormat)
+	case dt.Equal(UnixEpoch):
+		return false, fmt.Errorf("%w: is unix epoch", ErrInvalidDateTimeFormat)
+	default:
+		return true, nil
+	}
 }

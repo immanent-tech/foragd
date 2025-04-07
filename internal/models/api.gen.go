@@ -5,8 +5,6 @@ package models
 
 import (
 	"time"
-
-	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
 // Defines values for ImportSource.
@@ -163,7 +161,7 @@ type SubscriptionRequest struct {
 	URL string `form:"url" json:"url" validate:"required,url"`
 
 	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []externalRef0.Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
+	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
 
 	// UserNickname is a friendly name or nickname for the feed given by the user.
 	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`

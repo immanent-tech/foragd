@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -60,6 +61,7 @@ func ValidateStruct[T any](obj T) (bool, error) {
 		}
 
 		problems := parseStructValidationErrors(err.(validator.ValidationErrors))
+		spew.Dump(problems)
 
 		return false, problems
 	}

@@ -16,7 +16,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/forms"
@@ -242,7 +241,6 @@ func processSubscriptionRequests(ctx context.Context, api DataAPI, user *models.
 	}))
 	warnings = addFeedsForSubscriptions(ctx, api, feedsNeeded)
 	maps.Copy(results, warnings)
-	spew.Dump(results)
 	// Filter subscriptions that have failed results.
 	validSubscriptions := maps.Collect(models.FilterMap(subscriptions, func(sub *models.Subscription, _ *models.Feed) bool {
 		// If it is already marked with results, filter it out.
@@ -257,14 +255,11 @@ func processSubscriptionRequests(ctx context.Context, api DataAPI, user *models.
 				models.WithStatus(models.MessageStatusError),
 				models.WithError(err),
 			)
-			spew.Dump(sub)
-			spew.Dump(results[sub])
 			return false
 		}
 		// Subscription is valid.
 		return true
 	}))
-	spew.Dump(validSubscriptions)
 	// Add valid subscriptions.
 	err := api.AddSubscriptions(ctx, slices.Collect(maps.Keys(validSubscriptions)))
 	// If the request to add subscriptions failed, record failure for all subscriptions.
@@ -302,11 +297,16 @@ func addFeedsForSubscriptions(ctx context.Context, api DataAPI, subscriptions ma
 	if err != nil || newFeedsResp.Err != nil {
 		for sub := range maps.Keys(subscriptions) {
 			results[sub] = models.NewMessage(
-				fmt.Sprintf("could not create a subscription for feed %s", sub.GetName()),
+				"could not create a subscription for feed "+sub.GetName(),
 				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
 				models.WithStatus(models.MessageStatusWarning),
-				models.WithError(err),
 			)
+			switch {
+			case err != nil:
+				results[sub].Err = err
+			case newFeedsResp.Err != nil:
+				results[sub].Err = newFeedsResp.Err
+			}
 		}
 		return results
 	}
@@ -326,7 +326,7 @@ func addFeedsForSubscriptions(ctx context.Context, api DataAPI, subscriptions ma
 			// If it does, add a message.
 			if _, err = newFeedsResp.Responses[idx].State(); err != nil {
 				results[sub] = models.NewMessage(
-					fmt.Sprintf("could not create a subscription for feed %s", sub.GetName()),
+					"could not create a subscription for feed "+sub.GetName(),
 					models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
 					models.WithStatus(models.MessageStatusWarning),
 					models.WithError(err),
@@ -334,7 +334,7 @@ func addFeedsForSubscriptions(ctx context.Context, api DataAPI, subscriptions ma
 			}
 		} else {
 			results[sub] = models.NewMessage(
-				fmt.Sprintf("could not create a subscription for feed %s", sub.GetName()),
+				"could not create a subscription for feed "+sub.GetName(),
 				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
 				models.WithStatus(models.MessageStatusWarning),
 				models.WithError(err),
@@ -357,7 +357,7 @@ func generateSubscriptions(ctx context.Context, api DataAPI, user *models.User, 
 	if err != nil {
 		for request := range slices.Values(requests) {
 			results[&models.Subscription{SubscriptionID: request.SubscriptionID}] = models.NewMessage(
-				fmt.Sprintf("could not create a subscription for feed with URL %s", request.GetURL()),
+				"could not create a subscription for feed with URL "+request.GetURL(),
 				models.WithDetails("A subscription could not be created as temporary backend error. Please check the URL and/or try again."),
 				models.WithStatus(models.MessageStatusWarning),
 				models.WithError(err),
@@ -369,7 +369,7 @@ func generateSubscriptions(ctx context.Context, api DataAPI, user *models.User, 
 	// feed needs to be added, also create those.
 	for request := range slices.Values(requests) {
 		if idx := slices.IndexFunc(existingFeeds, func(feed *models.Feed) bool {
-			return request.GetURL() == feed.GetLink()
+			return request.GetURL() == feed.GetSourceURL()
 		}); idx != -1 {
 			// Existing Feed. Check if user already subscribed.
 			if user.IsSubscribed(existingFeeds[idx].GetID()) {
