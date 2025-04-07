@@ -38,8 +38,6 @@ const (
 
 var defaultMetadata = NewMetadata(WithMetadataField("version", schemaVersion))
 
-var datetimeFormats = "EEE, dd MMM yyyy HH:mm:ss z||EEE, dd MMM yyyy HH:mm:ss Z||EEE, dd MMM yyyy HH:mm z||EEE, dd MMM yyyy HH:mm z||strict_date_optional_time||epoch_millis" //nolint:lll
-
 // Option is a reusable generic function for applying options to a type.
 type Option[T any] func(T) T
 
@@ -64,6 +62,7 @@ var SubscriptionMappings = map[string]types.Property{
 var FeedMappings = map[string]types.Property{
 	"feed_id":      types.NewKeywordProperty(),
 	"created_at":   types.NewDateNanosProperty(),
+	"updated_at":   types.NewDateNanosProperty(),
 	"updated":      types.NewDateNanosProperty(),
 	"published":    types.NewDateNanosProperty(),
 	"title":        asTextAndKeyword(),
@@ -235,6 +234,7 @@ func FeedsMappingsTemplate() *putcomponenttemplate.Request {
 						WithoutDynamicMapping(),
 						WithKeywordProperty("feed_id"),
 						WithDateNanosProperty("created_at"),
+						WithDateNanosProperty("updated_at"),
 						WithDateNanosProperty("updated"),
 						WithDateNanosProperty("published"),
 						WithTextAndKeywordProperty("title"),
@@ -292,6 +292,8 @@ func FeedItemsMappingsTemplate() *putcomponenttemplate.Request {
 					NewPropertyMapping(
 						WithoutDynamicMapping(),
 						WithDateNanosProperty("@timestamp"),
+						WithDateNanosProperty("created"),
+						WithDateNanosProperty("updated"),
 						WithKeywordProperty("feed_id"),
 						WithKeywordProperty("item_id"),
 						WithTextAndKeywordProperty("title"),
