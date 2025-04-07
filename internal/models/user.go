@@ -55,10 +55,10 @@ func (u *User) GetMarkedRead(id FeedID) time.Time {
 		return v.GetFeedID() == id
 	})
 	if idx != -1 {
-		if u.Subscriptions[idx].State.MarkedRead.IsZero() {
+		if u.Subscriptions[idx].GetMarkedRead().IsZero() {
 			return u.GetMaxHistory()
 		}
-		return u.Subscriptions[idx].State.MarkedRead
+		return u.Subscriptions[idx].GetMarkedRead()
 	}
 	return u.GetMaxHistory()
 }
@@ -100,11 +100,7 @@ func (u *User) MarkSubscriptions(mark Mark, feedIDs ...FeedID) {
 	// Mark the subscriptions.
 	for subscription := range slices.Values(u.Subscriptions) {
 		if slices.Contains(feedIDs, subscription.GetFeedID()) {
-			updated := time.Now().UTC()
-			subscription.State.MarkedRead = markedAt
-			subscription.State.UnreadItems = nil
-			subscription.State.ReadItems = nil
-			subscription.UpdatedAt = &updated
+			subscription.MarkRead(markedAt)
 		}
 	}
 }

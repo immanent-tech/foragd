@@ -236,61 +236,6 @@ components:
         copyright:
           type: string
           x-go-type-skip-optional-pointer: true
-    # APIFeed:
-    #   description: represents a feed object for API endpoints.
-    #   type: object
-    #   allOf:
-    #     - $ref: "#/components/schemas/FeedMetadata"
-    #     - $ref: "#/components/schemas/ObjectState"
-    #     - $ref: "#/components/schemas/Timestamps"
-    #     - type: object
-    #       required:
-    #         - ID
-    #         - URL
-    #       properties:
-    #         ID:
-    #           $ref: "#/components/schemas/FeedID"
-    #         URL:
-    #           $ref: "#/components/schemas/FeedURL"
-    #         language:
-    #           type: string
-    #           x-go-type-skip-optional-pointer: true
-    #         copyright:
-    #           type: string
-    #           x-go-type-skip-optional-pointer: true
-    #         generator:
-    #           type: string
-    #           x-go-type-skip-optional-pointer: true
-    #         feed_type:
-    #           type: string
-    #           x-oapi-codegen-extra-tags:
-    #             json: "feedType"
-    #           x-go-type-skip-optional-pointer: true
-    #         feed_version:
-    #           type: string
-    #           x-oapi-codegen-extra-tags:
-    #             json: "feedVersion"
-    #           x-go-type-skip-optional-pointer: true
-    # APIItem:
-    #   description: represents an individual item (e.g., an individual feed item).
-    #   type: object
-    #   allOf:
-    #     - $ref: "#/components/schemas/FeedMetadata"
-    #     - $ref: "#/components/schemas/ObjectState"
-    #     - type: object
-    #       required:
-    #         - ID
-    #         - FeedID
-    #         - URL
-    #       properties:
-    #         ID:
-    #           $ref: "#/components/schemas/ItemID"
-    #         FeedID:
-    #           $ref: "#/components/schemas/FeedID"
-    #         URL:
-    #           $ref: "#/components/schemas/ItemURL"
-    #         state:
-    #           $ref: "#/components/schemas/ItemState"
     Tokens:
       type: object
       required:
@@ -415,6 +360,7 @@ components:
           description: records when the subscription was last marked read.
           x-go-type: "time.Time"
           x-oapi-codegen-extra-tags:
+            form: "-"
             validate: "required"
         read_items:
           description: >
@@ -423,7 +369,7 @@ components:
           items:
             $ref: "#/components/schemas/ItemID"
           x-oapi-codegen-extra-tags:
-            json: "read_items"
+            form: "-"
             validate: "unique,dive,startswith=item_"
           x-go-type-skip-optional-pointer: true
         unread_items:
@@ -433,7 +379,7 @@ components:
           items:
             $ref: "#/components/schemas/ItemID"
           x-oapi-codegen-extra-tags:
-            json: "unread_items"
+            form: "-"
             validate: "unique,dive,startswith=item_"
           x-go-type-skip-optional-pointer: true
         unread_count:
@@ -453,18 +399,25 @@ components:
       allOf:
         - $ref: "#/components/schemas/Timestamps"
         - $ref: "#/components/schemas/SubscriptionCustomisation"
+        - $ref: "#/components/schemas/SubscriptionState"
         - type: object
           required:
             - subscription_id
-            - state
-            - feed
+            - feed_id
           properties:
             subscription_id:
               $ref: "#/components/schemas/SubscriptionID"
+            feed_id:
+              $ref: "#/components/schemas/FeedID"
             feed:
-              $ref: "#/components/schemas/Feed"
-            state:
-              $ref: "#/components/schemas/SubscriptionState"
+              description: >
+                contains the Feed details. This field will be populated at query time.
+              allOf:
+                - $ref: "#/components/schemas/Feed"
+              x-oapi-codegen-extra-tags:
+                json: "-"
+                form: "-"
+                validate: "required"
     Feed:
       description: represents a feed object.
       type: object

@@ -14,7 +14,10 @@ import (
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-var _ types.FeedSource = (*Feed)(nil)
+var (
+	_ types.ObjectCommon = (*Feed)(nil)
+	_ types.Source       = (*Feed)(nil)
+)
 
 // ErrNewFeed is returned when there was a problem creating a new Feed.
 var ErrNewFeed = errors.New("could not create new feed")
@@ -24,7 +27,7 @@ type Feeds []*Feed
 
 // GetIDs returns the Feed IDs for the Feeds.
 func (f Feeds) GetIDs() []FeedID {
-	feedIDs := make([]FeedID, len(f))
+	feedIDs := make([]FeedID, 0, len(f))
 	for feed := range slices.Values(f) {
 		feedIDs = append(feedIDs, feed.GetID())
 	}

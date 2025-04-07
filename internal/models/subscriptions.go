@@ -11,6 +11,14 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/validation"
+	"github.com/joshuar/go-feed-me/pkg/feeds/types"
+)
+
+// Subscription should satisfy the base "Feed" types so it can be used in place of a Feed object. Effectively, a
+// Subscription is a superset of a Feed plus some additional data.
+var (
+	_ types.ObjectCommon = (*Subscription)(nil)
+	_ types.Source       = (*Subscription)(nil)
 )
 
 // Subscriptions is a list of subscriptions.
@@ -119,33 +127,83 @@ func (s *Subscription) Valid() (bool, error) {
 
 // GetFeedID retrieves the FeedID associated with the subscription.
 func (s *Subscription) GetFeedID() FeedID {
-	return s.Feed.GetID()
+	return s.FeedID
+}
+
+// GetTitle returns first found of either the nickname of the subscription or the feed title, in that order.
+func (s *Subscription) GetTitle() string {
+	if s.UserNickname != "" {
+		return s.UserNickname
+	}
+	return s.Feed.GetTitle()
+}
+
+// GetDescription retrieves the description (if any) of the feed.
+func (s *Subscription) GetDescription() string {
+	return s.Feed.GetDescription()
 }
 
 // GetCategories retrieves any custom categories set by the user of nil if
 // unset.
 func (s *Subscription) GetCategories() []Category {
-	categories := make([]Category, 0, len(s.UserCategories)+len(s.Feed.GetCategories()))
-	// Get feed categories.
-	for category := range slices.Values(s.Feed.GetCategories()) {
-		categories = append(categories, category)
-	}
-	// Get user custom categories.
-	for category := range slices.Values(s.UserCategories) {
-		categories = append(categories, category)
-	}
+	categories := slices.Concat(s.UserCategories, s.Feed.GetCategories())
 	slices.Sort(categories)
 	return slices.Compact(categories)
 }
 
+// GetAuthors returns any feed authors.
+func (s *Subscription) GetAuthors() []string {
+	return s.Feed.GetAuthors()
+}
+
+// GetContributors returns any feed contributors.
+func (s *Subscription) GetContributors() []string {
+	return s.Feed.GetContributors()
+}
+
+// GetImage returns any image of the feed.
+func (s *Subscription) GetImage() *types.Image {
+	return s.Feed.GetImage()
+}
+
+// GetLanguage returns the feed language.
+func (s *Subscription) GetLanguage() string {
+	return s.Feed.GetLanguage()
+}
+
+// GetRights returns any copyright or rights notes associated with the feed.
+func (s *Subscription) GetRights() string {
+	return s.Feed.GetRights()
+}
+
+// GetLink retrieves the link to the webpage source of the feed.
+func (s *Subscription) GetLink() string {
+	return s.Feed.GetLink()
+}
+
+// GetSourceURL retrieves the link to the source feed.
+func (s *Subscription) GetSourceURL() string {
+	return s.Feed.GetSourceURL()
+}
+
+// GetPublishedDate retrieves the last published date of the feed.
+func (s *Subscription) GetPublishedDate() time.Time {
+	return s.Feed.GetPublishedDate()
+}
+
+// GetUpdatedDate retrieves the last updated date of the feed.
+func (s *Subscription) GetUpdatedDate() time.Time {
+	return s.Feed.GetUpdatedDate()
+}
+
 // SetUnreadCount sets the count of unread items for the subscription feed.
 func (s *Subscription) SetUnreadCount(count int) {
-	s.State.UnreadCount = count
+	s.UnreadCount = count
 }
 
 // GetUnreadCount retrieves the count of unread items for the subscription feed.
 func (s *Subscription) GetUnreadCount() int {
-	return s.State.UnreadCount
+	return s.UnreadCount
 }
 
 // GetName retrieves any custom name set by the user or an empty string if unset.
@@ -159,32 +217,42 @@ func (s *Subscription) GetName() string {
 // GetMarkedRead retrieves the timestamp when the user last marked the
 // subscription feed as read.
 func (s *Subscription) GetMarkedRead() time.Time {
-	return s.State.MarkedRead
+	return s.MarkedRead
 }
 
 // GetUnreadItems retrieves a list of ItemIDs for the subscription feed that
 // user has explicitly marked as unread.
 func (s *Subscription) GetUnreadItems() []ItemID {
-	return s.State.UnreadItems
+	return s.UnreadItems
 }
 
 // GetReadItems retrieves a list of ItemIDs for the subscription feed that
 // user has explicitly marked as read.
 func (s *Subscription) GetReadItems() []ItemID {
-	return s.State.ReadItems
+	return s.ReadItems
 }
 
 // GetItemState retrieves the item state (read/unread/saved) from the
 // subscription. By default it will return unread unless the user has explicitly
 // marked or saved the item.
 func (s *Subscription) GetItemState(itemID ItemID) State {
-	if idx := slices.IndexFunc(s.State.UnreadItems, func(v ItemID) bool { return v == itemID }); idx != -1 {
+	if idx := slices.IndexFunc(s.UnreadItems, func(v ItemID) bool { return v == itemID }); idx != -1 {
 		return StateUnread
 	}
-	if idx := slices.IndexFunc(s.State.ReadItems, func(v ItemID) bool { return v == itemID }); idx != -1 {
+	if idx := slices.IndexFunc(s.ReadItems, func(v ItemID) bool { return v == itemID }); idx != -1 {
 		return StateRead
 	}
 	return StateUnread
+}
+
+// MarkRead will mark the subscription as read. This involves setting the MarkedRead field to the given value and
+// removing any individual unread/read items.
+func (s *Subscription) MarkRead(markedAt time.Time) {
+	updated := time.Now().UTC()
+	s.MarkedRead = markedAt
+	s.UnreadItems = nil
+	s.ReadItems = nil
+	s.UpdatedAt = &updated
 }
 
 // CompareSubscriptionUnreadCount is a helper function for sorting Subscriptions by unread count, in
@@ -240,9 +308,8 @@ func NewSubscription(request *SubscriptionRequest, feed *Feed) *Subscription {
 		SubscriptionID: request.SubscriptionID,
 		UserCategories: request.UserCategories,
 		UserNickname:   request.UserNickname,
-		Feed:           *feed,
-		State: SubscriptionState{
-			MarkedRead: time.Unix(0, 0),
-		},
+		MarkedRead:     UnixEpoch,
+		FeedID:         feed.GetID(),
+		Feed:           feed,
 	}
 }

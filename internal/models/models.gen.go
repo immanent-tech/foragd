@@ -238,14 +238,26 @@ type Subscription struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
-	// Feed represents a feed object.
-	Feed Feed `json:"feed"`
+	// Feed contains the Feed details. This field will be populated at query time.
+	Feed *Feed `form:"-" json:"-"`
 
-	// State contains properties tracking the state of the subscription.
-	State SubscriptionState `json:"state"`
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+
+	// MarkedRead records when the subscription was last marked read.
+	MarkedRead time.Time `form:"-" json:"marked_read" validate:"required"`
+
+	// ReadItems is a list of ItemIDs that the user has explicitly marked as read.
+	ReadItems []ItemID `form:"-" json:"read_items,omitempty" validate:"unique,dive,startswith=item_"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// UnreadCount indicates how many items are unread.
+	UnreadCount int `form:"-" json:"-" validate:"numeric,gte=0"`
+
+	// UnreadItems is a list of ItemIDs that the user has explicitly marked as unread.
+	UnreadItems []ItemID `form:"-" json:"unread_items,omitempty" validate:"unique,dive,startswith=item_"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -272,16 +284,16 @@ type SubscriptionID = string
 // SubscriptionState contains properties tracking the state of the subscription.
 type SubscriptionState struct {
 	// MarkedRead records when the subscription was last marked read.
-	MarkedRead time.Time `json:"marked_read" validate:"required"`
+	MarkedRead time.Time `form:"-" json:"marked_read" validate:"required"`
 
 	// ReadItems is a list of ItemIDs that the user has explicitly marked as read.
-	ReadItems []ItemID `json:"read_items" validate:"unique,dive,startswith=item_"`
+	ReadItems []ItemID `form:"-" json:"read_items,omitempty" validate:"unique,dive,startswith=item_"`
 
 	// UnreadCount indicates how many items are unread.
 	UnreadCount int `form:"-" json:"-" validate:"numeric,gte=0"`
 
 	// UnreadItems is a list of ItemIDs that the user has explicitly marked as unread.
-	UnreadItems []ItemID `json:"unread_items" validate:"unique,dive,startswith=item_"`
+	UnreadItems []ItemID `form:"-" json:"unread_items,omitempty" validate:"unique,dive,startswith=item_"`
 }
 
 // Timestamp is when the document was created.
