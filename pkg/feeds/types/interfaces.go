@@ -53,24 +53,25 @@ type ObjectSource interface {
 	SetSourceURL(url string)
 }
 
-// ItemSource is an abstraction representing an individual Item from any type of Feed source.
-type ItemSource interface {
+// ObjectCommon contains all methods common across all objects.
+type ObjectCommon interface {
 	ObjectMetadata
 	ObjectAttribution
 	ObjectLocalization
-	ObjectContent
 	ObjectTaxonomy
-	ObjectID
 	ObjectMedia
+}
+
+// ItemSource is an abstraction representing an individual Item from any type of Feed source.
+type ItemSource interface {
+	ObjectCommon
+	ObjectID
+	ObjectContent
 }
 
 // FeedSource is an abstraction representing any type of Feed.
 type FeedSource interface {
-	ObjectMetadata
+	ObjectCommon
 	ObjectSource
-	ObjectAttribution
-	ObjectLocalization
-	ObjectTaxonomy
-	ObjectMedia
 	GetItems() []ItemSource
 }
