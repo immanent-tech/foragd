@@ -63,7 +63,7 @@ func (f *Feed) GetContributors() []string {
 	return f.Contributors
 }
 
-func (f *Feed) GetCategories() []types.Category {
+func (f *Feed) GetCategories() []string {
 	return f.Categories
 }
 

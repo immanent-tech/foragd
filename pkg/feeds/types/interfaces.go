@@ -39,7 +39,7 @@ type ObjectContent interface {
 
 // ObjectTaxonomy contains methods for retrieving categorization and taxonomy values of an Object.
 type ObjectTaxonomy interface {
-	GetCategories() []Category
+	GetCategories() []string
 }
 
 // ObjectLocalization contains methods for retrieving localization information of an Object.

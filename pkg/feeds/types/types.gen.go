@@ -19,9 +19,6 @@ const (
 // Attributes are any attributes of the element.
 type Attributes = []xml.Attr
 
-// Category defines model for Category.
-type Category = CustomTypeBase
-
 // Content defines model for Content.
 type Content = CustomTypeBase
 

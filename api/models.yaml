@@ -206,7 +206,7 @@ components:
             is a list of categories that define a taxonomy for the feed or item.
           type: array
           items:
-            $ref: "../pkg/feeds/types.yaml#/components/schemas/Category"
+            $ref: "#/components/schemas/Category"
           x-oapi-codegen-extra-tags:
             validate: "omitempty,unique"
           x-go-type-skip-optional-pointer: true

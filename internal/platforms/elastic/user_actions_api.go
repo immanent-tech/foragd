@@ -11,7 +11,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/internal/logging"
@@ -188,7 +187,7 @@ func (e *ElasticAPI) GetItems(ctx context.Context, filters *models.Filters) (mod
 func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *models.Filters) (models.Subscriptions, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, models.WrapError(ErrNoUserCtx, "elastic", "get subscriptions failed")
+		return nil, models.NewMessage("Could not fetch subscriptions.", models.MessageStatusError, models.WithError(ErrNoUserCtx))
 	}
 
 	// Get subscriptions matching the filters.
@@ -199,7 +198,7 @@ func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *models.Filte
 	// Add unread counts to feeds.
 	err := e.GetSubscriptionUnreadCounts(ctx, subscriptions)
 	if err != nil {
-		return nil, models.WrapError(err, "elastic", "get subscriptions failed")
+		return nil, models.NewMessage("Could not fetch subscription unread counts", models.MessageStatusWarning, models.WithError(err))
 	}
 
 	// Filter the feeds by view filter.
@@ -259,7 +258,6 @@ func (e *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions models.
 	}
 	// Add the subscriptions to the user.
 	user.AddSubscriptions(subscriptions)
-	spew.Dump(user)
 	// Update the user object.
 	return e.UpdateUser(ctx, user.GetID(), map[string]any{
 		"subscriptions": user.Subscriptions,
@@ -412,8 +410,8 @@ func unreadFeedItemsQuery(subscriptions models.Subscriptions) query.Option {
 					// And should be newer than last read or explicitly marked unread.
 					query.Bool(
 						query.Should(
-							query.Since("publishedParsed", subscription.GetMarkedRead()),
-							query.Since("updatedParsed", subscription.GetMarkedRead()),
+							query.Since("published", subscription.GetMarkedRead()),
+							query.Since("updated", subscription.GetMarkedRead()),
 							query.ItemIDs(subscription.GetUnreadItems()...),
 						),
 						// Must not match any read items for the feed
@@ -431,7 +429,7 @@ func unreadFeedItemsQuery(subscriptions models.Subscriptions) query.Option {
 		query.Filter(
 			// Must match any of the given feed IDs.
 			query.FeedIDs(subscriptions.GetFeedIDs()...),
-			query.Categories(subscriptions.GetCategories()...),
+			// query.Categories(subscriptions.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
 				query.Should(clauses...),
@@ -456,8 +454,8 @@ func readFeedItemsQuery(user *models.User, subscriptions models.Subscriptions) q
 						// And be published/updated since the user max history.
 						query.Bool(
 							query.Should(
-								query.Since("publishedParsed", user.GetMaxHistory()),
-								query.Since("updatedParsed", user.GetMaxHistory()),
+								query.Since("published", user.GetMaxHistory()),
+								query.Since("updated", user.GetMaxHistory()),
 								query.ItemIDs(info.GetReadItems()...),
 							),
 							// Must not match any unread items for the feed
@@ -477,8 +475,8 @@ func readFeedItemsQuery(user *models.User, subscriptions models.Subscriptions) q
 						// And should be between the user max history and last read time.
 						query.Bool(
 							query.Should(
-								query.Between("publishedParsed", user.GetMaxHistory(), info.GetMarkedRead()),
-								query.Between("updatedParsed", user.GetMaxHistory(), info.GetMarkedRead()),
+								query.Between("published", user.GetMaxHistory(), info.GetMarkedRead()),
+								query.Between("updated", user.GetMaxHistory(), info.GetMarkedRead()),
 								query.ItemIDs(info.GetReadItems()...),
 							),
 							// Must not match any unread items for the feed
@@ -497,7 +495,7 @@ func readFeedItemsQuery(user *models.User, subscriptions models.Subscriptions) q
 		query.Filter(
 			// Must match any of the given feed IDs
 			query.FeedIDs(subscriptions.GetFeedIDs()...),
-			query.Categories(subscriptions.GetCategories()...),
+			// query.Categories(subscriptions.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
 				query.Should(clauses...),
@@ -518,8 +516,8 @@ func allFeedItemsQuery(user *models.User, subscriptions models.Subscriptions) qu
 					// And be published/updated since the user max history.
 					query.Bool(
 						query.Should(
-							query.Since("publishedParsed", user.GetMaxHistory()),
-							query.Since("updatedParsed", user.GetMaxHistory()),
+							query.Since("published", user.GetMaxHistory()),
+							query.Since("updated", user.GetMaxHistory()),
 						),
 					),
 				),

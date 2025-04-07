@@ -103,21 +103,11 @@ func (c *Channel) GetLanguage() string {
 	}
 }
 
-// GetCategories retrieves the categories (if any) of the Channel. The categories are returned as types.Category
-// objects, which tries to encapsulate an RSS category element in a portable format across schemas. Malformed categories
-// will be discarded.
-//
-// If you prefer not to use the types.Category object, just retrieve the categories from Item.Categories directly.
-func (c *Channel) GetCategories() []types.Category {
-	categories := make([]types.Category, 0, len(c.Categories))
+// GetCategories retrieves the categories (if any) of the Channel. The categories are returned as strings.
+func (c *Channel) GetCategories() []string {
+	categories := make([]string, 0, len(c.Categories))
 	for category := range slices.Values(c.Categories) {
-		c := types.Category{Value: category.String()}
-		// If the domain attribute has a value, copy it across.
-		if category.Domain != nil {
-			domainAttr := types.NewXMLAttr("domain", *category.Domain, "")
-			c.Attributes = types.Attributes{domainAttr}
-		}
-		categories = append(categories, c)
+		categories = append(categories, category.String())
 	}
 	return categories
 }

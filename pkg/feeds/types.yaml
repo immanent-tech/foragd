@@ -102,11 +102,6 @@ components:
           $ref: "#/components/schemas/RequiredValue"
         attributes:
           $ref: "#/components/schemas/Attributes"
-    Category:
-      description: >
-        represents a taxonomy value assigned to an element.
-      allOf:
-        - $ref: "#/components/schemas/CustomTypeBase"
     Image:
       description: >
         is an abstraction of an Image across different types of specifications.

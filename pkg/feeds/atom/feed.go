@@ -119,21 +119,11 @@ func (f *Feed) GetLanguage() string {
 	}
 }
 
-// GetCategories retrieves the categories (if any) of the Feed. The categories are returned as types.Category objects,
-// which tries to encapsulate an Atom category element in a portable format across schemas. Malformed categories will be
-// discarded.
-//
-// If you prefer not to use the types.Category object, just retrieve the categories from Item.Categories directly.
-func (f *Feed) GetCategories() []types.Category {
-	categories := make([]types.Category, 0, len(f.Categories))
+// GetCategories retrieves the categories (if any) of the Feed. The categories are returned as strings.
+func (f *Feed) GetCategories() []string {
+	categories := make([]string, 0, len(f.Categories))
 	for category := range slices.Values(f.Categories) {
-		c := types.Category{Value: category.String()}
-		// If there is a scheme value, copy that across.
-		if category.Scheme != nil {
-			domainAttr := types.NewXMLAttr("scheme", category.Scheme.Value, "")
-			c.Attributes = types.Attributes{domainAttr}
-		}
-		categories = append(categories, c)
+		categories = append(categories, category.String())
 	}
 	return categories
 }

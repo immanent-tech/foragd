@@ -35,7 +35,7 @@ func (i Items) GetCategoryCounts() CategoryCounts {
 	countsMap := make(map[Category]int)
 	for item := range slices.Values(i) {
 		for category := range slices.Values(item.GetCategories()) {
-			countsMap[category.String()]++
+			countsMap[category]++
 		}
 	}
 	var counts CategoryCounts
@@ -74,7 +74,7 @@ func (i *Item) GetContributors() []string {
 	return i.Contributors
 }
 
-func (i *Item) GetCategories() []types.Category {
+func (i *Item) GetCategories() []string {
 	return i.Categories
 }
 

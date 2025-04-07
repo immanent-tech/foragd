@@ -45,7 +45,7 @@ func (r *RSS) GetPublishedDate() time.Time {
 	return r.Channel.GetPublishedDate()
 }
 
-func (r *RSS) GetCategories() []types.Category {
+func (r *RSS) GetCategories() []string {
 	return r.Channel.GetCategories()
 }
 

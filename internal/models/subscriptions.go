@@ -128,7 +128,7 @@ func (s *Subscription) GetCategories() []Category {
 	categories := make([]Category, 0, len(s.UserCategories)+len(s.Feed.GetCategories()))
 	// Get feed categories.
 	for category := range slices.Values(s.Feed.GetCategories()) {
-		categories = append(categories, category.String())
+		categories = append(categories, category)
 	}
 	// Get user custom categories.
 	for category := range slices.Values(s.UserCategories) {

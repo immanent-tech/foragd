@@ -80,7 +80,7 @@ type Feed struct {
 	Authors []string `json:"authors,omitempty" validate:"omitempty,unique"`
 
 	// Categories is a list of categories that define a taxonomy for the feed or item.
-	Categories []externalRef0.Category `json:"categories,omitempty" validate:"omitempty,unique"`
+	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty" validate:"omitempty,unique"`
@@ -136,7 +136,7 @@ type Item struct {
 	Authors []string `json:"authors,omitempty" validate:"omitempty,unique"`
 
 	// Categories is a list of categories that define a taxonomy for the feed or item.
-	Categories []externalRef0.Category `json:"categories,omitempty" validate:"omitempty,unique"`
+	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Content is an abstraction of element content across different types of specifications.
 	Content *externalRef0.Content `json:"content,omitempty"`
@@ -198,7 +198,7 @@ type ObjectCommon struct {
 	Authors []string `json:"authors,omitempty" validate:"omitempty,unique"`
 
 	// Categories is a list of categories that define a taxonomy for the feed or item.
-	Categories []externalRef0.Category `json:"categories,omitempty" validate:"omitempty,unique"`
+	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty" validate:"omitempty,unique"`
