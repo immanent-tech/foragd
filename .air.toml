@@ -8,7 +8,7 @@ tmp_dir = "tmp"
 pre_cmd = ["bun run build"]
 # post_cmd = ["echo 'hello air' > post_cmd.txt"]
 cmd = "step ca renew --force localhost.crt localhost.key && go tool github.com/a-h/templ/cmd/templ generate && go build -o ./tmp/gowebly_chi ."
-bin = "tmp/gowebly_chi --log-level=debug --profile='heapprofile=../deployments/heap.prof;cpuprofile=../deployments/cpu.prof;webui=true' serve"
+bin = "tmp/gowebly_chi --log-level=debug --profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true' serve"
 include_ext = ["go", "templ", "html", "json", "js", "ts", "css", "scss"]
 exclude_dir = [
     ".parcel-cache",
@@ -23,7 +23,7 @@ exclude_dir = [
 exclude_regex = ["_test\\.go", "_templ\\.go"]
 exclude_unchanged = false
 follow_symlink = false
-log = "../deployments/build-errors-air.log"
+log = "deployments/build-errors-air.log"
 poll = false
 poll_interval = 500
 delay = 1000

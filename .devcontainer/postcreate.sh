@@ -16,7 +16,7 @@ sudo dpkg -i deployments/step-cli_amd64.deb
 mkdir -p ~/.config/fish
 echo "starship init fish | source" >> ~/.config/fish/config.fish
 
-cd /workspace/project
+cd /workspace
 
 # Install parceljs.
 bun update || exit -1

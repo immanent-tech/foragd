@@ -41,6 +41,45 @@ var defaultMetadata = NewMetadata(WithMetadataField("version", schemaVersion))
 // Option is a reusable generic function for applying options to a type.
 type Option[T any] func(T) T
 
+var SubscriptionMappings = map[string]types.Property{
+	"subscription_id": types.NewKeywordProperty(),
+	"created_at":      types.NewDateNanosProperty(),
+	"updated_at":      types.NewDateNanosProperty(),
+	"user_nickname":   asTextAndKeyword(),
+	"user_categories": asTextAndKeyword(),
+	"feed":            FeedMappings,
+	"state": types.ObjectProperty{
+		Properties: map[string]types.Property{
+			"marked_read":  types.NewDateNanosProperty(),
+			"read_items":   types.NewKeywordProperty(),
+			"unread_items": types.NewKeywordProperty(),
+		},
+	},
+}
+
+var FeedMappings = map[string]types.Property{
+	"feed_id":      types.NewKeywordProperty(),
+	"created_at":   types.NewDateNanosProperty(),
+	"updated":      types.NewDateNanosProperty(),
+	"published":    types.NewDateNanosProperty(),
+	"title":        asTextAndKeyword(),
+	"description":  types.NewTextProperty(),
+	"source_type":  types.NewKeywordProperty(),
+	"source":       types.NewKeywordProperty(),
+	"url":          types.NewKeywordProperty(),
+	"authors":      asTextAndKeyword(),
+	"contributors": asTextAndKeyword(),
+	"categories":   asTextAndKeyword(),
+	"language":     asTextAndKeyword(),
+	"copyright":    asTextAndKeyword(),
+	"image": types.ObjectProperty{
+		Properties: map[string]types.Property{
+			"value": types.NewKeywordProperty(),
+			"title": asTextAndKeyword(),
+		},
+	},
+}
+
 //
 // SESSION
 //
@@ -192,33 +231,22 @@ func FeedsMappingsTemplate() *putcomponenttemplate.Request {
 						WithoutDynamicMapping(),
 						WithKeywordProperty("feed_id"),
 						WithDateNanosProperty("created_at"),
-						WithDateNanosProperty("updated_at"),
+						WithDateNanosProperty("updated"),
+						WithDateNanosProperty("published"),
 						WithTextAndKeywordProperty("title"),
 						WithTextProperty("description"),
-						WithTextProperty("content"),
-						WithKeywordProperty("link"),
-						WithKeywordProperty("feedLink"),
-						WithKeywordProperty("links"),
-						WithKeywordProperty("feedType"),
-						WithKeywordProperty("feedVersion"),
-						WithDateNanosProperty("updatedParsed"),
-						WithDateNanosProperty("publishedParsed"),
-						WithObjectProperty("authors", map[string]types.Property{
-							"name":  asTextAndKeyword(),
-							"email": asTextAndKeyword(),
-						}),
+						WithTextAndKeywordProperty("authors"),
+						WithTextAndKeywordProperty("contributors"),
+						WithTextAndKeywordProperty("categories"),
 						WithTextAndKeywordProperty("language"),
+						WithTextAndKeywordProperty("copyright"),
+						WithKeywordProperty("source_type"),
+						WithKeywordProperty("source"),
+						WithKeywordProperty("url"),
 						WithObjectProperty("image", map[string]types.Property{
-							"url":   types.NewKeywordProperty(),
+							"value": types.NewKeywordProperty(),
 							"title": asTextAndKeyword(),
 						}),
-						WithTextAndKeywordProperty("copyright"),
-						WithTextAndKeywordProperty("generator"),
-						WithTextAndKeywordProperty("categories"),
-						WithObjectProperty("dublincoreext", DublinCoreMappingsTemplate()),
-						WithObjectProperty("itunesext", ItunesMappingTemplate()),
-						WithFlattenedProperty("extensions"),
-						WithFlattenedProperty("custom"),
 					),
 				),
 			),
@@ -265,28 +293,17 @@ func FeedItemsMappingsTemplate() *putcomponenttemplate.Request {
 						WithTextAndKeywordProperty("title"),
 						WithTextProperty("description"),
 						WithTextProperty("content"),
-						WithKeywordProperty("links"),
-						WithDateNanosProperty("updatedParsed"),
-						WithDateNanosProperty("publishedParsed"),
-						WithObjectProperty("authors", map[string]types.Property{
-							"name":  asTextAndKeyword(),
-							"email": asTextAndKeyword(),
-						}),
-						WithKeywordProperty("guid"),
+						WithTextAndKeywordProperty("authors"),
+						WithTextAndKeywordProperty("contributors"),
+						WithTextAndKeywordProperty("categories"),
+						WithTextAndKeywordProperty("language"),
+						WithTextAndKeywordProperty("copyright"),
+						WithKeywordProperty("source_type"),
+						WithKeywordProperty("url"),
 						WithObjectProperty("image", map[string]types.Property{
-							"url":   types.NewKeywordProperty(),
+							"value": types.NewKeywordProperty(),
 							"title": asTextAndKeyword(),
 						}),
-						WithTextAndKeywordProperty("categories"),
-						WithObjectProperty("enclosures", map[string]types.Property{
-							"url":    types.NewKeywordProperty(),
-							"length": types.NewKeywordProperty(),
-							"type":   types.NewKeywordProperty(),
-						}),
-						WithObjectProperty("dublincoreext", DublinCoreMappingsTemplate()),
-						WithObjectProperty("itunesext", ItunesMappingTemplate()),
-						WithFlattenedProperty("extensions"),
-						WithFlattenedProperty("custom"),
 					),
 				),
 			),
@@ -349,80 +366,7 @@ func DefaultILMPolicy() *putlifecycle.Request {
 }
 
 func SubscriptionMappingTemplate() map[string]types.Property {
-	return map[string]types.Property{
-		"feed_id":         types.NewKeywordProperty(),
-		"subscription_id": types.NewKeywordProperty(),
-		"created_at":      types.NewDateNanosProperty(),
-		"updated_at":      types.NewDateNanosProperty(),
-		"user_nickname":   asTextAndKeyword(),
-		"user_categories": asTextAndKeyword(),
-		"feed_details": types.ObjectProperty{
-			Properties: map[string]types.Property{
-				"authors": types.ObjectProperty{
-					Properties: map[string]types.Property{
-						"name":  asTextAndKeyword(),
-						"email": asTextAndKeyword(),
-					},
-				},
-				"categories":  asTextAndKeyword(),
-				"description": types.NewTextProperty(),
-				"title":       asTextAndKeyword(),
-				"image": types.ObjectProperty{
-					Properties: map[string]types.Property{
-						"url":   types.NewKeywordProperty(),
-						"title": asTextAndKeyword(),
-					},
-				},
-				"url": types.NewKeywordProperty(),
-			},
-		},
-		"state": types.ObjectProperty{
-			Properties: map[string]types.Property{
-				"marked_read":  types.NewDateNanosProperty(),
-				"read_items":   types.NewKeywordProperty(),
-				"unread_items": types.NewKeywordProperty(),
-			},
-		},
-	}
-}
-
-func DublinCoreMappingsTemplate() map[string]types.Property {
-	return map[string]types.Property{
-		"title":       asTextAndKeyword(),
-		"creator":     asTextAndKeyword(),
-		"author":      asTextAndKeyword(),
-		"subject":     asTextAndKeyword(),
-		"description": asTextAndKeyword(),
-		"publisher":   asTextAndKeyword(),
-		"contributor": asTextAndKeyword(),
-		"date":        asTextAndKeyword(),
-		"type":        asTextAndKeyword(),
-		"format":      asTextAndKeyword(),
-		"identifier":  asTextAndKeyword(),
-		"source":      asTextAndKeyword(),
-		"language":    asTextAndKeyword(),
-		"relation":    asTextAndKeyword(),
-		"coverage":    asTextAndKeyword(),
-		"rights":      asTextAndKeyword(),
-	}
-}
-
-func ItunesMappingTemplate() map[string]types.Property {
-	return map[string]types.Property{
-		"author":            asTextAndKeyword(),
-		"block":             asTextAndKeyword(),
-		"duration":          asTextAndKeyword(),
-		"explicit":          asTextAndKeyword(),
-		"keywords":          asTextAndKeyword(),
-		"subtitle":          asTextAndKeyword(),
-		"summary":           asTextAndKeyword(),
-		"image":             asTextAndKeyword(),
-		"isClosedCaptioned": asTextAndKeyword(),
-		"episode":           asTextAndKeyword(),
-		"season":            asTextAndKeyword(),
-		"order":             asTextAndKeyword(),
-		"episodeType":       asTextAndKeyword(),
-	}
+	return SubscriptionMappings
 }
 
 // IngestPipelineFeeds is an ingest pipeline to clean-up feed and item data.
