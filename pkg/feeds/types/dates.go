@@ -31,6 +31,7 @@ var DateTimeFormats = []string{
 	time.DateTime,
 }
 
+// UnixEpoch is the time.Time value of Unix epoch.
 var UnixEpoch = time.Unix(0, 0)
 
 // DateTime is a datetime value for a feed (or item) object, such as its published/updated date.
@@ -50,7 +51,7 @@ func (d DateTime) Valid() (bool, error) {
 }
 
 func (d DateTime) MarshalJSON() ([]byte, error) {
-	date, err := json.Marshal(d.Time.Format(DateTimeFormats[0]))
+	date, err := json.Marshal(d.Format(DateTimeFormats[0]))
 	if err != nil {
 		return nil, errors.Join(ErrInvalidDateTimeFormat, err)
 	}
@@ -72,7 +73,7 @@ func (d *DateTime) UnmarshalJSON(data []byte) error {
 }
 
 func (d DateTime) String() string {
-	return d.Time.Format(DateTimeFormats[0])
+	return d.Format(DateTimeFormats[0])
 }
 
 func (d *DateTime) UnmarshalText(data []byte) error {
