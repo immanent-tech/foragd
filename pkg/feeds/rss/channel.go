@@ -113,13 +113,13 @@ func (c *Channel) GetCategories() []string {
 }
 
 // GetImage retrieves the image (if any) for the Item. The image is returned as a types.Image object. The value will be
-// the first found of either any <image> or <media:thumbnail> element. Any errors is retrieving the image will result in a
-// nil result being returned.
+// the first found of either any <image> or <media:thumbnail> element. Any errors is retrieving the image will result in
+// a nil result being returned.
 func (c *Channel) GetImage() *types.Image {
 	switch {
 	case c.Image != nil:
 		return &types.Image{
-			Value: c.Image.Link,
+			Value: c.Image.URL,
 			Title: &c.Image.Title,
 		}
 	case len(c.MediaThumbnails) > 0:

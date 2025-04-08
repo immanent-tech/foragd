@@ -4,10 +4,14 @@
 package partials
 
 import (
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"net/http"
+	"net/url"
 )
 
 // AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
@@ -23,4 +27,50 @@ func AddSubscriptionButton() *button.Props {
 			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
 		}),
 	)
+}
+
+templ MarkReadButton(path, target string, params url.Values) {
+	@button.Build(
+		button.WithSize(size.XS),
+		button.WithContent(icon.Build("fa-check")),
+		button.WithExtraAttributes(
+			templates.BuildAction(path,
+				templates.WithAttributes(templ.Attributes{
+					"_":           "on click halt the event's bubbling",
+					"hx-push-url": "false",
+					"hx-target":   target,
+				}),
+				templates.WithMethod(http.MethodPost),
+				templates.WithQueryParam("mark", string(models.MarkRead)),
+				templates.WithQueryParams(params),
+			).Attributes(),
+		),
+	).Show()
+}
+
+templ MarkUnreadButton(path, target string, params url.Values) {
+	@button.Build(
+		button.WithSize(size.XS),
+		button.WithContent(icon.Build("fa-cross")),
+		button.WithExtraAttributes(
+			templates.BuildAction(path,
+				templates.WithAttributes(templ.Attributes{
+					"_":           "on click halt the event's bubbling",
+					"hx-push-url": "false",
+					"hx-target":   target,
+				}),
+				templates.WithMethod(http.MethodPost),
+				templates.WithQueryParam("mark", string(models.MarkUnread)),
+				templates.WithQueryParams(params),
+			).Attributes(),
+		),
+	).Show()
+}
+
+templ ViewButton(attributes templ.Attributes) {
+	@button.Build(
+		button.WithSize(size.XS),
+		button.WithContent(icon.Build("fa-eye")),
+		button.WithExtraAttributes(attributes),
+	).Show()
 }

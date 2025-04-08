@@ -76,8 +76,15 @@ func relativeTime(timestamp time.Time) string {
 // showLastUpdated shows the timestamp indicating last update of an item as a
 // relative time in the bottom left corner.
 templ showLastUpdated(description string, updated time.Time) {
-	@text.Build(description+" "+relativeTime(updated),
-		text.WithTextSize(text.XS),
-		text.AsItalicText(),
-	).Show()
+	if description != "" {
+		@text.Build(description+" "+relativeTime(updated),
+			text.WithTextSize(text.XS),
+			text.AsItalicText(),
+		).Show()
+	} else {
+		@text.Build(relativeTime(updated),
+			text.WithTextSize(text.XS),
+			text.AsItalicText(),
+		).Show()
+	}
 }

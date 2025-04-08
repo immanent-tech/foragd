@@ -23,7 +23,7 @@ type MainContent struct {
 // Show the main content. In addition to rendering content objects, this will
 // also update the page title if set.
 templ (c *MainContent) Show(classes ...string) {
-	<div id="content" class="flex flex-wrap p-4 h-full">
+	<div id="content" class="flex flex-wrap p-4 h-dvh items-start">
 		if len(c.content) != 0 {
 			@c.content.Show(classes...)
 		} else {

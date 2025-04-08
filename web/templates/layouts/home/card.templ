@@ -5,9 +5,11 @@
 package home
 
 import (
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"slices"
@@ -29,54 +31,113 @@ templ (c *Card) showDescription() {
 
 templ (s *Card) showCategories() {
 	if len(s.GetCategories()) > 0 {
-		<div class="flex flex-wrap">
-			for category := range slices.Values(s.GetCategories()) {
-				@badge.Build(
-					badge.WithSize(size.SM),
-					badge.WithThemeColor(color.Accent),
-					badge.WithStyle(badge.Outline),
-					badge.WithContent(category),
-				).Show("p-1", "m-1")
-			}
-		</div>
+		// <div class="flex flex-wrap px-2">
+		for category := range slices.Values(s.GetCategories()) {
+			@badge.Build(
+				badge.WithSize(size.SM),
+				badge.WithThemeColor(color.Accent),
+				badge.WithStyle(badge.Outline),
+				badge.WithContent(category),
+			).Show()
+			//"p-1", "m-1"
+		}
+		// </div>
+	}
+}
+
+// setImageOption will set the image of the card to the source image, or a placeholder if the source has no image.
+func (c *Card) setImageOption() card.Option {
+	if c.GetImage() != nil {
+		return card.WithImage(c.GetImage().URL(),
+			image.WithAltText(c.GetImage().String()),
+			image.WithLazyLoading(),
+			image.WithExtraClasses("max-w-md", "h-full", "object-cover"),
+			image.WithMask(mask.MaskSquircle),
+		)
+	}
+	return card.WithImage("/static/images/square-rss-solid.svg",
+		image.WithLazyLoading(),
+		image.WithMask(mask.MaskSquircle),
+		image.WithExtraClasses("max-w-32", "h-full", "object-cover"),
+	)
+}
+
+templ (c *FeedCard) ShowUnreadCount() {
+	if c.IsUnread() {
+		@badge.Build(
+			badge.WithSize(size.SM),
+			badge.WithThemeColor(color.Secondary),
+			badge.WithContent(strconv.Itoa(c.UnreadCount)+" Unread"),
+			badge.WithExtraAttributes(templ.Attributes{
+				"sse-swap": c.GetFeedID() + "_unread",
+			}),
+		).Show()
 	}
 }
 
 templ (c *FeedCard) showContent() {
-	<div hx-disable="true">
-		<div class="flex flex-wrap gap-2">
-			@c.showTitle()
-			if c.UnreadCount > 0 {
-				@badge.Build(
-					badge.WithSize(size.SM),
-					badge.WithThemeColor(color.Primary),
-					badge.WithContent(strconv.Itoa(c.UnreadCount)+" Unread"),
-					badge.WithExtraAttributes(templ.Attributes{
-						"sse-swap": c.GetFeedID() + "_unread",
-					}),
-				).Show()
-			}
+	@c.showDescription()
+	<div class="flex flew-row">
+		<div class="flex-1">
+			@showLastUpdated("", c.GetUpdatedDate())
 		</div>
-		@c.showDescription()
-		@c.showCategories()
+		// <div class="flex-wrap">
+		// 	@c.showCategories()
+		// </div>
 	</div>
 }
 
 templ (c *ItemCard) showContent() {
-	<div hx-disable="true">
-		<div class="flex">
-			@c.showTitle()
-		</div>
-		<div class="flex justify-start left-2 bottom-2">
-			@showLastUpdated("Last Updated:", c.GetUpdatedDate())
+	<div class="flex flew-row">
+		<div class="flex-1">
+			@showLastUpdated("", c.GetUpdatedDate())
 		</div>
 	</div>
 }
 
+func (c *FeedCard) build() {
+	c.Props = card.Build(
+		card.WithLayout(card.LayoutSide),
+		card.Bordered(),
+		card.WithSize(size.MD),
+		card.WithShadow(size.SM),
+		card.WithBodyOptions(
+			card.WithTitle(templ.Join(c.showTitle(), c.ShowUnreadCount())),
+			card.WithContent(c.showContent()),
+			card.WithActions(c.menuActions.Show()),
+			card.WithBodyExtraClasses("p-2"),
+
+			// card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
+		),
+		card.WithID(c.id),
+		c.setImageOption(),
+	)
+}
+
+func (c *ItemCard) build() {
+	c.Props = card.Build(
+		card.WithLayout(card.LayoutSide),
+		card.WithSize(size.MD),
+		card.Bordered(),
+		card.WithShadow(size.SM),
+		card.WithBodyOptions(
+			card.WithTitle(c.showTitle()),
+			card.WithContent(c.showContent()),
+			card.WithActions(c.menuActions.Show()),
+			card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
+			card.WithBodyExtraClasses("p-2"),
+		),
+		card.WithID(c.id),
+		c.setImageOption(),
+	)
+}
+
 templ (a cardActions) Show() {
-	@partials.ResponsiveMenu(a...)
+	@templ.Join(a...)
+	// @partials.ResponsiveMenu(a...)
 }
 
 templ (c *Card) Show(classes ...string) {
-	@c.Props.Show("w-full", "lg:w-1/2", "card-side", "h-48", "p-2")
+	// @c.Props.Show("w-full", "lg:w-1/2", "card-side", "h-48", "p-2")
+	@c.Props.Show("max-h-1/4", "w-full", "lg:max-w-1/2", "py-4")
 }

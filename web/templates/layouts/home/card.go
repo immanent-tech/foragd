@@ -12,9 +12,6 @@ import (
 	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/display/card"
-	"github.com/joshuar/go-templ-daisyui/display/image"
-	"github.com/joshuar/go-templ-daisyui/layout/mask"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -44,27 +41,13 @@ type Card struct {
 	*card.Props
 }
 
-// setImageOption will set the image of the card to the source image, or a placeholder if the source has no image.
-func (c *Card) setImageOption() card.Option {
-	if c.GetImage() != nil {
-		return card.WithImage(c.GetImage().URL(),
-			image.WithAltText(c.GetImage().String()),
-			image.WithLazyLoading(),
-			image.WithMask(mask.MaskSquircle),
-		)
-	}
-	return card.WithImage("/static/images/square-rss-solid.svg",
-		image.WithLazyLoading(),
-	)
-}
-
 // setCardAttributes will set the additional attributes that control the action that happens when the card is clicked.
 func (c *Card) setCardAttributes(feeds ...models.FeedID) templ.Attributes {
 	// Build action options.
 	action := templates.BuildAction(c.actionPath,
 		templates.WithAttributes(templ.Attributes{
 			"hx-swap":     "morph:innerHTML",
-			"hx-push-url": "false",
+			"hx-push-url": "true",
 			"hx-target":   c.target,
 		}),
 		templates.WithMethod(http.MethodGet),
@@ -80,13 +63,6 @@ func (c *Card) setCardAttributes(feeds ...models.FeedID) templ.Attributes {
 
 // setMarkAction creates the appropriate mark action for the card for inclusion in the actions menu.
 func (c *Card) setMarkAction() {
-	var markAction models.Mark
-	if c.IsUnread() {
-		markAction = models.MarkRead
-	} else {
-		markAction = models.MarkUnread
-	}
-
 	var paramName string
 	switch id.IdentifyID(c.id) {
 	case id.Feed:
@@ -94,44 +70,15 @@ func (c *Card) setMarkAction() {
 	case id.Item:
 		paramName = models.ParamItems
 	}
-
-	c.menuActions = append(c.menuActions,
-		partials.MarkAction(
-			markAction,
-			"Mark Read",
-			models.FeedsRoute,
-			c.target,
-			url.Values{paramName: []string{c.id}}))
-}
-
-func (c *FeedCard) build() {
-	c.Props = card.Build(
-		card.WithLayout(card.LayoutSide),
-		card.Bordered(),
-		card.WithShadow(size.XL),
-		card.WithBodyOptions(
-			card.WithContent(c.showContent()),
-			card.WithActions(c.menuActions.Show()),
-			card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
-		),
-		card.WithID(c.id),
-		c.setImageOption(),
-	)
-}
-
-func (c *ItemCard) build() {
-	c.Props = card.Build(
-		card.WithLayout(card.LayoutSide),
-		card.Bordered(),
-		card.WithShadow(size.XL),
-		card.WithBodyOptions(
-			card.WithContent(c.showContent()),
-			card.WithActions(c.menuActions.Show()),
-			card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
-		),
-		card.WithID(c.id),
-		c.setImageOption(),
-	)
+	if c.IsUnread() {
+		c.menuActions = append(c.menuActions,
+			partials.MarkReadButton(models.FeedsRoute, c.target, url.Values{paramName: []string{c.id}}),
+		)
+	} else {
+		c.menuActions = append(c.menuActions,
+			partials.MarkUnreadButton(models.FeedsRoute, c.target, url.Values{paramName: []string{c.id}}),
+		)
+	}
 }
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
@@ -162,6 +109,7 @@ func BuildFeedCard(filters models.Filters, subscription *models.Subscription) *F
 	}
 
 	feedCard.setMarkAction()
+	feedCard.menuActions = append(feedCard.menuActions, partials.ViewButton(feedCard.setCardAttributes(feedCard.GetFeedID())))
 
 	feedCard.build()
 
