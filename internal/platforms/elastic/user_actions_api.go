@@ -182,23 +182,48 @@ func (e *ElasticAPI) GetItems(ctx context.Context, filters *models.Filters) (mod
 	return items, pagination, nil
 }
 
-// UserActionGetFeeds will search Elasticsearch for subscribed feeds (with
+// GetSubscriptions will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
 func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *models.Filters) (models.Subscriptions, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, models.NewMessage("Could not fetch subscriptions.", models.MessageStatusError, models.WithError(ErrNoUserCtx))
+		return nil, models.NewMessage(
+			"Could not fetch subscriptions.",
+			models.MessageStatusError,
+			models.WithError(ErrNoUserCtx))
 	}
 
 	// Get subscriptions matching the filters.
 	subscriptions := user.GetSubscriptions().
 		FilterByFeedID(filters.Feeds...).
 		FilterByCategory(filters.Categories...)
+	// Adjust the feed filters.
+	filters.Feeds = subscriptions.GetFeedIDs()
+	// Get feeds matching subscriptions
+	feeds, err := e.FeedsSearch(ctx, filters, "")
+	if err != nil {
+		return nil, models.NewMessage(
+			"Could not fetch subscriptions.",
+			models.MessageStatusError,
+			models.WithError(err))
+	}
+	// Attach feeds to subscriptions.
+	for feed := range slices.Values(feeds) {
+		idx := slices.IndexFunc(subscriptions, func(v *models.Subscription) bool {
+			return v.GetFeedID() == feed.GetID()
+		})
+		if idx != -1 {
+			subscriptions[idx].Feed = feed
+		}
+	}
 
 	// Add unread counts to feeds.
-	err := e.GetSubscriptionUnreadCounts(ctx, subscriptions)
+	err = e.GetSubscriptionUnreadCounts(ctx, subscriptions)
 	if err != nil {
-		return nil, models.NewMessage("Could not fetch subscription unread counts", models.MessageStatusWarning, models.WithError(err))
+		return nil, models.NewMessage(
+			"Could not fetch subscription unread counts",
+			models.MessageStatusWarning,
+			models.WithError(err))
 	}
 
 	// Filter the feeds by view filter.

@@ -122,7 +122,13 @@ func (s Subscriptions) FilterByRead() Subscriptions {
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *Subscription) Valid() (bool, error) {
-	return validation.ValidateStruct(s)
+	if valid, err := validation.ValidateStruct(s); err != nil || !valid {
+		return false, NewMessage("subscription is invalid", MessageStatusError, WithError(err))
+	}
+	if s.Feed == nil {
+		return false, NewMessage("subscription is invalid", MessageStatusError)
+	}
+	return true, nil
 }
 
 // GetFeedID retrieves the FeedID associated with the subscription.

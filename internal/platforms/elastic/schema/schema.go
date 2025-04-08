@@ -43,44 +43,14 @@ type Option[T any] func(T) T
 
 var SubscriptionMappings = map[string]types.Property{
 	"subscription_id": types.NewKeywordProperty(),
+	"feed_id":         types.NewKeywordProperty(),
 	"created_at":      types.NewDateNanosProperty(),
 	"updated_at":      types.NewDateNanosProperty(),
 	"user_nickname":   asTextAndKeyword(),
 	"user_categories": asTextAndKeyword(),
-	"feed": types.ObjectProperty{
-		Properties: FeedMappings,
-	},
-	"state": types.ObjectProperty{
-		Properties: map[string]types.Property{
-			"marked_read":  types.NewDateNanosProperty(),
-			"read_items":   types.NewKeywordProperty(),
-			"unread_items": types.NewKeywordProperty(),
-		},
-	},
-}
-
-var FeedMappings = map[string]types.Property{
-	"feed_id":      types.NewKeywordProperty(),
-	"created_at":   types.NewDateNanosProperty(),
-	"updated_at":   types.NewDateNanosProperty(),
-	"updated":      types.NewDateNanosProperty(),
-	"published":    types.NewDateNanosProperty(),
-	"title":        asTextAndKeyword(),
-	"description":  types.NewTextProperty(),
-	"source_type":  types.NewKeywordProperty(),
-	"source":       types.NewKeywordProperty(),
-	"url":          types.NewKeywordProperty(),
-	"authors":      asTextAndKeyword(),
-	"contributors": asTextAndKeyword(),
-	"categories":   asTextAndKeyword(),
-	"language":     asTextAndKeyword(),
-	"copyright":    asTextAndKeyword(),
-	"image": types.ObjectProperty{
-		Properties: map[string]types.Property{
-			"value": types.NewKeywordProperty(),
-			"title": asTextAndKeyword(),
-		},
-	},
+	"marked_read":     types.NewDateNanosProperty(),
+	"read_items":      types.NewKeywordProperty(),
+	"unread_items":    types.NewKeywordProperty(),
 }
 
 //
@@ -293,6 +263,7 @@ func FeedItemsMappingsTemplate() *putcomponenttemplate.Request {
 						WithoutDynamicMapping(),
 						WithDateNanosProperty("@timestamp"),
 						WithDateNanosProperty("created"),
+						WithDateNanosProperty("published"),
 						WithDateNanosProperty("updated"),
 						WithKeywordProperty("feed_id"),
 						WithKeywordProperty("item_id"),
