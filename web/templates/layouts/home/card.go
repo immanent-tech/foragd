@@ -4,10 +4,7 @@
 package home
 
 import (
-	"net/http"
 	"net/url"
-	"strconv"
-	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
@@ -33,52 +30,40 @@ type cardActions []templ.Component
 // Card is a display component that shows a DaisyUI Card for the given data.
 type Card struct {
 	id          string
-	actionPath  string
-	filters     models.Filters
-	target      string
 	menuActions cardActions
 	models.Source
 	*card.Props
 }
 
-// setCardAttributes will set the additional attributes that control the action that happens when the card is clicked.
-func (c *Card) setCardAttributes(feeds ...models.FeedID) templ.Attributes {
-	// Build action options.
-	action := templates.BuildAction(c.actionPath,
-		templates.WithAttributes(templ.Attributes{
-			"hx-swap":     "morph:innerHTML",
-			"hx-push-url": "true",
-			"hx-target":   c.target,
-		}),
-		templates.WithMethod(http.MethodGet),
-	)
-	action.AddParameter(models.ParamView, string(c.filters.View))
-	action.AddParameter(models.ParamCount, strconv.Itoa(c.filters.Count))
-	if len(feeds) > 0 {
-		action.AddParameter(models.ParamFeeds, strings.Join(feeds, ","))
-	}
-
-	return action.Attributes()
-}
-
 // setMarkAction creates the appropriate mark action for the card for inclusion in the actions menu.
 func (c *Card) setMarkAction() {
-	var paramName string
-	switch id.IdentifyID(c.id) {
-	case id.Feed:
-		paramName = models.ParamFeeds
-	case id.Item:
-		paramName = models.ParamItems
+	cardType := id.IdentifyID(c.id)
+	sourceID := c.id
+	switch {
+	case cardType == id.Feed && c.IsUnread():
+		c.menuActions = append(c.menuActions, partials.MarkButton(buildMarkFeedAction(sourceID, models.MarkRead)))
+	case cardType == id.Feed && !c.IsUnread():
+		c.menuActions = append(c.menuActions, partials.MarkButton(buildMarkFeedAction(sourceID, models.MarkUnread)))
+	case cardType == id.Item && c.IsUnread():
+		c.menuActions = append(c.menuActions, partials.MarkButton(buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkRead)))
+	case cardType == id.Item && !c.IsUnread():
+		c.menuActions = append(c.menuActions, partials.MarkButton(buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkUnread)))
 	}
-	if c.IsUnread() {
-		c.menuActions = append(c.menuActions,
-			partials.MarkReadButton(models.FeedsRoute, c.target, url.Values{paramName: []string{c.id}}),
-		)
-	} else {
-		c.menuActions = append(c.menuActions,
-			partials.MarkUnreadButton(models.FeedsRoute, c.target, url.Values{paramName: []string{c.id}}),
-		)
-	}
+}
+
+func (c *FeedCard) setViewAction(currentFilters models.Filters) {
+	filters := models.NewFilters(
+		models.WithCountFilter(currentFilters.Count),
+		models.WithViewFilter(currentFilters.View),
+		models.WithSortFilters(currentFilters.Sort()),
+		models.WithFeedFilters(c.GetFeedID()),
+	)
+
+	c.menuActions = append(c.menuActions, partials.ViewButton(buildShowItemCardsAction(*filters)))
+}
+
+func (c *ItemCard) setViewAction() {
+	c.menuActions = append(c.menuActions, partials.ViewButton(buildShowArticleAction(c.GetFeedID(), c.id)))
 }
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
@@ -99,18 +84,13 @@ func (c *Card) AddPagination(reqURL *url.URL, pagination models.Pagination) {
 func BuildFeedCard(filters models.Filters, subscription *models.Subscription) *FeedCard {
 	feedCard := &FeedCard{
 		Card: Card{
-			Source:     subscription,
-			actionPath: "/home/items",
-			filters:    filters,
-			target:     ContentID.Target(),
-			id:         subscription.GetFeedID(),
+			Source: subscription,
+			id:     subscription.GetFeedID(),
 		},
 		UnreadCount: subscription.GetUnreadCount(),
 	}
-
 	feedCard.setMarkAction()
-	feedCard.menuActions = append(feedCard.menuActions, partials.ViewButton(feedCard.setCardAttributes(feedCard.GetFeedID())))
-
+	feedCard.setViewAction(filters)
 	feedCard.build()
 
 	if feedCard.UnreadCount == 0 {
@@ -123,15 +103,13 @@ func BuildFeedCard(filters models.Filters, subscription *models.Subscription) *F
 func BuildItemCard(filters models.Filters, item *models.Item) *ItemCard {
 	itemCard := &ItemCard{
 		Card: Card{
-			Source:     item,
-			actionPath: "/home/" + item.GetFeedID() + "/" + item.GetID(),
-			filters:    filters,
-			target:     ContentID.Target(),
-			id:         item.GetID(),
+			Source: item,
+			id:     item.GetID(),
 		},
 	}
 
 	itemCard.setMarkAction()
+	itemCard.setViewAction()
 
 	itemCard.build()
 

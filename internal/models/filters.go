@@ -8,6 +8,7 @@ import (
 	"errors"
 	"math"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -164,14 +165,60 @@ func (f *Filters) ToQueryParams() url.Values {
 	return params
 }
 
-// NewFilters creates a new Filters object with default values.
-func NewFilters() *Filters {
-	return &Filters{
+// FilterOption is a functional option for Filters.
+type FilterOption Option[*Filters]
+
+// WithCountFilter option sets the count filter.
+func WithCountFilter(count Count) FilterOption {
+	return func(f *Filters) {
+		f.Count = setValidCount(count)
+	}
+}
+
+// WithViewFilter option sets the view filter.
+func WithViewFilter(view View) FilterOption {
+	return func(f *Filters) {
+		f.View = setValidView(view)
+	}
+}
+
+// WithSortFilters option sets the sort filters.
+func WithSortFilters(sort Sort) FilterOption {
+	return func(f *Filters) {
+		f.SortBy = setValidSortBy(sort.SortBy)
+		f.SortOrder = setValidSortOrder(sort.SortOrder)
+	}
+}
+
+// WithCategoryFilters options sets the category filters.
+func WithCategoryFilters(categories ...Category) FilterOption {
+	return func(f *Filters) {
+		f.Categories = categories
+	}
+}
+
+// WithFeedFilters options sets the feed filters.
+func WithFeedFilters(feeds ...FeedID) FilterOption {
+	return func(f *Filters) {
+		f.Feeds = feeds
+	}
+}
+
+// NewFilters creates a new Filters object with default values and any options specified.
+func NewFilters(options ...FilterOption) *Filters {
+	// Set default filters.
+	filters := &Filters{
 		Count:     DefaultCount,
 		View:      DefaultView,
 		SortBy:    DefaultSortBy,
 		SortOrder: DefaultSortOrder,
 	}
+	// Apply options.
+	for option := range slices.Values(options) {
+		option(filters)
+	}
+	// Return filters object.
+	return filters
 }
 
 // Valid checks whether the Sort options are valid values.

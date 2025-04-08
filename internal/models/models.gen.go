@@ -239,7 +239,7 @@ type Subscription struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Feed contains the Feed details. This field will be populated at query time.
-	Feed *Feed `form:"-" json:"-"`
+	Feed *Feed `form:"-" json:"-" validate:"required"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`

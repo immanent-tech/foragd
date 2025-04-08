@@ -139,7 +139,7 @@ func (e *ElasticAPI) GetItem(ctx context.Context, feedID models.FeedID, itemID m
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (e *ElasticAPI) GetItems(ctx context.Context, filters *models.Filters) (models.Items, models.Pagination, error) {
+func (e *ElasticAPI) GetItems(ctx context.Context, filters models.Filters) (models.Items, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", models.WrapError(ErrNoUserCtx, "elastic", "get items failed")
@@ -184,7 +184,7 @@ func (e *ElasticAPI) GetItems(ctx context.Context, filters *models.Filters) (mod
 
 // GetSubscriptions will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *models.Filters) (models.Subscriptions, error) {
+func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters models.Filters) (models.Subscriptions, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, models.NewMessage(
@@ -192,13 +192,11 @@ func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *models.Filte
 			models.MessageStatusError,
 			models.WithError(ErrNoUserCtx))
 	}
-
-	// Get subscriptions matching the filters.
-	subscriptions := user.GetSubscriptions().
-		FilterByFeedID(filters.Feeds...).
-		FilterByCategory(filters.Categories...)
+	subscriptions := user.GetSubscriptions().FilterByFeedID(filters.Feeds...)
+	categories := filters.Categories
 	// Adjust the feed filters.
 	filters.Feeds = subscriptions.GetFeedIDs()
+	filters.Categories = nil
 	// Get feeds matching subscriptions
 	feeds, err := e.FeedsSearch(ctx, filters, "")
 	if err != nil {
@@ -216,6 +214,7 @@ func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters *models.Filte
 			subscriptions[idx].Feed = feed
 		}
 	}
+	subscriptions = subscriptions.FilterByCategory(categories...)
 
 	// Add unread counts to feeds.
 	err = e.GetSubscriptionUnreadCounts(ctx, subscriptions)

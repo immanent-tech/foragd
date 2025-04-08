@@ -124,7 +124,7 @@ func (c *ItemCard) build() {
 			card.WithTitle(c.showTitle()),
 			card.WithContent(c.showContent()),
 			card.WithActions(c.menuActions.Show()),
-			card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
+			// card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
 			card.WithBodyExtraClasses("p-2"),
 		),
 		card.WithID(c.id),

@@ -23,7 +23,10 @@ type Action struct {
 
 // Path returns the URL path (with query parameters) as a string.
 func (a *Action) Path() string {
-	return a.path + "?" + a.parameters.Encode()
+	if len(a.parameters) > 0 {
+		return a.path + "?" + a.parameters.Encode()
+	}
+	return a.path
 }
 
 // Attributes returns the Action attributes.

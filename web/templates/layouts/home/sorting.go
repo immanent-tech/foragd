@@ -11,7 +11,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
-func feedsSortOptions(path string, filters *models.Filters) []templ.Component {
+func feedsSortOptions(path string, filters models.Filters) []templ.Component {
 	var sorts []templ.Component
 
 	// Add sorting options for updated date.
@@ -30,7 +30,7 @@ func feedsSortOptions(path string, filters *models.Filters) []templ.Component {
 	return sorts
 }
 
-func itemsSortOptions(path string, filters *models.Filters) []templ.Component {
+func itemsSortOptions(path string, filters models.Filters) []templ.Component {
 	var sorts []templ.Component
 
 	// Add sorting options for updated date.
@@ -42,7 +42,7 @@ func itemsSortOptions(path string, filters *models.Filters) []templ.Component {
 	return sorts
 }
 
-func sortLink(text string, sort models.Sort, path string, filters *models.Filters) templ.Component {
+func sortLink(text string, sort models.Sort, path string, filters models.Filters) templ.Component {
 	action := buildHomeAction(path, filters)
 	action.AddAttribute(models.ParamSortBy, string(sort.SortBy))
 	action.AddAttribute(models.ParamSortOrder, string(sort.SortOrder))
@@ -54,7 +54,7 @@ func sortLink(text string, sort models.Sort, path string, filters *models.Filter
 	).Show()
 }
 
-func generateSortOptions(filters *models.Filters, path string) []templ.Component {
+func generateSortOptions(filters models.Filters, path string) []templ.Component {
 	switch path {
 	case models.FeedsRoute:
 		return feedsSortOptions(path, filters)

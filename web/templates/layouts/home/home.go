@@ -4,6 +4,9 @@
 package home
 
 import (
+	"net/http"
+	"net/url"
+
 	"github.com/a-h/templ"
 
 	"github.com/joshuar/go-templ-daisyui/attributes"
@@ -15,44 +18,73 @@ import (
 // ContentID is the id attribute for the main content area.
 var ContentID = attributes.ID("content")
 
-// Common route attributes are common attributes that most actions on /home
-// routes will use to update/change content.
-var commonRouteAttributes = templ.Attributes{
+// viewAttributes are the common htmx attributes for view actions.
+var viewAttributes = templ.Attributes{
 	"hx-target":   ContentID.Target(),
 	"hx-push-url": "true",
 	"hx-swap":     "morph:innerHTML",
 }
 
-// buildShowFeedsAction builds an models.Route for /home/feeds with the given
+// buildShowFeedCardsAction builds an models.Route for /home/feeds with the given
 // filters. This can be used with components that need to create an action for
 // /home/feeds.
-func buildShowFeedsAction(filters *models.Filters) *templates.Action {
+func buildShowFeedCardsAction(filters models.Filters) *templates.Action {
 	return templates.BuildAction(models.FeedsRoute,
 		templates.WithQueryParams(filters.ToQueryParams()),
-		templates.WithAttributes(commonRouteAttributes),
+		templates.WithAttributes(viewAttributes),
 	)
 }
 
-// buildShowItemsAction builds an models.Route for /home/items with the given
+// buildShowItemCardsAction builds an models.Route for /home/items with the given
 // filters. This can be used with components that need to create an action for
 // /home/items.
-func buildShowItemsAction(filters *models.Filters) *templates.Action {
+func buildShowItemCardsAction(filters models.Filters) *templates.Action {
 	// Build the route.
 	return templates.BuildAction(models.ItemsRoute,
 		templates.WithQueryParams(filters.ToQueryParams()),
-		templates.WithAttributes(commonRouteAttributes),
+		templates.WithAttributes(viewAttributes),
+	)
+}
+
+func buildShowArticleAction(feedID models.FeedID, itemID models.ItemID) *templates.Action {
+	// Build the route.
+	return templates.BuildAction("/home/"+feedID+"/"+itemID,
+		templates.WithAttributes(viewAttributes),
 	)
 }
 
 // buildHomeAction will build the appropriate /home route for the given path
 // string and filters.
-func buildHomeAction(path string, filters *models.Filters) *templates.Action {
+func buildHomeAction(path string, filters models.Filters) *templates.Action {
 	switch path {
 	case models.FeedsRoute:
-		return buildShowFeedsAction(filters)
+		return buildShowFeedCardsAction(filters)
 	case models.ItemsRoute:
-		return buildShowItemsAction(filters)
+		return buildShowItemCardsAction(filters)
 	}
 
 	return nil
+}
+
+// markAttributes are the common htmx attributes for mark actions.
+var markAttributes = templ.Attributes{
+	"_":           "on click halt the event's bubbling",
+	"hx-push-url": "false",
+	"hx-target":   ContentID.Target(),
+}
+
+func buildMarkFeedAction(feedID models.FeedID, mark models.Mark) *templates.Action {
+	return templates.BuildAction(models.FeedsRoute,
+		templates.WithAttributes(markAttributes),
+		templates.WithMethod(http.MethodPost),
+		templates.WithQueryParam("mark", string(mark)),
+		templates.WithQueryParams(url.Values{models.ParamFeeds: []string{feedID}}),
+	)
+}
+
+func buildMarkItemAction(feedID models.FeedID, itemID models.ItemID, mark models.Mark) *templates.Action {
+	return templates.BuildAction("/home/"+feedID+"/"+itemID+"/"+string(mark),
+		templates.WithAttributes(markAttributes),
+		templates.WithMethod(http.MethodPost),
+	)
 }

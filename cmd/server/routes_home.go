@@ -113,7 +113,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	}
 	session.StoreFeedFilters(req.Context(), filters)
 
-	displayFeeds(s.DataAPI(), res, req, filters)
+	displayFeeds(s.DataAPI(), res, req, *filters)
 }
 
 // func (s Server) HandleFeedsPagination(res http.ResponseWriter, req *http.Request, pagination models.Pagination) {
@@ -175,7 +175,7 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Reload the home page.
-	displayFeeds(s.DataAPI(), res, req, filters)
+	displayFeeds(s.DataAPI(), res, req, *filters)
 }
 
 // Valid checks that the MarkFeeds object is valid.
@@ -189,18 +189,18 @@ func (f *MarkFeeds) Valid() (bool, error) {
 
 // buildSubscriptionCards retrieves a filtered list of Feeds as components that
 // can be rendered on a page.
-func buildSubscriptionCards(filters *models.Filters, subscriptions models.Subscriptions) (templates.Elements, error) {
+func buildSubscriptionCards(filters models.Filters, subscriptions models.Subscriptions) (templates.Elements, error) {
 	subscriptionCards := make(templates.Elements, 0, len(subscriptions))
 	// Build feed cards.
 	for subscription := range slices.Values(subscriptions) {
-		subscriptionCards = append(subscriptionCards, home.BuildFeedCard(*filters, subscription))
+		subscriptionCards = append(subscriptionCards, home.BuildFeedCard(filters, subscription))
 	}
 
 	return subscriptionCards, nil
 }
 
 // displayFeeds handles showing a list of Feeds as cards with the given filters applied.
-func displayFeeds(api DataAPI, res http.ResponseWriter, req *http.Request, filters *models.Filters) {
+func displayFeeds(api DataAPI, res http.ResponseWriter, req *http.Request, filters models.Filters) {
 	// Get feeds.
 	subscriptions, err := api.GetSubscriptions(req.Context(), filters)
 	if err != nil {
@@ -245,7 +245,7 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 
 	session.StoreItemFilters(req.Context(), filters)
 
-	displayItems(s.DataAPI(), res, req, filters)
+	displayItems(s.DataAPI(), res, req, *filters)
 }
 
 func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
@@ -271,7 +271,7 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	}
 
 	// Reload page.
-	displayItems(s.DataAPI(), res, req, filters)
+	displayItems(s.DataAPI(), res, req, *filters)
 }
 
 // Valid checks that the MarkItems object is valid.
@@ -283,12 +283,12 @@ func (f *MarkItems) Valid() (bool, error) {
 	return true, nil
 }
 
-func buildItemCards(filters *models.Filters, reqURL *url.URL, pagination models.Pagination, items models.Items) (templates.Elements, error) {
+func buildItemCards(filters models.Filters, reqURL *url.URL, pagination models.Pagination, items models.Items) (templates.Elements, error) {
 	itemCards := make(templates.Elements, 0, filters.Count)
 	// Build item cards.
 	for idx, item := range items {
 		// Create a card for this item.
-		itemCard := home.BuildItemCard(*filters, item)
+		itemCard := home.BuildItemCard(filters, item)
 		// Add a pagination action to the last item.
 		if idx == len(items)-1 && len(items) == filters.Count {
 			itemCard.AddPagination(reqURL, pagination)
@@ -301,7 +301,7 @@ func buildItemCards(filters *models.Filters, reqURL *url.URL, pagination models.
 }
 
 // displayItems handles showing list of Items as cards with the given filters applied.
-func displayItems(api DataAPI, res http.ResponseWriter, req *http.Request, filters *models.Filters) {
+func displayItems(api DataAPI, res http.ResponseWriter, req *http.Request, filters models.Filters) {
 	// Get all items.
 	items, pagination, err := api.GetItems(req.Context(), filters)
 	if err != nil {

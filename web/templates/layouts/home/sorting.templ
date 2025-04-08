@@ -14,7 +14,7 @@ import "github.com/joshuar/go-templ-daisyui/classes/width"
 import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 import "github.com/joshuar/go-feed-me/internal/models"
 
-templ BuildSortingMenu(filters *models.Filters, path string) {
+templ BuildSortingMenu(filters models.Filters, path string) {
 	<div id="content-sorting" hx-swap-oob="true">
 		@dropdown.Build(
 			dropdown.WithOpenOptions(

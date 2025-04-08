@@ -4,6 +4,7 @@
 package home
 
 import (
+	"log/slog"
 	"slices"
 
 	"github.com/joshuar/go-templ-daisyui/display/badge"
@@ -22,22 +23,26 @@ type CategoryFilter struct {
 	active bool
 }
 
-func BuildCategoryFilters(filters *models.Filters, categoryCounts models.CategoryCounts, path string) CategoryFilters {
+func BuildCategoryFilters(currentFilters models.Filters, categoryCounts models.CategoryCounts, path string) CategoryFilters {
 	categoryFilters := make(CategoryFilters, 0, len(categoryCounts))
 
 	for categoryCount := range slices.Values(categoryCounts) {
-		action := templates.BuildAction(path,
-			templates.WithQueryParams(filters.ToQueryParams()),
-			templates.WithAttributes(commonRouteAttributes),
+		filters := models.NewFilters(
+			models.WithCountFilter(currentFilters.Count),
+			models.WithViewFilter(currentFilters.View),
+			models.WithSortFilters(currentFilters.Sort()),
 		)
 		var active bool
-		if slices.Contains(filters.Categories, categoryCount.Category) {
+		if slices.Contains(currentFilters.Categories, categoryCount.Category) {
 			active = true
-			action.RemoveParameter(models.ParamCategories)
-
+			slog.Info("is active", slog.String("category", categoryCount.Category))
 		} else {
-			action.AddParameter(models.ParamCategories, categoryCount.Category)
+			filters.Categories = append(filters.Categories, categoryCount.Category)
 		}
+		action := templates.BuildAction(path,
+			templates.WithQueryParams(filters.ToQueryParams()),
+			templates.WithAttributes(viewAttributes),
+		)
 		categoryFilters = append(categoryFilters, CategoryFilter{
 			CategoryCount: categoryCount,
 			action:        action,
@@ -53,10 +58,10 @@ type ViewFilters struct {
 }
 
 // viewFilterBadge generates a badge for a view filter.
-func viewFilterBadge(view models.View, filters *models.Filters, path string) *badge.Props {
+func viewFilterBadge(view models.View, filters models.Filters, path string) *badge.Props {
 	action := templates.BuildAction(path,
 		templates.WithQueryParams(filters.ToQueryParams()),
-		templates.WithAttributes(commonRouteAttributes),
+		templates.WithAttributes(viewAttributes),
 	)
 	action.AddParameter(models.ParamView, string(view))
 
@@ -77,7 +82,7 @@ func viewFilterBadge(view models.View, filters *models.Filters, path string) *ba
 	return viewBadge
 }
 
-func BuildViewFilters(filters *models.Filters, path string) *ViewFilters {
+func BuildViewFilters(filters models.Filters, path string) *ViewFilters {
 	return &ViewFilters{
 		badges: []*badge.Props{
 			viewFilterBadge(models.ViewRead, filters, path),

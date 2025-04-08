@@ -145,7 +145,7 @@ func (e *ElasticAPI) GetFeedsByURL(ctx context.Context, urls ...models.URL) (mod
 }
 
 // FeedsSearch searches the feeds index for feeds matching the relevant filters.
-func (e *ElasticAPI) FeedsSearch(ctx context.Context, filters *models.Filters, pagination models.Pagination) (models.Feeds, error) {
+func (e *ElasticAPI) FeedsSearch(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -282,7 +282,7 @@ func (e *ElasticAPI) FeedsSearch(ctx context.Context, filters *models.Filters, p
 
 // ItemsSearch performs a search query on feed items with the given query
 // options. It returns the raw search response.
-func (e *ElasticAPI) ItemsSearch(ctx context.Context, query query.Option, filters *models.Filters, pagination models.Pagination) (*search.Response, error) {
+func (e *ElasticAPI) ItemsSearch(ctx context.Context, query query.Option, filters models.Filters, pagination models.Pagination) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)

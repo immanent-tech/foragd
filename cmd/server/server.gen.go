@@ -104,7 +104,7 @@ type View = externalRef0.View
 // HandleShowFeedsParams defines parameters for HandleShowFeeds.
 type HandleShowFeedsParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Categories Categories  `form:"categories,omitempty" json:"categories,omitempty"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
 	View       View        `form:"view" json:"view"`
 	Count      Count       `form:"count" json:"count"`
 	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
@@ -115,7 +115,7 @@ type HandleShowFeedsParams struct {
 // HandleShowItemsParams defines parameters for HandleShowItems.
 type HandleShowItemsParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Categories Categories  `form:"categories,omitempty" json:"categories,omitempty"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
 	View       View        `form:"view" json:"view"`
 	Count      Count       `form:"count" json:"count"`
 	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
