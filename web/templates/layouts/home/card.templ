@@ -5,109 +5,76 @@
 package home
 
 import (
-	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
-	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
+	"slices"
 	"strconv"
 )
 
-templ showTitle(title string) {
-	@text.Build(title,
+templ (c *Card) showTitle() {
+	@text.Build(c.GetTitle(),
 		text.WithTextWeight(text.Semibold),
 		text.WithTextSize(text.SM),
 	).Show("flex-1")
 }
 
-// showCategories shows a list of categories as badges.
-templ showCategories(categories ...models.Category) {
-	<div class="flex flex-wrap">
-		for _, category := range categories {
-			@badge.Build(
-				badge.WithSize(size.SM),
-				badge.WithThemeColor(color.Accent),
-				badge.WithStyle(badge.Outline),
-				badge.WithContent(category),
-			).Show("p-1", "m-1")
-		}
-	</div>
+templ (c *Card) showDescription() {
+	if desc := c.GetDescription(); desc != "" {
+		@text.Build(desc, text.WithTextSize(text.SM), text.AsItalicText()).Show()
+	}
 }
 
-// DisplayCardActions displays action buttons for a card, either as a horizontal
-// list (on large screens) or a drop-down menu (on smaller screens).
-func showCardActions(actions ...templ.Component) []templ.Component {
-	var menus []templ.Component
-
-	menus = append(menus,
-		// Menu for large screens: horizontal layout, all buttons shown.
-		menu.Build(
-			menu.WithSize(size.SM),
-			menu.WithLayout(menu.Horizontal),
-			menu.WithRevealedBreakpoint(size.LG),
-			menu.WithItems(actions...),
-		).Show(),
-		// Menu for small screens: buttons hidden behind drop-down.
-		dropdown.Build(
-			dropdown.WithHiddenBreakpoint(size.LG),
-			dropdown.WithButton(
-				button.WithSize(size.XS),
-				button.WithThemeColor(color.Neutral, true),
-				button.AsShape(button.Square, true),
-				button.WithContent(icon.Build("fa-ellipsis-vertical")),
-				button.WithExtraAttributes(templ.Attributes{
-					"_": "on click halt the event's bubbling",
-				}),
-			),
-			dropdown.WithOpenOptions(
-				dropdown.From(dropdown.OpenTop),
-				dropdown.Align(dropdown.AlignEnd),
-			),
-			dropdown.WithMenuContent(
-				// menu.WithSize(size.SM),
-				menu.WithLayout(menu.Vertical),
-				menu.WithItems(actions...),
-			),
-		).Show(),
-	)
-
-	return menus
+templ (s *Card) showCategories() {
+	if len(s.GetCategories()) > 0 {
+		<div class="flex flex-wrap">
+			for category := range slices.Values(s.GetCategories()) {
+				@badge.Build(
+					badge.WithSize(size.SM),
+					badge.WithThemeColor(color.Accent),
+					badge.WithStyle(badge.Outline),
+					badge.WithContent(category),
+				).Show("p-1", "m-1")
+			}
+		</div>
+	}
 }
 
-templ showFeedCardContent(subscription *models.Subscription) {
+templ (c *FeedCard) showContent() {
 	<div hx-disable="true">
 		<div class="flex flex-wrap gap-2">
-			@showTitle(subscription.GetName())
-			if subscription.GetUnreadCount() > 0 {
+			@c.showTitle()
+			if c.UnreadCount > 0 {
 				@badge.Build(
 					badge.WithSize(size.SM),
 					badge.WithThemeColor(color.Primary),
-					badge.WithContent(strconv.Itoa(subscription.GetUnreadCount())+" Unread"),
+					badge.WithContent(strconv.Itoa(c.UnreadCount)+" Unread"),
 					badge.WithExtraAttributes(templ.Attributes{
-						"sse-swap": subscription.GetFeedID() + "_unread",
+						"sse-swap": c.GetFeedID() + "_unread",
 					}),
 				).Show()
 			}
 		</div>
-		if details := subscription.Feed.GetDescription(); details != "" {
-			@text.Build(details, text.WithTextSize(text.SM), text.AsItalicText()).Show()
-		}
+		@c.showDescription()
+		@c.showCategories()
 	</div>
 }
 
-templ showItemCardContent(item *models.Item) {
+templ (c *ItemCard) showContent() {
 	<div hx-disable="true">
 		<div class="flex">
-			@showTitle(item.GetTitle())
+			@c.showTitle()
 		</div>
 		<div class="flex justify-start left-2 bottom-2">
-			@showLastUpdated("Last Updated:", item.GetTimestamp())
+			@showLastUpdated("Last Updated:", c.GetUpdatedDate())
 		</div>
 	</div>
+}
+
+templ (a cardActions) Show() {
+	@partials.ResponsiveMenu(a...)
 }
 
 templ (c *Card) Show(classes ...string) {

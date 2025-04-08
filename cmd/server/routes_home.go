@@ -193,17 +193,7 @@ func buildSubscriptionCards(filters *models.Filters, subscriptions models.Subscr
 	subscriptionCards := make(templates.Elements, 0, len(subscriptions))
 	// Build feed cards.
 	for subscription := range slices.Values(subscriptions) {
-		card, err := home.NewFeedCard(*filters, subscription)
-		if err != nil {
-			// logging.FromContext(ctx).Warn("Could not create card component for subscription.",
-			// 	slog.String("subscription_id", subscription.GetID()),
-			// 	slog.String("feed_id", subscription.GetFeedID()),
-			// 	slog.Any("error", err))
-
-			continue
-		}
-
-		subscriptionCards = append(subscriptionCards, card)
+		subscriptionCards = append(subscriptionCards, home.BuildFeedCard(*filters, subscription))
 	}
 
 	return subscriptionCards, nil
@@ -298,14 +288,7 @@ func buildItemCards(filters *models.Filters, reqURL *url.URL, pagination models.
 	// Build item cards.
 	for idx, item := range items {
 		// Create a card for this item.
-		itemCard, err := home.NewItemCard(*filters, item)
-		if err != nil {
-			// logging.FromContext(ctx).Warn("Could not create card component for item.",
-			// 	slog.String("items_id", item.GetID()),
-			// 	slog.Any("error", err))
-
-			continue
-		}
+		itemCard := home.BuildItemCard(*filters, item)
 		// Add a pagination action to the last item.
 		if idx == len(items)-1 && len(items) == filters.Count {
 			itemCard.AddPagination(reqURL, pagination)

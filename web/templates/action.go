@@ -121,12 +121,20 @@ func WithMethod(method string) ActionOption {
 	}
 }
 
-// WihtQueryParams options assigns the given query parameters (as url.Values) to
+// WithQueryParam options assigns the given query parameters (as url.Values) to
+// the Action, which will be used when generating the Action's route.
+func WithQueryParam(key, value string) ActionOption {
+	return func(action *Action) {
+		action.parameters.Add(key, value)
+	}
+}
+
+// WithQueryParams options assigns the given query parameters (as url.Values) to
 // the Action, which will be used when generating the Action's route.
 func WithQueryParams(values url.Values) ActionOption {
 	return func(action *Action) {
 		if values != nil {
-			action.parameters = values
+			maps.Insert(action.parameters, maps.All(values))
 		}
 	}
 }

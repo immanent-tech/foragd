@@ -106,6 +106,13 @@ func (i *Item) HasState() bool {
 	return i.State != nil
 }
 
+func (i *Item) IsUnread() bool {
+	if !i.HasState() {
+		return true
+	}
+	return i.State.State == StateUnread
+}
+
 func (i *Item) GetUserState() State {
 	if i.HasState() {
 		return i.State.State

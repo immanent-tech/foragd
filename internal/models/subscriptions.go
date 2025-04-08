@@ -261,6 +261,10 @@ func (s *Subscription) MarkRead(markedAt time.Time) {
 	s.UpdatedAt = &updated
 }
 
+func (s *Subscription) IsUnread() bool {
+	return s.GetUnreadCount() > 0
+}
+
 // CompareSubscriptionUnreadCount is a helper function for sorting Subscriptions by unread count, in
 // ascending order. If descending order is required, slices.Reverse can be
 // called after sorting the slice with this function.

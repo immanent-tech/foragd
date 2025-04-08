@@ -8,6 +8,7 @@ import (
 	"errors"
 
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
+	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
 var ErrBackend = errors.New("backend API error")
@@ -56,4 +57,11 @@ type FeedManagementAPI interface {
 // SessionManagementAPI contains methods for session management.
 type SessionManagementAPI interface {
 	GetTokens(ctx context.Context) (*Tokens, error)
+}
+
+// Source represents a single source of data. This might be an individual feed or item.
+type Source interface {
+	types.ObjectCommon
+	GetFeedID() FeedID
+	IsUnread() bool
 }

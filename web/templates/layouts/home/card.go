@@ -4,91 +4,134 @@
 package home
 
 import (
-	"encoding/json"
-	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 
+	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
-var ErrNewCard = errors.New("could not create new card")
+type FeedCard struct {
+	Card
+	UnreadCount int
+}
 
-const (
-	Feed CardType = iota
-	Item
-)
+type ItemCard struct {
+	Card
+}
 
-type CardType int
+type cardActions []templ.Component
 
 // Card is a display component that shows a DaisyUI Card for the given data.
 type Card struct {
-	ID     string
-	Target string
-	Type   CardType
-	Data   json.RawMessage
+	id          string
+	actionPath  string
+	filters     models.Filters
+	target      string
+	menuActions cardActions
+	models.Source
 	*card.Props
 }
 
-// buildMarkButton creates a button to mark the card as read/unread.
-func (c *Card) buildMarkButton(label string, mark models.Mark, path string) templ.Component {
-	// Build action options.
-	action := templates.BuildAction(path,
-		templates.WithAttributes(templ.Attributes{
-			"_":           "on click halt the event's bubbling",
-			"hx-push-url": "false",
-			"hx-target":   c.Target,
-		}),
-		templates.WithMethod(http.MethodPost),
-	)
-
-	// Set query parameters based on card type.
-	switch c.Type {
-	case Feed:
-		action.AddParameter(models.ParamFeeds, c.GetID())
-		action.AddParameter("mark", string(mark))
-	case Item:
-		action.AddParameter(models.ParamItems, c.GetID())
-		action.AddParameter("mark", string(mark))
+// setImageOption will set the image of the card to the source image, or a placeholder if the source has no image.
+func (c *Card) setImageOption() card.Option {
+	if c.GetImage() != nil {
+		return card.WithImage(c.GetImage().URL(),
+			image.WithAltText(c.GetImage().String()),
+			image.WithLazyLoading(),
+			image.WithMask(mask.MaskSquircle),
+		)
 	}
-
-	return button.Build(
-		button.WithSize(size.XS),
-		button.WithContent(label),
-		button.WithExtraAttributes(action.Attributes()),
-	).Show()
+	return card.WithImage("/static/images/square-rss-solid.svg",
+		image.WithLazyLoading(),
+	)
 }
 
-// buildRoute creates a models.Route appropriate for showing content.
-func (c *Card) buildRoute(path string, filters models.Filters) *templates.Action {
+// setCardAttributes will set the additional attributes that control the action that happens when the card is clicked.
+func (c *Card) setCardAttributes(feeds ...models.FeedID) templ.Attributes {
 	// Build action options.
-	action := templates.BuildAction(path,
+	action := templates.BuildAction(c.actionPath,
 		templates.WithAttributes(templ.Attributes{
 			"hx-swap":     "morph:innerHTML",
 			"hx-push-url": "false",
-			"hx-target":   c.Target,
+			"hx-target":   c.target,
 		}),
-		templates.WithMethod(http.MethodPost),
+		templates.WithMethod(http.MethodGet),
 	)
-	action.AddParameter(models.ParamView, string(filters.View))
-	action.AddParameter(models.ParamCount, strconv.Itoa(filters.Count))
-
-	switch c.Type {
-	case Feed:
-		action.AddParameter(models.ParamFeeds, c.GetID())
+	action.AddParameter(models.ParamView, string(c.filters.View))
+	action.AddParameter(models.ParamCount, strconv.Itoa(c.filters.Count))
+	if len(feeds) > 0 {
+		action.AddParameter(models.ParamFeeds, strings.Join(feeds, ","))
 	}
 
-	return action
+	return action.Attributes()
+}
+
+// setMarkAction creates the appropriate mark action for the card for inclusion in the actions menu.
+func (c *Card) setMarkAction() {
+	var markAction models.Mark
+	if c.IsUnread() {
+		markAction = models.MarkRead
+	} else {
+		markAction = models.MarkUnread
+	}
+
+	var paramName string
+	switch id.IdentifyID(c.id) {
+	case id.Feed:
+		paramName = models.ParamFeeds
+	case id.Item:
+		paramName = models.ParamItems
+	}
+
+	c.menuActions = append(c.menuActions,
+		partials.MarkAction(
+			markAction,
+			"Mark Read",
+			models.FeedsRoute,
+			c.target,
+			url.Values{paramName: []string{c.id}}))
+}
+
+func (c *FeedCard) build() {
+	c.Props = card.Build(
+		card.WithLayout(card.LayoutSide),
+		card.Bordered(),
+		card.WithShadow(size.XL),
+		card.WithBodyOptions(
+			card.WithContent(c.showContent()),
+			card.WithActions(c.menuActions.Show()),
+			card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
+		),
+		card.WithID(c.id),
+		c.setImageOption(),
+	)
+}
+
+func (c *ItemCard) build() {
+	c.Props = card.Build(
+		card.WithLayout(card.LayoutSide),
+		card.Bordered(),
+		card.WithShadow(size.XL),
+		card.WithBodyOptions(
+			card.WithContent(c.showContent()),
+			card.WithActions(c.menuActions.Show()),
+			card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
+		),
+		card.WithID(c.id),
+		c.setImageOption(),
+	)
 }
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
@@ -106,124 +149,50 @@ func (c *Card) AddPagination(reqURL *url.URL, pagination models.Pagination) {
 	c.AddAttributes(action.Attributes())
 }
 
-func NewFeedCard(filters models.Filters, subscription *models.Subscription) (*Card, error) {
-	feedCard := &Card{
-		Type:   Feed,
-		ID:     subscription.GetFeedID(),
-		Target: ContentID.Target(),
+func BuildFeedCard(filters models.Filters, subscription *models.Subscription) *FeedCard {
+	feedCard := &FeedCard{
+		Card: Card{
+			Source:     subscription,
+			actionPath: "/home/items",
+			filters:    filters,
+			target:     ContentID.Target(),
+			id:         subscription.GetFeedID(),
+		},
+		UnreadCount: subscription.GetUnreadCount(),
 	}
 
-	// // Embed the Feed.
-	// feedCard.Data, err = json.Marshal(feed)
-	// if err != nil {
-	// 	return nil, errors.Join(ErrNewCard, err)
-	// }
-	// Build a route for showing feed items.
-	route := feedCard.buildRoute("/home/items", filters)
-	// Add card menu item for marking read/unread.
-	var cardMenuItems []templ.Component
-	if subscription.GetUnreadCount() > 0 {
-		cardMenuItems = append(cardMenuItems,
-			feedCard.buildMarkButton("Mark Read", models.MarkRead, models.FeedsRoute))
-	} else {
-		cardMenuItems = append(cardMenuItems,
-			feedCard.buildMarkButton("Mark Unread", models.MarkUnread, models.FeedsRoute))
-	}
-	// Build card options.
-	var cardOptions []card.Option
-	cardOptions = append(cardOptions,
-		card.WithLayout(card.LayoutSide),
-		card.Bordered(),
-		card.WithShadow(size.XL),
-		card.WithBodyOptions(
-			card.WithContent(showFeedCardContent(subscription)),
-			card.WithActions(showCardActions(cardMenuItems...)...),
-			card.WithBodyExtraAttributes(route.Attributes()),
-		),
-		card.WithID(subscription.GetFeedID()),
-	)
-	// Add an image if present.
-	if cardImage := subscription.Feed.GetImage(); cardImage != nil {
-		cardOptions = append(cardOptions,
-			card.WithImage(cardImage.URL(),
-				image.WithAltText(cardImage.String()),
-				image.WithLazyLoading(),
-				image.WithMask(mask.MaskSquircle),
-			),
-		)
-	} else {
-		cardOptions = append(cardOptions,
-			card.WithImage("/static/images/square-rss-solid.svg",
-				image.WithLazyLoading(),
-			),
-		)
-	}
-	// Reduce opacity if feed is read.
-	if subscription.GetUnreadCount() == 0 {
-		cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
+	feedCard.setMarkAction()
+
+	feedCard.build()
+
+	if feedCard.UnreadCount == 0 {
+		card.WithExtraClasses(opacity.Apply(75))(feedCard.Props)
 	}
 
-	feedCard.Props = card.Build(cardOptions...)
-
-	return feedCard, nil
+	return feedCard
 }
 
-func NewItemCard(filters models.Filters, item *models.Item) (*Card, error) {
-	var err error
-
-	itemCard := &Card{
-		Type:   Item,
-		ID:     item.GetID(),
-		Target: ContentID.Target(),
+func BuildItemCard(filters models.Filters, item *models.Item) *ItemCard {
+	itemCard := &ItemCard{
+		Card: Card{
+			Source:     item,
+			actionPath: "/home/" + item.GetFeedID() + "/" + item.GetID(),
+			filters:    filters,
+			target:     ContentID.Target(),
+			id:         item.GetID(),
+		},
 	}
 
-	// Embed the Item.
-	itemCard.Data, err = json.Marshal(item)
-	if err != nil {
-		return nil, errors.Join(ErrNewCard, err)
-	}
-	// Create a route for showing item.
-	route := itemCard.buildRoute("/home/"+item.GetFeedID()+"/"+item.GetID(), filters)
-	// Add card menu item for marking read/unread.
-	var cardMenuItems []templ.Component
-	if item.GetUserState() == models.StateUnread {
-		cardMenuItems = append(cardMenuItems,
-			itemCard.buildMarkButton("Mark Read", models.MarkRead, "/home/items"))
-	} else {
-		cardMenuItems = append(cardMenuItems,
-			itemCard.buildMarkButton("Mark Unread", models.MarkUnread, "/home/items"))
-	}
-	// Build card options.
-	var cardOptions []card.Option
-	cardOptions = append(cardOptions,
-		card.Bordered(),
-		card.WithShadow(size.XL),
-		card.WithBodyOptions(
-			card.WithContent(showItemCardContent(item)),
-			card.WithActions(showCardActions(cardMenuItems...)...),
-			card.WithBodyExtraAttributes(route.Attributes()),
-		),
-		card.WithID(item.GetID()),
-	)
-	// Add an image if present.
-	if itemImage := item.GetImage(); itemImage != nil {
-		cardOptions = append(cardOptions,
-			card.WithImage(itemImage.URL(),
-				image.WithAltText(itemImage.String()),
-				image.WithLazyLoading(),
-				image.WithMask(mask.MaskSquircle),
-			),
-		)
-	}
-	// Reduce opacity if item is read or view is read items.
+	itemCard.setMarkAction()
+
+	itemCard.build()
+
 	switch {
 	case filters.ViewRead():
 		fallthrough
 	case item.GetUserState() == models.StateRead:
-		cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
+		card.WithExtraClasses(opacity.Apply(75))(itemCard.Props)
 	}
 
-	itemCard.Props = card.Build(cardOptions...)
-
-	return itemCard, nil
+	return itemCard
 }

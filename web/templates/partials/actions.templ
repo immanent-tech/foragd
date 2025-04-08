@@ -1,0 +1,33 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"net/http"
+	"net/url"
+)
+
+// MarkAction generates a link that will perform a mark action on an object.
+func MarkAction(mark models.Mark, label, path, target string, params url.Values) templ.Component {
+	// Build action options.
+	action := templates.BuildAction(path,
+		templates.WithAttributes(templ.Attributes{
+			"_":           "on click halt the event's bubbling",
+			"hx-push-url": "false",
+			"hx-target":   target,
+		}),
+		templates.WithMethod(http.MethodPost),
+		templates.WithQueryParam("mark", string(mark)),
+		templates.WithQueryParams(params),
+	)
+
+	return link.Build(
+		link.WithContent(text.Build(label, text.WithTextSize(text.SM))),
+		link.WithExtraAttributes(action.Attributes()),
+	).Show()
+}
