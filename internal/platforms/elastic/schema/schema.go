@@ -49,8 +49,12 @@ var SubscriptionMappings = map[string]types.Property{
 	"user_nickname":   asTextAndKeyword(),
 	"user_categories": asTextAndKeyword(),
 	"marked_read":     types.NewDateNanosProperty(),
-	"read_items":      types.NewKeywordProperty(),
-	"unread_items":    types.NewKeywordProperty(),
+	"item_states": types.ObjectProperty{
+		Properties: map[string]types.Property{
+			"item_id": types.NewKeywordProperty(),
+			"state":   types.NewKeywordProperty(),
+		},
+	},
 }
 
 //

@@ -26,7 +26,7 @@ type CategoryFilter struct {
 func BuildCategoryFilters(currentFilters models.Filters, categoryCounts models.CategoryCounts, path string) CategoryFilters {
 	categoryFilters := make(CategoryFilters, 0, len(categoryCounts))
 
-	for categoryCount := range slices.Values(categoryCounts) {
+	for categoryCount := range slices.Values(categoryCounts.GetTopCategories(10)) {
 		filters := models.NewFilters(
 			models.WithCountFilter(currentFilters.Count),
 			models.WithViewFilter(currentFilters.View),

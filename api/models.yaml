@@ -59,7 +59,7 @@ components:
       default: "unread"
       x-oapi-codegen-extra-tags:
         json: "state"
-        validate: "oneof='read unread saved'"
+        validate: "oneof=read unread saved"
     HTMLString:
       description: is a string that can contain HTML.
       type: string
@@ -95,8 +95,11 @@ components:
         contains the user state for the item.
       type: object
       required:
+        - item_id
         - state
       properties:
+        item_id:
+          $ref: "#/components/schemas/ItemID"
         state:
           $ref: "#/components/schemas/State"
       x-oapi-codegen-extra-tags:
@@ -366,29 +369,19 @@ components:
           x-oapi-codegen-extra-tags:
             form: "-"
             validate: "required"
-        read_items:
+        item_states:
           description: >
-            is a list of ItemIDs that the user has explicitly marked as read.
+            contains states of items that the user has explicitly marked or saved.
           type: array
           items:
-            $ref: "#/components/schemas/ItemID"
+            $ref: "#/components/schemas/ItemState"
           x-oapi-codegen-extra-tags:
             form: "-"
-            validate: "unique,dive,startswith=item_"
-          x-go-type-skip-optional-pointer: true
-        unread_items:
-          description: >
-            is a list of ItemIDs that the user has explicitly marked as unread.
-          type: array
-          items:
-            $ref: "#/components/schemas/ItemID"
-          x-oapi-codegen-extra-tags:
-            form: "-"
-            validate: "unique,dive,startswith=item_"
+            validate: "omitempty,unique"
           x-go-type-skip-optional-pointer: true
         unread_count:
           description: >
-            indicates how many items are unread.
+            indicates how many items are unread for the subscription.
           type: integer
           minimum: 0
           x-oapi-codegen-extra-tags:
@@ -463,7 +456,7 @@ components:
             feed_id:
               $ref: "#/components/schemas/FeedID"
             state:
-              $ref: "#/components/schemas/ItemState"
+              $ref: "#/components/schemas/State"
             content:
               $ref: "../pkg/feeds/types.yaml#/components/schemas/Content"
 

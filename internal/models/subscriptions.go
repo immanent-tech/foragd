@@ -229,23 +229,35 @@ func (s *Subscription) GetMarkedRead() time.Time {
 // GetUnreadItems retrieves a list of ItemIDs for the subscription feed that
 // user has explicitly marked as unread.
 func (s *Subscription) GetUnreadItems() []ItemID {
-	return s.UnreadItems
+	var unreadItems []ItemID
+	for item := range FilterSlice(s.ItemStates, func(s ItemState) bool {
+		return s.State == StateUnread
+	}) {
+		unreadItems = append(unreadItems, item.ItemID)
+	}
+	return unreadItems
 }
 
 // GetReadItems retrieves a list of ItemIDs for the subscription feed that
 // user has explicitly marked as read.
 func (s *Subscription) GetReadItems() []ItemID {
-	return s.ReadItems
+	var readItems []ItemID
+	for item := range FilterSlice(s.ItemStates, func(s ItemState) bool {
+		return s.State == StateRead
+	}) {
+		readItems = append(readItems, item.ItemID)
+	}
+	return readItems
 }
 
 // GetItemState retrieves the item state (read/unread/saved) from the
 // subscription. By default it will return unread unless the user has explicitly
 // marked or saved the item.
 func (s *Subscription) GetItemState(itemID ItemID) State {
-	if idx := slices.IndexFunc(s.UnreadItems, func(v ItemID) bool { return v == itemID }); idx != -1 {
+	if idx := slices.IndexFunc(s.GetUnreadItems(), func(v ItemID) bool { return v == itemID }); idx != -1 {
 		return StateUnread
 	}
-	if idx := slices.IndexFunc(s.ReadItems, func(v ItemID) bool { return v == itemID }); idx != -1 {
+	if idx := slices.IndexFunc(s.GetReadItems(), func(v ItemID) bool { return v == itemID }); idx != -1 {
 		return StateRead
 	}
 	return StateUnread
@@ -256,19 +268,32 @@ func (s *Subscription) GetItemState(itemID ItemID) State {
 func (s *Subscription) MarkRead(markedAt time.Time) {
 	updated := time.Now().UTC()
 	s.MarkedRead = markedAt
-	s.UnreadItems = nil
-	s.ReadItems = nil
+	s.ItemStates = nil
 	s.UpdatedAt = &updated
 }
 
 // MarkItemsRead will mark the given items as read for the subscription.
 func (s *Subscription) MarkItemsRead(items ...ItemID) {
-	s.ReadItems = append(s.ReadItems, items...)
+	for itemID := range slices.Values(items) {
+		idx := slices.IndexFunc(s.ItemStates, func(s ItemState) bool { return s.ItemID == itemID })
+		if idx != -1 {
+			s.ItemStates[idx].State = StateRead
+		} else {
+			s.ItemStates = append(s.ItemStates, ItemState{ItemID: itemID, State: StateRead})
+		}
+	}
 }
 
 // MarkItemsUnread will mark the given items as unread for the subscription.
 func (s *Subscription) MarkItemsUnread(items ...ItemID) {
-	s.UnreadItems = append(s.UnreadItems, items...)
+	for itemID := range slices.Values(items) {
+		idx := slices.IndexFunc(s.ItemStates, func(s ItemState) bool { return s.ItemID == itemID })
+		if idx != -1 {
+			s.ItemStates[idx].State = StateUnread
+		} else {
+			s.ItemStates = append(s.ItemStates, ItemState{ItemID: itemID, State: StateUnread})
+		}
+	}
 }
 
 func (s *Subscription) IsUnread() bool {

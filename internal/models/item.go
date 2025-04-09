@@ -110,21 +110,18 @@ func (i *Item) IsUnread() bool {
 	if !i.HasState() {
 		return true
 	}
-	return i.State.State == StateUnread
+	return *i.State == StateUnread
 }
 
 func (i *Item) GetUserState() State {
 	if i.HasState() {
-		return i.State.State
+		return *i.State
 	}
 	return StateUnread
 }
 
 func (i *Item) SetUserItemState(state State) {
-	newState := &ItemState{
-		State: state,
-	}
-	i.State = newState
+	i.State = &state
 }
 
 func (i *Item) GetTimestamp() time.Time {
@@ -141,6 +138,14 @@ func (i *Item) GetTimestamp() time.Time {
 // published after the given time.
 func (i *Item) IsNewer(since time.Time) bool {
 	return i.GetTimestamp().After(since)
+}
+
+func (s ItemState) IsUnread() bool {
+	return s.State == StateUnread
+}
+
+func (s ItemState) IsRead() bool {
+	return s.State == StateRead
 }
 
 func GetFeedItems(ctx context.Context, id FeedID, url string) (Items, error) {

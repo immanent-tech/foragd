@@ -19,9 +19,15 @@ func (c CategoryCounts) Sort() {
 
 // GetTopCategories returns the n top Categories from the list of
 // CategoryCounts.
-func (c CategoryCounts) GetTopCategories(n int) []CategoryCount {
+func (c CategoryCounts) GetTopCategories(count int) []CategoryCount {
+	if len(c) == 0 {
+		return nil
+	}
 	c.Sort()
-	return c[:n-1]
+	if count > len(c) {
+		count = len(c)
+	}
+	return c[:count]
 }
 
 // // CleanCategories takes an array of Categories and "cleans" them, removing any

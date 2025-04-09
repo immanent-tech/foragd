@@ -507,7 +507,7 @@ func allFeedItemsQuery(user *models.User, subscriptions models.Subscriptions) qu
 		query.Filter(
 			// Must match any of the given feed IDs.
 			query.FeedIDs(subscriptions.GetFeedIDs()...),
-			query.Categories(subscriptions.GetCategories()...),
+			// query.Categories(subscriptions.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
 				query.Should(clauses...),
