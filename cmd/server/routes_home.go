@@ -415,7 +415,7 @@ func HomeStreamTest(res http.ResponseWriter, req *http.Request) {
 	go func() {
 		// Always remember to close the channel.
 		defer close(data)
-		for i := 0; i < 10; i++ {
+		for i := range 10 {
 			select {
 			case <-req.Context().Done():
 				// Quit early if the client is no longer connected.

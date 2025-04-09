@@ -112,7 +112,12 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
 	if len(items) > 0 {
+		// Add any new items.
 		if resp, err := api.AddItems(ctx, items...); err != nil || resp.Err != nil {
+			return errors.Join(ErrExecuteJobFailed, err)
+		}
+		// Update the feed timestamp.
+		if err := api.MarkFeedUpdated(ctx, job.FeedID); err != nil {
 			return errors.Join(ErrExecuteJobFailed, err)
 		}
 	}

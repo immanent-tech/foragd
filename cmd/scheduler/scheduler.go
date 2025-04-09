@@ -33,6 +33,7 @@ type DataAPI interface {
 	GetFeedJobState(ctx context.Context, feedID models.FeedID) (*models.FeedState, error)
 	UpdateFeedJobState(ctx context.Context, state *models.FeedState) error
 	AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error)
+	MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error
 }
 
 type Manager struct {

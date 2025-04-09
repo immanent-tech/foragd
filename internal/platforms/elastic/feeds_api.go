@@ -6,107 +6,80 @@ package elastic
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
+	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
-	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 )
 
-var defaultFeedFields = []string{
-	"publishedParsed",
-	"updatedParsed",
-	"feed_id",
-	"title",
-	"description",
-	"feedLink",
-	"image",
-	"categories",
-	"authors",
-}
-
-var defaultItemFields = []string{
-	"publishedParsed",
-	"updatedParsed",
-	"title",
-	"description",
-	"item_id",
-	"image",
-}
-
 var defaultDatetimeFormat = "strict_date_optional_time_nanos"
 
-var (
-	ErrNoFeedID  = errors.New("no feed ID provided")
-	ErrAddFailed = errors.New("adding items failed")
-)
-
-func FeedExists(ctx context.Context, esapi *typedapi.API, value string) (bool, *models.Error) {
-	index := FeedsIndexFromCtx(ctx)
+// AddItems will bulk index the given items.
+func (a *ElasticAPI) AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error) {
+	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return false, ErrFetchCtx
+		return nil, ErrFetchCtx
 	}
 
-	var queryClause query.Option
+	bulkOps, respCh := bulk.NewRequest(ctx, a)
 
-	switch {
-	case id.IdentifyID(value) == id.Feed:
-		queryClause = query.FeedIDs(value)
-	default:
-		queryClause = query.Term("feedLink", value)
-	}
+	go func() {
+		defer close(bulkOps)
 
-	resp, err := NewSearchRequest(esapi,
-		WithSearchIndex(index),
-		WithSearchQueryOptions(queryClause),
-		WithSortOptions(SortByDocID("feed_id")),
-	).Do(ctx)
-	if err != nil {
-		return false, models.WrapError(ErrSearchFailed, "elastic", "backend error occurred")
-	}
+		for _, item := range items {
+			logging.FromContext(ctx).Debug("Adding item",
+				slog.String("name", item.GetTitle()),
+				slog.String("item_id", item.GetID()),
+				slog.String("feed_id", item.GetFeedID()),
+			)
 
-	if resp.Hits.Total.Value == 0 {
-		return false, nil
-	}
+			bulkOps <- bulk.NewOperation(&item,
+				bulk.SetDocID(item.GetID()),
+				bulk.ToIndex(index),
+			)
+		}
+	}()
 
-	return true, nil
+	resp := <-respCh
+
+	return &resp, nil
 }
 
-func GetFeedByURL(ctx context.Context, api *typedapi.API, url string) (*models.Feed, error) {
+// AddFeeds will bulk index the given feeds.
+func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+		return nil, ErrFetchCtx
 	}
 
-	resp, err := NewSearchRequest(api,
-		WithSearchIndex(index),
-		WithFields(defaultFeedFields...),
-		WithSearchQueryOptions(query.Term("feedLink", url)),
-		WithSortOptions(SortByDocID("feed_id")),
-	).Do(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrSearchFailed, err)
-	}
+	bulkOps, respCh := bulk.NewRequest(ctx, a)
 
-	// If there are no hits, just return an empty APIFeed object.
-	if resp.Hits.Total.Value == 0 {
-		return nil, fmt.Errorf("%w: no feeds found", ErrSearchFailed)
-	}
+	go func() {
+		defer close(bulkOps)
 
-	feed, err := ExtractSource[*models.Feed](resp.Hits.Hits[0].Source_)
-	if err != nil {
-		return nil, errors.Join(ErrSearchFailed, err)
-	}
+		for _, feed := range feeds {
+			logging.FromContext(ctx).Debug("Adding feed",
+				slog.String("name", feed.GetTitle()),
+				slog.String("feed_id", feed.GetID()),
+			)
 
-	return feed, nil
+			bulkOps <- bulk.NewOperation(&feed,
+				bulk.SetDocID(feed.GetID()),
+				bulk.ToIndex(index),
+			)
+		}
+	}()
+
+	resp := <-respCh
+
+	return &resp, nil
 }
 
 // GetFeedsByURL retrieves a list of APIFeeds based on the given URLs.
@@ -188,98 +161,6 @@ func (e *ElasticAPI) FeedsSearch(ctx context.Context, filters models.Filters, pa
 	return sources, nil
 }
 
-// func GetFeedCategories(ctx context.Context, api *typedapi.API, feedIDs ...models.FeedID) (*TermsAggregationResults, error) {
-// 	index := FeedsIndexFromCtx(ctx)
-// 	if index == "" {
-// 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
-// 	}
-
-// 	// Find all feeds with the given IDs, build a terms aggregation on the
-// 	// categories field.
-// 	req := NewSearchRequest(api,
-// 		WithSearchIndex(index),
-// 		WithSearchQueryOptions(
-// 			query.FeedIDs(feedIDs...),
-// 		),
-// 		WithSortOptions(defaultFeedSort()),
-// 		WithSearchSize(0),
-// 		WithAggregations(NewTermsAggregation("Categories", "categories.raw")),
-// 	)
-
-// 	resp, err := req.Do(ctx)
-// 	if err != nil {
-// 		return nil, errors.Join(ErrUserActionFailed, err)
-// 	}
-
-// 	var results TermsAggregationResults
-
-// 	results.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](resp, "Categories")
-// 	if err != nil {
-// 		return nil, errors.Join(ErrUserActionFailed, err)
-// 	}
-
-// 	// categoryCounts := make(map[string]int64)
-// 	// for _, feedID := range feedIDs {
-// 	// 	categoryCounts[feedID] = results.GetCount(feedID)
-// 	// }
-
-// 	return &results, nil
-// }
-
-// // GetFeedsByID retrieves a list of feeds by their FeedID. If the list of feeds
-// // needs filtering, this should be done before calling this method as an mget
-// // request offers no filtering options.
-// func (c *Client) GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) ([]*models.APIFeed, error) {
-// 	index := FeedsIndexFromCtx(ctx)
-// 	if index == "" {
-// 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
-// 	}
-
-// 	// Get the feed details.
-// 	req := NewMGetRequest(c.GetAPI(),
-// 		GetFromIndex(index),
-// 		GetIDs(feedIDs...),
-// 	)
-
-// 	res, err := req.Do(ctx)
-// 	if err != nil {
-// 		return nil, errors.Join(ErrSearchFailed, err)
-// 	}
-
-// 	var feeds []*models.APIFeed
-
-// 	for _, doc := range res.Docs {
-// 		switch obj := doc.(type) {
-// 		case types.MultiGetError:
-// 			c.Logger.Warn("Problem getting document", slog.Any("error", obj))
-// 		case *types.GetResult:
-// 			feed, err := ExtractSource[*models.APIFeed](obj.Source_)
-// 			if err != nil {
-// 				c.Logger.Warn("Could not unmarshal item source.", slog.Any("error", err))
-// 				continue
-// 			}
-
-// 			feeds = append(feeds, feed)
-// 		}
-// 	}
-
-// 	return feeds, nil
-// }
-
-// // GetFeedByID fetches a single feed by its ID.
-// func (c *Client) GetFeedByID(ctx context.Context, feedID models.FeedID) (*models.APIFeed, error) {
-// 	feeds, err := c.GetFeedsByID(ctx, feedID)
-// 	if err != nil {
-// 		return nil, errors.Join(ErrReqFailed, err)
-// 	}
-
-// 	if len(feeds) == 0 {
-// 		return nil, ErrNotFound
-// 	}
-
-// 	return feeds[0], nil
-// }
-
 // ItemsSearch performs a search query on feed items with the given query
 // options. It returns the raw search response.
 func (e *ElasticAPI) ItemsSearch(ctx context.Context, query query.Option, filters models.Filters, pagination models.Pagination) (*search.Response, error) {
@@ -328,28 +209,37 @@ func (e *ElasticAPI) ItemsAggregation(ctx context.Context, query query.Option, a
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
+	slog.Debug("Searched items.",
+		slog.Int64("hits", resp.Hits.Total.Value))
+
 	return resp, nil
 }
 
-// ItemsCount performs a count query on feed items with the given query
-// options. It returns the raw count response.
-func ItemsCount(ctx context.Context, api *typedapi.API, query query.Option) (*count.Response, error) {
-	index := ItemsIndexFromCtx(ctx)
+// MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).
+func (e *ElasticAPI) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
+	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, errors.Join(ErrCountFailed, ErrFetchCtx)
+		return errors.Join(ErrUpdateFailed, ErrFetchCtx)
 	}
 
-	req := NewCountRequest(api,
-		WithCountIndex(index),
-		WithCountQueryOptions(query),
-	)
+	partialUpdate := make(map[string]any)
 
-	resp, err := req.Do(ctx)
+	// Updated the `updated_at` timestamp.
+	partialUpdate["updated_at"] = time.Now().UTC()
+
+	// Update the user in the store with the new list of read items.
+	resp, err := NewDocUpdateRequest(e.GetAPI(), index, feedID,
+		WithPartialDocUpdate(partialUpdate),
+	).Do(ctx)
 	if err != nil {
-		return nil, errors.Join(ErrCountFailed, err)
+		return errors.Join(ErrUpdateFailed, err)
 	}
 
-	return resp, nil
+	slog.Debug("Updated feed.",
+		slog.String("result", resp.Result.String()),
+		slog.Int64("version", resp.Version_))
+
+	return nil
 }
 
 // defaultFeedSort sorts Feeds by updated or published date descending.

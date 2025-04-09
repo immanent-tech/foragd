@@ -62,7 +62,6 @@ func (e *ElasticAPI) GetItem(ctx context.Context, feedID models.FeedID, itemID m
 
 	req := NewSearchRequest(e.GetAPI(),
 		WithSearchIndex(index),
-		WithFields(defaultItemFields...),
 		WithSearchQueryOptions(
 			query.Bool(
 				query.Filter(

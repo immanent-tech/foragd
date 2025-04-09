@@ -19,9 +19,6 @@ const (
 	maxCookieSize = 4096
 )
 
-// Declare a global variable to hold the secret key.
-var secretKey []byte
-
 var (
 	ErrValueTooLong = errors.New("cookie value too long")
 	ErrInvalidValue = errors.New("invalid cookie value")
