@@ -83,8 +83,14 @@ func buildMarkFeedAction(feedID models.FeedID, mark models.Mark) *templates.Acti
 }
 
 func buildMarkItemAction(feedID models.FeedID, itemID models.ItemID, mark models.Mark) *templates.Action {
-	return templates.BuildAction("/home/"+feedID+"/"+itemID+"/"+string(mark),
+	return templates.BuildAction(models.ItemsRoute,
 		templates.WithAttributes(markAttributes),
 		templates.WithMethod(http.MethodPost),
+		templates.WithQueryParam("mark", string(mark)),
+		templates.WithQueryParams(url.Values{
+			models.ParamFeedID: []string{feedID},
+			models.ParamItems:  []string{itemID},
+		},
+		),
 	)
 }

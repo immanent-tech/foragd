@@ -51,7 +51,7 @@ func (u *User) GetMaxHistory() time.Time {
 // GetMarkedRead retrieves the datetime when the user last marked the given Feed
 // as read. If the Feed is unread, it will return the user's max history limit.
 func (u *User) GetMarkedRead(id FeedID) time.Time {
-	idx := slices.IndexFunc(u.Subscriptions, func(v Subscription) bool {
+	idx := slices.IndexFunc(u.Subscriptions, func(v *Subscription) bool {
 		return v.GetFeedID() == id
 	})
 	if idx != -1 {
@@ -65,11 +65,7 @@ func (u *User) GetMarkedRead(id FeedID) time.Time {
 
 // GetSubscriptions retrieves all Subscriptions for the user.
 func (u *User) GetSubscriptions() Subscriptions {
-	subscriptions := make(Subscriptions, 0, len(u.Subscriptions))
-	for subscription := range slices.Values(u.Subscriptions) {
-		subscriptions = append(subscriptions, &subscription)
-	}
-	return subscriptions
+	return u.Subscriptions
 }
 
 // GetSubscriptionFeedIDs gets all FeedIDs for all Subscriptions for the user.
@@ -108,19 +104,27 @@ func (u *User) MarkSubscriptions(mark Mark, feedIDs ...FeedID) {
 // AddSubscriptions adds the given Subscriptions to the User.
 func (u *User) AddSubscriptions(subscriptions Subscriptions) {
 	for subscription := range slices.Values(subscriptions) {
-		u.Subscriptions = append(u.Subscriptions, *subscription)
+		u.Subscriptions = append(u.Subscriptions, subscription)
 	}
 }
 
+// IsSubscribed returns a boolean indicating whether the user is subscribed to the feed with the given ID.
 func (u *User) IsSubscribed(feedID FeedID) bool {
 	subscriptions := u.GetSubscriptions().FilterByFeedID(feedID)
 	return len(subscriptions) > 0
 }
 
-// GetReadItems retrieves a list of ItemIDs for the subscription feed that
-// user has explicitly marked as read.
-func (u *User) MarkItems(mark Mark, itemIDs ...ItemID) {
-	return
+// MarkItems will mark all items for the given feed with the given mark for the user.
+func (u *User) MarkItems(mark Mark, feedID FeedID, itemIDs ...ItemID) {
+	idx := slices.IndexFunc(u.Subscriptions, func(v *Subscription) bool { return v.GetFeedID() == feedID })
+	if idx != -1 {
+		switch mark {
+		case MarkRead:
+			u.Subscriptions[idx].MarkItemsRead(itemIDs...)
+		case MarkUnread:
+			u.Subscriptions[idx].MarkItemsUnread(itemIDs...)
+		}
+	}
 }
 
 func (u *UserSignupRequest) Valid() (bool, error) {

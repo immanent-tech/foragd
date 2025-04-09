@@ -36,38 +36,6 @@ type ImportOPML = string
 // ImportURLs allows importing feeds from an list of feed URLs.
 type ImportURLs = []string
 
-// MarkCategories contains data for marking Categories.
-type MarkCategories struct {
-	// Categories is a list of Categories to mark.
-	Categories []externalRef0.Category `form:"categories" json:"categories" validate:"required,unique,dive,required"`
-
-	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-}
-
-// MarkFeeds contains data for marking Feeds.
-type MarkFeeds struct {
-	// Feeds is a list of Feed IDs to mark.
-	Feeds []externalRef0.FeedID `form:"feeds" json:"feeds" validate:"required,unique,dive,required,startswith=feed_"`
-
-	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-}
-
-// MarkItems contains data for marking Items.
-type MarkItems struct {
-	// Items is a list of Items IDs to mark.
-	Items []externalRef0.ItemID `form:"items" json:"items" validate:"required,unique,dive,required,startswith=item_"`
-
-	// Mark applies the given mark action to objects.
-	Mark externalRef0.Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-}
-
-// MarkObjects mark one or more objects
-type MarkObjects struct {
-	union json.RawMessage
-}
-
 // Categories is a list of categories.
 type Categories = []externalRef0.Category
 
@@ -148,10 +116,10 @@ type SetImportMethodFormdataBody struct {
 }
 
 // HandleMarkFeedsFormdataRequestBody defines body for HandleMarkFeeds for application/x-www-form-urlencoded ContentType.
-type HandleMarkFeedsFormdataRequestBody = MarkObjects
+type HandleMarkFeedsFormdataRequestBody = externalRef0.MarkObjects
 
 // HandleMarkItemsFormdataRequestBody defines body for HandleMarkItems for application/x-www-form-urlencoded ContentType.
-type HandleMarkItemsFormdataRequestBody = MarkObjects
+type HandleMarkItemsFormdataRequestBody = externalRef0.MarkObjects
 
 // ProcessSignUpFormdataRequestBody defines body for ProcessSignUp for application/x-www-form-urlencoded ContentType.
 type ProcessSignUpFormdataRequestBody = externalRef0.UserSignupRequest
@@ -258,94 +226,6 @@ func (t Import_Data) MarshalJSON() ([]byte, error) {
 }
 
 func (t *Import_Data) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsMarkFeeds returns the union data inside the MarkObjects as a MarkFeeds
-func (t MarkObjects) AsMarkFeeds() (MarkFeeds, error) {
-	var body MarkFeeds
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromMarkFeeds overwrites any union data inside the MarkObjects as the provided MarkFeeds
-func (t *MarkObjects) FromMarkFeeds(v MarkFeeds) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeMarkFeeds performs a merge with any union data inside the MarkObjects, using the provided MarkFeeds
-func (t *MarkObjects) MergeMarkFeeds(v MarkFeeds) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsMarkItems returns the union data inside the MarkObjects as a MarkItems
-func (t MarkObjects) AsMarkItems() (MarkItems, error) {
-	var body MarkItems
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromMarkItems overwrites any union data inside the MarkObjects as the provided MarkItems
-func (t *MarkObjects) FromMarkItems(v MarkItems) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeMarkItems performs a merge with any union data inside the MarkObjects, using the provided MarkItems
-func (t *MarkObjects) MergeMarkItems(v MarkItems) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsMarkCategories returns the union data inside the MarkObjects as a MarkCategories
-func (t MarkObjects) AsMarkCategories() (MarkCategories, error) {
-	var body MarkCategories
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromMarkCategories overwrites any union data inside the MarkObjects as the provided MarkCategories
-func (t *MarkObjects) FromMarkCategories(v MarkCategories) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeMarkCategories performs a merge with any union data inside the MarkObjects, using the provided MarkCategories
-func (t *MarkObjects) MergeMarkCategories(v MarkCategories) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t MarkObjects) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *MarkObjects) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

@@ -6,7 +6,6 @@ package elastic
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"slices"
 	"time"
@@ -27,60 +26,20 @@ var (
 )
 
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
-func (e *ElasticAPI) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error {
-	if mark != models.MarkUnread && mark != models.MarkRead {
-		return fmt.Errorf("unsupported mark")
-	}
-
-	_, found := models.UserFromCtx(ctx)
+func (e *ElasticAPI) MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error {
+	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx
 	}
-
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return errors.Join(ErrUpdateFailed, ErrFetchCtx)
+	// Mark items for the given feeds.
+	for mark := range slices.Values(marks) {
+		user.MarkItems(mark.Mark, mark.Feed, mark.Items...)
 	}
-
-	resp, err := NewSearchRequest(e.GetAPI(),
-		WithSearchIndex(index),
-		WithFields("feed_id"),
-		WithSearchQueryOptions(
-			// Must have the  itemID
-			query.ItemIDs(itemIDs...),
-		),
-		WithSortOptions(SortTimestampDesc()),
-		WithSearchSize(len(itemIDs)),
-	).Do(ctx)
-	if err != nil {
-		return errors.Join(ErrUpdateFailed, err)
-	}
-
-	_, warnings := ExtractFieldFromHits[models.FeedID]("feed_id", resp.Hits.Hits)
-	if warnings != nil {
-		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
-			slog.Any("warnings", warnings))
-	}
-
-	// // Mark all items with the given state.
-	// for _, itemID := range itemIDs {
-	// 	// feedID, found := feedIDs[itemID]
-	// 	if !found {
-	// 		continue
-	// 	}
-
-	// 	// if err := user.MarkItems(feedID, itemID, models.State(mark)); err != nil && !errors.Is(err, models.ErrUserAlreadyReadItem) {
-	// 	// 	logging.FromContext(ctx).Warn("Could not mark item read", slog.Any("error", err))
-	// 	// }
-	// }
-
 	// Update the user object.
-	// return UpdateUser(ctx, esapi, user.ID, map[string]any{
-	// 	"feed_item_states": user.FeedItemStates,
-	// 	"updated_at":       time.Now().UTC(),
-	// })
-
-	return nil
+	return e.UpdateUser(ctx, user.GetID(), map[string]any{
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
+	})
 }
 
 // GetItem retrieves the specified item with the given id and from the given
@@ -290,18 +249,13 @@ func (e *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions models.
 }
 
 // UserActionMarkSubscriptions will mark user subscriptions with the given state.
-func (e *ElasticAPI) MarkSubscriptions(ctx context.Context, mark models.Mark, feedIDs ...models.FeedID) error {
-	if mark != models.MarkRead && mark != models.MarkUnread {
-		return errors.Join(ErrUserActionFailed, errors.New("unsupported mark action"))
-	}
-
+func (e *ElasticAPI) MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx
 	}
-
-	user.MarkSubscriptions(mark, feedIDs...)
-
+	// Mark subscriptions.
+	user.MarkSubscriptions(marks.Mark, marks.Feeds...)
 	// Update the user object.
 	return e.UpdateUser(ctx, user.GetID(), map[string]any{
 		"subscriptions": user.Subscriptions,

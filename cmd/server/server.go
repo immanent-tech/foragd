@@ -35,7 +35,7 @@ type DataAPI interface {
 	GetUser(ctx context.Context) (*models.User, error)
 	// Subscription methods:
 	GetSubscriptions(ctx context.Context, filters models.Filters) (models.Subscriptions, error)
-	MarkSubscriptions(ctx context.Context, mark models.Mark, feedIDs ...models.FeedID) error
+	MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error
 	// Feeds methods:
 	GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
@@ -43,7 +43,7 @@ type DataAPI interface {
 	// Item methods:
 	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)
 	GetItems(ctx context.Context, filters models.Filters) (models.Items, models.Pagination, error)
-	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error
+	MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error
 }
 
 type API struct {

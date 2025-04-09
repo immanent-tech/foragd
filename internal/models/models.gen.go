@@ -93,7 +93,7 @@ type Feed struct {
 	Description string `json:"description"`
 
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// Image is an abstraction of an Image across different types of specifications.
 	Image    *externalRef0.Image `json:"image,omitempty"`
@@ -149,13 +149,13 @@ type Item struct {
 	Description string `json:"description"`
 
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// Image is an abstraction of an Image across different types of specifications.
 	Image *externalRef0.Image `json:"image,omitempty"`
 
 	// ItemID is the unique ID of an item.
-	ItemID   ItemID `json:"item_id" validate:"required,startswith=item_"`
+	ItemID   ItemID `form:"feed_id" json:"item_id" validate:"required,startswith=item_"`
 	Language string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
@@ -242,7 +242,7 @@ type Subscription struct {
 	Feed *Feed `form:"-" json:"-" validate:"required"`
 
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// MarkedRead records when the subscription was last marked read.
 	MarkedRead time.Time `form:"-" json:"marked_read" validate:"required"`
@@ -330,7 +330,7 @@ type User struct {
 	MaxHistory string `json:"max_history"`
 
 	// Subscriptions is the list of subscriptions for the user.
-	Subscriptions []Subscription `json:"subscriptions,omitempty"`
+	Subscriptions []*Subscription `json:"subscriptions,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`

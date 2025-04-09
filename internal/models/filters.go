@@ -59,6 +59,8 @@ const (
 	ParamSortBy     = "sort_by"
 	ParamSortOrder  = "sort_order"
 	ParamView       = "view"
+	ParamFeedID     = "feed_id"
+	ParamItemID     = "item_id"
 )
 
 // FiltersValidation is a custom struct-level validation function for Filters.

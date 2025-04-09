@@ -20,7 +20,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/session"
-	"github.com/joshuar/go-feed-me/internal/validation"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
@@ -153,14 +152,14 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 
 func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 	// Get the mark request.
-	marks, valid, err := forms.DecodeForm[*MarkFeeds](req)
+	marks, valid, err := forms.DecodeForm[*models.MarkFeeds](req)
 	if err != nil || !valid {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}
 	// Mark the feeds.
-	if err := s.DataAPI().MarkSubscriptions(req.Context(), marks.Mark, marks.Feeds...); err != nil {
+	if err := s.DataAPI().MarkSubscriptions(req.Context(), marks); err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
@@ -176,15 +175,6 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 
 	// Reload the home page.
 	displayFeeds(s.DataAPI(), res, req, *filters)
-}
-
-// Valid checks that the MarkFeeds object is valid.
-func (f *MarkFeeds) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(f)
-	if !valid || err != nil {
-		return false, err
-	}
-	return true, nil
 }
 
 // buildSubscriptionCards retrieves a filtered list of Feeds as components that
@@ -250,14 +240,14 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 
 func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	// Get the mark request.
-	marks, valid, err := forms.DecodeForm[*MarkItems](req)
+	marks, valid, err := forms.DecodeForm[*models.MarkFeedItems](req)
 	if err != nil || !valid {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}
 	// Mark the feeds.
-	if err := s.DataAPI().MarkItems(req.Context(), marks.Mark, marks.Items...); err != nil {
+	if err := s.DataAPI().MarkItems(req.Context(), marks); err != nil {
 		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
@@ -272,15 +262,6 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 
 	// Reload page.
 	displayItems(s.DataAPI(), res, req, *filters)
-}
-
-// Valid checks that the MarkItems object is valid.
-func (f *MarkItems) Valid() (bool, error) {
-	valid, err := validation.ValidateStruct(f)
-	if !valid || err != nil {
-		return false, err
-	}
-	return true, nil
 }
 
 func buildItemCards(filters models.Filters, reqURL *url.URL, pagination models.Pagination, items models.Items) (templates.Elements, error) {
@@ -366,9 +347,14 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedI
 }
 
 // HandleMarkItem marks a single item.
-func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, _ models.FeedID, itemID models.ItemID, mark models.Mark) {
+func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, mark models.Mark) {
+	marks := &models.MarkFeedItems{
+		Feed:  feedID,
+		Items: []models.ItemID{itemID},
+		Mark:  mark,
+	}
 	// Mark item.
-	if err := s.DataAPI().MarkItems(req.Context(), mark, itemID); err != nil {
+	if err := s.DataAPI().MarkItems(req.Context(), marks); err != nil {
 		logging.FromContext(req.Context()).Error("Mark item failed.",
 			slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)

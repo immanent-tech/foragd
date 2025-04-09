@@ -261,6 +261,16 @@ func (s *Subscription) MarkRead(markedAt time.Time) {
 	s.UpdatedAt = &updated
 }
 
+// MarkItemsRead will mark the given items as read for the subscription.
+func (s *Subscription) MarkItemsRead(items ...ItemID) {
+	s.ReadItems = append(s.ReadItems, items...)
+}
+
+// MarkItemsUnread will mark the given items as unread for the subscription.
+func (s *Subscription) MarkItemsUnread(items ...ItemID) {
+	s.UnreadItems = append(s.UnreadItems, items...)
+}
+
 func (s *Subscription) IsUnread() bool {
 	return s.GetUnreadCount() > 0
 }

@@ -73,6 +73,7 @@ components:
       x-oapi-codegen-extra-tags:
         validate: "required,startswith=feed_"
         json: "feed_id"
+        form: "feed_id"
     ItemID:
       description: is the unique ID of an item.
       type: string
@@ -80,6 +81,7 @@ components:
       x-oapi-codegen-extra-tags:
         validate: "required,startswith=item_"
         json: "item_id"
+        form: "feed_id"
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
@@ -155,9 +157,11 @@ components:
             subscriptions:
               description: >
                 is the list of subscriptions for the user.
-              type: array
-              items:
-                $ref: "#/components/schemas/Subscription"
+              x-go-type: "[]*Subscription"
+              # type: array
+              # items:
+              #   allOf:
+              #     - $ref: "#/components/schemas/Subscription"
               x-go-type-skip-optional-pointer: true
     ObjectCommon:
       description: contains common fields across objects.

@@ -375,68 +375,6 @@ components:
             - $ref: "#/components/schemas/ImportURLs"
           x-oapi-codegen-extra-tags:
             form: "data"
-    MarkFeeds:
-      description: contains data for marking Feeds.
-      type: object
-      required:
-        - mark
-        - feeds
-      properties:
-        mark:
-          $ref: "models.yaml#/components/schemas/Mark"
-        feeds:
-          description: is a list of Feed IDs to mark.
-          type: array
-          items:
-            $ref: "models.yaml#/components/schemas/FeedID"
-          x-oapi-codegen-extra-tags:
-            json: "feeds"
-            form: "feeds"
-            validate: "required,unique,dive,required,startswith=feed_"
-          x-go-type-skip-optional-pointer: true
-    MarkItems:
-      description: contains data for marking Items.
-      type: object
-      required:
-        - mark
-        - items
-      properties:
-        mark:
-          $ref: "models.yaml#/components/schemas/Mark"
-        items:
-          description: is a list of Items IDs to mark.
-          type: array
-          items:
-            $ref: "models.yaml#/components/schemas/ItemID"
-          x-oapi-codegen-extra-tags:
-            json: "items"
-            form: "items"
-            validate: "required,unique,dive,required,startswith=item_"
-    MarkCategories:
-      description: contains data for marking Categories.
-      type: object
-      required:
-        - mark
-        - categories
-      properties:
-        mark:
-          $ref: "models.yaml#/components/schemas/Mark"
-        categories:
-          description: is a list of Categories to mark.
-          type: array
-          items:
-            $ref: "models.yaml#/components/schemas/Category"
-          x-oapi-codegen-extra-tags:
-            json: "categories"
-            form: "categories"
-            validate: "required,unique,dive,required"
-    MarkObjects:
-      description: mark one or more objects
-      type: object
-      oneOf:
-        - $ref: "#/components/schemas/MarkFeeds"
-        - $ref: "#/components/schemas/MarkItems"
-        - $ref: "#/components/schemas/MarkCategories"
   parameters:
     # Path parameters:
     FeedID:
@@ -555,7 +493,7 @@ components:
       content:
         application/x-www-form-urlencoded:
           schema:
-            $ref: "#/components/schemas/MarkObjects"
+            $ref: "api.yaml#/components/schemas/MarkObjects"
     UserSignupRequestBody:
       description: >
         Holds details for adding/saving a user signup.

@@ -299,3 +299,56 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             json: "-"
+    MarkFeeds:
+      description: >
+        contains details for marking a feed.
+      type: object
+      required:
+        - mark
+        - feeds
+      properties:
+        mark:
+          $ref: "models.yaml#/components/schemas/Mark"
+        feeds:
+          description: is a list of Feed IDs to mark.
+          type: array
+          items:
+            $ref: "models.yaml#/components/schemas/FeedID"
+          x-oapi-codegen-extra-tags:
+            json: "feeds"
+            form: "feeds"
+            validate: "required,unique,dive,required,startswith=feed_"
+          x-go-type-skip-optional-pointer: true
+    MarkFeedItems:
+      description: >
+        contains details for marking a feed's items.
+      type: object
+      required:
+        - mark
+        - feed
+        - items
+      properties:
+        mark:
+          $ref: "models.yaml#/components/schemas/Mark"
+        feed:
+          allOf:
+            - $ref: "models.yaml#/components/schemas/FeedID"
+          x-oapi-codegen-extra-tags:
+            json: feed_id
+            form: feed_id
+            validate: required,startswith=feed_
+        items:
+          description: is a list of Items IDs to mark.
+          type: array
+          items:
+            $ref: "models.yaml#/components/schemas/ItemID"
+          x-oapi-codegen-extra-tags:
+            json: "items"
+            form: "items"
+            validate: "required,unique,dive,required,startswith=item_"
+    MarkObjects:
+      description: mark one or more objects
+      type: object
+      oneOf:
+        - $ref: "#/components/schemas/MarkFeeds"
+        - $ref: "#/components/schemas/MarkFeedItems"
