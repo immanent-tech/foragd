@@ -223,6 +223,32 @@ func NewFilters(options ...FilterOption) *Filters {
 	return filters
 }
 
+func (sb SortBy) String() string {
+	switch sb {
+	case SortByLastUpdated:
+		return "Last Updated"
+	case SortByUnreadCount:
+		return "Unread Count"
+	default:
+		return ""
+	}
+}
+
+func (so SortOrder) String() string {
+	switch so {
+	case SortOrderAsc:
+		return "Asc"
+	case SortOrderDesc:
+		return "Desc"
+	default:
+		return ""
+	}
+}
+
+func (s *Sort) String() string {
+	return s.SortBy.String() + ": " + s.SortOrder.String()
+}
+
 // Valid checks whether the Sort options are valid values.
 func (s *Sort) Valid() bool {
 	valid, err := validation.ValidateStruct(s)

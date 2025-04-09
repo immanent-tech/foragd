@@ -14,7 +14,25 @@ import "github.com/joshuar/go-templ-daisyui/classes/width"
 import "github.com/joshuar/go-templ-daisyui/modifiers/color"
 import "github.com/joshuar/go-feed-me/internal/models"
 
+import "github.com/joshuar/go-feed-me/web/templates"
+import "github.com/joshuar/go-templ-daisyui/display/text"
+import "github.com/davecgh/go-spew/spew"
+import "github.com/go-chi/chi/v5"
+
+type SortBadge struct {
+	models.Sort
+	action *templates.Action
+}
+
+templ (s *SortBadge) Show() {
+	@text.Build(s.String(),
+		text.WithTextSize(text.SM),
+		text.WithAttributes(s.action.Attributes()),
+	).Show()
+}
+
 templ BuildSortingMenu(filters models.Filters, path string) {
+	{{ spew.Dump(chi.RouteContext(ctx)) }}
 	<div id="content-sorting" hx-swap-oob="true">
 		@dropdown.Build(
 			dropdown.WithOpenOptions(
