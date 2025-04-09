@@ -43,7 +43,7 @@ var defaultTransportConfig = &http.Transport{
 	},
 }
 
-func Connect(ctx context.Context) (*ElasticAPI, error) {
+func Connect(ctx context.Context) (*API, error) {
 	// Retrieve a logger from the context.
 	logger := logging.FromContext(ctx).WithGroup("elastic")
 
@@ -57,7 +57,7 @@ func Connect(ctx context.Context) (*ElasticAPI, error) {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
 
-	client := &ElasticAPI{API: esclient.API, logger: logger}
+	client := &API{API: esclient.API, logger: logger}
 
 	// if err := client.Setup(ctx); err != nil {
 	// 	return nil, fmt.Errorf("%w: %w", ErrSetupFailed, err)

@@ -38,7 +38,7 @@ type DataAPI interface {
 
 type Manager struct {
 	id         string
-	db         *elastic.ElasticAPI
+	db         *elastic.API
 	queue      quartz.JobQueue
 	scheduler  quartz.Scheduler
 	logger     *slog.Logger
@@ -53,7 +53,7 @@ func Run(ctx context.Context) error {
 		return errors.Join(ErrRunFailed, err)
 	}
 
-	db := &elastic.ElasticAPI{
+	db := &elastic.API{
 		API: esClient.GetAPI(),
 	}
 

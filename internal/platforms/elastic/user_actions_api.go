@@ -26,7 +26,7 @@ var (
 )
 
 // UserActionMarkItemsRead will mark the given items with the given state for the user.
-func (e *ElasticAPI) MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error {
+func (e *API) MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx
@@ -45,7 +45,7 @@ func (e *ElasticAPI) MarkItems(ctx context.Context, marks ...*models.MarkFeedIte
 // GetItem retrieves the specified item with the given id and from the given
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
-func (e *ElasticAPI) GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error) {
+func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, false, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -97,7 +97,7 @@ func (e *ElasticAPI) GetItem(ctx context.Context, feedID models.FeedID, itemID m
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (e *ElasticAPI) GetItems(ctx context.Context, filters models.Filters) (models.Items, models.Pagination, error) {
+func (e *API) GetItems(ctx context.Context, filters models.Filters) (models.Items, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", models.WrapError(ErrNoUserCtx, "elastic", "get items failed")
@@ -142,7 +142,7 @@ func (e *ElasticAPI) GetItems(ctx context.Context, filters models.Filters) (mode
 
 // GetSubscriptions will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters models.Filters) (models.Subscriptions, error) {
+func (e *API) GetSubscriptions(ctx context.Context, filters models.Filters) (models.Subscriptions, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, models.NewMessage(
@@ -206,7 +206,7 @@ func (e *ElasticAPI) GetSubscriptions(ctx context.Context, filters models.Filter
 
 // GetFeedUnreadCounts performs an aggregation over the items index to calculate
 // unread counts for the given feed subscriptions.
-func (e *ElasticAPI) GetSubscriptionUnreadCounts(ctx context.Context, subscriptions models.Subscriptions) error {
+func (e *API) GetSubscriptionUnreadCounts(ctx context.Context, subscriptions models.Subscriptions) error {
 	countResults, err := e.ItemsAggregation(ctx, unreadFeedItemsQuery(subscriptions), NewTermsAggregation("UnreadCounts", "feed_id"))
 	if err != nil {
 		return models.WrapError(err, "elastic", "get feed unread counts failed")
@@ -227,7 +227,7 @@ func (e *ElasticAPI) GetSubscriptionUnreadCounts(ctx context.Context, subscripti
 }
 
 // AddSubscriptions will add Subscriptions to a User.
-func (e *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error {
+func (e *API) AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error {
 	if len(subscriptions) == 0 {
 		return nil
 	}
@@ -248,7 +248,7 @@ func (e *ElasticAPI) AddSubscriptions(ctx context.Context, subscriptions models.
 }
 
 // UserActionMarkSubscriptions will mark user subscriptions with the given state.
-func (e *ElasticAPI) MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error {
+func (e *API) MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx

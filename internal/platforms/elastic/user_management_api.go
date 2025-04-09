@@ -25,7 +25,7 @@ var (
 )
 
 // GetUser fetches the user record from Elasticsearch.
-func (e *ElasticAPI) GetUser(ctx context.Context) (*models.User, error) {
+func (e *API) GetUser(ctx context.Context) (*models.User, error) {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
@@ -69,7 +69,7 @@ func UserExists(ctx context.Context, api *typedapi.API, userID models.UserID) (b
 }
 
 // AddUser creates a new user record.
-func (e *ElasticAPI) AddUser(ctx context.Context, userID models.UserID) error {
+func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrCreateUserFailed, ErrFetchCtx)
@@ -102,7 +102,7 @@ func (e *ElasticAPI) AddUser(ctx context.Context, userID models.UserID) error {
 	return nil
 }
 
-func (e *ElasticAPI) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) error {
+func (e *API) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrUpdateFailed, ErrFetchCtx)

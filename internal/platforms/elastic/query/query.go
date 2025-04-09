@@ -127,7 +127,7 @@ func Since(field string, since time.Time) Option {
 	}
 }
 
-// QuerySince adds a "Range" query to find documents between (or equal to) the given times.
+// Between adds a "Range" query to find documents between (or equal to) the given times.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-range-query.html#ranges-on-dates
 func Between(field string, from time.Time, to time.Time) Option {
@@ -148,6 +148,7 @@ func Between(field string, from time.Time, to time.Time) Option {
 	}
 }
 
+// IntLessThan creates a range option to retrieve documents with the field value less than the given int.
 func IntLessThan(value int64) NumberRangeOption {
 	return func(numberRange *types.NumberRangeQuery) {
 		lt := types.Float64(value)
@@ -155,7 +156,7 @@ func IntLessThan(value int64) NumberRangeOption {
 	}
 }
 
-// QueryBool constructs a bool query with the given query options and adds it to
+// NumberRange constructs a bool query with the given query options and adds it to
 // the query.
 func NumberRange(field string, options ...NumberRangeOption) Option {
 	return func(query *types.Query) {

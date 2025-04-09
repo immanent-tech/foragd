@@ -10,6 +10,7 @@ linters:
     - gochecknoinits
     - godox
     - ireturn
+    - lll
     - mnd
     - nlreturn
     - tagalign
@@ -30,6 +31,7 @@ linters:
         - ok
         - mu
         - fd
+        - to
   exclusions:
     rules:
       - linters:

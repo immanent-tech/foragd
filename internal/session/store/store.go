@@ -37,7 +37,7 @@ var (
 
 type Store struct {
 	logger *slog.Logger
-	client *elastic.ElasticAPI
+	client *elastic.API
 	index  string
 }
 
@@ -163,7 +163,7 @@ func (s *Store) All() (map[string][]byte, error) {
 	return data, nil
 }
 
-func NewSessionStore(ctx context.Context, client *elastic.ElasticAPI) (*Store, error) {
+func NewSessionStore(ctx context.Context, client *elastic.API) (*Store, error) {
 	sessionCtx = ctx
 
 	return &Store{

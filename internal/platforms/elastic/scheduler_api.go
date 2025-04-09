@@ -16,7 +16,7 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 )
 
-func (a *ElasticAPI) GetFeedJobState(ctx context.Context, feedID models.FeedID) (*models.FeedState, error) {
+func (a *API) GetFeedJobState(ctx context.Context, feedID models.FeedID) (*models.FeedState, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
@@ -44,7 +44,7 @@ func (a *ElasticAPI) GetFeedJobState(ctx context.Context, feedID models.FeedID) 
 // UpdateFeedJobState will update the job for a feed in the scheduler jobs
 // index. Specifically, it will update the last_fetched value indicating when
 // the feed last fetched its items.
-func (a *ElasticAPI) UpdateFeedJobState(ctx context.Context, state *models.FeedState) error {
+func (a *API) UpdateFeedJobState(ctx context.Context, state *models.FeedState) error {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrGetFailed, ErrFetchCtx)
@@ -68,7 +68,7 @@ func (a *ElasticAPI) UpdateFeedJobState(ctx context.Context, state *models.FeedS
 
 // GetNewFeedsSince retrieves a list of feeds that have been updated since the
 // given time.
-func (a *ElasticAPI) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error) {
+func (a *API) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)

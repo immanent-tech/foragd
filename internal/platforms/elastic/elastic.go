@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+// Package elastic defines methods and structures for interacting with Elasticsearch.
 package elastic
 
 import (
@@ -92,7 +93,7 @@ func ExtractSource[T any](doc json.RawMessage) (T, error) {
 	return source, nil
 }
 
-// ExtractSourceFromHits loops through the given hits array and extracts the `_source`
+// ExtractFieldFromHits loops through the given hits array and extracts the `_source`
 // field of each document as type `T`, returning the document sources as an array
 // `[]T`. If there was an issue extracting any source, it will also return a
 // non-nil error containing details.
@@ -114,7 +115,7 @@ func ExtractFieldFromHits[T any](field string, hits []types.Hit) (map[string]T, 
 	return values, warnings
 }
 
-// extractFieldValue extracts the value of the given field from a hit's list of
+// ExtractFieldValue extracts the value of the given field from a hit's list of
 // returned fields. If the field is not found or the value cannot be extracted,
 // a non-nil error is returned.
 //

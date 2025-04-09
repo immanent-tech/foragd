@@ -1,6 +1,7 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+// Package bulk contains methods and structures for handling Elasticsearch bulk operations.
 package bulk
 
 import (
@@ -16,28 +17,40 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/operationtype"
 )
 
-var ErrAddOp = errors.New("could not add operation to bulk request")
+var (
+	// ErrCreateOpFailed indicates creating a bulk operation failed.
+	ErrCreateOpFailed = errors.New("could not create bulk operation")
+	// ErrOpFailed indicates executing a bulk operation failed.
+	ErrOpFailed = errors.New("bulk operation failed")
+	// ErrBulkHasErrors indicates the bulk request completed but some operations produced an error.
+	ErrBulkHasErrors = errors.New("bulk request completed with some operation errors")
+)
 
 const (
-	BulkCreate BulkOpType = iota
+	// BulkCreate is a create operation.
+	BulkCreate OpType = iota
+	// BulkIndex is a index operation.
 	BulkIndex
+	// BulkDelete is a delete operation.
 	BulkDelete
+	// BulkUpdate is an update operation.
 	BulkUpdate
 )
 
+// Client represents an elasticsearch client connection.
 type Client interface {
 	GetAPI() *typedapi.API
 	Log() *slog.Logger
 }
 
-// BulkOpType represents the type of bulk operation to perform.
-type BulkOpType int
+// OpType represents the type of bulk operation to perform.
+type OpType int
 
-// BulkOpOption is a functional option for a bulk operation.
-type BulkOpOption func(*Operation)
+// OperationOption is a functional option for a bulk operation.
+type OperationOption func(*Operation)
 
-// BulkOption is a functional option for a bulk request.
-type BulkOption func(*Request)
+// Option is a functional option for a bulk request.
+type Option func(*Request)
 
 // Request represents a bulk request.
 type Request struct {
@@ -45,7 +58,7 @@ type Request struct {
 }
 
 // WithPipeline defines the ingest pipeline to use on each document.
-func WithPipeline(pipeline string) BulkOption {
+func WithPipeline(pipeline string) Option {
 	return func(b *Request) {
 		if pipeline != "" {
 			b.Pipeline(pipeline)
@@ -54,13 +67,13 @@ func WithPipeline(pipeline string) BulkOption {
 }
 
 // WithIndex defines the index on which the request will operate.
-func WithOverallIndex(index string) BulkOption {
+func WithIndex(index string) Option {
 	return func(b *Request) {
 		b.Index(index)
 	}
 }
 
-// AddOperations adds document operations to the bulk request.
+// AddOperation adds document operations to the bulk request.
 func (r *Request) AddOperation(operation Operation) error {
 	var err error
 
@@ -73,19 +86,19 @@ func (r *Request) AddOperation(operation Operation) error {
 		}
 	case BulkUpdate:
 		if operation.id == "" {
-			err = errors.New("id is required for update operation")
-		} else {
-			err = r.UpdateOp(types.UpdateOperation{Index_: &operation.index, Id_: &operation.id}, operation.document, types.NewUpdateAction())
+			return fmt.Errorf("%w: a doc id is required", ErrCreateOpFailed)
 		}
+		err = r.UpdateOp(types.UpdateOperation{Index_: &operation.index, Id_: &operation.id}, operation.document, types.NewUpdateAction())
 	}
 
 	if err != nil {
-		return fmt.Errorf("could not process bulk operation: %w", err)
+		return fmt.Errorf("%w: %w", ErrCreateOpFailed, err)
 	}
 
 	return nil
 }
 
+// Response holds details about a bulk request's results.
 type Response struct {
 	Err       error
 	Responses []*OperationResponse
@@ -106,10 +119,12 @@ func (r *Response) FailedDocs() []string {
 	return failedDocIDs
 }
 
+// OperationResponse holds details about a bulk operation's result.
 type OperationResponse struct {
 	*types.ResponseItem
 }
 
+// State returns a string indicating the operation result and a non-nil error if one occurred.
 func (r *OperationResponse) State() (string, error) {
 	var status string
 	if r.Result != nil {
@@ -121,9 +136,9 @@ func (r *OperationResponse) State() (string, error) {
 	var err error
 	if r.Error != nil {
 		if r.Error.Reason != nil {
-			err = fmt.Errorf("%s: %s", r.Error.Type, *r.Error.Reason)
+			err = fmt.Errorf("%w: %s (%s)", ErrOpFailed, r.Error.Type, *r.Error.Reason)
 		} else {
-			err = fmt.Errorf("%s", r.Error.Type)
+			err = fmt.Errorf("%w: %s", ErrOpFailed, r.Error.Type)
 		}
 	}
 
@@ -134,33 +149,34 @@ func (r *OperationResponse) State() (string, error) {
 type Operation struct {
 	document any
 	index    string
-	opType   BulkOpType
+	opType   OpType
 	id       string
 }
 
-func SetDocID(id string) BulkOpOption {
+// SetDocID option sets the doc id for the operation.
+func SetDocID(id string) OperationOption {
 	return func(operation *Operation) {
 		operation.id = id
 	}
 }
 
-// AsOperationType specifies the type of bulk operation to perform. If this option is
+// AsOperationType option specifies the type of bulk operation to perform. If this option is
 // not specified, the operation will default to a create operation.
-func AsOperationType(opType BulkOpType) BulkOpOption {
+func AsOperationType(opType OpType) OperationOption {
 	return func(operation *Operation) {
 		operation.opType = opType
 	}
 }
 
-// ToIndex sets the index containing the document.
-func ToIndex(index string) BulkOpOption {
+// ToIndex option sets the index containing the document.
+func ToIndex(index string) OperationOption {
 	return func(operation *Operation) {
 		operation.index = index
 	}
 }
 
 // NewOperation creates a new bulk operation for a document with the given options.
-func NewOperation(doc any, options ...BulkOpOption) Operation {
+func NewOperation(doc any, options ...OperationOption) Operation {
 	operation := &Operation{
 		document: doc,
 	}
@@ -174,7 +190,7 @@ func NewOperation(doc any, options ...BulkOpOption) Operation {
 
 // NewRequest creates a new bulk requesst object with the given options.
 // After creation, document operations can be added with the AddOperations method.
-func NewRequest(ctx context.Context, client Client, options ...BulkOption) (chan Operation, chan Response) {
+func NewRequest(ctx context.Context, client Client, options ...Option) (chan Operation, chan Response) {
 	req := &Request{
 		Bulk: client.GetAPI().Bulk(),
 	}
@@ -202,7 +218,7 @@ func NewRequest(ctx context.Context, client Client, options ...BulkOption) (chan
 		case err != nil:
 			respCh <- Response{Err: err}
 		case resp.Errors:
-			respCh <- Response{Err: errors.New("bulk request completed with some errors"), Responses: GetOperationResponses(resp.Items)}
+			respCh <- Response{Err: ErrBulkHasErrors, Responses: GetOperationResponses(resp.Items)}
 		default:
 			respCh <- Response{Responses: GetOperationResponses(resp.Items)}
 		}
@@ -211,6 +227,7 @@ func NewRequest(ctx context.Context, client Client, options ...BulkOption) (chan
 	return bulkOps, respCh
 }
 
+// GetOperationResponses extracts a slice of OperationResponse from the bulk request response data.
 func GetOperationResponses(resp []map[operationtype.OperationType]types.ResponseItem) []*OperationResponse {
 	responses := make([]*OperationResponse, 0, len(resp))
 	for _, op := range resp {

@@ -9,20 +9,21 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 )
 
-const InternalPaginationSearchCount = 1000
+// InternalPaginationCount defines the number of docs to retrieve in a pagination request.
+const InternalPaginationCount = 1000
 
-// ElasticAPI is an object that provides access to the Elasticsearch API.
-type ElasticAPI struct {
+// API is an object that provides access to the Elasticsearch API.
+type API struct {
 	*typedapi.API
 	logger *slog.Logger
 }
 
 // Log can be used to write log messages decorated by the API.
-func (a *ElasticAPI) Log() *slog.Logger {
+func (a *API) Log() *slog.Logger {
 	return a.logger
 }
 
 // GetAPI returns the raw API object.
-func (a *ElasticAPI) GetAPI() *typedapi.API {
+func (a *API) GetAPI() *typedapi.API {
 	return a.API
 }

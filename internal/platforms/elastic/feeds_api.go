@@ -22,13 +22,13 @@ import (
 var defaultDatetimeFormat = "strict_date_optional_time_nanos"
 
 // AddItems will bulk index the given items.
-func (a *ElasticAPI) AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error) {
+func (e *API) AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, ErrFetchCtx
 	}
 
-	bulkOps, respCh := bulk.NewRequest(ctx, a)
+	bulkOps, respCh := bulk.NewRequest(ctx, e)
 
 	go func() {
 		defer close(bulkOps)
@@ -53,13 +53,13 @@ func (a *ElasticAPI) AddItems(ctx context.Context, items ...*models.Item) (*bulk
 }
 
 // AddFeeds will bulk index the given feeds.
-func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error) {
+func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, ErrFetchCtx
 	}
 
-	bulkOps, respCh := bulk.NewRequest(ctx, a)
+	bulkOps, respCh := bulk.NewRequest(ctx, e)
 
 	go func() {
 		defer close(bulkOps)
@@ -83,7 +83,7 @@ func (a *ElasticAPI) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk
 }
 
 // GetFeedsByURL retrieves a list of APIFeeds based on the given URLs.
-func (e *ElasticAPI) GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error) {
+func (e *API) GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, ErrFetchCtx
@@ -118,7 +118,7 @@ func (e *ElasticAPI) GetFeedsByURL(ctx context.Context, urls ...models.URL) (mod
 }
 
 // FeedsSearch searches the feeds index for feeds matching the relevant filters.
-func (e *ElasticAPI) FeedsSearch(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Feeds, error) {
+func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -163,7 +163,7 @@ func (e *ElasticAPI) FeedsSearch(ctx context.Context, filters models.Filters, pa
 
 // ItemsSearch performs a search query on feed items with the given query
 // options. It returns the raw search response.
-func (e *ElasticAPI) ItemsSearch(ctx context.Context, query query.Option, filters models.Filters, pagination models.Pagination) (*search.Response, error) {
+func (e *API) ItemsSearch(ctx context.Context, query query.Option, filters models.Filters, pagination models.Pagination) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -190,7 +190,7 @@ func (e *ElasticAPI) ItemsSearch(ctx context.Context, query query.Option, filter
 
 // ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
 // options. It returns the raw search response.
-func (e *ElasticAPI) ItemsAggregation(ctx context.Context, query query.Option, aggregation Aggregation) (*search.Response, error) {
+func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregation Aggregation) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -216,17 +216,14 @@ func (e *ElasticAPI) ItemsAggregation(ctx context.Context, query query.Option, a
 }
 
 // MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).
-func (e *ElasticAPI) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
+func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return errors.Join(ErrUpdateFailed, ErrFetchCtx)
 	}
-
 	partialUpdate := make(map[string]any)
-
-	// Updated the `updated_at` timestamp.
-	partialUpdate["updated_at"] = time.Now().UTC()
-
+	// Updated the `updated` timestamp.
+	partialUpdate["updated"] = time.Now().UTC()
 	// Update the user in the store with the new list of read items.
 	resp, err := NewDocUpdateRequest(e.GetAPI(), index, feedID,
 		WithPartialDocUpdate(partialUpdate),
@@ -234,11 +231,9 @@ func (e *ElasticAPI) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) 
 	if err != nil {
 		return errors.Join(ErrUpdateFailed, err)
 	}
-
 	slog.Debug("Updated feed.",
 		slog.String("result", resp.Result.String()),
 		slog.Int64("version", resp.Version_))
-
 	return nil
 }
 
