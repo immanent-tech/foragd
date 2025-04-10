@@ -10,6 +10,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
+	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/session"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
@@ -18,6 +19,8 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 )
 
+// StoreFeedFilters generates feed filters from the request params and then stores them in the session and request
+// context.
 func StoreFeedFilters(params any) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -34,6 +37,7 @@ func StoreFeedFilters(params any) func(next http.Handler) http.Handler {
 	}
 }
 
+// RetrieveFeedFilters retrieves feed filters from the session and stores them in the request context.
 func RetrieveFeedFilters(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := models.FiltersToCtx(req.Context(), session.GetFeedFilters(req.Context()))
@@ -41,6 +45,27 @@ func RetrieveFeedFilters(next http.Handler) http.Handler {
 	})
 }
 
+// MarkFeeds handles marking feeds as read.
+func MarkFeeds(api DataAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			// Get the mark request.
+			marks, valid, err := forms.DecodeForm[*models.MarkFeeds](req)
+			if err != nil || !valid {
+				InternalServerError(res, req, err)
+				return
+			}
+			// Mark the feeds.
+			if err := api.MarkSubscriptions(req.Context(), marks); err != nil {
+				InternalServerError(res, req, err)
+				return
+			}
+			next.ServeHTTP(res, req)
+		})
+	}
+}
+
+// GenerateFeedsContent creates the content for displaying a list of feeds.
 func GenerateFeedsContent(api DataAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -59,6 +84,8 @@ func GenerateFeedsContent(api DataAPI) func(next http.Handler) http.Handler {
 	}
 }
 
+// StoreItemFilters generates item filters from the request params and then stores them in the session and request
+// context.
 func StoreItemFilters(params any) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -75,6 +102,7 @@ func StoreItemFilters(params any) func(next http.Handler) http.Handler {
 	}
 }
 
+// RetrieveItemFilters retrieves item filters from the session and stores them in the request context.
 func RetrieveItemFilters(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := models.FiltersToCtx(req.Context(), session.GetItemFilters(req.Context()))
@@ -82,6 +110,27 @@ func RetrieveItemFilters(next http.Handler) http.Handler {
 	})
 }
 
+// MarkItems handles marking items as read.
+func MarkItems(api DataAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			// Get the mark request.
+			marks, valid, err := forms.DecodeForm[*models.MarkFeedItems](req)
+			if err != nil || !valid {
+				InternalServerError(res, req, err)
+				return
+			}
+			// Mark the feeds.
+			if err := api.MarkItems(req.Context(), marks); err != nil {
+				InternalServerError(res, req, err)
+				return
+			}
+			next.ServeHTTP(res, req)
+		})
+	}
+}
+
+// GenerateItemsContent creates the content for displaying a list of items.
 func GenerateItemsContent(api DataAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -100,6 +149,8 @@ func GenerateItemsContent(api DataAPI) func(next http.Handler) http.Handler {
 	}
 }
 
+// DisplayHome displays a page under /home. It handles either partial or full rendering of the page, depending on
+// whether the request is HTMX powered (partial) or not (full).
 func DisplayHome(title string) http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {

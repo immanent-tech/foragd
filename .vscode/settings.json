@@ -94,7 +94,8 @@
     "validation",
     "modifiers/style",
     "pkg/feeds",
-    "scheduler"
+    "scheduler",
+    "handlers"
   ],
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",

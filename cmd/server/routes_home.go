@@ -11,7 +11,6 @@ import (
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/cmd/server/handlers"
-	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
@@ -38,20 +37,8 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 }
 
 func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
-	// Get the mark request.
-	marks, valid, err := forms.DecodeForm[*models.MarkFeeds](req)
-	if err != nil || !valid {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-		return
-	}
-	// Mark the feeds.
-	if err := s.DataAPI().MarkSubscriptions(req.Context(), marks); err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-		return
-	}
 	chain := alice.New(
+		handlers.MarkFeeds(s.DataAPI()),
 		handlers.RetrieveFeedFilters,
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome("Feeds"))
@@ -67,20 +54,8 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 }
 
 func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
-	// Get the mark request.
-	marks, valid, err := forms.DecodeForm[*models.MarkFeedItems](req)
-	if err != nil || !valid {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-		return
-	}
-	// Mark the feeds.
-	if err := s.DataAPI().MarkItems(req.Context(), marks); err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
-		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
-		return
-	}
 	chain := alice.New(
+		handlers.MarkItems(s.DataAPI()),
 		handlers.RetrieveItemFilters,
 		handlers.GenerateItemsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome("Items"))
