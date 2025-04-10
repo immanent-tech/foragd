@@ -12,6 +12,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"slices"
 )
 
 templ (filters CategoryFilters) Show(classes ...string) {
@@ -40,14 +41,18 @@ templ (filter *CategoryFilter) Show(classes ...string) {
 }
 
 // Show renders the view filter as a set of badges joined together.
-templ (view *ViewFilters) Show(classes ...string) {
+templ (filters ViewFilters) Show(classes ...string) {
 	{{ classes = append(classes, "join-item") }}
 	@text.Build("View:", text.WithTextWeight(text.Semibold), text.WithTextSize(text.XS)).Show()
 	<div class="join">
-		for _, view := range view.badges {
-			@view.Show(classes...)
+		for viewFilter := range slices.Values(filters) {
+			@viewFilter.Show(classes...)
 		}
 	</div>
+}
+
+templ (filter ViewFilter) Show(classes ...string) {
+	@filter.Props.Show(classes...)
 }
 
 templ BuildFiltersMenu(viewFilters templates.Element, categoryFilters templates.Element) {

@@ -128,7 +128,7 @@ func WithMethod(method string) ActionOption {
 // the Action, which will be used when generating the Action's route.
 func WithQueryParam(key, value string) ActionOption {
 	return func(action *Action) {
-		action.parameters.Add(key, value)
+		action.parameters.Set(key, value)
 	}
 }
 
