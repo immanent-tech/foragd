@@ -97,12 +97,12 @@ func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.I
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (e *API) GetItems(ctx context.Context, filters models.Filters) (models.Items, models.Pagination, error) {
+func (e *API) GetItems(ctx context.Context) (models.Items, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", models.WrapError(ErrNoUserCtx, "elastic", "get items failed")
 	}
-
+	filters := models.FiltersFromCtx(ctx)
 	// Get subscriptions matching the filters.
 	subscriptions := user.GetSubscriptions().
 		FilterByFeedID(filters.Feeds...).
@@ -142,7 +142,7 @@ func (e *API) GetItems(ctx context.Context, filters models.Filters) (models.Item
 
 // GetSubscriptions will search Elasticsearch for subscribed feeds (with
 // given filters applied) for the given user, and, returns the feeds.
-func (e *API) GetSubscriptions(ctx context.Context, filters models.Filters) (models.Subscriptions, error) {
+func (e *API) GetSubscriptions(ctx context.Context) (models.Subscriptions, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, models.NewMessage(
@@ -150,6 +150,7 @@ func (e *API) GetSubscriptions(ctx context.Context, filters models.Filters) (mod
 			models.MessageStatusError,
 			models.WithError(ErrNoUserCtx))
 	}
+	filters := models.FiltersFromCtx(ctx)
 	subscriptions := user.GetSubscriptions().FilterByFeedID(filters.Feeds...)
 	categories := filters.Categories
 	// Adjust the feed filters.

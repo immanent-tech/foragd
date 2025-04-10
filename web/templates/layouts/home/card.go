@@ -4,7 +4,9 @@
 package home
 
 import (
+	"context"
 	"net/url"
+	"slices"
 
 	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
@@ -81,7 +83,7 @@ func (c *Card) AddPagination(reqURL *url.URL, pagination models.Pagination) {
 	c.AddAttributes(action.Attributes())
 }
 
-func BuildFeedCard(filters models.Filters, subscription *models.Subscription) *FeedCard {
+func BuildFeedCard(ctx context.Context, subscription *models.Subscription) *FeedCard {
 	feedCard := &FeedCard{
 		Card: Card{
 			Source: subscription,
@@ -90,7 +92,7 @@ func BuildFeedCard(filters models.Filters, subscription *models.Subscription) *F
 		UnreadCount: subscription.GetUnreadCount(),
 	}
 	feedCard.setMarkAction()
-	feedCard.setViewAction(filters)
+	feedCard.setViewAction(models.FiltersFromCtx(ctx))
 	feedCard.build()
 
 	if feedCard.UnreadCount == 0 {
@@ -100,7 +102,7 @@ func BuildFeedCard(filters models.Filters, subscription *models.Subscription) *F
 	return feedCard
 }
 
-func BuildItemCard(filters models.Filters, item *models.Item) *ItemCard {
+func BuildItemCard(ctx context.Context, item *models.Item) *ItemCard {
 	itemCard := &ItemCard{
 		Card: Card{
 			Source: item,
@@ -114,11 +116,37 @@ func BuildItemCard(filters models.Filters, item *models.Item) *ItemCard {
 	itemCard.build()
 
 	switch {
-	case filters.ViewRead():
+	case models.FiltersFromCtx(ctx).View == models.ViewRead:
 		fallthrough
 	case item.GetUserState() == models.StateRead:
 		card.WithExtraClasses(opacity.Apply(75))(itemCard.Props)
 	}
 
 	return itemCard
+}
+
+func BuildFeeds(ctx context.Context, subscriptions models.Subscriptions) []models.Template {
+	content := make([]models.Template, 0, len(subscriptions))
+	// Build feed cards.
+	for subscription := range slices.Values(subscriptions) {
+		content = append(content, BuildFeedCard(ctx, subscription))
+	}
+	return content
+}
+
+func BuildItems(ctx context.Context, reqURL *url.URL, pagination models.Pagination, items models.Items) []models.Template {
+	content := make([]models.Template, 0, len(items))
+	// Build feed cards.
+	// Build item cards.
+	for idx, item := range items {
+		// Create a card for this item.
+		itemCard := BuildItemCard(ctx, item)
+		// Add a pagination action to the last item.
+		if idx == len(items)-1 && len(items) == models.FiltersFromCtx(ctx).Count {
+			itemCard.AddPagination(reqURL, pagination)
+		}
+		// Append the card to the list of cards.
+		content = append(content, itemCard)
+	}
+	return content
 }

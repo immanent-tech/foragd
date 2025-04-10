@@ -4,9 +4,11 @@
 package home
 
 import (
+	"context"
 	"log/slog"
 	"slices"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
@@ -23,9 +25,10 @@ type CategoryFilter struct {
 	active bool
 }
 
-func BuildCategoryFilters(currentFilters models.Filters, categoryCounts models.CategoryCounts, path string) CategoryFilters {
+func BuildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCounts) CategoryFilters {
+	path := chi.RouteContext(ctx).RoutePattern()
+	currentFilters := models.FiltersFromCtx(ctx)
 	categoryFilters := make(CategoryFilters, 0, len(categoryCounts))
-
 	for categoryCount := range slices.Values(categoryCounts.GetTopCategories(10)) {
 		filters := models.NewFilters(
 			models.WithCountFilter(currentFilters.Count),
@@ -82,7 +85,9 @@ func viewFilterBadge(view models.View, filters models.Filters, path string) *bad
 	return viewBadge
 }
 
-func BuildViewFilters(filters models.Filters, path string) *ViewFilters {
+func BuildViewFilters(ctx context.Context) *ViewFilters {
+	filters := models.FiltersFromCtx(ctx)
+	path := chi.RouteContext(ctx).RoutePattern()
 	return &ViewFilters{
 		badges: []*badge.Props{
 			viewFilterBadge(models.ViewRead, filters, path),

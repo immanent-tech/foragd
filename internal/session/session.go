@@ -76,25 +76,27 @@ func LoadAndSave() func(next http.Handler) http.Handler {
 }
 
 func StoreFeedFilters(ctx context.Context, filters *models.Filters) {
-	session.Put(ctx, feedFiltersKey, *filters)
+	session.Put(ctx, feedFiltersKey, filters)
 }
 
-func GetFeedFilters(ctx context.Context) (*models.Filters, error) {
+func GetFeedFilters(ctx context.Context) models.Filters {
 	filters, ok := session.Get(ctx, feedFiltersKey).(models.Filters)
 	if !ok {
-		return nil, models.WrapError(ErrDataNotFound, "session", "no feed filters in session")
+		session.logger.Warn("No feed filters in session, using default filters.")
+		return *models.NewFilters()
 	}
-	return &filters, nil
+	return filters
 }
 
 func StoreItemFilters(ctx context.Context, filters *models.Filters) {
-	session.Put(ctx, itemFiltersKey, *filters)
+	session.Put(ctx, itemFiltersKey, filters)
 }
 
-func GetItemFilters(ctx context.Context) (*models.Filters, error) {
+func GetItemFilters(ctx context.Context) models.Filters {
 	filters, ok := session.Get(ctx, itemFiltersKey).(models.Filters)
 	if !ok {
-		return nil, models.WrapError(ErrDataNotFound, "session", "no item filters in session")
+		session.logger.Warn("No item filters in session, using default filters.")
+		return *models.NewFilters()
 	}
-	return &filters, nil
+	return filters
 }

@@ -18,15 +18,23 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	gowebly "github.com/gowebly/helpers"
 
 	"github.com/joshuar/go-feed-me/cmd/scheduler"
 	"github.com/joshuar/go-feed-me/cmd/server"
+	"github.com/joshuar/go-feed-me/cmd/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
+	"github.com/joshuar/go-feed-me/internal/session"
 )
 
 var ErrStartServerFailed = errors.New("could not start server")
+
+var (
+	htmxOnlyRoutes  = []string{"/home/settings", "/subscription"}
+	protectedRoutes = []string{"/home", "/subscription"}
+)
 
 const (
 	ServerReadTimeout  = 5 * time.Second
@@ -37,7 +45,6 @@ const (
 type ServeCmd struct{}
 
 func (r *ServeCmd) Run(opts *CmdOpts) error {
-
 	// Creating a waiting group that waits until the graceful shutdown procedure is done
 	var wg sync.WaitGroup
 
@@ -57,8 +64,22 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 	router.Handle("/static/*", gowebly.StaticFileServerHandler(http.FS(opts.StaticContent)))
 
 	// Get an `http.Handler` that we can use from the router and server.
-	handler := server.GenerateHandler(svr, router)
-
+	// handler := server.GenerateHandler(svr, router)
+	handler := server.HandlerWithOptions(svr, server.ChiServerOptions{
+		BaseRouter: router,
+		Middlewares: []server.MiddlewareFunc{
+			middleware.RequestID,
+			middleware.RealIP,
+			middlewares.Logger(svr.Log, config.LogLevel(), server.RequestIDKey),
+			middleware.Recoverer,
+			middlewares.CORS(config.Environment()),
+			middlewares.CSP(server.ServerConfig.CSP),
+			middlewares.ElasticMiddleware(),
+			middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI()),
+			middlewares.RequireHTMX(htmxOnlyRoutes),
+			session.LoadAndSave(),
+		},
+	})
 	serverObj := &http.Server{
 		Handler:           handler,
 		Addr:              fmt.Sprintf(":%d", server.Port()),

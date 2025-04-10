@@ -4,20 +4,19 @@
 
 package home
 
-import "github.com/joshuar/go-templ-daisyui/actions/dropdown"
-
-import "github.com/joshuar/go-templ-daisyui/modifiers/size"
-import "github.com/joshuar/go-templ-daisyui/actions/button"
-import "github.com/joshuar/go-templ-daisyui/display/icon"
-import "github.com/joshuar/go-templ-daisyui/navigation/menu"
-import "github.com/joshuar/go-templ-daisyui/classes/width"
-import "github.com/joshuar/go-templ-daisyui/modifiers/color"
-import "github.com/joshuar/go-feed-me/internal/models"
-
-import "github.com/joshuar/go-feed-me/web/templates"
-import "github.com/joshuar/go-templ-daisyui/display/text"
-import "github.com/davecgh/go-spew/spew"
-import "github.com/go-chi/chi/v5"
+import (
+	"github.com/go-chi/chi/v5"
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/classes/width"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"github.com/joshuar/go-templ-daisyui/navigation/menu"
+)
 
 type SortBadge struct {
 	models.Sort
@@ -31,8 +30,8 @@ templ (s *SortBadge) Show() {
 	).Show()
 }
 
-templ BuildSortingMenu(filters models.Filters, path string) {
-	{{ spew.Dump(chi.RouteContext(ctx)) }}
+templ BuildSortingMenu() {
+	{{ path := chi.RouteContext(ctx).RoutePattern() }}
 	<div id="content-sorting" hx-swap-oob="true">
 		@dropdown.Build(
 			dropdown.WithOpenOptions(
@@ -48,7 +47,7 @@ templ BuildSortingMenu(filters models.Filters, path string) {
 				menu.WithMenuTitle("Sort"),
 				menu.WithBaseColor(color.Base200),
 				menu.WithExtraClasses(width.W52),
-				menu.WithItems(generateSortOptions(filters, path)...),
+				menu.WithItems(generateSortOptions(models.FiltersFromCtx(ctx), path)...),
 			),
 		).Show()
 	</div>

@@ -34,7 +34,7 @@ var defaultCSP = []string{
 }
 
 // Define default server configuration options.
-var serverConfig = &Config{
+var ServerConfig = &Config{
 	Port:         7000,
 	ReadTimeout:  5 * time.Second,
 	WriteTimeout: 10 * time.Second,

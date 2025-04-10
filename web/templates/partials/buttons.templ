@@ -7,7 +7,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
-	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 )
@@ -36,11 +35,9 @@ templ MarkButton(action *templates.Action) {
 }
 
 templ ViewButton(action *templates.Action) {
-	@tooltip.Build("View Item(s)").Show() {
-		@button.Build(
-			button.WithSize(size.XS),
-			button.WithContent(icon.Build("fa-eye")),
-			button.WithExtraAttributes(action.Attributes()),
-		).Show()
-	}
+	@button.Build(
+		button.WithSize(size.XS),
+		button.WithContent(icon.Build("fa-eye")),
+		button.WithExtraAttributes(action.Attributes()),
+	).Show()
 }

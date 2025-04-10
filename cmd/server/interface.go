@@ -20,12 +20,12 @@ import (
 )
 
 func (s Server) AppSecret() string {
-	return serverConfig.Secret
+	return ServerConfig.Secret
 }
 
 // Port returns the port on which the server is listening.
 func Port() int {
-	return serverConfig.Port
+	return ServerConfig.Port
 }
 
 // UserAPI returns the API endpoint for manipulating users.

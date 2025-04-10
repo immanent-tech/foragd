@@ -52,18 +52,16 @@ func ImportAction(classes ...string) templ.Component {
 // the last state of the path (i.e., any parameters used) from the user session.
 func BackButton(ctx context.Context, path string) templ.Component {
 	var (
-		filters *models.Filters
+		filters models.Filters
 		params  url.Values
 	)
 	switch path {
 	case models.FeedsRoute:
-		filters, _ = session.GetFeedFilters(ctx)
+		filters = session.GetFeedFilters(ctx)
 	case models.ItemsRoute:
-		filters, _ = session.GetItemFilters(ctx)
+		filters = session.GetItemFilters(ctx)
 	}
-	if filters != nil {
-		params = filters.ToQueryParams()
-	}
+	params = filters.ToQueryParams()
 	attrs := templates.BuildAction(path,
 		templates.WithQueryParams(params),
 		templates.WithAttributes(templ.Attributes{

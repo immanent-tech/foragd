@@ -5,10 +5,13 @@
 package home
 
 import (
+	"context"
+	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 )
 
 var ContentFooterID = attributes.ID("content-footer")
@@ -33,26 +36,46 @@ templ (f *ListFooter) Show(classes ...string) {
 		class="bg-base-200 dock dock-sm"
 	>
 		<div class="basis-xs">
-			@BackButton(ctx, f.backPath)
+			@tooltip.Build("Back").Show() {
+				@BackButton(ctx, f.backPath)
+			}
 		</div>
 		<div class="basis-xs">
-			@f.filtersMenu
+			@tooltip.Build("Filter").Show() {
+				@f.filtersMenu
+			}
 		</div>
 		<div class="basis-xs">
-			@f.sortMenu
+			@tooltip.Build("Sort").Show() {
+				@f.sortMenu
+			}
 		</div>
 		<div class="basis-xs">
-			@BuildActionsMenu(f.actions...)
+			@tooltip.Build("Actions").Show() {
+				@BuildActionsMenu(f.actions...)
+			}
 		</div>
 	</div>
 }
 
-func BuildListFooter(backPath string, filters templ.Component, sorts templ.Component, actions ...templ.Component) *ListFooter {
+func BuildListFooter(ctx context.Context, categories models.CategoryCounts) *ListFooter {
+	var backPath string
+	switch chi.RouteContext(ctx).RoutePattern() {
+	case models.FeedsRoute:
+		backPath = "/home"
+	case models.ItemsRoute:
+		backPath = "/home/feeds"
+	}
+	// Build view filters.
+	viewFilters := BuildViewFilters(ctx)
+	// Build category filters.
+	categoryFilters := BuildCategoryFilters(ctx, categories)
+	// Build footer.
 	return &ListFooter{
 		backPath:    backPath,
-		filtersMenu: filters,
-		sortMenu:    sorts,
-		actions:     actions,
+		filtersMenu: BuildFiltersMenu(viewFilters, categoryFilters),
+		sortMenu:    BuildSortingMenu(),
+		actions:     []templ.Component{AddSubscriptionAction(), ImportAction()},
 	}
 }
 

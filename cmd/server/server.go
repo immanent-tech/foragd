@@ -26,7 +26,7 @@ import (
 )
 
 const (
-	requestIDKey = "request_id"
+	RequestIDKey = "request_id"
 )
 
 type DataAPI interface {
@@ -34,7 +34,7 @@ type DataAPI interface {
 	AddUser(ctx context.Context, userID models.UserID) error
 	GetUser(ctx context.Context) (*models.User, error)
 	// Subscription methods:
-	GetSubscriptions(ctx context.Context, filters models.Filters) (models.Subscriptions, error)
+	GetSubscriptions(ctx context.Context) (models.Subscriptions, error)
 	MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error
 	// Feeds methods:
@@ -42,7 +42,7 @@ type DataAPI interface {
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
 	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)
-	GetItems(ctx context.Context, filters models.Filters) (models.Items, models.Pagination, error)
+	GetItems(ctx context.Context) (models.Items, models.Pagination, error)
 	MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error
 }
 
@@ -65,17 +65,17 @@ var ErrStartServer = errors.New("start server failed")
 func NewServer(ctx context.Context) (Server, error) {
 	var svr Server
 	// Load the server config.
-	if err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, serverConfig); err != nil {
+	if err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, ServerConfig); err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
 	// If no secret is set, create a new secret.
-	if serverConfig.Secret == "" {
+	if ServerConfig.Secret == "" {
 		secret, err := randomBase16String(32)
 		if err != nil {
 			return svr, fmt.Errorf("%w: %w", ErrLoadConfig, err)
 		}
 
-		serverConfig.Secret = secret
+		ServerConfig.Secret = secret
 	}
 	// Set up the logger
 	svr.Log = logging.FromContext(ctx)
@@ -90,7 +90,7 @@ func NewServer(ctx context.Context) (Server, error) {
 		return svr, errors.Join(ErrStartServer, err)
 	}
 	// Load the authenticator backend.
-	auth0API, err := auth0.NewAuthenticator(ctx, "https://localhost:"+strconv.Itoa(serverConfig.Port))
+	auth0API, err := auth0.NewAuthenticator(ctx, "https://localhost:"+strconv.Itoa(ServerConfig.Port))
 	if err != nil {
 		return svr, errors.Join(ErrStartServer, err)
 	}
@@ -126,10 +126,10 @@ func GenerateHandler(svr Server, router chi.Router) http.Handler {
 	wrapper.HandlerMiddlewares = append(wrapper.HandlerMiddlewares,
 		middleware.RequestID,
 		middleware.RealIP,
-		middlewares.Logger(svr.Log, config.LogLevel(), requestIDKey),
+		middlewares.Logger(svr.Log, config.LogLevel(), RequestIDKey),
 		middleware.Recoverer,
 		middlewares.CORS(config.Environment()),
-		middlewares.CSP(serverConfig.CSP),
+		middlewares.CSP(ServerConfig.CSP),
 		middlewares.ElasticMiddleware(),
 		middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI()),
 		middlewares.RequireHTMX(htmxOnlyRoutes),

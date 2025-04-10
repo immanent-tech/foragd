@@ -8,17 +8,15 @@ import (
 )
 
 const (
-	userContextKey          contextKey = "user"
-	feedManagementAPICtxKey contextKey = "feedManagementAPI"
-	// pageNavigationCtxKey    contextKey = "pageNavigation"
-	itemSetBasePathCtxKey contextKey = "itemSetBasePath"
+	userCtxKey    contextKey = "user"
+	filtersCtxKey contextKey = "filters"
 )
 
 type contextKey string
 
 // UserToCtx stores a user in the context.
 func UserToCtx(ctx context.Context, user *User) context.Context {
-	return context.WithValue(ctx, userContextKey, user)
+	return context.WithValue(ctx, userCtxKey, user)
 }
 
 // UserFromCtx retrieves a user from the context and a boolean indicating
@@ -26,36 +24,28 @@ func UserToCtx(ctx context.Context, user *User) context.Context {
 // the user object will be valid. If a user was not found or there was a problem
 // with retrieval, the boolean will be false and an empty user object will be returned.
 func UserFromCtx(ctx context.Context) (*User, bool) {
-	user, found := ctx.Value(userContextKey).(*User)
+	user, found := ctx.Value(userCtxKey).(*User)
 	if !found {
 		return nil, false
 	}
-
 	return user, true
 }
 
-// func PageNavigationToCtx(ctx context.Context, navigation *APIPageNavigation) context.Context {
-// 	return context.WithValue(ctx, pageNavigationCtxKey, navigation)
-// }
-
-// func PageNavigationFromCtx(ctx context.Context) *APIPageNavigation {
-// 	navigation, found := ctx.Value(pageNavigationCtxKey).(*APIPageNavigation)
-// 	if !found {
-// 		return nil
-// 	}
-
-// 	return navigation
-// }
-
-func ItemSetBasePathToCtx(ctx context.Context, path string) context.Context {
-	return context.WithValue(ctx, itemSetBasePathCtxKey, path)
+// FiltersToCtx stores the current filters in the context.
+func FiltersToCtx(ctx context.Context, filters Filters) context.Context {
+	return context.WithValue(ctx, filtersCtxKey, filters)
 }
 
-func ItemSetBasePathFromCtx(ctx context.Context) string {
-	path, found := ctx.Value(itemSetBasePathCtxKey).(string)
+// FiltersFromCtx retrieves the current filters from the context. If there are no filters stored in the context, the
+// default filters will be returned.
+func FiltersFromCtx(ctx context.Context) Filters {
+	var (
+		filters Filters
+		found   bool
+	)
+	filters, found = ctx.Value(filtersCtxKey).(Filters)
 	if !found {
-		return ""
+		filters = *NewFilters()
 	}
-
-	return path
+	return filters
 }
