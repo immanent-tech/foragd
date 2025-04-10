@@ -4,6 +4,8 @@
 package home
 
 import (
+	"reflect"
+
 	"github.com/a-h/templ"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -45,8 +47,11 @@ func newSortAction(sort models.Sort, path string, filters models.Filters) templ.
 		Sort:   sort,
 		action: buildHomeAction(path, filters),
 	}
-	sortAction.action.AddAttribute(models.ParamSortBy, string(sort.SortBy))
-	sortAction.action.AddAttribute(models.ParamSortOrder, string(sort.SortOrder))
+	if reflect.DeepEqual(filters.Sort(), sortAction.Sort) {
+		sortAction.active = true
+	}
+	sortAction.action.AddParameter(models.ParamSortBy, string(sort.SortBy))
+	sortAction.action.AddParameter(models.ParamSortOrder, string(sort.SortOrder))
 	return sortAction.Show()
 }
 

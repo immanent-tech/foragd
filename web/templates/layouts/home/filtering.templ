@@ -6,15 +6,12 @@ package home
 
 import (
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
-	"github.com/joshuar/go-templ-daisyui/classes/width"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 )
 
 templ (filters CategoryFilters) Show(classes ...string) {
@@ -55,22 +52,9 @@ templ (view *ViewFilters) Show(classes ...string) {
 
 templ BuildFiltersMenu(viewFilters templates.Element, categoryFilters templates.Element) {
 	<div id="content-filters" hx-swap-oob="true">
-		@dropdown.Build(
-			dropdown.WithOpenOptions(
-				dropdown.From(dropdown.OpenTop),
-				dropdown.Align(dropdown.AlignCenter),
-			),
-			dropdown.WithButton(
-				button.WithSize(size.SM),
-				button.AsShape(button.Square, false),
-				button.WithContent(icon.Build("fa-sliders")),
-			),
-			dropdown.WithMenuContent(
-				menu.WithMenuTitle("Filters"),
-				menu.WithBaseColor(color.Base200),
-				menu.WithExtraClasses(width.W52),
-				menu.WithItems(viewFilters.Show(), categoryFilters.Show()),
-			),
-		).Show()
+		@partials.DockMenu("Filter",
+			icon.Build("fa-sliders"),
+			viewFilters.Show(), categoryFilters.Show(),
+		)
 	</div>
 }

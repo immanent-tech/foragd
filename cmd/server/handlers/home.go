@@ -9,7 +9,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -179,7 +178,6 @@ func DisplayHome() http.Handler {
 			title := home.TitleFromCtx(req.Context())
 			content := home.ContentFromCtx(req.Context())
 			footer := home.FooterFromCtx(req.Context())
-			spew.Dump(footer)
 			components := make([]templ.Component, 0, len(content))
 			// Create a new response writer.
 			resp := htmx.NewResponse()
@@ -194,7 +192,11 @@ func DisplayHome() http.Handler {
 				HandleHTMXResponse(resp, components...).ServeHTTP(res, req)
 			} else {
 				// Full render. Add the Appbar then build a full page layout to render.
-				components = append(components, partials.CommandModal(), appbar.AppBar().Show(), home.NewContent(content...), footer.Show())
+				components = append(components,
+					partials.CommandModal(),
+					appbar.AppBar().Show(),
+					home.NewContent(content...),
+					footer.Show())
 				fullPage := layouts.BuildPage(
 					layouts.WithHeadOptions(title,
 						layouts.WithPageDescription("Your home."),

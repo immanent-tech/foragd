@@ -4,7 +4,6 @@
 package server
 
 import (
-	"errors"
 	"log/slog"
 	"net/http"
 
@@ -13,11 +12,6 @@ import (
 	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
-)
-
-var (
-	ErrGeneratePageNavigationFailed = errors.New("error occurred while generating page navigation")
-	ErrParseMarkRequest             = errors.New("could not parse mark request")
 )
 
 func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
