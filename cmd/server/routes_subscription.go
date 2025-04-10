@@ -35,7 +35,7 @@ type subscriptionRequests map[*models.Subscription]*models.Feed
 type subscriptionRequestResults map[*models.Subscription]*models.Message
 
 func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
-	handler := handlers.HandleHTMXResponse(htmx.NewResponse(), subscription.NewSubscriptionModal(models.NewSubscriptionRequest(""), nil))
+	handler := handlers.HTMXResponse(htmx.NewResponse(), subscription.NewSubscriptionModal(models.NewSubscriptionRequest(""), nil))
 	handler.ServeHTTP(res, req)
 }
 
@@ -77,7 +77,7 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
-	handler := handlers.HandleHTMXResponse(htmx.NewResponse(), subscription.ImportModal())
+	handler := handlers.HTMXResponse(htmx.NewResponse(), subscription.ImportModal())
 	handler.ServeHTTP(res, req)
 }
 

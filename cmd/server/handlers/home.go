@@ -189,7 +189,7 @@ func DisplayHome() http.Handler {
 				}
 				// Partial render. Update the page title and render all content combined.
 				components = append(components, footer.Show(), partials.NewTitle(title).Show())
-				HandleHTMXResponse(resp, components...).ServeHTTP(res, req)
+				HTMXResponse(resp, components...).ServeHTTP(res, req)
 			} else {
 				// Full render. Add the Appbar then build a full page layout to render.
 				components = append(components,
@@ -204,7 +204,7 @@ func DisplayHome() http.Handler {
 					),
 					layouts.WithPageContent(components...),
 				)
-				HandleHTMXResponse(resp, fullPage.Show()).ServeHTTP(res, req)
+				HTMXResponse(resp, fullPage.Show()).ServeHTTP(res, req)
 			}
 		})
 }

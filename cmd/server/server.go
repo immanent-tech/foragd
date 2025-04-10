@@ -8,13 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-
-	"github.com/joshuar/go-feed-me/cmd/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -110,108 +105,6 @@ func NewServer(ctx context.Context) (Server, error) {
 	}
 
 	return svr, nil
-}
-
-var (
-	htmxOnlyRoutes  = []string{"/home/settings", "/subscription"}
-	protectedRoutes = []string{"/home", "/subscription"}
-)
-
-func GenerateHandler(svr Server, router chi.Router) http.Handler {
-	wrapper := ServerInterfaceWrapper{
-		Handler: svr,
-	}
-	// Use chi middlewares.
-	svr.Log.Debug("Setting up middleware...")
-	wrapper.HandlerMiddlewares = append(wrapper.HandlerMiddlewares,
-		middleware.RequestID,
-		middleware.RealIP,
-		middlewares.Logger(svr.Log, config.LogLevel(), RequestIDKey),
-		middleware.Recoverer,
-		middlewares.CORS(config.Environment()),
-		middlewares.CSP(ServerConfig.CSP),
-		middlewares.ElasticMiddleware(),
-		middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI()),
-		middlewares.RequireHTMX(htmxOnlyRoutes),
-		session.LoadAndSave())
-
-	svr.Log.Debug("Setting up routes...")
-
-	if config.Environment() == "development" {
-		router.Mount("/debug", middleware.Profiler())
-	}
-
-	// Login/Logout routes.
-	router.Get("/", wrapper.Index)
-	router.Route("/login", func(loginRouter chi.Router) {
-		loginRouter.Get("/{provider}", wrapper.Login)
-		loginRouter.Get("/{provider}/callback", wrapper.LoginCallback)
-	})
-	router.Get("/logout/{provider}", wrapper.Logout)
-
-	// Sign up routes.
-	router.Get("/signup", wrapper.SignUp)
-	router.Post("/signup", wrapper.ProcessSignUp)
-
-	router.Post("/search", wrapper.Search)
-
-	// router.Group(func(r chi.Router) {
-	// 	for m := range slices.Values(wrapper.HandlerMiddlewares) {
-	// 		r.Use(m)
-	// 	}
-	// r.Use(middlewares.ElasticMiddleware())
-	// r.Use(middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI()))
-	// r.Use(session.LoadAndSave())
-	// /home navigation
-	router.Route("/home", func(homeRouter chi.Router) {
-		homeRouter.Get("/", wrapper.HandleHome)
-		homeRouter.Get("/notifications", wrapper.HandleHomeNotifications)
-		// Feeds:
-		homeRouter.Get("/feeds", middlewares.CheckRequiredFilters(wrapper.HandleShowFeeds))
-		homeRouter.Post("/feeds", wrapper.HandleMarkFeeds)
-		// Items:
-		homeRouter.Get("/items", middlewares.CheckRequiredFilters(wrapper.HandleShowItems))
-		homeRouter.Post("/items", wrapper.HandleMarkItems)
-		// Item:
-		homeRouter.Get("/{feed}/{item}", wrapper.HandleShowItem)
-		homeRouter.Post("/{feed}/{item}/{mark}", wrapper.HandleMarkItem)
-		homeRouter.Put("/{feed}/{item}", wrapper.HandleSaveItem)
-		homeRouter.Delete("/{feed}/{item}", wrapper.HandleUnsaveItem)
-	})
-	// })
-
-	// // /home navigation
-	// router.Route("/home", func(homeRouter chi.Router) {
-	// 	homeRouter.Get("/", wrapper.HandleHome)
-	// 	homeRouter.Get("/notifications", wrapper.HandleHomeNotifications)
-	// 	// Feeds:
-	// 	homeRouter.Get("/feeds", middlewares.CheckRequiredFilters(wrapper.HandleShowFeeds))
-	// 	homeRouter.Post("/feeds", wrapper.HandleMarkFeeds)
-	// 	// Items:
-	// 	homeRouter.Get("/items", middlewares.CheckRequiredFilters(wrapper.HandleShowItems))
-	// 	homeRouter.Post("/items", wrapper.HandleMarkItems)
-	// 	// Item:
-	// 	homeRouter.Get("/{feed}/{item}", wrapper.HandleShowItem)
-	// 	homeRouter.Post("/{feed}/{item}/{mark}", wrapper.HandleMarkItem)
-	// 	homeRouter.Put("/{feed}/{item}", wrapper.HandleSaveItem)
-	// 	homeRouter.Delete("/{feed}/{item}", wrapper.HandleUnsaveItem)
-	// })
-
-	router.Route("/subscription", func(subscription chi.Router) {
-		subscription.Get("/new", wrapper.NewSubscription)
-		subscription.Put("/add", wrapper.AddSubscription)
-		subscription.Get("/import", wrapper.StartImport)
-		subscription.Put("/import", wrapper.SetImportMethod)
-		subscription.Post("/import", wrapper.ProcessImport)
-		// Existing subscription management:
-		subscription.Get("/edit/{subscription}", wrapper.ShowSubscription)
-		subscription.Put("/edit/{subscription}", wrapper.SaveSubscription)
-		subscription.Delete("/edit/{subscription}", wrapper.RemoveSubscription)
-		subscription.Put("/edit/category", wrapper.AddSubscriptionCategory)
-		subscription.Delete("/edit/category", wrapper.DelSubscriptionCategory)
-	})
-
-	return router
 }
 
 func backendErrorMsg(err error) *models.Message {
