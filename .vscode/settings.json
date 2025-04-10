@@ -2,7 +2,8 @@
   "[go.mod]": {
     "editor.codeActionsOnSave": {
       "source.organizeImports": "always"
-    }
+    },
+    "editor.defaultFormatter": "golang.go"
   },
   // "[go]": {
   //   "editor.defaultFormatter": "golang.go",

@@ -6,7 +6,6 @@
 
 # IDE files.
 .idea/
-.vscode/
 
 # Go workflow files.
 go.work
