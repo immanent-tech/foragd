@@ -148,5 +148,5 @@ func (i *Item) GetContent() *types.Content {
 			Value: sanitization.SanitizeString(i.ContentEncoded.Value),
 		}
 	}
-	return nil
+	return &types.Content{}
 }

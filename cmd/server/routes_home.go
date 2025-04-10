@@ -32,7 +32,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	chain := alice.New(
 		handlers.StoreFeedFilters(params),
 		handlers.GenerateFeedsContent(s.DataAPI()),
-	).Then(handlers.DisplayHome("Feeds"))
+	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
 }
 
@@ -41,7 +41,7 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 		handlers.MarkFeeds(s.DataAPI()),
 		handlers.RetrieveFeedFilters,
 		handlers.GenerateFeedsContent(s.DataAPI()),
-	).Then(handlers.DisplayHome("Feeds"))
+	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
 }
 
@@ -49,7 +49,7 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 	chain := alice.New(
 		handlers.StoreItemFilters(params),
 		handlers.GenerateItemsContent(s.DataAPI()),
-	).Then(handlers.DisplayHome("Items"))
+	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
 }
 
@@ -58,35 +58,15 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 		handlers.MarkItems(s.DataAPI()),
 		handlers.RetrieveItemFilters,
 		handlers.GenerateItemsContent(s.DataAPI()),
-	).Then(handlers.DisplayHome("Items"))
+	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
 }
 
 func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID) {
-	res.WriteHeader(http.StatusNotImplemented)
-	// details, found, err := s.DataAPI().GetItem(req.Context(), feedID, itemID)
-	// if err != nil || !found {
-	// 	logging.FromContext(req.Context()).Warn("Could not retrieve item.",
-	// 		slog.Any("error", err))
-	// 	http.Error(res, err.Error(), http.StatusInternalServerError)
-
-	// 	return
-	// }
-
-	// article := home.NewArticle(details)
-
-	// var content templates.Elements
-	// if htmx.IsHTMX(req) {
-	// 	content = append(content, article)
-	// } else {
-	// 	content = append(content, home.BuildMainContent(article))
-	// }
-
-	// // header := home.BuildArticleHeader(&details)
-	// // footer := home.BuildFooter("/home/items")
-	// footer := home.BuildArticleFooter("/home/items", details)
-
-	// displayHome(res, req, details.GetTitle(), content, footer)
+	chain := alice.New(
+		handlers.GenerateItemArticle(s.DataAPI(), feedID, itemID),
+	).Then(handlers.DisplayHome())
+	chain.ServeHTTP(res, req)
 }
 
 // HandleMarkItem marks a single item.

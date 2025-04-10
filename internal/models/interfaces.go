@@ -62,6 +62,13 @@ type SessionManagementAPI interface {
 // Source represents a single source of data. This might be an individual feed or item.
 type Source interface {
 	types.ObjectCommon
+	GetID() string
 	GetFeedID() FeedID
 	IsUnread() bool
+}
+
+// Source represents a single source of data. This might be an individual feed or item.
+type SourceWithContent interface {
+	Source
+	GetContent() *types.Content
 }

@@ -12,6 +12,7 @@ import (
 const (
 	contentCtxKey contextKey = "content"
 	footerCtxKey  contextKey = "footer"
+	titleCtxKey   contextKey = "title"
 )
 
 type contextKey string
@@ -43,4 +44,18 @@ func FooterFromCtx(ctx context.Context) models.Template {
 		return nil
 	}
 	return footer
+}
+
+func TitleToCtx(ctx context.Context, title string) context.Context {
+	return context.WithValue(ctx, titleCtxKey, title)
+}
+
+// FiltersFromCtx retrieves the current filters from the context. If there are no filters stored in the context, the
+// default filters will be returned.
+func TitleFromCtx(ctx context.Context) string {
+	title, found := ctx.Value(footerCtxKey).(string)
+	if !found {
+		return "Home"
+	}
+	return title
 }

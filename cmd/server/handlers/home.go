@@ -9,6 +9,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -79,6 +80,7 @@ func GenerateFeedsContent(api DataAPI) func(next http.Handler) http.Handler {
 			ctx := home.ContentToCtx(req.Context(), content)
 			footer := home.BuildListFooter(ctx, subscriptions.GetCategoryCounts())
 			ctx = home.FooterToCtx(ctx, footer)
+			ctx = home.TitleToCtx(ctx, "Feeds")
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -144,6 +146,26 @@ func GenerateItemsContent(api DataAPI) func(next http.Handler) http.Handler {
 			ctx := home.ContentToCtx(req.Context(), content)
 			footer := home.BuildListFooter(ctx, items.GetCategoryCounts())
 			ctx = home.FooterToCtx(ctx, footer)
+			ctx = home.TitleToCtx(ctx, "Items")
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+// GenerateItemArticle creates the content for displaying an item.
+func GenerateItemArticle(api DataAPI, feedID models.FeedID, itemID models.ItemID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			item, found, err := api.GetItem(req.Context(), feedID, itemID)
+			if err != nil || !found {
+				InternalServerError(res, req, err)
+				return
+			}
+			content := []models.Template{home.BuildArticle(item)}
+			ctx := home.ContentToCtx(req.Context(), content)
+			footer := home.BuildArticleFooter(item)
+			ctx = home.FooterToCtx(ctx, footer)
+			ctx = home.TitleToCtx(ctx, item.GetTitle())
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -151,11 +173,13 @@ func GenerateItemsContent(api DataAPI) func(next http.Handler) http.Handler {
 
 // DisplayHome displays a page under /home. It handles either partial or full rendering of the page, depending on
 // whether the request is HTMX powered (partial) or not (full).
-func DisplayHome(title string) http.Handler {
+func DisplayHome() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
+			title := home.TitleFromCtx(req.Context())
 			content := home.ContentFromCtx(req.Context())
 			footer := home.FooterFromCtx(req.Context())
+			spew.Dump(footer)
 			components := make([]templ.Component, 0, len(content))
 			// Create a new response writer.
 			resp := htmx.NewResponse()

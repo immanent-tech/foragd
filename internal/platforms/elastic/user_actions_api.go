@@ -71,8 +71,8 @@ func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.I
 					// Must be published or updated after the user max history.
 					query.Bool(
 						query.Should(
-							query.Since("publishedParsed", user.GetMarkedRead(feedID)),
-							query.Since("updatedParsed", user.GetMarkedRead(feedID)),
+							query.Since("published", user.GetMarkedRead(feedID)),
+							query.Since("updated", user.GetMarkedRead(feedID)),
 						),
 					),
 				),

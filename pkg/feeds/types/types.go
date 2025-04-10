@@ -20,7 +20,10 @@ var (
 
 // String will return the value of the object.
 func (c *CustomTypeBase) String() string {
-	return c.Value
+	if c != nil {
+		return c.Value
+	}
+	return ""
 }
 
 // NewXMLAttr is a convienience function to create an xml.Attr from a name/value/namespace combination. The namespace

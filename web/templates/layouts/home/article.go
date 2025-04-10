@@ -9,11 +9,11 @@ import (
 
 // Article is a display component that shows an article for the given data.
 type Article struct {
-	*models.Item
+	models.SourceWithContent
 }
 
-func NewArticle(item *models.Item) *Article {
+func BuildArticle(item *models.Item) models.Template {
 	return &Article{
-		Item: item,
+		SourceWithContent: item,
 	}
 }

@@ -131,6 +131,11 @@ func (s *Subscription) Valid() (bool, error) {
 	return true, nil
 }
 
+// GetID retrieves the SubscriptionID.
+func (s *Subscription) GetID() SubscriptionID {
+	return s.SubscriptionID
+}
+
 // GetFeedID retrieves the FeedID associated with the subscription.
 func (s *Subscription) GetFeedID() FeedID {
 	return s.FeedID

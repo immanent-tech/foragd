@@ -4,32 +4,71 @@
 
 package home
 
-import "github.com/joshuar/go-templ-daisyui/display/badge"
-import "github.com/joshuar/go-templ-daisyui/modifiers/size"
-import "github.com/joshuar/go-templ-daisyui/modifiers/color"
-import "github.com/joshuar/go-templ-daisyui/display/text"
-import "github.com/joshuar/go-templ-daisyui/display/article"
+import (
+	"github.com/joshuar/go-templ-daisyui/display/article"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"strings"
+)
 
 templ (a *Article) Show(classes ...string) {
-	@article.Build(
-		a.showItemArticle(),
-		article.WithExtraAttributes(templ.Attributes{
-			"hx-post":     "/home/" + a.GetFeedID() + "/" + a.GetID() + "/read",
-			"hx-swap":     "none",
-			"hx-push-url": "false",
-			"hx-trigger":  "load delay:2s",
-		}),
-	).Show(classes...)
+	<div id="content" class="flex flex-wrap p-4 h-full items-start">
+		@article.Build(
+			a.showItemArticle(),
+			article.WithExtraAttributes(templ.Attributes{
+				"hx-post":     "/home/" + a.GetFeedID() + "/" + a.GetID() + "/read",
+				"hx-swap":     "none",
+				"hx-push-url": "false",
+				"hx-trigger":  "load delay:2s",
+			}),
+		).Show(classes...)
+	</div>
+}
+
+templ (a *Article) showTitle() {
+	<h2>
+		@text.Build(a.GetTitle(),
+			text.WithTextWeight(text.Semibold),
+			text.WithTextSize(text.LG),
+		).Show("flex-1")
+	</h2>
+}
+
+templ (a *Article) showDescription() {
+	if desc := a.GetDescription(); desc != "" {
+		@templ.Raw(desc)
+	}
+}
+
+templ (a *Article) showAuthors() {
+	if len(a.GetAuthors()) > 0 {
+		<div class="flex-1">
+			@text.Build(strings.Join(a.GetAuthors(), ","),
+				text.WithTextSize(text.XS),
+				text.AsItalicText(),
+			).Show()
+		</div>
+	}
+}
+
+templ (a *Article) showTimestamp() {
+	<div class="flex-none">
+		@text.Build(relativeTime(a.GetUpdatedDate()),
+			text.WithTextSize(text.XS),
+			text.AsItalicText(),
+		).Show()
+	</div>
 }
 
 templ (a *Article) showItemArticle() {
-	<h2 hx-disable="true">{ a.GetTitle() }</h2>
-	<div class="flex w-full justify-items-end gap-2 p-2">
-		for _, author := range a.Authors {
-			@text.Build(author, text.WithTextSize(text.XS), text.AsItalicText()).Show()
-		}
-		@showLastUpdated("Last Updated:", a.GetTimestamp())
+	@a.showTitle()
+	<div class="flex w-full justify-items-end px-2">
+		@a.showAuthors()
+		@a.showTimestamp()
 	</div>
+	@a.showDescription()
 	<div class="flex flex-wrap justify-items-center">
 		for _, category := range a.GetCategories() {
 			@badge.Build(
@@ -40,7 +79,7 @@ templ (a *Article) showItemArticle() {
 			).Show("p-1", "m-1")
 		}
 	</div>
-	<div id="article_content" hx-disable="true">
+	<div id="article_content">
 		@templ.Raw(a.GetContent().String())
 	</div>
 }
