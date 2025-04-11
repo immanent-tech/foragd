@@ -24,9 +24,9 @@ import (
 	"time"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/config"
-	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
 const (
@@ -45,9 +45,9 @@ var defaultTransportConfig = &http.Transport{
 
 func Connect(ctx context.Context) (*API, error) {
 	// Retrieve a logger from the context.
-	logger := logging.FromContext(ctx).WithGroup("elastic")
+	logger := slogctx.FromCtx(ctx).WithGroup("elastic")
 
-	clientConfig, err := loadConfigOnce(logger, config.Environment())
+	clientConfig, err := loadConfigOnce(ctx, config.Environment())
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
@@ -58,10 +58,6 @@ func Connect(ctx context.Context) (*API, error) {
 	}
 
 	client := &API{API: esclient.API, logger: logger}
-
-	// if err := client.Setup(ctx); err != nil {
-	// 	return nil, fmt.Errorf("%w: %w", ErrSetupFailed, err)
-	// }
 
 	return client, nil
 }

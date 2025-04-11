@@ -7,10 +7,11 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/alice"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/cmd/server/handlers"
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -23,11 +24,13 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 }
 
 func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
+	ctx := slogctx.WithGroup(req.Context(), "show_feeds")
+	ctx = slogctx.Append(ctx, slog.String("id", middleware.GetReqID(req.Context())))
 	chain := alice.New(
 		handlers.StoreFeedFilters(params),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())
-	chain.ServeHTTP(res, req)
+	chain.ServeHTTP(res, req.WithContext(ctx))
 }
 
 func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
@@ -72,7 +75,7 @@ func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feedI
 	}
 	// Mark item.
 	if err := s.DataAPI().MarkItems(req.Context(), marks); err != nil {
-		logging.FromContext(req.Context()).Error("Mark item failed.",
+		slogctx.FromCtx(req.Context()).Error("Mark item failed.",
 			slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}

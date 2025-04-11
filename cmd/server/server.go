@@ -11,13 +11,13 @@ import (
 	"strconv"
 
 	"github.com/joshuar/go-feed-me/internal/config"
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/session"
 	"github.com/joshuar/go-feed-me/internal/session/store"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 const (
@@ -73,7 +73,7 @@ func NewServer(ctx context.Context) (Server, error) {
 		ServerConfig.Secret = secret
 	}
 	// Set up the logger
-	svr.Log = logging.FromContext(ctx)
+	svr.Log = slogctx.FromCtx(ctx)
 	// Load the auth0UserAPI backend.
 	auth0UserAPI, err := auth0.NewUserAPI(ctx)
 	if err != nil {
@@ -96,7 +96,7 @@ func NewServer(ctx context.Context) (Server, error) {
 	}
 
 	// Set up the session manager.
-	session.NewSessionManager(sessionStore)
+	session.NewSessionManager(ctx, sessionStore)
 	// Add the API to the environment.
 	svr.API = &API{
 		user:    auth0UserAPI,

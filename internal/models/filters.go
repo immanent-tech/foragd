@@ -6,6 +6,7 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math"
 	"net/url"
 	"slices"
@@ -131,17 +132,17 @@ func (f *Filters) Generate(params any) error {
 	// Marshal params to JSON.
 	data, err := json.Marshal(params)
 	if err != nil {
-		return WrapError(err, "api", "unable to marshal params")
+		return fmt.Errorf("unable to marshal params: %w", err)
 	}
 	// Unmarshal JSON to filters.
 	err = json.Unmarshal(data, f)
 	if err != nil {
-		return WrapError(err, "api", "unable to unmarshal filters from params")
+		return fmt.Errorf("unable to marshal params: %w", err)
 	}
 
 	valid, err := filters.Valid()
 	if !valid || err != nil {
-		return WrapError(err, "api", "invalid feed filters")
+		return fmt.Errorf("invalid filters: %w", err)
 	}
 
 	return nil

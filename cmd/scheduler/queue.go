@@ -14,8 +14,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	"github.com/reugn/go-quartz/quartz"
+	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
@@ -270,7 +270,7 @@ func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
 
 	return &JobQueue{
 		client: client,
-		logger: logging.FromContext(ctx).WithGroup("job_queue"),
+		logger: slogctx.FromCtx(ctx).WithGroup("job_queue"),
 		index:  schema.SchedulerJobsPrefix,
 	}, nil
 }

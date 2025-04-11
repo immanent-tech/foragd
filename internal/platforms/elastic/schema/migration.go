@@ -14,9 +14,9 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/create"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/putindextemplate"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/config"
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 )
 
@@ -70,7 +70,7 @@ func Migration(ctx context.Context, api *typedapi.API, migrations ...string) err
 // migrateUsers contains migration actions for migrating users indices and
 // settings.
 func migrateUsers(ctx context.Context, api *typedapi.API) error {
-	logging.FromContext(ctx).Debug("Migrating users...")
+	slogctx.FromCtx(ctx).Debug("Migrating users...")
 
 	if err := elastic.PutComponentTemplate(ctx, api, UsersMappings, UserMappingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
@@ -104,7 +104,7 @@ func migrateUsers(ctx context.Context, api *typedapi.API) error {
 // migrateFeeds contains migration actions for migrating feeds indices and
 // settings.
 func migrateFeeds(ctx context.Context, api *typedapi.API) error {
-	logging.FromContext(ctx).Debug("Migrating feeds...")
+	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
 
 	if err := elastic.PutComponentTemplate(ctx, api, FeedsMappings, FeedsMappingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
@@ -138,7 +138,7 @@ func migrateFeeds(ctx context.Context, api *typedapi.API) error {
 // migrateFeedItems contains migration actions for migrating feed items
 // index mappings & settings and ILM policy.
 func migrateFeedItems(ctx context.Context, api *typedapi.API) error {
-	logging.FromContext(ctx).Debug("Migrating feed items...")
+	slogctx.FromCtx(ctx).Debug("Migrating feed items...")
 
 	if err := elastic.PutILM(ctx, api, FeedItemsSchemaPrefix, FeedItemsILMPolicy()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
@@ -162,7 +162,7 @@ func migrateFeedItems(ctx context.Context, api *typedapi.API) error {
 // migrateScheduler contains migration actions for migrating scheduler
 // index mappings & settings and ILM policy.
 func migrateScheduler(ctx context.Context, api *typedapi.API) error {
-	logging.FromContext(ctx).Debug("Migrating feed items...")
+	slogctx.FromCtx(ctx).Debug("Migrating feed items...")
 
 	var (
 		err   error
@@ -203,7 +203,7 @@ func migrateScheduler(ctx context.Context, api *typedapi.API) error {
 // migrateSession contains migration actions for migrating session indices and
 // settings.
 func migrateSession(ctx context.Context, api *typedapi.API) error {
-	logging.FromContext(ctx).Debug("Migrating feeds...")
+	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
 
 	if err := elastic.PutComponentTemplate(ctx, api, SessionsMappings, SessionsMappingsTemplate()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
@@ -236,7 +236,7 @@ func migrateSession(ctx context.Context, api *typedapi.API) error {
 
 // migrateIngest will migrate the ingest pipelines.
 func migrateIngest(ctx context.Context, api *typedapi.API) error {
-	logging.FromContext(ctx).Debug("Migrating ingest pipeline...")
+	slogctx.FromCtx(ctx).Debug("Migrating ingest pipeline...")
 
 	if err := elastic.PutIngestPipeline(ctx, api, IngestPipelineID, IngestPipelineFeeds()); err != nil {
 		return errors.Join(ErrMigrationFailed, err)

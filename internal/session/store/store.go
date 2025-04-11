@@ -12,8 +12,8 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
+	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
@@ -165,9 +165,8 @@ func (s *Store) All() (map[string][]byte, error) {
 
 func NewSessionStore(ctx context.Context, client *elastic.API) (*Store, error) {
 	sessionCtx = ctx
-
 	return &Store{
-		logger: logging.FromContext(ctx).WithGroup("session"),
+		logger: slogctx.FromCtx(sessionCtx).WithGroup("session_store"),
 		client: client,
 		index:  schema.SessionsPrefix,
 	}, nil

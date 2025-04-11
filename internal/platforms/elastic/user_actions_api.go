@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 )
@@ -100,7 +100,7 @@ func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.I
 func (e *API) GetItems(ctx context.Context) (models.Items, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", models.WrapError(ErrNoUserCtx, "elastic", "get items failed")
+		return nil, "", ErrFetchCtx
 	}
 	filters := models.FiltersFromCtx(ctx)
 	// Get subscriptions matching the filters.
@@ -120,7 +120,7 @@ func (e *API) GetItems(ctx context.Context) (models.Items, models.Pagination, er
 	// Extract items and pagination values.
 	items, lastSortValue, warnings := ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
 	if warnings != nil {
-		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
+		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
 	}
 	// Encode the pagination value.
@@ -210,12 +210,12 @@ func (e *API) GetSubscriptions(ctx context.Context) (models.Subscriptions, error
 func (e *API) GetSubscriptionUnreadCounts(ctx context.Context, subscriptions models.Subscriptions) error {
 	countResults, err := e.ItemsAggregation(ctx, unreadFeedItemsQuery(subscriptions), NewTermsAggregation("UnreadCounts", "feed_id"))
 	if err != nil {
-		return models.WrapError(err, "elastic", "get feed unread counts failed")
+		return ErrFetchCtx
 	}
 	var categoryCounts TermsAggregationResults
 	categoryCounts.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](countResults, "UnreadCounts")
 	if err != nil {
-		return models.WrapError(err, "elastic", "get feed unread counts failed")
+		return ErrFetchCtx
 	}
 	unreadCounts := make(map[models.FeedID]int)
 	for feedID := range slices.Values(subscriptions.GetFeedIDs()) {

@@ -216,8 +216,10 @@ func NewRequest(ctx context.Context, client Client, options ...Option) (chan Ope
 		// Handle response.
 		switch {
 		case err != nil:
+			client.Log().Error("Bulk request failed.", slog.Any("error", err))
 			respCh <- Response{Err: err}
 		case resp.Errors:
+			client.Log().Warn("Bulk request completed with some operation errors.")
 			respCh <- Response{Err: ErrBulkHasErrors, Responses: GetOperationResponses(resp.Items)}
 		default:
 			respCh <- Response{Responses: GetOperationResponses(resp.Items)}

@@ -16,11 +16,12 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/alice"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/forms"
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/validation"
@@ -42,6 +43,8 @@ func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 
 // AddSubscription handles an add subscription request.
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
+	ctx := slogctx.WithGroup(req.Context(), "add_subscription")
+	ctx = slogctx.Append(ctx, slog.String("id", middleware.GetReqID(req.Context())))
 	chain := alice.New(
 		handlers.ParseSubscriptionRequest,
 		handlers.MatchRequestsWithFeeds(s.DataAPI()),
@@ -49,7 +52,7 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 		handlers.AddFeedsForRequests(s.DataAPI()),
 		handlers.AddSubscriptionsForRequests(s.DataAPI()),
 	).Then(handlers.SubscriptionResponse())
-	chain.ServeHTTP(res, req)
+	chain.ServeHTTP(res, req.WithContext(ctx))
 }
 
 func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
@@ -177,13 +180,13 @@ func (f *AddSubscriptionCategoryFormdataBody) Valid() (bool, error) {
 func (s Server) AddSubscriptionCategory(res http.ResponseWriter, req *http.Request) {
 	data, valid, err := forms.DecodeForm[*AddSubscriptionCategoryFormdataBody](req)
 	if !valid || err != nil {
-		logging.FromContext(req.Context()).Error("Cannot display content.",
+		slogctx.FromCtx(req.Context()).Error("Cannot display content.",
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.ShowCategory(data.Category)); err != nil {
-		logging.FromContext(req.Context()).Error("Cannot display content.",
+		slogctx.FromCtx(req.Context()).Error("Cannot display content.",
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
@@ -193,7 +196,7 @@ func (s Server) DelSubscriptionCategory(res http.ResponseWriter, req *http.Reque
 	res.WriteHeader(http.StatusOK)
 
 	if _, err := res.Write(nil); err != nil {
-		logging.FromContext(req.Context()).Error("Cannot display content.",
+		slogctx.FromCtx(req.Context()).Error("Cannot display content.",
 			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}

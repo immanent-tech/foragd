@@ -47,21 +47,6 @@ const (
 // Count is the count of items to retrieve with a request.
 type Count = int
 
-// Error represents an error from within the API or service.
-type Error struct {
-	// Context is a string that adds additional context to an error for internal use.
-	Context string `json:"context"`
-
-	// Err contains any lower-level wrapped error(s).
-	Err error `json:"err"`
-
-	// Message is a short description for this error.
-	Message string `json:"message"`
-}
-
-// ErrorCode is a globally unique string for the error within the service.
-type ErrorCode = string
-
 // FeedState tracks the state of a feed.
 type FeedState struct {
 	// FeedID is the unique ID of a feed.
@@ -137,7 +122,7 @@ type Message struct {
 	// Status indicates the severity or importance of the message.
 	Status MessageStatus `json:"status" validate:"required"`
 
-	// Summary is a brief description for the message, which can be used as a title or summary.
+	// Summary is a user-level brief description for the message, which can be used as a title or summary.
 	Summary string `json:"summary" validate:"required"`
 }
 

@@ -13,10 +13,10 @@ import (
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/id"
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
@@ -79,7 +79,7 @@ func Run(ctx context.Context) error {
 		db:         esClient,
 		queue:      jobQueue,
 		scheduler:  scheduler,
-		logger:     logging.FromContext(ctx).WithGroup("scheduler"),
+		logger:     slogctx.FromCtx(ctx).WithGroup("scheduler"),
 		checkpoint: time.Time{},
 	}
 

@@ -10,14 +10,15 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
+	slogctx "github.com/veqryn/slog-context"
+
 	"github.com/joshuar/go-feed-me/internal/session"
 )
 
 func LoginHandler(res http.ResponseWriter, req *http.Request, authenticator *Authenticator) {
 	state, err := generateRandomState()
 	if err != nil {
-		logging.FromContext(req.Context()).
+		slogctx.FromCtx(req.Context()).
 			Error("Cannot generate state.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -25,7 +26,7 @@ func LoginHandler(res http.ResponseWriter, req *http.Request, authenticator *Aut
 	}
 
 	if err := session.StoreState(req.Context(), state); err != nil {
-		logging.FromContext(req.Context()).
+		slogctx.FromCtx(req.Context()).
 			Error("Cannot save state.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
@@ -37,14 +38,14 @@ func LoginHandler(res http.ResponseWriter, req *http.Request, authenticator *Aut
 
 func CallbackHandler(res http.ResponseWriter, req *http.Request, authenticator *Authenticator, code, state string) {
 	if req.URL.Path != "/login/auth0/callback" {
-		logging.FromContext(req.Context()).
+		slogctx.FromCtx(req.Context()).
 			Error("Invalid request.")
 		http.NotFound(res, req)
 	}
 
 	sessionState, err := session.GetState(req.Context())
 	if err != nil {
-		logging.FromContext(req.Context()).
+		slogctx.FromCtx(req.Context()).
 			Error("Invalid state.", slog.Any("error", err))
 		res.WriteHeader(http.StatusUnauthorized)
 
@@ -52,7 +53,7 @@ func CallbackHandler(res http.ResponseWriter, req *http.Request, authenticator *
 	}
 
 	if state != sessionState {
-		logging.FromContext(req.Context()).
+		slogctx.FromCtx(req.Context()).
 			Error("Unauthorized. Invalid state.")
 		res.WriteHeader(http.StatusUnauthorized)
 
@@ -62,7 +63,7 @@ func CallbackHandler(res http.ResponseWriter, req *http.Request, authenticator *
 	// Exchange an authorization code for a tokens.
 	tokens, err := authenticator.Exchange(req.Context(), code)
 	if err != nil {
-		logging.FromContext(req.Context()).
+		slogctx.FromCtx(req.Context()).
 			Error("Unauthorized. Invalid token.", slog.Any("error", err))
 		res.WriteHeader(http.StatusUnauthorized)
 
@@ -71,7 +72,7 @@ func CallbackHandler(res http.ResponseWriter, req *http.Request, authenticator *
 
 	idToken, err := authenticator.VerifyIDToken(req.Context(), tokens)
 	if err != nil {
-		logging.FromContext(req.Context()).
+		slogctx.FromCtx(req.Context()).
 			Error("Unauthorized. Invalid token.", slog.Any("error", err))
 		res.WriteHeader(http.StatusUnauthorized)
 
@@ -81,7 +82,7 @@ func CallbackHandler(res http.ResponseWriter, req *http.Request, authenticator *
 	// Store the user profile in the session.
 	err = session.StoreTokens(req.Context(), idToken, tokens.AccessToken)
 	if err != nil {
-		logging.FromContext(req.Context()).
+		slogctx.FromCtx(req.Context()).
 			Error("Unable to store tokens.", slog.Any("error", err))
 		res.WriteHeader(http.StatusUnauthorized)
 
@@ -92,9 +93,8 @@ func CallbackHandler(res http.ResponseWriter, req *http.Request, authenticator *
 func LogoutHandler(res http.ResponseWriter, req *http.Request) {
 	logoutURL, err := generateLogoutURL(req)
 	if err != nil {
-		logging.LogReq(req, http.StatusInternalServerError).
-			Error("Auth0LogoutHandler: invalid Auth0 domain.",
-				slog.Any("error", err))
+		slog.Error("Auth0LogoutHandler: invalid Auth0 domain.",
+			slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
 		return
@@ -102,7 +102,7 @@ func LogoutHandler(res http.ResponseWriter, req *http.Request) {
 
 	// Clear the user session from the local session storage.
 	if err := session.ClearSession(req.Context()); err != nil {
-		logging.FromContext(req.Context()).Warn("Failed to clear user session.", slog.Any("error", err))
+		slogctx.FromCtx(req.Context()).Warn("Failed to clear user session.", slog.Any("error", err))
 	}
 
 	// Redirect the user to logout from Auth0.

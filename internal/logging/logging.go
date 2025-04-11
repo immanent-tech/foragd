@@ -7,11 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/lmittmann/tint"
 	"github.com/mattn/go-isatty"
 	slogmulti "github.com/samber/slog-multi"
@@ -20,23 +20,28 @@ import (
 )
 
 const (
+	// LevelTrace is a custom TRACE log level.
 	LevelTrace = slog.Level(-8)
+	// LevelFatal is a custom FATAL log level.
 	LevelFatal = slog.Level(12)
 )
 
+// LevelNames contains a list of custom log level names.
 var LevelNames = map[slog.Leveler]string{
 	LevelTrace: "TRACE",
 	LevelFatal: "FATAL",
 }
 
+// Options are options for controlling logging.
 type Options struct {
 	LogLevel  string `name:"log-level" enum:"info,debug,trace" default:"info" help:"Set logging level."`
 	NoLogFile bool   `name:"no-log-file" help:"Don't write to a log file." default:"false"`
 }
 
+// DefaultLogFile is the default log file location.
 var DefaultLogFile = "deployments/server.log"
 
-//revive:disable:flag-parameter
+// New creates a new logger with the given options.
 func New(options Options) *slog.Logger {
 	var (
 		logLevel slog.Level
@@ -62,11 +67,7 @@ func New(options Options) *slog.Logger {
 	}
 
 	handlers = append(handlers,
-		// tint.NewHandler(os.Stderr, generateConsoleOptions(logLevel, os.Stderr.Fd())))
-		slogctx.NewHandler(slogjson.NewHandler(os.Stdout, &slogjson.HandlerOptions{
-			AddSource: false,
-			Level:     logLevel,
-		}), nil),
+		tint.NewHandler(os.Stderr, generateConsoleOptions(logLevel, os.Stderr.Fd())),
 	)
 	// Unless no log file was requested, set up file logging.
 	if logFile != "" {
@@ -76,11 +77,13 @@ func New(options Options) *slog.Logger {
 				slog.String("file", logFile),
 				slog.Any("error", err))
 		} else {
-			handlers = append(handlers, slog.NewTextHandler(logFH, generateFileOpts(logLevel)))
+			handlers = append(handlers,
+				slogjson.NewHandler(logFH, generateFileOpts(logLevel)),
+			)
 		}
 	}
 
-	logger := slog.New(slogmulti.Fanout(handlers...))
+	logger := slog.New(slogctx.NewHandler(slogmulti.Fanout(handlers...), nil))
 	slog.SetDefault(logger)
 
 	return logger
@@ -90,7 +93,7 @@ func generateConsoleOptions(level slog.Level, fd uintptr) *tint.Options {
 	opts := &tint.Options{
 		Level:       level,
 		NoColor:     !isatty.IsTerminal(fd),
-		ReplaceAttr: tintLevelReplacer,
+		ReplaceAttr: consolelevelReplacer,
 		TimeFormat:  time.Kitchen,
 	}
 	if level == LevelTrace {
@@ -100,8 +103,9 @@ func generateConsoleOptions(level slog.Level, fd uintptr) *tint.Options {
 	return opts
 }
 
-func generateFileOpts(level slog.Level) *slog.HandlerOptions {
-	opts := &slog.HandlerOptions{
+func generateFileOpts(level slog.Level) *slogjson.HandlerOptions {
+	opts := &slogjson.HandlerOptions{
+		AddSource:   false,
 		Level:       level,
 		ReplaceAttr: fileLevelReplacer,
 	}
@@ -112,24 +116,23 @@ func generateFileOpts(level slog.Level) *slog.HandlerOptions {
 	return opts
 }
 
-func tintLevelReplacer(_ []string, attr slog.Attr) slog.Attr {
-	// Set default level.
+func consolelevelReplacer(_ []string, attr slog.Attr) slog.Attr {
 	if attr.Key == slog.LevelKey {
 		level, ok := attr.Value.Any().(slog.Level)
 		if !ok {
 			level = slog.LevelInfo
 		}
-
-		// Errors in red.
-		if err, ok := attr.Value.Any().(error); ok {
-			aErr := tint.Err(err)
-			attr.Key = aErr.Key
-		}
-
-		// Format custom log level.
-		levelLabel, exists := LevelNames[level]
-		if exists {
-			attr.Value = slog.StringValue(levelLabel)
+		switch level {
+		case slog.LevelError:
+			attr.Value = slog.StringValue(color.HiRedString("ERROR"))
+		case slog.LevelWarn:
+			attr.Value = slog.StringValue(color.HiYellowString("WARN"))
+		case slog.LevelInfo:
+			attr.Value = slog.StringValue(color.HiGreenString("INFO"))
+		case slog.LevelDebug:
+			attr.Value = slog.StringValue(color.MagentaString("DEBUG"))
+		default:
+			attr.Value = slog.StringValue("UNKNOWN")
 		}
 	}
 
@@ -162,36 +165,17 @@ func openLogFile(logFile string) (*os.File, error) {
 	_, err := os.Stat(logDir)
 
 	if err == nil || errors.Is(err, os.ErrNotExist) {
-		err = os.MkdirAll(logDir, os.ModePerm)
+		err = os.MkdirAll(logDir, 0o750)
 		if err != nil {
 			return nil, fmt.Errorf("unable to create log file directory %s: %w", logDir, err)
 		}
 	}
 
 	// Open the log file.
-	logFileHandle, err := os.Create(logFile)
+	logFileHandle, err := os.Create(logFile) // #nosec:G304
 	if err != nil {
 		return nil, fmt.Errorf("unable to open log file: %w", err)
 	}
 
 	return logFileHandle, nil
-}
-
-func LogReq(req *http.Request, status int) *slog.Logger {
-	return slog.Default().
-		With(slog.Group("request"),
-			slog.String("method", req.Method),
-			slog.String("path", req.URL.Path),
-			slog.Int("status", status),
-		)
-}
-
-func NewHandlerLogger(handler string, req *http.Request) *slog.Logger {
-	return FromContext(req.Context()).
-		With(slog.Group("handler",
-			slog.String("name", handler))).
-		With(slog.Group("request"),
-			slog.String("method", req.Method),
-			slog.String("path", req.URL.Path),
-		)
 }

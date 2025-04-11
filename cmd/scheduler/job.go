@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/id"
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -102,7 +102,7 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		state.UpdatedAt = &updated
 	}
 
-	logging.FromContext(ctx).Debug("Checking for feed updates.",
+	slogctx.FromCtx(ctx).Debug("Checking for feed updates.",
 		slog.String("feed_id", job.FeedID),
 		slog.Time("since", *state.UpdatedAt))
 

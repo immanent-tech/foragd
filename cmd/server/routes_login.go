@@ -5,12 +5,10 @@ package server
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 )
 
@@ -22,12 +20,9 @@ var (
 
 // Login handler handles login requests.
 func (s Server) Login(res http.ResponseWriter, req *http.Request, provider string) {
-	logger := s.Log.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
-	ctx := logging.ToContext(req.Context(), logger)
-
 	switch provider {
 	case "auth0":
-		auth0.LoginHandler(res, req.WithContext(ctx), s.API.auth)
+		auth0.LoginHandler(res, req, s.API.auth)
 	default:
 		s.Log.Warn("No provider to satisfy login.")
 		http.NotFound(res, req)
@@ -36,33 +31,28 @@ func (s Server) Login(res http.ResponseWriter, req *http.Request, provider strin
 
 // LoginCallback handles the callback from login providers.
 func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provider string, params LoginCallbackParams) {
-	logger := s.Log.With(slog.String("handler", chi.RouteContext(req.Context()).RoutePath))
-	ctx := logging.ToContext(req.Context(), logger)
-
 	if params.Code == "" {
-		logger.Error("Invalid code.")
+		slogctx.FromCtx(req.Context()).Error("Invalid Code")
 		res.WriteHeader(http.StatusUnauthorized)
-
 		return
 	}
 
 	if params.State == "" {
-		logger.Error("Invalid state.")
+		slogctx.FromCtx(req.Context()).Error("Invalid State")
 		res.WriteHeader(http.StatusUnauthorized)
-
 		return
 	}
 
 	switch provider {
 	case "auth0":
-		auth0.CallbackHandler(res, req.WithContext(ctx), s.API.auth, params.Code, params.State)
+		auth0.CallbackHandler(res, req, s.API.auth, params.Code, params.State)
 	default:
-		logger.Warn("No provider to satisfy callback.")
+		slogctx.FromCtx(req.Context()).Error("No Provider")
 		http.NotFound(res, req)
 	}
 	// Redirect to logged in page.
 	req.Header.Add("Content-Type", "")
-	http.Redirect(res, req.WithContext(ctx), "/home/feeds", http.StatusTemporaryRedirect)
+	http.Redirect(res, req, "/home/feeds", http.StatusTemporaryRedirect)
 }
 
 func (s Server) GetHomeSettings(res http.ResponseWriter, req *http.Request) {

@@ -11,7 +11,6 @@ import (
 	"syscall"
 
 	"github.com/joshuar/go-feed-me/cmd/scheduler"
-	"github.com/joshuar/go-feed-me/internal/logging"
 )
 
 // SchedulerCmd: `go-feed-me scheduler`.
@@ -22,8 +21,6 @@ type SchedulerCmd struct {
 func (r *SchedulerCmd) Run(opts *CmdOpts) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
-
-	ctx = logging.ToContext(ctx, opts.Logger)
 
 	return scheduler.Run(ctx)
 }

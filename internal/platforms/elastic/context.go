@@ -6,16 +6,9 @@ package elastic
 import (
 	"context"
 	"errors"
-
-	"github.com/joshuar/go-feed-me/internal/models"
 )
 
-var (
-	ErrFetchCtx = models.WrapError(
-		errors.New("no index name/pattern found in context"),
-		"elastic",
-		"backend is not initialized properly")
-)
+var ErrFetchCtx = errors.New("error fetching context value")
 
 const (
 	userIndexCtxKey     contextKey = "users"

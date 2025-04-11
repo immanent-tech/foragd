@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 )
@@ -41,14 +42,15 @@ type manager struct {
 	logger *slog.Logger
 }
 
-var session = &manager{logger: slog.Default()}
+var session = &manager{}
 
 func init() {
 	gob.Register(models.Tokens{})
 	gob.Register(models.Filters{})
 }
 
-func NewSessionManager(store scs.Store) {
+func NewSessionManager(ctx context.Context, store scs.Store) {
+	session.logger = slogctx.FromCtx(ctx).WithGroup("session_manager")
 	// Set up the session manager.
 	session.SessionManager = scs.New()
 	session.Store = store

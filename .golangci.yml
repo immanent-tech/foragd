@@ -19,6 +19,9 @@ linters:
   settings:
     gocyclo:
       min-complexity: 15
+    gosec:
+      excludes:
+        - G104 # made redundant by errcheck
     lll:
       tab-width: 4
       line-length: 120

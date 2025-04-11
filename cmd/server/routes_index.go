@@ -8,8 +8,8 @@ import (
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
+	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
@@ -25,7 +25,7 @@ func (s Server) Index(res http.ResponseWriter, req *http.Request) {
 
 	// Render index page template.
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, indexPage.Show()); err != nil {
-		logging.LogReq(req, http.StatusInternalServerError).Error("IndexViewHandler: cannot render template.", slog.Any("error", err))
+		slogctx.FromCtx(req.Context()).Error("IndexViewHandler: cannot render template.", slog.Any("error", err))
 		res.WriteHeader(http.StatusInternalServerError)
 
 		return

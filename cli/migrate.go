@@ -11,7 +11,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
@@ -24,8 +23,6 @@ type MigrateCmd struct {
 func (r *MigrateCmd) Run(opts *CmdOpts) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
-
-	ctx = logging.ToContext(ctx, opts.Logger)
 
 	// Load the Elastic backend
 	elasticClient, err := elastic.Connect(ctx)

@@ -11,9 +11,9 @@ import (
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/forms"
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
@@ -33,7 +33,7 @@ func (s Server) SignUp(res http.ResponseWriter, req *http.Request) {
 		layouts.WithPageContent(signup.Show(models.NewUserSignup())),
 	)
 	if err := resp.RenderTempl(req.Context(), res, fullPage.Show()); err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}
@@ -46,7 +46,7 @@ func (s Server) ProcessSignUp(res http.ResponseWriter, req *http.Request) {
 	userSignup, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
 	if err != nil || !valid {
 		if err := resp.RenderTempl(req.Context(), res, signup.SignupForm(userSignup)); err != nil {
-			logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", err))
+			slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", err))
 			http.Error(res, "user signup failed!", http.StatusInternalServerError)
 		}
 		return
@@ -55,14 +55,14 @@ func (s Server) ProcessSignUp(res http.ResponseWriter, req *http.Request) {
 	if err := s.addUser(req.Context(), userSignup); err != nil {
 		userSignup.Msg = backendErrorMsg(err)
 		if err := resp.RenderTempl(req.Context(), res, signup.SignupForm(userSignup)); err != nil {
-			logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", err))
+			slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", err))
 			http.Error(res, "user signup failed!", http.StatusInternalServerError)
 		}
 		return
 	}
 	// Display success and prompt user to log in with new account.
 	if err := resp.Retarget(signup.SignupDetailsID.Target()).Reswap(htmx.SwapOuterHTML).RenderTempl(req.Context(), res, signup.SignupSuccess()); err != nil {
-		logging.FromContext(req.Context()).Warn("Bad request.", slog.Any("error", err))
+		slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", err))
 		http.Error(res, "user signup failed!", http.StatusInternalServerError)
 	}
 }
@@ -71,7 +71,7 @@ func (s Server) addUser(ctx context.Context, userSignup *models.UserSignupReques
 	// Create the user in the auth backend.
 	userID, err := s.API.user.Create(ctx, userSignup)
 	if err != nil {
-		return models.WrapError(err, "routes/signup", "could not create user in auth backend")
+		return models.NewMessage("Add user failed.", models.MessageStatusError, models.WithError(err))
 	}
 
 	// Create new user in the database backend.
@@ -79,7 +79,7 @@ func (s Server) addUser(ctx context.Context, userSignup *models.UserSignupReques
 
 	err = s.DataAPI().AddUser(addUserCtx, userID)
 	if err != nil {
-		return models.WrapError(err, "routes/signup", "could not create user in database backend")
+		return models.NewMessage("Add user failed.", models.MessageStatusError, models.WithError(err))
 	}
 
 	return nil

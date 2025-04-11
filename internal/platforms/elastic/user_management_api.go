@@ -11,8 +11,8 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
+	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/session"
 )
@@ -77,7 +77,7 @@ func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
 
 	created := time.Now().UTC()
 
-	logging.FromContext(ctx).Debug("adding user.", slog.Any("user", &models.User{
+	slogctx.FromCtx(ctx).Debug("adding user.", slog.Any("user", &models.User{
 		UserID:    userID,
 		CreatedAt: created,
 	}))
@@ -95,7 +95,7 @@ func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
 		return errors.Join(ErrCreateUserFailed, err)
 	}
 
-	logging.FromContext(ctx).Debug("Added user.",
+	slogctx.FromCtx(ctx).Debug("Added user.",
 		slog.String("result", resp.Result.String()),
 		slog.Int64("version", resp.Version_))
 

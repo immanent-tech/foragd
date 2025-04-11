@@ -22,7 +22,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
+	slogctx "github.com/veqryn/slog-context"
+
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
@@ -46,9 +47,7 @@ func RequireAuthentication(protectedRoutes []string, api UserAPI) func(next http
 				user, err := api.GetUser(ctx)
 				//  If no user can be found, redirect back to the home page.
 				if err != nil {
-					logging.LogReq(req, http.StatusUnauthorized).
-						Error("Authentication error.",
-							slog.Any("error", err))
+					slogctx.FromCtx(ctx).Error("Authentication Error", slog.Any("error", err))
 					http.Redirect(res, req, "/", http.StatusSeeOther)
 				}
 				// Else load the user into the context and pass the new context

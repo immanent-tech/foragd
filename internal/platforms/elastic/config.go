@@ -4,13 +4,14 @@
 package elastic
 
 import (
+	"context"
 	"fmt"
-	"log/slog"
 	"os"
 	"sync"
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/config"
 )
@@ -56,14 +57,14 @@ type Config struct {
 
 // loadConfigOnce loads the elasticsearch configuration and ensures this is done
 // one-time only, no matter how many times it is called.
-func loadConfigOnce(logger *slog.Logger, environment string) (*elasticsearch.Config, error) {
+func loadConfigOnce(ctx context.Context, environment string) (*elasticsearch.Config, error) {
 	return sync.OnceValues(func() (*elasticsearch.Config, error) {
 		err := config.Load(elasticConfigPrefix, elasticConfigEnvPrefix, elasticConfig)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 		}
 
-		clientConfig, err := genConfig(logger, environment)
+		clientConfig, err := genConfig(ctx, environment)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %w", config.ErrInvalidConfig, err)
 		}
@@ -75,7 +76,7 @@ func loadConfigOnce(logger *slog.Logger, environment string) (*elasticsearch.Con
 
 // genConfig will generate an Elasticsearch client config, required by the
 // underlying package for connecting to an Elasticsearch cluster.
-func genConfig(logger *slog.Logger, environment string) (*elasticsearch.Config, error) {
+func genConfig(ctx context.Context, environment string) (*elasticsearch.Config, error) {
 	var generated *elasticsearch.Config
 
 	switch environment {
@@ -87,7 +88,8 @@ func genConfig(logger *slog.Logger, environment string) (*elasticsearch.Config, 
 
 		generated = &elasticsearch.Config{
 			Addresses: elasticConfig.Development.URLs,
-			Logger:    &elastictransport.ColorLogger{EnableResponseBody: false, EnableRequestBody: true, Output: os.Stderr},
+			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false, logger: slogctx.FromCtx(ctx)},
+			// Logger:    &elastictransport.ColorLogger{EnableResponseBody: true, EnableRequestBody: true, Output: os.Stderr},
 			Username:  elasticConfig.Development.Username,
 			Password:  elasticConfig.Development.Password,
 			CACert:    caFileData,

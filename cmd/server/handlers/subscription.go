@@ -11,9 +11,9 @@ import (
 	"slices"
 
 	"github.com/angelofallars/htmx-go"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/forms"
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
@@ -57,7 +57,7 @@ func MatchRequestsWithFeeds(api DataAPI) func(next http.Handler) http.Handler {
 			}
 			requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
 			if !found {
-				logging.FromContext(req.Context()).Warn("No subscription requests found.")
+				slogctx.FromCtx(req.Context()).Warn("No subscription requests found.")
 				next.ServeHTTP(res, req)
 				return
 			}
@@ -101,7 +101,7 @@ func CreateNewFeedsForRequests(next http.Handler) http.Handler {
 		// Get the subscription requests.
 		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
 		if !found {
-			logging.FromContext(req.Context()).Warn("No subscription requests found.")
+			slogctx.FromCtx(req.Context()).Warn("No subscription requests found.")
 			next.ServeHTTP(res, req)
 			return
 		}
@@ -152,7 +152,7 @@ func AddFeedsForRequests(api DataAPI) func(next http.Handler) http.Handler {
 			}
 			requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
 			if !found {
-				logging.FromContext(req.Context()).Warn("No subscription requests found.")
+				slogctx.FromCtx(req.Context()).Warn("No subscription requests found.")
 				next.ServeHTTP(res, req)
 				return
 			}
@@ -187,18 +187,18 @@ func AddFeedsForRequests(api DataAPI) func(next http.Handler) http.Handler {
 			// for result := range slices.Values(newFeedsResp.Responses) {
 			// 	// Ignore unknown results.
 			// 	if result.Id_ == nil {
-			// 		logging.FromContext(req.Context()).Warn("Unknown add feed result.", slog.Any("result", result))
+			// 		slogctx.FromCtx(req.Context()).Warn("Unknown add feed result.", slog.Any("result", result))
 			// 		continue
 			// 	}
 			// 	// Match feed to result, ignore results with no feed.
 			// 	feed := newFeeds.FindByID(*result.Id_)
 			// 	if feed == nil {
-			// 		logging.FromContext(req.Context()).Warn("Result with unmatched feed.", slog.Any("result", result))
+			// 		slogctx.FromCtx(req.Context()).Warn("Result with unmatched feed.", slog.Any("result", result))
 			// 		continue
 			// 	}
 			// 	request := requests.FindByURL(feed.URL)
 			// 	if request == nil {
-			// 		logging.FromContext(req.Context()).Warn("Result with unmatched request", slog.Any("result", result))
+			// 		slogctx.FromCtx(req.Context()).Warn("Result with unmatched request", slog.Any("result", result))
 			// 		continue
 			// 	}
 			// 	if _, err := result.State(); err != nil {

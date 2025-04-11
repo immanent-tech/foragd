@@ -70,5 +70,5 @@ type Source interface {
 // Source represents a single source of data. This might be an individual feed or item.
 type SourceWithContent interface {
 	Source
-	GetContent() *types.Content
+	GetContent() string
 }

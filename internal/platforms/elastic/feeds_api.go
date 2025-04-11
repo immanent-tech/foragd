@@ -12,8 +12,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
+	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
@@ -34,7 +34,7 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (*bulk.Respon
 		defer close(bulkOps)
 
 		for _, item := range items {
-			logging.FromContext(ctx).Debug("Adding item",
+			slogctx.FromCtx(ctx).Debug("Adding item",
 				slog.String("name", item.GetTitle()),
 				slog.String("item_id", item.GetID()),
 				slog.String("feed_id", item.GetFeedID()),
@@ -65,7 +65,7 @@ func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Respon
 		defer close(bulkOps)
 
 		for _, feed := range feeds {
-			logging.FromContext(ctx).Debug("Adding feed",
+			slogctx.FromCtx(ctx).Debug("Adding feed",
 				slog.String("name", feed.GetTitle()),
 				slog.String("feed_id", feed.GetID()),
 			)
@@ -108,7 +108,7 @@ func (e *API) GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Fee
 	// Loop through this set of results.
 	sources, _, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
 	if warnings != nil {
-		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
+		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
 	}
 
@@ -154,7 +154,7 @@ func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, paginatio
 	// Loop through this set of results.
 	sources, _, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
 	if warnings != nil {
-		logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
+		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
 	}
 

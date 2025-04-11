@@ -21,7 +21,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
+	slogctx "github.com/veqryn/slog-context"
+
 	"github.com/joshuar/go-feed-me/internal/models"
 
 	"github.com/auth0/go-auth0/authentication"
@@ -74,7 +75,7 @@ func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 
 	api := &UserAPI{
 		api:    authAPI,
-		logger: logging.FromContext(ctx).With(slog.Group("auth0")),
+		logger: slogctx.FromCtx(ctx).With(slog.Group("auth0")),
 	}
 
 	return api, nil

@@ -9,8 +9,7 @@ import (
 	"strings"
 
 	"github.com/angelofallars/htmx-go"
-
-	"github.com/joshuar/go-feed-me/internal/logging"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 // RequireHTMX checks to ensure that the given routes are using htmx. If not, an
@@ -23,13 +22,11 @@ func RequireHTMX(htmxRoutes []string) func(next http.Handler) http.Handler {
 				return strings.HasPrefix(req.URL.Path, path)
 			}) {
 				if !htmx.IsHTMX(req) {
-					logging.LogReq(req, http.StatusNotAcceptable).Error("HTMX required.")
+					slogctx.FromCtx(req.Context()).Error("HTMX Required")
 					http.Error(res, "HTMX required.", http.StatusNotAcceptable)
-
 					return
 				}
 			}
-
 			next.ServeHTTP(res, req)
 		})
 	}

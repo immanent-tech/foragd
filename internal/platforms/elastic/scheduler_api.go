@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/query"
 )
@@ -74,7 +74,7 @@ func (a *API) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Fee
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 
-	logging.FromContext(ctx).Debug("Finding new feeds.",
+	slogctx.FromCtx(ctx).Debug("Finding new feeds.",
 		slog.Time("since", since))
 
 	var newFeeds models.Feeds
@@ -101,7 +101,7 @@ func (a *API) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Fee
 
 		feeds, pagination, warnings = ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
 		if warnings != nil {
-			logging.FromContext(ctx).Warn("Problems occurred while extracting source from docs.",
+			slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
 				slog.Any("warnings", err))
 		}
 
