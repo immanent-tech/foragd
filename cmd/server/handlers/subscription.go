@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"slices"
 
@@ -129,6 +130,10 @@ func CreateNewFeedsForRequests(next http.Handler) http.Handler {
 				)
 				continue
 			}
+			slogctx.FromCtx(req.Context()).Debug("New feed.",
+				slog.String("feed_name", newFeed.GetTitle()),
+				slog.String("feed_url", newFeed.GetSourceURL()),
+			)
 			// Add the new feed.
 			newFeeds = append(newFeeds, newFeed)
 		}
@@ -162,7 +167,7 @@ func AddFeedsForRequests(api DataAPI) func(next http.Handler) http.Handler {
 			results, _ := req.Context().Value(messagesCtxKey).([]*models.Message)
 
 			for feed := range slices.Values(newFeeds) {
-				request := requests.FindByURL(feed.URL)
+				request := requests.FindByURL(feed.GetSourceURL())
 				subscriptions = append(subscriptions, models.NewSubscription(request, feed))
 			}
 
@@ -251,7 +256,7 @@ func AddSubscriptionsForRequests(api DataAPI) func(next http.Handler) http.Handl
 			for sub := range slices.Values(subscriptions) {
 				results = append(results,
 					models.NewMessage(
-						fmt.Sprintf("Subscription for feed %s created!", sub.GetName()),
+						fmt.Sprintf("Added subscription! %s", sub.GetName()),
 						models.MessageStatusSuccess),
 				)
 			}
