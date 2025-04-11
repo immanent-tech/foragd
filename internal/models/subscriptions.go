@@ -119,6 +119,14 @@ func (s Subscriptions) FilterByRead() Subscriptions {
 	}))
 }
 
+func (s Subscriptions) FindByURL(url string) *Subscription {
+	idx := slices.IndexFunc(s, func(v *Subscription) bool { return v.GetSourceURL() == url })
+	if idx == -1 {
+		return nil
+	}
+	return s[idx]
+}
+
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *Subscription) Valid() (bool, error) {
@@ -342,6 +350,14 @@ func (r SubscriptionRequests) URLs() []URL {
 		}
 	}
 	return urls
+}
+
+func (r SubscriptionRequests) FindByURL(url string) *SubscriptionRequest {
+	idx := slices.IndexFunc(r, func(v *SubscriptionRequest) bool { return v.GetURL() == url })
+	if idx == -1 {
+		return nil
+	}
+	return r[idx]
 }
 
 func NewSubscriptionRequest(url string) *SubscriptionRequest {

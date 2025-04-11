@@ -5,7 +5,10 @@ package models
 
 import (
 	"context"
+	"errors"
 )
+
+var ErrUserCtx = errors.New("could not fetch user details from context")
 
 const (
 	userCtxKey    contextKey = "user"

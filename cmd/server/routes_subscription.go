@@ -16,6 +16,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/forms"
@@ -39,41 +40,16 @@ func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 	handler.ServeHTTP(res, req)
 }
 
+// AddSubscription handles an add subscription request.
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
-	request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
-	if err != nil {
-		msg := models.NewMessage(
-			"Error parsing form.",
-			models.MessageStatusError,
-			models.WithError(err))
-		showRequestResponse(res, req, models.NewSubscriptionRequest(""), msg)
-		return
-	}
-	if !valid {
-		msg := models.NewMessage(
-			"Details are invalid.",
-			models.MessageStatusError,
-			models.WithError(err))
-		showRequestResponse(res, req, request, msg)
-		return
-	}
-	user, found := models.UserFromCtx(req.Context())
-	if !found {
-		msg := backendErrorMsg(err)
-		showRequestResponse(res, req, request, msg)
-		return
-	}
-
-	results := processSubscriptionRequests(req.Context(), s.DataAPI(), user, models.SubscriptionRequests{request})
-	for msg := range maps.Values(results) {
-		if err := htmx.NewResponse().
-			Retarget(subscription.SubscriptionModalID.Target()).
-			Reswap(htmx.SwapOuterHTML).
-			RenderTempl(req.Context(), res, subscription.NewSubscriptionResultsModal(msg)); err != nil {
-			handlers.InternalServerError(res, req, err)
-			return
-		}
-	}
+	chain := alice.New(
+		handlers.ParseSubscriptionRequest,
+		handlers.MatchRequestsWithFeeds(s.DataAPI()),
+		handlers.CreateNewFeedsForRequests,
+		handlers.AddFeedsForRequests(s.DataAPI()),
+		handlers.AddSubscriptionsForRequests(s.DataAPI()),
+	).Then(handlers.SubscriptionResponse())
+	chain.ServeHTTP(res, req)
 }
 
 func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
@@ -375,12 +351,6 @@ func generateSubscriptions(ctx context.Context, api DataAPI, user *models.User, 
 		}
 	}
 	return newSubscriptions, results
-}
-
-func showRequestResponse(res http.ResponseWriter, req *http.Request, request *models.SubscriptionRequest, msg *models.Message) {
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.NewSubscriptionRequest(request).Form(msg)); err != nil {
-		handlers.InternalServerError(res, req, err)
-	}
 }
 
 func showImportFailed(res http.ResponseWriter, req *http.Request, msg *models.Message) {

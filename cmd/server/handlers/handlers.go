@@ -5,10 +5,23 @@ package handlers
 
 import (
 	"context"
+	"errors"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 )
+
+const (
+	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
+	subscriptionsCtxKey        contextKey = "subscriptions"
+	messagesCtxKey             contextKey = "messages"
+	feedsCtxKey                contextKey = "feeds"
+)
+
+type contextKey string
+
+// ErrInvalidUser indicates the user data is invalid. This might be the case if the retrieved session is corrupted.
+var ErrInvalidUser = errors.New("user data is invalid")
 
 type DataAPI interface {
 	// User methods:

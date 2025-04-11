@@ -62,7 +62,7 @@ func (r *SubscriptionRequest) inputNickname() *textinput.Props {
 templ (r *SubscriptionRequest) Form(msg *models.Message) {
 	<div id={ SubscriptionDetailsID.String() }>
 		if msg != nil {
-			@partials.ShowMessage(msg)
+			@partials.NewMessage(msg).AsNotification()
 		}
 		// Display the Subscription details.
 		@form.BuildForm(
@@ -170,6 +170,6 @@ templ NewSubscriptionResultsModal(msg *models.Message) {
 			),
 		),
 	).Show() {
-		@partials.ShowMessage(msg)
+		@partials.NewMessage(msg).AsNotification()
 	}
 }

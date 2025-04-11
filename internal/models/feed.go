@@ -34,6 +34,22 @@ func (f Feeds) GetIDs() []FeedID {
 	return feedIDs
 }
 
+func (f Feeds) FindByID(id FeedID) *Feed {
+	idx := slices.IndexFunc(f, func(v *Feed) bool { return v.GetID() == id })
+	if idx == -1 {
+		return nil
+	}
+	return f[idx]
+}
+
+func (f Feeds) FindByURL(url string) *Feed {
+	idx := slices.IndexFunc(f, func(v *Feed) bool { return v.GetSourceURL() == url })
+	if idx == -1 {
+		return nil
+	}
+	return f[idx]
+}
+
 func (f *Feed) GetID() FeedID {
 	return f.FeedID
 }

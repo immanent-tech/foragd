@@ -11,42 +11,6 @@ info:
 paths: {}
 components:
   schemas:
-    # Fields:
-    # Param:
-    #   description: is the name of a query parameter.
-    #   type: string
-    #   enum: ["feeds","items","categories","count","view","pagination","sort_by","sort_order","since"]
-
-    # Feeds:
-    #   description: is a list of feed IDs.
-    #   type: array
-    #   items:
-    #     $ref: "models.yaml#/components/schemas/FeedID"
-    #   x-oapi-codegen-extra-tags:
-    #     json: "feeds"
-    #     form: "feeds[]"
-    #     validate: "omitnil,unique,dive,startswith=feed_"
-    #   x-go-type-skip-optional-pointer: true
-    # Items:
-    #   description: is a list of items IDs.
-    #   type: array
-    #   items:
-    #     $ref: "models.yaml#/components/schemas/ItemID"
-    #   x-oapi-codegen-extra-tags:
-    #     json: "items"
-    #     form: "items[]"
-    #     validate: "omitnil,unique,dive,startswith=item_"
-    #   x-go-type-skip-optional-pointer: true
-    # Categories:
-    #   description: is a list of categories.
-    #   type: array
-    #   items:
-    #     $ref: "models.yaml#/components/schemas/Category"
-    #   x-oapi-codegen-extra-tags:
-    #     json: "categories"
-    #     form: "categories[]"
-    #     validate: "omitnil,unique"
-    #   x-go-type-skip-optional-pointer: true
     Count:
       description: >
         is the count of items to retrieve with a request.
@@ -107,33 +71,6 @@ components:
           $ref: "#/components/schemas/SortOrder"
       x-oapi-codegen-extra-tags:
         json: "sort"
-    ErrorCode:
-      description: >
-        is a globally unique string for the error within the service.
-      type: string
-    # Objects:
-    Error:
-      description: >
-        represents an error from within the API or service.
-      type: object
-      required:
-        - context
-        - message
-        - err
-      properties:
-        context:
-          description: >
-            is a string that adds additional context to an error for internal
-            use.
-          type: string
-        message:
-          description: >
-            is a short description for this error.
-          type: string
-        err:
-          description: >
-            contains any lower-level wrapped error(s).
-          x-go-type: error
     RequiredFilters:
       description: >
         contains filter parameters that are always required across different kinds of
@@ -276,7 +213,7 @@ components:
       properties:
         summary:
           description: >
-            is a brief description for the message, which can be used as a title
+            is a user-level brief description for the message, which can be used as a title
             or summary.
           type: string
           x-oapi-codegen-extra-tags:

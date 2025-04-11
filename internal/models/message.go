@@ -24,7 +24,7 @@ func (msg *Message) String() string {
 	var str strings.Builder
 	str.WriteString(fmt.Sprintf("%s: %s", strings.ToTitle(string(msg.Status)), msg.Summary))
 	if msg.Details != nil {
-		str.WriteString(fmt.Sprintf(" (%s)", *msg.Details))
+		str.WriteString(fmt.Sprintf("\n%s", *msg.Details))
 	}
 	return str.String()
 }

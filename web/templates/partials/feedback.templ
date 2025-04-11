@@ -3,18 +3,30 @@
 
 package partials
 
-import "github.com/joshuar/go-feed-me/internal/models"
-import "github.com/joshuar/go-templ-daisyui/actions/button"
+import (
+	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/feedback/alert"
+	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"github.com/joshuar/go-templ-daisyui/modifiers/state"
+	"github.com/joshuar/go-templ-daisyui/modifiers/style"
+)
 
-import "github.com/joshuar/go-templ-daisyui/modifiers/size"
+type UserMessage struct {
+	*models.Message
+}
+
+func NewMessage(msg *models.Message) *UserMessage {
+	return &UserMessage{Message: msg}
+}
 
 // hsCopyText is hyperscript to insert the given text into the clipboard.
 func hsCopyText(text string) string {
 	return "on click writeText(" + text + ") on navigator.clipboard put 'Copied!' into me wait 1s put 'Copy' into me"
 }
 
-func applyBackgroundColor(status models.MessageStatus) string {
-	switch status {
+func (m *UserMessage) applyBackgroundColor() string {
+	switch m.Status {
 	case models.MessageStatusError:
 		return "bg-error/50"
 	case models.MessageStatusWarning:
@@ -28,8 +40,8 @@ func applyBackgroundColor(status models.MessageStatus) string {
 	}
 }
 
-func applyTextColor(status models.MessageStatus) string {
-	switch status {
+func (m *UserMessage) applyTextColor() string {
+	switch m.Status {
 	case models.MessageStatusError:
 		return "text-error-content"
 	case models.MessageStatusWarning:
@@ -45,18 +57,26 @@ func applyTextColor(status models.MessageStatus) string {
 
 // ShowMessage will show a models.Message as a collapsable component, with the summary shown and details revealed when
 // the collapse is opened.
-templ ShowMessage(msg *models.Message) {
-	<div tabindex="0" class={ "collapse", "collapse-arrow", applyBackgroundColor(msg.Status) }>
+templ (m *UserMessage) AsNote() {
+	<div tabindex="0" class={ "collapse", "collapse-arrow", m.applyBackgroundColor() }>
 		<input type="checkbox"/>
-		<div class={ "collapse-title", "font-semibold", "text-justify", "text-sm", applyTextColor(msg.Status) }>
-			{ msg.Summary } @CopyTextButton(msg.String())
+		<div class={ "collapse-title", "font-semibold", "text-justify", "text-sm", m.applyTextColor() }>
+			{ m.Summary }
 		</div>
-		<div class={ "collapse-content", "text-xs", "text-justify", applyTextColor(msg.Status) }>
-			if msg.HasDetails() {
-				{ *msg.Details }
+		<div class={ "collapse-content", "text-xs", "text-justify", m.applyTextColor() }>
+			if m.HasDetails() {
+				{ *m.Details }
 			}
 		</div>
 	</div>
+}
+
+templ (m *UserMessage) AsNotification() {
+	@alert.Build(
+		state.AsState(m.Status),
+		alert.WithStyle(style.Soft),
+		alert.WithText(m.Summary),
+	).Show()
 }
 
 // CopyTextButton builds a button that will copy the given text to the clipboard when clicked.

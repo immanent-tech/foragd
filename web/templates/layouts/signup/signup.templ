@@ -39,7 +39,7 @@ templ Show(userDetails *models.UserSignupRequest) {
 
 templ SignupForm(userDetails *models.UserSignupRequest) {
 	if userDetails.Msg != nil {
-		@partials.ShowMessage(userDetails.Msg)
+		@partials.NewMessage(userDetails.Msg).AsNote()
 	}
 	@form.BuildForm(
 		form.WithID(SignupFormID.String()),
