@@ -458,5 +458,8 @@ components:
             state:
               $ref: "#/components/schemas/State"
             content:
-              $ref: "../pkg/feeds/types.yaml#/components/schemas/Content"
+              description: >
+                contains the item content.
+              type: string
+              x-go-type-skip-optional-pointer: true
 

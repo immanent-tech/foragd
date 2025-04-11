@@ -80,6 +80,6 @@ templ (a *Article) showItemArticle() {
 		}
 	</div>
 	<div id="article_content">
-		@templ.Raw(a.GetContent().String())
+		@templ.Raw(a.GetContent())
 	</div>
 }

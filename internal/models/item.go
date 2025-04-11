@@ -16,7 +16,7 @@ import (
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
-var _ types.ItemSource = (*Item)(nil)
+var _ types.ObjectCommon = (*Item)(nil)
 
 var ErrGetItem = errors.New("could not retrieve item")
 
@@ -98,7 +98,7 @@ func (i *Item) GetRights() string {
 	return i.Copyright
 }
 
-func (i *Item) GetContent() *types.Content {
+func (i *Item) GetContent() string {
 	return i.Content
 }
 
@@ -184,7 +184,7 @@ func newItemFromSource[T types.ItemSource](source T, feedID FeedID, sourceType s
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
 		Image:        source.GetImage(),
-		Content:      source.GetContent(),
+		Content:      source.GetContent().String(),
 	}
 
 	return item

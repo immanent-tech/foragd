@@ -138,8 +138,8 @@ type Item struct {
 	// Categories is a list of categories that define a taxonomy for the feed or item.
 	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
-	// Content is an abstraction of element content across different types of specifications.
-	Content *externalRef0.Content `json:"content,omitempty"`
+	// Content contains the item content.
+	Content string `json:"content,omitempty"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
 	Contributors []string `json:"contributors,omitempty" validate:"omitempty,unique"`
