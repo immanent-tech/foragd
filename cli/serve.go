@@ -20,12 +20,13 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	gowebly "github.com/gowebly/helpers"
+	slogchi "github.com/samber/slog-chi"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/cmd/scheduler"
 	"github.com/joshuar/go-feed-me/cmd/server"
 	"github.com/joshuar/go-feed-me/cmd/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/config"
-	"github.com/joshuar/go-feed-me/internal/logging"
 	"github.com/joshuar/go-feed-me/internal/session"
 )
 
@@ -51,7 +52,7 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 
-	ctx = logging.ToContext(ctx, opts.Logger)
+	ctx = slogctx.NewCtx(ctx, slog.Default())
 
 	// Set up a new server interface.
 	svr, err := server.NewServer(ctx)
@@ -68,10 +69,10 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 	handler := server.HandlerWithOptions(svr, server.ChiServerOptions{
 		BaseRouter: router,
 		Middlewares: []server.MiddlewareFunc{
+			slogchi.NewWithConfig(slog.Default(), slogchi.Config{WithRequestID: true}),
+			middleware.Recoverer,
 			middleware.RequestID,
 			middleware.RealIP,
-			middlewares.Logger(svr.Log, config.LogLevel(), server.RequestIDKey),
-			middleware.Recoverer,
 			middlewares.CORS(config.Environment()),
 			middlewares.CSP(server.ServerConfig.CSP),
 			middlewares.ElasticMiddleware(),

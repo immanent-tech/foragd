@@ -46,6 +46,7 @@ require (
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
+	github.com/go-json-experiment/json v0.0.0-20250223041408-d3c622f1b874 // indirect
 	github.com/google/wire v0.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gowebly/gowebly/v2 v2.7.2 // indirect
@@ -114,6 +115,8 @@ require (
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.9.0 // indirect
+	github.com/veqryn/slog-context v0.8.0
+	github.com/veqryn/slog-json v0.4.0
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	go.devnw.com/structs v1.0.0 // indirect
 	go.opentelemetry.io/otel v1.29.0 // indirect

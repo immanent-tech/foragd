@@ -15,6 +15,8 @@ import (
 	"github.com/lmittmann/tint"
 	"github.com/mattn/go-isatty"
 	slogmulti "github.com/samber/slog-multi"
+	slogctx "github.com/veqryn/slog-context"
+	slogjson "github.com/veqryn/slog-json"
 )
 
 const (
@@ -59,9 +61,13 @@ func New(options Options) *slog.Logger {
 		logFile = DefaultLogFile
 	}
 
-	handlers = append(handlers, tint.NewHandler(os.Stderr,
-		generateConsoleOptions(logLevel, os.Stderr.Fd())))
-
+	handlers = append(handlers,
+		// tint.NewHandler(os.Stderr, generateConsoleOptions(logLevel, os.Stderr.Fd())))
+		slogctx.NewHandler(slogjson.NewHandler(os.Stdout, &slogjson.HandlerOptions{
+			AddSource: false,
+			Level:     logLevel,
+		}), nil),
+	)
 	// Unless no log file was requested, set up file logging.
 	if logFile != "" {
 		logFH, err := openLogFile(logFile)
