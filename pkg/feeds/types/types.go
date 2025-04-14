@@ -16,6 +16,8 @@ var (
 	// MimeTypesIndeterminate contains mimetypes that can be used for either RSS/Atom feeds and don't give any clues to
 	// the actual type.
 	MimeTypesIndeterminate = []string{"application/xml", "text/xml"}
+	// MimeTypesHTML contains canonical/standard mimetypes for HTML.
+	MimeTypesHTML = []string{"text/html", "application/xhtml+xml"}
 )
 
 // String will return the value of the object.

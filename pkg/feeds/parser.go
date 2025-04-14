@@ -4,6 +4,7 @@
 package feeds
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -13,6 +14,8 @@ import (
 	"sync"
 
 	"github.com/go-resty/resty/v2"
+	"golang.org/x/net/html"
+	htmlatom "golang.org/x/net/html/atom"
 
 	"github.com/joshuar/go-feed-me/pkg/feeds/atom"
 	"github.com/joshuar/go-feed-me/pkg/feeds/rss"
@@ -21,8 +24,12 @@ import (
 )
 
 var (
+	// ErrParseFeed indicates an error parsing the feed content.
 	ErrParseFeed = errors.New("unable to parse")
+	// ErrUnmarshal indicates an error unmarshaling the feed from its native format.
 	ErrUnmarshal = errors.New("unable to unmarshal")
+	// ErrUnsupportedFormat indicates that feed format is not known and cannot be parsed.
+	ErrUnsupportedFormat = errors.New("unsupported feed format")
 )
 
 // FeedResult is returned when calling NewFeedsFromURLs and contains the results for parsing an individual URL. It
@@ -33,6 +40,8 @@ type FeedResult struct {
 	Err  error
 }
 
+// FeedItemsResult is returned when calling NewItemsFromURLs and contains the results for parsing an individual URL. It
+// will contain the original URL, any items parsed and a non-nil error if a problem occurred.
 type FeedItemsResult struct {
 	URL   string
 	Items []Item
@@ -157,7 +166,7 @@ func parseFeedURL(ctx context.Context, client *resty.Client, url string) FeedRes
 	if contentType == "" {
 		return FeedResult{URL: url, Err: fmt.Errorf("%w: unable to determine feed type", ErrParseFeed)}
 	}
-
+	// Try to parse the response body as a valid feed type.
 	var feed *Feed
 	switch {
 	case isRSS(contentType):
@@ -171,8 +180,14 @@ func parseFeedURL(ctx context.Context, client *resty.Client, url string) FeedRes
 		if err != nil {
 			feed, err = NewFeedFromBytes[*atom.Feed](resp.Body())
 		}
+	case isHTML(contentType):
+		// Try to find a feed link on the page and then parse that URL.
+		if url, err := discoverFeedURL(resp.Body()); err == nil && url != "" {
+			return parseFeedURL(ctx, client, url)
+		}
+		fallthrough
 	default:
-		err = fmt.Errorf("unsupported file format %s", contentType)
+		err = fmt.Errorf("%w: %s", ErrUnsupportedFormat, contentType)
 	}
 	// (╯°益°)╯彡┻━┻
 	if err != nil {
@@ -185,6 +200,46 @@ func parseFeedURL(ctx context.Context, client *resty.Client, url string) FeedRes
 	}
 
 	return FeedResult{URL: url, Feed: feed}
+}
+
+// discoverFeedURL attempts to find a feed URL within a HTML page.
+func discoverFeedURL(content []byte) (string, error) {
+	page := html.NewTokenizer(bytes.NewReader(content))
+	for {
+		tt := page.Next()
+		switch tt {
+		case html.ErrorToken:
+			return "", fmt.Errorf("unable to determine feed url: %w", page.Err())
+		case html.SelfClosingTagToken:
+			tkn := page.Token()
+			if tkn.DataAtom != htmlatom.Link {
+				continue
+			}
+			if isValidFeedLink(tkn) {
+				if idx := slices.IndexFunc(tkn.Attr, func(v html.Attribute) bool {
+					return v.Key == "href"
+				}); idx != -1 {
+					return tkn.Attr[idx].Val, nil
+				}
+			}
+		}
+	}
+}
+
+// isValidFeedLink will return a boolean indicating whether the given HTML token, representing a <link>, is a valid feed
+// link.
+func isValidFeedLink(link html.Token) bool {
+	// rel attribute must have a value of "alternate".
+	if !slices.ContainsFunc(link.Attr, func(a html.Attribute) bool { return a.Key == "rel" && a.Val == "alternate" }) {
+		return false
+	}
+	// type attribute must contain valid feed MIME type.
+	if !slices.ContainsFunc(link.Attr, func(a html.Attribute) bool {
+		return a.Key == "type" && slices.Contains(slices.Concat(types.MimeTypesAtom, types.MimeTypesRSS, types.MimeTypesIndeterminate), a.Val)
+	}) {
+		return false
+	}
+	return true
 }
 
 // isRSS returns a boolean indicating whether the Content Type header indicates RSS.
@@ -215,6 +270,15 @@ func isAmbiguous(contentType string) bool {
 	return slices.Contains(types.MimeTypesIndeterminate, mediatype)
 }
 
+// isHTML returns a boolean indicating whether the Content Type header indicates HTML.
+func isHTML(contentType string) bool {
+	mediatype, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		return false
+	}
+	return slices.Contains(types.MimeTypesHTML, mediatype)
+}
+
 // determineSourceType will attempt to determine the appropriate SourceType value from the given interface object.
 func determineSourceType[T any](source T) SourceType {
 	switch any(source).(type) {
@@ -231,7 +295,8 @@ func newWebClient() *resty.Client {
 	client := resty.New()
 	// Set the mimetypes we accept. Who knows if this helps but at least we are honest to the server with what mimetypes
 	// we want.
-	client.SetHeader("Accept", strings.Join(slices.Concat(types.MimeTypesAtom, types.MimeTypesRSS), ","))
-
+	mimeTypes := slices.Concat(types.MimeTypesAtom, types.MimeTypesRSS)
+	mimeTypes = append(mimeTypes, ";q=0.2,*/*", ";q=0.1")
+	client.SetHeader("Accept", strings.Join(mimeTypes, ","))
 	return client
 }
