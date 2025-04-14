@@ -141,7 +141,7 @@ templ ImportSuccess(successful, failed int, all string) {
 	<p class="py-4">Imported: { strconv.Itoa(successful) } Failed: { strconv.Itoa(failed) }</p>
 	<div class="modal-action">
 		@templ.Raw(all)
-		@partials.CopyTextButton("resultscsv.innerText")
+		@partials.CopyTextButton("Copy results (as CSV)", "resultscsv.innerText")
 		@button.Build(
 			button.WithSize(size.SM),
 			button.WithContent("Import more?"),

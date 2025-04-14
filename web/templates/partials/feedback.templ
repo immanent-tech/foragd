@@ -80,10 +80,10 @@ templ (m *UserMessage) AsNotification() {
 }
 
 // CopyTextButton builds a button that will copy the given text to the clipboard when clicked.
-templ CopyTextButton(text string) {
+templ CopyTextButton(label, text string) {
 	<div>
 		@button.Build(
-			button.WithContent("Copy"),
+			button.WithContent(label),
 			button.WithSize(size.SM),
 			button.WithExtraAttributes(templ.Attributes{
 				"_": hsCopyText(text),
