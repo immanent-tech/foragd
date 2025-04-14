@@ -15,6 +15,7 @@ var ErrUnknown = errors.New("an unknown error occurred")
 // MessageOption is a functional option to apply to a Message.
 type MessageOption func(*Message)
 
+// HasDetails returns a boolean indicating whether the message has additional details.
 func (msg *Message) HasDetails() bool {
 	return msg.Details != nil
 }
@@ -24,9 +25,23 @@ func (msg *Message) String() string {
 	var str strings.Builder
 	str.WriteString(fmt.Sprintf("%s: %s", strings.ToTitle(string(msg.Status)), msg.Summary))
 	if msg.Details != nil {
-		str.WriteString(fmt.Sprintf("\n%s", *msg.Details))
+		str.WriteString("\n" + *msg.Details)
 	}
 	return str.String()
+}
+
+// CSVString writes the message out in a format suitable as a record in a CSV file.
+func (msg *Message) CSVString() string {
+	if msg == nil {
+		return ""
+	}
+	csv := fmt.Sprintf(`%s,"%s"`, msg.Status, msg.Summary)
+	if msg.Details != nil {
+		csv += fmt.Sprintf(`,"%s"`, *msg.Details)
+	} else {
+		csv += `,""`
+	}
+	return csv + "\n"
 }
 
 // Error returns an error string representing the Message. This allows Message to satisfy the Error interface and be
@@ -52,10 +67,11 @@ func WithError(err error) MessageOption {
 	}
 }
 
+// NewMessage creates a new Message with the given summary, status and options.
 func NewMessage(summary string, status MessageStatus, options ...MessageOption) *Message {
 	notice := &Message{
 		Summary: summary,
-		Status:  MessageStatusInfo,
+		Status:  status,
 	}
 
 	for option := range slices.Values(options) {

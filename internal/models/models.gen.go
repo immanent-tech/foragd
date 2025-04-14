@@ -115,7 +115,7 @@ type Feed struct {
 	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
-	URL string `json:"url" validate:"required,url"`
+	URL string `json:"url,omitempty" validate:"omitempty,url"`
 }
 
 // FeedSourceType indicates what type of source the object came from.
@@ -174,7 +174,7 @@ type Item struct {
 	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
-	URL string `json:"url" validate:"required,url"`
+	URL string `json:"url,omitempty" validate:"omitempty,url"`
 }
 
 // ItemSourceType indicates what type of source the object came from.
@@ -227,7 +227,7 @@ type ObjectCommon struct {
 	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
-	URL string `json:"url" validate:"required,url"`
+	URL string `json:"url,omitempty" validate:"omitempty,url"`
 }
 
 // ObjectCommonSourceType indicates what type of source the object came from.

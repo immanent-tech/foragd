@@ -189,6 +189,22 @@ components:
                 json: "url"
                 form: "url"
                 validate: "required,url"
+            Result:
+              description: >
+                the results of processing the subscription request.
+              allOf:
+                - $ref: "models.yaml#/components/schemas/Message"
+              x-oapi-codegen-extra-tags:
+                json: "-"
+                form: "-"
+            Subscription:
+              description: >
+                the subscription object associated with this request.
+              allOf:
+                - $ref: "models.yaml#/components/schemas/Subscription"
+              x-oapi-codegen-extra-tags:
+                json: "-"
+                form: "-"
     FeedState:
       description: tracks the state of a feed.
       type: object

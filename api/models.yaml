@@ -173,7 +173,6 @@ components:
         - source_type
         - title
         - description
-        - url
         - published
       properties:
         source_type:
@@ -198,7 +197,8 @@ components:
           type: string
           x-go-name: URL
           x-oapi-codegen-extra-tags:
-            validate: "required,url"
+            validate: "omitempty,url"
+          x-go-type-skip-optional-pointer: true
         published:
           description: >
             is the datetime at which the feed or item was published.

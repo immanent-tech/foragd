@@ -170,6 +170,12 @@ type SubscriptionRequest struct {
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
+	// Result the results of processing the subscription request.
+	Result *Message `form:"-" json:"-"`
+
+	// Subscription the subscription object associated with this request.
+	Subscription *Subscription `form:"-" json:"-"`
+
 	// URL the canonical URL to the feed.
 	URL string `form:"url" json:"url" validate:"required,url"`
 

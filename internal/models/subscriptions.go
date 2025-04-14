@@ -5,6 +5,7 @@ package models
 
 import (
 	"cmp"
+	"fmt"
 	"maps"
 	"slices"
 	"time"
@@ -242,7 +243,7 @@ func (s *Subscription) GetMarkedRead() time.Time {
 // GetUnreadItems retrieves a list of ItemIDs for the subscription feed that
 // user has explicitly marked as unread.
 func (s *Subscription) GetUnreadItems() []ItemID {
-	var unreadItems []ItemID
+	var unreadItems []ItemID //nolint:prealloc // unknown length
 	for item := range FilterSlice(s.ItemStates, func(s ItemState) bool {
 		return s.State == StateUnread
 	}) {
@@ -254,7 +255,7 @@ func (s *Subscription) GetUnreadItems() []ItemID {
 // GetReadItems retrieves a list of ItemIDs for the subscription feed that
 // user has explicitly marked as read.
 func (s *Subscription) GetReadItems() []ItemID {
-	var readItems []ItemID
+	var readItems []ItemID //nolint:prealloc // unknown length
 	for item := range FilterSlice(s.ItemStates, func(s ItemState) bool {
 		return s.State == StateRead
 	}) {
@@ -352,6 +353,7 @@ func (r SubscriptionRequests) URLs() []URL {
 	return urls
 }
 
+// FindByURL will return the subscription request matching the given URL.
 func (r SubscriptionRequests) FindByURL(url string) *SubscriptionRequest {
 	idx := slices.IndexFunc(r, func(v *SubscriptionRequest) bool { return v.GetURL() == url })
 	if idx == -1 {
@@ -360,6 +362,63 @@ func (r SubscriptionRequests) FindByURL(url string) *SubscriptionRequest {
 	return r[idx]
 }
 
+// FilterNoResults will return all requests without a result.
+func (r SubscriptionRequests) FilterNoResults() SubscriptionRequests {
+	return slices.Collect(FilterSlice(r, func(v *SubscriptionRequest) bool {
+		return v.Result == nil
+	}))
+}
+
+// FilterWithResults will return all requests with a result.
+func (r SubscriptionRequests) FilterWithResults() SubscriptionRequests {
+	return slices.Collect(FilterSlice(r, func(v *SubscriptionRequest) bool {
+		return v.Result != nil
+	}))
+}
+
+// FilterByStatus will return all requests that have the given status.
+func (r SubscriptionRequests) FilterByStatus(status MessageStatus) SubscriptionRequests {
+	return slices.Collect(FilterSlice(r, func(v *SubscriptionRequest) bool {
+		if v.Result != nil {
+			return v.Result.Status == status
+		}
+		return false
+	}))
+}
+
+// FilterNoSubscription will return all requests that have no subscription.
+func (r SubscriptionRequests) FilterNoSubscription() SubscriptionRequests {
+	return slices.Collect(FilterSlice(r, func(v *SubscriptionRequest) bool {
+		return v.Subscription == nil
+	}))
+}
+
+// FilterValid will return all requests that have a valid subscription. In doing so, it will also add a result to any
+// requests that have invalid subscription details.
+func (r SubscriptionRequests) FilterValid() SubscriptionRequests {
+	return slices.Collect(FilterSlice(r.FilterNoResults(), func(request *SubscriptionRequest) bool {
+		if request.Subscription == nil {
+			request.Result = NewMessage(
+				"No subscription data for "+request.GetURL(),
+				MessageStatusError)
+			return false
+		}
+		if valid, err := request.Subscription.Valid(); !valid || err != nil {
+			request.Result = NewMessage(
+				fmt.Sprintf("Invalid details for %s (%s)",
+					request.Subscription.GetTitle(),
+					request.Subscription.GetSourceURL(),
+				),
+				MessageStatusError,
+				WithDetails(err.Error()),
+				WithError(err))
+			return false
+		}
+		return true
+	}))
+}
+
+// NewSubscriptionRequest creates a new SubscriptionRequest with the given URL.
 func NewSubscriptionRequest(url string) *SubscriptionRequest {
 	return &SubscriptionRequest{
 		SubscriptionID: id.NewID(id.Subscription),

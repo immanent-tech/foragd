@@ -14,7 +14,6 @@ import (
 const (
 	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
 	subscriptionsCtxKey        contextKey = "subscriptions"
-	messagesCtxKey             contextKey = "messages"
 	feedsCtxKey                contextKey = "feeds"
 )
 
