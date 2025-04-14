@@ -11,6 +11,8 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
+// Decode will decode the byte array into the given type T, and assign values without a namespace with the given
+// namespace.
 func Decode[T any](namespace string, b []byte) (T, error) {
 	var feed T
 
@@ -26,6 +28,7 @@ func Decode[T any](namespace string, b []byte) (T, error) {
 	return feed, nil
 }
 
+// Encode will encode the given type T into a byte array.
 func Encode[T any](feed T) ([]byte, error) {
 	var b []byte
 

@@ -39,18 +39,21 @@ type DateTime struct {
 	time.Time
 }
 
-func (d DateTime) Valid() (bool, error) {
+// Valid will determine whether the value of the DateTime is valid. That is, is not the zero value or equal to the Unix
+// Epoch.
+func (d *DateTime) Valid() (bool, error) {
 	switch {
-	case d.Time.IsZero():
+	case d.IsZero():
 		return false, fmt.Errorf("%w: is zero time value", ErrInvalidDateTimeFormat)
-	case d.Time.Equal(UnixEpoch):
+	case d.Equal(UnixEpoch):
 		return false, fmt.Errorf("%w: is unix epoch", ErrInvalidDateTimeFormat)
 	default:
 		return true, nil
 	}
 }
 
-func (d DateTime) MarshalJSON() ([]byte, error) {
+// MarshalJSON handles marshaling a DateTime to JSON.
+func (d *DateTime) MarshalJSON() ([]byte, error) {
 	date, err := json.Marshal(d.Format(DateTimeFormats[0]))
 	if err != nil {
 		return nil, errors.Join(ErrInvalidDateTimeFormat, err)
@@ -58,6 +61,7 @@ func (d DateTime) MarshalJSON() ([]byte, error) {
 	return date, nil
 }
 
+// UnmarshalJSON handles unmarshaling a DateTime from JSON.
 func (d *DateTime) UnmarshalJSON(data []byte) error {
 	var dateStr string
 	err := json.Unmarshal(data, &dateStr)
@@ -72,10 +76,12 @@ func (d *DateTime) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (d DateTime) String() string {
+// String returns a string representation of the DateTime.
+func (d *DateTime) String() string {
 	return d.Format(DateTimeFormats[0])
 }
 
+// UnmarshalText will unmarshal/parse a DateTime from the given string.
 func (d *DateTime) UnmarshalText(data []byte) error {
 	parsed, err := tryFormats(string(data))
 	if err != nil {

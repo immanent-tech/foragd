@@ -14,7 +14,9 @@ import (
 )
 
 const (
-	TypeRSS  SourceType = "RSS"
+	// TypeRSS indicates the source data was from an RSS feed.
+	TypeRSS SourceType = "RSS"
+	// TypeAtom indicates the source data was from an Atom feed.
 	TypeAtom SourceType = "Atom"
 )
 
@@ -28,6 +30,7 @@ type Item struct {
 	SourceType       SourceType `json:"type"`
 }
 
+// UnmarshalJSON handles unmarshaling of an Item from JSON.
 func (i *Item) UnmarshalJSON(v []byte) error {
 	// Unmarshal the FeedSource based on the type field value.
 	sourceType, source, err := sourceFromBytes(v)
@@ -59,14 +62,16 @@ type Feed struct {
 	SourceType       SourceType `json:"type"`
 }
 
+// GetItems retrieves a slice of Item for the Feed.
 func (f *Feed) GetItems() []Item {
-	var items []Item
+	items := make([]Item, 0, len(f.FeedSource.GetItems()))
 	for item := range slices.Values(f.FeedSource.GetItems()) {
 		items = append(items, Item{ItemSource: item, SourceType: f.SourceType})
 	}
 	return items
 }
 
+// UnmarshalJSON handles unmarshaling of a Feed from JSON.
 func (f *Feed) UnmarshalJSON(v []byte) error {
 	// Unmarshal the FeedSource based on the type field value.
 	sourceType, source, err := sourceFromBytes(v)
@@ -115,7 +120,7 @@ func unMarshalSource[T any](v json.RawMessage) (T, error) {
 	var source T
 	err := json.Unmarshal(v, &source)
 	if err != nil {
-		return source, err
+		return source, fmt.Errorf("%w: %w", ErrUnmarshal, err)
 	}
 	return source, nil
 }

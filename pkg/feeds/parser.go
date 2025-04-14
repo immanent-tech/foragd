@@ -70,7 +70,7 @@ func NewFeedFromBytes[T any](data []byte) (*Feed, error) {
 	feed = &Feed{
 		FeedSource: source,
 	}
-	feed.SourceType = determineSourceType(original)
+	feed.SourceType = parseSource(original)
 	if err := validation.ValidateStruct(feed); err != nil {
 		return nil, fmt.Errorf("%w: feed is not valid: %w", ErrParseFeed, err)
 	}
@@ -84,7 +84,7 @@ func NewFeedFromSource[T types.FeedSource](source T) *Feed {
 	feed := &Feed{
 		FeedSource: source,
 	}
-	feed.SourceType = determineSourceType(source)
+	feed.SourceType = parseSource(source)
 	return feed
 }
 
@@ -161,33 +161,38 @@ func parseFeedURL(ctx context.Context, client *resty.Client, url string) FeedRes
 	if err != nil {
 		return FeedResult{URL: url, Err: fmt.Errorf("%w: could not access feed URL: %w", ErrParseFeed, err)}
 	}
-	// Retrieve the contentType header so we know what format we are dealing with.
-	contentType := resp.Header().Get("Content-Type")
-	if contentType == "" {
+	// Retrieve the content header so we know what format we are dealing with.
+	content := resp.Header().Get("Content-Type")
+	if content == "" {
 		return FeedResult{URL: url, Err: fmt.Errorf("%w: unable to determine feed type", ErrParseFeed)}
 	}
 	// Try to parse the response body as a valid feed type.
 	var feed *Feed
 	switch {
-	case isRSS(contentType):
+	case isMimeType(content, types.MimeTypesRSS):
+		// RSS.
 		feed, err = NewFeedFromBytes[*rss.RSS](resp.Body())
-	case isAtom(contentType):
+	case isMimeType(content, types.MimeTypesAtom):
+		// Atom.
 		feed, err = NewFeedFromBytes[*atom.Feed](resp.Body())
-	case isAmbiguous(contentType):
+	case isMimeType(content, types.MimeTypesIndeterminate):
+		// Likely a feed but mimetype is ambiguous.
 		// Try RSS first...
 		feed, err = NewFeedFromBytes[*rss.RSS](resp.Body())
 		// Try Atom if that failed...
 		if err != nil {
 			feed, err = NewFeedFromBytes[*atom.Feed](resp.Body())
 		}
-	case isHTML(contentType):
+	case isMimeType(content, types.MimeTypesHTML):
+		// URL points to a HTML page, not a feed source.
 		// Try to find a feed link on the page and then parse that URL.
 		if url, err := discoverFeedURL(resp.Body()); err == nil && url != "" {
 			return parseFeedURL(ctx, client, url)
 		}
 		fallthrough
 	default:
-		err = fmt.Errorf("%w: %s", ErrUnsupportedFormat, contentType)
+		// Cannot determine or unsupported content.
+		err = fmt.Errorf("%w: %s", ErrUnsupportedFormat, content)
 	}
 	// (╯°益°)╯彡┻━┻
 	if err != nil {
@@ -229,11 +234,11 @@ func discoverFeedURL(content []byte) (string, error) {
 // isValidFeedLink will return a boolean indicating whether the given HTML token, representing a <link>, is a valid feed
 // link.
 func isValidFeedLink(link html.Token) bool {
-	// rel attribute must have a value of "alternate".
+	// "rel" attribute must have a value of "alternate".
 	if !slices.ContainsFunc(link.Attr, func(a html.Attribute) bool { return a.Key == "rel" && a.Val == "alternate" }) {
 		return false
 	}
-	// type attribute must contain valid feed MIME type.
+	// "type" attribute must contain valid feed MIME type.
 	if !slices.ContainsFunc(link.Attr, func(a html.Attribute) bool {
 		return a.Key == "type" && slices.Contains(types.MimeTypesFeed, a.Val)
 	}) {
@@ -242,45 +247,18 @@ func isValidFeedLink(link html.Token) bool {
 	return true
 }
 
-// isRSS returns a boolean indicating whether the Content Type header indicates RSS.
-func isRSS(contentType string) bool {
-	mediatype, _, err := mime.ParseMediaType(contentType)
+// isMimeType returns a boolean indicating whether the Content Type header string is included in the given mimeType
+// slice.
+func isMimeType(content string, mimeTypes []string) bool {
+	mediatype, _, err := mime.ParseMediaType(content)
 	if err != nil {
 		return false
 	}
-	return slices.Contains(types.MimeTypesRSS, mediatype)
+	return slices.Contains(mimeTypes, mediatype)
 }
 
-// isAtom returns a boolean indicating whether the Content Type header indicates Atom.
-func isAtom(contentType string) bool {
-	mediatype, _, err := mime.ParseMediaType(contentType)
-	if err != nil {
-		return false
-	}
-	return slices.Contains(types.MimeTypesAtom, mediatype)
-}
-
-// isAmbiguous will return true if the Content Type is ambiguous and the exact Feed type cannot be determined
-// accurately. This will be the case if the Content Type is set to the generic application/xml type.
-func isAmbiguous(contentType string) bool {
-	mediatype, _, err := mime.ParseMediaType(contentType)
-	if err != nil {
-		return false
-	}
-	return slices.Contains(types.MimeTypesIndeterminate, mediatype)
-}
-
-// isHTML returns a boolean indicating whether the Content Type header indicates HTML.
-func isHTML(contentType string) bool {
-	mediatype, _, err := mime.ParseMediaType(contentType)
-	if err != nil {
-		return false
-	}
-	return slices.Contains(types.MimeTypesHTML, mediatype)
-}
-
-// determineSourceType will attempt to determine the appropriate SourceType value from the given interface object.
-func determineSourceType[T any](source T) SourceType {
+// parseSource will attempt to determine the appropriate SourceType value from the given interface object.
+func parseSource[T any](source T) SourceType {
 	switch any(source).(type) {
 	case *atom.Feed:
 		return TypeAtom
@@ -295,7 +273,7 @@ func newWebClient() *resty.Client {
 	client := resty.New()
 	// Set the mimetypes we accept. Who knows if this helps but at least we are honest to the server with what mimetypes
 	// we want.
-	mimeTypes := slices.Concat(types.MimeTypesAtom, types.MimeTypesRSS)
+	mimeTypes := types.MimeTypesFeed
 	mimeTypes = append(mimeTypes, ";q=0.2,*/*", ";q=0.1")
 	client.SetHeader("Accept", strings.Join(mimeTypes, ","))
 	return client
