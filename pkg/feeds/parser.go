@@ -8,7 +8,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"mime"
+	"net/url"
 	"slices"
 	"strings"
 	"sync"
@@ -155,6 +157,7 @@ func NewItemsFromURLs(ctx context.Context, urls ...string) ItemsResult {
 	return results
 }
 
+// parseFeedURL attempts to parse the given URL as a feed source.
 func parseFeedURL(ctx context.Context, client *resty.Client, url string) FeedResult {
 	// Get the feed data.
 	resp, err := client.R().SetContext(ctx).Get(url)
@@ -203,8 +206,73 @@ func parseFeedURL(ctx context.Context, client *resty.Client, url string) FeedRes
 	if feed.GetSourceURL() == "" {
 		feed.SetSourceURL(url)
 	}
+	// If the feed source did not define an image, try to find and set an appropriate one.
+	if feed.GetImage() == nil {
+		image, _ := discoverFeedImage(ctx, client, url)
+		if image != nil {
+			feed.SetImage(image)
+		}
+	}
 
 	return FeedResult{URL: url, Feed: feed}
+}
+
+// discoverFeedImage attempts to find a suitable image to use for a feed.
+func discoverFeedImage(ctx context.Context, client *resty.Client, sourceURL string) (*types.Image, error) {
+	// Parse the URL.
+	site, err := url.Parse(sourceURL)
+	if err != nil {
+		return nil, fmt.Errorf("could not parse URL: %w", err)
+	}
+	// Assume that the root website hosting the feed will likely have an appropriate icon. Wipe the path to get the root
+	// website.
+	site.Path = ""
+	site.RawQuery = ""
+	slog.Info("using website", slog.String("website", site.String()))
+
+	// Get the root website contents.
+	resp, err := client.R().SetContext(ctx).Get(site.String())
+	if err != nil {
+		return nil, fmt.Errorf("could not access URL: %w", err)
+	}
+	// Discover any appropriate images.
+	imagePath, err := discoverImages(resp.Body())
+	if err != nil {
+		return nil, fmt.Errorf("could not find appropriate image: %w", err)
+	}
+	// Generate image URL.
+	imageURL, err := url.JoinPath(site.String(), imagePath)
+	if err != nil {
+		return nil, fmt.Errorf("could not find appropriate image: %w", err)
+	}
+	return &types.Image{Value: imageURL}, nil
+}
+
+// discoverFeedURL attempts to find a feed URL within a HTML page.
+func discoverImages(content []byte) (string, error) {
+	page := html.NewTokenizer(bytes.NewReader(content))
+	for {
+		tt := page.Next()
+		switch tt {
+		case html.ErrorToken:
+			return "", fmt.Errorf("unable to determine feed url: %w", page.Err())
+		case html.StartTagToken:
+			tkn := page.Token()
+			if tkn.DataAtom != htmlatom.Link {
+				continue
+			}
+			// "rel" attribute must contain "icon" string.
+			if !slices.ContainsFunc(tkn.Attr, func(a html.Attribute) bool { return a.Key == "rel" && a.Val == "icon" }) {
+				continue
+			}
+			// "href" attribute must contain "icon" string.
+			if idx := slices.IndexFunc(tkn.Attr, func(a html.Attribute) bool {
+				return a.Key == "href" && strings.Contains(a.Val, "icon")
+			}); idx != -1 {
+				return tkn.Attr[idx].Val, nil
+			}
+		}
+	}
 }
 
 // discoverFeedURL attempts to find a feed URL within a HTML page.
@@ -270,11 +338,11 @@ func parseSource[T any](source T) SourceType {
 }
 
 func newWebClient() *resty.Client {
-	client := resty.New()
 	// Set the mimetypes we accept. Who knows if this helps but at least we are honest to the server with what mimetypes
 	// we want.
 	mimeTypes := types.MimeTypesFeed
 	mimeTypes = append(mimeTypes, ";q=0.2,*/*", ";q=0.1")
-	client.SetHeader("Accept", strings.Join(mimeTypes, ","))
-	return client
+	// Return a client.
+	return resty.New().
+		SetHeader("Accept", strings.Join(mimeTypes, ","))
 }

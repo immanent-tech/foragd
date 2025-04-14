@@ -133,6 +133,11 @@ func (c *Channel) GetImage() *types.Image {
 	}
 }
 
+// SetImage sets an image for the Channel.
+func (c *Channel) SetImage(image *types.Image) {
+	c.Image = &Image{URL: image.URL(), Title: image.String()}
+}
+
 // GetPublishedDate returns the <pubDate> of the Item (if any). If there is no publish date, it will return a
 // DateTime equal to Unix epoch.
 func (c *Channel) GetPublishedDate() time.Time {
@@ -148,6 +153,7 @@ func (c *Channel) GetUpdatedDate() time.Time {
 	return c.GetPublishedDate()
 }
 
+// GetItems retrieves a slice of Item values for the Channel.
 func (c *Channel) GetItems() []types.ItemSource {
 	items := make([]types.ItemSource, 0, len(c.Items))
 	for item := range slices.Values(c.Items) {

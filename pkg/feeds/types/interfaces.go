@@ -24,6 +24,11 @@ type HasMedia interface {
 	GetImage() *Image
 }
 
+// MediaEditable indicates that the media of the object can be changed.
+type MediaEditable interface {
+	SetImage(image *Image)
+}
+
 // HasAttribution contains methods for retrieving values that relate to the copyright, rights, authors and
 // contributors of an Object.
 type HasAttribution interface {
@@ -78,5 +83,6 @@ type FeedSource interface {
 	ObjectCommon
 	Source
 	SourceEditable
+	MediaEditable
 	GetItems() []ItemSource
 }

@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+// Package rss contains objects and methods defining the RSS syndication format.
 package rss
 
 import (
@@ -67,6 +68,10 @@ func (r *RSS) GetLanguage() string {
 
 func (r *RSS) GetImage() *types.Image {
 	return r.Channel.GetImage()
+}
+
+func (r *RSS) SetImage(image *types.Image) {
+	r.Channel.SetImage(image)
 }
 
 func (r *RSS) GetItems() []types.ItemSource {

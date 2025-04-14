@@ -7,6 +7,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/joshuar/go-feed-me/pkg/feeds/mrss"
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
@@ -140,6 +141,14 @@ func (f *Feed) GetImage() *types.Image {
 	return nil
 }
 
+// SetImage sets an image for the Channel.
+func (f *Feed) SetImage(image *types.Image) {
+	f.MediaThumbnails = mrss.MediaThumbnails{
+		mrss.MediaThumbnail{URL: image.URL()},
+	}
+}
+
+// GetPublishedDate returns the <published> element of the Feed.
 func (f *Feed) GetPublishedDate() time.Time {
 	return f.Updated.Value.Time
 }
@@ -149,6 +158,7 @@ func (f *Feed) GetUpdatedDate() time.Time {
 	return f.Updated.Value.Time
 }
 
+// GetItems returns a slice of Entry values for the Feed.
 func (f *Feed) GetItems() []types.ItemSource {
 	items := make([]types.ItemSource, 0, len(f.Entries))
 	for item := range slices.Values(f.Entries) {
