@@ -241,11 +241,19 @@ func discoverFeedImage(ctx context.Context, client *resty.Client, sourceURL stri
 		return nil, fmt.Errorf("could not find appropriate image: %w", err)
 	}
 	// Generate image URL.
-	imageURL, err := url.JoinPath(site.String(), imagePath)
+	imageURL, err := url.Parse(imagePath)
 	if err != nil {
-		return nil, fmt.Errorf("could not find appropriate image: %w", err)
+		// Might be relative path, try to parse with site path.
+		imagePath, err = url.JoinPath(site.String(), imagePath)
+		if err != nil {
+			return nil, fmt.Errorf("could not find appropriate image: %w", err)
+		}
+		imageURL, err = url.Parse(imagePath)
+		if err != nil {
+			return nil, fmt.Errorf("could not find appropriate image: %w", err)
+		}
 	}
-	return &types.Image{Value: imageURL}, nil
+	return &types.Image{Value: imageURL.String()}, nil
 }
 
 // discoverFeedURL attempts to find a feed URL within a HTML page.
@@ -288,31 +296,18 @@ func discoverFeedURL(content []byte) (string, error) {
 			if tkn.DataAtom != htmlatom.Link {
 				continue
 			}
-			if isValidFeedLink(tkn) {
-				if idx := slices.IndexFunc(tkn.Attr, func(v html.Attribute) bool {
-					return v.Key == "href"
-				}); idx != -1 {
-					return tkn.Attr[idx].Val, nil
-				}
+			// "rel" attribute must have a value of "alternate".
+			if !slices.ContainsFunc(tkn.Attr, func(a html.Attribute) bool { return a.Key == "rel" && a.Val == "alternate" }) {
+				continue
+			}
+			// "type" attribute must contain valid feed MIME type.
+			if idx := slices.IndexFunc(tkn.Attr, func(a html.Attribute) bool {
+				return a.Key == "type" && slices.Contains(types.MimeTypesFeed, a.Val)
+			}); idx != -1 {
+				return tkn.Attr[idx].Val, nil
 			}
 		}
 	}
-}
-
-// isValidFeedLink will return a boolean indicating whether the given HTML token, representing a <link>, is a valid feed
-// link.
-func isValidFeedLink(link html.Token) bool {
-	// "rel" attribute must have a value of "alternate".
-	if !slices.ContainsFunc(link.Attr, func(a html.Attribute) bool { return a.Key == "rel" && a.Val == "alternate" }) {
-		return false
-	}
-	// "type" attribute must contain valid feed MIME type.
-	if !slices.ContainsFunc(link.Attr, func(a html.Attribute) bool {
-		return a.Key == "type" && slices.Contains(types.MimeTypesFeed, a.Val)
-	}) {
-		return false
-	}
-	return true
 }
 
 // isMimeType returns a boolean indicating whether the Content Type header string is included in the given mimeType
