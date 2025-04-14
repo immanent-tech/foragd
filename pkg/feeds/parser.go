@@ -235,7 +235,7 @@ func isValidFeedLink(link html.Token) bool {
 	}
 	// type attribute must contain valid feed MIME type.
 	if !slices.ContainsFunc(link.Attr, func(a html.Attribute) bool {
-		return a.Key == "type" && slices.Contains(slices.Concat(types.MimeTypesAtom, types.MimeTypesRSS, types.MimeTypesIndeterminate), a.Val)
+		return a.Key == "type" && slices.Contains(types.MimeTypesFeed, a.Val)
 	}) {
 		return false
 	}
