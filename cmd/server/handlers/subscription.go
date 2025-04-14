@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -13,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/forms"
@@ -203,14 +201,6 @@ func CreateNewFeedsForRequests(next http.Handler) http.Handler {
 				)
 				continue
 			}
-			slogctx.FromCtx(req.Context()).Debug("Created new feed.",
-				slog.String("subscription_id", request.GetID()),
-				slog.String("subscription_nickname", request.UserNickname),
-				slog.String("feed_id", newFeed.GetID()),
-				slog.String("feed_name", newFeed.GetTitle()),
-				slog.String("feed_url", newFeed.GetSourceURL()),
-				slog.String("source_url", request.GetURL()),
-			)
 			// Add the new feed.
 			newFeeds = append(newFeeds, newFeed)
 			// Update the request URL (in case of redirection).
@@ -321,7 +311,6 @@ func AddSubscriptionsForRequests(api DataAPI) func(next http.Handler) http.Handl
 				next.ServeHTTP(res, req)
 				return
 			}
-			spew.Dump(requests)
 			// Validate subscriptions.
 			validRequests := requests.FilterValid()
 			for request := range slices.Values(validRequests) {
@@ -367,7 +356,7 @@ func AddSubscriptionResults() http.Handler {
 		// Get the request.
 		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
 		if !found {
-			InternalServerError(res, req, errors.New("no subscription request"))
+			InternalServerError(res, req, ErrMissingRequestData)
 		}
 		// Create a new response writer.
 		resp := htmx.NewResponse()
@@ -392,7 +381,7 @@ func ImportResults(err *models.Message) http.Handler {
 		// Get the request.
 		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
 		if !found {
-			InternalServerError(res, req, errors.New("no subscription request"))
+			InternalServerError(res, req, ErrMissingRequestData)
 		}
 		// Generate a csv file containing all subscription request results.
 		var resultsFile strings.Builder
@@ -414,6 +403,5 @@ func ImportResults(err *models.Message) http.Handler {
 			); err != nil {
 			InternalServerError(res, req, err)
 		}
-		spew.Dump(requests)
 	})
 }

@@ -11,6 +11,13 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 )
 
+var (
+	// ErrInvalidUser indicates the user data is invalid. This might be the case if the retrieved session is corrupted.
+	ErrInvalidUser = errors.New("user data is invalid")
+	// ErrMissingRequestData indicates data was expected in the request (usually in the context) but was not found.
+	ErrMissingRequestData = errors.New("request data is missing")
+)
+
 const (
 	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
 	subscriptionsCtxKey        contextKey = "subscriptions"
@@ -18,9 +25,6 @@ const (
 )
 
 type contextKey string
-
-// ErrInvalidUser indicates the user data is invalid. This might be the case if the retrieved session is corrupted.
-var ErrInvalidUser = errors.New("user data is invalid")
 
 type DataAPI interface {
 	// User methods:

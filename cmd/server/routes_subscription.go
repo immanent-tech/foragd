@@ -11,7 +11,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -29,8 +28,7 @@ func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 
 // AddSubscription handles an add subscription request.
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
-	ctx := slogctx.With(req.Context(), slog.String("id", middleware.GetReqID(req.Context())))
-	ctx = slogctx.WithGroup(ctx, "add_subscription")
+	ctx := AddRouteLogger(req.Context(), "add_subscription")
 	chain := alice.New(
 		handlers.ParseSubscriptionRequest,
 		handlers.MatchRequestsWithFeeds(s.DataAPI()),
@@ -41,6 +39,7 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	chain.ServeHTTP(res, req.WithContext(ctx))
 }
 
+// StartImport sets up an import for the user.
 func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
 	handler := handlers.HTMXResponse(htmx.NewResponse(), subscription.ImportModal())
 	handler.ServeHTTP(res, req)
@@ -54,6 +53,7 @@ func (f *SetImportMethodFormdataBody) Valid() (bool, error) {
 	return true, nil
 }
 
+// SetImportMethod parses the selected import method and calls the appropriate handler to handle that import method.
 func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
 	importMethod, valid, err := forms.DecodeForm[*SetImportMethodFormdataBody](req)
 	if err != nil || !valid {
@@ -77,9 +77,9 @@ func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// ProcessImport performs the actions required to import requests from any source.
 func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
-	ctx := slogctx.With(req.Context(), slog.String("route", "import_subscriptions"))
-	ctx = slogctx.With(ctx, slog.String("id", middleware.GetReqID(req.Context())))
+	ctx := AddRouteLogger(req.Context(), "import_subscriptions")
 	chain := alice.New(
 		handlers.ProcessImportMethod,
 		handlers.MatchRequestsWithFeeds(s.DataAPI()),
