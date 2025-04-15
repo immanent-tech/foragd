@@ -42,6 +42,16 @@ templ (a *Article) showDescription() {
 	}
 }
 
+templ (a *Article) showContent() {
+	<div id="article_content" class="text-sm max-w-prose">
+		if a.GetContent() != "" {
+			@templ.Raw(a.GetContent())
+		} else {
+			@a.showDescription()
+		}
+	</div>
+}
+
 templ (a *Article) showAuthors() {
 	if len(a.GetAuthors()) > 0 {
 		<div class="flex-1">
@@ -62,24 +72,27 @@ templ (a *Article) showTimestamp() {
 	</div>
 }
 
+templ (a *Article) showCategories() {
+	if len(a.GetCategories()) > 0 {
+		<div class="flex flex-wrap justify-items-center">
+			for _, category := range a.GetCategories() {
+				@badge.Build(
+					badge.WithSize(size.SM),
+					badge.WithThemeColor(color.Neutral),
+					badge.WithStyle(badge.Outline),
+					badge.WithContent(category),
+				).Show("p-1", "m-1")
+			}
+		</div>
+	}
+}
+
 templ (a *Article) showItemArticle() {
 	@a.showTitle()
 	<div class="flex w-full justify-items-end px-2">
 		@a.showAuthors()
 		@a.showTimestamp()
 	</div>
-	@a.showDescription()
-	<div class="flex flex-wrap justify-items-center">
-		for _, category := range a.GetCategories() {
-			@badge.Build(
-				badge.WithSize(size.SM),
-				badge.WithThemeColor(color.Neutral),
-				badge.WithStyle(badge.Outline),
-				badge.WithContent(category),
-			).Show("p-1", "m-1")
-		}
-	</div>
-	<div id="article_content">
-		@templ.Raw(a.GetContent())
-	</div>
+	@a.showCategories()
+	@a.showContent()
 }

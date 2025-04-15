@@ -17,6 +17,16 @@ import (
 )
 
 templ (c *Card) showTitle() {
+	if c.GetImage() != nil {
+		@image.Build(c.GetImage().URL(),
+			image.WithAltText(c.GetImage().String()),
+			image.WithExtraClasses("w-16", "h-16", "object-scale-down"),
+			image.WithLazyLoading()).Show()
+	} else {
+		@image.Build("/static/images/square-rss-solid.svg",
+			image.WithExtraClasses("w-16", "h-16", "object-scale-down"),
+			image.WithLazyLoading()).Show()
+	}
 	@text.Build(c.GetTitle(),
 		text.WithTextWeight(text.Semibold),
 		text.WithTextSize(text.SM),
@@ -77,14 +87,14 @@ templ (c *FeedCard) ShowUnreadCount() {
 
 templ (c *FeedCard) showContent() {
 	@c.showDescription()
-	<div class="flex flew-row">
-		<div class="flex-1">
-			@showLastUpdated("", c.GetUpdatedDate())
-		</div>
-		// <div class="flex-wrap">
-		// 	@c.showCategories()
-		// </div>
-	</div>
+	// <div class="flex flew-row">
+	// 	<div class="flex-1">
+	// 		@showLastUpdated("", c.GetUpdatedDate())
+	// 	</div>
+	// 	// <div class="flex-wrap">
+	// 	// 	@c.showCategories()
+	// 	// </div>
+	// </div>
 }
 
 templ (c *ItemCard) showContent() {
@@ -110,7 +120,7 @@ func (c *FeedCard) build() {
 			// card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
 		),
 		card.WithID(c.id),
-		c.setImageOption(),
+		// c.setImageOption(),
 	)
 }
 
@@ -122,13 +132,13 @@ func (c *ItemCard) build() {
 		card.WithShadow(size.SM),
 		card.WithBodyOptions(
 			card.WithTitle(c.showTitle()),
-			card.WithContent(c.showContent()),
+			// card.WithContent(c.showContent()),
 			card.WithActions(c.menuActions.Show()),
 			// card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
 			card.WithBodyExtraClasses("p-2"),
 		),
 		card.WithID(c.id),
-		c.setImageOption(),
+		// c.setImageOption(),
 	)
 }
 

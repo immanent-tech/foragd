@@ -91,6 +91,7 @@ func BuildFeedCard(ctx context.Context, subscription *models.Subscription) *Feed
 		},
 		UnreadCount: subscription.GetUnreadCount(),
 	}
+	feedCard.menuActions = append(feedCard.menuActions, showLastUpdated("", subscription.GetUpdatedDate()))
 	feedCard.setMarkAction()
 	feedCard.setViewAction(models.FiltersFromCtx(ctx))
 	feedCard.build()
@@ -110,6 +111,7 @@ func BuildItemCard(ctx context.Context, item *models.Item) *ItemCard {
 		},
 	}
 
+	itemCard.menuActions = append(itemCard.menuActions, showLastUpdated("", item.GetUpdatedDate()))
 	itemCard.setMarkAction()
 	itemCard.setViewAction()
 
