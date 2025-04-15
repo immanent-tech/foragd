@@ -76,7 +76,7 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 			middlewares.CORS(config.Environment()),
 			middlewares.CSP(server.ServerConfig.CSP),
 			middlewares.ElasticMiddleware(),
-			middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI()),
+			middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI(), svr.AuthAPI()),
 			middlewares.RequireHTMX(htmxOnlyRoutes),
 			session.LoadAndSave(),
 		},

@@ -15,9 +15,9 @@ import (
 
 // ProcessImportMethod will parse which import method has been chosen from the request, then call the appropriate
 // handler for handling that type of import.
-func AuthCallback() http.Handler {
+func AuthCallback(api AuthAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		user, err := gothic.CompleteUserAuth(res, req)
+		user, err := api.CompleteUserAuth(res, req)
 		if err != nil {
 			fmt.Fprintln(res, err)
 			return
@@ -28,7 +28,7 @@ func AuthCallback() http.Handler {
 
 func Login(api AuthAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if gothUser, err := gothic.CompleteUserAuth(res, req); err == nil {
+		if gothUser, err := api.CompleteUserAuth(res, req); err == nil {
 			spew.Dump(gothUser)
 			// Redirect to logged in page.
 			req.Header.Add("Content-Type", "")
@@ -49,7 +49,7 @@ func Logout() http.Handler {
 
 func BeginAuthHandler(api AuthAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		url, err := api.GetAuthURL(res, req)
+		url, err := api.GetAuthURL(req)
 		if err != nil {
 			res.WriteHeader(http.StatusBadRequest)
 			fmt.Fprintln(res, err)

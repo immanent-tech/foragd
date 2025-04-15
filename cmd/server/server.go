@@ -29,7 +29,7 @@ const (
 type DataAPI interface {
 	// User methods:
 	AddUser(ctx context.Context, userID models.UserID) error
-	GetUser(ctx context.Context) (*models.User, error)
+	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 	// Subscription methods:
 	GetSubscriptions(ctx context.Context) (models.Subscriptions, error)
 	MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error

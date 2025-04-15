@@ -22,6 +22,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/markbates/goth"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -30,21 +31,34 @@ import (
 )
 
 type UserAPI interface {
-	GetUser(ctx context.Context) (*models.User, error)
+	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
+}
+
+type AuthAPI interface {
+	GetUser(ctx context.Context) (goth.User, bool)
 }
 
 // RequireAuthentication ensures there is a valid user for the given protected
 // routes.
-func RequireAuthentication(protectedRoutes []string, api UserAPI) func(next http.Handler) http.Handler {
+func RequireAuthentication(protectedRoutes []string, api UserAPI, authAPI AuthAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := elastic.UserIndexToCtx(req.Context(), schema.UsersSchemaPrefix)
+			ctx := req.Context()
 
 			if slices.ContainsFunc(protectedRoutes, func(path string) bool {
 				return strings.HasPrefix(req.URL.Path, path)
 			}) {
+				userSession, found := authAPI.GetUser(ctx)
+				if !found {
+					slogctx.FromCtx(ctx).Error("Authentication Error. User not found.")
+					http.Redirect(res, req, "/", http.StatusSeeOther)
+				}
+
+				id, _ := strings.CutPrefix(userSession.UserID, "auth0|")
+
+				ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 				// Fetch the user from the user management API.
-				user, err := api.GetUser(ctx)
+				user, err := api.GetUser(ctx, id)
 				//  If no user can be found, redirect back to the home page.
 				if err != nil {
 					slogctx.FromCtx(ctx).Error("Authentication Error", slog.Any("error", err))

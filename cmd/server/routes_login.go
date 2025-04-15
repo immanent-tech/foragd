@@ -35,7 +35,7 @@ func (s Server) Login(res http.ResponseWriter, req *http.Request, provider strin
 func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provider string, params LoginCallbackParams) {
 	ctx := AddRouteLogger(req.Context(), "login_callback")
 	ctx = auth.ProviderToCtx(ctx, provider)
-	handlers.AuthCallback().ServeHTTP(res, req.WithContext(ctx))
+	handlers.AuthCallback(s.AuthAPI()).ServeHTTP(res, req.WithContext(ctx))
 
 	// if params.Code == "" {
 	// 	slogctx.FromCtx(ctx).Error("Invalid Code")

@@ -4,13 +4,13 @@
 package auth
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
@@ -72,25 +72,6 @@ func (a *Authenticator) Save(req *http.Request, _ http.ResponseWriter, s *sessio
 	return nil
 }
 
-func NewAuthenticator(sessionMgr *session.Manager) (*Authenticator, error) {
-	if err := loadConfigOnce(); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrStartAuthenticator, err)
-	}
-
-	authenticator := &Authenticator{
-		sessionMgr: sessionMgr,
-	}
-
-	goth.UseProviders(
-		auth0.New(auth0Config.ClientID, auth0Config.ClientSecret, auth0Config.DomainURL(), auth0Config.Domain),
-	)
-	gothic.Store = authenticator
-	gothic.GetProviderName = GetAuthProvider
-	gothic.CompleteUserAuth = authenticator.CompleteUserAuth
-
-	return authenticator, nil
-}
-
 func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 	providerName, err := gothic.GetProviderName(req)
 	if err != nil {
@@ -126,7 +107,7 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 	}
 
 	params := req.URL.Query()
-	if params.Encode() == "" && req.Method == "POST" {
+	if params.Encode() == "" && req.Method == http.MethodPost {
 		req.ParseForm()
 		params = req.Form
 	}
@@ -139,19 +120,14 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 
 	a.sessionMgr.Put(req.Context(), providerName, sess.Marshal())
 
-	// err = StoreInSession(providerName, sess.Marshal(), req, res)
-	// if err != nil {
-	// 	return goth.User{}, err
-	// }
-
 	gu, err := provider.FetchUser(sess)
-	spew.Dump(gu)
+	a.StoreUser(req.Context(), gu)
 	return gu, err
-
-	// return goth.User{}, nil
 }
 
-func (a *Authenticator) GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
+// GetAuthURL starts the authentication process with the requested provided.
+// It will return a URL that should be used to send users to.
+func (a *Authenticator) GetAuthURL(req *http.Request) (string, error) {
 	providerName, err := gothic.GetProviderName(req)
 	if err != nil {
 		return "", err
@@ -174,6 +150,37 @@ func (a *Authenticator) GetAuthURL(res http.ResponseWriter, req *http.Request) (
 	a.sessionMgr.Put(req.Context(), providerName, sess.Marshal())
 
 	return url, err
+}
+
+func (a *Authenticator) StoreUser(ctx context.Context, user goth.User) {
+	a.sessionMgr.Put(ctx, "user", user)
+}
+
+func (a *Authenticator) GetUser(ctx context.Context) (goth.User, bool) {
+	user, found := a.sessionMgr.Get(ctx, "user").(goth.User)
+	if !found {
+		return goth.User{}, false
+	}
+	return user, true
+}
+
+func NewAuthenticator(sessionMgr *session.Manager) (*Authenticator, error) {
+	if err := loadConfigOnce(); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrStartAuthenticator, err)
+	}
+
+	authenticator := &Authenticator{
+		sessionMgr: sessionMgr,
+	}
+
+	goth.UseProviders(
+		auth0.New(auth0Config.ClientID, auth0Config.ClientSecret, auth0Config.DomainURL(), auth0Config.Domain),
+	)
+	gothic.Store = authenticator
+	gothic.GetProviderName = GetAuthProvider
+	// gothic.CompleteUserAuth = authenticator.CompleteUserAuth
+
+	return authenticator, nil
 }
 
 // validateState ensures that the state token param from the original

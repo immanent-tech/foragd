@@ -8,6 +8,8 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/markbates/goth"
+
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 )
@@ -30,7 +32,7 @@ type contextKey string
 type DataAPI interface {
 	// User methods:
 	AddUser(ctx context.Context, userID models.UserID) error
-	GetUser(ctx context.Context) (*models.User, error)
+	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 	// Subscription methods:
 	GetSubscriptions(ctx context.Context) (models.Subscriptions, error)
 	MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error
@@ -45,5 +47,6 @@ type DataAPI interface {
 }
 
 type AuthAPI interface {
-	GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error)
+	GetAuthURL(req *http.Request) (string, error)
+	CompleteUserAuth(res http.ResponseWriter, req *http.Request) (goth.User, error)
 }

@@ -14,7 +14,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/session"
 )
 
 var (
@@ -25,15 +24,10 @@ var (
 )
 
 // GetUser fetches the user record from Elasticsearch.
-func (e *API) GetUser(ctx context.Context) (*models.User, error) {
+func (e *API) GetUser(ctx context.Context, userID models.UserID) (*models.User, error) {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
-	}
-
-	userID, err := session.UserID(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrGetFailed, ErrNoUserCtx, err)
 	}
 
 	resp, err := NewGetRequest(e.GetAPI(), index, userID).Do(ctx)
