@@ -12,6 +12,7 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
+	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -36,7 +37,6 @@ var (
 )
 
 type Store struct {
-	logger *slog.Logger
 	client *elastic.API
 	index  string
 }
@@ -97,7 +97,7 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 		Expiry: expiry,
 	}
 
-	s.logger.Debug("Committing new session.",
+	logger(sessionCtx).Debug("Committing new session.",
 		slog.String("token", session.Token),
 		slog.Time("expiry", session.Expiry))
 
@@ -146,7 +146,7 @@ func (s *Store) All() (map[string][]byte, error) {
 		// Loop through this set of results.
 		sessions, pagination, warnings = elastic.ExtractSourceFromHits[models.UserSession](resp.Hits.Hits)
 		if warnings != nil {
-			s.logger.Warn("Could not extract some session data.",
+			logger(sessionCtx).Warn("Could not extract some session data.",
 				slog.Any("warnings", warnings))
 		}
 
@@ -166,8 +166,15 @@ func (s *Store) All() (map[string][]byte, error) {
 func NewSessionStore(ctx context.Context, client *elastic.API) (*Store, error) {
 	sessionCtx = ctx
 	return &Store{
-		logger: slogctx.FromCtx(sessionCtx).WithGroup("session_store"),
 		client: client,
 		index:  schema.SessionsPrefix,
 	}, nil
+}
+
+func logger(ctx context.Context) *slog.Logger {
+	logger := slogctx.FromCtx(ctx)
+	if id := middleware.GetReqID(ctx); id != "" {
+		logger = logger.With(slog.String("id", id))
+	}
+	return logger.WithGroup("session")
 }

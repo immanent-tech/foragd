@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -39,7 +40,6 @@ var (
 
 type manager struct {
 	*scs.SessionManager
-	logger *slog.Logger
 }
 
 var session = &manager{}
@@ -50,7 +50,6 @@ func init() {
 }
 
 func NewSessionManager(ctx context.Context, store scs.Store) {
-	session.logger = slogctx.FromCtx(ctx).WithGroup("session_manager")
 	// Set up the session manager.
 	session.SessionManager = scs.New()
 	session.Store = store
@@ -84,7 +83,7 @@ func StoreFeedFilters(ctx context.Context, filters *models.Filters) {
 func GetFeedFilters(ctx context.Context) models.Filters {
 	filters, ok := session.Get(ctx, feedFiltersKey).(models.Filters)
 	if !ok {
-		session.logger.Warn("No feed filters in session, using default filters.")
+		logger(ctx).Warn("No feed filters in session, using default filters.")
 		return *models.NewFilters()
 	}
 	return filters
@@ -97,8 +96,16 @@ func StoreItemFilters(ctx context.Context, filters *models.Filters) {
 func GetItemFilters(ctx context.Context) models.Filters {
 	filters, ok := session.Get(ctx, itemFiltersKey).(models.Filters)
 	if !ok {
-		session.logger.Warn("No item filters in session, using default filters.")
+		logger(ctx).Warn("No item filters in session, using default filters.")
 		return *models.NewFilters()
 	}
 	return filters
+}
+
+func logger(ctx context.Context) *slog.Logger {
+	logger := slogctx.FromCtx(ctx)
+	if id := middleware.GetReqID(ctx); id != "" {
+		logger = logger.With(slog.String("id", id))
+	}
+	return logger.WithGroup("session")
 }

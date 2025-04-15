@@ -4,8 +4,6 @@
 package elastic
 
 import (
-	"log/slog"
-
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 )
 
@@ -15,12 +13,6 @@ const InternalPaginationCount = 1000
 // API is an object that provides access to the Elasticsearch API.
 type API struct {
 	*typedapi.API
-	logger *slog.Logger
-}
-
-// Log can be used to write log messages decorated by the API.
-func (a *API) Log() *slog.Logger {
-	return a.logger
 }
 
 // GetAPI returns the raw API object.

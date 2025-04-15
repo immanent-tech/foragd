@@ -6,6 +6,7 @@ package elastic
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"sync"
 
@@ -79,6 +80,8 @@ func loadConfigOnce(ctx context.Context, environment string) (*elasticsearch.Con
 func genConfig(ctx context.Context, environment string) (*elasticsearch.Config, error) {
 	var generated *elasticsearch.Config
 
+	logger := slogctx.FromCtx(ctx).With(slog.String("platform", "elastic"))
+
 	switch environment {
 	case "development":
 		caFileData, err := os.ReadFile(elasticConfig.Development.CAFile)
@@ -88,7 +91,7 @@ func genConfig(ctx context.Context, environment string) (*elasticsearch.Config, 
 
 		generated = &elasticsearch.Config{
 			Addresses: elasticConfig.Development.URLs,
-			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false, logger: slogctx.FromCtx(ctx)},
+			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false, logger: logger},
 			// Logger:    &elastictransport.ColorLogger{EnableResponseBody: true, EnableRequestBody: true, Output: os.Stderr},
 			Username:  elasticConfig.Development.Username,
 			Password:  elasticConfig.Development.Password,

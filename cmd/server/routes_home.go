@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -24,8 +23,7 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 }
 
 func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
-	ctx := slogctx.WithGroup(req.Context(), "show_feeds")
-	ctx = slogctx.Append(ctx, slog.String("id", middleware.GetReqID(req.Context())))
+	ctx := AddRouteLogger(req.Context(), "show_feeds")
 	chain := alice.New(
 		handlers.StoreFeedFilters(params),
 		handlers.GenerateFeedsContent(s.DataAPI()),

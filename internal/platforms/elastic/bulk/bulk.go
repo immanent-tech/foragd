@@ -15,6 +15,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/bulk"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/operationtype"
+	"github.com/go-chi/chi/v5/middleware"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 var (
@@ -40,7 +42,6 @@ const (
 // Client represents an elasticsearch client connection.
 type Client interface {
 	GetAPI() *typedapi.API
-	Log() *slog.Logger
 }
 
 // OpType represents the type of bulk operation to perform.
@@ -207,7 +208,7 @@ func NewRequest(ctx context.Context, client Client, options ...Option) (chan Ope
 
 		for op := range bulkOps {
 			if err := req.AddOperation(op); err != nil {
-				client.Log().Warn("Could not add operation to bulk request.",
+				logger(ctx).Warn("Could not add operation to bulk request.",
 					slog.Any("error", err))
 			}
 		}
@@ -216,10 +217,10 @@ func NewRequest(ctx context.Context, client Client, options ...Option) (chan Ope
 		// Handle response.
 		switch {
 		case err != nil:
-			client.Log().Error("Bulk request failed.", slog.Any("error", err))
+			logger(ctx).Error("Bulk request failed.", slog.Any("error", err))
 			respCh <- Response{Err: err}
 		case resp.Errors:
-			client.Log().Warn("Bulk request completed with some operation errors.")
+			logger(ctx).Warn("Bulk request completed with some operation errors.")
 			respCh <- Response{Err: ErrBulkHasErrors, Responses: GetOperationResponses(resp.Items)}
 		default:
 			respCh <- Response{Responses: GetOperationResponses(resp.Items)}
@@ -238,4 +239,12 @@ func GetOperationResponses(resp []map[operationtype.OperationType]types.Response
 		}
 	}
 	return responses
+}
+
+func logger(ctx context.Context) *slog.Logger {
+	logger := slogctx.FromCtx(ctx)
+	if id := middleware.GetReqID(ctx); id != "" {
+		logger = logger.With(slog.String("id", id))
+	}
+	return logger.WithGroup("bulk")
 }
