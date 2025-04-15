@@ -14,6 +14,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/sessions"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/models"
@@ -38,15 +39,16 @@ var (
 	ErrInvalidData  = errors.New("invalid data in session")
 )
 
-type manager struct {
+type Manager struct {
 	*scs.SessionManager
 }
 
-var session = &manager{}
+var session = &Manager{}
 
 func init() {
 	gob.Register(models.Tokens{})
 	gob.Register(models.Filters{})
+	gob.Register(sessions.Session{})
 }
 
 func NewSessionManager(ctx context.Context, store scs.Store) {
@@ -58,6 +60,10 @@ func NewSessionManager(ctx context.Context, store scs.Store) {
 	session.Cookie.Secure = true
 	session.Cookie.HttpOnly = true
 	session.Cookie.SameSite = http.SameSiteLaxMode
+}
+
+func GetSessionManager() *Manager {
+	return session
 }
 
 func ClearSession(ctx context.Context) error {

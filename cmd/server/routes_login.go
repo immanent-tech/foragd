@@ -7,9 +7,8 @@ import (
 	"errors"
 	"net/http"
 
-	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
+	"github.com/joshuar/go-feed-me/cmd/server/handlers"
+	"github.com/joshuar/go-feed-me/internal/auth"
 )
 
 var (
@@ -20,39 +19,46 @@ var (
 
 // Login handler handles login requests.
 func (s Server) Login(res http.ResponseWriter, req *http.Request, provider string) {
-	switch provider {
-	case "auth0":
-		auth0.LoginHandler(res, req, s.API.auth)
-	default:
-		s.Log.Warn("No provider to satisfy login.")
-		http.NotFound(res, req)
-	}
+	ctx := AddRouteLogger(req.Context(), "login")
+	ctx = auth.ProviderToCtx(ctx, provider)
+	handlers.Login(s.AuthAPI()).ServeHTTP(res, req.WithContext(ctx))
+	// switch provider {
+	// case "auth0":
+	// 	auth0.LoginHandler(res, req.WithContext(ctx), s.API.auth)
+	// default:
+	// 	slogctx.FromCtx(ctx).Warn("No provider to satisfy login.")
+	// 	http.NotFound(res, req)
+	// }
 }
 
 // LoginCallback handles the callback from login providers.
 func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provider string, params LoginCallbackParams) {
-	if params.Code == "" {
-		slogctx.FromCtx(req.Context()).Error("Invalid Code")
-		res.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	ctx := AddRouteLogger(req.Context(), "login_callback")
+	ctx = auth.ProviderToCtx(ctx, provider)
+	handlers.AuthCallback().ServeHTTP(res, req.WithContext(ctx))
 
-	if params.State == "" {
-		slogctx.FromCtx(req.Context()).Error("Invalid State")
-		res.WriteHeader(http.StatusUnauthorized)
-		return
-	}
+	// if params.Code == "" {
+	// 	slogctx.FromCtx(ctx).Error("Invalid Code")
+	// 	res.WriteHeader(http.StatusUnauthorized)
+	// 	return
+	// }
 
-	switch provider {
-	case "auth0":
-		auth0.CallbackHandler(res, req, s.API.auth, params.Code, params.State)
-	default:
-		slogctx.FromCtx(req.Context()).Error("No Provider")
-		http.NotFound(res, req)
-	}
-	// Redirect to logged in page.
-	req.Header.Add("Content-Type", "")
-	http.Redirect(res, req, "/home/feeds", http.StatusTemporaryRedirect)
+	// if params.State == "" {
+	// 	slogctx.FromCtx(ctx).Error("Invalid State")
+	// 	res.WriteHeader(http.StatusUnauthorized)
+	// 	return
+	// }
+
+	// switch provider {
+	// case "auth0":
+	// 	auth0.CallbackHandler(res, req.WithContext(ctx), s.API.auth, params.Code, params.State)
+	// default:
+	// 	slogctx.FromCtx(ctx).Error("No Provider")
+	// 	http.NotFound(res, req.WithContext(ctx))
+	// }
+	// // Redirect to logged in page.
+	// req.Header.Add("Content-Type", "")
+	// http.Redirect(res, req.WithContext(ctx), models.FeedsRoute, http.StatusTemporaryRedirect)
 }
 
 func (s Server) GetHomeSettings(res http.ResponseWriter, req *http.Request) {

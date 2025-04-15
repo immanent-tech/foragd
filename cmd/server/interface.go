@@ -16,6 +16,7 @@
 package server
 
 import (
+	"github.com/joshuar/go-feed-me/internal/auth"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
 )
 
@@ -41,4 +42,8 @@ func (s Server) DataAPI() DataAPI {
 
 func (s Server) Authenticator() *auth0.Authenticator {
 	return s.API.auth
+}
+
+func (s Server) AuthAPI() *auth.Authenticator {
+	return s.API.goth
 }

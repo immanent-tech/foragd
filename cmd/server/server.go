@@ -10,6 +10,9 @@ import (
 	"log/slog"
 	"strconv"
 
+	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/joshuar/go-feed-me/internal/auth"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
@@ -17,7 +20,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/session"
 	"github.com/joshuar/go-feed-me/internal/session/store"
-	slogctx "github.com/veqryn/slog-context"
 )
 
 const (
@@ -45,6 +47,7 @@ type API struct {
 	user    *auth0.UserAPI
 	elastic DataAPI
 	auth    *auth0.Authenticator
+	goth    *auth.Authenticator
 }
 
 type Server struct {
@@ -94,14 +97,20 @@ func NewServer(ctx context.Context) (Server, error) {
 	if err != nil {
 		return svr, errors.Join(ErrStartServer, err)
 	}
-
 	// Set up the session manager.
 	session.NewSessionManager(ctx, sessionStore)
+
+	goth, err := auth.NewAuthenticator(session.GetSessionManager())
+	if err != nil {
+		return svr, errors.Join(ErrStartServer, err)
+	}
+
 	// Add the API to the environment.
 	svr.API = &API{
 		user:    auth0UserAPI,
 		elastic: elasticAPI,
 		auth:    auth0API,
+		goth:    goth,
 	}
 
 	return svr, nil

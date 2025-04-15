@@ -14,12 +14,13 @@ func _() {
 	_ = x[Feed-3]
 	_ = x[Item-4]
 	_ = x[Scheduler-5]
-	_ = x[Max-6]
+	_ = x[Session-6]
+	_ = x[Max-7]
 }
 
-const _Prefix_name = "InvalidMinsubfeeditemschedulerMax"
+const _Prefix_name = "InvalidMinsubfeeditemschedulersessionMax"
 
-var _Prefix_index = [...]uint8{0, 7, 10, 13, 17, 21, 30, 33}
+var _Prefix_index = [...]uint8{0, 7, 10, 13, 17, 21, 30, 37, 40}
 
 func (i Prefix) String() string {
 	if i < 0 || i >= Prefix(len(_Prefix_index)-1) {

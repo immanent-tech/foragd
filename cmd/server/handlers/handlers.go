@@ -6,6 +6,7 @@ package handlers
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
@@ -41,4 +42,8 @@ type DataAPI interface {
 	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)
 	GetItems(ctx context.Context) (models.Items, models.Pagination, error)
 	MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error
+}
+
+type AuthAPI interface {
+	GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error)
 }

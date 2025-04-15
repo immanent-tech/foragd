@@ -17,6 +17,7 @@ const (
 	Feed         // feed
 	Item         // item
 	Scheduler    // scheduler
+	Session      // session
 	Max
 )
 

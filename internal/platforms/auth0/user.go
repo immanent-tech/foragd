@@ -19,9 +19,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
-
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 
@@ -34,8 +31,7 @@ var ErrConnectAPIFail = errors.New("could not connect to Auth0 API")
 const UserDBConnection = "Username-Password-Authentication"
 
 type UserAPI struct {
-	api    *authentication.Authentication
-	logger *slog.Logger
+	api *authentication.Authentication
 }
 
 type UserSignup struct {
@@ -74,8 +70,7 @@ func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 	}
 
 	api := &UserAPI{
-		api:    authAPI,
-		logger: slogctx.FromCtx(ctx).With(slog.Group("auth0")),
+		api: authAPI,
 	}
 
 	return api, nil
