@@ -22,39 +22,47 @@ components:
       type: object
       required:
         - SchedulerID
-        - Schedule
-        - NextRun
-        - Data
+        - job_type
+        - job_trigger
+        - job_next_run
+        - job_data
         - created_at
       properties:
         created_at:
           $ref: "models.yaml#/components/schemas/CreatedAt"
-        Schedule:
+        job_type:
+          description: >
+            is the type  job.
           type: string
+          enum: ["cron","poll"]
+        job_trigger:
+          description: >
+            is the trigger for the job.
+          oneOf:
+            - $ref: "#/components/schemas/PollTrigger"
+            - $ref: "#/components/schemas/CronTrigger"
           x-oapi-codegen-extra-tags:
-            json: "job_trigger"
-            validate: "required,cron"
-          x-go-type-skip-optional-pointer: true
-        NextRun:
+            validate: "required"
+        job_next_run:
+          description: >
+            is the next run time of the job.
           x-go-type: "time.Time"
-          x-oapi-codegen-extra-tags:
-            json: "job_next_run"
-          x-go-type-skip-optional-pointer: true
-        Options:
+        job_options:
+          description: >
+            are additional options for the job
           x-go-type: "*quartz.JobDetailOptions"
           x-go-type-import:
             path: "github.com/reugn/go-quartz/quartz"
-          x-oapi-codegen-extra-tags:
-            json: "job_options,omitempty"
           x-go-type-skip-optional-pointer: true
-        Data:
+        job_data:
+          description: >
+            contains job-specific data.
           type: object
           oneOf:
             - $ref: "#/components/schemas/FeedJob"
-          x-oapi-codegen-extra-tags:
-            json: "job_data"
-          x-go-type-skip-optional-pointer: true
         SchedulerID:
+          description: >
+            is the ID of the scheduler controlling this job instance.
           $ref: "#/components/schemas/SchedulerID"
     FeedJob:
       description: represents a job that fetches new items for a feed.
@@ -67,3 +75,31 @@ components:
           $ref: "models.yaml#/components/schemas/FeedID"
         URL:
           $ref: "models.yaml#/components/schemas/URL"
+    PollTrigger:
+      description: >
+        represents a polling trigger for a job.
+      type: object
+      required:
+        - interval
+        - jitter
+      properties:
+        interval:
+          x-go-type: time.Duration
+          x-oapi-codegen-extra-tags:
+            validate: "required"
+        jitter:
+          x-go-type: time.Duration
+          x-oapi-codegen-extra-tags:
+            validate: "required,len"
+    CronTrigger:
+      description: >
+        represents a trigger that runs on a Cron schedule.
+      type: object
+      required:
+        - schedule
+      properties:
+        schedule:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required,cron"
+

@@ -13,7 +13,6 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
@@ -145,7 +144,6 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 		req.ParseForm()
 		params = req.Form
 	}
-	spew.Dump(params)
 
 	// get new token and retry fetch
 	_, err = sess.Authorize(provider, params)

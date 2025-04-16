@@ -12,6 +12,17 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 )
 
+// Defines values for ScheduledJobJobType.
+const (
+	Cron ScheduledJobJobType = "cron"
+	Poll ScheduledJobJobType = "poll"
+)
+
+// CronTrigger represents a trigger that runs on a Cron schedule.
+type CronTrigger struct {
+	Schedule string `json:"schedule" validate:"required,cron"`
+}
+
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
 	// FeedID is the unique ID of a feed.
@@ -21,44 +32,68 @@ type FeedJob struct {
 	URL externalRef1.URL `json:"url" validate:"url"`
 }
 
+// PollTrigger represents a polling trigger for a job.
+type PollTrigger struct {
+	Interval time.Duration `json:"interval" validate:"required"`
+	Jitter   time.Duration `json:"jitter" validate:"required,len"`
+}
+
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {
-	Data     ScheduledJob_Data        `json:"job_data"`
-	NextRun  time.Time                `json:"job_next_run"`
-	Options  *quartz.JobDetailOptions `json:"job_options,omitempty"`
-	Schedule string                   `json:"job_trigger" validate:"required,cron"`
-
 	// SchedulerID is the unique ID of a job scheduler instance.
 	SchedulerID SchedulerID `json:"scheduler_id" validate:"required"`
 
 	// CreatedAt records when the object was created in the database.
 	CreatedAt externalRef1.CreatedAt `json:"created_at" validate:"required"`
+
+	// JobData contains job-specific data.
+	JobData ScheduledJob_JobData `json:"job_data"`
+
+	// JobNextRun is the next run time of the job.
+	JobNextRun time.Time `json:"job_next_run"`
+
+	// JobOptions are additional options for the job
+	JobOptions *quartz.JobDetailOptions `json:"job_options,omitempty"`
+
+	// JobTrigger is the trigger for the job.
+	JobTrigger ScheduledJob_JobTrigger `json:"job_trigger" validate:"required"`
+
+	// JobType is the type  job.
+	JobType ScheduledJobJobType `json:"job_type"`
 }
 
-// ScheduledJob_Data defines model for ScheduledJob.Data.
-type ScheduledJob_Data struct {
+// ScheduledJob_JobData contains job-specific data.
+type ScheduledJob_JobData struct {
 	union json.RawMessage
 }
+
+// ScheduledJob_JobTrigger is the trigger for the job.
+type ScheduledJob_JobTrigger struct {
+	union json.RawMessage
+}
+
+// ScheduledJobJobType is the type  job.
+type ScheduledJobJobType string
 
 // SchedulerID is the unique ID of a job scheduler instance.
 type SchedulerID = string
 
-// AsFeedJob returns the union data inside the ScheduledJob_Data as a FeedJob
-func (t ScheduledJob_Data) AsFeedJob() (FeedJob, error) {
+// AsFeedJob returns the union data inside the ScheduledJob_JobData as a FeedJob
+func (t ScheduledJob_JobData) AsFeedJob() (FeedJob, error) {
 	var body FeedJob
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromFeedJob overwrites any union data inside the ScheduledJob_Data as the provided FeedJob
-func (t *ScheduledJob_Data) FromFeedJob(v FeedJob) error {
+// FromFeedJob overwrites any union data inside the ScheduledJob_JobData as the provided FeedJob
+func (t *ScheduledJob_JobData) FromFeedJob(v FeedJob) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeFeedJob performs a merge with any union data inside the ScheduledJob_Data, using the provided FeedJob
-func (t *ScheduledJob_Data) MergeFeedJob(v FeedJob) error {
+// MergeFeedJob performs a merge with any union data inside the ScheduledJob_JobData, using the provided FeedJob
+func (t *ScheduledJob_JobData) MergeFeedJob(v FeedJob) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -69,12 +104,74 @@ func (t *ScheduledJob_Data) MergeFeedJob(v FeedJob) error {
 	return err
 }
 
-func (t ScheduledJob_Data) MarshalJSON() ([]byte, error) {
+func (t ScheduledJob_JobData) MarshalJSON() ([]byte, error) {
 	b, err := t.union.MarshalJSON()
 	return b, err
 }
 
-func (t *ScheduledJob_Data) UnmarshalJSON(b []byte) error {
+func (t *ScheduledJob_JobData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsPollTrigger returns the union data inside the ScheduledJob_JobTrigger as a PollTrigger
+func (t ScheduledJob_JobTrigger) AsPollTrigger() (PollTrigger, error) {
+	var body PollTrigger
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromPollTrigger overwrites any union data inside the ScheduledJob_JobTrigger as the provided PollTrigger
+func (t *ScheduledJob_JobTrigger) FromPollTrigger(v PollTrigger) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergePollTrigger performs a merge with any union data inside the ScheduledJob_JobTrigger, using the provided PollTrigger
+func (t *ScheduledJob_JobTrigger) MergePollTrigger(v PollTrigger) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsCronTrigger returns the union data inside the ScheduledJob_JobTrigger as a CronTrigger
+func (t ScheduledJob_JobTrigger) AsCronTrigger() (CronTrigger, error) {
+	var body CronTrigger
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromCronTrigger overwrites any union data inside the ScheduledJob_JobTrigger as the provided CronTrigger
+func (t *ScheduledJob_JobTrigger) FromCronTrigger(v CronTrigger) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeCronTrigger performs a merge with any union data inside the ScheduledJob_JobTrigger, using the provided CronTrigger
+func (t *ScheduledJob_JobTrigger) MergeCronTrigger(v CronTrigger) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t ScheduledJob_JobTrigger) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ScheduledJob_JobTrigger) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

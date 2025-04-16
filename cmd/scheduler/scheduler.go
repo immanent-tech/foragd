@@ -41,7 +41,6 @@ type Manager struct {
 	db         *elastic.API
 	queue      quartz.JobQueue
 	scheduler  quartz.Scheduler
-	logger     *slog.Logger
 	checkpoint time.Time
 }
 
@@ -79,7 +78,6 @@ func Run(ctx context.Context) error {
 		db:         esClient,
 		queue:      jobQueue,
 		scheduler:  scheduler,
-		logger:     slogctx.FromCtx(ctx).WithGroup("scheduler"),
 		checkpoint: time.Time{},
 	}
 
@@ -87,8 +85,10 @@ func Run(ctx context.Context) error {
 
 	jobChecker := func() {
 		if err := manager.CheckFeeds(ctx); err != nil {
-			manager.logger.Error("Checking for new feeds failed.",
-				slog.Any("error", err))
+			slogctx.FromCtx(ctx).
+				WithGroup("scheduler").
+				Error("Checking for new feeds failed.",
+					slog.Any("error", err))
 		}
 	}
 
@@ -105,13 +105,8 @@ func Run(ctx context.Context) error {
 		}
 	}()
 
-	manager.logger.Info("Starting scheduler.")
 	scheduler.Start(ctx)
-
 	<-ctx.Done()
-
-	manager.logger.Info("Stopping scheduler.")
-
 	return nil
 }
 
@@ -142,7 +137,7 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 				details.SchedulerID = m.id
 				// Delete the existing job.
 				if err = m.scheduler.DeleteJob(GenerateJobKey(feed.GetID())); err != nil {
-					m.logger.Warn("Could not reset existing job for feed .",
+					slogctx.FromCtx(ctx).Warn("Could not reset existing job for feed .",
 						slog.String("feed_id", feed.GetID()),
 						slog.Any("error", err))
 
@@ -152,9 +147,9 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 				job = quartz.ScheduledJob(details)
 			}
 		} else {
-			job, err = NewFeedJob(feed.GetID(), feed.GetSourceURL())
+			job, err = NewFeedJob(feed.GetID(), feed.GetSourceURL(), NewPollTrigger(defaultPollInterval, defaultPollJitter))
 			if err != nil {
-				m.logger.Warn("Failed to schedule job for feed.",
+				slogctx.FromCtx(ctx).Warn("Failed to schedule job for feed.",
 					slog.String("feed_id", feed.GetID()),
 					slog.Any("error", err))
 
@@ -163,17 +158,22 @@ func (m *Manager) CheckFeeds(ctx context.Context) error {
 		}
 
 		if err := m.scheduler.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
-			m.logger.Warn("Failed to schedule job for feed.",
+			slogctx.FromCtx(ctx).Warn("Failed to schedule job for feed.",
 				slog.String("feed_id", feed.GetID()),
 				slog.Any("error", err))
 
 			continue
 		}
 
-		m.logger.Debug("Adding job for feed.",
-			slog.String("feed_id", feed.GetID()),
-			slog.String("feed_title", feed.GetTitle()),
-			slog.String("schedule", job.Trigger().Description()),
+		slogctx.FromCtx(ctx).Debug("Adding job for feed.",
+			slog.Group("feed",
+				slog.String("id", feed.GetID()),
+				slog.String("title", feed.GetTitle()),
+			),
+			slog.Group("job",
+				slog.String("id", job.JobDetail().JobKey().String()),
+				slog.String("schedule", job.Trigger().Description()),
+			),
 		)
 	}
 

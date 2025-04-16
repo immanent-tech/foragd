@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
@@ -39,42 +38,71 @@ const (
 	FeedJobGroup = "get_items"
 )
 
+// JobDetail defines additional job properties.
 func (sj *ScheduledJob) JobDetail() *quartz.JobDetail {
-	job, err := sj.Data.AsFeedJob()
+	job, err := sj.JobData.AsFeedJob()
 	if err != nil {
 		return nil
 	}
 
-	if sj.Options != nil {
-		return quartz.NewJobDetailWithOptions(&job, GenerateJobKey(job.FeedID), sj.Options)
+	if sj.JobOptions != nil {
+		return quartz.NewJobDetailWithOptions(&job, GenerateJobKey(job.FeedID), sj.JobOptions)
 	}
 
 	return quartz.NewJobDetail(&job, GenerateJobKey(job.FeedID))
 }
 
+// Trigger defines the job trigger.
 func (sj *ScheduledJob) Trigger() quartz.Trigger {
-	trigger, _ := quartz.NewCronTrigger(sj.Schedule)
-	return trigger
+	switch sj.JobType {
+	case Cron:
+		data, err := sj.JobTrigger.AsCronTrigger()
+		if err != nil {
+			trigger, _ := quartz.NewCronTrigger(defaultJobTrigger)
+			return trigger
+		}
+		trigger, _ := quartz.NewCronTrigger(data.Schedule)
+		return trigger
+	case Poll:
+		trigger, err := sj.JobTrigger.AsPollTrigger()
+		if err != nil {
+			return NewPollTrigger(defaultPollInterval, defaultPollJitter)
+		}
+		return &trigger
+	}
+	return NewPollTrigger(defaultPollInterval, defaultPollJitter)
 }
 
+// NextRunTime returns the next scheduled run time for the job.
 func (sj *ScheduledJob) NextRunTime() int64 {
-	return sj.NextRun.UnixNano()
+	return sj.JobNextRun.UnixNano()
 }
 
 // MarshalJob takes a quartz.ScheduledJob object and marshals it back into a
 // ScheduledJob, updating fields as appropriate.
 func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
-	triggerOpts := strings.Split(job.Trigger().Description(), quartz.Sep)
 	serialized := &ScheduledJob{
-		NextRun:   time.Unix(0, job.NextRunTime()),
-		CreatedAt: time.Now().UTC(),
-		Options:   job.JobDetail().Options(),
-		Schedule:  triggerOpts[1],
+		JobNextRun: time.Unix(0, job.NextRunTime()),
+		CreatedAt:  time.Now().UTC(),
+		JobOptions: job.JobDetail().Options(),
+	}
+	// Parse and generate trigger.
+	switch trigger := ParseTrigger(job.Trigger()).(type) {
+	case *PollTrigger:
+		if err := serialized.JobTrigger.FromPollTrigger(*trigger); err != nil {
+			return nil, errors.Join(ErrMarshalJobFailed, err)
+		}
+		serialized.JobType = Poll
+	case *CronTrigger:
+		if err := serialized.JobTrigger.FromCronTrigger(*trigger); err != nil {
+			return nil, errors.Join(ErrMarshalJobFailed, err)
+		}
+		serialized.JobType = Cron
 	}
 
 	switch job := job.JobDetail().Job().(type) {
 	case *FeedJob:
-		if err := serialized.Data.FromFeedJob(*job); err != nil {
+		if err := serialized.JobData.FromFeedJob(*job); err != nil {
 			return nil, errors.Join(ErrMarshalJobFailed, err)
 		}
 	default:
@@ -151,13 +179,12 @@ func (job *FeedJob) getItemsSince(since time.Time) ([]*models.Item, error) {
 }
 
 // NewFeedJob creates a job that can be scheduled from the given feed data.
-func NewFeedJob(id models.FeedID, url models.URL) (*ScheduledJob, error) {
+func NewFeedJob(id models.FeedID, url models.URL, trigger quartz.Trigger) (*ScheduledJob, error) {
 	job := &ScheduledJob{
 		CreatedAt: time.Now().UTC(),
-		Schedule:  defaultJobTrigger,
 	}
 
-	if err := job.Data.FromFeedJob(FeedJob{
+	if err := job.JobData.FromFeedJob(FeedJob{
 		FeedID: id,
 		URL:    url,
 	}); err != nil {
