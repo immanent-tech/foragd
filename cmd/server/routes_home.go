@@ -25,6 +25,7 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
 	chain := alice.New(
 		handlers.RouteLogger("show_feeds"),
+		handlers.CheckRequiredFilters,
 		handlers.StoreFeedFilters(params),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())
@@ -44,6 +45,7 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, params HandleShowItemsParams) {
 	chain := alice.New(
 		handlers.RouteLogger("show_items"),
+		handlers.CheckRequiredFilters,
 		handlers.StoreItemFilters(params),
 		handlers.GenerateItemsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())

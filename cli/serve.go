@@ -33,11 +33,6 @@ import (
 
 var ErrStartServerFailed = errors.New("could not start server")
 
-var (
-	htmxOnlyRoutes  = []string{"/home/settings", "/subscription"}
-	protectedRoutes = []string{"/home", "/subscription"}
-)
-
 const (
 	ServerReadTimeout  = 5 * time.Second
 	ServerWriteTimeout = 10 * time.Second
@@ -78,7 +73,6 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 			middlewares.CSP(server.ServerConfig.CSP),
 			middlewares.ElasticMiddleware(),
 			handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),
-			middlewares.RequireHTMX(htmxOnlyRoutes),
 			session.LoadAndSave(),
 		},
 	})
