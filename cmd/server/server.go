@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"strconv"
 
 	slogctx "github.com/veqryn/slog-context"
 
@@ -46,7 +45,6 @@ type DataAPI interface {
 type API struct {
 	user    *auth0.UserAPI
 	elastic DataAPI
-	auth    *auth0.Authenticator
 	goth    *auth.Authenticator
 }
 
@@ -87,11 +85,6 @@ func NewServer(ctx context.Context) (Server, error) {
 	if err != nil {
 		return svr, errors.Join(ErrStartServer, err)
 	}
-	// Load the authenticator backend.
-	auth0API, err := auth0.NewAuthenticator(ctx, "https://localhost:"+strconv.Itoa(ServerConfig.Port))
-	if err != nil {
-		return svr, errors.Join(ErrStartServer, err)
-	}
 	// Load the session store.
 	sessionStore, err := store.NewSessionStore(ctx, elasticAPI)
 	if err != nil {
@@ -109,7 +102,6 @@ func NewServer(ctx context.Context) (Server, error) {
 	svr.API = &API{
 		user:    auth0UserAPI,
 		elastic: elasticAPI,
-		auth:    auth0API,
 		goth:    goth,
 	}
 

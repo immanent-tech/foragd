@@ -117,13 +117,13 @@ func (s Server) AddSubscriptionCategory(res http.ResponseWriter, req *http.Reque
 	data, valid, err := forms.DecodeForm[*AddSubscriptionCategoryFormdataBody](req)
 	if !valid || err != nil {
 		slogctx.FromCtx(req.Context()).Error("Cannot display content.",
-			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			slog.Any("error", err))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, subscription.ShowCategory(data.Category)); err != nil {
 		slogctx.FromCtx(req.Context()).Error("Cannot display content.",
-			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			slog.Any("error", err))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }
@@ -133,7 +133,7 @@ func (s Server) DelSubscriptionCategory(res http.ResponseWriter, req *http.Reque
 
 	if _, err := res.Write(nil); err != nil {
 		slogctx.FromCtx(req.Context()).Error("Cannot display content.",
-			slog.Any("error", errors.Join(ErrRenderTemplateFail, err)))
+			slog.Any("error", err))
 		http.Error(res, "Problem!", http.StatusInternalServerError)
 	}
 }

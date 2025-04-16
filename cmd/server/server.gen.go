@@ -91,12 +91,6 @@ type HandleShowItemsParams struct {
 	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
 }
 
-// LoginCallbackParams defines parameters for LoginCallback.
-type LoginCallbackParams struct {
-	Code  string `form:"code" json:"code"`
-	State string `form:"state" json:"state"`
-}
-
 // DelSubscriptionCategoryFormdataBody defines parameters for DelSubscriptionCategory.
 type DelSubscriptionCategoryFormdataBody struct {
 	// Category represents a taxonomy applied to an object.
@@ -273,7 +267,7 @@ type ServerInterface interface {
 	Login(w http.ResponseWriter, r *http.Request, provider string)
 	// Callback for login provider
 	// (GET /login/{provider}/callback)
-	LoginCallback(w http.ResponseWriter, r *http.Request, provider string, params LoginCallbackParams)
+	LoginCallback(w http.ResponseWriter, r *http.Request, provider string)
 	// Logout handler for provider
 	// (GET /logout/{provider})
 	Logout(w http.ResponseWriter, r *http.Request, provider string)
@@ -401,7 +395,7 @@ func (_ Unimplemented) Login(w http.ResponseWriter, r *http.Request, provider st
 
 // Callback for login provider
 // (GET /login/{provider}/callback)
-func (_ Unimplemented) LoginCallback(w http.ResponseWriter, r *http.Request, provider string, params LoginCallbackParams) {
+func (_ Unimplemented) LoginCallback(w http.ResponseWriter, r *http.Request, provider string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -969,41 +963,8 @@ func (siw *ServerInterfaceWrapper) LoginCallback(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params LoginCallbackParams
-
-	// ------------- Required query parameter "code" -------------
-
-	if paramValue := r.URL.Query().Get("code"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "code"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "code", r.URL.Query(), &params.Code)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "code", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "state" -------------
-
-	if paramValue := r.URL.Query().Get("state"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "state"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "state", r.URL.Query(), &params.State)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "state", Err: err})
-		return
-	}
-
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.LoginCallback(w, r, provider, params)
+		siw.Handler.LoginCallback(w, r, provider)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {

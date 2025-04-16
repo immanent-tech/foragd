@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/sessions"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/joshuar/go-feed-me/internal/auth"
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -43,35 +44,35 @@ type Manager struct {
 	*scs.SessionManager
 }
 
-var session = &Manager{}
+var mgr = &Manager{}
 
 func init() {
-	gob.Register(models.Tokens{})
 	gob.Register(models.Filters{})
 	gob.Register(sessions.Session{})
+	gob.Register(auth.UserAuth{})
 }
 
 func NewSessionManager(ctx context.Context, store scs.Store) {
 	// Set up the session manager.
-	session.SessionManager = scs.New()
-	session.Store = store
-	session.Lifetime = sessionLifetime
-	session.Cookie.Name = sessionCookie
-	session.Cookie.Secure = true
-	session.Cookie.HttpOnly = true
-	session.Cookie.SameSite = http.SameSiteLaxMode
+	mgr.SessionManager = scs.New()
+	mgr.Store = store
+	mgr.Lifetime = sessionLifetime
+	mgr.Cookie.Name = sessionCookie
+	mgr.Cookie.Secure = true
+	mgr.Cookie.HttpOnly = true
+	mgr.Cookie.SameSite = http.SameSiteLaxMode
 }
 
 func GetSessionManager() *Manager {
-	return session
+	return mgr
 }
 
 func ClearSession(ctx context.Context) error {
-	if err := session.Clear(ctx); err != nil {
+	if err := mgr.Clear(ctx); err != nil {
 		return fmt.Errorf("unable to clear session data: %w", err)
 	}
 
-	if err := session.Destroy(ctx); err != nil {
+	if err := mgr.Destroy(ctx); err != nil {
 		return fmt.Errorf("unable to remove session: %w", err)
 	}
 
@@ -79,15 +80,15 @@ func ClearSession(ctx context.Context) error {
 }
 
 func LoadAndSave() func(next http.Handler) http.Handler {
-	return session.LoadAndSave
+	return mgr.LoadAndSave
 }
 
 func StoreFeedFilters(ctx context.Context, filters *models.Filters) {
-	session.Put(ctx, feedFiltersKey, filters)
+	mgr.Put(ctx, feedFiltersKey, filters)
 }
 
 func GetFeedFilters(ctx context.Context) models.Filters {
-	filters, ok := session.Get(ctx, feedFiltersKey).(models.Filters)
+	filters, ok := mgr.Get(ctx, feedFiltersKey).(models.Filters)
 	if !ok {
 		logger(ctx).Warn("No feed filters in session, using default filters.")
 		return *models.NewFilters()
@@ -96,11 +97,11 @@ func GetFeedFilters(ctx context.Context) models.Filters {
 }
 
 func StoreItemFilters(ctx context.Context, filters *models.Filters) {
-	session.Put(ctx, itemFiltersKey, filters)
+	mgr.Put(ctx, itemFiltersKey, filters)
 }
 
 func GetItemFilters(ctx context.Context) models.Filters {
-	filters, ok := session.Get(ctx, itemFiltersKey).(models.Filters)
+	filters, ok := mgr.Get(ctx, itemFiltersKey).(models.Filters)
 	if !ok {
 		logger(ctx).Warn("No item filters in session, using default filters.")
 		return *models.NewFilters()

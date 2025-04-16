@@ -11,7 +11,7 @@ import (
 // given route from the user session. If this data cannot be retrieved, the
 // route will be returned as-is.
 func GetRouteState(ctx context.Context, route string) string {
-	path := session.GetString(ctx, route)
+	path := mgr.GetString(ctx, route)
 	if path == "" {
 		return route
 	}
@@ -22,5 +22,5 @@ func GetRouteState(ctx context.Context, route string) string {
 // SetRouteState stores the last used state (i.e., all query options) for the
 // given route in the user session.
 func SetRouteState(ctx context.Context, route, path string) {
-	session.Put(ctx, route, path)
+	mgr.Put(ctx, route, path)
 }

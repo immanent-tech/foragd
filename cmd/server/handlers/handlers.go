@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+// Package handlers contains chainable handlers/middleware for routing.
 package handlers
 
 import (
@@ -8,8 +9,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/markbates/goth"
-
+	"github.com/joshuar/go-feed-me/internal/auth"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 )
@@ -48,5 +48,6 @@ type DataAPI interface {
 
 type AuthAPI interface {
 	GetAuthURL(req *http.Request) (string, error)
-	CompleteUserAuth(res http.ResponseWriter, req *http.Request) (goth.User, error)
+	CompleteUserAuth(res http.ResponseWriter, req *http.Request) (auth.UserAuth, error)
+	GetUserAuth(ctx context.Context) (auth.UserAuth, bool)
 }

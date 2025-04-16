@@ -40,10 +40,6 @@ func (s Server) DataAPI() DataAPI {
 	return s.API.elastic
 }
 
-func (s Server) Authenticator() *auth0.Authenticator {
-	return s.API.auth
-}
-
 func (s Server) AuthAPI() *auth.Authenticator {
 	return s.API.goth
 }

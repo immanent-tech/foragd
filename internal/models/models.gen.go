@@ -6,7 +6,6 @@ package models
 import (
 	"time"
 
-	"github.com/coreos/go-oidc"
 	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
 
@@ -52,20 +51,6 @@ type CategoryCount struct {
 	// Category represents a taxonomy applied to an object.
 	Category Category `json:"category"`
 	Count    int      `json:"count"`
-}
-
-// Claims defines model for Claims.
-type Claims struct {
-	Audience       string      `json:"aud"`
-	Expiry         int         `json:"exp"`
-	IssuedAt       int         `json:"iat"`
-	Issuer         string      `json:"iss"`
-	SessionID      string      `json:"sid"`
-	Subject        string      `json:"sub"`
-	UpdatedAt      interface{} `json:"updated_at"`
-	UserName       string      `json:"name"`
-	UserNickName   string      `json:"nickname"`
-	UserPictureURL string      `json:"picture"`
 }
 
 // CreatedAt records when the object was created in the database.
@@ -303,13 +288,6 @@ type Timestamps struct {
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
-}
-
-// Tokens defines model for Tokens.
-type Tokens struct {
-	AccessToken string        `json:"AccessToken"`
-	Claims      Claims        `json:"Claims"`
-	IDToken     *oidc.IDToken `json:"IDToken"`
 }
 
 // URL is a URL.

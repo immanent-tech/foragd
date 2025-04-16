@@ -6,7 +6,6 @@ package server
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"net/http"
 
@@ -33,7 +32,7 @@ func (s Server) SignUp(res http.ResponseWriter, req *http.Request) {
 		layouts.WithPageContent(signup.Show(models.NewUserSignup())),
 	)
 	if err := resp.RenderTempl(req.Context(), res, fullPage.Show()); err != nil {
-		slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", errors.Join(ErrInvalidQueryParams, err)))
+		slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", err))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
 	}

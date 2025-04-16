@@ -54,11 +54,6 @@ type FeedManagementAPI interface {
 	// FeedJobStateAPI
 }
 
-// SessionManagementAPI contains methods for session management.
-type SessionManagementAPI interface {
-	GetTokens(ctx context.Context) (*Tokens, error)
-}
-
 // Source represents a single source of data. This might be an individual feed or item.
 type Source interface {
 	types.ObjectCommon

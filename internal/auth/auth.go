@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+// Package auth contains objects and methods for handling user authentication.
 package auth
 
 import (
@@ -10,16 +11,16 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/sessions"
 	"github.com/markbates/goth"
 	"github.com/markbates/goth/gothic"
 	"github.com/markbates/goth/providers/auth0"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/id"
-	"github.com/joshuar/go-feed-me/internal/session"
 )
 
 // Ensure the session manager implements the Gorilla Store interface.
@@ -30,10 +31,40 @@ var _ sessions.Store = (*Authenticator)(nil)
 var (
 	ErrStartAuthenticator = errors.New("could not create new authentication provider")
 	ErrInvalidData        = errors.New("invalid authentication data")
+	ErrAuth               = errors.New("authentication failed")
 )
 
+// UserAuth contains provider independent details about user authentication.
+type UserAuth struct {
+	goth.User
+}
+
+// GetUserID retrieves a user ID from the user authentication.
+func (u *UserAuth) GetUserID() string {
+	id, _ := strings.CutPrefix(u.UserID, "auth0|")
+	return id
+}
+
+// GetNickname retrieves a user nickname from the user authentication.
+func (u *UserAuth) GetNickname() string {
+	return u.NickName
+}
+
+// GetEmail retrieves a user email from the user authentication.
+func (u *UserAuth) GetEmail() string {
+	return u.Email
+}
+
+// Store is an interface representing a backend session store.
+type Store interface {
+	Exists(ctx context.Context, key string) bool
+	Get(ctx context.Context, key string) any
+	GetString(ctx context.Context, key string) string
+	Put(ctx context.Context, key string, val any)
+}
+
 type Authenticator struct {
-	sessionMgr *session.Manager
+	sessionMgr Store
 }
 
 // Get returns a cached user session from the store.
@@ -72,38 +103,37 @@ func (a *Authenticator) Save(req *http.Request, _ http.ResponseWriter, s *sessio
 	return nil
 }
 
-func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Request) (UserAuth, error) {
 	providerName, err := gothic.GetProviderName(req)
 	if err != nil {
-		return goth.User{}, err
+		return UserAuth{}, fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
 	provider, err := goth.GetProvider(providerName)
 	if err != nil {
-		return goth.User{}, err
+		return UserAuth{}, fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
 	value := a.sessionMgr.GetString(req.Context(), providerName)
-	// value, err := gothic.GetFromSession(providerName, req)
 	if value == "" {
-		return goth.User{}, errors.New("no auth provider session")
+		return UserAuth{}, fmt.Errorf("%w: no session found", ErrAuth)
 	}
 
-	defer handlers.Logout().ServeHTTP(res, req)
+	defer a.Logout().ServeHTTP(res, req)
 	sess, err := provider.UnmarshalSession(value)
 	if err != nil {
-		return goth.User{}, err
+		return UserAuth{}, fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
 	err = validateState(req, sess)
 	if err != nil {
-		return goth.User{}, err
+		return UserAuth{}, fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
 	user, err := provider.FetchUser(sess)
 	if err == nil {
 		// user can be found with existing session data
-		return user, err
+		return UserAuth{User: user}, nil
 	}
 
 	params := req.URL.Query()
@@ -111,18 +141,23 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 		req.ParseForm()
 		params = req.Form
 	}
+	spew.Dump(params)
 
 	// get new token and retry fetch
 	_, err = sess.Authorize(provider, params)
 	if err != nil {
-		return goth.User{}, err
+		return UserAuth{}, fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
 	a.sessionMgr.Put(req.Context(), providerName, sess.Marshal())
 
 	gu, err := provider.FetchUser(sess)
-	a.StoreUser(req.Context(), gu)
-	return gu, err
+	if err != nil {
+		return UserAuth{}, fmt.Errorf("%w: %w", ErrAuth, err)
+	}
+	userAuth := UserAuth{User: gu}
+	a.StoreUserAuth(req.Context(), userAuth)
+	return userAuth, nil
 }
 
 // GetAuthURL starts the authentication process with the requested provided.
@@ -147,30 +182,41 @@ func (a *Authenticator) GetAuthURL(req *http.Request) (string, error) {
 		return "", err
 	}
 
+	slogctx.FromCtx(req.Context()).Debug("Initialised provider", slog.String("provider", providerName))
 	a.sessionMgr.Put(req.Context(), providerName, sess.Marshal())
 
-	return url, err
+	return url, nil
 }
 
-func (a *Authenticator) StoreUser(ctx context.Context, user goth.User) {
+func (a *Authenticator) StoreUserAuth(ctx context.Context, user UserAuth) {
 	a.sessionMgr.Put(ctx, "user", user)
+	slogctx.FromCtx(ctx).Debug("Stored user auth.")
 }
 
-func (a *Authenticator) GetUser(ctx context.Context) (goth.User, bool) {
-	user, found := a.sessionMgr.Get(ctx, "user").(goth.User)
+func (a *Authenticator) GetUserAuth(ctx context.Context) (UserAuth, bool) {
+	user, found := a.sessionMgr.Get(ctx, "user").(UserAuth)
 	if !found {
-		return goth.User{}, false
+		return UserAuth{}, false
 	}
+	slogctx.FromCtx(ctx).Debug("Retrieved user auth.")
 	return user, true
 }
 
-func NewAuthenticator(sessionMgr *session.Manager) (*Authenticator, error) {
+func (a *Authenticator) Logout() http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		gothic.Logout(res, req)
+		res.Header().Set("Location", "/")
+		res.WriteHeader(http.StatusTemporaryRedirect)
+	})
+}
+
+func NewAuthenticator(sessionStore Store) (*Authenticator, error) {
 	if err := loadConfigOnce(); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrStartAuthenticator, err)
 	}
 
 	authenticator := &Authenticator{
-		sessionMgr: sessionMgr,
+		sessionMgr: sessionStore,
 	}
 
 	goth.UseProviders(

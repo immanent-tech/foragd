@@ -22,11 +22,6 @@ var (
 
 var UnixEpoch = time.Unix(0, 0)
 
-type UserData struct {
-	*Tokens
-	*User
-}
-
 // SliceToMap generates a map from slice content by mapping key-value pairs from the slice with the given map function.
 func SliceToMap[K comparable, V any, S any](s []S, mapFn func(S) (K, V)) map[K]V {
 	m := make(map[K]V)

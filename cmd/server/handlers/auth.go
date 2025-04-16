@@ -4,58 +4,92 @@
 package handlers
 
 import (
-	"fmt"
+	"log/slog"
 	"net/http"
+	"slices"
+	"strings"
 
-	"github.com/davecgh/go-spew/spew"
-	"github.com/markbates/goth/gothic"
+	"github.com/go-chi/chi/v5"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
+	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
 )
 
-// ProcessImportMethod will parse which import method has been chosen from the request, then call the appropriate
-// handler for handling that type of import.
-func AuthCallback(api AuthAPI) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		user, err := api.CompleteUserAuth(res, req)
-		if err != nil {
-			fmt.Fprintln(res, err)
-			return
-		}
-		spew.Dump(user)
-	})
-}
+// ProtectedRoutes are routes that require user authentication.
+var ProtectedRoutes = []string{"/home", "/subscription"}
 
 func Login(api AuthAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if gothUser, err := api.CompleteUserAuth(res, req); err == nil {
-			spew.Dump(gothUser)
-			// Redirect to logged in page.
-			req.Header.Add("Content-Type", "")
-			http.Redirect(res, req, models.FeedsRoute, http.StatusTemporaryRedirect)
-		} else {
-			BeginAuthHandler(api).ServeHTTP(res, req)
-		}
-	})
-}
-
-func Logout() http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		gothic.Logout(res, req)
-		res.Header().Set("Location", "/")
-		res.WriteHeader(http.StatusTemporaryRedirect)
-	})
-}
-
-func BeginAuthHandler(api AuthAPI) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		url, err := api.GetAuthURL(req)
+		slogctx.FromCtx(req.Context()).Debug("Authenticating user.")
+		_, err := api.CompleteUserAuth(res, req)
 		if err != nil {
-			res.WriteHeader(http.StatusBadRequest)
-			fmt.Fprintln(res, err)
+			slogctx.FromCtx(req.Context()).Warn("Authentication required.", slog.Any("error", err))
+			url, err := api.GetAuthURL(req)
+			if err != nil {
+				InternalServerError(res, req, err)
+				return
+			}
+			slogctx.FromCtx(req.Context()).Debug("Redirecting to provider.", slog.String("url", url))
+			http.Redirect(res, req, url, http.StatusTemporaryRedirect)
 			return
 		}
-
-		http.Redirect(res, req, url, http.StatusTemporaryRedirect)
+		slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
+		req.Header.Add("Content-Type", "")
+		http.Redirect(res, req, models.FeedsRoute, http.StatusTemporaryRedirect)
 	})
+}
+
+// AuthCallback handles a callback from an authentication provider.
+func AuthCallback(api AuthAPI) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		_, err := api.CompleteUserAuth(res, req)
+		if err != nil {
+			InternalServerError(res, req, err)
+			return
+		}
+		slogctx.FromCtx(req.Context()).Debug("Authenticated.")
+		slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
+		req.Header.Add("Content-Type", "")
+		http.Redirect(res, req, models.FeedsRoute, http.StatusTemporaryRedirect)
+	})
+}
+
+// RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
+func RequireUserAuth(dataAPI DataAPI, authAPI AuthAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			routePattern := chi.RouteContext(req.Context()).RoutePattern()
+			if !slices.ContainsFunc(ProtectedRoutes, func(route string) bool {
+				return strings.HasPrefix(routePattern, route)
+			}) {
+				slogctx.FromCtx(req.Context()).Debug("Route does not require auth.",
+					slog.String("route", routePattern))
+				next.ServeHTTP(res, req)
+				return
+			}
+			ctx := req.Context()
+			userAuth, found := authAPI.GetUserAuth(ctx)
+			if !found {
+				slogctx.FromCtx(ctx).Error("Authentication Error.",
+					slog.String("error", "User not found."))
+				http.Redirect(res, req, "/", http.StatusSeeOther)
+				return
+			}
+			ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
+			// Fetch the user from the user management API.
+			user, err := dataAPI.GetUser(ctx, userAuth.GetUserID())
+			//  If no user can be found, redirect back to the home page.
+			if err != nil {
+				slogctx.FromCtx(ctx).Error("Authentication Error.",
+					slog.Any("error", err))
+				http.Redirect(res, req, "/", http.StatusSeeOther)
+				return
+			}
+			// Else load the user into the context and pass the new context
+			// to the next request.
+			next.ServeHTTP(res, req.WithContext(models.UserToCtx(ctx, user)))
+		})
+	}
 }

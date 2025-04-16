@@ -25,6 +25,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/cmd/scheduler"
 	"github.com/joshuar/go-feed-me/cmd/server"
+	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 	"github.com/joshuar/go-feed-me/cmd/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/config"
 	"github.com/joshuar/go-feed-me/internal/session"
@@ -76,7 +77,7 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 			middlewares.CORS(config.Environment()),
 			middlewares.CSP(server.ServerConfig.CSP),
 			middlewares.ElasticMiddleware(),
-			middlewares.RequireAuthentication(protectedRoutes, svr.DataAPI(), svr.AuthAPI()),
+			handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),
 			middlewares.RequireHTMX(htmxOnlyRoutes),
 			session.LoadAndSave(),
 		},
