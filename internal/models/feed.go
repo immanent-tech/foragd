@@ -6,6 +6,7 @@ package models
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"time"
 
@@ -48,6 +49,13 @@ func (f Feeds) FindByURL(url string) *Feed {
 		return nil
 	}
 	return f[idx]
+}
+
+func (f *Feed) String() string {
+	if f.GetTitle() != "" {
+		return fmt.Sprintf("%s (%s)", f.GetTitle(), f.GetSourceURL())
+	}
+	return f.GetSourceURL()
 }
 
 func (f *Feed) GetID() FeedID {

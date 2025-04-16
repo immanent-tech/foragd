@@ -140,6 +140,13 @@ func (s *Subscription) Valid() (bool, error) {
 	return true, nil
 }
 
+func (s *Subscription) String() string {
+	if s.GetTitle() != "" {
+		return fmt.Sprintf("%s (%s)", s.GetTitle(), s.GetSourceURL())
+	}
+	return s.GetSourceURL()
+}
+
 // GetID retrieves the SubscriptionID.
 func (s *Subscription) GetID() SubscriptionID {
 	return s.SubscriptionID
@@ -329,6 +336,16 @@ func (r *SubscriptionRequest) Valid() (bool, error) {
 		return false, NewMessage("Details are invalid", MessageStatusError, WithError(err))
 	}
 	return true, nil
+}
+
+func (r *SubscriptionRequest) String() string {
+	if r.Subscription != nil {
+		return r.Subscription.String()
+	}
+	if r.UserNickname != "" {
+		return fmt.Sprintf("%s (%s)", r.UserNickname, r.GetURL())
+	}
+	return r.GetURL()
 }
 
 func (r *SubscriptionRequest) GetURL() string {

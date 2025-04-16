@@ -140,10 +140,8 @@ func MatchRequestsWithFeeds(api DataAPI) func(next http.Handler) http.Handler {
 				}
 				if user.IsSubscribed(feed.GetID()) {
 					// Ignore requests where the user is already subscribed to the feed.
-					request.Result = models.NewMessage("Already subscribed.",
+					request.Result = models.NewMessage("Already subscribed to "+feed.String(),
 						models.MessageStatusWarning,
-						models.WithDetails(
-							fmt.Sprintf("A subscription for %s (%s) already exists.", feed.GetTitle(), feed.GetSourceURL())),
 					)
 					slogctx.FromCtx(req.Context()).Debug("Already subscribed.",
 						slog.String("subscription_nickname", request.UserNickname),
@@ -189,9 +187,9 @@ func CreateNewFeedsForRequests(next http.Handler) http.Handler {
 			// Create a new feed from the request.
 			newFeed, err := models.NewFeedFromURL(req.Context(), request.GetURL())
 			if err != nil {
-				request.Result = models.NewMessage("Add subscription failed.",
+				request.Result = models.NewMessage("Could not add "+request.String(),
 					models.MessageStatusError,
-					models.WithDetails(fmt.Sprintf("Could not create a feed for %s: %v", request.GetURL(), err)),
+					models.WithDetails(err.Error()),
 					models.WithError(err),
 				)
 				slogctx.FromCtx(req.Context()).Debug("Create feed failed.",
@@ -314,11 +312,7 @@ func AddSubscriptionsForRequests(api DataAPI) func(next http.Handler) http.Handl
 			// Validate subscriptions.
 			validRequests := requests.FilterValid()
 			for request := range slices.Values(validRequests) {
-				request.Result = models.NewMessage(
-					fmt.Sprintf("Added subscription: %s (%s)",
-						request.Subscription.GetTitle(),
-						request.Subscription.GetSourceURL(),
-					),
+				request.Result = models.NewMessage("Added subscription "+request.String(),
 					models.MessageStatusSuccess)
 			}
 			slogctx.FromCtx(req.Context()).Debug("Adding subscriptions.")
