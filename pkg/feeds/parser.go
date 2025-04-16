@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"mime"
 	"net/url"
 	"slices"
@@ -228,7 +227,6 @@ func discoverFeedImage(ctx context.Context, client *resty.Client, sourceURL stri
 	// website.
 	site.Path = ""
 	site.RawQuery = ""
-	slog.Info("using website", slog.String("website", site.String()))
 
 	// Get the root website contents.
 	resp, err := client.R().SetContext(ctx).Get(site.String())
@@ -243,15 +241,10 @@ func discoverFeedImage(ctx context.Context, client *resty.Client, sourceURL stri
 	// Generate image URL.
 	imageURL, err := url.Parse(imagePath)
 	if err != nil {
-		// Might be relative path, try to parse with site path.
-		imagePath, err = url.JoinPath(site.String(), imagePath)
-		if err != nil {
-			return nil, fmt.Errorf("could not find appropriate image: %w", err)
-		}
-		imageURL, err = url.Parse(imagePath)
-		if err != nil {
-			return nil, fmt.Errorf("could not find appropriate image: %w", err)
-		}
+		return nil, fmt.Errorf("could not find appropriate image: %w", err)
+	}
+	if !imageURL.IsAbs() {
+		imageURL = site.JoinPath(imagePath)
 	}
 	return &types.Image{Value: imageURL.String()}, nil
 }

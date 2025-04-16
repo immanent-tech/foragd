@@ -38,11 +38,13 @@ func (f *Feed) GetDescription() string {
 }
 
 // GetSourceURL retrieves the URL that links to the Atom file for the Feed. This will be any <link> element
-// present with a "rel" attribute of "self".
+// present with a "rel" attribute of "self" and ideally with a mime-type indicating Atom content.
 func (f *Feed) GetSourceURL() string {
 	for link := range slices.Values(f.Links) {
 		if link.Rel != nil && *link.Rel == LinkRelSelf {
-			return link.Href
+			if link.Type != nil && slices.Contains(types.MimeTypesAtom, *link.Type) {
+				return link.Href
+			}
 		}
 	}
 	return ""
@@ -51,7 +53,7 @@ func (f *Feed) GetSourceURL() string {
 // SetSourceURL will set a source URL, indicating the URL of the Atom document, in the Feed.
 func (f *Feed) SetSourceURL(url string) {
 	rel := LinkRelSelf
-	f.Links = append(f.Links, Link{Href: url, Rel: &rel})
+	f.Links = append(f.Links, Link{Href: url, Rel: &rel, Type: &types.MimeTypesAtom[0]})
 }
 
 // GetLink retrieves the <link> of the Feed. This is the link to the website associated with the RSS feed.
