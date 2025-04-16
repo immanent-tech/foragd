@@ -28,15 +28,15 @@ func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 
 // AddSubscription handles an add subscription request.
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
-	ctx := AddRouteLogger(req.Context(), "add_subscription")
 	chain := alice.New(
+		handlers.RouteLogger("add_subscription"),
 		handlers.ParseSubscriptionRequest,
 		handlers.MatchRequestsWithFeeds(s.DataAPI()),
 		handlers.CreateNewFeedsForRequests,
 		handlers.AddFeedsForRequests(s.DataAPI()),
 		handlers.AddSubscriptionsForRequests(s.DataAPI()),
 	).Then(handlers.AddSubscriptionResults())
-	chain.ServeHTTP(res, req.WithContext(ctx))
+	chain.ServeHTTP(res, req)
 }
 
 // StartImport sets up an import for the user.
@@ -79,15 +79,15 @@ func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
 
 // ProcessImport performs the actions required to import requests from any source.
 func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
-	ctx := AddRouteLogger(req.Context(), "import_subscriptions")
 	chain := alice.New(
+		handlers.RouteLogger("import_subscriptions"),
 		handlers.ProcessImportMethod,
 		handlers.MatchRequestsWithFeeds(s.DataAPI()),
 		handlers.CreateNewFeedsForRequests,
 		handlers.AddFeedsForRequests(s.DataAPI()),
 		handlers.AddSubscriptionsForRequests(s.DataAPI()),
 	).Then(handlers.ImportResults(nil))
-	chain.ServeHTTP(res, req.WithContext(ctx))
+	chain.ServeHTTP(res, req)
 }
 
 func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, subscription SubscriptionID) {

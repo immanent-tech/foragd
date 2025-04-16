@@ -268,9 +268,9 @@ type ServerInterface interface {
 	// Callback for login provider
 	// (GET /login/{provider}/callback)
 	LoginCallback(w http.ResponseWriter, r *http.Request, provider string)
-	// Logout handler for provider
-	// (GET /logout/{provider})
-	Logout(w http.ResponseWriter, r *http.Request, provider string)
+	// User logout.
+	// (GET /logout)
+	Logout(w http.ResponseWriter, r *http.Request)
 	// Issue a user search request
 	// (POST /search)
 	Search(w http.ResponseWriter, r *http.Request)
@@ -399,9 +399,9 @@ func (_ Unimplemented) LoginCallback(w http.ResponseWriter, r *http.Request, pro
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Logout handler for provider
-// (GET /logout/{provider})
-func (_ Unimplemented) Logout(w http.ResponseWriter, r *http.Request, provider string) {
+// User logout.
+// (GET /logout)
+func (_ Unimplemented) Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -977,19 +977,8 @@ func (siw *ServerInterfaceWrapper) LoginCallback(w http.ResponseWriter, r *http.
 // Logout operation middleware
 func (siw *ServerInterfaceWrapper) Logout(w http.ResponseWriter, r *http.Request) {
 
-	var err error
-
-	// ------------- Path parameter "provider" -------------
-	var provider string
-
-	err = runtime.BindStyledParameterWithOptions("simple", "provider", chi.URLParam(r, "provider"), &provider, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "provider", Err: err})
-		return
-	}
-
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.Logout(w, r, provider)
+		siw.Handler.Logout(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1370,7 +1359,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/login/{provider}/callback", wrapper.LoginCallback)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/logout/{provider}", wrapper.Logout)
+		r.Get(options.BaseURL+"/logout", wrapper.Logout)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/search", wrapper.Search)

@@ -52,21 +52,13 @@ paths:
           description: No provider to satisfy login
         500:
           description: Problem with request
-  /logout/{provider}:
+  /logout:
     get:
-      summary: Logout handler for provider
+      summary: >
+        User logout.
+      description: >
+        Logs a user out of the app.
       operationId: logout
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        307:
-          description: Redirect to provider
-        500:
-          description: Problem with request
   /signup:
     get:
       summary: >

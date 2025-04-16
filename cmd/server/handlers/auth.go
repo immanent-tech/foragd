@@ -20,11 +20,11 @@ import (
 // ProtectedRoutes are routes that require user authentication.
 var ProtectedRoutes = []string{"/home", "/subscription"}
 
-func Login(api AuthAPI) http.Handler {
+// PerformAuth will perform authentication for a user with a provider.
+func PerformAuth(api AuthAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		slogctx.FromCtx(req.Context()).Debug("Authenticating user.")
-		_, err := api.CompleteUserAuth(res, req)
-		if err != nil {
+		if err := api.CompleteUserAuth(res, req); err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Authentication required.", slog.Any("error", err))
 			url, err := api.GetAuthURL(req)
 			if err != nil {
@@ -44,8 +44,7 @@ func Login(api AuthAPI) http.Handler {
 // AuthCallback handles a callback from an authentication provider.
 func AuthCallback(api AuthAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		_, err := api.CompleteUserAuth(res, req)
-		if err != nil {
+		if err := api.CompleteUserAuth(res, req); err != nil {
 			InternalServerError(res, req, err)
 			return
 		}
@@ -70,8 +69,8 @@ func RequireUserAuth(dataAPI DataAPI, authAPI AuthAPI) func(next http.Handler) h
 				return
 			}
 			ctx := req.Context()
-			userAuth, found := authAPI.GetUserAuth(ctx)
-			if !found {
+			userID := authAPI.GetUserID(ctx)
+			if userID == "" {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.String("error", "User not found."))
 				http.Redirect(res, req, "/", http.StatusSeeOther)
@@ -79,7 +78,7 @@ func RequireUserAuth(dataAPI DataAPI, authAPI AuthAPI) func(next http.Handler) h
 			}
 			ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 			// Fetch the user from the user management API.
-			user, err := dataAPI.GetUser(ctx, userAuth.GetUserID())
+			user, err := dataAPI.GetUser(ctx, userID)
 			//  If no user can be found, redirect back to the home page.
 			if err != nil {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",

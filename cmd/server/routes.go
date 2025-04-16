@@ -4,17 +4,36 @@
 package server
 
 import (
-	"context"
-	"log/slog"
+	"net/http"
 
-	"github.com/go-chi/chi/v5/middleware"
-	slogctx "github.com/veqryn/slog-context"
+	"github.com/justinas/alice"
+
+	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 )
 
-// AddRouteLogger adds some consistent log attributes to the logger for the given route. This can be used to correlate
-// log messages coming from a particular route across any handlers the route might call.
-func AddRouteLogger(ctx context.Context, route string) context.Context {
-	ctx = slogctx.With(ctx, slog.String("route", route))
-	ctx = slogctx.With(ctx, slog.String("id", middleware.GetReqID(ctx)))
-	return ctx
+// Login handler handles login requests.
+func (s Server) Login(res http.ResponseWriter, req *http.Request, provider string) {
+	s.AuthAPI().SetProviderName(req.Context(), provider)
+	chain := alice.New(
+		handlers.RouteLogger("show_feeds"),
+	).Then(handlers.PerformAuth(s.AuthAPI()))
+	chain.ServeHTTP(res, req)
+}
+
+// LoginCallback handles the callback from login providers.
+func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provider string) {
+	s.AuthAPI().SetProviderName(req.Context(), provider)
+	chain := alice.New(
+		handlers.RouteLogger("show_feeds"),
+	).Then(handlers.AuthCallback(s.AuthAPI()))
+	chain.ServeHTTP(res, req)
+}
+
+func (s Server) GetHomeSettings(res http.ResponseWriter, req *http.Request) {
+	res.WriteHeader(http.StatusNotImplemented)
+}
+
+// Logout handler handles user logout.
+func (s Server) Logout(res http.ResponseWriter, req *http.Request) {
+	s.AuthAPI().Logout().ServeHTTP(res, req)
 }

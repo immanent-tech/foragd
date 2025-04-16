@@ -9,7 +9,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/joshuar/go-feed-me/internal/auth"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 )
@@ -48,6 +47,6 @@ type DataAPI interface {
 
 type AuthAPI interface {
 	GetAuthURL(req *http.Request) (string, error)
-	CompleteUserAuth(res http.ResponseWriter, req *http.Request) (auth.UserAuth, error)
-	GetUserAuth(ctx context.Context) (auth.UserAuth, bool)
+	CompleteUserAuth(res http.ResponseWriter, req *http.Request) error
+	GetUserID(ctx context.Context) models.UserID
 }
