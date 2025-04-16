@@ -31,3 +31,7 @@ func MarkAction(mark models.Mark, label, path, target string, params url.Values)
 		link.WithExtraAttributes(action.Attributes()),
 	).Show()
 }
+
+templ LogoutLink() {
+	<a href="/logout">Logout</a>
+}

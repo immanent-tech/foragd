@@ -4,6 +4,7 @@
 package appbar
 
 import (
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/input"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
@@ -61,7 +62,9 @@ templ appBarTopRight() {
 					</a>
 				</li>
 				<li><a>Settings</a></li>
-				<li><a>Logout</a></li>
+				<li>
+					@partials.LogoutLink()
+				</li>
 			</ul>
 		</div>
 	</div>
