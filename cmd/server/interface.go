@@ -17,7 +17,7 @@ package server
 
 import (
 	"github.com/joshuar/go-feed-me/internal/auth"
-	"github.com/joshuar/go-feed-me/internal/platforms/auth0"
+	"github.com/joshuar/go-feed-me/internal/auth0"
 )
 
 func (s Server) AppSecret() string {
