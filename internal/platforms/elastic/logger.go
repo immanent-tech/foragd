@@ -58,17 +58,21 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		slog.Int("status", status),
 	}
 
+	if requestID := middleware.GetReqID(req.Context()); requestID != "" {
+		requestAttributes = append(requestAttributes,
+			slog.String("id", requestID),
+		)
+		responseAttributes = append(responseAttributes,
+			slog.String("id", requestID),
+		)
+	}
+
 	baseAttributes = append(baseAttributes,
 		slog.Duration("took", dur),
 	)
 	if err != nil {
 		baseAttributes = append(baseAttributes,
 			slog.Any("error", err),
-		)
-	}
-	if requestID := middleware.GetReqID(req.Context()); requestID != "" {
-		baseAttributes = append(baseAttributes,
-			slog.String("id", requestID),
 		)
 	}
 

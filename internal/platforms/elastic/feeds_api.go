@@ -158,6 +158,9 @@ func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, paginatio
 			slog.Any("warnings", err))
 	}
 
+	slogctx.FromCtx(ctx).Debug("Searched feeds.",
+		slog.Int64("hits", resp.Hits.Total.Value))
+
 	return sources, nil
 }
 
@@ -185,6 +188,9 @@ func (e *API) ItemsSearch(ctx context.Context, query query.Option, filters model
 		return nil, errors.Join(ErrSearchFailed, err)
 	}
 
+	slogctx.FromCtx(ctx).Debug("Searched items.",
+		slog.Int64("hits", resp.Hits.Total.Value))
+
 	return resp, nil
 }
 
@@ -209,9 +215,6 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 
-	slog.Debug("Searched items.",
-		slog.Int64("hits", resp.Hits.Total.Value))
-
 	return resp, nil
 }
 
@@ -231,7 +234,7 @@ func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 	if err != nil {
 		return errors.Join(ErrUpdateFailed, err)
 	}
-	slog.Debug("Updated feed.",
+	slogctx.FromCtx(ctx).Debug("Updated feed.",
 		slog.String("result", resp.Result.String()),
 		slog.Int64("version", resp.Version_))
 	return nil

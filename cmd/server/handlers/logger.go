@@ -16,7 +16,7 @@ func RouteLogger(route string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := slogctx.With(req.Context(), slog.String("route", route))
-			ctx = slogctx.With(ctx, slog.String("id", middleware.GetReqID(ctx)))
+			ctx = slogctx.With(ctx, slog.Group("req", slog.String("id", middleware.GetReqID(ctx))))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
