@@ -23,11 +23,11 @@ import (
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/cmd/scheduler"
 	"github.com/joshuar/go-feed-me/cmd/server"
 	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 	"github.com/joshuar/go-feed-me/cmd/server/middlewares"
 	"github.com/joshuar/go-feed-me/internal/config"
+	"github.com/joshuar/go-feed-me/internal/scheduler"
 	"github.com/joshuar/go-feed-me/internal/session"
 )
 
