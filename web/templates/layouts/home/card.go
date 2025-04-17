@@ -32,40 +32,47 @@ type cardActions []templ.Component
 // Card is a display component that shows a DaisyUI Card for the given data.
 type Card struct {
 	id          string
+	viewAction  *templates.Action
 	menuActions cardActions
 	models.Source
 	*card.Props
 }
 
-// setMarkAction creates the appropriate mark action for the card for inclusion in the actions menu.
-func (c *Card) setMarkAction() {
+// generateMarkAction creates the appropriate mark action for the card.
+func (c *Card) generateMarkAction() *templates.Action {
 	cardType := id.IdentifyID(c.id)
 	sourceID := c.id
 	switch {
 	case cardType == id.Feed && c.IsUnread():
-		c.menuActions = append(c.menuActions, partials.MarkButton(buildMarkFeedAction(sourceID, models.MarkRead)))
+		return buildMarkFeedAction(sourceID, models.MarkRead)
 	case cardType == id.Feed && !c.IsUnread():
-		c.menuActions = append(c.menuActions, partials.MarkButton(buildMarkFeedAction(sourceID, models.MarkUnread)))
+		return buildMarkFeedAction(sourceID, models.MarkUnread)
 	case cardType == id.Item && c.IsUnread():
-		c.menuActions = append(c.menuActions, partials.MarkButton(buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkRead)))
+		return buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkRead)
 	case cardType == id.Item && !c.IsUnread():
-		c.menuActions = append(c.menuActions, partials.MarkButton(buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkUnread)))
+		return buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkUnread)
 	}
+	return nil
 }
 
-func (c *FeedCard) setViewAction(currentFilters models.Filters) {
-	filters := models.NewFilters(
-		models.WithCountFilter(currentFilters.Count),
-		models.WithViewFilter(currentFilters.View),
-		models.WithSortFilters(currentFilters.Sort()),
-		models.WithFeedFilters(c.GetFeedID()),
-	)
-
-	c.menuActions = append(c.menuActions, partials.ViewButton(buildShowItemCardsAction(*filters)))
-}
-
-func (c *ItemCard) setViewAction() {
-	c.menuActions = append(c.menuActions, partials.ViewButton(buildShowArticleAction(c.GetFeedID(), c.id)))
+// viewAction returns the action for viewing the card's content. For a Feed card this would be the Feed's item as cards.
+// For a Item card, this would be the item content.
+func (c *Card) generateViewAction(ctx context.Context) *templates.Action {
+	switch id.IdentifyID(c.id) {
+	case id.Feed:
+		filters := models.FiltersFromCtx(ctx)
+		return buildShowItemCardsAction(
+			*models.NewFilters(
+				models.WithCountFilter(filters.Count),
+				models.WithViewFilter(filters.View),
+				models.WithSortFilters(filters.Sort()),
+				models.WithFeedFilters(c.GetFeedID()),
+			),
+		)
+	case id.Item:
+		return buildShowArticleAction(c.GetFeedID(), c.id)
+	}
+	return nil
 }
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
@@ -91,9 +98,11 @@ func BuildFeedCard(ctx context.Context, subscription *models.Subscription) *Feed
 		},
 		UnreadCount: subscription.GetUnreadCount(),
 	}
-	feedCard.menuActions = append(feedCard.menuActions, showLastUpdated("", subscription.GetUpdatedDate()))
-	feedCard.setMarkAction()
-	feedCard.setViewAction(models.FiltersFromCtx(ctx))
+	feedCard.viewAction = feedCard.generateViewAction(ctx)
+	feedCard.menuActions = append(feedCard.menuActions,
+		showLastUpdated("", subscription.GetUpdatedDate()),
+		partials.MarkButton(feedCard.generateMarkAction()),
+	)
 	feedCard.build()
 
 	if feedCard.UnreadCount == 0 {
@@ -110,11 +119,11 @@ func BuildItemCard(ctx context.Context, item *models.Item) *ItemCard {
 			id:     item.GetID(),
 		},
 	}
-
-	itemCard.menuActions = append(itemCard.menuActions, showLastUpdated("", item.GetUpdatedDate()))
-	itemCard.setMarkAction()
-	itemCard.setViewAction()
-
+	itemCard.viewAction = itemCard.generateViewAction(ctx)
+	itemCard.menuActions = append(itemCard.menuActions,
+		showLastUpdated("", item.GetUpdatedDate()),
+		partials.MarkButton(itemCard.generateMarkAction()),
+	)
 	itemCard.build()
 
 	switch {

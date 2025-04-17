@@ -12,6 +12,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"slices"
 	"strconv"
 )
@@ -27,10 +28,13 @@ templ (c *Card) showTitle() {
 			image.WithExtraClasses("w-16", "h-16", "object-scale-down"),
 			image.WithLazyLoading()).Show()
 	}
-	@text.Build(c.GetTitle(),
-		text.WithTextWeight(text.Semibold),
-		text.WithTextSize(text.SM),
-	).Show("flex-1")
+	// Title text is a link to the view action of the card.
+	@link.Build(
+		link.WithContent(c.GetTitle()),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(c.viewAction.Attributes()),
+		link.WithExtraClasses("flex-1", "text-md"),
+	).Show()
 }
 
 templ (c *Card) showDescription() {
@@ -148,6 +152,5 @@ templ (a cardActions) Show() {
 }
 
 templ (c *Card) Show(classes ...string) {
-	// @c.Props.Show("w-full", "lg:w-1/2", "card-side", "h-48", "p-2")
-	@c.Props.Show("max-h-1/4", "w-full", "lg:max-w-1/2", "py-4")
+	@c.Props.Show("flex-grow", "max-h-1/4", "w-full", "md:max-w-lg", "m-2")
 }

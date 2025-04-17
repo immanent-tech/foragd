@@ -94,7 +94,7 @@ templ showLastUpdated(description string, updated time.Time) {
 }
 
 templ NewContent(content ...models.Template) {
-	<div id="content" class="flex flex-wrap p-4 h-full items-start">
+	<div id="content" class="flex flex-wrap md:flex-column p-4 h-full items-start justify-center">
 		if len(content) > 0 {
 			for c := range slices.Values(content) {
 				@c.Show()
