@@ -3,6 +3,11 @@
 
 package types
 
+import (
+	"slices"
+	"strings"
+)
+
 // String returns any title (alt tag) for the Image.
 func (i *Image) String() string {
 	if i.Title != nil && *i.Title != "" {
@@ -14,4 +19,11 @@ func (i *Image) String() string {
 // URL returns the URL to the Image.
 func (i *Image) URL() string {
 	return i.Value
+}
+
+// IsImage will return a boolean indicating whether the given mimetype represents an image.
+func IsImage(mimetype string) bool {
+	return slices.ContainsFunc(MimeTypesImage, func(v string) bool {
+		return strings.Contains(mimetype, v)
+	})
 }

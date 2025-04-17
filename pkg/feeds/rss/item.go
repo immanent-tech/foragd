@@ -121,6 +121,10 @@ func (i *Item) GetImage() *types.Image {
 		return &types.Image{
 			Value: thumbnail.URL,
 		}
+	case i.Enclosure != nil && types.IsImage(i.Enclosure.Type):
+		return &types.Image{
+			Value: i.Enclosure.URL,
+		}
 	default:
 		return nil
 	}

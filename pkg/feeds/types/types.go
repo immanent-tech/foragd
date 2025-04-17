@@ -23,6 +23,8 @@ var (
 	MimeTypesFeed = slices.Concat(MimeTypesAtom, MimeTypesRSS, MimeTypesIndeterminate, MimeTypesJSONFeed)
 	// MimeTypesHTML contains canonical/standard mimetypes for HTML.
 	MimeTypesHTML = []string{"text/html", "application/xhtml+xml"}
+	// MimeTypesImage contains canonical/standard/common mimetypes for images.
+	MimeTypesImage = []string{"image/avif", "image/gif", "image/jpeg", "image/png", "image/svg+xml", "image/webp"}
 )
 
 // String will return the value of the object.
