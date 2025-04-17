@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 // Package rss contains objects and methods defining the RSS syndication format.
+//
+//revive:disable:exported // function definitions can be ascertained from Channel.
 package rss
 
 import (

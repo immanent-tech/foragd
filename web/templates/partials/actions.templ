@@ -6,6 +6,8 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"net/http"
@@ -29,6 +31,41 @@ func MarkAction(mark models.Mark, label, path, target string, params url.Values)
 	return link.Build(
 		link.WithContent(text.Build(label, text.WithTextSize(text.SM))),
 		link.WithExtraAttributes(action.Attributes()),
+	).Show()
+}
+
+templ MarkReadAction(action *templates.Action) {
+	@link.Build(
+		link.WithContent(
+			templ.Join(icon.Build("fa-check").Show(), components.SetContent("Mark Read")),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(action.Attributes()),
+		link.WithExtraClasses("w-fit"),
+	).Show()
+}
+
+templ ShareAction(action *templates.Action) {
+	@link.Build(
+		link.WithContent(
+			templ.Join(icon.Build("fa-share").Show(), components.SetContent("Share")),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(action.Attributes()),
+		link.WithExtraClasses("w-fit"),
+	).Show()
+}
+
+templ VisitExternalLinkAction(label, url string) {
+	@link.Build(
+		link.WithContent(
+			templ.Join(icon.Build("fa-arrow-up-right-from-square").Show(), components.SetContent("Visit "+label)),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(templ.Attributes{
+			"href": url,
+		}),
+		link.WithExtraClasses("w-fit"),
 	).Show()
 }
 

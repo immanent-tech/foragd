@@ -31,6 +31,9 @@ func (a *Action) Path() string {
 
 // Attributes returns the Action attributes.
 func (a *Action) Attributes() templ.Attributes {
+	if a == nil {
+		return nil
+	}
 	switch a.method {
 	case http.MethodPut:
 		a.AddAttribute("hx-put", a.Path())

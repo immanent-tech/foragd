@@ -100,8 +100,9 @@ func BuildFeedCard(ctx context.Context, subscription *models.Subscription) *Feed
 	}
 	feedCard.viewAction = feedCard.generateViewAction(ctx)
 	feedCard.menuActions = append(feedCard.menuActions,
-		showLastUpdated("", subscription.GetUpdatedDate()),
-		partials.MarkButton(feedCard.generateMarkAction()),
+		partials.ShareAction(nil),
+		partials.VisitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
+		partials.MarkReadAction(feedCard.generateMarkAction()),
 	)
 	feedCard.build()
 

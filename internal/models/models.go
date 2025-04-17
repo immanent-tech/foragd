@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"iter"
 	"maps"
+	"net/url"
 	"slices"
 	"time"
 )
@@ -73,4 +74,12 @@ func ValidateDatetime(dt time.Time) (bool, error) {
 	default:
 		return true, nil
 	}
+}
+
+func ParseDomain(value string) string {
+	url, err := url.Parse(value)
+	if err != nil {
+		return value
+	}
+	return url.Hostname()
 }

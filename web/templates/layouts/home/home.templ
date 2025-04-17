@@ -94,20 +94,22 @@ templ showLastUpdated(description string, updated time.Time) {
 }
 
 templ NewContent(content ...models.Template) {
-	<div id="content" class="flex flex-wrap md:flex-column p-4 h-full items-start justify-center">
-		if len(content) > 0 {
-			for c := range slices.Values(content) {
-				@c.Show()
+	<div class="@container">
+		<div id="content" class="flex flex-wrap @md:flex-row p-4 h-full items-start justify-center">
+			if len(content) > 0 {
+				for c := range slices.Values(content) {
+					@c.Show()
+				}
+			} else {
+				@emptyContent()
 			}
-		} else {
-			@emptyContent()
-		}
-	</div>
-	<div id="content-loading" class="flex items-center justify-center">
-		@loading.Build(loading.Bars,
-			loading.AsHTMXIndicator(),
-			loading.WithThemeColor(color.Accent),
-		).Show()
+		</div>
+		<div id="content-loading" class="flex items-center justify-center">
+			@loading.Build(loading.Bars,
+				loading.AsHTMXIndicator(),
+				loading.WithThemeColor(color.Accent),
+			).Show()
+		</div>
 	</div>
 }
 

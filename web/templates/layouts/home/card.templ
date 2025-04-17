@@ -5,14 +5,19 @@
 package home
 
 import (
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 	"slices"
 	"strconv"
 )
@@ -28,13 +33,15 @@ templ (c *Card) showTitle() {
 			image.WithExtraClasses("w-16", "h-16", "object-scale-down"),
 			image.WithLazyLoading()).Show()
 	}
-	// Title text is a link to the view action of the card.
-	@link.Build(
-		link.WithContent(c.GetTitle()),
-		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(c.viewAction.Attributes()),
-		link.WithExtraClasses("flex-1", "text-md"),
-	).Show()
+	<div class="text-base flex-1">
+		// Title text is a link to the view action of the card.
+		@link.Build(
+			link.WithContent(c.GetTitle()),
+			link.WithUnderlineOnHover(),
+			link.WithExtraAttributes(c.viewAction.Attributes()),
+			link.WithExtraClasses(),
+		).Show()
+	</div>
 }
 
 templ (c *Card) showDescription() {
@@ -90,15 +97,7 @@ templ (c *FeedCard) ShowUnreadCount() {
 }
 
 templ (c *FeedCard) showContent() {
-	@c.showDescription()
-	// <div class="flex flew-row">
-	// 	<div class="flex-1">
-	// 		@showLastUpdated("", c.GetUpdatedDate())
-	// 	</div>
-	// 	// <div class="flex-wrap">
-	// 	// 	@c.showCategories()
-	// 	// </div>
-	// </div>
+	@article.Build(c.showDescription()).Show()
 }
 
 templ (c *ItemCard) showContent() {
@@ -119,12 +118,8 @@ func (c *FeedCard) build() {
 			card.WithTitle(templ.Join(c.showTitle(), c.ShowUnreadCount())),
 			card.WithContent(c.showContent()),
 			card.WithActions(c.menuActions.Show()),
-			card.WithBodyExtraClasses("p-2"),
-
-			// card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
 		),
 		card.WithID(c.id),
-		// c.setImageOption(),
 	)
 }
 
@@ -136,21 +131,36 @@ func (c *ItemCard) build() {
 		card.WithShadow(size.SM),
 		card.WithBodyOptions(
 			card.WithTitle(c.showTitle()),
-			// card.WithContent(c.showContent()),
 			card.WithActions(c.menuActions.Show()),
-			// card.WithBodyExtraAttributes(c.setCardAttributes(c.GetFeedID())),
-			card.WithBodyExtraClasses("p-2"),
 		),
 		card.WithID(c.id),
-		// c.setImageOption(),
 	)
 }
 
 templ (a cardActions) Show() {
-	@templ.Join(a...)
-	// @partials.ResponsiveMenu(a...)
+	@dropdown.Build(
+		dropdown.WithButton(
+			button.WithSize(size.XS),
+			button.WithThemeColor(color.Neutral, true),
+			button.AsShape(button.Square, false),
+			button.WithContent(icon.Build("fa-ellipsis-vertical")),
+			button.WithExtraAttributes(templ.Attributes{
+				"_": "on click halt the event's bubbling",
+			}),
+		),
+		dropdown.WithOpenOptions(
+			dropdown.From(dropdown.OpenTop),
+			dropdown.Align(dropdown.AlignEnd),
+		),
+		dropdown.WithMenuContent(
+			menu.WithLayout(menu.Vertical),
+			menu.WithItems(a...),
+			menu.WithBaseColor(color.Base200),
+			menu.WithExtraClasses("rounded-field", "justify-end"),
+		),
+	).Show()
 }
 
 templ (c *Card) Show(classes ...string) {
-	@c.Props.Show("flex-grow", "max-h-1/4", "w-full", "md:max-w-lg", "m-2")
+	@c.Props.Show("max-h-1/4", "w-full", "md:max-w-lg", "m-2")
 }
