@@ -73,7 +73,11 @@ type Authenticator struct {
 func (a *Authenticator) Get(req *http.Request, name string) (*sessions.Session, error) {
 	currentSession, ok := a.sessionMgr.Get(req.Context(), name).(*sessions.Session)
 	if !ok {
-		return &sessions.Session{}, ErrInvalidData
+		var err error
+		currentSession, err = a.New(req, name)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrInvalidData, err)
+		}
 	}
 	slogctx.FromCtx(req.Context()).Debug("Found existing session.", slog.String("name", name))
 	return currentSession, nil
@@ -231,7 +235,11 @@ func (a *Authenticator) GetUserAuth(ctx context.Context) (UserAuth, bool) {
 // home page.
 func (a *Authenticator) Logout() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		gothic.Logout(res, req)
+		if err := gothic.Logout(res, req); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Logout failed.",
+				slog.Any("error", err))
+		}
+		slogctx.FromCtx(req.Context()).Debug("User logged out.")
 		res.Header().Set("Location", "/")
 		res.WriteHeader(http.StatusTemporaryRedirect)
 	})
