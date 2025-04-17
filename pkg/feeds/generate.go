@@ -10,4 +10,5 @@ package feeds
 //go:generate go tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config rss-ext-cfg.yaml rss-ext.yaml
 //go:generate go tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config media-rss-cfg.yaml media-rss.yaml
 //go:generate go tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config rss-cfg.yaml rss.yaml
+//go:generate go tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config jsonfeed-cfg.yaml jsonfeed.yaml
 //go:generate go tool github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen -config opml-cfg.yaml opml.yaml

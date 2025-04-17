@@ -9,6 +9,7 @@ import (
 	"slices"
 
 	"github.com/joshuar/go-feed-me/pkg/feeds/atom"
+	"github.com/joshuar/go-feed-me/pkg/feeds/jsonfeed"
 	"github.com/joshuar/go-feed-me/pkg/feeds/rss"
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 )
@@ -18,6 +19,8 @@ const (
 	TypeRSS SourceType = "RSS"
 	// TypeAtom indicates the source data was from an Atom feed.
 	TypeAtom SourceType = "Atom"
+	// TypeJSONFeed indicates the source data was from a JSONFeed feed.
+	TypeJSONFeed SourceType = "JSONFeed"
 )
 
 // SourceType is a string constant that indicates the underlying source data type of a Feed/Item object. This is mainly
@@ -50,6 +53,13 @@ func (i *Item) UnmarshalJSON(v []byte) error {
 		i.ItemSource, err = unMarshalSource[*rss.Item](source)
 		if err != nil {
 			return fmt.Errorf("%w: unable to unmarshal RSS data: %w", ErrUnmarshal, err)
+		}
+		return nil
+	case TypeJSONFeed:
+		i.SourceType = TypeJSONFeed
+		i.ItemSource, err = unMarshalSource[*jsonfeed.Item](source)
+		if err != nil {
+			return fmt.Errorf("%w: unable to unmarshal JSONFeed data: %w", ErrUnmarshal, err)
 		}
 		return nil
 	}
@@ -91,6 +101,13 @@ func (f *Feed) UnmarshalJSON(v []byte) error {
 		f.FeedSource, err = unMarshalSource[*rss.RSS](source)
 		if err != nil {
 			return fmt.Errorf("%w: unable to unmarshal RSS data: %w", ErrUnmarshal, err)
+		}
+		return nil
+	case TypeJSONFeed:
+		f.SourceType = TypeJSONFeed
+		f.FeedSource, err = unMarshalSource[*jsonfeed.Feed](source)
+		if err != nil {
+			return fmt.Errorf("%w: unable to unmarshal JSONFeed data: %w", ErrUnmarshal, err)
 		}
 		return nil
 	}

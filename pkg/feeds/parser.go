@@ -6,6 +6,7 @@ package feeds
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"mime"
@@ -19,6 +20,7 @@ import (
 	htmlatom "golang.org/x/net/html/atom"
 
 	"github.com/joshuar/go-feed-me/pkg/feeds/atom"
+	"github.com/joshuar/go-feed-me/pkg/feeds/jsonfeed"
 	"github.com/joshuar/go-feed-me/pkg/feeds/rss"
 	"github.com/joshuar/go-feed-me/pkg/feeds/types"
 	"github.com/joshuar/go-feed-me/pkg/feeds/validation"
@@ -58,11 +60,17 @@ func NewFeedFromBytes[T any](data []byte) (*Feed, error) {
 	var (
 		original T
 		feed     *Feed
+		err      error
 	)
-	original, err := Decode[T]("", data)
-	// err := xml.Unmarshal(data, &original)
+	if _, ok := any(original).(*jsonfeed.Feed); ok {
+		// If the original is JSONFeed, unmarshal as JSON.
+		err = json.Unmarshal(data, &original)
+	} else {
+		// Otherwise, unmarshal as XML.
+		original, err = Decode[T]("", data)
+	}
 	if err != nil {
-		return nil, errors.Join(ErrParseFeed, err)
+		return nil, fmt.Errorf("%w: %w", ErrParseFeed, err)
 	}
 	source, ok := any(original).(types.FeedSource)
 	if !ok {
@@ -185,6 +193,9 @@ func parseFeedURL(ctx context.Context, client *resty.Client, url string) FeedRes
 		if err != nil {
 			feed, err = NewFeedFromBytes[*atom.Feed](resp.Body())
 		}
+	case isMimeType(content, types.MimeTypesJSONFeed):
+		// JSONFeed
+		feed, err = NewFeedFromBytes[*jsonfeed.Feed](resp.Body())
 	case isMimeType(content, types.MimeTypesHTML):
 		// URL points to a HTML page, not a feed source.
 		// Try to find a feed link on the page and then parse that URL.

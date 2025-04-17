@@ -1,0 +1,283 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
+# Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+openapi: "3.0.3"
+info:
+  version: 1.0.0
+  title: JSONFeed
+  description: >
+    JSONFeed 1.1 OpenAPI schema.
+
+    https://www.jsonfeed.org/version/1.1/
+  license:
+    name: AGPL-3.0-or-later
+    url: https://spdx.org/licenses/AGPL-3.0-only.html
+paths: {}
+components:
+  schemas:
+    Author:
+      description: >
+        specifies one or more object authors.
+      type: object
+      properties:
+        name:
+          description: >
+            is the author’s name.
+          type: string
+        url:
+          description: >
+            is the URL of a site owned by the author.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        avatar:
+          description: >
+            is the URL for an image for the author.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+      additionalProperties: true
+    Hub:
+      description: >
+        describes an endpoint that can be used to subscribe to real-time notifications.
+      type: object
+      required:
+        - title
+        - url
+      properties:
+        title:
+          description: >
+            describes the protocol used to talk with the hub, such as “rssCloud” or “WebSub.”
+          type: string
+        url:
+          description: >
+            is the endpoint location.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: "required,url"
+    Attachment:
+      description: >
+        is a related resource.
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          description: >
+            specifies the location of the attachment.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: "required,url"
+        mime_type:
+          description: >
+            specifies the type of the attachment.
+          type: string
+        title:
+          description: >
+            is a name for the attachment.
+          type: string
+        size_in_bytes:
+          description: >
+            specifies how large the file is.
+          type: integer
+        duration_in_seconds:
+          description: >
+            specifies how long it takes to listen to or watch, when played at normal speed.
+          type: integer
+      additionalProperties: true
+    Item:
+      description: >
+        is an individual entry or record in the feed.
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          description: >
+            is unique for that item for that feed over time.
+          type: string
+          x-go-name: ID
+        url:
+          description: >
+            is the URL of the resource described by the item. It’s the permalink.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        external_url:
+          description: >
+            is the URL of a page elsewhere. This is especially useful for linkblogs. If url links to where you’re
+            talking about a thing, then external_url links to the thing you’re talking about.
+          type: string
+          x-go-name: ExternalURL
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        title:
+          description: >
+            is the title of the item.
+          type: string
+        content_html:
+          description: >
+            is the HTML of the item.
+          type: string
+          x-go-name: ContentHTML
+        content_text:
+          description: >
+            is the plain text of the item.
+          type: string
+        summary:
+          description: >
+             is a plain text sentence or two describing the item.
+          type: string
+        image:
+          description: >
+            is the URL of the main image for the item.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        banner_image:
+          description: >
+            is the URL of an image to use as a banner.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        date_published:
+          description: >
+            is the datetime when the item was published.
+          x-go-type: types.DateTime
+        date_modified:
+          description: >
+            is the datetime when the item was modified.
+          x-go-type: types.DateTime
+        author:
+          $ref: "#/components/schemas/Author"
+        authors:
+          description: >
+            specifies one or more item authors.
+          type: array
+          items:
+            $ref: "#/components/schemas/Author"
+          x-go-type-skip-optional-pointer: true
+        tags:
+          description: >
+            defines taxonomy for an item.
+          type: array
+          items:
+            type: string
+          x-go-type-skip-optional-pointer: true
+        language:
+          description: >
+            is the primary language for the feed.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,bcp47_language_tag"
+        attachments:
+          description: >
+            lists related resources.
+          type: array
+          items:
+            $ref: "#/components/schemas/Attachment"
+          x-go-type-skip-optional-pointer: true
+      additionalProperties: true
+    Feed:
+      description: >
+        contains the metadata and objects for a JSONFeed.
+      type: object
+      required:
+        - version
+        - title
+        - items
+      properties:
+        version:
+          description: >
+            is the URL of the version of the format the feed uses.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "required,url"
+        title:
+          description: >
+            is the name of the feed, which will often correspond to the name of the website (blog, for instance), though
+            not necessarily.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: required
+        home_page_url:
+          description: >
+            is the URL of the resource that the feed describes. This resource may or may not actually be a “home” page,
+            but it should be an HTML page.
+          type: string
+          x-go-name: HomePageURL
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        feed_url:
+          description: >
+            is the URL of the feed, and serves as the unique identifier for the feed.
+          type: string
+          x-go-name: FeedURL
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        description:
+          description: >
+            provides more detail, beyond the title, on what the feed is about.
+          type: string
+        user_comment:
+          description: >
+            is a description of the purpose of the feed.
+          type: string
+        next_url:
+          description: >
+            is the URL of a feed that provides the next n items, where n is determined by the publisher. This allows for
+            pagination, but with the expectation that reader software is not required to use it and probably won’t use
+            it very often.
+          type: string
+          x-go-name: NextURL
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        icon:
+          description: >
+            is the URL of an image for the feed suitable to be used in a timeline, much the way an avatar might be used.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        favicon:
+          description: >
+            is the URL of an image for the feed suitable to be used in a source list.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,url"
+        author:
+          $ref: "#/components/schemas/Author"
+        authors:
+          description: >
+            specifies one or more feed authors.
+          type: array
+          items:
+            $ref: "#/components/schemas/Author"
+          x-go-type-skip-optional-pointer: true
+        language:
+          description: >
+            is the primary language for the feed.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: "omitempty,bcp47_language_tag"
+        expired:
+          description: >
+            says whether or not the feed is finished — that is, whether or not it will ever update again.
+          type: boolean
+        hubs:
+          description: >
+            describes endpoints that can be used to subscribe to real-time notifications from the publisher of this
+            feed.
+          type: array
+          items:
+            $ref: "#/components/schemas/Hub"
+          x-go-type-skip-optional-pointer: true
+        items:
+          description: >
+            the individual entries in the feed.
+          type: array
+          items:
+            $ref: "#/components/schemas/Item"
+      additionalProperties: true

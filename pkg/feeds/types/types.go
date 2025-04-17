@@ -17,8 +17,10 @@ var (
 	// MimeTypesIndeterminate contains mimetypes that can be used for either RSS/Atom feeds and don't give any clues to
 	// the actual type.
 	MimeTypesIndeterminate = []string{"application/xml", "text/xml"}
+	// MimeTypesJSONFeed contains canonical/standard mimetypes for JSONFeed feeds.
+	MimeTypesJSONFeed = []string{"application/feed+json", "application/json"}
 	// MimeTypesFeed is the concatenation of all feed mime types.
-	MimeTypesFeed = slices.Concat(MimeTypesAtom, MimeTypesRSS, MimeTypesIndeterminate)
+	MimeTypesFeed = slices.Concat(MimeTypesAtom, MimeTypesRSS, MimeTypesIndeterminate, MimeTypesJSONFeed)
 	// MimeTypesHTML contains canonical/standard mimetypes for HTML.
 	MimeTypesHTML = []string{"text/html", "application/xhtml+xml"}
 )
