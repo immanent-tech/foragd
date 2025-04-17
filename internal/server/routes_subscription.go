@@ -14,9 +14,9 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/forms"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/validation"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )

@@ -10,8 +10,8 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/cmd/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/server/handlers"
 )
 
 func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {

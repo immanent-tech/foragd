@@ -8,7 +8,7 @@ import (
 
 	"github.com/justinas/alice"
 
-	"github.com/joshuar/go-feed-me/cmd/server/handlers"
+	"github.com/joshuar/go-feed-me/internal/server/handlers"
 )
 
 // Login handler handles login requests.
