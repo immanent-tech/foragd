@@ -35,9 +35,9 @@ func (msg *Message) CSVString() string {
 	if msg == nil {
 		return ""
 	}
-	csv := fmt.Sprintf(`%s,"%q"`, msg.Status, msg.Summary)
+	csv := fmt.Sprintf(`%s,%q`, msg.Status, msg.Summary)
 	if msg.Details != nil {
-		csv += fmt.Sprintf(`,"%q"`, *msg.Details)
+		csv += fmt.Sprintf(`,%q`, *msg.Details)
 	} else {
 		csv += `,""`
 	}
