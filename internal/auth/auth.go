@@ -6,6 +6,7 @@ package auth
 
 import (
 	"context"
+	"encoding/gob"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -21,7 +22,17 @@ import (
 
 	"github.com/joshuar/go-feed-me/internal/id"
 	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/internal/session"
 )
+
+const (
+	// SessionName is the name of the cookie that will contain session data.
+	SessionName = gothic.SessionName
+)
+
+func init() {
+	gob.Register(UserAuth{})
+}
 
 // Ensure the session manager implements the Gorilla Store interface.
 //
@@ -56,22 +67,28 @@ func (u *UserAuth) GetEmail() string {
 	return u.Email
 }
 
-// Store is an interface representing a backend session store.
-type Store interface {
-	Exists(ctx context.Context, key string) bool
-	Get(ctx context.Context, key string) any
-	GetString(ctx context.Context, key string) string
-	Put(ctx context.Context, key string, val any)
-}
+// // SessionAPI is an interface representing a backend session store.
+// type SessionAPI interface {
+// 	Exists(ctx context.Context, key string) bool
+// 	Get(ctx context.Context, key string) any
+// 	GetString(ctx context.Context, key string) string
+// 	Put(ctx context.Context, key string, val any)
+// 	LoadAndSave(next http.Handler) http.Handler
+// }
 
 // Authenticator manages user authentication to a provider.
 type Authenticator struct {
-	sessionMgr Store
+	session *session.Manager
+}
+
+func (a *Authenticator) SessionAPI() *session.Manager {
+	return a.session
 }
 
 // Get returns a cached user session from the store.
 func (a *Authenticator) Get(req *http.Request, name string) (*sessions.Session, error) {
-	currentSession, ok := a.sessionMgr.Get(req.Context(), name).(*sessions.Session)
+	slogctx.FromCtx(req.Context()).Debug("Fetching session.", slog.String("name", name))
+	currentSession, ok := a.session.Get(req.Context(), name).(*sessions.Session)
 	if !ok {
 		var err error
 		currentSession, err = a.New(req, name)
@@ -88,13 +105,13 @@ func (a *Authenticator) Get(req *http.Request, name string) (*sessions.Session, 
 // Note that New should never return a nil session, even in the case of
 // an error if using the Registry infrastructure to cache the session.
 func (a *Authenticator) New(req *http.Request, name string) (*sessions.Session, error) {
-	if !a.sessionMgr.Exists(req.Context(), name) {
+	if !a.session.Exists(req.Context(), name) {
 		newSession := &sessions.Session{
 			Values:  make(map[any]any),
 			Options: new(sessions.Options),
 			ID:      id.NewID(id.Session),
 		}
-		a.sessionMgr.Put(req.Context(), name, newSession)
+		a.session.Put(req.Context(), name, newSession)
 		slogctx.FromCtx(req.Context()).Debug("Created new session.")
 		return newSession, nil
 	} else {
@@ -104,7 +121,7 @@ func (a *Authenticator) New(req *http.Request, name string) (*sessions.Session, 
 
 // Save should persist session to the underlying store implementation.
 func (a *Authenticator) Save(req *http.Request, _ http.ResponseWriter, s *sessions.Session) error {
-	a.sessionMgr.Put(req.Context(), s.Name(), s)
+	a.session.Put(req.Context(), s.Name(), s)
 	slogctx.FromCtx(req.Context()).Debug("Saved session.")
 	return nil
 }
@@ -120,7 +137,7 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 		return fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
-	value := a.sessionMgr.GetString(req.Context(), providerName)
+	value := a.session.GetString(req.Context(), providerName)
 	if value == "" {
 		return fmt.Errorf("%w: no session found", ErrAuth)
 	}
@@ -155,7 +172,7 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 		return fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
-	a.sessionMgr.Put(req.Context(), providerName, sess.Marshal())
+	a.session.Put(req.Context(), providerName, sess.Marshal())
 
 	gu, err := provider.FetchUser(sess)
 	if err != nil {
@@ -189,18 +206,18 @@ func (a *Authenticator) GetAuthURL(req *http.Request) (string, error) {
 		return "", fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 	slogctx.FromCtx(req.Context()).Debug("Initialised provider", slog.String("provider", providerName))
-	a.sessionMgr.Put(req.Context(), providerName, sess.Marshal())
+	a.session.Put(req.Context(), providerName, sess.Marshal())
 	return url, nil
 }
 
 // SetProviderName sets the provider to use for authentication.
 func (a *Authenticator) SetProviderName(ctx context.Context, provider string) {
-	a.sessionMgr.Put(ctx, "provider", provider)
+	a.session.Put(ctx, "provider", provider)
 }
 
 // GetProviderName gets the provider to use for authentication.
 func (a *Authenticator) GetProviderName(req *http.Request) (string, error) {
-	provider := a.sessionMgr.GetString(req.Context(), "provider")
+	provider := a.session.GetString(req.Context(), "provider")
 	if provider == "" {
 		return "", fmt.Errorf("%w: no auth provider found", ErrAuth)
 	}
@@ -209,7 +226,7 @@ func (a *Authenticator) GetProviderName(req *http.Request) (string, error) {
 
 // StoreUserAuth stores the user authentication session returned from a provider in the session store.
 func (a *Authenticator) StoreUserAuth(ctx context.Context, user UserAuth) {
-	a.sessionMgr.Put(ctx, "user", user)
+	a.session.Put(ctx, "user", user)
 	slogctx.FromCtx(ctx).Debug("Stored user auth.")
 }
 
@@ -223,7 +240,7 @@ func (a *Authenticator) GetUserID(ctx context.Context) models.UserID {
 
 // GetUserAuth retrieves the user authentication session session store.
 func (a *Authenticator) GetUserAuth(ctx context.Context) (UserAuth, bool) {
-	user, found := a.sessionMgr.Get(ctx, "user").(UserAuth)
+	user, found := a.session.Get(ctx, "user").(UserAuth)
 	if !found {
 		return UserAuth{}, false
 	}
@@ -235,6 +252,7 @@ func (a *Authenticator) GetUserAuth(ctx context.Context) (UserAuth, bool) {
 // home page.
 func (a *Authenticator) Logout() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		slogctx.FromCtx(req.Context()).Info("logging out")
 		if err := gothic.Logout(res, req); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Logout failed.",
 				slog.Any("error", err))
@@ -245,13 +263,17 @@ func (a *Authenticator) Logout() http.Handler {
 	})
 }
 
-func NewAuthenticator(sessionStore Store) (*Authenticator, error) {
+func (a *Authenticator) LoadAndSave() func(next http.Handler) http.Handler {
+	return a.session.LoadAndSave
+}
+
+func NewAuthenticator(ctx context.Context, sessionAPI *session.Manager) (*Authenticator, error) {
 	if err := loadConfigOnce(); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
 	authenticator := &Authenticator{
-		sessionMgr: sessionStore,
+		session: sessionAPI,
 	}
 
 	goth.UseProviders(

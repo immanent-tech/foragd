@@ -4,9 +4,6 @@
 package home
 
 import (
-	"context"
-	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/internal/session"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
@@ -49,18 +46,7 @@ func ImportAction(classes ...string) templ.Component {
 
 // backButton generates a button for going back to the given path. It fetches
 // the last state of the path (i.e., any parameters used) from the user session.
-func BackButton(ctx context.Context, path string) templ.Component {
-	var (
-		filters models.Filters
-		params  url.Values
-	)
-	switch path {
-	case models.FeedsRoute:
-		filters = session.GetFeedFilters(ctx)
-	case models.ItemsRoute:
-		filters = session.GetItemFilters(ctx)
-	}
-	params = filters.ToQueryParams()
+func BackButton(params url.Values, path string) templ.Component {
 	attrs := templates.BuildAction(path,
 		templates.WithQueryParams(params),
 		templates.WithAttributes(templ.Attributes{

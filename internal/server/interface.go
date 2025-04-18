@@ -18,6 +18,7 @@ package server
 import (
 	"github.com/joshuar/go-feed-me/internal/auth"
 	"github.com/joshuar/go-feed-me/internal/auth0"
+	"github.com/joshuar/go-feed-me/internal/session"
 )
 
 func (s Server) AppSecret() string {
@@ -29,17 +30,22 @@ func Port() int {
 	return ServerConfig.Port
 }
 
-// UserAPI returns the API endpoint for manipulating users.
+// UserAPI returns the API endpoint for user management operations.
 func (s Server) UserAPI() *auth0.UserAPI {
 	return s.API.user
 }
 
-// DataAPI returns the API endpoint for the backend data-store which holds
-// cache/temp/non-permanent data.
+// DataAPI returns the object that contains API methods for data operations.
 func (s Server) DataAPI() DataAPI {
 	return s.API.elastic
 }
 
+// AuthAPI returns the object that contains API methods for authentication operations.
 func (s Server) AuthAPI() *auth.Authenticator {
-	return s.API.goth
+	return s.API.auth
+}
+
+// SessionAPI returns the object that contains API methods for session operations.
+func (s Server) SessionAPI() *session.Manager {
+	return s.API.session
 }

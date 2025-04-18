@@ -24,6 +24,8 @@ const (
 	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
 	subscriptionsCtxKey        contextKey = "subscriptions"
 	feedsCtxKey                contextKey = "feeds"
+	feedFiltersSessionKey                 = "feed_filters"
+	itemFiltersSessionKey                 = "item_filters"
 )
 
 type contextKey string
@@ -49,4 +51,9 @@ type AuthAPI interface {
 	GetAuthURL(req *http.Request) (string, error)
 	CompleteUserAuth(res http.ResponseWriter, req *http.Request) error
 	GetUserID(ctx context.Context) models.UserID
+}
+
+type SessionAPI interface {
+	Put(ctx context.Context, key string, value any)
+	Get(ctx context.Context, key string) any
 }

@@ -26,7 +26,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	chain := alice.New(
 		handlers.RouteLogger("show_feeds"),
 		handlers.CheckRequiredFilters,
-		handlers.StoreFeedFilters(params),
+		handlers.StoreFeedFilters(s.SessionAPI(), params),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
@@ -36,7 +36,7 @@ func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger("mark_feeds"),
 		handlers.MarkFeeds(s.DataAPI()),
-		handlers.RetrieveFeedFilters,
+		handlers.RetrieveFeedFilters(s.SessionAPI()),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
@@ -46,8 +46,8 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 	chain := alice.New(
 		handlers.RouteLogger("show_items"),
 		handlers.CheckRequiredFilters,
-		handlers.StoreItemFilters(params),
-		handlers.GenerateItemsContent(s.DataAPI()),
+		handlers.StoreItemFilters(s.SessionAPI(), params),
+		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
 }
@@ -56,8 +56,8 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger("mark_items"),
 		handlers.MarkItems(s.DataAPI()),
-		handlers.RetrieveItemFilters,
-		handlers.GenerateItemsContent(s.DataAPI()),
+		handlers.RetrieveItemFilters(s.SessionAPI()),
+		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
 }
@@ -65,7 +65,7 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID) {
 	chain := alice.New(
 		handlers.RouteLogger("show_item"),
-		handlers.GenerateItemArticle(s.DataAPI(), feedID, itemID),
+		handlers.GenerateItemArticle(s.DataAPI(), s.SessionAPI(), feedID, itemID),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
 }

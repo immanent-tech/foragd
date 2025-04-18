@@ -18,7 +18,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
 	"github.com/joshuar/go-feed-me/internal/platforms/elastic/bulk"
 	"github.com/joshuar/go-feed-me/internal/session"
-	"github.com/joshuar/go-feed-me/internal/session/store"
 )
 
 const (
@@ -45,7 +44,8 @@ type DataAPI interface {
 type API struct {
 	user    *auth0.UserAPI
 	elastic DataAPI
-	goth    *auth.Authenticator
+	auth    *auth.Authenticator
+	session *session.Manager
 }
 
 type Server struct {
@@ -85,15 +85,13 @@ func NewServer(ctx context.Context) (Server, error) {
 	if err != nil {
 		return svr, errors.Join(ErrStartServer, err)
 	}
-	// Load the session store.
-	sessionStore, err := store.NewSessionStore(ctx, elasticAPI)
+	// Set up the session manager.
+	sessionAPI, err := session.NewSessionManager(ctx, elasticAPI, auth.SessionName)
 	if err != nil {
 		return svr, errors.Join(ErrStartServer, err)
 	}
-	// Set up the session manager.
-	session.NewSessionManager(ctx, sessionStore)
-
-	goth, err := auth.NewAuthenticator(session.GetSessionManager())
+	// Set up authentication manager.
+	authAPI, err := auth.NewAuthenticator(ctx, sessionAPI)
 	if err != nil {
 		return svr, errors.Join(ErrStartServer, err)
 	}
@@ -102,7 +100,8 @@ func NewServer(ctx context.Context) (Server, error) {
 	svr.API = &API{
 		user:    auth0UserAPI,
 		elastic: elasticAPI,
-		goth:    goth,
+		auth:    authAPI,
+		session: sessionAPI,
 	}
 
 	return svr, nil

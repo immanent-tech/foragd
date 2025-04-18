@@ -6,7 +6,6 @@ package home
 
 import (
 	"context"
-	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
@@ -17,7 +16,7 @@ var ContentFooterID = attributes.ID("content-footer")
 
 // ListHeader represents the content header for a list of objects.
 type ListFooter struct {
-	backPath    string
+	backButton  templ.Component
 	filtersMenu templ.Component
 	sortMenu    templ.Component
 	actions     []templ.Component
@@ -32,7 +31,7 @@ templ (f *ListFooter) Show(classes ...string) {
 	>
 		<div class="basis-xs">
 			@tooltip.Build("Back").Show() {
-				@BackButton(ctx, f.backPath)
+				@f.backButton
 			}
 		</div>
 		<div class="basis-xs">
@@ -53,21 +52,14 @@ templ (f *ListFooter) Show(classes ...string) {
 	</div>
 }
 
-func BuildListFooter(ctx context.Context, categories models.CategoryCounts) *ListFooter {
-	var backPath string
-	switch chi.RouteContext(ctx).RoutePattern() {
-	case models.FeedsRoute:
-		backPath = "/home"
-	case models.ItemsRoute:
-		backPath = "/home/feeds"
-	}
+func BuildListFooter(ctx context.Context, backButton templ.Component, categories models.CategoryCounts) *ListFooter {
 	// Build view filters.
 	viewFilters := BuildViewFilters(ctx)
 	// Build category filters.
 	categoryFilters := BuildCategoryFilters(ctx, categories)
 	// Build footer.
 	return &ListFooter{
-		backPath:    backPath,
+		backButton:  backButton,
 		filtersMenu: BuildFiltersMenu(viewFilters, categoryFilters),
 		sortMenu:    BuildSortingMenu(),
 		actions:     []templ.Component{AddSubscriptionAction(), ImportAction()},
@@ -76,8 +68,8 @@ func BuildListFooter(ctx context.Context, categories models.CategoryCounts) *Lis
 
 // ArticleHeader represents the content header for an individual article.
 type ArticleFooter struct {
-	backPath string
-	item     *models.Item
+	backButton templ.Component
+	item       *models.Item
 }
 
 templ (f *ArticleFooter) Show(classes ...string) {
@@ -88,7 +80,7 @@ templ (f *ArticleFooter) Show(classes ...string) {
 		class="bg-base-200 dock dock-sm"
 	>
 		<div class="basis-xs">
-			@BackButton(ctx, f.backPath)
+			@f.backButton
 		</div>
 		<div class="basis-xs">
 			<a href={ templ.URL(f.item.GetLink()) } target="_blank">
@@ -98,9 +90,9 @@ templ (f *ArticleFooter) Show(classes ...string) {
 	</div>
 }
 
-func BuildArticleFooter(item *models.Item) *ArticleFooter {
+func BuildArticleFooter(item *models.Item, backButton templ.Component) *ArticleFooter {
 	return &ArticleFooter{
-		backPath: models.ItemsRoute,
-		item:     item,
+		backButton: backButton,
+		item:       item,
 	}
 }

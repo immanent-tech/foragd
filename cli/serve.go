@@ -28,7 +28,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/server"
 	"github.com/joshuar/go-feed-me/internal/server/handlers"
 	"github.com/joshuar/go-feed-me/internal/server/middlewares"
-	"github.com/joshuar/go-feed-me/internal/session"
 )
 
 var ErrStartServerFailed = errors.New("could not start server")
@@ -73,7 +72,7 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 			middlewares.CSP(server.ServerConfig.CSP),
 			middlewares.ElasticMiddleware(),
 			handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),
-			session.LoadAndSave(),
+			svr.SessionAPI().LoadAndSave,
 		},
 	})
 	serverObj := &http.Server{
