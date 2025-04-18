@@ -10,8 +10,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/text"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"slices"
 )
 
@@ -29,11 +27,11 @@ templ (filter *CategoryFilter) Show(classes ...string) {
 	if filter.active {
 		{{ styleOption = badge.WithStyle(badge.Outline) }}
 	} else {
-		{{ styleOption = badge.WithStyle(badge.DashedOutline) }}
+		{{ styleOption = badge.WithStyle(badge.Dashed) }}
 	}
 	@badge.Build(
-		badge.WithSize(size.SM),
-		badge.WithThemeColor(color.Neutral),
+		badge.WithSize(badge.SM),
+		badge.WithColor(badge.Neutral),
 		styleOption,
 		badge.WithContent(filter.Category),
 		badge.WithExtraAttributes(filter.action.Attributes()),

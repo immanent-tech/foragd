@@ -10,8 +10,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -73,8 +71,8 @@ func newViewFilter(ctx context.Context, view models.View) ViewFilter {
 	path := chi.RouteContext(ctx).RoutePattern()
 	viewFilter := ViewFilter{}
 	viewFilter.Props = badge.Build(
-		badge.WithSize(size.SM),
-		badge.WithThemeColor(color.Neutral),
+		badge.WithSize(badge.SM),
+		badge.WithColor(badge.Neutral),
 		badge.WithContent(string(view)),
 		badge.WithExtraAttributes(
 			templates.BuildAction(path,
@@ -88,7 +86,7 @@ func newViewFilter(ctx context.Context, view models.View) ViewFilter {
 	if view == filters.View {
 		badge.WithStyle(badge.Outline)(viewFilter.Props)
 	} else {
-		badge.WithStyle(badge.DashedOutline)(viewFilter.Props)
+		badge.WithStyle(badge.Dashed)(viewFilter.Props)
 	}
 	return viewFilter
 }

@@ -10,8 +10,7 @@ import "github.com/joshuar/go-templ-daisyui/actions/button"
 import "github.com/joshuar/go-templ-daisyui/input/form"
 import "github.com/joshuar/go-templ-daisyui/attributes"
 import "github.com/joshuar/go-templ-daisyui/feedback/alert"
-import "github.com/joshuar/go-templ-daisyui/modifiers/style"
-import "github.com/joshuar/go-templ-daisyui/modifiers/state"
+
 import "github.com/joshuar/go-feed-me/web/templates/partials"
 
 const SignupPath = "/signup"
@@ -92,8 +91,8 @@ templ SignupForm(userDetails *models.UserSignupRequest) {
 }
 
 templ SignupSuccess() {
-	@alert.Build(state.Success,
-		alert.WithStyle(style.Outline),
+	@alert.Build(alert.Success,
+		alert.WithStyle(alert.Outline),
 		alert.WithText("Account created!"),
 	).Show()
 	<a

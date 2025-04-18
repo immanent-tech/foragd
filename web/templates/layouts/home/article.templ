@@ -8,8 +8,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/text"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"strings"
 )
 
@@ -77,8 +75,8 @@ templ (a *Article) showCategories() {
 		<div class="flex flex-wrap justify-items-center">
 			for _, category := range a.GetCategories() {
 				@badge.Build(
-					badge.WithSize(size.SM),
-					badge.WithThemeColor(color.Neutral),
+					badge.WithSize(badge.SM),
+					badge.WithColor(badge.Neutral),
 					badge.WithStyle(badge.Outline),
 					badge.WithContent(category),
 				).Show("p-1", "m-1")

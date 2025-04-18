@@ -7,11 +7,14 @@ package home
 import (
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/display/article"
+	"github.com/joshuar/go-templ-daisyui/display/avatar"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/image"
+	"github.com/joshuar/go-templ-daisyui/display/placeholder"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
@@ -23,16 +26,7 @@ import (
 )
 
 templ (c *Card) showTitle() {
-	if c.GetImage() != nil {
-		@image.Build(c.GetImage().URL(),
-			image.WithAltText(c.GetImage().String()),
-			image.WithExtraClasses("w-16", "h-16", "object-scale-down"),
-			image.WithLazyLoading()).Show()
-	} else {
-		@image.Build("/static/images/square-rss-solid.svg",
-			image.WithExtraClasses("w-16", "h-16", "object-scale-down"),
-			image.WithLazyLoading()).Show()
-	}
+	@c.showAvatar()
 	<div class="text-base flex-1">
 		// Title text is a link to the view action of the card.
 		@link.Build(
@@ -42,6 +36,20 @@ templ (c *Card) showTitle() {
 			link.WithExtraClasses(),
 		).Show()
 	</div>
+}
+
+templ (c *Card) showAvatar() {
+	if c.GetImage() != nil {
+		// If the source has an image, use that as the avatar.
+		@avatar.Build(
+			c.GetImage().URL(),
+			avatar.WithWidth(width.W8),
+			avatar.WithImageOptions(image.WithLazyLoading()),
+		).Show()
+	} else {
+		// Otherwise, take the first letter of the title and create a placeholder avatar.
+		@placeholder.Build(c.GetTitle()[0:1], placeholder.SM).Show()
+	}
 }
 
 templ (c *Card) showDescription() {
@@ -55,8 +63,8 @@ templ (s *Card) showCategories() {
 		// <div class="flex flex-wrap px-2">
 		for category := range slices.Values(s.GetCategories()) {
 			@badge.Build(
-				badge.WithSize(size.SM),
-				badge.WithThemeColor(color.Accent),
+				badge.WithSize(badge.SM),
+				badge.WithColor(badge.Accent),
 				badge.WithStyle(badge.Outline),
 				badge.WithContent(category),
 			).Show()
@@ -86,8 +94,8 @@ func (c *Card) setImageOption() card.Option {
 templ (c *FeedCard) ShowUnreadCount() {
 	if c.IsUnread() {
 		@badge.Build(
-			badge.WithSize(size.SM),
-			badge.WithThemeColor(color.Secondary),
+			badge.WithSize(badge.SM),
+			badge.WithColor(badge.Secondary),
 			badge.WithContent(strconv.Itoa(c.UnreadCount)+" Unread"),
 			badge.WithExtraAttributes(templ.Attributes{
 				"sse-swap": c.GetFeedID() + "_unread",
@@ -140,13 +148,10 @@ func (c *ItemCard) build() {
 templ (a cardActions) Show() {
 	@dropdown.Build(
 		dropdown.WithButton(
-			button.WithSize(size.XS),
-			button.WithThemeColor(color.Neutral, true),
-			button.AsShape(button.Square, false),
+			button.WithSize(button.XS),
+			button.AsShape(button.Square),
+			button.WithStyle(button.Ghost),
 			button.WithContent(icon.Build("fa-ellipsis-vertical")),
-			button.WithExtraAttributes(templ.Attributes{
-				"_": "on click halt the event's bubbling",
-			}),
 		),
 		dropdown.WithOpenOptions(
 			dropdown.From(dropdown.OpenTop),

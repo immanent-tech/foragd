@@ -7,7 +7,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 )
@@ -26,9 +25,9 @@ templ ResponsiveMenu(items ...templ.Component) {
 		dropdown.Build(
 			dropdown.WithHiddenBreakpoint(size.LG),
 			dropdown.WithButton(
-				button.WithSize(size.XS),
-				button.WithThemeColor(color.Neutral, true),
-				button.AsShape(button.Square, true),
+				button.WithSize(button.XS),
+				button.WithColor(button.Neutral),
+				button.AsShape(button.Square),
 				button.WithContent(icon.Build("fa-ellipsis-vertical")),
 				button.WithExtraAttributes(templ.Attributes{
 					"_": "on click halt the event's bubbling",

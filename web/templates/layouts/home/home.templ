@@ -9,7 +9,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/state"
 	"slices"
 	"time"
 )
@@ -51,7 +50,7 @@ templ SSE(data chan string) {
 			@templ.Flush() {
 				// event: notification
 				// data:
-				@alert.Build(state.Info).Show() {
+				@alert.Build(alert.Info).Show() {
 					<div>
 						<h3 class="font-bold">New message!</h3>
 						<div class="text-xs">You have 1 unread message</div>
@@ -64,7 +63,7 @@ templ SSE(data chan string) {
 }
 
 templ Notify(data string) {
-	@alert.Build(state.Info).Show() {
+	@alert.Build(alert.Info).Show() {
 		<div>
 			<h3 class="font-bold">New message!</h3>
 			<div class="text-xs">{ data }</div>

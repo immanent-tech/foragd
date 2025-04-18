@@ -34,7 +34,7 @@ templ (i *categoryInput) Show(classes ...string) {
 			textinput.WithPlaceholder("CoolStuff"),
 		).Show("join-item"),
 		button.Build(
-			button.AsShape(button.Square, false),
+			button.AsShape(button.Square),
 			button.WithContent(icon.Build("fa-plus")),
 		).Show("join-item"),
 	)
@@ -56,7 +56,7 @@ templ ShowCategory(category models.Category) {
 			}),
 		).Show("join-item"),
 		button.Build(
-			button.AsShape(button.Square, false),
+			button.AsShape(button.Square),
 			button.WithContent(icon.Build("fa-minus")),
 			button.WithExtraAttributes(templ.Attributes{
 				"hx-delete": "/subscription/edit/category",

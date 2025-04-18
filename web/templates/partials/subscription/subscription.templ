@@ -15,7 +15,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/input/form"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"slices"
 )
 
@@ -160,7 +159,7 @@ templ NewSubscriptionResultsModal(msg *models.Message) {
 		modal.OpenInitially(),
 		modal.WithActions(
 			button.Build(
-				button.WithSize(size.SM),
+				button.WithSize(button.SM),
 				button.WithContent("Add another?"),
 				button.WithExtraAttributes(templ.Attributes{
 					"hx-get":    "/subscription/new",

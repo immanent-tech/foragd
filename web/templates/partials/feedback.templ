@@ -7,9 +7,6 @@ import (
 	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
-	"github.com/joshuar/go-templ-daisyui/modifiers/state"
-	"github.com/joshuar/go-templ-daisyui/modifiers/style"
 )
 
 type UserMessage struct {
@@ -73,8 +70,8 @@ templ (m *UserMessage) AsNote() {
 
 templ (m *UserMessage) AsNotification() {
 	@alert.Build(
-		state.AsState(m.Status),
-		alert.WithStyle(style.Soft),
+		alert.AlertState(m.Status),
+		alert.WithStyle(alert.Soft),
 		alert.WithText(m.Summary),
 	).Show()
 }
@@ -84,7 +81,7 @@ templ CopyTextButton(label, text string) {
 	<div>
 		@button.Build(
 			button.WithContent(label),
-			button.WithSize(size.SM),
+			button.WithSize(button.SM),
 			button.WithExtraAttributes(templ.Attributes{
 				"_": hsCopyText(text),
 			}),

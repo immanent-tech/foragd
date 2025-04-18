@@ -8,7 +8,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 )
 
@@ -19,8 +18,8 @@ templ DockMenu(title string, label any, items ...templ.Component) {
 			dropdown.Align(dropdown.AlignCenter),
 		),
 		dropdown.WithButton(
-			button.WithSize(size.SM),
-			button.AsShape(button.Square, false),
+			button.WithSize(button.SM),
+			button.AsShape(button.Square),
 			button.WithContent(label),
 		),
 		dropdown.WithMenuContent(

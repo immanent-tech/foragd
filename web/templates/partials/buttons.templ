@@ -8,16 +8,14 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 )
 
 // AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
 func AddSubscriptionButton() *button.Props {
 	return button.Build(
-		button.WithSize(size.SM),
+		button.WithSize(button.SM),
 		button.WithID("add_subscription"),
-		button.WithThemeColor(color.Primary, false),
+		button.WithColor(button.Primary),
 		button.WithContent(icon.Build("fa-plus")),
 		button.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/new",
@@ -30,7 +28,7 @@ func AddSubscriptionButton() *button.Props {
 templ MarkButton(action *templates.Action) {
 	@tooltip.Build("Mark Read").Show() {
 		@button.Build(
-			button.WithSize(size.XS),
+			button.WithSize(button.XS),
 			button.WithContent(icon.Build("fa-check")),
 			button.WithExtraAttributes(action.Attributes()),
 		).Show()

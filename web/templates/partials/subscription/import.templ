@@ -16,7 +16,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/input/form"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/joshuar/go-templ-daisyui/input/option"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"strconv"
 )
 
@@ -126,7 +125,7 @@ templ ImportFailed(msg *models.Message) {
 	@partials.NewMessage(msg).AsNote()
 	<div class="modal-action">
 		@button.Build(
-			button.WithSize(size.SM),
+			button.WithSize(button.SM),
 			button.WithContent("Try again?"),
 			button.WithExtraAttributes(templ.Attributes{
 				"hx-get":    "/subscription/import",
@@ -143,7 +142,7 @@ templ ImportSuccess(successful, failed int, all string) {
 		@templ.Raw(all)
 		@partials.CopyTextButton("Copy results (as CSV)", "resultscsv.innerText")
 		@button.Build(
-			button.WithSize(size.SM),
+			button.WithSize(button.SM),
 			button.WithContent("Import more?"),
 			button.WithExtraAttributes(templ.Attributes{
 				"hx-get":    "/subscription/import",
