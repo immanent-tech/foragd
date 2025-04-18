@@ -5,9 +5,13 @@
 package home
 
 import (
+	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"net/http"
 	"strings"
 )
 
@@ -93,4 +97,22 @@ templ (a *Article) showItemArticle() {
 	</div>
 	@a.showCategories()
 	@a.showContent()
+}
+
+templ (a Article) Render(req *http.Request) {
+	if htmx.IsHTMX(req) {
+		@a.Show()
+	} else {
+		<div class="@container">
+			<div id="content" class="flex flex-wrap @md:flex-row p-4 h-full items-start justify-center">
+				@a.Show()
+			</div>
+			<div id="content-loading" class="flex items-center justify-center">
+				@loading.Build(loading.Bars,
+					loading.AsHTMXIndicator(),
+					loading.WithThemeColor(color.Accent),
+				).Show()
+			</div>
+		</div>
+	}
 }

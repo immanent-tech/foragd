@@ -5,6 +5,7 @@ package home
 
 import (
 	"context"
+	"net/http"
 	"net/url"
 	"slices"
 
@@ -137,28 +138,28 @@ func BuildItemCard(ctx context.Context, item *models.Item) *ItemCard {
 	return itemCard
 }
 
-func BuildFeeds(ctx context.Context, subscriptions models.Subscriptions) []models.Template {
-	content := make([]models.Template, 0, len(subscriptions))
+func BuildFeeds(req *http.Request, subscriptions models.Subscriptions) templ.Component {
+	content := make(Cards, 0, len(subscriptions))
 	// Build feed cards.
 	for subscription := range slices.Values(subscriptions) {
-		content = append(content, BuildFeedCard(ctx, subscription))
+		content = append(content, BuildFeedCard(req.Context(), subscription).Show())
 	}
-	return content
+	return content.Render(req)
 }
 
-func BuildItems(ctx context.Context, reqURL *url.URL, pagination models.Pagination, items models.Items) []models.Template {
-	content := make([]models.Template, 0, len(items))
+func BuildItems(req *http.Request, pagination models.Pagination, items models.Items) templ.Component {
+	content := make(Cards, 0, len(items))
 	// Build feed cards.
 	// Build item cards.
 	for idx, item := range items {
 		// Create a card for this item.
-		itemCard := BuildItemCard(ctx, item)
+		itemCard := BuildItemCard(req.Context(), item)
 		// Add a pagination action to the last item.
-		if idx == len(items)-1 && len(items) == models.FiltersFromCtx(ctx).Count {
-			itemCard.AddPagination(reqURL, pagination)
+		if idx == len(items)-1 && len(items) == models.FiltersFromCtx(req.Context()).Count {
+			itemCard.AddPagination(req.URL, pagination)
 		}
 		// Append the card to the list of cards.
-		content = append(content, itemCard)
+		content = append(content, itemCard.Show())
 	}
-	return content
+	return content.Render(req)
 }

@@ -6,44 +6,29 @@ package home
 import (
 	"context"
 
-	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/a-h/templ"
 )
 
 const (
 	contentCtxKey contextKey = "content"
-	footerCtxKey  contextKey = "footer"
 	titleCtxKey   contextKey = "title"
 )
 
 type contextKey string
 
 // FiltersToCtx stores the current filters in the context.
-func ContentToCtx(ctx context.Context, content []models.Template) context.Context {
+func ContentToCtx(ctx context.Context, content []templ.Component) context.Context {
 	return context.WithValue(ctx, contentCtxKey, content)
 }
 
 // FiltersFromCtx retrieves the current filters from the context. If there are no filters stored in the context, the
 // default filters will be returned.
-func ContentFromCtx(ctx context.Context) []models.Template {
-	content, found := ctx.Value(contentCtxKey).([]models.Template)
+func ContentFromCtx(ctx context.Context) []templ.Component {
+	content, found := ctx.Value(contentCtxKey).([]templ.Component)
 	if !found {
 		return nil
 	}
 	return content
-}
-
-func FooterToCtx(ctx context.Context, footer models.Template) context.Context {
-	return context.WithValue(ctx, footerCtxKey, footer)
-}
-
-// FiltersFromCtx retrieves the current filters from the context. If there are no filters stored in the context, the
-// default filters will be returned.
-func FooterFromCtx(ctx context.Context) models.Template {
-	footer, found := ctx.Value(footerCtxKey).(models.Template)
-	if !found {
-		return nil
-	}
-	return footer
 }
 
 func TitleToCtx(ctx context.Context, title string) context.Context {
@@ -53,7 +38,7 @@ func TitleToCtx(ctx context.Context, title string) context.Context {
 // FiltersFromCtx retrieves the current filters from the context. If there are no filters stored in the context, the
 // default filters will be returned.
 func TitleFromCtx(ctx context.Context) string {
-	title, found := ctx.Value(footerCtxKey).(string)
+	title, found := ctx.Value(titleCtxKey).(string)
 	if !found {
 		return "Home"
 	}

@@ -4,12 +4,8 @@
 package home
 
 import (
-	"github.com/joshuar/go-feed-me/internal/models"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
-	"github.com/joshuar/go-templ-daisyui/feedback/loading"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"slices"
 	"time"
 )
 
@@ -90,26 +86,6 @@ templ showLastUpdated(description string, updated time.Time) {
 			text.AsItalicText(),
 		).Show()
 	}
-}
-
-templ NewContent(content ...models.Template) {
-	<div class="@container">
-		<div id="content" class="flex flex-wrap @md:flex-row p-4 h-full items-start justify-center">
-			if len(content) > 0 {
-				for c := range slices.Values(content) {
-					@c.Show()
-				}
-			} else {
-				@emptyContent()
-			}
-		</div>
-		<div id="content-loading" class="flex items-center justify-center">
-			@loading.Build(loading.Bars,
-				loading.AsHTMXIndicator(),
-				loading.WithThemeColor(color.Accent),
-			).Show()
-		</div>
-	</div>
 }
 
 // EmptyContent renders a hero with options for the user when the request

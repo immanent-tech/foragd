@@ -55,6 +55,20 @@ func CheckRequiredFilters(next http.Handler) http.Handler {
 	})
 }
 
+// RetrieveFeedFilters retrieves feed filters from the session and stores them in the request context.
+func RetrieveFeedFilters(session SessionAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			filters, ok := session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
+			if !ok {
+				slogctx.FromCtx(req.Context()).Warn("No feed filters in session, using default filters.")
+				filters = *models.NewFilters()
+			}
+			next.ServeHTTP(res, req.WithContext(models.FiltersToCtx(req.Context(), filters)))
+		})
+	}
+}
+
 // StoreFeedFilters generates feed filters from the request params and then stores them in the session and request
 // context.
 func StoreFeedFilters(session SessionAPI, params any) func(next http.Handler) http.Handler {
@@ -69,20 +83,6 @@ func StoreFeedFilters(session SessionAPI, params any) func(next http.Handler) ht
 			session.Put(req.Context(), feedFiltersSessionKey, filters)
 			ctx := models.FiltersToCtx(req.Context(), *filters)
 			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// RetrieveFeedFilters retrieves feed filters from the session and stores them in the request context.
-func RetrieveFeedFilters(session SessionAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			filters, ok := session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
-			if !ok {
-				slogctx.FromCtx(req.Context()).Warn("No feed filters in session, using default filters.")
-				filters = *models.NewFilters()
-			}
-			next.ServeHTTP(res, req.WithContext(models.FiltersToCtx(req.Context(), filters)))
 		})
 	}
 }
@@ -108,21 +108,38 @@ func MarkFeeds(api DataAPI) func(next http.Handler) http.Handler {
 }
 
 // GenerateFeedsContent creates the content for displaying a list of feeds.
-func GenerateFeedsContent(api DataAPI) func(next http.Handler) http.Handler {
+func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Get feeds.
-			subscriptions, err := api.GetSubscriptions(req.Context())
+			subscriptions, err := dataAPI.GetSubscriptions(req.Context())
 			if err != nil {
 				InternalServerError(res, req, err)
 				return
 			}
-			content := home.BuildFeeds(req.Context(), subscriptions)
+			var content []templ.Component
+			content = append(content,
+				home.BuildFeeds(req, subscriptions),
+				home.BuildListFooter(req.Context(), home.BackButton(nil, "/home"), subscriptions.GetCategoryCounts()).Show(),
+				// home.GenerateBackLink("/home", nil).Show(),
+			)
 			ctx := home.ContentToCtx(req.Context(), content)
-			footer := home.BuildListFooter(ctx, home.BackButton(nil, "/home"), subscriptions.GetCategoryCounts())
-			ctx = home.FooterToCtx(ctx, footer)
 			ctx = home.TitleToCtx(ctx, "Feeds")
 			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+// RetrieveItemFilters retrieves item filters from the session and stores them in the request context.
+func RetrieveItemFilters(session SessionAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			filters, ok := session.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
+			if !ok {
+				slogctx.FromCtx(req.Context()).Warn("No feed filters in session, using default filters.")
+				filters = *models.NewFilters()
+			}
+			next.ServeHTTP(res, req.WithContext(models.FiltersToCtx(req.Context(), filters)))
 		})
 	}
 }
@@ -139,21 +156,8 @@ func StoreItemFilters(session SessionAPI, params any) func(next http.Handler) ht
 				return
 			}
 			session.Put(req.Context(), itemFiltersSessionKey, filters)
-			next.ServeHTTP(res, req.WithContext(models.FiltersToCtx(req.Context(), *filters)))
-		})
-	}
-}
-
-// RetrieveItemFilters retrieves item filters from the session and stores them in the request context.
-func RetrieveItemFilters(session SessionAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			filters, ok := session.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
-			if !ok {
-				slogctx.FromCtx(req.Context()).Warn("No feed filters in session, using default filters.")
-				filters = *models.NewFilters()
-			}
-			next.ServeHTTP(res, req.WithContext(models.FiltersToCtx(req.Context(), filters)))
+			ctx := models.FiltersToCtx(req.Context(), *filters)
+			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
@@ -182,21 +186,24 @@ func MarkItems(api DataAPI) func(next http.Handler) http.Handler {
 func GenerateItemsContent(dataAPI DataAPI, sessionAPI SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Get all items.
 			items, pagination, err := dataAPI.GetItems(req.Context())
 			if err != nil {
 				InternalServerError(res, req, err)
 				return
 			}
-			content := home.BuildItems(req.Context(), req.URL, pagination, items)
-			ctx := home.ContentToCtx(req.Context(), content)
 			feedFilters, ok := sessionAPI.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
 			if !ok {
 				feedFilters = *models.NewFilters()
 			}
 			back := home.BackButton(feedFilters.ToQueryParams(), models.FeedsRoute)
-			footer := home.BuildListFooter(ctx, back, items.GetCategoryCounts())
-			ctx = home.FooterToCtx(ctx, footer)
+			// back := home.BackButton(, models.FeedsRoute)
+			var content []templ.Component
+			content = append(content,
+				home.BuildItems(req, pagination, items),
+				home.BuildListFooter(req.Context(), back, items.GetCategoryCounts()).Show(),
+				// home.GenerateBackLink(models.FeedsRoute, feedFilters.ToQueryParams()).Show(),
+			)
+			ctx := home.ContentToCtx(req.Context(), content)
 			ctx = home.TitleToCtx(ctx, "Items")
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -212,15 +219,18 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI SessionAPI, feedID models.F
 				InternalServerError(res, req, err)
 				return
 			}
-			content := []models.Template{home.BuildArticle(item)}
-			ctx := home.ContentToCtx(req.Context(), content)
 			itemFilters, ok := sessionAPI.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
 			if !ok {
 				itemFilters = *models.NewFilters()
 			}
 			back := home.BackButton(itemFilters.ToQueryParams(), models.ItemsRoute)
-			footer := home.BuildArticleFooter(item, back)
-			ctx = home.FooterToCtx(ctx, footer)
+			var content []templ.Component
+			content = append(content,
+				home.BuildArticle(req, item),
+				home.BuildArticleFooter(item, back).Show(),
+			)
+			ctx := home.ContentToCtx(req.Context(), content)
+			// ctx = home.FooterToCtx(ctx, footer)
 			ctx = home.TitleToCtx(ctx, item.GetTitle())
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -234,32 +244,27 @@ func DisplayHome() http.Handler {
 		func(res http.ResponseWriter, req *http.Request) {
 			title := home.TitleFromCtx(req.Context())
 			content := home.ContentFromCtx(req.Context())
-			footer := home.FooterFromCtx(req.Context())
-			components := make([]templ.Component, 0, len(content))
+			// footer := home.FooterFromCtx(req.Context())
 			// Create a new response writer.
 			resp := htmx.NewResponse()
 			// Decide whether we need to do a full or partial render based on whether
 			// this is a htmx request or not.
 			if htmx.IsHTMX(req) {
-				for c := range slices.Values(content) {
-					components = append(components, c.Show())
-				}
 				// Partial render. Update the page title and render all content combined.
-				components = append(components, footer.Show(), partials.NewTitle(title).Show())
-				HTMXResponse(resp, components...).ServeHTTP(res, req)
+				content = append(content, partials.NewTitle(title).Show())
+				HTMXResponse(resp, content...).ServeHTTP(res, req)
 			} else {
 				// Full render. Add the Appbar then build a full page layout to render.
-				components = append(components,
+				content = slices.Insert(content, 0,
 					partials.CommandModal(),
 					appbar.AppBar().Show(),
-					home.NewContent(content...),
-					footer.Show())
+				)
 				fullPage := layouts.BuildPage(
 					layouts.WithHeadOptions(title,
 						layouts.WithPageDescription("Your home."),
 						layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
 					),
-					layouts.WithPageContent(components...),
+					layouts.WithPageContent(content...),
 				)
 				HTMXResponse(resp, fullPage.Show()).ServeHTTP(res, req)
 			}

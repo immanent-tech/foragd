@@ -5,6 +5,7 @@
 package home
 
 import (
+	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/classes/width"
@@ -16,11 +17,13 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/display/placeholder"
 	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
+	"net/http"
 	"slices"
 	"strconv"
 )
@@ -168,4 +171,34 @@ templ (a cardActions) Show() {
 
 templ (c *Card) Show(classes ...string) {
 	@c.Props.Show("max-h-1/4", "w-full", "md:max-w-lg", "m-2")
+}
+
+type Cards []templ.Component
+
+templ (c Cards) Render(req *http.Request) {
+	if htmx.IsHTMX(req) {
+		@c.Show()
+	} else {
+		<div class="@container">
+			<div id="content" class="flex flex-wrap @md:flex-row p-4 h-full items-start justify-center">
+				@c.Show()
+			</div>
+			<div id="content-loading" class="flex items-center justify-center">
+				@loading.Build(loading.Bars,
+					loading.AsHTMXIndicator(),
+					loading.WithThemeColor(color.Accent),
+				).Show()
+			</div>
+		</div>
+	}
+}
+
+templ (c Cards) Show() {
+	if len(c) > 0 {
+		for card := range slices.Values(c) {
+			@card
+		}
+	} else {
+		@emptyContent()
+	}
 }

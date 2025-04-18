@@ -4,6 +4,10 @@
 package home
 
 import (
+	"net/http"
+
+	"github.com/a-h/templ"
+
 	"github.com/joshuar/go-feed-me/internal/models"
 )
 
@@ -12,8 +16,9 @@ type Article struct {
 	models.SourceWithContent
 }
 
-func BuildArticle(item *models.Item) models.Template {
-	return &Article{
+func BuildArticle(req *http.Request, item *models.Item) templ.Component {
+	article := &Article{
 		SourceWithContent: item,
 	}
+	return article.Render(req)
 }
