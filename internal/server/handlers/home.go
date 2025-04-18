@@ -11,6 +11,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/internal/forms"
@@ -80,6 +81,7 @@ func StoreFeedFilters(session SessionAPI, params any) func(next http.Handler) ht
 				InternalServerError(res, req, err)
 				return
 			}
+			spew.Dump(models.NewRouteFromCtx(req.Context()))
 			session.Put(req.Context(), feedFiltersSessionKey, filters)
 			ctx := models.FiltersToCtx(req.Context(), *filters)
 			next.ServeHTTP(res, req.WithContext(ctx))

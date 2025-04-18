@@ -5,9 +5,7 @@
 package home
 
 import (
-	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/internal/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
@@ -15,8 +13,8 @@ import (
 
 type SortBadge struct {
 	models.Sort
-	active bool
-	action *templates.Action
+	active     bool
+	attributes templ.Attributes
 }
 
 templ (s *SortBadge) Show() {
@@ -31,21 +29,16 @@ templ (s *SortBadge) Show() {
 		badge.WithColor(badge.Neutral),
 		styleOption,
 		badge.WithContent(s.String()),
-		badge.WithExtraAttributes(s.action.Attributes()),
+		badge.WithExtraAttributes(s.attributes),
 		badge.WithExtraClasses("p-2"),
 	).Show()
-	// @text.Build(s.String(),
-	// 	text.WithTextSize(text.SM),
-	// 	text.WithAttributes(s.action.Attributes()),
-	// ).Show()
 }
 
 templ BuildSortingMenu() {
-	{{ path := chi.RouteContext(ctx).RoutePattern() }}
 	<div id="content-sorting" hx-swap-oob="true">
 		@partials.DockMenu("Sort",
 			icon.Build("fa-sort"),
-			generateSortOptions(models.FiltersFromCtx(ctx), path)...,
+			generateSortOptions(ctx)...,
 		)
 	</div>
 }

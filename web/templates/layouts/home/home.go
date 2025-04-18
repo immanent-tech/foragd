@@ -25,47 +25,6 @@ var viewAttributes = templ.Attributes{
 	"hx-swap":     "morph:innerHTML",
 }
 
-// buildShowFeedCardsAction builds an models.Route for /home/feeds with the given
-// filters. This can be used with components that need to create an action for
-// /home/feeds.
-func buildShowFeedCardsAction(filters models.Filters) *templates.Action {
-	return templates.BuildAction(models.FeedsRoute,
-		templates.WithQueryParams(filters.ToQueryParams()),
-		templates.WithAttributes(viewAttributes),
-	)
-}
-
-// buildShowItemCardsAction builds an models.Route for /home/items with the given
-// filters. This can be used with components that need to create an action for
-// /home/items.
-func buildShowItemCardsAction(filters models.Filters) *templates.Action {
-	// Build the route.
-	return templates.BuildAction(models.ItemsRoute,
-		templates.WithQueryParams(filters.ToQueryParams()),
-		templates.WithAttributes(viewAttributes),
-	)
-}
-
-func buildShowArticleAction(feedID models.FeedID, itemID models.ItemID) *templates.Action {
-	// Build the route.
-	return templates.BuildAction("/home/"+feedID+"/"+itemID,
-		templates.WithAttributes(viewAttributes),
-	)
-}
-
-// buildHomeAction will build the appropriate /home route for the given path
-// string and filters.
-func buildHomeAction(path string, filters models.Filters) *templates.Action {
-	switch path {
-	case models.FeedsRoute:
-		return buildShowFeedCardsAction(filters)
-	case models.ItemsRoute:
-		return buildShowItemCardsAction(filters)
-	}
-
-	return nil
-}
-
 // markAttributes are the common htmx attributes for mark actions.
 var markAttributes = templ.Attributes{
 	"_":           "on click halt the event's bubbling",

@@ -33,7 +33,7 @@ type cardActions []templ.Component
 // Card is a display component that shows a DaisyUI Card for the given data.
 type Card struct {
 	id          string
-	viewAction  *templates.Action
+	viewRoute   *models.Route
 	menuActions cardActions
 	models.Source
 	*card.Props
@@ -58,20 +58,16 @@ func (c *Card) generateMarkAction() *templates.Action {
 
 // viewAction returns the action for viewing the card's content. For a Feed card this would be the Feed's item as cards.
 // For a Item card, this would be the item content.
-func (c *Card) generateViewAction(ctx context.Context) *templates.Action {
+func (c *Card) generateViewRoute(ctx context.Context) *models.Route {
 	switch id.IdentifyID(c.id) {
 	case id.Feed:
 		filters := models.FiltersFromCtx(ctx)
-		return buildShowItemCardsAction(
-			*models.NewFilters(
-				models.WithCountFilter(filters.Count),
-				models.WithViewFilter(filters.View),
-				models.WithSortFilters(filters.Sort()),
-				models.WithFeedFilters(c.GetFeedID()),
-			),
-		)
+		route := models.NewRoute(models.ItemsRoute, &filters)
+		route.SetFeedIDs(c.GetFeedID())
+		route.SetAttributes(viewAttributes)
+		return route
 	case id.Item:
-		return buildShowArticleAction(c.GetFeedID(), c.id)
+		return models.NewRoute("/home/"+c.GetFeedID()+"/"+c.id, nil)
 	}
 	return nil
 }
@@ -99,7 +95,7 @@ func BuildFeedCard(ctx context.Context, subscription *models.Subscription) *Feed
 		},
 		UnreadCount: subscription.GetUnreadCount(),
 	}
-	feedCard.viewAction = feedCard.generateViewAction(ctx)
+	feedCard.viewRoute = feedCard.generateViewRoute(ctx)
 	feedCard.menuActions = append(feedCard.menuActions,
 		partials.ShareAction(nil),
 		partials.VisitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
@@ -121,7 +117,7 @@ func BuildItemCard(ctx context.Context, item *models.Item) *ItemCard {
 			id:     item.GetID(),
 		},
 	}
-	itemCard.viewAction = itemCard.generateViewAction(ctx)
+	itemCard.viewRoute = itemCard.generateViewRoute(ctx)
 	itemCard.menuActions = append(itemCard.menuActions,
 		showLastUpdated("", item.GetUpdatedDate()),
 		partials.MarkButton(itemCard.generateMarkAction()),

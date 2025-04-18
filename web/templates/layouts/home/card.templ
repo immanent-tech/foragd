@@ -35,7 +35,7 @@ templ (c *Card) showTitle() {
 		@link.Build(
 			link.WithContent(c.GetTitle()),
 			link.WithUnderlineOnHover(),
-			link.WithExtraAttributes(c.viewAction.Attributes()),
+			link.WithExtraAttributes(c.viewRoute.GetAttributes()),
 			link.WithExtraClasses(),
 		).Show()
 	</div>
