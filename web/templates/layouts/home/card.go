@@ -61,9 +61,8 @@ func (c *Card) generateViewRoute(ctx context.Context) *models.Route {
 	switch models.IdentifyID(c.id) {
 	case models.FeedPFX:
 		filters := models.FiltersFromCtx(ctx)
-		route := models.NewRoute(models.ItemsRoute, &filters)
+		route := models.NewRoute(models.ItemsRoute, &filters, models.WithAttributes(viewAttributes))
 		route.SetFeedIDs(c.GetFeedID())
-		route.SetAttributes(viewAttributes)
 		return route
 	case models.ItemPFX:
 		return models.NewRoute("/home/"+c.GetFeedID()+"/"+c.id, nil)

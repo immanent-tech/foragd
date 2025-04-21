@@ -27,8 +27,7 @@ type CategoryFilter struct {
 func BuildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCounts) CategoryFilters {
 	categoryFilters := make(CategoryFilters, 0, len(categoryCounts))
 	for categoryCount := range slices.Values(categoryCounts.GetTopCategories(10)) {
-		route := models.NewRouteFromCtx(ctx)
-		route.SetAttributes(viewAttributes)
+		route := models.NewRouteFromCtx(ctx, models.WithAttributes(viewAttributes))
 		var active bool
 		if slices.Contains(models.FiltersFromCtx(ctx).Categories, categoryCount.Category) {
 			active = true
@@ -56,8 +55,7 @@ type ViewFilter struct {
 
 // newViewFilter creates a new view filter.
 func newViewFilter(ctx context.Context, view models.View) ViewFilter {
-	route := models.NewRouteFromCtx(ctx)
-	route.SetAttributes(viewAttributes)
+	route := models.NewRouteFromCtx(ctx, models.WithAttributes(viewAttributes))
 	route.SetView(view)
 	viewFilter := ViewFilter{}
 	viewFilter.Props = badge.Build(

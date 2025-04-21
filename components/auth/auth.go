@@ -141,7 +141,7 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 		return fmt.Errorf("%w: no session found", ErrAuth)
 	}
 
-	defer a.Logout().ServeHTTP(res, req)
+	// defer a.Logout().ServeHTTP(res, req)
 	sess, err := provider.UnmarshalSession(value)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrAuth, err)

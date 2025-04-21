@@ -20,8 +20,7 @@ func newSortAction(sort models.Sort, path string, filters models.Filters) templ.
 	if reflect.DeepEqual(filters.Sort(), sortAction.Sort) {
 		sortAction.active = true
 	}
-	route := models.NewRoute(path, &filters)
-	route.SetAttributes(viewAttributes)
+	route := models.NewRoute(path, &filters, models.WithAttributes(viewAttributes))
 	route.SetSortBy(sort.SortBy)
 	route.SetSortOrder(sort.SortOrder)
 	sortAction.attributes = route.GetAttributes()

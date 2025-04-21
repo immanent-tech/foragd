@@ -8,6 +8,7 @@ import (
 	"maps"
 	"net/http"
 	"net/url"
+	"slices"
 	"sync"
 
 	"github.com/a-h/templ"
@@ -112,23 +113,43 @@ func (r *Route) String() string {
 	return r.URL().String()
 }
 
+// RouteOption is a functional option for a Route.
+type RouteOption Option[*Route]
+
+// WithAttributes option sets the given attributes on the route.
+func WithAttributes(attributes templ.Attributes) RouteOption {
+	return func(r *Route) {
+		r.SetAttributes(attributes)
+	}
+}
+
 // NewRouteFromCtx generates a route from details within the context.
-func NewRouteFromCtx(ctx context.Context) *Route {
+func NewRouteFromCtx(ctx context.Context, options ...RouteOption) *Route {
 	route := &Route{
 		path:       chi.RouteContext(ctx).RoutePattern(),
 		attributes: make(templ.Attributes),
 	}
 	filters := FiltersFromCtx(ctx)
 	route.filters = &filters
+
+	for option := range slices.Values(options) {
+		option(route)
+	}
+
 	return route
 }
 
 // NewRoute generates a route from the given path and filters.
-func NewRoute(path string, filters *Filters) *Route {
+func NewRoute(path string, filters *Filters, options ...RouteOption) *Route {
 	route := &Route{
 		path:       path,
 		filters:    filters,
 		attributes: make(templ.Attributes),
 	}
+
+	for option := range slices.Values(options) {
+		option(route)
+	}
+
 	return route
 }
