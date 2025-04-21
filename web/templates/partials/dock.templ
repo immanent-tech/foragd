@@ -27,6 +27,7 @@ templ DockMenu(title string, label any, items ...templ.Component) {
 			menu.WithBaseColor(color.Base200),
 			menu.WithExtraClasses(width.W52),
 			menu.WithItems(items...),
+			menu.WithExtraItemClasses("p-2"),
 		),
 	).Show()
 }

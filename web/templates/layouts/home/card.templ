@@ -18,7 +18,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/placeholder"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
-	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
@@ -77,23 +76,6 @@ templ (s *Card) showCategories() {
 	}
 }
 
-// setImageOption will set the image of the card to the source image, or a placeholder if the source has no image.
-func (c *Card) setImageOption() card.Option {
-	if c.GetImage() != nil {
-		return card.WithImage(c.GetImage().URL(),
-			image.WithAltText(c.GetImage().String()),
-			image.WithLazyLoading(),
-			image.WithExtraClasses("max-w-md", "h-full", "object-cover"),
-			image.WithMask(mask.MaskSquircle),
-		)
-	}
-	return card.WithImage("/static/images/square-rss-solid.svg",
-		image.WithLazyLoading(),
-		image.WithMask(mask.MaskSquircle),
-		image.WithExtraClasses("max-w-32", "h-full", "object-cover"),
-	)
-}
-
 templ (c *FeedCard) ShowUnreadCount() {
 	if c.IsUnread() {
 		@badge.Build(
@@ -108,6 +90,9 @@ templ (c *FeedCard) ShowUnreadCount() {
 }
 
 templ (c *FeedCard) showContent() {
+	<p>
+		@showLastUpdated("", c.GetUpdatedDate())
+	</p>
 	@article.Build(c.showDescription()).Show()
 }
 

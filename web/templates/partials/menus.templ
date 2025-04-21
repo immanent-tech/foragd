@@ -16,7 +16,7 @@ templ ResponsiveMenu(items ...templ.Component) {
 	@templ.Join(
 		// Menu for large screens: horizontal layout, all buttons shown.
 		menu.Build(
-			menu.WithSize(size.SM),
+			menu.WithSize(menu.SM),
 			menu.WithLayout(menu.Horizontal),
 			menu.WithRevealedBreakpoint(size.LG),
 			menu.WithItems(items...),

@@ -30,7 +30,6 @@ templ (s *SortBadge) Show() {
 		styleOption,
 		badge.WithContent(s.String()),
 		badge.WithExtraAttributes(s.attributes),
-		badge.WithExtraClasses("p-2"),
 	).Show()
 }
 
