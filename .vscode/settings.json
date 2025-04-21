@@ -100,7 +100,6 @@
     "auth"
   ],
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "emmet.includeLanguages": {
     "templ": "html"
   },
