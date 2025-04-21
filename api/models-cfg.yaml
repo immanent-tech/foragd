@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package: models
-output: ../internal/models/models.gen.go
+output: ../models/models.gen.go
 generate:
   models: true
 output-options:

@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
-	externalRef1 "github.com/joshuar/go-feed-me/models"
+	externalRef0 "github.com/joshuar/go-feed-me/models"
 	"github.com/oapi-codegen/runtime"
 	"github.com/reugn/go-quartz/quartz"
 )
@@ -26,10 +26,10 @@ type CronTrigger struct {
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
 	// FeedID is the unique ID of a feed.
-	FeedID externalRef1.FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID externalRef0.FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// URL is a URL.
-	URL externalRef1.URL `json:"url" validate:"url"`
+	URL externalRef0.URL `json:"url" validate:"url"`
 }
 
 // PollTrigger represents a polling trigger for a job.
@@ -44,7 +44,7 @@ type ScheduledJob struct {
 	SchedulerID SchedulerID `json:"scheduler_id" validate:"required"`
 
 	// CreatedAt records when the object was created in the database.
-	CreatedAt externalRef1.CreatedAt `json:"created_at" validate:"required"`
+	CreatedAt externalRef0.CreatedAt `json:"created_at" validate:"required"`
 
 	// JobData contains job-specific data.
 	JobData ScheduledJob_JobData `json:"job_data"`

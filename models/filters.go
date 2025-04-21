@@ -124,29 +124,6 @@ func (f *Filters) Sort() Sort {
 	}
 }
 
-// Generate will create a Filters object from the given object (usually
-// parameters from a handler).
-func (f *Filters) Generate(params any) error {
-	filters := &Filters{}
-	// Marshal params to JSON.
-	data, err := json.Marshal(params)
-	if err != nil {
-		return fmt.Errorf("unable to marshal params: %w", err)
-	}
-	// Unmarshal JSON to filters.
-	err = json.Unmarshal(data, f)
-	if err != nil {
-		return fmt.Errorf("unable to marshal params: %w", err)
-	}
-
-	valid, err := filters.Valid()
-	if !valid || err != nil {
-		return fmt.Errorf("invalid filters: %w", err)
-	}
-
-	return nil
-}
-
 // ToQueryParams returns the filters as a url.Values object.
 func (f *Filters) ToQueryParams() url.Values {
 	params := make(url.Values)
@@ -165,6 +142,28 @@ func (f *Filters) ToQueryParams() url.Values {
 	params.Set(ParamCount, strconv.Itoa(f.Count))
 
 	return params
+}
+
+// NewFiltersFromParams creates new filters with values extracted from the given request params.
+func NewFiltersFromParams(params any) (*Filters, error) {
+	filters := NewFilters()
+	// Marshal params to JSON.
+	data, err := json.Marshal(params)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal params: %w", err)
+	}
+	// Unmarshal JSON to filters.
+	err = json.Unmarshal(data, filters)
+	if err != nil {
+		return nil, fmt.Errorf("unable to marshal params: %w", err)
+	}
+
+	valid, err := filters.Valid()
+	if !valid || err != nil {
+		return nil, fmt.Errorf("invalid filters: %w", err)
+	}
+
+	return filters, nil
 }
 
 // NewFilters creates a new Filters object with default values.

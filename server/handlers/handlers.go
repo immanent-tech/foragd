@@ -20,16 +20,22 @@ var (
 	ErrMissingRequestData = errors.New("request data is missing")
 )
 
+// Keys for objects stored within the context and passed between handlers.
 const (
 	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
 	subscriptionsCtxKey        contextKey = "subscriptions"
 	feedsCtxKey                contextKey = "feeds"
-	feedFiltersSessionKey                 = "feed_filters"
-	itemFiltersSessionKey                 = "item_filters"
+)
+
+// Keys for objects stored within the session.
+const (
+	feedFiltersSessionKey = "feed_filters"
+	itemFiltersSessionKey = "item_filters"
 )
 
 type contextKey string
 
+// DataAPI represents the API surface for interacting with the database/datastore backend.
 type DataAPI interface {
 	// User methods:
 	AddUser(ctx context.Context, userID models.UserID) error
@@ -47,12 +53,14 @@ type DataAPI interface {
 	MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error
 }
 
+// AuthAPI represents the API surface for interacting with the auth backend.
 type AuthAPI interface {
 	GetAuthURL(req *http.Request) (string, error)
 	CompleteUserAuth(res http.ResponseWriter, req *http.Request) error
 	GetUserID(ctx context.Context) models.UserID
 }
 
+// SessionAPI represents the API surface for interacting with the session backend.
 type SessionAPI interface {
 	Put(ctx context.Context, key string, value any)
 	Get(ctx context.Context, key string) any

@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package: server
-output: ../cmd/server/server.gen.go
+output: ../server/server.gen.go
 generate:
   models: true
   chi-server: true
@@ -14,8 +14,8 @@ output-options:
   skip-prune: false
   nullable-type: true
 import-mapping:
-  models.yaml: github.com/joshuar/go-feed-me/internal/models
-  api.yaml: github.com/joshuar/go-feed-me/internal/models
+  models.yaml: github.com/joshuar/go-feed-me/models
+  api.yaml: github.com/joshuar/go-feed-me/models
 compatibility:
   allow-unexported-struct-field-names: true
   always-prefix-enum-values: true

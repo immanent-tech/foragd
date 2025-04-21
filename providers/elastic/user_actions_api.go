@@ -113,7 +113,7 @@ func (e *API) GetItems(ctx context.Context) (models.Items, models.Pagination, er
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	resp, err := e.ItemsSearch(ctx, query, filters, "")
+	resp, err := e.ItemsSearch(ctx, query, filters)
 	if err != nil {
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}

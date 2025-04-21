@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
 	"slices"
 	"strconv"
@@ -11,7 +12,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
+	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -56,35 +57,56 @@ func CheckRequiredFilters(next http.Handler) http.Handler {
 	})
 }
 
-// RetrieveFeedFilters retrieves feed filters from the session and stores them in the request context.
-func RetrieveFeedFilters(session SessionAPI) func(next http.Handler) http.Handler {
+// GenerateFilters parses the request parameters, generates Filters from them and stores the filters in the session.
+func GenerateFilters(session SessionAPI, params any) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			filters, ok := session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
+			// Retrieve filters.
+			filters, err := models.NewFiltersFromParams(params)
+			if err != nil {
+				InternalServerError(res, req, err)
+				return
+			}
+			// Store filters in session.
+			route := chi.RouteContext(req.Context()).RoutePattern()
+			switch route {
+			case models.FeedsRoute:
+				slogctx.FromCtx(req.Context()).Debug("Storing feed filters.")
+				session.Put(req.Context(), feedFiltersSessionKey, filters)
+			case models.ItemsRoute:
+				slogctx.FromCtx(req.Context()).Debug("Storing item filters.")
+				session.Put(req.Context(), itemFiltersSessionKey, filters)
+			default:
+				slogctx.FromCtx(req.Context()).Warn("Cannot generate filters, unknown route.",
+					slog.String("route", route))
+			}
+			// Store filters in context.
+			ctx := models.FiltersToCtx(req.Context(), *filters)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+// RetrieveFilters retrieves filters from the session and stores them in the request context.
+func RetrieveFilters(session SessionAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			var (
+				filters models.Filters
+				ok      bool
+			)
+			route := chi.RouteContext(req.Context()).RoutePattern()
+			switch route {
+			case models.FeedsRoute:
+				filters, ok = session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
+			case models.ItemsRoute:
+				filters, ok = session.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
+			}
 			if !ok {
 				slogctx.FromCtx(req.Context()).Warn("No feed filters in session, using default filters.")
 				filters = *models.NewFilters()
 			}
 			next.ServeHTTP(res, req.WithContext(models.FiltersToCtx(req.Context(), filters)))
-		})
-	}
-}
-
-// StoreFeedFilters generates feed filters from the request params and then stores them in the session and request
-// context.
-func StoreFeedFilters(session SessionAPI, params any) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			filters := models.NewFilters()
-			err := filters.Generate(params)
-			if err != nil {
-				InternalServerError(res, req, err)
-				return
-			}
-			spew.Dump(models.NewRouteFromCtx(req.Context()))
-			session.Put(req.Context(), feedFiltersSessionKey, filters)
-			ctx := models.FiltersToCtx(req.Context(), *filters)
-			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
@@ -121,44 +143,12 @@ func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler 
 			}
 			var content []templ.Component
 			content = append(content,
-				home.BuildFeeds(req, subscriptions),
-				home.BuildListFooter(req.Context(), home.BackButton(nil, "/home"), subscriptions.GetCategoryCounts()).Show(),
+				home.BuildFeeds(req, subscriptions), //nolint:contextcheck
+				home.BuildListFooter(req.Context(), home.BackButton(nil, "/home"), subscriptions.GetCategoryCounts()).Show(), //nolint:contextcheck
 				// home.GenerateBackLink("/home", nil).Show(),
 			)
 			ctx := home.ContentToCtx(req.Context(), content)
 			ctx = home.TitleToCtx(ctx, "Feeds")
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// RetrieveItemFilters retrieves item filters from the session and stores them in the request context.
-func RetrieveItemFilters(session SessionAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			filters, ok := session.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
-			if !ok {
-				slogctx.FromCtx(req.Context()).Warn("No feed filters in session, using default filters.")
-				filters = *models.NewFilters()
-			}
-			next.ServeHTTP(res, req.WithContext(models.FiltersToCtx(req.Context(), filters)))
-		})
-	}
-}
-
-// StoreItemFilters generates item filters from the request params and then stores them in the session and request
-// context.
-func StoreItemFilters(session SessionAPI, params any) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			filters := models.NewFilters()
-			err := filters.Generate(params)
-			if err != nil {
-				InternalServerError(res, req, err)
-				return
-			}
-			session.Put(req.Context(), itemFiltersSessionKey, filters)
-			ctx := models.FiltersToCtx(req.Context(), *filters)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -202,7 +192,7 @@ func GenerateItemsContent(dataAPI DataAPI, sessionAPI SessionAPI) func(next http
 			var content []templ.Component
 			content = append(content,
 				home.BuildItems(req, pagination, items),
-				home.BuildListFooter(req.Context(), back, items.GetCategoryCounts()).Show(),
+				home.BuildListFooter(req.Context(), back, items.GetCategoryCounts()).Show(), //nolint:contextcheck
 				// home.GenerateBackLink(models.FeedsRoute, feedFilters.ToQueryParams()).Show(),
 			)
 			ctx := home.ContentToCtx(req.Context(), content)
@@ -228,8 +218,8 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI SessionAPI, feedID models.F
 			back := home.BackButton(itemFilters.ToQueryParams(), models.ItemsRoute)
 			var content []templ.Component
 			content = append(content,
-				home.BuildArticle(req, item),
-				home.BuildArticleFooter(item, back).Show(),
+				home.BuildArticle(req, item),               //nolint:contextcheck
+				home.BuildArticleFooter(item, back).Show(), //nolint:contextcheck
 			)
 			ctx := home.ContentToCtx(req.Context(), content)
 			// ctx = home.FooterToCtx(ctx, footer)

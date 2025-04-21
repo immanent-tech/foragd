@@ -132,6 +132,12 @@ components:
                 form: "categories[]"
                 validate: "omitnil,unique,dive,url_encoded"
               x-go-type-skip-optional-pointer: true
+            pagination:
+              description: >
+                is any pagination data from the current request.
+              allOf:
+                - $ref: "#/components/schemas/Pagination"
+              x-go-type-skip-optional-pointer: true
     UserSignupRequest:
       description: >
         contains the details for a user signup request.

@@ -62,7 +62,7 @@ type Source interface {
 	IsUnread() bool
 }
 
-// Source represents a single source of data. This might be an individual feed or item.
+// SourceWithContent is a source that has its content embedded.
 type SourceWithContent interface {
 	Source
 	GetContent() string
