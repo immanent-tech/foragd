@@ -11,7 +11,7 @@ import (
 
 	"github.com/joshuar/go-templ-daisyui/attributes"
 
-	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 )
 

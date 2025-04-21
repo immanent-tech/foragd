@@ -11,8 +11,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic"
-	"github.com/joshuar/go-feed-me/internal/platforms/elastic/schema"
+	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 )
 
 // MigrateCmd: `go-feed-me migrate`.

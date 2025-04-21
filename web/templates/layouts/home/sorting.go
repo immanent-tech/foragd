@@ -10,7 +10,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/go-chi/chi/v5"
 
-	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/models"
 )
 
 func newSortAction(sort models.Sort, path string, filters models.Filters) templ.Component {

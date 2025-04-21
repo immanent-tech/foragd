@@ -8,7 +8,7 @@ import (
 
 	"github.com/a-h/templ"
 
-	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/models"
 )
 
 // Article is a display component that shows an article for the given data.

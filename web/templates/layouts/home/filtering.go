@@ -10,7 +10,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 
-	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/models"
 )
 
 // CategoryFilters is a slice of category filters.

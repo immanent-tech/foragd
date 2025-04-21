@@ -13,8 +13,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 
-	"github.com/joshuar/go-feed-me/internal/id"
-	"github.com/joshuar/go-feed-me/internal/models"
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
@@ -41,16 +40,16 @@ type Card struct {
 
 // generateMarkAction creates the appropriate mark action for the card.
 func (c *Card) generateMarkAction() *templates.Action {
-	cardType := id.IdentifyID(c.id)
+	cardType := models.IdentifyID(c.id)
 	sourceID := c.id
 	switch {
-	case cardType == id.Feed && c.IsUnread():
+	case cardType == models.FeedPFX && c.IsUnread():
 		return buildMarkFeedAction(sourceID, models.MarkRead)
-	case cardType == id.Feed && !c.IsUnread():
+	case cardType == models.FeedPFX && !c.IsUnread():
 		return buildMarkFeedAction(sourceID, models.MarkUnread)
-	case cardType == id.Item && c.IsUnread():
+	case cardType == models.ItemPFX && c.IsUnread():
 		return buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkRead)
-	case cardType == id.Item && !c.IsUnread():
+	case cardType == models.ItemPFX && !c.IsUnread():
 		return buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkUnread)
 	}
 	return nil
@@ -59,14 +58,14 @@ func (c *Card) generateMarkAction() *templates.Action {
 // viewAction returns the action for viewing the card's content. For a Feed card this would be the Feed's item as cards.
 // For a Item card, this would be the item content.
 func (c *Card) generateViewRoute(ctx context.Context) *models.Route {
-	switch id.IdentifyID(c.id) {
-	case id.Feed:
+	switch models.IdentifyID(c.id) {
+	case models.FeedPFX:
 		filters := models.FiltersFromCtx(ctx)
 		route := models.NewRoute(models.ItemsRoute, &filters)
 		route.SetFeedIDs(c.GetFeedID())
 		route.SetAttributes(viewAttributes)
 		return route
-	case id.Item:
+	case models.ItemPFX:
 		return models.NewRoute("/home/"+c.GetFeedID()+"/"+c.id, nil)
 	}
 	return nil
