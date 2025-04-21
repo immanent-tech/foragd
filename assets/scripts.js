@@ -2,12 +2,16 @@
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 // htmx
-import 'htmx.org'
-import './setup-htmx.js'
+import "htmx.org";
+import "./setup-htmx.js";
 
 // hyperscript
-import _hyperscript from 'hyperscript.org'
-_hyperscript.browserInit()
+import _hyperscript from "hyperscript.org";
+_hyperscript.browserInit();
 
-import { themeChange } from 'theme-change'
-themeChange()
+import { themeChange } from "theme-change";
+themeChange();
+
+import "./fontawesome/js/brands.js";
+import "./fontawesome/js/solid.js";
+import "./fontawesome/js/fontawesome.js";

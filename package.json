@@ -4,10 +4,10 @@
   "description": "A place for all your feeds",
   "license": "AGPL-3.0-or-later",
   "browserslist": "> 0.5%, last 2 versions, not dead",
+  "type": "module",
   "source": [
     "./assets/scripts.js",
-    "./assets/styles.css",
-    "./assets/fontawesome/js/*.js"
+    "./assets/styles.css"
   ],
   "targets": {
     "default": {
@@ -15,13 +15,11 @@
     }
   },
   "scripts": {
-    "watch": "parcel build ./assets/scripts.js ./assets/styles.css ./assets/fontawesome/js/*.js --dist-dir ./static --no-optimize",
-    "fmt": "prettier --write .",
-    "dev": "parcel build ./assets/scripts.js ./assets/styles.css ./assets/fontawesome/js/*.js --dist-dir ./static --no-optimize",
-    "build": "parcel build ./assets/scripts.js ./assets/styles.css ./assets/fontawesome/js/*.js --dist-dir ./static"
+    "build:js": "esbuild ./assets/scripts.js --bundle --outfile=./static/scripts.js",
+    "build:css": "postcss ./assets/styles.css -o ./static/styles.css"
   },
   "dependencies": {
-    "daisyui": "^5.0.13",
+    "daisyui": "^5.0.27",
     "htmx-ext-sse": "^2.2.3",
     "htmx.org": "^2.0.4",
     "hyperscript.org": "^0.9.14",
@@ -30,14 +28,15 @@
     "theme-change": "^2.5.0"
   },
   "devDependencies": {
-    "@parcel/transformer-css": "^2.14.4",
     "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/postcss": "^4.1.4",
     "@tailwindcss/typography": "^0.5.16",
     "autoprefixer": "^10.4.21",
-    "eslint-config-prettier": "^10.1.1",
+    "esbuild": "^0.25.2",
+    "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",
-    "parcel": "^2.14.4",
     "postcss": "^8.5.3",
+    "postcss-cli": "^11.0.1",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "prettier-plugin-toml": "^2.0.4"
