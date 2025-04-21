@@ -1,6 +1,7 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+import "htmx.org";
 import "idiomorph";
 import "htmx-ext-sse";
 
@@ -10,11 +11,11 @@ window.htmx = htmx;
 // Allow event logging.
 //
 // https://htmx.org/docs/#logging
-htmx.logger = function(elt, event, data) {
-  if(console) {
-      console.log(event, elt, data);
+htmx.logger = function (elt, event, data) {
+  if (console) {
+    console.log(event, elt, data);
   }
-}
+};
 
 // Log all events.
 //
