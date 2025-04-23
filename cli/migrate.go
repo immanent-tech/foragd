@@ -1,7 +1,6 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//revive:disable:unused-receiver
 package cli
 
 import (
@@ -15,12 +14,13 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 )
 
-// MigrateCmd: `go-feed-me migrate`.
+// MigrateCmd defines the `migrate` command, which performs data-store migrations for schema changes.
 type MigrateCmd struct {
 	Migrations []string `help:"Components to migrate."`
 }
 
-func (r *MigrateCmd) Run(opts *CmdOpts) error {
+// Run contains the logic for performing the migrate command.
+func (r *MigrateCmd) Run(_ *Arguments) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 

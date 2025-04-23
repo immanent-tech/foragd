@@ -49,7 +49,7 @@ func main() {
 		}
 	}
 	// Run the requested command with the provided options.
-	if err := ctx.Run(cli.AddOptions(
+	if err := ctx.Run(cli.AddArguments(
 		cli.WithLogger(logger),
 		cli.WithStaticContent(static),
 	)); err != nil {

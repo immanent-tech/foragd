@@ -1,6 +1,8 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+// Package cli contains functionality for the command-line interface of the service. It provides commands for starting
+// both the server and scheduler services.
 package cli
 
 import (
@@ -8,15 +10,20 @@ import (
 	"log/slog"
 )
 
-type CmdOpts struct {
-	Logger        *slog.Logger
+// Arguments are the common options for commands.
+type Arguments struct {
+	// Logger is a logger that the command can use.
+	Logger *slog.Logger
+	// StaticContent is an embedded filesystem containing static files.
 	StaticContent embed.FS
 }
 
-type Option func(*CmdOpts) *CmdOpts
+// Option is a functional option for the command-line.
+type Option func(*Arguments) *Arguments
 
-func AddOptions(options ...Option) *CmdOpts {
-	commandOptions := &CmdOpts{}
+// AddArguments generates command-line arguments from the given options.
+func AddArguments(options ...Option) *Arguments {
+	commandOptions := &Arguments{}
 	for _, option := range options {
 		option(commandOptions)
 	}
@@ -24,15 +31,17 @@ func AddOptions(options ...Option) *CmdOpts {
 	return commandOptions
 }
 
+// WithStaticContent defines a location for embedding static content. Used by the server command.
 func WithStaticContent(content embed.FS) Option {
-	return func(ctx *CmdOpts) *CmdOpts {
+	return func(ctx *Arguments) *Arguments {
 		ctx.StaticContent = content
 		return ctx
 	}
 }
 
+// WithLogger defines a logger for a command.
 func WithLogger(logger *slog.Logger) Option {
-	return func(ctx *CmdOpts) *CmdOpts {
+	return func(ctx *Arguments) *Arguments {
 		ctx.Logger = logger
 		return ctx
 	}

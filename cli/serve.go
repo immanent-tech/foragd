@@ -1,7 +1,6 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//revive:disable:unused-receiver
 package cli
 
 import (
@@ -24,35 +23,39 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/components/config"
-	"github.com/joshuar/go-feed-me/scheduler"
 	"github.com/joshuar/go-feed-me/server"
 	"github.com/joshuar/go-feed-me/server/handlers"
 	"github.com/joshuar/go-feed-me/server/middlewares"
 )
 
-var ErrStartServerFailed = errors.New("could not start server")
+// ErrServerCmd indicates an error occurred when running the server command.
+var ErrServerCmd = errors.New("error running server command")
 
 const (
-	ServerReadTimeout  = 5 * time.Second
+	// ServerReadTimeout is the default read timeout for the server.
+	ServerReadTimeout = 5 * time.Second
+	// ServerWriteTimeout is the default write timeout for the server.
 	ServerWriteTimeout = 10 * time.Second
 )
 
-// ServeCmd: `go-feed-me serve`.
+// ServeCmd defines the `server` command for running the server.
 type ServeCmd struct{}
 
-func (r *ServeCmd) Run(opts *CmdOpts) error {
+// Run performs setup and execution for the server command.
+//
+//nolint:funlen
+func (r *ServeCmd) Run(opts *Arguments) error {
 	// Creating a waiting group that waits until the graceful shutdown procedure is done
 	var wg sync.WaitGroup
 
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
-
-	ctx = slogctx.NewCtx(ctx, slog.Default())
+	ctx = slogctx.NewCtx(ctx, opts.Logger)
 
 	// Set up a new server interface.
 	svr, err := server.NewServer(ctx)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrStartServerFailed, err)
+		return fmt.Errorf("%w: %w", ErrServerCmd, err)
 	}
 
 	// Set up a new chi router.
@@ -98,16 +101,16 @@ func (r *ServeCmd) Run(opts *CmdOpts) error {
 		}
 	}()
 
-	wg.Add(1)
-	// Start the scheduler.
-	go func() {
-		defer wg.Done()
-		if err := scheduler.Run(ctx); err != nil {
-			svr.Log.Error("Error running scheduler.",
-				slog.Any("error", err))
-			cancelFunc()
-		}
-	}()
+	// wg.Add(1)
+	// // Start the scheduler.
+	// go func() {
+	// 	defer wg.Done()
+	// 	if err := scheduler.Run(ctx); err != nil {
+	// 		svr.Log.Error("Error running scheduler.",
+	// 			slog.Any("error", err))
+	// 		cancelFunc()
+	// 	}
+	// }()
 
 	svr.Log.Info("Starting server...",
 		slog.Int("port", server.Port()),
