@@ -173,7 +173,7 @@ func (e *API) GetSubscriptions(ctx context.Context) (models.Subscriptions, error
 			subscriptions[idx].Feed = feed
 		}
 	}
-	subscriptions = subscriptions.FilterByCategory(categories...)
+	subscriptions = subscriptions.FilterWithFeed().FilterByCategory(categories...)
 
 	// Add unread counts to feeds.
 	err = e.GetSubscriptionUnreadCounts(ctx, subscriptions)

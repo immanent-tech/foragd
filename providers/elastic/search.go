@@ -62,7 +62,7 @@ func WithSearchQueryOptions(options ...query.Option) SearchOption {
 }
 
 // WithSortOptions adds the given sorting options to the search.
-func WithSortOptions(options map[string]types.FieldSort) SearchOption {
+func WithSortOptions(options any) SearchOption {
 	return func(search *search.Search) {
 		search.Sort(options)
 	}

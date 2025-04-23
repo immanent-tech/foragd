@@ -119,6 +119,13 @@ func (s Subscriptions) FilterByRead() Subscriptions {
 	}))
 }
 
+// FilterWithFeed will return all requests that have no subscription.
+func (r Subscriptions) FilterWithFeed() Subscriptions {
+	return slices.Collect(FilterSlice(r, func(v *Subscription) bool {
+		return v.Feed != nil
+	}))
+}
+
 func (s Subscriptions) FindByURL(url string) *Subscription {
 	idx := slices.IndexFunc(s, func(v *Subscription) bool { return v.GetSourceURL() == url })
 	if idx == -1 {
@@ -369,6 +376,14 @@ func (r SubscriptionRequests) URLs() []URL {
 	return urls
 }
 
+func (r SubscriptionRequests) Subscriptions() Subscriptions {
+	subscriptions := make(Subscriptions, 0, len(r))
+	for request := range slices.Values(r.FilterWithSubscription()) {
+		subscriptions = append(subscriptions, request.Subscription)
+	}
+	return subscriptions
+}
+
 // FindByURL will return the subscription request matching the given URL.
 func (r SubscriptionRequests) FindByURL(url string) *SubscriptionRequest {
 	idx := slices.IndexFunc(r, func(v *SubscriptionRequest) bool { return v.GetURL() == url })
@@ -406,6 +421,13 @@ func (r SubscriptionRequests) FilterByStatus(status MessageStatus) SubscriptionR
 func (r SubscriptionRequests) FilterNoSubscription() SubscriptionRequests {
 	return slices.Collect(FilterSlice(r, func(v *SubscriptionRequest) bool {
 		return v.Subscription == nil
+	}))
+}
+
+// FilterNoSubscription will return all requests that have no subscription.
+func (r SubscriptionRequests) FilterWithSubscription() SubscriptionRequests {
+	return slices.Collect(FilterSlice(r, func(v *SubscriptionRequest) bool {
+		return v.Subscription != nil
 	}))
 }
 

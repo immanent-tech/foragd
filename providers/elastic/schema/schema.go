@@ -210,7 +210,6 @@ func FeedsMappingsTemplate() *putcomponenttemplate.Request {
 						WithoutDynamicMapping(),
 						WithKeywordProperty("feed_id"),
 						WithDateNanosProperty("created_at"),
-						WithDateNanosProperty("updated_at"),
 						WithDateNanosProperty("updated"),
 						WithDateNanosProperty("published"),
 						WithTextAndKeywordProperty("title"),

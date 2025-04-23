@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
@@ -18,6 +19,18 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
+
+// feedSortFields defines the fields for sorting feeds.
+type feedSortFields struct {
+	Updated types.FieldSort `json:"updated"`
+	FeedID  types.FieldSort `json:"feed_id"`
+}
+
+// itemSortFields defines the fields for sorting items.
+type itemSortFields struct {
+	Timestamp types.FieldSort `json:"@timestamp"`
+	ItemID    types.FieldSort `json:"item_id"`
+}
 
 var defaultDatetimeFormat = "strict_date_optional_time_nanos"
 
@@ -152,11 +165,12 @@ func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, paginatio
 		return nil, nil
 	}
 	// Loop through this set of results.
-	sources, _, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
+	sources, sort, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
 	if warnings != nil {
 		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
 	}
+	spew.Dump(sort)
 
 	slogctx.FromCtx(ctx).Debug("Searched feeds.",
 		slog.Int64("hits", resp.Hits.Total.Value))
@@ -240,14 +254,6 @@ func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 	return nil
 }
 
-// defaultFeedSort sorts Feeds by updated or published date descending.
-func defaultFeedSort() map[string]types.FieldSort {
-	return map[string]types.FieldSort{
-		"created_at": {Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
-		"feed_id":    {Order: &sortorder.Desc},
-	}
-}
-
 // defaultItemSort sorts Items by updated or published date descending.
 func defaultItemSort() map[string]types.FieldSort {
 	return map[string]types.FieldSort{
@@ -256,56 +262,42 @@ func defaultItemSort() map[string]types.FieldSort {
 	}
 }
 
-func setFeedSort(sort models.Sort) map[string]types.FieldSort {
-	sortOptions := make(map[string]types.FieldSort)
-	sortOptions["feed_id"] = types.FieldSort{Order: &sortorder.Desc}
-
-	var (
-		sortField string
-		sortOrder sortorder.SortOrder
-	)
-
+// setFeedSort will define how Feeds are sorted based on the given sort options (from filters).
+func setFeedSort(sort models.Sort) feedSortFields {
+	// Default sort options.
+	sortOptions := feedSortFields{
+		Updated: types.FieldSort{Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
+		FeedID:  types.FieldSort{Order: &sortorder.Desc},
+	}
+	// Adjust based on given sort options.
 	switch sort.SortBy {
 	case models.SortByLastUpdated:
-		sortField = "created_at"
 		switch sort.SortOrder {
 		case models.SortOrderAsc:
-			sortOrder = sortorder.Asc
+			sortOptions.Updated.Order = &sortorder.Asc
 		case models.SortOrderDesc:
-			sortOrder = sortorder.Desc
+			sortOptions.Updated.Order = &sortorder.Desc
 		}
-	default:
-		return defaultFeedSort()
 	}
-
-	sortOptions[sortField] = types.FieldSort{Order: &sortOrder, Format: &defaultDatetimeFormat}
-
 	return sortOptions
 }
 
-func setItemSort(sort models.Sort) map[string]types.FieldSort {
-	sortOptions := make(map[string]types.FieldSort)
-	sortOptions["item_id"] = types.FieldSort{Order: &sortorder.Desc}
-
-	var (
-		sortField string
-		sortOrder sortorder.SortOrder
-	)
-
+// setItemSort will define how Items are sorted based on the given sort options (from filters).
+func setItemSort(sort models.Sort) itemSortFields {
+	// Default sort options.
+	sortOptions := itemSortFields{
+		Timestamp: types.FieldSort{Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
+		ItemID:    types.FieldSort{Order: &sortorder.Desc},
+	}
+	// Adjust based on given sort options.
 	switch sort.SortBy {
 	case models.SortByLastUpdated:
-		sortField = "@timestamp"
 		switch sort.SortOrder {
 		case models.SortOrderAsc:
-			sortOrder = sortorder.Asc
+			sortOptions.Timestamp.Order = &sortorder.Asc
 		case models.SortOrderDesc:
-			sortOrder = sortorder.Desc
+			sortOptions.Timestamp.Order = &sortorder.Desc
 		}
-	default:
-		return defaultItemSort()
 	}
-
-	sortOptions[sortField] = types.FieldSort{Order: &sortOrder, Format: &defaultDatetimeFormat}
-
 	return sortOptions
 }
