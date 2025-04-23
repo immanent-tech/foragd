@@ -123,7 +123,7 @@
     "--output.text.print-issued-lines=false",
     "--show-stats=false"
   ],
-  "go.lintTool": "golangci-lint-v2",
+  "go.lintTool": "golangci-lint",
   // "go.lintFlags": ["--fast"],
   // "go.lintTool": "golangci-lint",
   "go.useLanguageServer": true,
