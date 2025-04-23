@@ -179,7 +179,7 @@ components:
           description: >
             indicates what type of source the object came from.
           type: string
-          enum: ["RSS","Atom","JSONFeed"]
+          enum: ["RSS", "Atom", "JSONFeed"]
         title:
           description: >
             is the title of the feed or item.
@@ -236,7 +236,7 @@ components:
             validate: "omitempty,unique"
           x-go-type-skip-optional-pointer: true
         image:
-          $ref: "../pkg/feeds/types.yaml#/components/schemas/Image"
+          $ref: "../models/feeds/types.yaml#/components/schemas/Image"
         language:
           type: string
           x-go-type-skip-optional-pointer: true
@@ -390,4 +390,3 @@ components:
                 contains the item content.
               type: string
               x-go-type-skip-optional-pointer: true
-
