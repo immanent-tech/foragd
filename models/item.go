@@ -11,8 +11,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/joshuar/go-feed-me/pkg/feeds"
-	"github.com/joshuar/go-feed-me/pkg/feeds/types"
+	"github.com/joshuar/go-feed-me/models/feeds"
+	"github.com/joshuar/go-feed-me/models/feeds/types"
 )
 
 var _ types.ObjectCommon = (*Item)(nil)

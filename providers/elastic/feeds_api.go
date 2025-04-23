@@ -221,7 +221,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 		WithSearchQueryOptions(query),
 		WithSearchSize(0),
 		WithAggregations(aggregation),
-		WithSortOptions(defaultItemSort()),
+		WithSortOptions(setItemSort(models.NewFilters().Sort())),
 	)
 
 	resp, err := req.Do(ctx)
@@ -252,14 +252,6 @@ func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 		slog.String("result", resp.Result.String()),
 		slog.Int64("version", resp.Version_))
 	return nil
-}
-
-// defaultItemSort sorts Items by updated or published date descending.
-func defaultItemSort() map[string]types.FieldSort {
-	return map[string]types.FieldSort{
-		"@timestamp": {Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
-		"item_id":    {Order: &sortorder.Desc},
-	}
 }
 
 // setFeedSort will define how Feeds are sorted based on the given sort options (from filters).

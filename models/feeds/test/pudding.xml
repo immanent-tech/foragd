@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/" xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/" xmlns:media="http://search.yahoo.com/mrss/">
+	<channel>
+		<title>
+			The Pudding
+		</title>
+		<atom:link href="https://pudding.cool/rss.xml" rel="self" type="application/rss+xml" />
+		<link>https://pudding.cool</link>
+		<description>The Pudding is an editorial publication that explains ideas debated in culture
+			with visual essays.</description>
+		<lastBuildDate>
+			Wed, 20 Nov 2024 12:00:00 GMT
+		</lastBuildDate>
+		<language>en-US</language>
+		<sy:updatePeriod>daily</sy:updatePeriod>
+		<sy:updateFrequency>1</sy:updateFrequency>
+		<image>
+			<title>The Pudding</title>
+			<url>https://pudding.cool/common/assets/misc/social-facebook.jpg</url>
+			<link>https://pudding.cool</link>
+		</image>
+
+
+		<item>
+			<title>The Generational Legacy of Samples in Music</title>
+			<link>https://pudding.cool/2025/04/music-dna</link>
+			<description>The Generational Legacy of Samples in Music</description>
+			<pubDate>Tue, 01 Apr 2025 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2025/04/music-dna</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2025_04_music-dna.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>What we can learn from watching reality stars apologize</title>
+			<link>https://pudding.cool/2025/03/housewives</link>
+			<description>What we can learn from watching reality stars apologize</description>
+			<pubDate>Wed, 19 Mar 2025 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2025/03/housewives</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2025_03_housewives.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Onomatopoeia Odyssey</title>
+			<link>https://pudding.cool/2025/03/language</link>
+			<description>Analyzing animal onomatopoeia across languages can demystify how we shape
+				sound into meaning.</description>
+			<pubDate>Mon, 10 Mar 2025 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2025/03/language</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2025_03_language.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>The Middle Ages</title>
+			<link>https://pudding.cool/2025/02/middle-school</link>
+			<description>Follow hundreds of kids as they navigate their trecherous middle school
+				years.</description>
+			<pubDate>Mon, 03 Mar 2025 05:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2025/02/middle-school</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2025_02_middle-school.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Sitters and Standers</title>
+			<link>https://pudding.cool/2024/11/sitters-standers</link>
+			<description>The American worker divide: Those who sit, and those who stand.</description>
+			<pubDate>Tue, 19 Nov 2024 05:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/11/sitters-standers</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_11_sitters-standers.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Is the Love Song Dying?</title>
+			<link>https://pudding.cool/2024/11/love-songs</link>
+			<description>Is love dead in pop music? We checked all 5,141 Top 10 hits since 1958.</description>
+			<pubDate>Mon, 11 Nov 2024 05:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/11/love-songs</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_11_love-songs.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>An expert explains why queues are so tricky</title>
+			<link>https://youtu.be/2r3gElTiLik</link>
+			<description>Queues are everywhere we go—discover the hidden mechanics that keep them
+				moving smoothly.</description>
+			<pubDate>Mon, 28 Oct 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://youtu.be/2r3gElTiLik</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_10_queues.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Colors of the Court</title>
+			<link>https://pudding.cool/2024/10/nba-uniforms</link>
+			<description>We took a look at the data behind the increasingly vibrant (and maybe a
+				little confusing) landscape of NBA jerseys.</description>
+			<pubDate>Thu, 24 Oct 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/10/nba-uniforms</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_10_nba-uniforms.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>The United States of Abortion Mazes</title>
+			<link>https://pudding.cool/2024/10/abortion-mazes</link>
+			<description>A maze for each state where the difficulty is calculated by the state’s
+				abortion policies.</description>
+			<pubDate>Mon, 21 Oct 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/10/abortion-mazes</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_10_abortion-mazes.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>The Greatest Game You’ve Never Heard of</title>
+			<link>https://pudding.cool/2024/10/crokinole</link>
+			<description>Welcome to Crokinole, the greatest game you’ve never heard of.</description>
+			<pubDate>Wed, 16 Oct 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/10/crokinole</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_10_crokinole.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Defining Generations in K-pop</title>
+			<link>https://pudding.cool/2024/10/kpop-survey</link>
+			<description>Organize these K-pop groups by generation, and we'll make an article using
+				the results.</description>
+			<pubDate>Tue, 15 Oct 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/10/kpop-survey</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_10_kpop-survey.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Who Gets Shipped?</title>
+			<link>https://pudding.cool/2024/10/fanfic</link>
+			<description>We looked at a decade of fanfic couples. See who gets shipped and why.</description>
+			<pubDate>Wed, 09 Oct 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/10/fanfic</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_10_fanfic.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Batting by the Numbers</title>
+			<link>https://pudding.cool/2024/09/lineup</link>
+			<description>See how modern stats are reshaping baseball’s batting lineups.</description>
+			<pubDate>Tue, 24 Sep 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/09/lineup</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_09_lineup.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Every Outdoor Basketball Court in the U.S.A.</title>
+			<link>https://pudding.cool/2024/09/courts</link>
+			<description>There are 59,507 outdoor basketball courts in the U.S.A. Explore satellite
+				imagery of all of them.</description>
+			<pubDate>Sun, 15 Sep 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/09/courts</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_09_courts.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Can an AI make a data-driven, visual story?</title>
+			<link>https://pudding.cool/2024/07/ai</link>
+			<description>We had an AI attempt to make a data-driven story like we do at The Pudding.</description>
+			<pubDate>Tue, 30 Jul 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/07/ai</guid>
+			<media:content url="https://pudding.cool/common/assets/thumbnails/640/2024_07_ai.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Is Sleep Training Harmful?</title>
+			<link>https://pudding.cool/2024/07/sleep-training</link>
+			<description>We examined the social media and medical discourse on infant sleep
+				training.</description>
+			<pubDate>Thu, 25 Jul 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/07/sleep-training</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_07_sleep-training.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Who killed the world?</title>
+			<link>https://pudding.cool/2024/07/scifi</link>
+			<description>Explore science fiction worlds from the last few decades – and what these
+				fictional settings tell us about ourselves.</description>
+			<pubDate>Thu, 11 Jul 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/07/scifi</guid>
+			<media:content url="https://pudding.cool/common/assets/thumbnails/640/2024_07_scifi.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Failures to Act</title>
+			<link>https://ydcpodcast.org</link>
+			<description>We analyzed 1,281 court documents of alleged child abuse in New Hampshire
+				youth facilities. Here’s what they show.</description>
+			<pubDate>Wed, 26 Jun 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://ydcpodcast.org</guid>
+			<media:content url="https://pudding.cool/common/assets/thumbnails/640/2024_06_ydc.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>Climate Zones</title>
+			<link>https://pudding.cool/2024/06/climate-zones</link>
+			<description>Explore how your city will feel in the future.</description>
+			<pubDate>Wed, 19 Jun 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/06/climate-zones</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_06_climate-zones.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+		<item>
+			<title>This is a teenager</title>
+			<link>https://pudding.cool/2024/03/teenagers</link>
+			<description>Watch hundreds of teenagers grow up into adults – and see how their lives
+				turn out.</description>
+			<pubDate>Tue, 09 Apr 2024 04:00:00 GMT</pubDate>
+			<guid isPermaLink="false">https://pudding.cool/2024/03/teenagers</guid>
+			<media:content
+				url="https://pudding.cool/common/assets/thumbnails/640/2024_03_teenagers.jpg"
+				medium="image" type="image/jpeg" />
+		</item>
+
+
+	</channel>
+</rss>

@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/joshuar/go-feed-me/components/validation"
-	"github.com/joshuar/go-feed-me/pkg/feeds/types"
+	"github.com/joshuar/go-feed-me/models/feeds/types"
 )
 
 // Subscription should satisfy the base "Feed" types so it can be used in place of a Feed object. Effectively, a

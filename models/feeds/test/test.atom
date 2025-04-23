@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/"
+    xml:lang="en-US">
+    <id>tag:github.com,2008:https://github.com/fish-shell/fish-shell/releases</id>
+    <link type="text/html" rel="alternate" href="https://github.com/fish-shell/fish-shell/releases" />
+    <link type="application/atom+xml" rel="self"
+        href="https://github.com/fish-shell/fish-shell/releases.atom" />
+    <title>Release notes from fish-shell</title>
+    <updated>2025-03-13T13:17:05+10:00</updated>
+</feed>

@@ -6,7 +6,7 @@ package models
 import (
 	"time"
 
-	externalRef0 "github.com/joshuar/go-feed-me/pkg/feeds/types"
+	externalRef0 "github.com/joshuar/go-feed-me/models/feeds/types"
 )
 
 // Defines values for FeedSourceType.

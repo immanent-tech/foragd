@@ -3,17 +3,12 @@
 # Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package: models
-output: ../models/api.gen.go
+package: opml
+output: opml/opml.gen.go
 generate:
   models: true
 output-options:
   # to make sure that all types are generated
   skip-prune: true
-  nullable-type: true
 import-mapping:
-  models.yaml: "-"
-  ../pkg/feeds/types.yaml: github.com/joshuar/go-feed-me/models/feeds/types
-compatibility:
-  allow-unexported-struct-field-names: true
-  always-prefix-enum-values: true
+  types.yaml: "github.com/joshuar/go-feed-me/models/feeds/types"

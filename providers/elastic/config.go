@@ -91,7 +91,7 @@ func genConfig(ctx context.Context, environment string) (*elasticsearch.Config, 
 
 		generated = &elasticsearch.Config{
 			Addresses: elasticConfig.Development.URLs,
-			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false, logger: logger},
+			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: true, logger: logger},
 			// Logger:    &elastictransport.ColorLogger{EnableResponseBody: true, EnableRequestBody: true, Output: os.Stderr},
 			Username:  elasticConfig.Development.Username,
 			Password:  elasticConfig.Development.Password,

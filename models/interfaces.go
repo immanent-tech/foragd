@@ -7,7 +7,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/joshuar/go-feed-me/pkg/feeds/types"
+	"github.com/joshuar/go-feed-me/models/feeds/types"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 )
 
