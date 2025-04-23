@@ -97,7 +97,8 @@
     "pkg/feeds",
     "scheduler",
     "handlers",
-    "auth"
+    "auth",
+    "feeds"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

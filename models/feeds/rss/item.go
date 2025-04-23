@@ -106,8 +106,8 @@ func (i *Item) GetCategories() []string {
 }
 
 // GetImage retrieves the image (if any) for the Item. The image is returned as a types.Image object. The value will be
-// the first found of either any <image> or <media:thumbnail> element. Any errors is retrieving the image will result in a
-// nil result being returned.
+// the first found of either any <image> or <media:thumbnail> element (<media:content> elements are searched
+// recursively). Any errors is retrieving the image will result in a nil result being returned.
 func (i *Item) GetImage() *types.Image {
 	switch {
 	case i.Image != nil:
@@ -117,10 +117,9 @@ func (i *Item) GetImage() *types.Image {
 		}
 	case len(i.MediaThumbnails) > 0:
 		// Use the first thumbnail found.
-		thumbnail := i.MediaThumbnails[0]
-		return &types.Image{
-			Value: thumbnail.URL,
-		}
+		return i.MediaThumbnails[0].AsImage()
+	case i.MediaContent != nil:
+		return i.MediaContent.GetImage()
 	case i.Enclosure != nil && types.IsImage(i.Enclosure.Type):
 		return &types.Image{
 			Value: i.Enclosure.URL,

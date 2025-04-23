@@ -12,54 +12,17 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 
-	"github.com/joshuar/go-feed-me/pkg/feeds"
+	"github.com/joshuar/go-feed-me/models/feeds"
 )
 
 func main() {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	defer cancelFunc()
 
-	// data, err := os.ReadFile("/workspace/project/pkg/feeds/test/export.opml")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// opml, err := opml.New(data)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// imports := opml.ExtractRSS()
-	// var urls []string
-	// for f := range slices.Values(imports) {
-	// 	urls = append(urls, f.XMLURL)
-	// }
-	// results := feeds.NewFeedsFromURLs(ctx, urls...)
-	// for result := range slices.Values(results) {
-	// 	if result.Err != nil {
-	// 		slog.Error("unable to parse", slog.String("url", result.URL), slog.Any("error", result.Err))
-	// 	} else {
-	// 		feed := result.Feed
-	// 		spew.Dump(feed)
-	// 		slog.Info("got feed", slog.String("title", feed.GetTitle()), slog.String("description", feed.GetDescription()), slog.String("url", feed.GetSourceURL()))
-	// 	}
-	// }
-	// os.Exit(0)
-
-	// data, err := os.ReadFile("/workspace/pkg/feeds/test/feed-1.rss")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// f, err := feeds.NewFeedFromBytes[*rss.RSS](data)
-	// if err != nil {
-	// 	panic(err)
-	// }
-
-	// feed := models.NewFeedFromSource(f.FeedSource, string(f.SourceType))
-
-	// results := []feeds.FeedResult{{Feed: feed}}
-
-	results := feeds.NewFeedsFromURLs(ctx, "https://jsonfeed.org/feed.json")
+	results := feeds.NewFeedsFromURLs(ctx, "https://feeds.feedburner.com/9to5Google")
 	spew.Dump(results)
 	refeed := results[0].Feed
+
 	// for result := range slices.Values(results) {
 	// 	if result.Err != nil {
 	// 		slog.Error("unable to parse", slog.String("url", result.URL), slog.Any("error", result.Err))
