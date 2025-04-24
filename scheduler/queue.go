@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
@@ -51,15 +50,6 @@ type JobQueue struct {
 // This method is also used by the Scheduler to reschedule existing jobs that
 // have been dequeued for execution.
 func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
-	jq.logger.Debug("Pushing job to queue.",
-		slog.String("key", job.JobDetail().JobKey().String()),
-	)
-
-	jq.logger.Debug("Adding job.",
-		slog.Any("job", job.JobDetail().Job()),
-		slog.Time("next_run", time.Unix(0, job.NextRunTime())),
-	)
-
 	data, err := MarshalJob(job)
 	if err != nil {
 		return errors.Join(ErrPushJobFailed, err)
@@ -97,7 +87,7 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 	job, err := jq.findHead()
 	if err != nil {
-		jq.logger.Error("Failed to find job",
+		jq.logger.Error("Failed to find first scheduled job.",
 			slog.Any("error", err))
 	}
 

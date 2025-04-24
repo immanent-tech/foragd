@@ -129,8 +129,8 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		state.UpdatedAt = &updated
 	}
 
-	slogctx.FromCtx(ctx).Debug("Checking for feed updates.",
-		slog.String("feed_id", job.FeedID),
+	slogctx.FromCtx(ctx).Debug("Running job.",
+		slog.String("job", job.Description()),
 		slog.Time("since", *state.UpdatedAt))
 
 	// Get new items since the last fetch.
@@ -164,7 +164,7 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 
 // Description returns the description of the job.
 func (job *FeedJob) Description() string {
-	return "Fetches new items for a feed."
+	return fmt.Sprintf("Update feed %s (%s)", job.FeedID, job.URL)
 }
 
 // getItemsSince retrieves the feed items that are newer than the given time.
