@@ -42,16 +42,23 @@ func PerformAuth(api AuthAPI) http.Handler {
 }
 
 // AuthCallback handles a callback from an authentication provider.
-func AuthCallback(api AuthAPI) http.Handler {
+func AuthCallback(authAPI AuthAPI, sessionAPI SessionAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if err := api.CompleteUserAuth(res, req); err != nil {
+		if err := authAPI.CompleteUserAuth(res, req); err != nil {
 			InternalServerError(res, req, err)
 			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("Authenticated.")
 		slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
 		req.Header.Add("Content-Type", "")
-		http.Redirect(res, req, models.FeedsRoute, http.StatusTemporaryRedirect)
+
+		filters, ok := sessionAPI.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
+		if !ok {
+			slogctx.FromCtx(req.Context()).Warn("No feed filters in session, using default filters.")
+			filters = *models.NewFilters()
+		}
+		route := models.NewRoute(models.FeedsRoute, &filters)
+		http.Redirect(res, req, route.String(), http.StatusTemporaryRedirect)
 	})
 }
 

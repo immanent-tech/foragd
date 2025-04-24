@@ -25,7 +25,7 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 	s.AuthAPI().SetProviderName(req.Context(), provider)
 	chain := alice.New(
 		handlers.RouteLogger("show_feeds"),
-	).Then(handlers.AuthCallback(s.AuthAPI()))
+	).Then(handlers.AuthCallback(s.AuthAPI(), s.SessionAPI()))
 	chain.ServeHTTP(res, req)
 }
 

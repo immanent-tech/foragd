@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -171,8 +170,9 @@ func (e *API) GetSubscriptions(ctx context.Context) (models.Subscriptions, model
 			models.MessageStatusWarning,
 			models.WithError(err))
 	}
+	// Filter subscriptions with given filters.
 	subscriptions = subscriptions.Filter(models.FiltersFromCtx(ctx))
-	// Generate pagination values.
+	// Generate pagination.
 	pagination := models.FiltersFromCtx(ctx).Pagination
 	from, err := strconv.Atoi(pagination)
 	if err != nil {
@@ -180,7 +180,6 @@ func (e *API) GetSubscriptions(ctx context.Context) (models.Subscriptions, model
 	}
 	to := min(from+models.FiltersFromCtx(ctx).Count, len(subscriptions))
 	pagination = strconv.Itoa(to)
-	spew.Dump(from, to)
 	return subscriptions[from:to], pagination, nil
 }
 
