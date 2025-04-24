@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -170,18 +171,17 @@ func (e *API) GetSubscriptions(ctx context.Context) (models.Subscriptions, model
 			models.MessageStatusWarning,
 			models.WithError(err))
 	}
+	subscriptions = subscriptions.Filter(models.FiltersFromCtx(ctx))
 	// Generate pagination values.
 	pagination := models.FiltersFromCtx(ctx).Pagination
 	from, err := strconv.Atoi(pagination)
 	if err != nil {
 		from = 0
 	}
-	to := from + models.FiltersFromCtx(ctx).Count
-	if to > len(subscriptions) {
-		to = len(subscriptions) - 1
-	}
+	to := min(from+models.FiltersFromCtx(ctx).Count, len(subscriptions))
 	pagination = strconv.Itoa(to)
-	return subscriptions.Filter(models.FiltersFromCtx(ctx))[from:to], pagination, nil
+	spew.Dump(from, to)
+	return subscriptions[from:to], pagination, nil
 }
 
 // GetFeedUnreadCounts performs an aggregation over the items index to calculate

@@ -10,6 +10,8 @@ import (
 	"slices"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/joshuar/go-feed-me/components/validation"
 	"github.com/joshuar/go-feed-me/models/feeds/types"
 )
@@ -71,6 +73,7 @@ func (s Subscriptions) Filter(filters Filters) Subscriptions {
 	s = s.FilterByFeedID(filters.Feeds...).
 		FilterByCategory(filters.Categories...).
 		FilterByView(filters.View)
+	spew.Dump(s)
 	// If the sort_by filters is unread count, sort the list of feeds by user
 	// unread count. We can't do this in Elasticsearch as the unread count comes
 	// from an aggregation and is not a field on the feed documents.
