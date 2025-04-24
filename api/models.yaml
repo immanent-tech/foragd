@@ -36,6 +36,14 @@ components:
       x-oapi-codegen-extra-tags:
         json: "deleted_at,omitempty"
         validate: "omitnil"
+      deprecated: true
+    MaxHistory:
+      description: >
+        is a duration representing the maximum time-frame over which objects contained within are available.
+      type: string
+      x-oapi-codegen-extra-tags:
+        form: "-"
+        validate: "duration"
     URL: &URL
       description: is a URL.
       type: string
@@ -152,20 +160,13 @@ components:
           properties:
             user_id:
               $ref: "#/components/schemas/UserID"
-            max_history:
-              description: >
-                Represents the maximum time-frame over which the user
-                can view items.
-              type: string
             subscriptions:
               description: >
                 is the list of subscriptions for the user.
               x-go-type: "[]*Subscription"
-              # type: array
-              # items:
-              #   allOf:
-              #     - $ref: "#/components/schemas/Subscription"
               x-go-type-skip-optional-pointer: true
+            max_history:
+              $ref: "#/components/schemas/MaxHistory"
     ObjectCommon:
       description: contains common fields across objects.
       type: object
@@ -329,6 +330,7 @@ components:
           required:
             - subscription_id
             - feed_id
+            - max_history
           properties:
             subscription_id:
               $ref: "#/components/schemas/SubscriptionID"
@@ -343,6 +345,8 @@ components:
                 json: "-"
                 form: "-"
                 validate: "required"
+            max_history:
+              $ref: "#/components/schemas/MaxHistory"
     Feed:
       description: represents a feed object.
       type: object

@@ -12,10 +12,6 @@ import (
 	"github.com/joshuar/go-feed-me/components/validation"
 )
 
-const (
-	defaultUserHistory = 30 * 24 * time.Hour
-)
-
 var (
 	ErrAddUser               = errors.New("add subscription failed")
 	ErrUpdateUser            = errors.New("update user failed")
@@ -36,16 +32,7 @@ func (u *User) GetID() UserID {
 // GetMaxHistory returns a timestamp in the past from which the user can view
 // items.
 func (u *User) GetMaxHistory() time.Time {
-	if u.MaxHistory == "" {
-		return time.Now().Add(-defaultUserHistory)
-	}
-
-	dur, err := time.ParseDuration(u.MaxHistory)
-	if err != nil {
-		return time.Now().Add(-defaultUserHistory)
-	}
-
-	return time.Now().Add(-dur)
+	return parseMaxHistory(u.MaxHistory)
 }
 
 // GetMarkedRead retrieves the datetime when the user last marked the given Feed

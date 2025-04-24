@@ -180,6 +180,9 @@ type ItemState struct {
 // Mark applies the given mark action to objects.
 type Mark string
 
+// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
+type MaxHistory = string
+
 // ObjectCommon contains common fields across objects.
 type ObjectCommon struct {
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
@@ -237,6 +240,9 @@ type Subscription struct {
 
 	// MarkedRead records when the subscription was last marked read.
 	MarkedRead time.Time `form:"-" json:"marked_read" validate:"required"`
+
+	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
+	MaxHistory MaxHistory `form:"-" json:"max_history" validate:"duration"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -301,8 +307,8 @@ type User struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
-	// MaxHistory Represents the maximum time-frame over which the user can view items.
-	MaxHistory string `json:"max_history"`
+	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
+	MaxHistory MaxHistory `form:"-" json:"max_history" validate:"duration"`
 
 	// Subscriptions is the list of subscriptions for the user.
 	Subscriptions []*Subscription `json:"subscriptions,omitempty"`

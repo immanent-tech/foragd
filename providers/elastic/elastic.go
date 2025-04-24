@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
@@ -58,12 +59,12 @@ func ExtractSourceFromHits[T any](hits []types.Hit) ([]T, []types.FieldValue, er
 // field of each document as type `T`, returning the document sources as an array
 // `[]T`. If there was an issue extracting any source, it will also return a
 // non-nil error containing details.
-func ExtractSourceFromDocs[T any](docs ...any) ([]T, error) {
+func ExtractSourceFromDocs[T any](docs []types.MgetResponseItem) ([]T, error) {
 	var warnings error
 
 	sources := make([]T, 0, len(docs))
 
-	for _, doc := range docs {
+	for doc := range slices.Values(docs) {
 		switch obj := doc.(type) {
 		case types.MultiGetError:
 			warnings = errors.Join(warnings, formatError(obj.Error))

@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:slash="http://purl.org/rss/1.0/modules/slash/" xmlns:sy="http://purl.org/rss/1.0/modules/syndication/" xmlns:wfw="http://wellformedweb.org/CommentAPI/" version="2.0">
+
+<channel>
+	<title>OMG! Ubuntu!</title>
+	<atom:link href="https://www.omgubuntu.co.uk/feed" rel="self" type="application/rss+xml"/>
+	<link>https://www.omgubuntu.co.uk/</link>
+	<description> Ubuntu news, apps, development updates and more, daily</description>
+	<lastBuildDate>Wed, 23 Apr 2025 02:12:54 +0000</lastBuildDate>
+	<language>en-GB</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	
+
+<image>
+	<url>https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2023/11/cropped-siteidentify.jpg?fit=32%2C32&amp;ssl=1</url>
+	<title>OMG! Ubuntu</title>
+	<link>https://www.omgubuntu.co.uk/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+<site xmlns="com-wordpress:feed-additions:1">15653409</site>	<xhtml:meta content="noindex" name="robots" xmlns:xhtml="http://www.w3.org/1999/xhtml"/><item>
+		<title>Enable ESM in Ubuntu 20.04 LTS to Continue Getting Updates</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/enable-esm-in-ubuntu-20-04-lts</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/enable-esm-in-ubuntu-20-04-lts#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Tue, 22 Apr 2025 19:04:00 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[end of life]]></category>
+		<category><![CDATA[ESM]]></category>
+		<category><![CDATA[Ubuntu 20.04 LTS]]></category>
+		<category><![CDATA[ubuntu pro]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=301747</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2020/04/ubuntu-20.04-hero-1.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="Ubuntu 20.04 running on a computer" decoding="async" fetchpriority="high" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2020/04/ubuntu-20.04-hero-1.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2020/04/ubuntu-20.04-hero-1.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2020/04/ubuntu-20.04-hero-1.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2020/04/ubuntu-20.04-hero-1.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="(max-width: 406px) 100vw, 406px" />Time is nearly up on support for Ubuntu 20.04 LTS, with standard software, bug fix and security updates coming to an end on May 29, 2025. Users on Ubuntu 20.04 LTS should consider upgrading to Ubuntu 22.04 LTS (or newer) if possible, but if unable should enable Extended Support Maintenance (ESM) as soon as possible in order to continue receiving critical security patches. ESM for Ubuntu provides &#8220;10 years of vulnerability management for critical, high and selected medium [security issues] for all software packages shipped with Ubuntu.&#8221; Enabling ESM is a bit of a no-brainer since it&#8217;s free for regular [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/enable-esm-in-ubuntu-20-04-lts">Enable ESM in Ubuntu 20.04 LTS to Continue Getting Updates</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/enable-esm-in-ubuntu-20-04-lts/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">301747</post-id>	</item>
+		<item>
+		<title>Ghostty DEB Installers Now Available for Ubuntu 25.04</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/gghostty-deb-package-for-ubuntu</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/gghostty-deb-package-for-ubuntu#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Mon, 21 Apr 2025 22:29:10 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[DEBs]]></category>
+		<category><![CDATA[ghostty]]></category>
+		<category><![CDATA[Ubuntu 25.04]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=301683</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/12/ghostty-logo.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/12/ghostty-logo.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/12/ghostty-logo.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/12/ghostty-logo.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/12/ghostty-logo.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="(max-width: 406px) 100vw, 406px" />Ghostty terminal fans needn&#8217;t fear an upgrade to Ubuntu&#8217;s latest release, as a community packaging effort just added Ghostty DEB packages for Ubuntu 25.04. The Ghostty Ubuntu project was set up was the aim of providing &#8220;Ubuntu/Debian (.deb) packages for Ghostty&#8221; so users on supported Linux distributions, including Ubuntu-based distros like Linux Mint and ZorinOS, can download, install and use the app properly. To date, there&#8217;s no official snap or Flatpak version of Ghostty available, and although compiling it from source isn&#8217;t hard, it&#8217;s more hassle than most are willing to go through to try a new app — yes, [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/gghostty-deb-package-for-ubuntu">Ghostty DEB Installers Now Available for Ubuntu 25.04</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/gghostty-deb-package-for-ubuntu/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">301683</post-id>	</item>
+		<item>
+		<title>Parallels Desktop 20.3 Brings Linux VM Fixes to Mac Users</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/parallels-20-3-fixes-linux-vm-issues-mac</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/parallels-20-3-fixes-linux-vm-issues-mac#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Sat, 19 Apr 2025 19:47:21 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Parallels Desktop]]></category>
+		<category><![CDATA[Virtual Machines]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=301607</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/parallels-ubuntu-thumbnail.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/parallels-ubuntu-thumbnail.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/parallels-ubuntu-thumbnail.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/parallels-ubuntu-thumbnail.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/parallels-ubuntu-thumbnail.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="(max-width: 406px) 100vw, 406px" />The fourth major release in the Parallels Desktop 20 series has been released, bringing a stack of fixes for running Windows, macOS and Linux virtual machines on macOS. Yes, I did say macOS. I know; at first blush it seems odd for an Ubuntu blog to cover macOS app updates. But, Parallels is virtualisation software. It lets macOS users run Windows, macOS and Linux distributions as virtual machines so they can …Do whatever it is they need to. Scores of developers rely on Linux virtual machines in their day-to-day work since they aren&#8217;t able to run Linux on &#8216;bare metal&#8217; [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/parallels-20-3-fixes-linux-vm-issues-mac">Parallels Desktop 20.3 Brings Linux VM Fixes to Mac Users</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/parallels-20-3-fixes-linux-vm-issues-mac/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">301607</post-id>	</item>
+		<item>
+		<title>11 Things to Do After Installing Ubuntu 25.04</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/ubuntu-25-04-post-install-tasks</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/ubuntu-25-04-post-install-tasks#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Fri, 18 Apr 2025 22:59:00 +0000</pubDate>
+				<category><![CDATA[List]]></category>
+		<category><![CDATA[News]]></category>
+		<category><![CDATA[10 things to do]]></category>
+		<category><![CDATA[Ubuntu 25.04]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=300608</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/things.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/things.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/things.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/things.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/things.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />The Ubuntu 25.04 release is packed full of fresh features, updated apps and other upgrades that deliver a practical, pleasing out-of-the-box experience. —Perhaps not a perfect one, though. I just installed Ubuntu 25.04 on my &#8220;couch potato&#8221; laptop and there were a few &#8220;things&#8221; I had to do to make the experience better — albeit better for me! I didn&#8217;t do anything drastic: I didn&#8217;t remove Snap, uninstall GNOME Shell, or decamp to a 100% Libre Linux kernel and expunge proprietary drivers. Part post-install tasks and todos, part future-proof plumbing to setup a few things ahead of time so I [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/ubuntu-25-04-post-install-tasks">11 Things to Do After Installing Ubuntu 25.04</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/ubuntu-25-04-post-install-tasks/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		<enclosure length="379201" type="video/webm" url="https://www.omgubuntu.co.uk/wp-content/uploads/2025/04/oriole-Recovered.webm"/>
+
+		<post-id xmlns="com-wordpress:feed-additions:1">300608</post-id>	</item>
+		<item>
+		<title>How to Upgrade to Ubuntu 25.04 ‘Plucky Puffin’</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/how-to-upgrade-to-ubuntu-25-04</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/how-to-upgrade-to-ubuntu-25-04#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Thu, 17 Apr 2025 18:06:28 +0000</pubDate>
+				<category><![CDATA[How To]]></category>
+		<category><![CDATA[Ubuntu 25.04]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=301212</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/upgrade-2504-2.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/upgrade-2504-2.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/upgrade-2504-2.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/upgrade-2504-2.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/upgrade-2504-2.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />Do you currently run Ubuntu 24.10 on your computer but want to upgrade to the new&#160;Ubuntu 25.04&#160;release to benefit from its (many) changes? As long as you’re full up-to-date&#160;and have a working internet connection, you can upgrade to Ubuntu 25.04 directly – no need to do download an ISO, flash it to a USB stick and do a clean install. And upgrading soon is a good idea. Ubuntu 24.10&#160;supports ends in July, and those using it after that date will need to upgrade to Ubuntu 25.04 to continue receiving security updates. Those left cold by the churn of upgrading every [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/how-to-upgrade-to-ubuntu-25-04">How to Upgrade to Ubuntu 25.04 &#8216;Plucky Puffin&#8217;</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/how-to-upgrade-to-ubuntu-25-04/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">301212</post-id>	</item>
+		<item>
+		<title>Ubuntu 25.04 Release Now Available for Download</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/ubuntu-25-04-release-now-available-for-download</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/ubuntu-25-04-release-now-available-for-download#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Thu, 17 Apr 2025 13:48:01 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Distro Release]]></category>
+		<category><![CDATA[Ubuntu 25.04]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=301058</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ubuntu2504.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ubuntu2504.jpg?w=1682&amp;ssl=1 1682w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ubuntu2504.jpg?resize=300%2C172&amp;ssl=1 300w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ubuntu2504.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ubuntu2504.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ubuntu2504.jpg?resize=768%2C440&amp;ssl=1 768w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ubuntu2504.jpg?resize=1536%2C880&amp;ssl=1 1536w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ubuntu2504.jpg?resize=406%2C232&amp;ssl=1 406w" sizes="auto, (max-width: 406px) 100vw, 406px" />Pull the party poppers and unpack the cake as today is Ubuntu release day — and Ubuntu 25.04 &#8216;Plucky Puffin&#8217; is now available to download. Ubuntu 25.04 is arguably the most polished &#38; performant release to date! The latest short-term release of the world&#8217;s best-known desktop Linux operating system, Ubuntu 25.04 receives ongoing support until January 2026 — not long, but Ubuntu 25.10 is out in October, with direct upgrades available from this version. Over the past six months Ubuntu engineers, developers and community contributors have baked plenty of improvements into this release — arguably the most polished &#38; performant [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/ubuntu-25-04-release-now-available-for-download">Ubuntu 25.04 Release Now Available for Download</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/ubuntu-25-04-release-now-available-for-download/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		<enclosure length="709475" type="video/webm" url="https://www.omgubuntu.co.uk/wp-content/uploads/2025/03/Grouped-Notifications.webm"/>
+
+		<post-id xmlns="com-wordpress:feed-additions:1">301058</post-id>	</item>
+		<item>
+		<title>VirtualBox 7.1.8 Adds Support for Linux Kernel 6.14</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/virtualbox-7-1-8-brings-support-for-linux-kernel-6-14</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/virtualbox-7-1-8-brings-support-for-linux-kernel-6-14#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Tue, 15 Apr 2025 18:31:31 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[App Updates]]></category>
+		<category><![CDATA[Virtual Machines]]></category>
+		<category><![CDATA[VirtualBox]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=301182</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/10/virtualbox-logo.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="New VirtualBox Logo" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/10/virtualbox-logo.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/10/virtualbox-logo.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/10/virtualbox-logo.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2024/10/virtualbox-logo.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />Ubuntu 25.04 is out this week and many will be turning to virtual machine to test, trial or tie the release into their development workflows — perfect timing for a new version of VirtualBox, then! Oracle today (April 15) issued the fourth maintenance update in the current VirtualBox 7.1 series. No new features were added but a flurry of bug fixes, stability boosts and integration buffs are present, which users across all supported OSes will benefit from. For Linux users frustrated at flakey wireless network adapter detection in earlier releases, the 7.1.8 update fixes the issue. Similarly, anyone ticked off [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/virtualbox-7-1-8-brings-support-for-linux-kernel-6-14">VirtualBox 7.1.8 Adds Support for Linux Kernel 6.14</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/virtualbox-7-1-8-brings-support-for-linux-kernel-6-14/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">301182</post-id>	</item>
+		<item>
+		<title>Ubuntu 25.10 is Officially Named ‘Questing Quokka’</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/ubuntu-25-10-named-questing-quokka</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/ubuntu-25-10-named-questing-quokka#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Mon, 14 Apr 2025 13:16:43 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[codename]]></category>
+		<category><![CDATA[development]]></category>
+		<category><![CDATA[Ubuntu 25.10]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=301116</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/quokka-ubuntu.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/quokka-ubuntu.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/quokka-ubuntu.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/quokka-ubuntu.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/quokka-ubuntu.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />Drum roll your desks to help build some suspense because the Ubuntu 25.10 codename has been confirmed as …&#8217;Questing Quokka&#8217;. —Oh wait; I put in the headline so you already knew! As expected, the new Ubuntu codename keeps to convention, following on in alphabetical order—the previous release begins (it&#8217;s not out yet) with a &#8216;P&#8217;—and using a cute adjective and animal combo. Now, Canonical had teased the supposed new codename of Ubuntu 25.10 a few weeks back when it tweeted (or whatever the equivalent term is called on X) &#8220;Quizzical Quokka&#8221;. Except, it did that on April 1, aka April [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/ubuntu-25-10-named-questing-quokka">Ubuntu 25.10 is Officially Named &#8216;Questing Quokka&#8217;</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/ubuntu-25-10-named-questing-quokka/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">301116</post-id>	</item>
+		<item>
+		<title>Rnote 0.12 Released with Improved Linux Note-Taking Features</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/rnote-0-12-released-with-improved-linux-note-taking-features</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/rnote-0-12-released-with-improved-linux-note-taking-features#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Sun, 13 Apr 2025 19:50:47 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[App Updates]]></category>
+		<category><![CDATA[note taking apps]]></category>
+		<category><![CDATA[rnote]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=301061</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/rnote.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/rnote.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/rnote.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/rnote.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/rnote.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />A major new release of Rnote, an open-source app for taking handwritten notes, sketching out ideas and annotating documents and pictures, is out. Rnote 0.12 brings several new features, new customisation and configuration options, user experience buffs, bug fixes, and other lower-level tune-ups. For those unfamiliar with it, Rnote is a digital note-taking app built using GTK4 and Rust. It&#8217;s primarily intended to be used with stylus input (so includes pen pressure, stroke styles, button actions, etc) but supports typed text entry, shapes, importing images, etc too. Rnote offers a range of document layouts, from fixed pages to infinite canvases, [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/rnote-0-12-released-with-improved-linux-note-taking-features">Rnote 0.12 Released with Improved Linux Note-Taking Features</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/rnote-0-12-released-with-improved-linux-note-taking-features/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">301061</post-id>	</item>
+		<item>
+		<title>Pinta 3.0 Released With New Effects and GTK4 Port</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/pinta-3-0-released-with-new-effects-and-gtk4-port</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/pinta-3-0-released-with-new-effects-and-gtk4-port#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Sat, 12 Apr 2025 14:16:09 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[App Updates]]></category>
+		<category><![CDATA[Graphic & Design Apps]]></category>
+		<category><![CDATA[Image Editors]]></category>
+		<category><![CDATA[pinta]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=301043</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/pinta3.0.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/pinta3.0.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/pinta3.0.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/pinta3.0.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/pinta3.0.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />Indulging your casual creativity (read: making memes, defacing selfies, etc) using open-source tools is made easier with the long-awaited release of Pinta 3.0. Pinta, as long-time Linux users will be aware, is a cross-platform raster graphics tool with a feature set and user-interface partly inspired by popular Windows image editing tool Paint.NET. I previewed the Pinta 3.0 beta back in January and came away impressed. Pinta port to GTK4/libadwaita lends the UI a much-needed modern look – and is more than superficial: usability, performance and stability is bolstered by the toolkit bump. Pinta 3.0 switches to a button-based header bar [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/pinta-3-0-released-with-new-effects-and-gtk4-port">Pinta 3.0 Released With New Effects and GTK4 Port</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/pinta-3-0-released-with-new-effects-and-gtk4-port/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">301043</post-id>	</item>
+		<item>
+		<title>Linux Mint Expands Regex File Search in Nemo</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/linux-mint-regex-support-nemo</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/linux-mint-regex-support-nemo#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Wed, 09 Apr 2025 15:30:13 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[Linux Mint]]></category>
+		<category><![CDATA[nemo]]></category>
+		<category><![CDATA[Regex]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=300977</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/01/linux-mint-logo.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/01/linux-mint-logo.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/01/linux-mint-logo.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/01/linux-mint-logo.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/01/linux-mint-logo.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />Finding the exact files you want in the Nemo file manager will soon be easier and faster. Linux Mint is bringing &#8216;enhanced&#8217; search functionality to the next major version of its GTK-based Nemo file manager (which is likely to see release the same time as Cinnamon 6.5 and ship out-of-the-box in Linux Mint 22.2 in the summer). The new filters allow you search, sift and surface files using regular expressions (often abbreviated to simply &#8216;regex&#8217;) queried against filenames. While regex searching&#160;is already included in Nemo it doesn&#8217;t work on file names, only file contents. The next version of Nemo adds [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/linux-mint-regex-support-nemo">Linux Mint Expands Regex File Search in Nemo</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/linux-mint-regex-support-nemo/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">300977</post-id>	</item>
+		<item>
+		<title>Try Firefox’s Experimental Link Previews with AI Summary</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/firefox-nightly-introduces-experimental-link-previews-with-ai-summary</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/firefox-nightly-introduces-experimental-link-previews-with-ai-summary#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Mon, 07 Apr 2025 22:09:39 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[AI/ML]]></category>
+		<category><![CDATA[Firefox]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=300924</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ai-preview.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ai-preview.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ai-preview.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ai-preview.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/ai-preview.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />Hate having to read an article and use your brain to understand what it&#8217;s about? Would you rather read what an AI says it (hopefully) says instead? If so, Mozilla has your back. Saltiness aside, current nightly builds of Firefox include an experimental link preview feature that shows an AI-generated summary of what the linked page is (purportedly) about, so you can check before you visit it, saving you time, a click, or the need to use critical thinking. Firefox generates its AI summaries locally, on device &#8211; great for privacy but not for speed No data about you or [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/firefox-nightly-introduces-experimental-link-previews-with-ai-summary">Try Firefox&#8217;s Experimental Link Previews with AI Summary</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/firefox-nightly-introduces-experimental-link-previews-with-ai-summary/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">300924</post-id>	</item>
+		<item>
+		<title>Celluloid 0.28 Adds Lua Module Support, Refreshes UI</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/celluloid-0-28-adds-lua-module-support-refreshes-ui</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/celluloid-0-28-adds-lua-module-support-refreshes-ui#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Sun, 06 Apr 2025 11:29:00 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[App Updates]]></category>
+		<category><![CDATA[celluloid]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=300876</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/celluloid-028.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/celluloid-028.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/celluloid-028.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/celluloid-028.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/celluloid-028.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />Open-source video player Celluloid premiered a new release this weekend with user-interface improvements, support for Lua models and more. Celluloid is a popular GTK front-end to MPV, the (incredibly) configurable cross-platform, command-line based media player, and makes many of MPV&#8217;s more advanced features a touch easier for users to find, try and benefit from. In Celluloid 0.28 its developers have focused on improving the UI. Player controls see refinement in both regular mode, full-screen mode and if &#8216;floating&#8217; controls are enabled for windowed mode – fewer buttons are shown by default: As you can see above (and below), the player [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/celluloid-0-28-adds-lua-module-support-refreshes-ui">Celluloid 0.28 Adds Lua Module Support, Refreshes UI</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/celluloid-0-28-adds-lua-module-support-refreshes-ui/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">300876</post-id>	</item>
+		<item>
+		<title>Tauon Music Player Adds Slick Transparency Mode for Linux</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/tauon-8-0-app-update-transparent-linux</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/tauon-8-0-app-update-transparent-linux#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Fri, 04 Apr 2025 16:21:33 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[App Updates]]></category>
+		<category><![CDATA[Music Players]]></category>
+		<category><![CDATA[SDL3]]></category>
+		<category><![CDATA[Tauon]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=300834</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/tauon-music-box.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/tauon-music-box.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/tauon-music-box.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/tauon-music-box.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/tauon-music-box.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />A new version of Tauon music player is out, gifting fans of the powerful and unique-looking audio app a raft of new features to play with – including some Linux exclusive eye candy! Tauon 8.0 has been fully ported to SDL3, an efficient cross-platform and open-source multimedia library that provides a robust API for interacting with hardware (like audio devices). Tauon mention that the port provides better stability and scope for adding interesting new capabilities. Features-wise, Tauon 8.0 adds an options menu to the stop button so let users define stop behaviour (including an &#8216;always&#8217; setting, e.g., &#8216;always stop after [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/tauon-8-0-app-update-transparent-linux">Tauon Music Player Adds Slick Transparency Mode for Linux</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/tauon-8-0-app-update-transparent-linux/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">300834</post-id>	</item>
+		<item>
+		<title>Inkscape 1.4.1 Brings Snap App Fixes, New Features</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/inkscape-1-4-1-brings-snap-app-fixes-new-features</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/inkscape-1-4-1-brings-snap-app-fixes-new-features#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Thu, 03 Apr 2025 16:39:15 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[App Updates]]></category>
+		<category><![CDATA[inkscape]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=300792</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2023/11/inkscape-logo.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="Inkscape logo on green background" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2023/11/inkscape-logo.jpg?w=1280&amp;ssl=1 1280w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2023/11/inkscape-logo.jpg?resize=300%2C172&amp;ssl=1 300w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2023/11/inkscape-logo.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2023/11/inkscape-logo.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2023/11/inkscape-logo.jpg?resize=768%2C440&amp;ssl=1 768w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2023/11/inkscape-logo.jpg?resize=406%2C232&amp;ssl=1 406w" sizes="auto, (max-width: 406px) 100vw, 406px" />Digital artists, designers and vector illustrators among you may be be interested to know that an updated version of open source graphics app Inkscape is (sort of) out. Inkscape 1.4.1 builds on the giant set of features last year&#8217;s release of Inkscape 1.4 brought with it with a number of worthwhile enhancements and bug fixes, plus two new features. When opening Inkscape a new splash screen&#160;is shown during loading (it can be disabled) to let users (especially those on older/slower devices) know something is happening since they clicked or tapped on Inkscape icon to open it: The welcome dialog which [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/inkscape-1-4-1-brings-snap-app-fixes-new-features">Inkscape 1.4.1 Brings Snap App Fixes, New Features</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/inkscape-1-4-1-brings-snap-app-fixes-new-features/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">300792</post-id>	</item>
+		<item>
+		<title>Dull Desktop? Install ‘Picture of the Day’ App on Ubuntu</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/ubuntu-picture-of-the-day-app</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/ubuntu-picture-of-the-day-app#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Thu, 03 Apr 2025 00:31:34 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[bing]]></category>
+		<category><![CDATA[Eye Candy]]></category>
+		<category><![CDATA[wallpapers]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=300769</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/potd.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/potd.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/potd.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/potd.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/potd.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />Ubuntu users can enjoy a fresh new desktop wallpaper each and every day with this new app, which sources backgrounds from Bing, Wikimedia, and NASA.</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/ubuntu-picture-of-the-day-app">Dull Desktop? Install &#8216;Picture of the Day&#8217; App on Ubuntu</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/ubuntu-picture-of-the-day-app/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">300769</post-id>	</item>
+		<item>
+		<title>DeaDBeeF 1.10 Release Brings New Features</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/deadbeef-1-10-release-brings-new-features</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/deadbeef-1-10-release-brings-new-features#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Wed, 02 Apr 2025 17:33:03 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[App Updates]]></category>
+		<category><![CDATA[DeaDBeeF]]></category>
+		<category><![CDATA[Music Players]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=300729</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/deadbeef-music-player-logo.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/deadbeef-music-player-logo.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/deadbeef-music-player-logo.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/deadbeef-music-player-logo.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/deadbeef-music-player-logo.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />A new version of DeaDBeeF music player is out with some cool features, FFMPEG 7 support, and a flurry of bug fixes sure to appease long-time fans of this tool. Admittedly, the popularity of traditional desktop music player apps like this one has dipped considerably since the arrival of music streaming services like Spotify. They give on-demand (and often free) access to expansive music catalogues. Still, many people (myself included) continue to maintain music libraries filled with MP3s etc. I&#8217;d wager most such users have (by now) settled on a preferred music client; for many, that choice is DeaDBeeF. I [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/deadbeef-1-10-release-brings-new-features">DeaDBeeF 1.10 Release Brings New Features</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/deadbeef-1-10-release-brings-new-features/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">300729</post-id>	</item>
+		<item>
+		<title>Firefox 137 Released with Address Bar Revamp &amp; Tab Groups</title>
+		<link>https://www.omgubuntu.co.uk/2025/04/firefox-137-new-features</link>
+					<comments>https://www.omgubuntu.co.uk/2025/04/firefox-137-new-features#disqus_thread</comments>
+		
+		<dc:creator><![CDATA[Joey Sneddon]]></dc:creator>
+		<pubDate>Tue, 01 Apr 2025 16:30:25 +0000</pubDate>
+				<category><![CDATA[News]]></category>
+		<category><![CDATA[App Updates]]></category>
+		<category><![CDATA[Firefox]]></category>
+		<category><![CDATA[HEVC]]></category>
+		<guid isPermaLink="false">https://www.omgubuntu.co.uk/?p=300636</guid>
+
+					<description><![CDATA[<p><img width="406" height="232" src="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/firefox-137.jpg?resize=406%2C232&amp;ssl=1" class="attachment-post-list size-post-list wp-post-image" alt="" decoding="async" loading="lazy" srcset="https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/firefox-137.jpg?resize=350%2C200&amp;ssl=1 350w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/firefox-137.jpg?resize=406%2C232&amp;ssl=1 406w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/firefox-137.jpg?resize=840%2C480&amp;ssl=1 840w, https://i0.wp.com/www.omgubuntu.co.uk/wp-content/uploads/2025/04/firefox-137.jpg?zoom=3&amp;resize=406%2C232&amp;ssl=1 1218w" sizes="auto, (max-width: 406px) 100vw, 406px" />Tab grouping is the latest big-ticket feature addition to get added to Mozilla Firefox, which sees a new stable release roll out from today. Last month&#8217;s Firefox 136&#160;update delivered long-requested support for vertical tabs, a&#160;redesigned sidebar experience giving easy access to existing and new features (including online AI chatbots), and flipped the switch on AMD video hardware decoding for Linux users. Firefox 137 is an equally big update, adding tab grouping, an enhanced address bar experience with new features, and a clutch of smaller changes, including HEVC support for Linux For a closer look at the changes, read on. Firefox [&#8230;]</p>
+<p>You're reading <a href="https://www.omgubuntu.co.uk/2025/04/firefox-137-new-features">Firefox 137 Released with Address Bar Revamp &amp; Tab Groups</a>, a blog post from <a href="https://www.omgubuntu.co.uk">OMG! Ubuntu</a>. Do not reproduce elsewhere without permission.</p>
+]]></description>
+		
+					<wfw:commentRss>https://www.omgubuntu.co.uk/2025/04/firefox-137-new-features/feed</wfw:commentRss>
+			<slash:comments>0</slash:comments>
+		
+		
+		<post-id xmlns="com-wordpress:feed-additions:1">300636</post-id>	</item>
+	</channel>
+</rss>

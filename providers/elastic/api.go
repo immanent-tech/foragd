@@ -4,6 +4,8 @@
 package elastic
 
 import (
+	"context"
+
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 )
 
@@ -19,3 +21,29 @@ type API struct {
 func (a *API) GetAPI() *typedapi.API {
 	return a.API
 }
+
+type Link interface {
+	Handle(ctx context.Context)
+}
+
+type Chain[T any] interface {
+	Execute(ctx context.Context) (T, error)
+}
+
+type HandlerFunc func(Link) Link
+
+type HandlerChain[T any] struct {
+	chain []HandlerFunc
+}
+
+// func (c HandlerChain[T]) Execute(ctx context.Context) (T, error) {
+// 	for i := range c.chain {
+// 		c = c.chain[len(c.chain)-1-i](c)
+// 	}
+
+// 	return c
+// }
+
+// func NewHandlerChain(constructors ...HandlerFunc) HandlerChain {
+// 	return HandlerChain{append(([]HandlerFunc)(nil), constructors...)}
+// }

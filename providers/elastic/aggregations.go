@@ -73,12 +73,13 @@ func (a *TermsAggregationResults) BucketNames() []string {
 }
 
 // NewTermsAggregation creates a TermsAggregation aggregation for a query.
-func NewTermsAggregation(name, field string) Aggregation {
+func NewTermsAggregation(name, field string, size int) Aggregation {
 	return Aggregation{
 		Name: name,
 		Definition: types.Aggregations{
 			Terms: &types.TermsAggregation{
 				Field: &field,
+				Size:  &size,
 			},
 		},
 	}

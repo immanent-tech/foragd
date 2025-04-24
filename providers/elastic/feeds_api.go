@@ -6,10 +6,10 @@ package elastic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
@@ -130,6 +130,26 @@ func (e *API) GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Fee
 	return feeds, nil
 }
 
+func (e *API) GetAllFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	resp, err := NewMGetRequest(e.GetAPI(),
+		GetFromIndex(index),
+		GetIDs(feedIDs...)).Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrGetFailed, err)
+	}
+	feeds, warnings := ExtractSourceFromDocs[*models.Feed](resp.Docs)
+	if warnings != nil {
+		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
+			slog.Any("warnings", err))
+	}
+	return feeds, nil
+}
+
 // FeedsSearch searches the feeds index for feeds matching the relevant filters.
 func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
@@ -165,12 +185,11 @@ func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, paginatio
 		return nil, nil
 	}
 	// Loop through this set of results.
-	sources, sort, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
+	sources, _, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
 	if warnings != nil {
 		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
 			slog.Any("warnings", err))
 	}
-	spew.Dump(sort)
 
 	slogctx.FromCtx(ctx).Debug("Searched feeds.",
 		slog.Int64("hits", resp.Hits.Total.Value))

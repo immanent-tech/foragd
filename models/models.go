@@ -23,6 +23,26 @@ var (
 
 var UnixEpoch = time.Unix(0, 0)
 
+const (
+	// defaultMaxHistory for users/objects is 30 days.
+	defaultMaxHistory = 30 * 24 * time.Hour
+)
+
+// parseMaxHistory will parse the maxHistory string as a time.Duration, subtract it from the current time and return the
+// time.Time value.
+func parseMaxHistory(maxHistory string) time.Time {
+	if maxHistory == "" {
+		return time.Now().Add(-defaultMaxHistory)
+	}
+
+	dur, err := time.ParseDuration(maxHistory)
+	if err != nil {
+		return time.Now().Add(-defaultMaxHistory)
+	}
+
+	return time.Now().Add(-dur)
+}
+
 // SliceToMap generates a map from slice content by mapping key-value pairs from the slice with the given map function.
 func SliceToMap[K comparable, V any, S any](s []S, mapFn func(S) (K, V)) map[K]V {
 	m := make(map[K]V)

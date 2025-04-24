@@ -46,6 +46,7 @@ var SubscriptionMappings = map[string]types.Property{
 	"feed_id":         types.NewKeywordProperty(),
 	"created_at":      types.NewDateNanosProperty(),
 	"updated_at":      types.NewDateNanosProperty(),
+	"max_history":     types.NewKeywordProperty(),
 	"user_nickname":   asTextAndKeyword(),
 	"user_categories": asTextAndKeyword(),
 	"marked_read":     types.NewDateNanosProperty(),

@@ -7,7 +7,6 @@ import (
 	"context"
 	"net/http"
 	"net/url"
-	"slices"
 
 	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
@@ -65,7 +64,7 @@ func (c *Card) generateViewRoute(ctx context.Context) *models.Route {
 		route.SetFeedIDs(c.GetFeedID())
 		return route
 	case models.ItemPFX:
-		return models.NewRoute("/home/"+c.GetFeedID()+"/"+c.id, nil,models.WithAttributes(viewAttributes))
+		return models.NewRoute("/home/"+c.GetFeedID()+"/"+c.id, nil, models.WithAttributes(viewAttributes))
 	}
 	return nil
 }
@@ -132,11 +131,16 @@ func BuildItemCard(ctx context.Context, item *models.Item) *ItemCard {
 	return itemCard
 }
 
-func BuildFeeds(req *http.Request, subscriptions models.Subscriptions) templ.Component {
+func BuildFeeds(req *http.Request, pagination models.Pagination, subscriptions models.Subscriptions) templ.Component {
 	content := make(Cards, 0, len(subscriptions))
 	// Build feed cards.
-	for subscription := range slices.Values(subscriptions) {
-		content = append(content, BuildFeedCard(req.Context(), subscription).Show())
+	for idx, subscription := range subscriptions {
+		card := BuildFeedCard(req.Context(), subscription)
+		if idx == len(subscriptions)-1 && len(subscriptions) == models.FiltersFromCtx(req.Context()).Count {
+			card.AddPagination(req.URL, pagination)
+		}
+
+		content = append(content, card.Show())
 	}
 	return content.Render(req)
 }

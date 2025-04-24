@@ -24,16 +24,6 @@ var (
 // Subscriptions is a list of subscriptions.
 type Subscriptions []*Subscription
 
-// UpdateUnreadCounts takes a map of feed unread counts and adds the count to
-// each feed.
-func (s Subscriptions) UpdateUnreadCounts(unreadCounts map[FeedID]int) {
-	for subscription := range slices.Values(s) {
-		if count, found := unreadCounts[subscription.GetFeedID()]; found {
-			subscription.SetUnreadCount(count)
-		}
-	}
-}
-
 // ByFeed returns a map of Subscriptions by FeedID.
 func (s Subscriptions) ByFeed() map[FeedID]*Subscription {
 	return SliceToMap(s, func(v *Subscription) (FeedID, *Subscription) {
@@ -77,6 +67,35 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 	return counts
 }
 
+func (s Subscriptions) Filter(filters Filters) Subscriptions {
+	s = s.FilterByFeedID(filters.Feeds...).
+		FilterByCategory(filters.Categories...).
+		FilterByView(filters.View)
+	// If the sort_by filters is unread count, sort the list of feeds by user
+	// unread count. We can't do this in Elasticsearch as the unread count comes
+	// from an aggregation and is not a field on the feed documents.
+	if filters.Sort().SortBy == SortByUnreadCount {
+		slices.SortFunc(s, CompareSubscriptionUnreadCount)
+		if filters.Sort().SortOrder == SortOrderDesc {
+			slices.Reverse(s)
+		}
+	}
+
+	return s
+}
+
+// FilterByFeed will match the given feeds to the subscriptions and return subscriptions with matched feeds.
+func (s Subscriptions) FilterByFeed(feeds Feeds) Subscriptions {
+	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+		feed := feeds.FindByID(subscription.GetFeedID())
+		if feed != nil {
+			subscription.Feed = feed
+			return true
+		}
+		return false
+	}))
+}
+
 // FilterByFeedID will filter the list of subscriptions by the given
 // FeedIDs. If no IDs are provided, the full list is returned.
 func (s Subscriptions) FilterByFeedID(feedIDs ...FeedID) Subscriptions {
@@ -105,25 +124,19 @@ func (s Subscriptions) FilterByCategory(categories ...Category) Subscriptions {
 	return s
 }
 
-// FilterByUnread will filter subscriptions by those that have unread items.
-func (s Subscriptions) FilterByUnread() Subscriptions {
-	return slices.Collect(FilterSlice(s, func(v *Subscription) bool {
-		return v.GetUnreadCount() > 0
-	}))
-}
-
-// FilterByRead will filter subscriptions by those that are read.
-func (s Subscriptions) FilterByRead() Subscriptions {
-	return slices.Collect(FilterSlice(s, func(v *Subscription) bool {
-		return v.GetUnreadCount() == 0
-	}))
-}
-
-// FilterWithFeed will return all requests that have no subscription.
-func (r Subscriptions) FilterWithFeed() Subscriptions {
-	return slices.Collect(FilterSlice(r, func(v *Subscription) bool {
-		return v.Feed != nil
-	}))
+// FilterByView will filter subscriptions to those that match the view filter.
+func (s Subscriptions) FilterByView(view View) Subscriptions {
+	switch view {
+	case ViewRead:
+		return slices.Collect(FilterSlice(s, func(v *Subscription) bool {
+			return !v.IsUnread()
+		}))
+	case ViewUnread:
+		return slices.Collect(FilterSlice(s, func(v *Subscription) bool {
+			return v.IsUnread()
+		}))
+	}
+	return s
 }
 
 func (s Subscriptions) FindByURL(url string) *Subscription {
@@ -239,6 +252,10 @@ func (s *Subscription) GetUnreadCount() int {
 	return s.UnreadCount
 }
 
+func (s *Subscription) IsUnread() bool {
+	return s.UnreadCount > 0 || len(s.GetUnreadItems()) > 0
+}
+
 // GetName retrieves any custom name set by the user or an empty string if unset.
 func (s *Subscription) GetName() string {
 	if s.UserNickname != "" {
@@ -250,7 +267,15 @@ func (s *Subscription) GetName() string {
 // GetMarkedRead retrieves the timestamp when the user last marked the
 // subscription feed as read.
 func (s *Subscription) GetMarkedRead() time.Time {
+	if s.MarkedRead.IsZero() {
+		return s.GetMaxHistory()
+	}
 	return s.MarkedRead
+}
+
+// GetMaxHistory returns a timestamp in the past that is the maximum datetime for unread items to be viewed.
+func (s *Subscription) GetMaxHistory() time.Time {
+	return parseMaxHistory(s.MaxHistory)
 }
 
 // GetUnreadItems retrieves a list of ItemIDs for the subscription feed that
@@ -321,10 +346,6 @@ func (s *Subscription) MarkItemsUnread(items ...ItemID) {
 			s.ItemStates = append(s.ItemStates, ItemState{ItemID: itemID, State: StateUnread})
 		}
 	}
-}
-
-func (s *Subscription) IsUnread() bool {
-	return s.GetUnreadCount() > 0
 }
 
 // CompareSubscriptionUnreadCount is a helper function for sorting Subscriptions by unread count, in
