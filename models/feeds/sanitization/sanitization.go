@@ -4,6 +4,7 @@
 package sanitization
 
 import (
+	"html"
 	"strings"
 
 	"github.com/microcosm-cc/bluemonday"
@@ -15,6 +16,5 @@ var safePrinter = bluemonday.UGCPolicy()
 // whitespace and then run the string through bluemonday to remove dangerous components. This should retain HTML5
 // content.
 func SanitizeString(str string) string {
-	value := strings.TrimSpace(str)
-	return safePrinter.Sanitize(value)
+	return html.UnescapeString(safePrinter.Sanitize(strings.TrimSpace(str)))
 }
