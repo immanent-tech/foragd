@@ -95,39 +95,65 @@ func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Respon
 	return &resp, nil
 }
 
-// GetFeedsByURL retrieves a list of APIFeeds based on the given URLs.
-func (e *API) GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error) {
+// // GetFeedsByURL retrieves a list of APIFeeds based on the given URLs.
+// func (e *API) GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error) {
+// 	index := FeedsIndexFromCtx(ctx)
+// 	if index == "" {
+// 		return nil, ErrFetchCtx
+// 	}
+
+// 	feeds := make([]*models.Feed, 0, len(urls))
+
+// 	resp, err := NewSearchRequest(e.GetAPI(),
+// 		WithSearchIndex(index),
+// 		WithFields("feed_id", "source"),
+// 		WithSearchQueryOptions(query.URLs("source", urls...)),
+// 		WithSearchSize(len(urls)),
+// 		WithSortOptions(SortByDocID("feed_id")),
+// 	).Do(ctx)
+// 	if err != nil {
+// 		return nil, models.NewMessage("Fetching feeds failed.", models.MessageStatusError, models.WithError(err))
+// 	}
+// 	// Stop if there are no hits
+// 	if len(resp.Hits.Hits) == 0 {
+// 		return nil, nil
+// 	}
+// 	// Loop through this set of results.
+// 	sources, _, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
+// 	if warnings != nil {
+// 		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
+// 			slog.Any("warnings", err))
+// 	}
+
+// 	feeds = append(feeds, sources...)
+
+// 	return feeds, nil
+// }
+
+// GetFeed retrieves the feed with the given id.
+func (e *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, ErrFetchCtx
+		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
 	}
 
-	feeds := make([]*models.Feed, 0, len(urls))
-
-	resp, err := NewSearchRequest(e.GetAPI(),
-		WithSearchIndex(index),
-		WithFields("feed_id", "source"),
-		WithSearchQueryOptions(query.URLs("source", urls...)),
-		WithSearchSize(len(urls)),
-		WithSortOptions(SortByDocID("feed_id")),
-	).Do(ctx)
+	resp, err := NewGetRequest(e.GetAPI(), index, id).Do(ctx)
 	if err != nil {
-		return nil, models.NewMessage("Fetching feeds failed.", models.MessageStatusError, models.WithError(err))
+		return nil, errors.Join(ErrGetFailed, err)
 	}
+
 	// Stop if there are no hits
-	if len(resp.Hits.Hits) == 0 {
-		return nil, nil
+	if !resp.Found {
+		return nil, errors.Join(ErrGetFailed, errors.New("no job state"))
 	}
+
 	// Loop through this set of results.
-	sources, _, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
-	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
-			slog.Any("warnings", err))
+	state, err := ExtractSource[*models.Feed](resp.Source_)
+	if err != nil {
+		return nil, errors.Join(ErrGetFailed, err)
 	}
 
-	feeds = append(feeds, sources...)
-
-	return feeds, nil
+	return state, nil
 }
 
 func (e *API) GetAllFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error) {
@@ -195,6 +221,53 @@ func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, paginatio
 		slog.Int64("hits", resp.Hits.Total.Value))
 
 	return sources, nil
+}
+
+// FeedsSearchAll will retrieve all feeds matching the given queries, sorted by the given sort. It paginates through the
+// entire feeds index.
+func (a *API) FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	var results models.Feeds
+
+	searchSize := 100
+	pagination := make([]types.FieldValue, 0)
+
+	for {
+		var (
+			feeds    models.Feeds
+			warnings error
+		)
+
+		resp, err := NewSearchRequest(a.API,
+			WithSearchIndex(index),
+			WithSearchQueryOptions(queries...),
+			WithSearchSize(searchSize),
+			WithSearchAfter(pagination),
+			WithSortOptions(SortByDocID("feed_id")),
+		).Do(ctx)
+		if err != nil {
+			return nil, errors.Join(ErrSearchFailed, err)
+		}
+
+		feeds, pagination, warnings = ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
+		if warnings != nil {
+			slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
+				slog.Any("warnings", err))
+		}
+
+		results = append(results, feeds...)
+
+		// Stop if we are at the end of the results.
+		if int(resp.Hits.Total.Value) < searchSize {
+			break
+		}
+	}
+
+	return results, nil
 }
 
 // ItemsSearch performs a search query on feed items with the given query

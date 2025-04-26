@@ -18,6 +18,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/auth0"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
+	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
 const (
@@ -33,7 +34,8 @@ type DataAPI interface {
 	MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error
 	// Feeds methods:
-	GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
+	// GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
+	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
 	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)

@@ -118,23 +118,18 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		return errors.Join(ErrExecuteJobFailed, fmt.Errorf("no feed management api in context"))
 	}
 
-	// Get the time the feed items were last fetched.
-	state, err := api.GetFeedJobState(ctx, job.FeedID)
+	// Retrieve the feed details.
+	feed, err := api.GetFeed(ctx, job.FeedID)
 	if err != nil && !errors.Is(err, ErrNoJob) {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
 
-	if state.UpdatedAt == nil {
-		updated := time.Time{}
-		state.UpdatedAt = &updated
-	}
-
 	slogctx.FromCtx(ctx).Debug("Running job.",
 		slog.String("job", job.Description()),
-		slog.Time("since", *state.UpdatedAt))
+		slog.Time("since", feed.Updated))
 
 	// Get new items since the last fetch.
-	items, err := job.getItemsSince(*state.UpdatedAt)
+	items, err := job.getItemsSince(feed.Updated)
 	if err != nil {
 		return errors.Join(ErrExecuteJobFailed, err)
 	}
@@ -149,15 +144,15 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		}
 	}
 
-	updated := time.Now().UTC()
-	update := &models.FeedState{
-		FeedID:    job.FeedID,
-		UpdatedAt: &updated,
-	}
+	// updated := time.Now().UTC()
+	// update := &models.FeedState{
+	// 	FeedID:    job.FeedID,
+	// 	UpdatedAt: &updated,
+	// }
 
-	if err := api.UpdateFeedJobState(ctx, update); err != nil {
-		return errors.Join(ErrExecuteJobFailed, err)
-	}
+	// if err := api.UpdateFeedJobState(ctx, update); err != nil {
+	// 	return errors.Join(ErrExecuteJobFailed, err)
+	// }
 
 	return nil
 }

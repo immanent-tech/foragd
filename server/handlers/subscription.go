@@ -15,6 +15,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
@@ -122,7 +123,8 @@ func MatchRequestsWithFeeds(api DataAPI) func(next http.Handler) http.Handler {
 			}
 			slogctx.FromCtx(req.Context()).Debug("Matching subscription requests to existing feeds.")
 			// Find any existing feeds by request URLs.
-			existingFeeds, err := api.GetFeedsByURL(req.Context(), requests.URLs()...)
+			// existingFeeds, err := api.GetFeedsByURL(req.Context(), requests.URLs()...)
+			existingFeeds, err := api.FeedsSearchAll(req.Context(), query.URLs("source", requests.URLs()...))
 			if err != nil {
 				ImportResults(models.NewMessage(
 					"Could not process request.",

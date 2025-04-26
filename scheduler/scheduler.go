@@ -6,7 +6,6 @@ package scheduler
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"slices"
 	"sync"
@@ -19,6 +18,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
+	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 )
 
@@ -28,9 +28,9 @@ var (
 )
 
 type DataAPI interface {
-	GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error)
-	GetFeedJobState(ctx context.Context, feedID models.FeedID) (*models.FeedState, error)
-	UpdateFeedJobState(ctx context.Context, state *models.FeedState) error
+	GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error)
+	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
+	// GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error)
 	AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error)
 	MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error
 }
@@ -110,12 +110,8 @@ func Run(ctx context.Context) error {
 }
 
 func (m *Manager) CheckFeeds(ctx context.Context) error {
-	esapi := FeedManagementAPIFromCtx(ctx)
-	if esapi == nil {
-		return errors.Join(ErrExecuteJobFailed, fmt.Errorf("no feed management api in context"))
-	}
-
-	feeds, err := esapi.GetNewFeedsSince(ctx, m.checkpoint)
+	feeds, err := m.db.FeedsSearchAll(ctx, query.Since("created_at", m.checkpoint))
+	// feeds, err := m.db.GetNewFeedsSince(ctx, m.checkpoint)
 	if err != nil {
 		return errors.Join(ErrFetchNewFeedsFailed, err)
 	}
