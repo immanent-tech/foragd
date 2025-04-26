@@ -10,8 +10,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/joshuar/go-feed-me/components/validation"
 	"github.com/joshuar/go-feed-me/models/feeds/types"
 )
@@ -69,19 +67,19 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 	return counts
 }
 
+// Filter will return subscriptions filtered (and sorted) by the given filters.
 func (s Subscriptions) Filter(filters Filters) Subscriptions {
 	s = s.FilterByFeedID(filters.Feeds...).
 		FilterByCategory(filters.Categories...).
 		FilterByView(filters.View)
-	spew.Dump(s)
-	// If the sort_by filters is unread count, sort the list of feeds by user
-	// unread count. We can't do this in Elasticsearch as the unread count comes
-	// from an aggregation and is not a field on the feed documents.
-	if filters.Sort().SortBy == SortByUnreadCount {
+	switch {
+	case filters.Sort().SortBy == SortByUnreadCount:
 		slices.SortFunc(s, CompareSubscriptionUnreadCount)
-		if filters.Sort().SortOrder == SortOrderDesc {
-			slices.Reverse(s)
-		}
+	default:
+		slices.SortFunc(s, CompareSubscriptionUpdatedDate)
+	}
+	if filters.Sort().SortOrder == SortOrderDesc {
+		slices.Reverse(s)
 	}
 
 	return s
@@ -255,6 +253,7 @@ func (s *Subscription) GetUnreadCount() int {
 	return s.UnreadCount
 }
 
+// IsUnread returns a boolean indicating whether the subscription is considered unread.
 func (s *Subscription) IsUnread() bool {
 	return s.UnreadCount > 0 || len(s.GetUnreadItems()) > 0
 }
@@ -351,11 +350,16 @@ func (s *Subscription) MarkItemsUnread(items ...ItemID) {
 	}
 }
 
-// CompareSubscriptionUnreadCount is a helper function for sorting Subscriptions by unread count, in
-// ascending order. If descending order is required, slices.Reverse can be
-// called after sorting the slice with this function.
+// CompareSubscriptionUnreadCount is a helper function for sorting Subscriptions by unread count, in ascending order. If
+// descending order is required, slices.Reverse can be called after sorting the slice with this function.
 func CompareSubscriptionUnreadCount(a, b *Subscription) int {
 	return cmp.Compare(a.GetUnreadCount(), b.GetUnreadCount())
+}
+
+// CompareSubscriptionUpdatedDate is a helper function for sorting Subcriptions by updated date in ascending order. If
+// descending order is required, slices.Reverse can be called after sorting the slice with this function.
+func CompareSubscriptionUpdatedDate(a, b *Subscription) int {
+	return a.GetUpdatedDate().Compare(b.GetUpdatedDate())
 }
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
