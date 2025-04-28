@@ -15,7 +15,7 @@
     }
   },
   "scripts": {
-    "dev:build:js": "bun build ./assets/scripts.js --sourcemap --outdir=./static",
+    "dev:build:js": "bun build ./assets/scripts.js ./assets/surreal.js --sourcemap --outdir=./static",
     "build:css": "postcss ./assets/styles.css -o ./static/styles.css"
   },
   "dependencies": {

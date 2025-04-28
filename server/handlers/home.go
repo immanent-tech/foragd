@@ -144,9 +144,8 @@ func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler 
 
 			var content []templ.Component
 			content = append(content,
-				home.BuildFeeds(req, pagination, subscriptions),                                                              //nolint:contextcheck
+				home.BuildFeeds(req, pagination, subscriptions),
 				home.BuildListFooter(req.Context(), home.BackButton("/home", nil), subscriptions.GetCategoryCounts()).Show(), //nolint:contextcheck
-				// home.GenerateBackLink("/home", nil).Show(),
 			)
 			ctx := home.ContentToCtx(req.Context(), content)
 			ctx = home.TitleToCtx(ctx, "Feeds")
@@ -194,7 +193,6 @@ func GenerateItemsContent(dataAPI DataAPI, sessionAPI SessionAPI) func(next http
 			content = append(content,
 				home.BuildItems(req, pagination, items),
 				home.BuildListFooter(req.Context(), back, items.GetCategoryCounts()).Show(), //nolint:contextcheck
-				// home.GenerateBackLink(models.FeedsRoute, feedFilters.ToQueryParams()).Show(),
 			)
 			ctx := home.ContentToCtx(req.Context(), content)
 			ctx = home.TitleToCtx(ctx, "Items")
@@ -223,7 +221,6 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI SessionAPI, feedID models.F
 				home.BuildArticleFooter(item, back).Show(), //nolint:contextcheck
 			)
 			ctx := home.ContentToCtx(req.Context(), content)
-			// ctx = home.FooterToCtx(ctx, footer)
 			ctx = home.TitleToCtx(ctx, item.GetTitle())
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -237,7 +234,6 @@ func DisplayHome() http.Handler {
 		func(res http.ResponseWriter, req *http.Request) {
 			title := home.TitleFromCtx(req.Context())
 			content := home.ContentFromCtx(req.Context())
-			// footer := home.FooterFromCtx(req.Context())
 			// Create a new response writer.
 			resp := htmx.NewResponse()
 			// Decide whether we need to do a full or partial render based on whether

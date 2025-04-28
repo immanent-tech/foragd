@@ -98,7 +98,8 @@
     "scheduler",
     "handlers",
     "auth",
-    "feeds"
+    "feeds",
+    "elastic"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

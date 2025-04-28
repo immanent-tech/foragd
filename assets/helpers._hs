@@ -1,3 +1,4 @@
 def waitAndReturn()
     on click halt the event's bubbling
 end
+

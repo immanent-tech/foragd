@@ -131,27 +131,6 @@ templ (c *ItemCard) showTitle() {
 	// </div>
 }
 
-var helloHandle = templ.NewOnceHandle()
-
-templ format(ts string) {
-	// 	@helloHandle.Once() {
-	// 		<script type="module">
-	// 	import { intlFormatDistance, parse } from "date-fns";
-	// export function formatTimestamp(dateStr) {
-	//   let dateValue = parse(dateStr, "yyyy-MM-dd HH:mm:ss.SSSS XXXX", new Date());
-	//   const timeString = intlFormatDistance(dateValue.Date, new Date());
-	//   return timeString;
-	// }
-	//     </script>
-	// 	}
-	<script type="module" data-ts={ ts }>
-	import formatTimestamp from "/static/scripts.js";
-	let timestamp =  document.currentScript.getAttribute('data-ts');
-	formatTimestamp(ts);
-	</script>
-	// @templ.JSFuncCall("formatTimestamp", ts)
-}
-
 templ (c *ItemCard) showContent() {
 	<div class="flex">
 		<div class="flex-1">
@@ -169,9 +148,16 @@ templ (c *ItemCard) showContent() {
 		}
 	</div>
 	<div class="flex-none">
-		{ c.GetUpdatedDate().String() }
-		// @format(c.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
-		// @templ.JSFuncCall("formatTimestamp", c.GetUpdatedDate().String())
+		<div value={ c.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }>
+			<script data-name="ts" type="module">
+			import { formatTimestamp } from '/static/scripts.js';
+			let me = document.querySelector('script[data-name="ts"]');
+			let parent = me.closest('div');
+			let ts = parent.getAttribute('value');
+			window.formatTimestamp = formatTimestamp;
+			parent.innerText = window.formatTimestamp(ts);
+		</script>
+		</div>
 	</div>
 }
 
@@ -252,3 +238,49 @@ templ (c Cards) Show() {
 		@emptyContent()
 	}
 }
+
+var helloHandle = templ.NewOnceHandle()
+
+templ hello(dateStr string) {
+	// This script is only rendered once per HTTP request.
+	@helloHandle.Once() {
+		<script>
+import { parseISO } from "date-fns";
+    </script>
+	}
+	<script data-ts={ dateStr }>
+import { parseISO } from "date-fns";
+      // To prevent the variables from leaking into the global scope,
+      // this script is wrapped in an IIFE (Immediately Invoked Function Expression).
+      (() => {
+		let dateStr =document.currentScript.getAttribute("data-ts");
+  console.log(dateStr);
+  let dateValue = parseISO(dateStr, new Date());
+  console.log(dateValue);
+  // const timeString = intlFormatDistance(dateValue.Date, new Date());
+  // return timeString;
+      })()
+    </script>
+}
+
+// var helloHandle = templ.NewOnceHandle()
+
+// templ format(ts string) {
+// 	// 	@helloHandle.Once() {
+// 	// 		<script type="module">
+// 	// 	import { intlFormatDistance, parse } from "date-fns";
+// 	// export function formatTimestamp(dateStr) {
+// 	//   let dateValue = parse(dateStr, "yyyy-MM-dd HH:mm:ss.SSSS XXXX", new Date());
+// 	//   const timeString = intlFormatDistance(dateValue.Date, new Date());
+// 	//   return timeString;
+// 	// }
+// 	//     </script>
+// 	// 	}
+// 	<script>
+// 	import('/static/timestamps.js').then((ts) =>
+//   console.log(
+//     ts.formatTimestamp("{{ ts }}")
+//   )
+// );
+// </script>
+// }

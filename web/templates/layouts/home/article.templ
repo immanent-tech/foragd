@@ -67,7 +67,7 @@ templ (a *Article) showAuthors() {
 
 templ (a *Article) showTimestamp() {
 	<div class="flex-none">
-		@text.Build(relativeTime(a.GetUpdatedDate()),
+		@text.Build(a.GetUpdatedDate().String(),
 			text.WithTextSize(text.XS),
 			text.AsItalicText(),
 		).Show()
