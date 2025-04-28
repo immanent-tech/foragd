@@ -80,7 +80,9 @@ templ (f *ArticleFooter) Show(classes ...string) {
 		class="bg-base-200 dock dock-sm"
 	>
 		<div class="basis-xs">
-			@f.backButton
+			@tooltip.Build("Back").Show() {
+				@f.backButton
+			}
 		</div>
 		<div class="basis-xs">
 			<a href={ templ.URL(f.item.GetLink()) } target="_blank">

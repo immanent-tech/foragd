@@ -145,7 +145,7 @@ func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler 
 			var content []templ.Component
 			content = append(content,
 				home.BuildFeeds(req, pagination, subscriptions),                                                              //nolint:contextcheck
-				home.BuildListFooter(req.Context(), home.BackButton(nil, "/home"), subscriptions.GetCategoryCounts()).Show(), //nolint:contextcheck
+				home.BuildListFooter(req.Context(), home.BackButton("/home", nil), subscriptions.GetCategoryCounts()).Show(), //nolint:contextcheck
 				// home.GenerateBackLink("/home", nil).Show(),
 			)
 			ctx := home.ContentToCtx(req.Context(), content)
@@ -188,7 +188,7 @@ func GenerateItemsContent(dataAPI DataAPI, sessionAPI SessionAPI) func(next http
 			if !ok {
 				feedFilters = *models.NewFilters()
 			}
-			back := home.BackButton(feedFilters.ToQueryParams(), models.FeedsRoute)
+			back := home.BackButton(models.FeedsRoute, &feedFilters)
 			// back := home.BackButton(, models.FeedsRoute)
 			var content []templ.Component
 			content = append(content,
@@ -216,7 +216,7 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI SessionAPI, feedID models.F
 			if !ok {
 				itemFilters = *models.NewFilters()
 			}
-			back := home.BackButton(itemFilters.ToQueryParams(), models.ItemsRoute)
+			back := home.BackButton(models.ItemsRoute, &itemFilters)
 			var content []templ.Component
 			content = append(content,
 				home.BuildArticle(req, item),               //nolint:contextcheck

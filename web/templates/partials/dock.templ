@@ -18,8 +18,7 @@ templ DockMenu(title string, label any, items ...templ.Component) {
 			dropdown.Align(dropdown.AlignCenter),
 		),
 		dropdown.WithButton(
-			button.WithSize(button.SM),
-			button.AsShape(button.Square),
+			button.WithStyle(button.Ghost),
 			button.WithContent(label),
 		),
 		dropdown.WithMenuContent(

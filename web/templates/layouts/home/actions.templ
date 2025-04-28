@@ -4,7 +4,7 @@
 package home
 
 import (
-	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -14,7 +14,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
-	"net/url"
 )
 
 // AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
@@ -46,19 +45,12 @@ func ImportAction(classes ...string) templ.Component {
 
 // backButton generates a button for going back to the given path. It fetches
 // the last state of the path (i.e., any parameters used) from the user session.
-func BackButton(params url.Values, path string) templ.Component {
-	attrs := templates.BuildAction(path,
-		templates.WithQueryParams(params),
-		templates.WithAttributes(templ.Attributes{
-			"hx-target":   ContentID.Target(),
-			"hx-push-url": "true",
-			"hx-swap":     "morph:innerHTML",
-		}),
-	).Attributes()
-
+func BackButton(path string, filters *models.Filters) templ.Component {
+	route := models.NewRoute(path, filters, models.WithAttributes(viewAttributes))
 	return button.Build(
 		button.WithContent(icon.Build("fa-left-long")),
-		button.WithExtraAttributes(attrs),
+		button.WithStyle(button.Ghost),
+		button.WithExtraAttributes(route.GetAttributes()),
 	).Show()
 }
 
@@ -70,8 +62,7 @@ templ BuildActionsMenu(actions ...templ.Component) {
 				dropdown.Align(dropdown.AlignEnd),
 			),
 			dropdown.WithButton(
-				button.WithSize(button.SM),
-				button.AsShape(button.Square),
+				button.WithStyle(button.Ghost),
 				button.WithContent(icon.Build("fa-ellipsis-vertical")),
 			),
 			dropdown.WithMenuContent(
