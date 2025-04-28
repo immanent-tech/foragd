@@ -15,11 +15,12 @@
     }
   },
   "scripts": {
-    "build:js": "esbuild ./assets/scripts.js --bundle --outfile=./static/scripts.js",
+    "dev:build:js": "bun build ./assets/scripts.js --sourcemap --outdir=./static",
     "build:css": "postcss ./assets/styles.css -o ./static/styles.css"
   },
   "dependencies": {
     "daisyui": "^5.0.27",
+    "date-fns": "^4.1.0",
     "htmx-ext-sse": "^2.2.3",
     "htmx.org": "^2.0.4",
     "hyperscript.org": "^0.9.14",

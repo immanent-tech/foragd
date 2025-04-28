@@ -5,44 +5,46 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-# pre_cmd = ["bun run build"]
-pre_cmd = ["bun run build:js", "bun run build:css"]
-# post_cmd = ["echo 'hello air' > post_cmd.txt"]
-cmd = "step ca renew --force localhost.crt localhost.key && go tool github.com/a-h/templ/cmd/templ generate && go build -o ./tmp/gowebly_chi ."
 bin = "tmp/gowebly_chi --log-level=debug --profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true' serve"
-include_ext = ["go", "templ", "html", "json", "js", "ts", "css", "scss"]
+cmd = "go tool github.com/a-h/templ/cmd/templ generate && go build -o ./tmp/gowebly_chi ."
+delay = 1000
 exclude_dir = [
-    ".parcel-cache",
-    "bin",
-    "dist",
-    "node_modules",
-    "static",
-    "tmp",
-    "tests",
-    "vendor",
+  ".parcel-cache",
+  "bin",
+  "dist",
+  "node_modules",
+  "static",
+  "tmp",
+  "tests",
+  "vendor",
 ]
 exclude_regex = ["_test\\.go", "_templ\\.go"]
 exclude_unchanged = false
 follow_symlink = false
+include_ext = ["go", "templ", "html", "json", "js", "ts", "css", "scss"]
+kill_delay = 500
 log = "deployments/build-errors-air.log"
 poll = false
 poll_interval = 500
-delay = 1000
-stop_on_error = true
-send_interrupt = true
-kill_delay = 500
+pre_cmd = [
+  "step ca renew --force localhost.crt localhost.key",
+  "bun run dev:build:js",
+  "bun run build:css",
+]
 rerun = false
 rerun_delay = 500
+send_interrupt = true
+stop_on_error = true
 
 [log]
-time = true
 main_only = false
+time = true
 
 [color]
-main = "magenta"
-watcher = "cyan"
 build = "yellow"
+main = "magenta"
 runner = "green"
+watcher = "cyan"
 
 [misc]
 clean_on_exit = true

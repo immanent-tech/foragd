@@ -152,7 +152,7 @@
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000,
   "[toml]": {
-    "editor.defaultFormatter": "tamasfe.even-better-toml"
+    "editor.defaultFormatter": "be5invis.toml"
   },
   "[xml]": {
     "editor.defaultFormatter": "redhat.vscode-xml"
