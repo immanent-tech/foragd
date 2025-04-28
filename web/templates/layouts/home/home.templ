@@ -3,11 +3,7 @@
 
 package home
 
-import (
-	"github.com/joshuar/go-templ-daisyui/display/text"
-	"github.com/joshuar/go-templ-daisyui/feedback/alert"
-	"time"
-)
+import "github.com/joshuar/go-templ-daisyui/feedback/alert"
 
 templ notifications() {
 	<!-- Open the modal using ID.showModal() method -->
@@ -65,26 +61,6 @@ templ Notify(data string) {
 			<div class="text-xs">{ data }</div>
 		</div>
 		<button class="btn btn-sm" _="on click remove #test-alert">See</button>
-	}
-}
-
-func relativeTime(timestamp time.Time) string {
-	return timestamp.Format("Mon Jan 2 15:04")
-}
-
-// showLastUpdated shows the timestamp indicating last update of an item as a
-// relative time in the bottom left corner.
-templ showLastUpdated(description string, updated time.Time) {
-	if description != "" {
-		@text.Build(description+" "+relativeTime(updated),
-			text.WithTextSize(text.XS),
-			text.AsItalicText(),
-		).Show()
-	} else {
-		@text.Build(relativeTime(updated),
-			text.WithTextSize(text.XS),
-			text.AsItalicText(),
-		).Show()
 	}
 }
 

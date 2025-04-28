@@ -10,21 +10,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 )
 
-// AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
-func AddSubscriptionButton() *button.Props {
-	return button.Build(
-		button.WithSize(button.SM),
-		button.WithID("add_subscription"),
-		button.WithColor(button.Primary),
-		button.WithContent(icon.Build("fa-plus")),
-		button.WithExtraAttributes(templ.Attributes{
-			"hx-get":    "/subscription/new",
-			"hx-target": "#command_modal",
-			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to #add_subscription_modal",
-		}),
-	)
-}
-
 templ MarkButton(action *templates.Action) {
 	@tooltip.Build("Mark Read").Show() {
 		@button.Build(

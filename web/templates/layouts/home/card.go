@@ -38,18 +38,18 @@ type Card struct {
 }
 
 // generateMarkAction creates the appropriate mark action for the card.
-func (c *Card) generateMarkAction() *templates.Action {
+func (c *Card) generateMarkAction() templ.Component {
 	cardType := models.IdentifyID(c.id)
 	sourceID := c.id
 	switch {
 	case cardType == models.FeedPFX && c.IsUnread():
-		return buildMarkFeedAction(sourceID, models.MarkRead)
+		return partials.MarkReadAction(buildMarkFeedAction(sourceID, models.MarkRead))
 	case cardType == models.FeedPFX && !c.IsUnread():
-		return buildMarkFeedAction(sourceID, models.MarkUnread)
+		return partials.MarkUnreadAction(buildMarkFeedAction(sourceID, models.MarkUnread))
 	case cardType == models.ItemPFX && c.IsUnread():
-		return buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkRead)
+		return partials.MarkReadAction(buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkRead))
 	case cardType == models.ItemPFX && !c.IsUnread():
-		return buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkUnread)
+		return partials.MarkUnreadAction(buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkUnread))
 	}
 	return nil
 }
@@ -96,7 +96,7 @@ func BuildFeedCard(ctx context.Context, subscription *models.Subscription) *Feed
 	feedCard.menuActions = append(feedCard.menuActions,
 		partials.ShareAction(nil),
 		partials.VisitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
-		partials.MarkReadAction(feedCard.generateMarkAction()),
+		feedCard.generateMarkAction(),
 	)
 	feedCard.build()
 
@@ -116,8 +116,9 @@ func BuildItemCard(ctx context.Context, item *models.Item) *ItemCard {
 	}
 	itemCard.viewRoute = itemCard.generateViewRoute(ctx)
 	itemCard.menuActions = append(itemCard.menuActions,
-		showLastUpdated("", item.GetUpdatedDate()),
-		partials.MarkButton(itemCard.generateMarkAction()),
+		partials.ShareAction(nil),
+		partials.VisitExternalLinkAction("External URL", item.GetLink()),
+		itemCard.generateMarkAction(),
 	)
 	itemCard.build()
 

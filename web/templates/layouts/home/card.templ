@@ -18,6 +18,8 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/placeholder"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
+	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
@@ -26,19 +28,6 @@ import (
 	"slices"
 	"strconv"
 )
-
-templ (c *Card) showTitle() {
-	@c.showAvatar()
-	<div class="text-base flex-1">
-		// Title text is a link to the view action of the card.
-		@link.Build(
-			link.WithContent(c.GetTitle()),
-			link.WithUnderlineOnHover(),
-			link.WithExtraAttributes(c.viewRoute.GetAttributes()),
-			link.WithExtraClasses(),
-		).Show()
-	</div>
-}
 
 templ (c *Card) showAvatar() {
 	if c.GetImage() != nil {
@@ -76,6 +65,10 @@ templ (s *Card) showCategories() {
 	}
 }
 
+templ (c *Card) Show(classes ...string) {
+	@c.Props.Show("max-h-1/4", "w-full", "md:max-w-lg", "m-2")
+}
+
 templ (c *FeedCard) ShowUnreadCount() {
 	if c.IsUnread() {
 		@badge.Build(
@@ -89,29 +82,36 @@ templ (c *FeedCard) ShowUnreadCount() {
 	}
 }
 
-templ (c *FeedCard) showContent() {
-	<p>
-		@showLastUpdated("", c.GetUpdatedDate())
-	</p>
-	@article.Build(c.showDescription()).Show()
+templ (c *FeedCard) showTitle() {
+	@c.showAvatar()
+	<div class="text-base flex-1">
+		// Title text is a link to the view action of the card.
+		@link.Build(
+			link.WithContent(c.GetTitle()),
+			link.WithUnderlineOnHover(),
+			link.WithExtraAttributes(c.viewRoute.GetAttributes()),
+			link.WithExtraClasses(),
+		).Show()
+	</div>
+	<div class="flex-none">
+		@c.ShowUnreadCount()
+	</div>
 }
 
-templ (c *ItemCard) showContent() {
-	<div class="flex flew-row">
-		<div class="flex-1">
-			@showLastUpdated("", c.GetUpdatedDate())
-		</div>
-	</div>
+templ (c *FeedCard) showContent() {
+	@text.Build(c.GetUpdatedDate().String(),
+		text.WithTextSize(text.XS),
+	).Show()
+	@article.Build(c.showDescription()).Show()
 }
 
 func (c *FeedCard) build() {
 	c.Props = card.Build(
-		card.WithLayout(card.LayoutSide),
 		card.Bordered(),
 		card.WithSize(size.MD),
 		card.WithShadow(size.SM),
 		card.WithBodyOptions(
-			card.WithTitle(templ.Join(c.showTitle(), c.ShowUnreadCount())),
+			card.WithTitle(c.showTitle()),
 			card.WithContent(c.showContent()),
 			card.WithActions(c.menuActions.Show()),
 		),
@@ -119,14 +119,81 @@ func (c *FeedCard) build() {
 	)
 }
 
+templ (c *ItemCard) showTitle() {
+	// <div class="text-base flex-1">
+	// Title text is a link to the view action of the card.
+	@link.Build(
+		link.WithContent(c.GetTitle()),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(c.viewRoute.GetAttributes()),
+		link.WithExtraClasses(),
+	).Show()
+	// </div>
+}
+
+var helloHandle = templ.NewOnceHandle()
+
+templ format(ts string) {
+	// 	@helloHandle.Once() {
+	// 		<script type="module">
+	// 	import { intlFormatDistance, parse } from "date-fns";
+	// export function formatTimestamp(dateStr) {
+	//   let dateValue = parse(dateStr, "yyyy-MM-dd HH:mm:ss.SSSS XXXX", new Date());
+	//   const timeString = intlFormatDistance(dateValue.Date, new Date());
+	//   return timeString;
+	// }
+	//     </script>
+	// 	}
+	<script type="module" data-ts={ ts }>
+	import formatTimestamp from "/static/scripts.js";
+	let timestamp =  document.currentScript.getAttribute('data-ts');
+	formatTimestamp(ts);
+	</script>
+	// @templ.JSFuncCall("formatTimestamp", ts)
+}
+
+templ (c *ItemCard) showContent() {
+	<div class="flex">
+		<div class="flex-1">
+			@c.showTitle()
+		</div>
+		if c.GetImage() != nil {
+			<figure class="p-2">
+				@image.Build(c.GetImage().URL(),
+					image.WithAltText(c.GetImage().String()),
+					image.WithLazyLoading(),
+					image.WithMask(mask.MaskSquircle),
+					image.WithExtraClasses("object-cover", "size-16"),
+				).Show()
+			</figure>
+		}
+	</div>
+	<div class="flex-none">
+		{ c.GetUpdatedDate().String() }
+		// @format(c.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"))
+		// @templ.JSFuncCall("formatTimestamp", c.GetUpdatedDate().String())
+	</div>
+}
+
 func (c *ItemCard) build() {
+	var imageOption card.Option
+	// if c.GetImage() != nil {
+	// 	imageOption = card.WithImage(
+	// 		c.GetImage().URL(),
+	// 		image.WithLazyLoading(),
+	// 		image.WithMask(mask.MaskSquircle),
+	// 		image.WithSize("w-24"),
+	// 		image.WithExtraClasses("object-contain"),
+	// 	)
+	// }
 	c.Props = card.Build(
-		card.WithLayout(card.LayoutSide),
+		// card.WithLayout(card.LayoutSide),
+		imageOption,
 		card.WithSize(size.MD),
 		card.Bordered(),
 		card.WithShadow(size.SM),
 		card.WithBodyOptions(
-			card.WithTitle(c.showTitle()),
+			card.WithContent(c.showContent()),
 			card.WithActions(c.menuActions.Show()),
 		),
 		card.WithID(c.id),
@@ -134,28 +201,26 @@ func (c *ItemCard) build() {
 }
 
 templ (a cardActions) Show() {
-	@dropdown.Build(
-		dropdown.WithButton(
-			button.WithSize(button.XS),
-			button.AsShape(button.Square),
-			button.WithStyle(button.Ghost),
-			button.WithContent(icon.Build("fa-ellipsis-vertical")),
-		),
-		dropdown.WithOpenOptions(
-			dropdown.From(dropdown.OpenTop),
-			dropdown.Align(dropdown.AlignEnd),
-		),
-		dropdown.WithMenuContent(
-			menu.WithLayout(menu.Vertical),
-			menu.WithItems(a...),
-			menu.WithBaseColor(color.Base200),
-			menu.WithExtraClasses("rounded-field", "justify-end"),
-		),
-	).Show()
-}
-
-templ (c *Card) Show(classes ...string) {
-	@c.Props.Show("max-h-1/4", "w-full", "md:max-w-lg", "m-2")
+	@tooltip.Build("Actions").Show() {
+		@dropdown.Build(
+			dropdown.WithButton(
+				button.WithSize(button.XS),
+				button.AsShape(button.Square),
+				button.WithStyle(button.Ghost),
+				button.WithContent(icon.Build("fa-ellipsis-vertical")),
+			),
+			dropdown.WithOpenOptions(
+				dropdown.From(dropdown.OpenTop),
+				dropdown.Align(dropdown.AlignEnd),
+			),
+			dropdown.WithMenuContent(
+				menu.WithLayout(menu.Vertical),
+				menu.WithItems(a...),
+				menu.WithBaseColor(color.Base200),
+				menu.WithExtraClasses("rounded-field", "justify-end"),
+			),
+		).Show()
+	}
 }
 
 type Cards []templ.Component
