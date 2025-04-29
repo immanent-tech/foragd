@@ -11,6 +11,9 @@ templ (head *HeadProps) Show() {
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 		<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+		for _, header := range head.extraHeaders {
+			@header
+		}
 		<link rel="dns-prefetch" href="//fonts.googleapis.com"/>
 		<link rel="dns-prefetch" href="//fonts.gstatic.com"/>
 		<link rel="preconnect" href="//fonts.googleapis.com" crossorigin/>
@@ -25,9 +28,6 @@ templ (head *HeadProps) Show() {
 			rel="stylesheet"
 		/>
 		<link href="/static/styles.css" rel="stylesheet"/>
-		for _, header := range head.extraHeaders {
-			@header
-		}
 		<script src="/static/scripts.js"></script>
 		<script src="/static/surreal.js"></script>
 		@partials.NewTitle(head.title).Show()

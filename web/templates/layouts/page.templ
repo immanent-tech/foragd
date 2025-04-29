@@ -7,9 +7,9 @@ import "time"
 
 templ (page *Props) Show() {
 	<!DOCTYPE html>
-	<html lang="en" data-theme="light">
+	<html lang="en" data-theme="">
 		@page.Header.Show()
-		<body hx-ext="morph,sse">
+		<body hx-ext="morph,sse" hx-on::history-restore="themeChange();">
 			@templ.Join(page.Content...)
 		</body>
 	</html>

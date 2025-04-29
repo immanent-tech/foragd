@@ -9,6 +9,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/input"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
 )
 
 templ appBarTopLeft() {
@@ -61,11 +62,24 @@ templ appBarTopRight() {
 						<span class="badge">New</span>
 					</a>
 				</li>
-				<li><a>Settings</a></li>
+				<li>
+					@OpenSettingsAction()
+				</li>
 				<li>
 					@partials.LogoutLink()
 				</li>
 			</ul>
 		</div>
 	</div>
+}
+
+// OpenSettingsAction generates an link action to open the settings modal.
+templ OpenSettingsAction() {
+	@link.Build(
+		link.WithContent("Settings"),
+		link.WithExtraAttributes(templ.Attributes{
+			"href": "/settings",
+		}),
+		link.WithUnderlineOnHover(),
+	).Show()
 }

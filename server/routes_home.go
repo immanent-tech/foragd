@@ -28,6 +28,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.GenerateFeedsContent(s.DataAPI()),
+		handlers.SaveHomeHistory(s.SessionAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
 }
@@ -48,6 +49,7 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
+		handlers.SaveHomeHistory(s.SessionAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
 }

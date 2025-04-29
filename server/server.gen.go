@@ -247,9 +247,6 @@ type ServerInterface interface {
 	// Endpoint point for SSE events regarding /home.
 	// (GET /home/notifications)
 	HandleHomeNotifications(w http.ResponseWriter, r *http.Request)
-	// Show user settings modal
-	// (GET /home/settings)
-	GetHomeSettings(w http.ResponseWriter, r *http.Request)
 	// Remove a feed item from the user's saved items.
 	// (DELETE /home/{feed}/{item})
 	HandleUnsaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
@@ -274,6 +271,9 @@ type ServerInterface interface {
 	// Issue a user search request
 	// (POST /search)
 	Search(w http.ResponseWriter, r *http.Request)
+	// Show user settings modal
+	// (GET /settings)
+	GetSettings(w http.ResponseWriter, r *http.Request)
 	// Show the sign-up form.
 	// (GET /signup)
 	SignUp(w http.ResponseWriter, r *http.Request)
@@ -357,12 +357,6 @@ func (_ Unimplemented) HandleHomeNotifications(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Show user settings modal
-// (GET /home/settings)
-func (_ Unimplemented) GetHomeSettings(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 // Remove a feed item from the user's saved items.
 // (DELETE /home/{feed}/{item})
 func (_ Unimplemented) HandleUnsaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
@@ -408,6 +402,12 @@ func (_ Unimplemented) Logout(w http.ResponseWriter, r *http.Request) {
 // Issue a user search request
 // (POST /search)
 func (_ Unimplemented) Search(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Show user settings modal
+// (GET /settings)
+func (_ Unimplemented) GetSettings(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -765,20 +765,6 @@ func (siw *ServerInterfaceWrapper) HandleHomeNotifications(w http.ResponseWriter
 	handler.ServeHTTP(w, r)
 }
 
-// GetHomeSettings operation middleware
-func (siw *ServerInterfaceWrapper) GetHomeSettings(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetHomeSettings(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // HandleUnsaveItem operation middleware
 func (siw *ServerInterfaceWrapper) HandleUnsaveItem(w http.ResponseWriter, r *http.Request) {
 
@@ -993,6 +979,20 @@ func (siw *ServerInterfaceWrapper) Search(w http.ResponseWriter, r *http.Request
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Search(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSettings operation middleware
+func (siw *ServerInterfaceWrapper) GetSettings(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSettings(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1338,9 +1338,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/home/notifications", wrapper.HandleHomeNotifications)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/settings", wrapper.GetHomeSettings)
-	})
-	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleUnsaveItem)
 	})
 	r.Group(func(r chi.Router) {
@@ -1363,6 +1360,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/search", wrapper.Search)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/settings", wrapper.GetSettings)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/signup", wrapper.SignUp)

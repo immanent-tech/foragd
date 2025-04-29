@@ -95,10 +95,10 @@ paths:
       #     application/x-www-form-urlencoded:
       #       schema:
       #         $ref: 'models.yaml#/components/schemas/Filters'
-  /home/settings:
+  /settings:
     get:
       summary: Show user settings modal
-      operationId: getHomeSettings
+      operationId: getSettings
       responses:
         200:
           $ref: "#/components/responses/htmx"

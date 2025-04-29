@@ -6,9 +6,12 @@ package server
 import (
 	"net/http"
 
+	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/server/handlers"
+	"github.com/joshuar/go-feed-me/web/templates/partials/settings"
 )
 
 // Login handler handles login requests.
@@ -29,8 +32,12 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 	chain.ServeHTTP(res, req)
 }
 
-func (s Server) GetHomeSettings(res http.ResponseWriter, req *http.Request) {
-	res.WriteHeader(http.StatusNotImplemented)
+// GetSettings handles opening the settings modal.
+func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
+	spew.Dump(req.Referer())
+	spew.Dump(s.SessionAPI().Get(req.Context(), handlers.HomeHistorySessionKey))
+	handler := handlers.HTMXResponse(htmx.NewResponse(), settings.Page())
+	handler.ServeHTTP(res, req)
 }
 
 // Logout handler handles user logout.

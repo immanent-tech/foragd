@@ -141,7 +141,7 @@ templ NewSubscriptionModal(req *models.SubscriptionRequest, msg *models.Message)
 		modal.WithID(SubscriptionModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
-		modal.OpenInitially(),
+		// modal.OpenInitially(),
 	).Show() {
 		@text.Build("Add a new subscription", text.WithTextSize(text.LG)).Show()
 		if req != nil {
@@ -156,7 +156,7 @@ templ NewSubscriptionResultsModal(msg *models.Message) {
 		modal.WithID(SubscriptionModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
-		modal.OpenInitially(),
+		// modal.OpenInitially(),
 		modal.WithActions(
 			button.Build(
 				button.WithSize(button.SM),

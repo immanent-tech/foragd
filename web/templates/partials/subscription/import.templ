@@ -100,7 +100,7 @@ templ ImportModal() {
 		modal.WithID(ImportModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
-		modal.OpenInitially(),
+		// modal.OpenInitially(),
 	).Show() {
 		@text.Build("Import Your Feeds", text.WithTextSize(text.LG), text.WithTextWeight(text.Semibold)).Show()
 		<div id="import-modal-content" hx-disabled-elt="find button">
@@ -115,7 +115,7 @@ templ ImportResultsModal(content templ.Component) {
 		modal.WithID(ImportModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
-		modal.OpenInitially(),
+		// modal.OpenInitially(),
 	).Show() {
 		@content
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/classes/shadow"
 	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/avatar"
@@ -21,13 +22,14 @@ import (
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 	"net/http"
 	"slices"
 	"strconv"
 )
+
+const cardSizingClasses = "max-h-1/4 w-full md:max-w-lg m-2 p-2"
 
 templ (c *Card) showRelativeTimestamp() {
 	@text.Build(
@@ -56,10 +58,6 @@ templ (s *Card) showCategories() {
 			).Show()
 		}
 	}
-}
-
-templ (c *Card) Show(classes ...string) {
-	@c.Props.Show("max-h-1/4", "w-full", "md:max-w-lg", "m-2")
 }
 
 templ (c *FeedCard) ShowUnreadCount() {
@@ -113,15 +111,16 @@ templ (c *FeedCard) showContent() {
 
 func (c *FeedCard) build() {
 	c.Props = card.Build(
-		card.Bordered(),
-		card.WithSize(size.MD),
-		card.WithShadow(size.SM),
+		card.WithStyle(card.Border),
+		card.WithSize(card.MD),
+		card.WithShadow(shadow.SM),
 		card.WithBodyOptions(
 			card.WithTitle(c.showTitle()),
 			card.WithContent(c.showContent()),
 			card.WithActions(c.menuActions.Show()),
 		),
 		card.WithID(c.id),
+		card.WithExtraClasses(cardSizingClasses),
 	)
 }
 
@@ -153,20 +152,21 @@ func (c *ItemCard) build() {
 		imageOption = card.WithImage(
 			c.GetImage().URL(),
 			image.WithLazyLoading(),
-			image.WithExtraClasses("object-cover"),
+			image.WithExtraClasses("max-w-2/3", "object-cover"),
 		)
 	}
 	c.Props = card.Build(
 		// card.WithLayout(card.LayoutSide),
 		imageOption,
-		card.WithSize(size.MD),
-		card.Bordered(),
-		card.WithShadow(size.SM),
+		card.WithSize(card.MD),
+		card.WithStyle(card.Border),
+		card.WithShadow(shadow.SM),
 		card.WithBodyOptions(
 			card.WithContent(c.showContent()),
 			card.WithActions(c.menuActions.Show()),
 		),
 		card.WithID(c.id),
+		card.WithExtraClasses(cardSizingClasses),
 	)
 }
 

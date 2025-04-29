@@ -32,6 +32,7 @@ const (
 const (
 	feedFiltersSessionKey = "feed_filters"
 	itemFiltersSessionKey = "item_filters"
+	HomeHistorySessionKey = "home_history"
 )
 
 type contextKey string
