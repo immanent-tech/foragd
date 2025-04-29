@@ -99,7 +99,8 @@
     "handlers",
     "auth",
     "feeds",
-    "elastic"
+    "elastic",
+    "components"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {
