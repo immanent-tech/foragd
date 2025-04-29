@@ -18,14 +18,16 @@ import (
 templ (a *Article) Show(classes ...string) {
 	<div id="content" class="flex flex-wrap p-4 h-full items-start">
 		@article.Build(
-			a.showItemArticle(),
 			article.WithExtraAttributes(templ.Attributes{
 				"hx-post":     "/home/" + a.GetFeedID() + "/" + a.GetID() + "/read",
 				"hx-swap":     "none",
 				"hx-push-url": "false",
 				"hx-trigger":  "load delay:2s",
 			}),
-		).Show(classes...)
+		).Show(classes...) {
+			@a.showItemArticle()
+			,
+		}
 	</div>
 }
 

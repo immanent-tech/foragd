@@ -106,6 +106,7 @@ func Run(ctx context.Context) error {
 
 	scheduler.Start(ctx)
 	<-ctx.Done()
+	scheduler.Stop()
 	return nil
 }
 

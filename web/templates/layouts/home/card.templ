@@ -6,6 +6,7 @@ package home
 
 import (
 	"github.com/angelofallars/htmx-go"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/classes/width"
@@ -19,7 +20,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
-	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
@@ -29,18 +29,14 @@ import (
 	"strconv"
 )
 
-templ (c *Card) showAvatar() {
-	if c.GetImage() != nil {
-		// If the source has an image, use that as the avatar.
-		@avatar.Build(
-			c.GetImage().URL(),
-			avatar.WithWidth(width.W8),
-			avatar.WithImageOptions(image.WithLazyLoading()),
-		).Show()
-	} else {
-		// Otherwise, take the first letter of the title and create a placeholder avatar.
-		@placeholder.Build(c.GetTitle()[0:1], placeholder.SM).Show()
-	}
+templ (c *Card) showRelativeTimestamp() {
+	@text.Build(
+		partials.ShowRelativeTimestamp(),
+		text.WithTextSize(text.SM),
+		text.WithAttributes(templ.Attributes{
+			"value": c.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"),
+		}),
+	).Show()
 }
 
 templ (c *Card) showDescription() {
@@ -51,7 +47,6 @@ templ (c *Card) showDescription() {
 
 templ (s *Card) showCategories() {
 	if len(s.GetCategories()) > 0 {
-		// <div class="flex flex-wrap px-2">
 		for category := range slices.Values(s.GetCategories()) {
 			@badge.Build(
 				badge.WithSize(badge.SM),
@@ -59,9 +54,7 @@ templ (s *Card) showCategories() {
 				badge.WithStyle(badge.Outline),
 				badge.WithContent(category),
 			).Show()
-			//"p-1", "m-1"
 		}
-		// </div>
 	}
 }
 
@@ -83,9 +76,21 @@ templ (c *FeedCard) ShowUnreadCount() {
 }
 
 templ (c *FeedCard) showTitle() {
-	@c.showAvatar()
-	<div class="text-base flex-1">
-		// Title text is a link to the view action of the card.
+	// Generate a thumbnail to display next to the title.
+	if c.GetImage() != nil {
+		// If the source has an image, use that as the avatar.
+		@avatar.Build(
+			c.GetImage().URL(),
+			avatar.WithWidth(width.W8),
+			avatar.WithImageOptions(image.WithLazyLoading()),
+			avatar.WithExtraClasses(),
+		).Show()
+	} else {
+		// Otherwise, take the first letter of the title and create a placeholder avatar.
+		@placeholder.Build(c.GetTitle()[0:1], placeholder.SM, placeholder.WithExtraClasses()).Show()
+	}
+	// Title text is a link to the view action of the card.
+	<div class="text-sm flex-1">
 		@link.Build(
 			link.WithContent(c.GetTitle()),
 			link.WithUnderlineOnHover(),
@@ -93,16 +98,17 @@ templ (c *FeedCard) showTitle() {
 			link.WithExtraClasses(),
 		).Show()
 	</div>
+	// Display unread count (if any).
 	<div class="flex-none">
 		@c.ShowUnreadCount()
 	</div>
 }
 
 templ (c *FeedCard) showContent() {
-	@text.Build(c.GetUpdatedDate().String(),
-		text.WithTextSize(text.XS),
-	).Show()
-	@article.Build(c.showDescription()).Show()
+	@article.Build().Show() {
+		@c.showRelativeTimestamp()
+		@c.showDescription()
+	}
 }
 
 func (c *FeedCard) build() {
@@ -120,58 +126,36 @@ func (c *FeedCard) build() {
 }
 
 templ (c *ItemCard) showTitle() {
-	// <div class="text-base flex-1">
-	// Title text is a link to the view action of the card.
 	@link.Build(
 		link.WithContent(c.GetTitle()),
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(c.viewRoute.GetAttributes()),
 		link.WithExtraClasses(),
 	).Show()
-	// </div>
 }
 
 templ (c *ItemCard) showContent() {
-	<div class="flex">
-		<div class="flex-1">
-			@c.showTitle()
+	@article.Build().Show() {
+		<div class="flex">
+			<div class="flex-1">
+				@c.showTitle()
+			</div>
 		</div>
-		if c.GetImage() != nil {
-			<figure class="p-2">
-				@image.Build(c.GetImage().URL(),
-					image.WithAltText(c.GetImage().String()),
-					image.WithLazyLoading(),
-					image.WithMask(mask.MaskSquircle),
-					image.WithExtraClasses("object-cover", "size-16"),
-				).Show()
-			</figure>
-		}
-	</div>
-	<div class="flex-none">
-		<div value={ c.GetUpdatedDate().Format("2006-01-02T15:04:05-0700") }>
-			<script data-name="ts" type="module">
-			import { formatTimestamp } from '/static/scripts.js';
-			let me = document.querySelector('script[data-name="ts"]');
-			let parent = me.closest('div');
-			let ts = parent.getAttribute('value');
-			window.formatTimestamp = formatTimestamp;
-			parent.innerText = window.formatTimestamp(ts);
-		</script>
+		<div class="flex-none">
+			@c.showRelativeTimestamp()
 		</div>
-	</div>
+	}
 }
 
 func (c *ItemCard) build() {
 	var imageOption card.Option
-	// if c.GetImage() != nil {
-	// 	imageOption = card.WithImage(
-	// 		c.GetImage().URL(),
-	// 		image.WithLazyLoading(),
-	// 		image.WithMask(mask.MaskSquircle),
-	// 		image.WithSize("w-24"),
-	// 		image.WithExtraClasses("object-contain"),
-	// 	)
-	// }
+	if c.GetImage() != nil {
+		imageOption = card.WithImage(
+			c.GetImage().URL(),
+			image.WithLazyLoading(),
+			image.WithExtraClasses("object-cover"),
+		)
+	}
 	c.Props = card.Build(
 		// card.WithLayout(card.LayoutSide),
 		imageOption,
@@ -238,49 +222,3 @@ templ (c Cards) Show() {
 		@emptyContent()
 	}
 }
-
-var helloHandle = templ.NewOnceHandle()
-
-templ hello(dateStr string) {
-	// This script is only rendered once per HTTP request.
-	@helloHandle.Once() {
-		<script>
-import { parseISO } from "date-fns";
-    </script>
-	}
-	<script data-ts={ dateStr }>
-import { parseISO } from "date-fns";
-      // To prevent the variables from leaking into the global scope,
-      // this script is wrapped in an IIFE (Immediately Invoked Function Expression).
-      (() => {
-		let dateStr =document.currentScript.getAttribute("data-ts");
-  console.log(dateStr);
-  let dateValue = parseISO(dateStr, new Date());
-  console.log(dateValue);
-  // const timeString = intlFormatDistance(dateValue.Date, new Date());
-  // return timeString;
-      })()
-    </script>
-}
-
-// var helloHandle = templ.NewOnceHandle()
-
-// templ format(ts string) {
-// 	// 	@helloHandle.Once() {
-// 	// 		<script type="module">
-// 	// 	import { intlFormatDistance, parse } from "date-fns";
-// 	// export function formatTimestamp(dateStr) {
-// 	//   let dateValue = parse(dateStr, "yyyy-MM-dd HH:mm:ss.SSSS XXXX", new Date());
-// 	//   const timeString = intlFormatDistance(dateValue.Date, new Date());
-// 	//   return timeString;
-// 	// }
-// 	//     </script>
-// 	// 	}
-// 	<script>
-// 	import('/static/timestamps.js').then((ts) =>
-//   console.log(
-//     ts.formatTimestamp("{{ ts }}")
-//   )
-// );
-// </script>
-// }
