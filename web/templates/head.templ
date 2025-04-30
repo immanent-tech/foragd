@@ -1,19 +1,44 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package layouts
+package templates
 
-import "github.com/joshuar/go-feed-me/web/templates/partials"
+import "slices"
 
-// Show renders the <head></head> element with the given options.
-templ (head *HeadProps) Show() {
+// Meta represents a custom <meta> tag.
+type Meta struct {
+	Name    string
+	Content string
+}
+
+templ (m *Meta) Show() {
+	<meta name={ m.Name } content={ m.Content }/>
+}
+
+// Head represents a <head></head> tag.
+type Head struct {
+	Title          string
+	CustomMetaTags []Meta
+}
+
+templ (h *Head) ShowCustomMetaTags() {
+	if len(h.CustomMetaTags) > 0 {
+		for meta := range slices.Values(h.CustomMetaTags) {
+			@meta.Show()
+		}
+	}
+}
+
+func (h *Head) AddMetaTag(name, content string) {
+	h.CustomMetaTags = append(h.CustomMetaTags, Meta{Name: name, Content: content})
+}
+
+templ (h *Head) Show() {
 	<head>
 		<meta charset="UTF-8"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 		<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
-		for _, header := range head.extraHeaders {
-			@header
-		}
+		@h.ShowCustomMetaTags()
 		<link rel="dns-prefetch" href="//fonts.googleapis.com"/>
 		<link rel="dns-prefetch" href="//fonts.gstatic.com"/>
 		<link rel="preconnect" href="//fonts.googleapis.com" crossorigin/>
@@ -30,6 +55,16 @@ templ (head *HeadProps) Show() {
 		<link href="/static/styles.css" rel="stylesheet"/>
 		<script src="/static/scripts.js"></script>
 		<script src="/static/surreal.js"></script>
-		@partials.NewTitle(head.title).Show()
+		@SetPageTitle(h.Title)
 	</head>
+}
+
+// SetPageTitle sets (or updates) the page's <title></title> tag. If the title is an empty string, a default title will
+// be set instead.
+templ SetPageTitle(title string) {
+	if title != "" {
+		<title>{ title }</title>
+	} else {
+		<title>{ DefaultPageTitle }</title>
+	}
 }

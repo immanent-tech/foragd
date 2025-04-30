@@ -11,7 +11,7 @@ import (
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/server/handlers"
-	"github.com/joshuar/go-feed-me/web/templates/partials/settings"
+	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 )
 
 // Login handler handles login requests.

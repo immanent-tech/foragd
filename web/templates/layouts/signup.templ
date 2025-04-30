@@ -3,39 +3,107 @@
 
 package layouts
 
-import "github.com/joshuar/go-templ-daisyui/feedback/alert"
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/feedback/alert"
+	"github.com/joshuar/go-templ-daisyui/input/fieldset"
+	"github.com/joshuar/go-templ-daisyui/input/form"
+	"github.com/joshuar/go-templ-daisyui/input/textinput"
+)
 
-// {{ signup := UserSignupFromCtx(ctx) }}
-// if signup != nil {
-// 	<div id="signup">
-// 		@signup.Form()
-// 	</div>
-// }
+const SignupPath = "/signup"
 
-// SignupLayout is the page content for the signup page.
-templ SignupLayout() {
-	<div id="signup-hero" class="hero bg-base-200 min-h-screen">
-		<div class="hero-content text-center">
-			<div class="max-w-md gap-2">
-				<h1 class="text-3xl font-bold">Sign-up to Go Feed Me</h1>
-				<div id="signup-notifications"></div>
+var SignupDetailsID = attributes.ID("signup-details")
+var SignupFormID = attributes.ID("signup-form")
+
+templ SignUpPage(userDetails *models.UserSignupRequest) {
+	@templates.NewPage("Go Feed Me",
+		templates.WithDescription("Welcome to Go Feed Me"),
+	).Show() {
+		<div class="hero bg-base-200 min-h-screen">
+			<div class="hero-content flex-col lg:flex-row-reverse">
+				<div class="text-center lg:text-left">
+					<h1 class="text-5xl font-bold">Sign-up now!</h1>
+					<p class="py-6">
+						Enter your details below to create an account.
+					</p>
+				</div>
+				<div id={ SignupDetailsID.String() } class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+					<div class="card-body">
+						@SignupForm(userDetails)
+					</div>
+				</div>
 			</div>
 		</div>
-	</div>
+	}
+}
+
+templ SignupForm(userDetails *models.UserSignupRequest) {
+	if userDetails.Msg != nil {
+		@partials.NewMessage(userDetails.Msg).AsNote()
+	}
+	@form.BuildForm(
+		form.WithID(SignupFormID.String()),
+		form.WithExtraAttributes(
+			templ.Attributes{
+				"hx-post":   SignupPath,
+				"hx-target": SignupFormID.Target(),
+				"hx-swap":   "morph:outerHTML",
+			},
+		),
+		form.WithElements(
+			fieldset.Build(
+				fieldset.WithField("Nickname",
+					textinput.Build(
+						textinput.WithName("nickname"),
+						textinput.WithValue(userDetails.Nickname),
+					),
+				),
+				fieldset.WithField("Email",
+					textinput.Build(
+						textinput.WithName("email"),
+						textinput.AsType(textinput.TypeEmail),
+						textinput.WithPlaceholder("you@yourdomain.com"),
+						textinput.Required(),
+						textinput.Validate(),
+						textinput.ValidateHint("Valid email address is required."),
+						textinput.WithValue(userDetails.Email),
+					),
+				),
+				fieldset.WithField("Password",
+					textinput.Build(
+						textinput.WithName("password"),
+						textinput.AsType(textinput.TypePassword),
+						textinput.Required(),
+						textinput.Validate(),
+						textinput.ValidatePattern(`(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}`),
+						textinput.ValidateMinLength(10),
+						textinput.ValidateHint("Password needs to be minimum 10 characters and include at least one: lowercase letter, uppercase letter and number"),
+						textinput.WithValue(userDetails.Password),
+					),
+				),
+				fieldset.WithField("",
+					button.Build(
+						button.WithContent("Sign-up"),
+					),
+				),
+			).Show(),
+		),
+	).Show()
 }
 
 templ SignupSuccess() {
 	@alert.Build(alert.Success,
-		alert.WithText("Account Created!"),
-	).Show() {
-		<a class="btn btn-primary" href="/login/auth0">Login with Auth0</a>
-	}
-}
-
-templ SignupError() {
-	<div id="signup-notifications" hx-swap-oob="true">
-		@alert.Build(alert.Error,
-			alert.WithText("Oops! We had a problem creating your account account!"),
-		).Show()
-	</div>
+		alert.WithStyle(alert.Outline),
+		alert.WithText("Account created!"),
+	).Show()
+	<a
+		class="btn btn-primary"
+		hx-boost="false"
+		href="/login/auth0"
+	>Login</a>
 }

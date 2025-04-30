@@ -5,7 +5,6 @@
 package home
 
 import (
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
@@ -53,7 +52,7 @@ templ (filter ViewFilter) Show(classes ...string) {
 	@filter.Props.Show(classes...)
 }
 
-templ BuildFiltersMenu(viewFilters templates.Element, categoryFilters templates.Element) {
+templ BuildFiltersMenu(viewFilters ViewFilters, categoryFilters CategoryFilters) {
 	<div id="content-filters" hx-swap-oob="true">
 		@partials.DockMenu("Filter",
 			icon.Build("fa-sliders"),

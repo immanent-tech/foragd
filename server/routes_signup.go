@@ -17,21 +17,11 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/layouts/signup"
 )
 
 // SignUp handles presenting a form for the user to enter sign-up details.
 func (s Server) SignUp(res http.ResponseWriter, req *http.Request) {
-	resp := htmx.NewResponse()
-
-	fullPage := layouts.BuildPage(
-		layouts.WithHeadOptions("Sign-up to Go Feed Me",
-			layouts.WithPageDescription("Your home."),
-			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		),
-		layouts.WithPageContent(signup.Show(models.NewUserSignup())),
-	)
-	if err := resp.RenderTempl(req.Context(), res, fullPage.Show()); err != nil {
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, layouts.SignUpPage(models.NewUserSignup())); err != nil {
 		slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", err))
 		http.Error(res, "fetch feed failed!", http.StatusInternalServerError)
 		return
@@ -44,7 +34,7 @@ func (s Server) ProcessSignUp(res http.ResponseWriter, req *http.Request) {
 	// Decode and validate the user sign-up request.
 	userSignup, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
 	if err != nil || !valid {
-		if err := resp.RenderTempl(req.Context(), res, signup.SignupForm(userSignup)); err != nil {
+		if err := resp.RenderTempl(req.Context(), res, layouts.SignupForm(userSignup)); err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", err))
 			http.Error(res, "user signup failed!", http.StatusInternalServerError)
 		}
@@ -53,14 +43,14 @@ func (s Server) ProcessSignUp(res http.ResponseWriter, req *http.Request) {
 	// Process the user sign-up and create the new user.
 	if err := s.addUser(req.Context(), userSignup); err != nil {
 		userSignup.Msg = backendErrorMsg(err)
-		if err := resp.RenderTempl(req.Context(), res, signup.SignupForm(userSignup)); err != nil {
+		if err := resp.RenderTempl(req.Context(), res, layouts.SignupForm(userSignup)); err != nil {
 			slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", err))
 			http.Error(res, "user signup failed!", http.StatusInternalServerError)
 		}
 		return
 	}
 	// Display success and prompt user to log in with new account.
-	if err := resp.Retarget(signup.SignupDetailsID.Target()).Reswap(htmx.SwapOuterHTML).RenderTempl(req.Context(), res, signup.SignupSuccess()); err != nil {
+	if err := resp.Retarget(layouts.SignupDetailsID.Target()).Reswap(htmx.SwapOuterHTML).RenderTempl(req.Context(), res, layouts.SignupSuccess()); err != nil {
 		slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", err))
 		http.Error(res, "user signup failed!", http.StatusInternalServerError)
 	}

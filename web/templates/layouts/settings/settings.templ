@@ -3,17 +3,16 @@
 
 package settings
 
-import "github.com/joshuar/go-feed-me/web/templates/layouts"
-import "github.com/joshuar/go-feed-me/web/templates/partials/appbar"
+import (
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
+)
 
 templ Page() {
-	@layouts.BuildPage(
-		layouts.WithHeadOptions("Settings",
-			layouts.WithPageDescription("Your home."),
-			layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-		),
-		layouts.WithPageContent(appbar.AppBar().Show(), ThemeChangeMenu()),
-	).Show()
+	@templates.NewPage("Settings").Show() {
+		@appbar.AppBar().Show()
+		@ThemeChangeMenu()
+	}
 }
 
 templ ThemeChangeMenu() {

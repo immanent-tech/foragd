@@ -9,6 +9,7 @@ import (
 	"github.com/a-h/templ"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 )
 
 // Article is a display component that shows an article for the given data.
@@ -16,9 +17,11 @@ type Article struct {
 	models.SourceWithContent
 }
 
-func BuildArticle(req *http.Request, item *models.Item) templ.Component {
-	article := &Article{
-		SourceWithContent: item,
+func BuildArticleLayout(req *http.Request, back templ.Component, item *models.Item) templates.Layout {
+	article := &Article{SourceWithContent: item}
+	return &HomeLayout{
+		title:   item.GetTitle(),
+		content: []templ.Component{article.Show()},
+		footer:  BuildArticleFooter(item, back).Show(),
 	}
-	return article.Render(req)
 }

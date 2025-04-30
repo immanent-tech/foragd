@@ -3,32 +3,22 @@
 
 package templates
 
-import (
-	"net/http"
+import "github.com/a-h/templ"
 
-	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
-)
+// DefaultKeywords are the default keywords to insert in a "keywords" <meta> tag.
+var DefaultKeywords = []string{"feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"}
 
-type Writer struct {
-	resp htmx.Response
-	res  http.ResponseWriter
+// DefaultPageTitle is the default <title> tag value if none is set.
+const DefaultPageTitle = "Go Feed Me"
+
+// Layout represents a page layout. It has methods to issue a full or partial render of the layout.
+type Layout interface {
+	PartialLayout
+	FullRender() templ.Component
 }
 
-func (w *Writer) Write(req *http.Request, component Component) error {
-	if err := w.resp.RenderTempl(req.Context(), w.res, component.Render(req)); err != nil {
-		return err
-	}
-	return nil
-}
-
-func NewWriter(res http.ResponseWriter) *Writer {
-	return &Writer{
-		resp: htmx.NewResponse(),
-		res:  res,
-	}
-}
-
-type Component interface {
-	Render(req *http.Request) templ.Component
+// PartialLayout represents partial page content layout. It has a method to render the content. PartialLayout is usually
+// called for a HTMX response where a full page load is not required.
+type PartialLayout interface {
+	PartialRender() templ.Component
 }

@@ -6,21 +6,17 @@ package handlers
 import (
 	"log/slog"
 	"net/http"
-	"slices"
 	"strconv"
 	"strings"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 )
 
 // CheckRequiredFilters will ensure a request has the required filters set. If any required filters are missing,
@@ -141,14 +137,8 @@ func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler 
 				InternalServerError(res, req, err)
 				return
 			}
-
-			var content []templ.Component
-			content = append(content,
-				home.BuildFeeds(req, pagination, subscriptions),
-				home.BuildListFooter(req.Context(), home.BackButton("/home", nil), subscriptions.GetCategoryCounts()).Show(), //nolint:contextcheck
-			)
-			ctx := home.ContentToCtx(req.Context(), content)
-			ctx = home.TitleToCtx(ctx, "Feeds")
+			layout := home.BuildFeedsLayout(req, pagination, subscriptions)
+			ctx := templates.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -188,14 +178,8 @@ func GenerateItemsContent(dataAPI DataAPI, sessionAPI SessionAPI) func(next http
 				feedFilters = *models.NewFilters()
 			}
 			back := home.BackButton(models.FeedsRoute, &feedFilters)
-			// back := home.BackButton(, models.FeedsRoute)
-			var content []templ.Component
-			content = append(content,
-				home.BuildItems(req, pagination, items),
-				home.BuildListFooter(req.Context(), back, items.GetCategoryCounts()).Show(), //nolint:contextcheck
-			)
-			ctx := home.ContentToCtx(req.Context(), content)
-			ctx = home.TitleToCtx(ctx, "Items")
+			layout := home.BuildItemsLayout(req, pagination, back, items)
+			ctx := templates.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -215,13 +199,8 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI SessionAPI, feedID models.F
 				itemFilters = *models.NewFilters()
 			}
 			back := home.BackButton(models.ItemsRoute, &itemFilters)
-			var content []templ.Component
-			content = append(content,
-				home.BuildArticle(req, item),               //nolint:contextcheck
-				home.BuildArticleFooter(item, back).Show(), //nolint:contextcheck
-			)
-			ctx := home.ContentToCtx(req.Context(), content)
-			ctx = home.TitleToCtx(ctx, item.GetTitle())
+			layout := home.BuildArticleLayout(req, back, item)
+			ctx := templates.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -242,30 +221,17 @@ func SaveHomeHistory(session SessionAPI) func(next http.Handler) http.Handler {
 func DisplayHome() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
-			title := home.TitleFromCtx(req.Context())
-			content := home.ContentFromCtx(req.Context())
+			layout := templates.LayoutFromCtx(req.Context())
 			// Create a new response writer.
 			resp := htmx.NewResponse()
 			// Decide whether we need to do a full or partial render based on whether
 			// this is a htmx request or not.
 			if htmx.IsHTMX(req) {
 				// Partial render. Update the page title and render all content combined.
-				content = append(content, partials.NewTitle(title).Show())
-				HTMXResponse(resp, content...).ServeHTTP(res, req)
+				HTMXResponse(resp, layout.PartialRender()).ServeHTTP(res, req)
 			} else {
 				// Full render. Add the Appbar then build a full page layout to render.
-				content = slices.Insert(content, 0,
-					partials.CommandModal(),
-					appbar.AppBar().Show(),
-				)
-				fullPage := layouts.BuildPage(
-					layouts.WithHeadOptions(title,
-						layouts.WithPageDescription("Your home."),
-						layouts.WithPageKeywords("feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"),
-					),
-					layouts.WithPageContent(content...),
-				)
-				HTMXResponse(resp, fullPage.Show()).ServeHTTP(res, req)
+				HTMXResponse(resp, layout.FullRender()).ServeHTTP(res, req)
 			}
 		})
 }

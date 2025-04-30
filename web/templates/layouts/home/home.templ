@@ -3,7 +3,15 @@
 
 package home
 
-import "github.com/joshuar/go-templ-daisyui/feedback/alert"
+import (
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
+	"github.com/joshuar/go-templ-daisyui/feedback/alert"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"slices"
+)
 
 templ notifications() {
 	<!-- Open the modal using ID.showModal() method -->
@@ -77,12 +85,57 @@ templ emptyContent() {
 				</p>
 				@AddSubscriptionAction("btn", "btn-accent")
 				@ImportAction("btn", "btn-accent")
-				// <button
-				// 	class="btn btn-primary"
-				// 	hx-get="/subscription/new"
-				// 	hx-target="#command_modal"
-				// >Add Subscription</button>
 			</div>
 		</div>
 	</div>
+}
+
+// HomeLayout contains the components for rendering a /home page layout.
+type HomeLayout struct {
+	title   string
+	content []templ.Component
+	footer  templ.Component
+}
+
+templ (l *HomeLayout) FullRender() {
+	@templates.NewPage(l.title).Show() {
+		@partials.CommandModal()
+		@appbar.AppBar().Show()
+		<div class="@container">
+			<div id="content" class="flex flex-wrap @md:flex-row p-4 h-full items-start justify-center">
+				if len(l.content) > 0 {
+					for part := range slices.Values(l.content) {
+						@part
+					}
+				} else {
+					@emptyContent()
+				}
+			</div>
+			<div id="content-loading" class="flex items-center justify-center">
+				@loading.Build(loading.Bars,
+					loading.AsHTMXIndicator(),
+					loading.WithThemeColor(color.Accent),
+				).Show()
+			</div>
+		</div>
+		@l.footer
+	}
+}
+
+templ (l *HomeLayout) PartialRender() {
+	// Render any content templates.
+	if len(l.content) > 0 {
+		for part := range slices.Values(l.content) {
+			@part
+		}
+	} else {
+		@emptyContent()
+	}
+	if l.footer != nil {
+		@l.footer
+	}
+	// Update the page title if one has been provided.
+	if l.title != "" {
+		@templates.SetPageTitle(l.title)
+	}
 }

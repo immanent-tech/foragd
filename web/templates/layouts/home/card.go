@@ -132,8 +132,8 @@ func BuildItemCard(ctx context.Context, item *models.Item) *ItemCard {
 	return itemCard
 }
 
-func BuildFeeds(req *http.Request, pagination models.Pagination, subscriptions models.Subscriptions) templ.Component {
-	content := make(Cards, 0, len(subscriptions))
+func BuildFeedsLayout(req *http.Request, pagination models.Pagination, subscriptions models.Subscriptions) templates.Layout {
+	cards := make([]templ.Component, 0, len(subscriptions))
 	// Build feed cards.
 	for idx, subscription := range subscriptions {
 		card := BuildFeedCard(req.Context(), subscription)
@@ -141,14 +141,17 @@ func BuildFeeds(req *http.Request, pagination models.Pagination, subscriptions m
 			card.AddPagination(req.URL, pagination)
 		}
 
-		content = append(content, card.Show())
+		cards = append(cards, card.Show())
 	}
-	return content.Render(req)
+	return &HomeLayout{
+		title:   "Feeds",
+		content: cards,
+		footer:  BuildListFooter(req.Context(), BackButton("/home", nil), subscriptions.GetCategoryCounts()).Show(),
+	}
 }
 
-func BuildItems(req *http.Request, pagination models.Pagination, items models.Items) templ.Component {
-	content := make(Cards, 0, len(items))
-	// Build feed cards.
+func BuildItemsLayout(req *http.Request, pagination models.Pagination, back templ.Component, items models.Items) templates.Layout {
+	cards := make([]templ.Component, 0, len(items))
 	// Build item cards.
 	for idx, item := range items {
 		// Create a card for this item.
@@ -158,7 +161,12 @@ func BuildItems(req *http.Request, pagination models.Pagination, items models.It
 			itemCard.AddPagination(req.URL, pagination)
 		}
 		// Append the card to the list of cards.
-		content = append(content, itemCard.Show())
+		cards = append(cards, itemCard.Show())
 	}
-	return content.Render(req)
+	// Return the home items layout.
+	return &HomeLayout{
+		title:   "Items",
+		content: cards,
+		footer:  BuildListFooter(req.Context(), back, items.GetCategoryCounts()).Show(),
+	}
 }

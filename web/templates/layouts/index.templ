@@ -3,25 +3,31 @@
 
 package layouts
 
-templ IndexLayout() {
-	<div id="index-hero" class="hero bg-base-200 min-h-screen">
-		<div class="hero-content text-center">
-			<div class="max-w-md">
-				<h1 class="text-5xl font-bold">Go Feed Me</h1>
-				<p class="py-6">
-					Your new homepage on the internet.
-				</p>
-				<a
-					class="btn btn-primary"
-					hx-boost="false"
-					href="/login/auth0"
-				>Login with Auth0</a>
-				<a
-					class="btn btn-primary"
-					hx-boost="false"
-					href="/signup"
-				>Sign-up</a>
+import "github.com/joshuar/go-feed-me/web/templates"
+
+templ IndexPage() {
+	@templates.NewPage("Go Feed Me",
+		templates.WithDescription("Welcome to Go Feed Me"),
+	).Show() {
+		<div id="index-hero" class="hero bg-base-200 min-h-screen">
+			<div class="hero-content text-center">
+				<div class="max-w-md">
+					<h1 class="text-5xl font-bold">Go Feed Me</h1>
+					<p class="py-6">
+						Your new homepage on the internet.
+					</p>
+					<a
+						class="btn btn-primary"
+						hx-boost="false"
+						href="/login/auth0"
+					>Login with Auth0</a>
+					<a
+						class="btn btn-primary"
+						hx-boost="false"
+						href="/signup"
+					>Sign-up</a>
+				</div>
 			</div>
 		</div>
-	</div>
+	}
 }
