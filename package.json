@@ -15,29 +15,32 @@
       "distDir": "./static"
     }
   },
+  "exports": {
+    ".": "./scripts.js"
+  },
   "scripts": {
     "dev:build:js": "bun build ./assets/scripts.js ./assets/surreal.js --sourcemap --outdir=./static",
     "build:css": "postcss ./assets/styles.css -o ./static/styles.css"
   },
   "dependencies": {
-    "daisyui": "^5.0.27",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "daisyui": "^5.0.35",
     "date-fns": "^4.1.0",
     "htmx-ext-sse": "^2.2.3",
     "htmx.org": "^2.0.4",
     "hyperscript.org": "^0.9.14",
     "idiomorph": "^0.7.3",
     "tailwindcss": "4.0.9",
-    "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/typography": "^0.5.16",
     "theme-change": "^2.5.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.25.0",
-    "@tailwindcss/cli": "^4.1.4",
-    "@tailwindcss/postcss": "^4.1.4",
-    "eslint": "^9.25.0",
+    "@eslint/js": "^9.25.1",
+    "@prettier/plugin-xml": "^3.4.1",
+    "@tailwindcss/cli": "^4.1.5",
+    "@tailwindcss/postcss": "^4.1.5",
+    "eslint": "^9.25.1",
     "eslint-config-prettier": "^10.1.2",
-    "eslint-plugin-prettier": "^5.2.6",
     "globals": "^16.0.0",
     "postcss": "^8.5.3",
     "postcss-cli": "^11.0.1",
