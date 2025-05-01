@@ -7,70 +7,10 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
-	"github.com/joshuar/go-templ-daisyui/feedback/alert"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"slices"
 )
-
-templ notifications() {
-	<!-- Open the modal using ID.showModal() method -->
-	<div class="container mx-auto">
-		<button class="btn" onclick="my_modal_1.showModal()">open modal</button>
-		<dialog id="my_modal_1" class="modal modal-top">
-			<div role="alert" class="modal-box alert alert-info alert-soft">
-				Foobar
-				<div class="modal-action">
-					<form method="dialog">
-						<!-- if there is a button in form, it will close the modal -->
-						<button class="btn">Close</button>
-					</form>
-				</div>
-			</div>
-		</dialog>
-	</div>
-	<div
-		id="test-toast"
-		class="toast toast-end z-50"
-		hx-ext="sse"
-		sse-connect="/home/notifications"
-		sse-swap="notification"
-	></div>
-	// <div sse-connect="/home/notifications" sse-swap="notification"></div>
-	// <div
-	// 	hx-get="/home/notifications"
-	// 	hx-trigger="load delay:1s"
-	// 	hx-swap="outerHTML"
-	// ></div>
-}
-
-templ SSE(data chan string) {
-	<div id="test-toast" class="toast toast-end z-50">
-		for range data {
-			@templ.Flush() {
-				// event: notification
-				// data:
-				@alert.Build(alert.Info).Show() {
-					<div>
-						<h3 class="font-bold">New message!</h3>
-						<div class="text-xs">You have 1 unread message</div>
-					</div>
-					<button class="btn btn-sm" _="on click remove #{ d }">See</button>
-				}
-			}
-		}
-	</div>
-}
-
-templ Notify(data string) {
-	@alert.Build(alert.Info).Show() {
-		<div>
-			<h3 class="font-bold">New message!</h3>
-			<div class="text-xs">{ data }</div>
-		</div>
-		<button class="btn btn-sm" _="on click remove #test-alert">See</button>
-	}
-}
 
 // EmptyContent renders a hero with options for the user when the request
 // returned no other content.

@@ -7,12 +7,20 @@ import (
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/justinas/alice"
 
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/handlers"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
+
+// Index handler handles the index page.
+func (s Server) Index(res http.ResponseWriter, req *http.Request) {
+	layout := &layouts.IndexLayout{}
+	handlers.HTMXResponse(htmx.NewResponse(), layout.FullRender()).ServeHTTP(res, req)
+}
 
 // Login handler handles login requests.
 func (s Server) Login(res http.ResponseWriter, req *http.Request, provider string) {
@@ -34,9 +42,15 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 
 // GetSettings handles opening the settings modal.
 func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
-	spew.Dump(req.Referer())
-	spew.Dump(s.SessionAPI().Get(req.Context(), handlers.HomeHistorySessionKey))
-	handler := handlers.HTMXResponse(htmx.NewResponse(), settings.Page())
+	var backLink *models.Route
+	prevPage, ok := s.SessionAPI().Get(req.Context(), handlers.HomeHistorySessionKey).(string)
+	if !ok {
+		backLink = models.NewRoute("/home", nil)
+	} else {
+		backLink = models.NewRoute(prevPage, nil)
+	}
+	layout := settings.BuildSettingsLayout(partials.GenerateBackButton(backLink))
+	handler := handlers.HTMXResponse(htmx.NewResponse(), layout.FullRender())
 	handler.ServeHTTP(res, req)
 }
 

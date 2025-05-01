@@ -5,7 +5,9 @@ package layouts
 
 import "github.com/joshuar/go-feed-me/web/templates"
 
-templ IndexPage() {
+type IndexLayout struct{}
+
+templ (i *IndexLayout) FullRender() {
 	@templates.NewPage("Go Feed Me",
 		templates.WithDescription("Welcome to Go Feed Me"),
 	).Show() {
@@ -30,4 +32,8 @@ templ IndexPage() {
 			</div>
 		</div>
 	}
+}
+
+templ (i *IndexLayout) PartialRender() {
+	@i.FullRender()
 }

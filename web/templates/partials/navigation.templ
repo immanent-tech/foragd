@@ -1,0 +1,21 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+)
+
+// backButton generates a button for going back to the given path. It fetches
+// the last state of the path (i.e., any parameters used) from the user session.
+func GenerateBackButton(backRoute *models.Route) templ.Component {
+	return link.Build(
+		link.WithContent(icon.Build("fa-left-long")),
+		link.WithExtraAttributes(templ.Attributes{
+			"href": backRoute.String(),
+		}),
+	).Show()
+}

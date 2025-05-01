@@ -100,7 +100,8 @@
     "auth",
     "feeds",
     "elastic",
-    "components"
+    "components",
+    "layouts/settings"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

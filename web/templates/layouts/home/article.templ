@@ -26,7 +26,6 @@ templ (a *Article) Show(classes ...string) {
 			}),
 		).Show(classes...) {
 			@a.showItemArticle()
-			,
 		}
 	</div>
 }
@@ -82,7 +81,7 @@ templ (a *Article) showCategories() {
 			for _, category := range a.GetCategories() {
 				@badge.Build(
 					badge.WithSize(badge.SM),
-					badge.WithColor(badge.Neutral),
+					badge.WithColor(badge.Secondary),
 					badge.WithStyle(badge.Outline),
 					badge.WithContent(category),
 				).Show("p-1", "m-1")

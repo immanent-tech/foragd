@@ -6,78 +6,41 @@ package settings
 import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
+	"github.com/joshuar/go-templ-daisyui/attributes"
 )
 
-templ Page() {
-	@templates.NewPage("Settings").Show() {
-		@appbar.AppBar().Show()
-		@ThemeChangeMenu()
+var FooterID = attributes.ID("settings-footer")
+
+type SettingsLayout struct {
+	BackButton templ.Component
+}
+
+func BuildSettingsLayout(back templ.Component) *SettingsLayout {
+	return &SettingsLayout{
+		BackButton: back,
 	}
 }
 
-templ ThemeChangeMenu() {
-	<div class="dropdown mb-72">
-		<div tabindex="0" role="button" class="btn m-1">
-			Theme
-			<svg
-				width="12px"
-				height="12px"
-				class="inline-block h-2 w-2 fill-current opacity-60"
-				xmlns="http://www.w3.org/2000/svg"
-				viewBox="0 0 2048 2048"
-			>
-				<path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z"></path>
-			</svg>
+templ (l *SettingsLayout) FullRender() {
+	@templates.NewPage("Settings").Show() {
+		@appbar.AppBar().Show()
+		<div class="p-2 m-2">
+			<h2>Display</h2>
+			@themeChangeMenu()
 		</div>
-		<ul tabindex="0" class="dropdown-content bg-base-300 rounded-box z-1 w-52 p-2 shadow-2xl">
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Default"
-					value="default"
-					data-set-theme="default"
-				/>
-			</li>
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Retro"
-					data-set-theme="retro"
-					value="retro"
-				/>
-			</li>
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Cyberpunk"
-					data-set-theme="cyberpunk"
-					value="cyberpunk"
-				/>
-			</li>
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Valentine"
-					value="valentine"
-				/>
-			</li>
-			<li>
-				<input
-					type="radio"
-					name="theme-dropdown"
-					class="theme-controller w-full btn btn-sm btn-block btn-ghost justify-start"
-					aria-label="Aqua"
-					value="aqua"
-				/>
-			</li>
-		</ul>
+		@l.footer()
+	}
+}
+
+templ (l *SettingsLayout) footer() {
+	<div
+		id={ FooterID.String() }
+		hx-swap-oob="true"
+		hx-swap="morph:outerHTML"
+		class="bg-base-200 dock dock-sm"
+	>
+		<div title="Back" class="basis-xs">
+			@l.BackButton
+		</div>
 	</div>
 }

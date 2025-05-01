@@ -210,7 +210,8 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI SessionAPI, feedID models.F
 func SaveHomeHistory(session SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			session.Put(req.Context(), HomeHistorySessionKey, req.URL)
+			slog.Debug("Saving last visited page", slog.String("url", req.URL.String()))
+			session.Put(req.Context(), HomeHistorySessionKey, req.URL.String())
 			next.ServeHTTP(res, req)
 		})
 	}

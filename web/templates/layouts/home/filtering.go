@@ -60,7 +60,7 @@ func newViewFilter(ctx context.Context, view models.View) ViewFilter {
 	viewFilter := ViewFilter{}
 	viewFilter.Props = badge.Build(
 		badge.WithSize(badge.SM),
-		badge.WithColor(badge.Neutral),
+		badge.WithColor(badge.Accent),
 		badge.WithContent(string(view)),
 		badge.WithExtraAttributes(route.GetAttributes()),
 	)

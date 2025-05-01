@@ -8,6 +8,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/input"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 )
@@ -40,7 +41,7 @@ templ appBarTopCenter() {
 }
 
 templ appBarTopRight() {
-	<div class="flex-none">
+	<div title="Settings" class="flex-none">
 		<div class="dropdown dropdown-end">
 			<div
 				tabindex="0"
@@ -50,6 +51,7 @@ templ appBarTopRight() {
 			>
 				@icon.Build("fa-user-astronaut",
 					icon.WithRelativeSize(size.XL),
+					icon.WithThemeColor(color.Accent),
 				).Show()
 			</div>
 			<ul

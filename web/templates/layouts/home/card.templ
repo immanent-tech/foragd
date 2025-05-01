@@ -28,7 +28,7 @@ import (
 
 const cardSizingClasses = "max-h-1/4 w-full md:max-w-lg m-2 p-2"
 
-templ (c *Card) showRelativeTimestamp() {
+templ (c *Card) timestamp() {
 	@text.Build(
 		partials.ShowRelativeTimestamp(),
 		text.WithTextSize(text.SM),
@@ -101,7 +101,7 @@ templ (c *FeedCard) showTitle() {
 
 templ (c *FeedCard) showContent() {
 	@article.Build().Show() {
-		@c.showRelativeTimestamp()
+		@c.timestamp()
 		@c.showDescription()
 	}
 }
@@ -138,7 +138,7 @@ templ (c *ItemCard) showContent() {
 			</div>
 		</div>
 		<div class="flex-none">
-			@c.showRelativeTimestamp()
+			@c.timestamp()
 		</div>
 	}
 }

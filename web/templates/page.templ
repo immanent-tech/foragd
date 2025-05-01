@@ -18,7 +18,7 @@ templ (p *Page) Show() {
 	<!DOCTYPE html>
 	<html lang="en" data-theme="">
 		@p.Head.Show()
-		<body hx-ext="morph,sse" hx-on::history-restore="themeChange();">
+		<body hx-ext="morph,sse" hx-on::history-restore="themeBtn();">
 			{ children... }
 		</body>
 	</html>
