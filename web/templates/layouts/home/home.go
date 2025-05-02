@@ -25,8 +25,8 @@ var viewAttributes = templ.Attributes{
 	"hx-swap":     "morph:innerHTML",
 }
 
-// markAttributes are the common htmx attributes for mark actions.
-var markAttributes = templ.Attributes{
+// actionAttributes are the common htmx attributes for mark actions.
+var actionAttributes = templ.Attributes{
 	"_":           "on click halt the event's bubbling",
 	"hx-push-url": "false",
 	"hx-target":   ContentID.Target(),
@@ -34,7 +34,7 @@ var markAttributes = templ.Attributes{
 
 func buildMarkFeedAction(feedID models.FeedID, mark models.Mark) *templates.Action {
 	return templates.BuildAction(models.FeedsRoute,
-		templates.WithAttributes(markAttributes),
+		templates.WithAttributes(actionAttributes),
 		templates.WithMethod(http.MethodPost),
 		templates.WithQueryParam("mark", string(mark)),
 		templates.WithQueryParams(url.Values{models.ParamFeeds: []string{feedID}}),
@@ -43,7 +43,7 @@ func buildMarkFeedAction(feedID models.FeedID, mark models.Mark) *templates.Acti
 
 func buildMarkItemAction(feedID models.FeedID, itemID models.ItemID, mark models.Mark) *templates.Action {
 	return templates.BuildAction(models.ItemsRoute,
-		templates.WithAttributes(markAttributes),
+		templates.WithAttributes(actionAttributes),
 		templates.WithMethod(http.MethodPost),
 		templates.WithQueryParam("mark", string(mark)),
 		templates.WithQueryParams(url.Values{

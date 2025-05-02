@@ -102,7 +102,7 @@ func (s Server) SaveSubscription(w http.ResponseWriter, r *http.Request, feedID 
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) RemoveSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
+func (s Server) RemoveSubscription(w http.ResponseWriter, r *http.Request, subscriptionID models.SubscriptionID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 

@@ -5,8 +5,10 @@ package home
 
 import (
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
+	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/classes/width"
@@ -14,6 +16,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
+	"net/http"
 )
 
 // AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
@@ -73,4 +76,65 @@ templ BuildActionsMenu(actions ...templ.Component) {
 			),
 		).Show()
 	</div>
+}
+
+func markAction(mark models.Mark, attributes templ.Attributes) templ.Component {
+	var (
+		iconLabel templ.Component
+		textLabel string
+	)
+	switch mark {
+	case models.MarkRead:
+		iconLabel = icon.Build("fa-envelope").Show()
+		textLabel = "Mark Read"
+	case models.MarkUnread:
+		iconLabel = icon.Build("fa-envelope-open").Show()
+		textLabel = "Mark Unread"
+	}
+	return link.Build(
+		link.WithContent(
+			templ.Join(iconLabel, components.SetContent(textLabel)),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(attributes),
+		link.WithExtraClasses("w-fit"),
+	).Show()
+}
+
+templ shareAction(action *templates.Action) {
+	@link.Build(
+		link.WithContent(
+			templ.Join(icon.Build("fa-share").Show(), components.SetContent("Share")),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(action.Attributes()),
+		link.WithExtraClasses("w-fit"),
+	).Show()
+}
+
+templ visitExternalLinkAction(label, url string) {
+	@link.Build(
+		link.WithContent(
+			templ.Join(icon.Build("fa-arrow-up-right-from-square").Show(), components.SetContent("Visit "+label)),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(templ.Attributes{
+			"href": url,
+		}),
+		link.WithExtraClasses("w-fit"),
+	).Show()
+}
+
+func unsubscribeAction(id models.SubscriptionID) templ.Component {
+	route := models.NewRoute("/subscription/edit/"+id, nil,
+		models.WithMethod(http.MethodDelete),
+		models.WithAttributes(actionAttributes))
+	return link.Build(
+		link.WithContent(
+			templ.Join(icon.Build("fa-trash").Show(), components.SetContent("Unsubscribe")),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraClasses("w-fit"),
+		link.WithExtraAttributes(route.GetAttributes()),
+	).Show()
 }

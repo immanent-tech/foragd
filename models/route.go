@@ -25,6 +25,37 @@ type Route struct {
 	attributes templ.Attributes
 }
 
+// NewRouteFromCtx generates a route from details within the context.
+func NewRouteFromCtx(ctx context.Context, options ...RouteOption) *Route {
+	route := &Route{
+		path:       chi.RouteContext(ctx).RoutePattern(),
+		attributes: make(templ.Attributes),
+	}
+	filters := FiltersFromCtx(ctx)
+	route.filters = &filters
+
+	for option := range slices.Values(options) {
+		option(route)
+	}
+
+	return route
+}
+
+// NewRoute generates a route from the given path and filters.
+func NewRoute(path string, filters *Filters, options ...RouteOption) *Route {
+	route := &Route{
+		path:       path,
+		filters:    filters,
+		attributes: make(templ.Attributes),
+	}
+
+	for option := range slices.Values(options) {
+		option(route)
+	}
+
+	return route
+}
+
 // AddAttribute will add the given attribute to the route.
 func (r *Route) AddAttribute(key string, value any) {
 	r.Lock()
@@ -123,33 +154,9 @@ func WithAttributes(attributes templ.Attributes) RouteOption {
 	}
 }
 
-// NewRouteFromCtx generates a route from details within the context.
-func NewRouteFromCtx(ctx context.Context, options ...RouteOption) *Route {
-	route := &Route{
-		path:       chi.RouteContext(ctx).RoutePattern(),
-		attributes: make(templ.Attributes),
+// WithMethod sets the http method to use for the route.
+func WithMethod(method string) RouteOption {
+	return func(r *Route) {
+		r.method = method
 	}
-	filters := FiltersFromCtx(ctx)
-	route.filters = &filters
-
-	for option := range slices.Values(options) {
-		option(route)
-	}
-
-	return route
-}
-
-// NewRoute generates a route from the given path and filters.
-func NewRoute(path string, filters *Filters, options ...RouteOption) *Route {
-	route := &Route{
-		path:       path,
-		filters:    filters,
-		attributes: make(templ.Attributes),
-	}
-
-	for option := range slices.Values(options) {
-		option(route)
-	}
-
-	return route
 }

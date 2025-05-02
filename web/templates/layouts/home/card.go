@@ -14,7 +14,6 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 type FeedCard struct {
@@ -43,13 +42,13 @@ func (c *Card) generateMarkAction() templ.Component {
 	sourceID := c.id
 	switch {
 	case cardType == models.FeedPFX && c.IsUnread():
-		return partials.MarkReadAction(buildMarkFeedAction(sourceID, models.MarkRead))
+		return markAction(models.MarkRead, buildMarkFeedAction(sourceID, models.MarkRead).Attributes())
 	case cardType == models.FeedPFX && !c.IsUnread():
-		return partials.MarkUnreadAction(buildMarkFeedAction(sourceID, models.MarkUnread))
+		return markAction(models.MarkUnread, buildMarkFeedAction(sourceID, models.MarkRead).Attributes())
 	case cardType == models.ItemPFX && c.IsUnread():
-		return partials.MarkReadAction(buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkRead))
+		return markAction(models.MarkRead, buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkRead).Attributes())
 	case cardType == models.ItemPFX && !c.IsUnread():
-		return partials.MarkUnreadAction(buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkUnread))
+		return markAction(models.MarkUnread, buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkUnread).Attributes())
 	}
 	return nil
 }
@@ -94,9 +93,10 @@ func BuildFeedCard(ctx context.Context, subscription *models.Subscription) *Feed
 	}
 	feedCard.viewRoute = feedCard.generateViewRoute(ctx)
 	feedCard.menuActions = append(feedCard.menuActions,
-		partials.ShareAction(nil),
-		partials.VisitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
+		shareAction(nil),
+		visitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
 		feedCard.generateMarkAction(),
+		unsubscribeAction(subscription.GetID()),
 	)
 	feedCard.build()
 
@@ -116,8 +116,8 @@ func BuildItemCard(ctx context.Context, item *models.Item) *ItemCard {
 	}
 	itemCard.viewRoute = itemCard.generateViewRoute(ctx)
 	itemCard.menuActions = append(itemCard.menuActions,
-		partials.ShareAction(nil),
-		partials.VisitExternalLinkAction("External URL", item.GetLink()),
+		shareAction(nil),
+		visitExternalLinkAction("External URL", item.GetLink()),
 		itemCard.generateMarkAction(),
 	)
 	itemCard.build()
