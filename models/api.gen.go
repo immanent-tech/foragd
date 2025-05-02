@@ -37,6 +37,12 @@ const (
 	SortOrderDesc SortOrder = "desc"
 )
 
+// Defines values for UserDecision.
+const (
+	UserDecisionCancelled UserDecision = "cancelled"
+	UserDecisionConfirmed UserDecision = "confirmed"
+)
+
 // Defines values for View.
 const (
 	ViewAll    View = "all"
@@ -188,6 +194,9 @@ type SubscriptionRequest struct {
 	// UserNickname is a friendly name or nickname for the feed given by the user.
 	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
 }
+
+// UserDecision indicates the result of a user decision.
+type UserDecision string
 
 // UserSignupRequest contains the details for a user signup request.
 type UserSignupRequest struct {

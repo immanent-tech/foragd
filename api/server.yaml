@@ -1,520 +1,527 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
-openapi: "3.0.3"
+openapi: '3.0.3'
 info:
-  version: 1.0.0
-  title: Server Spec
-  description: OpenAPI spec for the Go Feed Me server.
+    version: 1.0.0
+    title: Server Spec
+    description: OpenAPI spec for the Go Feed Me server.
 paths:
-  /:
-    get:
-      description: display the home page.
-      operationId: index
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /login/{provider}:
-    get:
-      summary: Process a user login with given provider
-      operationId: login
-      tags:
-        - login
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        307:
-          description: Redirect to provider
-        404:
-          description: No provider to satisfy login
-        500:
-          description: Problem with request
-  /login/{provider}/callback:
-    get:
-      summary: Callback for login provider
-      operationId: loginCallback
-      tags:
-        - login
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        307:
-          description: Redirect to home
-        401:
-          description: Unauthorized
-        404:
-          description: No provider to satisfy login
-        500:
-          description: Problem with request
-  /logout:
-    get:
-      summary: >
-        User logout.
-      description: >
-        Logs a user out of the app.
-      operationId: logout
-  /signup:
-    get:
-      summary: >
-        Show the sign-up form.
-      description: >
-        Provides a form for new users to sign-up to the service.
-      operationId: signUp
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-    post:
-      summary: >
-        Process a sign-up request.
-      operationId: processSignUp
-      requestBody:
-        $ref: "#/components/requestBodies/UserSignupRequestBody"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /search:
-    post:
-      summary: Issue a user search request
-      operationId: Search
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-        401:
-          description: Unauthorized
-        500:
-          description: Problem with request
-      # requestBody:
-      #   description: filters for results
-      #   content:
-      #     application/x-www-form-urlencoded:
-      #       schema:
-      #         $ref: 'models.yaml#/components/schemas/Filters'
-  /settings:
-    get:
-      summary: Show user settings modal
-      operationId: getSettings
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-        401:
-          description: Unauthorized
-        500:
-          description: Problem with request
-  /subscription/new:
-    get:
-      summary: >
-        New subscription handling.
-      description: >
-        Presents a form for the user to enter details to add a new subscription.
-      operationId: newSubscription
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /subscription/add:
-    put:
-      summary: >
-        Add a subscription.
-      description: >
-        Adds a subscription for a user.
-      operationId: addSubscription
-      requestBody:
-        $ref: "#/components/requestBodies/SubscriptionRequest"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /subscription/import:
-    get:
-      description: >
-        Start an import.
-      operationId: startImport
-    put:
-      description: >
-        Set the import method.
-      operationId: setImportMethod
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - from
-              properties:
-                from:
-                  $ref: "api.yaml#/components/schemas/ImportSource"
-      # parameters:
-      #   - $ref: "api.yaml#/components/parameters/ImportSource"
-    post:
-      description: >
-        Process an import.
-      operationId: processImport
-      requestBody:
-        $ref: "#/components/requestBodies/ImportRequest"
-    responses:
-      200:
-        $ref: "#/components/responses/htmx"
-  /subscription/edit/{subscription}:
-    parameters:
-      - $ref: "#/components/parameters/SubscriptionID"
-    get:
-      summary: >
-        Show a subscription.
-      operationId: showSubscription
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-    put:
-      summary: >
-        Save a subscription.
-      operationId: saveSubscription
-      requestBody:
-        $ref: "#/components/requestBodies/SubscriptionRequest"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-    delete:
-      summary: >
-        Remove a subscription.
-      operationId: removeSubscription
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /subscription/edit/category:
-    put:
-      summary: >
-        Add a category to a subscription.
-      operationId: addSubscriptionCategory
-      requestBody:
-        $ref: "#/components/requestBodies/CategoryRequest"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-    delete:
-      summary: >
-        Remove a category from a subscription.
-      operationId: delSubscriptionCategory
-      requestBody:
-        $ref: "#/components/requestBodies/CategoryRequest"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /home:
-    get:
-      summary: >
-        Shows a page of curated feeds and content based on the user's
-        subscriptions and viewing preferences.
-      operationId: handleHome
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /home/notifications:
-    get:
-      summary: >
-        Endpoint point for SSE events regarding /home.
-      operationId: handleHomeNotifications
-      responses:
-        200:
-          $ref: "#/components/responses/sse"
-  /home/feeds:
-    get:
-      summary: >
-        Shows feeds with optional filtering applied.
-      operationId: handleShowFeeds
-      parameters:
-        - $ref: "#/components/parameters/Feeds"
-        - $ref: "#/components/parameters/Categories"
-        - $ref: "#/components/parameters/View"
-        - $ref: "#/components/parameters/Count"
-        - $ref: "#/components/parameters/Pagination"
-        - $ref: "#/components/parameters/SortBy"
-        - $ref: "#/components/parameters/SortOrder"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-    post:
-      summary: >
-        Mark feeds.
-      operationId: handleMarkFeeds
-      requestBody:
-        $ref: "#/components/requestBodies/MarkRequest"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /home/items:
-    get:
-      summary: >
-        Shows items with optional filtering applied.
-      operationId: handleShowItems
-      parameters:
-        - $ref: "#/components/parameters/Feeds"
-        - $ref: "#/components/parameters/Categories"
-        - $ref: "#/components/parameters/View"
-        - $ref: "#/components/parameters/Count"
-        - $ref: "#/components/parameters/Pagination"
-        - $ref: "#/components/parameters/SortBy"
-        - $ref: "#/components/parameters/SortOrder"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-    post:
-      summary: >
-        Mark feeds.
-      operationId: handleMarkItems
-      requestBody:
-        $ref: "#/components/requestBodies/MarkRequest"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /home/{feed}/{item}:
-    summary: >
-      Handle item.
-    parameters:
-      - $ref: "#/components/parameters/FeedID"
-      - $ref: "#/components/parameters/ItemID"
-    get:
-      summary: >
-        Shows a feed item.
-      operationId: handleShowItem
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-    put:
-      summary: >
-        Save a feed item to the user's saved items.
-      operationId: handleSaveItem
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-    delete:
-      summary: >
-        Remove a feed item from the user's saved items.
-      operationId: handleUnsaveItem
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
-  /home/{feed}/{item}/{mark}:
-    summary: >
-      Handle marking item.
-    post:
-      summary: >
-        Mark a feed item.
-      operationId: handleMarkItem
-      parameters:
-        - $ref: "#/components/parameters/FeedID"
-        - $ref: "#/components/parameters/ItemID"
-        - $ref: "#/components/parameters/Mark"
-      responses:
-        200:
-          $ref: "#/components/responses/htmx"
+    /:
+        get:
+            description: display the home page.
+            operationId: index
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+    /login/{provider}:
+        get:
+            summary: Process a user login with given provider
+            operationId: login
+            tags:
+                - login
+            parameters:
+                - name: provider
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                307:
+                    description: Redirect to provider
+                404:
+                    description: No provider to satisfy login
+                500:
+                    description: Problem with request
+    /login/{provider}/callback:
+        get:
+            summary: Callback for login provider
+            operationId: loginCallback
+            tags:
+                - login
+            parameters:
+                - name: provider
+                  in: path
+                  required: true
+                  schema:
+                      type: string
+            responses:
+                307:
+                    description: Redirect to home
+                401:
+                    description: Unauthorized
+                404:
+                    description: No provider to satisfy login
+                500:
+                    description: Problem with request
+    /logout:
+        get:
+            summary: >
+                User logout.
+            description: >
+                Logs a user out of the app.
+            operationId: logout
+    /signup:
+        get:
+            summary: >
+                Show the sign-up form.
+            description: >
+                Provides a form for new users to sign-up to the service.
+            operationId: signUp
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+        post:
+            summary: >
+                Process a sign-up request.
+            operationId: processSignUp
+            requestBody:
+                $ref: '#/components/requestBodies/UserSignupRequestBody'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+    /search:
+        post:
+            summary: Issue a user search request
+            operationId: Search
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+                401:
+                    description: Unauthorized
+                500:
+                    description: Problem with request
+            # requestBody:
+            #   description: filters for results
+            #   content:
+            #     application/x-www-form-urlencoded:
+            #       schema:
+            #         $ref: 'models.yaml#/components/schemas/Filters'
+    /settings:
+        get:
+            summary: Show user settings modal
+            operationId: getSettings
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+                401:
+                    description: Unauthorized
+                500:
+                    description: Problem with request
+    /subscription/new:
+        get:
+            summary: >
+                New subscription handling.
+            description: >
+                Presents a form for the user to enter details to add a new subscription.
+            operationId: newSubscription
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+    /subscription/add:
+        put:
+            summary: >
+                Add a subscription.
+            description: >
+                Adds a subscription for a user.
+            operationId: addSubscription
+            requestBody:
+                $ref: '#/components/requestBodies/SubscriptionRequest'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+    /subscription/import:
+        get:
+            description: >
+                Start an import.
+            operationId: startImport
+        put:
+            description: >
+                Set the import method.
+            operationId: setImportMethod
+            requestBody:
+                required: true
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: object
+                            required:
+                                - from
+                            properties:
+                                from:
+                                    $ref: 'api.yaml#/components/schemas/ImportSource'
+            # parameters:
+            #   - $ref: "api.yaml#/components/parameters/ImportSource"
+        post:
+            description: >
+                Process an import.
+            operationId: processImport
+            requestBody:
+                $ref: '#/components/requestBodies/ImportRequest'
+        responses:
+            200:
+                $ref: '#/components/responses/htmx'
+    /subscription/edit/{subscription}:
+        parameters:
+            - $ref: '#/components/parameters/SubscriptionID'
+        get:
+            summary: >
+                Show a subscription.
+            operationId: showSubscription
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+        put:
+            summary: >
+                Save a subscription.
+            operationId: saveSubscription
+            requestBody:
+                $ref: '#/components/requestBodies/SubscriptionRequest'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+        delete:
+            summary: >
+                Remove a subscription.
+            operationId: removeSubscription
+            parameters:
+                - $ref: '#/components/parameters/Decision'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+    /subscription/edit/category:
+        put:
+            summary: >
+                Add a category to a subscription.
+            operationId: addSubscriptionCategory
+            requestBody:
+                $ref: '#/components/requestBodies/CategoryRequest'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+        delete:
+            summary: >
+                Remove a category from a subscription.
+            operationId: delSubscriptionCategory
+            requestBody:
+                $ref: '#/components/requestBodies/CategoryRequest'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+    /home:
+        get:
+            summary: >
+                Shows a page of curated feeds and content based on the user's
+                subscriptions and viewing preferences.
+            operationId: handleHome
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+    /home/notifications:
+        get:
+            summary: >
+                Endpoint point for SSE events regarding /home.
+            operationId: handleHomeNotifications
+            responses:
+                200:
+                    $ref: '#/components/responses/sse'
+    /home/feeds:
+        get:
+            summary: >
+                Shows feeds with optional filtering applied.
+            operationId: handleShowFeeds
+            parameters:
+                - $ref: '#/components/parameters/Feeds'
+                - $ref: '#/components/parameters/Categories'
+                - $ref: '#/components/parameters/View'
+                - $ref: '#/components/parameters/Count'
+                - $ref: '#/components/parameters/Pagination'
+                - $ref: '#/components/parameters/SortBy'
+                - $ref: '#/components/parameters/SortOrder'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+        post:
+            summary: >
+                Mark feeds.
+            operationId: handleMarkFeeds
+            requestBody:
+                $ref: '#/components/requestBodies/MarkRequest'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+    /home/items:
+        get:
+            summary: >
+                Shows items with optional filtering applied.
+            operationId: handleShowItems
+            parameters:
+                - $ref: '#/components/parameters/Feeds'
+                - $ref: '#/components/parameters/Categories'
+                - $ref: '#/components/parameters/View'
+                - $ref: '#/components/parameters/Count'
+                - $ref: '#/components/parameters/Pagination'
+                - $ref: '#/components/parameters/SortBy'
+                - $ref: '#/components/parameters/SortOrder'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+        post:
+            summary: >
+                Mark feeds.
+            operationId: handleMarkItems
+            requestBody:
+                $ref: '#/components/requestBodies/MarkRequest'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+    /home/{feed}/{item}:
+        summary: >
+            Handle item.
+        parameters:
+            - $ref: '#/components/parameters/FeedID'
+            - $ref: '#/components/parameters/ItemID'
+        get:
+            summary: >
+                Shows a feed item.
+            operationId: handleShowItem
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+        put:
+            summary: >
+                Save a feed item to the user's saved items.
+            operationId: handleSaveItem
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+        delete:
+            summary: >
+                Remove a feed item from the user's saved items.
+            operationId: handleUnsaveItem
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
+    /home/{feed}/{item}/{mark}:
+        summary: >
+            Handle marking item.
+        post:
+            summary: >
+                Mark a feed item.
+            operationId: handleMarkItem
+            parameters:
+                - $ref: '#/components/parameters/FeedID'
+                - $ref: '#/components/parameters/ItemID'
+                - $ref: '#/components/parameters/Mark'
+            responses:
+                200:
+                    $ref: '#/components/responses/htmx'
 components:
-  schemas:
-    ImportOPML:
-      description: >
-        allows importing feeds from a URL pointing to an OPML file.
-      type: string
-      x-oapi-codegen-extra-tags:
-        json: "opml_url"
-        form: "opml_url"
-        validate: "url"
-    ImportFile:
-      description: >
-        allows importing feeds from an OPML file
-      type: string
-      format: binary
-      x-oapi-codegen-extra-tags:
-        json: "opml_file"
-        form: "opml_file"
-    ImportURLs:
-      description: >
-        allows importing feeds from an list of feed URLs.
-      type: array
-      items:
-        type: string
-      x-oapi-codegen-extra-tags:
-        json: "url_list"
-        form: "url_list"
-        validate: "unique,dive,dive,required,url"
-    Import:
-      description: >
-        contains data for importing.
-      type: object
-      required:
-        - from
-        - data
-      properties:
-        from:
-          $ref: "api.yaml#/components/schemas/ImportSource"
-        data:
-          oneOf:
-            - $ref: "#/components/schemas/ImportOPML"
-            - $ref: "#/components/schemas/ImportFile"
-            - $ref: "#/components/schemas/ImportURLs"
-          x-oapi-codegen-extra-tags:
-            form: "data"
-  parameters:
-    # Path parameters:
-    FeedID:
-      name: feed
-      in: path
-      required: true
-      schema:
-        $ref: "models.yaml#/components/schemas/FeedID"
-    ItemID:
-      name: item
-      in: path
-      required: true
-      schema:
-        $ref: "models.yaml#/components/schemas/ItemID"
-    SubscriptionID:
-      name: subscription
-      in: path
-      required: true
-      schema:
-        $ref: "models.yaml#/components/schemas/SubscriptionID"
-    Mark:
-      name: mark
-      in: path
-      required: true
-      schema:
-        $ref: "models.yaml#/components/schemas/Mark"
-    # Query Parameters:
-    View:
-      name: view
-      in: query
-      required: true
-      schema:
-        $ref: "api.yaml#/components/schemas/View"
-    Count:
-      name: count
-      in: query
-      required: true
-      schema:
-        $ref: "api.yaml#/components/schemas/Count"
-    Feeds:
-      name: feeds
-      in: query
-      schema:
-        type: array
-        items:
-          $ref: "models.yaml#/components/schemas/FeedID"
-        x-oapi-codegen-extra-tags:
-          json: "feeds"
-          form: "feeds[]"
-          validate: "omitnil,unique,dive,startswith=feed_"
-      # x-go-type-skip-optional-pointer: true
-    Items:
-      name: items
-      in: query
-      schema:
-        description: is a list of items IDs.
-        type: array
-        items:
-          $ref: "models.yaml#/components/schemas/ItemID"
-        x-oapi-codegen-extra-tags:
-          json: "items"
-          form: "items[]"
-          validate: "omitnil,unique,dive,startswith=item_"
-        x-go-type-skip-optional-pointer: true
-      # x-go-type-skip-optional-pointer: true
-    Categories:
-      name: categories
-      in: query
-      schema:
-        description: is a list of categories.
-        type: array
-        items:
-          $ref: "models.yaml#/components/schemas/Category"
-        x-oapi-codegen-extra-tags:
-          json: "categories"
-          form: "categories[]"
-          validate: "omitnil,unique"
-        # x-go-type-skip-optional-pointer: true
-      # x-go-type-skip-optional-pointer: true
-    Pagination:
-      name: pagination
-      in: query
-      schema:
-        $ref: "api.yaml#/components/schemas/Pagination"
-    SortBy:
-      name: sort_by
-      in: query
-      required: true
-      schema:
-        $ref: "api.yaml#/components/schemas/SortBy"
-    SortOrder:
-      name: sort_order
-      in: query
-      required: true
-      schema:
-        $ref: "api.yaml#/components/schemas/SortOrder"
-    ImportSource:
-      name: import_source
-      in: query
-      required: true
-      schema:
-        $ref: "api.yaml#/components/schemas/ImportSource"
-  requestBodies:
-    ImportRequest:
-      description: >
-        Holds data for importing subscriptions
-      required: true
-      content:
-        multipart/form-data:
-          schema:
-            $ref: "#/components/schemas/Import"
-    MarkRequest:
-      description: >
-        Holds options for marking objects.
-      required: true
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            $ref: "api.yaml#/components/schemas/MarkObjects"
-    UserSignupRequestBody:
-      description: >
-        Holds details for adding/saving a user signup.
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            $ref: "api.yaml#/components/schemas/UserSignupRequest"
-    SubscriptionRequest:
-      description: >
-        Holds details for adding/saving a subscription.
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            $ref: "api.yaml#/components/schemas/SubscriptionRequest"
-    CategoryRequest:
-      description: >
-        A list of categories to add/remove from a subscription.
-      required: true
-      content:
-        application/x-www-form-urlencoded:
-          schema:
+    schemas:
+        ImportOPML:
+            description: >
+                allows importing feeds from a URL pointing to an OPML file.
+            type: string
+            x-oapi-codegen-extra-tags:
+                json: 'opml_url'
+                form: 'opml_url'
+                validate: 'url'
+        ImportFile:
+            description: >
+                allows importing feeds from an OPML file
+            type: string
+            format: binary
+            x-oapi-codegen-extra-tags:
+                json: 'opml_file'
+                form: 'opml_file'
+        ImportURLs:
+            description: >
+                allows importing feeds from an list of feed URLs.
+            type: array
+            items:
+                type: string
+            x-oapi-codegen-extra-tags:
+                json: 'url_list'
+                form: 'url_list'
+                validate: 'unique,dive,dive,required,url'
+        Import:
+            description: >
+                contains data for importing.
             type: object
             required:
-              - category
+                - from
+                - data
             properties:
-              category:
-                $ref: "models.yaml#/components/schemas/Category"
-  responses:
-    html:
-      description: >
-        regular html response, usually a full page.
-      content:
-        "text/html;charset=utf-8": {}
-    htmx:
-      description: >
-        htmx powered response, which might be partial or full page content.
-      content:
-        "text/html;charset=utf-8": {}
-    sse:
-      description: server sent event
-      content:
-        "text/event-stream;charset=utf-8": {}
+                from:
+                    $ref: 'api.yaml#/components/schemas/ImportSource'
+                data:
+                    oneOf:
+                        - $ref: '#/components/schemas/ImportOPML'
+                        - $ref: '#/components/schemas/ImportFile'
+                        - $ref: '#/components/schemas/ImportURLs'
+                    x-oapi-codegen-extra-tags:
+                        form: 'data'
+    parameters:
+        # Path parameters:
+        FeedID:
+            name: feed
+            in: path
+            required: true
+            schema:
+                $ref: 'models.yaml#/components/schemas/FeedID'
+        ItemID:
+            name: item
+            in: path
+            required: true
+            schema:
+                $ref: 'models.yaml#/components/schemas/ItemID'
+        SubscriptionID:
+            name: subscription
+            in: path
+            required: true
+            schema:
+                $ref: 'models.yaml#/components/schemas/SubscriptionID'
+        Mark:
+            name: mark
+            in: path
+            required: true
+            schema:
+                $ref: 'models.yaml#/components/schemas/Mark'
+        # Query Parameters:
+        Decision:
+            name: decision
+            in: query
+            schema:
+                $ref: 'api.yaml#/components/schemas/UserDecision'
+        View:
+            name: view
+            in: query
+            required: true
+            schema:
+                $ref: 'api.yaml#/components/schemas/View'
+        Count:
+            name: count
+            in: query
+            required: true
+            schema:
+                $ref: 'api.yaml#/components/schemas/Count'
+        Feeds:
+            name: feeds
+            in: query
+            schema:
+                type: array
+                items:
+                    $ref: 'models.yaml#/components/schemas/FeedID'
+                x-oapi-codegen-extra-tags:
+                    json: 'feeds'
+                    form: 'feeds[]'
+                    validate: 'omitnil,unique,dive,startswith=feed_'
+            # x-go-type-skip-optional-pointer: true
+        Items:
+            name: items
+            in: query
+            schema:
+                description: is a list of items IDs.
+                type: array
+                items:
+                    $ref: 'models.yaml#/components/schemas/ItemID'
+                x-oapi-codegen-extra-tags:
+                    json: 'items'
+                    form: 'items[]'
+                    validate: 'omitnil,unique,dive,startswith=item_'
+                x-go-type-skip-optional-pointer: true
+            # x-go-type-skip-optional-pointer: true
+        Categories:
+            name: categories
+            in: query
+            schema:
+                description: is a list of categories.
+                type: array
+                items:
+                    $ref: 'models.yaml#/components/schemas/Category'
+                x-oapi-codegen-extra-tags:
+                    json: 'categories'
+                    form: 'categories[]'
+                    validate: 'omitnil,unique'
+                # x-go-type-skip-optional-pointer: true
+            # x-go-type-skip-optional-pointer: true
+        Pagination:
+            name: pagination
+            in: query
+            schema:
+                $ref: 'api.yaml#/components/schemas/Pagination'
+        SortBy:
+            name: sort_by
+            in: query
+            required: true
+            schema:
+                $ref: 'api.yaml#/components/schemas/SortBy'
+        SortOrder:
+            name: sort_order
+            in: query
+            required: true
+            schema:
+                $ref: 'api.yaml#/components/schemas/SortOrder'
+        ImportSource:
+            name: import_source
+            in: query
+            required: true
+            schema:
+                $ref: 'api.yaml#/components/schemas/ImportSource'
+    requestBodies:
+        ImportRequest:
+            description: >
+                Holds data for importing subscriptions
+            required: true
+            content:
+                multipart/form-data:
+                    schema:
+                        $ref: '#/components/schemas/Import'
+        MarkRequest:
+            description: >
+                Holds options for marking objects.
+            required: true
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        $ref: 'api.yaml#/components/schemas/MarkObjects'
+        UserSignupRequestBody:
+            description: >
+                Holds details for adding/saving a user signup.
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        $ref: 'api.yaml#/components/schemas/UserSignupRequest'
+        SubscriptionRequest:
+            description: >
+                Holds details for adding/saving a subscription.
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        $ref: 'api.yaml#/components/schemas/SubscriptionRequest'
+        CategoryRequest:
+            description: >
+                A list of categories to add/remove from a subscription.
+            required: true
+            content:
+                application/x-www-form-urlencoded:
+                    schema:
+                        type: object
+                        required:
+                            - category
+                        properties:
+                            category:
+                                $ref: 'models.yaml#/components/schemas/Category'
+    responses:
+        html:
+            description: >
+                regular html response, usually a full page.
+            content:
+                'text/html;charset=utf-8': {}
+        htmx:
+            description: >
+                htmx powered response, which might be partial or full page content.
+            content:
+                'text/html;charset=utf-8': {}
+        sse:
+            description: server sent event
+            content:
+                'text/event-stream;charset=utf-8': {}

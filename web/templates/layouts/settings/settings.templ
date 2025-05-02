@@ -28,26 +28,6 @@ templ (l *SettingsLayout) FullRender() {
 			<h2>Display</h2>
 			@themeChangeMenu()
 		</div>
-		<button
-			id="confirm"
-			hx-get="/confirmed"
-			hx-trigger="confirmed"
-			onclick="my_modal_1.showModal()"
-		>
-			Click Me
-		</button>
-		<dialog id="my_modal_1" class="modal" _="on closeModal add .closing then wait for animationend">
-			<div class="modal-box">
-				<h3 class="font-bold">Are you sure?</h3>
-				<div class="modal-action">
-					<form method="dialog">
-						<button onClick="htmx.trigger('#confirm','confirmed')" class="btn">Yes</button>
-						<button class="btn">No</button>
-					</form>
-				</div>
-			</div>
-			<div class="modal-backdrop" _="on click or keyup[key=='Esc'] remove @open from #my_modal_1 wait 200ms"></div>
-		</dialog>
 		@l.footer()
 	}
 }

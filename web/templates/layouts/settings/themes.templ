@@ -5,7 +5,7 @@ package settings
 
 // themeChangeMenu displays a dropdown menu containing the themes that can be selected for the app.
 templ themeChangeMenu() {
-	<div title="Change Theme" class="dropdown dropdown-end block">
+	<div title="Change Theme" class="dropdown block">
 		<div tabindex="0" role="button" class="btn group btn-sm btn-ghost" aria-label="Change Theme">
 			Theme:
 			<div class="bg-base-100 group-hover:border-base-content/20 border-base-content/10 grid shrink-0 grid-cols-2 gap-0.5 rounded-md border p-1 transition-colors">
@@ -19,7 +19,7 @@ templ themeChangeMenu() {
             console.log(document.documentElement.getAttributeNode('data-theme').innerText)
             </script>
 		</div>
-		<div tabindex="0" class="dropdown-content bg-base-200 text-base-content rounded-box top-px h-[30.5rem] max-h-[calc(100vh-8.6rem)] overflow-y-auto border border-white/5 shadow-2xl outline-1 outline-black/5">
+		<div tabindex="0" class="dropdown-content bg-base-200 text-base-content rounded-box overflow-y-auto shadow-2xl outline-1">
 			<ul class="menu max-w-56">
 				<li class="menu-title text-xs">Choose a theme</li>
 				@themeSelect("light")

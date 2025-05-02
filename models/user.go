@@ -95,6 +95,15 @@ func (u *User) AddSubscriptions(subscriptions Subscriptions) {
 	}
 }
 
+// RemoveSubscriptions removes the given Subscriptions from the User.
+func (u *User) RemoveSubscriptions(subscriptionIDs ...SubscriptionID) {
+	for id := range slices.Values(subscriptionIDs) {
+		u.Subscriptions = slices.DeleteFunc(u.Subscriptions, func(s *Subscription) bool {
+			return id == s.GetID()
+		})
+	}
+}
+
 // IsSubscribed returns a boolean indicating whether the user is subscribed to the feed with the given ID.
 func (u *User) IsSubscribed(feedID FeedID) bool {
 	subscriptions := u.GetSubscriptions().FilterByFeedID(feedID)

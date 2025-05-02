@@ -10,9 +10,14 @@ import "github.com/joshuar/go-templ-daisyui/actions/button"
 import "github.com/joshuar/go-templ-daisyui/display/icon"
 
 var CommandModalID = attributes.ID("command-modal")
+var NotificationsID = attributes.ID("notifications")
 
 templ CommandModal() {
 	<div id={ CommandModalID.String() } class="container mx-auto px-4"></div>
+}
+
+templ NotificationsArea() {
+	<div id={ NotificationsID.String() } class="container my-12 mx-auto absolute inset-x-0 bottom-0 z-999"></div>
 }
 
 // CloseModalButton will position a button in the top-right of a modal that can

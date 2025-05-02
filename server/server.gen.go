@@ -42,6 +42,9 @@ type Categories = []externalRef0.Category
 // Count is the count of items to retrieve with a request.
 type Count = externalRef0.Count
 
+// Decision indicates the result of a user decision.
+type Decision = externalRef0.UserDecision
+
 // FeedID is the unique ID of a feed.
 type FeedID = externalRef0.FeedID
 
@@ -101,6 +104,11 @@ type DelSubscriptionCategoryFormdataBody struct {
 type AddSubscriptionCategoryFormdataBody struct {
 	// Category represents a taxonomy applied to an object.
 	Category externalRef0.Category `form:"category" json:"category"`
+}
+
+// RemoveSubscriptionParams defines parameters for RemoveSubscription.
+type RemoveSubscriptionParams struct {
+	Decision *Decision `form:"decision,omitempty" json:"decision,omitempty"`
 }
 
 // SetImportMethodFormdataBody defines parameters for SetImportMethod.
@@ -291,7 +299,7 @@ type ServerInterface interface {
 	AddSubscriptionCategory(w http.ResponseWriter, r *http.Request)
 	// Remove a subscription.
 	// (DELETE /subscription/edit/{subscription})
-	RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
+	RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params RemoveSubscriptionParams)
 	// Show a subscription.
 	// (GET /subscription/edit/{subscription})
 	ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
@@ -443,7 +451,7 @@ func (_ Unimplemented) AddSubscriptionCategory(w http.ResponseWriter, r *http.Re
 
 // Remove a subscription.
 // (DELETE /subscription/edit/{subscription})
-func (_ Unimplemented) RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
+func (_ Unimplemented) RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params RemoveSubscriptionParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1086,8 +1094,19 @@ func (siw *ServerInterfaceWrapper) RemoveSubscription(w http.ResponseWriter, r *
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RemoveSubscriptionParams
+
+	// ------------- Optional query parameter "decision" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "decision", r.URL.Query(), &params.Decision)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "decision", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.RemoveSubscription(w, r, subscription)
+		siw.Handler.RemoveSubscription(w, r, subscription, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {

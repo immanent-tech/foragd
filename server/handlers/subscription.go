@@ -17,6 +17,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
 
@@ -379,6 +380,29 @@ func ImportResults(err *models.Message) http.Handler {
 				subscription.ImportResultsModal(subscription.ImportSuccess(numSuccess, numFail, resultsFile.String())),
 			); err != nil {
 			InternalServerError(res, req, err)
+		}
+	})
+}
+
+// RemoveSubscription handles processing a subscription removal request.
+func RemoveSubscription(api DataAPI, id models.SubscriptionID, decision *models.UserDecision) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		resp := htmx.NewResponse()
+		switch {
+		case decision == nil:
+			HTMXResponse(resp, home.UnsubscribeConfirmModal(id)).ServeHTTP(res, req)
+		case *decision == models.UserDecisionConfirmed:
+			if err := api.RemoveSubscriptions(req.Context(), id); err != nil {
+				InternalServerError(res, req, err)
+			} else {
+				HTMXResponse(resp, home.UnsubscribeSuccess()).ServeHTTP(res, req)
+			}
+		case *decision == models.UserDecisionCancelled:
+			if _, err := res.Write(nil); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Cannot display content.",
+					slog.Any("error", err))
+				http.Error(res, "Problem!", http.StatusInternalServerError)
+			}
 		}
 	})
 }

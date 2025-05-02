@@ -47,6 +47,7 @@ type DataAPI interface {
 	GetSubscriptions(ctx context.Context) (models.Subscriptions, models.Pagination, error)
 	MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error
+	RemoveSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) error
 	// Feeds methods:
 	// GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
 	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)

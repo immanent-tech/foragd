@@ -11,6 +11,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/actions/modal"
 	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
@@ -26,7 +27,7 @@ func AddSubscriptionAction(classes ...string) templ.Component {
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/new",
 			"hx-target": partials.CommandModalID.Target(),
-			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to " + subscription.SubscriptionModalID.Target(),
+			"_":         partials.HyperscriptOpenModal(subscription.SubscriptionModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
 		}),
 		link.WithUnderlineOnHover(),
 	).Show(classes...)
@@ -40,7 +41,7 @@ func ImportAction(classes ...string) templ.Component {
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/import",
 			"hx-target": partials.CommandModalID.Target(),
-			"_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to " + subscription.ImportModalID.Target(),
+			"_":         partials.HyperscriptOpenModal(subscription.SubscriptionModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
 		}),
 		link.WithUnderlineOnHover(),
 	).Show(classes...)
@@ -128,7 +129,10 @@ templ visitExternalLinkAction(label, url string) {
 func unsubscribeAction(id models.SubscriptionID) templ.Component {
 	route := models.NewRoute("/subscription/edit/"+id, nil,
 		models.WithMethod(http.MethodDelete),
-		models.WithAttributes(actionAttributes))
+		models.WithAttributes(templ.Attributes{
+			"hx-target": partials.CommandModalID.Target(),
+			"_":         partials.HyperscriptOpenModal("#modal_"+id) + " then " + partials.HyperscriptCloseDropdown(),
+		}))
 	return link.Build(
 		link.WithContent(
 			templ.Join(icon.Build("fa-trash").Show(), components.SetContent("Unsubscribe")),
@@ -137,4 +141,25 @@ func unsubscribeAction(id models.SubscriptionID) templ.Component {
 		link.WithExtraClasses("w-fit"),
 		link.WithExtraAttributes(route.GetAttributes()),
 	).Show()
+}
+
+templ UnsubscribeConfirmModal(id models.SubscriptionID) {
+	@modal.Build(
+		modal.WithID("modal_"+id),
+		modal.WithCloseOutside(),
+	).Show() {
+		<h3 class="font-bold">Unsubscribe from feed?</h3>
+		<div class="modal-action">
+			<form method="dialog" _={ partials.HyperscriptCloseModalOnClick("#modal_" + id) }>
+				<button name="decision" value="confirmed" class="btn" hx-delete={ "/subscription/edit/" + id } hx-target={ "#" + id } hx-swap="outerHTML">Yes</button>
+				<button name="decision" value="cancelled" class="btn">No</button>
+			</form>
+		</div>
+	}
+}
+
+templ UnsubscribeSuccess() {
+	<div role="alert" class="alert alert-success alert-soft" _="on load wait 2s then transition opacity to 0 then settle then remove me" style="transition: all 2s fade-in-out">
+		<span>Unsubscribed</span>
+	</div>
 }

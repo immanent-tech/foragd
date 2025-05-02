@@ -116,7 +116,7 @@ func (c *FeedCard) build() {
 			card.WithContent(c.showContent()),
 			card.WithActions(c.menuActions.Show()),
 		),
-		card.WithID(c.id),
+		card.WithID(c.Source.GetID()),
 		card.WithExtraClasses(cardSizingClasses),
 	)
 }

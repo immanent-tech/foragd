@@ -102,8 +102,11 @@ func (s Server) SaveSubscription(w http.ResponseWriter, r *http.Request, feedID 
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) RemoveSubscription(w http.ResponseWriter, r *http.Request, subscriptionID models.SubscriptionID) {
-	w.WriteHeader(http.StatusNotImplemented)
+func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID, params RemoveSubscriptionParams) {
+	chain := alice.New(
+		handlers.RouteLogger("remove_subscriptions"),
+	).Then(handlers.RemoveSubscription(s.DataAPI(), subscriptionID, params.Decision))
+	chain.ServeHTTP(res, req)
 }
 
 func (f *AddSubscriptionCategoryFormdataBody) Valid() (bool, error) {
