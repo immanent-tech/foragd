@@ -11,6 +11,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/layout/join"
+	"slices"
 )
 
 // categoryInput provides an input field for adding a Category to a Subscription.
@@ -63,4 +64,64 @@ templ ShowCategory(category models.Category) {
 			}),
 		).Show("join-item"),
 	)
+}
+
+templ manageCategories(categories ...string) {
+	<form
+		id="addCategoryForm"
+		_="on submit
+      halt the event
+      set categoryInput to (first <input/> in me).value
+      send newCategory(category: categoryInput) to #categories
+      set value of first <input/> in me to ''"
+	>
+		<fieldset class="fieldset">
+			<label class="label">Add Category (optional)</label>
+			@join.Horizontally(
+				textinput.Build(
+					textinput.WithPlaceholder("CoolStuff"),
+				).Show("join-item"),
+				button.Build(
+					button.AsShape(button.Square),
+					button.WithContent(icon.Build("fa-plus")),
+				).Show("join-item"),
+			)
+		</fieldset>
+	</form>
+	<form>
+		<fieldset id="foo" class="fieldset">
+			<label class="label">Current Categories (click a category to remove):</label>
+			<input
+				type="hidden"
+				name="user_categories"
+				form={ AddSubscriptionDetailsFormID.String() }
+				id="categories"
+				_="on newCategory(category)
+       append `,$category` to @value
+       make a <li/> then put category into it
+       put it at the start of #shown-categories
+     end
+
+     on delCategory(category)
+       call (@value of me).split(',')
+       make a Set from it then set s to it
+       call s.delete(category) then call s.delete('')
+       call Array.from(s) then set my @value to it.join(',')
+       for el in #shown-categories.children
+         if innerHTML of el == category
+           remove el
+         end
+       end
+     end"
+			/>
+			<ul
+				id="shown-categories"
+				_="on click send delCategory(category: innerHTML of target) to #categories"
+			>
+				for category := range slices.Values(categories) {
+					<li>{ category }</li>
+				}
+			</ul>
+		</fieldset>
+	</form>
 }

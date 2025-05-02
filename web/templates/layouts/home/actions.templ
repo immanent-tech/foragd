@@ -4,6 +4,7 @@
 package home
 
 import (
+	"github.com/davecgh/go-spew/spew"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -14,6 +15,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
 	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
@@ -23,7 +25,7 @@ import (
 // AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
 func AddSubscriptionAction(classes ...string) templ.Component {
 	return link.Build(
-		link.WithContent("Add Subscription"),
+		link.WithContent(text.Build("Add Subscription", text.WithSize(text.SM))),
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/new",
 			"hx-target": partials.CommandModalID.Target(),
@@ -37,11 +39,11 @@ func AddSubscriptionAction(classes ...string) templ.Component {
 // via opml).
 func ImportAction(classes ...string) templ.Component {
 	return link.Build(
-		link.WithContent("Import..."),
+		link.WithContent(text.Build("Import", text.WithSize(text.SM))),
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/import",
 			"hx-target": partials.CommandModalID.Target(),
-			"_":         partials.HyperscriptOpenModal(subscription.SubscriptionModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
+			"_":         partials.HyperscriptOpenModal(subscription.ImportModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
 		}),
 		link.WithUnderlineOnHover(),
 	).Show(classes...)
@@ -76,6 +78,12 @@ templ BuildActionsMenu(actions ...templ.Component) {
 				menu.WithItems(actions...),
 			),
 		).Show()
+		{{spew.Dump(menu.Build(menu.WithMenuTitle("Actions"),
+	menu.WithBaseColor(color.Base200),
+	menu.WithExtraClasses(width.W52),
+	menu.WithItems(actions...),
+))
+		}}
 	</div>
 }
 

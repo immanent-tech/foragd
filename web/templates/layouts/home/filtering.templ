@@ -13,7 +13,7 @@ import (
 )
 
 templ (filters CategoryFilters) Show(classes ...string) {
-	@text.Build("Categories:", text.WithTextWeight(text.Semibold), text.WithTextSize(text.XS)).Show()
+	@text.Build("Categories:", text.WithWeight(text.Semibold), text.WithSize(text.XS)).Show()
 	<div class="flex flex-wrap">
 		for _, filter := range filters {
 			@filter.Show(classes...)
@@ -40,7 +40,7 @@ templ (filter *CategoryFilter) Show(classes ...string) {
 // Show renders the view filter as a set of badges joined together.
 templ (filters ViewFilters) Show(classes ...string) {
 	{{ classes = append(classes, "join-item") }}
-	@text.Build("View:", text.WithTextWeight(text.Semibold), text.WithTextSize(text.XS)).Show()
+	@text.Build("View:", text.WithWeight(text.Semibold), text.WithSize(text.XS)).Show()
 	<div class="join">
 		for viewFilter := range slices.Values(filters) {
 			@viewFilter.Show(classes...)

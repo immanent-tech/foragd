@@ -33,8 +33,8 @@ templ (a *Article) Show(classes ...string) {
 templ (a *Article) showTitle() {
 	<h2>
 		@text.Build(a.GetTitle(),
-			text.WithTextWeight(text.Semibold),
-			text.WithTextSize(text.LG),
+			text.WithWeight(text.Semibold),
+			text.WithSize(text.LG),
 		).Show("flex-1")
 	</h2>
 }
@@ -59,7 +59,7 @@ templ (a *Article) showAuthors() {
 	if len(a.GetAuthors()) > 0 {
 		<div class="flex-1">
 			@text.Build(strings.Join(a.GetAuthors(), ","),
-				text.WithTextSize(text.XS),
+				text.WithSize(text.XS),
 				text.AsItalicText(),
 			).Show()
 		</div>
@@ -69,7 +69,7 @@ templ (a *Article) showAuthors() {
 templ (a *Article) showTimestamp() {
 	<div class="flex-none">
 		@text.Build(a.GetUpdatedDate().String(),
-			text.WithTextSize(text.XS),
+			text.WithSize(text.XS),
 			text.AsItalicText(),
 		).Show()
 	</div>

@@ -15,7 +15,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/input/form"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
-	"slices"
 )
 
 // SubscriptionModalID is the ID of the modal.
@@ -41,7 +40,7 @@ type SubscriptionRequest struct {
 func (r *SubscriptionRequest) inputURL() *textinput.Props {
 	return textinput.Build(
 		textinput.WithName("url"),
-		textinput.AsType(textinput.TypeURL),
+		textinput.AsType(textinput.URL),
 		textinput.WithPlaceholder("https://awesomefeed.lol.rss"),
 		textinput.Required(),
 		textinput.Validate(),
@@ -88,30 +87,31 @@ templ (r *SubscriptionRequest) Form(msg *models.Message) {
 				).Show(),
 			),
 		).Show()
-		// Display an input to add a Category to the Subscription.
-		@form.BuildForm(
-			form.WithID(AddCategoryFormID.String()),
-			form.WithExtraAttributes(
-				templ.Attributes{
-					"hx-put":               "/subscription/edit/category",
-					"hx-swap":              "beforeend",
-					"hx-on::after-request": "if(event.detail.successful) this.reset()",
-					"hx-target":            CategoryListID.Target(),
-				},
-			),
-			form.WithElements(
-				fieldset.Build(
-					fieldset.WithField("Category (optional)", newCategoryInput()),
-				).Show(),
-			),
-		).Show()
-		// Display any Categories assigned to the Subscription with a button to
-		// remove them.
-		<div id={ CategoryListID.String() } hx-target="closest div" hx-swap="outerHTML swap:1s">
-			for category := range slices.Values(r.UserCategories) {
-				@ShowCategory(category)
-			}
-		</div>
+		@manageCategories(r.UserCategories...)
+		// // Display an input to add a Category to the Subscription.
+		// @form.BuildForm(
+		// 	form.WithID(AddCategoryFormID.String()),
+		// 	form.WithExtraAttributes(
+		// 		templ.Attributes{
+		// 			"hx-put":               "/subscription/edit/category",
+		// 			"hx-swap":              "beforeend",
+		// 			"hx-on::after-request": "if(event.detail.successful) this.reset()",
+		// 			"hx-target":            CategoryListID.Target(),
+		// 		},
+		// 	),
+		// 	form.WithElements(
+		// 		fieldset.Build(
+		// 			fieldset.WithField("Category (optional)", newCategoryInput()),
+		// 		).Show(),
+		// 	),
+		// ).Show()
+		// // Display any Categories assigned to the Subscription with a button to
+		// // remove them.
+		// <div id={ CategoryListID.String() } hx-target="closest div" hx-swap="outerHTML swap:1s">
+		// 	for category := range slices.Values(r.UserCategories) {
+		// 		@ShowCategory(category)
+		// 	}
+		// </div>
 		// Add a button to submit the Subscription details when finished editing.
 		@fieldset.Build(
 			fieldset.WithField("",
@@ -141,9 +141,8 @@ templ NewSubscriptionModal(req *models.SubscriptionRequest, msg *models.Message)
 		modal.WithID(SubscriptionModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
-		// modal.OpenInitially(),
 	).Show() {
-		@text.Build("Add a new subscription", text.WithTextSize(text.LG)).Show()
+		@text.Build("Add a new subscription", text.WithSize(text.LG)).Show()
 		if req != nil {
 			@NewSubscriptionRequest(req).Form(msg)
 		}
@@ -156,7 +155,6 @@ templ NewSubscriptionResultsModal(msg *models.Message) {
 		modal.WithID(SubscriptionModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
-		// modal.OpenInitially(),
 		modal.WithActions(
 			button.Build(
 				button.WithSize(button.SM),

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -39,6 +40,7 @@ func ParseSubscriptionRequest(next http.Handler) http.Handler {
 				models.MessageStatusError,
 				models.WithError(err))
 		}
+		spew.Dump(request.UserCategories)
 		// Store subscriptions in context.
 		ctx = context.WithValue(ctx, subscriptionRequestsCtxKey, models.SubscriptionRequests{request})
 		next.ServeHTTP(res, req.WithContext(ctx))

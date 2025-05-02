@@ -31,7 +31,7 @@ const cardSizingClasses = "max-h-1/4 w-full md:max-w-lg m-2 p-2"
 templ (c *Card) timestamp() {
 	@text.Build(
 		partials.ShowRelativeTimestamp(),
-		text.WithTextSize(text.SM),
+		text.WithSize(text.SM),
 		text.WithAttributes(templ.Attributes{
 			"value": c.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"),
 		}),
@@ -40,7 +40,7 @@ templ (c *Card) timestamp() {
 
 templ (c *Card) showDescription() {
 	if desc := c.GetDescription(); desc != "" {
-		@text.Build(desc, text.WithTextSize(text.SM), text.AsItalicText()).Show()
+		@text.Build(desc, text.WithSize(text.SM), text.AsItalicText()).Show()
 	}
 }
 
