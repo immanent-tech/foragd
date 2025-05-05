@@ -3,7 +3,7 @@
 # Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-openapi: "3.0.3"
+openapi: '3.0.3'
 info:
   version: 1.0.0
   title: Common Models
@@ -14,90 +14,89 @@ components:
     # Common Fields.
     Timestamp:
       description: is when the document was created.
-      x-go-type: "time.Time"
+      x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        json: "@timestamp"
-        validate: "required"
+        json: '@timestamp'
+        validate: 'required'
     CreatedAt:
       description: records when the object was created in the database.
-      x-go-type: "time.Time"
+      x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        json: "created_at"
-        validate: "required"
+        json: 'created_at'
+        validate: 'required'
     UpdatedAt:
       description: records when the object was last updated in the database.
-      x-go-type: "time.Time"
+      x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        json: "updated_at,omitempty"
-        validate: "omitnil"
+        json: 'updated_at,omitempty'
+        validate: 'omitnil'
     DeletedAt:
       description: records when the object was deleted.
-      x-go-type: "time.Time"
+      x-go-type: 'time.Time'
       x-oapi-codegen-extra-tags:
-        json: "deleted_at,omitempty"
-        validate: "omitnil"
+        json: 'deleted_at,omitempty'
+        validate: 'omitnil'
       deprecated: true
     MaxHistory:
       description: >
         is a duration representing the maximum time-frame over which objects contained within are available.
       type: string
       x-oapi-codegen-extra-tags:
-        form: "-"
-        validate: "duration"
+        form: '-'
     URL: &URL
       description: is a URL.
       type: string
       x-go-name: URL
       x-oapi-codegen-extra-tags:
-        validate: "url"
-        json: "url"
+        validate: 'url'
+        json: 'url'
     Mark:
       description: >
         applies the given mark action to objects.
       type: string
-      enum: ["read", "unread"]
+      enum: ['read', 'unread']
       x-oapi-codegen-extra-tags:
-        form: "mark"
-        validate: "oneof=read unread"
+        form: 'mark'
+        validate: 'oneof=read unread'
     State:
       description: >
         Tracks the state of an object.
       type: string
-      enum: ["read", "unread", "saved"]
-      default: "unread"
+      enum: ['read', 'unread', 'saved']
+      default: 'unread'
       x-oapi-codegen-extra-tags:
-        json: "state"
-        validate: "oneof=read unread saved"
+        json: 'state'
+        validate: 'oneof=read unread saved'
     HTMLString:
       description: is a string that can contain HTML.
       type: string
       x-go-type-skip-optional-pointer: true
       x-oapi-codegen-extra-tags:
-        validate: "url_encoded"
+        validate: 'url_encoded'
     FeedID:
       description: is the unique ID of a feed.
       type: string
       x-go-name: FeedID
       x-oapi-codegen-extra-tags:
-        validate: "required,startswith=feed_"
-        json: "feed_id"
-        form: "feed_id"
+        validate: 'required,startswith=feed_'
+        json: 'feed_id'
+        form: 'feed_id'
     ItemID:
       description: is the unique ID of an item.
       type: string
       x-go-name: ItemID
       x-oapi-codegen-extra-tags:
-        validate: "required,startswith=item_"
-        json: "item_id"
-        form: "feed_id"
+        validate: 'required,startswith=item_'
+        json: 'item_id'
+        form: 'feed_id'
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
       x-go-name: SubscriptionID
       x-oapi-codegen-extra-tags:
-        validate: "required,startswith=sub_"
-        form: "subscription_id"
-        json: "subscription_id"
+        validate: 'required,startswith=sub_'
+        form: 'subscription_id'
+        json: 'subscription_id'
     ItemState:
       description: >
         contains the user state for the item.
@@ -107,18 +106,18 @@ components:
         - state
       properties:
         item_id:
-          $ref: "#/components/schemas/ItemID"
+          $ref: '#/components/schemas/ItemID'
         state:
-          $ref: "#/components/schemas/State"
+          $ref: '#/components/schemas/State'
       x-oapi-codegen-extra-tags:
-        json: "-"
+        json: '-'
     UserID:
       description: is the unique ID of a user.
       type: string
       x-go-name: UserID
       x-oapi-codegen-extra-tags:
-        json: "user_id"
-        validate: "required"
+        json: 'user_id'
+        validate: 'required'
     Category:
       description: >
         represents a taxonomy applied to an object.
@@ -133,7 +132,7 @@ components:
         - count
       properties:
         category:
-          $ref: "#/components/schemas/Category"
+          $ref: '#/components/schemas/Category'
         count:
           type: integer
           minimum: 0
@@ -144,29 +143,29 @@ components:
         - created_at
       properties:
         created_at:
-          $ref: "#/components/schemas/CreatedAt"
+          $ref: '#/components/schemas/CreatedAt'
         updated_at:
-          $ref: "#/components/schemas/UpdatedAt"
+          $ref: '#/components/schemas/UpdatedAt'
     # Objects.
     User:
       description: is a user of the application.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Timestamps"
+        - $ref: '#/components/schemas/Timestamps'
         - type: object
           required:
             - user_id
             - max_history
           properties:
             user_id:
-              $ref: "#/components/schemas/UserID"
+              $ref: '#/components/schemas/UserID'
             subscriptions:
               description: >
                 is the list of subscriptions for the user.
-              x-go-type: "[]*Subscription"
+              x-go-type: '[]*Subscription'
               x-go-type-skip-optional-pointer: true
             max_history:
-              $ref: "#/components/schemas/MaxHistory"
+              $ref: '#/components/schemas/MaxHistory'
     ObjectCommon:
       description: contains common fields across objects.
       type: object
@@ -180,13 +179,13 @@ components:
           description: >
             indicates what type of source the object came from.
           type: string
-          enum: ["RSS", "Atom", "JSONFeed"]
+          enum: ['RSS', 'Atom', 'JSONFeed']
         title:
           description: >
             is the title of the feed or item.
           type: string
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         description:
           description: >
             is a short summary or description of the feed or item.
@@ -198,7 +197,7 @@ components:
           type: string
           x-go-name: URL
           x-oapi-codegen-extra-tags:
-            validate: "omitempty,url"
+            validate: 'omitempty,url'
           x-go-type-skip-optional-pointer: true
         published:
           description: >
@@ -214,9 +213,9 @@ components:
             is a list of categories that define a taxonomy for the feed or item.
           type: array
           items:
-            $ref: "#/components/schemas/Category"
+            $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
-            validate: "omitempty,unique"
+            validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
         authors:
           description: >
@@ -225,7 +224,7 @@ components:
           items:
             type: string
           x-oapi-codegen-extra-tags:
-            validate: "omitempty,unique"
+            validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
         contributors:
           description: >
@@ -234,10 +233,10 @@ components:
           items:
             type: string
           x-oapi-codegen-extra-tags:
-            validate: "omitempty,unique"
+            validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
         image:
-          $ref: "../models/feeds/types.yaml#/components/schemas/Image"
+          $ref: '../models/feeds/types.yaml#/components/schemas/Image'
         language:
           type: string
           x-go-type-skip-optional-pointer: true
@@ -257,7 +256,7 @@ components:
           type: string
         data:
           description: the encoded session data.
-          x-go-type: "[]byte"
+          x-go-type: '[]byte'
         expiry:
           description: the time at which this session token expires.
           x-go-type: time.Time
@@ -271,19 +270,19 @@ components:
             is a friendly name or nickname for the feed given by the user.
           type: string
           x-oapi-codegen-extra-tags:
-            form: "user_nickname"
-            validate: "omitempty"
+            form: 'user_nickname'
+            validate: 'omitempty'
           x-go-type-skip-optional-pointer: true
         user_categories:
           description: >
             is a user-defined list of Category names for the subscription.
           type: array
           items:
-            $ref: "#/components/schemas/Category"
+            $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
-            json: "user_categories"
-            form: "user_categories[]"
-            validate: "omitempty,unique"
+            json: 'user_categories'
+            form: 'user_categories[]'
+            validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
     SubscriptionState:
       description: >
@@ -294,19 +293,19 @@ components:
       properties:
         marked_read:
           description: records when the subscription was last marked read.
-          x-go-type: "time.Time"
+          x-go-type: 'time.Time'
           x-oapi-codegen-extra-tags:
-            form: "-"
-            validate: "required"
+            form: '-'
+            validate: 'required'
         item_states:
           description: >
             contains states of items that the user has explicitly marked or saved.
           type: array
           items:
-            $ref: "#/components/schemas/ItemState"
+            $ref: '#/components/schemas/ItemState'
           x-oapi-codegen-extra-tags:
-            form: "-"
-            validate: "omitempty,unique"
+            form: '-'
+            validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
         unread_count:
           description: >
@@ -314,18 +313,18 @@ components:
           type: integer
           minimum: 0
           x-oapi-codegen-extra-tags:
-            json: "-"
-            form: "-"
-            validate: "numeric,gte=0"
+            json: '-'
+            form: '-'
+            validate: 'numeric,gte=0'
           x-go-type-skip-optional-pointer: true
     Subscription:
       description: >
         represents a feed a user has subscribed to.
       type: object
       allOf:
-        - $ref: "#/components/schemas/Timestamps"
-        - $ref: "#/components/schemas/SubscriptionCustomisation"
-        - $ref: "#/components/schemas/SubscriptionState"
+        - $ref: '#/components/schemas/Timestamps'
+        - $ref: '#/components/schemas/SubscriptionCustomisation'
+        - $ref: '#/components/schemas/SubscriptionState'
         - type: object
           required:
             - subscription_id
@@ -333,25 +332,25 @@ components:
             - max_history
           properties:
             subscription_id:
-              $ref: "#/components/schemas/SubscriptionID"
+              $ref: '#/components/schemas/SubscriptionID'
             feed_id:
-              $ref: "#/components/schemas/FeedID"
+              $ref: '#/components/schemas/FeedID'
             feed:
               description: >
                 contains the Feed details. This field will be populated at query time.
               allOf:
-                - $ref: "#/components/schemas/Feed"
+                - $ref: '#/components/schemas/Feed'
               x-oapi-codegen-extra-tags:
-                json: "-"
-                form: "-"
-                validate: "required"
+                json: '-'
+                form: '-'
+                validate: 'required'
             max_history:
-              $ref: "#/components/schemas/MaxHistory"
+              $ref: '#/components/schemas/MaxHistory'
     Feed:
       description: represents a feed object.
       type: object
       allOf:
-        - $ref: "#/components/schemas/ObjectCommon"
+        - $ref: '#/components/schemas/ObjectCommon'
         - type: object
           required:
             - feed_id
@@ -359,36 +358,36 @@ components:
             - created_at
           properties:
             feed_id:
-              $ref: "#/components/schemas/FeedID"
+              $ref: '#/components/schemas/FeedID'
             source:
               description: >
                 is a URL to the source Feed document.
               allOf:
-                - $ref: "#/components/schemas/URL"
+                - $ref: '#/components/schemas/URL'
               x-go-name: SourceURL
               x-oapi-codegen-extra-tags:
-                validate: "required,url"
+                validate: 'required,url'
             created_at:
-              $ref: "#/components/schemas/CreatedAt"
+              $ref: '#/components/schemas/CreatedAt'
     Item:
       description: represents an individual item (e.g., an individual feed item).
       type: object
       allOf:
-        - $ref: "#/components/schemas/ObjectCommon"
+        - $ref: '#/components/schemas/ObjectCommon'
         - type: object
           required:
             - item_id
             - feed_id
-            - "@timestamp"
+            - '@timestamp'
           properties:
-            "@timestamp":
-              $ref: "#/components/schemas/Timestamp"
+            '@timestamp':
+              $ref: '#/components/schemas/Timestamp'
             item_id:
-              $ref: "#/components/schemas/ItemID"
+              $ref: '#/components/schemas/ItemID'
             feed_id:
-              $ref: "#/components/schemas/FeedID"
+              $ref: '#/components/schemas/FeedID'
             state:
-              $ref: "#/components/schemas/State"
+              $ref: '#/components/schemas/State'
             content:
               description: >
                 contains the item content.

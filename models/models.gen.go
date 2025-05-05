@@ -242,7 +242,7 @@ type Subscription struct {
 	MarkedRead time.Time `form:"-" json:"marked_read" validate:"required"`
 
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
-	MaxHistory MaxHistory `form:"-" json:"max_history" validate:"duration"`
+	MaxHistory MaxHistory `form:"-" json:"max_history"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -308,7 +308,7 @@ type User struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
-	MaxHistory MaxHistory `form:"-" json:"max_history" validate:"duration"`
+	MaxHistory MaxHistory `form:"-" json:"max_history"`
 
 	// Subscriptions is the list of subscriptions for the user.
 	Subscriptions []*Subscription `json:"subscriptions,omitempty"`
