@@ -89,31 +89,34 @@ templ manageCategories(categories ...string) {
 		</fieldset>
 	</form>
 	<form>
-		<fieldset id="foo" class="fieldset">
-			<label class="label">Current Categories (click a category to remove):</label>
-			<input
-				type="hidden"
-				name="user_categories"
-				form={ AddSubscriptionDetailsFormID.String() }
-				id="categories"
-				_="on newCategory(category)
-       append `,$category` to @value
-       make a <li/> then put category into it
-       put it at the start of #shown-categories
-     end
+		<fieldset
+			id="categories"
+			class="fieldset"
+			_="
+			on newCategory(category)
+			  make a <input/>
+			  set its type to 'hidden'
+			  set its name to 'user_categories[]'
+			  set its value to category
+			  set its id to category
+			  set its @form to 'add-subscription-details-form'
+			  append it to me
+			  make a <li/> then put category into it
+       		  put it at the start of #shown-categories
+			end
 
-     on delCategory(category)
-       call (@value of me).split(',')
-       make a Set from it then set s to it
-       call s.delete(category) then call s.delete('')
-       call Array.from(s) then set my @value to it.join(',')
-       for el in #shown-categories.children
-         if innerHTML of el == category
-           remove el
-         end
-       end
-     end"
-			/>
+			on delCategory(category)
+			  tell <input[id=`${category}`]/>
+			  	remove yourself
+			  end
+			for el in #shown-categories.children
+         	  if innerHTML of el == category
+           	  	remove el
+         	  end
+       		end
+			"
+		>
+			<label class="label">Current Categories (click a category to remove):</label>
 			<ul
 				id="shown-categories"
 				_="on click send delCategory(category: innerHTML of target) to #categories"

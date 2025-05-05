@@ -94,18 +94,6 @@ type HandleShowItemsParams struct {
 	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
 }
 
-// DelSubscriptionCategoryFormdataBody defines parameters for DelSubscriptionCategory.
-type DelSubscriptionCategoryFormdataBody struct {
-	// Category represents a taxonomy applied to an object.
-	Category externalRef0.Category `form:"category" json:"category"`
-}
-
-// AddSubscriptionCategoryFormdataBody defines parameters for AddSubscriptionCategory.
-type AddSubscriptionCategoryFormdataBody struct {
-	// Category represents a taxonomy applied to an object.
-	Category externalRef0.Category `form:"category" json:"category"`
-}
-
 // RemoveSubscriptionParams defines parameters for RemoveSubscription.
 type RemoveSubscriptionParams struct {
 	Decision *Decision `form:"decision,omitempty" json:"decision,omitempty"`
@@ -128,12 +116,6 @@ type ProcessSignUpFormdataRequestBody = externalRef0.UserSignupRequest
 
 // AddSubscriptionFormdataRequestBody defines body for AddSubscription for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
-
-// DelSubscriptionCategoryFormdataRequestBody defines body for DelSubscriptionCategory for application/x-www-form-urlencoded ContentType.
-type DelSubscriptionCategoryFormdataRequestBody DelSubscriptionCategoryFormdataBody
-
-// AddSubscriptionCategoryFormdataRequestBody defines body for AddSubscriptionCategory for application/x-www-form-urlencoded ContentType.
-type AddSubscriptionCategoryFormdataRequestBody AddSubscriptionCategoryFormdataBody
 
 // SaveSubscriptionFormdataRequestBody defines body for SaveSubscription for application/x-www-form-urlencoded ContentType.
 type SaveSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
@@ -291,12 +273,6 @@ type ServerInterface interface {
 	// Add a subscription.
 	// (PUT /subscription/add)
 	AddSubscription(w http.ResponseWriter, r *http.Request)
-	// Remove a category from a subscription.
-	// (DELETE /subscription/edit/category)
-	DelSubscriptionCategory(w http.ResponseWriter, r *http.Request)
-	// Add a category to a subscription.
-	// (PUT /subscription/edit/category)
-	AddSubscriptionCategory(w http.ResponseWriter, r *http.Request)
 	// Remove a subscription.
 	// (DELETE /subscription/edit/{subscription})
 	RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params RemoveSubscriptionParams)
@@ -434,18 +410,6 @@ func (_ Unimplemented) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 // Add a subscription.
 // (PUT /subscription/add)
 func (_ Unimplemented) AddSubscription(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Remove a category from a subscription.
-// (DELETE /subscription/edit/category)
-func (_ Unimplemented) DelSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Add a category to a subscription.
-// (PUT /subscription/edit/category)
-func (_ Unimplemented) AddSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1052,34 +1016,6 @@ func (siw *ServerInterfaceWrapper) AddSubscription(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
-// DelSubscriptionCategory operation middleware
-func (siw *ServerInterfaceWrapper) DelSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.DelSubscriptionCategory(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// AddSubscriptionCategory operation middleware
-func (siw *ServerInterfaceWrapper) AddSubscriptionCategory(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.AddSubscriptionCategory(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // RemoveSubscription operation middleware
 func (siw *ServerInterfaceWrapper) RemoveSubscription(w http.ResponseWriter, r *http.Request) {
 
@@ -1391,12 +1327,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/subscription/add", wrapper.AddSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/subscription/edit/category", wrapper.DelSubscriptionCategory)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/subscription/edit/category", wrapper.AddSubscriptionCategory)
 	})
 	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/subscription/edit/{subscription}", wrapper.RemoveSubscription)
