@@ -1,6 +1,7 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+// Package forms contains methods for handling form decoding and encoding.
 package forms
 
 import (
@@ -15,10 +16,14 @@ import (
 )
 
 var (
-	ErrDecode     = errors.New("error in decoding")
-	ErrEncode     = errors.New("error in encoding")
+	// ErrDecode indicates an error occurred during decoding.
+	ErrDecode = errors.New("error in decoding")
+	// ErrEncode indicates an error occurred during encoding.
+	ErrEncode = errors.New("error in encoding")
+	// ErrValidation indicates an error occurred during validation.
 	ErrValidation = errors.New("validation failed")
-	ErrSanitise   = errors.New("sanitisation failed")
+	// ErrSanitise indicates an error occurred during sanitisation.
+	ErrSanitise = errors.New("sanitisation failed")
 )
 
 var (
@@ -101,27 +106,27 @@ func DecodeCustom[T FormInput](req *http.Request, decoderFunc func(params url.Va
 func DecodeMultipartFile[T File](req *http.Request, field string, file T) (T, bool, error) {
 	// Parse form values in request.
 	if err := req.ParseMultipartForm(defaultMaxSize); err != nil {
-		return file, false, errors.Join(ErrDecode, err)
+		return file, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Decode the form values.
 	data, hdr, err := req.FormFile(field)
 	if err != nil {
-		return file, false, errors.Join(ErrDecode, err)
+		return file, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Load file data.
 	err = file.Load(data, hdr)
 	if err != nil {
-		return file, false, errors.Join(ErrDecode, err)
+		return file, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Validate the file data.
 	if ok, err := file.Valid(); !ok {
-		return file, false, err
+		return file, false, fmt.Errorf("%w: %w", ErrValidation, err)
 	}
 
 	return file, true, nil
 }
 
-// DecodeMultipartFile will the file represented by the given field in a multipart form
+// DecodeMultipartValue will the file represented by the given field in a multipart form
 // submission. It will perform validation of the file and will return the file
 // object and a boolean true if it is valid. If decoding fails, a non-nill error
 // is returned.
@@ -134,6 +139,7 @@ func DecodeMultipartValue(req *http.Request, field string) (string, error) {
 	return req.FormValue(field), nil
 }
 
+// DecodeRequest will decode a request body into the given type.
 func DecodeRequest[T any](req *http.Request) (T, error) {
 	var obj T
 	if err := json.NewDecoder(req.Body).Decode(&obj); err != nil {
