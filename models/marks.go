@@ -14,6 +14,11 @@ func (f *MarkFeedItems) Valid() (bool, error) {
 	return true, nil
 }
 
+// Sanitise is a no-op for MarkFeedItems.
+func (f *MarkFeedItems) Sanitise() error {
+	return nil
+}
+
 // Valid checks that the MarkFeeds object is valid.
 func (f *MarkFeeds) Valid() (bool, error) {
 	valid, err := validation.ValidateStruct(f)
@@ -21,4 +26,9 @@ func (f *MarkFeeds) Valid() (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+// Sanitise is a no-op for MarkFeeds.
+func (f *MarkFeeds) Sanitise() error {
+	return nil
 }

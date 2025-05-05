@@ -21,6 +21,8 @@ import (
 	"net/http"
 )
 
+const actionTextClasses = "w-fit text-xs"
+
 // AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
 func AddSubscriptionAction(classes ...string) templ.Component {
 	return link.Build(
@@ -30,6 +32,7 @@ func AddSubscriptionAction(classes ...string) templ.Component {
 			"hx-target": partials.CommandModalID.Target(),
 			"_":         partials.HyperscriptOpenModal(subscription.SubscriptionModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
 		}),
+		link.WithExtraClasses(actionTextClasses),
 		link.WithUnderlineOnHover(),
 	).Show(classes...)
 }
@@ -44,6 +47,7 @@ func ImportAction(classes ...string) templ.Component {
 			"hx-target": partials.CommandModalID.Target(),
 			"_":         partials.HyperscriptOpenModal(subscription.ImportModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
 		}),
+		link.WithExtraClasses(actionTextClasses),
 		link.WithUnderlineOnHover(),
 	).Show(classes...)
 }
@@ -100,7 +104,7 @@ func markAction(mark models.Mark, attributes templ.Attributes) templ.Component {
 		),
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(attributes),
-		link.WithExtraClasses("w-fit"),
+		link.WithExtraClasses(actionTextClasses),
 	).Show()
 }
 
@@ -111,7 +115,7 @@ templ shareAction(action *templates.Action) {
 		),
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(action.Attributes()),
-		link.WithExtraClasses("w-fit"),
+		link.WithExtraClasses(actionTextClasses),
 	).Show()
 }
 
@@ -125,7 +129,7 @@ templ visitExternalLinkAction(label, url string) {
 			"href": url,
 			"_":    "on mouseenter add .menu-active to me end on mouseleave remove .menu-active from me end",
 		}),
-		link.WithExtraClasses("w-fit"),
+		link.WithExtraClasses(actionTextClasses),
 	).Show()
 }
 
@@ -140,7 +144,7 @@ func editSubscriptionAction(id models.SubscriptionID) templ.Component {
 			templ.Join(icon.Build("fa-pen").Show(), components.SetContent("Edit")),
 		),
 		link.WithUnderlineOnHover(),
-		link.WithExtraClasses("w-fit"),
+		link.WithExtraClasses(actionTextClasses),
 		link.WithExtraAttributes(route.GetAttributes()),
 	).Show()
 }
@@ -157,7 +161,7 @@ func unsubscribeAction(id models.SubscriptionID) templ.Component {
 			templ.Join(icon.Build("fa-trash").Show(), components.SetContent("Unsubscribe")),
 		),
 		link.WithUnderlineOnHover(),
-		link.WithExtraClasses("w-fit"),
+		link.WithExtraClasses(actionTextClasses),
 		link.WithExtraAttributes(route.GetAttributes()),
 	).Show()
 }

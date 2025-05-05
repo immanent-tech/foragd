@@ -50,6 +50,10 @@ func (f *SetImportMethodFormdataBody) Valid() (bool, error) {
 	return true, nil
 }
 
+func (f *SetImportMethodFormdataBody) Sanitise() error {
+	return nil
+}
+
 // SetImportMethod parses the selected import method and calls the appropriate handler to handle that import method.
 func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
 	importMethod, valid, err := forms.DecodeForm[*SetImportMethodFormdataBody](req)

@@ -28,6 +28,7 @@ func (s *SubscriptionEditRequest) editNickname() *textinput.Props {
 		textinput.WithName("user_nickname"),
 		textinput.WithValue(s.GetName()),
 		textinput.WithPlaceholder("My memorable feed name"),
+		textinput.Required(),
 	)
 }
 

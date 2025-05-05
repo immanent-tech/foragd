@@ -6,6 +6,7 @@ package forms
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -14,8 +15,10 @@ import (
 )
 
 var (
-	ErrDecode = errors.New("error in decoding")
-	ErrEncode = errors.New("error in encoding")
+	ErrDecode     = errors.New("error in decoding")
+	ErrEncode     = errors.New("error in encoding")
+	ErrValidation = errors.New("validation failed")
+	ErrSanitise   = errors.New("sanitisation failed")
 )
 
 var (
@@ -23,12 +26,13 @@ var (
 	encoder = form.NewEncoder()
 )
 
-// DefaultMaxSize for a multipart for submission is 32 MB.
-const DefaultMaxSize = 32 << 20
+// defaultMaxSize for a multipart for submission is 32 MB.
+const defaultMaxSize = 32 << 20
 
-// Validator is an object that can be validated.
-type Validator interface {
+// FormInput represents form input data. It has methods to test if the data is valid and to sanitise the input data.
+type FormInput interface {
 	Valid() (bool, error)
+	Sanitise() error
 }
 
 // File is an object to store an uploaded file.
@@ -41,20 +45,24 @@ type File interface {
 // will perform validation of the type and will return the type and a boolean
 // true if it is valid. If decoding the form submission fails, a non-nill error
 // is returned.
-func DecodeForm[T Validator](req *http.Request) (T, bool, error) {
+func DecodeForm[T FormInput](req *http.Request) (T, bool, error) {
 	var obj T
 	// Parse form values in request.
 	if err := req.ParseForm(); err != nil {
-		return obj, false, errors.Join(ErrDecode, err)
+		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Decode the form values.
 	err := decoder.Decode(&obj, req.Form)
 	if err != nil {
-		return obj, false, errors.Join(ErrDecode, err)
+		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
+	}
+	// Sanitise the object.
+	if err := obj.Sanitise(); err != nil {
+		return obj, false, fmt.Errorf("%w: %w", ErrSanitise, err)
 	}
 	// Validate the object.
 	if ok, err := obj.Valid(); !ok {
-		return obj, false, err
+		return obj, false, fmt.Errorf("%w: %w", ErrValidation, err)
 	}
 	return obj, true, nil
 }
@@ -64,22 +72,25 @@ func DecodeForm[T Validator](req *http.Request) (T, bool, error) {
 // will perform validation of the type and will return the type and a boolean
 // true if it is valid. If decoding the form submission fails, a non-nill error
 // is returned.
-func DecodeCustom[T Validator](req *http.Request, decoderFunc func(params url.Values) (T, error)) (T, bool, error) {
+func DecodeCustom[T FormInput](req *http.Request, decoderFunc func(params url.Values) (T, error)) (T, bool, error) {
 	var obj T
 	// Parse form values in request.
 	if err := req.ParseForm(); err != nil {
-		return obj, false, errors.Join(ErrDecode, err)
+		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
 	}
 	// Call the custom decoder function.
 	obj, err := decoderFunc(req.Form)
 	if err != nil {
-		return obj, false, errors.Join(ErrDecode, err)
+		return obj, false, fmt.Errorf("%w: %w", ErrDecode, err)
+	}
+	// Sanitise the object.
+	if err := obj.Sanitise(); err != nil {
+		return obj, false, fmt.Errorf("%w: %w", ErrSanitise, err)
 	}
 	// Validate the object.
 	if ok, err := obj.Valid(); !ok {
-		return obj, false, err
+		return obj, false, fmt.Errorf("%w: %w", ErrValidation, err)
 	}
-
 	return obj, true, nil
 }
 
@@ -89,7 +100,7 @@ func DecodeCustom[T Validator](req *http.Request, decoderFunc func(params url.Va
 // is returned.
 func DecodeMultipartFile[T File](req *http.Request, field string, file T) (T, bool, error) {
 	// Parse form values in request.
-	if err := req.ParseMultipartForm(DefaultMaxSize); err != nil {
+	if err := req.ParseMultipartForm(defaultMaxSize); err != nil {
 		return file, false, errors.Join(ErrDecode, err)
 	}
 	// Decode the form values.
@@ -116,7 +127,7 @@ func DecodeMultipartFile[T File](req *http.Request, field string, file T) (T, bo
 // is returned.
 func DecodeMultipartValue(req *http.Request, field string) (string, error) {
 	// Parse form values in request.
-	if err := req.ParseMultipartForm(DefaultMaxSize); err != nil {
+	if err := req.ParseMultipartForm(defaultMaxSize); err != nil {
 		return "", errors.Join(ErrDecode, err)
 	}
 	// Decode the form values.
@@ -140,12 +151,15 @@ func DecodeRequest[T any](req *http.Request) (T, error) {
 // where possible. It will perform validation of the object before attempting
 // encoding. If the object cannot be encoded or validation fails, a non-nil
 // error is returned.
-func EncodeForm[T Validator](obj T) (url.Values, error) {
+func EncodeForm[T FormInput](obj T) (url.Values, error) {
+	// Sanitise the object.
+	if err := obj.Sanitise(); err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrSanitise, err)
+	}
 	// Validate the object.
 	if ok, err := obj.Valid(); !ok {
-		return nil, errors.Join(ErrEncode, err)
+		return nil, fmt.Errorf("%w: %w", ErrValidation, err)
 	}
-
 	values, err := encoder.Encode(&obj)
 	if err != nil {
 		return nil, errors.Join(ErrEncode, err)

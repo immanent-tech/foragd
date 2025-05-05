@@ -380,6 +380,19 @@ func (r *SubscriptionRequest) Valid() (bool, error) {
 	return true, nil
 }
 
+// Sanitise will sanitise the input values of the SubscriptionRequest.
+func (r *SubscriptionRequest) Sanitise() error {
+	r.URL = validation.SanitizeString(r.URL)
+	r.UserNickname = validation.SanitizeString(r.UserNickname)
+	categories := make([]Category, 0, len(r.UserCategories))
+	for category := range slices.Values(r.UserCategories) {
+		category = validation.SanitizeString(category)
+		categories = append(categories, category)
+	}
+	r.UserCategories = categories
+	return nil
+}
+
 func (r *SubscriptionRequest) String() string {
 	if r.Subscription != nil {
 		return r.Subscription.String()
@@ -520,4 +533,16 @@ func (s *SubscriptionCustomisation) Valid() (bool, error) {
 		return false, NewMessage("subscription is invalid", MessageStatusError, WithError(err))
 	}
 	return true, nil
+}
+
+// Sanitise will sanitise the user input for a SubscriptionCustomisation.
+func (s *SubscriptionCustomisation) Sanitise() error {
+	s.UserNickname = validation.SanitizeString(s.UserNickname)
+	categories := make([]Category, 0, len(s.UserCategories))
+	for category := range slices.Values(s.UserCategories) {
+		category = validation.SanitizeString(category)
+		categories = append(categories, category)
+	}
+	s.UserCategories = categories
+	return nil
 }

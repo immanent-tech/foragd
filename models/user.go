@@ -134,6 +134,7 @@ func (u *User) MarkItems(mark Mark, feedID FeedID, itemIDs ...ItemID) {
 	}
 }
 
+// Valid will check to ensure the UserSignupRequest contains valid data.
 func (u *UserSignupRequest) Valid() (bool, error) {
 	valid, problems := validation.ValidateStruct(u)
 	if problems != nil {
@@ -146,6 +147,13 @@ func (u *UserSignupRequest) Valid() (bool, error) {
 	}
 
 	return valid, problems
+}
+
+// Sanitise will sanitise the UserSignupRequest.
+func (u *UserSignupRequest) Sanitise() error {
+	u.Email = validation.SanitizeString(u.Email)
+	u.Nickname = validation.SanitizeString(u.Nickname)
+	return nil
 }
 
 func NewUserSignup() *UserSignupRequest {
