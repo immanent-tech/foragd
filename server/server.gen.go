@@ -117,9 +117,6 @@ type ProcessSignUpFormdataRequestBody = externalRef0.UserSignupRequest
 // AddSubscriptionFormdataRequestBody defines body for AddSubscription for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
-// SaveSubscriptionFormdataRequestBody defines body for SaveSubscription for application/x-www-form-urlencoded ContentType.
-type SaveSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
-
 // ProcessImportMultipartRequestBody defines body for ProcessImport for multipart/form-data ContentType.
 type ProcessImportMultipartRequestBody = Import
 
@@ -276,9 +273,9 @@ type ServerInterface interface {
 	// Remove a subscription.
 	// (DELETE /subscription/edit/{subscription})
 	RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params RemoveSubscriptionParams)
-	// Show a subscription.
+	// Edit a subscription.
 	// (GET /subscription/edit/{subscription})
-	ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
+	EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
 	// Save a subscription.
 	// (PUT /subscription/edit/{subscription})
 	SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
@@ -419,9 +416,9 @@ func (_ Unimplemented) RemoveSubscription(w http.ResponseWriter, r *http.Request
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Show a subscription.
+// Edit a subscription.
 // (GET /subscription/edit/{subscription})
-func (_ Unimplemented) ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
+func (_ Unimplemented) EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1052,8 +1049,8 @@ func (siw *ServerInterfaceWrapper) RemoveSubscription(w http.ResponseWriter, r *
 	handler.ServeHTTP(w, r)
 }
 
-// ShowSubscription operation middleware
-func (siw *ServerInterfaceWrapper) ShowSubscription(w http.ResponseWriter, r *http.Request) {
+// EditSubscription operation middleware
+func (siw *ServerInterfaceWrapper) EditSubscription(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -1067,7 +1064,7 @@ func (siw *ServerInterfaceWrapper) ShowSubscription(w http.ResponseWriter, r *ht
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ShowSubscription(w, r, subscription)
+		siw.Handler.EditSubscription(w, r, subscription)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1332,7 +1329,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Delete(options.BaseURL+"/subscription/edit/{subscription}", wrapper.RemoveSubscription)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/subscription/edit/{subscription}", wrapper.ShowSubscription)
+		r.Get(options.BaseURL+"/subscription/edit/{subscription}", wrapper.EditSubscription)
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/subscription/edit/{subscription}", wrapper.SaveSubscription)

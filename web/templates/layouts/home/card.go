@@ -83,7 +83,7 @@ func (c *Card) AddPagination(reqURL *url.URL, pagination models.Pagination) {
 	c.AddAttributes(action.Attributes())
 }
 
-func BuildFeedCard(ctx context.Context, subscription *models.Subscription) *FeedCard {
+func newFeedCard(ctx context.Context, subscription *models.Subscription) *FeedCard {
 	feedCard := &FeedCard{
 		Card: Card{
 			Source: subscription,
@@ -96,6 +96,7 @@ func BuildFeedCard(ctx context.Context, subscription *models.Subscription) *Feed
 		shareAction(nil),
 		visitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
 		feedCard.generateMarkAction(),
+		editSubscriptionAction(subscription.GetID()),
 		unsubscribeAction(subscription.GetID()),
 	)
 	feedCard.build()
@@ -107,7 +108,7 @@ func BuildFeedCard(ctx context.Context, subscription *models.Subscription) *Feed
 	return feedCard
 }
 
-func BuildItemCard(ctx context.Context, item *models.Item) *ItemCard {
+func newItemCard(ctx context.Context, item *models.Item) *ItemCard {
 	itemCard := &ItemCard{
 		Card: Card{
 			Source: item,
@@ -136,7 +137,7 @@ func BuildFeedsLayout(req *http.Request, pagination models.Pagination, subscript
 	cards := make([]templ.Component, 0, len(subscriptions))
 	// Build feed cards.
 	for idx, subscription := range subscriptions {
-		card := BuildFeedCard(req.Context(), subscription)
+		card := newFeedCard(req.Context(), subscription)
 		if idx == len(subscriptions)-1 && len(subscriptions) == models.FiltersFromCtx(req.Context()).Count {
 			card.AddPagination(req.URL, pagination)
 		}
@@ -155,7 +156,7 @@ func BuildItemsLayout(req *http.Request, pagination models.Pagination, back temp
 	// Build item cards.
 	for idx, item := range items {
 		// Create a card for this item.
-		itemCard := BuildItemCard(req.Context(), item)
+		itemCard := newItemCard(req.Context(), item)
 		// Add a pagination action to the last item.
 		if idx == len(items)-1 && len(items) == models.FiltersFromCtx(req.Context()).Count {
 			itemCard.AddPagination(req.URL, pagination)

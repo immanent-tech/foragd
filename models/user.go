@@ -104,6 +104,17 @@ func (u *User) RemoveSubscriptions(subscriptionIDs ...SubscriptionID) {
 	}
 }
 
+// EditSubscription will apply the given user customisation to the subscription with the given ID.
+func (u *User) EditSubscription(subscriptionID SubscriptionID, edits *SubscriptionCustomisation) {
+	idx := slices.IndexFunc(u.Subscriptions, func(v *Subscription) bool { return v.GetID() == subscriptionID })
+	if idx != -1 {
+		// Update categories.
+		u.Subscriptions[idx].UserCategories = edits.UserCategories
+		// Update nickname.
+		u.Subscriptions[idx].UserNickname = edits.UserNickname
+	}
+}
+
 // IsSubscribed returns a boolean indicating whether the user is subscribed to the feed with the given ID.
 func (u *User) IsSubscribed(feedID FeedID) bool {
 	subscriptions := u.GetSubscriptions().FilterByFeedID(feedID)

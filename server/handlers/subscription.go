@@ -394,9 +394,9 @@ func RemoveSubscription(api DataAPI, id models.SubscriptionID, decision *models.
 		case *decision == models.UserDecisionConfirmed:
 			if err := api.RemoveSubscriptions(req.Context(), id); err != nil {
 				InternalServerError(res, req, err)
-			} else {
-				HTMXResponse(resp, home.UnsubscribeSuccess()).ServeHTTP(res, req)
+				return
 			}
+			HTMXResponse(resp, home.UnsubscribeSuccess()).ServeHTTP(res, req)
 		case *decision == models.UserDecisionCancelled:
 			if _, err := res.Write(nil); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Cannot display content.",
@@ -404,5 +404,37 @@ func RemoveSubscription(api DataAPI, id models.SubscriptionID, decision *models.
 				http.Error(res, "Problem!", http.StatusInternalServerError)
 			}
 		}
+	})
+}
+
+// EditSubscription retrieves the subscription with the given ID and presents a form for the user to edit it.
+func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		sub, err := api.GetSubscription(req.Context(), id)
+		if err != nil {
+			InternalServerError(res, req, err)
+			return
+		}
+		subEdit := &subscription.SubscriptionEditRequest{
+			Subscription: sub,
+		}
+		resp := htmx.NewResponse()
+		HTMXResponse(resp, subEdit.SubscriptionDetailsModal()).ServeHTTP(res, req)
+	})
+}
+
+func SaveSubscription(api DataAPI, id models.SubscriptionID, edits *models.SubscriptionCustomisation) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		err := api.EditSubscription(req.Context(), id, edits)
+		if err != nil {
+			msg := models.NewMessage(
+				"Error editing subscription.",
+				models.MessageStatusError,
+				models.WithError(err))
+			InternalServerError(res, req, msg)
+			return
+		}
+		resp := htmx.NewResponse()
+		HTMXResponse(resp, subscription.EditSuccessModal()).ServeHTTP(res, req)
 	})
 }

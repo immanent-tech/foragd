@@ -88,30 +88,6 @@ templ (r *SubscriptionRequest) Form(msg *models.Message) {
 			),
 		).Show()
 		@manageCategories(r.UserCategories...)
-		// // Display an input to add a Category to the Subscription.
-		// @form.BuildForm(
-		// 	form.WithID(AddCategoryFormID.String()),
-		// 	form.WithExtraAttributes(
-		// 		templ.Attributes{
-		// 			"hx-put":               "/subscription/edit/category",
-		// 			"hx-swap":              "beforeend",
-		// 			"hx-on::after-request": "if(event.detail.successful) this.reset()",
-		// 			"hx-target":            CategoryListID.Target(),
-		// 		},
-		// 	),
-		// 	form.WithElements(
-		// 		fieldset.Build(
-		// 			fieldset.WithField("Category (optional)", newCategoryInput()),
-		// 		).Show(),
-		// 	),
-		// ).Show()
-		// // Display any Categories assigned to the Subscription with a button to
-		// // remove them.
-		// <div id={ CategoryListID.String() } hx-target="closest div" hx-swap="outerHTML swap:1s">
-		// 	for category := range slices.Values(r.UserCategories) {
-		// 		@ShowCategory(category)
-		// 	}
-		// </div>
 		// Add a button to submit the Subscription details when finished editing.
 		@fieldset.Build(
 			fieldset.WithField("",

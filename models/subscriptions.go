@@ -140,6 +140,14 @@ func (s Subscriptions) FilterByView(view View) Subscriptions {
 	return s
 }
 
+func (s Subscriptions) FindByID(id SubscriptionID) *Subscription {
+	idx := slices.IndexFunc(s, func(v *Subscription) bool { return v.GetID() == id })
+	if idx == -1 {
+		return nil
+	}
+	return s[idx]
+}
+
 func (s Subscriptions) FindByURL(url string) *Subscription {
 	idx := slices.IndexFunc(s, func(v *Subscription) bool { return v.GetSourceURL() == url })
 	if idx == -1 {
@@ -503,4 +511,13 @@ func NewSubscription(request *SubscriptionRequest, feed *Feed) *Subscription {
 		FeedID:         feed.GetID(),
 		Feed:           feed,
 	}
+}
+
+// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
+// (false) a non-nil error is also returned which contains validation issues.
+func (s *SubscriptionCustomisation) Valid() (bool, error) {
+	if valid, err := validation.ValidateStruct(s); err != nil || !valid {
+		return false, NewMessage("subscription is invalid", MessageStatusError, WithError(err))
+	}
+	return true, nil
 }

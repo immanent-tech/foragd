@@ -81,6 +81,7 @@ templ BuildActionsMenu(actions ...templ.Component) {
 }
 
 func markAction(mark models.Mark, attributes templ.Attributes) templ.Component {
+	attributes["_"] = "on mouseenter add .menu-active to me end on mouseleave remove .menu-active from me end"
 	var (
 		iconLabel templ.Component
 		textLabel string
@@ -122,8 +123,25 @@ templ visitExternalLinkAction(label, url string) {
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(templ.Attributes{
 			"href": url,
+			"_":    "on mouseenter add .menu-active to me end on mouseleave remove .menu-active from me end",
 		}),
 		link.WithExtraClasses("w-fit"),
+	).Show()
+}
+
+func editSubscriptionAction(id models.SubscriptionID) templ.Component {
+	route := models.NewRoute("/subscription/edit/"+id, nil,
+		models.WithAttributes(templ.Attributes{
+			"hx-target": partials.CommandModalID.Target(),
+			"_":         partials.HyperscriptOpenModal("#modal_"+id) + " then " + partials.HyperscriptCloseDropdown(),
+		}))
+	return link.Build(
+		link.WithContent(
+			templ.Join(icon.Build("fa-pen").Show(), components.SetContent("Edit")),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraClasses("w-fit"),
+		link.WithExtraAttributes(route.GetAttributes()),
 	).Show()
 }
 

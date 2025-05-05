@@ -164,8 +164,8 @@ paths:
       - $ref: '#/components/parameters/SubscriptionID'
     get:
       summary: >
-        Show a subscription.
-      operationId: showSubscription
+        Edit a subscription.
+      operationId: editSubscription
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -174,7 +174,14 @@ paths:
         Save a subscription.
       operationId: saveSubscription
       requestBody:
-        $ref: '#/components/requestBodies/SubscriptionRequest'
+        EditSubscriptionRequest:
+          description: >
+            contains user customisation to a subscription
+          required: true
+          content:
+            multipart/form-data:
+              schema:
+                $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
       responses:
         200:
           $ref: '#/components/responses/htmx'

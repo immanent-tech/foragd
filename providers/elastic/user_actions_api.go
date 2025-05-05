@@ -150,6 +150,54 @@ func (e *API) GetItems(ctx context.Context) (models.Items, models.Pagination, er
 	return items, pagination, nil
 }
 
+// GetUserSubscription retrieves the subscription with the given ID.
+func (e *API) GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, error) {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, models.NewMessage(
+			"Could not fetch subscriptions.",
+			models.MessageStatusError,
+			models.WithError(ErrNoUserCtx))
+	}
+
+	sub := user.GetSubscriptions().FindByID(subscriptionID)
+	if sub == nil {
+		return nil, models.NewMessage(
+			"Could not get subscription.",
+			models.MessageStatusError,
+		)
+	}
+	feed, err := e.GetFeed(ctx, sub.GetFeedID())
+	if err != nil {
+		return nil, models.NewMessage(
+			"Could not get subscription.",
+			models.MessageStatusError,
+			models.WithError(err),
+		)
+	}
+	sub.Feed = feed
+	return sub, nil
+}
+
+func (e *API) EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) error {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.NewMessage(
+			"Could not fetch subscriptions.",
+			models.MessageStatusError,
+			models.WithError(ErrNoUserCtx))
+	}
+
+	user.EditSubscription(subscriptionID, edits)
+
+	return e.UpdateUser(ctx, user.GetID(), map[string]any{
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
+	})
+}
+
 // GetUserSubscriptions returns all subscriptions for a user with feed and state details added.
 func (e *API) GetSubscriptions(ctx context.Context) (models.Subscriptions, models.Pagination, error) {
 	// Retrieve user object.

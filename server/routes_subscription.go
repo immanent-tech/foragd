@@ -87,18 +87,32 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 	chain.ServeHTTP(res, req)
 }
 
-func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, subscription SubscriptionID) {
-	res.WriteHeader(http.StatusNotImplemented)
+// EditSubscription handles a request to edit a user's subscription.
+func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
+	chain := alice.New(
+		handlers.RouteLogger("edit_subscription"),
+	).Then(handlers.EditSubscription(s.DataAPI(), subscriptionID))
+	chain.ServeHTTP(res, req)
 }
 
-func (s Server) ShowSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
-	w.WriteHeader(http.StatusNotImplemented)
+// SaveSubscription handles saving any edits to a user's subscription.
+func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
+	subscriptionEdits, valid, err := forms.DecodeForm[*models.SubscriptionCustomisation](req)
+	if err != nil || !valid {
+		msg := models.NewMessage(
+			"Error editing subscription.",
+			models.MessageStatusError,
+			models.WithError(err))
+		showImportFailed(res, req, msg)
+		return
+	}
+	chain := alice.New(
+		handlers.RouteLogger("save_subscription"),
+	).Then(handlers.SaveSubscription(s.DataAPI(), subscriptionID, subscriptionEdits))
+	chain.ServeHTTP(res, req)
 }
 
-func (s Server) SaveSubscription(w http.ResponseWriter, r *http.Request, feedID models.FeedID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
+// RemoveSubscription handles unsubscribing from a feed.
 func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID, params RemoveSubscriptionParams) {
 	chain := alice.New(
 		handlers.RouteLogger("remove_subscriptions"),

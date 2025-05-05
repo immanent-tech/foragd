@@ -67,6 +67,7 @@ templ ShowCategory(category models.Category) {
 }
 
 templ manageCategories(categories ...string) {
+	<script type="text/hyperscript" src="/static/category-mgmt._hs"></script>
 	<form
 		id="addCategoryForm"
 		_="on submit
@@ -94,15 +95,7 @@ templ manageCategories(categories ...string) {
 			class="fieldset"
 			_="
 			on newCategory(category)
-			  make a <input/>
-			  set its type to 'hidden'
-			  set its name to 'user_categories[]'
-			  set its value to category
-			  set its id to category
-			  set its @form to 'add-subscription-details-form'
-			  append it to me
-			  make a <li/> then put category into it
-       		  put it at the start of #shown-categories
+			  addCategory(add-subscription-details-form)
 			end
 
 			on delCategory(category)

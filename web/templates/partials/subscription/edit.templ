@@ -1,0 +1,172 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package subscription
+
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/modal"
+	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/input/fieldset"
+	"github.com/joshuar/go-templ-daisyui/input/form"
+	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
+	"github.com/joshuar/go-templ-daisyui/input/textinput"
+	"github.com/joshuar/go-templ-daisyui/layout/join"
+	"slices"
+)
+
+type SubscriptionEditRequest struct {
+	*models.Subscription
+}
+
+func (s *SubscriptionEditRequest) editNickname() *textinput.Props {
+	return textinput.Build(
+		textinput.WithName("user_nickname"),
+		textinput.WithValue(s.GetName()),
+		textinput.WithPlaceholder("My memorable feed name"),
+	)
+}
+
+templ (s *SubscriptionEditRequest) editCategories() {
+	<form
+		id="editCategories"
+		_={ `on submit
+      halt the event
+      set categoryInput to (first <input/> in me).value
+      set formID to my id
+      send newCategory(category: categoryInput, formTarget: '`+s.GetID()+`_edit') to #categories
+      set value of first <input/> in me to ''
+      ` }
+	>
+		<fieldset class="fieldset">
+			<label class="label">Add Category (optional)</label>
+			@join.Horizontally(
+				textinput.Build(
+					textinput.WithPlaceholder("CoolStuff"),
+				).Show("join-item"),
+				button.Build(
+					button.AsShape(button.Square),
+					button.WithContent(icon.Build("fa-plus")),
+				).Show("join-item"),
+			)
+		</fieldset>
+	</form>
+	<form>
+		<fieldset
+			id="categories"
+			class="fieldset"
+			_="
+			on newCategory(category, formTarget)
+			  make a <input/>
+			  set its type to 'hidden'
+			  set its name to 'user_categories[]'
+			  set its value to category
+			  set its id to category
+			  set its @form to formTarget
+			  append it to me
+			  make a <li/> then put category into it
+       		  put it at the start of #shown-categories
+			end
+
+			on delCategory(category)
+			  tell <input[id=`${category}`]/>
+			  	remove yourself
+			  end
+			for el in #shown-categories.children
+         	  if innerHTML of el == category
+           	  	remove el
+         	  end
+       		end
+			"
+		>
+			<label class="label">Current Categories (click a category to remove):</label>
+			<ul
+				id="shown-categories"
+				_="on click send delCategory(category: innerHTML of target) to #categories"
+			>
+				for category := range slices.Values(s.GetCategories()) {
+					<li>{ category }</li>
+				}
+			</ul>
+			for category := range slices.Values(s.GetCategories()) {
+				@hiddeninput.Build(
+					hiddeninput.WithID(category),
+					hiddeninput.WithName("user_categories[]"),
+					hiddeninput.WithValue(category),
+					hiddeninput.WithExtraAttributes(templ.Attributes{
+						"form": s.GetID() + "_edit",
+					}),
+				).Show()
+			}
+		</fieldset>
+	</form>
+}
+
+templ (s *SubscriptionEditRequest) SubscriptionDetailsModal() {
+	@modal.Build(
+		modal.WithID("modal_"+s.GetID()),
+		modal.WithCloseButton(),
+		modal.WithCloseOutside(),
+	).Show() {
+		@text.Build("Edit subscription", text.WithSize(text.LG)).Show()
+		// Display the Subscription details.
+		@form.BuildForm(
+			form.WithID(s.GetID()+"_edit"),
+			form.WithExtraAttributes(
+				templ.Attributes{
+					"hx-put":       "/subscription/edit/" + s.GetID(),
+					"hx-target":    partials.CommandModalID.Target(),
+					"hx-swap":      "morph:outerHTML",
+					"hx-indicator": "#add-processing",
+				},
+			),
+			form.WithElements(
+				fieldset.Build(
+					fieldset.WithField("",
+						hiddeninput.Build(
+							hiddeninput.WithName("subscription_id"),
+							hiddeninput.WithValue(s.GetID()),
+						),
+					),
+					fieldset.WithField("Nickname (optional)", s.editNickname()),
+				).Show(),
+			),
+		).Show()
+		@s.editCategories()
+		// Add a button to submit the Subscription details when finished editing.
+		@fieldset.Build(
+			fieldset.WithField("",
+				button.Build(
+					button.WithContent("Make it so!"),
+					button.WithExtraAttributes(templ.Attributes{
+						"form": s.GetID() + "_edit",
+					})),
+			),
+		).Show()
+		<center id="add-processing" class="htmx-indicator">
+			Adding
+			@loading.Build(loading.Infinity).Show()
+		</center>
+	}
+}
+
+templ EditSuccessModal() {
+	@modal.Build(
+		modal.WithID("edit_success"),
+		modal.WithCloseOutside(),
+		modal.WithExtraAttributes(templ.Attributes{
+			"open": "",
+		}),
+	).Show() {
+		<h3 class="font-bold">Subscription edited!</h3>
+		<div class="modal-action">
+			<form method="dialog" _={ partials.HyperscriptCloseModalOnClick("edit_success") }>
+				<button class="btn">Ok</button>
+			</form>
+		</div>
+	}
+}
