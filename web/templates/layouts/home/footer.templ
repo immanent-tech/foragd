@@ -10,7 +10,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
@@ -34,22 +33,22 @@ templ (f *ListFooter) Show(classes ...string) {
 		hx-swap="morph:outerHTML"
 		class="bg-base-200 dock dock-sm"
 	>
-		<div class="basis-xs">
+		<div class="basis-xs grow">
 			@tooltip.Build("Back").Show() {
 				@f.backButton
 			}
 		</div>
-		<div class="basis-xs">
+		<div class="basis-xs grow">
 			@tooltip.Build("Filter").Show() {
 				@f.filtersMenu
 			}
 		</div>
-		<div class="basis-xs">
+		<div class="basis-xs grow">
 			@tooltip.Build("Sort").Show() {
 				@f.sortMenu
 			}
 		</div>
-		<div class="basis-xs">
+		<div class="basis-xs grow">
 			@tooltip.Build("Actions").Show() {
 				@buildfooterMenu(f.actions...)
 			}
@@ -84,12 +83,12 @@ templ (f *ArticleFooter) Show(classes ...string) {
 		hx-swap="morph:outerHTML"
 		class="bg-base-200 dock dock-sm"
 	>
-		<div class="basis-xs">
+		<div class="flex-1">
 			@tooltip.Build("Back").Show() {
 				@f.backButton
 			}
 		</div>
-		<div class="basis-xs">
+		<div class="flex-1">
 			<a href={ templ.URL(f.item.GetLink()) } target="_blank">
 				@icon.Build("fa-globe").Show()
 			</a>
@@ -118,7 +117,7 @@ templ buildfooterMenu(actions ...templ.Component) {
 			dropdown.WithMenuContent(
 				menu.WithMenuTitle("Actions"),
 				menu.WithBaseColor(color.Base200),
-				menu.WithExtraClasses(width.Auto),
+				menu.WithExtraClasses("min-w-52", "flex-nowrap", "grow"),
 				menu.WithItems(actions...),
 			),
 		).Show()

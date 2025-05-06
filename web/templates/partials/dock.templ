@@ -6,7 +6,6 @@ package partials
 import (
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
-	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 )
@@ -24,7 +23,7 @@ templ DockMenu(title string, label any, items ...templ.Component) {
 		dropdown.WithMenuContent(
 			menu.WithMenuTitle(title),
 			menu.WithBaseColor(color.Base200),
-			menu.WithExtraClasses(width.Auto),
+			menu.WithExtraClasses("min-w-52", "flex-nowrap", "grow"),
 			menu.WithItems(items...),
 		),
 	).Show()

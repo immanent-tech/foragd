@@ -42,7 +42,7 @@ templ (s *SortOption) Show() {
 		{{ styleOption = button.WithStyle(button.Dashed) }}
 	}
 	@button.Build(
-		// button.WithSize(button.SM),
+		button.WithSize(button.XS),
 		button.WithColor(button.Accent),
 		styleOption,
 		button.WithContent(s.String()),

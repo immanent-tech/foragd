@@ -59,7 +59,7 @@ func newViewFilter(ctx context.Context, view models.View) ViewFilter {
 	route.SetView(view)
 	viewFilter := ViewFilter{}
 	viewFilter.Props = button.Build(
-		button.WithSize(button.SM),
+		button.WithSize(button.XS),
 		button.WithColor(button.Accent),
 		button.WithContent(string(view)),
 		button.WithExtraAttributes(route.GetAttributes()),

@@ -41,7 +41,7 @@ templ (l *HomeLayout) FullRender() {
 	@templates.NewPage(l.title).Show() {
 		@partials.CommandModal()
 		@appbar.AppBar().Show()
-		<div id="content" class="flex flex-wrap @md:flex-row p-4 h-full items-start justify-center">
+		<div id="content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-start justify-center">
 			if len(l.content) > 0 {
 				for part := range slices.Values(l.content) {
 					@part
@@ -50,7 +50,7 @@ templ (l *HomeLayout) FullRender() {
 				@emptyContent()
 			}
 		</div>
-		<div id="content-loading" class="flex items-center justify-center">
+		<div id="content-loading" class="items-center justify-center">
 			@loading.Build(loading.Bars,
 				loading.AsHTMXIndicator(),
 				loading.WithThemeColor(color.Accent),
