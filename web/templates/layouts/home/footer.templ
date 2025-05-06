@@ -83,12 +83,12 @@ templ (f *ArticleFooter) Show(classes ...string) {
 		hx-swap="morph:outerHTML"
 		class="bg-base-200 dock dock-sm"
 	>
-		<div class="flex-1">
+		<div class="basis-xs grow">
 			@tooltip.Build("Back").Show() {
 				@f.backButton
 			}
 		</div>
-		<div class="flex-1">
+		<div class="basis-xs grow">
 			<a href={ templ.URL(f.item.GetLink()) } target="_blank">
 				@icon.Build("fa-globe").Show()
 			</a>

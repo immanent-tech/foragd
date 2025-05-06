@@ -26,7 +26,7 @@ import (
 	"strconv"
 )
 
-const cardSizingClasses = "w-full md:max-w-prose m-2 p-2"
+const cardSizingClasses = "m-2 p-2"
 
 templ (c *Card) timestamp() {
 	@text.Build(
@@ -111,7 +111,7 @@ func (c *FeedCard) build() {
 	c.Props = card.Build(
 		card.WithStyle(card.Border),
 		card.WithSize(card.MD),
-		card.WithShadow(shadow.SM),
+		card.WithShadow(shadow.MD),
 		card.WithBodyOptions(
 			card.WithTitle(c.showTitle()),
 			card.WithContent(c.showContent()),
@@ -158,7 +158,7 @@ func (c *ItemCard) build() {
 		imageOption,
 		card.WithSize(card.MD),
 		card.WithStyle(card.Border),
-		card.WithShadow(shadow.SM),
+		card.WithShadow(shadow.MD),
 		card.WithBodyOptions(
 			card.WithContent(c.showContent()),
 			card.WithActions(c.menuActions.Show()),

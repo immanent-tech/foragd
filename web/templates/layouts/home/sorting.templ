@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/display/text"
 	"reflect"
 )
 
@@ -35,19 +35,21 @@ func newSortAction(sort models.Sort, path string, filters models.Filters) templ.
 }
 
 templ (s *SortOption) Show() {
-	{{ var styleOption button.Option }}
 	if s.active {
-		{{ styleOption = button.WithStyle(button.Outline) }}
+		@text.Build(s.String(),
+			text.WithSize(text.XS),
+			text.WithColor(text.Primary),
+			text.WithWeight(text.Semibold),
+			text.WithAttributes(s.attributes),
+			text.WithExtraClasses("p-2", "m-2", "border", "rounded-sm"),
+		).Show()
 	} else {
-		{{ styleOption = button.WithStyle(button.Dashed) }}
+		@text.Build(s.String(),
+			text.WithSize(text.XS),
+			text.WithAttributes(s.attributes),
+			text.WithExtraClasses("p-2", "m-2", "border", "rounded-sm"),
+		).Show()
 	}
-	@button.Build(
-		button.WithSize(button.XS),
-		button.WithColor(button.Accent),
-		styleOption,
-		button.WithContent(s.String()),
-		button.WithExtraAttributes(s.attributes),
-	).Show()
 }
 
 //nolint:contextcheck

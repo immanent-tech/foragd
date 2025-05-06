@@ -41,7 +41,7 @@ templ (l *HomeLayout) FullRender() {
 	@templates.NewPage(l.title).Show() {
 		@partials.CommandModal()
 		@appbar.AppBar().Show()
-		<div id="content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-start justify-center">
+		<div id="content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2">
 			if len(l.content) > 0 {
 				for part := range slices.Values(l.content) {
 					@part
