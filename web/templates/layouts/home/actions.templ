@@ -10,14 +10,9 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
-	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
-	"github.com/joshuar/go-templ-daisyui/display/text"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 	"net/http"
 )
 
@@ -26,7 +21,7 @@ const actionTextClasses = "w-fit text-xs"
 // AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
 func AddSubscriptionAction(classes ...string) templ.Component {
 	return link.Build(
-		link.WithContent(text.Build("Add Subscription", text.WithSize(text.SM))),
+		link.WithContent("Add Subscription"),
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/new",
 			"hx-target": partials.CommandModalID.Target(),
@@ -41,7 +36,7 @@ func AddSubscriptionAction(classes ...string) templ.Component {
 // via opml).
 func ImportAction(classes ...string) templ.Component {
 	return link.Build(
-		link.WithContent(text.Build("Import", text.WithSize(text.SM))),
+		link.WithContent("Import Subscriptions"),
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/import",
 			"hx-target": partials.CommandModalID.Target(),
@@ -61,27 +56,6 @@ func BackButton(path string, filters *models.Filters) templ.Component {
 		button.WithStyle(button.Ghost),
 		button.WithExtraAttributes(route.GetAttributes()),
 	).Show()
-}
-
-templ BuildActionsMenu(actions ...templ.Component) {
-	<div id="content-actions" hx-swap-oob="true">
-		@dropdown.Build(
-			dropdown.WithOpenOptions(
-				dropdown.From(dropdown.OpenTop),
-				dropdown.Align(dropdown.AlignEnd),
-			),
-			dropdown.WithButton(
-				button.WithStyle(button.Ghost),
-				button.WithContent(icon.Build("fa-ellipsis-vertical")),
-			),
-			dropdown.WithMenuContent(
-				menu.WithMenuTitle("Actions"),
-				menu.WithBaseColor(color.Base200),
-				menu.WithExtraClasses(width.W52),
-				menu.WithItems(actions...),
-			),
-		).Show()
-	</div>
 }
 
 func markAction(mark models.Mark, attributes templ.Attributes) templ.Component {

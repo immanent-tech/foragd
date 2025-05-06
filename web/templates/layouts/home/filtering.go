@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	"github.com/a-h/templ"
-	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 
 	"github.com/joshuar/go-feed-me/models"
 )
@@ -50,7 +50,7 @@ type ViewFilters []ViewFilter
 
 // ViewFilter is a filter to apply a certain view.
 type ViewFilter struct {
-	*badge.Props
+	*button.Props
 }
 
 // newViewFilter creates a new view filter.
@@ -58,18 +58,30 @@ func newViewFilter(ctx context.Context, view models.View) ViewFilter {
 	route := models.NewRouteFromCtx(ctx, models.WithAttributes(viewAttributes))
 	route.SetView(view)
 	viewFilter := ViewFilter{}
-	viewFilter.Props = badge.Build(
-		badge.WithSize(badge.SM),
-		badge.WithColor(badge.Accent),
-		badge.WithContent(string(view)),
-		badge.WithExtraAttributes(route.GetAttributes()),
+	viewFilter.Props = button.Build(
+		button.WithSize(button.SM),
+		button.WithColor(button.Accent),
+		button.WithContent(string(view)),
+		button.WithExtraAttributes(route.GetAttributes()),
+		button.WithExtraClasses("join-item"),
 	)
-	// Style based on which view is active.
 	if view == models.FiltersFromCtx(ctx).View {
-		badge.WithStyle(badge.Outline)(viewFilter.Props)
+		button.WithStyle(button.Outline)(viewFilter.Props)
 	} else {
-		badge.WithStyle(badge.Dashed)(viewFilter.Props)
+		button.WithStyle(button.Dashed)(viewFilter.Props)
 	}
+	// viewFilter.Props = badge.Build(
+	// 	badge.WithSize(badge.SM),
+	// 	badge.WithColor(badge.Accent),
+	// 	badge.WithContent(string(view)),
+	// 	badge.WithExtraAttributes(route.GetAttributes()),
+	// )
+	// Style based on which view is active.
+	// if view == models.FiltersFromCtx(ctx).View {
+	// 	badge.WithStyle(badge.Outline)(viewFilter.Props)
+	// } else {
+	// 	badge.WithStyle(badge.Dashed)(viewFilter.Props)
+	// }
 	return viewFilter
 }
 

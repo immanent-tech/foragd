@@ -1,12 +1,12 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-import "htmx.org";
-import "idiomorph";
-import "htmx-ext-sse";
+import 'htmx.org'
+import 'idiomorph'
+import 'htmx-ext-sse'
 
-import htmx from "htmx.org/dist/htmx.esm";
-window.htmx = htmx;
+import htmx from 'htmx.org/dist/htmx.esm'
+window.htmx = htmx
 
 // Allow event logging.
 //

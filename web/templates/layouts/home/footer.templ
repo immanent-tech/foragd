@@ -7,9 +7,14 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 )
 
 var ContentFooterID = attributes.ID("content-footer")
@@ -46,7 +51,7 @@ templ (f *ListFooter) Show(classes ...string) {
 		</div>
 		<div class="basis-xs">
 			@tooltip.Build("Actions").Show() {
-				@BuildActionsMenu(f.actions...)
+				@buildfooterMenu(f.actions...)
 			}
 		</div>
 	</div>
@@ -97,4 +102,25 @@ func BuildArticleFooter(item *models.Item, backButton templ.Component) *ArticleF
 		backButton: backButton,
 		item:       item,
 	}
+}
+
+templ buildfooterMenu(actions ...templ.Component) {
+	<div id="content-actions" hx-swap-oob="true">
+		@dropdown.Build(
+			dropdown.WithOpenOptions(
+				dropdown.From(dropdown.OpenTop),
+				dropdown.Align(dropdown.AlignEnd),
+			),
+			dropdown.WithButton(
+				button.WithStyle(button.Ghost),
+				button.WithContent(icon.Build("fa-ellipsis-vertical")),
+			),
+			dropdown.WithMenuContent(
+				menu.WithMenuTitle("Actions"),
+				menu.WithBaseColor(color.Base200),
+				menu.WithExtraClasses(width.Auto),
+				menu.WithItems(actions...),
+			),
+		).Show()
+	</div>
 }

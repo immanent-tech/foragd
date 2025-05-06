@@ -24,9 +24,8 @@ templ DockMenu(title string, label any, items ...templ.Component) {
 		dropdown.WithMenuContent(
 			menu.WithMenuTitle(title),
 			menu.WithBaseColor(color.Base200),
-			menu.WithExtraClasses(width.W52),
+			menu.WithExtraClasses(width.Auto),
 			menu.WithItems(items...),
-			menu.WithExtraItemClasses("p-2"),
 		),
 	).Show()
 }

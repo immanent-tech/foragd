@@ -41,22 +41,20 @@ templ (l *HomeLayout) FullRender() {
 	@templates.NewPage(l.title).Show() {
 		@partials.CommandModal()
 		@appbar.AppBar().Show()
-		<div class="@container">
-			<div id="content" class="flex flex-wrap @md:flex-row p-4 h-full items-start justify-center">
-				if len(l.content) > 0 {
-					for part := range slices.Values(l.content) {
-						@part
-					}
-				} else {
-					@emptyContent()
+		<div id="content" class="flex flex-wrap @md:flex-row p-4 h-full items-start justify-center">
+			if len(l.content) > 0 {
+				for part := range slices.Values(l.content) {
+					@part
 				}
-			</div>
-			<div id="content-loading" class="flex items-center justify-center">
-				@loading.Build(loading.Bars,
-					loading.AsHTMXIndicator(),
-					loading.WithThemeColor(color.Accent),
-				).Show()
-			</div>
+			} else {
+				@emptyContent()
+			}
+		</div>
+		<div id="content-loading" class="flex items-center justify-center">
+			@loading.Build(loading.Bars,
+				loading.AsHTMXIndicator(),
+				loading.WithThemeColor(color.Accent),
+			).Show()
 		</div>
 		@partials.NotificationsArea()
 		@l.footer

@@ -5,32 +5,71 @@
 package home
 
 import (
+	"context"
+	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"reflect"
 )
 
-type SortBadge struct {
+type SortOption struct {
 	models.Sort
 	active     bool
 	attributes templ.Attributes
 }
 
-templ (s *SortBadge) Show() {
-	{{ var styleOption badge.Option }}
-	if s.active {
-		{{ styleOption = badge.WithStyle(badge.Outline) }}
-	} else {
-		{{ styleOption = badge.WithStyle(badge.Dashed) }}
+func newSortAction(sort models.Sort, path string, filters models.Filters) templ.Component {
+	sortAction := &SortOption{
+		Sort: sort,
 	}
-	@badge.Build(
-		badge.WithSize(badge.SM),
-		badge.WithColor(badge.Accent),
+	if reflect.DeepEqual(filters.Sort(), sortAction.Sort) {
+		sortAction.active = true
+	}
+	route := models.NewRoute(path, &filters, models.WithAttributes(viewAttributes))
+	route.SetSortBy(sort.SortBy)
+	route.SetSortOrder(sort.SortOrder)
+	sortAction.attributes = route.GetAttributes()
+	return sortAction.Show()
+}
+
+templ (s *SortOption) Show() {
+	{{ var styleOption button.Option }}
+	if s.active {
+		{{ styleOption = button.WithStyle(button.Outline) }}
+	} else {
+		{{ styleOption = button.WithStyle(button.Dashed) }}
+	}
+	@button.Build(
+		// button.WithSize(button.SM),
+		button.WithColor(button.Accent),
 		styleOption,
-		badge.WithContent(s.String()),
-		badge.WithExtraAttributes(s.attributes),
+		button.WithContent(s.String()),
+		button.WithExtraAttributes(s.attributes),
 	).Show()
+}
+
+//nolint:contextcheck
+func generateSortOptions(ctx context.Context) []templ.Component {
+	path := chi.RouteContext(ctx).RoutePattern()
+	filters := models.FiltersFromCtx(ctx)
+
+	var sorts []templ.Component
+	// Add sorting options for updated date.
+	sorts = append(sorts,
+		newSortAction(models.SortLastUpdatedDesc, path, filters),
+		newSortAction(models.SortLastUpdatedAsc, path, filters),
+	)
+	// If viewing /home/feeds and not viewing read items, add additional sorting options on unread count.
+	if path == models.FeedsRoute && !filters.ViewRead() {
+		sorts = append(sorts,
+			newSortAction(models.SortUnreadCountDesc, path, filters),
+			newSortAction(models.SortUnreadCountAsc, path, filters),
+		)
+	}
+
+	return sorts
 }
 
 templ BuildSortingMenu() {

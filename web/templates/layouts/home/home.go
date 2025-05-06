@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+// Package home contains the front-end code for defining the layout of pages under /home.
 package home
 
 import (
@@ -22,7 +23,7 @@ var ContentID = attributes.ID("content")
 var viewAttributes = templ.Attributes{
 	"hx-target":   ContentID.Target(),
 	"hx-push-url": "true",
-	"hx-swap":     "morph:innerHTML",
+	"hx-swap":     "morph:innerHTML show:top",
 }
 
 // actionAttributes are the common htmx attributes for mark actions.
@@ -30,6 +31,7 @@ var actionAttributes = templ.Attributes{
 	"_":           "on click halt the event's bubbling",
 	"hx-push-url": "false",
 	"hx-target":   ContentID.Target(),
+	// "hx-swap":     "morph:innerHTML swap:1s",
 }
 
 func buildMarkFeedAction(feedID models.FeedID, mark models.Mark) *templates.Action {

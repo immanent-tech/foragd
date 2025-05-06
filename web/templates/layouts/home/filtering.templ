@@ -38,12 +38,11 @@ templ (filter *CategoryFilter) Show(classes ...string) {
 }
 
 // Show renders the view filter as a set of badges joined together.
-templ (filters ViewFilters) Show(classes ...string) {
-	{{ classes = append(classes, "join-item") }}
+templ (filters ViewFilters) Show() {
 	@text.Build("View:", text.WithWeight(text.Semibold), text.WithSize(text.XS)).Show()
 	<div class="join">
 		for viewFilter := range slices.Values(filters) {
-			@viewFilter.Show(classes...)
+			@viewFilter.Show()
 		}
 	</div>
 }

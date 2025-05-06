@@ -1,8 +1,13 @@
-@import "tailwindcss" source(none);
+@import 'tailwindcss' source(none);
 @source "../web/templates/**/*.{html,templ}";
 @source "*.{js}";
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";
 @plugin "daisyui" {
   themes: all;
+}
+
+.content.htmx-swapping {
+  opacity: 0;
+  transition: opacity 1s ease-out;
 }
