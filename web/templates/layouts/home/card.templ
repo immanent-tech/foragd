@@ -5,11 +5,13 @@
 package home
 
 import (
+	"context"
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
-	"github.com/joshuar/go-templ-daisyui/classes/width"
 	"github.com/joshuar/go-templ-daisyui/display/avatar"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
@@ -43,20 +45,7 @@ templ (c *Card) showDescription() {
 	}
 }
 
-templ (s *Card) showCategories() {
-	if len(s.GetCategories()) > 0 {
-		for category := range slices.Values(s.GetCategories()) {
-			@badge.Build(
-				badge.WithSize(badge.SM),
-				badge.WithColor(badge.Accent),
-				badge.WithStyle(badge.Outline),
-				badge.WithContent(category),
-			).Show()
-		}
-	}
-}
-
-templ (c *FeedCard) ShowUnreadCount() {
+templ (c *FeedCard) showUnreadCount() {
 	if c.IsUnread() {
 		@badge.Build(
 			badge.WithSize(badge.SM),
@@ -75,13 +64,12 @@ templ (c *FeedCard) showTitle() {
 		// If the source has an image, use that as the avatar.
 		@avatar.Build(
 			c.GetImage().URL(),
-			avatar.WithWidth(width.W8),
+			avatar.WithWidth("w-12"),
 			avatar.WithImageOptions(image.WithLazyLoading()),
-			avatar.WithExtraClasses(),
 		).Show()
 	} else {
 		// Otherwise, take the first letter of the title and create a placeholder avatar.
-		@placeholder.Build(c.GetTitle()[0:1], placeholder.SM, placeholder.WithExtraClasses()).Show()
+		@placeholder.Build(c.GetTitle()[0:1], placeholder.SM).Show()
 	}
 	// Title text is a link to the view action of the card.
 	<div class="text-sm flex-1">
@@ -89,35 +77,54 @@ templ (c *FeedCard) showTitle() {
 			link.WithContent(c.GetTitle()),
 			link.WithUnderlineOnHover(),
 			link.WithExtraAttributes(c.viewRoute.GetAttributes()),
-			link.WithExtraClasses(),
 		).Show()
 	</div>
 	// Display unread count (if any).
 	<div class="flex-none">
-		@c.ShowUnreadCount()
+		@c.showUnreadCount()
 	</div>
 }
 
 templ (c *FeedCard) showContent() {
-	// @article.Build().Show() {
 	@c.timestamp()
 	@c.showDescription()
-	// }
 }
 
-func (c *FeedCard) build() {
-	c.Props = card.Build(
+func newFeedCard(ctx context.Context, subscription *models.Subscription) *FeedCard {
+	feedCard := &FeedCard{
+		Card: Card{
+			Source: subscription,
+			id:     subscription.GetFeedID(),
+		},
+		UnreadCount: subscription.GetUnreadCount(),
+	}
+	feedCard.viewRoute = feedCard.generateViewRoute(ctx)
+	feedCard.menuActions = append(feedCard.menuActions,
+		shareAction(nil),
+		visitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
+		feedCard.generateMarkAction(),
+		editSubscriptionAction(subscription.GetID()),
+		unsubscribeAction(subscription.GetID()),
+	)
+
+	feedCard.Props = card.Build(
 		card.WithStyle(card.Border),
 		card.WithSize(card.MD),
 		card.WithShadow(shadow.MD),
 		card.WithBodyOptions(
-			card.WithTitle(c.showTitle()),
-			card.WithContent(c.showContent()),
-			card.WithActions(c.menuActions.Show()),
+			card.WithTitle(feedCard.showTitle()),
+			card.WithContent(feedCard.showContent()),
+			card.WithActions(feedCard.menuActions.Show()),
 		),
-		card.WithID(c.Source.GetID()),
+		card.WithID(feedCard.GetID()),
 		card.WithExtraClasses(cardSizingClasses),
 	)
+
+	if feedCard.UnreadCount == 0 {
+		card.WithExtraClasses(opacity.Apply(75))(feedCard.Props)
+	}
+
+	return feedCard
 }
 
 templ (c *ItemCard) showTitle() {
@@ -142,30 +149,51 @@ templ (c *ItemCard) showContent() {
 	</div>
 }
 
-func (c *ItemCard) build() {
+func newItemCard(ctx context.Context, item *models.Item) *ItemCard {
+	itemCard := &ItemCard{
+		Card: Card{
+			Source: item,
+			id:     item.GetID(),
+		},
+	}
+	itemCard.viewRoute = itemCard.generateViewRoute(ctx)
+	itemCard.menuActions = append(itemCard.menuActions,
+		shareAction(nil),
+		visitExternalLinkAction("External URL", item.GetLink()),
+		itemCard.generateMarkAction(),
+	)
+
 	var imageOption card.Option
-	if c.GetImage() != nil {
+	if itemCard.GetImage() != nil {
 		imageOption = card.WithImage(
-			c.GetImage().URL(),
+			itemCard.GetImage().URL(),
 			image.WithLazyLoading(),
 			image.WithMask(mask.MaskSquircle),
-			image.WithExtraClasses("object-cover", "max-w-32"),
+			image.WithExtraClasses("object-cover", "max-w-1/4"),
 		)
 	}
-	c.Props = card.Build(
+	itemCard.Props = card.Build(
 		card.WithLayout(card.LayoutSide),
 		imageOption,
 		card.WithSize(card.MD),
 		card.WithStyle(card.Border),
 		card.WithShadow(shadow.MD),
 		card.WithBodyOptions(
-			card.WithContent(c.showContent()),
-			card.WithActions(c.menuActions.Show()),
+			card.WithContent(itemCard.showContent()),
+			card.WithActions(itemCard.menuActions.Show()),
 			card.WithBodyExtraClasses("p-2"),
 		),
-		card.WithID(c.id),
+		card.WithID(itemCard.id),
 		card.WithExtraClasses(cardSizingClasses),
 	)
+	switch {
+	case models.FiltersFromCtx(ctx).View == models.ViewRead:
+		fallthrough
+	case item.GetUserState() == models.StateRead:
+		card.WithExtraClasses(opacity.Apply(75))(itemCard.Props)
+	}
+
+	return itemCard
 }
 
 templ (a cardActions) Show() {
@@ -175,7 +203,7 @@ templ (a cardActions) Show() {
 			dropdown.WithButtonClasses(button.Ghost, button.XS),
 			dropdown.WithOpenFrom(dropdown.OpenTop),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
-			dropdown.WithMenuClasses("rounded-field", "justify-end", "flex-nowrap", "grow"),
+			dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
 		).Show() {
 			for item := range slices.Values(a) {
 				<li>

@@ -1,0 +1,24 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"slices"
+)
+
+// ShowCategoriesAsBadges generates a list of badges from the given category names.
+templ ShowCategoriesAsBadges(categories ...models.Category) {
+	<div class="flex flex-wrap justify-items-center">
+		for category := range slices.Values(categories) {
+			@badge.Build(
+				badge.WithSize(badge.SM),
+				badge.WithColor(badge.Secondary),
+				badge.WithStyle(badge.Outline),
+				badge.WithContent(category),
+			).Show("p-1", "m-1")
+		}
+	</div>
+}

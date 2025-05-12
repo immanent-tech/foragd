@@ -9,7 +9,6 @@ import (
 	"net/url"
 
 	"github.com/a-h/templ"
-	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -81,56 +80,6 @@ func (c *Card) addPagination(reqURL *url.URL, pagination models.Pagination) {
 	)
 	action.AddParameter(models.ParamPagination, pagination)
 	c.AddAttributes(action.Attributes())
-}
-
-func newFeedCard(ctx context.Context, subscription *models.Subscription) *FeedCard {
-	feedCard := &FeedCard{
-		Card: Card{
-			Source: subscription,
-			id:     subscription.GetFeedID(),
-		},
-		UnreadCount: subscription.GetUnreadCount(),
-	}
-	feedCard.viewRoute = feedCard.generateViewRoute(ctx)
-	feedCard.menuActions = append(feedCard.menuActions,
-		shareAction(nil),
-		visitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
-		feedCard.generateMarkAction(),
-		editSubscriptionAction(subscription.GetID()),
-		unsubscribeAction(subscription.GetID()),
-	)
-	feedCard.build()
-
-	if feedCard.UnreadCount == 0 {
-		card.WithExtraClasses(opacity.Apply(75))(feedCard.Props)
-	}
-
-	return feedCard
-}
-
-func newItemCard(ctx context.Context, item *models.Item) *ItemCard {
-	itemCard := &ItemCard{
-		Card: Card{
-			Source: item,
-			id:     item.GetID(),
-		},
-	}
-	itemCard.viewRoute = itemCard.generateViewRoute(ctx)
-	itemCard.menuActions = append(itemCard.menuActions,
-		shareAction(nil),
-		visitExternalLinkAction("External URL", item.GetLink()),
-		itemCard.generateMarkAction(),
-	)
-	itemCard.build()
-
-	switch {
-	case models.FiltersFromCtx(ctx).View == models.ViewRead:
-		fallthrough
-	case item.GetUserState() == models.StateRead:
-		card.WithExtraClasses(opacity.Apply(75))(itemCard.Props)
-	}
-
-	return itemCard
 }
 
 func BuildFeedsLayout(req *http.Request, pagination models.Pagination, subscriptions models.Subscriptions) templates.Layout {

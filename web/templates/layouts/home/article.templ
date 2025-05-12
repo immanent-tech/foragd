@@ -5,11 +5,29 @@
 package home
 
 import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/text"
+	"net/http"
 	"strings"
 )
+
+// Article is a display component that shows an article for the given data.
+type Article struct {
+	models.SourceWithContent
+}
+
+func BuildArticleLayout(req *http.Request, back templ.Component, item *models.Item) templates.Layout {
+	article := &Article{SourceWithContent: item}
+	return &HomeLayout{
+		title:   item.GetTitle(),
+		content: []templ.Component{article.Show()},
+		footer:  BuildArticleFooter(item, back).Show(),
+	}
+}
 
 templ (a *Article) Show(classes ...string) {
 	<div id="content" class="flex flex-wrap p-4 h-full items-start">
@@ -92,6 +110,6 @@ templ (a *Article) showItemArticle() {
 		@a.showAuthors()
 		@a.showTimestamp()
 	</div>
-	@a.showCategories()
+	@partials.ShowCategoriesAsBadges(a.GetCategories()...)
 	@a.showContent()
 }
