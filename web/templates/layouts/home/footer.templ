@@ -23,34 +23,21 @@ type ListFooter struct {
 	actions     []templ.Component
 }
 
-templ (f *ListFooter) Show(classes ...string) {
-	<div
-		id={ ContentFooterID.String() }
-		hx-swap-oob="true"
-		hx-swap="morph:outerHTML"
-		class="bg-base-200 dock dock-sm"
-	>
-		<div class="basis-xs grow">
-			@tooltip.Build("Back").Show() {
-				@f.backButton
-			}
-		</div>
-		<div class="basis-xs grow">
-			@tooltip.Build("Filter").Show() {
-				@f.filtersMenu
-			}
-		</div>
-		<div class="basis-xs grow">
-			@tooltip.Build("Sort").Show() {
-				@f.sortMenu
-			}
-		</div>
-		<div class="basis-xs grow">
-			@tooltip.Build("Actions").Show() {
-				@buildfooterMenu(f.actions...)
-			}
-		</div>
-	</div>
+templ (f *ListFooter) Show() {
+	@footer(ContentFooterID.String()) {
+		@footerItem("Back") {
+			@f.backButton
+		}
+		@footerItem("Filter") {
+			@f.filtersMenu
+		}
+		@footerItem("Sort") {
+			@f.sortMenu
+		}
+		@footerItem("Actions") {
+			@buildfooterMenu(f.actions...)
+		}
+	}
 }
 
 func BuildListFooter(ctx context.Context, backButton templ.Component, categories models.CategoryCounts) *ListFooter {
@@ -73,24 +60,17 @@ type ArticleFooter struct {
 	item       *models.Item
 }
 
-templ (f *ArticleFooter) Show(classes ...string) {
-	<div
-		id={ ContentFooterID.String() }
-		hx-swap-oob="true"
-		hx-swap="morph:outerHTML"
-		class="bg-base-200 dock dock-sm"
-	>
-		<div class="basis-xs grow">
-			@tooltip.Build("Back").Show() {
-				@f.backButton
-			}
-		</div>
-		<div class="basis-xs grow">
+templ (f *ArticleFooter) Show() {
+	@footer(ContentFooterID.String()) {
+		@footerItem("Back") {
+			@f.backButton
+		}
+		@footerItem("View Item") {
 			<a href={ templ.URL(f.item.GetLink()) } target="_blank">
 				@icon.Build("fa-globe").Show()
 			</a>
-		</div>
-	</div>
+		}
+	}
 }
 
 func BuildArticleFooter(item *models.Item, backButton templ.Component) *ArticleFooter {
@@ -103,5 +83,26 @@ func BuildArticleFooter(item *models.Item, backButton templ.Component) *ArticleF
 templ buildfooterMenu(actions ...templ.Component) {
 	<div id="content-actions" hx-swap-oob="true">
 		@partials.DockMenu(icon.Build("fa-ellipsis-vertical"), actions...)
+	</div>
+}
+
+// footer renders the /home page footer.
+templ footer(id string) {
+	<div
+		id={ id }
+		hx-swap-oob="true"
+		hx-swap="morph:outerHTML"
+		class="bg-base-200 dock dock-sm"
+	>
+		{ children... }
+	</div>
+}
+
+// footerItem renders an item in the footer.
+templ footerItem(tip string) {
+	<div class="basis-xs grow">
+		@tooltip.Build(tip).Show() {
+			{ children... }
+		}
 	</div>
 }

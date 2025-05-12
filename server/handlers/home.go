@@ -177,8 +177,8 @@ func GenerateItemsContent(dataAPI DataAPI, sessionAPI SessionAPI) func(next http
 			if !ok {
 				feedFilters = *models.NewFilters()
 			}
-			back := home.BackButton(models.FeedsRoute, &feedFilters)
-			layout := home.BuildItemsLayout(req, pagination, back, items)
+			backRoute := models.NewRoute(models.FeedsRoute, &feedFilters)
+			layout := home.BuildItemsLayout(req, pagination, backRoute, items)
 			ctx := templates.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -198,8 +198,8 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI SessionAPI, feedID models.F
 			if !ok {
 				itemFilters = *models.NewFilters()
 			}
-			back := home.BackButton(models.ItemsRoute, &itemFilters)
-			layout := home.BuildArticleLayout(req, back, item)
+			backRoute := models.NewRoute(models.ItemsRoute, &itemFilters)
+			layout := home.BuildArticleLayout(req, backRoute, item)
 			ctx := templates.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

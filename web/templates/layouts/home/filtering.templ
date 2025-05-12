@@ -46,30 +46,22 @@ func BuildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCou
 }
 
 templ (filters CategoryFilters) Show(classes ...string) {
-	@text.Build("Categories:", text.WithWeight(text.Semibold), text.WithSize(text.XS)).Show()
-	<div class="flex flex-wrap">
-		for _, filter := range filters {
-			@filter.Show(classes...)
-		}
-	</div>
+	if len(filters) > 0 {
+		@text.Build("Categories:", text.WithWeight(text.Semibold), text.WithSize(text.XS)).Show()
+		<div class="flex flex-wrap">
+			for _, filter := range filters {
+				@filter.Show(classes...)
+			}
+		</div>
+	}
 }
 
 templ (filter *CategoryFilter) Show(classes ...string) {
 	switch  {
 		case filter.active:
-			@text.Build(filter.Category,
-				text.WithColor(text.Primary),
-				text.WithWeight(text.Semibold),
-				text.WithSize(text.XS),
-				text.WithAttributes(filter.attributes),
-				text.WithExtraClasses("capitalize", "p-2", "border", "rounded-sm"),
-			).Show()
+			@activeOption(filter.Category, filter.attributes)
 		default:
-			@text.Build(filter.Category,
-				text.WithSize(text.XS),
-				text.WithAttributes(filter.attributes),
-				text.WithExtraClasses("capitalize", "p-2", "border", "rounded-sm"),
-			).Show()
+			@inactiveOption(filter.Category, filter.attributes)
 	}
 }
 
@@ -82,19 +74,9 @@ func viewFilter(ctx context.Context, view models.View) templ.Component {
 	route.SetView(view)
 	switch {
 	case view == models.FiltersFromCtx(ctx).View:
-		return text.Build(string(view),
-			text.WithColor(text.Primary),
-			text.WithWeight(text.Semibold),
-			text.WithSize(text.XS),
-			text.WithAttributes(route.GetAttributes()),
-			text.WithExtraClasses("join-item", "capitalize", "p-2", "border", "rounded-sm"),
-		).Show()
+		return activeOption(string(view), route.GetAttributes())
 	default:
-		return text.Build(string(view),
-			text.WithSize(text.XS),
-			text.WithAttributes(route.GetAttributes()),
-			text.WithExtraClasses("join-item", "capitalize", "p-2", "border", "rounded-sm"),
-		).Show()
+		return inactiveOption(string(view), route.GetAttributes())
 	}
 }
 
@@ -123,4 +105,22 @@ templ BuildFiltersMenu(viewFilters ViewFilters, categoryFilters CategoryFilters)
 			viewFilters.Show(), categoryFilters.Show(),
 		)
 	</div>
+}
+
+templ activeOption(label string, attributes templ.Attributes) {
+	@text.Build(label,
+		text.WithColor(text.Primary),
+		text.WithWeight(text.Semibold),
+		text.WithSize(text.XS),
+		text.WithAttributes(attributes),
+		text.WithExtraClasses("join-item", "capitalize", "p-2", "border", "rounded-sm"),
+	).Show()
+}
+
+templ inactiveOption(label string, attributes templ.Attributes) {
+	@text.Build(label,
+		text.WithSize(text.XS),
+		text.WithAttributes(attributes),
+		text.WithExtraClasses("join-item", "capitalize", "p-2", "border", "rounded-sm"),
+	).Show()
 }

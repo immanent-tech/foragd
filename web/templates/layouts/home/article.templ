@@ -20,12 +20,12 @@ type Article struct {
 	models.SourceWithContent
 }
 
-func BuildArticleLayout(req *http.Request, back templ.Component, item *models.Item) templates.Layout {
+func BuildArticleLayout(req *http.Request, back *models.Route, item *models.Item) templates.Layout {
 	article := &Article{SourceWithContent: item}
 	return &HomeLayout{
 		title:   item.GetTitle(),
 		content: []templ.Component{article.Show()},
-		footer:  BuildArticleFooter(item, back).Show(),
+		footer:  BuildArticleFooter(item, BackButton(back)).Show(),
 	}
 }
 

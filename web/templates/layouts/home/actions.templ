@@ -49,8 +49,8 @@ func ImportAction(classes ...string) templ.Component {
 
 // backButton generates a button for going back to the given path. It fetches
 // the last state of the path (i.e., any parameters used) from the user session.
-func BackButton(path string, filters *models.Filters) templ.Component {
-	route := models.NewRoute(path, filters, models.WithAttributes(viewAttributes))
+func BackButton(route *models.Route) templ.Component {
+	route.SetAttributes(viewAttributes)
 	return button.Build(
 		button.WithContent(icon.Build("fa-left-long")),
 		button.WithStyle(button.Ghost),

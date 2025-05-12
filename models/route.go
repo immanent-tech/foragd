@@ -41,6 +41,21 @@ func NewRouteFromCtx(ctx context.Context, options ...RouteOption) *Route {
 	return route
 }
 
+func NewRouteFromReq(req *http.Request, options ...RouteOption) *Route {
+	route := &Route{
+		path:       req.URL.Path,
+		attributes: make(templ.Attributes),
+	}
+	filters := FiltersFromCtx(req.Context())
+	route.filters = &filters
+
+	for option := range slices.Values(options) {
+		option(route)
+	}
+
+	return route
+}
+
 // NewRoute generates a route from the given path and filters.
 func NewRoute(path string, filters *Filters, options ...RouteOption) *Route {
 	route := &Route{

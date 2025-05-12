@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -17,4 +18,35 @@ func InternalServerError(res http.ResponseWriter, req *http.Request, err error) 
 	slogctx.FromCtx(req.Context()).Error("Cannot display content.",
 		slog.Any("error", models.NewMessage("Internal server error", models.MessageStatusError, models.WithError(err))))
 	http.Error(res, "Problem!", http.StatusInternalServerError)
+}
+
+type HTTPError struct {
+	error
+	Code int
+}
+
+func NewError(code int, message string) *HTTPError {
+	return &HTTPError{
+		error: errors.New(message),
+		Code:  code,
+	}
+}
+
+func NotFound(message string) *HTTPError {
+	return NewError(http.StatusNotFound, message)
+}
+
+// InternalServerError handles errors related to non-specific internal server functionality failures.
+func HandleError(res http.ResponseWriter, req *http.Request, err *HTTPError) {
+	var httpErr *HTTPError
+	if errors.As(err, &httpErr) {
+		http.Error(res, err.Error(), httpErr.Code)
+		slogctx.FromCtx(req.Context()).Error("Error occurred.",
+			slog.Any("error", err))
+	} else {
+		// Default to 500
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		slogctx.FromCtx(req.Context()).Error("Internal server error.",
+			slog.Any("error", err))
+	}
 }

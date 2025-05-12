@@ -412,7 +412,7 @@ func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		sub, err := api.GetSubscription(req.Context(), id)
 		if err != nil {
-			InternalServerError(res, req, err)
+			HandleError(res, req, NewError(http.StatusInternalServerError, err.Error()))
 			return
 		}
 		subEdit := &subscription.SubscriptionEditRequest{
