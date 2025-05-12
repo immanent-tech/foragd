@@ -19,9 +19,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/layout/mask"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
 	"slices"
 	"strconv"
 )
@@ -173,22 +171,17 @@ func (c *ItemCard) build() {
 templ (a cardActions) Show() {
 	@tooltip.Build("Actions").Show() {
 		@dropdown.Build(
-			dropdown.WithButton(
-				button.WithSize(button.XS),
-				button.AsShape(button.Square),
-				button.WithStyle(button.Ghost),
-				button.WithContent(icon.Build("fa-ellipsis-vertical")),
-			),
-			dropdown.WithOpenOptions(
-				dropdown.From(dropdown.OpenTop),
-				dropdown.Align(dropdown.AlignEnd),
-			),
-			dropdown.WithMenuContent(
-				menu.WithLayout(menu.Vertical),
-				menu.WithItems(a...),
-				menu.WithBaseColor(color.Base200),
-				menu.WithExtraClasses("rounded-field", "justify-end", "flex-nowrap", "grow"),
-			),
-		).Show()
+			dropdown.WithButtonContent(icon.Build("fa-ellipsis-vertical")),
+			dropdown.WithButtonClasses(button.Ghost, button.XS),
+			dropdown.WithOpenFrom(dropdown.OpenTop),
+			dropdown.WithOpenAlignment(dropdown.AlignEnd),
+			dropdown.WithMenuClasses("rounded-field", "justify-end", "flex-nowrap", "grow"),
+		).Show() {
+			for item := range slices.Values(a) {
+				<li>
+					@item
+				</li>
+			}
+		}
 	}
 }

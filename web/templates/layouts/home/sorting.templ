@@ -76,8 +76,7 @@ func generateSortOptions(ctx context.Context) []templ.Component {
 
 templ BuildSortingMenu() {
 	<div id="content-sorting" hx-swap-oob="true">
-		@partials.DockMenu("Sort",
-			icon.Build("fa-sort"),
+		@partials.DockMenu(icon.Build("fa-sort").Show(),
 			generateSortOptions(ctx)...,
 		)
 	</div>

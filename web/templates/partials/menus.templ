@@ -3,45 +3,39 @@
 
 package partials
 
-import (
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
-	"github.com/joshuar/go-templ-daisyui/display/icon"
-	"github.com/joshuar/go-templ-daisyui/modifiers/size"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
-)
-
-// ResponsiveMenu generates a menu that is a dropdown on small screens and horizontal list on larger screens.
-templ ResponsiveMenu(items ...templ.Component) {
-	@templ.Join(
-		// Menu for large screens: horizontal layout, all buttons shown.
-		menu.Build(
-			menu.WithSize(menu.SM),
-			menu.WithLayout(menu.Horizontal),
-			menu.WithRevealedBreakpoint(size.LG),
-			menu.WithItems(items...),
-		).Show(),
-		// Menu for small screens: buttons hidden behind drop-down.
-		dropdown.Build(
-			dropdown.WithHiddenBreakpoint(size.LG),
-			dropdown.WithButton(
-				button.WithSize(button.XS),
-				button.WithColor(button.Neutral),
-				button.AsShape(button.Square),
-				button.WithContent(icon.Build("fa-ellipsis-vertical")),
-				button.WithExtraAttributes(templ.Attributes{
-					"_": "on click halt the event's bubbling",
-				}),
-			),
-			dropdown.WithOpenOptions(
-				dropdown.From(dropdown.OpenTop),
-				dropdown.Align(dropdown.AlignEnd),
-			),
-			dropdown.WithMenuContent(
-				// menu.WithSize(size.SM),
-				menu.WithLayout(menu.Vertical),
-				menu.WithItems(items...),
-			),
-		).Show(),
-	)
+// // ResponsiveMenu generates a menu that is a dropdown on small screens and horizontal list on larger screens.
+// templ ResponsiveMenu(items ...templ.Component) {
+// 	@templ.Join(
+// 		// Menu for large screens: horizontal layout, all buttons shown.
+// 		menu.Build(
+// 			menu.WithSize(menu.SM),
+// 			menu.WithLayout(menu.Horizontal),
+// 			menu.WithRevealedBreakpoint(size.LG),
+// 			menu.WithItems(items...),
+// 		).Show(),
+// 		// Menu for small screens: buttons hidden behind drop-down.
+// 		dropdown.Build(
+// 			dropdown.WithHiddenBreakpoint(size.LG),
+// 			dropdown.WithButton(
+// 				button.WithSize(button.XS),
+// 				button.WithColor(button.Neutral),
+// 				button.AsShape(button.Square),
+// 				button.WithContent(icon.Build("fa-ellipsis-vertical")),
+// 				button.WithExtraAttributes(templ.Attributes{
+// 					"_": "on click halt the event's bubbling",
+// 				}),
+// 			),
+// 			dropdown.WithOpenOptions(
+// 				dropdown.From(dropdown.OpenTop),
+// 				dropdown.Align(dropdown.AlignEnd),
+// 			),
+// 			dropdown.WithMenuContent(
+// 				// menu.WithSize(size.SM),
+// 				menu.WithLayout(menu.Vertical),
+// 				menu.WithItems(items...),
+// 			),
+// 		).Show(),
+// 	)
+// }
+templ foo() {
 }

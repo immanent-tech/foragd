@@ -4,27 +4,21 @@
 package partials
 
 import (
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
+	"slices"
 )
 
-templ DockMenu(title string, label any, items ...templ.Component) {
+templ DockMenu(label any, items ...templ.Component) {
 	@dropdown.Build(
-		dropdown.WithOpenOptions(
-			dropdown.From(dropdown.OpenTop),
-			dropdown.Align(dropdown.AlignCenter),
-		),
-		dropdown.WithButton(
-			button.WithStyle(button.Ghost),
-			button.WithContent(label),
-		),
-		dropdown.WithMenuContent(
-			menu.WithMenuTitle(title),
-			menu.WithBaseColor(color.Base200),
-			menu.WithExtraClasses("min-w-52", "flex-nowrap", "grow"),
-			menu.WithItems(items...),
-		),
-	).Show()
+		dropdown.WithButtonContent(label),
+		dropdown.WithOpenFrom(dropdown.OpenTop),
+		dropdown.WithOpenAlignment(dropdown.AlignCenter),
+		dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+	).Show() {
+		for item := range slices.Values(items) {
+			<li>
+				@item
+			</li>
+		}
+	}
 }

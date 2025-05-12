@@ -119,8 +119,7 @@ templ (filters ViewFilters) Show() {
 
 templ BuildFiltersMenu(viewFilters ViewFilters, categoryFilters CategoryFilters) {
 	<div id="content-filters" hx-swap-oob="true">
-		@partials.DockMenu("Filter",
-			icon.Build("fa-sliders"),
+		@partials.DockMenu(icon.Build("fa-sliders").Show(),
 			viewFilters.Show(), categoryFilters.Show(),
 		)
 	</div>
