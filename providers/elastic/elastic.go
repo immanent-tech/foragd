@@ -11,7 +11,6 @@ import (
 	"net/url"
 	"slices"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -72,7 +71,6 @@ func ExtractSourceFromDocs[T any](docs []types.MgetResponseItem) ([]T, error) {
 		case types.MultiGetError:
 			warnings = errors.Join(warnings, formatError(obj.Error))
 		case *types.GetResult:
-			spew.Dump(obj)
 			source, err := ExtractSource[T](obj.Source_)
 			if err != nil {
 				warnings = errors.Join(warnings, err)

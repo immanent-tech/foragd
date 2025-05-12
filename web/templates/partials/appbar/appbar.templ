@@ -4,14 +4,28 @@
 package appbar
 
 import (
-	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/input"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/modifiers/size"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/joshuar/go-templ-daisyui/navigation/navbar"
 )
+
+func AppBar() *navbar.Props {
+	return navbar.Build(navbar.WithID("content_app_bar"),
+		navbar.WithBaseColor(color.Base200),
+		navbar.NavBarStart(appBarTopLeft()),
+		navbar.NavBarEnd(appBarTopRight()),
+		navbar.NavBarCenter(appBarTopCenter()),
+		navbar.WithExtraAttributes(templ.Attributes{
+			"hx-swap-oob": "true",
+			"hx-swap":     "morph:outerHTML",
+		}),
+	)
+}
 
 templ appBarTopLeft() {
 	<div class="flex-none">
@@ -42,46 +56,32 @@ templ appBarTopCenter() {
 
 templ appBarTopRight() {
 	<div title="Settings" class="flex-none">
-		<div class="dropdown dropdown-end">
-			<div
-				tabindex="0"
-				role="button"
-				class="btn btn-ghost btn-circle
-			avatar"
-			>
-				@icon.Build("fa-user-astronaut",
-					icon.WithRelativeSize(size.XL),
-					icon.WithThemeColor(color.Accent),
+		@dropdown.Build(
+			dropdown.WithButtonContent(icon.Build("fa-user-astronaut",
+				icon.WithRelativeSize(size.XL),
+				icon.WithThemeColor(color.Accent),
+			).Show()),
+			dropdown.WithOpenAlignment(dropdown.AlignEnd),
+			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+		).Show() {
+			<li>
+				@link.Build(
+					link.WithContent("Settings"),
+					link.WithExtraAttributes(templ.Attributes{
+						"href": "/settings",
+					}),
+					link.WithUnderlineOnHover(),
 				).Show()
-			</div>
-			<ul
-				tabindex="0"
-				class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
-			>
-				<li>
-					<a class="justify-between">
-						Profile
-						<span class="badge">New</span>
-					</a>
-				</li>
-				<li>
-					@OpenSettingsAction()
-				</li>
-				<li>
-					@partials.LogoutLink()
-				</li>
-			</ul>
-		</div>
+			</li>
+			<li>
+				@link.Build(
+					link.WithContent("Logout"),
+					link.WithExtraAttributes(templ.Attributes{
+						"href": "/logout",
+					}),
+					link.WithUnderlineOnHover(),
+				).Show()
+			</li>
+		}
 	</div>
-}
-
-// OpenSettingsAction generates an link action to open the settings modal.
-templ OpenSettingsAction() {
-	@link.Build(
-		link.WithContent("Settings"),
-		link.WithExtraAttributes(templ.Attributes{
-			"href": "/settings",
-		}),
-		link.WithUnderlineOnHover(),
-	).Show()
 }

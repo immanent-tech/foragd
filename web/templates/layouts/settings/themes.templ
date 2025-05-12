@@ -3,25 +3,14 @@
 
 package settings
 
-// themeChangeMenu displays a dropdown menu containing the themes that can be selected for the app.
+// themeChangeMenu displays a menu containing the themes that can be selected for the app.
 templ themeChangeMenu() {
-	<div title="Change Theme" class="dropdown block">
-		<div tabindex="0" role="button" class="btn group btn-sm btn-ghost" aria-label="Change Theme">
-			Theme:
-			<div class="bg-base-100 group-hover:border-base-content/20 border-base-content/10 grid shrink-0 grid-cols-2 gap-0.5 rounded-md border p-1 transition-colors">
-				@themeBox()
-			</div>
-			// <svg width="12px" height="12px" class="mt-px hidden size-2 fill-current opacity-60 sm:inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048"><path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z"></path></svg>
+	<div tabindex="0" class="collapse bg-base-100 border-base-300 border">
+		<div class="collapse-title font-semibold">
+			Change Theme
 		</div>
-		<div>
-			<script>
-            me().innerText = document.documentElement.getAttributeNode('data-theme').value
-            console.log(document.documentElement.getAttributeNode('data-theme').innerText)
-            </script>
-		</div>
-		<div tabindex="0" class="dropdown-content bg-base-200 text-base-content rounded-box overflow-y-auto shadow-2xl outline-1">
-			<ul class="menu max-w-56">
-				<li class="menu-title text-xs">Choose a theme</li>
+		<div class="collapse-content text-sm">
+			<fieldset class="fieldset">
 				@themeSelect("light")
 				@themeSelect("dark")
 				@themeSelect("synthwave")
@@ -38,22 +27,20 @@ templ themeChangeMenu() {
 				@themeSelect("nord")
 				@themeSelect("sunset")
 				@themeSelect("caramellatte")
-			</ul>
+			</fieldset>
 		</div>
 	</div>
 }
 
 // themeSelect presents a button to change the theme to the given theme.
 templ themeSelect(theme string) {
-	<li>
-		<button class="gap-3 px-2" data-set-theme={ theme } data-act-class="[&_svg]:visible">
-			<div data-theme={ theme } class="bg-base-100 grid shrink-0 grid-cols-2 gap-0.5 rounded-md p-1 shadow-sm">
-				@themeBox()
-			</div>
-			<div class="truncate">{ theme }</div>
-			// <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="invisible h-3 w-3 shrink-0"><path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"></path></svg>
-		</button>
-	</li>
+	<label class="flex gap-2 cursor-pointer items-center">
+		<input type="radio" name="theme-radios" class="radio radio-sm theme-controller" value={ theme }/>
+		<div data-theme={ theme } class="bg-base-100 grid shrink-0 grid-cols-2 gap-0.5 rounded-md p-1 shadow-sm">
+			@themeBox()
+		</div>
+		<div class="truncate">{ theme }</div>
+	</label>
 }
 
 // themeBox displays a little box showing the common colors for a theme.
