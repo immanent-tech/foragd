@@ -35,7 +35,7 @@ templ themeChangeMenu() {
 // themeSelect presents a button to change the theme to the given theme.
 templ themeSelect(theme string) {
 	<label class="flex gap-2 cursor-pointer items-center">
-		<input type="radio" name="theme-radios" class="radio radio-sm theme-controller" value={ theme }/>
+		<input type="radio" _={ "on click send setTheme(theme: (my value)) to <html/> then call localStorage.setItem('theme', (my value))" } name="theme-radios" class="radio radio-sm theme-controller" value={ theme }/>
 		<div data-theme={ theme } class="bg-base-100 grid shrink-0 grid-cols-2 gap-0.5 rounded-md p-1 shadow-sm">
 			@themeBox()
 		</div>

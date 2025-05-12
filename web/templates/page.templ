@@ -16,9 +16,23 @@ type Page struct {
 
 templ (p *Page) Show() {
 	<!DOCTYPE html>
-	<html lang="en" data-theme="">
+	<html
+		lang="en"
+		data-theme=""
+		_="
+	on load
+		set @data-theme to localStorage.getItem('theme')
+	end
+	on setTheme(theme)
+		set @data-theme to theme
+	end
+	"
+	>
 		@p.Head.Show()
-		<body hx-ext="morph,sse" hx-on::history-restore="themeBtn();">
+		<body
+			hx-ext="morph,sse"
+			hx-on::history-restore="send setTheme(js return localStorage.getItem('theme'))"
+		>
 			{ children... }
 		</body>
 	</html>
