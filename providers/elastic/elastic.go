@@ -11,10 +11,13 @@ import (
 	"net/url"
 	"slices"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/models"
 )
+
+var ErrExtractSource = errors.New("could not extract document _source")
 
 // var (
 // 	_ models.FeedManagementAPI = (*Client)(nil)
@@ -41,7 +44,7 @@ func ExtractSourceFromHits[T any](hits []types.Hit) ([]T, []types.FieldValue, er
 		source, err := ExtractSource[T](hit.Source_)
 		if err != nil {
 			warnings = errors.Join(warnings,
-				fmt.Errorf("error extracting source from doc %s: %w", *hit.Id_, err))
+				fmt.Errorf("%w (id: %s): %w", ErrExtractSource, *hit.Id_, err))
 			continue
 		}
 
@@ -69,6 +72,7 @@ func ExtractSourceFromDocs[T any](docs []types.MgetResponseItem) ([]T, error) {
 		case types.MultiGetError:
 			warnings = errors.Join(warnings, formatError(obj.Error))
 		case *types.GetResult:
+			spew.Dump(obj)
 			source, err := ExtractSource[T](obj.Source_)
 			if err != nil {
 				warnings = errors.Join(warnings, err)
@@ -88,7 +92,7 @@ func ExtractSource[T any](doc json.RawMessage) (T, error) {
 	var source T
 
 	if err := json.Unmarshal(doc, &source); err != nil {
-		return source, errors.Join(ErrExtractSource, err)
+		return source, fmt.Errorf("%w: %w", ErrExtractSource, err)
 	}
 
 	return source, nil
@@ -107,7 +111,7 @@ func ExtractFieldFromHits[T any](field string, hits []types.Hit) (map[string]T, 
 		value, err := ExtractFieldValue[T](field, hit.Fields)
 		if err != nil {
 			warnings = errors.Join(warnings,
-				fmt.Errorf("error extracting field value from doc %s: %w", *hit.Id_, err))
+				fmt.Errorf("%w (id: %s): %w", ErrExtractSource, *hit.Id_, err))
 			continue
 		}
 		values[*hit.Id_] = value

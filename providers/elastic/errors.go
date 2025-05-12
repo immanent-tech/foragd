@@ -14,7 +14,6 @@ var (
 	ErrReqFailed     = errors.New("api request failed")
 	ErrNotFound      = errors.New("not found")
 
-	ErrExtractSource = errors.New("could not extract document _source")
 	ErrPagination    = errors.New("pagination error")
 	// Aggregation Errors.
 	ErrInvalidAggType    = errors.New("not requested aggregation type")

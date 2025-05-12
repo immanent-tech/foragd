@@ -95,41 +95,6 @@ func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Respon
 	return &resp, nil
 }
 
-// // GetFeedsByURL retrieves a list of APIFeeds based on the given URLs.
-// func (e *API) GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error) {
-// 	index := FeedsIndexFromCtx(ctx)
-// 	if index == "" {
-// 		return nil, ErrFetchCtx
-// 	}
-
-// 	feeds := make([]*models.Feed, 0, len(urls))
-
-// 	resp, err := NewSearchRequest(e.GetAPI(),
-// 		WithSearchIndex(index),
-// 		WithFields("feed_id", "source"),
-// 		WithSearchQueryOptions(query.URLs("source", urls...)),
-// 		WithSearchSize(len(urls)),
-// 		WithSortOptions(SortByDocID("feed_id")),
-// 	).Do(ctx)
-// 	if err != nil {
-// 		return nil, models.NewMessage("Fetching feeds failed.", models.MessageStatusError, models.WithError(err))
-// 	}
-// 	// Stop if there are no hits
-// 	if len(resp.Hits.Hits) == 0 {
-// 		return nil, nil
-// 	}
-// 	// Loop through this set of results.
-// 	sources, _, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
-// 	if warnings != nil {
-// 		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
-// 			slog.Any("warnings", err))
-// 	}
-
-// 	feeds = append(feeds, sources...)
-
-// 	return feeds, nil
-// }
-
 // GetFeed retrieves the feed with the given id.
 func (e *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 	index := FeedsIndexFromCtx(ctx)
@@ -171,7 +136,7 @@ func (e *API) GetAllFeeds(ctx context.Context, feedIDs ...models.FeedID) (models
 	feeds, warnings := ExtractSourceFromDocs[*models.Feed](resp.Docs)
 	if warnings != nil {
 		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
-			slog.Any("warnings", err))
+			slog.Any("warnings", warnings))
 	}
 	return feeds, nil
 }
