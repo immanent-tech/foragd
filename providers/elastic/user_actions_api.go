@@ -192,6 +192,7 @@ func (e *API) GetSubscriptions(ctx context.Context) (models.Subscriptions, model
 			models.WithError(ErrNoUserCtx))
 	}
 	subscriptions := user.GetSubscriptions()
+
 	// Get feeds matching subscriptions.
 	feeds, err := e.GetAllFeeds(ctx, subscriptions.GetFeedIDs()...)
 	if err != nil {

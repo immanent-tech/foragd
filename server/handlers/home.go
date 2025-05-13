@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -152,7 +151,6 @@ func MarkItems(api DataAPI) func(next http.Handler) http.Handler {
 			// Get the mark request.
 			marks, valid, err := forms.DecodeForm[*models.MarkFeedItems](req)
 			if err != nil || !valid {
-				spew.Dump(marks)
 				InternalServerError(res, req, err)
 				return
 			}

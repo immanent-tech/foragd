@@ -12,25 +12,12 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
-
-// feedSortFields defines the fields for sorting feeds.
-type feedSortFields struct {
-	Updated types.FieldSort `json:"updated"`
-	FeedID  types.FieldSort `json:"feed_id"`
-}
-
-// itemSortFields defines the fields for sorting items.
-type itemSortFields struct {
-	Timestamp types.FieldSort `json:"@timestamp"`
-	ItemID    types.FieldSort `json:"item_id"`
-}
 
 var defaultDatetimeFormat = "strict_date_optional_time_nanos"
 
@@ -312,41 +299,31 @@ func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 }
 
 // setFeedSort will define how Feeds are sorted based on the given sort options (from filters).
-func setFeedSort(sort models.Sort) feedSortFields {
-	// Default sort options.
-	sortOptions := feedSortFields{
-		Updated: types.FieldSort{Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
-		FeedID:  types.FieldSort{Order: &sortorder.Desc},
-	}
+func setFeedSort(sort models.Sort) (FieldSort, FieldSort) {
 	// Adjust based on given sort options.
 	switch sort.SortBy {
 	case models.SortByLastUpdated:
 		switch sort.SortOrder {
 		case models.SortOrderAsc:
-			sortOptions.Updated.Order = &sortorder.Asc
+			return NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("feed_id", models.SortOrderDesc)
 		case models.SortOrderDesc:
-			sortOptions.Updated.Order = &sortorder.Desc
+			return NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("feed_id", models.SortOrderDesc)
 		}
 	}
-	return sortOptions
+	return NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("feed_id", models.SortOrderDesc)
 }
 
 // setItemSort will define how Items are sorted based on the given sort options (from filters).
-func setItemSort(sort models.Sort) itemSortFields {
-	// Default sort options.
-	sortOptions := itemSortFields{
-		Timestamp: types.FieldSort{Order: &sortorder.Desc, Format: &defaultDatetimeFormat},
-		ItemID:    types.FieldSort{Order: &sortorder.Desc},
-	}
+func setItemSort(sort models.Sort) (FieldSort, FieldSort) {
 	// Adjust based on given sort options.
 	switch sort.SortBy {
 	case models.SortByLastUpdated:
 		switch sort.SortOrder {
 		case models.SortOrderAsc:
-			sortOptions.Timestamp.Order = &sortorder.Asc
+			return NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("item_id", models.SortOrderDesc)
 		case models.SortOrderDesc:
-			sortOptions.Timestamp.Order = &sortorder.Desc
+			return NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("item_id", models.SortOrderDesc)
 		}
 	}
-	return sortOptions
+	return NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("item_id", models.SortOrderDesc)
 }

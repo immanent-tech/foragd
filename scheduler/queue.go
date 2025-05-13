@@ -11,10 +11,10 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
@@ -208,7 +208,7 @@ func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
 			query.MatchAll(),
 		),
 		elastic.WithSearchSize(1),
-		elastic.WithSortOptions(map[string]types.FieldSort{"job_next_run": {Order: &sortorder.Asc}}),
+		elastic.WithSortOptions(elastic.NewFieldSort("job_next_run", models.SortOrderAsc)),
 	).Do(schedCtx)
 	if err != nil {
 		return nil, errors.Join(ErrNoJobFound, err)

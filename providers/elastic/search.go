@@ -4,8 +4,7 @@
 package elastic
 
 import (
-	"encoding/json"
-	"log/slog"
+	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
@@ -13,6 +12,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
@@ -62,18 +62,18 @@ func WithSearchQueryOptions(options ...query.Option) SearchOption {
 }
 
 // WithSortOptions adds the given sorting options to the search.
-func WithSortOptions(options any) SearchOption {
+func WithSortOptions(options ...types.SortCombinationsVariant) SearchOption {
 	return func(search *search.Search) {
-		search.Sort(options)
+		search.Sort(options...)
 	}
 }
 
 // WithFields ensures the search will return the given fields in the response.
 func WithFields(fields ...string) SearchOption {
 	return func(search *search.Search) {
-		fieldsReturned := make([]types.FieldAndFormat, len(fields))
+		fieldsReturned := make([]types.FieldAndFormatVariant, len(fields))
 		for i, name := range fields {
-			fieldsReturned[i] = types.FieldAndFormat{Field: name}
+			fieldsReturned[i] = &types.FieldAndFormat{Field: name}
 		}
 
 		search.Fields(fieldsReturned...)
@@ -94,20 +94,18 @@ func WithSearchSize(size int) SearchOption {
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
 func WithSearchAfter(value any) SearchOption {
 	return func(search *search.Search) {
-		if value != nil {
-			switch sort := value.(type) {
-			case []types.FieldValue:
-				search.SearchAfter(sort...)
-			case []byte:
-				if string(sort) != "" {
-					var fv []types.FieldValue
-					if err := json.Unmarshal(sort, &fv); err != nil {
-						slog.Warn("Could not unmarshal pagination data.", slog.Any("error", err))
-					} else {
-						search.SearchAfter(fv...)
-					}
-				}
+		if value == nil {
+			return
+		}
+
+		if values, ok := value.([]types.FieldValue); ok {
+			fieldValues := make([]types.FieldValueVariant, 0, len(values))
+			for value := range slices.Values(values) {
+				fieldValues = append(fieldValues, NewFieldValue(value))
 			}
+			search.SearchAfter(fieldValues...)
+		} else {
+			search.SearchAfter(NewFieldValue(value))
 		}
 	}
 }
@@ -154,17 +152,57 @@ func NewCountRequest(api *typedapi.API, options ...CountOption) *count.Count {
 	return req
 }
 
+// FieldSort represents the sorting order for a field.
+type FieldSort struct {
+	field string
+	order models.SortOrder
+}
+
+func (s FieldSort) SortCombinationsCaster() *types.SortCombinations {
+	opts := types.NewSortOptions()
+	switch s.order {
+	case models.SortOrderAsc:
+		opts.SortOptions[s.field] = types.FieldSort{Order: &sortorder.Asc}
+	case models.SortOrderDesc:
+		opts.SortOptions[s.field] = types.FieldSort{Order: &sortorder.Desc}
+	}
+	sort := types.SortCombinations(opts)
+	return &sort
+}
+
+// NewFieldSort creates a new FieldSort for the given field with the given sort order.
+func NewFieldSort(field string, order models.SortOrder) FieldSort {
+	return FieldSort{field: field, order: order}
+}
+
 // SortTimestampDesc returns a sort parameter for a search that will sort
 // results by the @timestamp field in descending order.
-func SortTimestampDesc() map[string]types.FieldSort {
-	return map[string]types.FieldSort{"@timestamp": {Order: &sortorder.Desc}}
+func SortTimestampDesc() FieldSort {
+	return NewFieldSort("@timestamp", models.SortOrderDesc)
 }
 
 // SortByDocID will sort search results by `_doc`, effectively unordered but
 // most efficient sorting. Useful when paginating through *all* docs.
-func SortByDocID(idField string) map[string]types.FieldSort {
-	return map[string]types.FieldSort{
-		"_doc":  {},
-		idField: {Order: &sortorder.Desc},
+func SortByDocID(field string) FieldSort {
+	return NewFieldSort(field, models.SortOrderDesc)
+}
+
+// FieldValue represents a value of a field.
+type FieldValue struct {
+	value any
+}
+
+func (v FieldValue) FieldValueCaster() *types.FieldValue {
+	switch data := v.value.(type) {
+	case types.FieldValue:
+		return &data
+	default:
+		fv := types.FieldValue(data)
+		return &fv
 	}
+}
+
+// NewFieldValue converts any value into a FieldValue.
+func NewFieldValue(value any) FieldValue {
+	return FieldValue{value: value}
 }
