@@ -1,5 +1,6 @@
 @import 'tailwindcss' source(none);
 @source "../web/templates/**/*.{html,templ}";
+@source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
 @source "*.{js}";
 @plugin "@tailwindcss/typography";
 @plugin "@tailwindcss/forms";

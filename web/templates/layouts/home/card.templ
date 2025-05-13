@@ -15,13 +15,14 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/avatar"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
-	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/display/placeholder"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 	"strconv"
 )
@@ -199,7 +200,7 @@ func newItemCard(ctx context.Context, item *models.Item) *ItemCard {
 templ (a cardActions) Show() {
 	@tooltip.Build("Actions").Show() {
 		@dropdown.Build(
-			dropdown.WithButtonContent(icon.Build("fa-ellipsis-vertical")),
+			dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
 			dropdown.WithButtonClasses(button.Ghost, button.XS),
 			dropdown.WithOpenFrom(dropdown.OpenTop),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),

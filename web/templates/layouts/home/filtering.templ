@@ -7,8 +7,9 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
 
@@ -100,7 +101,7 @@ templ (filters ViewFilters) Show() {
 
 templ BuildFiltersMenu(viewFilters ViewFilters, categoryFilters CategoryFilters) {
 	<div id="content-filters" hx-swap-oob="true">
-		@footerMenu(icon.Build("fa-sliders").Show(),
+		@footerMenu(tabler.Filter(i.Props{Size: i.SizeSM}),
 			viewFilters.Show(), categoryFilters.Show(),
 		)
 	</div>

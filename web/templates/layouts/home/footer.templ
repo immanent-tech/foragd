@@ -11,6 +11,8 @@ import (
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
 
@@ -37,7 +39,7 @@ templ (f *ListFooter) Show() {
 		}
 		@footerItem("Actions") {
 			<div id="content-actions" hx-swap-oob="true">
-				@footerMenu(icon.Build("fa-ellipsis-vertical"), f.actions...)
+				@footerMenu(tabler.Menu(i.Props{Size: i.SizeSM}), f.actions...)
 			</div>
 		}
 	}

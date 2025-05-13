@@ -103,7 +103,8 @@
     "components",
     "layouts/settings",
     "layouts/home",
-    "layouts"
+    "layouts",
+    "go"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

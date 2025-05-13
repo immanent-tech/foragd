@@ -10,8 +10,9 @@ import (
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
-	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 )
 
@@ -49,7 +50,7 @@ func importAction(classes ...string) templ.Component {
 func markReadLink(label string, attributes templ.Attributes) templ.Component {
 	return link.Build(
 		link.WithContent(
-			templ.Join(icon.Build("fa-envelope").Show(), components.SetContent(label)),
+			templ.Join(tabler.Bookmark(i.Props{Size: i.SizeXS}), components.SetContent(label)),
 		),
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(attributes),
@@ -60,7 +61,7 @@ func markReadLink(label string, attributes templ.Attributes) templ.Component {
 func markUnreadLink(label string, attributes templ.Attributes) templ.Component {
 	return link.Build(
 		link.WithContent(
-			templ.Join(icon.Build("fa-envelope-open").Show(), components.SetContent(label)),
+			templ.Join(tabler.BookmarkFilled(i.Props{Size: i.SizeXS}), components.SetContent(label)),
 		),
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(attributes),
@@ -161,7 +162,7 @@ func markFeedAction(id models.FeedID, view models.View) templ.Component {
 func BackButton(route *models.Route) templ.Component {
 	route.SetAttributes(viewAttributes)
 	return button.Build(
-		button.WithContent(icon.Build("fa-left-long")),
+		button.WithContent(tabler.ArrowBackUp(i.Props{Size: i.SizeSM})),
 		button.WithStyle(button.Ghost),
 		button.WithExtraAttributes(route.GetAttributes()),
 	).Show()
@@ -180,7 +181,7 @@ func markAction(mark models.Mark, attributes templ.Attributes) templ.Component {
 templ shareAction(attributes templ.Attributes) {
 	@link.Build(
 		link.WithContent(
-			templ.Join(icon.Build("fa-share").Show(), components.SetContent("Share")),
+			templ.Join(tabler.Share(i.Props{Size: i.SizeXS}), components.SetContent("Share")),
 		),
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(attributes),
@@ -191,7 +192,7 @@ templ shareAction(attributes templ.Attributes) {
 templ visitExternalLinkAction(label, url string) {
 	@link.Build(
 		link.WithContent(
-			templ.Join(icon.Build("fa-arrow-up-right-from-square").Show(), components.SetContent("Visit "+label)),
+			templ.Join(tabler.ExternalLink(i.Props{Size: i.SizeXS}), components.SetContent("Visit "+label)),
 		),
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(templ.Attributes{
@@ -210,7 +211,7 @@ func editSubscriptionAction(id models.SubscriptionID) templ.Component {
 		}))
 	return link.Build(
 		link.WithContent(
-			templ.Join(icon.Build("fa-pen").Show(), components.SetContent("Edit")),
+			templ.Join(tabler.Edit(i.Props{Size: i.SizeXS}), components.SetContent("Edit")),
 		),
 		link.WithUnderlineOnHover(),
 		link.WithExtraClasses(actionTextClasses),
@@ -227,7 +228,7 @@ func unsubscribeAction(id models.SubscriptionID) templ.Component {
 		}))
 	return link.Build(
 		link.WithContent(
-			templ.Join(icon.Build("fa-trash").Show(), components.SetContent("Unsubscribe")),
+			templ.Join(tabler.Trash(i.Props{Size: i.SizeSM}), components.SetContent("Unsubscribe")),
 		),
 		link.WithUnderlineOnHover(),
 		link.WithExtraClasses(actionTextClasses),
