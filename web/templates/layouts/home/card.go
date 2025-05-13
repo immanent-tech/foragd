@@ -6,7 +6,6 @@ package home
 import (
 	"context"
 	"net/http"
-	"net/url"
 
 	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/display/card"
@@ -51,18 +50,17 @@ func (c *Card) generateViewRoute(ctx context.Context) *models.Route {
 }
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
-func (c *Card) addPagination(reqURL *url.URL, pagination models.Pagination) {
-	action := templates.BuildAction(reqURL.Path,
-		templates.WithQueryParams(reqURL.Query()),
-		templates.WithAttributes(templ.Attributes{
+func (c *Card) addPagination(req *http.Request, pagination models.Pagination) {
+	route := models.NewRouteFromReq(req,
+		models.WithAttributes(templ.Attributes{
 			"hx-trigger":   "intersect once",
 			"hx-swap":      "afterend",
 			"hx-push-url":  "false",
 			"hx-indicator": "#content-loading",
 		}),
 	)
-	action.AddParameter(models.ParamPagination, pagination)
-	c.AddAttributes(action.Attributes())
+	route.AddQueryParam(models.ParamPagination, pagination)
+	c.AddAttributes(route.GetAttributes())
 }
 
 func BuildFeedsLayout(req *http.Request, pagination models.Pagination, subscriptions models.Subscriptions) templates.Layout {
@@ -71,7 +69,7 @@ func BuildFeedsLayout(req *http.Request, pagination models.Pagination, subscript
 	for idx, subscription := range subscriptions {
 		card := newFeedCard(req.Context(), subscription)
 		if idx == len(subscriptions)-1 && len(subscriptions) == models.FiltersFromCtx(req.Context()).Count {
-			card.addPagination(req.URL, pagination)
+			card.addPagination(req, pagination)
 		}
 
 		cards = append(cards, card.Show())
@@ -98,7 +96,7 @@ func BuildItemsLayout(req *http.Request, pagination models.Pagination, back *mod
 		itemCard := newItemCard(req.Context(), item)
 		// Add a pagination action to the last item.
 		if idx == len(items)-1 && len(items) == models.FiltersFromCtx(req.Context()).Count {
-			itemCard.addPagination(req.URL, pagination)
+			itemCard.addPagination(req, pagination)
 		}
 		// Append the card to the list of cards.
 		cards = append(cards, itemCard.Show())

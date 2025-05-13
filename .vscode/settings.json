@@ -1,167 +1,168 @@
 {
-    "[go.mod]": {
-        "editor.codeActionsOnSave": {
-            "source.organizeImports": "always"
-        },
-        "editor.defaultFormatter": "golang.go"
+  "[go.mod]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "always"
     },
-    // "[go]": {
-    //   "editor.defaultFormatter": "golang.go",
-    //   "editor.codeActionsOnSave": {
-    //     "source.fixAll": "always",
-    //     "source.organizeImports": "always"
-    //   }
-    // },
-    "[templ]": {
-        "editor.defaultFormatter": "a-h.templ"
-    },
-    "conventionalCommits.lineBreak": "\\n",
-    "conventionalCommits.scopes": [
-        "devcontainer",
-        "platforms/auth0",
-        "templates/components",
-        "models",
-        "platforms/elastic",
-        "components/layout",
-        "components/image",
-        "components/card",
-        "components/table",
-        "components/tabs",
-        "templates/pages",
-        "templates/partials",
-        "components/tooltip",
-        "components/menu",
-        "modifiers/size",
-        "modifiers/alignment",
-        "modifiers/layout",
-        "components/button",
-        "components/icon",
-        "components/modal",
-        "components/input",
-        "components/list",
-        "platforms/scheduler",
-        "components/badge",
-        "components/fit",
-        "components/header",
-        "components/size",
-        "components/article",
-        "modifiers/z-index",
-        "components/drawer",
-        "templates/layouts",
-        "components/loading",
-        "templates/content",
-        "components/indicator",
-        "modifiers/attributes",
-        "modifiers/shadow",
-        "modifiers/mask",
-        "modifiers/object",
-        "modifiers/color",
-        "components/form",
-        "components/dropdown",
-        "components/alert",
-        "modifiers/state",
-        "internal/id",
-        "cli",
-        "app/scheduler",
-        "components/text",
-        "routes",
-        "modifier/position",
-        "components/toggle",
-        "components/navbar",
-        "modifiers",
-        "server/middlewares",
-        "helpers/items",
-        "helpers/attributes",
-        "components/breadcrumbs",
-        "components/link",
-        "session",
-        "api",
-        "classes",
-        "classes/opacity",
-        "routes/home",
-        "templates/layouts/home",
-        "assets/scripts",
-        "schema/server",
-        "schema/api",
-        "server",
-        "classes/width",
-        "config",
-        "templates",
-        "attributes",
-        "components/fieldset",
-        "assets",
-        "templates/partials/subscription",
-        "pkg/opml",
-        "validation",
-        "modifiers/style",
-        "pkg/feeds",
-        "scheduler",
-        "handlers",
-        "auth",
-        "feeds",
-        "elastic",
-        "components",
-        "layouts/settings",
-        "layouts/home"
-    ],
-    "editor.formatOnSave": true,
-    "emmet.includeLanguages": {
-        "templ": "html"
-    },
-    "files.associations": {
-        "*.css": "tailwindcss"
-    },
-    "files.exclude": {
-        "**/.DS_Store": true,
-        "**/.git": true,
-        "**/.hg": true,
-        "**/.svn": true,
-        "**/*_templ.go": true,
-        "**/CVS": true,
-        "**/Thumbs.db": true
-    },
-    "go.lintFlags": [
-        "run",
-        "--issues-exit-code=0",
-        "--output.text.colors=true",
-        "--output.text.path=stdout",
-        "--output.text.print-issued-lines=false",
-        "--show-stats=false"
-    ],
-    "go.lintTool": "golangci-lint",
-    // "go.lintFlags": ["--fast"],
-    // "go.lintTool": "golangci-lint",
-    "go.useLanguageServer": true,
-    // "go.diagnostic.vulncheck": "Imports",
-    "go.formatTool": "custom",
-    "go.alternateTools": {
-        "customFormatter": "golangci-lint-v2"
-    },
-    "go.formatFlags": ["fmt", "--stdin"],
-    "gopls": {
-        "ui.semanticTokens": true
-        // "formatting.local": "github.com/joshuar/go-feed-me",
-        // "ui.diagnostic.analyses": {
-        //   "copylocks": false,
-        //   "unusedvariable": true
-        // }
-    },
-    "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
-    "licenser.license": "AGPLv3",
-    "licenser.useSPDXLicenseFormat": true,
-    "ltex.language": "en-AU",
-    "tailwindCSS.includeLanguages": {
-        "templ": "html"
-    },
-    "terminal.integrated.defaultProfile.linux": "fish",
-    "terminal.integrated.scrollback": 10000,
-    "[toml]": {
-        "editor.defaultFormatter": "be5invis.toml"
-    },
-    "[xml]": {
-        "editor.defaultFormatter": "redhat.vscode-xml"
-    },
-    "[go]": {
-        "editor.defaultFormatter": "golang.go"
-    }
+    "editor.defaultFormatter": "golang.go"
+  },
+  // "[go]": {
+  //   "editor.defaultFormatter": "golang.go",
+  //   "editor.codeActionsOnSave": {
+  //     "source.fixAll": "always",
+  //     "source.organizeImports": "always"
+  //   }
+  // },
+  "[templ]": {
+    "editor.defaultFormatter": "a-h.templ"
+  },
+  "conventionalCommits.lineBreak": "\\n",
+  "conventionalCommits.scopes": [
+    "devcontainer",
+    "platforms/auth0",
+    "templates/components",
+    "models",
+    "platforms/elastic",
+    "components/layout",
+    "components/image",
+    "components/card",
+    "components/table",
+    "components/tabs",
+    "templates/pages",
+    "templates/partials",
+    "components/tooltip",
+    "components/menu",
+    "modifiers/size",
+    "modifiers/alignment",
+    "modifiers/layout",
+    "components/button",
+    "components/icon",
+    "components/modal",
+    "components/input",
+    "components/list",
+    "platforms/scheduler",
+    "components/badge",
+    "components/fit",
+    "components/header",
+    "components/size",
+    "components/article",
+    "modifiers/z-index",
+    "components/drawer",
+    "templates/layouts",
+    "components/loading",
+    "templates/content",
+    "components/indicator",
+    "modifiers/attributes",
+    "modifiers/shadow",
+    "modifiers/mask",
+    "modifiers/object",
+    "modifiers/color",
+    "components/form",
+    "components/dropdown",
+    "components/alert",
+    "modifiers/state",
+    "internal/id",
+    "cli",
+    "app/scheduler",
+    "components/text",
+    "routes",
+    "modifier/position",
+    "components/toggle",
+    "components/navbar",
+    "modifiers",
+    "server/middlewares",
+    "helpers/items",
+    "helpers/attributes",
+    "components/breadcrumbs",
+    "components/link",
+    "session",
+    "api",
+    "classes",
+    "classes/opacity",
+    "routes/home",
+    "templates/layouts/home",
+    "assets/scripts",
+    "schema/server",
+    "schema/api",
+    "server",
+    "classes/width",
+    "config",
+    "templates",
+    "attributes",
+    "components/fieldset",
+    "assets",
+    "templates/partials/subscription",
+    "pkg/opml",
+    "validation",
+    "modifiers/style",
+    "pkg/feeds",
+    "scheduler",
+    "handlers",
+    "auth",
+    "feeds",
+    "elastic",
+    "components",
+    "layouts/settings",
+    "layouts/home",
+    "layouts"
+  ],
+  "editor.formatOnSave": true,
+  "emmet.includeLanguages": {
+    "templ": "html"
+  },
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "files.exclude": {
+    "**/.DS_Store": true,
+    "**/.git": true,
+    "**/.hg": true,
+    "**/.svn": true,
+    "**/*_templ.go": true,
+    "**/CVS": true,
+    "**/Thumbs.db": true
+  },
+  "go.lintFlags": [
+    "run",
+    "--issues-exit-code=0",
+    "--output.text.colors=true",
+    "--output.text.path=stdout",
+    "--output.text.print-issued-lines=false",
+    "--show-stats=false"
+  ],
+  "go.lintTool": "golangci-lint",
+  // "go.lintFlags": ["--fast"],
+  // "go.lintTool": "golangci-lint",
+  "go.useLanguageServer": true,
+  // "go.diagnostic.vulncheck": "Imports",
+  "go.formatTool": "custom",
+  "go.alternateTools": {
+    "customFormatter": "golangci-lint-v2"
+  },
+  "go.formatFlags": ["fmt", "--stdin"],
+  "gopls": {
+    "ui.semanticTokens": true
+    // "formatting.local": "github.com/joshuar/go-feed-me",
+    // "ui.diagnostic.analyses": {
+    //   "copylocks": false,
+    //   "unusedvariable": true
+    // }
+  },
+  "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
+  "licenser.license": "AGPLv3",
+  "licenser.useSPDXLicenseFormat": true,
+  "ltex.language": "en-AU",
+  "tailwindCSS.includeLanguages": {
+    "templ": "html"
+  },
+  "terminal.integrated.defaultProfile.linux": "fish",
+  "terminal.integrated.scrollback": 10000,
+  "[toml]": {
+    "editor.defaultFormatter": "be5invis.toml"
+  },
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml"
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go"
+  }
 }
