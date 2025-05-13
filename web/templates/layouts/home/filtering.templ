@@ -115,7 +115,7 @@ templ activeOption(label string, attributes templ.Attributes) {
 		button.WithStyle(button.Soft),
 		button.WithSize(button.XS),
 		button.WithExtraAttributes(attributes),
-		button.WithExtraClasses("join-item", "capitalize", "p-2", "border", "rounded-sm"),
+		button.WithExtraClasses("join-item", "capitalize", "p-2"),
 	).Show()
 }
 
@@ -124,6 +124,6 @@ templ inactiveOption(label string, attributes templ.Attributes) {
 		button.WithContent(label),
 		button.WithSize(button.XS),
 		button.WithExtraAttributes(attributes),
-		button.WithExtraClasses("join-item", "capitalize", "p-2", "border", "rounded-sm"),
+		button.WithExtraClasses("join-item", "capitalize", "p-2"),
 	).Show()
 }

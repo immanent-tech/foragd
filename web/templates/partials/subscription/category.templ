@@ -5,12 +5,11 @@
 package subscription
 
 import (
-	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/layout/join"
+	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
 
@@ -36,34 +35,13 @@ templ (i *categoryInput) Show(classes ...string) {
 		).Show("join-item"),
 		button.Build(
 			button.AsShape(button.Square),
-			button.WithContent(icon.Build("fa-plus")),
+			button.WithContent(tabler.CategoryPlus()),
 		).Show("join-item"),
 	)
 }
 
 func newCategoryInput() *categoryInput {
 	return &categoryInput{}
-}
-
-// ShowCategory displays a Category with a button to remove it from the Subscription.
-templ ShowCategory(category models.Category) {
-	@join.Horizontally(
-		textinput.Build(
-			textinput.ReadOnly(),
-			textinput.WithName("user_categories[]"),
-			textinput.WithValue(category),
-			textinput.WithExtraAttributes(templ.Attributes{
-				"form": AddSubscriptionDetailsFormID.String(),
-			}),
-		).Show("join-item"),
-		button.Build(
-			button.AsShape(button.Square),
-			button.WithContent(icon.Build("fa-minus")),
-			button.WithExtraAttributes(templ.Attributes{
-				"hx-delete": "/subscription/edit/category",
-			}),
-		).Show("join-item"),
-	)
 }
 
 templ manageCategories(categories ...string) {
@@ -84,7 +62,7 @@ templ manageCategories(categories ...string) {
 				).Show("join-item"),
 				button.Build(
 					button.AsShape(button.Square),
-					button.WithContent(icon.Build("fa-plus")),
+					button.WithContent(tabler.CategoryPlus()),
 				).Show("join-item"),
 			)
 		</fieldset>
