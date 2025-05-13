@@ -35,23 +35,6 @@ type Card struct {
 	*card.Props
 }
 
-// generateMarkAction creates the appropriate mark action for the card.
-func (c *Card) generateMarkAction() templ.Component {
-	cardType := models.IdentifyID(c.id)
-	sourceID := c.id
-	switch {
-	case cardType == models.FeedPFX && c.IsUnread():
-		return markAction(models.MarkRead, buildMarkFeedAction(sourceID, models.MarkRead).Attributes())
-	case cardType == models.FeedPFX && !c.IsUnread():
-		return markAction(models.MarkUnread, buildMarkFeedAction(sourceID, models.MarkRead).Attributes())
-	case cardType == models.ItemPFX && c.IsUnread():
-		return markAction(models.MarkRead, buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkRead).Attributes())
-	case cardType == models.ItemPFX && !c.IsUnread():
-		return markAction(models.MarkUnread, buildMarkItemAction(c.GetFeedID(), sourceID, models.MarkUnread).Attributes())
-	}
-	return nil
-}
-
 // viewAction returns the action for viewing the card's content. For a Feed card this would be the Feed's item as cards.
 // For a Item card, this would be the item content.
 func (c *Card) generateViewRoute(ctx context.Context) *models.Route {

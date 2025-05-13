@@ -78,7 +78,7 @@ func markAllItemsAction(feeds []models.FeedID, view models.View) templ.Component
 		models.WithAttributes(actionAttributes),
 		models.WithMethod(http.MethodPost),
 	)
-	route.AddQueryParam("feed_id", feeds[0])
+	route.AddQueryParam(models.ParamFeedID, feeds[0])
 
 	switch view {
 	case models.ViewUnread:
@@ -87,6 +87,28 @@ func markAllItemsAction(feeds []models.FeedID, view models.View) templ.Component
 	case models.ViewRead:
 		route.AddQueryParam("mark", string(models.MarkUnread))
 		return markUnreadLink("Mark All Unread", route.GetAttributes())
+	default:
+		return nil
+	}
+}
+
+func markItemAction(feedID models.FeedID, itemID models.ItemID, view models.View) templ.Component {
+	route := models.NewRoute(
+		models.ItemsRoute,
+		nil,
+		models.WithAttributes(actionAttributes),
+		models.WithMethod(http.MethodPost),
+	)
+	route.AddQueryParam(models.ParamFeedID, feedID)
+	route.AddQueryParam(models.ParamItems, itemID)
+
+	switch view {
+	case models.ViewUnread:
+		route.AddQueryParam("mark", string(models.MarkRead))
+		return markReadLink("Mark Read", route.GetAttributes())
+	case models.ViewRead:
+		route.AddQueryParam("mark", string(models.MarkUnread))
+		return markUnreadLink("Mark Unread", route.GetAttributes())
 	default:
 		return nil
 	}
@@ -109,6 +131,27 @@ func markAllFeedsAction(view models.View) templ.Component {
 	case models.ViewRead:
 		route.AddQueryParam("mark", string(models.MarkUnread))
 		return markUnreadLink("Mark All Unread", route.GetAttributes())
+	default:
+		return nil
+	}
+}
+
+func markFeedAction(id models.FeedID, view models.View) templ.Component {
+	route := models.NewRoute(
+		models.FeedsRoute,
+		nil,
+		models.WithAttributes(actionAttributes),
+		models.WithMethod(http.MethodPost),
+	)
+	route.AddQueryParam(models.ParamFeeds, id)
+
+	switch view {
+	case models.ViewUnread:
+		route.AddQueryParam("mark", string(models.MarkRead))
+		return markReadLink("Mark Read", route.GetAttributes())
+	case models.ViewRead:
+		route.AddQueryParam("mark", string(models.MarkUnread))
+		return markUnreadLink("Mark Unread", route.GetAttributes())
 	default:
 		return nil
 	}
