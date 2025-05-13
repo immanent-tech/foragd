@@ -67,7 +67,7 @@ func (u *User) GetSubscriptionCategories() []Category {
 
 // MarkSubscriptions will mark either the given list of subscriptions, or all user subscriptions if none given, with the
 // given mark.
-func (u *User) MarkSubscriptions(mark Mark, feedIDs ...FeedID) {
+func (u *User) MarkSubscriptions(mark Mark, subscriptionIDs ...SubscriptionID) {
 	// Based on the requested state change, calculate the marked read timestamp
 	// for the feed.
 	// For read state, this will be the current time.
@@ -81,7 +81,7 @@ func (u *User) MarkSubscriptions(mark Mark, feedIDs ...FeedID) {
 	}
 
 	switch {
-	case len(feedIDs) == 0:
+	case len(subscriptionIDs) == 0:
 		// Mark all subscriptions.
 		for subscription := range slices.Values(u.Subscriptions) {
 			subscription.MarkRead(markedAt)
@@ -89,7 +89,7 @@ func (u *User) MarkSubscriptions(mark Mark, feedIDs ...FeedID) {
 	default:
 		// Mark the selected subscriptions.
 		for subscription := range slices.Values(u.Subscriptions) {
-			if slices.Contains(feedIDs, subscription.GetFeedID()) {
+			if slices.Contains(subscriptionIDs, subscription.GetID()) {
 				subscription.MarkRead(markedAt)
 			}
 		}

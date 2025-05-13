@@ -134,3 +134,27 @@ func showImportFailed(res http.ResponseWriter, req *http.Request, msg *models.Me
 		handlers.InternalServerError(res, req, err)
 	}
 }
+
+func (s Server) MarkSubscription(res http.ResponseWriter, req *http.Request, mark models.Mark, subscription models.SubscriptionID) {
+	chain := alice.New(
+		handlers.RouteLogger("mark_subscription"),
+		handlers.MarkSubscriptions(s.DataAPI(), mark, subscription),
+		handlers.RetrieveFilters(s.SessionAPI()),
+		handlers.GenerateFeedsContent(s.DataAPI()),
+	).Then(handlers.DisplayHome())
+	chain.ServeHTTP(res, req)
+}
+
+func (s Server) MarkAllSubscriptions(res http.ResponseWriter, req *http.Request, mark models.Mark, params MarkAllSubscriptionsParams) {
+	var subscriptions []models.SubscriptionID
+	if params.Subscriptions != nil {
+		subscriptions = append(subscriptions, *params.Subscriptions...)
+	}
+	chain := alice.New(
+		handlers.RouteLogger("mark_all_subscriptions"),
+		handlers.MarkSubscriptions(s.DataAPI(), mark, subscriptions...),
+		handlers.RetrieveFilters(s.SessionAPI()),
+		handlers.GenerateFeedsContent(s.DataAPI()),
+	).Then(handlers.DisplayHome())
+	chain.ServeHTTP(res, req)
+}

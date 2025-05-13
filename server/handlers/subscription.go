@@ -438,3 +438,17 @@ func SaveSubscription(api DataAPI, id models.SubscriptionID, edits *models.Subsc
 		HTMXResponse(resp, subscription.EditSuccessModal()).ServeHTTP(res, req)
 	})
 }
+
+func MarkSubscriptions(api DataAPI, mark models.Mark, subscriptions ...models.SubscriptionID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			// Mark the feeds.
+			if err := api.MarkSubscriptions(req.Context(), mark, subscriptions...); err != nil {
+				InternalServerError(res, req, err)
+				return
+			}
+			req.Header.Add(htmx.HeaderLocation, models.FeedsRoute)
+			next.ServeHTTP(res, req)
+		})
+	}
+}

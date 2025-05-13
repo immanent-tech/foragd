@@ -7,6 +7,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
+	"github.com/joshuar/go-feed-me/web/templates/request"
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
@@ -14,6 +15,13 @@ import (
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 )
+
+// actionAttributes are the common htmx attributes for mark actions.
+var actionAttributes = templ.Attributes{
+	"hx-push-url": "false",
+	"hx-target":   ContentID.Target(),
+	// "hx-swap":     "morph:innerHTML swap:1s",
+}
 
 const actionTextClasses = "w-fit text-xs"
 
@@ -116,41 +124,38 @@ func markItemAction(feedID models.FeedID, itemID models.ItemID, view models.View
 // markAllFeedsAction generates an action for the footer menu to mark all feeds as either read or unread, depending on
 // the current view.
 func markAllFeedsAction(view models.View) templ.Component {
-	route := models.NewRoute(
-		models.FeedsRoute,
-		nil,
-		models.WithAttributes(actionAttributes),
-		models.WithMethod(http.MethodPost),
-	)
-
 	switch view {
 	case models.ViewUnread:
-		route.AddQueryParam("mark", string(models.MarkRead))
-		return markReadLink("Mark All Read", route.GetAttributes())
+		action := request.BuildRequest("/subscription/mark/"+string(models.MarkRead),
+			request.WithMethod(http.MethodPost),
+			request.WithAttributes(actionAttributes),
+		)
+		return markReadLink("Mark All Read", action.Attributes())
 	case models.ViewRead:
-		route.AddQueryParam("mark", string(models.MarkUnread))
-		return markUnreadLink("Mark All Unread", route.GetAttributes())
+		action := request.BuildRequest("/subscription/mark/"+string(models.MarkUnread),
+			request.WithMethod(http.MethodPost),
+			request.WithAttributes(actionAttributes),
+		)
+		return markUnreadLink("Mark All Unread", action.Attributes())
 	default:
 		return nil
 	}
 }
 
-func markFeedAction(id models.FeedID, view models.View) templ.Component {
-	route := models.NewRoute(
-		models.FeedsRoute,
-		nil,
-		models.WithAttributes(actionAttributes),
-		models.WithMethod(http.MethodPost),
-	)
-	route.AddQueryParam(models.ParamFeeds, id)
-
+func markFeedAction(id models.SubscriptionID, view models.View) templ.Component {
 	switch view {
 	case models.ViewUnread:
-		route.AddQueryParam("mark", string(models.MarkRead))
-		return markReadLink("Mark Read", route.GetAttributes())
+		action := request.BuildRequest("/subscription/mark/"+string(models.MarkRead)+"/"+id,
+			request.WithMethod(http.MethodPost),
+			request.WithAttributes(actionAttributes),
+		)
+		return markReadLink("Mark Read", action.Attributes())
 	case models.ViewRead:
-		route.AddQueryParam("mark", string(models.MarkUnread))
-		return markUnreadLink("Mark Unread", route.GetAttributes())
+		action := request.BuildRequest("/subscription/mark/"+string(models.MarkUnread)+"/"+id,
+			request.WithMethod(http.MethodPost),
+			request.WithAttributes(actionAttributes),
+		)
+		return markUnreadLink("Mark Unread", action.Attributes())
 	default:
 		return nil
 	}

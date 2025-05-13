@@ -23,14 +23,6 @@ var viewAttributes = templ.Attributes{
 	"hx-swap":     "morph:innerHTML show:top",
 }
 
-// actionAttributes are the common htmx attributes for mark actions.
-var actionAttributes = templ.Attributes{
-	"_":           "on click halt the event's bubbling",
-	"hx-push-url": "false",
-	"hx-target":   ContentID.Target(),
-	// "hx-swap":     "morph:innerHTML swap:1s",
-}
-
 // EmptyContent renders a hero with options for the user when the request
 // returned no other content.
 templ emptyContent() {

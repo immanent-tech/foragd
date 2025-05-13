@@ -103,7 +103,7 @@ func newFeedCard(ctx context.Context, subscription *models.Subscription) *FeedCa
 	feedCard.menuActions = append(feedCard.menuActions,
 		shareAction(nil),
 		visitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
-		markFeedAction(feedCard.id, models.FiltersFromCtx(ctx).View),
+		markFeedAction(subscription.GetID(), models.FiltersFromCtx(ctx).View),
 		editSubscriptionAction(subscription.GetID()),
 		unsubscribeAction(subscription.GetID()),
 	)

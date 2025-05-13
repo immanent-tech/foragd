@@ -300,13 +300,13 @@ func (e *API) RemoveSubscriptions(ctx context.Context, subscriptions ...models.S
 }
 
 // UserActionMarkSubscriptions will mark user subscriptions with the given state.
-func (e *API) MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error {
+func (e *API) MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptions ...models.SubscriptionID) error {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx
 	}
 	// Mark subscriptions.
-	user.MarkSubscriptions(marks.Mark, marks.Feeds...)
+	user.MarkSubscriptions(mark, subscriptions...)
 	// Update the user object.
 	return e.UpdateUser(ctx, user.GetID(), map[string]any{
 		"subscriptions": user.Subscriptions,

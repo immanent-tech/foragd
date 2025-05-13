@@ -194,6 +194,28 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
+  /subscription/mark/{mark}/{subscription}:
+    post:
+      summary: >
+        Marks the given subscription with the given mark.
+      operationId: markSubscription
+      parameters:
+        - $ref: '#/components/parameters/Mark'
+        - $ref: '#/components/parameters/SubscriptionID'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
+  /subscriptions/mark/{mark}:
+    post:
+      summary: >
+        Marks the given subscriptions with the given mark.
+      operationId: markAllSubscriptions
+      parameters:
+        - $ref: '#/components/parameters/Mark'
+        - $ref: '#/components/parameters/Subscriptions'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
   /home:
     get:
       summary: >
@@ -391,6 +413,17 @@ components:
       required: true
       schema:
         $ref: 'api.yaml#/components/schemas/Count'
+    Subscriptions:
+      name: subscriptions
+      in: query
+      schema:
+        type: array
+        items:
+          $ref: 'models.yaml#/components/schemas/SubscriptionID'
+        x-oapi-codegen-extra-tags:
+          json: 'subscriptions'
+          form: 'subscriptions[]'
+          validate: 'omitnil,unique,dive,startswith=sub_'
     Feeds:
       name: feeds
       in: query

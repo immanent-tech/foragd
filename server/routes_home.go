@@ -36,7 +36,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger("mark_feeds"),
-		handlers.MarkFeeds(s.DataAPI()),
+		// handlers.MarkFeeds(s.DataAPI()),
 		handlers.RetrieveFilters(s.SessionAPI()),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())

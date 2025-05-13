@@ -90,8 +90,13 @@ func RetrieveFilters(session SessionAPI) func(next http.Handler) http.Handler {
 			var (
 				filters models.Filters
 				ok      bool
+				route   string
 			)
-			route := chi.RouteContext(req.Context()).RoutePattern()
+			if redirect := req.Header.Get(htmx.HeaderLocation); redirect != "" {
+				route = redirect
+			} else {
+				route = chi.RouteContext(req.Context()).RoutePattern()
+			}
 			switch route {
 			case models.FeedsRoute:
 				filters, ok = session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
@@ -107,25 +112,25 @@ func RetrieveFilters(session SessionAPI) func(next http.Handler) http.Handler {
 	}
 }
 
-// MarkFeeds handles marking feeds as read.
-func MarkFeeds(api DataAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Get the mark request.
-			marks, valid, err := forms.DecodeForm[*models.MarkFeeds](req)
-			if err != nil || !valid {
-				InternalServerError(res, req, err)
-				return
-			}
-			// Mark the feeds.
-			if err := api.MarkSubscriptions(req.Context(), marks); err != nil {
-				InternalServerError(res, req, err)
-				return
-			}
-			next.ServeHTTP(res, req)
-		})
-	}
-}
+// // MarkFeeds handles marking feeds as read.
+// func MarkFeeds(api DataAPI) func(next http.Handler) http.Handler {
+// 	return func(next http.Handler) http.Handler {
+// 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+// 			// Get the mark request.
+// 			marks, valid, err := forms.DecodeForm[*models.MarkFeeds](req)
+// 			if err != nil || !valid {
+// 				InternalServerError(res, req, err)
+// 				return
+// 			}
+// 			// Mark the feeds.
+// 			if err := api.MarkSubscriptions(req.Context(), marks); err != nil {
+// 				InternalServerError(res, req, err)
+// 				return
+// 			}
+// 			next.ServeHTTP(res, req)
+// 		})
+// 	}
+// }
 
 // GenerateFeedsContent creates the content for displaying a list of feeds.
 func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler {

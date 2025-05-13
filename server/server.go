@@ -32,7 +32,7 @@ type DataAPI interface {
 	// Subscription methods:
 	GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, error)
 	GetSubscriptions(ctx context.Context) (models.Subscriptions, models.Pagination, error)
-	MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) error
+	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) error
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error
 	EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) error
 	RemoveSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) error

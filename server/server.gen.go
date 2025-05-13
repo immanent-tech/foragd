@@ -69,6 +69,9 @@ type SortOrder = externalRef0.SortOrder
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = externalRef0.SubscriptionID
 
+// Subscriptions defines model for Subscriptions.
+type Subscriptions = []externalRef0.SubscriptionID
+
 // View The state of objects to view.
 type View = externalRef0.View
 
@@ -103,6 +106,11 @@ type RemoveSubscriptionParams struct {
 type SetImportMethodFormdataBody struct {
 	// From defines the source that will be used for an import.
 	From externalRef0.ImportSource `form:"source" json:"source" validate:"oneof=opml_file opml_url url_list"`
+}
+
+// MarkAllSubscriptionsParams defines parameters for MarkAllSubscriptions.
+type MarkAllSubscriptionsParams struct {
+	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
 }
 
 // HandleMarkFeedsFormdataRequestBody defines body for HandleMarkFeeds for application/x-www-form-urlencoded ContentType.
@@ -288,9 +296,15 @@ type ServerInterface interface {
 
 	// (PUT /subscription/import)
 	SetImportMethod(w http.ResponseWriter, r *http.Request)
+	// Marks the given subscription with the given mark.
+	// (POST /subscription/mark/{mark}/{subscription})
+	MarkSubscription(w http.ResponseWriter, r *http.Request, mark Mark, subscription SubscriptionID)
 	// New subscription handling.
 	// (GET /subscription/new)
 	NewSubscription(w http.ResponseWriter, r *http.Request)
+	// Marks the given subscriptions with the given mark.
+	// (POST /subscriptions/mark/{mark})
+	MarkAllSubscriptions(w http.ResponseWriter, r *http.Request, mark Mark, params MarkAllSubscriptionsParams)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -443,9 +457,21 @@ func (_ Unimplemented) SetImportMethod(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Marks the given subscription with the given mark.
+// (POST /subscription/mark/{mark}/{subscription})
+func (_ Unimplemented) MarkSubscription(w http.ResponseWriter, r *http.Request, mark Mark, subscription SubscriptionID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // New subscription handling.
 // (GET /subscription/new)
 func (_ Unimplemented) NewSubscription(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Marks the given subscriptions with the given mark.
+// (POST /subscriptions/mark/{mark})
+func (_ Unimplemented) MarkAllSubscriptions(w http.ResponseWriter, r *http.Request, mark Mark, params MarkAllSubscriptionsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1141,11 +1167,81 @@ func (siw *ServerInterfaceWrapper) SetImportMethod(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
+// MarkSubscription operation middleware
+func (siw *ServerInterfaceWrapper) MarkSubscription(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "mark" -------------
+	var mark Mark
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "subscription" -------------
+	var subscription SubscriptionID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MarkSubscription(w, r, mark, subscription)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // NewSubscription operation middleware
 func (siw *ServerInterfaceWrapper) NewSubscription(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.NewSubscription(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MarkAllSubscriptions operation middleware
+func (siw *ServerInterfaceWrapper) MarkAllSubscriptions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "mark" -------------
+	var mark Mark
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params MarkAllSubscriptionsParams
+
+	// ------------- Optional query parameter "subscriptions" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MarkAllSubscriptions(w, r, mark, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1344,7 +1440,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/subscription/import", wrapper.SetImportMethod)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/subscription/mark/{mark}/{subscription}", wrapper.MarkSubscription)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscription/new", wrapper.NewSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/subscriptions/mark/{mark}", wrapper.MarkAllSubscriptions)
 	})
 
 	return r
