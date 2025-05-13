@@ -6,14 +6,17 @@ package server
 import (
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
+
+	"github.com/joshuar/go-templ-daisyui/display/icon"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/handlers"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 // Index handler handles the index page.
@@ -49,7 +52,13 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 	} else {
 		backLink = models.NewRoute(prevPage, nil)
 	}
-	layout := settings.BuildSettingsLayout(partials.GenerateBackButton(backLink))
+	back := link.Build(
+		link.WithContent(icon.Build("fa-left-long")),
+		link.WithExtraAttributes(templ.Attributes{
+			"href": backLink.String(),
+		}),
+	)
+	layout := settings.BuildSettingsLayout(back.Show())
 	handler := handlers.HTMXResponse(htmx.NewResponse(), layout.FullRender())
 	handler.ServeHTTP(res, req)
 }

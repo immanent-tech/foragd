@@ -12,6 +12,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 type FeedCard struct {
@@ -74,12 +75,12 @@ func BuildFeedsLayout(req *http.Request, pagination models.Pagination, subscript
 
 		cards = append(cards, card.Show())
 	}
-	back := models.NewRoute("/home", nil)
+	back := models.NewRoute("/home", nil, models.WithAttributes(viewAttributes))
 	return &HomeLayout{
 		title:   "Feeds",
 		content: cards,
 		footer: BuildListFooter(req.Context(),
-			BackButton(back),
+			partials.BackButton(back.GetAttributes()),
 			subscriptions.GetCategoryCounts(),
 			addSubscriptionAction(),
 			importAction(),
@@ -102,11 +103,12 @@ func BuildItemsLayout(req *http.Request, pagination models.Pagination, back *mod
 		cards = append(cards, itemCard.Show())
 	}
 	// Return the home items layout.
+	back.SetAttributes(viewAttributes)
 	return &HomeLayout{
 		title:   "Items",
 		content: cards,
 		footer: BuildListFooter(req.Context(),
-			BackButton(back),
+			partials.BackButton(back.GetAttributes()),
 			items.GetCategoryCounts(),
 			addSubscriptionAction(),
 			importAction(),

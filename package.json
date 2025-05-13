@@ -26,6 +26,7 @@
     "@tabler/icons": "^3.31.0",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
+    "autoprefixer": "^10.4.21",
     "daisyui": "^5.0.35",
     "date-fns": "^4.1.0",
     "htmx-ext-sse": "^2.2.3",

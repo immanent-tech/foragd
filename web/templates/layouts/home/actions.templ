@@ -8,7 +8,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 	"github.com/joshuar/go-templ-daisyui"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
@@ -155,17 +154,6 @@ func markFeedAction(id models.FeedID, view models.View) templ.Component {
 	default:
 		return nil
 	}
-}
-
-// backButton generates a button for going back to the given path. It fetches
-// the last state of the path (i.e., any parameters used) from the user session.
-func BackButton(route *models.Route) templ.Component {
-	route.SetAttributes(viewAttributes)
-	return button.Build(
-		button.WithContent(tabler.ArrowBackUp(i.Props{Size: i.SizeSM})),
-		button.WithStyle(button.Ghost),
-		button.WithExtraAttributes(route.GetAttributes()),
-	).Show()
 }
 
 func markAction(mark models.Mark, attributes templ.Attributes) templ.Component {

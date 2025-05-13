@@ -4,8 +4,8 @@
 
 package home
 
-import "github.com/joshuar/go-templ-daisyui/display/icon"
 import "github.com/joshuar/go-feed-me/models"
+import "github.com/sebasvil20/templicons/tabler"
 
 // ListHeader represents the content header for a list of objects.
 type ListHeader struct {
@@ -42,7 +42,7 @@ templ (h *ArticleHeader) Show(classes ...string) {
 		<div class="navbar bg-base-100 justify-end">
 			<div class="flex flex-row">
 				<a href={ templ.URL(h.item.GetLink()) } target="_blank">
-					@icon.Build("fa-globe").Show()
+					@tabler.ExternalLink()
 				</a>
 			</div>
 		</div>

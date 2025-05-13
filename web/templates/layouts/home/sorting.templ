@@ -8,7 +8,6 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"reflect"
@@ -31,24 +30,11 @@ func newSortAction(sort models.Sort, path string, filters models.Filters) templ.
 	route.SetSortBy(sort.SortBy)
 	route.SetSortOrder(sort.SortOrder)
 	sortAction.attributes = route.GetAttributes()
-	return sortAction.Show()
-}
-
-templ (s *SortOption) Show() {
-	if s.active {
-		@text.Build(s.String(),
-			text.WithSize(text.XS),
-			text.WithColor(text.Primary),
-			text.WithWeight(text.Semibold),
-			text.WithAttributes(s.attributes),
-			text.WithExtraClasses("p-2", "m-2", "border", "rounded-sm"),
-		).Show()
-	} else {
-		@text.Build(s.String(),
-			text.WithSize(text.XS),
-			text.WithAttributes(s.attributes),
-			text.WithExtraClasses("p-2", "m-2", "border", "rounded-sm"),
-		).Show()
+	switch sortAction.active {
+	case true:
+		return activeOption(sortAction.String(), sortAction.attributes)
+	default:
+		return inactiveOption(sortAction.String(), sortAction.attributes)
 	}
 }
 

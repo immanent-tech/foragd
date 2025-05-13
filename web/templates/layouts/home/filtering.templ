@@ -7,6 +7,7 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -108,19 +109,21 @@ templ BuildFiltersMenu(viewFilters ViewFilters, categoryFilters CategoryFilters)
 }
 
 templ activeOption(label string, attributes templ.Attributes) {
-	@text.Build(label,
-		text.WithColor(text.Primary),
-		text.WithWeight(text.Semibold),
-		text.WithSize(text.XS),
-		text.WithAttributes(attributes),
-		text.WithExtraClasses("join-item", "capitalize", "p-2", "border", "rounded-sm"),
+	@button.Build(
+		button.WithContent(label),
+		button.WithColor(button.Primary),
+		button.WithStyle(button.Soft),
+		button.WithSize(button.XS),
+		button.WithExtraAttributes(attributes),
+		button.WithExtraClasses("join-item", "capitalize", "p-2", "border", "rounded-sm"),
 	).Show()
 }
 
 templ inactiveOption(label string, attributes templ.Attributes) {
-	@text.Build(label,
-		text.WithSize(text.XS),
-		text.WithAttributes(attributes),
-		text.WithExtraClasses("join-item", "capitalize", "p-2", "border", "rounded-sm"),
+	@button.Build(
+		button.WithContent(label),
+		button.WithSize(button.XS),
+		button.WithExtraAttributes(attributes),
+		button.WithExtraClasses("join-item", "capitalize", "p-2", "border", "rounded-sm"),
 	).Show()
 }

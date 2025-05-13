@@ -27,7 +27,7 @@ import (
 	"strconv"
 )
 
-const cardSizingClasses = "m-2 p-2"
+const defaultCardClasses = "bg-base-300 m-2 p-2"
 
 templ (c *Card) timestamp() {
 	@text.Build(
@@ -118,7 +118,7 @@ func newFeedCard(ctx context.Context, subscription *models.Subscription) *FeedCa
 			card.WithActions(feedCard.menuActions.Show()),
 		),
 		card.WithID(feedCard.GetID()),
-		card.WithExtraClasses(cardSizingClasses),
+		card.WithExtraClasses(defaultCardClasses),
 	)
 
 	if feedCard.UnreadCount == 0 {
@@ -185,7 +185,7 @@ func newItemCard(ctx context.Context, item *models.Item) *ItemCard {
 			card.WithBodyExtraClasses("p-2"),
 		),
 		card.WithID(itemCard.id),
-		card.WithExtraClasses(cardSizingClasses),
+		card.WithExtraClasses(defaultCardClasses),
 	)
 	switch {
 	case models.FiltersFromCtx(ctx).View == models.ViewRead:
