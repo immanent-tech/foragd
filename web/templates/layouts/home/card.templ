@@ -206,7 +206,7 @@ templ (a cardActions) Show() {
 			dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
 		).Show() {
 			for item := range slices.Values(a) {
-				<li>
+				<li _="on click call document.activeElement.blur()">
 					@item
 				</li>
 			}

@@ -26,23 +26,6 @@ var (
 	ErrUserAlreadySubscribed = errors.New("user already subscribed")
 )
 
-// UserActionMarkItemsRead will mark the given items with the given state for the user.
-func (e *API) MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return ErrNoUserCtx
-	}
-	// Mark items for the given feeds.
-	for mark := range slices.Values(marks) {
-		user.MarkItems(mark.Mark, mark.Feed, mark.Items...)
-	}
-	// Update the user object.
-	return e.UpdateUser(ctx, user.GetID(), map[string]any{
-		"subscriptions": user.Subscriptions,
-		"updated_at":    time.Now().UTC(),
-	})
-}
-
 // GetItem retrieves the specified item with the given id and from the given
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
@@ -323,6 +306,28 @@ func (e *API) MarkSubscriptions(ctx context.Context, marks *models.MarkFeeds) er
 	}
 	// Mark subscriptions.
 	user.MarkSubscriptions(marks.Mark, marks.Feeds...)
+	// Update the user object.
+	return e.UpdateUser(ctx, user.GetID(), map[string]any{
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
+	})
+}
+
+// MarkItems will mark the given items for the given feeds with the given state for the user.
+func (e *API) MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return ErrNoUserCtx
+	}
+	for mark := range slices.Values(marks) {
+		if len(mark.Items) == 0 {
+			// Mark all items for feed subscription.
+			user.MarkSubscriptions(mark.Mark, mark.Feed)
+		} else {
+			// Mark individual items.
+			user.MarkItems(mark.Mark, mark.Feed, mark.Items...)
+		}
+	}
 	// Update the user object.
 	return e.UpdateUser(ctx, user.GetID(), map[string]any{
 		"subscriptions": user.Subscriptions,

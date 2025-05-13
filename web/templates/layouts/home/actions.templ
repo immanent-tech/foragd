@@ -18,8 +18,8 @@ import (
 
 const actionTextClasses = "w-fit text-xs"
 
-// AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
-func AddSubscriptionAction(classes ...string) templ.Component {
+// addSubscriptionButton creates a button for displaying a modal to add a new subscription.
+func addSubscriptionAction(classes ...string) templ.Component {
 	return link.Build(
 		link.WithContent("Add Subscription"),
 		link.WithExtraAttributes(templ.Attributes{
@@ -32,9 +32,9 @@ func AddSubscriptionAction(classes ...string) templ.Component {
 	).Show(classes...)
 }
 
-// ImportAction creates a button for displaying a modal to import feeds (i.e.
+// importAction creates a button for displaying a modal to import feeds (i.e.
 // via opml).
-func ImportAction(classes ...string) templ.Component {
+func importAction(classes ...string) templ.Component {
 	return link.Build(
 		link.WithContent("Import Subscriptions"),
 		link.WithExtraAttributes(templ.Attributes{
@@ -45,6 +45,73 @@ func ImportAction(classes ...string) templ.Component {
 		link.WithExtraClasses(actionTextClasses),
 		link.WithUnderlineOnHover(),
 	).Show(classes...)
+}
+
+func markReadLink(label string, attributes templ.Attributes) templ.Component {
+	return link.Build(
+		link.WithContent(
+			templ.Join(icon.Build("fa-envelope").Show(), components.SetContent(label)),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(attributes),
+		link.WithExtraClasses(actionTextClasses),
+	).Show()
+}
+
+func markUnreadLink(label string, attributes templ.Attributes) templ.Component {
+	return link.Build(
+		link.WithContent(
+			templ.Join(icon.Build("fa-envelope-open").Show(), components.SetContent(label)),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(attributes),
+		link.WithExtraClasses(actionTextClasses),
+	).Show()
+}
+
+// markAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
+// depending on the current view.
+func markAllItemsAction(feeds []models.FeedID, view models.View) templ.Component {
+	route := models.NewRoute(
+		models.ItemsRoute,
+		nil,
+		models.WithAttributes(actionAttributes),
+		models.WithMethod(http.MethodPost),
+	)
+	route.AddQueryParam("feed_id", feeds[0])
+
+	switch view {
+	case models.ViewUnread:
+		route.AddQueryParam("mark", string(models.MarkRead))
+		return markReadLink("Mark All Read", route.GetAttributes())
+	case models.ViewRead:
+		route.AddQueryParam("mark", string(models.MarkUnread))
+		return markUnreadLink("Mark All Unread", route.GetAttributes())
+	default:
+		return nil
+	}
+}
+
+// markAllFeedsAction generates an action for the footer menu to mark all feeds as either read or unread, depending on
+// the current view.
+func markAllFeedsAction(view models.View) templ.Component {
+	route := models.NewRoute(
+		models.FeedsRoute,
+		nil,
+		models.WithAttributes(actionAttributes),
+		models.WithMethod(http.MethodPost),
+	)
+
+	switch view {
+	case models.ViewUnread:
+		route.AddQueryParam("mark", string(models.MarkRead))
+		return markReadLink("Mark All Read", route.GetAttributes())
+	case models.ViewRead:
+		route.AddQueryParam("mark", string(models.MarkUnread))
+		return markUnreadLink("Mark All Unread", route.GetAttributes())
+	default:
+		return nil
+	}
 }
 
 // backButton generates a button for going back to the given path. It fetches
@@ -59,27 +126,13 @@ func BackButton(route *models.Route) templ.Component {
 }
 
 func markAction(mark models.Mark, attributes templ.Attributes) templ.Component {
-	attributes["_"] = "on mouseenter add .menu-active to me end on mouseleave remove .menu-active from me end"
-	var (
-		iconLabel templ.Component
-		textLabel string
-	)
 	switch mark {
 	case models.MarkRead:
-		iconLabel = icon.Build("fa-envelope").Show()
-		textLabel = "Mark Read"
+		return markReadLink("Mark Read", attributes)
 	case models.MarkUnread:
-		iconLabel = icon.Build("fa-envelope-open").Show()
-		textLabel = "Mark Unread"
+		return markUnreadLink("Mark Unread", attributes)
 	}
-	return link.Build(
-		link.WithContent(
-			templ.Join(iconLabel, components.SetContent(textLabel)),
-		),
-		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(attributes),
-		link.WithExtraClasses(actionTextClasses),
-	).Show()
+	return nil
 }
 
 templ shareAction(action *templates.Action) {

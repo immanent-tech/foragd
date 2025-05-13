@@ -7,7 +7,6 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"slices"
@@ -101,7 +100,7 @@ templ (filters ViewFilters) Show() {
 
 templ BuildFiltersMenu(viewFilters ViewFilters, categoryFilters CategoryFilters) {
 	<div id="content-filters" hx-swap-oob="true">
-		@partials.DockMenu(icon.Build("fa-sliders").Show(),
+		@footerMenu(icon.Build("fa-sliders").Show(),
 			viewFilters.Show(), categoryFilters.Show(),
 		)
 	</div>

@@ -9,7 +9,6 @@ import (
 	"net/url"
 
 	"github.com/a-h/templ"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -84,7 +83,6 @@ func (c *Card) addPagination(reqURL *url.URL, pagination models.Pagination) {
 }
 
 func BuildFeedsLayout(req *http.Request, pagination models.Pagination, subscriptions models.Subscriptions) templates.Layout {
-	spew.Dump(models.NewRouteFromReq(req))
 	cards := make([]templ.Component, 0, len(subscriptions))
 	// Build feed cards.
 	for idx, subscription := range subscriptions {
@@ -99,7 +97,13 @@ func BuildFeedsLayout(req *http.Request, pagination models.Pagination, subscript
 	return &HomeLayout{
 		title:   "Feeds",
 		content: cards,
-		footer:  BuildListFooter(req.Context(), BackButton(back), subscriptions.GetCategoryCounts()).Show(),
+		footer: BuildListFooter(req.Context(),
+			BackButton(back),
+			subscriptions.GetCategoryCounts(),
+			addSubscriptionAction(),
+			importAction(),
+			markAllFeedsAction(models.FiltersFromCtx(req.Context()).View),
+		).Show(),
 	}
 }
 
@@ -120,6 +124,12 @@ func BuildItemsLayout(req *http.Request, pagination models.Pagination, back *mod
 	return &HomeLayout{
 		title:   "Items",
 		content: cards,
-		footer:  BuildListFooter(req.Context(), BackButton(back), items.GetCategoryCounts()).Show(),
+		footer: BuildListFooter(req.Context(),
+			BackButton(back),
+			items.GetCategoryCounts(),
+			addSubscriptionAction(),
+			importAction(),
+			markAllItemsAction(models.FiltersFromCtx(req.Context()).Feeds, models.FiltersFromCtx(req.Context()).View),
+		).Show(),
 	}
 }

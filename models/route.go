@@ -21,6 +21,7 @@ type Route struct {
 	path    string
 	method  string
 	filters *Filters
+	params  url.Values
 	sync.Mutex
 	attributes templ.Attributes
 }
@@ -30,6 +31,7 @@ func NewRouteFromCtx(ctx context.Context, options ...RouteOption) *Route {
 	route := &Route{
 		path:       chi.RouteContext(ctx).RoutePattern(),
 		attributes: make(templ.Attributes),
+		params:     make(url.Values),
 	}
 	filters := FiltersFromCtx(ctx)
 	route.filters = &filters
@@ -45,6 +47,7 @@ func NewRouteFromReq(req *http.Request, options ...RouteOption) *Route {
 	route := &Route{
 		path:       req.URL.Path,
 		attributes: make(templ.Attributes),
+		params:     make(url.Values),
 	}
 	filters := FiltersFromCtx(req.Context())
 	route.filters = &filters
@@ -60,8 +63,13 @@ func NewRouteFromReq(req *http.Request, options ...RouteOption) *Route {
 func NewRoute(path string, filters *Filters, options ...RouteOption) *Route {
 	route := &Route{
 		path:       path,
-		filters:    filters,
 		attributes: make(templ.Attributes),
+		params:     make(url.Values),
+	}
+	if filters != nil {
+		route.filters = filters
+	} else {
+		route.filters = &Filters{}
 	}
 
 	for option := range slices.Values(options) {
@@ -113,6 +121,10 @@ func (r *Route) GetAttributes() templ.Attributes {
 	return r.attributes
 }
 
+func (r *Route) AddQueryParam(key string, value string) {
+	r.params.Add(key, value)
+}
+
 // SetFeedIDs sets the feed filters for the route.
 func (r *Route) SetFeedIDs(feedIDs ...FeedID) {
 	r.filters.Feeds = feedIDs
@@ -150,8 +162,9 @@ func (r *Route) URL() *url.URL {
 		rte, _ = url.Parse("/")
 	}
 	if r.filters != nil {
-		rte.RawQuery = r.filters.ToQueryParams().Encode()
+		maps.Copy(r.params, r.filters.ToQueryParams())
 	}
+	rte.RawQuery = r.params.Encode()
 	return rte
 }
 

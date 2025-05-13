@@ -8,7 +8,6 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/icon"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"reflect"
@@ -76,7 +75,7 @@ func generateSortOptions(ctx context.Context) []templ.Component {
 
 templ BuildSortingMenu() {
 	<div id="content-sorting" hx-swap-oob="true">
-		@partials.DockMenu(icon.Build("fa-sort").Show(),
+		@footerMenu(icon.Build("fa-sort").Show(),
 			generateSortOptions(ctx)...,
 		)
 	</div>

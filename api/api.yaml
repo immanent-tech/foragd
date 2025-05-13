@@ -5,317 +5,317 @@
 
 openapi: '3.0.3'
 info:
-    version: 1.0.0
-    title: Common API
-    description: Common API objects and fields.
+  version: 1.0.0
+  title: Common API
+  description: Common API objects and fields.
 paths: {}
 components:
-    schemas:
-        Count:
-            description: >
-                is the count of items to retrieve with a request.
-            type: integer
-            default: '10'
-            minimum: 1
-            maximum: 20
-            x-oapi-codegen-extra-tags:
-                form: 'count'
-                validate: 'numeric,gt=0,lt=20'
-        View:
-            description: >
-                The state of objects to view.
-            type: string
-            enum: ['read', 'unread', 'all']
-            default: 'unread'
-            x-oapi-codegen-extra-tags:
-                validate: 'oneof=read unread all'
-                form: 'view'
-        Pagination:
-            description: contains data for paginating through results.
-            type: string
-            x-oapi-codegen-extra-tags:
-                form: 'pagination'
-                validate: 'omitempty,url_encoded'
-        Since:
-            description: is a duration to filter results.
-            x-go-type: time.Duration
-            x-oapi-codegen-extra-tags:
-                form: 'since'
-                validate: 'omitempty'
-        SortBy:
-            description: >
-                represents the selected field to sort on.
-            type: string
-            enum: ['unread_count', 'last_updated']
-            x-oapi-codegen-extra-tags:
-                validate: 'oneof=unread_count last_updated'
-                form: 'sort_by'
-        SortOrder:
-            description: >
-                represents the order for sorting the selected field.
-            type: string
-            enum: ['asc', 'desc']
-            x-oapi-codegen-extra-tags:
-                validate: 'oneof=asc desc'
-                form: 'sort_order'
-        Sort:
-            description: contains information on sorting objects.
-            type: object
-            required:
-                - sort_by
-                - sort_order
-            properties:
-                sort_by:
-                    $ref: '#/components/schemas/SortBy'
-                sort_order:
-                    $ref: '#/components/schemas/SortOrder'
-            x-oapi-codegen-extra-tags:
-                json: 'sort'
-        RequiredFilters:
-            description: >
-                contains filter parameters that are always required across different kinds of
-                operations.
-            type: object
-            required:
-                - view
-                - count
-                - sort_by
-                - sort_order
-            properties:
-                # pagination:
-                #   $ref: "#/components/schemas/Pagination"
-                count:
-                    $ref: '#/components/schemas/Count'
-                view:
-                    $ref: '#/components/schemas/View'
-                # since:
-                #   $ref: "#/components/schemas/Since"
-                sort_by:
-                    $ref: '#/components/schemas/SortBy'
-                sort_order:
-                    $ref: '#/components/schemas/SortOrder'
-        Filters:
-            description: >
-                contains parameters for filtering.
-            type: object
-            allOf:
-                - $ref: '#/components/schemas/RequiredFilters'
-                - type: object
-                  properties:
-                      feeds:
-                          description: is a list of feed IDs.
-                          type: array
-                          items:
-                              $ref: 'models.yaml#/components/schemas/FeedID'
-                          x-oapi-codegen-extra-tags:
-                              json: 'feeds'
-                              form: 'feeds[]'
-                              validate: 'omitnil,unique,dive,startswith=feed_'
-                          x-go-type-skip-optional-pointer: true
-                      items:
-                          description: is a list of items IDs.
-                          type: array
-                          items:
-                              $ref: 'models.yaml#/components/schemas/ItemID'
-                          x-oapi-codegen-extra-tags:
-                              json: 'items'
-                              form: 'items[]'
-                              validate: 'omitnil,unique,dive,startswith=item_'
-                          x-go-type-skip-optional-pointer: true
-                      categories:
-                          description: is a list of categories.
-                          type: array
-                          items:
-                              $ref: 'models.yaml#/components/schemas/Category'
-                          x-oapi-codegen-extra-tags:
-                              json: 'categories'
-                              form: 'categories[]'
-                              validate: 'omitnil,unique,dive,url_encoded'
-                          x-go-type-skip-optional-pointer: true
-                      pagination:
-                          description: >
-                              is any pagination data from the current request.
-                          allOf:
-                              - $ref: '#/components/schemas/Pagination'
-                          x-go-type-skip-optional-pointer: true
-        UserDecision:
-            description: >
-                indicates the result of a user decision.
-            type: string
-            enum: ['confirmed', 'cancelled']
-            x-oapi-codegen-extra-tags:
-                form: 'decision'
-                json: 'decision'
-        UserSignupRequest:
-            description: >
-                contains the details for a user signup request.
-            type: object
-            required:
-                - email
-                - password
-            properties:
-                nickname:
-                    type: string
-                    x-oapi-codegen-extra-tags:
-                        validate: 'omitempty'
-                        form: 'nickname,omitempty'
-                    x-go-type-skip-optional-pointer: true
-                email:
-                    type: string
-                    x-oapi-codegen-extra-tags:
-                        validate: 'required,email'
-                        form: 'email'
-                password:
-                    type: string
-                    x-oapi-codegen-extra-tags:
-                        validate: 'required,min=10'
-                        form: 'password'
-                msg:
-                    $ref: '#/components/schemas/Message'
-        ImportSource:
-            description: >
-                defines the source that will be used for an import.
-            type: string
-            enum: ['opml_file', 'opml_url', 'url_list']
-            x-enum-varnames: ['OPMLFile', 'OPMLURL', 'URLs']
-            x-oapi-codegen-extra-tags:
-                json: 'source'
-                form: 'source'
-                validate: 'oneof=opml_file opml_url url_list'
-        SubscriptionRequest:
-            description: >
-                represents a request to add or edit a subscription.
-            type: object
-            allOf:
-                - $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
-                - type: object
-                  required:
-                      - URL
-                      - ID
-                  properties:
-                      ID:
-                          $ref: 'models.yaml#/components/schemas/SubscriptionID'
-                      URL:
-                          description: the canonical URL to the feed.
-                          type: string
-                          x-go-name: 'URL'
-                          x-oapi-codegen-extra-tags:
-                              json: 'url'
-                              form: 'url'
-                              validate: 'required,url'
-                      Result:
-                          description: >
-                              the results of processing the subscription request.
-                          allOf:
-                              - $ref: 'models.yaml#/components/schemas/Message'
-                          x-oapi-codegen-extra-tags:
-                              json: '-'
-                              form: '-'
-                      Subscription:
-                          description: >
-                              the subscription object associated with this request.
-                          allOf:
-                              - $ref: 'models.yaml#/components/schemas/Subscription'
-                          x-oapi-codegen-extra-tags:
-                              json: '-'
-                              form: '-'
-        FeedState:
-            description: tracks the state of a feed.
-            type: object
-            required:
-                - ID
-                - URL
-            properties:
-                ID:
-                    $ref: 'models.yaml#/components/schemas/FeedID'
-                URL:
-                    $ref: 'models.yaml#/components/schemas/URL'
-                updated_at:
-                    $ref: 'models.yaml#/components/schemas/UpdatedAt'
-        Message:
-            description: >
-                represents a message, such as an error message or log message, generated
-                by some part of the service
-            type: object
-            required:
-                - summary
-                - status
-            properties:
-                summary:
-                    description: >
-                        is a user-level brief description for the message, which can be used as a title
-                        or summary.
-                    type: string
-                    x-oapi-codegen-extra-tags:
-                        validate: 'required'
-                details:
-                    description: >
-                        is a longer description and/or background details about the message.
-                    type: string
-                status:
-                    description: >
-                        indicates the severity or importance of the message.
-                    type: string
-                    enum: ['info', 'success', 'warning', 'error']
-                    x-oapi-codegen-extra-tags:
-                        validate: 'required'
-                internal_error:
-                    description: >
-                        is any error that is associated with the message.
-                    x-go-type: error
-                    x-go-type-skip-optional-pointer: true
-                    x-oapi-codegen-extra-tags:
-                        json: '-'
-        MarkFeeds:
-            description: >
-                contains details for marking a feed.
-            type: object
-            required:
-                - mark
-                - feeds
-            properties:
-                mark:
-                    $ref: 'models.yaml#/components/schemas/Mark'
-                feeds:
-                    description: is a list of Feed IDs to mark.
-                    type: array
-                    items:
-                        $ref: 'models.yaml#/components/schemas/FeedID'
-                    x-oapi-codegen-extra-tags:
-                        json: 'feeds'
-                        form: 'feeds'
-                        validate: 'required,unique,dive,required,startswith=feed_'
-                    x-go-type-skip-optional-pointer: true
-        MarkFeedItems:
-            description: >
-                contains details for marking a feed's items.
-            type: object
-            required:
-                - mark
-                - feed
-                - items
-            properties:
-                mark:
-                    $ref: 'models.yaml#/components/schemas/Mark'
-                feed:
-                    allOf:
-                        - $ref: 'models.yaml#/components/schemas/FeedID'
-                    x-oapi-codegen-extra-tags:
-                        json: feed_id
-                        form: feed_id
-                        validate: required,startswith=feed_
-                items:
-                    description: is a list of Items IDs to mark.
-                    type: array
-                    items:
-                        $ref: 'models.yaml#/components/schemas/ItemID'
-                    x-oapi-codegen-extra-tags:
-                        json: 'items'
-                        form: 'items'
-                        validate: 'required,unique,dive,required,startswith=item_'
-        MarkObjects:
-            description: mark one or more objects
-            type: object
-            oneOf:
-                - $ref: '#/components/schemas/MarkFeeds'
-                - $ref: '#/components/schemas/MarkFeedItems'
+  schemas:
+    Count:
+      description: >
+        is the count of items to retrieve with a request.
+      type: integer
+      default: '10'
+      minimum: 1
+      maximum: 20
+      x-oapi-codegen-extra-tags:
+        form: 'count'
+        validate: 'numeric,gt=0,lt=20'
+    View:
+      description: >
+        The state of objects to view.
+      type: string
+      enum: ['read', 'unread', 'all']
+      default: 'unread'
+      x-oapi-codegen-extra-tags:
+        validate: 'oneof=read unread all'
+        form: 'view'
+    Pagination:
+      description: contains data for paginating through results.
+      type: string
+      x-oapi-codegen-extra-tags:
+        form: 'pagination'
+        validate: 'omitempty,url_encoded'
+    Since:
+      description: is a duration to filter results.
+      x-go-type: time.Duration
+      x-oapi-codegen-extra-tags:
+        form: 'since'
+        validate: 'omitempty'
+    SortBy:
+      description: >
+        represents the selected field to sort on.
+      type: string
+      enum: ['unread_count', 'last_updated']
+      x-oapi-codegen-extra-tags:
+        validate: 'oneof=unread_count last_updated'
+        form: 'sort_by'
+    SortOrder:
+      description: >
+        represents the order for sorting the selected field.
+      type: string
+      enum: ['asc', 'desc']
+      x-oapi-codegen-extra-tags:
+        validate: 'oneof=asc desc'
+        form: 'sort_order'
+    Sort:
+      description: contains information on sorting objects.
+      type: object
+      required:
+        - sort_by
+        - sort_order
+      properties:
+        sort_by:
+          $ref: '#/components/schemas/SortBy'
+        sort_order:
+          $ref: '#/components/schemas/SortOrder'
+      x-oapi-codegen-extra-tags:
+        json: 'sort'
+    RequiredFilters:
+      description: >
+        contains filter parameters that are always required across different kinds of
+        operations.
+      type: object
+      required:
+        - view
+        - count
+        - sort_by
+        - sort_order
+      properties:
+        # pagination:
+        #   $ref: "#/components/schemas/Pagination"
+        count:
+          $ref: '#/components/schemas/Count'
+        view:
+          $ref: '#/components/schemas/View'
+        # since:
+        #   $ref: "#/components/schemas/Since"
+        sort_by:
+          $ref: '#/components/schemas/SortBy'
+        sort_order:
+          $ref: '#/components/schemas/SortOrder'
+    Filters:
+      description: >
+        contains parameters for filtering.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/RequiredFilters'
+        - type: object
+          properties:
+            feeds:
+              description: is a list of feed IDs.
+              type: array
+              items:
+                $ref: 'models.yaml#/components/schemas/FeedID'
+              x-oapi-codegen-extra-tags:
+                json: 'feeds'
+                form: 'feeds[]'
+                validate: 'omitnil,unique,dive,startswith=feed_'
+              x-go-type-skip-optional-pointer: true
+            items:
+              description: is a list of items IDs.
+              type: array
+              items:
+                $ref: 'models.yaml#/components/schemas/ItemID'
+              x-oapi-codegen-extra-tags:
+                json: 'items'
+                form: 'items[]'
+                validate: 'omitnil,unique,dive,startswith=item_'
+              x-go-type-skip-optional-pointer: true
+            categories:
+              description: is a list of categories.
+              type: array
+              items:
+                $ref: 'models.yaml#/components/schemas/Category'
+              x-oapi-codegen-extra-tags:
+                json: 'categories'
+                form: 'categories[]'
+                validate: 'omitnil,unique,dive,url_encoded'
+              x-go-type-skip-optional-pointer: true
+            pagination:
+              description: >
+                is any pagination data from the current request.
+              allOf:
+                - $ref: '#/components/schemas/Pagination'
+              x-go-type-skip-optional-pointer: true
+    UserDecision:
+      description: >
+        indicates the result of a user decision.
+      type: string
+      enum: ['confirmed', 'cancelled']
+      x-oapi-codegen-extra-tags:
+        form: 'decision'
+        json: 'decision'
+    UserSignupRequest:
+      description: >
+        contains the details for a user signup request.
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        nickname:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'omitempty'
+            form: 'nickname,omitempty'
+          x-go-type-skip-optional-pointer: true
+        email:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,email'
+            form: 'email'
+        password:
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required,min=10'
+            form: 'password'
+        msg:
+          $ref: '#/components/schemas/Message'
+    ImportSource:
+      description: >
+        defines the source that will be used for an import.
+      type: string
+      enum: ['opml_file', 'opml_url', 'url_list']
+      x-enum-varnames: ['OPMLFile', 'OPMLURL', 'URLs']
+      x-oapi-codegen-extra-tags:
+        json: 'source'
+        form: 'source'
+        validate: 'oneof=opml_file opml_url url_list'
+    SubscriptionRequest:
+      description: >
+        represents a request to add or edit a subscription.
+      type: object
+      allOf:
+        - $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
+        - type: object
+          required:
+            - URL
+            - ID
+          properties:
+            ID:
+              $ref: 'models.yaml#/components/schemas/SubscriptionID'
+            URL:
+              description: the canonical URL to the feed.
+              type: string
+              x-go-name: 'URL'
+              x-oapi-codegen-extra-tags:
+                json: 'url'
+                form: 'url'
+                validate: 'required,url'
+            Result:
+              description: >
+                the results of processing the subscription request.
+              allOf:
+                - $ref: 'models.yaml#/components/schemas/Message'
+              x-oapi-codegen-extra-tags:
+                json: '-'
+                form: '-'
+            Subscription:
+              description: >
+                the subscription object associated with this request.
+              allOf:
+                - $ref: 'models.yaml#/components/schemas/Subscription'
+              x-oapi-codegen-extra-tags:
+                json: '-'
+                form: '-'
+    FeedState:
+      description: tracks the state of a feed.
+      type: object
+      required:
+        - ID
+        - URL
+      properties:
+        ID:
+          $ref: 'models.yaml#/components/schemas/FeedID'
+        URL:
+          $ref: 'models.yaml#/components/schemas/URL'
+        updated_at:
+          $ref: 'models.yaml#/components/schemas/UpdatedAt'
+    Message:
+      description: >
+        represents a message, such as an error message or log message, generated
+        by some part of the service
+      type: object
+      required:
+        - summary
+        - status
+      properties:
+        summary:
+          description: >
+            is a user-level brief description for the message, which can be used as a title
+            or summary.
+          type: string
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        details:
+          description: >
+            is a longer description and/or background details about the message.
+          type: string
+        status:
+          description: >
+            indicates the severity or importance of the message.
+          type: string
+          enum: ['info', 'success', 'warning', 'error']
+          x-oapi-codegen-extra-tags:
+            validate: 'required'
+        internal_error:
+          description: >
+            is any error that is associated with the message.
+          x-go-type: error
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: '-'
+    MarkFeeds:
+      description: >
+        contains details for marking a feed.
+      type: object
+      required:
+        - mark
+        - feeds
+      properties:
+        mark:
+          $ref: 'models.yaml#/components/schemas/Mark'
+        feeds:
+          description: is a list of Feed IDs to mark.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/FeedID'
+          x-oapi-codegen-extra-tags:
+            json: 'feeds'
+            form: 'feeds'
+            validate: 'unique,dive,required,startswith=feed_'
+          x-go-type-skip-optional-pointer: true
+    MarkFeedItems:
+      description: >
+        contains details for marking a feed's items.
+      type: object
+      required:
+        - mark
+        - feed
+        - items
+      properties:
+        mark:
+          $ref: 'models.yaml#/components/schemas/Mark'
+        feed:
+          allOf:
+            - $ref: 'models.yaml#/components/schemas/FeedID'
+          x-oapi-codegen-extra-tags:
+            json: feed_id
+            form: feed_id
+            validate: required,startswith=feed_
+        items:
+          description: is a list of Items IDs to mark.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/ItemID'
+          x-oapi-codegen-extra-tags:
+            json: 'items'
+            form: 'items'
+            validate: 'unique,dive,required,startswith=item_'
+    MarkObjects:
+      description: mark one or more objects
+      type: object
+      oneOf:
+        - $ref: '#/components/schemas/MarkFeeds'
+        - $ref: '#/components/schemas/MarkFeedItems'

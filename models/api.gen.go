@@ -100,7 +100,7 @@ type MarkFeedItems struct {
 	Feed FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// Items is a list of Items IDs to mark.
-	Items []ItemID `form:"items" json:"items" validate:"required,unique,dive,required,startswith=item_"`
+	Items []ItemID `form:"items" json:"items" validate:"unique,dive,required,startswith=item_"`
 
 	// Mark applies the given mark action to objects.
 	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
@@ -109,7 +109,7 @@ type MarkFeedItems struct {
 // MarkFeeds contains details for marking a feed.
 type MarkFeeds struct {
 	// Feeds is a list of Feed IDs to mark.
-	Feeds []FeedID `form:"feeds" json:"feeds" validate:"required,unique,dive,required,startswith=feed_"`
+	Feeds []FeedID `form:"feeds" json:"feeds" validate:"unique,dive,required,startswith=feed_"`
 
 	// Mark applies the given mark action to objects.
 	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
