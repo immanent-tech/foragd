@@ -28,6 +28,14 @@ func (i Items) FilterSince(since time.Time) Items {
 	}))
 }
 
+func (i Items) GetFeedIDs() []FeedID {
+	feedIDs := make([]FeedID, 0, len(i))
+	for item := range slices.Values(i) {
+		feedIDs = append(feedIDs, item.GetFeedID())
+	}
+	return feedIDs
+}
+
 // GetCategoryCounts returns a count of the occurrence of a Category across all
 // the Items.
 func (i Items) GetCategoryCounts() CategoryCounts {

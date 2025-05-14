@@ -100,22 +100,19 @@ func markAllItemsAction(feeds []models.FeedID, view models.View) templ.Component
 }
 
 func markItemAction(feedID models.FeedID, itemID models.ItemID, isUnread bool) templ.Component {
-	route := models.NewRoute(
-		models.ItemsRoute,
-		nil,
-		models.WithAttributes(actionAttributes),
-		models.WithMethod(http.MethodPost),
+	action := action.Build(models.ItemsRoute,
+		action.WithMethod(http.MethodPost),
+		action.WithAttributes(actionAttributes),
+		action.WithParam(models.ParamFeedID, feedID),
+		action.WithParam(models.ParamItems, itemID),
 	)
-	route.AddQueryParam(models.ParamFeedID, feedID)
-	route.AddQueryParam(models.ParamItems, itemID)
-
 	if isUnread {
-		route.AddQueryParam("mark", string(models.MarkRead))
-		return markReadLink("Mark Read", route.GetAttributes())
+		action.Params.Add("mark", string(models.MarkRead))
+		return markReadLink("Mark Read", action.Attributes())
 	}
 
-	route.AddQueryParam("mark", string(models.MarkUnread))
-	return markUnreadLink("Mark Unread", route.GetAttributes())
+	action.Params.Add("mark", string(models.MarkUnread))
+	return markUnreadLink("Mark Unread", action.Attributes())
 }
 
 // markAllFeedsAction generates an action for the footer menu to mark all feeds as either read or unread, depending on
@@ -190,35 +187,37 @@ templ visitExternalLinkAction(label, url string) {
 }
 
 func editSubscriptionAction(id models.SubscriptionID) templ.Component {
-	route := models.NewRoute("/subscription/edit/"+id, nil,
-		models.WithAttributes(templ.Attributes{
+	action := action.Build("/subscription/edit/"+id,
+		action.WithAttributes(templ.Attributes{
 			"hx-target": partials.CommandModalID.Target(),
 			"_":         partials.HyperscriptOpenModal("#modal_"+id) + " then " + partials.HyperscriptCloseDropdown(),
-		}))
+		}),
+	)
 	return link.Build(
 		link.WithContent(
 			templ.Join(tabler.Edit(i.Props{Size: i.SizeXS}), components.SetContent("Edit")),
 		),
 		link.WithUnderlineOnHover(),
 		link.WithExtraClasses(actionTextClasses),
-		link.WithExtraAttributes(route.GetAttributes()),
+		link.WithExtraAttributes(action.Attributes()),
 	).Show()
 }
 
 func unsubscribeAction(id models.SubscriptionID) templ.Component {
-	route := models.NewRoute("/subscription/edit/"+id, nil,
-		models.WithMethod(http.MethodDelete),
-		models.WithAttributes(templ.Attributes{
+	action := action.Build("/subscription/edit/"+id,
+		action.WithMethod(http.MethodDelete),
+		action.WithAttributes(templ.Attributes{
 			"hx-target": partials.CommandModalID.Target(),
 			"_":         partials.HyperscriptOpenModal("#modal_"+id) + " then " + partials.HyperscriptCloseDropdown(),
-		}))
+		}),
+	)
 	return link.Build(
 		link.WithContent(
 			templ.Join(tabler.Trash(i.Props{Size: i.SizeSM}), components.SetContent("Unsubscribe")),
 		),
 		link.WithUnderlineOnHover(),
 		link.WithExtraClasses(actionTextClasses),
-		link.WithExtraAttributes(route.GetAttributes()),
+		link.WithExtraAttributes(action.Attributes()),
 	).Show()
 }
 

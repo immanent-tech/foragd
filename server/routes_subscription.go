@@ -139,6 +139,7 @@ func (s Server) MarkSubscription(res http.ResponseWriter, req *http.Request, mar
 	chain := alice.New(
 		handlers.RouteLogger("mark_subscription"),
 		handlers.MarkSubscriptions(s.DataAPI(), mark, subscription),
+		handlers.GenerateHomeNavigation(s.SessionAPI()),
 		handlers.RetrieveFilters(s.SessionAPI()),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())
@@ -153,6 +154,7 @@ func (s Server) MarkAllSubscriptions(res http.ResponseWriter, req *http.Request,
 	chain := alice.New(
 		handlers.RouteLogger("mark_all_subscriptions"),
 		handlers.MarkSubscriptions(s.DataAPI(), mark, subscriptions...),
+		handlers.GenerateHomeNavigation(s.SessionAPI()),
 		handlers.RetrieveFilters(s.SessionAPI()),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())

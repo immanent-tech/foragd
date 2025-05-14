@@ -38,6 +38,7 @@ func (c *Card) generateViewAction(ctx context.Context) *action.Action {
 	case models.FeedPFX:
 		route = Route{Path: models.ItemsRoute, Filters: CurrentRouteFromCtx(ctx).Filters}
 		route.Filters.Feeds = []models.FeedID{c.GetFeedID()}
+		route.Filters.SortBy = models.SortByLastUpdated
 	case models.ItemPFX:
 		route = Route{Path: "/home/" + c.GetFeedID() + "/" + c.id}
 	}

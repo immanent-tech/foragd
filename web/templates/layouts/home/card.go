@@ -90,7 +90,7 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 			items.GetCategoryCounts(),
 			addSubscriptionAction(),
 			importAction(),
-			markAllItemsAction(CurrentRouteFromCtx(ctx).Filters.Feeds, CurrentRouteFromCtx(ctx).Filters.View),
+			markAllItemsAction(items.GetFeedIDs(), CurrentRouteFromCtx(ctx).Filters.View),
 		).Show(),
 	}
 }

@@ -27,6 +27,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 		handlers.RouteLogger("show_feeds"),
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
+		handlers.GenerateHomeNavigation(s.SessionAPI()),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 		handlers.SaveHomeHistory(s.SessionAPI()),
 	).Then(handlers.DisplayHome())
@@ -38,6 +39,7 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 		handlers.RouteLogger("show_items"),
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
+		handlers.GenerateHomeNavigation(s.SessionAPI()),
 		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
 		handlers.SaveHomeHistory(s.SessionAPI()),
 	).Then(handlers.DisplayHome())
@@ -48,6 +50,7 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger("mark_items"),
 		handlers.MarkItems(s.DataAPI()),
+		handlers.GenerateHomeNavigation(s.SessionAPI()),
 		handlers.RetrieveFilters(s.SessionAPI()),
 		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
 	).Then(handlers.DisplayHome())

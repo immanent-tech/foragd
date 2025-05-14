@@ -63,24 +63,12 @@ func GenerateFilters(session SessionAPI, params any) func(next http.Handler) htt
 				InternalServerError(res, req, err)
 				return
 			}
-			var (
-				currentRoute  home.Route
-				previousRoute home.Route
-			)
 			// Store filters in session.
 			route := chi.RouteContext(req.Context()).RoutePattern()
 			switch route {
 			case models.FeedsRoute:
-				currentRoute = home.Route{Path: models.FeedsRoute, Filters: *filters}
-				previousRoute = home.Route{Path: "/home"}
 				session.Put(req.Context(), feedFiltersSessionKey, filters)
 			case models.ItemsRoute:
-				currentRoute = home.Route{Path: models.ItemsRoute, Filters: *filters}
-				if previousFilters, ok := session.Get(req.Context(), feedFiltersSessionKey).(*models.Filters); ok {
-					previousRoute = home.Route{Path: models.FeedsRoute, Filters: *previousFilters}
-				} else {
-					previousRoute = home.Route{Path: models.FeedsRoute, Filters: *models.NewFilters()}
-				}
 				session.Put(req.Context(), itemFiltersSessionKey, filters)
 			default:
 				slogctx.FromCtx(req.Context()).Warn("Cannot generate filters, unknown route.",
@@ -88,21 +76,18 @@ func GenerateFilters(session SessionAPI, params any) func(next http.Handler) htt
 				return
 			}
 			ctx := models.FiltersToCtx(req.Context(), *filters)
-			ctx = home.CurrentRouteToCtx(ctx, currentRoute)
-			ctx = home.PreviousRouteToCtx(ctx, previousRoute)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
 
-// RetrieveFilters retrieves filters from the session and stores them in the request context.
-func RetrieveFilters(session SessionAPI) func(next http.Handler) http.Handler {
+func GenerateHomeNavigation(session SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			var (
-				route         string
-				currentRoute  home.Route
-				previousRoute home.Route
+				route    string
+				current  home.Route
+				previous home.Route
 			)
 			if redirect := req.Header.Get(htmx.HeaderLocation); redirect != "" {
 				route = redirect
@@ -115,12 +100,8 @@ func RetrieveFilters(session SessionAPI) func(next http.Handler) http.Handler {
 				if !ok {
 					filters = *models.NewFilters()
 				}
-				currentRoute = home.Route{Path: models.FeedsRoute, Filters: filters}
-				previousRoute = home.Route{Path: "/home"}
-				ctx := models.FiltersToCtx(req.Context(), filters)
-				ctx = home.CurrentRouteToCtx(ctx, currentRoute)
-				ctx = home.PreviousRouteToCtx(ctx, previousRoute)
-				next.ServeHTTP(res, req.WithContext(ctx))
+				current = home.Route{Path: models.FeedsRoute, Filters: filters}
+				previous = home.Route{Path: "/home"}
 			case models.ItemsRoute:
 				currentFilters, ok := session.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
 				if !ok {
@@ -130,14 +111,42 @@ func RetrieveFilters(session SessionAPI) func(next http.Handler) http.Handler {
 				if !ok {
 					previousFilters = *models.NewFilters()
 				}
-
-				currentRoute = home.Route{Path: models.ItemsRoute, Filters: currentFilters}
-				previousRoute = home.Route{Path: models.FeedsRoute, Filters: previousFilters}
-				ctx := models.FiltersToCtx(req.Context(), currentFilters)
-				ctx = home.CurrentRouteToCtx(ctx, currentRoute)
-				ctx = home.PreviousRouteToCtx(ctx, previousRoute)
-				next.ServeHTTP(res, req.WithContext(ctx))
+				current = home.Route{Path: models.ItemsRoute, Filters: currentFilters}
+				previous = home.Route{Path: models.FeedsRoute, Filters: previousFilters}
 			}
+			ctx := req.Context()
+			ctx = home.CurrentRouteToCtx(ctx, current)
+			ctx = home.PreviousRouteToCtx(ctx, previous)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+// RetrieveFilters retrieves filters from the session and stores them in the request context.
+func RetrieveFilters(session SessionAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			var (
+				route   string
+				ok      bool
+				filters models.Filters
+			)
+			if redirect := req.Header.Get(htmx.HeaderLocation); redirect != "" {
+				route = redirect
+			} else {
+				route = chi.RouteContext(req.Context()).RoutePattern()
+			}
+			switch route {
+			case models.FeedsRoute:
+				filters, ok = session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
+			case models.ItemsRoute:
+				filters, ok = session.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
+			}
+			if !ok {
+				filters = *models.NewFilters()
+			}
+			ctx := models.FiltersToCtx(req.Context(), filters)
+			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }

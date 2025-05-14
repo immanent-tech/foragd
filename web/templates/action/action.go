@@ -19,7 +19,7 @@ type Action struct {
 	sync.Mutex
 	path       string
 	method     string
-	params     url.Values
+	Params     url.Values
 	attributes templ.Attributes
 }
 
@@ -47,7 +47,7 @@ func (a *Action) URL() *url.URL {
 	if err != nil {
 		rte, _ = url.Parse("/")
 	}
-	rte.RawQuery = a.params.Encode()
+	rte.RawQuery = a.Params.Encode()
 	return rte
 }
 
@@ -86,14 +86,14 @@ func WithMethod(method string) Option {
 // WithParams option sets additional URL parameters to the request path. These are merged with any existing params.
 func WithParams(params url.Values) Option {
 	return func(a *Action) {
-		maps.Copy(a.params, params)
+		maps.Copy(a.Params, params)
 	}
 }
 
 // WithParam option sets the given URL param on the request.
 func WithParam(key string, value string) Option {
 	return func(a *Action) {
-		a.params.Add(key, value)
+		a.Params.Add(key, value)
 	}
 }
 
@@ -108,7 +108,7 @@ func WithAttributes(attributes templ.Attributes) Option {
 func Build(path string, options ...Option) *Action {
 	action := &Action{
 		path:       path,
-		params:     make(url.Values),
+		Params:     make(url.Values),
 		attributes: make(templ.Attributes),
 	}
 
