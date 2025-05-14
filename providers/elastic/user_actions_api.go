@@ -26,113 +26,6 @@ var (
 	ErrUserAlreadySubscribed = errors.New("user already subscribed")
 )
 
-// GetItem retrieves the specified item with the given id and from the given
-// feed. It checks for a subscription and will return false (without an error)
-// if the current user is not subscribed.
-func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error) {
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, false, errors.Join(ErrSearchFailed, ErrFetchCtx)
-	}
-
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, false, ErrNoUserCtx
-	}
-
-	if !user.IsSubscribed(feedID) {
-		return nil, false, ErrNoUserCtx
-	}
-
-	req := NewSearchRequest(e.GetAPI(),
-		WithSearchIndex(index),
-		WithSearchQueryOptions(
-			query.Bool(
-				query.Filter(
-					// Must have the feedID and itemID
-					query.FeedIDs(feedID),
-					query.ItemIDs(itemID),
-					// Must be published or updated after the user max history.
-					query.Bool(
-						query.Should(
-							query.Since("published", user.GetMarkedRead(feedID)),
-							query.Since("updated", user.GetMarkedRead(feedID)),
-						),
-					),
-				),
-			),
-		),
-		WithSortOptions(SortTimestampDesc()),
-	)
-
-	res, err := req.Do(ctx)
-	if err != nil {
-		return nil, false, errors.Join(ErrSearchFailed, err)
-	}
-
-	item, err := ExtractSource[*models.Item](res.Hits.Hits[0].Source_)
-	if err != nil {
-		return nil, false, errors.Join(ErrSearchFailed, err)
-	}
-
-	return item, true, nil
-}
-
-// UserGetItems will search Elasticsearch for unread items (with
-// given filters applied) for the given user, and, returns the items as well as
-// pagination details for paging through the results.
-func (e *API) GetItems(ctx context.Context) (models.Items, models.Pagination, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, "", ErrFetchCtx
-	}
-	filters := models.FiltersFromCtx(ctx)
-	// Get subscriptions matching the filters.
-	subscriptions := user.GetSubscriptions().FilterByFeedID(filters.Feeds...)
-
-	query := query.Bool(
-		query.BoolQueryName("get_items"),
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.FeedIDs(subscriptions.GetFeedIDs()...),
-			// Must match any of the given categories.
-			query.Categories(filters.Categories...),
-			// And should match one feed clause.
-			query.Bool(
-				query.Should(buildSubscriptionQueries(subscriptions, filters)...),
-			),
-		),
-	)
-
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	resp, err := e.ItemsSearch(ctx, query, filters)
-	if err != nil {
-		return nil, "", errors.Join(ErrUserActionFailed, err)
-	}
-	// Extract items and pagination values.
-	items, lastSortValue, warnings := ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
-	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
-			slog.Any("warnings", err))
-	}
-	// Encode the pagination value.
-	pagination, err := encodePagination(lastSortValue)
-	if err != nil {
-		return nil, "", errors.Join(ErrUserActionFailed, err)
-	}
-
-	// Decorate items with user state.
-	subscriptionsByFeed := subscriptions.ByFeed()
-	for item := range slices.Values(items) {
-		// Add the state for the item from the user object, to the item object.
-		itemState := subscriptionsByFeed[item.GetFeedID()].GetItemState(item.GetID())
-		item.SetUserItemState(itemState)
-	}
-
-	return items, pagination, nil
-}
-
 // GetUserSubscription retrieves the subscription with the given ID.
 func (e *API) GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, error) {
 	// Retrieve user object.
@@ -314,6 +207,113 @@ func (e *API) MarkSubscriptions(ctx context.Context, mark models.Mark, subscript
 	})
 }
 
+// GetItem retrieves the specified item with the given id and from the given
+// feed. It checks for a subscription and will return false (without an error)
+// if the current user is not subscribed.
+func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error) {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, false, errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, false, ErrNoUserCtx
+	}
+
+	if !user.IsSubscribed(feedID) {
+		return nil, false, ErrNoUserCtx
+	}
+
+	req := NewSearchRequest(e.GetAPI(),
+		WithSearchIndex(index),
+		WithSearchQueryOptions(
+			query.Bool(
+				query.Filter(
+					// Must have the feedID and itemID
+					query.FeedIDs(feedID),
+					query.ItemIDs(itemID),
+					// Must be published or updated after the user max history.
+					query.Bool(
+						query.Should(
+							query.Since("published", user.GetMarkedRead(feedID)),
+							query.Since("updated", user.GetMarkedRead(feedID)),
+						),
+					),
+				),
+			),
+		),
+		WithSortOptions(SortTimestampDesc()),
+	)
+
+	res, err := req.Do(ctx)
+	if err != nil {
+		return nil, false, errors.Join(ErrSearchFailed, err)
+	}
+
+	item, err := ExtractSource[*models.Item](res.Hits.Hits[0].Source_)
+	if err != nil {
+		return nil, false, errors.Join(ErrSearchFailed, err)
+	}
+
+	return item, true, nil
+}
+
+// UserGetItems will search Elasticsearch for unread items (with
+// given filters applied) for the given user, and, returns the items as well as
+// pagination details for paging through the results.
+func (e *API) GetItems(ctx context.Context) (models.Items, models.Pagination, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, "", ErrFetchCtx
+	}
+	filters := models.FiltersFromCtx(ctx)
+	// Get subscriptions matching the filters.
+	subscriptions := user.GetSubscriptions().FilterByFeedID(filters.Feeds...)
+
+	query := query.Bool(
+		query.BoolQueryName("get_items"),
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.FeedIDs(subscriptions.GetFeedIDs()...),
+			// Must match any of the given categories.
+			query.Categories(filters.Categories...),
+			// And should match one feed clause.
+			query.Bool(
+				query.Should(buildSubscriptionQueries(subscriptions, filters)...),
+			),
+		),
+	)
+
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	resp, err := e.ItemsSearch(ctx, query, filters)
+	if err != nil {
+		return nil, "", errors.Join(ErrUserActionFailed, err)
+	}
+	// Extract items and pagination values.
+	items, lastSortValue, warnings := ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
+	if warnings != nil {
+		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
+			slog.Any("warnings", err))
+	}
+	// Encode the pagination value.
+	pagination, err := encodePagination(lastSortValue)
+	if err != nil {
+		return nil, "", errors.Join(ErrUserActionFailed, err)
+	}
+
+	// Decorate items with user state.
+	subscriptionsByFeed := subscriptions.ByFeed()
+	for item := range slices.Values(items) {
+		// Add the state for the item from the user object, to the item object.
+		itemState := subscriptionsByFeed[item.GetFeedID()].GetItemState(item.GetID())
+		item.SetUserItemState(itemState)
+	}
+
+	return items, pagination, nil
+}
+
 // MarkItems will mark the given items for the given feeds with the given state for the user.
 func (e *API) MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error {
 	user, found := models.UserFromCtx(ctx)
@@ -334,6 +334,27 @@ func (e *API) MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) err
 		"subscriptions": user.Subscriptions,
 		"updated_at":    time.Now().UTC(),
 	})
+}
+
+// GetTopItemCategories gets the top 10 most-used categories across the list of feeds.
+func (e *API) GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error) {
+	query := query.Bool(
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.FeedIDs(feeds...),
+		),
+	)
+	topCategoryResults, err := e.ItemsAggregation(ctx, query, NewTermsAggregation("TopCategories", "categories.raw", 10))
+	if err != nil {
+		return nil, ErrFetchCtx
+	}
+	var topCategories TermsAggregationResults
+	topCategories.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](topCategoryResults, "TopCategories")
+	if err != nil {
+		return nil, ErrFetchCtx
+	}
+
+	return topCategories.BucketNames(), nil
 }
 
 // buildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.

@@ -4,6 +4,7 @@
 package subscription
 
 import (
+	"github.com/davecgh/go-spew/spew"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -21,6 +22,7 @@ import (
 
 type SubscriptionEditRequest struct {
 	*models.Subscription
+	TopCategories []models.Category
 }
 
 func (s *SubscriptionEditRequest) editNickname() *textinput.Props {
@@ -45,15 +47,24 @@ templ (s *SubscriptionEditRequest) editCategories() {
 	>
 		<fieldset class="fieldset">
 			<label class="label">Add Category (optional)</label>
-			@join.Horizontally(
-				textinput.Build(
+			@join.Horizontally() {
+				@textinput.Build(
 					textinput.WithPlaceholder("CoolStuff"),
-				).Show("join-item"),
-				button.Build(
+					textinput.WithExtraAttributes(templ.Attributes{
+						"list": "categorySuggestions",
+					}),
+				).Show("join-item")
+				@button.Build(
 					button.AsShape(button.Square),
 					button.WithContent(tabler.CategoryPlus()),
-				).Show("join-item"),
-			)
+				).Show("join-item")
+			}
+			<datalist id="categorySuggestions">
+				{{ spew.Dump(s) }}
+				for category := range slices.Values(s.TopCategories) {
+					<option value={ category }></option>
+				}
+			</datalist>
 		</fieldset>
 	</form>
 	<form>

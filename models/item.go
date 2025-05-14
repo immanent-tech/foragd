@@ -28,6 +28,7 @@ func (i Items) FilterSince(since time.Time) Items {
 	}))
 }
 
+// GetFeedIDs retrieves a list of all FeedIDs for all items.
 func (i Items) GetFeedIDs() []FeedID {
 	feedIDs := make([]FeedID, 0, len(i))
 	for item := range slices.Values(i) {

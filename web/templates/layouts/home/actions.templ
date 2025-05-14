@@ -120,13 +120,13 @@ func markItemAction(feedID models.FeedID, itemID models.ItemID, isUnread bool) t
 func markAllFeedsAction(view models.View) templ.Component {
 	switch view {
 	case models.ViewUnread:
-		action := action.Build("/subscription/mark/"+string(models.MarkRead),
+		action := action.Build("/subscriptions/mark/"+string(models.MarkRead),
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(actionAttributes),
 		)
 		return markReadLink("Mark All Read", action.Attributes())
 	case models.ViewRead:
-		action := action.Build("/subscription/mark/"+string(models.MarkUnread),
+		action := action.Build("/subscriptions/mark/"+string(models.MarkUnread),
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(actionAttributes),
 		)

@@ -28,16 +28,16 @@ func (i *categoryInput) SetValue(value attributes.Value) {
 }
 
 templ (i *categoryInput) Show(classes ...string) {
-	@join.Horizontally(
-		textinput.Build(
+	@join.Horizontally() {
+		@textinput.Build(
 			textinput.WithName("category"),
 			textinput.WithPlaceholder("CoolStuff"),
-		).Show("join-item"),
-		button.Build(
+		).Show("join-item")
+		@button.Build(
 			button.AsShape(button.Square),
 			button.WithContent(tabler.CategoryPlus()),
-		).Show("join-item"),
-	)
+		).Show("join-item")
+	}
 }
 
 func newCategoryInput() *categoryInput {
@@ -56,15 +56,15 @@ templ manageCategories(categories ...string) {
 	>
 		<fieldset class="fieldset">
 			<label class="label">Add Category (optional)</label>
-			@join.Horizontally(
-				textinput.Build(
+			@join.Horizontally() {
+				@textinput.Build(
 					textinput.WithPlaceholder("CoolStuff"),
-				).Show("join-item"),
-				button.Build(
+				).Show("join-item")
+				@button.Build(
 					button.AsShape(button.Square),
 					button.WithContent(tabler.CategoryPlus()),
-				).Show("join-item"),
-			)
+				).Show("join-item")
+			}
 		</fieldset>
 	</form>
 	<form>

@@ -10,6 +10,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
@@ -270,6 +271,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 
 	resp, err := req.Do(ctx)
 	if err != nil {
+		spew.Dump(resp)
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 

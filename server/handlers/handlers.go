@@ -57,6 +57,7 @@ type DataAPI interface {
 	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)
 	GetItems(ctx context.Context) (models.Items, models.Pagination, error)
 	MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error
+	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error)
 }
 
 // AuthAPI represents the API surface for interacting with the auth backend.

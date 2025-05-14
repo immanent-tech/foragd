@@ -410,13 +410,20 @@ func RemoveSubscription(api DataAPI, id models.SubscriptionID, decision *models.
 // EditSubscription retrieves the subscription with the given ID and presents a form for the user to edit it.
 func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get the subscription details.
 		sub, err := api.GetSubscription(req.Context(), id)
 		if err != nil {
 			HandleError(res, req, NewError(http.StatusInternalServerError, err.Error()))
 			return
 		}
+		// Encapsulate subscription in edit request.
 		subEdit := &subscription.SubscriptionEditRequest{
 			Subscription: sub,
+		}
+		// Add top categories across items in subscription.
+		categories, err := api.GetTopItemCategories(req.Context(), sub.GetFeedID())
+		if err == nil {
+			subEdit.TopCategories = categories
 		}
 		resp := htmx.NewResponse()
 		HTMXResponse(resp, subEdit.SubscriptionDetailsModal()).ServeHTTP(res, req)
