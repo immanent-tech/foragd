@@ -33,16 +33,6 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 	chain.ServeHTTP(res, req)
 }
 
-func (s Server) HandleMarkFeeds(res http.ResponseWriter, req *http.Request) {
-	chain := alice.New(
-		handlers.RouteLogger("mark_feeds"),
-		// handlers.MarkFeeds(s.DataAPI()),
-		handlers.RetrieveFilters(s.SessionAPI()),
-		handlers.GenerateFeedsContent(s.DataAPI()),
-	).Then(handlers.DisplayHome())
-	chain.ServeHTTP(res, req)
-}
-
 func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, params HandleShowItemsParams) {
 	chain := alice.New(
 		handlers.RouteLogger("show_items"),

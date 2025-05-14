@@ -7,6 +7,7 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
@@ -28,6 +29,22 @@ import (
 )
 
 const defaultCardClasses = "bg-base-300 m-2 p-2"
+
+// viewAction returns the action for viewing the card's content. For a Feed card this would be the Feed's item as cards.
+// For a Item card, this would be the item content.
+func (c *Card) generateViewAction(ctx context.Context) *action.Action {
+	var route Route
+	switch models.IdentifyID(c.id) {
+	case models.FeedPFX:
+		route = Route{Path: models.ItemsRoute, Filters: CurrentRouteFromCtx(ctx).Filters}
+		route.Filters.Feeds = []models.FeedID{c.GetFeedID()}
+	case models.ItemPFX:
+		route = Route{Path: "/home/" + c.GetFeedID() + "/" + c.id}
+	}
+	action := route.AsAction()
+	action.SetAttributes(viewAttributes)
+	return action
+}
 
 templ (c *Card) timestamp() {
 	@text.Build(
@@ -77,7 +94,7 @@ templ (c *FeedCard) showTitle() {
 		@link.Build(
 			link.WithContent(c.GetTitle()),
 			link.WithUnderlineOnHover(),
-			link.WithExtraAttributes(c.viewRoute.GetAttributes()),
+			link.WithExtraAttributes(c.generateViewAction(ctx).Attributes()),
 		).Show()
 	</div>
 	// Display unread count (if any).
@@ -99,11 +116,10 @@ func newFeedCard(ctx context.Context, subscription *models.Subscription) *FeedCa
 		},
 		UnreadCount: subscription.GetUnreadCount(),
 	}
-	feedCard.viewRoute = feedCard.generateViewRoute(ctx)
 	feedCard.menuActions = append(feedCard.menuActions,
 		shareAction(nil),
 		visitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
-		markFeedAction(subscription.GetID(), models.FiltersFromCtx(ctx).View),
+		markFeedAction(subscription.GetID(), subscription.IsUnread()),
 		editSubscriptionAction(subscription.GetID()),
 		unsubscribeAction(subscription.GetID()),
 	)
@@ -137,7 +153,7 @@ templ (c *ItemCard) showTitle() {
 			).Show(),
 		),
 		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(c.viewRoute.GetAttributes()),
+		link.WithExtraAttributes(c.generateViewAction(ctx).Attributes()),
 	).Show()
 }
 
@@ -157,11 +173,10 @@ func newItemCard(ctx context.Context, item *models.Item) *ItemCard {
 			id:     item.GetID(),
 		},
 	}
-	itemCard.viewRoute = itemCard.generateViewRoute(ctx)
 	itemCard.menuActions = append(itemCard.menuActions,
 		shareAction(nil),
 		visitExternalLinkAction("External URL", item.GetLink()),
-		markItemAction(item.GetFeedID(), item.GetID(), models.FiltersFromCtx(ctx).View),
+		markItemAction(item.GetFeedID(), item.GetID(), item.IsUnread()),
 	)
 
 	var imageOption card.Option
@@ -188,7 +203,7 @@ func newItemCard(ctx context.Context, item *models.Item) *ItemCard {
 		card.WithExtraClasses(defaultCardClasses),
 	)
 	switch {
-	case models.FiltersFromCtx(ctx).View == models.ViewRead:
+	case CurrentRouteFromCtx(ctx).Filters.View == models.ViewRead:
 		fallthrough
 	case item.GetUserState() == models.StateRead:
 		card.WithExtraClasses(opacity.Apply(75))(itemCard.Props)

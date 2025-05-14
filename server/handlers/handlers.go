@@ -8,7 +8,6 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"strings"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
@@ -71,25 +70,4 @@ type AuthAPI interface {
 type SessionAPI interface {
 	Put(ctx context.Context, key string, value any)
 	Get(ctx context.Context, key string) any
-}
-
-func GenerateBacklink(ctx context.Context, sessionAPI SessionAPI, currentRoute string) *models.Route {
-	switch {
-	case strings.HasPrefix(currentRoute, models.FeedsRoute):
-		return models.NewRoute("/home", nil)
-	case strings.HasPrefix(currentRoute, models.ItemsRoute):
-		feedFilters, ok := sessionAPI.Get(ctx, feedFiltersSessionKey).(models.Filters)
-		if !ok {
-			feedFilters = *models.NewFilters()
-		}
-		return models.NewRoute(models.FeedsRoute, &feedFilters)
-	case strings.Contains(currentRoute, "feed_") && strings.Contains(currentRoute, "item_"):
-		itemFilters, ok := sessionAPI.Get(ctx, itemFiltersSessionKey).(models.Filters)
-		if !ok {
-			itemFilters = *models.NewFilters()
-		}
-		return models.NewRoute(models.ItemsRoute, &itemFilters)
-	default:
-		return nil
-	}
 }

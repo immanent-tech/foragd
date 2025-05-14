@@ -4,7 +4,6 @@
 package models
 
 import (
-	"context"
 	"maps"
 	"net/http"
 	"net/url"
@@ -12,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/a-h/templ"
-	"github.com/go-chi/chi/v5"
 )
 
 // Route is a routing path or endpoint on the service. Typical usage is for generating a path for some user action in
@@ -26,38 +24,38 @@ type Route struct {
 	attributes templ.Attributes
 }
 
-// NewRouteFromCtx generates a route from details within the context.
-func NewRouteFromCtx(ctx context.Context, options ...RouteOption) *Route {
-	route := &Route{
-		path:       chi.RouteContext(ctx).RoutePattern(),
-		attributes: make(templ.Attributes),
-		params:     make(url.Values),
-	}
-	filters := FiltersFromCtx(ctx)
-	route.filters = &filters
+// // NewRouteFromCtx generates a route from details within the context.
+// func NewRouteFromCtx(ctx context.Context, options ...RouteOption) *Route {
+// 	route := &Route{
+// 		path:       chi.RouteContext(ctx).RoutePattern(),
+// 		attributes: make(templ.Attributes),
+// 		params:     make(url.Values),
+// 	}
+// 	filters := FiltersFromCtx(ctx)
+// 	route.filters = &filters
 
-	for option := range slices.Values(options) {
-		option(route)
-	}
+// 	for option := range slices.Values(options) {
+// 		option(route)
+// 	}
 
-	return route
-}
+// 	return route
+// }
 
-func NewRouteFromReq(req *http.Request, options ...RouteOption) *Route {
-	route := &Route{
-		path:       req.URL.Path,
-		attributes: make(templ.Attributes),
-		params:     make(url.Values),
-	}
-	filters := FiltersFromCtx(req.Context())
-	route.filters = &filters
+// func NewRouteFromReq(req *http.Request, options ...RouteOption) *Route {
+// 	route := &Route{
+// 		path:       req.URL.Path,
+// 		attributes: make(templ.Attributes),
+// 		params:     make(url.Values),
+// 	}
+// 	filters := FiltersFromCtx(req.Context())
+// 	route.filters = &filters
 
-	for option := range slices.Values(options) {
-		option(route)
-	}
+// 	for option := range slices.Values(options) {
+// 		option(route)
+// 	}
 
-	return route
-}
+// 	return route
+// }
 
 // NewRoute generates a route from the given path and filters.
 func NewRoute(path string, filters *Filters, options ...RouteOption) *Route {

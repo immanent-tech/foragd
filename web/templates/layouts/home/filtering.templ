@@ -28,17 +28,19 @@ type CategoryFilter struct {
 func BuildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCounts) CategoryFilters {
 	categoryFilters := make(CategoryFilters, 0, len(categoryCounts))
 	for categoryCount := range slices.Values(categoryCounts.GetTopCategories(10)) {
-		route := models.NewRouteFromCtx(ctx, models.WithAttributes(viewAttributes))
+		route := CurrentRouteFromCtx(ctx)
 		var active bool
-		if slices.Contains(models.FiltersFromCtx(ctx).Categories, categoryCount.Category) {
+		if slices.Contains(route.Filters.Categories, categoryCount.Category) {
 			active = true
-			route.UnsetCategories()
+			route.Filters.Categories = nil
 		} else {
-			route.SetCategories(categoryCount.Category)
+			route.Filters.Categories = append(route.Filters.Categories, categoryCount.Category)
 		}
+		req := route.AsAction()
+		req.SetAttributes(viewAttributes)
 		categoryFilters = append(categoryFilters, CategoryFilter{
 			CategoryCount: categoryCount,
-			attributes:    route.GetAttributes(),
+			attributes:    req.Attributes(),
 			active:        active,
 		})
 	}
@@ -71,13 +73,17 @@ type ViewFilters []templ.Component
 
 // newViewFilter creates a new view filter.
 func viewFilter(ctx context.Context, view models.View) templ.Component {
-	route := models.NewRouteFromCtx(ctx, models.WithAttributes(viewAttributes))
-	route.SetView(view)
+	route := CurrentRouteFromCtx(ctx)
 	switch {
-	case view == models.FiltersFromCtx(ctx).View:
-		return activeOption(string(view), route.GetAttributes())
+	case view == route.Filters.View:
+		req := route.AsAction()
+		req.SetAttributes(viewAttributes)
+		return activeOption(string(view), req.Attributes())
 	default:
-		return inactiveOption(string(view), route.GetAttributes())
+		route.Filters.View = view
+		req := route.AsAction()
+		req.SetAttributes(viewAttributes)
+		return inactiveOption(string(view), req.Attributes())
 	}
 }
 

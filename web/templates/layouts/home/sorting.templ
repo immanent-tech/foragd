@@ -6,11 +6,9 @@ package home
 
 import (
 	"context"
-	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"reflect"
 )
 
 type SortOption struct {
@@ -19,17 +17,20 @@ type SortOption struct {
 	attributes templ.Attributes
 }
 
-func newSortAction(sort models.Sort, path string, filters models.Filters) templ.Component {
+func newSortAction(ctx context.Context, sort models.Sort) templ.Component {
 	sortAction := &SortOption{
 		Sort: sort,
 	}
-	if reflect.DeepEqual(filters.Sort(), sortAction.Sort) {
+	route := CurrentRouteFromCtx(ctx)
+	if route.Filters.SortBy == sort.SortBy && route.Filters.SortOrder == sort.SortOrder {
 		sortAction.active = true
+	} else {
+		route.Filters.SortBy = sort.SortBy
+		route.Filters.SortOrder = sort.SortOrder
 	}
-	route := models.NewRoute(path, &filters, models.WithAttributes(viewAttributes))
-	route.SetSortBy(sort.SortBy)
-	route.SetSortOrder(sort.SortOrder)
-	sortAction.attributes = route.GetAttributes()
+	req := route.AsAction()
+	req.SetAttributes(viewAttributes)
+	sortAction.attributes = req.Attributes()
 	switch sortAction.active {
 	case true:
 		return activeOption(sortAction.String(), sortAction.attributes)
@@ -40,20 +41,17 @@ func newSortAction(sort models.Sort, path string, filters models.Filters) templ.
 
 //nolint:contextcheck
 func generateSortOptions(ctx context.Context) []templ.Component {
-	path := chi.RouteContext(ctx).RoutePattern()
-	filters := models.FiltersFromCtx(ctx)
-
 	var sorts []templ.Component
 	// Add sorting options for updated date.
 	sorts = append(sorts,
-		newSortAction(models.SortLastUpdatedDesc, path, filters),
-		newSortAction(models.SortLastUpdatedAsc, path, filters),
+		newSortAction(ctx, models.SortLastUpdatedDesc),
+		newSortAction(ctx, models.SortLastUpdatedAsc),
 	)
 	// If viewing /home/feeds and not viewing read items, add additional sorting options on unread count.
-	if path == models.FeedsRoute && !filters.ViewRead() {
+	if CurrentRouteFromCtx(ctx).Path == models.FeedsRoute && CurrentRouteFromCtx(ctx).Filters.View != models.ViewRead {
 		sorts = append(sorts,
-			newSortAction(models.SortUnreadCountDesc, path, filters),
-			newSortAction(models.SortUnreadCountAsc, path, filters),
+			newSortAction(ctx, models.SortUnreadCountDesc),
+			newSortAction(ctx, models.SortUnreadCountAsc),
 		)
 	}
 

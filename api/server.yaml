@@ -249,15 +249,6 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-    post:
-      summary: >
-        Mark feeds.
-      operationId: handleMarkFeeds
-      requestBody:
-        $ref: '#/components/requestBodies/MarkRequest'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
   /home/items:
     get:
       summary: >
@@ -284,8 +275,6 @@ paths:
         200:
           $ref: '#/components/responses/htmx'
   /home/{feed}/{item}:
-    summary: >
-      Handle item.
     parameters:
       - $ref: '#/components/parameters/FeedID'
       - $ref: '#/components/parameters/ItemID'
@@ -311,8 +300,6 @@ paths:
         200:
           $ref: '#/components/responses/htmx'
   /home/{feed}/{item}/{mark}:
-    summary: >
-      Handle marking item.
     post:
       summary: >
         Mark a feed item.

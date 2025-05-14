@@ -113,9 +113,6 @@ type MarkAllSubscriptionsParams struct {
 	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
 }
 
-// HandleMarkFeedsFormdataRequestBody defines body for HandleMarkFeeds for application/x-www-form-urlencoded ContentType.
-type HandleMarkFeedsFormdataRequestBody = externalRef0.MarkObjects
-
 // HandleMarkItemsFormdataRequestBody defines body for HandleMarkItems for application/x-www-form-urlencoded ContentType.
 type HandleMarkItemsFormdataRequestBody = externalRef0.MarkObjects
 
@@ -230,9 +227,6 @@ type ServerInterface interface {
 	// Shows feeds with optional filtering applied.
 	// (GET /home/feeds)
 	HandleShowFeeds(w http.ResponseWriter, r *http.Request, params HandleShowFeedsParams)
-	// Mark feeds.
-	// (POST /home/feeds)
-	HandleMarkFeeds(w http.ResponseWriter, r *http.Request)
 	// Shows items with optional filtering applied.
 	// (GET /home/items)
 	HandleShowItems(w http.ResponseWriter, r *http.Request, params HandleShowItemsParams)
@@ -325,12 +319,6 @@ func (_ Unimplemented) HandleHome(w http.ResponseWriter, r *http.Request) {
 // Shows feeds with optional filtering applied.
 // (GET /home/feeds)
 func (_ Unimplemented) HandleShowFeeds(w http.ResponseWriter, r *http.Request, params HandleShowFeedsParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Mark feeds.
-// (POST /home/feeds)
-func (_ Unimplemented) HandleMarkFeeds(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -606,20 +594,6 @@ func (siw *ServerInterfaceWrapper) HandleShowFeeds(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleShowFeeds(w, r, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// HandleMarkFeeds operation middleware
-func (siw *ServerInterfaceWrapper) HandleMarkFeeds(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleMarkFeeds(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1372,9 +1346,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/feeds", wrapper.HandleShowFeeds)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/feeds", wrapper.HandleMarkFeeds)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/items", wrapper.HandleShowItems)

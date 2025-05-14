@@ -63,21 +63,33 @@ func GenerateFilters(session SessionAPI, params any) func(next http.Handler) htt
 				InternalServerError(res, req, err)
 				return
 			}
+			var (
+				currentRoute  home.Route
+				previousRoute home.Route
+			)
 			// Store filters in session.
 			route := chi.RouteContext(req.Context()).RoutePattern()
 			switch route {
 			case models.FeedsRoute:
-				slogctx.FromCtx(req.Context()).Debug("Storing feed filters.")
+				currentRoute = home.Route{Path: models.FeedsRoute, Filters: *filters}
+				previousRoute = home.Route{Path: "/home"}
 				session.Put(req.Context(), feedFiltersSessionKey, filters)
 			case models.ItemsRoute:
-				slogctx.FromCtx(req.Context()).Debug("Storing item filters.")
+				currentRoute = home.Route{Path: models.ItemsRoute, Filters: *filters}
+				if previousFilters, ok := session.Get(req.Context(), feedFiltersSessionKey).(*models.Filters); ok {
+					previousRoute = home.Route{Path: models.FeedsRoute, Filters: *previousFilters}
+				} else {
+					previousRoute = home.Route{Path: models.FeedsRoute, Filters: *models.NewFilters()}
+				}
 				session.Put(req.Context(), itemFiltersSessionKey, filters)
 			default:
 				slogctx.FromCtx(req.Context()).Warn("Cannot generate filters, unknown route.",
 					slog.String("route", route))
+				return
 			}
-			// Store filters in context.
 			ctx := models.FiltersToCtx(req.Context(), *filters)
+			ctx = home.CurrentRouteToCtx(ctx, currentRoute)
+			ctx = home.PreviousRouteToCtx(ctx, previousRoute)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -88,9 +100,9 @@ func RetrieveFilters(session SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			var (
-				filters models.Filters
-				ok      bool
-				route   string
+				route         string
+				currentRoute  home.Route
+				previousRoute home.Route
 			)
 			if redirect := req.Header.Get(htmx.HeaderLocation); redirect != "" {
 				route = redirect
@@ -99,38 +111,36 @@ func RetrieveFilters(session SessionAPI) func(next http.Handler) http.Handler {
 			}
 			switch route {
 			case models.FeedsRoute:
-				filters, ok = session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
+				filters, ok := session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
+				if !ok {
+					filters = *models.NewFilters()
+				}
+				currentRoute = home.Route{Path: models.FeedsRoute, Filters: filters}
+				previousRoute = home.Route{Path: "/home"}
+				ctx := models.FiltersToCtx(req.Context(), filters)
+				ctx = home.CurrentRouteToCtx(ctx, currentRoute)
+				ctx = home.PreviousRouteToCtx(ctx, previousRoute)
+				next.ServeHTTP(res, req.WithContext(ctx))
 			case models.ItemsRoute:
-				filters, ok = session.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
+				currentFilters, ok := session.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
+				if !ok {
+					currentFilters = *models.NewFilters()
+				}
+				previousFilters, ok := session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
+				if !ok {
+					previousFilters = *models.NewFilters()
+				}
+
+				currentRoute = home.Route{Path: models.ItemsRoute, Filters: currentFilters}
+				previousRoute = home.Route{Path: models.FeedsRoute, Filters: previousFilters}
+				ctx := models.FiltersToCtx(req.Context(), currentFilters)
+				ctx = home.CurrentRouteToCtx(ctx, currentRoute)
+				ctx = home.PreviousRouteToCtx(ctx, previousRoute)
+				next.ServeHTTP(res, req.WithContext(ctx))
 			}
-			if !ok {
-				slogctx.FromCtx(req.Context()).Warn("No feed filters in session, using default filters.")
-				filters = *models.NewFilters()
-			}
-			next.ServeHTTP(res, req.WithContext(models.FiltersToCtx(req.Context(), filters)))
 		})
 	}
 }
-
-// // MarkFeeds handles marking feeds as read.
-// func MarkFeeds(api DataAPI) func(next http.Handler) http.Handler {
-// 	return func(next http.Handler) http.Handler {
-// 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-// 			// Get the mark request.
-// 			marks, valid, err := forms.DecodeForm[*models.MarkFeeds](req)
-// 			if err != nil || !valid {
-// 				InternalServerError(res, req, err)
-// 				return
-// 			}
-// 			// Mark the feeds.
-// 			if err := api.MarkSubscriptions(req.Context(), marks); err != nil {
-// 				InternalServerError(res, req, err)
-// 				return
-// 			}
-// 			next.ServeHTTP(res, req)
-// 		})
-// 	}
-// }
 
 // GenerateFeedsContent creates the content for displaying a list of feeds.
 func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler {
@@ -142,7 +152,7 @@ func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler 
 				InternalServerError(res, req, err)
 				return
 			}
-			layout := home.BuildFeedsLayout(req, pagination, subscriptions)
+			layout := home.BuildFeedsLayout(req.Context(), pagination, subscriptions)
 			ctx := templates.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -178,12 +188,7 @@ func GenerateItemsContent(dataAPI DataAPI, sessionAPI SessionAPI) func(next http
 				InternalServerError(res, req, err)
 				return
 			}
-			feedFilters, ok := sessionAPI.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
-			if !ok {
-				feedFilters = *models.NewFilters()
-			}
-			backRoute := models.NewRoute(models.FeedsRoute, &feedFilters)
-			layout := home.BuildItemsLayout(req, pagination, backRoute, items)
+			layout := home.BuildItemsLayout(req.Context(), pagination, items)
 			ctx := templates.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

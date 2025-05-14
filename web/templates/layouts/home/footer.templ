@@ -7,6 +7,7 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
@@ -44,14 +45,17 @@ templ (f *ListFooter) Show() {
 	}
 }
 
-func BuildListFooter(ctx context.Context, backButton templ.Component, categories models.CategoryCounts, actions ...templ.Component) *ListFooter {
+func BuildListFooter(ctx context.Context, categories models.CategoryCounts, actions ...templ.Component) *ListFooter {
+	// Build back request.
+	back := PreviousRouteFromCtx(ctx).AsAction()
+	back.SetAttributes(viewAttributes)
 	// Build view filters.
 	viewFilters := BuildViewFilters(ctx)
 	// Build category filters.
 	categoryFilters := BuildCategoryFilters(ctx, categories)
 	// Build footer.
 	return &ListFooter{
-		backButton:  backButton,
+		backButton:  partials.BackButton(back.Attributes()),
 		filtersMenu: BuildFiltersMenu(viewFilters, categoryFilters),
 		sortMenu:    BuildSortingMenu(),
 		actions:     actions,
