@@ -4,13 +4,13 @@
 package handlers
 
 import (
+	"encoding/json"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -104,7 +104,7 @@ func SavePageView(path string, params any) func(next http.Handler) http.Handler 
 	}
 }
 
-func RestorePageViews() func(next http.Handler) http.Handler {
+func SetupNavigation() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			var (
@@ -112,7 +112,6 @@ func RestorePageViews() func(next http.Handler) http.Handler {
 				current  models.PageView
 				previous models.PageView
 			)
-			spew.Dump(req.Header, res.Header(), chi.RouteContext(req.Context()).RoutePattern())
 			if redirect := req.Header.Get(htmx.HeaderLocation); redirect != "" {
 				route = redirect
 			} else {
@@ -171,7 +170,6 @@ func MarkFeeds(api DataAPI, mark models.Mark, feeds ...models.FeedID) func(next 
 				InternalServerError(res, req, err)
 				return
 			}
-			req.Header.Add(htmx.HeaderLocation, models.FeedsRoute)
 			next.ServeHTTP(res, req)
 		})
 	}
@@ -243,6 +241,20 @@ func SaveHomeHistory(session models.SessionAPI) func(next http.Handler) http.Han
 			next.ServeHTTP(res, req)
 		})
 	}
+}
+
+func GoToView(path string) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		session := models.SessionFromCtx(req.Context())
+		view := models.GetViewFromSession(req.Context(), session, path)
+		HxLocationData := HXLocation{Path: view.String(), Target: home.ContentID.Target()}
+		data, err := json.Marshal(HxLocationData)
+		if err != nil {
+			InternalServerError(res, req, err)
+		}
+		// Set-up client-side redirect to view.
+		res.Header().Add(htmx.HeaderLocation, string(data))
+	})
 }
 
 // DisplayHome displays a page under /home. It handles either partial or full rendering of the page, depending on

@@ -28,7 +28,7 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.SavePageView(models.FeedsRoute, params),
-		handlers.RestorePageViews(),
+		handlers.SetupNavigation(),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 		handlers.SaveHomeHistory(s.SessionAPI()),
 	).Then(handlers.DisplayHome())
@@ -41,7 +41,7 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.SavePageView(models.ItemsRoute, params),
-		handlers.RestorePageViews(),
+		handlers.SetupNavigation(),
 		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
 		handlers.SaveHomeHistory(s.SessionAPI()),
 	).Then(handlers.DisplayHome())
@@ -52,7 +52,7 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.MarkItems(s.DataAPI()),
-		handlers.RestorePageViews(),
+		handlers.SetupNavigation(),
 		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
@@ -97,8 +97,6 @@ func (s Server) MarkFeeds(res http.ResponseWriter, req *http.Request, mark Mark,
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.MarkFeeds(s.DataAPI(), mark, feeds...),
-		handlers.RestorePageViews(),
-		handlers.GenerateFeedsContent(s.DataAPI()),
-	).Then(handlers.DisplayHome())
+	).Then(handlers.GoToView(models.FeedsRoute))
 	chain.ServeHTTP(res, req)
 }

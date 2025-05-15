@@ -10,6 +10,10 @@ type PageView struct {
 	Filters Filters
 }
 
+func (r PageView) String() string {
+	return r.Path + "?" + r.Filters.ToQueryParams().Encode()
+}
+
 func (r PageView) AsAction() *action.Action {
 	return action.Build(r.Path,
 		action.WithParams(r.Filters.ToQueryParams()),

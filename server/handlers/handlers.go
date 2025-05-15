@@ -66,3 +66,8 @@ type AuthAPI interface {
 	CompleteUserAuth(res http.ResponseWriter, req *http.Request) error
 	GetUserID(ctx context.Context) models.UserID
 }
+
+type HXLocation struct {
+	Path   string `json:"path"`
+	Target string `json:"target"`
+}
