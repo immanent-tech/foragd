@@ -86,8 +86,8 @@ func GenerateHomeNavigation(session SessionAPI) func(next http.Handler) http.Han
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			var (
 				route    string
-				current  home.Route
-				previous home.Route
+				current  home.Navigation
+				previous home.Navigation
 			)
 			if redirect := req.Header.Get(htmx.HeaderLocation); redirect != "" {
 				route = redirect
@@ -96,26 +96,22 @@ func GenerateHomeNavigation(session SessionAPI) func(next http.Handler) http.Han
 			}
 			switch route {
 			case models.FeedsRoute:
-				filters, ok := session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
-				if !ok {
-					filters = *models.NewFilters()
-				}
-				current = home.Route{Path: models.FeedsRoute, Filters: filters}
-				previous = home.Route{Path: "/home"}
+				filters := models.FiltersFromCtx(req.Context())
+				current = home.NewNavigation(models.FeedsRoute, &filters)
+				previous = home.NewNavigation("/home", nil)
 			case models.ItemsRoute:
-				currentFilters, ok := session.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
-				if !ok {
-					currentFilters = *models.NewFilters()
-				}
+				currentFilters := models.FiltersFromCtx(req.Context())
 				previousFilters, ok := session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
 				if !ok {
 					previousFilters = *models.NewFilters()
 				}
-				current = home.Route{Path: models.ItemsRoute, Filters: currentFilters}
-				previous = home.Route{Path: models.FeedsRoute, Filters: previousFilters}
+				current = home.NewNavigation(models.ItemsRoute, &currentFilters)
+				previous = home.NewNavigation(models.FeedsRoute, &previousFilters)
 			}
 			ctx := req.Context()
+			slogctx.FromCtx(ctx).Debug("Saving current route.", slog.String("route", current.AsAction().String()))
 			ctx = home.CurrentRouteToCtx(ctx, current)
+			slogctx.FromCtx(ctx).Debug("Saving previous route.", slog.String("route", previous.AsAction().String()))
 			ctx = home.PreviousRouteToCtx(ctx, previous)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

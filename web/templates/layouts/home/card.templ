@@ -33,14 +33,15 @@ const defaultCardClasses = "bg-base-300 m-2 p-2"
 // viewAction returns the action for viewing the card's content. For a Feed card this would be the Feed's item as cards.
 // For a Item card, this would be the item content.
 func (c *Card) generateViewAction(ctx context.Context) *action.Action {
-	var route Route
+	var route Navigation
 	switch models.IdentifyID(c.id) {
 	case models.FeedPFX:
-		route = Route{Path: models.ItemsRoute, Filters: CurrentRouteFromCtx(ctx).Filters}
+		filters := CurrentRouteFromCtx(ctx).Filters
+		route = NewNavigation(models.ItemsRoute, &filters)
 		route.Filters.Feeds = []models.FeedID{c.GetFeedID()}
 		route.Filters.SortBy = models.SortByLastUpdated
 	case models.ItemPFX:
-		route = Route{Path: "/home/" + c.GetFeedID() + "/" + c.id}
+		route = NewNavigation("/home/"+c.GetFeedID()+"/"+c.id, nil)
 	}
 	action := route.AsAction()
 	action.SetAttributes(viewAttributes)

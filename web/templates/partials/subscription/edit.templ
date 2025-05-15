@@ -4,7 +4,6 @@
 package subscription
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -60,7 +59,6 @@ templ (s *SubscriptionEditRequest) editCategories() {
 				).Show("join-item")
 			}
 			<datalist id="categorySuggestions">
-				{{ spew.Dump(s) }}
 				for category := range slices.Values(s.TopCategories) {
 					<option value={ category }></option>
 				}

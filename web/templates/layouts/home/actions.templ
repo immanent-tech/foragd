@@ -28,7 +28,7 @@ const actionTextClasses = "w-fit text-xs"
 // addSubscriptionButton creates a button for displaying a modal to add a new subscription.
 func addSubscriptionAction(classes ...string) templ.Component {
 	return link.Build(
-		link.WithContent("Add Subscription"),
+		link.WithContent(templ.Join(tabler.CloudPlus(i.Props{Size: i.SizeXS}), components.SetContent("Add Subscription"))),
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/new",
 			"hx-target": partials.CommandModalID.Target(),
@@ -43,7 +43,7 @@ func addSubscriptionAction(classes ...string) templ.Component {
 // via opml).
 func importAction(classes ...string) templ.Component {
 	return link.Build(
-		link.WithContent("Import Subscriptions"),
+		link.WithContent(templ.Join(tabler.CloudUpload(i.Props{Size: i.SizeXS}), components.SetContent("Import Subscriptions"))),
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":    "/subscription/import",
 			"hx-target": partials.CommandModalID.Target(),

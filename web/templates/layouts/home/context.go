@@ -12,26 +12,26 @@ const (
 
 type contextKey string
 
-func CurrentRouteToCtx(ctx context.Context, route Route) context.Context {
+func CurrentRouteToCtx(ctx context.Context, route Navigation) context.Context {
 	return context.WithValue(ctx, currentRouteCtxKey, route)
 }
 
-func CurrentRouteFromCtx(ctx context.Context) Route {
-	route, found := ctx.Value(currentRouteCtxKey).(Route)
+func CurrentRouteFromCtx(ctx context.Context) Navigation {
+	route, found := ctx.Value(currentRouteCtxKey).(Navigation)
 	if !found {
-		return Route{Path: "/home"}
+		return NewNavigation("/home", nil)
 	}
 	return route
 }
 
-func PreviousRouteToCtx(ctx context.Context, route Route) context.Context {
+func PreviousRouteToCtx(ctx context.Context, route Navigation) context.Context {
 	return context.WithValue(ctx, previousRouteCtxKey, route)
 }
 
-func PreviousRouteFromCtx(ctx context.Context) Route {
-	route, found := ctx.Value(previousRouteCtxKey).(Route)
+func PreviousRouteFromCtx(ctx context.Context) Navigation {
+	route, found := ctx.Value(previousRouteCtxKey).(Navigation)
 	if !found {
-		return Route{Path: "/home"}
+		return NewNavigation("/home", nil)
 	}
 	return route
 }
