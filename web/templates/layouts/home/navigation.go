@@ -10,21 +10,21 @@ import (
 
 type Navigation struct {
 	Path    string
-	Filters models.Filters
+	Filters *models.Filters
 }
 
 func (r Navigation) AsAction() *action.Action {
-	return action.Build(r.Path,
-		action.WithParams(r.Filters.ToQueryParams()),
-	)
+	if r.Filters != nil {
+		return action.Build(r.Path,
+			action.WithParams(r.Filters.ToQueryParams()),
+		)
+	}
+	return action.Build(r.Path)
 }
 
 func NewNavigation(path string, filters *models.Filters) Navigation {
-	nav := Navigation{Path: path}
-	if filters == nil {
-		nav.Filters = *models.NewFilters()
-	} else {
-		nav.Filters = *filters
+	return Navigation{
+		Path:    path,
+		Filters: filters,
 	}
-	return nav
 }

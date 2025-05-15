@@ -108,11 +108,11 @@ func markItemAction(feedID models.FeedID, itemID models.ItemID, isUnread bool) t
 		action.WithParam(models.ParamItems, itemID),
 	)
 	if isUnread {
-		action.Params.Add("mark", string(models.MarkRead))
+		action.AddParam("mark", string(models.MarkRead))
 		return markReadLink("Mark Read", action.Attributes())
 	}
 
-	action.Params.Add("mark", string(models.MarkUnread))
+	action.AddParam("mark", string(models.MarkUnread))
 	return markUnreadLink("Mark Unread", action.Attributes())
 }
 

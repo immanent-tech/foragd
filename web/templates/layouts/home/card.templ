@@ -37,7 +37,7 @@ func (c *Card) generateViewAction(ctx context.Context) *action.Action {
 	switch models.IdentifyID(c.id) {
 	case models.FeedPFX:
 		filters := CurrentRouteFromCtx(ctx).Filters
-		route = NewNavigation(models.ItemsRoute, &filters)
+		route = NewNavigation(models.ItemsRoute, filters)
 		route.Filters.Feeds = []models.FeedID{c.GetFeedID()}
 		route.Filters.SortBy = models.SortByLastUpdated
 	case models.ItemPFX:
