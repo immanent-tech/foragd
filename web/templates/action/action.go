@@ -19,7 +19,7 @@ type Action struct {
 	sync.Mutex
 	path       string
 	method     string
-	params     url.Values
+	Params     url.Values
 	attributes templ.Attributes
 }
 
@@ -41,16 +41,18 @@ func (a *Action) SetAttributes(attributes templ.Attributes) {
 	}
 }
 
-func (a *Action) AddParam(key, value string) {
-	a.params.Add(key, value)
+// URL returns the request as a URL object.
+func (a *Action) URL() *url.URL {
+	rte, err := url.Parse(a.path)
+	if err != nil {
+		rte, _ = url.Parse("/")
+	}
+	rte.RawQuery = a.Params.Encode()
+	return rte
 }
 
 func (a *Action) String() string {
-	fullPath, err := url.JoinPath(a.path, a.params.Encode())
-	if err != nil {
-		return "/"
-	}
-	return fullPath
+	return a.URL().String()
 }
 
 // Attributes returns the request as htmx attributes that can be attached to a template or component.
@@ -84,14 +86,14 @@ func WithMethod(method string) Option {
 // WithParams option sets additional URL parameters to the request path. These are merged with any existing params.
 func WithParams(params url.Values) Option {
 	return func(a *Action) {
-		maps.Copy(a.params, params)
+		maps.Copy(a.Params, params)
 	}
 }
 
 // WithParam option sets the given URL param on the request.
 func WithParam(key string, value string) Option {
 	return func(a *Action) {
-		a.AddParam(key, value)
+		a.Params.Add(key, value)
 	}
 }
 
@@ -106,7 +108,7 @@ func WithAttributes(attributes templ.Attributes) Option {
 func Build(path string, options ...Option) *Action {
 	action := &Action{
 		path:       path,
-		params:     make(url.Values),
+		Params:     make(url.Values),
 		attributes: make(templ.Attributes),
 	}
 
