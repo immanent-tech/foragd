@@ -249,6 +249,17 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
+  /home/feeds/mark/{mark}:
+    post:
+      summary: >
+        Marks the given feeds with the given mark.
+      operationId: markFeeds
+      parameters:
+        - $ref: '#/components/parameters/Mark'
+        - $ref: '#/components/parameters/Feeds'
+      responses:
+        200:
+          $ref: '#/components/responses/htmx'
   /home/items:
     get:
       summary: >

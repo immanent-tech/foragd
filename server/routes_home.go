@@ -87,3 +87,18 @@ func (s Server) HandleSaveItem(res http.ResponseWriter, req *http.Request, feed 
 func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, feed models.FeedID, item models.ItemID) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
+
+func (s Server) MarkFeeds(res http.ResponseWriter, req *http.Request, mark Mark, params MarkFeedsParams) {
+	var feeds []models.FeedID
+	if params.Feeds != nil {
+		feeds = append(feeds, *params.Feeds...)
+	}
+	chain := alice.New(
+		handlers.RouteLogger("mark_feeds"),
+		handlers.MarkFeeds(s.DataAPI(), mark, feeds...),
+		handlers.GenerateHomeNavigation(s.SessionAPI()),
+		handlers.RetrieveFilters(s.SessionAPI()),
+		handlers.GenerateFeedsContent(s.DataAPI()),
+	).Then(handlers.DisplayHome())
+	chain.ServeHTTP(res, req)
+}

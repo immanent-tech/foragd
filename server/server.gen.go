@@ -86,6 +86,11 @@ type HandleShowFeedsParams struct {
 	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
 }
 
+// MarkFeedsParams defines parameters for MarkFeeds.
+type MarkFeedsParams struct {
+	Feeds *Feeds `form:"feeds,omitempty" json:"feeds,omitempty"`
+}
+
 // HandleShowItemsParams defines parameters for HandleShowItems.
 type HandleShowItemsParams struct {
 	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
@@ -227,6 +232,9 @@ type ServerInterface interface {
 	// Shows feeds with optional filtering applied.
 	// (GET /home/feeds)
 	HandleShowFeeds(w http.ResponseWriter, r *http.Request, params HandleShowFeedsParams)
+	// Marks the given feeds with the given mark.
+	// (POST /home/feeds/mark/{mark})
+	MarkFeeds(w http.ResponseWriter, r *http.Request, mark Mark, params MarkFeedsParams)
 	// Shows items with optional filtering applied.
 	// (GET /home/items)
 	HandleShowItems(w http.ResponseWriter, r *http.Request, params HandleShowItemsParams)
@@ -319,6 +327,12 @@ func (_ Unimplemented) HandleHome(w http.ResponseWriter, r *http.Request) {
 // Shows feeds with optional filtering applied.
 // (GET /home/feeds)
 func (_ Unimplemented) HandleShowFeeds(w http.ResponseWriter, r *http.Request, params HandleShowFeedsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Marks the given feeds with the given mark.
+// (POST /home/feeds/mark/{mark})
+func (_ Unimplemented) MarkFeeds(w http.ResponseWriter, r *http.Request, mark Mark, params MarkFeedsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -594,6 +608,42 @@ func (siw *ServerInterfaceWrapper) HandleShowFeeds(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleShowFeeds(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MarkFeeds operation middleware
+func (siw *ServerInterfaceWrapper) MarkFeeds(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "mark" -------------
+	var mark Mark
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params MarkFeedsParams
+
+	// ------------- Optional query parameter "feeds" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MarkFeeds(w, r, mark, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1346,6 +1396,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/feeds", wrapper.HandleShowFeeds)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/home/feeds/mark/{mark}", wrapper.MarkFeeds)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home/items", wrapper.HandleShowItems)

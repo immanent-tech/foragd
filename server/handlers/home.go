@@ -164,6 +164,28 @@ func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler 
 	}
 }
 
+// MarkFeeds will mark the user's subscriptions that match the given feeds with the given mark.
+func MarkFeeds(api DataAPI, mark models.Mark, feeds ...models.FeedID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			// Get the user details.
+			user, found := models.UserFromCtx(req.Context())
+			if !found {
+				InternalServerError(res, req, ErrInvalidUser)
+			}
+			// Get the user subscriptions matching the feeds
+			subscriptions := user.GetSubscriptions().FilterByFeedID(feeds...)
+			// Mark the subscriptions.
+			if err := api.MarkSubscriptions(req.Context(), mark, subscriptions.GetIDs()...); err != nil {
+				InternalServerError(res, req, err)
+				return
+			}
+			req.Header.Add(htmx.HeaderLocation, models.FeedsRoute)
+			next.ServeHTTP(res, req)
+		})
+	}
+}
+
 // MarkItems handles marking items as read.
 func MarkItems(api DataAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

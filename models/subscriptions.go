@@ -31,6 +31,15 @@ func (s Subscriptions) ByFeed() map[FeedID]*Subscription {
 	})
 }
 
+// GetIDs returns all the SubscriptionIDs for the Subscriptions.
+func (s Subscriptions) GetIDs() []SubscriptionID {
+	subscriptionIDs := make([]SubscriptionID, 0, len(s))
+	for subscription := range slices.Values(s) {
+		subscriptionIDs = append(subscriptionIDs, subscription.GetID())
+	}
+	return subscriptionIDs
+}
+
 // GetFeedIDs returns all the FeedIDs for the Subscriptions.
 func (s Subscriptions) GetFeedIDs() []FeedID {
 	feedIDs := make([]FeedID, 0, len(s))

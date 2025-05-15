@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
@@ -200,6 +201,10 @@ func (e *API) MarkSubscriptions(ctx context.Context, mark models.Mark, subscript
 	}
 	// Mark subscriptions.
 	user.MarkSubscriptions(mark, subscriptions...)
+	slogctx.FromCtx(ctx).Debug("Marked subscriptions.",
+		slog.String("mark", string(mark)),
+		slog.String("subscriptions", strings.Join(subscriptions, ",")),
+	)
 	// Update the user object.
 	return e.UpdateUser(ctx, user.GetID(), map[string]any{
 		"subscriptions": user.Subscriptions,

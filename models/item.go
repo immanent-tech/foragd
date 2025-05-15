@@ -34,7 +34,7 @@ func (i Items) GetFeedIDs() []FeedID {
 	for item := range slices.Values(i) {
 		feedIDs = append(feedIDs, item.GetFeedID())
 	}
-	return feedIDs
+	return slices.Compact(feedIDs)
 }
 
 // GetCategoryCounts returns a count of the occurrence of a Category across all

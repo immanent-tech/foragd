@@ -14,6 +14,7 @@ import (
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
+	"strings"
 )
 
 // actionAttributes are the common htmx attributes for mark actions.
@@ -79,21 +80,21 @@ func markUnreadLink(label string, attributes templ.Attributes) templ.Component {
 // markAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
 // depending on the current view.
 func markAllItemsAction(feeds []models.FeedID, view models.View) templ.Component {
-	route := models.NewRoute(
-		models.ItemsRoute,
-		nil,
-		models.WithAttributes(actionAttributes),
-		models.WithMethod(http.MethodPost),
-	)
-	route.AddQueryParam(models.ParamFeedID, feeds[0])
-
 	switch view {
 	case models.ViewUnread:
-		route.AddQueryParam("mark", string(models.MarkRead))
-		return markReadLink("Mark All Read", route.GetAttributes())
+		action := action.Build(models.FeedsRoute+"/mark/"+string(models.MarkRead),
+			action.WithMethod(http.MethodPost),
+			action.WithAttributes(actionAttributes),
+			action.WithParam(models.ParamFeeds, strings.Join(feeds, ",")),
+		)
+		return markReadLink("Mark All Read", action.Attributes())
 	case models.ViewRead:
-		route.AddQueryParam("mark", string(models.MarkUnread))
-		return markUnreadLink("Mark All Unread", route.GetAttributes())
+		action := action.Build(models.FeedsRoute+"/mark/"+string(models.MarkRead),
+			action.WithMethod(http.MethodPost),
+			action.WithAttributes(actionAttributes),
+			action.WithParam(models.ParamFeeds, strings.Join(feeds, ",")),
+		)
+		return markUnreadLink("Mark All Unread", action.Attributes())
 	default:
 		return nil
 	}

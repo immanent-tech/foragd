@@ -243,7 +243,6 @@ func (a *Authenticator) GetUserAuth(ctx context.Context) (UserAuth, bool) {
 	if !found {
 		return UserAuth{}, false
 	}
-	slogctx.FromCtx(ctx).Debug("Retrieved user auth.")
 	return user, true
 }
 
