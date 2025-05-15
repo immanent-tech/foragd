@@ -243,7 +243,7 @@ func SaveHomeHistory(session models.SessionAPI) func(next http.Handler) http.Han
 	}
 }
 
-func GoToView(path string) http.Handler {
+func ShowView(path string) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		session := models.SessionFromCtx(req.Context())
 		view := models.GetViewFromSession(req.Context(), session, path)

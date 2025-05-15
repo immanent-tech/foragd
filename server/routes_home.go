@@ -52,9 +52,7 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.MarkItems(s.DataAPI()),
-		handlers.SetupNavigation(),
-		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
-	).Then(handlers.DisplayHome())
+	).Then(handlers.ShowView(models.ItemsRoute))
 	chain.ServeHTTP(res, req)
 }
 
@@ -97,6 +95,6 @@ func (s Server) MarkFeeds(res http.ResponseWriter, req *http.Request, mark Mark,
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.MarkFeeds(s.DataAPI(), mark, feeds...),
-	).Then(handlers.GoToView(models.FeedsRoute))
+	).Then(handlers.ShowView(models.FeedsRoute))
 	chain.ServeHTTP(res, req)
 }
