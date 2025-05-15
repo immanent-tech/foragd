@@ -1,4 +1,4 @@
-version: "2"
+version: '2'
 linters:
   default: all
   disable:
@@ -35,11 +35,17 @@ linters:
         - mu
         - fd
         - to
+    revive:
+      enable-all-rules: false
+      rules:
+        - name: exported
+          arguments:
+            - disable-checks-on-variables
   exclusions:
     rules:
       - linters:
           - lll
-        source: "^//go:generate "
+        source: '^//go:generate '
       - path: '(.+)_test\.go'
         linters:
           - dupl
@@ -56,10 +62,10 @@ formatters:
       local-prefixes:
         - github.com/joshuar/go-feed-me
 run:
-  timeout: "1m"
+  timeout: '1m'
   issues-exit-code: 1
   tests: true
   allow-parallel-runners: false
   allow-serial-runners: false
-  go: "1.24"
+  go: '1.24'
   relative-path-mode: wd
