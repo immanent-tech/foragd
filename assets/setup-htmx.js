@@ -8,6 +8,9 @@ import 'htmx-ext-sse'
 import htmx from 'htmx.org/dist/htmx.esm'
 window.htmx = htmx
 
+// Don't do nested oob swaps, only process nested oob swaps when *adjacent* to main target.
+htmx.config.allowNestedOobSwaps = false
+
 // Allow event logging.
 //
 // https://htmx.org/docs/#logging
