@@ -11,10 +11,12 @@ import (
 
 // backButton generates a button for going back to the given path. It fetches
 // the last state of the path (i.e., any parameters used) from the user session.
-func BackButton(attributes templ.Attributes) templ.Component {
-	return button.Build(
-		button.WithContent(tabler.ArrowBackUp(i.Props{Size: i.SizeSM})),
-		button.WithStyle(button.Ghost),
-		button.WithExtraAttributes(attributes),
-	).Show()
+templ BackButton(attributes templ.Attributes) {
+	<div id="backButton" hx-swap-oob="true">
+		@button.Build(
+			button.WithContent(tabler.ArrowBackUp(i.Props{Size: i.SizeSM})),
+			button.WithStyle(button.Ghost),
+			button.WithExtraAttributes(attributes),
+		).Show()
+	</div>
 }

@@ -42,7 +42,11 @@
     "components/form",
     "components/dropdown",
     "components/alert",
-    "devcontainer"
+    "devcontainer",
+    "go",
+    "scheduler",
+    "providers/elastic",
+    "layouts/home"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

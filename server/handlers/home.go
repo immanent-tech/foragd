@@ -262,9 +262,7 @@ func ShowView(path string) http.Handler {
 func DisplayHome() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
-			// spew.Dump(models.SessionFromCtx(req.Context()).GetView(req.Context(), models.FeedsRoute))
-			slogctx.FromCtx(req.Context()).Debug("Displaying home page.", slog.String("path", home.CurrentViewFromCtx(req.Context()).AsAction().String()))
-			res.Header().Add(htmx.HeaderPushURL, home.CurrentViewFromCtx(req.Context()).AsAction().String())
+			// res.Header().Add(htmx.HeaderPushURL, home.CurrentViewFromCtx(req.Context()).AsAction().String())
 			layout := templates.LayoutFromCtx(req.Context())
 			// Create a new response writer.
 			resp := htmx.NewResponse()

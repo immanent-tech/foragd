@@ -52,6 +52,7 @@ templ (c *Card) timestamp() {
 		partials.ShowRelativeTimestamp(),
 		text.WithSize(text.XS),
 		text.AsItalicText(),
+		text.WithWeight(text.Light),
 		text.WithAttributes(templ.Attributes{
 			"value": c.GetUpdatedDate().Format("2006-01-02T15:04:05-0700"),
 		}),
@@ -60,7 +61,10 @@ templ (c *Card) timestamp() {
 
 templ (c *Card) showDescription() {
 	if desc := c.GetDescription(); desc != "" {
-		@text.Build(desc, text.WithSize(text.SM), text.AsItalicText()).Show()
+		@text.Build(desc,
+			text.WithSize(text.XS),
+			text.WithOverflow(text.Truncate),
+		).Show()
 	}
 }
 
@@ -127,7 +131,7 @@ func newFeedCard(ctx context.Context, subscription *models.Subscription) *FeedCa
 
 	feedCard.Props = card.Build(
 		card.WithStyle(card.Border),
-		card.WithSize(card.MD),
+		card.WithSize(card.SM),
 		card.WithShadow(shadow.MD),
 		card.WithBodyOptions(
 			card.WithTitle(feedCard.showTitle()),
@@ -192,7 +196,7 @@ func newItemCard(ctx context.Context, item *models.Item) *ItemCard {
 	itemCard.Props = card.Build(
 		card.WithLayout(card.LayoutSide),
 		imageOption,
-		card.WithSize(card.MD),
+		card.WithSize(card.SM),
 		card.WithStyle(card.Border),
 		card.WithShadow(shadow.MD),
 		card.WithBodyOptions(
