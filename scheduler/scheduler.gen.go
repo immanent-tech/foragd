@@ -40,9 +40,6 @@ type PollTrigger struct {
 
 // ScheduledJob represents a job that has been scheduled by the job scheduler.
 type ScheduledJob struct {
-	// SchedulerID is the unique ID of a job scheduler instance.
-	SchedulerID SchedulerID `json:"scheduler_id" validate:"required"`
-
 	// CreatedAt records when the object was created in the database.
 	CreatedAt externalRef0.CreatedAt `json:"created_at" validate:"required"`
 
@@ -74,9 +71,6 @@ type ScheduledJob_JobTrigger struct {
 
 // ScheduledJobJobType is the type  job.
 type ScheduledJobJobType string
-
-// SchedulerID is the unique ID of a job scheduler instance.
-type SchedulerID = string
 
 // AsFeedJob returns the union data inside the ScheduledJob_JobData as a FeedJob
 func (t ScheduledJob_JobData) AsFeedJob() (FeedJob, error) {

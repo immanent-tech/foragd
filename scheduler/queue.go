@@ -46,6 +46,17 @@ type JobQueue struct {
 	index  string
 }
 
+// NewJobQueue initializes and returns an empty jobQueue.
+func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
+	schedCtx = ctx
+
+	return &JobQueue{
+		client: client,
+		logger: slogctx.FromCtx(ctx).WithGroup("job_queue"),
+		index:  schema.SchedulerJobsPrefix,
+	}, nil
+}
+
 // Push inserts a new scheduled job to the queue.
 // This method is also used by the Scheduler to reschedule existing jobs that
 // have been dequeued for execution.
@@ -54,8 +65,6 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	if err != nil {
 		return errors.Join(ErrPushJobFailed, err)
 	}
-
-	// Add to Elasticsearch.
 	_, err = elastic.NewDocCreateRequest(jq.client.GetAPI(),
 		jq.index,
 		job.JobDetail().JobKey().String(),
@@ -124,6 +133,9 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 		return nil, errors.Join(ErrRemoveJobFailed, err)
 	}
 
+	jq.logger.Debug("Job removed.",
+		slog.String("job", job.JobDetail().Job().Description()))
+
 	return job, nil
 }
 
@@ -188,10 +200,6 @@ func (jq *JobQueue) Size() (int, error) {
 	if err != nil {
 		return 0, fmt.Errorf("could not get size of scheduled jobs queue: %w", err)
 	}
-
-	jq.logger.Debug("Retrieved job queue size.",
-		slog.Int64("size", resp.Count))
-
 	return int(resp.Count), nil
 }
 
@@ -252,15 +260,4 @@ func isMatch(job quartz.ScheduledJob, matchers []quartz.Matcher[quartz.Scheduled
 	}
 
 	return true
-}
-
-// NewJobQueue initializes and returns an empty jobQueue.
-func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
-	schedCtx = ctx
-
-	return &JobQueue{
-		client: client,
-		logger: slogctx.FromCtx(ctx).WithGroup("job_queue"),
-		index:  schema.SchedulerJobsPrefix,
-	}, nil
 }

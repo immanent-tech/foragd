@@ -1,11 +1,12 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+// Package scheduler contains code for the scheduler backend that handles managing background jobs for the application.
 package scheduler
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"log/slog"
 	"slices"
 	"sync"
@@ -22,11 +23,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 )
 
-var (
-	ErrRunFailed           = errors.New("failed to run scheduler")
-	ErrFetchNewFeedsFailed = errors.New("could not fetch new feeds")
-)
-
+// DataAPI is the interface that provides access to the data-store backend in use.
 type DataAPI interface {
 	GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error)
 	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
@@ -35,6 +32,7 @@ type DataAPI interface {
 	MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error
 }
 
+// Manager contains data for managing a scheduler instance.
 type Manager struct {
 	id         string
 	db         *elastic.API
@@ -45,10 +43,11 @@ type Manager struct {
 
 var manager *Manager
 
+// Run starts the scheduler manager.
 func Run(ctx context.Context) error {
 	esClient, err := elastic.Connect(ctx)
 	if err != nil {
-		return errors.Join(ErrRunFailed, err)
+		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
 
 	db := &elastic.API{
@@ -61,7 +60,7 @@ func Run(ctx context.Context) error {
 
 	jobQueue, err := NewJobQueue(ctx, esClient)
 	if err != nil {
-		return errors.Join(ErrRunFailed, err)
+		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
 
 	scheduler, err := quartz.NewStdScheduler(
@@ -69,7 +68,7 @@ func Run(ctx context.Context) error {
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
 	)
 	if err != nil {
-		return errors.Join(ErrRunFailed, err)
+		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
 
 	manager = &Manager{
@@ -83,7 +82,7 @@ func Run(ctx context.Context) error {
 	ticker := time.NewTicker(time.Minute)
 
 	jobChecker := func() {
-		if err := manager.CheckFeeds(ctx); err != nil {
+		if err := manager.checkFeeds(ctx); err != nil {
 			slogctx.FromCtx(ctx).
 				WithGroup("scheduler").
 				Error("Checking for new feeds failed.",
@@ -110,47 +109,23 @@ func Run(ctx context.Context) error {
 	return nil
 }
 
-func (m *Manager) CheckFeeds(ctx context.Context) error {
+func (m *Manager) checkFeeds(ctx context.Context) error {
 	feeds, err := m.db.FeedsSearchAll(ctx, query.Since("created_at", m.checkpoint))
-	// feeds, err := m.db.GetNewFeedsSince(ctx, m.checkpoint)
 	if err != nil {
-		return errors.Join(ErrFetchNewFeedsFailed, err)
+		return fmt.Errorf("checking for new feeds failed: %w", err)
 	}
 
 	m.checkpoint = time.Now().UTC()
 
 	for feed := range slices.Values(feeds) {
 		var job quartz.ScheduledJob
-		// Fetch any existing job.
-		if existingJob, err := m.queue.Get(GenerateJobKey(feed.GetID())); err == nil {
-			if details, ok := existingJob.(*ScheduledJob); ok {
-				// If the existing job is scheduled by this scheduler instance,
-				// ignore this feed.
-				if details.SchedulerID == m.id {
-					continue
-				}
-				// Otherwise, set the scheduler ID for the job to this scheduler
-				details.SchedulerID = m.id
-				// Delete the existing job.
-				if err = m.scheduler.DeleteJob(GenerateJobKey(feed.GetID())); err != nil {
-					slogctx.FromCtx(ctx).Warn("Could not reset existing job for feed .",
-						slog.String("feed_id", feed.GetID()),
-						slog.Any("error", err))
+		job, err = NewFeedJob(feed.GetID(), feed.GetSourceURL(), NewPollTrigger(defaultPollInterval, defaultPollJitter))
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Failed to schedule job for feed.",
+				slog.String("feed_id", feed.GetID()),
+				slog.Any("error", err))
 
-					continue
-				}
-				// Re-schedule the job.
-				job = quartz.ScheduledJob(details)
-			}
-		} else {
-			job, err = NewFeedJob(feed.GetID(), feed.GetSourceURL(), NewPollTrigger(defaultPollInterval, defaultPollJitter))
-			if err != nil {
-				slogctx.FromCtx(ctx).Warn("Failed to schedule job for feed.",
-					slog.String("feed_id", feed.GetID()),
-					slog.Any("error", err))
-
-				continue
-			}
+			continue
 		}
 
 		if err := m.scheduler.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {

@@ -3,7 +3,7 @@
 # Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-openapi: "3.0.3"
+openapi: '3.0.3'
 info:
   version: 1.0.0
   title: Scheduler Models
@@ -11,17 +11,10 @@ info:
 paths: {}
 components:
   schemas:
-    SchedulerID:
-      description: is the unique ID of a job scheduler instance.
-      type: string
-      x-oapi-codegen-extra-tags:
-        validate: "required"
-        json: "scheduler_id"
     ScheduledJob:
       description: represents a job that has been scheduled by the job scheduler.
       type: object
       required:
-        - SchedulerID
         - job_type
         - job_trigger
         - job_next_run
@@ -29,41 +22,37 @@ components:
         - created_at
       properties:
         created_at:
-          $ref: "models.yaml#/components/schemas/CreatedAt"
+          $ref: 'models.yaml#/components/schemas/CreatedAt'
         job_type:
           description: >
             is the type  job.
           type: string
-          enum: ["cron","poll"]
+          enum: ['cron', 'poll']
         job_trigger:
           description: >
             is the trigger for the job.
           oneOf:
-            - $ref: "#/components/schemas/PollTrigger"
-            - $ref: "#/components/schemas/CronTrigger"
+            - $ref: '#/components/schemas/PollTrigger'
+            - $ref: '#/components/schemas/CronTrigger'
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         job_next_run:
           description: >
             is the next run time of the job.
-          x-go-type: "time.Time"
+          x-go-type: 'time.Time'
         job_options:
           description: >
             are additional options for the job
-          x-go-type: "*quartz.JobDetailOptions"
+          x-go-type: '*quartz.JobDetailOptions'
           x-go-type-import:
-            path: "github.com/reugn/go-quartz/quartz"
+            path: 'github.com/reugn/go-quartz/quartz'
           x-go-type-skip-optional-pointer: true
         job_data:
           description: >
             contains job-specific data.
           type: object
           oneOf:
-            - $ref: "#/components/schemas/FeedJob"
-        SchedulerID:
-          description: >
-            is the ID of the scheduler controlling this job instance.
-          $ref: "#/components/schemas/SchedulerID"
+            - $ref: '#/components/schemas/FeedJob'
     FeedJob:
       description: represents a job that fetches new items for a feed.
       type: object
@@ -72,9 +61,9 @@ components:
         - URL
       properties:
         ID:
-          $ref: "models.yaml#/components/schemas/FeedID"
+          $ref: 'models.yaml#/components/schemas/FeedID'
         URL:
-          $ref: "models.yaml#/components/schemas/URL"
+          $ref: 'models.yaml#/components/schemas/URL'
     PollTrigger:
       description: >
         represents a polling trigger for a job.
@@ -86,11 +75,11 @@ components:
         interval:
           x-go-type: time.Duration
           x-oapi-codegen-extra-tags:
-            validate: "required"
+            validate: 'required'
         jitter:
           x-go-type: time.Duration
           x-oapi-codegen-extra-tags:
-            validate: "required,len"
+            validate: 'required,len'
     CronTrigger:
       description: >
         represents a trigger that runs on a Cron schedule.
@@ -101,5 +90,4 @@ components:
         schedule:
           type: string
           x-oapi-codegen-extra-tags:
-            validate: "required,cron"
-
+            validate: 'required,cron'

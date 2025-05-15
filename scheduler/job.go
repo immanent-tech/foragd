@@ -115,13 +115,13 @@ func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
 func (job *FeedJob) Execute(ctx context.Context) error {
 	api := FeedManagementAPIFromCtx(ctx)
 	if api == nil {
-		return errors.Join(ErrExecuteJobFailed, fmt.Errorf("no feed management api in context"))
+		return fmt.Errorf("%w: no feed management api in context", ErrExecuteJobFailed)
 	}
 
 	// Retrieve the feed details.
 	feed, err := api.GetFeed(ctx, job.FeedID)
 	if err != nil && !errors.Is(err, ErrNoJob) {
-		return errors.Join(ErrExecuteJobFailed, err)
+		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Running job.",
@@ -131,28 +131,18 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 	// Get new items since the last fetch.
 	items, err := job.getItemsSince(feed.Updated)
 	if err != nil {
-		return errors.Join(ErrExecuteJobFailed, err)
+		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
 	if len(items) > 0 {
 		// Add any new items.
 		if resp, err := api.AddItems(ctx, items...); err != nil || resp.Err != nil {
-			return errors.Join(ErrExecuteJobFailed, err)
+			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 		}
 		// Update the feed timestamp.
 		if err := api.MarkFeedUpdated(ctx, job.FeedID); err != nil {
-			return errors.Join(ErrExecuteJobFailed, err)
+			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 		}
 	}
-
-	// updated := time.Now().UTC()
-	// update := &models.FeedState{
-	// 	FeedID:    job.FeedID,
-	// 	UpdatedAt: &updated,
-	// }
-
-	// if err := api.UpdateFeedJobState(ctx, update); err != nil {
-	// 	return errors.Join(ErrExecuteJobFailed, err)
-	// }
 
 	return nil
 }
@@ -173,22 +163,31 @@ func (job *FeedJob) getItemsSince(since time.Time) ([]*models.Item, error) {
 }
 
 // NewFeedJob creates a job that can be scheduled from the given feed data.
-func NewFeedJob(id models.FeedID, url models.URL, trigger quartz.Trigger) (*ScheduledJob, error) {
+func NewFeedJob(id models.FeedID, url models.URL, trigger *PollTrigger) (*ScheduledJob, error) {
+	jobTrigger := ScheduledJob_JobTrigger{}
+	err := jobTrigger.FromPollTrigger(*trigger)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
+	}
+
 	job := &ScheduledJob{
-		CreatedAt: time.Now().UTC(),
+		CreatedAt:  time.Now().UTC(),
+		JobTrigger: jobTrigger,
 	}
 
 	if err := job.JobData.FromFeedJob(FeedJob{
 		FeedID: id,
 		URL:    url,
 	}); err != nil {
-		return nil, errors.Join(ErrCreateJobFailed, err)
+		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
 	}
 
 	return job, nil
 }
 
 // GenerateJobKey generates an appropriate job key based on the type of job.
+//
+//nolint:gocritic // more cases to be implemented
 func GenerateJobKey(jobID string) *quartz.JobKey {
 	switch models.IdentifyID(jobID) {
 	case models.FeedPFX:
