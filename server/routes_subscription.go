@@ -26,7 +26,7 @@ func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 // AddSubscription handles an add subscription request.
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
-		handlers.RouteLogger("add_subscription"),
+		handlers.RouteLogger,
 		handlers.ParseSubscriptionRequest,
 		handlers.MatchRequestsWithFeeds(s.DataAPI()),
 		handlers.CreateNewFeedsForRequests,
@@ -81,7 +81,7 @@ func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
 // ProcessImport performs the actions required to import requests from any source.
 func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
-		handlers.RouteLogger("import_subscriptions"),
+		handlers.RouteLogger,
 		handlers.ProcessImportMethod,
 		handlers.MatchRequestsWithFeeds(s.DataAPI()),
 		handlers.CreateNewFeedsForRequests,
@@ -94,7 +94,7 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 // EditSubscription handles a request to edit a user's subscription.
 func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
 	chain := alice.New(
-		handlers.RouteLogger("edit_subscription"),
+		handlers.RouteLogger,
 	).Then(handlers.EditSubscription(s.DataAPI(), subscriptionID))
 	chain.ServeHTTP(res, req)
 }
@@ -111,7 +111,7 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 		return
 	}
 	chain := alice.New(
-		handlers.RouteLogger("save_subscription"),
+		handlers.RouteLogger,
 	).Then(handlers.SaveSubscription(s.DataAPI(), subscriptionID, subscriptionEdits))
 	chain.ServeHTTP(res, req)
 }
@@ -119,7 +119,7 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 // RemoveSubscription handles unsubscribing from a feed.
 func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID, params RemoveSubscriptionParams) {
 	chain := alice.New(
-		handlers.RouteLogger("remove_subscriptions"),
+		handlers.RouteLogger,
 	).Then(handlers.RemoveSubscription(s.DataAPI(), subscriptionID, params.Decision))
 	chain.ServeHTTP(res, req)
 }
@@ -137,10 +137,11 @@ func showImportFailed(res http.ResponseWriter, req *http.Request, msg *models.Me
 
 func (s Server) MarkSubscription(res http.ResponseWriter, req *http.Request, mark models.Mark, subscription models.SubscriptionID) {
 	chain := alice.New(
-		handlers.RouteLogger("mark_subscription"),
+		handlers.RouteLogger,
 		handlers.MarkSubscriptions(s.DataAPI(), mark, subscription),
-		handlers.GenerateHomeNavigation(s.SessionAPI()),
-		handlers.RetrieveFilters(s.SessionAPI()),
+		handlers.RestorePageViews(),
+		// handlers.GenerateHomeNavigation(s.SessionAPI()),
+		// handlers.RetrieveFilters(s.SessionAPI()),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
@@ -152,10 +153,11 @@ func (s Server) MarkAllSubscriptions(res http.ResponseWriter, req *http.Request,
 		subscriptions = append(subscriptions, *params.Subscriptions...)
 	}
 	chain := alice.New(
-		handlers.RouteLogger("mark_all_subscriptions"),
+		handlers.RouteLogger,
 		handlers.MarkSubscriptions(s.DataAPI(), mark, subscriptions...),
-		handlers.GenerateHomeNavigation(s.SessionAPI()),
-		handlers.RetrieveFilters(s.SessionAPI()),
+		handlers.RestorePageViews(),
+		// handlers.GenerateHomeNavigation(s.SessionAPI()),
+		// handlers.RetrieveFilters(s.SessionAPI()),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)

@@ -5,8 +5,9 @@ package models
 
 import (
 	"context"
+	"log/slog"
 
-	"github.com/go-chi/chi/v5"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 const (
@@ -19,36 +20,17 @@ type SessionAPI interface {
 	Get(ctx context.Context, key string) any
 }
 
-type Session struct {
-	api SessionAPI
-}
-
-func NewSession(api SessionAPI) *Session {
-	return &Session{api: api}
-}
-
-func (s *Session) GetFilters(ctx context.Context) Filters {
-	route := chi.RouteContext(ctx).RoutePattern()
-	switch route {
-	case FeedsRoute:
-		return s.GetFeedFilters(ctx)
-	case ItemsRoute:
-		return s.GetItemFilters(ctx)
-	default:
-		return *NewFilters()
+func GetViewFromSession(ctx context.Context, api SessionAPI, path string) PageView {
+	view, ok := api.Get(ctx, "View:"+path).(PageView)
+	if !ok {
+		slogctx.FromCtx(ctx).Warn("No save view found for path, generating defaults.",
+			slog.String("path", path))
+		return NewPageView(path, NewFilters())
+	} else {
+		return view
 	}
 }
 
-func (s *Session) GetFeedFilters(ctx context.Context) Filters {
-	if filters, found := s.api.Get(ctx, feedFiltersSessionKey).(Filters); found {
-		return filters
-	}
-	return *NewFilters()
-}
-
-func (s *Session) GetItemFilters(ctx context.Context) Filters {
-	if filters, found := s.api.Get(ctx, itemFiltersSessionKey).(Filters); found {
-		return filters
-	}
-	return *NewFilters()
+func SaveViewInSession(ctx context.Context, api SessionAPI, view PageView) {
+	api.Put(ctx, "View:"+view.Path, view)
 }

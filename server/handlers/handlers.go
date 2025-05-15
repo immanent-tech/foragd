@@ -66,9 +66,3 @@ type AuthAPI interface {
 	CompleteUserAuth(res http.ResponseWriter, req *http.Request) error
 	GetUserID(ctx context.Context) models.UserID
 }
-
-// SessionAPI represents the API surface for interacting with the session backend.
-type SessionAPI interface {
-	Put(ctx context.Context, key string, value any)
-	Get(ctx context.Context, key string) any
-}

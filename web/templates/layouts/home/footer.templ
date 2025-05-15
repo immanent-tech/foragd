@@ -45,17 +45,17 @@ templ (f *ListFooter) Show() {
 	}
 }
 
-func BuildListFooter(ctx context.Context, categories models.CategoryCounts, actions ...templ.Component) *ListFooter {
-	// Build back request.
-	back := PreviousRouteFromCtx(ctx).AsAction()
-	back.SetAttributes(viewAttributes)
+func BuildListFooter(ctx context.Context, backPath string, categories models.CategoryCounts, actions ...templ.Component) *ListFooter {
+	backView := models.GetViewFromSession(ctx, models.SessionFromCtx(ctx), backPath)
+	backAction := backView.AsAction()
+	backAction.SetAttributes(viewAttributes)
 	// Build view filters.
 	viewFilters := BuildViewFilters(ctx)
 	// Build category filters.
 	categoryFilters := BuildCategoryFilters(ctx, categories)
 	// Build footer.
 	return &ListFooter{
-		backButton:  partials.BackButton(back.Attributes()),
+		backButton:  partials.BackButton(backAction.Attributes()),
 		filtersMenu: BuildFiltersMenu(viewFilters, categoryFilters),
 		sortMenu:    BuildSortingMenu(),
 		actions:     actions,

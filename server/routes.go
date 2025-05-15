@@ -29,7 +29,7 @@ func (s Server) Index(res http.ResponseWriter, req *http.Request) {
 func (s Server) Login(res http.ResponseWriter, req *http.Request, provider string) {
 	s.AuthAPI().SetProviderName(req.Context(), provider)
 	chain := alice.New(
-		handlers.RouteLogger("show_feeds"),
+		handlers.RouteLogger,
 	).Then(handlers.PerformAuth(s.AuthAPI()))
 	chain.ServeHTTP(res, req)
 }
@@ -38,7 +38,7 @@ func (s Server) Login(res http.ResponseWriter, req *http.Request, provider strin
 func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provider string) {
 	s.AuthAPI().SetProviderName(req.Context(), provider)
 	chain := alice.New(
-		handlers.RouteLogger("show_feeds"),
+		handlers.RouteLogger,
 	).Then(handlers.AuthCallback(s.AuthAPI(), s.SessionAPI()))
 	chain.ServeHTTP(res, req)
 }

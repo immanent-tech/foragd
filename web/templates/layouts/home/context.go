@@ -3,7 +3,11 @@
 
 package home
 
-import "context"
+import (
+	"context"
+
+	"github.com/joshuar/go-feed-me/models"
+)
 
 const (
 	currentRouteCtxKey  contextKey = "currentRoute"
@@ -12,26 +16,26 @@ const (
 
 type contextKey string
 
-func CurrentRouteToCtx(ctx context.Context, route Navigation) context.Context {
-	return context.WithValue(ctx, currentRouteCtxKey, route)
+func CurrentViewToCtx(ctx context.Context, view models.PageView) context.Context {
+	return context.WithValue(ctx, currentRouteCtxKey, view)
 }
 
-func CurrentRouteFromCtx(ctx context.Context) Navigation {
-	route, found := ctx.Value(currentRouteCtxKey).(Navigation)
+func CurrentViewFromCtx(ctx context.Context) models.PageView {
+	route, found := ctx.Value(currentRouteCtxKey).(models.PageView)
 	if !found {
-		return NewNavigation("/home", nil)
+		return models.NewPageView("/home", nil)
 	}
 	return route
 }
 
-func PreviousRouteToCtx(ctx context.Context, route Navigation) context.Context {
-	return context.WithValue(ctx, previousRouteCtxKey, route)
+func PreviousViewToCtx(ctx context.Context, view models.PageView) context.Context {
+	return context.WithValue(ctx, previousRouteCtxKey, view)
 }
 
-func PreviousRouteFromCtx(ctx context.Context) Navigation {
-	route, found := ctx.Value(previousRouteCtxKey).(Navigation)
+func PreviousViewFromCtx(ctx context.Context) models.PageView {
+	route, found := ctx.Value(previousRouteCtxKey).(models.PageView)
 	if !found {
-		return NewNavigation("/home", nil)
+		return models.NewPageView("/home", nil)
 	}
 	return route
 }

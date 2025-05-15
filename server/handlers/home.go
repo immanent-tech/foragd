@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -54,7 +55,7 @@ func CheckRequiredFilters(next http.Handler) http.Handler {
 }
 
 // GenerateFilters parses the request parameters, generates Filters from them and stores the filters in the session.
-func GenerateFilters(session SessionAPI, params any) func(next http.Handler) http.Handler {
+func GenerateFilters(session models.SessionAPI, params any) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Retrieve filters.
@@ -81,67 +82,57 @@ func GenerateFilters(session SessionAPI, params any) func(next http.Handler) htt
 	}
 }
 
-func GenerateHomeNavigation(session SessionAPI) func(next http.Handler) http.Handler {
+func SavePageView(path string, params any) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			var (
-				route    string
-				current  home.Navigation
-				previous home.Navigation
-			)
-			if redirect := req.Header.Get(htmx.HeaderLocation); redirect != "" {
-				route = redirect
-			} else {
-				route = chi.RouteContext(req.Context()).RoutePattern()
+			// Retrieve filters from params.
+			filters, err := models.NewFiltersFromParams(params)
+			if err != nil {
+				InternalServerError(res, req, err)
+				return
 			}
-			switch route {
-			case models.FeedsRoute:
-				filters := models.FiltersFromCtx(req.Context())
-				current = home.NewNavigation(models.FeedsRoute, &filters)
-				previous = home.NewNavigation("/home", nil)
-			case models.ItemsRoute:
-				currentFilters := models.FiltersFromCtx(req.Context())
-				previousFilters, ok := session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
-				if !ok {
-					previousFilters = *models.NewFilters()
-				}
-				current = home.NewNavigation(models.ItemsRoute, &currentFilters)
-				previous = home.NewNavigation(models.FeedsRoute, &previousFilters)
-			}
-			ctx := req.Context()
-			slogctx.FromCtx(ctx).Debug("Saving current route.", slog.String("route", current.AsAction().String()))
-			ctx = home.CurrentRouteToCtx(ctx, current)
-			slogctx.FromCtx(ctx).Debug("Saving previous route.", slog.String("route", previous.AsAction().String()))
-			ctx = home.PreviousRouteToCtx(ctx, previous)
+			// Create view.
+			view := models.NewPageView(path, filters)
+			// Save view in session.
+			session := models.SessionFromCtx(req.Context())
+			models.SaveViewInSession(req.Context(), session, view)
+			// Save filters in context.
+			ctx := models.FiltersToCtx(req.Context(), *filters)
+			// Pass control to next handler.
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
 
-// RetrieveFilters retrieves filters from the session and stores them in the request context.
-func RetrieveFilters(session SessionAPI) func(next http.Handler) http.Handler {
+func RestorePageViews() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			var (
-				route   string
-				ok      bool
-				filters models.Filters
+				route    string
+				current  models.PageView
+				previous models.PageView
 			)
+			spew.Dump(req.Header, res.Header(), chi.RouteContext(req.Context()).RoutePattern())
 			if redirect := req.Header.Get(htmx.HeaderLocation); redirect != "" {
 				route = redirect
 			} else {
 				route = chi.RouteContext(req.Context()).RoutePattern()
 			}
+			session := models.SessionFromCtx(req.Context())
 			switch route {
 			case models.FeedsRoute:
-				filters, ok = session.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
+				current = models.GetViewFromSession(req.Context(), session, models.FeedsRoute)
+				previous = models.GetViewFromSession(req.Context(), session, "/home")
 			case models.ItemsRoute:
-				filters, ok = session.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
+				current = models.GetViewFromSession(req.Context(), session, models.ItemsRoute)
+				previous = models.GetViewFromSession(req.Context(), session, models.FeedsRoute)
 			}
-			if !ok {
-				filters = *models.NewFilters()
-			}
-			ctx := models.FiltersToCtx(req.Context(), filters)
+			ctx := req.Context()
+			slogctx.FromCtx(ctx).Debug("Saving current view.", slog.String("view", current.AsAction().String()))
+			ctx = home.CurrentViewToCtx(ctx, current)
+			slogctx.FromCtx(ctx).Debug("Saving previous view.", slog.String("view", previous.AsAction().String()))
+			ctx = home.PreviousViewToCtx(ctx, previous)
+			ctx = models.FiltersToCtx(ctx, current.Filters)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -207,7 +198,7 @@ func MarkItems(api DataAPI) func(next http.Handler) http.Handler {
 }
 
 // GenerateItemsContent creates the content for displaying a list of items.
-func GenerateItemsContent(dataAPI DataAPI, sessionAPI SessionAPI) func(next http.Handler) http.Handler {
+func GenerateItemsContent(dataAPI DataAPI, sessionAPI models.SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			items, pagination, err := dataAPI.GetItems(req.Context())
@@ -223,7 +214,7 @@ func GenerateItemsContent(dataAPI DataAPI, sessionAPI SessionAPI) func(next http
 }
 
 // GenerateItemArticle creates the content for displaying an item.
-func GenerateItemArticle(dataAPI DataAPI, sessionAPI SessionAPI, feedID models.FeedID, itemID models.ItemID) func(next http.Handler) http.Handler {
+func GenerateItemArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID models.FeedID, itemID models.ItemID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			item, found, err := dataAPI.GetItem(req.Context(), feedID, itemID)
@@ -244,7 +235,7 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI SessionAPI, feedID models.F
 }
 
 // SaveHomeHistory saves the request URL to the session as a navigation history marker.
-func SaveHomeHistory(session SessionAPI) func(next http.Handler) http.Handler {
+func SaveHomeHistory(session models.SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			slog.Debug("Saving last visited page", slog.String("url", req.URL.String()))
@@ -259,6 +250,9 @@ func SaveHomeHistory(session SessionAPI) func(next http.Handler) http.Handler {
 func DisplayHome() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
+			// spew.Dump(models.SessionFromCtx(req.Context()).GetView(req.Context(), models.FeedsRoute))
+			slogctx.FromCtx(req.Context()).Debug("Displaying home page.", slog.String("path", home.CurrentViewFromCtx(req.Context()).AsAction().String()))
+			res.Header().Add(htmx.HeaderPushURL, home.CurrentViewFromCtx(req.Context()).AsAction().String())
 			layout := templates.LayoutFromCtx(req.Context())
 			// Create a new response writer.
 			resp := htmx.NewResponse()

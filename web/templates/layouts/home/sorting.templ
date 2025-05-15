@@ -21,7 +21,7 @@ func newSortAction(ctx context.Context, sort models.Sort) templ.Component {
 	sortAction := &SortOption{
 		Sort: sort,
 	}
-	route := CurrentRouteFromCtx(ctx)
+	route := CurrentViewFromCtx(ctx)
 	if route.Filters.SortBy == sort.SortBy && route.Filters.SortOrder == sort.SortOrder {
 		sortAction.active = true
 	} else {
@@ -48,7 +48,7 @@ func generateSortOptions(ctx context.Context) []templ.Component {
 		newSortAction(ctx, models.SortLastUpdatedAsc),
 	)
 	// If viewing /home/feeds and not viewing read items, add additional sorting options on unread count.
-	if CurrentRouteFromCtx(ctx).Path == models.FeedsRoute && CurrentRouteFromCtx(ctx).Filters.View != models.ViewRead {
+	if CurrentViewFromCtx(ctx).Path == models.FeedsRoute && CurrentViewFromCtx(ctx).Filters.View != models.ViewRead {
 		sorts = append(sorts,
 			newSortAction(ctx, models.SortUnreadCountDesc),
 			newSortAction(ctx, models.SortUnreadCountAsc),

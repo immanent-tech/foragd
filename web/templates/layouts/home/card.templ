@@ -33,17 +33,16 @@ const defaultCardClasses = "bg-base-300 m-2 p-2"
 // viewAction returns the action for viewing the card's content. For a Feed card this would be the Feed's item as cards.
 // For a Item card, this would be the item content.
 func (c *Card) generateViewAction(ctx context.Context) *action.Action {
-	var route Navigation
+	var view models.PageView
 	switch models.IdentifyID(c.id) {
 	case models.FeedPFX:
-		filters := CurrentRouteFromCtx(ctx).Filters
-		route = NewNavigation(models.ItemsRoute, &filters)
-		route.Filters.Feeds = []models.FeedID{c.GetFeedID()}
-		route.Filters.SortBy = models.SortByLastUpdated
+		view = models.GetViewFromSession(ctx, models.SessionFromCtx(ctx), models.ItemsRoute)
+		view.Filters.Feeds = []models.FeedID{c.GetFeedID()}
+		view.Filters.SortBy = models.SortByLastUpdated
 	case models.ItemPFX:
-		route = NewNavigation("/home/"+c.GetFeedID()+"/"+c.id, nil)
+		view = models.NewPageView("/home/"+c.GetFeedID()+"/"+c.id, nil)
 	}
-	action := route.AsAction()
+	action := view.AsAction()
 	action.SetAttributes(viewAttributes)
 	return action
 }
@@ -205,7 +204,7 @@ func newItemCard(ctx context.Context, item *models.Item) *ItemCard {
 		card.WithExtraClasses(defaultCardClasses),
 	)
 	switch {
-	case CurrentRouteFromCtx(ctx).Filters.View == models.ViewRead:
+	case CurrentViewFromCtx(ctx).Filters.View == models.ViewRead:
 		fallthrough
 	case item.GetUserState() == models.StateRead:
 		card.WithExtraClasses(opacity.Apply(75))(itemCard.Props)

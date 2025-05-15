@@ -42,7 +42,7 @@ func PerformAuth(api AuthAPI) http.Handler {
 }
 
 // AuthCallback handles a callback from an authentication provider.
-func AuthCallback(authAPI AuthAPI, sessionAPI SessionAPI) http.Handler {
+func AuthCallback(authAPI AuthAPI, sessionAPI models.SessionAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if err := authAPI.CompleteUserAuth(res, req); err != nil {
 			InternalServerError(res, req, err)

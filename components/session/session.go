@@ -21,8 +21,11 @@ import (
 )
 
 const (
-	sessionLifetime = 24 * time.Hour
+	sessionLifetime            = 24 * time.Hour
+	apiCtxKey       contextKey = "session"
 )
+
+type contextKey string
 
 // Manager manages saving, loading and manipulating a session.
 type Manager struct {
@@ -33,6 +36,7 @@ func init() {
 	gob.Register(models.Filters{})
 	gob.Register(sessions.Session{})
 	gob.Register(url.URL{})
+	gob.Register(models.PageView{})
 }
 
 // NewSessionManager creates a new session manager.

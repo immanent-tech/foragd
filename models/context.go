@@ -11,8 +11,9 @@ import (
 var ErrUserCtx = errors.New("could not fetch user details from context")
 
 const (
-	userCtxKey    contextKey = "user"
-	filtersCtxKey contextKey = "filters"
+	userCtxKey       contextKey = "user"
+	filtersCtxKey    contextKey = "filters"
+	sessionAPICtxKey contextKey = "sessionAPI"
 )
 
 type contextKey string
@@ -51,4 +52,18 @@ func FiltersFromCtx(ctx context.Context) Filters {
 		filters = *NewFilters()
 	}
 	return filters
+}
+
+// SessionToCtx stores the session manager API in a context.
+func SessionToCtx(ctx context.Context, api SessionAPI) context.Context {
+	return context.WithValue(ctx, sessionAPICtxKey, api)
+}
+
+// SessionFromCtx retrieves the session manager API from a context.
+func SessionFromCtx(ctx context.Context) SessionAPI {
+	api, found := ctx.Value(sessionAPICtxKey).(SessionAPI)
+	if !found {
+		return nil
+	}
+	return api
 }

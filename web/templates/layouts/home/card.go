@@ -34,7 +34,7 @@ type Card struct {
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
 func (c *Card) addPagination(ctx context.Context, pagination models.Pagination) {
-	route := CurrentRouteFromCtx(ctx)
+	route := CurrentViewFromCtx(ctx)
 	route.Filters.Pagination = pagination
 	action := route.AsAction()
 	action.SetAttributes(templ.Attributes{
@@ -51,7 +51,7 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 	// Build feed cards.
 	for idx, subscription := range subscriptions {
 		card := newFeedCard(ctx, subscription)
-		if idx == len(subscriptions)-1 && len(subscriptions) == CurrentRouteFromCtx(ctx).Filters.Count {
+		if idx == len(subscriptions)-1 && len(subscriptions) == CurrentViewFromCtx(ctx).Filters.Count {
 			card.addPagination(ctx, pagination)
 		}
 
@@ -61,10 +61,11 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 		title:   "Feeds",
 		content: cards,
 		footer: BuildListFooter(ctx,
+			models.FeedsRoute,
 			subscriptions.GetCategoryCounts(),
 			addSubscriptionAction(),
 			importAction(),
-			markAllFeedsAction(CurrentRouteFromCtx(ctx).Filters.View),
+			markAllFeedsAction(CurrentViewFromCtx(ctx).Filters.View),
 		).Show(),
 	}
 }
@@ -76,7 +77,7 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 		// Create a card for this item.
 		itemCard := newItemCard(ctx, item)
 		// Add a pagination action to the last item.
-		if idx == len(items)-1 && len(items) == CurrentRouteFromCtx(ctx).Filters.Count {
+		if idx == len(items)-1 && len(items) == CurrentViewFromCtx(ctx).Filters.Count {
 			itemCard.addPagination(ctx, pagination)
 		}
 		// Append the card to the list of cards.
@@ -87,10 +88,11 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 		title:   "Items",
 		content: cards,
 		footer: BuildListFooter(ctx,
+			models.FeedsRoute,
 			items.GetCategoryCounts(),
 			addSubscriptionAction(),
 			importAction(),
-			markAllItemsAction(items.GetFeedIDs(), CurrentRouteFromCtx(ctx).Filters.View),
+			markAllItemsAction(items.GetFeedIDs(), CurrentViewFromCtx(ctx).Filters.View),
 		).Show(),
 	}
 }

@@ -97,10 +97,6 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 		Expiry: expiry,
 	}
 
-	logger(sessionCtx).Debug("Committing new session.",
-		slog.String("token", session.Token),
-		slog.Time("expiry", session.Expiry))
-
 	_, err := elastic.NewDocUpdateRequest(s.client.GetAPI(),
 		s.index,
 		token,

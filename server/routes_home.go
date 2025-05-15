@@ -24,10 +24,11 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 
 func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
 	chain := alice.New(
-		handlers.RouteLogger("show_feeds"),
+		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
-		handlers.GenerateHomeNavigation(s.SessionAPI()),
+		handlers.SavePageView(models.FeedsRoute, params),
+		handlers.RestorePageViews(),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 		handlers.SaveHomeHistory(s.SessionAPI()),
 	).Then(handlers.DisplayHome())
@@ -36,10 +37,11 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 
 func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, params HandleShowItemsParams) {
 	chain := alice.New(
-		handlers.RouteLogger("show_items"),
+		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
-		handlers.GenerateHomeNavigation(s.SessionAPI()),
+		handlers.SavePageView(models.ItemsRoute, params),
+		handlers.RestorePageViews(),
 		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
 		handlers.SaveHomeHistory(s.SessionAPI()),
 	).Then(handlers.DisplayHome())
@@ -48,10 +50,9 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 
 func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
-		handlers.RouteLogger("mark_items"),
+		handlers.RouteLogger,
 		handlers.MarkItems(s.DataAPI()),
-		handlers.GenerateHomeNavigation(s.SessionAPI()),
-		handlers.RetrieveFilters(s.SessionAPI()),
+		handlers.RestorePageViews(),
 		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
@@ -59,7 +60,7 @@ func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
 
 func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID) {
 	chain := alice.New(
-		handlers.RouteLogger("show_item"),
+		handlers.RouteLogger,
 		handlers.GenerateItemArticle(s.DataAPI(), s.SessionAPI(), feedID, itemID),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
@@ -94,10 +95,9 @@ func (s Server) MarkFeeds(res http.ResponseWriter, req *http.Request, mark Mark,
 		feeds = append(feeds, *params.Feeds...)
 	}
 	chain := alice.New(
-		handlers.RouteLogger("mark_feeds"),
+		handlers.RouteLogger,
 		handlers.MarkFeeds(s.DataAPI(), mark, feeds...),
-		handlers.GenerateHomeNavigation(s.SessionAPI()),
-		handlers.RetrieveFilters(s.SessionAPI()),
+		handlers.RestorePageViews(),
 		handlers.GenerateFeedsContent(s.DataAPI()),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
