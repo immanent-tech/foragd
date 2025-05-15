@@ -9,12 +9,12 @@ require (
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.20.0
-	github.com/coreos/go-oidc v2.3.0+incompatible
 	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v8 v8.18.0
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.26.0
+	github.com/gorilla/sessions v1.1.1
 	github.com/gowebly/helpers v0.4.0
 	github.com/joshuar/go-templ-daisyui v0.0.0
 	github.com/knadh/koanf/parsers/toml v0.1.0
@@ -28,7 +28,7 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-chi v1.15.0
 	github.com/samber/slog-multi v1.4.0
-	golang.org/x/oauth2 v0.30.0
+	github.com/sebasvil20/templicons v1.1.0
 )
 
 require (
@@ -52,7 +52,6 @@ require (
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
-	github.com/gorilla/sessions v1.1.1 // indirect
 	github.com/gowebly/gowebly/v2 v2.7.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
@@ -63,18 +62,15 @@ require (
 	github.com/muesli/termenv v0.15.3-0.20240618155329-98d742f6907a // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/sebasvil20/templicons v1.1.0 // indirect
+	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/tools v0.32.0 // indirect
-	gopkg.in/go-jose/go-jose.v2 v2.6.3 // indirect
 )
 
 require (
-	github.com/PuerkitoBio/goquery v1.10.1 // indirect
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
 	github.com/alecthomas/kong v1.8.1
 	github.com/andybalholm/brotli v1.1.0 // indirect
-	github.com/andybalholm/cascadia v1.3.3 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cli/browser v1.3.0 // indirect
@@ -116,7 +112,6 @@ require (
 	github.com/natefinch/atomic v1.0.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
-	github.com/pquerna/cachecontrol v0.2.0 // indirect
 	github.com/reugn/go-quartz v0.14.0
 	github.com/samber/lo v1.49.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
