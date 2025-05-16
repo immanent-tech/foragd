@@ -6,10 +6,12 @@ package server
 import (
 	"net/http"
 
+	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/handlers"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 )
@@ -17,7 +19,7 @@ import (
 // Index handler handles the index page.
 func (s Server) Index(res http.ResponseWriter, req *http.Request) {
 	layout := &layouts.IndexLayout{}
-	handlers.HTMXResponse(layout.FullRender()).ServeHTTP(res, req)
+	handlers.PartialRender(layout.FullRender()).ServeHTTP(res, req)
 }
 
 // Login handler handles login requests.
@@ -44,13 +46,27 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 	if !ok {
 		view = models.NewPageView("/home", nil)
 	}
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.SettingsLayout(),
-		handlers.DisplayHome,
-		handlers.RenderPartials(settings.SettingsFooter(view)),
-	).Then(handlers.SaveHomeHistory(s.SessionAPI()))
-	chain.ServeHTTP(res, req)
+
+	var handler http.Handler
+
+	switch htmx.IsHTMX(req) {
+	case true:
+		handler = handlers.BaseChain.Then(
+			handlers.PartialRender(
+				settings.SettingsHeader(),
+				settings.SettingsContent(),
+				settings.SettingsFooter(view),
+			),
+		)
+	case false:
+		handler = handlers.BaseChain.Then(
+			handlers.FullRender("Settings",
+				templates.WithBody(settings.NewSettingsLayout()),
+			),
+		)
+	}
+
+	handler.ServeHTTP(res, req)
 }
 
 // Logout handler handles user logout.

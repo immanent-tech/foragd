@@ -6,7 +6,6 @@ package home
 
 import (
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
@@ -20,13 +19,13 @@ type Article struct {
 	models.SourceWithContent
 }
 
-func BuildArticleLayout(req *http.Request, back *models.Route, item *models.Item) templates.Layout {
+func BuildArticleLayout(req *http.Request, back *models.Route, item *models.Item) *HomeLayout {
 	article := &Article{SourceWithContent: item}
 	back.SetAttributes(viewAttributes)
 	return &HomeLayout{
-		title:   item.GetTitle(),
-		content: []templ.Component{article.Show()},
-		footer:  BuildArticleFooter(item, partials.BackButton(back.GetAttributes())).Show(),
+		Title:   item.GetTitle(),
+		Content: []templ.Component{article.Show()},
+		Footer:  BuildArticleFooter(item, partials.BackButton(back.GetAttributes())).Show(),
 	}
 }
 

@@ -48,7 +48,8 @@
     "providers/elastic",
     "layouts/home",
     "components/text",
-    "layouts/settings"
+    "layouts/settings",
+    "layouts"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

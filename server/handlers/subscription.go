@@ -338,7 +338,7 @@ func AddSubscriptionResults() http.Handler {
 		}
 		// Create a new response writer.
 		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-		HTMXResponse(subscription.NewSubscriptionRequest(requests[0]).Form(requests[0].Result)).ServeHTTP(res, req.WithContext(ctx))
+		PartialRender(subscription.NewSubscriptionRequest(requests[0]).Form(requests[0].Result)).ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 
@@ -390,13 +390,13 @@ func RemoveSubscription(api DataAPI, id models.SubscriptionID, decision *models.
 		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
 		switch {
 		case decision == nil:
-			HTMXResponse(home.UnsubscribeConfirmModal(id)).ServeHTTP(res, req.WithContext(ctx))
+			PartialRender(home.UnsubscribeConfirmModal(id)).ServeHTTP(res, req.WithContext(ctx))
 		case *decision == models.UserDecisionConfirmed:
 			if err := api.RemoveSubscriptions(req.Context(), id); err != nil {
 				InternalServerError(res, req, err)
 				return
 			}
-			HTMXResponse(home.UnsubscribeSuccess()).ServeHTTP(res, req.WithContext(ctx))
+			PartialRender(home.UnsubscribeSuccess()).ServeHTTP(res, req.WithContext(ctx))
 		case *decision == models.UserDecisionCancelled:
 			if _, err := res.Write(nil); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Cannot display content.",
@@ -426,7 +426,7 @@ func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
 			subEdit.TopCategories = categories
 		}
 		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-		HTMXResponse(subEdit.SubscriptionDetailsModal()).ServeHTTP(res, req.WithContext(ctx))
+		PartialRender(subEdit.SubscriptionDetailsModal()).ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 
@@ -442,7 +442,7 @@ func SaveSubscription(api DataAPI, id models.SubscriptionID, edits *models.Subsc
 			return
 		}
 		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-		HTMXResponse(subscription.EditSuccessModal()).ServeHTTP(res, req.WithContext(ctx))
+		PartialRender(subscription.EditSuccessModal()).ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 

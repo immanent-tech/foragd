@@ -12,6 +12,7 @@ import (
 const (
 	currentRouteCtxKey  contextKey = "currentRoute"
 	previousRouteCtxKey contextKey = "previousRoute"
+	layoutCtxKey        contextKey = "layout"
 )
 
 type contextKey string
@@ -38,4 +39,19 @@ func PreviousViewFromCtx(ctx context.Context) models.PageView {
 		return models.NewPageView("/home", nil)
 	}
 	return route
+}
+
+// FiltersToCtx stores the current filters in the context.
+func LayoutToCtx(ctx context.Context, content *HomeLayout) context.Context {
+	return context.WithValue(ctx, layoutCtxKey, content)
+}
+
+// FiltersFromCtx retrieves the current filters from the context. If there are no filters stored in the context, the
+// default filters will be returned.
+func LayoutFromCtx(ctx context.Context) *HomeLayout {
+	content, found := ctx.Value(layoutCtxKey).(*HomeLayout)
+	if !found {
+		return nil
+	}
+	return content
 }

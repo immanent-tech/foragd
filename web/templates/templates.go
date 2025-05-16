@@ -11,14 +11,8 @@ var DefaultKeywords = []string{"feeds", "atom", "jsonfeed", "rss", "feed reader"
 // DefaultPageTitle is the default <title> tag value if none is set.
 const DefaultPageTitle = "Go Feed Me"
 
-// Layout represents a page layout. It has methods to issue a full or partial render of the layout.
+// Layout represents the layout of content on a page. It has a Template() method that returns a templ.Component that
+// renders the page layout.
 type Layout interface {
-	PartialLayout
-	FullRender() templ.Component
-}
-
-// PartialLayout represents partial page content layout. It has a method to render the content. PartialLayout is usually
-// called for a HTMX response where a full page load is not required.
-type PartialLayout interface {
-	PartialRender() templ.Component
+	Template() templ.Component
 }

@@ -12,9 +12,10 @@ import (
 type Page struct {
 	Head           Head
 	BodyAttributes templ.Attributes
+	Body           Layout
 }
 
-templ (p *Page) Show() {
+templ (p *Page) Template() {
 	<!DOCTYPE html>
 	<html
 		lang="en"
@@ -33,7 +34,11 @@ templ (p *Page) Show() {
 			hx-ext="morph,sse"
 			hx-on::history-restore="send setTheme(js return localStorage.getItem('theme'))"
 		>
-			{ children... }
+			if p.Body != nil {
+				@p.Body.Template()
+			} else {
+				{ children... }
+			}
 		</body>
 	</html>
 }
@@ -52,6 +57,12 @@ func WithDescription(description string) PageOption {
 func WithKeywords(keywords ...string) PageOption {
 	return func(p *Page) {
 		p.Head.AddMetaTag("keywords", strings.Join(keywords, ","))
+	}
+}
+
+func WithBody(body Layout) PageOption {
+	return func(p *Page) {
+		p.Body = body
 	}
 }
 

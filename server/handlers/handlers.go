@@ -7,11 +7,19 @@ package handlers
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"net/http"
+	"slices"
+
+	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
+	"github.com/justinas/alice"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/web/templates"
 )
 
 var (
@@ -19,6 +27,10 @@ var (
 	ErrInvalidUser = errors.New("user data is invalid")
 	// ErrMissingRequestData indicates data was expected in the request (usually in the context) but was not found.
 	ErrMissingRequestData = errors.New("request data is missing")
+)
+
+var BaseChain = alice.New(
+	RouteLogger,
 )
 
 // Keys for objects stored within the context and passed between handlers.
@@ -71,4 +83,37 @@ type AuthAPI interface {
 type HXLocation struct {
 	Path   string `json:"path"`
 	Target string `json:"target"`
+}
+
+// FullRender renders a full page with the given title and options.
+func FullRender(title string, pageOptions ...templates.PageOption) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if htmx.IsHTMX(req) {
+			slogctx.FromCtx(req.Context()).Warn("Full render for HTMX request.")
+		}
+		page := templates.NewPage(title, pageOptions...)
+		if err := page.Template().Render(req.Context(), res); err != nil {
+			InternalServerError(res, req, err)
+		}
+	})
+}
+
+// PartialRender will return a handler that will render the given templates via a htmx response.
+func PartialRender(templates ...templ.Component) http.Handler {
+	return http.HandlerFunc(
+		func(res http.ResponseWriter, req *http.Request) {
+			if !htmx.IsHTMX(req) {
+				slogctx.FromCtx(req.Context()).Warn("Partial render for non-HTMX request.")
+			}
+			resp, found := req.Context().Value(htmxRespCtxKey).(htmx.Response)
+			if !found {
+				slogctx.FromCtx(req.Context()).Warn("No existing htmx response object, creating new one.")
+				resp = htmx.NewResponse()
+			}
+			for template := range slices.Values(templates) {
+				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
+				}
+			}
+		})
 }

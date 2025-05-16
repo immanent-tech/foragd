@@ -4,7 +4,6 @@
 package home
 
 import (
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 	"github.com/joshuar/go-templ-daisyui/attributes"
@@ -43,49 +42,43 @@ templ emptyContent() {
 
 // HomeLayout contains the components for rendering a /home page layout.
 type HomeLayout struct {
-	title   string
-	content []templ.Component
-	footer  templ.Component
+	Title   string
+	Header  templ.Component
+	Content []templ.Component
+	Footer  templ.Component
 }
 
-templ (l *HomeLayout) FullRender() {
-	@templates.NewPage(l.title).Show() {
-		@partials.CommandModal()
-		@appbar.AppBar().Show()
-		<div id="content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2">
-			if len(l.content) > 0 {
-				for part := range slices.Values(l.content) {
-					@part
-				}
-			} else {
-				@emptyContent()
-			}
-		</div>
-		<div id="content-loading" class="items-center justify-center">
-			@loading.Build(loading.Bars,
-				loading.AsHTMXIndicator(),
-				loading.WithThemeColor(color.Accent),
-			).Show()
-		</div>
-		@partials.NotificationsArea()
-		@l.footer
-	}
+templ (l *HomeLayout) Template() {
+	@HomeHeader()
+	<div id="content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2">
+		@HomeContent(l.Content...)
+	</div>
+	<div id="content-loading" class="items-center justify-center">
+		@loading.Build(loading.Bars,
+			loading.AsHTMXIndicator(),
+			loading.WithThemeColor(color.Accent),
+		).Show()
+	</div>
+	@HomeFooter(l.Footer)
 }
 
-templ (l *HomeLayout) PartialRender() {
+templ HomeHeader() {
+	@partials.CommandModal()
+	@appbar.AppBar().Show()
+}
+
+templ HomeContent(parts ...templ.Component) {
 	// Render any content templates.
-	if len(l.content) > 0 {
-		for part := range slices.Values(l.content) {
+	if len(parts) > 0 {
+		for part := range slices.Values(parts) {
 			@part
 		}
 	} else {
 		@emptyContent()
 	}
-	if l.footer != nil {
-		@l.footer
-	}
-	// Update the page title if one has been provided.
-	if l.title != "" {
-		@templates.SetPageTitle(l.title)
-	}
+}
+
+templ HomeFooter(footer templ.Component) {
+	@partials.NotificationsArea()
+	@footer
 }

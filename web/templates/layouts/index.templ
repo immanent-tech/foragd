@@ -10,7 +10,7 @@ type IndexLayout struct{}
 templ (i *IndexLayout) FullRender() {
 	@templates.NewPage("Go Feed Me",
 		templates.WithDescription("Welcome to Go Feed Me"),
-	).Show() {
+	).Template() {
 		<div id="index-hero" class="hero bg-base-200 min-h-screen">
 			<div class="hero-content text-center">
 				<div class="max-w-md">

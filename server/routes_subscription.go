@@ -19,7 +19,7 @@ import (
 )
 
 func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
-	handler := handlers.HTMXResponse(subscription.NewSubscriptionModal(models.NewSubscriptionRequest(""), nil))
+	handler := handlers.PartialRender(subscription.NewSubscriptionModal(models.NewSubscriptionRequest(""), nil))
 	handler.ServeHTTP(res, req)
 }
 
@@ -38,7 +38,7 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 
 // StartImport sets up an import for the user.
 func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
-	handler := handlers.HTMXResponse(subscription.ImportModal())
+	handler := handlers.PartialRender(subscription.ImportModal())
 	handler.ServeHTTP(res, req)
 }
 

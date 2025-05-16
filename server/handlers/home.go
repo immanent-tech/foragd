@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	slogctx "github.com/veqryn/slog-context"
@@ -19,7 +20,6 @@ import (
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
-	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 )
 
 // CheckRequiredFilters will ensure a request has the required filters set. If any required filters are missing,
@@ -150,17 +150,7 @@ func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler 
 				return
 			}
 			layout := home.BuildFeedsLayout(req.Context(), pagination, subscriptions)
-			ctx := templates.LayoutToCtx(req.Context(), layout)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-func SettingsLayout() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			layout := settings.BuildSettingsLayout()
-			ctx := templates.LayoutToCtx(req.Context(), layout)
+			ctx := home.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -217,7 +207,7 @@ func GenerateItemsContent(dataAPI DataAPI, sessionAPI models.SessionAPI) func(ne
 				return
 			}
 			layout := home.BuildItemsLayout(req.Context(), pagination, items)
-			ctx := templates.LayoutToCtx(req.Context(), layout)
+			ctx := home.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -238,40 +228,48 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID m
 			}
 			backRoute := models.NewRoute(models.ItemsRoute, &itemFilters)
 			layout := home.BuildArticleLayout(req, backRoute, item)
-			ctx := templates.LayoutToCtx(req.Context(), layout)
+			ctx := home.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+// SaveHomeHistory saves the request URL to the session as a navigation history marker.
+func SaveHomeHistory() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			view := home.CurrentViewFromCtx(req.Context())
+			slogctx.FromCtx(req.Context()).Debug("Saving last visited page", slog.String("page", view.String()))
+			session := models.SessionFromCtx(req.Context())
+			session.Put(req.Context(), LastViewedSessionKey, view)
+			next.ServeHTTP(res, req)
 		})
 	}
 }
 
 // DisplayHome displays a page under /home. It handles either partial or full rendering of the page, depending on
 // whether the request is HTMX powered (partial) or not (full).
-func DisplayHome(next http.Handler) http.Handler {
-	return http.HandlerFunc(
-		func(res http.ResponseWriter, req *http.Request) {
-			// res.Header().Add(htmx.HeaderPushURL, home.CurrentViewFromCtx(req.Context()).AsAction().String())
-			layout := templates.LayoutFromCtx(req.Context())
-			// Create a new response writer.
-			ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-			// Decide whether we need to do a full or partial render based on whether
-			// this is a htmx request or not.
-			if htmx.IsHTMX(req) {
-				// Partial render. Update the page title and render all content combined.
-				HTMXResponse(layout.PartialRender()).ServeHTTP(res, req.WithContext(ctx))
-			} else {
-				// Full render. Add the Appbar then build a full page layout to render.
-				HTMXResponse(layout.FullRender()).ServeHTTP(res, req.WithContext(ctx))
-			}
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-}
-
-// SaveHomeHistory saves the request URL to the session as a navigation history marker.
-func SaveHomeHistory(session models.SessionAPI) http.Handler {
+func DisplayHome() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		view := home.CurrentViewFromCtx(req.Context())
-		slogctx.FromCtx(req.Context()).Debug("Saving last visited page", slog.String("page", view.String()))
-		session.Put(req.Context(), LastViewedSessionKey, view)
+		layout := home.LayoutFromCtx(req.Context())
+		// Create a new response writer.
+		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
+		// Decide whether we need to do a full or partial render based on whether
+		// this is a htmx request or not.
+		var handler http.Handler
+		if htmx.IsHTMX(req) {
+			var parts []templ.Component
+			// parts = append(parts, layout.Header)
+			parts = append(parts, layout.Content...)
+			parts = append(parts, layout.Footer)
+			parts = append(parts, templates.SetPageTitle(layout.Title))
+			handler = PartialRender(parts...)
+		} else {
+			handler = FullRender(layout.Title,
+				templates.WithBody(layout),
+			)
+		}
+		handler.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 

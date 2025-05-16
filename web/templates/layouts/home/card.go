@@ -10,7 +10,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/card"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 )
 
 type FeedCard struct {
@@ -46,7 +45,7 @@ func (c *Card) addPagination(ctx context.Context, pagination models.Pagination) 
 	c.AddAttributes(action.Attributes())
 }
 
-func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) templates.Layout {
+func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) *HomeLayout {
 	cards := make([]templ.Component, 0, len(subscriptions))
 	// Build feed cards.
 	for idx, subscription := range subscriptions {
@@ -58,9 +57,9 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 		cards = append(cards, card.Show())
 	}
 	return &HomeLayout{
-		title:   "Feeds",
-		content: cards,
-		footer: BuildListFooter(ctx,
+		Title:   "Feeds",
+		Content: cards,
+		Footer: BuildListFooter(ctx,
 			models.FeedsRoute,
 			subscriptions.GetCategoryCounts(),
 			addSubscriptionAction(),
@@ -70,7 +69,7 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 	}
 }
 
-func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items models.Items) templates.Layout {
+func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items models.Items) *HomeLayout {
 	cards := make([]templ.Component, 0, len(items))
 	// Build item cards.
 	for idx, item := range items {
@@ -85,9 +84,9 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 	}
 	// Return the home items layout.
 	return &HomeLayout{
-		title:   "Items",
-		content: cards,
-		footer: BuildListFooter(ctx,
+		Title:   "Items",
+		Content: cards,
+		Footer: BuildListFooter(ctx,
 			models.FeedsRoute,
 			items.GetCategoryCounts(),
 			addSubscriptionAction(),

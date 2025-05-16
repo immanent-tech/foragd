@@ -13,22 +13,23 @@ import (
 type SettingsLayout struct {
 }
 
-func BuildSettingsLayout() *SettingsLayout {
+func NewSettingsLayout() *SettingsLayout {
 	return &SettingsLayout{}
 }
 
-templ (l *SettingsLayout) FullRender() {
-	@templates.NewPage("Settings").Show() {
-		@appbar.AppBar().Show()
-		<div id="content">
-			<h2>Display</h2>
-			@themeChangeMenu()
-		</div>
-		@SettingsFooter(models.NewPageView("/home", nil))
-	}
+templ (l *SettingsLayout) Template() {
+	@SettingsHeader()
+	<div id="content">
+		@SettingsContent()
+	</div>
+	@SettingsFooter(models.NewPageView("/home", nil))
 }
 
-templ (l *SettingsLayout) PartialRender() {
+templ SettingsHeader() {
+	@appbar.AppBar().Show()
+}
+
+templ SettingsContent() {
 	<h2>Display</h2>
 	@themeChangeMenu()
 	@templates.SetPageTitle("Settings")
