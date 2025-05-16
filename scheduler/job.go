@@ -124,10 +124,6 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
 
-	slogctx.FromCtx(ctx).Debug("Running job.",
-		slog.String("job", job.Description()),
-		slog.Time("since", feed.Updated))
-
 	// Get new items since the last fetch.
 	items, err := job.getItemsSince(feed.Updated)
 	if err != nil {
@@ -142,6 +138,11 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		if err := api.MarkFeedUpdated(ctx, job.FeedID); err != nil {
 			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 		}
+		slogctx.FromCtx(ctx).Debug("Job execution finished.",
+			slog.String("job", job.Description()),
+			slog.Time("updated_at", feed.Updated),
+			slog.Int("items_added", len(items)),
+		)
 	}
 
 	return nil
