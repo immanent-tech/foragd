@@ -41,20 +41,14 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 
 	path := req.URL.Path
 	method := req.Method
-	params := req.URL.Query()
-	end := time.Now()
-	latency := end.Sub(start)
 
 	requestAttributes := []slog.Attr{
 		slog.String("method", method),
 		slog.String("path", path),
-		slog.Any("params", params),
 	}
 
 	status := res.StatusCode
 	responseAttributes := []slog.Attr{
-		// slog.Time("time", end.UTC()),
-		slog.Duration("latency", latency),
 		slog.Int("status", status),
 	}
 
