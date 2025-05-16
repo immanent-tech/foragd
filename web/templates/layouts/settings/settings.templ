@@ -4,43 +4,45 @@
 package settings
 
 import (
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
-	"github.com/joshuar/go-templ-daisyui/attributes"
 )
 
-var FooterID = attributes.ID("settings-footer")
-
 type SettingsLayout struct {
-	BackButton templ.Component
 }
 
-func BuildSettingsLayout(back templ.Component) *SettingsLayout {
-	return &SettingsLayout{
-		BackButton: back,
-	}
+func BuildSettingsLayout() *SettingsLayout {
+	return &SettingsLayout{}
 }
 
 templ (l *SettingsLayout) FullRender() {
 	@templates.NewPage("Settings").Show() {
 		@appbar.AppBar().Show()
-		<div class="p-2 m-2">
+		<div id="content">
 			<h2>Display</h2>
 			@themeChangeMenu()
 		</div>
-		@l.footer()
+		@SettingsFooter(models.NewPageView("/home", nil))
 	}
 }
 
-templ (l *SettingsLayout) footer() {
+templ (l *SettingsLayout) PartialRender() {
+	<h2>Display</h2>
+	@themeChangeMenu()
+	@templates.SetPageTitle("Settings")
+}
+
+templ SettingsFooter(lastViewed models.PageView) {
 	<div
-		id={ FooterID.String() }
+		id="content-footer"
 		hx-swap-oob="true"
 		hx-swap="morph:outerHTML"
 		class="bg-base-200 dock dock-sm"
 	>
 		<div title="Back" class="basis-xs">
-			@l.BackButton
+			@partials.BackButton(lastViewed.AsAction().Attributes())
 		</div>
 	</div>
 }

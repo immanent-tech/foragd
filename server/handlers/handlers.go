@@ -26,13 +26,14 @@ const (
 	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
 	subscriptionsCtxKey        contextKey = "subscriptions"
 	feedsCtxKey                contextKey = "feeds"
+	htmxRespCtxKey             contextKey = "htmxResp"
 )
 
 // Keys for objects stored within the session.
 const (
 	feedFiltersSessionKey = "feed_filters"
 	itemFiltersSessionKey = "item_filters"
-	HomeHistorySessionKey = "home_history"
+	LastViewedSessionKey  = "last_viewed"
 )
 
 type contextKey string

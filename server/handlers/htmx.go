@@ -14,13 +14,40 @@ import (
 )
 
 // HTMXResponse will return a handler that will render the given templates via a htmx response.
-func HTMXResponse(resp htmx.Response, templates ...templ.Component) http.Handler {
+func HTMXResponse(templates ...templ.Component) http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
+			resp, found := req.Context().Value(htmxRespCtxKey).(htmx.Response)
+			if !found {
+				slogctx.FromCtx(req.Context()).Warn("No existing htmx response object, creating new one.")
+				resp = htmx.NewResponse()
+			}
 			for template := range slices.Values(templates) {
 				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
 				}
 			}
 		})
+}
+
+func RenderPartials(templates ...templ.Component) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			if !htmx.IsHTMX(req) {
+				slogctx.FromCtx(req.Context()).Warn("Cannot render partials, not a htmx request.")
+			} else {
+				resp, found := req.Context().Value(htmxRespCtxKey).(htmx.Response)
+				if !found {
+					slogctx.FromCtx(req.Context()).Warn("No existing htmx response object, creating new one.")
+					resp = htmx.NewResponse()
+				}
+				for template := range slices.Values(templates) {
+					if err := resp.RenderTempl(req.Context(), res, template); err != nil {
+						slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
+					}
+				}
+			}
+			next.ServeHTTP(res, req)
+		})
+	}
 }

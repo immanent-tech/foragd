@@ -6,12 +6,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
-
-	"github.com/joshuar/go-templ-daisyui/display/icon"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/handlers"
@@ -22,7 +17,7 @@ import (
 // Index handler handles the index page.
 func (s Server) Index(res http.ResponseWriter, req *http.Request) {
 	layout := &layouts.IndexLayout{}
-	handlers.HTMXResponse(htmx.NewResponse(), layout.FullRender()).ServeHTTP(res, req)
+	handlers.HTMXResponse(layout.FullRender()).ServeHTTP(res, req)
 }
 
 // Login handler handles login requests.
@@ -45,22 +40,17 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 
 // GetSettings handles opening the settings modal.
 func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
-	var backLink *models.Route
-	prevPage, ok := s.SessionAPI().Get(req.Context(), handlers.HomeHistorySessionKey).(string)
+	view, ok := s.SessionAPI().Get(req.Context(), handlers.LastViewedSessionKey).(models.PageView)
 	if !ok {
-		backLink = models.NewRoute("/home", nil)
-	} else {
-		backLink = models.NewRoute(prevPage, nil)
+		view = models.NewPageView("/home", nil)
 	}
-	back := link.Build(
-		link.WithContent(icon.Build("fa-left-long")),
-		link.WithExtraAttributes(templ.Attributes{
-			"href": backLink.String(),
-		}),
-	)
-	layout := settings.BuildSettingsLayout(back.Show())
-	handler := handlers.HTMXResponse(htmx.NewResponse(), layout.FullRender())
-	handler.ServeHTTP(res, req)
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SettingsLayout(),
+		handlers.DisplayHome,
+		handlers.RenderPartials(settings.SettingsFooter(view)),
+	).Then(handlers.SaveHomeHistory(s.SessionAPI()))
+	chain.ServeHTTP(res, req)
 }
 
 // Logout handler handles user logout.

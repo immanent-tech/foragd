@@ -64,7 +64,9 @@ templ appBarTopRight() {
 				@link.Build(
 					link.WithContent("Settings"),
 					link.WithExtraAttributes(templ.Attributes{
-						"href": "/settings",
+						"hx-get":      "/settings",
+						"hx-target":   "#content",
+						"hx-push-url": "true",
 					}),
 					link.WithUnderlineOnHover(),
 				).Show()

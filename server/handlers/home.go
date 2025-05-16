@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
+	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 )
 
 // CheckRequiredFilters will ensure a request has the required filters set. If any required filters are missing,
@@ -154,6 +156,16 @@ func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler 
 	}
 }
 
+func SettingsLayout() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			layout := settings.BuildSettingsLayout()
+			ctx := templates.LayoutToCtx(req.Context(), layout)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
 // MarkFeeds will mark the user's subscriptions that match the given feeds with the given mark.
 func MarkFeeds(api DataAPI, mark models.Mark, feeds ...models.FeedID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -232,15 +244,35 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID m
 	}
 }
 
-// SaveHomeHistory saves the request URL to the session as a navigation history marker.
-func SaveHomeHistory(session models.SessionAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			slog.Debug("Saving last visited page", slog.String("url", req.URL.String()))
-			session.Put(req.Context(), HomeHistorySessionKey, req.URL.String())
-			next.ServeHTTP(res, req)
+// DisplayHome displays a page under /home. It handles either partial or full rendering of the page, depending on
+// whether the request is HTMX powered (partial) or not (full).
+func DisplayHome(next http.Handler) http.Handler {
+	return http.HandlerFunc(
+		func(res http.ResponseWriter, req *http.Request) {
+			// res.Header().Add(htmx.HeaderPushURL, home.CurrentViewFromCtx(req.Context()).AsAction().String())
+			layout := templates.LayoutFromCtx(req.Context())
+			// Create a new response writer.
+			ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
+			// Decide whether we need to do a full or partial render based on whether
+			// this is a htmx request or not.
+			if htmx.IsHTMX(req) {
+				// Partial render. Update the page title and render all content combined.
+				HTMXResponse(layout.PartialRender()).ServeHTTP(res, req.WithContext(ctx))
+			} else {
+				// Full render. Add the Appbar then build a full page layout to render.
+				HTMXResponse(layout.FullRender()).ServeHTTP(res, req.WithContext(ctx))
+			}
+			next.ServeHTTP(res, req.WithContext(ctx))
 		})
-	}
+}
+
+// SaveHomeHistory saves the request URL to the session as a navigation history marker.
+func SaveHomeHistory(session models.SessionAPI) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		view := home.CurrentViewFromCtx(req.Context())
+		slogctx.FromCtx(req.Context()).Debug("Saving last visited page", slog.String("page", view.String()))
+		session.Put(req.Context(), LastViewedSessionKey, view)
+	})
 }
 
 func ShowView(path string) http.Handler {
@@ -255,25 +287,4 @@ func ShowView(path string) http.Handler {
 		// Set-up client-side redirect to view.
 		res.Header().Add(htmx.HeaderLocation, string(data))
 	})
-}
-
-// DisplayHome displays a page under /home. It handles either partial or full rendering of the page, depending on
-// whether the request is HTMX powered (partial) or not (full).
-func DisplayHome() http.Handler {
-	return http.HandlerFunc(
-		func(res http.ResponseWriter, req *http.Request) {
-			// res.Header().Add(htmx.HeaderPushURL, home.CurrentViewFromCtx(req.Context()).AsAction().String())
-			layout := templates.LayoutFromCtx(req.Context())
-			// Create a new response writer.
-			resp := htmx.NewResponse()
-			// Decide whether we need to do a full or partial render based on whether
-			// this is a htmx request or not.
-			if htmx.IsHTMX(req) {
-				// Partial render. Update the page title and render all content combined.
-				HTMXResponse(resp, layout.PartialRender()).ServeHTTP(res, req)
-			} else {
-				// Full render. Add the Appbar then build a full page layout to render.
-				HTMXResponse(resp, layout.FullRender()).ServeHTTP(res, req)
-			}
-		})
 }

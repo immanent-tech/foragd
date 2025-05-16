@@ -46,7 +46,9 @@
     "go",
     "scheduler",
     "providers/elastic",
-    "layouts/home"
+    "layouts/home",
+    "components/text",
+    "layouts/settings"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {
