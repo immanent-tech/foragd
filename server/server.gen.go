@@ -271,6 +271,12 @@ type ServerInterface interface {
 	// Show user settings modal
 	// (GET /settings)
 	GetSettings(w http.ResponseWriter, r *http.Request)
+	// Returns the current theme.
+	// (GET /settings/theme)
+	GetTheme(w http.ResponseWriter, r *http.Request)
+	// Sets the current theme.
+	// (PUT /settings/theme)
+	SetTheme(w http.ResponseWriter, r *http.Request)
 	// Show the sign-up form.
 	// (GET /signup)
 	SignUp(w http.ResponseWriter, r *http.Request)
@@ -405,6 +411,18 @@ func (_ Unimplemented) Search(w http.ResponseWriter, r *http.Request) {
 // Show user settings modal
 // (GET /settings)
 func (_ Unimplemented) GetSettings(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Returns the current theme.
+// (GET /settings/theme)
+func (_ Unimplemented) GetTheme(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Sets the current theme.
+// (PUT /settings/theme)
+func (_ Unimplemented) SetTheme(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1021,6 +1039,34 @@ func (siw *ServerInterfaceWrapper) GetSettings(w http.ResponseWriter, r *http.Re
 	handler.ServeHTTP(w, r)
 }
 
+// GetTheme operation middleware
+func (siw *ServerInterfaceWrapper) GetTheme(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetTheme(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetTheme operation middleware
+func (siw *ServerInterfaceWrapper) SetTheme(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetTheme(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // SignUp operation middleware
 func (siw *ServerInterfaceWrapper) SignUp(w http.ResponseWriter, r *http.Request) {
 
@@ -1435,6 +1481,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/settings", wrapper.GetSettings)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/settings/theme", wrapper.GetTheme)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/settings/theme", wrapper.SetTheme)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/signup", wrapper.SignUp)

@@ -69,6 +69,30 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 	handler.ServeHTTP(res, req)
 }
 
+func (s Server) GetTheme(res http.ResponseWriter, req *http.Request) {
+	theme, ok := s.SessionAPI().Get(req.Context(), models.ThemeSessionKey).(string)
+	if !ok {
+		theme = "light"
+	}
+	// slogctx.FromCtx(req.Context()).Debug("Setting theme.", slog.String("theme", theme))
+	res.WriteHeader(http.StatusOK)
+	res.Write([]byte(theme))
+}
+
+func (s Server) SetTheme(res http.ResponseWriter, req *http.Request) {
+	handler := handlers.BaseChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		theme := req.FormValue("theme")
+		s.SessionAPI().Put(req.Context(), models.ThemeSessionKey, theme)
+		// slogctx.FromCtx(req.Context()).Debug("Saved theme.", slog.String("theme", theme))
+		resp := htmx.NewResponse().AddTrigger(htmx.TriggerDetail("setTheme", theme))
+		resp.StatusCode(http.StatusOK)
+		resp.Write(res)
+		// res.WriteHeader(http.StatusOK)
+		// res.Write(nil)
+	})
+	handler.ServeHTTP(res, req)
+}
+
 // Logout handler handles user logout.
 func (s Server) Logout(res http.ResponseWriter, req *http.Request) {
 	s.AuthAPI().Logout().ServeHTTP(res, req)
