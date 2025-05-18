@@ -104,8 +104,10 @@ func Run(ctx context.Context) error {
 	}()
 
 	scheduler.Start(ctx)
+	slogctx.FromCtx(ctx).Debug("Scheduler started.")
 	<-ctx.Done()
 	scheduler.Stop()
+	slogctx.FromCtx(ctx).Debug("Scheduler stopped.")
 	return nil
 }
 
