@@ -7,6 +7,7 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/sebasvil20/templicons/i"
@@ -37,7 +38,7 @@ func BuildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCou
 			route.Filters.Categories = append(route.Filters.Categories, categoryCount.Category)
 		}
 		req := route.AsAction()
-		req.SetAttributes(viewAttributes)
+		req.SetAttributes(templates.DefaultAttributes)
 		categoryFilters = append(categoryFilters, CategoryFilter{
 			CategoryCount: categoryCount,
 			attributes:    req.Attributes(),
@@ -77,12 +78,12 @@ func viewFilter(ctx context.Context, view models.View) templ.Component {
 	switch {
 	case view == route.Filters.View:
 		req := route.AsAction()
-		req.SetAttributes(viewAttributes)
+		req.SetAttributes(templates.DefaultAttributes)
 		return activeOption(string(view), req.Attributes())
 	default:
 		route.Filters.View = view
 		req := route.AsAction()
-		req.SetAttributes(viewAttributes)
+		req.SetAttributes(templates.DefaultAttributes)
 		return inactiveOption(string(view), req.Attributes())
 	}
 }

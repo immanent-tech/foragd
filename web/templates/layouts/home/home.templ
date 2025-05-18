@@ -6,21 +6,10 @@ package home
 import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
-	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"slices"
 )
-
-// ContentID is the id attribute for the main content area.
-var ContentID = attributes.ID("content")
-
-// viewAttributes are the common htmx attributes for view actions.
-var viewAttributes = templ.Attributes{
-	"hx-target":   ContentID.Target(),
-	"hx-push-url": "true",
-	"hx-swap":     "morph:innerHTML show:top",
-}
 
 // EmptyContent renders a hero with options for the user when the request
 // returned no other content.

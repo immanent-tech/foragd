@@ -277,7 +277,7 @@ func ShowView(path string) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		session := models.SessionFromCtx(req.Context())
 		view := models.GetViewFromSession(req.Context(), session, path)
-		HxLocationData := HXLocation{Path: view.String(), Target: home.ContentID.Target()}
+		HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
 		data, err := json.Marshal(HxLocationData)
 		if err != nil {
 			InternalServerError(res, req, err)

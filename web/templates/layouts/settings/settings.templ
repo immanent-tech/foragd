@@ -11,10 +11,13 @@ import (
 )
 
 type SettingsLayout struct {
+	lastViewed models.PageView
 }
 
-func NewSettingsLayout() *SettingsLayout {
-	return &SettingsLayout{}
+func NewSettingsLayout(lastViewed models.PageView) *SettingsLayout {
+	return &SettingsLayout{
+		lastViewed: lastViewed,
+	}
 }
 
 templ (l *SettingsLayout) Template() {
@@ -22,7 +25,7 @@ templ (l *SettingsLayout) Template() {
 	<div id="content">
 		@SettingsContent()
 	</div>
-	@SettingsFooter(models.NewPageView("/home", nil))
+	@SettingsFooter(l.lastViewed)
 }
 
 templ SettingsHeader() {
@@ -36,6 +39,8 @@ templ SettingsContent() {
 }
 
 templ SettingsFooter(lastViewed models.PageView) {
+	{{ action := lastViewed.AsAction() }}
+	{{ action.SetAttributes(templates.DefaultAttributes) }}
 	<div
 		id="content-footer"
 		hx-swap-oob="true"
@@ -43,7 +48,7 @@ templ SettingsFooter(lastViewed models.PageView) {
 		class="bg-base-200 dock dock-sm"
 	>
 		<div title="Back" class="basis-xs">
-			@partials.BackButton(lastViewed.AsAction().Attributes())
+			@partials.BackButton(action.Attributes())
 		</div>
 	</div>
 }

@@ -61,7 +61,7 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 	case false:
 		handler = handlers.BaseChain.Then(
 			handlers.FullRender("Settings",
-				templates.WithBody(settings.NewSettingsLayout()),
+				templates.WithBody(settings.NewSettingsLayout(view)),
 			),
 		)
 	}

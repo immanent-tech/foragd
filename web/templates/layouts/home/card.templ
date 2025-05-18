@@ -7,6 +7,7 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -43,7 +44,7 @@ func (c *Card) generateViewAction(ctx context.Context) *action.Action {
 		view = models.NewPageView("/home/"+c.GetFeedID()+"/"+c.id, nil)
 	}
 	action := view.AsAction()
-	action.SetAttributes(viewAttributes)
+	action.SetAttributes(templates.DefaultAttributes)
 	return action
 }
 

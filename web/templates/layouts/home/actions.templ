@@ -5,6 +5,7 @@ package home
 
 import (
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
@@ -20,7 +21,7 @@ import (
 // actionAttributes are the common htmx attributes for mark actions.
 var actionAttributes = templ.Attributes{
 	"hx-push-url": "false",
-	"hx-target":   ContentID.Target(),
+	"hx-target":   templates.ContentID.Target(),
 	// "hx-swap":     "morph:innerHTML swap:1s",
 }
 

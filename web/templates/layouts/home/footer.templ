@@ -7,6 +7,7 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
@@ -48,7 +49,7 @@ templ (f *ListFooter) Show() {
 func BuildListFooter(ctx context.Context, backPath string, categories models.CategoryCounts, actions ...templ.Component) *ListFooter {
 	backView := models.GetViewFromSession(ctx, models.SessionFromCtx(ctx), backPath)
 	backAction := backView.AsAction()
-	backAction.SetAttributes(viewAttributes)
+	backAction.SetAttributes(templates.DefaultAttributes)
 	// Build view filters.
 	viewFilters := BuildViewFilters(ctx)
 	// Build category filters.
