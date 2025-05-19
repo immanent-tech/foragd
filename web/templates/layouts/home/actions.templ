@@ -20,8 +20,9 @@ import (
 
 // actionAttributes are the common htmx attributes for mark actions.
 var actionAttributes = templ.Attributes{
-	"hx-push-url": "false",
-	"hx-target":   templates.ContentID.Target(),
+	"hx-push-url":     "false",
+	"hx-target":       templates.ContentID.Target(),
+	"hx-target-error": "#error",
 	// "hx-swap":     "morph:innerHTML swap:1s",
 }
 

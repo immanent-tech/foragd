@@ -4,6 +4,7 @@
 package server
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
@@ -15,7 +16,8 @@ import (
 )
 
 func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
-	res.WriteHeader(http.StatusNotImplemented)
+	handlers.InternalServerError(res, req, errors.New("not implemented"))
+	// res.WriteHeader(http.StatusNotImplemented)
 }
 
 func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Request) {
@@ -86,6 +88,7 @@ func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feedI
 			slog.Any("error", err))
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
+	res.WriteHeader(http.StatusOK)
 }
 
 func (s Server) HandleSaveItem(res http.ResponseWriter, req *http.Request, feed models.FeedID, item models.ItemID) {

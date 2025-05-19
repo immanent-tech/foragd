@@ -82,9 +82,12 @@ templ (f *ArticleFooter) Show() {
 	}
 }
 
-func BuildArticleFooter(item *models.Item, backButton templ.Component) *ArticleFooter {
+func BuildArticleFooter(ctx context.Context, item *models.Item) *ArticleFooter {
+	backView := models.GetViewFromSession(ctx, models.SessionFromCtx(ctx), models.ItemsRoute)
+	backAction := backView.AsAction()
+	backAction.SetAttributes(templates.DefaultAttributes)
 	return &ArticleFooter{
-		backButton: backButton,
+		backButton: partials.BackButton(backAction.Attributes()),
 		item:       item,
 	}
 }

@@ -25,6 +25,8 @@ templ (l *SettingsLayout) Template() {
 	<div id="content">
 		@SettingsContent()
 	</div>
+	<div id="error"></div>
+	<div id="not-found"></div>
 	@SettingsFooter(l.lastViewed)
 }
 

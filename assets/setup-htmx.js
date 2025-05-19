@@ -4,6 +4,10 @@
 import 'htmx.org'
 import 'idiomorph'
 import 'htmx-ext-sse'
+// Use response targets extension to display error messages in a dedicated div.
+//
+// https://htmx.org/extensions/response-targets/
+import 'htmx-ext-response-targets'
 
 import htmx from 'htmx.org/dist/htmx.esm'
 window.htmx = htmx

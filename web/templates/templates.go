@@ -13,9 +13,10 @@ var ContentID = attributes.ID("content")
 
 // DefaultAttributes are the common htmx attributes for view actions.
 var DefaultAttributes = templ.Attributes{
-	"hx-target":   ContentID.Target(),
-	"hx-push-url": "true",
-	"hx-swap":     "morph:innerHTML show:top",
+	"hx-target":       ContentID.Target(),
+	"hx-push-url":     "true",
+	"hx-swap":         "morph:innerHTML show:top",
+	"hx-target-error": "#error",
 }
 
 // DefaultKeywords are the default keywords to insert in a "keywords" <meta> tag.

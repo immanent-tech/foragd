@@ -8,16 +8,20 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 // InternalServerError handles errors related to non-specific internal server functionality failures.
 func InternalServerError(res http.ResponseWriter, req *http.Request, err error) {
+	msg := models.NewMessage("Internal server error", models.MessageStatusError, models.WithError(err))
 	slogctx.FromCtx(req.Context()).Error("Cannot display content.",
-		slog.Any("error", models.NewMessage("Internal server error", models.MessageStatusError, models.WithError(err))))
-	http.Error(res, "Problem!", http.StatusInternalServerError)
+		slog.Any("error", msg))
+	htmx.NewResponse().RenderTempl(req.Context(), res, partials.NewMessage(msg).AsNotification())
+	// http.Error(res, "Problem!", http.StatusInternalServerError)
 }
 
 type HTTPError struct {

@@ -60,7 +60,7 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 		Title:   "Feeds",
 		Content: cards,
 		Footer: BuildListFooter(ctx,
-			models.FeedsRoute,
+			"/home",
 			subscriptions.GetCategoryCounts(),
 			addSubscriptionAction(),
 			importAction(),

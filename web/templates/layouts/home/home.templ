@@ -48,6 +48,8 @@ templ (l *HomeLayout) Template() {
 			loading.WithThemeColor(color.Accent),
 		).Show()
 	</div>
+	<div id="error"></div>
+	<div id="not-found"></div>
 	@HomeFooter(l.Footer)
 }
 

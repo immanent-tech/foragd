@@ -210,12 +210,7 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID m
 				InternalServerError(res, req, err)
 				return
 			}
-			itemFilters, ok := sessionAPI.Get(req.Context(), itemFiltersSessionKey).(models.Filters)
-			if !ok {
-				itemFilters = *models.NewFilters()
-			}
-			backRoute := models.NewRoute(models.ItemsRoute, &itemFilters)
-			layout := home.BuildArticleLayout(req, backRoute, item)
+			layout := home.BuildArticleLayout(req, item)
 			ctx := home.LayoutToCtx(req.Context(), layout)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

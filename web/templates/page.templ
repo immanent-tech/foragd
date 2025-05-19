@@ -37,7 +37,7 @@ templ (p *Page) Template() {
 	>
 		@p.Head.Show()
 		<body
-			hx-ext="morph,sse"
+			hx-ext="morph,sse,response-targets"
 		>
 			if p.Body != nil {
 				@p.Body.Template()
