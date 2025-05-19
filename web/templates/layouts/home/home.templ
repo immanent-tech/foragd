@@ -4,6 +4,7 @@
 package home
 
 import (
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
@@ -39,7 +40,7 @@ type HomeLayout struct {
 
 templ (l *HomeLayout) Template() {
 	@HomeHeader()
-	<div id="content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2">
+	<div id={ templates.ContentID.String() } class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2">
 		@HomeContent(l.Content...)
 	</div>
 	<div id="content-loading" class="items-center justify-center">
@@ -48,7 +49,7 @@ templ (l *HomeLayout) Template() {
 			loading.WithThemeColor(color.Accent),
 		).Show()
 	</div>
-	<div id="error"></div>
+	<div id={ templates.ErrorID.String() }></div>
 	<div id="not-found"></div>
 	@HomeFooter(l.Footer)
 }

@@ -22,10 +22,10 @@ func NewSettingsLayout(lastViewed models.PageView) *SettingsLayout {
 
 templ (l *SettingsLayout) Template() {
 	@SettingsHeader()
-	<div id="content">
+	<div id={ templates.ContentID.String() }>
 		@SettingsContent()
 	</div>
-	<div id="error"></div>
+	<div id={ templates.ErrorID.String() }></div>
 	<div id="not-found"></div>
 	@SettingsFooter(l.lastViewed)
 }
