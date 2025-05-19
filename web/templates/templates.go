@@ -18,7 +18,7 @@ var (
 var DefaultAttributes = templ.Attributes{
 	"hx-target":       ContentID.Target(),
 	"hx-push-url":     "true",
-	"hx-swap":         "morph:innerHTML show:top",
+	"hx-swap":         "morph:innerHTML swap:1s settle:1s show:top",
 	"hx-target-error": ErrorID.Target(),
 }
 

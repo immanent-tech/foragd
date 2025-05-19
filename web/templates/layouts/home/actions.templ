@@ -22,8 +22,8 @@ import (
 var actionAttributes = templ.Attributes{
 	"hx-push-url":     "false",
 	"hx-target":       templates.ContentID.Target(),
-	"hx-target-error": "#error",
-	// "hx-swap":     "morph:innerHTML swap:1s",
+	"hx-target-error": templates.ErrorID.Target(),
+	"hx-swap":         "morph:innerHTML swap:1s",
 }
 
 const actionTextClasses = "w-fit text-xs"
