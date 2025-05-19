@@ -225,15 +225,19 @@ func (a *API) FeedsSearchAll(ctx context.Context, queries ...query.Option) (mode
 
 // ItemsSearch performs a search query on feed items with the given query
 // options. It returns the raw search response.
-func (e *API) ItemsSearch(ctx context.Context, query query.Option, filters models.Filters) (*search.Response, error) {
+func (e *API) ItemsSearch(ctx context.Context, query query.Option, filters models.Filters, pagination models.Pagination) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 
-	sortValues, err := decodePagination(filters.Pagination)
-	if err != nil {
-		return nil, errors.Join(ErrSearchFailed, err)
+	var sortValues []types.FieldValue
+	if pagination != "" {
+		var err error
+		sortValues, err = decodePagination(pagination)
+		if err != nil {
+			return nil, errors.Join(ErrSearchFailed, err)
+		}
 	}
 
 	resp, err := NewSearchRequest(e.GetAPI(),

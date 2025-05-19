@@ -79,9 +79,6 @@ type Filters struct {
 	// Items is a list of items IDs.
 	Items []ItemID `form:"items[]" json:"items" validate:"omitnil,unique,dive,startswith=item_"`
 
-	// Pagination is any pagination data from the current request.
-	Pagination Pagination `json:"pagination,omitempty"`
-
 	// SortBy represents the selected field to sort on.
 	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
 

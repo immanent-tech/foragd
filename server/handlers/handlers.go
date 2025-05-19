@@ -57,7 +57,7 @@ type DataAPI interface {
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 	// Subscription methods:
 	GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, error)
-	GetSubscriptions(ctx context.Context) (models.Subscriptions, models.Pagination, error)
+	GetSubscriptions(ctx context.Context, pagination models.Pagination) (models.Subscriptions, models.Pagination, error)
 	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) error
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error
 	EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) error
@@ -68,7 +68,7 @@ type DataAPI interface {
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
 	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)
-	GetItems(ctx context.Context) (models.Items, models.Pagination, error)
+	GetItems(ctx context.Context, pagination models.Pagination) (models.Items, models.Pagination, error)
 	MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error
 	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error)
 }

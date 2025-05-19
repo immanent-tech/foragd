@@ -11,9 +11,7 @@ import (
 )
 
 const (
-	feedFiltersSessionKey = "feed_filters"
-	itemFiltersSessionKey = "item_filters"
-	ThemeSessionKey       = "theme"
+	ThemeSessionKey = "theme"
 )
 
 type SessionAPI interface {

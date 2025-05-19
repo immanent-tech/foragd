@@ -76,7 +76,7 @@ func (e *API) EditSubscription(ctx context.Context, subscriptionID models.Subscr
 }
 
 // GetUserSubscriptions returns all subscriptions for a user with feed and state details added.
-func (e *API) GetSubscriptions(ctx context.Context) (models.Subscriptions, models.Pagination, error) {
+func (e *API) GetSubscriptions(ctx context.Context, pagination models.Pagination) (models.Subscriptions, models.Pagination, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -108,7 +108,6 @@ func (e *API) GetSubscriptions(ctx context.Context) (models.Subscriptions, model
 	// Filter subscriptions with given filters.
 	subscriptions = subscriptions.Filter(models.FiltersFromCtx(ctx))
 	// Generate pagination.
-	pagination := models.FiltersFromCtx(ctx).Pagination
 	from, err := strconv.Atoi(pagination)
 	if err != nil {
 		from = 0
@@ -267,7 +266,7 @@ func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.I
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (e *API) GetItems(ctx context.Context) (models.Items, models.Pagination, error) {
+func (e *API) GetItems(ctx context.Context, pagination models.Pagination) (models.Items, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", ErrFetchCtx
@@ -292,7 +291,7 @@ func (e *API) GetItems(ctx context.Context) (models.Items, models.Pagination, er
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	resp, err := e.ItemsSearch(ctx, query, filters)
+	resp, err := e.ItemsSearch(ctx, query, filters, pagination)
 	if err != nil {
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
@@ -303,7 +302,7 @@ func (e *API) GetItems(ctx context.Context) (models.Items, models.Pagination, er
 			slog.Any("warnings", err))
 	}
 	// Encode the pagination value.
-	pagination, err := encodePagination(lastSortValue)
+	pagination, err = encodePagination(lastSortValue)
 	if err != nil {
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}

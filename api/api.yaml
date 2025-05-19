@@ -82,14 +82,10 @@ components:
         - sort_by
         - sort_order
       properties:
-        # pagination:
-        #   $ref: "#/components/schemas/Pagination"
         count:
           $ref: '#/components/schemas/Count'
         view:
           $ref: '#/components/schemas/View'
-        # since:
-        #   $ref: "#/components/schemas/Since"
         sort_by:
           $ref: '#/components/schemas/SortBy'
         sort_order:
@@ -131,12 +127,6 @@ components:
                 json: 'categories'
                 form: 'categories[]'
                 validate: 'omitnil,unique,dive,url_encoded'
-              x-go-type-skip-optional-pointer: true
-            pagination:
-              description: >
-                is any pagination data from the current request.
-              allOf:
-                - $ref: '#/components/schemas/Pagination'
               x-go-type-skip-optional-pointer: true
     UserDecision:
       description: >

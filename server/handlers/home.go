@@ -66,18 +66,6 @@ func GenerateFilters(session models.SessionAPI, params any) func(next http.Handl
 				InternalServerError(res, req, err)
 				return
 			}
-			// Store filters in session.
-			route := chi.RouteContext(req.Context()).RoutePattern()
-			switch route {
-			case models.FeedsRoute:
-				session.Put(req.Context(), feedFiltersSessionKey, filters)
-			case models.ItemsRoute:
-				session.Put(req.Context(), itemFiltersSessionKey, filters)
-			default:
-				slogctx.FromCtx(req.Context()).Warn("Cannot generate filters, unknown route.",
-					slog.String("route", route))
-				return
-			}
 			ctx := models.FiltersToCtx(req.Context(), *filters)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -140,11 +128,11 @@ func SetupNavigation() func(next http.Handler) http.Handler {
 }
 
 // GenerateFeedsContent creates the content for displaying a list of feeds.
-func GenerateFeedsContent(dataAPI DataAPI) func(next http.Handler) http.Handler {
+func GenerateFeedsContent(dataAPI DataAPI, pagination models.Pagination) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Get feeds.
-			subscriptions, pagination, err := dataAPI.GetSubscriptions(req.Context())
+			subscriptions, pagination, err := dataAPI.GetSubscriptions(req.Context(), pagination)
 			if err != nil {
 				InternalServerError(res, req, err)
 				return
@@ -198,10 +186,10 @@ func MarkItems(api DataAPI) func(next http.Handler) http.Handler {
 }
 
 // GenerateItemsContent creates the content for displaying a list of items.
-func GenerateItemsContent(dataAPI DataAPI, sessionAPI models.SessionAPI) func(next http.Handler) http.Handler {
+func GenerateItemsContent(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			items, pagination, err := dataAPI.GetItems(req.Context())
+			items, pagination, err := dataAPI.GetItems(req.Context(), pagination)
 			if err != nil {
 				InternalServerError(res, req, err)
 				return

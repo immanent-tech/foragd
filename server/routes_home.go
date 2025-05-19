@@ -23,26 +23,34 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 }
 
 func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
+	var pagination models.Pagination
+	if params.Pagination != nil {
+		pagination = *params.Pagination
+	}
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.SavePageView(models.FeedsRoute, params),
 		handlers.SetupNavigation(),
-		handlers.GenerateFeedsContent(s.DataAPI()),
+		handlers.GenerateFeedsContent(s.DataAPI(), pagination),
 		handlers.SaveHomeHistory(),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
 }
 
 func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, params HandleShowItemsParams) {
+	var pagination models.Pagination
+	if params.Pagination != nil {
+		pagination = *params.Pagination
+	}
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.SavePageView(models.ItemsRoute, params),
 		handlers.SetupNavigation(),
-		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI()),
+		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI(), pagination),
 		handlers.SaveHomeHistory(),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
