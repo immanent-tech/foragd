@@ -428,7 +428,7 @@ func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confi
 			slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
 				slog.String("subscription_id", subscriptionID),
 			)
-			modal := partials.QuestionModal("Unsubscribe?", action.Attributes())
+			modal := partials.AskQuestion("Unsubscribe?", action.Attributes())
 			PartialRender(modal).ServeHTTP(res, req.WithContext(ctx))
 		}
 	})

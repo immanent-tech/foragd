@@ -7,8 +7,13 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/modal"
+	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
 )
+
+var NotificationsID = attributes.ID("notifications")
+var ModalID = attributes.ID("modal")
 
 type UserMessage struct {
 	*models.Message
@@ -102,6 +107,21 @@ templ ShowNotification(msg *models.Message) {
 			}
 		}
 	</div>
+}
+
+templ AskQuestion(question string, attributes templ.Attributes) {
+	@modal.Build(
+		modal.WithID(ModalID.String()),
+		modal.WithCloseOutside(),
+	).Show() {
+		<h3 class="font-bold">Unsubscribe from feed?</h3>
+		<div class="modal-action">
+			<form method="dialog" _={ "on click remove @open from " + ModalID.Target() }>
+				<button name="confirmation" value="yes" class="btn" { attributes... }>Yes</button>
+				<button name="confirmation" value="cancel" class="btn" { attributes... }>No</button>
+			</form>
+		</div>
+	}
 }
 
 // CopyTextButton builds a button that will copy the given text to the clipboard when clicked.
