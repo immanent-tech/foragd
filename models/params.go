@@ -1,0 +1,19 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package models
+
+// Defines values for Param.
+const (
+	ParamCategories = "categories"
+	ParamCount      = "count"
+	ParamFeeds      = "feeds"
+	ParamItems      = "items"
+	ParamPagination = "pagination"
+	ParamSortBy     = "sort_by"
+	ParamSortOrder  = "sort_order"
+	ParamView       = "view"
+	ParamFeedID     = "feed_id"
+	ParamItemID     = "item_id"
+	ParamRedirect   = "redirect_on_success"
+)

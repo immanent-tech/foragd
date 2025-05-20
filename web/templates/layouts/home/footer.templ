@@ -57,15 +57,11 @@ func BuildListFooter(ctx context.Context, path string, categories models.Categor
 
 // ArticleHeader represents the content header for an individual article.
 type ArticleFooter struct {
-	backButton templ.Component
-	item       *models.Item
+	item *models.Item
 }
 
 templ (f *ArticleFooter) Show() {
 	@footer(ContentFooterID.String()) {
-		@footerItem("Back") {
-			@f.backButton
-		}
 		@footerItem("View Item") {
 			<a href={ templ.URL(f.item.GetLink()) } target="_blank">
 				@tabler.ExternalLink()

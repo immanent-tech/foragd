@@ -54,11 +54,17 @@ type Feeds = []externalRef0.FeedID
 // ItemID is the unique ID of an item.
 type ItemID = externalRef0.ItemID
 
+// Items is a list of items IDs.
+type Items = []externalRef0.ItemID
+
 // Mark applies the given mark action to objects.
 type Mark = externalRef0.Mark
 
 // Pagination contains data for paginating through results.
 type Pagination = externalRef0.Pagination
+
+// RedirectOnSuccess defines model for RedirectOnSuccess.
+type RedirectOnSuccess = string
 
 // SortBy represents the selected field to sort on.
 type SortBy = externalRef0.SortBy
@@ -89,6 +95,9 @@ type HandleShowFeedsParams struct {
 // MarkFeedsParams defines parameters for MarkFeeds.
 type MarkFeedsParams struct {
 	Feeds *Feeds `form:"feeds,omitempty" json:"feeds,omitempty"`
+
+	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
 }
 
 // HandleShowItemsParams defines parameters for HandleShowItems.
@@ -102,6 +111,20 @@ type HandleShowItemsParams struct {
 	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
 }
 
+// MarkItemsParams defines parameters for MarkItems.
+type MarkItemsParams struct {
+	Items *Items `form:"items,omitempty" json:"items,omitempty"`
+
+	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
+}
+
+// MarkItemParams defines parameters for MarkItem.
+type MarkItemParams struct {
+	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
+}
+
 // RemoveSubscriptionParams defines parameters for RemoveSubscription.
 type RemoveSubscriptionParams struct {
 	Decision *Decision `form:"decision,omitempty" json:"decision,omitempty"`
@@ -113,13 +136,19 @@ type SetImportMethodFormdataBody struct {
 	From externalRef0.ImportSource `form:"source" json:"source" validate:"oneof=opml_file opml_url url_list"`
 }
 
+// MarkSubscriptionParams defines parameters for MarkSubscription.
+type MarkSubscriptionParams struct {
+	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
+}
+
 // MarkAllSubscriptionsParams defines parameters for MarkAllSubscriptions.
 type MarkAllSubscriptionsParams struct {
 	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
-}
 
-// HandleMarkItemsFormdataRequestBody defines body for HandleMarkItems for application/x-www-form-urlencoded ContentType.
-type HandleMarkItemsFormdataRequestBody = externalRef0.MarkObjects
+	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
+}
 
 // ProcessSignUpFormdataRequestBody defines body for ProcessSignUp for application/x-www-form-urlencoded ContentType.
 type ProcessSignUpFormdataRequestBody = externalRef0.UserSignupRequest
@@ -238,12 +267,9 @@ type ServerInterface interface {
 	// Shows items with optional filtering applied.
 	// (GET /home/items)
 	HandleShowItems(w http.ResponseWriter, r *http.Request, params HandleShowItemsParams)
-	// Mark feeds.
-	// (POST /home/items)
-	HandleMarkItems(w http.ResponseWriter, r *http.Request)
-	// Endpoint point for SSE events regarding /home.
-	// (GET /home/notifications)
-	HandleHomeNotifications(w http.ResponseWriter, r *http.Request)
+	// Marks the given items with the given mark.
+	// (POST /home/items/mark/{mark})
+	MarkItems(w http.ResponseWriter, r *http.Request, mark Mark, params MarkItemsParams)
 	// Remove a feed item from the user's saved items.
 	// (DELETE /home/{feed}/{item})
 	HandleUnsaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
@@ -255,7 +281,7 @@ type ServerInterface interface {
 	HandleSaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
 	// Mark a feed item.
 	// (POST /home/{feed}/{item}/{mark})
-	HandleMarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, mark Mark)
+	MarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, mark Mark, params MarkItemParams)
 	// Process a user login with given provider
 	// (GET /login/{provider})
 	Login(w http.ResponseWriter, r *http.Request, provider string)
@@ -306,7 +332,7 @@ type ServerInterface interface {
 	SetImportMethod(w http.ResponseWriter, r *http.Request)
 	// Marks the given subscription with the given mark.
 	// (POST /subscription/mark/{mark}/{subscription})
-	MarkSubscription(w http.ResponseWriter, r *http.Request, mark Mark, subscription SubscriptionID)
+	MarkSubscription(w http.ResponseWriter, r *http.Request, mark Mark, subscription SubscriptionID, params MarkSubscriptionParams)
 	// New subscription handling.
 	// (GET /subscription/new)
 	NewSubscription(w http.ResponseWriter, r *http.Request)
@@ -348,15 +374,9 @@ func (_ Unimplemented) HandleShowItems(w http.ResponseWriter, r *http.Request, p
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Mark feeds.
-// (POST /home/items)
-func (_ Unimplemented) HandleMarkItems(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Endpoint point for SSE events regarding /home.
-// (GET /home/notifications)
-func (_ Unimplemented) HandleHomeNotifications(w http.ResponseWriter, r *http.Request) {
+// Marks the given items with the given mark.
+// (POST /home/items/mark/{mark})
+func (_ Unimplemented) MarkItems(w http.ResponseWriter, r *http.Request, mark Mark, params MarkItemsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -380,7 +400,7 @@ func (_ Unimplemented) HandleSaveItem(w http.ResponseWriter, r *http.Request, fe
 
 // Mark a feed item.
 // (POST /home/{feed}/{item}/{mark})
-func (_ Unimplemented) HandleMarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, mark Mark) {
+func (_ Unimplemented) MarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, mark Mark, params MarkItemParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -479,7 +499,7 @@ func (_ Unimplemented) SetImportMethod(w http.ResponseWriter, r *http.Request) {
 
 // Marks the given subscription with the given mark.
 // (POST /subscription/mark/{mark}/{subscription})
-func (_ Unimplemented) MarkSubscription(w http.ResponseWriter, r *http.Request, mark Mark, subscription SubscriptionID) {
+func (_ Unimplemented) MarkSubscription(w http.ResponseWriter, r *http.Request, mark Mark, subscription SubscriptionID, params MarkSubscriptionParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -660,6 +680,14 @@ func (siw *ServerInterfaceWrapper) MarkFeeds(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
+	// ------------- Optional query parameter "redirect_on_success" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "redirect_on_success", r.URL.Query(), &params.RedirectOnSuccess)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_on_success", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.MarkFeeds(w, r, mark, params)
 	}))
@@ -774,25 +802,41 @@ func (siw *ServerInterfaceWrapper) HandleShowItems(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
-// HandleMarkItems operation middleware
-func (siw *ServerInterfaceWrapper) HandleMarkItems(w http.ResponseWriter, r *http.Request) {
+// MarkItems operation middleware
+func (siw *ServerInterfaceWrapper) MarkItems(w http.ResponseWriter, r *http.Request) {
 
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleMarkItems(w, r)
-	}))
+	var err error
 
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
+	// ------------- Path parameter "mark" -------------
+	var mark Mark
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
+		return
 	}
 
-	handler.ServeHTTP(w, r)
-}
+	// Parameter object where we will unmarshal all parameters from the context
+	var params MarkItemsParams
 
-// HandleHomeNotifications operation middleware
-func (siw *ServerInterfaceWrapper) HandleHomeNotifications(w http.ResponseWriter, r *http.Request) {
+	// ------------- Optional query parameter "items" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "items", r.URL.Query(), &params.Items)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "items", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "redirect_on_success" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "redirect_on_success", r.URL.Query(), &params.RedirectOnSuccess)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_on_success", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleHomeNotifications(w, r)
+		siw.Handler.MarkItems(w, r, mark, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -904,8 +948,8 @@ func (siw *ServerInterfaceWrapper) HandleSaveItem(w http.ResponseWriter, r *http
 	handler.ServeHTTP(w, r)
 }
 
-// HandleMarkItem operation middleware
-func (siw *ServerInterfaceWrapper) HandleMarkItem(w http.ResponseWriter, r *http.Request) {
+// MarkItem operation middleware
+func (siw *ServerInterfaceWrapper) MarkItem(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -936,8 +980,19 @@ func (siw *ServerInterfaceWrapper) HandleMarkItem(w http.ResponseWriter, r *http
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params MarkItemParams
+
+	// ------------- Optional query parameter "redirect_on_success" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "redirect_on_success", r.URL.Query(), &params.RedirectOnSuccess)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_on_success", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleMarkItem(w, r, feed, item, mark)
+		siw.Handler.MarkItem(w, r, feed, item, mark, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1260,8 +1315,19 @@ func (siw *ServerInterfaceWrapper) MarkSubscription(w http.ResponseWriter, r *ht
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params MarkSubscriptionParams
+
+	// ------------- Optional query parameter "redirect_on_success" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "redirect_on_success", r.URL.Query(), &params.RedirectOnSuccess)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_on_success", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.MarkSubscription(w, r, mark, subscription)
+		siw.Handler.MarkSubscription(w, r, mark, subscription, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1307,6 +1373,14 @@ func (siw *ServerInterfaceWrapper) MarkAllSubscriptions(w http.ResponseWriter, r
 	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "redirect_on_success" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "redirect_on_success", r.URL.Query(), &params.RedirectOnSuccess)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_on_success", Err: err})
 		return
 	}
 
@@ -1450,10 +1524,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/home/items", wrapper.HandleShowItems)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/items", wrapper.HandleMarkItems)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/notifications", wrapper.HandleHomeNotifications)
+		r.Post(options.BaseURL+"/home/items/mark/{mark}", wrapper.MarkItems)
 	})
 	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleUnsaveItem)
@@ -1465,7 +1536,7 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleSaveItem)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/{feed}/{item}/{mark}", wrapper.HandleMarkItem)
+		r.Post(options.BaseURL+"/home/{feed}/{item}/{mark}", wrapper.MarkItem)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/login/{provider}", wrapper.Login)

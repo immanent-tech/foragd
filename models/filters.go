@@ -49,21 +49,6 @@ const (
 	DefaultSince = math.MaxInt64
 )
 
-// Defines values for Param.
-const (
-	ParamCategories = "categories"
-	ParamCount      = "count"
-	ParamFeeds      = "feeds"
-	ParamItems      = "items"
-	ParamPagination = "pagination"
-	ParamSince      = "since"
-	ParamSortBy     = "sort_by"
-	ParamSortOrder  = "sort_order"
-	ParamView       = "view"
-	ParamFeedID     = "feed_id"
-	ParamItemID     = "item_id"
-)
-
 // FiltersValidation is a custom struct-level validation function for Filters.
 // In this case, we validate that either a list of Feeds or Items has been
 // provided, and fail validation if both have been provided.

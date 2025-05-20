@@ -15,29 +15,30 @@ type Page struct {
 	Body           Layout
 }
 
-// on load
+// on htmx:historyRestore
 // 	fetch /settings/theme then send setTheme(theme: result)
 // end
 templ (p *Page) Template() {
 	<!DOCTYPE html>
 	<html
 		lang="en"
-		data-theme="light"
+		data-theme=""
 		_="
-		on
-			setTheme(theme) set @data-theme to theme
+		on setTheme(theme)
+			set @data-theme to theme
+		end
+		on htmx:load queue first
+			fetch /settings/theme then send setTheme(theme: result)
 		end
 		on htmx:historyRestore
-			fetch /settings/theme then send setTheme(theme: result)
-		end
-		on htmx:load
-			fetch /settings/theme then send setTheme(theme: result)
+			log 'restored history'
 		end
 		"
 	>
 		@p.Head.Show()
 		<body
 			hx-ext="morph,sse,response-targets"
+			hx-history="false"
 		>
 			if p.Body != nil {
 				@p.Body.Template()

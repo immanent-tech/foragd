@@ -5,11 +5,9 @@ package server
 
 import (
 	"errors"
-	"log/slog"
 	"net/http"
 
 	"github.com/justinas/alice"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/handlers"
@@ -34,7 +32,6 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.SavePageView(models.FeedsRoute, params),
-		handlers.SetupNavigation(),
 		handlers.GenerateFeedsContent(s.DataAPI(), pagination),
 	).Then(handlers.DisplayHome())
 	chain.ServeHTTP(res, req)
@@ -50,17 +47,8 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.SavePageView(models.ItemsRoute, params),
-		handlers.SetupNavigation(),
 		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI(), pagination),
 	).Then(handlers.DisplayHome())
-	chain.ServeHTTP(res, req)
-}
-
-func (s Server) HandleMarkItems(res http.ResponseWriter, req *http.Request) {
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.MarkItems(s.DataAPI()),
-	).Then(handlers.ShowView(models.ItemsRoute))
 	chain.ServeHTTP(res, req)
 }
 
@@ -72,22 +60,6 @@ func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedI
 	chain.ServeHTTP(res, req)
 }
 
-// HandleMarkItem marks a single item.
-func (s Server) HandleMarkItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, mark models.Mark) {
-	marks := &models.MarkFeedItems{
-		Feed:  feedID,
-		Items: []models.ItemID{itemID},
-		Mark:  mark,
-	}
-	// Mark item.
-	if err := s.DataAPI().MarkItems(req.Context(), marks); err != nil {
-		slogctx.FromCtx(req.Context()).Error("Mark item failed.",
-			slog.Any("error", err))
-		http.Error(res, err.Error(), http.StatusInternalServerError)
-	}
-	res.WriteHeader(http.StatusOK)
-}
-
 func (s Server) HandleSaveItem(res http.ResponseWriter, req *http.Request, feed models.FeedID, item models.ItemID) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
@@ -97,13 +69,33 @@ func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, fee
 }
 
 func (s Server) MarkFeeds(res http.ResponseWriter, req *http.Request, mark Mark, params MarkFeedsParams) {
-	var feeds []models.FeedID
+	var feedIDs []models.FeedID
 	if params.Feeds != nil {
-		feeds = append(feeds, *params.Feeds...)
+		feedIDs = *params.Feeds
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.MarkFeeds(s.DataAPI(), mark, feeds...),
-	).Then(handlers.ShowView(models.FeedsRoute))
+		handlers.SetupRedirect(params.RedirectOnSuccess),
+	).Then(handlers.MarkFeeds(s.DataAPI(), mark, feedIDs...))
+	chain.ServeHTTP(res, req)
+}
+
+func (s Server) MarkItems(res http.ResponseWriter, req *http.Request, mark Mark, params MarkItemsParams) {
+	var itemIDs []models.FeedID
+	if params.Items != nil {
+		itemIDs = *params.Items
+	}
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetupRedirect(params.RedirectOnSuccess),
+	).Then(handlers.MarkItems(s.DataAPI(), mark, itemIDs...))
+	chain.ServeHTTP(res, req)
+}
+
+func (s Server) MarkItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, mark models.Mark, params MarkItemParams) {
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetupRedirect(params.RedirectOnSuccess),
+	).Then(handlers.MarkItems(s.DataAPI(), mark, itemID))
 	chain.ServeHTTP(res, req)
 }

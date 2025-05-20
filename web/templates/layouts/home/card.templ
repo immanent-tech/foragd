@@ -217,7 +217,7 @@ func newItemCard(ctx context.Context, item *models.Item) *ItemCard {
 		card.WithExtraClasses(defaultCardClasses),
 	)
 	switch {
-	case CurrentViewFromCtx(ctx).Filters.View == models.ViewRead:
+	case models.FiltersFromCtx(ctx).View == models.ViewRead:
 		fallthrough
 	case item.GetUserState() == models.StateRead:
 		card.WithExtraClasses(opacity.Apply(75))(itemCard.Props)

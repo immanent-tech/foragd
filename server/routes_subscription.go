@@ -135,11 +135,11 @@ func showImportFailed(res http.ResponseWriter, req *http.Request, msg *models.Me
 	}
 }
 
-func (s Server) MarkSubscription(res http.ResponseWriter, req *http.Request, mark models.Mark, subscription models.SubscriptionID) {
+func (s Server) MarkSubscription(res http.ResponseWriter, req *http.Request, mark models.Mark, subscription models.SubscriptionID, params MarkSubscriptionParams) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.MarkSubscriptions(s.DataAPI(), mark, subscription),
-	).Then(handlers.ShowView(models.FeedsRoute))
+		handlers.SetupRedirect(params.RedirectOnSuccess),
+	).Then(handlers.MarkSubscriptions(s.DataAPI(), mark, subscription))
 	chain.ServeHTTP(res, req)
 }
 
@@ -150,7 +150,7 @@ func (s Server) MarkAllSubscriptions(res http.ResponseWriter, req *http.Request,
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.MarkSubscriptions(s.DataAPI(), mark, subscriptions...),
-	).Then(handlers.ShowView("/home"))
+		handlers.SetupRedirect(params.RedirectOnSuccess),
+	).Then(handlers.MarkSubscriptions(s.DataAPI(), mark, subscriptions...))
 	chain.ServeHTTP(res, req)
 }

@@ -4,6 +4,7 @@
 package home
 
 import (
+	"context"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/action"
@@ -81,19 +82,21 @@ func markUnreadLink(label string, attributes templ.Attributes) templ.Component {
 
 // markAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
 // depending on the current view.
-func markAllItemsAction(feeds []models.FeedID, view models.View) templ.Component {
-	switch view {
+func markAllItemsAction(ctx context.Context, feeds []models.FeedID) templ.Component {
+	switch models.FiltersFromCtx(ctx).View {
 	case models.ViewUnread:
 		action := action.Build(models.FeedsRoute+"/mark/"+string(models.MarkRead),
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(actionAttributes),
+			action.WithParam(models.ParamRedirect, models.FeedsRoute),
 			action.WithParam(models.ParamFeeds, strings.Join(feeds, ",")),
 		)
 		return markReadLink("Mark All Read", action.Attributes())
 	case models.ViewRead:
-		action := action.Build(models.FeedsRoute+"/mark/"+string(models.MarkRead),
+		action := action.Build(models.FeedsRoute+"/mark/"+string(models.MarkUnread),
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(actionAttributes),
+			action.WithParam(models.ParamRedirect, models.FeedsRoute),
 			action.WithParam(models.ParamFeeds, strings.Join(feeds, ",")),
 		)
 		return markUnreadLink("Mark All Unread", action.Attributes())
@@ -120,18 +123,20 @@ func markItemAction(feedID models.FeedID, itemID models.ItemID, isUnread bool) t
 
 // markAllFeedsAction generates an action for the footer menu to mark all feeds as either read or unread, depending on
 // the current view.
-func markAllFeedsAction(view models.View) templ.Component {
-	switch view {
+func markAllFeedsAction(ctx context.Context) templ.Component {
+	switch models.FiltersFromCtx(ctx).View {
 	case models.ViewUnread:
 		action := action.Build("/subscriptions/mark/"+string(models.MarkRead),
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(actionAttributes),
+			action.WithParam(models.ParamRedirect, "/home"),
 		)
 		return markReadLink("Mark All Read", action.Attributes())
 	case models.ViewRead:
 		action := action.Build("/subscriptions/mark/"+string(models.MarkUnread),
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(actionAttributes),
+			action.WithParam(models.ParamRedirect, "/home"),
 		)
 		return markUnreadLink("Mark All Unread", action.Attributes())
 	default:
@@ -143,13 +148,25 @@ func markFeedAction(id models.SubscriptionID, isRead bool) templ.Component {
 	if isRead {
 		action := action.Build("/subscription/mark/"+string(models.MarkRead)+"/"+id,
 			action.WithMethod(http.MethodPost),
-			action.WithAttributes(actionAttributes),
+			action.WithAttributes(templ.Attributes{
+				"hx-push-url":     "false",
+				"hx-target":       templates.ContentID.Target(),
+				"hx-target-error": templates.ErrorID.Target(),
+				"hx-swap":         "morph:innerHTML swap:1s",
+			}),
+			action.WithParam(models.ParamRedirect, models.FeedsRoute),
 		)
 		return markReadLink("Mark Read", action.Attributes())
 	}
 	action := action.Build("/subscription/mark/"+string(models.MarkUnread)+"/"+id,
 		action.WithMethod(http.MethodPost),
-		action.WithAttributes(actionAttributes),
+		action.WithAttributes(templ.Attributes{
+			"hx-push-url":     "false",
+			"hx-target":       templates.ContentID.Target(),
+			"hx-target-error": templates.ErrorID.Target(),
+			"hx-swap":         "morph:innerHTML swap:1s",
+		}),
+		action.WithParam(models.ParamRedirect, models.FeedsRoute),
 	)
 	return markUnreadLink("Mark Unread", action.Attributes())
 }

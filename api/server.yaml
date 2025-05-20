@@ -219,6 +219,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Mark'
         - $ref: '#/components/parameters/SubscriptionID'
+        - $ref: '#/components/parameters/RedirectOnSuccess'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -230,6 +231,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Mark'
         - $ref: '#/components/parameters/Subscriptions'
+        - $ref: '#/components/parameters/RedirectOnSuccess'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -242,14 +244,6 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/notifications:
-    get:
-      summary: >
-        Endpoint point for SSE events regarding /home.
-      operationId: handleHomeNotifications
-      responses:
-        200:
-          $ref: '#/components/responses/sse'
   /home/feeds:
     get:
       summary: >
@@ -274,6 +268,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Mark'
         - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/RedirectOnSuccess'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -293,12 +288,15 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
+  /home/items/mark/{mark}:
     post:
       summary: >
-        Mark feeds.
-      operationId: handleMarkItems
-      requestBody:
-        $ref: '#/components/requestBodies/MarkRequest'
+        Marks the given items with the given mark.
+      operationId: markItems
+      parameters:
+        - $ref: '#/components/parameters/Mark'
+        - $ref: '#/components/parameters/Items'
+        - $ref: '#/components/parameters/RedirectOnSuccess'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -331,11 +329,12 @@ paths:
     post:
       summary: >
         Mark a feed item.
-      operationId: handleMarkItem
+      operationId: markItem
       parameters:
         - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/ItemID'
         - $ref: '#/components/parameters/Mark'
+        - $ref: '#/components/parameters/RedirectOnSuccess'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -419,6 +418,14 @@ components:
       schema:
         type: string
     # Query Parameters:
+    RedirectOnSuccess:
+      description: >
+        specifies a location to which the client should be redirected on a successful request. Used to perform a
+        client-side redirection with htmx.
+      name: redirect_on_success
+      in: query
+      schema:
+        type: string
     Decision:
       name: decision
       in: query
@@ -458,7 +465,7 @@ components:
           json: 'feeds'
           form: 'feeds[]'
           validate: 'omitnil,unique,dive,startswith=feed_'
-      # x-go-type-skip-optional-pointer: true
+        # x-go-type-skip-optional-pointer: true
     Items:
       name: items
       in: query
@@ -471,8 +478,7 @@ components:
           json: 'items'
           form: 'items[]'
           validate: 'omitnil,unique,dive,startswith=item_'
-        x-go-type-skip-optional-pointer: true
-      # x-go-type-skip-optional-pointer: true
+        # x-go-type-skip-optional-pointer: true
     Categories:
       name: categories
       in: query

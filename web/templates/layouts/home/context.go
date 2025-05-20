@@ -5,8 +5,6 @@ package home
 
 import (
 	"context"
-
-	"github.com/joshuar/go-feed-me/models"
 )
 
 const (
@@ -16,30 +14,6 @@ const (
 )
 
 type contextKey string
-
-func CurrentViewToCtx(ctx context.Context, view models.PageView) context.Context {
-	return context.WithValue(ctx, currentRouteCtxKey, view)
-}
-
-func CurrentViewFromCtx(ctx context.Context) models.PageView {
-	route, found := ctx.Value(currentRouteCtxKey).(models.PageView)
-	if !found {
-		return models.NewPageView("/home", nil)
-	}
-	return route
-}
-
-func PreviousViewToCtx(ctx context.Context, view models.PageView) context.Context {
-	return context.WithValue(ctx, previousRouteCtxKey, view)
-}
-
-func PreviousViewFromCtx(ctx context.Context) models.PageView {
-	route, found := ctx.Value(previousRouteCtxKey).(models.PageView)
-	if !found {
-		return models.NewPageView("/home", nil)
-	}
-	return route
-}
 
 // FiltersToCtx stores the current filters in the context.
 func LayoutToCtx(ctx context.Context, content *HomeLayout) context.Context {

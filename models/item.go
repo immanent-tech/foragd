@@ -28,6 +28,13 @@ func (i Items) FilterSince(since time.Time) Items {
 	}))
 }
 
+// FilterByFeed filters the given slice of Items to ones which match the given feed ID.
+func (i Items) FilterByFeed(feedID FeedID) Items {
+	return slices.Collect(FilterSlice(i, func(v *Item) bool {
+		return v.GetFeedID() == feedID
+	}))
+}
+
 // GetFeedIDs retrieves a list of all FeedIDs for all items.
 func (i Items) GetFeedIDs() []FeedID {
 	feedIDs := make([]FeedID, 0, len(i))
@@ -35,6 +42,15 @@ func (i Items) GetFeedIDs() []FeedID {
 		feedIDs = append(feedIDs, item.GetFeedID())
 	}
 	return slices.Compact(feedIDs)
+}
+
+// GetIDs retrieves a list of all ItemIDs for all items.
+func (i Items) GetIDs() []ItemID {
+	itemIDs := make([]ItemID, 0, len(i))
+	for item := range slices.Values(i) {
+		itemIDs = append(itemIDs, item.GetID())
+	}
+	return slices.Compact(itemIDs)
 }
 
 // GetCategoryCounts returns a count of the occurrence of a Category across all

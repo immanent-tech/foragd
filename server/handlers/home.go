@@ -5,19 +5,14 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
-	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/go-chi/chi/v5"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 )
@@ -94,39 +89,6 @@ func SavePageView(path string, params any) func(next http.Handler) http.Handler 
 	}
 }
 
-func SetupNavigation() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			var (
-				route    string
-				current  models.PageView
-				previous models.PageView
-			)
-			if redirect := req.Header.Get(htmx.HeaderLocation); redirect != "" {
-				route = redirect
-			} else {
-				route = chi.RouteContext(req.Context()).RoutePattern()
-			}
-			session := models.SessionFromCtx(req.Context())
-			switch route {
-			case models.FeedsRoute:
-				current = models.GetViewFromSession(req.Context(), session, models.FeedsRoute)
-				previous = models.GetViewFromSession(req.Context(), session, "/home")
-			case models.ItemsRoute:
-				current = models.GetViewFromSession(req.Context(), session, models.ItemsRoute)
-				previous = models.GetViewFromSession(req.Context(), session, models.FeedsRoute)
-			}
-			ctx := req.Context()
-			slogctx.FromCtx(ctx).Debug("Saving current view.", slog.String("view", current.AsAction().String()))
-			ctx = home.CurrentViewToCtx(ctx, current)
-			slogctx.FromCtx(ctx).Debug("Saving previous view.", slog.String("view", previous.AsAction().String()))
-			ctx = home.PreviousViewToCtx(ctx, previous)
-			ctx = models.FiltersToCtx(ctx, current.Filters)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
 // GenerateFeedsContent creates the content for displaying a list of feeds.
 func GenerateFeedsContent(dataAPI DataAPI, pagination models.Pagination) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -145,44 +107,34 @@ func GenerateFeedsContent(dataAPI DataAPI, pagination models.Pagination) func(ne
 }
 
 // MarkFeeds will mark the user's subscriptions that match the given feeds with the given mark.
-func MarkFeeds(api DataAPI, mark models.Mark, feeds ...models.FeedID) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Get the user details.
-			user, found := models.UserFromCtx(req.Context())
-			if !found {
-				InternalServerError(res, req, ErrInvalidUser)
-			}
-			// Get the user subscriptions matching the feeds
-			subscriptions := user.GetSubscriptions().FilterByFeedID(feeds...)
-			// Mark the subscriptions.
-			if err := api.MarkSubscriptions(req.Context(), mark, subscriptions.GetIDs()...); err != nil {
-				InternalServerError(res, req, err)
-				return
-			}
-			next.ServeHTTP(res, req)
-		})
-	}
+func MarkFeeds(api DataAPI, mark models.Mark, feeds ...models.FeedID) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get the user details.
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			InternalServerError(res, req, ErrInvalidUser)
+		}
+		// Get the user subscriptions matching the feeds
+		subscriptions := user.GetSubscriptions().FilterByFeedID(feeds...)
+		// Mark the subscriptions.
+		if err := api.MarkSubscriptions(req.Context(), mark, subscriptions.GetIDs()...); err != nil {
+			InternalServerError(res, req, err)
+			return
+		}
+		res.WriteHeader(http.StatusOK)
+	})
 }
 
 // MarkItems handles marking items as read.
-func MarkItems(api DataAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Get the mark request.
-			marks, valid, err := forms.DecodeForm[*models.MarkFeedItems](req)
-			if err != nil || !valid {
-				InternalServerError(res, req, err)
-				return
-			}
-			// Mark the feeds.
-			if err := api.MarkItems(req.Context(), marks); err != nil {
-				InternalServerError(res, req, err)
-				return
-			}
-			next.ServeHTTP(res, req)
-		})
-	}
+func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Mark the feeds.
+		if err := api.MarkItems(req.Context(), mark, items...); err != nil {
+			InternalServerError(res, req, err)
+			return
+		}
+		res.WriteHeader(http.StatusOK)
+	})
 }
 
 // GenerateItemsContent creates the content for displaying a list of items.
@@ -227,7 +179,7 @@ func DisplayHome() http.Handler {
 		// Decide whether we need to do a full or partial render based on whether
 		// this is a htmx request or not.
 		var handler http.Handler
-		if htmx.IsHTMX(req) {
+		if htmx.IsHTMX(req) && req.Header.Get(htmx.HeaderHistoryRestoreRequest) != "true" {
 			var parts []templ.Component
 			// parts = append(parts, layout.Header)
 			parts = append(parts, layout.Content...)
@@ -240,19 +192,5 @@ func DisplayHome() http.Handler {
 			)
 		}
 		handler.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-func ShowView(path string) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		session := models.SessionFromCtx(req.Context())
-		view := models.GetViewFromSession(req.Context(), session, path)
-		HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
-		data, err := json.Marshal(HxLocationData)
-		if err != nil {
-			InternalServerError(res, req, err)
-		}
-		// Set-up client-side redirect to view.
-		res.Header().Add(htmx.HeaderLocation, string(data))
 	})
 }

@@ -6,6 +6,7 @@ package elastic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"slices"
 	"strconv"
@@ -319,19 +320,23 @@ func (e *API) GetItems(ctx context.Context, pagination models.Pagination) (model
 }
 
 // MarkItems will mark the given items for the given feeds with the given state for the user.
-func (e *API) MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error {
+func (e *API) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return ErrNoUserCtx
 	}
-	for mark := range slices.Values(marks) {
-		if len(mark.Items) == 0 {
-			// Mark all items for feed subscription.
-			user.MarkSubscriptions(mark.Mark, mark.Feed)
-		} else {
-			// Mark individual items.
-			user.MarkItems(mark.Mark, mark.Feed, mark.Items...)
-		}
+	if len(itemIDs) == 0 {
+		slogctx.FromCtx(ctx).Warn("Mark items requested but not items provided.")
+		return nil
+	}
+	// Get item details.
+	items, err := e.GetItemsByID(ctx, itemIDs...)
+	if err != nil {
+		return fmt.Errorf("could not mark items: %w", err)
+	}
+	// Mark each item in the user data.
+	for feedID := range slices.Values(items.GetFeedIDs()) {
+		user.MarkItems(mark, feedID, items.FilterByFeed(feedID).GetIDs()...)
 	}
 	// Update the user object.
 	return e.UpdateUser(ctx, user.GetID(), map[string]any{
@@ -410,7 +415,7 @@ func subscriptionQueryUnreadItems(subscription *models.Subscription) query.Optio
 // subscriptionQueryReadItems generates a query for finding read items for the given subscription.
 func subscriptionQueryReadItems(subscription *models.Subscription) query.Option {
 	switch {
-	case subscription.GetMarkedRead() == subscription.GetMaxHistory():
+	case subscription.GetMarkedRead().Equal(subscription.GetMaxHistory()):
 		return query.Bool(
 			query.BoolQueryName(subscription.GetFeedID()+"_match"),
 			query.Filter(

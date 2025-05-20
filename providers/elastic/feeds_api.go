@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
@@ -257,6 +256,33 @@ func (e *API) ItemsSearch(ctx context.Context, query query.Option, filters model
 	return resp, nil
 }
 
+// GetItemsByID fetches the items with the given IDs.
+func (e *API) GetItemsByID(ctx context.Context, itemIDs ...models.ItemID) (models.Items, error) {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	resp, err := NewSearchRequest(e.GetAPI(),
+		WithSearchIndex(index),
+		WithSearchQueryOptions(query.ItemIDs(itemIDs...)),
+		WithSearchSize(len(itemIDs)),
+	).Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
+	}
+
+	slogctx.FromCtx(ctx).Debug("Searched items.",
+		slog.Int64("hits", resp.Hits.Total.Value))
+
+	items, _, err := ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
+	}
+
+	return items, nil
+}
+
 // ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
 // options. It returns the raw search response.
 func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregation Aggregation) (*search.Response, error) {
@@ -275,7 +301,6 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 
 	resp, err := req.Do(ctx)
 	if err != nil {
-		spew.Dump(resp)
 		return nil, errors.Join(ErrUserActionFailed, err)
 	}
 

@@ -42,7 +42,7 @@ type DataAPI interface {
 	// Item methods:
 	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)
 	GetItems(ctx context.Context, pagination models.Pagination) (models.Items, models.Pagination, error)
-	MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error
+	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error
 	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error)
 }
 

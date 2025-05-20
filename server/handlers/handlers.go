@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -69,7 +70,7 @@ type DataAPI interface {
 	// Item methods:
 	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)
 	GetItems(ctx context.Context, pagination models.Pagination) (models.Items, models.Pagination, error)
-	MarkItems(ctx context.Context, marks ...*models.MarkFeedItems) error
+	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error
 	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error)
 }
 
@@ -88,9 +89,6 @@ type HXLocation struct {
 // FullRender renders a full page with the given title and options.
 func FullRender(title string, pageOptions ...templates.PageOption) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if htmx.IsHTMX(req) {
-			slogctx.FromCtx(req.Context()).Warn("Full render for HTMX request.")
-		}
 		page := templates.NewPage(title, pageOptions...)
 		if err := page.Template().Render(req.Context(), res); err != nil {
 			InternalServerError(res, req, err)
@@ -116,4 +114,28 @@ func PartialRender(templates ...templ.Component) http.Handler {
 				}
 			}
 		})
+}
+
+// SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
+// been made through HTMX.
+func SetupRedirect(path *string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			if htmx.IsHTMX(req) && path != nil {
+				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
+					slog.String("path", *path),
+				)
+				session := models.SessionFromCtx(req.Context())
+				view := models.GetViewFromSession(req.Context(), session, *path)
+				HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
+				data, err := json.Marshal(HxLocationData)
+				if err != nil {
+					InternalServerError(res, req, err)
+				}
+				// Set-up client-side redirect to view.
+				res.Header().Add(htmx.HeaderLocation, string(data))
+			}
+			next.ServeHTTP(res, req)
+		})
+	}
 }

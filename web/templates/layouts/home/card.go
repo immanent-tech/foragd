@@ -5,12 +5,15 @@ package home
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/display/card"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/action"
+	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 )
 
 type FeedCard struct {
@@ -61,12 +64,13 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 	return &HomeLayout{
 		Title:   "Feeds",
 		Content: cards,
+		Header:  appbar.AppBar().Show(),
 		Footer: BuildListFooter(ctx,
 			models.FeedsRoute,
 			subscriptions.GetCategoryCounts(),
 			addSubscriptionAction(),
 			importAction(),
-			markAllFeedsAction(models.FiltersFromCtx(ctx).View),
+			markAllFeedsAction(ctx),
 		).Show(),
 	}
 }
@@ -75,6 +79,7 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 	cards := make([]templ.Component, 0, len(items))
 	// Build item cards.
 	for idx, item := range items {
+		slogctx.FromCtx(ctx).Debug("displaying item", slog.String("item_id", item.GetID()), slog.Bool("state", item.IsUnread()))
 		// Create a card for this item.
 		itemCard := newItemCard(ctx, item)
 		// Add a pagination action to the last item.
@@ -88,12 +93,13 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 	return &HomeLayout{
 		Title:   "Items",
 		Content: cards,
+		Header:  appbar.AppBar().Show(),
 		Footer: BuildListFooter(ctx,
 			models.ItemsRoute,
 			items.GetCategoryCounts(),
 			addSubscriptionAction(),
 			importAction(),
-			markAllItemsAction(items.GetFeedIDs(), models.FiltersFromCtx(ctx).View),
+			markAllItemsAction(ctx, items.GetFeedIDs()),
 		).Show(),
 	}
 }

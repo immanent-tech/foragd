@@ -16,7 +16,10 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 )
 
-var ErrExtractSource = errors.New("could not extract document _source")
+var (
+	ErrExtractSource = errors.New("could not extract document _source")
+	ErrRequestFailed = errors.New("request failed")
+)
 
 // var (
 // 	_ models.FeedManagementAPI = (*Client)(nil)

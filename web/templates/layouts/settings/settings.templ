@@ -6,7 +6,6 @@ package settings
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 )
 
@@ -46,9 +45,5 @@ templ SettingsFooter(lastViewed models.PageView) {
 		hx-swap-oob="true"
 		hx-swap="morph:outerHTML"
 		class="bg-base-200 dock dock-sm"
-	>
-		<div title="Back" class="basis-xs">
-			@partials.BackButton(lastViewed.String())
-		</div>
-	</div>
+	></div>
 }
