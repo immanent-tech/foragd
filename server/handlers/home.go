@@ -217,19 +217,6 @@ func GenerateItemArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID m
 	}
 }
 
-// SaveHomeHistory saves the request URL to the session as a navigation history marker.
-func SaveHomeHistory() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			view := home.CurrentViewFromCtx(req.Context())
-			slogctx.FromCtx(req.Context()).Debug("Saving last visited page", slog.String("page", view.String()))
-			session := models.SessionFromCtx(req.Context())
-			session.Put(req.Context(), LastViewedSessionKey, view)
-			next.ServeHTTP(res, req)
-		})
-	}
-}
-
 // DisplayHome displays a page under /home. It handles either partial or full rendering of the page, depending on
 // whether the request is HTMX powered (partial) or not (full).
 func DisplayHome() http.Handler {

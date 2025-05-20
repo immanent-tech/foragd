@@ -14,10 +14,11 @@ func (r PageView) String() string {
 	return r.Path + "?" + r.Filters.ToQueryParams().Encode()
 }
 
-func (r PageView) AsAction() *action.Action {
-	return action.Build(r.Path,
-		action.WithParams(r.Filters.ToQueryParams()),
-	)
+func (r PageView) AsAction(options ...action.Option) *action.Action {
+	viewAction := action.Build(r.Path, options...)
+	// Set the query params from the filters.
+	action.WithParams(r.Filters.ToQueryParams())(viewAction)
+	return viewAction
 }
 
 func NewPageView(path string, filters *Filters) PageView {

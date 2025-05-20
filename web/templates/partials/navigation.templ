@@ -4,6 +4,7 @@
 package partials
 
 import (
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -11,14 +12,16 @@ import (
 
 // backButton generates a button for going back to the given path. It fetches
 // the last state of the path (i.e., any parameters used) from the user session.
-templ BackButton(attributes templ.Attributes) {
+templ BackButton(path string) {
 	<div id="backButton" hx-swap-oob="true">
-		if attributes != nil {
-			@button.Build(
-				button.WithContent(tabler.ArrowBackUp(i.Props{Size: i.SizeSM})),
-				button.WithStyle(button.Ghost),
-				button.WithExtraAttributes(attributes),
-			).Show()
-		}
+		@button.Build(
+			button.WithContent(tabler.ArrowBackUp(i.Props{Size: i.SizeSM})),
+			button.WithStyle(button.Ghost),
+			button.WithExtraAttributes(templ.Attributes{
+				"hx-get":      path,
+				"hx-target":   templates.ContentID.Target(),
+				"hx-push-url": "true",
+			}),
+		).Show()
 	</div>
 }

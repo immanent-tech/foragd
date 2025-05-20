@@ -41,8 +41,6 @@ templ SettingsContent() {
 }
 
 templ SettingsFooter(lastViewed models.PageView) {
-	{{ action := lastViewed.AsAction() }}
-	{{ action.SetAttributes(templates.DefaultAttributes) }}
 	<div
 		id="content-footer"
 		hx-swap-oob="true"
@@ -50,7 +48,7 @@ templ SettingsFooter(lastViewed models.PageView) {
 		class="bg-base-200 dock dock-sm"
 	>
 		<div title="Back" class="basis-xs">
-			@partials.BackButton(action.Attributes())
+			@partials.BackButton(lastViewed.String())
 		</div>
 	</div>
 }

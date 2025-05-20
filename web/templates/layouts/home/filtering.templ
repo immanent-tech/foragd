@@ -8,110 +8,183 @@ import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
 
-// CategoryFilters is a slice of category filters.
-type CategoryFilters []CategoryFilter
-
-// CategoryFilter is a filter for viewing objects by category.
-type CategoryFilter struct {
-	models.CategoryCount
-	attributes templ.Attributes
-	active     bool
+// Filter represents a filter action on a page. It has a value (displayed in the UI) and a link which will trigger a
+// htmx request.
+type Filter struct {
+	value  string
+	link   models.PageView
+	active bool
 }
 
+// AsBadge displays the category filter as a badge with appropriate htmx attributes.
+templ (f *Filter) AsBadge() {
+	switch  {
+		case f.active:
+			@activeOption(f.value, f.link.AsAction(
+				action.WithAttributes(templ.Attributes{
+					"hx-get":      f.link.String(),
+					"hx-push-url": "true",
+					"hx-target":   templates.ContentID.Target(),
+				})).Attributes())
+		default:
+			@inactiveOption(f.value, f.link.AsAction(
+				action.WithAttributes(templ.Attributes{
+					"hx-get":      f.link.String(),
+					"hx-push-url": "true",
+					"hx-target":   templates.ContentID.Target(),
+				})).Attributes())
+	}
+}
+
+// NewCategoryFilter creates a new category filter component. Existing filters will be utilised and the request URL will
+// use the given path.
+func NewCategoryFilter(ctx context.Context, category models.CategoryCount, path string) *Filter {
+	filter := &Filter{
+		value: category.Category,
+	}
+	// Get the current view filters.
+	viewFilters := models.FiltersFromCtx(ctx)
+	// Check if this category is in the current view filters.
+	if found, _ := viewFilters.HasCategory(category.Category); found {
+		filter.active = true
+		viewFilters.RemoveCategory(category.Category)
+	} else {
+		viewFilters.AddCategory(category.Category)
+	}
+	// Generate a view.
+	filter.link = models.NewPageView(path, &viewFilters)
+
+	return filter
+}
+
+// CategoryFilters is a slice of category filters.
+type CategoryFilters []*Filter
+
 // BuildCategoryFilters generates a list of category filters.
-func BuildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCounts) CategoryFilters {
+func BuildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCounts, path string) CategoryFilters {
 	categoryFilters := make(CategoryFilters, 0, len(categoryCounts))
 	for categoryCount := range slices.Values(categoryCounts.GetTopCategories(10)) {
-		route := CurrentViewFromCtx(ctx)
-		var active bool
-		if slices.Contains(route.Filters.Categories, categoryCount.Category) {
-			active = true
-			route.Filters.Categories = nil
-		} else {
-			route.Filters.Categories = append(route.Filters.Categories, categoryCount.Category)
-		}
-		req := route.AsAction()
-		req.SetAttributes(templates.DefaultAttributes)
-		categoryFilters = append(categoryFilters, CategoryFilter{
-			CategoryCount: categoryCount,
-			attributes:    req.Attributes(),
-			active:        active,
-		})
+		categoryFilters = append(categoryFilters, NewCategoryFilter(ctx, categoryCount, path))
 	}
 
 	return categoryFilters
 }
 
-templ (filters CategoryFilters) Show(classes ...string) {
-	if len(filters) > 0 {
-		@text.Build("Categories:", text.WithWeight(text.Semibold), text.WithSize(text.XS)).Show()
-		<div class="flex flex-wrap">
-			for _, filter := range filters {
-				@filter.Show(classes...)
-			}
-		</div>
+func NewViewFilter(ctx context.Context, view models.View, path string) *Filter {
+	// Get the current view filters.
+	viewFilters := models.FiltersFromCtx(ctx)
+	filter := &Filter{
+		value: string(view),
+		link:  models.NewPageView(path, &viewFilters),
 	}
-}
+	// If the current view filters indicate this view is active, mark as so.
+	if view == viewFilters.View {
+		filter.active = true
+	}
+	// Set the view filter to this view.
+	filter.link.Filters.View = view
 
-templ (filter *CategoryFilter) Show(classes ...string) {
-	switch  {
-		case filter.active:
-			@activeOption(filter.Category, filter.attributes)
-		default:
-			@inactiveOption(filter.Category, filter.attributes)
-	}
+	return filter
 }
 
 // ViewFilters is a slice of filters for changing the view.
-type ViewFilters []templ.Component
-
-// newViewFilter creates a new view filter.
-func viewFilter(ctx context.Context, view models.View) templ.Component {
-	route := CurrentViewFromCtx(ctx)
-	switch {
-	case view == route.Filters.View:
-		req := route.AsAction()
-		req.SetAttributes(templates.DefaultAttributes)
-		return activeOption(string(view), req.Attributes())
-	default:
-		route.Filters.View = view
-		req := route.AsAction()
-		req.SetAttributes(templates.DefaultAttributes)
-		return inactiveOption(string(view), req.Attributes())
-	}
-}
+type ViewFilters []*Filter
 
 // BuildViewFilters creates all view filters.
-func BuildViewFilters(ctx context.Context) ViewFilters {
+func BuildViewFilters(ctx context.Context, path string) ViewFilters {
 	return ViewFilters{
-		viewFilter(ctx, models.ViewRead),
-		viewFilter(ctx, models.ViewUnread),
-		viewFilter(ctx, models.ViewAll),
+		NewViewFilter(ctx, models.ViewRead, path),
+		NewViewFilter(ctx, models.ViewUnread, path),
+		NewViewFilter(ctx, models.ViewAll, path),
 	}
-}
-
-// Show renders the view filter as a set of badges joined together.
-templ (filters ViewFilters) Show() {
-	@text.Build("View:", text.WithWeight(text.Semibold), text.WithSize(text.XS)).Show()
-	<div class="join">
-		for viewFilter := range slices.Values(filters) {
-			@viewFilter
-		}
-	</div>
 }
 
 templ BuildFiltersMenu(viewFilters ViewFilters, categoryFilters CategoryFilters) {
 	<div id="content-filters" hx-swap-oob="true">
-		@footerMenu(tabler.Filter(i.Props{Size: i.SizeSM}),
-			viewFilters.Show(), categoryFilters.Show(),
+		@dropdown.Build(
+			dropdown.WithButtonContent(tabler.Filter(i.Props{Size: i.SizeSM})),
+			dropdown.WithOpenFrom(dropdown.OpenTop),
+			dropdown.WithOpenAlignment(dropdown.AlignStart),
+			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+		).Show() {
+			<li class="menu-title">View:</li>
+			for view := range slices.Values(viewFilters) {
+				<li>
+					@view.AsBadge()
+				</li>
+			}
+			<li class="menu-title">Category:</li>
+			for category := range slices.Values(categoryFilters) {
+				<li>
+					@category.AsBadge()
+				</li>
+			}
+		}
+	</div>
+}
+
+func NewSortFilter(ctx context.Context, sort models.Sort, path string) *Filter {
+	viewFilters := models.FiltersFromCtx(ctx)
+	filter := &Filter{
+		value: sort.String(),
+	}
+	// Set this sort as active if indicated in the current view filters.
+	if viewFilters.SortBy == sort.SortBy && viewFilters.SortOrder == sort.SortOrder {
+		filter.active = true
+	} else {
+		viewFilters.SortBy = sort.SortBy
+		viewFilters.SortOrder = sort.SortOrder
+	}
+	// Generate a view.
+	filter.link = models.NewPageView(path, &viewFilters)
+
+	return filter
+}
+
+// SortFilters is a slice of filters for sorting the view.
+type SortFilters []*Filter
+
+// BuildSortFilters creates all sort filters.
+func BuildSortFilters(ctx context.Context, path string) SortFilters {
+	var sorts SortFilters
+	// Add sorting options for updated date.
+	sorts = append(sorts,
+		NewSortFilter(ctx, models.SortLastUpdatedDesc, path),
+		NewSortFilter(ctx, models.SortLastUpdatedAsc, path),
+	)
+	// If viewing /home/feeds and not viewing read items, add additional sorting options on unread count.
+	if path == models.FeedsRoute && models.FiltersFromCtx(ctx).View != models.ViewRead {
+		sorts = append(sorts,
+			NewSortFilter(ctx, models.SortUnreadCountDesc, path),
+			NewSortFilter(ctx, models.SortUnreadCountAsc, path),
 		)
+	}
+	return sorts
+}
+
+templ BuildSortingMenu(sorts SortFilters) {
+	<div id="content-sorting" hx-swap-oob="true">
+		@dropdown.Build(
+			dropdown.WithButtonContent(tabler.ArrowsSort(i.Props{Size: i.SizeSM})),
+			dropdown.WithOpenFrom(dropdown.OpenTop),
+			dropdown.WithOpenAlignment(dropdown.AlignCenter),
+			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+		).Show() {
+			<li class="menu-title">Sorting:</li>
+			for sort := range slices.Values(sorts) {
+				<li>
+					@sort.AsBadge()
+				</li>
+			}
+		}
 	</div>
 }
 

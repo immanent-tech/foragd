@@ -7,8 +7,6 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
@@ -21,7 +19,6 @@ var ContentFooterID = attributes.ID("content-footer")
 
 // ListHeader represents the content header for a list of objects.
 type ListFooter struct {
-	backButton  templ.Component
 	filtersMenu templ.Component
 	sortMenu    templ.Component
 	actions     []templ.Component
@@ -29,9 +26,6 @@ type ListFooter struct {
 
 templ (f *ListFooter) Show() {
 	@footer(ContentFooterID.String()) {
-		@footerItem("Back") {
-			@f.backButton
-		}
 		@footerItem("Filter") {
 			@f.filtersMenu
 		}
@@ -46,19 +40,17 @@ templ (f *ListFooter) Show() {
 	}
 }
 
-func BuildListFooter(ctx context.Context, backPath string, categories models.CategoryCounts, actions ...templ.Component) *ListFooter {
-	backView := models.GetViewFromSession(ctx, models.SessionFromCtx(ctx), backPath)
-	backAction := backView.AsAction()
-	backAction.SetAttributes(templates.DefaultAttributes)
+func BuildListFooter(ctx context.Context, path string, categories models.CategoryCounts, actions ...templ.Component) *ListFooter {
 	// Build view filters.
-	viewFilters := BuildViewFilters(ctx)
+	viewFilters := BuildViewFilters(ctx, path)
 	// Build category filters.
-	categoryFilters := BuildCategoryFilters(ctx, categories)
+	categoryFilters := BuildCategoryFilters(ctx, categories, path)
+	// Build sort filters.
+	sortFilters := BuildSortFilters(ctx, path)
 	// Build footer.
 	return &ListFooter{
-		backButton:  partials.BackButton(backAction.Attributes()),
 		filtersMenu: BuildFiltersMenu(viewFilters, categoryFilters),
-		sortMenu:    BuildSortingMenu(),
+		sortMenu:    BuildSortingMenu(sortFilters),
 		actions:     actions,
 	}
 }
@@ -83,12 +75,8 @@ templ (f *ArticleFooter) Show() {
 }
 
 func BuildArticleFooter(ctx context.Context, item *models.Item) *ArticleFooter {
-	backView := models.GetViewFromSession(ctx, models.SessionFromCtx(ctx), models.ItemsRoute)
-	backAction := backView.AsAction()
-	backAction.SetAttributes(templates.DefaultAttributes)
 	return &ArticleFooter{
-		backButton: partials.BackButton(backAction.Attributes()),
-		item:       item,
+		item: item,
 	}
 }
 

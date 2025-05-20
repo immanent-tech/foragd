@@ -14,14 +14,6 @@ var (
 	ErrorID   = attributes.ID("error")
 )
 
-// DefaultAttributes are the common htmx attributes for view actions.
-var DefaultAttributes = templ.Attributes{
-	"hx-target":       ContentID.Target(),
-	"hx-push-url":     "true",
-	"hx-swap":         "morph:innerHTML swap:1s settle:1s show:top",
-	"hx-target-error": ErrorID.Target(),
-}
-
 // DefaultKeywords are the default keywords to insert in a "keywords" <meta> tag.
 var DefaultKeywords = []string{"feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"}
 

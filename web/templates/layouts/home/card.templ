@@ -40,11 +40,19 @@ func (c *Card) generateViewAction(ctx context.Context) *action.Action {
 		view = models.GetViewFromSession(ctx, models.SessionFromCtx(ctx), models.ItemsRoute)
 		view.Filters.Feeds = []models.FeedID{c.GetFeedID()}
 		view.Filters.SortBy = models.SortByLastUpdated
+		if c.IsUnread() {
+			view.Filters.View = models.ViewUnread
+		} else {
+			view.Filters.View = models.ViewRead
+		}
 	case models.ItemPFX:
 		view = models.NewPageView("/home/"+c.GetFeedID()+"/"+c.id, nil)
 	}
 	action := view.AsAction()
-	action.SetAttributes(templates.DefaultAttributes)
+	action.SetAttributes(templ.Attributes{
+		"hx-target":   templates.ContentID.Target(),
+		"hx-push-url": "true",
+	})
 	return action
 }
 

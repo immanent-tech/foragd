@@ -10,6 +10,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/card"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/action"
 )
 
 type FeedCard struct {
@@ -32,17 +33,18 @@ type Card struct {
 }
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
-func (c *Card) addPagination(ctx context.Context, pagination models.Pagination) {
-	route := CurrentViewFromCtx(ctx)
-	action := route.AsAction()
-	action.Params.Add(models.ParamPagination, pagination)
-	action.SetAttributes(templ.Attributes{
-		"hx-trigger":   "intersect once",
-		"hx-swap":      "afterend",
-		"hx-push-url":  "false",
-		"hx-indicator": "#content-loading",
-	})
-	c.AddAttributes(action.Attributes())
+func (c *Card) addPagination(ctx context.Context, pagination models.Pagination, path string) {
+	filters := models.FiltersFromCtx(ctx)
+	link := models.NewPageView(path, &filters)
+	c.AddAttributes(link.AsAction(
+		action.WithAttributes(templ.Attributes{
+			"hx-trigger":   "intersect once",
+			"hx-swap":      "afterend",
+			"hx-push-url":  "false",
+			"hx-indicator": "#content-loading",
+		}),
+		action.WithParam(models.ParamPagination, pagination),
+	).Attributes())
 }
 
 func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) *HomeLayout {
@@ -50,8 +52,8 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 	// Build feed cards.
 	for idx, subscription := range subscriptions {
 		card := newFeedCard(ctx, subscription)
-		if idx == len(subscriptions)-1 && len(subscriptions) == CurrentViewFromCtx(ctx).Filters.Count {
-			card.addPagination(ctx, pagination)
+		if idx == len(subscriptions)-1 && len(subscriptions) == models.FiltersFromCtx(ctx).Count {
+			card.addPagination(ctx, pagination, models.FeedsRoute)
 		}
 
 		cards = append(cards, card.Show())
@@ -60,11 +62,11 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 		Title:   "Feeds",
 		Content: cards,
 		Footer: BuildListFooter(ctx,
-			"/home",
+			models.FeedsRoute,
 			subscriptions.GetCategoryCounts(),
 			addSubscriptionAction(),
 			importAction(),
-			markAllFeedsAction(CurrentViewFromCtx(ctx).Filters.View),
+			markAllFeedsAction(models.FiltersFromCtx(ctx).View),
 		).Show(),
 	}
 }
@@ -76,8 +78,8 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 		// Create a card for this item.
 		itemCard := newItemCard(ctx, item)
 		// Add a pagination action to the last item.
-		if idx == len(items)-1 && len(items) == CurrentViewFromCtx(ctx).Filters.Count {
-			itemCard.addPagination(ctx, pagination)
+		if idx == len(items)-1 && len(items) == models.FiltersFromCtx(ctx).Count {
+			itemCard.addPagination(ctx, pagination, models.ItemsRoute)
 		}
 		// Append the card to the list of cards.
 		cards = append(cards, itemCard.Show())
@@ -87,11 +89,11 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 		Title:   "Items",
 		Content: cards,
 		Footer: BuildListFooter(ctx,
-			models.FeedsRoute,
+			models.ItemsRoute,
 			items.GetCategoryCounts(),
 			addSubscriptionAction(),
 			importAction(),
-			markAllItemsAction(items.GetFeedIDs(), CurrentViewFromCtx(ctx).Filters.View),
+			markAllItemsAction(items.GetFeedIDs(), models.FiltersFromCtx(ctx).View),
 		).Show(),
 	}
 }

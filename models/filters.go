@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"math"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -142,6 +143,30 @@ func (f *Filters) ToQueryParams() url.Values {
 	params.Set(ParamCount, strconv.Itoa(f.Count))
 
 	return params
+}
+
+// HasCategory returns a boolean indicating whether the given category is set in the filters. If true, a positive
+// integer will also be returned indicating the index value of the category in the slice.
+func (f *Filters) HasCategory(category Category) (bool, int) {
+	idx := slices.IndexFunc(f.Categories, func(c Category) bool { return c == category })
+	if idx != -1 {
+		return true, idx
+	}
+	return false, idx
+}
+
+// AddCategory adds the given category to the filters. Duplicate values will not be added.
+func (f *Filters) AddCategory(category Category) {
+	if found, _ := f.HasCategory(category); !found {
+		f.Categories = append(f.Categories, category)
+	}
+}
+
+// RemoveCategory removes the given category from the filters.
+func (f *Filters) RemoveCategory(category Category) {
+	if found, idx := f.HasCategory(category); found {
+		f.Categories = slices.Delete(f.Categories, idx, idx+1)
+	}
 }
 
 // NewFiltersFromParams creates new filters with values extracted from the given request params.
