@@ -5,6 +5,7 @@ package partials
 
 import (
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
 )
@@ -69,11 +70,38 @@ templ (m *UserMessage) AsNote() {
 }
 
 templ (m *UserMessage) AsNotification() {
-	@alert.Build(
-		alert.AlertState(m.Status),
-		alert.WithStyle(alert.Soft),
-		alert.WithText(m.Summary),
-	).Show()
+	<div id={ templates.NotificationsID.String() } hx-swap-oob="true">
+		@alert.Build(
+			alert.AlertState(m.Status),
+			alert.WithStyle(alert.Soft),
+			alert.WithText(m.Summary),
+			alert.WithExtraAttributes(templ.Attributes{
+				"_": "on load wait 5s then transition opacity to 0 then remove me",
+			}),
+		).Show()
+	</div>
+}
+
+// ShowNotification displays the given message as a notification in the UI.
+templ ShowNotification(msg *models.Message) {
+	<div id={ templates.NotificationsID.String() } hx-swap-oob="true" hx-swap="outerHTML swap:1s settle:1s">
+		@alert.Build(
+			alert.AlertState(msgStatusToAlertState(msg.Status)),
+			alert.WithStyle(alert.Soft),
+			alert.WithExtraAttributes(templ.Attributes{
+				"_": "on load wait 5s then transition opacity to 0 then remove me",
+			}),
+		).Show() {
+			if msg.HasDetails() {
+				<div>
+					<h3 class="font-bold">{ msg.Summary }</h3>
+					<div class="text-xs">{ *msg.Details }</div>
+				</div>
+			} else {
+				<span>{ msg.Summary }</span>
+			}
+		}
+	</div>
 }
 
 // CopyTextButton builds a button that will copy the given text to the clipboard when clicked.
@@ -87,4 +115,19 @@ templ CopyTextButton(label, text string) {
 			}),
 		).Show()
 	</div>
+}
+
+func msgStatusToAlertState(status models.MessageStatus) alert.AlertState {
+	switch status {
+	case models.MessageStatusError:
+		return alert.Error
+	case models.MessageStatusWarning:
+		return alert.Warning
+	case models.MessageStatusInfo:
+		return alert.Info
+	case models.MessageStatusSuccess:
+		fallthrough
+	default:
+		return alert.Success
+	}
 }

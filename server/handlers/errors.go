@@ -20,8 +20,9 @@ func InternalServerError(res http.ResponseWriter, req *http.Request, err error) 
 	msg := models.NewMessage("Internal server error", models.MessageStatusError, models.WithError(err))
 	slogctx.FromCtx(req.Context()).Error("Cannot display content.",
 		slog.Any("error", msg))
-	htmx.NewResponse().RenderTempl(req.Context(), res, partials.NewMessage(msg).AsNotification())
-	// http.Error(res, "Problem!", http.StatusInternalServerError)
+	if err := htmx.NewResponse().RenderTempl(req.Context(), res, partials.ShowNotification(msg)); err != nil {
+		http.Error(res, msg.String(), http.StatusInternalServerError)
+	}
 }
 
 type HTTPError struct {

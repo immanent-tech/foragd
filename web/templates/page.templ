@@ -40,6 +40,10 @@ templ (p *Page) Template() {
 			hx-ext="morph,sse,response-targets"
 			hx-history="false"
 		>
+			<div id={ ModalID.String() } class="container mx-auto px-4"></div>
+			<div class="container mt-4 px-4 absolute z-50 shadow-xl">
+				<div id={ NotificationsID.String() }></div>
+			</div>
 			if p.Body != nil {
 				@p.Body.Template()
 			} else {

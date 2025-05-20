@@ -128,14 +128,13 @@ components:
                 form: 'categories[]'
                 validate: 'omitnil,unique,dive,url_encoded'
               x-go-type-skip-optional-pointer: true
-    UserDecision:
+    UserConfirmation:
       description: >
-        indicates the result of a user decision.
+        indicates the user's decision for a (usually) destructive action.
       type: string
-      enum: ['confirmed', 'cancelled']
-      x-oapi-codegen-extra-tags:
-        form: 'decision'
-        json: 'decision'
+      enum: ['yes', 'no', 'cancel']
+      default: 'no'
+      x-go-type-skip-optional-pointer: true
     UserSignupRequest:
       description: >
         contains the details for a user signup request.

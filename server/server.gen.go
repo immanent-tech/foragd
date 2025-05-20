@@ -39,11 +39,11 @@ type ImportURLs = []string
 // Categories is a list of categories.
 type Categories = []externalRef0.Category
 
+// Confirmation indicates the user's decision for a (usually) destructive action.
+type Confirmation = externalRef0.UserConfirmation
+
 // Count is the count of items to retrieve with a request.
 type Count = externalRef0.Count
-
-// Decision indicates the result of a user decision.
-type Decision = externalRef0.UserDecision
 
 // FeedID is the unique ID of a feed.
 type FeedID = externalRef0.FeedID
@@ -125,11 +125,6 @@ type MarkItemParams struct {
 	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
 }
 
-// RemoveSubscriptionParams defines parameters for RemoveSubscription.
-type RemoveSubscriptionParams struct {
-	Decision *Decision `form:"decision,omitempty" json:"decision,omitempty"`
-}
-
 // SetImportMethodFormdataBody defines parameters for SetImportMethod.
 type SetImportMethodFormdataBody struct {
 	// From defines the source that will be used for an import.
@@ -140,6 +135,12 @@ type SetImportMethodFormdataBody struct {
 type MarkSubscriptionParams struct {
 	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
 	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
+}
+
+// RemoveSubscriptionParams defines parameters for RemoveSubscription.
+type RemoveSubscriptionParams struct {
+	// Confirmation indicates the confirmation state from the user for a destructive action.
+	Confirmation Confirmation `form:"confirmation" json:"confirmation"`
 }
 
 // MarkAllSubscriptionsParams defines parameters for MarkAllSubscriptions.
@@ -312,9 +313,6 @@ type ServerInterface interface {
 	// Add a subscription.
 	// (PUT /subscription/add)
 	AddSubscription(w http.ResponseWriter, r *http.Request)
-	// Remove a subscription.
-	// (DELETE /subscription/edit/{subscription})
-	RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params RemoveSubscriptionParams)
 	// Edit a subscription.
 	// (GET /subscription/edit/{subscription})
 	EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
@@ -336,6 +334,9 @@ type ServerInterface interface {
 	// New subscription handling.
 	// (GET /subscription/new)
 	NewSubscription(w http.ResponseWriter, r *http.Request)
+	// Remove a subscription.
+	// (DELETE /subscription/remove/{subscription})
+	RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params RemoveSubscriptionParams)
 	// Marks the given subscriptions with the given mark.
 	// (POST /subscriptions/mark/{mark})
 	MarkAllSubscriptions(w http.ResponseWriter, r *http.Request, mark Mark, params MarkAllSubscriptionsParams)
@@ -464,12 +465,6 @@ func (_ Unimplemented) AddSubscription(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Remove a subscription.
-// (DELETE /subscription/edit/{subscription})
-func (_ Unimplemented) RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params RemoveSubscriptionParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 // Edit a subscription.
 // (GET /subscription/edit/{subscription})
 func (_ Unimplemented) EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
@@ -506,6 +501,12 @@ func (_ Unimplemented) MarkSubscription(w http.ResponseWriter, r *http.Request, 
 // New subscription handling.
 // (GET /subscription/new)
 func (_ Unimplemented) NewSubscription(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove a subscription.
+// (DELETE /subscription/remove/{subscription})
+func (_ Unimplemented) RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params RemoveSubscriptionParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1164,42 +1165,6 @@ func (siw *ServerInterfaceWrapper) AddSubscription(w http.ResponseWriter, r *htt
 	handler.ServeHTTP(w, r)
 }
 
-// RemoveSubscription operation middleware
-func (siw *ServerInterfaceWrapper) RemoveSubscription(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "subscription" -------------
-	var subscription SubscriptionID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params RemoveSubscriptionParams
-
-	// ------------- Optional query parameter "decision" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "decision", r.URL.Query(), &params.Decision)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "decision", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.RemoveSubscription(w, r, subscription, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // EditSubscription operation middleware
 func (siw *ServerInterfaceWrapper) EditSubscription(w http.ResponseWriter, r *http.Request) {
 
@@ -1342,6 +1307,49 @@ func (siw *ServerInterfaceWrapper) NewSubscription(w http.ResponseWriter, r *htt
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.NewSubscription(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveSubscription operation middleware
+func (siw *ServerInterfaceWrapper) RemoveSubscription(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "subscription" -------------
+	var subscription SubscriptionID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RemoveSubscriptionParams
+
+	// ------------- Required query parameter "confirmation" -------------
+
+	if paramValue := r.URL.Query().Get("confirmation"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "confirmation"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "confirmation", r.URL.Query(), &params.Confirmation)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "confirmation", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveSubscription(w, r, subscription, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1569,9 +1577,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/subscription/add", wrapper.AddSubscription)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/subscription/edit/{subscription}", wrapper.RemoveSubscription)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscription/edit/{subscription}", wrapper.EditSubscription)
 	})
 	r.Group(func(r chi.Router) {
@@ -1591,6 +1596,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscription/new", wrapper.NewSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/subscription/remove/{subscription}", wrapper.RemoveSubscription)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/subscriptions/mark/{mark}", wrapper.MarkAllSubscriptions)

@@ -43,7 +43,7 @@ templ (l *HomeLayout) Template() {
 	<div
 		id={ templates.ContentID.String() }
 		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2"
-		hx-swap="morph:innerHTML swap:1s settle:1s show:top"
+		hx-swap="morph:innerHTML"
 		hx-target-error={ templates.ErrorID.Target() }
 	>
 		@HomeContent(l.Content...)
@@ -60,7 +60,6 @@ templ (l *HomeLayout) Template() {
 }
 
 templ HomeHeader() {
-	@partials.CommandModal()
 	@appbar.AppBar().Show()
 }
 

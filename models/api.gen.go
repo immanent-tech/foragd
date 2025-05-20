@@ -37,10 +37,11 @@ const (
 	SortOrderDesc SortOrder = "desc"
 )
 
-// Defines values for UserDecision.
+// Defines values for UserConfirmation.
 const (
-	UserDecisionCancelled UserDecision = "cancelled"
-	UserDecisionConfirmed UserDecision = "confirmed"
+	UserConfirmationCancel UserConfirmation = "cancel"
+	UserConfirmationNo     UserConfirmation = "no"
+	UserConfirmationYes    UserConfirmation = "yes"
 )
 
 // Defines values for View.
@@ -192,8 +193,8 @@ type SubscriptionRequest struct {
 	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
 }
 
-// UserDecision indicates the result of a user decision.
-type UserDecision string
+// UserConfirmation indicates the user's decision for a (usually) destructive action.
+type UserConfirmation string
 
 // UserSignupRequest contains the details for a user signup request.
 type UserSignupRequest struct {

@@ -120,7 +120,7 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID, params RemoveSubscriptionParams) {
 	chain := alice.New(
 		handlers.RouteLogger,
-	).Then(handlers.RemoveSubscription(s.DataAPI(), subscriptionID, params.Decision))
+	).Then(handlers.RemoveSubscription(s.DataAPI(), subscriptionID, params.Confirmation))
 	chain.ServeHTTP(res, req)
 }
 

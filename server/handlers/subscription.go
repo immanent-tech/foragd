@@ -11,13 +11,15 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
+	"github.com/joshuar/go-feed-me/web/templates/action"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
 
@@ -385,24 +387,49 @@ func ImportResults(err *models.Message) http.Handler {
 }
 
 // RemoveSubscription handles processing a subscription removal request.
-func RemoveSubscription(api DataAPI, id models.SubscriptionID, decision *models.UserDecision) http.Handler {
+func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confirmation models.UserConfirmation) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-		switch {
-		case decision == nil:
-			PartialRender(home.UnsubscribeConfirmModal(id)).ServeHTTP(res, req.WithContext(ctx))
-		case *decision == models.UserDecisionConfirmed:
-			if err := api.RemoveSubscriptions(req.Context(), id); err != nil {
-				InternalServerError(res, req, err)
+		// Create an action for removing a subscription.
+		action := action.Build("/subscription/remove/"+subscriptionID,
+			action.WithMethod(http.MethodDelete),
+			action.WithAttributes(templ.Attributes{
+				"hx-target": "#" + subscriptionID,
+				"hx-swap":   "outerHTML swap:1s",
+			}),
+		)
+
+		// Add a new HTMX response writer to the context.
+		ctx := HTMXResponseToCtx(req.Context(), htmx.NewResponse())
+
+		// Act according to user confirmation.
+		switch confirmation {
+		case models.UserConfirmationYes:
+			slogctx.FromCtx(ctx).Debug("Subscription removal confirmed.",
+				slog.String("subscription_id", subscriptionID),
+			)
+			if err := api.RemoveSubscriptions(ctx, subscriptionID); err != nil {
+				InternalServerError(res, req.WithContext(ctx), err)
 				return
 			}
-			PartialRender(home.UnsubscribeSuccess()).ServeHTTP(res, req.WithContext(ctx))
-		case *decision == models.UserDecisionCancelled:
-			if _, err := res.Write(nil); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Cannot display content.",
-					slog.Any("error", err))
-				http.Error(res, "Problem!", http.StatusInternalServerError)
-			}
+			res.WriteHeader(http.StatusOK)
+			res.Write(nil)
+		case models.UserConfirmationCancel:
+			slogctx.FromCtx(ctx).Debug("Subscription removal cancelled.",
+				slog.String("subscription_id", subscriptionID),
+			)
+			// Don't swap any main content for user cancellation.
+			resp := HTMXResponseFromCtx(ctx)
+			resp.Reswap(htmx.SwapNone)
+			ctx = HTMXResponseToCtx(ctx, resp)
+			// Display a notification acknowledging cancellation of request.
+			msg := models.NewMessage("Subscription not modified.", models.MessageStatusInfo)
+			PartialRender(partials.ShowNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
+		default:
+			slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
+				slog.String("subscription_id", subscriptionID),
+			)
+			modal := partials.QuestionModal("Unsubscribe?", action.Attributes())
+			PartialRender(modal).ServeHTTP(res, req.WithContext(ctx))
 		}
 	})
 }

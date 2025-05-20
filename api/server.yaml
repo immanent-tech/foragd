@@ -202,12 +202,14 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
+  /subscription/remove/{subscription}:
     delete:
       summary: >
         Remove a subscription.
-      operationId: removeSubscription
       parameters:
-        - $ref: '#/components/parameters/Decision'
+        - $ref: '#/components/parameters/SubscriptionID'
+        - $ref: '#/components/parameters/Confirmation'
+      operationId: removeSubscription
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -426,11 +428,14 @@ components:
       in: query
       schema:
         type: string
-    Decision:
-      name: decision
+    Confirmation:
+      description: >
+        indicates the confirmation state from the user for a destructive action.
+      name: confirmation
       in: query
+      required: true
       schema:
-        $ref: 'api.yaml#/components/schemas/UserDecision'
+        $ref: 'api.yaml#/components/schemas/UserConfirmation'
     View:
       name: view
       in: query

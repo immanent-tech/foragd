@@ -86,6 +86,22 @@ type HXLocation struct {
 	Target string `json:"target"`
 }
 
+// HTMXResponseToCtx adds the given htmx.Response object to the context.
+func HTMXResponseToCtx(ctx context.Context, resp htmx.Response) context.Context {
+	return context.WithValue(ctx, htmxRespCtxKey, resp)
+}
+
+// HTMXResponseFromCtx fetches the a htmx.Response object from the context. If no object exists, a new htmx.Response is
+// returned.
+func HTMXResponseFromCtx(ctx context.Context) htmx.Response {
+	resp, found := ctx.Value(htmxRespCtxKey).(htmx.Response)
+	if !found {
+		slogctx.FromCtx(ctx).Warn("No existing htmx response object, creating new one.")
+		return htmx.NewResponse()
+	}
+	return resp
+}
+
 // FullRender renders a full page with the given title and options.
 func FullRender(title string, pageOptions ...templates.PageOption) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -103,11 +119,7 @@ func PartialRender(templates ...templ.Component) http.Handler {
 			if !htmx.IsHTMX(req) {
 				slogctx.FromCtx(req.Context()).Warn("Partial render for non-HTMX request.")
 			}
-			resp, found := req.Context().Value(htmxRespCtxKey).(htmx.Response)
-			if !found {
-				slogctx.FromCtx(req.Context()).Warn("No existing htmx response object, creating new one.")
-				resp = htmx.NewResponse()
-			}
+			resp := HTMXResponseFromCtx(req.Context())
 			for template := range slices.Values(templates) {
 				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))

@@ -10,8 +10,10 @@ import (
 
 // ContentID is the id attribute for the main content area.
 var (
-	ContentID = attributes.ID("content")
-	ErrorID   = attributes.ID("error")
+	ContentID       = attributes.ID("content")
+	ErrorID         = attributes.ID("error")
+	ModalID         = attributes.ID("modal-container")
+	NotificationsID = attributes.ID("notifications")
 )
 
 // DefaultKeywords are the default keywords to insert in a "keywords" <meta> tag.

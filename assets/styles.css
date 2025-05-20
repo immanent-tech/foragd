@@ -8,16 +8,11 @@
   themes: all;
 }
 
-#content.htmx-swapping {
-  opacity: 0;
-  transition: opacity 0.2s ease-out;
-}
-
-#content.htmx-added {
+/* Fade in notification messages */
+#notifications.htmx-added {
   opacity: 0;
 }
-
-#content {
+#notifications {
   opacity: 1;
-  transition: opacity 0.2s ease-out;
+  transition: opacity 1s ease-out;
 }

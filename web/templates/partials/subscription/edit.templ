@@ -129,7 +129,7 @@ templ (s *SubscriptionEditRequest) SubscriptionDetailsModal() {
 			form.WithExtraAttributes(
 				templ.Attributes{
 					"hx-put":       "/subscription/edit/" + s.GetID(),
-					"hx-target":    partials.CommandModalID.Target(),
+					"hx-target":    partials.ModalID.Target(),
 					"hx-swap":      "morph:outerHTML",
 					"hx-indicator": "#add-processing",
 				},
