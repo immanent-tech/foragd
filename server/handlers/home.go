@@ -177,8 +177,8 @@ func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 						home.ImportAction(),
 						home.MarkAllItemsAction(req.Context(), items.GetFeedIDs()),
 					),
-					templates.SetPageTitle("Items"),
 				),
+				templates.SetPageTitle("Items"),
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
