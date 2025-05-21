@@ -457,6 +457,7 @@ func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
 	})
 }
 
+// SaveSubscription handles saving any user edits to an existing subscription.
 func SaveSubscription(api DataAPI, id models.SubscriptionID, edits *models.SubscriptionCustomisation) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Add a new HTMX response writer to the context.
@@ -471,15 +472,13 @@ func SaveSubscription(api DataAPI, id models.SubscriptionID, edits *models.Subsc
 			InternalServerError(res, req.WithContext(ctx), msg)
 			return
 		}
-		// Display a notification acknowledging cancellation of request.
+		// Display a notification acknowledging save.
 		msg := models.NewMessage("Subscription edits saved.", models.MessageStatusSuccess)
 		PartialRender(partials.ShowNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
-
-		// ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-		// PartialRender(subscription.EditSuccessModal()).ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 
+// MarkSubscriptions handles marking subscriptions with the given IDs with the given mark.
 func MarkSubscriptions(api DataAPI, mark models.Mark, subscriptions ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if err := api.MarkSubscriptions(req.Context(), mark, subscriptions...); err != nil {

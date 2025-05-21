@@ -105,19 +105,19 @@ func markAllItemsAction(ctx context.Context, feeds []models.FeedID) templ.Compon
 }
 
 func markItemAction(feedID models.FeedID, itemID models.ItemID, isUnread bool) templ.Component {
-	action := action.Build(models.ItemsRoute,
-		action.WithMethod(http.MethodPost),
-		action.WithAttributes(actionAttributes),
-		action.WithParam(models.ParamFeedID, feedID),
-		action.WithParam(models.ParamItems, itemID),
-	)
-	if isUnread {
-		action.Params.Add("mark", string(models.MarkRead))
-		return markReadLink("Mark Read", action.Attributes())
+	// Set up htmx attributes for action.
+	attributes := templ.Attributes{
+		"hx-swap":     "outerHTML swap:1s",
+		"hx-target":   "#" + itemID,
+		"hx-push-url": "false",
 	}
 
-	action.Params.Add("mark", string(models.MarkUnread))
-	return markUnreadLink("Mark Unread", action.Attributes())
+	if isUnread {
+		attributes["hx-post"] = "/home/" + feedID + "/" + itemID + "/" + string(models.MarkRead)
+		return markReadLink("Mark Read", attributes)
+	}
+	attributes["hx-post"] = "/home/" + feedID + "/" + itemID + "/" + string(models.MarkUnread)
+	return markUnreadLink("Mark Unread", attributes)
 }
 
 // markAllFeedsAction generates an action for the footer menu to mark all feeds as either read or unread, depending on
@@ -148,10 +148,9 @@ func markFeedAction(id models.SubscriptionID, isRead bool) templ.Component {
 		action := action.Build("/subscription/mark/"+string(models.MarkRead)+"/"+id,
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(templ.Attributes{
-				"hx-push-url":     "false",
-				"hx-target":       templates.ContentID.Target(),
-				"hx-target-error": templates.ErrorID.Target(),
-				"hx-swap":         "morph:innerHTML swap:1s",
+				"hx-push-url": "false",
+				"hx-target":   templates.ContentID.Target(),
+				"hx-swap":     "morph:innerHTML swap:1s",
 			}),
 			action.WithParam(models.ParamRedirect, models.FeedsRoute),
 		)
@@ -160,10 +159,9 @@ func markFeedAction(id models.SubscriptionID, isRead bool) templ.Component {
 	action := action.Build("/subscription/mark/"+string(models.MarkUnread)+"/"+id,
 		action.WithMethod(http.MethodPost),
 		action.WithAttributes(templ.Attributes{
-			"hx-push-url":     "false",
-			"hx-target":       templates.ContentID.Target(),
-			"hx-target-error": templates.ErrorID.Target(),
-			"hx-swap":         "morph:innerHTML swap:1s",
+			"hx-push-url": "false",
+			"hx-target":   templates.ContentID.Target(),
+			"hx-swap":     "morph:innerHTML swap:1s",
 		}),
 		action.WithParam(models.ParamRedirect, models.FeedsRoute),
 	)

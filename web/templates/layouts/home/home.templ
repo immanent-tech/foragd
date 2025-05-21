@@ -53,8 +53,6 @@ templ (l *HomeLayout) Template() {
 			loading.WithThemeColor(color.Accent),
 		).Show()
 	</div>
-	<div id={ templates.ErrorID.String() }></div>
-	<div id="not-found"></div>
 	@HomeFooter(l.Footer)
 }
 
