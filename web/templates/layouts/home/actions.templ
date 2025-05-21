@@ -9,7 +9,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
@@ -55,32 +54,21 @@ func (c *Card) viewAction(ctx context.Context) *action.Action {
 }
 
 // addSubscriptionButton creates a button for displaying a modal to add a new subscription.
-func addSubscriptionAction(classes ...string) templ.Component {
-	return link.Build(
-		link.WithContent(templ.Join(tabler.CloudPlus(i.Props{Size: i.SizeXS}), components.SetContent("Add Subscription"))),
-		link.WithExtraAttributes(templ.Attributes{
-			"hx-get":    "/subscription/new",
-			"hx-target": templates.ModalID.Target(),
-			"_":         partials.HyperscriptOpenModal(subscription.SubscriptionModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
-		}),
-		link.WithExtraClasses(actionTextClasses),
-		link.WithUnderlineOnHover(),
-	).Show(classes...)
+func addSubscriptionAction() templ.Component {
+	return openModalLink(
+		"hx-get",
+		"/subscription/new",
+		templ.Join(tabler.CloudPlus(i.Props{Size: i.SizeXS}), components.SetContent("Add Subscription")),
+	)
 }
 
-// importAction creates a button for displaying a modal to import feeds (i.e.
-// via opml).
-func importAction(classes ...string) templ.Component {
-	return link.Build(
-		link.WithContent(templ.Join(tabler.CloudUpload(i.Props{Size: i.SizeXS}), components.SetContent("Import Subscriptions"))),
-		link.WithExtraAttributes(templ.Attributes{
-			"hx-get":    "/subscription/import",
-			"hx-target": partials.ModalID.Target(),
-			"_":         partials.HyperscriptOpenModal(subscription.ImportModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
-		}),
-		link.WithExtraClasses(actionTextClasses),
-		link.WithUnderlineOnHover(),
-	).Show(classes...)
+// importAction creates a button for displaying a modal to import feeds (i.e. // via opml).
+func importAction() templ.Component {
+	return openModalLink(
+		"hx-get",
+		"/subscription/import",
+		templ.Join(tabler.CloudUpload(i.Props{Size: i.SizeXS}), components.SetContent("Import Subscriptions")),
+	)
 }
 
 func markReadLink(label string, attributes templ.Attributes) templ.Component {
@@ -230,31 +218,29 @@ templ visitExternalLinkAction(label, url string) {
 }
 
 func editSubscriptionAction(id models.SubscriptionID) templ.Component {
-	action := action.Build("/subscription/edit/"+id,
-		action.WithAttributes(templ.Attributes{
-			"hx-target": templates.ModalID.Target(),
-			"_":         partials.HyperscriptOpenModal(partials.ModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
-		}),
+	return openModalLink(
+		"hx-get",
+		"/subscription/edit/"+id,
+		templ.Join(tabler.Edit(i.Props{Size: i.SizeXS}), components.SetContent("Edit")),
 	)
-	return link.Build(
-		link.WithContent(
-			templ.Join(tabler.Edit(i.Props{Size: i.SizeXS}), components.SetContent("Edit")),
-		),
-		link.WithUnderlineOnHover(),
-		link.WithExtraClasses(actionTextClasses),
-		link.WithExtraAttributes(action.Attributes()),
-	).Show()
 }
 
 func unsubscribeAction(id models.SubscriptionID) templ.Component {
+	return openModalLink(
+		"hx-delete",
+		"/subscription/remove/"+id+"?confirmation=no",
+		templ.Join(tabler.Trash(i.Props{Size: i.SizeSM}), components.SetContent("Unsubscribe")),
+	)
+}
+
+// openModalLink generates a link for a route that opens a modal.
+func openModalLink(method, path string, content templ.Component) templ.Component {
 	return link.Build(
-		link.WithContent(
-			templ.Join(tabler.Trash(i.Props{Size: i.SizeSM}), components.SetContent("Unsubscribe")),
-		),
+		link.WithContent(content),
 		link.WithUnderlineOnHover(),
 		link.WithExtraClasses(actionTextClasses),
 		link.WithExtraAttributes(templ.Attributes{
-			"hx-delete": "/subscription/remove/" + id + "?confirmation=no",
+			method:      path,
 			"hx-target": templates.ModalID.Target(),
 			// "_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
 			"_": partials.HyperscriptOpenModal(partials.ModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
