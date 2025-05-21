@@ -14,6 +14,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -22,7 +23,6 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 var (
@@ -124,6 +124,7 @@ func PartialRender(templates ...templ.Component) http.Handler {
 				slogctx.FromCtx(req.Context()).Warn("Partial render for non-HTMX request.")
 			}
 			resp := HTMXResponseFromCtx(req.Context())
+			spew.Dump(resp.Headers())
 			for template := range slices.Values(templates) {
 				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
@@ -156,17 +157,6 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 	}
 }
 
-// GenerateBacklink handles creating and updating the backlink in the page.
-func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			view := models.GetBacklink(req.Context(), api, chi.RouteContext(req.Context()).RoutePattern())
-			PartialRender(partials.UpdateBacklink(view)).ServeHTTP(res, req)
-			next.ServeHTTP(res, req)
-		})
-	}
-}
-
 // SaveLastPageView handles saving the last viewed page in the session.
 func SaveLastPageView(api models.SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -179,6 +169,36 @@ func SaveLastPageView(api models.SessionAPI) func(next http.Handler) http.Handle
 			)
 			models.SaveLastPageView(req.Context(), api, view)
 			next.ServeHTTP(res, req)
+		})
+	}
+}
+
+// SaveTheme handles saving the theme in the session.
+func SaveTheme(api models.SessionAPI, theme string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			api.Put(req.Context(), models.ThemeSessionKey, theme)
+			next.ServeHTTP(res, req)
+		})
+	}
+}
+
+// UpdateTheme handles firing an event trigger as part of the response to update the page theme.
+func UpdateTheme(api models.SessionAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			theme, ok := api.Get(req.Context(), models.ThemeSessionKey).(string)
+			if !ok {
+				slogctx.FromCtx(req.Context()).Warn("Could not retrieve theme from session.")
+				next.ServeHTTP(res, req)
+			}
+			slogctx.FromCtx(req.Context()).Debug("Setting theme.",
+				slog.String("theme", theme),
+			)
+			resp := HTMXResponseFromCtx(req.Context())
+			resp = resp.AddTrigger(htmx.TriggerDetail("setTheme", theme))
+			ctx := HTMXResponseToCtx(req.Context(), resp)
+			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }

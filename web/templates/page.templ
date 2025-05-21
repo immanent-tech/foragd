@@ -21,11 +21,15 @@ templ (p *Page) Template() {
 		lang="en"
 		data-theme=""
 		_="
-		on setTheme(theme)
-			set @data-theme to theme
+		on load
+			log 'theme is currently '+ <html/>
+			if @data-theme.value == null then
+				fetch /settings/theme then
+					put the result into @data-theme
 		end
-		on htmx:load
-			fetch /settings/theme then send setTheme(theme: result)
+		on setTheme(theme)
+			log 'theme changed to ' + theme
+			set @data-theme to theme
 		end
 		"
 	>

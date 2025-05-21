@@ -8,6 +8,7 @@ import (
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/handlers"
@@ -68,25 +69,28 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 }
 
 func (s Server) GetTheme(res http.ResponseWriter, req *http.Request) {
-	theme, ok := s.SessionAPI().Get(req.Context(), models.ThemeSessionKey).(string)
-	if !ok {
-		theme = "light"
-	}
-	// slogctx.FromCtx(req.Context()).Debug("Setting theme.", slog.String("theme", theme))
-	res.WriteHeader(http.StatusOK)
-	res.Write([]byte(theme))
+	handler := handlers.BaseChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		theme, ok := s.SessionAPI().Get(req.Context(), models.ThemeSessionKey).(string)
+		if !ok {
+			slogctx.FromCtx(req.Context()).Debug("No theme in session. Using a default.")
+			theme = "light"
+		}
+		res.WriteHeader(http.StatusOK)
+		res.Write([]byte(theme))
+	})
+	handler.ServeHTTP(res, req)
 }
 
 func (s Server) SetTheme(res http.ResponseWriter, req *http.Request) {
-	handler := handlers.BaseChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		theme := req.FormValue("theme")
-		s.SessionAPI().Put(req.Context(), models.ThemeSessionKey, theme)
-		// slogctx.FromCtx(req.Context()).Debug("Saved theme.", slog.String("theme", theme))
-		resp := htmx.NewResponse().AddTrigger(htmx.TriggerDetail("setTheme", theme))
-		resp.StatusCode(http.StatusOK)
+	theme := req.FormValue("theme")
+	handler := handlers.BaseChain.Append(
+		handlers.SaveTheme(s.SessionAPI(), theme),
+		// handlers.UpdateTheme(s.SessionAPI()),
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		resp := handlers.HTMXResponseFromCtx(req.Context())
 		resp.Write(res)
-		// res.WriteHeader(http.StatusOK)
-		// res.Write(nil)
+		res.WriteHeader(http.StatusOK)
+		res.Write(nil)
 	})
 	handler.ServeHTTP(res, req)
 }
