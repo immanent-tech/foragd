@@ -14,6 +14,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 // Index handler handles the index page.
@@ -42,26 +43,23 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 
 // GetSettings handles opening the settings modal.
 func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
-	view, ok := s.SessionAPI().Get(req.Context(), handlers.LastViewedSessionKey).(models.PageView)
-	if !ok {
-		view = models.NewPageView("/home", nil)
-	}
-
 	var handler http.Handler
 
 	switch htmx.IsHTMX(req) {
 	case true:
+		lastViewed := models.GetLastPageView(req.Context(), s.SessionAPI())
 		handler = handlers.BaseChain.Then(
 			handlers.PartialRender(
 				settings.SettingsHeader(),
 				settings.SettingsContent(),
-				settings.SettingsFooter(view),
+				partials.UpdateBacklink(lastViewed),
+				settings.ResetFooter(),
 			),
 		)
 	case false:
 		handler = handlers.BaseChain.Then(
 			handlers.FullRender("Settings",
-				templates.WithBody(settings.NewSettingsLayout(view)),
+				templates.WithBody(settings.NewSettingsLayout()),
 			),
 		)
 	}

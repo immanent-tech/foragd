@@ -4,17 +4,17 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 	"strconv"
 	"strings"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 // CheckRequiredFilters will ensure a request has the required filters set. If any required filters are missing,
@@ -89,23 +89,6 @@ func SavePageView(path string, params any) func(next http.Handler) http.Handler 
 	}
 }
 
-// GenerateFeedsContent creates the content for displaying a list of feeds.
-func GenerateFeedsContent(dataAPI DataAPI, pagination models.Pagination) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Get feeds.
-			subscriptions, pagination, err := dataAPI.GetSubscriptions(req.Context(), pagination)
-			if err != nil {
-				InternalServerError(res, req, err)
-				return
-			}
-			layout := home.BuildFeedsLayout(req.Context(), pagination, subscriptions)
-			ctx := home.LayoutToCtx(req.Context(), layout)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
 // MarkFeeds will mark the user's subscriptions that match the given feeds with the given mark.
 func MarkFeeds(api DataAPI, mark models.Mark, feeds ...models.FeedID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -137,60 +120,94 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 	})
 }
 
-// GenerateItemsContent creates the content for displaying a list of items.
-func GenerateItemsContent(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			items, pagination, err := dataAPI.GetItems(req.Context(), pagination)
-			if err != nil {
-				InternalServerError(res, req, err)
-				return
-			}
-			layout := home.BuildItemsLayout(req.Context(), pagination, items)
-			ctx := home.LayoutToCtx(req.Context(), layout)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// GenerateItemArticle creates the content for displaying an item.
-func GenerateItemArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID models.FeedID, itemID models.ItemID) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			item, found, err := dataAPI.GetItem(req.Context(), feedID, itemID)
-			if err != nil || !found {
-				InternalServerError(res, req, err)
-				return
-			}
-			layout := home.BuildArticleLayout(req, item)
-			ctx := home.LayoutToCtx(req.Context(), layout)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// DisplayHome displays a page under /home. It handles either partial or full rendering of the page, depending on
-// whether the request is HTMX powered (partial) or not (full).
-func DisplayHome() http.Handler {
+// DisplayFeeds handles displaying a list of feeds.
+func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		layout := home.LayoutFromCtx(req.Context())
-		// Create a new response writer.
-		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-		// Decide whether we need to do a full or partial render based on whether
-		// this is a htmx request or not.
-		var handler http.Handler
-		if htmx.IsHTMX(req) && req.Header.Get(htmx.HeaderHistoryRestoreRequest) != "true" {
-			var parts []templ.Component
-			// parts = append(parts, layout.Header)
-			parts = append(parts, layout.Content...)
-			parts = append(parts, layout.Footer)
-			parts = append(parts, templates.SetPageTitle(layout.Title))
-			handler = PartialRender(parts...)
-		} else {
-			handler = FullRender(layout.Title,
-				templates.WithBody(layout),
-			)
+		subscriptions, pagination, err := dataAPI.GetSubscriptions(req.Context(), pagination)
+		if err != nil {
+			InternalServerError(res, req, err)
+			return
 		}
-		handler.ServeHTTP(res, req.WithContext(ctx))
+		switch {
+		case htmx.IsHTMX(req):
+			// Update partial content for HTMX powered request.
+			backlink := models.GetBacklink(req.Context(), sessionAPI, models.FeedsRoute)
+			PartialRender(
+				home.HomeContent(home.GenerateFeedCards(req.Context(), subscriptions, pagination)...),
+				layouts.Footer(
+					partials.UpdateBacklink(backlink),
+					home.UpdateFilters(models.FeedsRoute, subscriptions.GetCategoryCounts()),
+					home.UpdateSorting(models.FeedsRoute),
+					home.UpdateActions(
+						home.AddSubscriptionAction(),
+						home.ImportAction(),
+						home.MarkAllFeedsAction(req.Context()),
+					),
+				),
+			).ServeHTTP(res, req)
+		default:
+			// Generate full layout for non-HTMX powered request.
+			layout := home.BuildFeedsLayout(req.Context(), pagination, subscriptions)
+			FullRender(layout.Title, templates.WithBody(layout)).ServeHTTP(res, req)
+		}
+	})
+}
+
+// DisplayItems handles displaying a list of items.
+func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		items, pagination, err := dataAPI.GetItems(req.Context(), pagination)
+		if err != nil {
+			InternalServerError(res, req, err)
+			return
+		}
+		switch {
+		case htmx.IsHTMX(req):
+			// Update partial content for HTMX powered request.
+			backlink := models.GetBacklink(req.Context(), sessionAPI, models.ItemsRoute)
+			PartialRender(
+				home.HomeContent(home.GenerateItemCards(req.Context(), items, pagination)...),
+				layouts.Footer(
+					partials.UpdateBacklink(backlink),
+					home.UpdateFilters(models.ItemsRoute, items.GetCategoryCounts()),
+					home.UpdateSorting(models.ItemsRoute),
+					home.UpdateActions(
+						home.AddSubscriptionAction(),
+						home.ImportAction(),
+						home.MarkAllItemsAction(req.Context(), items.GetFeedIDs()),
+					),
+				),
+			).ServeHTTP(res, req)
+		default:
+			// Generate full layout for non-HTMX powered request.
+			layout := home.BuildItemsLayout(req.Context(), pagination, items)
+			FullRender(layout.Title, templates.WithBody(layout)).ServeHTTP(res, req)
+		}
+	})
+}
+
+// DisplayItem handles displaying an item as an article.
+func DisplayItem(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID models.FeedID, itemID models.ItemID) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		item, found, err := dataAPI.GetItem(req.Context(), feedID, itemID)
+		if err != nil || !found {
+			InternalServerError(res, req, err)
+			return
+		}
+		switch {
+		case htmx.IsHTMX(req):
+			// Update partial content for HTMX powered request.
+			backlink := models.GetBacklink(req.Context(), sessionAPI, "/home/"+item.GetFeedID()+"/"+item.GetID())
+			PartialRender(
+				home.HomeContent(home.GenerateArticle(item)),
+				layouts.Footer(
+					partials.UpdateBacklink(backlink),
+				),
+			).ServeHTTP(res, req)
+		default:
+			// Generate full layout for non-HTMX powered request.
+			layout := home.BuildArticleLayout(req.Context(), item)
+			FullRender(layout.Title, templates.WithBody(layout)).ServeHTTP(res, req)
+		}
 	})
 }

@@ -15,9 +15,6 @@ type Page struct {
 	Body           Layout
 }
 
-// on htmx:historyRestore
-// 	fetch /settings/theme then send setTheme(theme: result)
-// end
 templ (p *Page) Template() {
 	<!DOCTYPE html>
 	<html
@@ -27,11 +24,8 @@ templ (p *Page) Template() {
 		on setTheme(theme)
 			set @data-theme to theme
 		end
-		on htmx:load queue first
+		on htmx:load
 			fetch /settings/theme then send setTheme(theme: result)
-		end
-		on htmx:historyRestore
-			log 'restored history'
 		end
 		"
 	>

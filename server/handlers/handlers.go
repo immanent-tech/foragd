@@ -107,6 +107,7 @@ func HTMXResponseFromCtx(ctx context.Context) htmx.Response {
 // FullRender renders a full page with the given title and options.
 func FullRender(title string, pageOptions ...templates.PageOption) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		slogctx.FromCtx(req.Context()).Debug("Performing full page render.")
 		page := templates.NewPage(title, pageOptions...)
 		if err := page.Template().Render(req.Context(), res); err != nil {
 			InternalServerError(res, req, err)
@@ -118,6 +119,7 @@ func FullRender(title string, pageOptions ...templates.PageOption) http.Handler 
 func PartialRender(templates ...templ.Component) http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
+			slogctx.FromCtx(req.Context()).Debug("Performing partial renders.")
 			if !htmx.IsHTMX(req) {
 				slogctx.FromCtx(req.Context()).Warn("Partial render for non-HTMX request.")
 			}
@@ -154,11 +156,29 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 	}
 }
 
-func GenerateBackLink(api models.SessionAPI) func(next http.Handler) http.Handler {
+// GenerateBacklink handles creating and updating the backlink in the page.
+func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			view := models.GetBacklink(req.Context(), api, chi.RouteContext(req.Context()).RoutePattern())
 			PartialRender(partials.UpdateBacklink(view)).ServeHTTP(res, req)
+			next.ServeHTTP(res, req)
+		})
+	}
+}
+
+// SaveLastPageView handles saving the last viewed page in the session.
+func SaveLastPageView(api models.SessionAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			path := chi.RouteContext(req.Context()).RoutePattern()
+			filters := models.FiltersFromCtx(req.Context())
+			view := models.NewPageView(path, &filters)
+			slogctx.FromCtx(req.Context()).Debug("Saving last viewed page.",
+				slog.String("view", view.String()),
+			)
+			models.SaveLastPageView(req.Context(), api, view)
+			next.ServeHTTP(res, req)
 		})
 	}
 }

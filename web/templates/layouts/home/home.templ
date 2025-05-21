@@ -5,10 +5,15 @@ package home
 
 import (
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
+	"github.com/joshuar/go-templ-daisyui/display/article"
+	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"slices"
+	"strings"
 )
 
 // EmptyContent renders a hero with options for the user when the request
@@ -22,8 +27,8 @@ templ emptyContent() {
 					Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
 					quasi. In deleniti eaque aut repudiandae et a id nisi.
 				</p>
-				@addSubscriptionAction()
-				@importAction()
+				@AddSubscriptionAction()
+				@ImportAction()
 			</div>
 		</div>
 	</div>
@@ -31,10 +36,10 @@ templ emptyContent() {
 
 // HomeLayout contains the components for rendering a /home page layout.
 type HomeLayout struct {
-	Title   string
-	Header  templ.Component
-	Content []templ.Component
-	Footer  templ.Component
+	Title         string
+	Header        templ.Component
+	FooterContent []templ.Component
+	Content       []templ.Component
 }
 
 templ (l *HomeLayout) Template() {
@@ -53,7 +58,7 @@ templ (l *HomeLayout) Template() {
 			loading.WithThemeColor(color.Accent),
 		).Show()
 	</div>
-	@HomeFooter(l.Footer)
+	@layouts.Footer(l.FooterContent...)
 }
 
 templ HomeHeader() {
@@ -71,6 +76,47 @@ templ HomeContent(parts ...templ.Component) {
 	}
 }
 
-templ HomeFooter(footer templ.Component) {
-	@footer
+// Show renders an item as an article.
+templ (a *Article) Show(classes ...string) {
+	@article.Build(
+		article.WithExtraAttributes(templ.Attributes{
+			"hx-post":        "/home/" + a.GetFeedID() + "/" + a.GetID() + "/read",
+			"hx-swap":        "none",
+			"hx-replace-url": "false",
+			"hx-trigger":     "load delay:2s",
+		}),
+	).Show(classes...) {
+		<h2>
+			@text.Build(a.GetTitle(),
+				text.WithWeight(text.Semibold),
+				text.WithSize(text.LG),
+			).Show("flex-1")
+		</h2>
+		<div class="flex w-full justify-items-end px-2">
+			if len(a.GetAuthors()) > 0 {
+				<div class="flex-1">
+					@text.Build(strings.Join(a.GetAuthors(), ","),
+						text.WithSize(text.XS),
+						text.AsItalicText(),
+					).Show()
+				</div>
+			}
+			<div class="flex-none">
+				@text.Build(a.GetUpdatedDate().String(),
+					text.WithSize(text.XS),
+					text.AsItalicText(),
+				).Show()
+			</div>
+		</div>
+		@partials.ShowCategoriesAsBadges(a.GetCategories()...)
+		<div id="article_content" class="text-sm max-w-prose">
+			if a.GetContent() != "" {
+				@templ.Raw(a.GetContent())
+			} else {
+				if desc := a.GetDescription(); desc != "" {
+					@templ.Raw(desc)
+				}
+			}
+		</div>
+	}
 }

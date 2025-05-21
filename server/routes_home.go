@@ -32,8 +32,8 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.SavePageView(models.FeedsRoute, params),
-		handlers.GenerateFeedsContent(s.DataAPI(), pagination),
-	).Then(handlers.DisplayHome())
+		handlers.SaveLastPageView(s.SessionAPI()),
+	).Then(handlers.DisplayFeeds(s.DataAPI(), s.SessionAPI(), pagination))
 	chain.ServeHTTP(res, req)
 }
 
@@ -47,16 +47,16 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 		handlers.CheckRequiredFilters,
 		handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.SavePageView(models.ItemsRoute, params),
-		handlers.GenerateItemsContent(s.DataAPI(), s.SessionAPI(), pagination),
-	).Then(handlers.DisplayHome())
+		handlers.SaveLastPageView(s.SessionAPI()),
+	).Then(handlers.DisplayItems(s.DataAPI(), s.SessionAPI(), pagination))
 	chain.ServeHTTP(res, req)
 }
 
 func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.GenerateItemArticle(s.DataAPI(), s.SessionAPI(), feedID, itemID),
-	).Then(handlers.DisplayHome())
+		handlers.SaveLastPageView(s.SessionAPI()),
+	).Then(handlers.DisplayItem(s.DataAPI(), s.SessionAPI(), feedID, itemID))
 	chain.ServeHTTP(res, req)
 }
 

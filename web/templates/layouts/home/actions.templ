@@ -10,10 +10,13 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
+	"slices"
 	"strings"
 )
 
@@ -53,8 +56,8 @@ func (c *Card) viewAction(ctx context.Context) *action.Action {
 	return action
 }
 
-// addSubscriptionButton creates a button for displaying a modal to add a new subscription.
-func addSubscriptionAction() templ.Component {
+// AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
+func AddSubscriptionAction() templ.Component {
 	return openModalLink(
 		"hx-get",
 		"/subscription/new",
@@ -62,8 +65,8 @@ func addSubscriptionAction() templ.Component {
 	)
 }
 
-// importAction creates a button for displaying a modal to import feeds (i.e. // via opml).
-func importAction() templ.Component {
+// ImportAction creates a button for displaying a modal to import feeds (i.e. // via opml).
+func ImportAction() templ.Component {
 	return openModalLink(
 		"hx-get",
 		"/subscription/import",
@@ -93,9 +96,9 @@ func markUnreadLink(label string, attributes templ.Attributes) templ.Component {
 	).Show()
 }
 
-// markAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
+// MarkAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
 // depending on the current view.
-func markAllItemsAction(ctx context.Context, feeds []models.FeedID) templ.Component {
+func MarkAllItemsAction(ctx context.Context, feeds []models.FeedID) templ.Component {
 	switch models.FiltersFromCtx(ctx).View {
 	case models.ViewUnread:
 		action := action.Build(models.FeedsRoute+"/mark/"+string(models.MarkRead),
@@ -134,9 +137,9 @@ func markItemAction(feedID models.FeedID, itemID models.ItemID, isUnread bool) t
 	return markUnreadLink("Mark Unread", attributes)
 }
 
-// markAllFeedsAction generates an action for the footer menu to mark all feeds as either read or unread, depending on
+// MarkAllFeedsAction generates an action for the footer menu to mark all feeds as either read or unread, depending on
 // the current view.
-func markAllFeedsAction(ctx context.Context) templ.Component {
+func MarkAllFeedsAction(ctx context.Context) templ.Component {
 	switch models.FiltersFromCtx(ctx).View {
 	case models.ViewUnread:
 		action := action.Build("/subscriptions/mark/"+string(models.MarkRead),
@@ -246,4 +249,25 @@ func openModalLink(method, path string, content templ.Component) templ.Component
 			"_": partials.HyperscriptOpenModal(partials.ModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
 		}),
 	).Show()
+}
+
+templ UpdateActions(actions ...templ.Component) {
+	<div id="content-actions">
+		@tooltip.Build("Actions").Show() {
+			@dropdown.Build(
+				dropdown.WithButtonContent(tabler.Menu(i.Props{Size: i.SizeSM})),
+				dropdown.WithOpenFrom(dropdown.OpenTop),
+				dropdown.WithOpenAlignment(dropdown.AlignEnd),
+				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+			).Show() {
+				for item := range slices.Values(actions) {
+					if item != nil {
+						<li>
+							@item
+						</li>
+					}
+				}
+			}
+		}
+	</div>
 }

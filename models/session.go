@@ -12,7 +12,8 @@ import (
 )
 
 const (
-	ThemeSessionKey = "theme"
+	ThemeSessionKey        = "theme"
+	lastPageViewSessionKey = "last_viewed"
 )
 
 type SessionAPI interface {
@@ -33,6 +34,22 @@ func GetViewFromSession(ctx context.Context, api SessionAPI, path string) PageVi
 
 func SaveViewInSession(ctx context.Context, api SessionAPI, view PageView) {
 	api.Put(ctx, "View:"+view.Path, view)
+}
+
+// SaveLastPageView saves the given page view to the session.
+func SaveLastPageView(ctx context.Context, api SessionAPI, view PageView) {
+	api.Put(ctx, lastPageViewSessionKey, view)
+}
+
+// GetLastPageView retrieves the last page view from the session.
+func GetLastPageView(ctx context.Context, api SessionAPI) PageView {
+	view, ok := api.Get(ctx, lastPageViewSessionKey).(PageView)
+	if !ok {
+		slogctx.FromCtx(ctx).Warn("No last page view found, using default.")
+		return NewPageView("/home", NewFilters())
+	} else {
+		return view
+	}
 }
 
 // GetBacklink retrieves the appropriate PageView to use as a backlink for the given path from the stored session data.
