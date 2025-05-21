@@ -209,7 +209,7 @@ func editSubscriptionAction(id models.SubscriptionID) templ.Component {
 	action := action.Build("/subscription/edit/"+id,
 		action.WithAttributes(templ.Attributes{
 			"hx-target": templates.ModalID.Target(),
-			"_":         partials.HyperscriptOpenModal("#modal_"+id) + " then " + partials.HyperscriptCloseDropdown(),
+			"_":         partials.HyperscriptOpenModal(partials.ModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
 		}),
 	)
 	return link.Build(

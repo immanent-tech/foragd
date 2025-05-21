@@ -459,17 +459,24 @@ func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
 
 func SaveSubscription(api DataAPI, id models.SubscriptionID, edits *models.SubscriptionCustomisation) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		err := api.EditSubscription(req.Context(), id, edits)
+		// Add a new HTMX response writer to the context.
+		ctx := HTMXResponseToCtx(req.Context(), htmx.NewResponse())
+
+		err := api.EditSubscription(ctx, id, edits)
 		if err != nil {
 			msg := models.NewMessage(
 				"Error editing subscription.",
 				models.MessageStatusError,
 				models.WithError(err))
-			InternalServerError(res, req, msg)
+			InternalServerError(res, req.WithContext(ctx), msg)
 			return
 		}
-		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-		PartialRender(subscription.EditSuccessModal()).ServeHTTP(res, req.WithContext(ctx))
+		// Display a notification acknowledging cancellation of request.
+		msg := models.NewMessage("Subscription edits saved.", models.MessageStatusSuccess)
+		PartialRender(partials.ShowNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
+
+		// ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
+		// PartialRender(subscription.EditSuccessModal()).ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 

@@ -118,7 +118,7 @@ templ (s *SubscriptionEditRequest) editCategories() {
 
 templ (s *SubscriptionEditRequest) SubscriptionDetailsModal() {
 	@modal.Build(
-		modal.WithID("modal_"+s.GetID()),
+		modal.WithID(partials.ModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
 	).Show() {
@@ -129,8 +129,7 @@ templ (s *SubscriptionEditRequest) SubscriptionDetailsModal() {
 			form.WithExtraAttributes(
 				templ.Attributes{
 					"hx-put":       "/subscription/edit/" + s.GetID(),
-					"hx-target":    partials.ModalID.Target(),
-					"hx-swap":      "morph:outerHTML",
+					"hx-swap":      "none",
 					"hx-indicator": "#add-processing",
 				},
 			),
@@ -154,6 +153,7 @@ templ (s *SubscriptionEditRequest) SubscriptionDetailsModal() {
 					button.WithContent("Make it so!"),
 					button.WithExtraAttributes(templ.Attributes{
 						"form": s.GetID() + "_edit",
+						"_":    "on click remove @open from " + partials.ModalID.Target(),
 					})),
 			),
 		).Show()
@@ -161,22 +161,5 @@ templ (s *SubscriptionEditRequest) SubscriptionDetailsModal() {
 			Adding
 			@loading.Build(loading.Infinity).Show()
 		</center>
-	}
-}
-
-templ EditSuccessModal() {
-	@modal.Build(
-		modal.WithID("edit_success"),
-		modal.WithCloseOutside(),
-		modal.WithExtraAttributes(templ.Attributes{
-			"open": "",
-		}),
-	).Show() {
-		<h3 class="font-bold">Subscription edited!</h3>
-		<div class="modal-action">
-			<form method="dialog" _={ partials.HyperscriptCloseModalOnClick("edit_success") }>
-				<button class="btn">Ok</button>
-			</form>
-		</div>
 	}
 }
