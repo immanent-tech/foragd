@@ -144,6 +144,7 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 						home.MarkAllFeedsAction(req.Context()),
 					),
 				),
+				templates.SetPageTitle("Feeds"),
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
@@ -176,6 +177,7 @@ func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 						home.ImportAction(),
 						home.MarkAllItemsAction(req.Context(), items.GetFeedIDs()),
 					),
+					templates.SetPageTitle("Items"),
 				),
 			).ServeHTTP(res, req)
 		default:
@@ -203,6 +205,7 @@ func DisplayItem(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID models.Fe
 				layouts.Footer(
 					partials.UpdateBacklink(backlink),
 				),
+				templates.SetPageTitle(item.GetTitle()),
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
