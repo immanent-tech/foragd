@@ -89,10 +89,9 @@ templ (m *UserMessage) AsNotification() {
 
 // ShowNotification displays the given message as a notification in the UI.
 templ ShowNotification(msg *models.Message) {
-	<div id={ templates.NotificationsID.String() } hx-swap-oob="true" hx-swap="outerHTML swap:1s settle:1s">
+	<div id={ templates.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50" hx-swap-oob="true" hx-swap="outerHTML swap:1s settle:1s">
 		@alert.Build(
 			alert.AlertState(msgStatusToAlertState(msg.Status)),
-			alert.WithStyle(alert.Soft),
 			alert.WithExtraAttributes(templ.Attributes{
 				"_": "on load wait 5s then transition opacity to 0 then remove me",
 			}),
