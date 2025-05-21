@@ -7,8 +7,6 @@ package home
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
@@ -30,31 +28,6 @@ import (
 )
 
 const defaultCardClasses = "bg-base-300 m-2 p-2"
-
-// viewAction returns the action for viewing the card's content. For a Feed card this would be the Feed's item as cards.
-// For a Item card, this would be the item content.
-func (c *Card) generateViewAction(ctx context.Context) *action.Action {
-	var view models.PageView
-	switch models.IdentifyID(c.id) {
-	case models.FeedPFX:
-		view = models.GetViewFromSession(ctx, models.SessionFromCtx(ctx), models.ItemsRoute)
-		view.Filters.Feeds = []models.FeedID{c.GetFeedID()}
-		view.Filters.SortBy = models.SortByLastUpdated
-		if c.IsUnread() {
-			view.Filters.View = models.ViewUnread
-		} else {
-			view.Filters.View = models.ViewRead
-		}
-	case models.ItemPFX:
-		view = models.NewPageView("/home/"+c.GetFeedID()+"/"+c.id, nil)
-	}
-	action := view.AsAction()
-	action.SetAttributes(templ.Attributes{
-		"hx-target":   templates.ContentID.Target(),
-		"hx-push-url": "true",
-	})
-	return action
-}
 
 templ (c *Card) timestamp() {
 	@text.Build(
@@ -108,7 +81,7 @@ templ (c *FeedCard) showTitle() {
 		@link.Build(
 			link.WithContent(c.GetTitle()),
 			link.WithUnderlineOnHover(),
-			link.WithExtraAttributes(c.generateViewAction(ctx).Attributes()),
+			link.WithExtraAttributes(c.viewAction(ctx).Attributes()),
 		).Show()
 	</div>
 	// Display unread count (if any).
@@ -167,7 +140,7 @@ templ (c *ItemCard) showTitle() {
 			).Show(),
 		),
 		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(c.generateViewAction(ctx).Attributes()),
+		link.WithExtraAttributes(c.viewAction(ctx).Attributes()),
 	).Show()
 }
 
