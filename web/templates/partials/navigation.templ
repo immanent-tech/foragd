@@ -17,7 +17,7 @@ templ UpdateBacklink(view models.PageView) {
 	<div id="backlink" hx-swap-oob="true">
 		@tooltip.Build("Back").Show() {
 			@link.Build(
-				link.WithContent(tabler.ArrowBackUp(i.Props{Size: i.SizeXS})),
+				link.WithContent(tabler.ArrowBackUp(i.Props{Size: i.SizeSM})),
 				link.WithUnderlineOnHover(),
 				link.WithExtraAttributes(templ.Attributes{
 					"hx-get":         view.String(),
