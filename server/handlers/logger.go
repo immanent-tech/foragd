@@ -15,7 +15,10 @@ import (
 // RouteLogger decorates the logger in the request context with routing information.
 func RouteLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := slogctx.With(req.Context(), slog.String("route", chi.RouteContext(req.Context()).RoutePattern()))
+		ctx := slogctx.With(req.Context(),
+			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
+			slog.String("method", req.Method),
+		)
 		ctx = slogctx.With(ctx, slog.Group("req", slog.String("id", middleware.GetReqID(ctx))))
 		slogctx.FromCtx(ctx).Debug("Processing route.", slog.String("url", req.URL.String()))
 		next.ServeHTTP(res, req.WithContext(ctx))
