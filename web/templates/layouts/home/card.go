@@ -43,7 +43,7 @@ func (c *Card) addPagination(ctx context.Context, pagination models.Pagination, 
 		action.WithAttributes(templ.Attributes{
 			"hx-trigger":   "intersect once",
 			"hx-swap":      "afterend",
-			"hx-push-url":  "false",
+			"hx-replace-url":  "false",
 			"hx-indicator": "#content-loading",
 		}),
 		action.WithParam(models.ParamPagination, pagination),

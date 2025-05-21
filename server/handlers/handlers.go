@@ -14,6 +14,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -21,6 +22,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 var (
@@ -148,6 +150,15 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 				res.Header().Add(htmx.HeaderLocation, string(data))
 			}
 			next.ServeHTTP(res, req)
+		})
+	}
+}
+
+func GenerateBackLink(api models.SessionAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			view := models.GetBacklink(req.Context(), api, chi.RouteContext(req.Context()).RoutePattern())
+			PartialRender(partials.UpdateBacklink(view)).ServeHTTP(res, req)
 		})
 	}
 }

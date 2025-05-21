@@ -5,7 +5,6 @@ package subscription
 
 import (
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
@@ -17,9 +16,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 )
-
-// SubscriptionModalID is the ID of the modal.
-var SubscriptionModalID = attributes.ID("subscription-modal")
 
 // SubscriptionDetailsID is the ID of the element containing Subscription details.
 var SubscriptionDetailsID = attributes.ID("subscription-details")
@@ -36,6 +32,7 @@ var CategoryListID = attributes.ID("category-list")
 // SubscriptionRequest is a wrapper around models.SubscriptionRequest to allow extending it with templates.
 type SubscriptionRequest struct {
 	*models.SubscriptionRequest
+	TopCategories []models.Category
 }
 
 func (r *SubscriptionRequest) inputURL() *textinput.Props {
@@ -69,8 +66,7 @@ templ (r *SubscriptionRequest) Form(msg *models.Message) {
 			form.WithExtraAttributes(
 				templ.Attributes{
 					"hx-put":       "/subscription/add",
-					"hx-target":    SubscriptionDetailsID.Target(),
-					"hx-swap":      "morph:outerHTML",
+					"hx-swap":      "none",
 					"hx-indicator": "#add-processing",
 				},
 			),
@@ -96,6 +92,7 @@ templ (r *SubscriptionRequest) Form(msg *models.Message) {
 					button.WithContent("Make it so!"),
 					button.WithExtraAttributes(templ.Attributes{
 						"form": AddSubscriptionDetailsFormID.String(),
+						"_":    "on click remove @open from " + partials.ModalID.Target(),
 					})),
 			),
 		).Show()
@@ -115,7 +112,7 @@ func NewSubscriptionRequest(req *models.SubscriptionRequest) *SubscriptionReques
 // NewSubscriptionModal will display a modal for the user to enter new Subscription details.
 templ NewSubscriptionModal(req *models.SubscriptionRequest, msg *models.Message) {
 	@modal.Build(
-		modal.WithID(SubscriptionModalID.String()),
+		modal.WithID(partials.ModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
 	).Show() {
@@ -123,27 +120,5 @@ templ NewSubscriptionModal(req *models.SubscriptionRequest, msg *models.Message)
 		if req != nil {
 			@NewSubscriptionRequest(req).Form(msg)
 		}
-	}
-}
-
-// NewSubscriptionModal will display a modal for the user to enter new Subscription details.
-templ NewSubscriptionResultsModal(msg *models.Message) {
-	@modal.Build(
-		modal.WithID(SubscriptionModalID.String()),
-		modal.WithCloseButton(),
-		modal.WithCloseOutside(),
-		modal.WithActions(
-			button.Build(
-				button.WithSize(button.SM),
-				button.WithContent("Add another?"),
-				button.WithExtraAttributes(templ.Attributes{
-					"hx-get":    "/subscription/new",
-					"hx-target": templates.ModalID.Target(),
-					// "_":         "on htmx:afterOnLoad wait 10ms then add .modal-open to " + SubscriptionModalID.Target(),
-				}),
-			),
-		),
-	).Show() {
-		@partials.NewMessage(msg).AsNotification()
 	}
 }

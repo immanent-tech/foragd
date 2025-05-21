@@ -19,7 +19,7 @@ import (
 
 // actionAttributes are the common htmx attributes for mark actions.
 var actionAttributes = templ.Attributes{
-	"hx-push-url":     "false",
+	"hx-replace-url":  "false",
 	"hx-target":       templates.ContentID.Target(),
 	"hx-target-error": templates.ErrorID.Target(),
 	"hx-swap":         "morph:innerHTML swap:1s",
@@ -46,9 +46,9 @@ func (c *Card) viewAction(ctx context.Context) *action.Action {
 	}
 	action := view.AsAction()
 	action.SetAttributes(templ.Attributes{
-		"hx-target":   templates.ContentID.Target(),
-		"hx-push-url": "true",
-		"hx-swap":     "morph:innerHTML show:top",
+		"hx-target":      templates.ContentID.Target(),
+		"hx-replace-url": "true",
+		"hx-swap":        "morph:innerHTML show:top",
 	})
 	return action
 }
@@ -121,9 +121,9 @@ func markAllItemsAction(ctx context.Context, feeds []models.FeedID) templ.Compon
 func markItemAction(feedID models.FeedID, itemID models.ItemID, isUnread bool) templ.Component {
 	// Set up htmx attributes for action.
 	attributes := templ.Attributes{
-		"hx-swap":     "outerHTML swap:1s",
-		"hx-target":   "#" + itemID,
-		"hx-push-url": "false",
+		"hx-swap":        "outerHTML swap:1s",
+		"hx-target":      "#" + itemID,
+		"hx-replace-url": "false",
 	}
 
 	if isUnread {
@@ -162,9 +162,9 @@ func markFeedAction(id models.SubscriptionID, isRead bool) templ.Component {
 		action := action.Build("/subscription/mark/"+string(models.MarkRead)+"/"+id,
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(templ.Attributes{
-				"hx-push-url": "false",
-				"hx-target":   templates.ContentID.Target(),
-				"hx-swap":     "morph:innerHTML swap:1s",
+				"hx-replace-url": "false",
+				"hx-target":      templates.ContentID.Target(),
+				"hx-swap":        "morph:innerHTML swap:1s",
 			}),
 			action.WithParam(models.ParamRedirect, models.FeedsRoute),
 		)
@@ -173,9 +173,9 @@ func markFeedAction(id models.SubscriptionID, isRead bool) templ.Component {
 	action := action.Build("/subscription/mark/"+string(models.MarkUnread)+"/"+id,
 		action.WithMethod(http.MethodPost),
 		action.WithAttributes(templ.Attributes{
-			"hx-push-url": "false",
-			"hx-target":   templates.ContentID.Target(),
-			"hx-swap":     "morph:innerHTML swap:1s",
+			"hx-replace-url": "false",
+			"hx-target":      templates.ContentID.Target(),
+			"hx-swap":        "morph:innerHTML swap:1s",
 		}),
 		action.WithParam(models.ParamRedirect, models.FeedsRoute),
 	)

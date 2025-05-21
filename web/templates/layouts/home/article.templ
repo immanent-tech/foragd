@@ -34,10 +34,10 @@ templ (a *Article) Show(classes ...string) {
 	<div id="content" class="flex flex-wrap p-4 h-full items-start">
 		@article.Build(
 			article.WithExtraAttributes(templ.Attributes{
-				"hx-post":     "/home/" + a.GetFeedID() + "/" + a.GetID() + "/read",
-				"hx-swap":     "none",
-				"hx-push-url": "false",
-				"hx-trigger":  "load delay:2s",
+				"hx-post":        "/home/" + a.GetFeedID() + "/" + a.GetID() + "/read",
+				"hx-swap":        "none",
+				"hx-replace-url": "false",
+				"hx-trigger":     "load delay:2s",
 			}),
 		).Show(classes...) {
 			@a.showItemArticle()

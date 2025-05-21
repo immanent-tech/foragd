@@ -30,16 +30,16 @@ templ (f *Filter) AsBadge() {
 		case f.active:
 			@activeOption(f.value, f.link.AsAction(
 				action.WithAttributes(templ.Attributes{
-					"hx-get":      f.link.String(),
-					"hx-push-url": "true",
-					"hx-target":   templates.ContentID.Target(),
+					"hx-get":         f.link.String(),
+					"hx-replace-url": "true",
+					"hx-target":      templates.ContentID.Target(),
 				})).Attributes())
 		default:
 			@inactiveOption(f.value, f.link.AsAction(
 				action.WithAttributes(templ.Attributes{
-					"hx-get":      f.link.String(),
-					"hx-push-url": "true",
-					"hx-target":   templates.ContentID.Target(),
+					"hx-get":         f.link.String(),
+					"hx-replace-url": "true",
+					"hx-target":      templates.ContentID.Target(),
 				})).Attributes())
 	}
 }
@@ -112,7 +112,7 @@ templ BuildFiltersMenu(viewFilters ViewFilters, categoryFilters CategoryFilters)
 		@dropdown.Build(
 			dropdown.WithButtonContent(tabler.Filter(i.Props{Size: i.SizeSM})),
 			dropdown.WithOpenFrom(dropdown.OpenTop),
-			dropdown.WithOpenAlignment(dropdown.AlignStart),
+			dropdown.WithOpenAlignment(dropdown.AlignCenter),
 			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 		).Show() {
 			<li class="menu-title">View:</li>

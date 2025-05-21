@@ -145,10 +145,11 @@ func MatchRequestsWithFeeds(api DataAPI) func(next http.Handler) http.Handler {
 				}
 				if user.IsSubscribed(feed.GetID()) {
 					// Ignore requests where the user is already subscribed to the feed.
-					request.Result = models.NewMessage("Already subscribed to "+feed.String(),
+					request.Result = models.NewMessage("Already Subscribed",
 						models.MessageStatusWarning,
+						models.WithDetails("A subscription for "+feed.String()+" already exists."),
 					)
-					slogctx.FromCtx(req.Context()).Debug("Already subscribed.",
+					slogctx.FromCtx(req.Context()).Warn("Already subscribed.",
 						slog.String("subscription_nickname", request.UserNickname),
 						slog.String("feed_id", feed.GetID()),
 						slog.String("feed_name", feed.GetTitle()),
@@ -338,9 +339,7 @@ func AddSubscriptionResults() http.Handler {
 		if !found {
 			InternalServerError(res, req, ErrMissingRequestData)
 		}
-		// Create a new response writer.
-		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-		PartialRender(subscription.NewSubscriptionRequest(requests[0]).Form(requests[0].Result)).ServeHTTP(res, req.WithContext(ctx))
+		PartialRender(partials.ShowNotification(requests[0].Result)).ServeHTTP(res, req.WithContext(req.Context()))
 	})
 }
 

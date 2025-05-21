@@ -6,6 +6,7 @@ package models
 import (
 	"context"
 	"log/slog"
+	"strings"
 
 	slogctx "github.com/veqryn/slog-context"
 )
@@ -32,4 +33,18 @@ func GetViewFromSession(ctx context.Context, api SessionAPI, path string) PageVi
 
 func SaveViewInSession(ctx context.Context, api SessionAPI, view PageView) {
 	api.Put(ctx, "View:"+view.Path, view)
+}
+
+// GetBacklink retrieves the appropriate PageView to use as a backlink for the given path from the stored session data.
+func GetBacklink(ctx context.Context, api SessionAPI, path string) PageView {
+	switch {
+	case strings.Contains(path, "feed_") && strings.Contains(path, "item_"):
+		return GetViewFromSession(ctx, api, ItemsRoute)
+	case path == ItemsRoute:
+		return GetViewFromSession(ctx, api, FeedsRoute)
+	case path == FeedsRoute:
+		fallthrough
+	default:
+		return NewPageView("/home", nil)
+	}
 }
