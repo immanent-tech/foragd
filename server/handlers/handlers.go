@@ -14,7 +14,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -124,7 +123,6 @@ func PartialRender(templates ...templ.Component) http.Handler {
 				slogctx.FromCtx(req.Context()).Warn("Partial render for non-HTMX request.")
 			}
 			resp := HTMXResponseFromCtx(req.Context())
-			spew.Dump(resp.Headers())
 			for template := range slices.Values(templates) {
 				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))

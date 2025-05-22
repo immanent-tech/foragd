@@ -3,35 +3,7 @@
 
 package settings
 
-import (
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
-)
-
-type SettingsLayout struct{}
-
-func NewSettingsLayout() *SettingsLayout {
-	return &SettingsLayout{}
-}
-
-templ (l *SettingsLayout) Template() {
-	@SettingsHeader()
-	<div id={ templates.ContentID.String() }>
-		@SettingsContent()
-	</div>
-	@layouts.Footer() {
-		@layouts.FooterItem() {
-			@partials.UpdateBacklink(models.NewPageView("/home", nil))
-		}
-	}
-}
-
-templ SettingsHeader() {
-	@appbar.AppBar().Show()
-}
+import "github.com/joshuar/go-feed-me/web/templates"
 
 templ SettingsContent() {
 	<h2>Display</h2>

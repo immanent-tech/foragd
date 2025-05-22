@@ -45,14 +45,19 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 // GetSettings handles opening the settings modal.
 func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 	var handler http.Handler
+	header := partials.Header(
+		partials.DefaultHeaderStart(),
+		partials.DefaultHeaderCenter(),
+		partials.DefaultHeaderEnd(),
+	)
 
 	switch htmx.IsHTMX(req) {
 	case true:
 		lastViewed := models.GetLastPageView(req.Context(), s.SessionAPI())
 		handler = handlers.BaseChain.Then(
 			handlers.PartialRender(
-				settings.SettingsHeader(),
 				settings.SettingsContent(),
+				header,
 				partials.UpdateBacklink(lastViewed),
 				settings.ResetFooter(),
 			),
@@ -60,7 +65,12 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 	case false:
 		handler = handlers.BaseChain.Then(
 			handlers.FullRender("Settings",
-				templates.WithBody(settings.NewSettingsLayout()),
+				templates.WithBody(
+					templates.NewBody(settings.SettingsContent(),
+						templates.WithBodyHeader(header),
+						templates.WithBodyFooter(settings.ResetFooter()),
+					),
+				),
 			),
 		)
 	}

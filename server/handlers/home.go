@@ -13,11 +13,11 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/views"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 // CheckRequiredFilters will ensure a request has the required filters set. If any required filters are missing,
@@ -131,12 +131,13 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			InternalServerError(res, req, err)
 			return
 		}
+		pageTitle := "Feeds"
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
 			backlink := models.GetBacklink(req.Context(), sessionAPI, models.FeedsRoute)
 			PartialRender(
-				home.HomeContent(home.GenerateFeedCards(req.Context(), subscriptions, pagination)...),
+				templ.Join(home.GenerateFeedCards(req.Context(), subscriptions, pagination)...),
 				layouts.Footer(
 					partials.UpdateBacklink(backlink),
 					home.UpdateFilters(models.FeedsRoute, subscriptions.GetCategoryCounts()),
@@ -147,12 +148,12 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 						home.MarkAllFeedsAction(req.Context()),
 					),
 				),
-				templates.SetPageTitle("Feeds"),
+				templates.SetPageTitle(pageTitle),
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
 			layout := home.BuildFeedsLayout(req.Context(), pagination, subscriptions)
-			FullRender(layout.Title, templates.WithBody(layout)).ServeHTTP(res, req)
+			FullRender(pageTitle, templates.WithBody(layout)).ServeHTTP(res, req)
 		}
 	})
 }
@@ -165,12 +166,12 @@ func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			InternalServerError(res, req, err)
 			return
 		}
+		backlink := models.GetBacklink(req.Context(), sessionAPI, models.ItemsRoute)
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
-			backlink := models.GetBacklink(req.Context(), sessionAPI, models.ItemsRoute)
 			PartialRender(
-				home.HomeContent(home.GenerateItemCards(req.Context(), items, pagination)...),
+				templ.Join(home.GenerateItemCards(req.Context(), items, pagination)...),
 				layouts.Footer(
 					partials.UpdateBacklink(backlink),
 					home.UpdateFilters(models.ItemsRoute, items.GetCategoryCounts()),
@@ -186,7 +187,7 @@ func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 		default:
 			// Generate full layout for non-HTMX powered request.
 			layout := home.BuildItemsLayout(req.Context(), pagination, items)
-			FullRender(layout.Title, templates.WithBody(layout)).ServeHTTP(res, req)
+			FullRender("Items", templates.WithBody(layout)).ServeHTTP(res, req)
 		}
 	})
 }
@@ -199,21 +200,32 @@ func DisplayItem(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID models.Fe
 			InternalServerError(res, req, err)
 			return
 		}
+		backlink := models.GetBacklink(req.Context(), sessionAPI, "/home/"+item.GetFeedID()+"/"+item.GetID())
+		content := home.GenerateArticle(item)
+		header := partials.Header(
+			partials.DefaultHeaderStart(),
+			partials.DefaultHeaderCenter(),
+			partials.DefaultHeaderEnd(),
+		)
+		footer := layouts.Footer(partials.UpdateBacklink(backlink))
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
-			backlink := models.GetBacklink(req.Context(), sessionAPI, "/home/"+item.GetFeedID()+"/"+item.GetID())
 			PartialRender(
-				home.HomeContent(home.GenerateArticle(item)),
-				layouts.Footer(
-					partials.UpdateBacklink(backlink),
-				),
+				content,
+				footer,
 				templates.SetPageTitle(item.GetTitle()),
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
-			layout := home.BuildArticleLayout(req.Context(), item)
-			FullRender(layout.Title, templates.WithBody(layout)).ServeHTTP(res, req)
+			FullRender(item.GetTitle(),
+				templates.WithBody(
+					templates.NewBody(home.GenerateArticle(item),
+						templates.WithBodyHeader(header),
+						templates.WithBodyFooter(footer),
+					),
+				),
+			).ServeHTTP(res, req)
 		}
 	})
 }
@@ -221,21 +233,30 @@ func DisplayItem(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID models.Fe
 func DisplayHome(dataAPI DataAPI, sessionAPI models.SessionAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		content := views.GenerateHomePageContent(req.Context(), dataAPI.(*elastic.API))
+		header := partials.Header(
+			partials.DefaultHeaderStart(),
+			partials.DefaultHeaderCenter(),
+			partials.DefaultHeaderEnd(),
+		)
+		footer := partials.Footer()
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
 			PartialRender(
-
-				layouts.Footer(),
+				content,
+				header,
+				footer,
 				templates.SetPageTitle("Home"),
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
-			layout := &home.HomeLayout{
-				Title:   "/home",
-				Content: []templ.Component{content},
-			}
-			FullRender(layout.Title, templates.WithBody(layout)).ServeHTTP(res, req)
+			FullRender("Home", templates.WithBody(
+				templates.NewBody(content,
+					templates.WithBodyHeader(header),
+					templates.WithBodyFooter(footer),
+				),
+			),
+			).ServeHTTP(res, req)
 		}
 	})
 }

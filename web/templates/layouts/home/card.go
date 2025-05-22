@@ -12,9 +12,9 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 )
 
 type FeedCard struct {
@@ -55,25 +55,32 @@ func (c *Card) addPagination(ctx context.Context, pagination models.Pagination, 
 	).Attributes())
 }
 
-func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) *HomeLayout {
+func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) *templates.Body {
 	cards := GenerateFeedCards(ctx, subscriptions, pagination)
 	// Generate backlink.
 	backlink := models.GetBacklink(ctx, models.SessionFromCtx(ctx), models.FeedsRoute)
-	return &HomeLayout{
-		Title:   "Feeds",
-		Content: cards,
-		FooterContent: []templ.Component{
-			partials.UpdateBacklink(backlink),
-			UpdateFilters(models.FeedsRoute, subscriptions.GetCategoryCounts()),
-			UpdateSorting(models.FeedsRoute),
-			UpdateActions(
-				AddSubscriptionAction(),
-				ImportAction(),
-				MarkAllFeedsAction(ctx),
+	return templates.NewBody(
+		templ.Join(cards...),
+		templates.WithBodyHeader(
+			partials.Header(
+				partials.DefaultHeaderStart(),
+				partials.DefaultHeaderCenter(),
+				partials.DefaultHeaderEnd(),
 			),
-		},
-		Header: appbar.AppBar().Show(),
-	}
+		),
+		templates.WithBodyFooter(
+			partials.Footer(
+				partials.UpdateBacklink(backlink),
+				UpdateFilters(models.FeedsRoute, subscriptions.GetCategoryCounts()),
+				UpdateSorting(models.FeedsRoute),
+				UpdateActions(
+					AddSubscriptionAction(),
+					ImportAction(),
+					MarkAllFeedsAction(ctx),
+				),
+			),
+		),
+	)
 }
 
 func GenerateFeedCards(ctx context.Context, subscriptions models.Subscriptions, pagination models.Pagination) []templ.Component {
@@ -89,26 +96,33 @@ func GenerateFeedCards(ctx context.Context, subscriptions models.Subscriptions, 
 	return cards
 }
 
-func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items models.Items) *HomeLayout {
+func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items models.Items) *templates.Body {
 	cards := GenerateItemCards(ctx, items, pagination)
 	// Generate backlink.
 	backlink := models.GetBacklink(ctx, models.SessionFromCtx(ctx), models.ItemsRoute)
 	// Return the home items layout.
-	return &HomeLayout{
-		Title:   "Items",
-		Content: cards,
-		FooterContent: []templ.Component{
-			partials.UpdateBacklink(backlink),
-			UpdateFilters(models.ItemsRoute, items.GetCategoryCounts()),
-			UpdateSorting(models.ItemsRoute),
-			UpdateActions(
-				AddSubscriptionAction(),
-				ImportAction(),
-				MarkAllItemsAction(ctx, items.GetFeedIDs()),
+	return templates.NewBody(
+		templates.Content(cards...),
+		templates.WithBodyHeader(
+			partials.Header(
+				partials.DefaultHeaderStart(),
+				partials.DefaultHeaderCenter(),
+				partials.DefaultHeaderEnd(),
 			),
-		},
-		Header: appbar.AppBar().Show(),
-	}
+		),
+		templates.WithBodyFooter(
+			partials.Footer(
+				partials.UpdateBacklink(backlink),
+				UpdateFilters(models.ItemsRoute, items.GetCategoryCounts()),
+				UpdateSorting(models.ItemsRoute),
+				UpdateActions(
+					AddSubscriptionAction(),
+					ImportAction(),
+					MarkAllItemsAction(ctx, items.GetFeedIDs()),
+				),
+			),
+		),
+	)
 }
 
 func GenerateItemCards(ctx context.Context, items models.Items, pagination models.Pagination) []templ.Component {
@@ -125,18 +139,6 @@ func GenerateItemCards(ctx context.Context, items models.Items, pagination model
 		cards = append(cards, itemCard.Show())
 	}
 	return cards
-}
-
-func BuildArticleLayout(ctx context.Context, item *models.Item) *HomeLayout {
-	backlink := models.GetBacklink(ctx, models.SessionFromCtx(ctx), "/home/"+item.GetFeedID()+"/"+item.GetID())
-	return &HomeLayout{
-		Title:   item.GetTitle(),
-		Header:  appbar.AppBar().Show(),
-		Content: []templ.Component{GenerateArticle(item)},
-		FooterContent: []templ.Component{
-			partials.UpdateBacklink(backlink),
-		},
-	}
 }
 
 func GenerateArticle(item *models.Item) templ.Component {

@@ -8,11 +8,17 @@ import (
 	"strings"
 )
 
+// DefaultKeywords are the default keywords to insert in a "keywords" <meta> tag.
+var DefaultKeywords = []string{"feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"}
+
+// DefaultPageTitle is the default <title> tag value if none is set.
+const DefaultPageTitle = "Go Feed Me"
+
 // Page represents a single HTML page.
 type Page struct {
 	Head           Head
 	BodyAttributes templ.Attributes
-	Body           Layout
+	Body           *Body
 }
 
 templ (p *Page) Template() {
@@ -66,12 +72,14 @@ func WithKeywords(keywords ...string) PageOption {
 	}
 }
 
-func WithBody(body Layout) PageOption {
+// WithBody option sets the body of the page.
+func WithBody(body *Body) PageOption {
 	return func(p *Page) {
 		p.Body = body
 	}
 }
 
+// NewPage creates a new page with the given title and options.
 func NewPage(title string, options ...PageOption) *Page {
 	page := &Page{}
 	page.Head.Title = title

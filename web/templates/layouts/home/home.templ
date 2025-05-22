@@ -4,15 +4,9 @@
 package home
 
 import (
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/templates/partials/appbar"
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/text"
-	"github.com/joshuar/go-templ-daisyui/feedback/loading"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"slices"
 	"strings"
 )
 
@@ -32,48 +26,6 @@ templ emptyContent() {
 			</div>
 		</div>
 	</div>
-}
-
-// HomeLayout contains the components for rendering a /home page layout.
-type HomeLayout struct {
-	Title         string
-	Header        templ.Component
-	FooterContent []templ.Component
-	Content       []templ.Component
-}
-
-templ (l *HomeLayout) Template() {
-	@HomeHeader()
-	<div
-		id={ templates.ContentID.String() }
-		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2"
-		hx-swap="morph:innerHTML"
-		hx-target-error={ templates.ErrorID.Target() }
-	>
-		@HomeContent(l.Content...)
-	</div>
-	<div id="content-loading" class="items-center justify-center">
-		@loading.Build(loading.Bars,
-			loading.AsHTMXIndicator(),
-			loading.WithThemeColor(color.Accent),
-		).Show()
-	</div>
-	@layouts.Footer(l.FooterContent...)
-}
-
-templ HomeHeader() {
-	@appbar.AppBar().Show()
-}
-
-templ HomeContent(parts ...templ.Component) {
-	// Render any content templates.
-	if len(parts) > 0 {
-		for part := range slices.Values(parts) {
-			@part
-		}
-	} else {
-		@emptyContent()
-	}
 }
 
 // Show renders an item as an article.

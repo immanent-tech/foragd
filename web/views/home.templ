@@ -23,16 +23,16 @@ import (
 
 type HomePageData aggregations.AggregationResults
 
-func (d HomePageData) GetTopCategoriesBadges() (templ.Component, error) {
+func (d HomePageData) generateTopCategoriesBadges() (templ.Component, error) {
 	var badges []templ.Component
 	// Get the top categories aggregation.
 	topCategoriesSamplerAgg, err := aggregations.ExtractAggregation[*types.SamplerAggregate](d, "top_categories_sample")
 	if err != nil {
-		return nil, fmt.Errorf("could not get top categories: %w")
+		return nil, fmt.Errorf("could not get top categories: %w", err)
 	}
 	topCategoriesAgg, err := aggregations.ExtractAggregation[*types.StringTermsAggregate](topCategoriesSamplerAgg.Aggregations, "top_categories")
 	if err != nil {
-		return nil, fmt.Errorf("could not get top categories: %w")
+		return nil, fmt.Errorf("could not get top categories: %w", err)
 	}
 	// Generate category counts from buckets.
 	var counts models.CategoryCounts
@@ -53,7 +53,7 @@ func (d HomePageData) GetTopCategoriesBadges() (templ.Component, error) {
 	return templ.Join(badges...), nil
 }
 
-func (d HomePageData) GetRareCategoriesBadges() (templ.Component, error) {
+func (d HomePageData) generateRareCategoriesBadges() (templ.Component, error) {
 	var badges []templ.Component
 	// Get the rare categories aggregation.
 	rareCategoriesAgg, err := aggregations.ExtractAggregation[*types.StringRareTermsAggregate](d, "rare_categories")
@@ -79,7 +79,7 @@ func (d HomePageData) GetRareCategoriesBadges() (templ.Component, error) {
 	return templ.Join(badges...), nil
 }
 
-func (d HomePageData) GetRandomItemsCards(ctx context.Context, api *elastic.API) (templ.Component, error) {
+func (d HomePageData) generateRandomItemsCards(ctx context.Context, api *elastic.API) (templ.Component, error) {
 	// Get the rare categories aggregation.
 	randomItemsAgg, err := aggregations.ExtractAggregation[map[string]any](d, "random_items")
 	if err != nil {
@@ -107,7 +107,28 @@ func (d HomePageData) GetRandomItemsCards(ctx context.Context, api *elastic.API)
 	// return nil, nil
 }
 
-func GetHomePageData(ctx context.Context, api *elastic.API) (HomePageData, error) {
+func GenerateHomePageContent(ctx context.Context, api *elastic.API) templ.Component {
+	data, err := getHomePageData(ctx, api)
+	if err != nil {
+		slogctx.FromCtx(ctx).Error("Could not generate home page content.", slog.Any("error", err))
+	}
+	topCategories, err := data.generateTopCategoriesBadges()
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to show top categories.", slog.Any("error", err))
+	}
+	rareCategories, err := data.generateRareCategoriesBadges()
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to show rare categories.", slog.Any("error", err))
+	}
+	randomItems, err := data.generateRandomItemsCards(ctx, api)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to random items.", slog.Any("error", err))
+	}
+
+	return layoutHomePageContent(topCategories, rareCategories, randomItems)
+}
+
+func getHomePageData(ctx context.Context, api *elastic.API) (HomePageData, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, fmt.Errorf("%w: no user found", elastic.ErrFetchCtx)
@@ -196,28 +217,7 @@ func GetHomePageData(ctx context.Context, api *elastic.API) (HomePageData, error
 	return resp.Aggregations, nil
 }
 
-func GenerateHomePageContent(ctx context.Context, api *elastic.API) templ.Component {
-	data, err := GetHomePageData(ctx, api)
-	if err != nil {
-		slogctx.FromCtx(ctx).Error("Could not generate home page content.", slog.Any("error", err))
-	}
-	topCategories, err := data.GetTopCategoriesBadges()
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to show top categories.", slog.Any("error", err))
-	}
-	rareCategories, err := data.GetRareCategoriesBadges()
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to show rare categories.", slog.Any("error", err))
-	}
-	randomItems, err := data.GetRandomItemsCards(ctx, api)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to random items.", slog.Any("error", err))
-	}
-
-	return ShowHomePageContent(topCategories, rareCategories, randomItems)
-}
-
-templ ShowHomePageContent(topCategories, rareCategories, randomItems templ.Component) {
+templ layoutHomePageContent(topCategories, rareCategories, randomItems templ.Component) {
 	if topCategories != nil {
 		<h1>Top Categories:</h1>
 		<div id="top-categories" class="flex flex-wrap justify-items-center p-2">

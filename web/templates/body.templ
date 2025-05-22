@@ -1,0 +1,84 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package templates
+
+import (
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"slices"
+)
+
+var (
+	ContentID       = attributes.ID("content")
+	ErrorID         = attributes.ID("error")
+	ModalID         = attributes.ID("modal-container")
+	NotificationsID = attributes.ID("notifications")
+)
+
+// contains the components for rendering a /home page layout.
+type Body struct {
+	header  templ.Component
+	footer  templ.Component
+	content templ.Component
+}
+
+templ (b *Body) Template() {
+	if b.header != nil {
+		@b.header
+	}
+	@Content(b.content)
+	if b.footer != nil {
+		@b.footer
+	}
+}
+
+templ Content(components ...templ.Component) {
+	<div
+		id={ ContentID.String() }
+		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2"
+		hx-swap="morph:innerHTML"
+		hx-target-error={ ErrorID.Target() }
+	>
+		for component := range slices.Values(components) {
+			@component
+		}
+	</div>
+	<div id="content-loading" class="items-center justify-center">
+		@loading.Build(loading.Bars,
+			loading.AsHTMXIndicator(),
+			loading.WithThemeColor(color.Accent),
+		).Show()
+	</div>
+}
+
+// BodyOption is a functional option to apply to the body.
+type BodyOption func(*Body)
+
+// WithBodyHeader option adds a header component to the body.
+func WithBodyHeader(header templ.Component) BodyOption {
+	return func(b *Body) {
+		b.header = header
+	}
+}
+
+// WithBodyFooter option adds a footer component to the body.
+func WithBodyFooter(footer templ.Component) BodyOption {
+	return func(b *Body) {
+		b.footer = footer
+	}
+}
+
+// NewBody creates a new body page component with the given content and options.
+func NewBody(content templ.Component, options ...BodyOption) *Body {
+	body := &Body{
+		content: content,
+	}
+
+	for option := range slices.Values(options) {
+		option(body)
+	}
+
+	return body
+}

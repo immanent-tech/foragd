@@ -51,7 +51,8 @@
     "layouts/settings",
     "layouts",
     "handlers",
-    "partials"
+    "partials",
+    "templates"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {
