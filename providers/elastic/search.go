@@ -13,6 +13,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
@@ -40,7 +41,7 @@ func WithSearchIndex(index string) SearchOption {
 }
 
 // WithAggregations adds the given aggregation definitions to the search.
-func WithAggregations(definitions ...Aggregation) SearchOption {
+func WithAggregations(definitions ...aggregations.Aggregation) SearchOption {
 	return func(search *search.Search) {
 		aggregations := make(map[string]types.Aggregations)
 

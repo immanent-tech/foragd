@@ -4,7 +4,6 @@
 package server
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/justinas/alice"
@@ -14,8 +13,11 @@ import (
 )
 
 func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
-	handlers.InternalServerError(res, req, errors.New("not implemented"))
-	// res.WriteHeader(http.StatusNotImplemented)
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SaveLastPageView(s.SessionAPI()),
+	).Then(handlers.DisplayHome(s.DataAPI(), s.SessionAPI()))
+	chain.ServeHTTP(res, req)
 }
 
 func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Request) {

@@ -8,9 +8,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/views"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
@@ -210,6 +213,28 @@ func DisplayItem(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID models.Fe
 		default:
 			// Generate full layout for non-HTMX powered request.
 			layout := home.BuildArticleLayout(req.Context(), item)
+			FullRender(layout.Title, templates.WithBody(layout)).ServeHTTP(res, req)
+		}
+	})
+}
+
+func DisplayHome(dataAPI DataAPI, sessionAPI models.SessionAPI) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		content := views.GenerateHomePageContent(req.Context(), dataAPI.(*elastic.API))
+		switch {
+		case htmx.IsHTMX(req):
+			// Update partial content for HTMX powered request.
+			PartialRender(
+
+				layouts.Footer(),
+				templates.SetPageTitle("Home"),
+			).ServeHTTP(res, req)
+		default:
+			// Generate full layout for non-HTMX powered request.
+			layout := &home.HomeLayout{
+				Title:   "/home",
+				Content: []templ.Component{content},
+			}
 			FullRender(layout.Title, templates.WithBody(layout)).ServeHTTP(res, req)
 		}
 	})

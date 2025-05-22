@@ -118,7 +118,7 @@ func GenerateItemCards(ctx context.Context, items models.Items, pagination model
 		// Create a card for this item.
 		itemCard := newItemCard(ctx, item)
 		// Add a pagination action to the last item.
-		if idx == len(items)-1 && len(items) == models.FiltersFromCtx(ctx).Count {
+		if idx == len(items)-1 && len(items) == models.FiltersFromCtx(ctx).Count && pagination != "" {
 			itemCard.addPagination(ctx, pagination, models.ItemsRoute)
 		}
 		// Append the card to the list of cards.

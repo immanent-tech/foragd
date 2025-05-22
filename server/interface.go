@@ -19,6 +19,7 @@ import (
 	"github.com/joshuar/go-feed-me/components/auth"
 	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/providers/auth0"
+	"github.com/joshuar/go-feed-me/providers/elastic"
 )
 
 func (s Server) AppSecret() string {
@@ -36,7 +37,7 @@ func (s Server) UserAPI() *auth0.UserAPI {
 }
 
 // DataAPI returns the object that contains API methods for data operations.
-func (s Server) DataAPI() DataAPI {
+func (s Server) DataAPI() *elastic.API {
 	return s.API.elastic
 }
 

@@ -1,13 +1,21 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package elastic
+// Package aggregations contains objects and methods for processing Elasticsearch aggregations.
+package aggregations
 
 import (
+	"errors"
+	"fmt"
 	"slices"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+)
+
+var (
+	// Aggregation Errors.
+	ErrInvalidAggType    = errors.New("not requested aggregation type")
+	ErrConvertFieldValue = errors.New("could not convert field value")
 )
 
 // Aggregation represents a named aggregation definition in a search query.
@@ -15,6 +23,33 @@ type Aggregation struct {
 	Name       string
 	Definition types.Aggregations
 }
+
+// ExtractAggregation extracts the named aggregation as the requested type from
+// the search response.
+func ExtractAggregation[T any](aggs map[string]types.Aggregate, name string) (T, error) {
+	aggregation, ok := aggs[name].(T)
+	if !ok {
+		return aggregation, fmt.Errorf("%w: have %T, want %T", ErrInvalidAggType, aggs[name], aggregation)
+	}
+
+	return aggregation, nil
+}
+
+// NewTermsAggregation creates a TermsAggregation aggregation for a query.
+func NewTermsAggregation(name, field string, size int) Aggregation {
+	return Aggregation{
+		Name: name,
+		Definition: types.Aggregations{
+			Terms: &types.TermsAggregation{
+				Field: &field,
+				Size:  &size,
+			},
+		},
+	}
+}
+
+// AggregationResults represents the list of named aggregations from the Elasticsearch response.
+type AggregationResults map[string]types.Aggregate
 
 // TermsAggregationResults contains the results for a string terms aggregation.
 type TermsAggregationResults struct {
@@ -72,26 +107,7 @@ func (a *TermsAggregationResults) BucketNames() []string {
 	return nil
 }
 
-// NewTermsAggregation creates a TermsAggregation aggregation for a query.
-func NewTermsAggregation(name, field string, size int) Aggregation {
-	return Aggregation{
-		Name: name,
-		Definition: types.Aggregations{
-			Terms: &types.TermsAggregation{
-				Field: &field,
-				Size:  &size,
-			},
-		},
-	}
-}
-
-// ExtractAggregation extracts the named aggregation as the requested type from
-// the search response.
-func ExtractAggregation[T any](resp *search.Response, name string) (T, error) {
-	aggregation, ok := resp.Aggregations[name].(T)
-	if !ok {
-		return aggregation, ErrInvalidAggType
-	}
-
-	return aggregation, nil
+// TermsAggregationResults contains the results for a string terms aggregation.
+type DiversifiedTermsAggregation struct {
+	*types.DiversifiedSamplerAggregation
 }

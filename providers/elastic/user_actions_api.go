@@ -17,6 +17,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
@@ -136,12 +137,12 @@ func (e *API) GetSubscriptionUnreadCounts(ctx context.Context, subscriptions mod
 			),
 		),
 	)
-	countResults, err := e.ItemsAggregation(ctx, query, NewTermsAggregation("UnreadCounts", "feed_id", len(subscriptions)))
+	resp, err := e.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(subscriptions)))
 	if err != nil {
 		return ErrFetchCtx
 	}
-	var categoryCounts TermsAggregationResults
-	categoryCounts.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](countResults, "UnreadCounts")
+	var categoryCounts aggregations.TermsAggregationResults
+	categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](resp.Aggregations, "UnreadCounts")
 	if err != nil {
 		return ErrFetchCtx
 	}
@@ -285,7 +286,7 @@ func (e *API) GetItems(ctx context.Context, pagination models.Pagination) (model
 			query.Categories(filters.Categories...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(buildSubscriptionQueries(subscriptions, filters)...),
+				query.Should(BuildSubscriptionQueries(subscriptions, filters.View)...),
 			),
 		),
 	)
@@ -353,12 +354,12 @@ func (e *API) GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) 
 			query.FeedIDs(feeds...),
 		),
 	)
-	topCategoryResults, err := e.ItemsAggregation(ctx, query, NewTermsAggregation("TopCategories", "categories.raw", 10))
+	resp, err := e.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
 	if err != nil {
 		return nil, ErrFetchCtx
 	}
-	var topCategories TermsAggregationResults
-	topCategories.StringTermsAggregate, err = ExtractAggregation[*types.StringTermsAggregate](topCategoryResults, "TopCategories")
+	var topCategories aggregations.TermsAggregationResults
+	topCategories.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](resp.Aggregations, "TopCategories")
 	if err != nil {
 		return nil, ErrFetchCtx
 	}
@@ -366,11 +367,11 @@ func (e *API) GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) 
 	return topCategories.BucketNames(), nil
 }
 
-// buildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
-func buildSubscriptionQueries(subscriptions models.Subscriptions, filters models.Filters) []query.Option {
+// BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
+func BuildSubscriptionQueries(subscriptions models.Subscriptions, view models.View) []query.Option {
 	queries := make([]query.Option, 0, len(subscriptions))
 	// Work out what query to use based on the state filter.
-	switch filters.View {
+	switch view {
 	case models.ViewRead:
 		for subscription := range slices.Values(subscriptions) {
 			queries = append(queries, subscriptionQueryReadItems(subscription))

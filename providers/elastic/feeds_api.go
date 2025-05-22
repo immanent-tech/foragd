@@ -15,11 +15,10 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
-
-var defaultDatetimeFormat = "strict_date_optional_time_nanos"
 
 // AddItems will bulk index the given items.
 func (e *API) AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error) {
@@ -285,7 +284,7 @@ func (e *API) GetItemsByID(ctx context.Context, itemIDs ...models.ItemID) (model
 
 // ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
 // options. It returns the raw search response.
-func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregation Aggregation) (*search.Response, error) {
+func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -295,7 +294,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
 		WithSearchSize(0),
-		WithAggregations(aggregation),
+		WithAggregations(aggregations...),
 		WithSortOptions(setItemSort(models.NewFilters().Sort())),
 	)
 

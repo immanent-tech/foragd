@@ -14,10 +14,7 @@ var (
 	ErrReqFailed     = errors.New("api request failed")
 	ErrNotFound      = errors.New("not found")
 
-	ErrPagination    = errors.New("pagination error")
-	// Aggregation Errors.
-	ErrInvalidAggType    = errors.New("not requested aggregation type")
-	ErrConvertFieldValue = errors.New("could not convert field value")
+	ErrPagination = errors.New("pagination error")
 	// Doc Errors.
 	ErrUpdateFailed = errors.New("update failed")
 	ErrExistsFailed = errors.New("exists request failed")
