@@ -55,10 +55,9 @@ func (c *Card) addPagination(ctx context.Context, pagination models.Pagination, 
 	).Attributes())
 }
 
-func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) *templates.Body {
+func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions, backlink models.PageView) *templates.Body {
 	cards := GenerateFeedCards(ctx, subscriptions, pagination)
 	// Generate backlink.
-	backlink := models.GetBacklink(ctx, models.SessionFromCtx(ctx), models.FeedsRoute)
 	return templates.NewBody(
 		templ.Join(cards...),
 		templates.WithBodyHeader(
@@ -96,10 +95,8 @@ func GenerateFeedCards(ctx context.Context, subscriptions models.Subscriptions, 
 	return cards
 }
 
-func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items models.Items) *templates.Body {
+func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items models.Items, backlink models.PageView) *templates.Body {
 	cards := GenerateItemCards(ctx, items, pagination)
-	// Generate backlink.
-	backlink := models.GetBacklink(ctx, models.SessionFromCtx(ctx), models.ItemsRoute)
 	// Return the home items layout.
 	return templates.NewBody(
 		templates.Content(cards...),

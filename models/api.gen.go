@@ -25,6 +25,14 @@ const (
 	MessageStatusWarning MessageStatus = "warning"
 )
 
+// Defines values for PageViewID.
+const (
+	PageViewIDFeed      PageViewID = "Feed"
+	PageViewIDHome      PageViewID = "Home"
+	PageViewIDShowFeeds PageViewID = "ShowFeeds"
+	PageViewIDShowItems PageViewID = "ShowItems"
+)
+
 // Defines values for SortBy.
 const (
 	SortByLastUpdated SortBy = "last_updated"
@@ -135,6 +143,9 @@ type Message struct {
 
 // MessageStatus indicates the severity or importance of the message.
 type MessageStatus string
+
+// PageViewID is an ID that represents a page view.
+type PageViewID string
 
 // Pagination contains data for paginating through results.
 type Pagination = string

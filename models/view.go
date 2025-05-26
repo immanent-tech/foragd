@@ -3,11 +3,14 @@
 
 package models
 
-import "github.com/joshuar/go-feed-me/web/templates/action"
+import (
+	"github.com/joshuar/go-feed-me/web/templates/action"
+)
 
 type PageView struct {
-	Path    string
-	Filters Filters
+	Path     string
+	Filters  Filters
+	Backlink PageViewID
 }
 
 func (r PageView) String() string {
@@ -18,6 +21,7 @@ func (r PageView) AsAction(options ...action.Option) *action.Action {
 	viewAction := action.Build(r.Path, options...)
 	// Set the query params from the filters.
 	action.WithParams(r.Filters.ToQueryParams())(viewAction)
+	action.WithParam("backlink", string(r.Backlink))(viewAction)
 	return viewAction
 }
 
@@ -29,4 +33,15 @@ func NewPageView(path string, filters *Filters) PageView {
 		nav.Filters = *filters
 	}
 	return nav
+}
+
+func NewPageViewFromID(id PageViewID) PageView {
+	switch id {
+	case PageViewIDShowItems:
+		return NewPageView(ItemsRoute, NewFilters())
+	case PageViewIDShowFeeds:
+		return NewPageView(FeedsRoute, NewFilters())
+	default:
+		return NewPageView("/home", nil)
+	}
 }

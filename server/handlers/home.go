@@ -54,43 +54,21 @@ func CheckRequiredFilters(next http.Handler) http.Handler {
 	})
 }
 
-// GenerateFilters parses the request parameters, generates Filters from them and stores the filters in the session.
-func GenerateFilters(session models.SessionAPI, params any) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Retrieve filters.
-			filters, err := models.NewFiltersFromParams(params)
-			if err != nil {
-				InternalServerError(res, req, err)
-				return
-			}
-			ctx := models.FiltersToCtx(req.Context(), *filters)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-func SavePageView(path string, params any) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Retrieve filters from params.
-			filters, err := models.NewFiltersFromParams(params)
-			if err != nil {
-				InternalServerError(res, req, err)
-				return
-			}
-			// Create view.
-			view := models.NewPageView(path, filters)
-			// Save view in session.
-			session := models.SessionFromCtx(req.Context())
-			models.SaveViewInSession(req.Context(), session, view)
-			// Save filters in context.
-			ctx := models.FiltersToCtx(req.Context(), *filters)
-			// Pass control to next handler.
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
+// // GenerateFilters parses the request parameters, generates Filters from them and stores the filters in the session.
+// func GenerateFilters(session models.SessionAPI, params any) func(next http.Handler) http.Handler {
+// 	return func(next http.Handler) http.Handler {
+// 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+// 			// Retrieve filters.
+// 			filters, err := models.NewFiltersFromParams(params)
+// 			if err != nil {
+// 				InternalServerError(res, req, err)
+// 				return
+// 			}
+// 			ctx := models.FiltersToCtx(req.Context(), *filters)
+// 			next.ServeHTTP(res, req.WithContext(ctx))
+// 		})
+// 	}
+// }
 
 // MarkFeeds will mark the user's subscriptions that match the given feeds with the given mark.
 func MarkFeeds(api DataAPI, mark models.Mark, feeds ...models.FeedID) http.Handler {
@@ -131,11 +109,11 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			InternalServerError(res, req, err)
 			return
 		}
+		backlink := models.GetViewFromSession(req.Context(), sessionAPI, models.BacklinkFromCtx(req.Context()))
 		pageTitle := "Feeds"
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
-			backlink := models.GetBacklink(req.Context(), sessionAPI, models.FeedsRoute)
 			PartialRender(
 				templ.Join(home.GenerateFeedCards(req.Context(), subscriptions, pagination)...),
 				layouts.Footer(
@@ -152,7 +130,7 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
-			layout := home.BuildFeedsLayout(req.Context(), pagination, subscriptions)
+			layout := home.BuildFeedsLayout(req.Context(), pagination, subscriptions, backlink)
 			FullRender(pageTitle, templates.WithBody(layout)).ServeHTTP(res, req)
 		}
 	})
@@ -166,7 +144,7 @@ func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			InternalServerError(res, req, err)
 			return
 		}
-		backlink := models.GetBacklink(req.Context(), sessionAPI, models.ItemsRoute)
+		backlink := models.GetViewFromSession(req.Context(), sessionAPI, models.BacklinkFromCtx(req.Context()))
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
@@ -186,7 +164,7 @@ func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
-			layout := home.BuildItemsLayout(req.Context(), pagination, items)
+			layout := home.BuildItemsLayout(req.Context(), pagination, items, backlink)
 			FullRender("Items", templates.WithBody(layout)).ServeHTTP(res, req)
 		}
 	})
@@ -200,7 +178,7 @@ func DisplayItem(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID models.Fe
 			InternalServerError(res, req, err)
 			return
 		}
-		backlink := models.GetBacklink(req.Context(), sessionAPI, "/home/"+item.GetFeedID()+"/"+item.GetID())
+		backlink := models.GetViewFromSession(req.Context(), sessionAPI, models.BacklinkFromCtx(req.Context()))
 		content := home.GenerateArticle(item)
 		header := partials.Header(
 			partials.DefaultHeaderStart(),

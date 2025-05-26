@@ -6,6 +6,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -13,9 +14,11 @@ import (
 )
 
 func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
+	view := models.NewPageView(chi.RouteContext(req.Context()).RoutePattern(), nil)
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SaveLastPageView(s.SessionAPI()),
+		handlers.SaveState(s.SessionAPI(), models.PageViewIDHome, view),
+		// handlers.SaveLastPageView(s.SessionAPI()),
 	).Then(handlers.DisplayHome(s.DataAPI(), s.SessionAPI()))
 	chain.ServeHTTP(res, req)
 }
@@ -25,16 +28,33 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 }
 
 func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
+	// Extract any pagination value.
 	var pagination models.Pagination
 	if params.Pagination != nil {
 		pagination = *params.Pagination
 	}
+	// Extract the backlink or set a default.
+	var backlink models.PageViewID
+	if params.Backlink == "" {
+		backlink = models.PageViewIDHome
+	} else {
+		backlink = params.Backlink
+	}
+
+	// Retrieve filters.
+	filters, err := models.NewFiltersFromParams(params)
+	if err != nil {
+		handlers.InternalServerError(res, req, err)
+		return
+	}
+	view := models.NewPageView(chi.RouteContext(req.Context()).RoutePattern(), filters)
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
-		handlers.GenerateFilters(s.SessionAPI(), params),
-		handlers.SavePageView(models.FeedsRoute, params),
-		handlers.SaveLastPageView(s.SessionAPI()),
+		// handlers.GenerateFilters(s.SessionAPI(), params),
+		handlers.SaveState(s.SessionAPI(), models.PageViewIDShowFeeds, view),
+		handlers.SaveBacklink(backlink),
+	// handlers.SaveLastPageView(s.SessionAPI()),
 	).Then(handlers.DisplayFeeds(s.DataAPI(), s.SessionAPI(), pagination))
 	chain.ServeHTTP(res, req)
 }
@@ -44,20 +64,36 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 	if params.Pagination != nil {
 		pagination = *params.Pagination
 	}
+
+	// Extract the backlink or set a default.
+	var backlink models.PageViewID
+	if params.Backlink == "" {
+		backlink = models.PageViewIDHome
+	} else {
+		backlink = params.Backlink
+	}
+
+	// Retrieve filters.
+	filters, err := models.NewFiltersFromParams(params)
+	if err != nil {
+		handlers.InternalServerError(res, req, err)
+		return
+	}
+	view := models.NewPageView(chi.RouteContext(req.Context()).RoutePattern(), filters)
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
-		handlers.GenerateFilters(s.SessionAPI(), params),
-		handlers.SavePageView(models.ItemsRoute, params),
-		handlers.SaveLastPageView(s.SessionAPI()),
+		// handlers.GenerateFilters(s.SessionAPI(), params),
+		handlers.SaveState(s.SessionAPI(), models.PageViewIDShowItems, view),
+		handlers.SaveBacklink(backlink),
 	).Then(handlers.DisplayItems(s.DataAPI(), s.SessionAPI(), pagination))
 	chain.ServeHTTP(res, req)
 }
 
-func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID) {
+func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, params HandleShowItemParams) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SaveLastPageView(s.SessionAPI()),
+		// handlers.SaveLastPageView(s.SessionAPI()),
 	).Then(handlers.DisplayItem(s.DataAPI(), s.SessionAPI(), feedID, itemID))
 	chain.ServeHTTP(res, req)
 }
@@ -77,7 +113,7 @@ func (s Server) MarkFeeds(res http.ResponseWriter, req *http.Request, mark Mark,
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(params.RedirectOnSuccess),
+		handlers.SetupRedirect(params.Redirect),
 	).Then(handlers.MarkFeeds(s.DataAPI(), mark, feedIDs...))
 	chain.ServeHTTP(res, req)
 }
@@ -89,7 +125,7 @@ func (s Server) MarkItems(res http.ResponseWriter, req *http.Request, mark Mark,
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(params.RedirectOnSuccess),
+		handlers.SetupRedirect(params.Redirect),
 	).Then(handlers.MarkItems(s.DataAPI(), mark, itemIDs...))
 	chain.ServeHTTP(res, req)
 }
@@ -97,7 +133,7 @@ func (s Server) MarkItems(res http.ResponseWriter, req *http.Request, mark Mark,
 func (s Server) MarkItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, mark models.Mark, params MarkItemParams) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(params.RedirectOnSuccess),
+		handlers.SetupRedirect(params.Redirect),
 	).Then(handlers.MarkItems(s.DataAPI(), mark, itemID))
 	chain.ServeHTTP(res, req)
 }

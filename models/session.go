@@ -5,8 +5,6 @@ package models
 
 import (
 	"context"
-	"log/slog"
-	"strings"
 
 	slogctx "github.com/veqryn/slog-context"
 )
@@ -21,19 +19,20 @@ type SessionAPI interface {
 	Get(ctx context.Context, key string) any
 }
 
-func GetViewFromSession(ctx context.Context, api SessionAPI, path string) PageView {
-	view, ok := api.Get(ctx, "View:"+path).(PageView)
-	if !ok {
-		slogctx.FromCtx(ctx).Warn("No save view found for path, generating defaults.",
-			slog.String("path", path))
-		return NewPageView(path, NewFilters())
-	} else {
-		return view
-	}
+func GetViewFromSession(ctx context.Context, api SessionAPI, key PageViewID) PageView {
+	return NewPageViewFromID(key)
+	// view, ok := api.Get(ctx, "Page:"+string(key)).(PageView)
+	// if !ok {
+	// 	slogctx.FromCtx(ctx).Warn("No saved view found, generating defaults.",
+	// 		slog.String("view", string(key)))
+	// 	return NewPageViewFromID(key)
+	// } else {
+	// 	return view
+	// }
 }
 
-func SaveViewInSession(ctx context.Context, api SessionAPI, view PageView) {
-	api.Put(ctx, "View:"+view.Path, view)
+func SaveViewInSession(ctx context.Context, api SessionAPI, key PageViewID, view PageView) {
+	api.Put(ctx, "Page:"+string(key), view)
 }
 
 // SaveLastPageView saves the given page view to the session.
@@ -46,22 +45,8 @@ func GetLastPageView(ctx context.Context, api SessionAPI) PageView {
 	view, ok := api.Get(ctx, lastPageViewSessionKey).(PageView)
 	if !ok {
 		slogctx.FromCtx(ctx).Warn("No last page view found, using default.")
-		return NewPageView("/home", NewFilters())
+		return NewPageView("/home", nil)
 	} else {
 		return view
-	}
-}
-
-// GetBacklink retrieves the appropriate PageView to use as a backlink for the given path from the stored session data.
-func GetBacklink(ctx context.Context, api SessionAPI, path string) PageView {
-	switch {
-	case strings.Contains(path, "feed_") && strings.Contains(path, "item_"):
-		return GetViewFromSession(ctx, api, ItemsRoute)
-	case path == ItemsRoute:
-		return GetViewFromSession(ctx, api, FeedsRoute)
-	case path == FeedsRoute:
-		fallthrough
-	default:
-		return NewPageView("/home", nil)
 	}
 }

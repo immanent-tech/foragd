@@ -221,7 +221,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Mark'
         - $ref: '#/components/parameters/SubscriptionID'
-        - $ref: '#/components/parameters/RedirectOnSuccess'
+        - $ref: '#/components/parameters/Redirect'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -233,7 +233,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Mark'
         - $ref: '#/components/parameters/Subscriptions'
-        - $ref: '#/components/parameters/RedirectOnSuccess'
+        - $ref: '#/components/parameters/Redirect'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -256,9 +256,10 @@ paths:
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/View'
         - $ref: '#/components/parameters/Count'
-        - $ref: '#/components/parameters/Pagination'
         - $ref: '#/components/parameters/SortBy'
         - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Pagination'
+        - $ref: '#/components/parameters/Backlink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -270,7 +271,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Mark'
         - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/RedirectOnSuccess'
+        - $ref: '#/components/parameters/Redirect'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -287,6 +288,7 @@ paths:
         - $ref: '#/components/parameters/Pagination'
         - $ref: '#/components/parameters/SortBy'
         - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Backlink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -298,7 +300,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Mark'
         - $ref: '#/components/parameters/Items'
-        - $ref: '#/components/parameters/RedirectOnSuccess'
+        - $ref: '#/components/parameters/Redirect'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -310,6 +312,8 @@ paths:
       summary: >
         Shows a feed item.
       operationId: handleShowItem
+      parameters:
+        - $ref: '#/components/parameters/Backlink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -336,7 +340,7 @@ paths:
         - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/ItemID'
         - $ref: '#/components/parameters/Mark'
-        - $ref: '#/components/parameters/RedirectOnSuccess'
+        - $ref: '#/components/parameters/Redirect'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -420,14 +424,22 @@ components:
       schema:
         type: string
     # Query Parameters:
-    RedirectOnSuccess:
+    Redirect:
       description: >
         specifies a location to which the client should be redirected on a successful request. Used to perform a
         client-side redirection with htmx.
-      name: redirect_on_success
+      name: redirect
       in: query
       schema:
-        type: string
+        $ref: 'api.yaml#/components/schemas/PageViewID'
+    Backlink:
+      description: >
+        specifies the location to which any back button/links should point.
+      name: backlink
+      in: query
+      required: true
+      schema:
+        $ref: 'api.yaml#/components/schemas/PageViewID'
     Confirmation:
       description: >
         indicates the confirmation state from the user for a destructive action.

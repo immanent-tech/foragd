@@ -71,6 +71,13 @@ components:
           $ref: '#/components/schemas/SortOrder'
       x-oapi-codegen-extra-tags:
         json: 'sort'
+    PageViewID:
+      description: >
+        is an ID that represents a page view.
+      name: page_view_id
+      type: string
+      enum: ['Home', 'ShowFeeds', 'ShowItems', 'Feed']
+      default: 'Home'
     RequiredFilters:
       description: >
         contains filter parameters that are always required across different kinds of

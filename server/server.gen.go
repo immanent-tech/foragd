@@ -36,6 +36,9 @@ type ImportOPML = string
 // ImportURLs allows importing feeds from an list of feed URLs.
 type ImportURLs = []string
 
+// Backlink is an ID that represents a page view.
+type Backlink = externalRef0.PageViewID
+
 // Categories is a list of categories.
 type Categories = []externalRef0.Category
 
@@ -63,8 +66,8 @@ type Mark = externalRef0.Mark
 // Pagination contains data for paginating through results.
 type Pagination = externalRef0.Pagination
 
-// RedirectOnSuccess defines model for RedirectOnSuccess.
-type RedirectOnSuccess = string
+// Redirect is an ID that represents a page view.
+type Redirect = externalRef0.PageViewID
 
 // SortBy represents the selected field to sort on.
 type SortBy = externalRef0.SortBy
@@ -87,17 +90,20 @@ type HandleShowFeedsParams struct {
 	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
 	View       View        `form:"view" json:"view"`
 	Count      Count       `form:"count" json:"count"`
-	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
 	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
 	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
+
+	// Backlink specifies the location to which any back button/links should point.
+	Backlink Backlink `form:"backlink" json:"backlink"`
 }
 
 // MarkFeedsParams defines parameters for MarkFeeds.
 type MarkFeedsParams struct {
 	Feeds *Feeds `form:"feeds,omitempty" json:"feeds,omitempty"`
 
-	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
 // HandleShowItemsParams defines parameters for HandleShowItems.
@@ -109,20 +115,29 @@ type HandleShowItemsParams struct {
 	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
 	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
 	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
+
+	// Backlink specifies the location to which any back button/links should point.
+	Backlink Backlink `form:"backlink" json:"backlink"`
 }
 
 // MarkItemsParams defines parameters for MarkItems.
 type MarkItemsParams struct {
 	Items *Items `form:"items,omitempty" json:"items,omitempty"`
 
-	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
+}
+
+// HandleShowItemParams defines parameters for HandleShowItem.
+type HandleShowItemParams struct {
+	// Backlink specifies the location to which any back button/links should point.
+	Backlink Backlink `form:"backlink" json:"backlink"`
 }
 
 // MarkItemParams defines parameters for MarkItem.
 type MarkItemParams struct {
-	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
 // SetImportMethodFormdataBody defines parameters for SetImportMethod.
@@ -133,8 +148,8 @@ type SetImportMethodFormdataBody struct {
 
 // MarkSubscriptionParams defines parameters for MarkSubscription.
 type MarkSubscriptionParams struct {
-	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
 // RemoveSubscriptionParams defines parameters for RemoveSubscription.
@@ -147,8 +162,8 @@ type RemoveSubscriptionParams struct {
 type MarkAllSubscriptionsParams struct {
 	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
 
-	// RedirectOnSuccess specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	RedirectOnSuccess *RedirectOnSuccess `form:"redirect_on_success,omitempty" json:"redirect_on_success,omitempty"`
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
 // ProcessSignUpFormdataRequestBody defines body for ProcessSignUp for application/x-www-form-urlencoded ContentType.
@@ -276,7 +291,7 @@ type ServerInterface interface {
 	HandleUnsaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
 	// Shows a feed item.
 	// (GET /home/{feed}/{item})
-	HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
+	HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, params HandleShowItemParams)
 	// Save a feed item to the user's saved items.
 	// (PUT /home/{feed}/{item})
 	HandleSaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
@@ -389,7 +404,7 @@ func (_ Unimplemented) HandleUnsaveItem(w http.ResponseWriter, r *http.Request, 
 
 // Shows a feed item.
 // (GET /home/{feed}/{item})
-func (_ Unimplemented) HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
+func (_ Unimplemented) HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, params HandleShowItemParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -607,14 +622,6 @@ func (siw *ServerInterfaceWrapper) HandleShowFeeds(w http.ResponseWriter, r *htt
 		return
 	}
 
-	// ------------- Optional query parameter "pagination" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
-		return
-	}
-
 	// ------------- Required query parameter "sort_by" -------------
 
 	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
@@ -642,6 +649,29 @@ func (siw *ServerInterfaceWrapper) HandleShowFeeds(w http.ResponseWriter, r *htt
 	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "backlink" -------------
+
+	if paramValue := r.URL.Query().Get("backlink"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "backlink"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "backlink", r.URL.Query(), &params.Backlink)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
 		return
 	}
 
@@ -681,11 +711,11 @@ func (siw *ServerInterfaceWrapper) MarkFeeds(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// ------------- Optional query parameter "redirect_on_success" -------------
+	// ------------- Optional query parameter "redirect" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect_on_success", r.URL.Query(), &params.RedirectOnSuccess)
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_on_success", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
 		return
 	}
 
@@ -792,6 +822,21 @@ func (siw *ServerInterfaceWrapper) HandleShowItems(w http.ResponseWriter, r *htt
 		return
 	}
 
+	// ------------- Required query parameter "backlink" -------------
+
+	if paramValue := r.URL.Query().Get("backlink"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "backlink"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "backlink", r.URL.Query(), &params.Backlink)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.HandleShowItems(w, r, params)
 	}))
@@ -828,11 +873,11 @@ func (siw *ServerInterfaceWrapper) MarkItems(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// ------------- Optional query parameter "redirect_on_success" -------------
+	// ------------- Optional query parameter "redirect" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect_on_success", r.URL.Query(), &params.RedirectOnSuccess)
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_on_success", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
 		return
 	}
 
@@ -904,8 +949,26 @@ func (siw *ServerInterfaceWrapper) HandleShowItem(w http.ResponseWriter, r *http
 		return
 	}
 
+	// Parameter object where we will unmarshal all parameters from the context
+	var params HandleShowItemParams
+
+	// ------------- Required query parameter "backlink" -------------
+
+	if paramValue := r.URL.Query().Get("backlink"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "backlink"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "backlink", r.URL.Query(), &params.Backlink)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
+		return
+	}
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleShowItem(w, r, feed, item)
+		siw.Handler.HandleShowItem(w, r, feed, item, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -984,11 +1047,11 @@ func (siw *ServerInterfaceWrapper) MarkItem(w http.ResponseWriter, r *http.Reque
 	// Parameter object where we will unmarshal all parameters from the context
 	var params MarkItemParams
 
-	// ------------- Optional query parameter "redirect_on_success" -------------
+	// ------------- Optional query parameter "redirect" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect_on_success", r.URL.Query(), &params.RedirectOnSuccess)
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_on_success", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
 		return
 	}
 
@@ -1283,11 +1346,11 @@ func (siw *ServerInterfaceWrapper) MarkSubscription(w http.ResponseWriter, r *ht
 	// Parameter object where we will unmarshal all parameters from the context
 	var params MarkSubscriptionParams
 
-	// ------------- Optional query parameter "redirect_on_success" -------------
+	// ------------- Optional query parameter "redirect" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect_on_success", r.URL.Query(), &params.RedirectOnSuccess)
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_on_success", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
 		return
 	}
 
@@ -1384,11 +1447,11 @@ func (siw *ServerInterfaceWrapper) MarkAllSubscriptions(w http.ResponseWriter, r
 		return
 	}
 
-	// ------------- Optional query parameter "redirect_on_success" -------------
+	// ------------- Optional query parameter "redirect" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect_on_success", r.URL.Query(), &params.RedirectOnSuccess)
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_on_success", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
 		return
 	}
 

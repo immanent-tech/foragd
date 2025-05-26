@@ -36,9 +36,9 @@ func (c *Card) viewAction(ctx context.Context) *action.Action {
 	var view models.PageView
 	switch models.IdentifyID(c.id) {
 	case models.FeedPFX:
-		view = models.GetViewFromSession(ctx, models.SessionFromCtx(ctx), models.ItemsRoute)
+		view = models.NewPageView(models.ItemsRoute, nil)
 		view.Filters.Feeds = []models.FeedID{c.GetFeedID()}
-		view.Filters.SortBy = models.SortByLastUpdated
+		view.Backlink = models.PageViewIDShowFeeds
 		if c.IsUnread() {
 			view.Filters.View = models.ViewUnread
 		} else {
@@ -46,6 +46,7 @@ func (c *Card) viewAction(ctx context.Context) *action.Action {
 		}
 	case models.ItemPFX:
 		view = models.NewPageView("/home/"+c.GetFeedID()+"/"+c.id, nil)
+		view.Backlink = models.PageViewIDShowItems
 	}
 	action := view.AsAction()
 	action.SetAttributes(templ.Attributes{
