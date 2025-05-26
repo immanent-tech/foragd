@@ -15,7 +15,7 @@ import (
 func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SaveState(s.SessionAPI(), models.NewPageView(models.PageViewIDHome, nil)),
+		handlers.SaveView(s.SessionAPI(), models.NewPageView(models.PageViewIDHome, nil)),
 		// handlers.SaveLastPageView(s.SessionAPI()),
 	).Then(handlers.DisplayHome(s.DataAPI(), s.SessionAPI()))
 	chain.ServeHTTP(res, req)
@@ -42,8 +42,8 @@ func (s Server) HomeShowFeeds(res http.ResponseWriter, req *http.Request, params
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
-		handlers.SaveState(s.SessionAPI(), view),
-		handlers.SaveBacklink(s.SessionAPI()),
+		handlers.SaveView(s.SessionAPI(), view),
+		handlers.GenerateBacklink(s.SessionAPI()),
 	).Then(handlers.DisplayFeeds(s.DataAPI(), s.SessionAPI(), pagination))
 	chain.ServeHTTP(res, req)
 }
@@ -64,9 +64,8 @@ func (s Server) HomeShowItems(res http.ResponseWriter, req *http.Request, params
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
-		// handlers.GenerateFilters(s.SessionAPI(), params),
-		handlers.SaveState(s.SessionAPI(), view),
-		handlers.SaveBacklink(s.SessionAPI()),
+		handlers.SaveView(s.SessionAPI(), view),
+		handlers.GenerateBacklink(s.SessionAPI()),
 	).Then(handlers.DisplayItems(s.DataAPI(), s.SessionAPI(), pagination))
 	chain.ServeHTTP(res, req)
 }

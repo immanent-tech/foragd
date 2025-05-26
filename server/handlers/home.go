@@ -139,7 +139,8 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 // DisplayItems handles displaying a list of items.
 func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		items, pagination, err := dataAPI.GetItems(req.Context(), pagination)
+		view := models.PageViewStateFromCtx(req.Context())
+		items, pagination, err := dataAPI.GetItems(req.Context(), view.Filters, pagination)
 		if err != nil {
 			InternalServerError(res, req, err)
 			return

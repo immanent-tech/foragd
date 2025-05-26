@@ -267,12 +267,11 @@ func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.I
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (e *API) GetItems(ctx context.Context, pagination models.Pagination) (models.Items, models.Pagination, error) {
+func (e *API) GetItems(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Items, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", ErrFetchCtx
 	}
-	filters := models.FiltersFromCtx(ctx)
 	// Get subscriptions matching the filters.
 	subscriptions := user.GetSubscriptions().FilterByFeedID(filters.Feeds...)
 

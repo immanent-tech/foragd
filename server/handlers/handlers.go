@@ -71,7 +71,7 @@ type DataAPI interface {
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
 	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)
-	GetItems(ctx context.Context, pagination models.Pagination) (models.Items, models.Pagination, error)
+	GetItems(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Items, models.Pagination, error)
 	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error
 	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error)
 }
@@ -132,20 +132,23 @@ func PartialRender(templates ...templ.Component) http.Handler {
 		})
 }
 
-func SaveState(api models.SessionAPI, view models.PageView) func(next http.Handler) http.Handler {
+// SaveView saves the current page view state in the session and context.
+func SaveView(api models.SessionAPI, view models.PageView) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			// Save view state.
 			models.SaveViewInSession(ctx, api, view)
 			ctx = models.PageViewStateToCtx(ctx, view)
+			slogctx.FromCtx(ctx).Debug("Saved view state.", slog.String("view", view.String()))
 			// Pass control to next handler.
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
 
-func SaveBacklink(api models.SessionAPI) func(next http.Handler) http.Handler {
+// GenerateBacklink creates the appropriate backlink for the current page view.
+func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			var backlink models.PageView
@@ -160,36 +163,14 @@ func SaveBacklink(api models.SessionAPI) func(next http.Handler) http.Handler {
 			case strings.HasPrefix(route, "/item/show"):
 				backlink = models.GetViewFromSession(req.Context(), api, models.PageViewIDFeed)
 			}
-			// Save backlink.
+			// Save backlink into context.
 			ctx := models.BacklinkToCtx(req.Context(), backlink)
-			slogctx.FromCtx(ctx).Debug("Saved backlink", slog.String("backlink", backlink.String()))
+			slogctx.FromCtx(ctx).Debug("Generated backlink.", slog.String("backlink", backlink.String()))
 			// Pass control to next handler.
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
-
-// func SavePageView(path string, params any) func(next http.Handler) http.Handler {
-// 	return func(next http.Handler) http.Handler {
-// 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-// 			// Retrieve filters from params.
-// 			filters, err := models.NewFiltersFromParams(params)
-// 			if err != nil {
-// 				InternalServerError(res, req, err)
-// 				return
-// 			}
-// 			// Create view.
-// 			view := models.NewPageView(path, filters)
-// 			// Save view in session.
-// 			session := models.SessionFromCtx(req.Context())
-// 			models.SaveViewInSession(req.Context(), session, view)
-// 			// Save filters in context.
-// 			ctx := models.FiltersToCtx(req.Context(), *filters)
-// 			// Pass control to next handler.
-// 			next.ServeHTTP(res, req.WithContext(ctx))
-// 		})
-// 	}
-// }
 
 // SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
 // been made through HTMX.
@@ -214,22 +195,6 @@ func SetupRedirect(path *models.PageViewID) func(next http.Handler) http.Handler
 		})
 	}
 }
-
-// // SaveLastPageView handles saving the last viewed page in the session.
-// func SaveLastPageView(api models.SessionAPI) func(next http.Handler) http.Handler {
-// 	return func(next http.Handler) http.Handler {
-// 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-// 			path := chi.RouteContext(req.Context()).RoutePattern()
-// 			filters := models.FiltersFromCtx(req.Context())
-// 			view := models.NewPageView(path, &filters)
-// 			slogctx.FromCtx(req.Context()).Debug("Saving last viewed page.",
-// 				slog.String("view", view.String()),
-// 			)
-// 			models.SaveLastPageView(req.Context(), api, view)
-// 			next.ServeHTTP(res, req)
-// 		})
-// 	}
-// }
 
 // SaveTheme handles saving the theme in the session.
 func SaveTheme(api models.SessionAPI, theme string) func(next http.Handler) http.Handler {
