@@ -77,8 +77,7 @@ func (e *API) EditSubscription(ctx context.Context, subscriptionID models.Subscr
 	})
 }
 
-// GetUserSubscriptions returns all subscriptions for a user with feed and state details added.
-func (e *API) GetSubscriptions(ctx context.Context, pagination models.Pagination) (models.Subscriptions, models.Pagination, error) {
+func (e *API) GetSubscriptions(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Subscriptions, models.Pagination, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -108,13 +107,13 @@ func (e *API) GetSubscriptions(ctx context.Context, pagination models.Pagination
 			models.WithError(err))
 	}
 	// Filter subscriptions with given filters.
-	subscriptions = subscriptions.Filter(models.FiltersFromCtx(ctx))
+	subscriptions = subscriptions.Filter(filters)
 	// Generate pagination.
 	from, err := strconv.Atoi(pagination)
 	if err != nil {
 		from = 0
 	}
-	to := min(from+models.FiltersFromCtx(ctx).Count, len(subscriptions))
+	to := min(from+filters.Count, len(subscriptions))
 	pagination = strconv.Itoa(to)
 	return subscriptions[from:to], pagination, nil
 }

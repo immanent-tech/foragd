@@ -104,7 +104,8 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 // DisplayFeeds handles displaying a list of feeds.
 func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscriptions, pagination, err := dataAPI.GetSubscriptions(req.Context(), pagination)
+		view := models.PageViewStateFromCtx(req.Context())
+		subscriptions, pagination, err := dataAPI.GetSubscriptions(req.Context(), view.Filters, pagination)
 		if err != nil {
 			InternalServerError(res, req, err)
 			return
