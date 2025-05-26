@@ -103,7 +103,7 @@ func MarkAllItemsAction(ctx context.Context, feeds []models.FeedID) templ.Compon
 		action := action.Build(models.FeedsRoute+"/mark/"+string(models.MarkRead),
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(actionAttributes),
-			action.WithParam(models.ParamRedirect, models.FeedsRoute),
+			action.WithParam(models.ParamRedirect, string(models.PageViewIDShowFeeds)),
 			action.WithParam(models.ParamFeeds, strings.Join(feeds, ",")),
 		)
 		return markReadLink("Mark All Read", action.Attributes())
@@ -111,7 +111,7 @@ func MarkAllItemsAction(ctx context.Context, feeds []models.FeedID) templ.Compon
 		action := action.Build(models.FeedsRoute+"/mark/"+string(models.MarkUnread),
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(actionAttributes),
-			action.WithParam(models.ParamRedirect, models.FeedsRoute),
+			action.WithParam(models.ParamRedirect, string(models.PageViewIDShowFeeds)),
 			action.WithParam(models.ParamFeeds, strings.Join(feeds, ",")),
 		)
 		return markUnreadLink("Mark All Unread", action.Attributes())
@@ -144,14 +144,14 @@ func MarkAllFeedsAction(ctx context.Context) templ.Component {
 		action := action.Build("/subscriptions/mark/"+string(models.MarkRead),
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(actionAttributes),
-			action.WithParam(models.ParamRedirect, "/home"),
+			action.WithParam(models.ParamRedirect, string(models.PageViewIDHome)),
 		)
 		return markReadLink("Mark All Read", action.Attributes())
 	case models.ViewRead:
 		action := action.Build("/subscriptions/mark/"+string(models.MarkUnread),
 			action.WithMethod(http.MethodPost),
 			action.WithAttributes(actionAttributes),
-			action.WithParam(models.ParamRedirect, "/home"),
+			action.WithParam(models.ParamRedirect, string(models.PageViewIDHome)),
 		)
 		return markUnreadLink("Mark All Unread", action.Attributes())
 	default:
@@ -168,7 +168,7 @@ func markFeedAction(id models.SubscriptionID, isRead bool) templ.Component {
 				"hx-target":      templates.ContentID.Target(),
 				"hx-swap":        "morph:innerHTML swap:1s",
 			}),
-			action.WithParam(models.ParamRedirect, models.FeedsRoute),
+			action.WithParam(models.ParamRedirect, string(models.PageViewIDShowFeeds)),
 		)
 		return markReadLink("Mark Read", action.Attributes())
 	}
@@ -179,7 +179,7 @@ func markFeedAction(id models.SubscriptionID, isRead bool) templ.Component {
 			"hx-target":      templates.ContentID.Target(),
 			"hx-swap":        "morph:innerHTML swap:1s",
 		}),
-		action.WithParam(models.ParamRedirect, models.FeedsRoute),
+		action.WithParam(models.ParamRedirect, string(models.PageViewIDShowFeeds)),
 	)
 	return markUnreadLink("Mark Unread", action.Attributes())
 }

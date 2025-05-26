@@ -15,5 +15,5 @@ const (
 	ParamView       = "view"
 	ParamFeedID     = "feed_id"
 	ParamItemID     = "item_id"
-	ParamRedirect   = "redirect_on_success"
+	ParamRedirect   = "redirect_to"
 )

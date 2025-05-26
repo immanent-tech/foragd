@@ -85,16 +85,16 @@ type View = externalRef0.View
 type HomeMarkFeedsParams struct {
 	Feeds *Feeds `form:"feeds,omitempty" json:"feeds,omitempty"`
 
-	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
+	// RedirectTo specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	RedirectTo *Redirect `form:"redirect_to,omitempty" json:"redirect_to,omitempty"`
 }
 
 // MarkItemsParams defines parameters for MarkItems.
 type MarkItemsParams struct {
 	Items *Items `form:"items,omitempty" json:"items,omitempty"`
 
-	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
+	// RedirectTo specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	RedirectTo *Redirect `form:"redirect_to,omitempty" json:"redirect_to,omitempty"`
 }
 
 // HomeShowFeedsParams defines parameters for HomeShowFeeds.
@@ -120,8 +120,8 @@ type HomeShowItemsParams struct {
 
 // MarkItemParams defines parameters for MarkItem.
 type MarkItemParams struct {
-	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
+	// RedirectTo specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	RedirectTo *Redirect `form:"redirect_to,omitempty" json:"redirect_to,omitempty"`
 }
 
 // SetImportMethodFormdataBody defines parameters for SetImportMethod.
@@ -132,8 +132,8 @@ type SetImportMethodFormdataBody struct {
 
 // MarkSubscriptionParams defines parameters for MarkSubscription.
 type MarkSubscriptionParams struct {
-	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
+	// RedirectTo specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	RedirectTo *Redirect `form:"redirect_to,omitempty" json:"redirect_to,omitempty"`
 }
 
 // RemoveSubscriptionParams defines parameters for RemoveSubscription.
@@ -146,8 +146,8 @@ type RemoveSubscriptionParams struct {
 type MarkAllSubscriptionsParams struct {
 	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
 
-	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
+	// RedirectTo specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	RedirectTo *Redirect `form:"redirect_to,omitempty" json:"redirect_to,omitempty"`
 }
 
 // ProcessSignUpFormdataRequestBody defines body for ProcessSignUp for application/x-www-form-urlencoded ContentType.
@@ -577,11 +577,11 @@ func (siw *ServerInterfaceWrapper) HomeMarkFeeds(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// ------------- Optional query parameter "redirect" -------------
+	// ------------- Optional query parameter "redirect_to" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
+	err = runtime.BindQueryParameter("form", true, false, "redirect_to", r.URL.Query(), &params.RedirectTo)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_to", Err: err})
 		return
 	}
 
@@ -621,11 +621,11 @@ func (siw *ServerInterfaceWrapper) MarkItems(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// ------------- Optional query parameter "redirect" -------------
+	// ------------- Optional query parameter "redirect_to" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
+	err = runtime.BindQueryParameter("form", true, false, "redirect_to", r.URL.Query(), &params.RedirectTo)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_to", Err: err})
 		return
 	}
 
@@ -975,11 +975,11 @@ func (siw *ServerInterfaceWrapper) MarkItem(w http.ResponseWriter, r *http.Reque
 	// Parameter object where we will unmarshal all parameters from the context
 	var params MarkItemParams
 
-	// ------------- Optional query parameter "redirect" -------------
+	// ------------- Optional query parameter "redirect_to" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
+	err = runtime.BindQueryParameter("form", true, false, "redirect_to", r.URL.Query(), &params.RedirectTo)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_to", Err: err})
 		return
 	}
 
@@ -1274,11 +1274,11 @@ func (siw *ServerInterfaceWrapper) MarkSubscription(w http.ResponseWriter, r *ht
 	// Parameter object where we will unmarshal all parameters from the context
 	var params MarkSubscriptionParams
 
-	// ------------- Optional query parameter "redirect" -------------
+	// ------------- Optional query parameter "redirect_to" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
+	err = runtime.BindQueryParameter("form", true, false, "redirect_to", r.URL.Query(), &params.RedirectTo)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_to", Err: err})
 		return
 	}
 
@@ -1375,11 +1375,11 @@ func (siw *ServerInterfaceWrapper) MarkAllSubscriptions(w http.ResponseWriter, r
 		return
 	}
 
-	// ------------- Optional query parameter "redirect" -------------
+	// ------------- Optional query parameter "redirect_to" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
+	err = runtime.BindQueryParameter("form", true, false, "redirect_to", r.URL.Query(), &params.RedirectTo)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_to", Err: err})
 		return
 	}
 

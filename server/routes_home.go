@@ -6,6 +6,7 @@ package server
 import (
 	"net/http"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -91,9 +92,10 @@ func (s Server) HomeMarkFeeds(res http.ResponseWriter, req *http.Request, mark M
 	if params.Feeds != nil {
 		feedIDs = *params.Feeds
 	}
+	spew.Dump(params)
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(params.Redirect),
+		handlers.SetupRedirect(params.RedirectTo),
 	).Then(handlers.MarkFeeds(s.DataAPI(), mark, feedIDs...))
 	chain.ServeHTTP(res, req)
 }
@@ -105,7 +107,7 @@ func (s Server) MarkItems(res http.ResponseWriter, req *http.Request, mark Mark,
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(params.Redirect),
+		handlers.SetupRedirect(params.RedirectTo),
 	).Then(handlers.MarkItems(s.DataAPI(), mark, itemIDs...))
 	chain.ServeHTTP(res, req)
 }
@@ -113,7 +115,7 @@ func (s Server) MarkItems(res http.ResponseWriter, req *http.Request, mark Mark,
 func (s Server) MarkItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, mark models.Mark, params MarkItemParams) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(params.Redirect),
+		handlers.SetupRedirect(params.RedirectTo),
 	).Then(handlers.MarkItems(s.DataAPI(), mark, itemID))
 	chain.ServeHTTP(res, req)
 }

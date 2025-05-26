@@ -99,7 +99,7 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 	cards := GenerateItemCards(ctx, items, pagination)
 	// Return the home items layout.
 	return templates.NewBody(
-		templates.Content(cards...),
+		templ.Join(cards...),
 		templates.WithBodyHeader(
 			partials.Header(
 				partials.DefaultHeaderStart(),
