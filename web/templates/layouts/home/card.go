@@ -55,7 +55,7 @@ func (c *Card) addPagination(ctx context.Context, pagination models.Pagination, 
 	).Attributes())
 }
 
-func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions, backlink models.PageView) *templates.Body {
+func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) *templates.Body {
 	cards := GenerateFeedCards(ctx, subscriptions, pagination)
 	// Generate backlink.
 	return templates.NewBody(
@@ -69,9 +69,9 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 		),
 		templates.WithBodyFooter(
 			partials.Footer(
-				partials.UpdateBacklink(backlink),
-				UpdateFilters(models.FeedsRoute, subscriptions.GetCategoryCounts()),
-				UpdateSorting(models.FeedsRoute),
+				partials.UpdateBacklink(),
+				UpdateFilters(subscriptions.GetCategoryCounts()),
+				UpdateSorting(),
 				UpdateActions(
 					AddSubscriptionAction(),
 					ImportAction(),
@@ -95,7 +95,7 @@ func GenerateFeedCards(ctx context.Context, subscriptions models.Subscriptions, 
 	return cards
 }
 
-func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items models.Items, backlink models.PageView) *templates.Body {
+func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items models.Items) *templates.Body {
 	cards := GenerateItemCards(ctx, items, pagination)
 	// Return the home items layout.
 	return templates.NewBody(
@@ -109,9 +109,9 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 		),
 		templates.WithBodyFooter(
 			partials.Footer(
-				partials.UpdateBacklink(backlink),
-				UpdateFilters(models.ItemsRoute, items.GetCategoryCounts()),
-				UpdateSorting(models.ItemsRoute),
+				partials.UpdateBacklink(),
+				UpdateFilters(items.GetCategoryCounts()),
+				UpdateSorting(),
 				UpdateActions(
 					AddSubscriptionAction(),
 					ImportAction(),

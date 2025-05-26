@@ -8,9 +8,8 @@ import (
 )
 
 type PageView struct {
-	Path     string
-	Filters  Filters
-	Backlink PageViewID
+	Path    string
+	Filters Filters
 }
 
 func (r PageView) String() string {
@@ -21,7 +20,6 @@ func (r PageView) AsAction(options ...action.Option) *action.Action {
 	viewAction := action.Build(r.Path, options...)
 	// Set the query params from the filters.
 	action.WithParams(r.Filters.ToQueryParams())(viewAction)
-	action.WithParam("backlink", string(r.Backlink))(viewAction)
 	return viewAction
 }
 
@@ -38,9 +36,9 @@ func NewPageView(path string, filters *Filters) PageView {
 func NewPageViewFromID(id PageViewID) PageView {
 	switch id {
 	case PageViewIDShowItems:
-		return NewPageView(ItemsRoute, NewFilters())
+		return NewPageView("/home/show/items", NewFilters())
 	case PageViewIDShowFeeds:
-		return NewPageView(FeedsRoute, NewFilters())
+		return NewPageView("/home/show/feeds", NewFilters())
 	default:
 		return NewPageView("/home", nil)
 	}

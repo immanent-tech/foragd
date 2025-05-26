@@ -53,12 +53,11 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		lastViewed := models.GetLastPageView(req.Context(), s.SessionAPI())
 		handler = handlers.BaseChain.Then(
 			handlers.PartialRender(
 				settings.SettingsContent(),
 				header,
-				partials.UpdateBacklink(lastViewed),
+				partials.UpdateBacklink(),
 				settings.ResetFooter(),
 			),
 		)

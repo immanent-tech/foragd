@@ -13,7 +13,8 @@ import (
 )
 
 // UpdateBacklink will update the back button as an OOB swap.
-templ UpdateBacklink(view models.PageView) {
+templ UpdateBacklink() {
+	{{ view := models.NewPageViewFromID(models.BacklinkFromCtx(ctx)) }}
 	<div id="backlink" hx-swap-oob="true">
 		@tooltip.Build("Back").Show() {
 			@link.Build(

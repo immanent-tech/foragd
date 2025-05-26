@@ -6,6 +6,7 @@ package home
 
 import (
 	"context"
+	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/action"
@@ -47,21 +48,20 @@ templ (f *Filter) AsBadge() {
 
 // NewCategoryFilter creates a new category filter component. Existing filters will be utilised and the request URL will
 // use the given path.
-func NewCategoryFilter(ctx context.Context, category models.CategoryCount, path string) *Filter {
+func newCategoryFilter(ctx context.Context, category models.CategoryCount) *Filter {
 	filter := &Filter{
 		value: category.Category,
 	}
-	// Get the current view filters.
-	viewFilters := models.FiltersFromCtx(ctx)
+	view := models.PageViewStateFromCtx(ctx)
 	// Check if this category is in the current view filters.
-	if found, _ := viewFilters.HasCategory(category.Category); found {
+	if found, _ := view.Filters.HasCategory(category.Category); found {
 		filter.active = true
-		viewFilters.RemoveCategory(category.Category)
+		view.Filters.RemoveCategory(category.Category)
 	} else {
-		viewFilters.AddCategory(category.Category)
+		view.Filters.AddCategory(category.Category)
 	}
 	// Generate a view.
-	filter.link = models.NewPageView(path, &viewFilters)
+	filter.link = view
 
 	return filter
 }
@@ -69,19 +69,19 @@ func NewCategoryFilter(ctx context.Context, category models.CategoryCount, path 
 // CategoryFilters is a slice of category filters.
 type CategoryFilters []*Filter
 
-func NewViewFilter(ctx context.Context, view models.View, path string) *Filter {
-	// Get the current view filters.
-	viewFilters := models.FiltersFromCtx(ctx)
+func newViewFilter(ctx context.Context, view models.View) *Filter {
+	// Get the current view.
+	link := models.PageViewStateFromCtx(ctx)
 	filter := &Filter{
 		value: string(view),
-		link:  models.NewPageView(path, &viewFilters),
 	}
 	// If the current view filters indicate this view is active, mark as so.
-	if view == viewFilters.View {
+	if view == link.Filters.View {
 		filter.active = true
 	}
 	// Set the view filter to this view.
-	filter.link.Filters.View = view
+	link.Filters.View = view
+	filter.link = link
 
 	return filter
 }
@@ -89,7 +89,7 @@ func NewViewFilter(ctx context.Context, view models.View, path string) *Filter {
 // ViewFilters is a slice of filters for changing the view.
 type ViewFilters []*Filter
 
-templ UpdateFilters(path string, categories models.CategoryCounts) {
+templ UpdateFilters(categories models.CategoryCounts) {
 	<div id="content-filters">
 		@tooltip.Build("Filtering").Show() {
 			@dropdown.Build(
@@ -99,13 +99,13 @@ templ UpdateFilters(path string, categories models.CategoryCounts) {
 				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 			).Show() {
 				<li class="menu-title">View:</li>
-				for view := range slices.Values(buildViewFilters(ctx,path)) {
+				for view := range slices.Values(buildViewFilters(ctx)) {
 					<li>
 						@view.AsBadge()
 					</li>
 				}
 				<li class="menu-title">Category:</li>
-				for category := range slices.Values(buildCategoryFilters(ctx,categories,path)) {
+				for category := range slices.Values(buildCategoryFilters(ctx,categories)) {
 					<li>
 						@category.AsBadge()
 					</li>
@@ -115,24 +115,24 @@ templ UpdateFilters(path string, categories models.CategoryCounts) {
 	</div>
 }
 
-func buildViewFilters(ctx context.Context, path string) ViewFilters {
+func buildViewFilters(ctx context.Context) ViewFilters {
 	return ViewFilters{
-		NewViewFilter(ctx, models.ViewRead, path),
-		NewViewFilter(ctx, models.ViewUnread, path),
-		NewViewFilter(ctx, models.ViewAll, path),
+		newViewFilter(ctx, models.ViewRead),
+		newViewFilter(ctx, models.ViewUnread),
+		newViewFilter(ctx, models.ViewAll),
 	}
 }
 
-func buildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCounts, path string) CategoryFilters {
+func buildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCounts) CategoryFilters {
 	categoryFilters := make(CategoryFilters, 0, len(categoryCounts))
 	for categoryCount := range slices.Values(categoryCounts.GetTopCategories(10)) {
-		categoryFilters = append(categoryFilters, NewCategoryFilter(ctx, categoryCount, path))
+		categoryFilters = append(categoryFilters, newCategoryFilter(ctx, categoryCount))
 	}
 
 	return categoryFilters
 }
 
-templ UpdateSorting(path string) {
+templ UpdateSorting() {
 	<div id="content-sorting">
 		@tooltip.Build("Sorting").Show() {
 			@dropdown.Build(
@@ -142,7 +142,7 @@ templ UpdateSorting(path string) {
 				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 			).Show() {
 				<li class="menu-title">Sorting:</li>
-				for sort := range slices.Values(buildSortFilters(ctx,path)) {
+				for sort := range slices.Values(buildSortFilters(ctx)) {
 					<li>
 						@sort.AsBadge()
 					</li>
@@ -152,18 +152,18 @@ templ UpdateSorting(path string) {
 	</div>
 }
 
-func buildSortFilters(ctx context.Context, path string) SortFilters {
+func buildSortFilters(ctx context.Context) SortFilters {
 	var sorts SortFilters
 	// Add sorting options for updated date.
 	sorts = append(sorts,
-		NewSortFilter(ctx, models.SortLastUpdatedDesc, path),
-		NewSortFilter(ctx, models.SortLastUpdatedAsc, path),
+		NewSortFilter(ctx, models.SortLastUpdatedDesc),
+		NewSortFilter(ctx, models.SortLastUpdatedAsc),
 	)
 	// If viewing /home/feeds and not viewing read items, add additional sorting options on unread count.
-	if path == models.FeedsRoute && models.FiltersFromCtx(ctx).View != models.ViewRead {
+	if slices.Contains([]string{"/home/show/feeds"}, chi.RouteContext(ctx).RoutePattern()) && models.FiltersFromCtx(ctx).View != models.ViewRead {
 		sorts = append(sorts,
-			NewSortFilter(ctx, models.SortUnreadCountDesc, path),
-			NewSortFilter(ctx, models.SortUnreadCountAsc, path),
+			NewSortFilter(ctx, models.SortUnreadCountDesc),
+			NewSortFilter(ctx, models.SortUnreadCountAsc),
 		)
 	}
 	return sorts
@@ -172,20 +172,20 @@ func buildSortFilters(ctx context.Context, path string) SortFilters {
 // SortFilters is a slice of filters for sorting the view.
 type SortFilters []*Filter
 
-func NewSortFilter(ctx context.Context, sort models.Sort, path string) *Filter {
-	viewFilters := models.FiltersFromCtx(ctx)
+func NewSortFilter(ctx context.Context, sort models.Sort) *Filter {
+	view := models.PageViewStateFromCtx(ctx)
 	filter := &Filter{
 		value: sort.String(),
 	}
 	// Set this sort as active if indicated in the current view filters.
-	if viewFilters.SortBy == sort.SortBy && viewFilters.SortOrder == sort.SortOrder {
+	if view.Filters.SortBy == sort.SortBy && view.Filters.SortOrder == sort.SortOrder {
 		filter.active = true
 	} else {
-		viewFilters.SortBy = sort.SortBy
-		viewFilters.SortOrder = sort.SortOrder
+		view.Filters.SortBy = sort.SortBy
+		view.Filters.SortOrder = sort.SortOrder
 	}
 	// Generate a view.
-	filter.link = models.NewPageView(path, &viewFilters)
+	filter.link = view
 
 	return filter
 }

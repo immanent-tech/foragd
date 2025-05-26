@@ -246,28 +246,27 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/feeds:
+  /home/show/feeds:
     get:
       summary: >
-        Shows feeds with optional filtering applied.
-      operationId: handleShowFeeds
+        Shows a list of feeds, with optional filtering.
+      operationId: homeShowFeeds
       parameters:
-        - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/View'
         - $ref: '#/components/parameters/Count'
         - $ref: '#/components/parameters/SortBy'
         - $ref: '#/components/parameters/SortOrder'
         - $ref: '#/components/parameters/Pagination'
-        - $ref: '#/components/parameters/Backlink'
+        # - $ref: '#/components/parameters/Backlink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/feeds/mark/{mark}:
+  /home/mark/feeds/{mark}:
     post:
       summary: >
         Marks the given feeds with the given mark.
-      operationId: markFeeds
+      operationId: homeMarkFeeds
       parameters:
         - $ref: '#/components/parameters/Mark'
         - $ref: '#/components/parameters/Feeds'
@@ -275,11 +274,11 @@ paths:
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/items:
+  /home/show/items:
     get:
       summary: >
-        Shows items with optional filtering applied.
-      operationId: handleShowItems
+        Shows a list of feed items, with optional filtering.
+      operationId: homeShowItems
       parameters:
         - $ref: '#/components/parameters/Feeds'
         - $ref: '#/components/parameters/Categories'
@@ -288,11 +287,11 @@ paths:
         - $ref: '#/components/parameters/Pagination'
         - $ref: '#/components/parameters/SortBy'
         - $ref: '#/components/parameters/SortOrder'
-        - $ref: '#/components/parameters/Backlink'
+        # - $ref: '#/components/parameters/Backlink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
-  /home/items/mark/{mark}:
+  /home/mark/items/{mark}:
     post:
       summary: >
         Marks the given items with the given mark.
@@ -312,8 +311,8 @@ paths:
       summary: >
         Shows a feed item.
       operationId: handleShowItem
-      parameters:
-        - $ref: '#/components/parameters/Backlink'
+      # parameters:
+      #   - $ref: '#/components/parameters/Backlink'
       responses:
         200:
           $ref: '#/components/responses/htmx'
@@ -432,14 +431,14 @@ components:
       in: query
       schema:
         $ref: 'api.yaml#/components/schemas/PageViewID'
-    Backlink:
-      description: >
-        specifies the location to which any back button/links should point.
-      name: backlink
-      in: query
-      required: true
-      schema:
-        $ref: 'api.yaml#/components/schemas/PageViewID'
+    # Backlink:
+    #   description: >
+    #     specifies the location to which any back button/links should point.
+    #   name: backlink
+    #   in: query
+    #   required: true
+    #   schema:
+    #     $ref: 'api.yaml#/components/schemas/PageViewID'
     Confirmation:
       description: >
         indicates the confirmation state from the user for a destructive action.

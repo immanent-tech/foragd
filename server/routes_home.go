@@ -27,18 +27,11 @@ func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Reque
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, params HandleShowFeedsParams) {
+func (s Server) HomeShowFeeds(res http.ResponseWriter, req *http.Request, params HomeShowFeedsParams) {
 	// Extract any pagination value.
 	var pagination models.Pagination
 	if params.Pagination != nil {
 		pagination = *params.Pagination
-	}
-	// Extract the backlink or set a default.
-	var backlink models.PageViewID
-	if params.Backlink == "" {
-		backlink = models.PageViewIDHome
-	} else {
-		backlink = params.Backlink
 	}
 
 	// Retrieve filters.
@@ -53,24 +46,16 @@ func (s Server) HandleShowFeeds(res http.ResponseWriter, req *http.Request, para
 		handlers.CheckRequiredFilters,
 		// handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.SaveState(s.SessionAPI(), models.PageViewIDShowFeeds, view),
-		handlers.SaveBacklink(backlink),
+		handlers.SaveBacklink(s.SessionAPI()),
 	// handlers.SaveLastPageView(s.SessionAPI()),
 	).Then(handlers.DisplayFeeds(s.DataAPI(), s.SessionAPI(), pagination))
 	chain.ServeHTTP(res, req)
 }
 
-func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, params HandleShowItemsParams) {
+func (s Server) HomeShowItems(res http.ResponseWriter, req *http.Request, params HomeShowItemsParams) {
 	var pagination models.Pagination
 	if params.Pagination != nil {
 		pagination = *params.Pagination
-	}
-
-	// Extract the backlink or set a default.
-	var backlink models.PageViewID
-	if params.Backlink == "" {
-		backlink = models.PageViewIDHome
-	} else {
-		backlink = params.Backlink
 	}
 
 	// Retrieve filters.
@@ -85,12 +70,12 @@ func (s Server) HandleShowItems(res http.ResponseWriter, req *http.Request, para
 		handlers.CheckRequiredFilters,
 		// handlers.GenerateFilters(s.SessionAPI(), params),
 		handlers.SaveState(s.SessionAPI(), models.PageViewIDShowItems, view),
-		handlers.SaveBacklink(backlink),
+		handlers.SaveBacklink(s.SessionAPI()),
 	).Then(handlers.DisplayItems(s.DataAPI(), s.SessionAPI(), pagination))
 	chain.ServeHTTP(res, req)
 }
 
-func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID, params HandleShowItemParams) {
+func (s Server) HandleShowItem(res http.ResponseWriter, req *http.Request, feedID models.FeedID, itemID models.ItemID) {
 	chain := alice.New(
 		handlers.RouteLogger,
 		// handlers.SaveLastPageView(s.SessionAPI()),
@@ -106,7 +91,7 @@ func (s Server) HandleUnsaveItem(res http.ResponseWriter, req *http.Request, fee
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-func (s Server) MarkFeeds(res http.ResponseWriter, req *http.Request, mark Mark, params MarkFeedsParams) {
+func (s Server) HomeMarkFeeds(res http.ResponseWriter, req *http.Request, mark Mark, params HomeMarkFeedsParams) {
 	var feedIDs []models.FeedID
 	if params.Feeds != nil {
 		feedIDs = *params.Feeds

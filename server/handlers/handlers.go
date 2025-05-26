@@ -11,9 +11,11 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -143,12 +145,23 @@ func SaveState(api models.SessionAPI, key models.PageViewID, view models.PageVie
 	}
 }
 
-func SaveBacklink(backlink models.PageViewID) func(next http.Handler) http.Handler {
+func SaveBacklink(api models.SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
+			var backlink models.PageViewID
+			route := chi.RouteContext(req.Context()).RoutePattern()
+			switch {
+			case strings.HasPrefix(route, "/home/show/feeds"):
+				backlink = models.PageViewIDHome
+			case strings.HasPrefix(route, "/feed/show"):
+				backlink = models.PageViewIDShowFeeds
+			case strings.HasPrefix(route, "/home/show/items"):
+				backlink = models.PageViewIDShowFeeds
+			case strings.HasPrefix(route, "/item/show"):
+				backlink = models.PageViewIDFeed
+			}
 			// Save backlink.
-			ctx = models.BacklinkToCtx(ctx, backlink)
+			ctx := models.BacklinkToCtx(req.Context(), backlink)
 			slogctx.FromCtx(ctx).Debug("Saved backlink", slog.String("backlink", string(backlink)))
 			// Pass control to next handler.
 			next.ServeHTTP(res, req.WithContext(ctx))

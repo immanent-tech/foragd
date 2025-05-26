@@ -109,7 +109,6 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			InternalServerError(res, req, err)
 			return
 		}
-		backlink := models.GetViewFromSession(req.Context(), sessionAPI, models.BacklinkFromCtx(req.Context()))
 		pageTitle := "Feeds"
 		switch {
 		case htmx.IsHTMX(req):
@@ -117,9 +116,9 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			PartialRender(
 				templ.Join(home.GenerateFeedCards(req.Context(), subscriptions, pagination)...),
 				layouts.Footer(
-					partials.UpdateBacklink(backlink),
-					home.UpdateFilters(models.FeedsRoute, subscriptions.GetCategoryCounts()),
-					home.UpdateSorting(models.FeedsRoute),
+					partials.UpdateBacklink(),
+					home.UpdateFilters(subscriptions.GetCategoryCounts()),
+					home.UpdateSorting(),
 					home.UpdateActions(
 						home.AddSubscriptionAction(),
 						home.ImportAction(),
@@ -130,7 +129,7 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
-			layout := home.BuildFeedsLayout(req.Context(), pagination, subscriptions, backlink)
+			layout := home.BuildFeedsLayout(req.Context(), pagination, subscriptions)
 			FullRender(pageTitle, templates.WithBody(layout)).ServeHTTP(res, req)
 		}
 	})
@@ -144,16 +143,15 @@ func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			InternalServerError(res, req, err)
 			return
 		}
-		backlink := models.GetViewFromSession(req.Context(), sessionAPI, models.BacklinkFromCtx(req.Context()))
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
 			PartialRender(
 				templ.Join(home.GenerateItemCards(req.Context(), items, pagination)...),
 				layouts.Footer(
-					partials.UpdateBacklink(backlink),
-					home.UpdateFilters(models.ItemsRoute, items.GetCategoryCounts()),
-					home.UpdateSorting(models.ItemsRoute),
+					partials.UpdateBacklink(),
+					home.UpdateFilters(items.GetCategoryCounts()),
+					home.UpdateSorting(),
 					home.UpdateActions(
 						home.AddSubscriptionAction(),
 						home.ImportAction(),
@@ -164,7 +162,7 @@ func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
-			layout := home.BuildItemsLayout(req.Context(), pagination, items, backlink)
+			layout := home.BuildItemsLayout(req.Context(), pagination, items)
 			FullRender("Items", templates.WithBody(layout)).ServeHTTP(res, req)
 		}
 	})
@@ -178,14 +176,13 @@ func DisplayItem(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID models.Fe
 			InternalServerError(res, req, err)
 			return
 		}
-		backlink := models.GetViewFromSession(req.Context(), sessionAPI, models.BacklinkFromCtx(req.Context()))
 		content := home.GenerateArticle(item)
 		header := partials.Header(
 			partials.DefaultHeaderStart(),
 			partials.DefaultHeaderCenter(),
 			partials.DefaultHeaderEnd(),
 		)
-		footer := layouts.Footer(partials.UpdateBacklink(backlink))
+		footer := layouts.Footer(partials.UpdateBacklink())
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.

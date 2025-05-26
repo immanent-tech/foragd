@@ -36,9 +36,6 @@ type ImportOPML = string
 // ImportURLs allows importing feeds from an list of feed URLs.
 type ImportURLs = []string
 
-// Backlink is an ID that represents a page view.
-type Backlink = externalRef0.PageViewID
-
 // Categories is a list of categories.
 type Categories = []externalRef0.Category
 
@@ -84,40 +81,12 @@ type Subscriptions = []externalRef0.SubscriptionID
 // View The state of objects to view.
 type View = externalRef0.View
 
-// HandleShowFeedsParams defines parameters for HandleShowFeeds.
-type HandleShowFeedsParams struct {
-	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
-	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
-	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
-	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
-
-	// Backlink specifies the location to which any back button/links should point.
-	Backlink Backlink `form:"backlink" json:"backlink"`
-}
-
-// MarkFeedsParams defines parameters for MarkFeeds.
-type MarkFeedsParams struct {
+// HomeMarkFeedsParams defines parameters for HomeMarkFeeds.
+type HomeMarkFeedsParams struct {
 	Feeds *Feeds `form:"feeds,omitempty" json:"feeds,omitempty"`
 
 	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
 	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
-}
-
-// HandleShowItemsParams defines parameters for HandleShowItems.
-type HandleShowItemsParams struct {
-	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
-	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
-	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
-	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
-
-	// Backlink specifies the location to which any back button/links should point.
-	Backlink Backlink `form:"backlink" json:"backlink"`
 }
 
 // MarkItemsParams defines parameters for MarkItems.
@@ -128,10 +97,25 @@ type MarkItemsParams struct {
 	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
-// HandleShowItemParams defines parameters for HandleShowItem.
-type HandleShowItemParams struct {
-	// Backlink specifies the location to which any back button/links should point.
-	Backlink Backlink `form:"backlink" json:"backlink"`
+// HomeShowFeedsParams defines parameters for HomeShowFeeds.
+type HomeShowFeedsParams struct {
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
+	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
+	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+// HomeShowItemsParams defines parameters for HomeShowItems.
+type HomeShowItemsParams struct {
+	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
+	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
+	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
 }
 
 // MarkItemParams defines parameters for MarkItem.
@@ -274,24 +258,24 @@ type ServerInterface interface {
 	// Shows a page of curated feeds and content based on the user's subscriptions and viewing preferences.
 	// (GET /home)
 	HandleHome(w http.ResponseWriter, r *http.Request)
-	// Shows feeds with optional filtering applied.
-	// (GET /home/feeds)
-	HandleShowFeeds(w http.ResponseWriter, r *http.Request, params HandleShowFeedsParams)
 	// Marks the given feeds with the given mark.
-	// (POST /home/feeds/mark/{mark})
-	MarkFeeds(w http.ResponseWriter, r *http.Request, mark Mark, params MarkFeedsParams)
-	// Shows items with optional filtering applied.
-	// (GET /home/items)
-	HandleShowItems(w http.ResponseWriter, r *http.Request, params HandleShowItemsParams)
+	// (POST /home/mark/feeds/{mark})
+	HomeMarkFeeds(w http.ResponseWriter, r *http.Request, mark Mark, params HomeMarkFeedsParams)
 	// Marks the given items with the given mark.
-	// (POST /home/items/mark/{mark})
+	// (POST /home/mark/items/{mark})
 	MarkItems(w http.ResponseWriter, r *http.Request, mark Mark, params MarkItemsParams)
+	// Shows a list of feeds, with optional filtering.
+	// (GET /home/show/feeds)
+	HomeShowFeeds(w http.ResponseWriter, r *http.Request, params HomeShowFeedsParams)
+	// Shows a list of feed items, with optional filtering.
+	// (GET /home/show/items)
+	HomeShowItems(w http.ResponseWriter, r *http.Request, params HomeShowItemsParams)
 	// Remove a feed item from the user's saved items.
 	// (DELETE /home/{feed}/{item})
 	HandleUnsaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
 	// Shows a feed item.
 	// (GET /home/{feed}/{item})
-	HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, params HandleShowItemParams)
+	HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
 	// Save a feed item to the user's saved items.
 	// (PUT /home/{feed}/{item})
 	HandleSaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
@@ -372,27 +356,27 @@ func (_ Unimplemented) HandleHome(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Shows feeds with optional filtering applied.
-// (GET /home/feeds)
-func (_ Unimplemented) HandleShowFeeds(w http.ResponseWriter, r *http.Request, params HandleShowFeedsParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 // Marks the given feeds with the given mark.
-// (POST /home/feeds/mark/{mark})
-func (_ Unimplemented) MarkFeeds(w http.ResponseWriter, r *http.Request, mark Mark, params MarkFeedsParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Shows items with optional filtering applied.
-// (GET /home/items)
-func (_ Unimplemented) HandleShowItems(w http.ResponseWriter, r *http.Request, params HandleShowItemsParams) {
+// (POST /home/mark/feeds/{mark})
+func (_ Unimplemented) HomeMarkFeeds(w http.ResponseWriter, r *http.Request, mark Mark, params HomeMarkFeedsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Marks the given items with the given mark.
-// (POST /home/items/mark/{mark})
+// (POST /home/mark/items/{mark})
 func (_ Unimplemented) MarkItems(w http.ResponseWriter, r *http.Request, mark Mark, params MarkItemsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Shows a list of feeds, with optional filtering.
+// (GET /home/show/feeds)
+func (_ Unimplemented) HomeShowFeeds(w http.ResponseWriter, r *http.Request, params HomeShowFeedsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Shows a list of feed items, with optional filtering.
+// (GET /home/show/items)
+func (_ Unimplemented) HomeShowItems(w http.ResponseWriter, r *http.Request, params HomeShowItemsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -404,7 +388,7 @@ func (_ Unimplemented) HandleUnsaveItem(w http.ResponseWriter, r *http.Request, 
 
 // Shows a feed item.
 // (GET /home/{feed}/{item})
-func (_ Unimplemented) HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, params HandleShowItemParams) {
+func (_ Unimplemented) HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -568,126 +552,8 @@ func (siw *ServerInterfaceWrapper) HandleHome(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
-// HandleShowFeeds operation middleware
-func (siw *ServerInterfaceWrapper) HandleShowFeeds(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params HandleShowFeedsParams
-
-	// ------------- Optional query parameter "feeds" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "view" -------------
-
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_by" -------------
-
-	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_order" -------------
-
-	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "pagination" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "backlink" -------------
-
-	if paramValue := r.URL.Query().Get("backlink"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "backlink"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "backlink", r.URL.Query(), &params.Backlink)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleShowFeeds(w, r, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// MarkFeeds operation middleware
-func (siw *ServerInterfaceWrapper) MarkFeeds(w http.ResponseWriter, r *http.Request) {
+// HomeMarkFeeds operation middleware
+func (siw *ServerInterfaceWrapper) HomeMarkFeeds(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -701,7 +567,7 @@ func (siw *ServerInterfaceWrapper) MarkFeeds(w http.ResponseWriter, r *http.Requ
 	}
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params MarkFeedsParams
+	var params HomeMarkFeedsParams
 
 	// ------------- Optional query parameter "feeds" -------------
 
@@ -720,125 +586,7 @@ func (siw *ServerInterfaceWrapper) MarkFeeds(w http.ResponseWriter, r *http.Requ
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.MarkFeeds(w, r, mark, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// HandleShowItems operation middleware
-func (siw *ServerInterfaceWrapper) HandleShowItems(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params HandleShowItemsParams
-
-	// ------------- Optional query parameter "feeds" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "view" -------------
-
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "pagination" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_by" -------------
-
-	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_order" -------------
-
-	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "backlink" -------------
-
-	if paramValue := r.URL.Query().Get("backlink"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "backlink"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "backlink", r.URL.Query(), &params.Backlink)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleShowItems(w, r, params)
+		siw.Handler.HomeMarkFeeds(w, r, mark, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -883,6 +631,204 @@ func (siw *ServerInterfaceWrapper) MarkItems(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.MarkItems(w, r, mark, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// HomeShowFeeds operation middleware
+func (siw *ServerInterfaceWrapper) HomeShowFeeds(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params HomeShowFeedsParams
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_by" -------------
+
+	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_order" -------------
+
+	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HomeShowFeeds(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// HomeShowItems operation middleware
+func (siw *ServerInterfaceWrapper) HomeShowItems(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params HomeShowItemsParams
+
+	// ------------- Optional query parameter "feeds" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_by" -------------
+
+	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_order" -------------
+
+	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.HomeShowItems(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -949,26 +895,8 @@ func (siw *ServerInterfaceWrapper) HandleShowItem(w http.ResponseWriter, r *http
 		return
 	}
 
-	// Parameter object where we will unmarshal all parameters from the context
-	var params HandleShowItemParams
-
-	// ------------- Required query parameter "backlink" -------------
-
-	if paramValue := r.URL.Query().Get("backlink"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "backlink"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "backlink", r.URL.Query(), &params.Backlink)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "backlink", Err: err})
-		return
-	}
-
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleShowItem(w, r, feed, item, params)
+		siw.Handler.HandleShowItem(w, r, feed, item)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1586,16 +1514,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/home", wrapper.HandleHome)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/feeds", wrapper.HandleShowFeeds)
+		r.Post(options.BaseURL+"/home/mark/feeds/{mark}", wrapper.HomeMarkFeeds)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/feeds/mark/{mark}", wrapper.MarkFeeds)
+		r.Post(options.BaseURL+"/home/mark/items/{mark}", wrapper.MarkItems)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/items", wrapper.HandleShowItems)
+		r.Get(options.BaseURL+"/home/show/feeds", wrapper.HomeShowFeeds)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/items/mark/{mark}", wrapper.MarkItems)
+		r.Get(options.BaseURL+"/home/show/items", wrapper.HomeShowItems)
 	})
 	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleUnsaveItem)
