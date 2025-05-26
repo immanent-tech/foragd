@@ -66,19 +66,19 @@ func PageViewStateFromCtx(ctx context.Context) PageView {
 	view, found := ctx.Value(pageViewStateCtxKey).(PageView)
 	if !found {
 		slogctx.FromCtx(ctx).Warn("No page view state found in context, using default.")
-		return NewPageView("/home", nil)
+		return NewPageView(PageViewIDHome, nil)
 	}
 	return view
 }
 
-func BacklinkToCtx(ctx context.Context, backlink PageViewID) context.Context {
+func BacklinkToCtx(ctx context.Context, backlink PageView) context.Context {
 	return context.WithValue(ctx, backlinkCtxKey, backlink)
 }
 
-func BacklinkFromCtx(ctx context.Context) PageViewID {
-	backlink, found := ctx.Value(backlinkCtxKey).(PageViewID)
+func BacklinkFromCtx(ctx context.Context) PageView {
+	backlink, found := ctx.Value(backlinkCtxKey).(PageView)
 	if !found {
-		return PageViewIDHome
+		return NewPageView(PageViewIDHome, nil)
 	}
 	return backlink
 }

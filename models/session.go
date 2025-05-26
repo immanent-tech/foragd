@@ -5,6 +5,7 @@ package models
 
 import (
 	"context"
+	"log/slog"
 
 	slogctx "github.com/veqryn/slog-context"
 )
@@ -20,19 +21,18 @@ type SessionAPI interface {
 }
 
 func GetViewFromSession(ctx context.Context, api SessionAPI, key PageViewID) PageView {
-	return NewPageViewFromID(key)
-	// view, ok := api.Get(ctx, "Page:"+string(key)).(PageView)
-	// if !ok {
-	// 	slogctx.FromCtx(ctx).Warn("No saved view found, generating defaults.",
-	// 		slog.String("view", string(key)))
-	// 	return NewPageViewFromID(key)
-	// } else {
-	// 	return view
-	// }
+	view, ok := api.Get(ctx, "Page:"+string(key)).(PageView)
+	if !ok {
+		slogctx.FromCtx(ctx).Warn("No saved view found, generating defaults.",
+			slog.String("view", string(key)))
+		return NewPageView(key, nil)
+	} else {
+		return view
+	}
 }
 
-func SaveViewInSession(ctx context.Context, api SessionAPI, key PageViewID, view PageView) {
-	api.Put(ctx, "Page:"+string(key), view)
+func SaveViewInSession(ctx context.Context, api SessionAPI, view PageView) {
+	api.Put(ctx, "Page:"+string(view.ID), view)
 }
 
 // SaveLastPageView saves the given page view to the session.
@@ -45,7 +45,7 @@ func GetLastPageView(ctx context.Context, api SessionAPI) PageView {
 	view, ok := api.Get(ctx, lastPageViewSessionKey).(PageView)
 	if !ok {
 		slogctx.FromCtx(ctx).Warn("No last page view found, using default.")
-		return NewPageView("/home", nil)
+		return NewPageView(PageViewIDHome, nil)
 	} else {
 		return view
 	}

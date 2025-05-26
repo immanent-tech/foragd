@@ -41,10 +41,9 @@ type Card struct {
 }
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
-func (c *Card) addPagination(ctx context.Context, pagination models.Pagination, path string) {
-	filters := models.FiltersFromCtx(ctx)
-	link := models.NewPageView(path, &filters)
-	c.AddAttributes(link.AsAction(
+func (c *Card) addPagination(ctx context.Context, pagination models.Pagination) {
+	view := models.PageViewStateFromCtx(ctx)
+	c.AddAttributes(view.AsAction(
 		action.WithAttributes(templ.Attributes{
 			"hx-trigger":     "intersect once",
 			"hx-swap":        "afterend",
@@ -83,11 +82,12 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 }
 
 func GenerateFeedCards(ctx context.Context, subscriptions models.Subscriptions, pagination models.Pagination) []templ.Component {
+	view := models.PageViewStateFromCtx(ctx)
 	cards := make([]templ.Component, 0, len(subscriptions))
 	for idx, subscription := range subscriptions {
 		card := newFeedCard(ctx, subscription)
-		if idx == len(subscriptions)-1 && len(subscriptions) == models.FiltersFromCtx(ctx).Count {
-			card.addPagination(ctx, pagination, models.FeedsRoute)
+		if idx == len(subscriptions)-1 && len(subscriptions) == view.Filters.Count {
+			card.addPagination(ctx, pagination)
 		}
 
 		cards = append(cards, card.Show())
@@ -123,14 +123,15 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 }
 
 func GenerateItemCards(ctx context.Context, items models.Items, pagination models.Pagination) []templ.Component {
+	view := models.PageViewStateFromCtx(ctx)
 	cards := make([]templ.Component, 0, len(items))
 	for idx, item := range items {
 		slogctx.FromCtx(ctx).Debug("displaying item", slog.String("item_id", item.GetID()), slog.Bool("state", item.IsUnread()))
 		// Create a card for this item.
 		itemCard := newItemCard(ctx, item)
 		// Add a pagination action to the last item.
-		if idx == len(items)-1 && len(items) == models.FiltersFromCtx(ctx).Count && pagination != "" {
-			itemCard.addPagination(ctx, pagination, models.ItemsRoute)
+		if idx == len(items)-1 && len(items) == view.Filters.Count && pagination != "" {
+			itemCard.addPagination(ctx, pagination)
 		}
 		// Append the card to the list of cards.
 		cards = append(cards, itemCard.Show())

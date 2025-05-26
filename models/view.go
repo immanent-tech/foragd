@@ -8,6 +8,7 @@ import (
 )
 
 type PageView struct {
+	ID      PageViewID
 	Path    string
 	Filters Filters
 }
@@ -23,23 +24,16 @@ func (r PageView) AsAction(options ...action.Option) *action.Action {
 	return viewAction
 }
 
-func NewPageView(path string, filters *Filters) PageView {
-	nav := PageView{Path: path}
+func NewPageView(id PageViewID, filters *Filters) PageView {
 	if filters == nil {
-		nav.Filters = *NewFilters()
-	} else {
-		nav.Filters = *filters
+		filters = NewFilters()
 	}
-	return nav
-}
-
-func NewPageViewFromID(id PageViewID) PageView {
 	switch id {
 	case PageViewIDShowItems:
-		return NewPageView("/home/show/items", NewFilters())
+		return PageView{ID: id, Path: "/home/show/items", Filters: *filters}
 	case PageViewIDShowFeeds:
-		return NewPageView("/home/show/feeds", NewFilters())
+		return PageView{ID: id, Path: "/home/show/feeds", Filters: *filters}
 	default:
-		return NewPageView("/home", nil)
+		return PageView{ID: PageViewIDHome, Path: "/home"}
 	}
 }

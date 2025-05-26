@@ -60,7 +60,7 @@ type DataAPI interface {
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 	// Subscription methods:
 	GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, error)
-	GetSubscriptions(ctx context.Context, pagination models.Pagination) (models.Subscriptions, models.Pagination, error)
+	GetSubscriptions(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Subscriptions, models.Pagination, error)
 	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) error
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error
 	EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) error
@@ -132,12 +132,12 @@ func PartialRender(templates ...templ.Component) http.Handler {
 		})
 }
 
-func SaveState(api models.SessionAPI, key models.PageViewID, view models.PageView) func(next http.Handler) http.Handler {
+func SaveState(api models.SessionAPI, view models.PageView) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			// Save view state.
-			models.SaveViewInSession(ctx, api, key, view)
+			models.SaveViewInSession(ctx, api, view)
 			ctx = models.PageViewStateToCtx(ctx, view)
 			// Pass control to next handler.
 			next.ServeHTTP(res, req.WithContext(ctx))
@@ -148,21 +148,21 @@ func SaveState(api models.SessionAPI, key models.PageViewID, view models.PageVie
 func SaveBacklink(api models.SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			var backlink models.PageViewID
+			var backlink models.PageView
 			route := chi.RouteContext(req.Context()).RoutePattern()
 			switch {
 			case strings.HasPrefix(route, "/home/show/feeds"):
-				backlink = models.PageViewIDHome
+				backlink = models.NewPageView(models.PageViewIDHome, nil)
 			case strings.HasPrefix(route, "/feed/show"):
-				backlink = models.PageViewIDShowFeeds
+				backlink = models.GetViewFromSession(req.Context(), api, models.PageViewIDShowFeeds)
 			case strings.HasPrefix(route, "/home/show/items"):
-				backlink = models.PageViewIDShowFeeds
+				backlink = models.GetViewFromSession(req.Context(), api, models.PageViewIDShowFeeds)
 			case strings.HasPrefix(route, "/item/show"):
-				backlink = models.PageViewIDFeed
+				backlink = models.GetViewFromSession(req.Context(), api, models.PageViewIDFeed)
 			}
 			// Save backlink.
 			ctx := models.BacklinkToCtx(req.Context(), backlink)
-			slogctx.FromCtx(ctx).Debug("Saved backlink", slog.String("backlink", string(backlink)))
+			slogctx.FromCtx(ctx).Debug("Saved backlink", slog.String("backlink", backlink.String()))
 			// Pass control to next handler.
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

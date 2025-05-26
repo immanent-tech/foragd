@@ -6,7 +6,6 @@ package server
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -14,10 +13,9 @@ import (
 )
 
 func (s Server) HandleHome(res http.ResponseWriter, req *http.Request) {
-	view := models.NewPageView(chi.RouteContext(req.Context()).RoutePattern(), nil)
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SaveState(s.SessionAPI(), models.PageViewIDHome, view),
+		handlers.SaveState(s.SessionAPI(), models.NewPageView(models.PageViewIDHome, nil)),
 		// handlers.SaveLastPageView(s.SessionAPI()),
 	).Then(handlers.DisplayHome(s.DataAPI(), s.SessionAPI()))
 	chain.ServeHTTP(res, req)
@@ -40,14 +38,12 @@ func (s Server) HomeShowFeeds(res http.ResponseWriter, req *http.Request, params
 		handlers.InternalServerError(res, req, err)
 		return
 	}
-	view := models.NewPageView(chi.RouteContext(req.Context()).RoutePattern(), filters)
+	view := models.NewPageView(models.PageViewIDShowFeeds, filters)
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
-		// handlers.GenerateFilters(s.SessionAPI(), params),
-		handlers.SaveState(s.SessionAPI(), models.PageViewIDShowFeeds, view),
+		handlers.SaveState(s.SessionAPI(), view),
 		handlers.SaveBacklink(s.SessionAPI()),
-	// handlers.SaveLastPageView(s.SessionAPI()),
 	).Then(handlers.DisplayFeeds(s.DataAPI(), s.SessionAPI(), pagination))
 	chain.ServeHTTP(res, req)
 }
@@ -64,12 +60,12 @@ func (s Server) HomeShowItems(res http.ResponseWriter, req *http.Request, params
 		handlers.InternalServerError(res, req, err)
 		return
 	}
-	view := models.NewPageView(chi.RouteContext(req.Context()).RoutePattern(), filters)
+	view := models.NewPageView(models.PageViewIDShowItems, filters)
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
 		// handlers.GenerateFilters(s.SessionAPI(), params),
-		handlers.SaveState(s.SessionAPI(), models.PageViewIDShowItems, view),
+		handlers.SaveState(s.SessionAPI(), view),
 		handlers.SaveBacklink(s.SessionAPI()),
 	).Then(handlers.DisplayItems(s.DataAPI(), s.SessionAPI(), pagination))
 	chain.ServeHTTP(res, req)
