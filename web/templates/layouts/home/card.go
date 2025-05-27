@@ -41,7 +41,7 @@ type Card struct {
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
 func (c *Card) addPagination(ctx context.Context, pagination models.Pagination) {
-	view := models.ViewFromCtx(ctx)
+	view := models.PageStateFromCtx(ctx)
 	c.AddAttributes(templ.Attributes{
 		"hx-get":         view.String() + "&pagination=" + pagination,
 		"hx-trigger":     "intersect once",

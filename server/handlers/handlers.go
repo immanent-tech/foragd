@@ -60,7 +60,7 @@ type DataAPI interface {
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 	// Subscription methods:
 	GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, error)
-	GetSubscriptions(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Subscriptions, models.Pagination, error)
+	GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, error)
 	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) error
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error
 	EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) error
@@ -71,7 +71,7 @@ type DataAPI interface {
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
 	GetItem(ctx context.Context, itemID models.ItemID) (*models.Item, bool, error)
-	GetItems(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Items, models.Pagination, error)
+	GetItemsByFeed(ctx context.Context, filters models.Filters, pagination models.Pagination, feedIDs ...models.FeedID) (models.Items, models.Pagination, error)
 	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error
 	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error)
 }
@@ -138,28 +138,9 @@ func SaveState(api models.SessionAPI) func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Save page state.
 			state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
-			models.SavePageStateInSession(req.Context(), api, state)
-			slogctx.FromCtx(req.Context()).Debug("Saved page state.")
-			// Pass control to next handler.
-			next.ServeHTTP(res, req)
-		})
-	}
-}
-
-// GenerateView creates the view state for this page.
-func GenerateView(params any) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			// Retrieve filters.
-			filters, err := models.NewFiltersFromParams(params)
-			if err != nil {
-				InternalServerError(res, req, err)
-				return
-			}
-			ctx = models.FiltersToCtx(ctx, *filters)
-			view := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
-			ctx = models.ViewToCtx(ctx, view)
+			models.PageStateToSession(req.Context(), api, state)
+			ctx := models.PageStateToCtx(req.Context(), state)
+			slogctx.FromCtx(ctx).Debug("Saved page state.")
 			// Pass control to next handler.
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -176,9 +157,9 @@ func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handle
 			case route == "/home/{collection}":
 				backlink = models.PageState{Path: "/home"}
 			case strings.HasPrefix(route, "/feed"):
-				backlink = models.RestorePageStateFromSession(req.Context(), api, "/home/feeds")
+				backlink = models.PageStateFromSession(req.Context(), api, "/home/feeds")
 			case strings.HasPrefix(route, "/item"):
-				backlink = models.RestorePageStateFromSession(req.Context(), api, "/feed")
+				backlink = models.PageStateFromSession(req.Context(), api, "/feed")
 			}
 			// Save backlink into context.
 			ctx := models.BacklinkToCtx(req.Context(), backlink)
@@ -198,7 +179,7 @@ func SetupRedirect(api models.SessionAPI, path *string) func(next http.Handler) 
 				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
 					slog.String("path", string(*path)),
 				)
-				view := models.RestorePageStateFromSession(req.Context(), api, *path)
+				view := models.PageStateFromSession(req.Context(), api, *path)
 				HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
 				data, err := json.Marshal(HxLocationData)
 				if err != nil {

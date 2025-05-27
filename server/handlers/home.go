@@ -101,15 +101,14 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 	})
 }
 
-// DisplayFeeds handles displaying a list of feeds.
-func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination) http.Handler {
+func DisplaySubscriptions(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscriptions, pagination, err := dataAPI.GetSubscriptions(req.Context(), models.FiltersFromCtx(req.Context()), pagination)
+		subscriptions, pagination, err := dataAPI.GetSubscriptionsByID(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
 		if err != nil {
 			InternalServerError(res, req, err)
 			return
 		}
-		pageTitle := "Feeds"
+		pageTitle := "Subscriptions"
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
@@ -135,10 +134,9 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 	})
 }
 
-// DisplayItems handles displaying a list of items.
-func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination) http.Handler {
+func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, itemIDs ...models.ItemID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		items, pagination, err := dataAPI.GetItems(req.Context(), models.FiltersFromCtx(req.Context()), pagination)
+		items, pagination, err := dataAPI.GetItemsByFeed(req.Context(), models.FiltersFromCtx(req.Context()), pagination, itemIDs...)
 		if err != nil {
 			InternalServerError(res, req, err)
 			return

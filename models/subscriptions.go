@@ -76,23 +76,36 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 	return counts
 }
 
-// Filter will return subscriptions filtered (and sorted) by the given filters.
-func (s Subscriptions) Filter(filters Filters) Subscriptions {
-	s = s.FilterByFeedID(filters.Feeds...).
-		FilterByCategory(filters.Categories...).
-		FilterByView(filters.View)
+func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	switch {
-	case filters.Sort().SortBy == SortByUnreadCount:
+	case sort.SortBy == SortByUnreadCount:
 		slices.SortFunc(s, CompareSubscriptionUnreadCount)
 	default:
 		slices.SortFunc(s, CompareSubscriptionUpdatedDate)
 	}
-	if filters.Sort().SortOrder == SortOrderDesc {
+	if sort.SortOrder == SortOrderDesc {
 		slices.Reverse(s)
 	}
-
 	return s
 }
+
+// // Filter will return subscriptions filtered (and sorted) by the given filters.
+// func (s Subscriptions) Filter(filters Filters) Subscriptions {
+// 	s = s.FilterByFeedID(filters.Feeds...).
+// 		FilterByCategory(filters.Categories...).
+// 		FilterByView(filters.View)
+// 	switch {
+// 	case filters.Sort().SortBy == SortByUnreadCount:
+// 		slices.SortFunc(s, CompareSubscriptionUnreadCount)
+// 	default:
+// 		slices.SortFunc(s, CompareSubscriptionUpdatedDate)
+// 	}
+// 	if filters.Sort().SortOrder == SortOrderDesc {
+// 		slices.Reverse(s)
+// 	}
+
+// 	return s
+// }
 
 // FilterByFeed will match the given feeds to the subscriptions and return subscriptions with matched feeds.
 func (s Subscriptions) FilterByFeed(feeds Feeds) Subscriptions {
@@ -104,6 +117,17 @@ func (s Subscriptions) FilterByFeed(feeds Feeds) Subscriptions {
 		}
 		return false
 	}))
+}
+
+// FilterByID will filter the list of subscriptions by the given
+// SubscriptionIDs. If no IDs are provided, the full list is returned.
+func (s Subscriptions) FilterByID(subIDs ...SubscriptionID) Subscriptions {
+	if len(subIDs) > 0 {
+		return slices.Collect(FilterSlice(s, func(v *Subscription) bool {
+			return slices.Contains(subIDs, v.GetID())
+		}))
+	}
+	return s
 }
 
 // FilterByFeedID will filter the list of subscriptions by the given

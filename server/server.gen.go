@@ -39,6 +39,9 @@ type ImportURLs = []string
 // Action defines an operation to change the state of objects.
 type Action = externalRef0.Action
 
+// Articles is a list of items IDs.
+type Articles = []externalRef0.ItemID
+
 // Categories is a list of categories.
 type Categories = []externalRef0.Category
 
@@ -54,14 +57,8 @@ type Count = externalRef0.Count
 // FeedID is the unique ID of a feed.
 type FeedID = externalRef0.FeedID
 
-// Feeds defines model for Feeds.
-type Feeds = []externalRef0.FeedID
-
 // ItemID is the unique ID of an item.
 type ItemID = externalRef0.ItemID
-
-// Items is a list of items IDs.
-type Items = []externalRef0.ItemID
 
 // Mark applies the given mark action to objects.
 type Mark = externalRef0.Mark
@@ -105,20 +102,20 @@ type ShowFeedParams struct {
 
 // ShowCollectionParams defines parameters for ShowCollection.
 type ShowCollectionParams struct {
-	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Items      *Items      `form:"items,omitempty" json:"items,omitempty"`
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
-	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
-	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
-	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
+	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
+	Articles      *Articles      `form:"articles,omitempty" json:"articles,omitempty"`
+	Categories    *Categories    `form:"categories,omitempty" json:"categories,omitempty"`
+	View          View           `form:"view" json:"view"`
+	Count         Count          `form:"count" json:"count"`
+	SortBy        SortBy         `form:"sort_by" json:"sort_by"`
+	SortOrder     SortOrder      `form:"sort_order" json:"sort_order"`
+	Pagination    *Pagination    `form:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 // ActionCollectionParams defines parameters for ActionCollection.
 type ActionCollectionParams struct {
-	Feeds *Feeds `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Items *Items `form:"items,omitempty" json:"items,omitempty"`
+	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
+	Articles      *Articles      `form:"articles,omitempty" json:"articles,omitempty"`
 
 	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
 	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
@@ -706,19 +703,19 @@ func (siw *ServerInterfaceWrapper) ShowCollection(w http.ResponseWriter, r *http
 	// Parameter object where we will unmarshal all parameters from the context
 	var params ShowCollectionParams
 
-	// ------------- Optional query parameter "feeds" -------------
+	// ------------- Optional query parameter "subscriptions" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
+	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
 		return
 	}
 
-	// ------------- Optional query parameter "items" -------------
+	// ------------- Optional query parameter "articles" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "items", r.URL.Query(), &params.Items)
+	err = runtime.BindQueryParameter("form", true, false, "articles", r.URL.Query(), &params.Articles)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "items", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "articles", Err: err})
 		return
 	}
 
@@ -835,19 +832,19 @@ func (siw *ServerInterfaceWrapper) ActionCollection(w http.ResponseWriter, r *ht
 	// Parameter object where we will unmarshal all parameters from the context
 	var params ActionCollectionParams
 
-	// ------------- Optional query parameter "feeds" -------------
+	// ------------- Optional query parameter "subscriptions" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "feeds", r.URL.Query(), &params.Feeds)
+	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
 		return
 	}
 
-	// ------------- Optional query parameter "items" -------------
+	// ------------- Optional query parameter "articles" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "items", r.URL.Query(), &params.Items)
+	err = runtime.BindQueryParameter("form", true, false, "articles", r.URL.Query(), &params.Articles)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "items", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "articles", Err: err})
 		return
 	}
 

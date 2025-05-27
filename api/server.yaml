@@ -243,8 +243,8 @@ paths:
       operationId: showCollection
       parameters:
         - $ref: '#/components/parameters/Collection'
-        - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/Items'
+        - $ref: '#/components/parameters/Subscriptions'
+        - $ref: '#/components/parameters/Articles'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/View'
         - $ref: '#/components/parameters/Count'
@@ -262,8 +262,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/Collection'
         - $ref: '#/components/parameters/Action'
-        - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/Items'
+        - $ref: '#/components/parameters/Subscriptions'
+        - $ref: '#/components/parameters/Articles'
         - $ref: '#/components/parameters/Redirect'
       responses:
         default:
@@ -318,103 +318,6 @@ paths:
       responses:
         default:
           $ref: '#/components/responses/html'
-  # /home/show/list:
-  #   get:
-  #     summary: >
-  #       Shows a list of feeds, with optional filtering.
-  #     operationId: homeShowFeeds
-  #     parameters:
-  #       - $ref: '#/components/parameters/Categories'
-  #       - $ref: '#/components/parameters/View'
-  #       - $ref: '#/components/parameters/Count'
-  #       - $ref: '#/components/parameters/SortBy'
-  #       - $ref: '#/components/parameters/SortOrder'
-  #       - $ref: '#/components/parameters/Pagination'
-  #       # - $ref: '#/components/parameters/Backlink'
-  #     responses:
-  #       200:
-  #         $ref: '#/components/responses/htmx'
-  # /home/mark/feeds/{mark}:
-  #   post:
-  #     summary: >
-  #       Marks the given feeds with the given mark.
-  #     operationId: homeMarkFeeds
-  #     parameters:
-  #       - $ref: '#/components/parameters/Mark'
-  #       - $ref: '#/components/parameters/Feeds'
-  #       - $ref: '#/components/parameters/Redirect'
-  #     responses:
-  #       200:
-  #         $ref: '#/components/responses/htmx'
-  # /home/show/items:
-  #   get:
-  #     summary: >
-  #       Shows a list of feed items, with optional filtering.
-  #     operationId: homeShowItems
-  #     parameters:
-  #       - $ref: '#/components/parameters/Feeds'
-  #       - $ref: '#/components/parameters/Categories'
-  #       - $ref: '#/components/parameters/View'
-  #       - $ref: '#/components/parameters/Count'
-  #       - $ref: '#/components/parameters/Pagination'
-  #       - $ref: '#/components/parameters/SortBy'
-  #       - $ref: '#/components/parameters/SortOrder'
-  #       # - $ref: '#/components/parameters/Backlink'
-  #     responses:
-  #       200:
-  #         $ref: '#/components/responses/htmx'
-  # /home/mark/items/{mark}:
-  #   post:
-  #     summary: >
-  #       Marks the given items with the given mark.
-  #     operationId: markItems
-  #     parameters:
-  #       - $ref: '#/components/parameters/Mark'
-  #       - $ref: '#/components/parameters/Items'
-  #       - $ref: '#/components/parameters/Redirect'
-  #     responses:
-  #       200:
-  #         $ref: '#/components/responses/htmx'
-  # /home/{feed}/{item}:
-  #   parameters:
-  #     - $ref: '#/components/parameters/FeedID'
-  #     - $ref: '#/components/parameters/ItemID'
-  #   get:
-  #     summary: >
-  #       Shows a feed item.
-  #     operationId: handleShowItem
-  #     # parameters:
-  #     #   - $ref: '#/components/parameters/Backlink'
-  #     responses:
-  #       200:
-  #         $ref: '#/components/responses/htmx'
-  #   put:
-  #     summary: >
-  #       Save a feed item to the user's saved items.
-  #     operationId: handleSaveItem
-  #     responses:
-  #       200:
-  #         $ref: '#/components/responses/htmx'
-  #   delete:
-  #     summary: >
-  #       Remove a feed item from the user's saved items.
-  #     operationId: handleUnsaveItem
-  #     responses:
-  #       200:
-  #         $ref: '#/components/responses/htmx'
-  # /home/{feed}/{item}/{mark}:
-  #   post:
-  #     summary: >
-  #       Mark a feed item.
-  #     operationId: markItem
-  #     parameters:
-  #       - $ref: '#/components/parameters/FeedID'
-  #       - $ref: '#/components/parameters/ItemID'
-  #       - $ref: '#/components/parameters/Mark'
-  #       - $ref: '#/components/parameters/Redirect'
-  #     responses:
-  #       200:
-  #         $ref: '#/components/responses/htmx'
 components:
   schemas:
     ImportOPML:
@@ -558,8 +461,8 @@ components:
           form: 'feeds[]'
           validate: 'omitnil,unique,dive,startswith=feed_'
         # x-go-type-skip-optional-pointer: true
-    Items:
-      name: items
+    Articles:
+      name: articles
       in: query
       schema:
         description: is a list of items IDs.

@@ -53,11 +53,11 @@ const (
 // In this case, we validate that either a list of Feeds or Items has been
 // provided, and fail validation if both have been provided.
 func FiltersValidation(sl validator.StructLevel) {
-	filters := sl.Current().Interface().(Filters)
-	if len(filters.Feeds) > 0 && len(filters.Items) > 0 {
-		sl.ReportError(filters.Feeds, "feeds", "Feeds", "feedsoritems", "")
-		sl.ReportError(filters.Items, "items", "Items", "feedsoritems", "")
-	}
+	// filters := sl.Current().Interface().(Filters)
+	// if len(filters.Feeds) > 0 && len(filters.Items) > 0 {
+	// 	sl.ReportError(filters.Feeds, "feeds", "Feeds", "feedsoritems", "")
+	// 	sl.ReportError(filters.Items, "items", "Items", "feedsoritems", "")
+	// }
 }
 
 // Valid will return a boolean indicating whether the filters are valid and a
@@ -114,9 +114,9 @@ func (f *Filters) Sort() Sort {
 func (f *Filters) ToQueryParams() url.Values {
 	params := make(url.Values)
 
-	if len(f.Feeds) > 0 {
-		params.Set(ParamFeeds, strings.Join(f.Feeds, ","))
-	}
+	// if len(f.Feeds) > 0 {
+	// 	params.Set(ParamFeeds, strings.Join(f.Feeds, ","))
+	// }
 
 	if len(f.Categories) > 0 {
 		params.Set(ParamCategories, strings.Join(f.Categories, ","))

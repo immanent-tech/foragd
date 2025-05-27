@@ -128,7 +128,7 @@ func (e *API) GetAllFeeds(ctx context.Context, feedIDs ...models.FeedID) (models
 }
 
 // FeedsSearch searches the feeds index for feeds matching the relevant filters.
-func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Feeds, error) {
+func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, pagination models.Pagination, feedIDs ...models.FeedID) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -145,7 +145,7 @@ func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, paginatio
 			query.Bool(
 				// Match either the FeedID OR the Category.
 				query.Should(
-					query.FeedIDs(filters.Feeds...),
+					query.FeedIDs(feedIDs...),
 					query.Categories(filters.Categories...),
 				),
 			),

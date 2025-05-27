@@ -37,11 +37,11 @@ func (s PageState) String() string {
 	return s.Path
 }
 
-func SavePageStateInSession(ctx context.Context, api SessionAPI, state PageState) {
+func PageStateToSession(ctx context.Context, api SessionAPI, state PageState) {
 	api.Put(ctx, "State:"+state.Path, state)
 }
 
-func RestorePageStateFromSession(ctx context.Context, api SessionAPI, path string) PageState {
+func PageStateFromSession(ctx context.Context, api SessionAPI, path string) PageState {
 	state, ok := api.Get(ctx, "State:"+path).(PageState)
 	if !ok {
 		slogctx.FromCtx(ctx).Warn("No saved page state found.",
@@ -49,6 +49,19 @@ func RestorePageStateFromSession(ctx context.Context, api SessionAPI, path strin
 		return PageState{Path: path}
 	}
 	return state
+}
+
+func PageStateToCtx(ctx context.Context, view PageState) context.Context {
+	return context.WithValue(ctx, pageViewStateCtxKey, view)
+}
+
+func PageStateFromCtx(ctx context.Context) PageState {
+	view, found := ctx.Value(pageViewStateCtxKey).(PageState)
+	if !found {
+		slogctx.FromCtx(ctx).Warn("No view found in context, using default.")
+		return PageState{Path: "/home"}
+	}
+	return view
 }
 
 func BacklinkToCtx(ctx context.Context, backlink PageState) context.Context {
@@ -61,17 +74,4 @@ func BacklinkFromCtx(ctx context.Context) PageState {
 		return PageState{Path: "/home"}
 	}
 	return backlink
-}
-
-func ViewToCtx(ctx context.Context, view PageState) context.Context {
-	return context.WithValue(ctx, pageViewStateCtxKey, view)
-}
-
-func ViewFromCtx(ctx context.Context) PageState {
-	view, found := ctx.Value(pageViewStateCtxKey).(PageState)
-	if !found {
-		slogctx.FromCtx(ctx).Warn("No view found in context, using default.")
-		return PageState{Path: "/home"}
-	}
-	return view
 }

@@ -119,26 +119,26 @@ components:
         - $ref: '#/components/schemas/RequiredFilters'
         - type: object
           properties:
-            feeds:
-              description: is a list of feed IDs.
-              type: array
-              items:
-                $ref: 'models.yaml#/components/schemas/FeedID'
-              x-oapi-codegen-extra-tags:
-                json: 'feeds'
-                form: 'feeds[]'
-                validate: 'omitnil,unique,dive,startswith=feed_'
-              x-go-type-skip-optional-pointer: true
-            items:
-              description: is a list of items IDs.
-              type: array
-              items:
-                $ref: 'models.yaml#/components/schemas/ItemID'
-              x-oapi-codegen-extra-tags:
-                json: 'items'
-                form: 'items[]'
-                validate: 'omitnil,unique,dive,startswith=item_'
-              x-go-type-skip-optional-pointer: true
+            # feeds:
+            #   description: is a list of feed IDs.
+            #   type: array
+            #   items:
+            #     $ref: 'models.yaml#/components/schemas/FeedID'
+            #   x-oapi-codegen-extra-tags:
+            #     json: 'feeds'
+            #     form: 'feeds[]'
+            #     validate: 'omitnil,unique,dive,startswith=feed_'
+            #   x-go-type-skip-optional-pointer: true
+            # items:
+            #   description: is a list of items IDs.
+            #   type: array
+            #   items:
+            #     $ref: 'models.yaml#/components/schemas/ItemID'
+            #   x-oapi-codegen-extra-tags:
+            #     json: 'items'
+            #     form: 'items[]'
+            #     validate: 'omitnil,unique,dive,startswith=item_'
+            #   x-go-type-skip-optional-pointer: true
             categories:
               description: is a list of categories.
               type: array

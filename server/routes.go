@@ -123,10 +123,6 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 	chain.ServeHTTP(res, req)
 }
 
-func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Request) {
-	res.WriteHeader(http.StatusNotImplemented)
-}
-
 // ShowCollection handles displaying a collection of objects, with optional filtering.
 func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, collection Collection, params ShowCollectionParams) {
 	// Extract any pagination value.
@@ -134,16 +130,31 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	if params.Pagination != nil {
 		pagination = *params.Pagination
 	}
+	// Retrieve filters.
+	filters, err := models.NewFiltersFromParams(params)
+	if err != nil {
+		handlers.InternalServerError(res, req, err)
+		return
+	}
+	ctx := models.FiltersToCtx(req.Context(), *filters)
 
 	// Generate appropriate display function and view based on collection parameter.
 	var (
 		displayFunc http.Handler
 	)
 	switch collection {
-	case models.CollectionFeeds:
-		displayFunc = handlers.DisplayFeeds(s.DataAPI(), s.SessionAPI(), pagination)
+	case models.CollectionSubscriptions:
+		if params.Subscriptions != nil {
+			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), s.SessionAPI(), pagination, *params.Subscriptions...)
+		} else {
+			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), s.SessionAPI(), pagination)
+		}
 	case models.CollectionItems:
-		displayFunc = handlers.DisplayItems(s.DataAPI(), s.SessionAPI(), pagination)
+		if params.Articles != nil {
+			displayFunc = handlers.DisplayArticles(s.DataAPI(), s.SessionAPI(), pagination, *params.Articles...)
+		} else {
+			displayFunc = handlers.DisplayArticles(s.DataAPI(), s.SessionAPI(), pagination)
+		}
 	default:
 		handlers.InternalServerError(res, req, fmt.Errorf("%w: %s for collection is unknown", ErrInvalidParam, collection))
 		return
@@ -153,11 +164,10 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
 		handlers.SaveState(s.SessionAPI()),
-		handlers.GenerateView(params),
 		handlers.GenerateBacklink(s.SessionAPI()),
 	).Then(displayFunc)
 	// Run chain.
-	chain.ServeHTTP(res, req)
+	chain.ServeHTTP(res, req.WithContext(ctx))
 }
 
 // ActionCollection handles performing an action on a collection of objects.
@@ -165,12 +175,12 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 	var actionFunc http.Handler
 
 	switch {
-	case collection == models.CollectionFeeds && slices.Contains([]Action{models.ActionRead, models.ActionUnread}, action):
+	case collection == models.CollectionSubscriptions && slices.Contains([]Action{models.ActionRead, models.ActionUnread}, action):
 		// Mark feeds read/unread.
-		actionFunc = handlers.MarkFeeds(s.DataAPI(), models.Mark(action), *params.Feeds...)
+		actionFunc = handlers.MarkFeeds(s.DataAPI(), models.Mark(action), *params.Subscriptions...)
 	case collection == models.CollectionItems && slices.Contains([]Action{models.ActionRead, models.ActionUnread}, action):
 		// Mark items read/unread.
-		actionFunc = handlers.MarkItems(s.DataAPI(), models.Mark(action), *params.Items...)
+		actionFunc = handlers.MarkItems(s.DataAPI(), models.Mark(action), *params.Articles...)
 	default:
 		// Unsupported action for a collection.
 		res.WriteHeader(http.StatusNotImplemented)

@@ -105,12 +105,6 @@ type Filters struct {
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
 
-	// Feeds is a list of feed IDs.
-	Feeds []FeedID `form:"feeds[]" json:"feeds" validate:"omitnil,unique,dive,startswith=feed_"`
-
-	// Items is a list of items IDs.
-	Items []ItemID `form:"items[]" json:"items" validate:"omitnil,unique,dive,startswith=item_"`
-
 	// SortBy represents the selected field to sort on.
 	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
 

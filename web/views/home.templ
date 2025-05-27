@@ -127,12 +127,12 @@ func GenerateHomePageContent(ctx context.Context, api *elastic.API) templ.Compon
 		slogctx.FromCtx(ctx).Warn("Unable to random items.", slog.Any("error", err))
 	}
 
-	feedsView := models.RestorePageStateFromSession(ctx, models.SessionFromCtx(ctx), "/home/feeds")
-	if feedsView.Params == nil {
-		feedsView.Params = models.NewFilters().ToQueryParams()
+	showSubscriptions := models.PageStateFromSession(ctx, models.SessionFromCtx(ctx), "/home/subscriptions")
+	if showSubscriptions.Params == nil {
+		showSubscriptions.Params = models.NewFilters().ToQueryParams()
 	}
 
-	return layoutHomePageContent(feedsView, topCategories, rareCategories, randomItems)
+	return layoutHomePageContent(showSubscriptions, topCategories, rareCategories, randomItems)
 }
 
 func getHomePageData(ctx context.Context, api *elastic.API) (HomePageData, error) {
@@ -224,11 +224,11 @@ func getHomePageData(ctx context.Context, api *elastic.API) (HomePageData, error
 	return resp.Aggregations, nil
 }
 
-templ layoutHomePageContent(feedsView models.PageState, topCategories, rareCategories, randomItems templ.Component) {
+templ layoutHomePageContent(showSubscriptions models.PageState, topCategories, rareCategories, randomItems templ.Component) {
 	<h1>Go To:</h1>
-	@link.Build(link.WithContent("Feeds"),
+	@link.Build(link.WithContent("Subscriptions"),
 		link.WithExtraAttributes(templ.Attributes{
-			"hx-get":      feedsView.String(),
+			"hx-get":      showSubscriptions.String(),
 			"hx-target":   templates.ContentID.Target(),
 			"hx-swap":     "innerHTML",
 			"hx-push-url": "true",

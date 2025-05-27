@@ -77,7 +77,7 @@ func (e *API) EditSubscription(ctx context.Context, subscriptionID models.Subscr
 	})
 }
 
-func (e *API) GetSubscriptions(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Subscriptions, models.Pagination, error) {
+func (e *API) GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -86,7 +86,7 @@ func (e *API) GetSubscriptions(ctx context.Context, filters models.Filters, pagi
 			models.MessageStatusError,
 			models.WithError(ErrNoUserCtx))
 	}
-	subscriptions := user.GetSubscriptions()
+	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
 
 	// Get feeds matching subscriptions.
 	feeds, err := e.GetAllFeeds(ctx, subscriptions.GetFeedIDs()...)
@@ -107,7 +107,10 @@ func (e *API) GetSubscriptions(ctx context.Context, filters models.Filters, pagi
 			models.WithError(err))
 	}
 	// Filter subscriptions with given filters.
-	subscriptions = subscriptions.Filter(filters)
+	subscriptions = subscriptions.
+		FilterByCategory(filters.Categories...).
+		FilterByView(filters.View).
+		Sort(filters.Sort())
 	// Generate pagination.
 	from, err := strconv.Atoi(pagination)
 	if err != nil {
@@ -267,13 +270,13 @@ func (e *API) GetItem(ctx context.Context, itemID models.ItemID) (*models.Item, 
 // UserGetItems will search Elasticsearch for unread items (with
 // given filters applied) for the given user, and, returns the items as well as
 // pagination details for paging through the results.
-func (e *API) GetItems(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Items, models.Pagination, error) {
+func (e *API) GetItemsByFeed(ctx context.Context, filters models.Filters, pagination models.Pagination, feedIDs ...models.FeedID) (models.Items, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", ErrFetchCtx
 	}
 	// Get subscriptions matching the filters.
-	subscriptions := user.GetSubscriptions().FilterByFeedID(filters.Feeds...)
+	subscriptions := user.GetSubscriptions().FilterByFeedID(feedIDs...)
 
 	query := query.Bool(
 		query.BoolQueryName("get_items"),
