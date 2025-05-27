@@ -69,8 +69,8 @@ type Mark = externalRef0.Mark
 // Pagination contains data for paginating through results.
 type Pagination = externalRef0.Pagination
 
-// Redirect is an ID that represents a page view.
-type Redirect = externalRef0.PageViewID
+// Redirect defines model for Redirect.
+type Redirect = string
 
 // SortBy represents the selected field to sort on.
 type SortBy = externalRef0.SortBy

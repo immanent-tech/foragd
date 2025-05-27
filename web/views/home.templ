@@ -17,6 +17,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/veqryn/slog-context"
@@ -126,7 +127,12 @@ func GenerateHomePageContent(ctx context.Context, api *elastic.API) templ.Compon
 		slogctx.FromCtx(ctx).Warn("Unable to random items.", slog.Any("error", err))
 	}
 
-	return layoutHomePageContent(topCategories, rareCategories, randomItems)
+	feedsView := models.RestorePageStateFromSession(ctx, models.SessionFromCtx(ctx), "/home/feeds")
+	if feedsView.Params == nil {
+		feedsView.Params = models.NewFilters().ToQueryParams()
+	}
+
+	return layoutHomePageContent(feedsView, topCategories, rareCategories, randomItems)
 }
 
 func getHomePageData(ctx context.Context, api *elastic.API) (HomePageData, error) {
@@ -218,12 +224,14 @@ func getHomePageData(ctx context.Context, api *elastic.API) (HomePageData, error
 	return resp.Aggregations, nil
 }
 
-templ layoutHomePageContent(topCategories, rareCategories, randomItems templ.Component) {
-	{{ feedsView := models.RestorePageStateFromSession(ctx, models.SessionFromCtx(ctx), "/home/feeds") }}
+templ layoutHomePageContent(feedsView models.PageState, topCategories, rareCategories, randomItems templ.Component) {
 	<h1>Go To:</h1>
 	@link.Build(link.WithContent("Feeds"),
 		link.WithExtraAttributes(templ.Attributes{
-			"hx-get": feedsView.String(),
+			"hx-get":      feedsView.String(),
+			"hx-target":   templates.ContentID.Target(),
+			"hx-swap":     "innerHTML",
+			"hx-push-url": "true",
 		}),
 	).Show()
 	if topCategories != nil {

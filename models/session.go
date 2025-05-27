@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	ThemeSessionKey        = "theme"
-	lastPageViewSessionKey = "last_viewed"
+	ThemeSessionKey = "theme"
 )
 
 type PageView struct {
@@ -21,35 +20,9 @@ type PageView struct {
 	Filters Filters
 }
 
-func NewPageView(path string, filters *Filters) PageView {
-	if filters != nil {
-		return PageView{Path: path, Filters: *filters}
-	}
-	return PageView{Path: path}
-}
-
-func (r PageView) String() string {
-	return r.Path + "?" + r.Filters.ToQueryParams().Encode()
-}
-
 type SessionAPI interface {
 	Put(ctx context.Context, key string, value any)
 	Get(ctx context.Context, key string) any
-}
-
-func GetViewFromSession(ctx context.Context, api SessionAPI, key PageViewID) PageView {
-	view, ok := api.Get(ctx, "State:"+string(key)).(PageView)
-	if !ok {
-		slogctx.FromCtx(ctx).Warn("No saved view found, generating defaults.",
-			slog.String("view", string(key)))
-		return NewPageView("/home", nil)
-	} else {
-		return view
-	}
-}
-
-func SaveViewInSession(ctx context.Context, api SessionAPI, key PageViewID, view PageView) {
-	api.Put(ctx, "State:"+string(key), view)
 }
 
 type PageState struct {
@@ -90,15 +63,15 @@ func BacklinkFromCtx(ctx context.Context) PageState {
 	return backlink
 }
 
-func ViewToCtx(ctx context.Context, view PageView) context.Context {
+func ViewToCtx(ctx context.Context, view PageState) context.Context {
 	return context.WithValue(ctx, pageViewStateCtxKey, view)
 }
 
-func ViewFromCtx(ctx context.Context) PageView {
-	view, found := ctx.Value(pageViewStateCtxKey).(PageView)
+func ViewFromCtx(ctx context.Context) PageState {
+	view, found := ctx.Value(pageViewStateCtxKey).(PageState)
 	if !found {
 		slogctx.FromCtx(ctx).Warn("No view found in context, using default.")
-		return NewPageView("/home", nil)
+		return PageState{Path: "/home"}
 	}
 	return view
 }

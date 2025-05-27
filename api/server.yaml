@@ -514,15 +514,7 @@ components:
       name: redirect
       in: query
       schema:
-        $ref: 'api.yaml#/components/schemas/PageViewID'
-    # Backlink:
-    #   description: >
-    #     specifies the location to which any back button/links should point.
-    #   name: backlink
-    #   in: query
-    #   required: true
-    #   schema:
-    #     $ref: 'api.yaml#/components/schemas/PageViewID'
+        type: string
     Confirmation:
       description: >
         indicates the confirmation state from the user for a destructive action.

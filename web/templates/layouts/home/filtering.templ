@@ -21,7 +21,7 @@ import (
 // htmx request.
 type Filter struct {
 	value  string
-	link   models.PageView
+	link   models.PageState
 	active bool
 }
 
@@ -50,14 +50,16 @@ func newCategoryFilter(ctx context.Context, category models.CategoryCount) *Filt
 		value: category.Category,
 	}
 	view := models.ViewFromCtx(ctx)
+	filters := models.FiltersFromCtx(ctx)
 	// Check if this category is in the current view filters.
-	if found, _ := view.Filters.HasCategory(category.Category); found {
+	if found, _ := filters.HasCategory(category.Category); found {
 		filter.active = true
-		view.Filters.RemoveCategory(category.Category)
+		filters.RemoveCategory(category.Category)
 	} else {
-		view.Filters.AddCategory(category.Category)
+		filters.AddCategory(category.Category)
 	}
 	// Generate a view.
+	view.Params = filters.ToQueryParams()
 	filter.link = view
 
 	return filter
@@ -69,15 +71,17 @@ type CategoryFilters []*Filter
 func newViewFilter(ctx context.Context, view models.View) *Filter {
 	// Get the current view.
 	link := models.ViewFromCtx(ctx)
+	filters := models.FiltersFromCtx(ctx)
 	filter := &Filter{
 		value: string(view),
 	}
 	// If the current view filters indicate this view is active, mark as so.
-	if view == link.Filters.View {
+	if view == filters.View {
 		filter.active = true
 	}
 	// Set the view filter to this view.
-	link.Filters.View = view
+	filters.View = view
+	link.Params = filters.ToQueryParams()
 	filter.link = link
 
 	return filter
@@ -171,17 +175,19 @@ type SortFilters []*Filter
 
 func NewSortFilter(ctx context.Context, sort models.Sort) *Filter {
 	view := models.ViewFromCtx(ctx)
+	filters := models.FiltersFromCtx(ctx)
 	filter := &Filter{
 		value: sort.String(),
 	}
 	// Set this sort as active if indicated in the current view filters.
-	if view.Filters.SortBy == sort.SortBy && view.Filters.SortOrder == sort.SortOrder {
+	if filters.SortBy == sort.SortBy && filters.SortOrder == sort.SortOrder {
 		filter.active = true
 	} else {
-		view.Filters.SortBy = sort.SortBy
-		view.Filters.SortOrder = sort.SortOrder
+		filters.SortBy = sort.SortBy
+		filters.SortOrder = sort.SortOrder
 	}
 	// Generate a view.
+	view.Params = filters.ToQueryParams()
 	filter.link = view
 
 	return filter

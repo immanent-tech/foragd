@@ -179,7 +179,7 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(params.Redirect),
+		handlers.SetupRedirect(s.SessionAPI(), params.Redirect),
 	).Then(actionFunc)
 	chain.ServeHTTP(res, req)
 }
@@ -199,7 +199,7 @@ func (s Server) ActionItem(res http.ResponseWriter, req *http.Request, action Ac
 
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(params.Redirect),
+		handlers.SetupRedirect(s.SessionAPI(), params.Redirect),
 	).Then(actionFunc)
 	chain.ServeHTTP(res, req)
 }

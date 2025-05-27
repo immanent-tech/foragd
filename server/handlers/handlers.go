@@ -150,14 +150,16 @@ func SaveState(api models.SessionAPI) func(next http.Handler) http.Handler {
 func GenerateView(params any) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
 			// Retrieve filters.
 			filters, err := models.NewFiltersFromParams(params)
 			if err != nil {
 				InternalServerError(res, req, err)
 				return
 			}
-			view := models.NewPageView(req.URL.Path, filters)
-			ctx := models.ViewToCtx(req.Context(), view)
+			ctx = models.FiltersToCtx(ctx, *filters)
+			view := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
+			ctx = models.ViewToCtx(req.Context(), view)
 			// Pass control to next handler.
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -189,15 +191,14 @@ func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handle
 
 // SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
 // been made through HTMX.
-func SetupRedirect(id *models.PageViewID) func(next http.Handler) http.Handler {
+func SetupRedirect(api models.SessionAPI, path *string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			if htmx.IsHTMX(req) && id != nil {
+			if htmx.IsHTMX(req) && path != nil {
 				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
-					slog.String("path", string(*id)),
+					slog.String("path", string(*path)),
 				)
-				session := models.SessionFromCtx(req.Context())
-				view := models.GetViewFromSession(req.Context(), session, *id)
+				view := models.RestorePageStateFromSession(req.Context(), api, *path)
 				HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
 				data, err := json.Marshal(HxLocationData)
 				if err != nil {

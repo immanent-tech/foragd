@@ -79,11 +79,11 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 }
 
 func GenerateFeedCards(ctx context.Context, subscriptions models.Subscriptions, pagination models.Pagination) []templ.Component {
-	view := models.ViewFromCtx(ctx)
+	filters := models.FiltersFromCtx(ctx)
 	cards := make([]templ.Component, 0, len(subscriptions))
 	for idx, subscription := range subscriptions {
 		card := newFeedCard(ctx, subscription)
-		if idx == len(subscriptions)-1 && len(subscriptions) == view.Filters.Count {
+		if idx == len(subscriptions)-1 && len(subscriptions) == filters.Count {
 			card.addPagination(ctx, pagination)
 		}
 
@@ -120,14 +120,14 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 }
 
 func GenerateItemCards(ctx context.Context, items models.Items, pagination models.Pagination) []templ.Component {
-	view := models.ViewFromCtx(ctx)
+	filters := models.FiltersFromCtx(ctx)
 	cards := make([]templ.Component, 0, len(items))
 	for idx, item := range items {
 		slogctx.FromCtx(ctx).Debug("displaying item", slog.String("item_id", item.GetID()), slog.Bool("state", item.IsUnread()))
 		// Create a card for this item.
 		itemCard := newItemCard(ctx, item)
 		// Add a pagination action to the last item.
-		if idx == len(items)-1 && len(items) == view.Filters.Count && pagination != "" {
+		if idx == len(items)-1 && len(items) == filters.Count && pagination != "" {
 			itemCard.addPagination(ctx, pagination)
 		}
 		// Append the card to the list of cards.
