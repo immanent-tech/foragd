@@ -36,8 +36,14 @@ type ImportOPML = string
 // ImportURLs allows importing feeds from an list of feed URLs.
 type ImportURLs = []string
 
+// Action defines an operation to change the state of objects.
+type Action = externalRef0.Action
+
 // Categories is a list of categories.
 type Categories = []externalRef0.Category
+
+// Collection is a group of objects, such as feeds, items or subscriptions.
+type Collection = externalRef0.Collection
 
 // Confirmation indicates the user's decision for a (usually) destructive action.
 type Confirmation = externalRef0.UserConfirmation
@@ -81,47 +87,47 @@ type Subscriptions = []externalRef0.SubscriptionID
 // View The state of objects to view.
 type View = externalRef0.View
 
-// HomeMarkFeedsParams defines parameters for HomeMarkFeeds.
-type HomeMarkFeedsParams struct {
-	Feeds *Feeds `form:"feeds,omitempty" json:"feeds,omitempty"`
-
-	// RedirectTo specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	RedirectTo *Redirect `form:"redirect_to,omitempty" json:"redirect_to,omitempty"`
+// ActionFeedParams defines parameters for ActionFeed.
+type ActionFeedParams struct {
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
-// MarkItemsParams defines parameters for MarkItems.
-type MarkItemsParams struct {
+// ShowFeedParams defines parameters for ShowFeed.
+type ShowFeedParams struct {
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
+	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
+	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+// ShowCollectionParams defines parameters for ShowCollection.
+type ShowCollectionParams struct {
+	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
+	Items      *Items      `form:"items,omitempty" json:"items,omitempty"`
+	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
+	View       View        `form:"view" json:"view"`
+	Count      Count       `form:"count" json:"count"`
+	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
+	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
+	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+// ActionCollectionParams defines parameters for ActionCollection.
+type ActionCollectionParams struct {
+	Feeds *Feeds `form:"feeds,omitempty" json:"feeds,omitempty"`
 	Items *Items `form:"items,omitempty" json:"items,omitempty"`
 
-	// RedirectTo specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	RedirectTo *Redirect `form:"redirect_to,omitempty" json:"redirect_to,omitempty"`
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
-// HomeShowFeedsParams defines parameters for HomeShowFeeds.
-type HomeShowFeedsParams struct {
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
-	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
-	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
-	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
-}
-
-// HomeShowItemsParams defines parameters for HomeShowItems.
-type HomeShowItemsParams struct {
-	Feeds      *Feeds      `form:"feeds,omitempty" json:"feeds,omitempty"`
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
-	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
-	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
-	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
-}
-
-// MarkItemParams defines parameters for MarkItem.
-type MarkItemParams struct {
-	// RedirectTo specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	RedirectTo *Redirect `form:"redirect_to,omitempty" json:"redirect_to,omitempty"`
+// ActionItemParams defines parameters for ActionItem.
+type ActionItemParams struct {
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
 // SetImportMethodFormdataBody defines parameters for SetImportMethod.
@@ -132,8 +138,8 @@ type SetImportMethodFormdataBody struct {
 
 // MarkSubscriptionParams defines parameters for MarkSubscription.
 type MarkSubscriptionParams struct {
-	// RedirectTo specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	RedirectTo *Redirect `form:"redirect_to,omitempty" json:"redirect_to,omitempty"`
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
 // RemoveSubscriptionParams defines parameters for RemoveSubscription.
@@ -146,8 +152,8 @@ type RemoveSubscriptionParams struct {
 type MarkAllSubscriptionsParams struct {
 	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
 
-	// RedirectTo specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	RedirectTo *Redirect `form:"redirect_to,omitempty" json:"redirect_to,omitempty"`
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
 // ProcessSignUpFormdataRequestBody defines body for ProcessSignUp for application/x-www-form-urlencoded ContentType.
@@ -255,33 +261,27 @@ type ServerInterface interface {
 
 	// (GET /)
 	Index(w http.ResponseWriter, r *http.Request)
+	// Performs the given action on a feed.
+	// (POST /feed/{action}/{feed})
+	ActionFeed(w http.ResponseWriter, r *http.Request, action Action, feed FeedID, params ActionFeedParams)
+	// Shows a items for the given feed, with optional filtering.
+	// (GET /feed/{feed})
+	ShowFeed(w http.ResponseWriter, r *http.Request, feed FeedID, params ShowFeedParams)
 	// Shows a page of curated feeds and content based on the user's subscriptions and viewing preferences.
 	// (GET /home)
-	HandleHome(w http.ResponseWriter, r *http.Request)
-	// Marks the given feeds with the given mark.
-	// (POST /home/mark/feeds/{mark})
-	HomeMarkFeeds(w http.ResponseWriter, r *http.Request, mark Mark, params HomeMarkFeedsParams)
-	// Marks the given items with the given mark.
-	// (POST /home/mark/items/{mark})
-	MarkItems(w http.ResponseWriter, r *http.Request, mark Mark, params MarkItemsParams)
-	// Shows a list of feeds, with optional filtering.
-	// (GET /home/show/feeds)
-	HomeShowFeeds(w http.ResponseWriter, r *http.Request, params HomeShowFeedsParams)
-	// Shows a list of feed items, with optional filtering.
-	// (GET /home/show/items)
-	HomeShowItems(w http.ResponseWriter, r *http.Request, params HomeShowItemsParams)
-	// Remove a feed item from the user's saved items.
-	// (DELETE /home/{feed}/{item})
-	HandleUnsaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
-	// Shows a feed item.
-	// (GET /home/{feed}/{item})
-	HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
-	// Save a feed item to the user's saved items.
-	// (PUT /home/{feed}/{item})
-	HandleSaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID)
-	// Mark a feed item.
-	// (POST /home/{feed}/{item}/{mark})
-	MarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, mark Mark, params MarkItemParams)
+	Home(w http.ResponseWriter, r *http.Request)
+	// Shows a collection of objects, with optional filtering.
+	// (GET /home/{collection})
+	ShowCollection(w http.ResponseWriter, r *http.Request, collection Collection, params ShowCollectionParams)
+	// Performs an action on a collection of objects.
+	// (POST /home/{collection}/{action})
+	ActionCollection(w http.ResponseWriter, r *http.Request, collection Collection, action Action, params ActionCollectionParams)
+	// Performs the given action on an item.
+	// (POST /item/{action}/{item})
+	ActionItem(w http.ResponseWriter, r *http.Request, action Action, item ItemID, params ActionItemParams)
+	// Shows an item.
+	// (GET /item/{item})
+	ShowItem(w http.ResponseWriter, r *http.Request, item ItemID)
 	// Process a user login with given provider
 	// (GET /login/{provider})
 	Login(w http.ResponseWriter, r *http.Request, provider string)
@@ -350,57 +350,45 @@ func (_ Unimplemented) Index(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Performs the given action on a feed.
+// (POST /feed/{action}/{feed})
+func (_ Unimplemented) ActionFeed(w http.ResponseWriter, r *http.Request, action Action, feed FeedID, params ActionFeedParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Shows a items for the given feed, with optional filtering.
+// (GET /feed/{feed})
+func (_ Unimplemented) ShowFeed(w http.ResponseWriter, r *http.Request, feed FeedID, params ShowFeedParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Shows a page of curated feeds and content based on the user's subscriptions and viewing preferences.
 // (GET /home)
-func (_ Unimplemented) HandleHome(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) Home(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Marks the given feeds with the given mark.
-// (POST /home/mark/feeds/{mark})
-func (_ Unimplemented) HomeMarkFeeds(w http.ResponseWriter, r *http.Request, mark Mark, params HomeMarkFeedsParams) {
+// Shows a collection of objects, with optional filtering.
+// (GET /home/{collection})
+func (_ Unimplemented) ShowCollection(w http.ResponseWriter, r *http.Request, collection Collection, params ShowCollectionParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Marks the given items with the given mark.
-// (POST /home/mark/items/{mark})
-func (_ Unimplemented) MarkItems(w http.ResponseWriter, r *http.Request, mark Mark, params MarkItemsParams) {
+// Performs an action on a collection of objects.
+// (POST /home/{collection}/{action})
+func (_ Unimplemented) ActionCollection(w http.ResponseWriter, r *http.Request, collection Collection, action Action, params ActionCollectionParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Shows a list of feeds, with optional filtering.
-// (GET /home/show/feeds)
-func (_ Unimplemented) HomeShowFeeds(w http.ResponseWriter, r *http.Request, params HomeShowFeedsParams) {
+// Performs the given action on an item.
+// (POST /item/{action}/{item})
+func (_ Unimplemented) ActionItem(w http.ResponseWriter, r *http.Request, action Action, item ItemID, params ActionItemParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Shows a list of feed items, with optional filtering.
-// (GET /home/show/items)
-func (_ Unimplemented) HomeShowItems(w http.ResponseWriter, r *http.Request, params HomeShowItemsParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Remove a feed item from the user's saved items.
-// (DELETE /home/{feed}/{item})
-func (_ Unimplemented) HandleUnsaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Shows a feed item.
-// (GET /home/{feed}/{item})
-func (_ Unimplemented) HandleShowItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Save a feed item to the user's saved items.
-// (PUT /home/{feed}/{item})
-func (_ Unimplemented) HandleSaveItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Mark a feed item.
-// (POST /home/{feed}/{item}/{mark})
-func (_ Unimplemented) MarkItem(w http.ResponseWriter, r *http.Request, feed FeedID, item ItemID, mark Mark, params MarkItemParams) {
+// Shows an item.
+// (GET /item/{item})
+func (_ Unimplemented) ShowItem(w http.ResponseWriter, r *http.Request, item ItemID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -538,11 +526,42 @@ func (siw *ServerInterfaceWrapper) Index(w http.ResponseWriter, r *http.Request)
 	handler.ServeHTTP(w, r)
 }
 
-// HandleHome operation middleware
-func (siw *ServerInterfaceWrapper) HandleHome(w http.ResponseWriter, r *http.Request) {
+// ActionFeed operation middleware
+func (siw *ServerInterfaceWrapper) ActionFeed(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "action" -------------
+	var action Action
+
+	err = runtime.BindStyledParameterWithOptions("simple", "action", chi.URLParam(r, "action"), &action, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "feed" -------------
+	var feed FeedID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ActionFeedParams
+
+	// ------------- Optional query parameter "redirect" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
+		return
+	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleHome(w, r)
+		siw.Handler.ActionFeed(w, r, action, feed, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -552,22 +571,140 @@ func (siw *ServerInterfaceWrapper) HandleHome(w http.ResponseWriter, r *http.Req
 	handler.ServeHTTP(w, r)
 }
 
-// HomeMarkFeeds operation middleware
-func (siw *ServerInterfaceWrapper) HomeMarkFeeds(w http.ResponseWriter, r *http.Request) {
+// ShowFeed operation middleware
+func (siw *ServerInterfaceWrapper) ShowFeed(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	// ------------- Path parameter "mark" -------------
-	var mark Mark
+	// ------------- Path parameter "feed" -------------
+	var feed FeedID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
 		return
 	}
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params HomeMarkFeedsParams
+	var params ShowFeedParams
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_by" -------------
+
+	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_order" -------------
+
+	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ShowFeed(w, r, feed, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// Home operation middleware
+func (siw *ServerInterfaceWrapper) Home(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.Home(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ShowCollection operation middleware
+func (siw *ServerInterfaceWrapper) ShowCollection(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "collection" -------------
+	var collection Collection
+
+	err = runtime.BindStyledParameterWithOptions("simple", "collection", chi.URLParam(r, "collection"), &collection, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collection", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ShowCollectionParams
 
 	// ------------- Optional query parameter "feeds" -------------
 
@@ -576,42 +713,6 @@ func (siw *ServerInterfaceWrapper) HomeMarkFeeds(w http.ResponseWriter, r *http.
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feeds", Err: err})
 		return
 	}
-
-	// ------------- Optional query parameter "redirect_to" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "redirect_to", r.URL.Query(), &params.RedirectTo)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_to", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HomeMarkFeeds(w, r, mark, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// MarkItems operation middleware
-func (siw *ServerInterfaceWrapper) MarkItems(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "mark" -------------
-	var mark Mark
-
-	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params MarkItemsParams
 
 	// ------------- Optional query parameter "items" -------------
 
@@ -621,33 +722,6 @@ func (siw *ServerInterfaceWrapper) MarkItems(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	// ------------- Optional query parameter "redirect_to" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "redirect_to", r.URL.Query(), &params.RedirectTo)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_to", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.MarkItems(w, r, mark, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// HomeShowFeeds operation middleware
-func (siw *ServerInterfaceWrapper) HomeShowFeeds(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params HomeShowFeedsParams
-
 	// ------------- Optional query parameter "categories" -------------
 
 	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
@@ -725,7 +799,7 @@ func (siw *ServerInterfaceWrapper) HomeShowFeeds(w http.ResponseWriter, r *http.
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HomeShowFeeds(w, r, params)
+		siw.Handler.ShowCollection(w, r, collection, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -735,13 +809,31 @@ func (siw *ServerInterfaceWrapper) HomeShowFeeds(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
-// HomeShowItems operation middleware
-func (siw *ServerInterfaceWrapper) HomeShowItems(w http.ResponseWriter, r *http.Request) {
+// ActionCollection operation middleware
+func (siw *ServerInterfaceWrapper) ActionCollection(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
+	// ------------- Path parameter "collection" -------------
+	var collection Collection
+
+	err = runtime.BindStyledParameterWithOptions("simple", "collection", chi.URLParam(r, "collection"), &collection, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collection", Err: err})
+		return
+	}
+
+	// ------------- Path parameter "action" -------------
+	var action Action
+
+	err = runtime.BindStyledParameterWithOptions("simple", "action", chi.URLParam(r, "action"), &action, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
+		return
+	}
+
 	// Parameter object where we will unmarshal all parameters from the context
-	var params HomeShowItemsParams
+	var params ActionCollectionParams
 
 	// ------------- Optional query parameter "feeds" -------------
 
@@ -751,84 +843,24 @@ func (siw *ServerInterfaceWrapper) HomeShowItems(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// ------------- Optional query parameter "categories" -------------
+	// ------------- Optional query parameter "items" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	err = runtime.BindQueryParameter("form", true, false, "items", r.URL.Query(), &params.Items)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "items", Err: err})
 		return
 	}
 
-	// ------------- Required query parameter "view" -------------
+	// ------------- Optional query parameter "redirect" -------------
 
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "pagination" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_by" -------------
-
-	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_order" -------------
-
-	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HomeShowItems(w, r, params)
+		siw.Handler.ActionCollection(w, r, collection, action, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -838,17 +870,17 @@ func (siw *ServerInterfaceWrapper) HomeShowItems(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
-// HandleUnsaveItem operation middleware
-func (siw *ServerInterfaceWrapper) HandleUnsaveItem(w http.ResponseWriter, r *http.Request) {
+// ActionItem operation middleware
+func (siw *ServerInterfaceWrapper) ActionItem(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
+	// ------------- Path parameter "action" -------------
+	var action Action
 
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "action", chi.URLParam(r, "action"), &action, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
 		return
 	}
 
@@ -858,133 +890,47 @@ func (siw *ServerInterfaceWrapper) HandleUnsaveItem(w http.ResponseWriter, r *ht
 	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleUnsaveItem(w, r, feed, item)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// HandleShowItem operation middleware
-func (siw *ServerInterfaceWrapper) HandleShowItem(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "item" -------------
-	var item ItemID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleShowItem(w, r, feed, item)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// HandleSaveItem operation middleware
-func (siw *ServerInterfaceWrapper) HandleSaveItem(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "item" -------------
-	var item ItemID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.HandleSaveItem(w, r, feed, item)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// MarkItem operation middleware
-func (siw *ServerInterfaceWrapper) MarkItem(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "feed" -------------
-	var feed FeedID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "feed", chi.URLParam(r, "feed"), &feed, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "feed", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "item" -------------
-	var item ItemID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "mark" -------------
-	var mark Mark
-
-	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
 		return
 	}
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params MarkItemParams
+	var params ActionItemParams
 
-	// ------------- Optional query parameter "redirect_to" -------------
+	// ------------- Optional query parameter "redirect" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect_to", r.URL.Query(), &params.RedirectTo)
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_to", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.MarkItem(w, r, feed, item, mark, params)
+		siw.Handler.ActionItem(w, r, action, item, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ShowItem operation middleware
+func (siw *ServerInterfaceWrapper) ShowItem(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "item" -------------
+	var item ItemID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ShowItem(w, r, item)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1274,11 +1220,11 @@ func (siw *ServerInterfaceWrapper) MarkSubscription(w http.ResponseWriter, r *ht
 	// Parameter object where we will unmarshal all parameters from the context
 	var params MarkSubscriptionParams
 
-	// ------------- Optional query parameter "redirect_to" -------------
+	// ------------- Optional query parameter "redirect" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect_to", r.URL.Query(), &params.RedirectTo)
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_to", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
 		return
 	}
 
@@ -1375,11 +1321,11 @@ func (siw *ServerInterfaceWrapper) MarkAllSubscriptions(w http.ResponseWriter, r
 		return
 	}
 
-	// ------------- Optional query parameter "redirect_to" -------------
+	// ------------- Optional query parameter "redirect" -------------
 
-	err = runtime.BindQueryParameter("form", true, false, "redirect_to", r.URL.Query(), &params.RedirectTo)
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect_to", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
 		return
 	}
 
@@ -1511,31 +1457,25 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/", wrapper.Index)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home", wrapper.HandleHome)
+		r.Post(options.BaseURL+"/feed/{action}/{feed}", wrapper.ActionFeed)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/mark/feeds/{mark}", wrapper.HomeMarkFeeds)
+		r.Get(options.BaseURL+"/feed/{feed}", wrapper.ShowFeed)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/mark/items/{mark}", wrapper.MarkItems)
+		r.Get(options.BaseURL+"/home", wrapper.Home)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/show/feeds", wrapper.HomeShowFeeds)
+		r.Get(options.BaseURL+"/home/{collection}", wrapper.ShowCollection)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/show/items", wrapper.HomeShowItems)
+		r.Post(options.BaseURL+"/home/{collection}/{action}", wrapper.ActionCollection)
 	})
 	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleUnsaveItem)
+		r.Post(options.BaseURL+"/item/{action}/{item}", wrapper.ActionItem)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleShowItem)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/home/{feed}/{item}", wrapper.HandleSaveItem)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/{feed}/{item}/{mark}", wrapper.MarkItem)
+		r.Get(options.BaseURL+"/item/{item}", wrapper.ShowItem)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/login/{provider}", wrapper.Login)

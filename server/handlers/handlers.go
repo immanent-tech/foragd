@@ -70,7 +70,7 @@ type DataAPI interface {
 	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
-	GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error)
+	GetItem(ctx context.Context, itemID models.ItemID) (*models.Item, bool, error)
 	GetItems(ctx context.Context, filters models.Filters, pagination models.Pagination) (models.Items, models.Pagination, error)
 	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error
 	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error)
@@ -132,15 +132,32 @@ func PartialRender(templates ...templ.Component) http.Handler {
 		})
 }
 
-// SaveView saves the current page view state in the session and context.
-func SaveView(api models.SessionAPI, view models.PageView) func(next http.Handler) http.Handler {
+// SaveState saves the current page state in the session.
+func SaveState(api models.SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			// Save view state.
-			models.SaveViewInSession(ctx, api, view)
-			ctx = models.PageViewStateToCtx(ctx, view)
-			slogctx.FromCtx(ctx).Debug("Saved view state.", slog.String("view", view.String()))
+			// Save page state.
+			state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
+			models.SavePageStateInSession(req.Context(), api, state)
+			slogctx.FromCtx(req.Context()).Debug("Saved page state.")
+			// Pass control to next handler.
+			next.ServeHTTP(res, req)
+		})
+	}
+}
+
+// GenerateView creates the view state for this page.
+func GenerateView(params any) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			// Retrieve filters.
+			filters, err := models.NewFiltersFromParams(params)
+			if err != nil {
+				InternalServerError(res, req, err)
+				return
+			}
+			view := models.NewPageView(req.URL.Path, filters)
+			ctx := models.ViewToCtx(req.Context(), view)
 			// Pass control to next handler.
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -151,17 +168,15 @@ func SaveView(api models.SessionAPI, view models.PageView) func(next http.Handle
 func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			var backlink models.PageView
+			var backlink models.PageState
 			route := chi.RouteContext(req.Context()).RoutePattern()
 			switch {
-			case strings.HasPrefix(route, "/home/show/feeds"):
-				backlink = models.NewPageView(models.PageViewIDHome, nil)
-			case strings.HasPrefix(route, "/feed/show"):
-				backlink = models.GetViewFromSession(req.Context(), api, models.PageViewIDShowFeeds)
-			case strings.HasPrefix(route, "/home/show/items"):
-				backlink = models.GetViewFromSession(req.Context(), api, models.PageViewIDShowFeeds)
-			case strings.HasPrefix(route, "/item/show"):
-				backlink = models.GetViewFromSession(req.Context(), api, models.PageViewIDFeed)
+			case strings.HasPrefix(route, "/home/feeds"):
+				backlink = models.PageState{Path: "/home"}
+			case strings.HasPrefix(route, "/feed"):
+				backlink = models.RestorePageStateFromSession(req.Context(), api, "/home/feeds")
+			case strings.HasPrefix(route, "/item"):
+				backlink = models.RestorePageStateFromSession(req.Context(), api, "/feed")
 			}
 			// Save backlink into context.
 			ctx := models.BacklinkToCtx(req.Context(), backlink)
@@ -174,15 +189,15 @@ func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handle
 
 // SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
 // been made through HTMX.
-func SetupRedirect(path *models.PageViewID) func(next http.Handler) http.Handler {
+func SetupRedirect(id *models.PageViewID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			if htmx.IsHTMX(req) && path != nil {
+			if htmx.IsHTMX(req) && id != nil {
 				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
-					slog.String("path", string(*path)),
+					slog.String("path", string(*id)),
 				)
 				session := models.SessionFromCtx(req.Context())
-				view := models.GetViewFromSession(req.Context(), session, *path)
+				view := models.GetViewFromSession(req.Context(), session, *id)
 				HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
 				data, err := json.Marshal(HxLocationData)
 				if err != nil {

@@ -37,6 +37,7 @@ func init() {
 	gob.Register(sessions.Session{})
 	gob.Register(url.URL{})
 	gob.Register(models.PageView{})
+	gob.Register(models.PageState{})
 }
 
 // NewSessionManager creates a new session manager.

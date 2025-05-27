@@ -10,6 +10,22 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for Action.
+const (
+	ActionEdit   Action = "edit"
+	ActionRead   Action = "read"
+	ActionRemove Action = "remove"
+	ActionSave   Action = "save"
+	ActionUnread Action = "unread"
+)
+
+// Defines values for Collection.
+const (
+	CollectionFeeds         Collection = "feeds"
+	CollectionItems         Collection = "items"
+	CollectionSubscriptions Collection = "subscriptions"
+)
+
 // Defines values for ImportSource.
 const (
 	ImportSourceOPMLFile ImportSource = "opml_file"
@@ -27,10 +43,11 @@ const (
 
 // Defines values for PageViewID.
 const (
-	PageViewIDFeed      PageViewID = "Feed"
-	PageViewIDHome      PageViewID = "Home"
-	PageViewIDShowFeeds PageViewID = "ShowFeeds"
-	PageViewIDShowItems PageViewID = "ShowItems"
+	PageViewIDFeed  PageViewID = "Feed"
+	PageViewIDFeeds PageViewID = "Feeds"
+	PageViewIDHome  PageViewID = "Home"
+	PageViewIDItem  PageViewID = "Item"
+	PageViewIDItems PageViewID = "Items"
 )
 
 // Defines values for SortBy.
@@ -58,6 +75,12 @@ const (
 	ViewRead   View = "read"
 	ViewUnread View = "unread"
 )
+
+// Action defines an operation to change the state of objects.
+type Action string
+
+// Collection is a group of objects, such as feeds, items or subscriptions.
+type Collection string
 
 // Count is the count of items to retrieve with a request.
 type Count = int

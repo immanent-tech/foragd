@@ -4,7 +4,10 @@
 package server
 
 import (
+	"errors"
+	"fmt"
 	"net/http"
+	"slices"
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
@@ -17,6 +20,8 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
+
+var ErrInvalidParam = errors.New("invalid parameter")
 
 // Index handler handles the index page.
 func (s Server) Index(res http.ResponseWriter, req *http.Request) {
@@ -107,4 +112,112 @@ func (s Server) SetTheme(res http.ResponseWriter, req *http.Request) {
 // Logout handler handles user logout.
 func (s Server) Logout(res http.ResponseWriter, req *http.Request) {
 	s.AuthAPI().Logout().ServeHTTP(res, req)
+}
+
+// Home handles display of the home page.
+func (s Server) Home(res http.ResponseWriter, req *http.Request) {
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SaveState(s.SessionAPI()),
+	).Then(handlers.DisplayHome(s.DataAPI(), s.SessionAPI()))
+	chain.ServeHTTP(res, req)
+}
+
+func (s Server) HandleHomeNotifications(res http.ResponseWriter, req *http.Request) {
+	res.WriteHeader(http.StatusNotImplemented)
+}
+
+// ShowCollection handles displaying a collection of objects, with optional filtering.
+func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, collection Collection, params ShowCollectionParams) {
+	// Extract any pagination value.
+	var pagination models.Pagination
+	if params.Pagination != nil {
+		pagination = *params.Pagination
+	}
+
+	// Generate appropriate display function and view based on collection parameter.
+	var (
+		displayFunc http.Handler
+	)
+	switch collection {
+	case models.CollectionFeeds:
+		displayFunc = handlers.DisplayFeeds(s.DataAPI(), s.SessionAPI(), pagination)
+	case models.CollectionItems:
+		displayFunc = handlers.DisplayItems(s.DataAPI(), s.SessionAPI(), pagination)
+	default:
+		handlers.InternalServerError(res, req, fmt.Errorf("%w: %s for collection is unknown", ErrInvalidParam, collection))
+		return
+	}
+	// Generate handler chain.
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.CheckRequiredFilters,
+		handlers.SaveState(s.SessionAPI()),
+		handlers.GenerateView(params),
+		handlers.GenerateBacklink(s.SessionAPI()),
+	).Then(displayFunc)
+	// Run chain.
+	chain.ServeHTTP(res, req)
+}
+
+// ActionCollection handles performing an action on a collection of objects.
+func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, collection Collection, action Action, params ActionCollectionParams) {
+	var actionFunc http.Handler
+
+	switch {
+	case collection == models.CollectionFeeds && slices.Contains([]Action{models.ActionRead, models.ActionUnread}, action):
+		// Mark feeds read/unread.
+		actionFunc = handlers.MarkFeeds(s.DataAPI(), models.Mark(action), *params.Feeds...)
+	case collection == models.CollectionItems && slices.Contains([]Action{models.ActionRead, models.ActionUnread}, action):
+		// Mark items read/unread.
+		actionFunc = handlers.MarkItems(s.DataAPI(), models.Mark(action), *params.Items...)
+	default:
+		// Unsupported action for a collection.
+		res.WriteHeader(http.StatusNotImplemented)
+		return
+	}
+
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetupRedirect(params.Redirect),
+	).Then(actionFunc)
+	chain.ServeHTTP(res, req)
+}
+
+// ActionItem handles performing an action on an item.
+func (s Server) ActionItem(res http.ResponseWriter, req *http.Request, action Action, item ItemID, params ActionItemParams) {
+	var actionFunc http.Handler
+
+	switch action {
+	case models.ActionRead, models.ActionUnread:
+		actionFunc = handlers.MarkItems(s.DataAPI(), models.Mark(action), item)
+	default:
+		// Unimplemented action for an item.
+		res.WriteHeader(http.StatusNotImplemented)
+		return
+	}
+
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetupRedirect(params.Redirect),
+	).Then(actionFunc)
+	chain.ServeHTTP(res, req)
+}
+
+// ShowItem handles showing an item.
+func (s Server) ShowItem(res http.ResponseWriter, req *http.Request, item ItemID) {
+	chain := alice.New(
+		handlers.RouteLogger,
+	).Then(handlers.DisplayItem(s.DataAPI(), s.SessionAPI(), item))
+	chain.ServeHTTP(res, req)
+}
+
+// ActionFeed handles performing an action on a feed.
+func (s Server) ActionFeed(res http.ResponseWriter, req *http.Request, action Action, feed FeedID, params ActionFeedParams) {
+	res.WriteHeader(http.StatusNotImplemented)
+}
+
+// ShowFeed handles showing items for a feed.
+func (s Server) ShowFeed(res http.ResponseWriter, req *http.Request, feed FeedID, params ShowFeedParams) {
+	res.WriteHeader(http.StatusNotImplemented)
 }

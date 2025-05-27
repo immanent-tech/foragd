@@ -11,6 +11,20 @@ info:
 paths: {}
 components:
   schemas:
+    Collection:
+      description: >
+        is a group of objects, such as feeds, items or subscriptions.
+      type: string
+      enum: ['feeds', 'items', 'subscriptions']
+      x-oapi-codegen-extra-tags:
+        validate: 'oneof=feeds items subscriptions'
+    Action:
+      description: >
+        defines an operation to change the state of objects.
+      type: string
+      enum: ['read', 'unread', 'save', 'remove', 'edit']
+      x-oapi-codegen-extra-tags:
+        validate: 'oneof=read unread save remove edit'
     Count:
       description: >
         is the count of items to retrieve with a request.
@@ -76,7 +90,7 @@ components:
         is an ID that represents a page view.
       name: page_view_id
       type: string
-      enum: ['Home', 'ShowFeeds', 'ShowItems', 'Feed']
+      enum: ['Home', 'Feeds', 'Items', 'Feed', 'Item']
       default: 'Home'
     RequiredFilters:
       description: >

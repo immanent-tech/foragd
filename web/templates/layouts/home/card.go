@@ -42,7 +42,7 @@ type Card struct {
 
 // AddPagination adds htmx attributes for triggering pagination to a card.
 func (c *Card) addPagination(ctx context.Context, pagination models.Pagination) {
-	view := models.PageViewStateFromCtx(ctx)
+	view := models.ViewFromCtx(ctx)
 	c.AddAttributes(view.AsAction(
 		action.WithAttributes(templ.Attributes{
 			"hx-trigger":     "intersect once",
@@ -82,7 +82,7 @@ func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscri
 }
 
 func GenerateFeedCards(ctx context.Context, subscriptions models.Subscriptions, pagination models.Pagination) []templ.Component {
-	view := models.PageViewStateFromCtx(ctx)
+	view := models.ViewFromCtx(ctx)
 	cards := make([]templ.Component, 0, len(subscriptions))
 	for idx, subscription := range subscriptions {
 		card := newFeedCard(ctx, subscription)
@@ -123,7 +123,7 @@ func BuildItemsLayout(ctx context.Context, pagination models.Pagination, items m
 }
 
 func GenerateItemCards(ctx context.Context, items models.Items, pagination models.Pagination) []templ.Component {
-	view := models.PageViewStateFromCtx(ctx)
+	view := models.ViewFromCtx(ctx)
 	cards := make([]templ.Component, 0, len(items))
 	for idx, item := range items {
 		slogctx.FromCtx(ctx).Debug("displaying item", slog.String("item_id", item.GetID()), slog.Bool("state", item.IsUnread()))

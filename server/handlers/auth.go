@@ -37,7 +37,7 @@ func PerformAuth(api AuthAPI) http.Handler {
 		}
 		slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
 		req.Header.Add("Content-Type", "")
-		http.Redirect(res, req, models.FeedsRoute, http.StatusTemporaryRedirect)
+		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
 	})
 }
 
@@ -52,13 +52,7 @@ func AuthCallback(authAPI AuthAPI, sessionAPI models.SessionAPI) http.Handler {
 		slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
 		req.Header.Add("Content-Type", "")
 
-		filters, ok := sessionAPI.Get(req.Context(), feedFiltersSessionKey).(models.Filters)
-		if !ok {
-			slogctx.FromCtx(req.Context()).Warn("No feed filters in session, using default filters.")
-			filters = *models.NewFilters()
-		}
-		route := models.NewRoute(models.FeedsRoute, &filters)
-		http.Redirect(res, req, route.String(), http.StatusTemporaryRedirect)
+		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
 	})
 }
 

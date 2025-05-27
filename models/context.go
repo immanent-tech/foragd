@@ -6,8 +6,6 @@ package models
 import (
 	"context"
 	"errors"
-
-	slogctx "github.com/veqryn/slog-context"
 )
 
 var ErrUserCtx = errors.New("could not fetch user details from context")
@@ -56,31 +54,6 @@ func FiltersFromCtx(ctx context.Context) Filters {
 		filters = *NewFilters()
 	}
 	return filters
-}
-
-func PageViewStateToCtx(ctx context.Context, view PageView) context.Context {
-	return context.WithValue(ctx, pageViewStateCtxKey, view)
-}
-
-func PageViewStateFromCtx(ctx context.Context) PageView {
-	view, found := ctx.Value(pageViewStateCtxKey).(PageView)
-	if !found {
-		slogctx.FromCtx(ctx).Warn("No page view state found in context, using default.")
-		return NewPageView(PageViewIDHome, nil)
-	}
-	return view
-}
-
-func BacklinkToCtx(ctx context.Context, backlink PageView) context.Context {
-	return context.WithValue(ctx, backlinkCtxKey, backlink)
-}
-
-func BacklinkFromCtx(ctx context.Context) PageView {
-	backlink, found := ctx.Value(backlinkCtxKey).(PageView)
-	if !found {
-		return NewPageView(PageViewIDHome, nil)
-	}
-	return backlink
 }
 
 // SessionToCtx stores the session manager API in a context.

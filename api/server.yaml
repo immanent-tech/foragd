@@ -10,8 +10,8 @@ paths:
       description: display the home page.
       operationId: index
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
+        default:
+          $ref: '#/components/responses/html'
   /login/{provider}:
     get:
       summary: Process a user login with given provider
@@ -31,6 +31,8 @@ paths:
           description: No provider to satisfy login
         500:
           description: Problem with request
+        default:
+          $ref: '#/components/responses/html'
   /login/{provider}/callback:
     get:
       summary: Callback for login provider
@@ -52,6 +54,8 @@ paths:
           description: No provider to satisfy login
         500:
           description: Problem with request
+        default:
+          $ref: '#/components/responses/html'
   /logout:
     get:
       summary: >
@@ -59,6 +63,9 @@ paths:
       description: >
         Logs a user out of the app.
       operationId: logout
+      responses:
+        default:
+          $ref: '#/components/responses/html'
   /signup:
     get:
       summary: >
@@ -67,8 +74,8 @@ paths:
         Provides a form for new users to sign-up to the service.
       operationId: signUp
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
+        default:
+          $ref: '#/components/responses/html'
     post:
       summary: >
         Process a sign-up request.
@@ -76,36 +83,22 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/UserSignupRequestBody'
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
+        default:
+          $ref: '#/components/responses/html'
   /search:
     post:
       summary: Issue a user search request
       operationId: Search
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
-        401:
-          description: Unauthorized
-        500:
-          description: Problem with request
-      # requestBody:
-      #   description: filters for results
-      #   content:
-      #     application/x-www-form-urlencoded:
-      #       schema:
-      #         $ref: 'models.yaml#/components/schemas/Filters'
+        default:
+          $ref: '#/components/responses/html'
   /settings:
     get:
       summary: Show user settings modal
       operationId: getSettings
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
-        401:
-          description: Unauthorized
-        500:
-          description: Problem with request
+        default:
+          $ref: '#/components/responses/html'
   /settings/theme:
     get:
       summary: >
@@ -131,8 +124,8 @@ paths:
         Presents a form for the user to enter details to add a new subscription.
       operationId: newSubscription
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
+        default:
+          $ref: '#/components/responses/html'
   /subscription/add:
     put:
       summary: >
@@ -143,8 +136,8 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/SubscriptionRequest'
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
+        default:
+          $ref: '#/components/responses/html'
   /subscription/import:
     get:
       description: >
@@ -174,8 +167,8 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/ImportRequest'
     responses:
-      200:
-        $ref: '#/components/responses/htmx'
+      default:
+        $ref: '#/components/responses/html'
   /subscription/edit/{subscription}:
     parameters:
       - $ref: '#/components/parameters/SubscriptionID'
@@ -183,9 +176,6 @@ paths:
       summary: >
         Edit a subscription.
       operationId: editSubscription
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
     put:
       summary: >
         Save a subscription.
@@ -200,8 +190,8 @@ paths:
               schema:
                 $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
+        default:
+          $ref: '#/components/responses/html'
   /subscription/remove/{subscription}:
     delete:
       summary: >
@@ -211,8 +201,8 @@ paths:
         - $ref: '#/components/parameters/Confirmation'
       operationId: removeSubscription
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
+        default:
+          $ref: '#/components/responses/html'
   /subscription/mark/{mark}/{subscription}:
     post:
       summary: >
@@ -223,8 +213,8 @@ paths:
         - $ref: '#/components/parameters/SubscriptionID'
         - $ref: '#/components/parameters/Redirect'
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
+        default:
+          $ref: '#/components/responses/html'
   /subscriptions/mark/{mark}:
     post:
       summary: >
@@ -235,114 +225,196 @@ paths:
         - $ref: '#/components/parameters/Subscriptions'
         - $ref: '#/components/parameters/Redirect'
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
+        default:
+          $ref: '#/components/responses/html'
   /home:
     get:
       summary: >
         Shows a page of curated feeds and content based on the user's
         subscriptions and viewing preferences.
-      operationId: handleHome
+      operationId: home
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/show/feeds:
+        default:
+          $ref: '#/components/responses/html'
+  /home/{collection}:
     get:
       summary: >
-        Shows a list of feeds, with optional filtering.
-      operationId: homeShowFeeds
+        Shows a collection of objects, with optional filtering.
+      operationId: showCollection
       parameters:
+        - $ref: '#/components/parameters/Collection'
+        - $ref: '#/components/parameters/Feeds'
+        - $ref: '#/components/parameters/Items'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/View'
         - $ref: '#/components/parameters/Count'
         - $ref: '#/components/parameters/SortBy'
         - $ref: '#/components/parameters/SortOrder'
         - $ref: '#/components/parameters/Pagination'
-        # - $ref: '#/components/parameters/Backlink'
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/mark/feeds/{mark}:
+        default:
+          $ref: '#/components/responses/html'
+  /home/{collection}/{action}:
     post:
       summary: >
-        Marks the given feeds with the given mark.
-      operationId: homeMarkFeeds
+        Performs an action on a collection of objects.
+      operationId: actionCollection
       parameters:
-        - $ref: '#/components/parameters/Mark'
+        - $ref: '#/components/parameters/Collection'
+        - $ref: '#/components/parameters/Action'
         - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/Redirect'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/show/items:
-    get:
-      summary: >
-        Shows a list of feed items, with optional filtering.
-      operationId: homeShowItems
-      parameters:
-        - $ref: '#/components/parameters/Feeds'
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/View'
-        - $ref: '#/components/parameters/Count'
-        - $ref: '#/components/parameters/Pagination'
-        - $ref: '#/components/parameters/SortBy'
-        - $ref: '#/components/parameters/SortOrder'
-        # - $ref: '#/components/parameters/Backlink'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/mark/items/{mark}:
-    post:
-      summary: >
-        Marks the given items with the given mark.
-      operationId: markItems
-      parameters:
-        - $ref: '#/components/parameters/Mark'
         - $ref: '#/components/parameters/Items'
         - $ref: '#/components/parameters/Redirect'
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/{feed}/{item}:
-    parameters:
-      - $ref: '#/components/parameters/FeedID'
-      - $ref: '#/components/parameters/ItemID'
+        default:
+          $ref: '#/components/responses/html'
+  /feed/{feed}:
     get:
       summary: >
-        Shows a feed item.
-      operationId: handleShowItem
-      # parameters:
-      #   - $ref: '#/components/parameters/Backlink'
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-    put:
-      summary: >
-        Save a feed item to the user's saved items.
-      operationId: handleSaveItem
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-    delete:
-      summary: >
-        Remove a feed item from the user's saved items.
-      operationId: handleUnsaveItem
-      responses:
-        200:
-          $ref: '#/components/responses/htmx'
-  /home/{feed}/{item}/{mark}:
-    post:
-      summary: >
-        Mark a feed item.
-      operationId: markItem
+        Shows a items for the given feed, with optional filtering.
+      operationId: showFeed
       parameters:
         - $ref: '#/components/parameters/FeedID'
-        - $ref: '#/components/parameters/ItemID'
-        - $ref: '#/components/parameters/Mark'
+        - $ref: '#/components/parameters/Categories'
+        - $ref: '#/components/parameters/View'
+        - $ref: '#/components/parameters/Count'
+        - $ref: '#/components/parameters/SortBy'
+        - $ref: '#/components/parameters/SortOrder'
+        - $ref: '#/components/parameters/Pagination'
+      responses:
+        default:
+          $ref: '#/components/responses/html'
+  /feed/{action}/{feed}:
+    post:
+      summary: >
+        Performs the given action on a feed.
+      operationId: actionFeed
+      parameters:
+        - $ref: '#/components/parameters/Action'
+        - $ref: '#/components/parameters/FeedID'
         - $ref: '#/components/parameters/Redirect'
       responses:
-        200:
-          $ref: '#/components/responses/htmx'
+        default:
+          $ref: '#/components/responses/html'
+  /item/{item}:
+    get:
+      summary: >
+        Shows an item.
+      operationId: showItem
+      parameters:
+        - $ref: '#/components/parameters/ItemID'
+      responses:
+        default:
+          $ref: '#/components/responses/html'
+  /item/{action}/{item}:
+    post:
+      summary: >
+        Performs the given action on an item.
+      operationId: actionItem
+      parameters:
+        - $ref: '#/components/parameters/Action'
+        - $ref: '#/components/parameters/ItemID'
+        - $ref: '#/components/parameters/Redirect'
+      responses:
+        default:
+          $ref: '#/components/responses/html'
+  # /home/show/list:
+  #   get:
+  #     summary: >
+  #       Shows a list of feeds, with optional filtering.
+  #     operationId: homeShowFeeds
+  #     parameters:
+  #       - $ref: '#/components/parameters/Categories'
+  #       - $ref: '#/components/parameters/View'
+  #       - $ref: '#/components/parameters/Count'
+  #       - $ref: '#/components/parameters/SortBy'
+  #       - $ref: '#/components/parameters/SortOrder'
+  #       - $ref: '#/components/parameters/Pagination'
+  #       # - $ref: '#/components/parameters/Backlink'
+  #     responses:
+  #       200:
+  #         $ref: '#/components/responses/htmx'
+  # /home/mark/feeds/{mark}:
+  #   post:
+  #     summary: >
+  #       Marks the given feeds with the given mark.
+  #     operationId: homeMarkFeeds
+  #     parameters:
+  #       - $ref: '#/components/parameters/Mark'
+  #       - $ref: '#/components/parameters/Feeds'
+  #       - $ref: '#/components/parameters/Redirect'
+  #     responses:
+  #       200:
+  #         $ref: '#/components/responses/htmx'
+  # /home/show/items:
+  #   get:
+  #     summary: >
+  #       Shows a list of feed items, with optional filtering.
+  #     operationId: homeShowItems
+  #     parameters:
+  #       - $ref: '#/components/parameters/Feeds'
+  #       - $ref: '#/components/parameters/Categories'
+  #       - $ref: '#/components/parameters/View'
+  #       - $ref: '#/components/parameters/Count'
+  #       - $ref: '#/components/parameters/Pagination'
+  #       - $ref: '#/components/parameters/SortBy'
+  #       - $ref: '#/components/parameters/SortOrder'
+  #       # - $ref: '#/components/parameters/Backlink'
+  #     responses:
+  #       200:
+  #         $ref: '#/components/responses/htmx'
+  # /home/mark/items/{mark}:
+  #   post:
+  #     summary: >
+  #       Marks the given items with the given mark.
+  #     operationId: markItems
+  #     parameters:
+  #       - $ref: '#/components/parameters/Mark'
+  #       - $ref: '#/components/parameters/Items'
+  #       - $ref: '#/components/parameters/Redirect'
+  #     responses:
+  #       200:
+  #         $ref: '#/components/responses/htmx'
+  # /home/{feed}/{item}:
+  #   parameters:
+  #     - $ref: '#/components/parameters/FeedID'
+  #     - $ref: '#/components/parameters/ItemID'
+  #   get:
+  #     summary: >
+  #       Shows a feed item.
+  #     operationId: handleShowItem
+  #     # parameters:
+  #     #   - $ref: '#/components/parameters/Backlink'
+  #     responses:
+  #       200:
+  #         $ref: '#/components/responses/htmx'
+  #   put:
+  #     summary: >
+  #       Save a feed item to the user's saved items.
+  #     operationId: handleSaveItem
+  #     responses:
+  #       200:
+  #         $ref: '#/components/responses/htmx'
+  #   delete:
+  #     summary: >
+  #       Remove a feed item from the user's saved items.
+  #     operationId: handleUnsaveItem
+  #     responses:
+  #       200:
+  #         $ref: '#/components/responses/htmx'
+  # /home/{feed}/{item}/{mark}:
+  #   post:
+  #     summary: >
+  #       Mark a feed item.
+  #     operationId: markItem
+  #     parameters:
+  #       - $ref: '#/components/parameters/FeedID'
+  #       - $ref: '#/components/parameters/ItemID'
+  #       - $ref: '#/components/parameters/Mark'
+  #       - $ref: '#/components/parameters/Redirect'
+  #     responses:
+  #       200:
+  #         $ref: '#/components/responses/htmx'
 components:
   schemas:
     ImportOPML:
@@ -408,6 +480,18 @@ components:
       required: true
       schema:
         $ref: 'models.yaml#/components/schemas/SubscriptionID'
+    Action:
+      name: action
+      in: path
+      required: true
+      schema:
+        $ref: 'api.yaml#/components/schemas/Action'
+    Collection:
+      name: collection
+      in: path
+      required: true
+      schema:
+        $ref: 'api.yaml#/components/schemas/Collection'
     Mark:
       name: mark
       in: path
@@ -567,11 +651,6 @@ components:
     html:
       description: >
         regular html response, usually a full page.
-      content:
-        'text/html;charset=utf-8': {}
-    htmx:
-      description: >
-        htmx powered response, which might be partial or full page content.
       content:
         'text/html;charset=utf-8': {}
     sse:

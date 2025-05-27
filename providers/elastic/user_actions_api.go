@@ -215,7 +215,7 @@ func (e *API) MarkSubscriptions(ctx context.Context, mark models.Mark, subscript
 // GetItem retrieves the specified item with the given id and from the given
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
-func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.ItemID) (*models.Item, bool, error) {
+func (e *API) GetItem(ctx context.Context, itemID models.ItemID) (*models.Item, bool, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, false, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -226,25 +226,21 @@ func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.I
 		return nil, false, ErrNoUserCtx
 	}
 
-	if !user.IsSubscribed(feedID) {
-		return nil, false, ErrNoUserCtx
-	}
-
 	req := NewSearchRequest(e.GetAPI(),
 		WithSearchIndex(index),
 		WithSearchQueryOptions(
 			query.Bool(
 				query.Filter(
 					// Must have the feedID and itemID
-					query.FeedIDs(feedID),
+					// query.FeedIDs(feedID),
 					query.ItemIDs(itemID),
 					// Must be published or updated after the user max history.
-					query.Bool(
-						query.Should(
-							query.Since("published", user.GetMarkedRead(feedID)),
-							query.Since("updated", user.GetMarkedRead(feedID)),
-						),
-					),
+					// query.Bool(
+					// 	query.Should(
+					// 		query.Since("published", user.GetMarkedRead(feedID)),
+					// 		query.Since("updated", user.GetMarkedRead(feedID)),
+					// 	),
+					// ),
 				),
 			),
 		),
@@ -259,6 +255,10 @@ func (e *API) GetItem(ctx context.Context, feedID models.FeedID, itemID models.I
 	item, err := ExtractSource[*models.Item](res.Hits.Hits[0].Source_)
 	if err != nil {
 		return nil, false, errors.Join(ErrSearchFailed, err)
+	}
+
+	if !user.IsSubscribed(item.GetFeedID()) {
+		return nil, false, ErrNoUserCtx
 	}
 
 	return item, true, nil

@@ -104,7 +104,7 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 // DisplayFeeds handles displaying a list of feeds.
 func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		view := models.PageViewStateFromCtx(req.Context())
+		view := models.ViewFromCtx(req.Context())
 		subscriptions, pagination, err := dataAPI.GetSubscriptions(req.Context(), view.Filters, pagination)
 		if err != nil {
 			InternalServerError(res, req, err)
@@ -139,7 +139,7 @@ func DisplayFeeds(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 // DisplayItems handles displaying a list of items.
 func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		view := models.PageViewStateFromCtx(req.Context())
+		view := models.ViewFromCtx(req.Context())
 		items, pagination, err := dataAPI.GetItems(req.Context(), view.Filters, pagination)
 		if err != nil {
 			InternalServerError(res, req, err)
@@ -171,9 +171,9 @@ func DisplayItems(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination mode
 }
 
 // DisplayItem handles displaying an item as an article.
-func DisplayItem(dataAPI DataAPI, sessionAPI models.SessionAPI, feedID models.FeedID, itemID models.ItemID) http.Handler {
+func DisplayItem(dataAPI DataAPI, sessionAPI models.SessionAPI, itemID models.ItemID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		item, found, err := dataAPI.GetItem(req.Context(), feedID, itemID)
+		item, found, err := dataAPI.GetItem(req.Context(), itemID)
 		if err != nil || !found {
 			InternalServerError(res, req, err)
 			return

@@ -52,7 +52,7 @@ func newCategoryFilter(ctx context.Context, category models.CategoryCount) *Filt
 	filter := &Filter{
 		value: category.Category,
 	}
-	view := models.PageViewStateFromCtx(ctx)
+	view := models.ViewFromCtx(ctx)
 	// Check if this category is in the current view filters.
 	if found, _ := view.Filters.HasCategory(category.Category); found {
 		filter.active = true
@@ -71,7 +71,7 @@ type CategoryFilters []*Filter
 
 func newViewFilter(ctx context.Context, view models.View) *Filter {
 	// Get the current view.
-	link := models.PageViewStateFromCtx(ctx)
+	link := models.ViewFromCtx(ctx)
 	filter := &Filter{
 		value: string(view),
 	}
@@ -173,7 +173,7 @@ func buildSortFilters(ctx context.Context) SortFilters {
 type SortFilters []*Filter
 
 func NewSortFilter(ctx context.Context, sort models.Sort) *Filter {
-	view := models.PageViewStateFromCtx(ctx)
+	view := models.ViewFromCtx(ctx)
 	filter := &Filter{
 		value: sort.String(),
 	}
