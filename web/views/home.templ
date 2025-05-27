@@ -18,6 +18,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/veqryn/slog-context"
 )
 
@@ -218,6 +219,13 @@ func getHomePageData(ctx context.Context, api *elastic.API) (HomePageData, error
 }
 
 templ layoutHomePageContent(topCategories, rareCategories, randomItems templ.Component) {
+	{{ feedsView := models.RestorePageStateFromSession(ctx, models.SessionFromCtx(ctx), "/home/feeds") }}
+	<h1>Go To:</h1>
+	@link.Build(link.WithContent("Feeds"),
+		link.WithExtraAttributes(templ.Attributes{
+			"hx-get": feedsView.String(),
+		}),
+	).Show()
 	if topCategories != nil {
 		<h1>Top Categories:</h1>
 		<div id="top-categories" class="flex flex-wrap justify-items-center p-2">

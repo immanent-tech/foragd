@@ -13,7 +13,6 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
@@ -43,15 +42,13 @@ type Card struct {
 // AddPagination adds htmx attributes for triggering pagination to a card.
 func (c *Card) addPagination(ctx context.Context, pagination models.Pagination) {
 	view := models.ViewFromCtx(ctx)
-	c.AddAttributes(view.AsAction(
-		action.WithAttributes(templ.Attributes{
-			"hx-trigger":     "intersect once",
-			"hx-swap":        "afterend",
-			"hx-replace-url": "false",
-			"hx-indicator":   "#content-loading",
-		}),
-		action.WithParam(models.ParamPagination, pagination),
-	).Attributes())
+	c.AddAttributes(templ.Attributes{
+		"hx-get":         view.String() + "&pagination=" + pagination,
+		"hx-trigger":     "intersect once",
+		"hx-swap":        "afterend",
+		"hx-replace-url": "false",
+		"hx-indicator":   "#content-loading",
+	})
 }
 
 func BuildFeedsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) *templates.Body {

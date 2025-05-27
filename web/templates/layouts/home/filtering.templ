@@ -9,7 +9,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
@@ -30,19 +29,17 @@ type Filter struct {
 templ (f *Filter) AsBadge() {
 	switch  {
 		case f.active:
-			@activeOption(f.value, f.link.AsAction(
-				action.WithAttributes(templ.Attributes{
-					"hx-get":         f.link.String(),
-					"hx-replace-url": "true",
-					"hx-target":      templates.ContentID.Target(),
-				})).Attributes())
+			@activeOption(f.value, templ.Attributes{
+				"hx-get":         f.link.String(),
+				"hx-replace-url": "true",
+				"hx-target":      templates.ContentID.Target(),
+			})
 		default:
-			@inactiveOption(f.value, f.link.AsAction(
-				action.WithAttributes(templ.Attributes{
-					"hx-get":         f.link.String(),
-					"hx-replace-url": "true",
-					"hx-target":      templates.ContentID.Target(),
-				})).Attributes())
+			@inactiveOption(f.value, templ.Attributes{
+				"hx-get":         f.link.String(),
+				"hx-replace-url": "true",
+				"hx-target":      templates.ContentID.Target(),
+			})
 	}
 }
 

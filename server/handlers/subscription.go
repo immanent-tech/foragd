@@ -18,7 +18,6 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/templates/action"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
@@ -388,15 +387,6 @@ func ImportResults(err *models.Message) http.Handler {
 // RemoveSubscription handles processing a subscription removal request.
 func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confirmation models.UserConfirmation) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Create an action for removing a subscription.
-		action := action.Build("/subscription/remove/"+subscriptionID,
-			action.WithMethod(http.MethodDelete),
-			action.WithAttributes(templ.Attributes{
-				"hx-target": "#" + subscriptionID,
-				"hx-swap":   "outerHTML swap:1s",
-			}),
-		)
-
 		// Add a new HTMX response writer to the context.
 		ctx := HTMXResponseToCtx(req.Context(), htmx.NewResponse())
 
@@ -427,7 +417,11 @@ func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confi
 			slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
 				slog.String("subscription_id", subscriptionID),
 			)
-			modal := partials.AskQuestion("Unsubscribe?", action.Attributes())
+			modal := partials.AskQuestion("Unsubscribe?", templ.Attributes{
+				"hx-delete": "/subscription/remove/" + subscriptionID,
+				"hx-target": "#" + subscriptionID,
+				"hx-swap":   "outerHTML swap:1s",
+			})
 			PartialRender(modal).ServeHTTP(res, req.WithContext(ctx))
 		}
 	})

@@ -9,8 +9,6 @@ import (
 	"net/url"
 
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/joshuar/go-feed-me/web/templates/action"
 )
 
 const (
@@ -24,21 +22,14 @@ type PageView struct {
 }
 
 func NewPageView(path string, filters *Filters) PageView {
-	if filters == nil {
-		filters = NewFilters()
+	if filters != nil {
+		return PageView{Path: path, Filters: *filters}
 	}
-	return PageView{Path: path, Filters: *filters}
+	return PageView{Path: path}
 }
 
 func (r PageView) String() string {
 	return r.Path + "?" + r.Filters.ToQueryParams().Encode()
-}
-
-func (r PageView) AsAction(options ...action.Option) *action.Action {
-	viewAction := action.Build(r.Path, options...)
-	// Set the query params from the filters.
-	action.WithParams(r.Filters.ToQueryParams())(viewAction)
-	return viewAction
 }
 
 type SessionAPI interface {

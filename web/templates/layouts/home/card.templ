@@ -81,7 +81,7 @@ templ (c *FeedCard) showTitle() {
 		@link.Build(
 			link.WithContent(c.GetTitle()),
 			link.WithUnderlineOnHover(),
-			link.WithExtraAttributes(c.viewAction(ctx).Attributes()),
+			link.WithExtraAttributes(c.viewAction(ctx)),
 		).Show()
 	</div>
 	// Display unread count (if any).
@@ -140,7 +140,7 @@ templ (c *ItemCard) showTitle() {
 			).Show(),
 		),
 		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(c.viewAction(ctx).Attributes()),
+		link.WithExtraAttributes(c.viewAction(ctx)),
 	).Show()
 }
 
