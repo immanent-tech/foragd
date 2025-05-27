@@ -6,7 +6,6 @@ package home
 
 import (
 	"context"
-	"github.com/go-chi/chi/v5"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -15,6 +14,7 @@ import (
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
+	"strings"
 )
 
 // Filter represents a filter action on a page. It has a value (displayed in the UI) and a link which will trigger a
@@ -160,8 +160,9 @@ func buildSortFilters(ctx context.Context) SortFilters {
 		NewSortFilter(ctx, models.SortLastUpdatedDesc),
 		NewSortFilter(ctx, models.SortLastUpdatedAsc),
 	)
-	// If viewing /home/feeds and not viewing read items, add additional sorting options on unread count.
-	if slices.Contains([]string{"/home/show/feeds"}, chi.RouteContext(ctx).RoutePattern()) && models.FiltersFromCtx(ctx).View != models.ViewRead {
+	// If viewing feeds and not viewing read items, add additional sorting options on unread count.
+	view := models.ViewFromCtx(ctx)
+	if (strings.HasPrefix(view.Path, "/home/feeds") || strings.HasPrefix(view.Path, "/feed")) && models.FiltersFromCtx(ctx).View != models.ViewRead {
 		sorts = append(sorts,
 			NewSortFilter(ctx, models.SortUnreadCountDesc),
 			NewSortFilter(ctx, models.SortUnreadCountAsc),

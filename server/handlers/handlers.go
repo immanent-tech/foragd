@@ -159,7 +159,7 @@ func GenerateView(params any) func(next http.Handler) http.Handler {
 			}
 			ctx = models.FiltersToCtx(ctx, *filters)
 			view := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
-			ctx = models.ViewToCtx(req.Context(), view)
+			ctx = models.ViewToCtx(ctx, view)
 			// Pass control to next handler.
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -173,7 +173,7 @@ func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handle
 			var backlink models.PageState
 			route := chi.RouteContext(req.Context()).RoutePattern()
 			switch {
-			case strings.HasPrefix(route, "/home/feeds"):
+			case route == "/home/{collection}":
 				backlink = models.PageState{Path: "/home"}
 			case strings.HasPrefix(route, "/feed"):
 				backlink = models.RestorePageStateFromSession(req.Context(), api, "/home/feeds")
