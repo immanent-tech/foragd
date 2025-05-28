@@ -28,7 +28,7 @@ type Config struct {
 	ClientSecret string `toml:"client_secret"`
 }
 
-func (c *Config) DomainURL() string {
+func (c *Config) domainURL() string {
 	// serverURI + "/login/auth0/callback"
 	return "https://localhost:7000/login/auth0/callback"
 }

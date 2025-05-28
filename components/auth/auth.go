@@ -20,7 +20,6 @@ import (
 	"github.com/markbates/goth/providers/auth0"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 )
 
@@ -66,22 +65,18 @@ func (u *UserAuth) GetEmail() string {
 	return u.Email
 }
 
-// // SessionAPI is an interface representing a backend session store.
-// type SessionAPI interface {
-// 	Exists(ctx context.Context, key string) bool
-// 	Get(ctx context.Context, key string) any
-// 	GetString(ctx context.Context, key string) string
-// 	Put(ctx context.Context, key string, val any)
-// 	LoadAndSave(next http.Handler) http.Handler
-// }
+// SessionAPI is an interface representing a backend session store.
+type SessionAPI interface {
+	Exists(ctx context.Context, key string) bool
+	Get(ctx context.Context, key string) any
+	GetString(ctx context.Context, key string) string
+	Put(ctx context.Context, key string, val any)
+	LoadAndSave(next http.Handler) http.Handler
+}
 
 // Authenticator manages user authentication to a provider.
 type Authenticator struct {
-	session *session.Manager
-}
-
-func (a *Authenticator) SessionAPI() *session.Manager {
-	return a.session
+	session SessionAPI
 }
 
 // Get returns a cached user session from the store.
@@ -261,11 +256,11 @@ func (a *Authenticator) Logout() http.Handler {
 	})
 }
 
-func (a *Authenticator) LoadAndSave() func(next http.Handler) http.Handler {
-	return a.session.LoadAndSave
-}
+// func (a *Authenticator) LoadAndSave() func(next http.Handler) http.Handler {
+// 	return a.session.LoadAndSave
+// }
 
-func NewAuthenticator(ctx context.Context, sessionAPI *session.Manager) (*Authenticator, error) {
+func NewAuthenticator(ctx context.Context, sessionAPI SessionAPI) (*Authenticator, error) {
 	if err := loadConfigOnce(); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrAuth, err)
 	}
@@ -275,7 +270,7 @@ func NewAuthenticator(ctx context.Context, sessionAPI *session.Manager) (*Authen
 	}
 
 	goth.UseProviders(
-		auth0.New(auth0Config.ClientID, auth0Config.ClientSecret, auth0Config.DomainURL(), auth0Config.Domain),
+		auth0.New(auth0Config.ClientID, auth0Config.ClientSecret, auth0Config.domainURL(), auth0Config.Domain),
 	)
 	gothic.Store = authenticator
 	gothic.GetProviderName = authenticator.GetProviderName

@@ -17,7 +17,6 @@ package server
 
 import (
 	"github.com/joshuar/go-feed-me/components/auth"
-	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/providers/auth0"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 )
@@ -44,9 +43,4 @@ func (s Server) DataAPI() *elastic.API {
 // AuthAPI returns the object that contains API methods for authentication operations.
 func (s Server) AuthAPI() *auth.Authenticator {
 	return s.API.auth
-}
-
-// SessionAPI returns the object that contains API methods for session operations.
-func (s Server) SessionAPI() *session.Manager {
-	return s.API.session
 }

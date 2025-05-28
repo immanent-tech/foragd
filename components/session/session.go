@@ -26,10 +26,7 @@ const (
 
 type contextKey string
 
-// Manager manages saving, loading and manipulating a session.
-type Manager struct {
-	*scs.SessionManager
-}
+var Manager *scs.SessionManager
 
 func init() {
 	gob.Register(sessions.Session{})
@@ -38,20 +35,19 @@ func init() {
 }
 
 // NewSessionManager creates a new session manager.
-func NewSessionManager(ctx context.Context, api *elastic.API, name string) (*Manager, error) {
+func NewSessionManager(ctx context.Context, api *elastic.API, name string) error {
 	// Load the session store.
 	sessionStore, err := store.NewSessionStore(ctx, api)
 	if err != nil {
-		return nil, fmt.Errorf("failed to start session manager: %w", err)
+		return fmt.Errorf("failed to start session manager: %w", err)
 	}
-	mgr := &Manager{}
 	// Set up the session manager.
-	mgr.SessionManager = scs.New()
-	mgr.Store = sessionStore
-	mgr.Lifetime = sessionLifetime
-	mgr.Cookie.Name = name
-	mgr.Cookie.Secure = true
-	mgr.Cookie.HttpOnly = true
-	mgr.Cookie.SameSite = http.SameSiteLaxMode
-	return mgr, nil
+	Manager = scs.New()
+	Manager.Store = sessionStore
+	Manager.Lifetime = sessionLifetime
+	Manager.Cookie.Name = name
+	Manager.Cookie.Secure = true
+	Manager.Cookie.HttpOnly = true
+	Manager.Cookie.SameSite = http.SameSiteLaxMode
+	return nil
 }

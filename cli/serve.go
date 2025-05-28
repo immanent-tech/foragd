@@ -23,6 +23,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/components/config"
+	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/server"
 	"github.com/joshuar/go-feed-me/server/handlers"
 	"github.com/joshuar/go-feed-me/server/middlewares"
@@ -75,8 +76,8 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 			// middlewares.CSP(server.ServerConfig.CSP),
 			middlewares.ElasticMiddleware(),
 			handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),
-			svr.SessionAPI().LoadAndSave,
-			middlewares.StoreSessionAPI(svr.SessionAPI()),
+			session.Manager.LoadAndSave,
+			middlewares.StoreSessionAPI(session.Manager),
 		},
 	})
 	serverObj := &http.Server{

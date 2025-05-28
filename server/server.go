@@ -26,7 +26,6 @@ type API struct {
 	user    *auth0.UserAPI
 	elastic *elastic.API
 	auth    *auth.Authenticator
-	session *session.Manager
 }
 
 type Server struct {
@@ -67,12 +66,11 @@ func NewServer(ctx context.Context) (Server, error) {
 		return svr, errors.Join(ErrStartServer, err)
 	}
 	// Set up the session manager.
-	sessionAPI, err := session.NewSessionManager(ctx, elasticAPI, auth.SessionName)
-	if err != nil {
+	if err := session.NewSessionManager(ctx, elasticAPI, auth.SessionName); err != nil {
 		return svr, errors.Join(ErrStartServer, err)
 	}
 	// Set up authentication manager.
-	authAPI, err := auth.NewAuthenticator(ctx, sessionAPI)
+	authAPI, err := auth.NewAuthenticator(ctx, session.Manager)
 	if err != nil {
 		return svr, errors.Join(ErrStartServer, err)
 	}
@@ -82,7 +80,6 @@ func NewServer(ctx context.Context) (Server, error) {
 		user:    auth0UserAPI,
 		elastic: elasticAPI,
 		auth:    authAPI,
-		session: sessionAPI,
 	}
 
 	return svr, nil

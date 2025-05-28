@@ -6,7 +6,6 @@ package models
 import (
 	"context"
 	"net/url"
-	"time"
 
 	"github.com/davecgh/go-spew/spew"
 	slogctx "github.com/veqryn/slog-context"
@@ -20,7 +19,6 @@ const (
 type SessionAPI interface {
 	Put(ctx context.Context, key string, value any)
 	Get(ctx context.Context, key string) any
-	Commit(ctx context.Context) (string, time.Time, error)
 }
 
 type PageState struct {
@@ -43,7 +41,6 @@ func SavePageHistory(ctx context.Context, api SessionAPI, state PageState) {
 	}
 	history.Push(state)
 	api.Put(ctx, "foo", history)
-	spew.Dump(api.Commit(ctx))
 }
 
 func GetPageHistory(ctx context.Context, api SessionAPI) *List[PageState] {
