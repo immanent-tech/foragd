@@ -9,7 +9,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
@@ -33,11 +32,9 @@ type Manager struct {
 }
 
 func init() {
-	gob.Register(models.Filters{})
 	gob.Register(sessions.Session{})
-	gob.Register(url.URL{})
-	gob.Register(models.PageView{})
 	gob.Register(models.PageState{})
+	gob.Register(models.List[models.PageState]{})
 }
 
 // NewSessionManager creates a new session manager.

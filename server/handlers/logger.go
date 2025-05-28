@@ -21,6 +21,7 @@ func RouteLogger(next http.Handler) http.Handler {
 		)
 		ctx = slogctx.With(ctx, slog.Group("req", slog.String("id", middleware.GetReqID(ctx))))
 		slogctx.FromCtx(ctx).Debug("Processing route.", slog.String("url", req.URL.String()))
+
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }

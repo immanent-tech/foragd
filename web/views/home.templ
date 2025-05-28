@@ -126,7 +126,7 @@ func GenerateHomePageContent(ctx context.Context, api *elastic.API) templ.Compon
 		slogctx.FromCtx(ctx).Warn("Unable to random items.", slog.Any("error", err))
 	}
 
-	showSubscriptions := models.PageStateFromSession(ctx, models.SessionFromCtx(ctx), "/home/subscriptions")
+	showSubscriptions := models.PageState{Path: "/home/subscriptions"}
 	if showSubscriptions.Params == nil {
 		showSubscriptions.Params = models.NewFilters().ToQueryParams()
 	}

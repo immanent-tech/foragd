@@ -11,11 +11,9 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -145,7 +143,7 @@ func SaveState(api models.SessionAPI) func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Save page state.
 			state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
-			models.PageStateToSession(req.Context(), api, state)
+			models.SavePageHistory(req.Context(), api, state)
 			ctx := models.PageStateToCtx(req.Context(), state)
 			slogctx.FromCtx(ctx).Debug("Saved page state.")
 			// Pass control to next handler.
@@ -158,16 +156,8 @@ func SaveState(api models.SessionAPI) func(next http.Handler) http.Handler {
 func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			var backlink models.PageState
-			route := chi.RouteContext(req.Context()).RoutePattern()
-			switch {
-			case route == "/home/{collection}":
-				backlink = models.PageState{Path: "/home"}
-			case strings.HasPrefix(route, "/subscription"):
-				backlink = models.PageStateFromSession(req.Context(), api, "/home/subscriptions")
-			case strings.HasPrefix(route, "/article"):
-				backlink = models.PageStateFromSession(req.Context(), api, "/subscription")
-			}
+			// Get last viewed page.
+			backlink := models.GetPreviousViewedPage(req.Context(), api)
 			// Save backlink into context.
 			ctx := models.BacklinkToCtx(req.Context(), backlink)
 			slogctx.FromCtx(ctx).Debug("Generated backlink.", slog.String("backlink", backlink.String()))
@@ -186,7 +176,7 @@ func SetupRedirect(api models.SessionAPI, path *string) func(next http.Handler) 
 				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
 					slog.String("path", string(*path)),
 				)
-				view := models.PageStateFromSession(req.Context(), api, *path)
+				view := models.GetPreviousViewedPage(req.Context(), api)
 				HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
 				data, err := json.Marshal(HxLocationData)
 				if err != nil {

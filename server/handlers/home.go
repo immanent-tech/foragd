@@ -10,7 +10,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
@@ -65,39 +64,6 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 	})
 }
 
-func DisplaySubscriptions(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscriptions, pagination, resp := dataAPI.GetSubscriptionsByID(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
-		if resp.IsError() {
-			ProcessResponse(res, req, resp)
-			return
-		}
-		pageTitle := "Subscriptions"
-		switch {
-		case htmx.IsHTMX(req):
-			// Update partial content for HTMX powered request.
-			PartialRender(
-				templ.Join(views.GenerateSubscriptionCards(req.Context(), subscriptions, pagination)...),
-				partials.Footer(
-					partials.UpdateBacklink(),
-					partials.UpdateFilters(subscriptions.GetCategoryCounts()),
-					partials.UpdateSorting(),
-					partials.UpdateActions(
-						views.AddSubscriptionAction(),
-						views.ImportAction(),
-						views.MarkAllSubscriptionsAction(req.Context()),
-					),
-				),
-				templates.SetPageTitle(pageTitle),
-			).ServeHTTP(res, req)
-		default:
-			// Generate full layout for non-HTMX powered request.
-			layout := views.BuildSubscriptionsLayout(req.Context(), pagination, subscriptions)
-			FullRender(pageTitle, templates.WithBody(layout)).ServeHTTP(res, req)
-		}
-	})
-}
-
 func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		articles, pagination, resp := dataAPI.GetArticlesBySubscription(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
@@ -133,10 +99,9 @@ func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination m
 // DisplayArticle handles displaying an item as an article.
 func DisplayArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, itemID models.ItemID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		article, found, err := dataAPI.GetArticle(req.Context(), itemID)
-		if err != nil || !found {
-			spew.Dump(err, found)
-			ProcessResponse(res, req, err)
+		article, found, resp := dataAPI.GetArticle(req.Context(), itemID)
+		if resp.IsError() || !found {
+			ProcessResponse(res, req, resp)
 			return
 		}
 		content := views.BuildArticleLayout(article)

@@ -5,24 +5,22 @@ package models
 
 import (
 	"context"
-	"log/slog"
 	"net/url"
+	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	slogctx "github.com/veqryn/slog-context"
 )
 
 const (
-	ThemeSessionKey = "theme"
+	ThemeSessionKey       = "theme"
+	PageHistorySessionKey = "page_history"
 )
-
-type PageView struct {
-	Path    string
-	Filters Filters
-}
 
 type SessionAPI interface {
 	Put(ctx context.Context, key string, value any)
 	Get(ctx context.Context, key string) any
+	Commit(ctx context.Context) (string, time.Time, error)
 }
 
 type PageState struct {
@@ -37,18 +35,45 @@ func (s PageState) String() string {
 	return s.Path
 }
 
-func PageStateToSession(ctx context.Context, api SessionAPI, state PageState) {
-	api.Put(ctx, "State:"+state.Path, state)
+func SavePageHistory(ctx context.Context, api SessionAPI, state PageState) {
+	history, ok := api.Get(ctx, "bar").(*List[PageState])
+	if !ok {
+		slogctx.FromCtx(ctx).Warn("creating new history")
+		history = &List[PageState]{}
+	}
+	history.Push(state)
+	api.Put(ctx, "foo", history)
+	spew.Dump(api.Commit(ctx))
 }
 
-func PageStateFromSession(ctx context.Context, api SessionAPI, path string) PageState {
-	state, ok := api.Get(ctx, "State:"+path).(PageState)
+func GetPageHistory(ctx context.Context, api SessionAPI) *List[PageState] {
+	history, ok := api.Get(ctx, "bar").(*List[PageState])
+	spew.Dump(history, ok)
 	if !ok {
-		slogctx.FromCtx(ctx).Warn("No saved page state found.",
-			slog.String("path", path))
-		return PageState{Path: path}
+		slogctx.FromCtx(ctx).Warn("No history found.")
+		return &List[PageState]{}
 	}
-	return state
+	return history
+}
+
+func GetPreviousViewedPage(ctx context.Context, api SessionAPI) PageState {
+	history := GetPageHistory(ctx, api)
+	if history.Head.Next != nil {
+		return history.Head.Next.Val
+	}
+	return PageState{Path: "/home"}
+}
+
+func BacklinkToCtx(ctx context.Context, backlink PageState) context.Context {
+	return context.WithValue(ctx, backlinkCtxKey, backlink)
+}
+
+func BacklinkFromCtx(ctx context.Context) PageState {
+	backlink, found := ctx.Value(backlinkCtxKey).(PageState)
+	if !found {
+		return PageState{Path: "/home"}
+	}
+	return backlink
 }
 
 func PageStateToCtx(ctx context.Context, view PageState) context.Context {
@@ -62,16 +87,4 @@ func PageStateFromCtx(ctx context.Context) PageState {
 		return PageState{Path: "/home"}
 	}
 	return view
-}
-
-func BacklinkToCtx(ctx context.Context, backlink PageState) context.Context {
-	return context.WithValue(ctx, backlinkCtxKey, backlink)
-}
-
-func BacklinkFromCtx(ctx context.Context) PageState {
-	backlink, found := ctx.Value(backlinkCtxKey).(PageState)
-	if !found {
-		return PageState{Path: "/home"}
-	}
-	return backlink
 }

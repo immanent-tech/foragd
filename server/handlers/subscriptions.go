@@ -19,9 +19,45 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
+	"github.com/joshuar/go-feed-me/web/views"
 )
+
+// DisplaySubscriptions fetches subscriptions by ID and displays them as a list of cards.
+func DisplaySubscriptions(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		subscriptions, pagination, resp := dataAPI.GetSubscriptionsByID(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
+		if resp.IsError() {
+			ProcessResponse(res, req, resp)
+			return
+		}
+		pageTitle := "Subscriptions"
+		switch {
+		case htmx.IsHTMX(req):
+			// Update partial content for HTMX powered request.
+			PartialRender(
+				templ.Join(views.GenerateSubscriptionCards(req.Context(), subscriptions, pagination)...),
+				partials.Footer(
+					partials.UpdateBacklink(),
+					partials.UpdateFilters(subscriptions.GetCategoryCounts()),
+					partials.UpdateSorting(),
+					partials.UpdateActions(
+						views.AddSubscriptionAction(),
+						views.ImportAction(),
+						views.MarkAllSubscriptionsAction(req.Context()),
+					),
+				),
+				templates.SetPageTitle(pageTitle),
+			).ServeHTTP(res, req)
+		default:
+			// Generate full layout for non-HTMX powered request.
+			layout := views.BuildSubscriptionsLayout(req.Context(), pagination, subscriptions)
+			FullRender(pageTitle, templates.WithBody(layout)).ServeHTTP(res, req)
+		}
+	})
+}
 
 // ParseSubscriptionRequest will extract the subscription request, validate it and then store it in the context for
 // further processing.

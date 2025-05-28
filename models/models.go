@@ -103,3 +103,29 @@ func ParseDomain(value string) string {
 	}
 	return url.Hostname()
 }
+
+type List[T any] struct {
+	Head, Tail *element[T]
+}
+type element[T any] struct {
+	Next *element[T]
+	Val  T
+}
+
+func (lst *List[T]) Push(v T) {
+	if lst.Tail == nil {
+		lst.Head = &element[T]{Val: v}
+		lst.Tail = lst.Head
+	} else {
+		lst.Tail.Next = &element[T]{Val: v}
+		lst.Tail = lst.Tail.Next
+	}
+}
+
+func (lst *List[T]) AllElements() []T {
+	var elems []T
+	for e := lst.Head; e != nil; e = e.Next {
+		elems = append(elems, e.Val)
+	}
+	return elems
+}
