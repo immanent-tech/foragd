@@ -21,23 +21,20 @@ type Page struct {
 	Body           *Body
 }
 
-// _="
-// on load
-// 	log 'theme is currently '+ <html/>
-// 	if @data-theme.value == null then
-// 		fetch /settings/theme then
-// 			put the result into @data-theme
-// end
-// on setTheme(theme)
-// 	log 'theme changed to ' + theme
-// 	set @data-theme to theme
-// end
-// "
 templ (p *Page) Template() {
 	<!DOCTYPE html>
 	<html
 		lang="en"
 		data-theme=""
+		_="
+		init
+			fetch /settings/theme then
+				put the result into @data-theme
+		on setTheme(theme)
+			log 'theme changed to ' + theme
+			set @data-theme to theme
+		end
+		"
 	>
 		@p.Head.Show()
 		<body
