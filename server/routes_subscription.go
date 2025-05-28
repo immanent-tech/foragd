@@ -135,22 +135,22 @@ func showImportFailed(res http.ResponseWriter, req *http.Request, msg *models.Me
 	}
 }
 
-func (s Server) MarkSubscription(res http.ResponseWriter, req *http.Request, mark models.Mark, subscription models.SubscriptionID, params MarkSubscriptionParams) {
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.SetupRedirect(s.SessionAPI(), params.Redirect),
-	).Then(handlers.MarkSubscriptions(s.DataAPI(), mark, subscription))
-	chain.ServeHTTP(res, req)
-}
+// func (s Server) MarkSubscription(res http.ResponseWriter, req *http.Request, mark models.Mark, subscription models.SubscriptionID, params MarkSubscriptionParams) {
+// 	chain := alice.New(
+// 		handlers.RouteLogger,
+// 		handlers.SetupRedirect(s.SessionAPI(), params.Redirect),
+// 	).Then(handlers.MarkSubscriptions(s.DataAPI(), mark, subscription))
+// 	chain.ServeHTTP(res, req)
+// }
 
-func (s Server) MarkAllSubscriptions(res http.ResponseWriter, req *http.Request, mark models.Mark, params MarkAllSubscriptionsParams) {
-	var subscriptions []models.SubscriptionID
-	if params.Subscriptions != nil {
-		subscriptions = append(subscriptions, *params.Subscriptions...)
-	}
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.SetupRedirect(s.SessionAPI(), params.Redirect),
-	).Then(handlers.MarkSubscriptions(s.DataAPI(), mark, subscriptions...))
-	chain.ServeHTTP(res, req)
-}
+// func (s Server) MarkAllSubscriptions(res http.ResponseWriter, req *http.Request, mark models.Mark, params MarkAllSubscriptionsParams) {
+// 	var subscriptions []models.SubscriptionID
+// 	if params.Subscriptions != nil {
+// 		subscriptions = append(subscriptions, *params.Subscriptions...)
+// 	}
+// 	chain := alice.New(
+// 		handlers.RouteLogger,
+// 		handlers.SetupRedirect(s.SessionAPI(), params.Redirect),
+// 	).Then(handlers.MarkSubscriptions(s.DataAPI(), mark, subscriptions...))
+// 	chain.ServeHTTP(res, req)
+// }

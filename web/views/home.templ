@@ -18,7 +18,6 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/veqryn/slog-context"
 )
@@ -98,12 +97,12 @@ func (d HomePageData) generateRandomItemsCards(ctx context.Context, api *elastic
 		itemIDs = append(itemIDs, value["key"].(string))
 	}
 
-	items, err := api.GetItemsByID(ctx, itemIDs...)
+	items, err := api.GetArticlesByID(ctx, itemIDs...)
 	if err != nil {
 		return nil, fmt.Errorf("could not get random items: %w", err)
 	}
 
-	cards := home.GenerateItemCards(ctx, items, "")
+	cards := GenerateArticleCards(ctx, items, "")
 
 	return templ.Join(cards...), nil
 	// return nil, nil

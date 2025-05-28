@@ -1,0 +1,25 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package views
+
+import (
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+)
+
+// openModalLink generates a link for a route that opens a modal.
+func openModalLink(method, path string, content templ.Component) templ.Component {
+	return link.Build(
+		link.WithContent(content),
+		link.WithUnderlineOnHover(),
+		link.WithExtraClasses("w-fit", "text-xs"),
+		link.WithExtraAttributes(templ.Attributes{
+			method:      path,
+			"hx-target": templates.ModalID.Target(),
+			// "_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
+			"_": partials.HyperscriptOpenModal(partials.ModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
+		}),
+	).Show()
+}

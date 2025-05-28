@@ -203,30 +203,6 @@ paths:
       responses:
         default:
           $ref: '#/components/responses/html'
-  /subscription/mark/{mark}/{subscription}:
-    post:
-      summary: >
-        Marks the given subscription with the given mark.
-      operationId: markSubscription
-      parameters:
-        - $ref: '#/components/parameters/Mark'
-        - $ref: '#/components/parameters/SubscriptionID'
-        - $ref: '#/components/parameters/Redirect'
-      responses:
-        default:
-          $ref: '#/components/responses/html'
-  /subscriptions/mark/{mark}:
-    post:
-      summary: >
-        Marks the given subscriptions with the given mark.
-      operationId: markAllSubscriptions
-      parameters:
-        - $ref: '#/components/parameters/Mark'
-        - $ref: '#/components/parameters/Subscriptions'
-        - $ref: '#/components/parameters/Redirect'
-      responses:
-        default:
-          $ref: '#/components/responses/html'
   /home:
     get:
       summary: >
@@ -268,13 +244,13 @@ paths:
       responses:
         default:
           $ref: '#/components/responses/html'
-  /feed/{feed}:
+  /subscription/{subscription}:
     get:
       summary: >
-        Shows a items for the given feed, with optional filtering.
-      operationId: showFeed
+        Shows a items for the given subscription, with optional filtering.
+      operationId: showSubscription
       parameters:
-        - $ref: '#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/SubscriptionID'
         - $ref: '#/components/parameters/Categories'
         - $ref: '#/components/parameters/View'
         - $ref: '#/components/parameters/Count'
@@ -284,33 +260,33 @@ paths:
       responses:
         default:
           $ref: '#/components/responses/html'
-  /feed/{action}/{feed}:
+  /subscription/{action}/{subscription}:
     post:
       summary: >
-        Performs the given action on a feed.
-      operationId: actionFeed
+        Performs the given action on a subscription.
+      operationId: actionSubscription
       parameters:
         - $ref: '#/components/parameters/Action'
-        - $ref: '#/components/parameters/FeedID'
+        - $ref: '#/components/parameters/SubscriptionID'
         - $ref: '#/components/parameters/Redirect'
       responses:
         default:
           $ref: '#/components/responses/html'
-  /item/{item}:
+  /article/{item}:
     get:
       summary: >
-        Shows an item.
-      operationId: showItem
+        Shows an item as an article.
+      operationId: showArticle
       parameters:
         - $ref: '#/components/parameters/ItemID'
       responses:
         default:
           $ref: '#/components/responses/html'
-  /item/{action}/{item}:
+  /article/{action}/{item}:
     post:
       summary: >
-        Performs the given action on an item.
-      operationId: actionItem
+        Performs the given action on an article.
+      operationId: actionArticle
       parameters:
         - $ref: '#/components/parameters/Action'
         - $ref: '#/components/parameters/ItemID'

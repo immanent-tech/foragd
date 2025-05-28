@@ -10,12 +10,11 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/layouts/home"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
 )
@@ -53,22 +52,6 @@ func CheckRequiredFilters(next http.Handler) http.Handler {
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
-
-// // GenerateFilters parses the request parameters, generates Filters from them and stores the filters in the session.
-// func GenerateFilters(session models.SessionAPI, params any) func(next http.Handler) http.Handler {
-// 	return func(next http.Handler) http.Handler {
-// 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-// 			// Retrieve filters.
-// 			filters, err := models.NewFiltersFromParams(params)
-// 			if err != nil {
-// 				InternalServerError(res, req, err)
-// 				return
-// 			}
-// 			ctx := models.FiltersToCtx(req.Context(), *filters)
-// 			next.ServeHTTP(res, req.WithContext(ctx))
-// 		})
-// 	}
-// }
 
 // MarkFeeds will mark the user's subscriptions that match the given feeds with the given mark.
 func MarkFeeds(api DataAPI, mark models.Mark, feeds ...models.FeedID) http.Handler {
@@ -113,30 +96,30 @@ func DisplaySubscriptions(dataAPI DataAPI, sessionAPI models.SessionAPI, paginat
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
 			PartialRender(
-				templ.Join(home.GenerateFeedCards(req.Context(), subscriptions, pagination)...),
-				layouts.Footer(
+				templ.Join(views.GenerateSubscriptionCards(req.Context(), subscriptions, pagination)...),
+				partials.Footer(
 					partials.UpdateBacklink(),
-					home.UpdateFilters(subscriptions.GetCategoryCounts()),
-					home.UpdateSorting(),
-					home.UpdateActions(
-						home.AddSubscriptionAction(),
-						home.ImportAction(),
-						home.MarkAllFeedsAction(req.Context()),
+					partials.UpdateFilters(subscriptions.GetCategoryCounts()),
+					partials.UpdateSorting(),
+					partials.UpdateActions(
+						views.AddSubscriptionAction(),
+						views.ImportAction(),
+						views.MarkAllSubscriptionsAction(req.Context()),
 					),
 				),
 				templates.SetPageTitle(pageTitle),
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
-			layout := home.BuildFeedsLayout(req.Context(), pagination, subscriptions)
+			layout := views.BuildSubscriptionsLayout(req.Context(), pagination, subscriptions)
 			FullRender(pageTitle, templates.WithBody(layout)).ServeHTTP(res, req)
 		}
 	})
 }
 
-func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, itemIDs ...models.ItemID) http.Handler {
+func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		items, pagination, err := dataAPI.GetItemsByFeed(req.Context(), models.FiltersFromCtx(req.Context()), pagination, itemIDs...)
+		articles, pagination, err := dataAPI.GetArticlesBySubscription(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
 		if err != nil {
 			InternalServerError(res, req, err)
 			return
@@ -145,55 +128,56 @@ func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination m
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
 			PartialRender(
-				templ.Join(home.GenerateItemCards(req.Context(), items, pagination)...),
-				layouts.Footer(
+				templ.Join(views.GenerateArticleCards(req.Context(), articles, pagination)...),
+				partials.Footer(
 					partials.UpdateBacklink(),
-					home.UpdateFilters(items.GetCategoryCounts()),
-					home.UpdateSorting(),
-					home.UpdateActions(
-						home.AddSubscriptionAction(),
-						home.ImportAction(),
-						home.MarkAllItemsAction(req.Context(), items.GetFeedIDs()),
+					partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),
+					partials.UpdateSorting(),
+					partials.UpdateActions(
+						views.AddSubscriptionAction(),
+						views.ImportAction(),
+						views.MarkAllArticlesAction(req.Context(), articles.GetItems().GetFeedIDs()),
 					),
 				),
 				templates.SetPageTitle("Items"),
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
-			layout := home.BuildItemsLayout(req.Context(), pagination, items)
+			layout := views.BuildArticlesLayout(req.Context(), pagination, articles)
 			FullRender("Items", templates.WithBody(layout)).ServeHTTP(res, req)
 		}
 	})
 }
 
-// DisplayItem handles displaying an item as an article.
-func DisplayItem(dataAPI DataAPI, sessionAPI models.SessionAPI, itemID models.ItemID) http.Handler {
+// DisplayArticle handles displaying an item as an article.
+func DisplayArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, itemID models.ItemID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		item, found, err := dataAPI.GetItem(req.Context(), itemID)
+		article, found, err := dataAPI.GetArticle(req.Context(), itemID)
 		if err != nil || !found {
+			spew.Dump(err, found)
 			InternalServerError(res, req, err)
 			return
 		}
-		content := home.GenerateArticle(item)
+		content := views.BuildArticleLayout(article)
 		header := partials.Header(
 			partials.DefaultHeaderStart(),
 			partials.DefaultHeaderCenter(),
 			partials.DefaultHeaderEnd(),
 		)
-		footer := layouts.Footer(partials.UpdateBacklink())
+		footer := partials.Footer(partials.UpdateBacklink())
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
 			PartialRender(
 				content,
 				footer,
-				templates.SetPageTitle(item.GetTitle()),
+				templates.SetPageTitle(article.Item.GetTitle()),
 			).ServeHTTP(res, req)
 		default:
 			// Generate full layout for non-HTMX powered request.
-			FullRender(item.GetTitle(),
+			FullRender(article.Item.GetTitle(),
 				templates.WithBody(
-					templates.NewBody(home.GenerateArticle(item),
+					templates.NewBody(views.BuildArticleLayout(article),
 						templates.WithBodyHeader(header),
 						templates.WithBodyFooter(footer),
 					),

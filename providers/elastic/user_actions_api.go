@@ -218,7 +218,7 @@ func (e *API) MarkSubscriptions(ctx context.Context, mark models.Mark, subscript
 // GetItem retrieves the specified item with the given id and from the given
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
-func (e *API) GetItem(ctx context.Context, itemID models.ItemID) (*models.Item, bool, error) {
+func (e *API) GetArticle(ctx context.Context, itemID models.ItemID) (*models.Article, bool, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, false, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -264,19 +264,18 @@ func (e *API) GetItem(ctx context.Context, itemID models.ItemID) (*models.Item, 
 		return nil, false, ErrNoUserCtx
 	}
 
-	return item, true, nil
+	articles := models.GenerateArticles(user, item)
+
+	return articles[0], true, nil
 }
 
-// UserGetItems will search Elasticsearch for unread items (with
-// given filters applied) for the given user, and, returns the items as well as
-// pagination details for paging through the results.
-func (e *API) GetItemsByFeed(ctx context.Context, filters models.Filters, pagination models.Pagination, feedIDs ...models.FeedID) (models.Items, models.Pagination, error) {
+func (e *API) GetArticlesBySubscription(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", ErrFetchCtx
 	}
 	// Get subscriptions matching the filters.
-	subscriptions := user.GetSubscriptions().FilterByFeedID(feedIDs...)
+	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
 
 	query := query.Bool(
 		query.BoolQueryName("get_items"),
@@ -309,16 +308,44 @@ func (e *API) GetItemsByFeed(ctx context.Context, filters models.Filters, pagina
 	if err != nil {
 		return nil, "", errors.Join(ErrUserActionFailed, err)
 	}
+	// Create articles from the items.
+	articles := models.GenerateArticles(user, items...)
 
-	// Decorate items with user state.
-	subscriptionsByFeed := subscriptions.ByFeed()
-	for item := range slices.Values(items) {
-		// Add the state for the item from the user object, to the item object.
-		itemState := subscriptionsByFeed[item.GetFeedID()].GetItemState(item.GetID())
-		item.SetUserItemState(itemState)
+	return articles, pagination, nil
+}
+
+// GetItemsByID fetches the items with the given IDs.
+func (e *API) GetArticlesByID(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, ErrFetchCtx
 	}
 
-	return items, pagination, nil
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	resp, err := NewSearchRequest(e.GetAPI(),
+		WithSearchIndex(index),
+		WithSearchQueryOptions(query.ItemIDs(itemIDs...)),
+		WithSearchSize(len(itemIDs)),
+	).Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
+	}
+
+	slogctx.FromCtx(ctx).Debug("Searched items.",
+		slog.Int64("hits", resp.Hits.Total.Value))
+
+	items, _, err := ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
+	}
+
+	articles := models.GenerateArticles(user, items...)
+
+	return articles, nil
 }
 
 // MarkItems will mark the given items for the given feeds with the given state for the user.
@@ -332,13 +359,13 @@ func (e *API) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models
 		return nil
 	}
 	// Get item details.
-	items, err := e.GetItemsByID(ctx, itemIDs...)
+	articles, err := e.GetArticlesByID(ctx, itemIDs...)
 	if err != nil {
 		return fmt.Errorf("could not mark items: %w", err)
 	}
 	// Mark each item in the user data.
-	for feedID := range slices.Values(items.GetFeedIDs()) {
-		user.MarkItems(mark, feedID, items.FilterByFeed(feedID).GetIDs()...)
+	for feedID := range slices.Values(articles.GetItems().GetFeedIDs()) {
+		user.MarkItems(mark, feedID, articles.GetItems().FilterByFeed(feedID).GetIDs()...)
 	}
 	// Update the user object.
 	return e.UpdateUser(ctx, user.GetID(), map[string]any{

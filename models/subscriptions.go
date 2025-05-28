@@ -89,24 +89,6 @@ func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	return s
 }
 
-// // Filter will return subscriptions filtered (and sorted) by the given filters.
-// func (s Subscriptions) Filter(filters Filters) Subscriptions {
-// 	s = s.FilterByFeedID(filters.Feeds...).
-// 		FilterByCategory(filters.Categories...).
-// 		FilterByView(filters.View)
-// 	switch {
-// 	case filters.Sort().SortBy == SortByUnreadCount:
-// 		slices.SortFunc(s, CompareSubscriptionUnreadCount)
-// 	default:
-// 		slices.SortFunc(s, CompareSubscriptionUpdatedDate)
-// 	}
-// 	if filters.Sort().SortOrder == SortOrderDesc {
-// 		slices.Reverse(s)
-// 	}
-
-// 	return s
-// }
-
 // FilterByFeed will match the given feeds to the subscriptions and return subscriptions with matched feeds.
 func (s Subscriptions) FilterByFeed(feeds Feeds) Subscriptions {
 	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {

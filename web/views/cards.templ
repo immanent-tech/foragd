@@ -1,0 +1,481 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package views
+
+import (
+	"context"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/classes/opacity"
+	"github.com/joshuar/go-templ-daisyui/classes/shadow"
+	"github.com/joshuar/go-templ-daisyui/display/avatar"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/display/image"
+	"github.com/joshuar/go-templ-daisyui/display/placeholder"
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
+	"github.com/joshuar/go-templ-daisyui/layout/mask"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+	"maps"
+	"net/url"
+	"slices"
+	"strconv"
+	"strings"
+)
+
+const defaultCardClasses = "bg-base-300 m-2 p-2"
+
+// actionAttributes are the common htmx attributes for mark actions.
+var actionAttributes = templ.Attributes{
+	"hx-replace-url":  "false",
+	"hx-target":       templates.ContentID.Target(),
+	"hx-target-error": templates.ErrorID.Target(),
+	"hx-swap":         "morph:innerHTML swap:1s",
+}
+
+func BuildSubscriptionsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) *templates.Body {
+	cards := GenerateSubscriptionCards(ctx, subscriptions, pagination)
+	// Generate backlink.
+	return templates.NewBody(
+		templ.Join(cards...),
+		templates.WithBodyHeader(
+			partials.Header(
+				partials.DefaultHeaderStart(),
+				partials.DefaultHeaderCenter(),
+				partials.DefaultHeaderEnd(),
+			),
+		),
+		templates.WithBodyFooter(
+			partials.Footer(
+				partials.UpdateBacklink(),
+				partials.UpdateFilters(subscriptions.GetCategoryCounts()),
+				partials.UpdateSorting(),
+				partials.UpdateActions(
+					AddSubscriptionAction(),
+					ImportAction(),
+					MarkAllSubscriptionsAction(ctx),
+				),
+			),
+		),
+	)
+}
+
+func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscriptions, pagination models.Pagination) []templ.Component {
+	filters := models.FiltersFromCtx(ctx)
+	cards := make([]templ.Component, 0, len(subscriptions))
+	for idx, subscription := range subscriptions {
+		var card templ.Component
+		if idx == len(subscriptions)-1 && len(subscriptions) == filters.Count {
+			card = newSubscriptionCard(ctx, subscription, &pagination)
+		} else {
+			card = newSubscriptionCard(ctx, subscription, nil)
+		}
+		cards = append(cards, card)
+	}
+	return cards
+}
+
+func newSubscriptionCard(ctx context.Context, subscription *models.Subscription, pagination *models.Pagination) templ.Component {
+	// Generate actions for card menu.
+	var cardActions []templ.Component
+	cardActions = append(cardActions,
+		shareAction(nil),
+		visitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
+		markSubscriptionAction(subscription.GetID(), subscription.IsUnread()),
+		editSubscriptionAction(subscription.GetID()),
+		unsubscribeAction(subscription.GetID()),
+	)
+
+	cardProps := card.Build(
+		card.WithStyle(card.Border),
+		card.WithSize(card.SM),
+		card.WithShadow(shadow.MD),
+		card.WithBodyOptions(
+			card.WithTitle(subscriptionCardTitle(subscription)),
+			card.WithContent(subscriptionCardContent(subscription)),
+			card.WithActions(buildCardActionsMenu(cardActions...)),
+		),
+		card.WithID(subscription.GetID()),
+		card.WithExtraClasses(defaultCardClasses),
+	)
+
+	if subscription.UnreadCount == 0 {
+		card.WithExtraClasses(opacity.Apply(75))(cardProps)
+	}
+
+	return cardProps.Show()
+}
+
+templ subscriptionCardTitle(subscription *models.Subscription) {
+	// Generate a thumbnail to display next to the title.
+	if subscription.GetImage() != nil {
+		// If the source has an image, use that as the avatar.
+		@avatar.Build(
+			subscription.GetImage().URL(),
+			avatar.WithWidth("w-12"),
+			avatar.WithImageOptions(image.WithLazyLoading()),
+		).Show()
+	} else {
+		// Otherwise, take the first letter of the title and create a placeholder avatar.
+		@placeholder.Build(subscription.GetTitle()[0:1], placeholder.SM).Show()
+	}
+	// Title text is a link to the view action of the card.
+	<div class="text-sm flex-1">
+		@link.Build(
+			link.WithContent(subscription.GetTitle()),
+			link.WithUnderlineOnHover(),
+			link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
+		).Show()
+	</div>
+	// Display unread count (if any).
+	<div class="flex-none">
+		if subscription.IsUnread() {
+			@badge.Build(
+				badge.WithSize(badge.SM),
+				badge.WithColor(badge.Secondary),
+				badge.WithContent(strconv.Itoa(subscription.UnreadCount)+" Unread"),
+				badge.WithExtraAttributes(templ.Attributes{
+					"sse-swap": subscription.GetFeedID() + "_unread",
+				}),
+			).Show()
+		}
+	</div>
+}
+
+templ subscriptionCardContent(subscription *models.Subscription) {
+	@partials.ShowTimestamp(subscription.GetUpdatedDate())
+	if desc := subscription.GetDescription(); desc != "" {
+		@text.Build(desc,
+			text.WithSize(text.XS),
+			text.WithOverflow(text.Truncate),
+		).Show()
+	}
+}
+
+func BuildArticlesLayout(ctx context.Context, pagination models.Pagination, articles models.Articles) *templates.Body {
+	cards := GenerateArticleCards(ctx, articles, pagination)
+	// Return the home items layout.
+	return templates.NewBody(
+		templ.Join(cards...),
+		templates.WithBodyHeader(
+			partials.Header(
+				partials.DefaultHeaderStart(),
+				partials.DefaultHeaderCenter(),
+				partials.DefaultHeaderEnd(),
+			),
+		),
+		templates.WithBodyFooter(
+			partials.Footer(
+				partials.UpdateBacklink(),
+				partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),
+				partials.UpdateSorting(),
+				partials.UpdateActions(
+					AddSubscriptionAction(),
+					ImportAction(),
+					MarkAllArticlesAction(ctx, articles.GetItems().GetFeedIDs()),
+				),
+			),
+		),
+	)
+}
+
+func GenerateArticleCards(ctx context.Context, articles models.Articles, pagination models.Pagination) []templ.Component {
+	filters := models.FiltersFromCtx(ctx)
+	cards := make([]templ.Component, 0, len(articles))
+	for idx, article := range articles {
+		var card templ.Component
+		// Create a card for this item.
+		if idx == len(articles)-1 && len(articles) == filters.Count && pagination != "" {
+			// Add a pagination action to the last item.
+			card = newArticleCard(ctx, article, &pagination)
+		} else {
+			card = newArticleCard(ctx, article, nil)
+		}
+		// Append the card to the list of cards.
+		cards = append(cards, card)
+	}
+	return cards
+}
+
+func newArticleCard(ctx context.Context, article *models.Article, pagination *models.Pagination) templ.Component {
+	// Generate actions for card menu.
+	var cardActions []templ.Component
+	cardActions = append(cardActions,
+		shareAction(nil),
+		visitExternalLinkAction("External URL", article.Item.GetLink()),
+		markArticleAction(article.FeedID, article.ItemID, article.IsUnread()),
+	)
+	// Generate card image.
+	var imageOption card.Option
+	if cardImage := article.Item.GetImage(); cardImage != nil {
+		imageOption = card.WithImage(
+			cardImage.URL(),
+			image.WithLazyLoading(),
+			image.WithMask(mask.MaskSquircle),
+			image.WithExtraClasses("object-cover", "max-w-1/4"),
+		)
+	}
+	cardProps := card.Build(
+		card.WithLayout(card.LayoutSide),
+		imageOption,
+		card.WithSize(card.SM),
+		card.WithStyle(card.Border),
+		card.WithShadow(shadow.MD),
+		card.WithBodyOptions(
+			card.WithContent(articleCardContent(article)),
+			card.WithActions(buildCardActionsMenu(cardActions...)),
+			card.WithBodyExtraClasses("p-2"),
+		),
+		card.WithID(article.ItemID),
+		card.WithExtraClasses(defaultCardClasses),
+	)
+	if pagination != nil {
+		card.WithExtraAttributes(addPaginationAttributes(ctx, *pagination))(cardProps)
+	}
+	switch {
+	case models.FiltersFromCtx(ctx).View == models.ViewRead:
+		fallthrough
+	case article.GetUserState() == models.StateRead:
+		card.WithExtraClasses(opacity.Apply(75))(cardProps)
+	}
+	return cardProps.Show()
+}
+
+// articleCardContent defines the layout of an article card content.
+templ articleCardContent(article *models.Article) {
+	<div class="flex-1">
+		@link.Build(
+			link.WithContent(
+				text.Build(article.Item.GetTitle(),
+					text.WithWeight(text.Semibold),
+					text.WithExtraClasses("text-pretty"),
+				).Show(),
+			),
+			link.WithUnderlineOnHover(),
+			link.WithExtraAttributes(viewAction(ctx, article.ItemID, article.IsUnread())),
+		).Show()
+	</div>
+	<div class="flex-none">
+		@partials.ShowTimestamp(article.Item.GetUpdatedDate())
+	</div>
+}
+
+// addPagination adds htmx attributes for triggering pagination to a card.
+func addPaginationAttributes(ctx context.Context, pagination models.Pagination) templ.Attributes {
+	view := models.PageStateFromCtx(ctx)
+	return templ.Attributes{
+		"hx-get":         view.String() + "&pagination=" + pagination,
+		"hx-trigger":     "intersect once",
+		"hx-swap":        "afterend",
+		"hx-replace-url": "false",
+		"hx-indicator":   "#content-loading",
+	}
+}
+
+// buildCardActionsMenu generates a menu for the card containing the given actions.
+templ buildCardActionsMenu(actions ...templ.Component) {
+	@tooltip.Build("Actions").Show() {
+		@dropdown.Build(
+			dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
+			dropdown.WithButtonClasses(button.Ghost, button.XS),
+			dropdown.WithOpenFrom(dropdown.OpenTop),
+			dropdown.WithOpenAlignment(dropdown.AlignEnd),
+			dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
+		).Show() {
+			for item := range slices.Values(actions) {
+				<li _="on click call document.activeElement.blur()">
+					@item
+				</li>
+			}
+		}
+	}
+}
+
+// viewAction returns the action for viewing the card's content. For a Feed card this would be the Feed's item as cards.
+// For a Item card, this would be the item content.
+func viewAction(ctx context.Context, id string, viewed bool) templ.Attributes {
+	var view models.PageState
+	spew.Dump(id, viewed)
+	switch models.IdentifyID(id) {
+	case models.SubscriptionPFX:
+		filters := models.FiltersFromCtx(ctx)
+		view = models.PageState{Path: "/subscription/" + id, Params: filters.ToQueryParams()}
+		if viewed {
+			filters.View = models.ViewUnread
+		} else {
+			filters.View = models.ViewRead
+		}
+	case models.ItemPFX:
+		view = models.PageState{Path: "/article/" + id}
+	}
+	return templ.Attributes{
+		"hx-get":         view.String(),
+		"hx-target":      templates.ContentID.Target(),
+		"hx-replace-url": "true",
+		"hx-swap":        "morph:innerHTML show:top",
+	}
+}
+
+templ shareAction(attributes templ.Attributes) {
+	@link.Build(
+		link.WithContent(
+			templ.Join(tabler.Share(i.Props{Size: i.SizeXS}), components.SetContent("Share")),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(attributes),
+		link.WithExtraClasses("w-fit", "text-xs"),
+	).Show()
+}
+
+templ visitExternalLinkAction(label, url string) {
+	@link.Build(
+		link.WithContent(
+			templ.Join(tabler.ExternalLink(i.Props{Size: i.SizeXS}), components.SetContent("Visit "+label)),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(templ.Attributes{
+			"href": url,
+			"_":    "on mouseenter add .menu-active to me end on mouseleave remove .menu-active from me end",
+		}),
+		link.WithExtraClasses("w-fit", "text-xs"),
+	).Show()
+}
+
+func markSubscriptionAction(id models.SubscriptionID, isRead bool) templ.Component {
+	// Create htmx attributes.
+	attrs := maps.Clone(actionAttributes)
+	// Create url parameters.
+	params := make(url.Values)
+	params.Add(models.ParamRedirect, string(models.PageViewIDFeeds))
+
+	if isRead {
+		attrs["hx-post"] = "/subscription/mark/" + string(models.MarkRead) + "/" + id + "?" + params.Encode()
+		return markReadLink("Mark Read", attrs)
+	}
+	attrs["hx-post"] = "/subscription/mark/" + string(models.MarkUnread) + "/" + id + "?" + params.Encode()
+	return markUnreadLink("Mark Unread", attrs)
+}
+
+// MarkAllFeedsAction generates an action for the footer menu to mark all feeds as either read or unread, depending on
+// the current view.
+func MarkAllSubscriptionsAction(ctx context.Context) templ.Component {
+	// Create htmx attributes.
+	attrs := maps.Clone(actionAttributes)
+	// Create url parameters.
+	params := make(url.Values)
+	params.Add(models.ParamRedirect, string(models.PageViewIDHome))
+
+	switch models.FiltersFromCtx(ctx).View {
+	case models.ViewUnread:
+		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead) + "?" + params.Encode()
+		return markReadLink("Mark All Read", attrs)
+	case models.ViewRead:
+		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread) + "?" + params.Encode()
+		return markUnreadLink("Mark All Unread", attrs)
+	default:
+		return nil
+	}
+}
+
+func markArticleAction(feedID models.FeedID, itemID models.ItemID, isUnread bool) templ.Component {
+	// Set up htmx attributes for action.
+	attributes := templ.Attributes{
+		"hx-swap":        "outerHTML swap:1s",
+		"hx-target":      "#" + itemID,
+		"hx-replace-url": "false",
+	}
+
+	if isUnread {
+		attributes["hx-post"] = "/article/" + string(models.MarkRead) + "/" + itemID
+		return markReadLink("Mark Read", attributes)
+	}
+	attributes["hx-post"] = "/article/" + string(models.MarkUnread) + "/" + itemID
+	return markUnreadLink("Mark Unread", attributes)
+}
+
+// MarkAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
+// depending on the current view.
+func MarkAllArticlesAction(ctx context.Context, feeds []models.FeedID) templ.Component {
+	// Create htmx attributes.
+	attrs := maps.Clone(actionAttributes)
+	// Create url parameters.
+	params := make(url.Values)
+	params.Add(models.ParamRedirect, string(models.PageViewIDFeeds))
+	params.Add(models.ParamFeeds, strings.Join(feeds, ","))
+
+	switch models.FiltersFromCtx(ctx).View {
+	case models.ViewUnread:
+		attrs["hx-post"] = "home/feeds/" + string(models.MarkRead) + "?" + params.Encode()
+		return markReadLink("Mark All Read", attrs)
+	case models.ViewRead:
+		attrs["hx-post"] = "home/feeds/" + string(models.MarkUnread) + "?" + params.Encode()
+		return markUnreadLink("Mark All Unread", attrs)
+	default:
+		return nil
+	}
+}
+
+// AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
+func AddSubscriptionAction() templ.Component {
+	return openModalLink(
+		"hx-get",
+		"/subscription/new",
+		templ.Join(tabler.CloudPlus(i.Props{Size: i.SizeXS}), components.SetContent("Add Subscription")),
+	)
+}
+
+// ImportAction creates a button for displaying a modal to import feeds (i.e. // via opml).
+func ImportAction() templ.Component {
+	return openModalLink(
+		"hx-get",
+		"/subscription/import",
+		templ.Join(tabler.CloudUpload(i.Props{Size: i.SizeXS}), components.SetContent("Import Subscriptions")),
+	)
+}
+
+func editSubscriptionAction(id models.SubscriptionID) templ.Component {
+	return openModalLink(
+		"hx-get",
+		"/subscription/edit/"+id,
+		templ.Join(tabler.Edit(i.Props{Size: i.SizeXS}), components.SetContent("Edit")),
+	)
+}
+
+func unsubscribeAction(id models.SubscriptionID) templ.Component {
+	return openModalLink(
+		"hx-delete",
+		"/subscription/remove/"+id+"?confirmation=no",
+		templ.Join(tabler.Trash(i.Props{Size: i.SizeSM}), components.SetContent("Unsubscribe")),
+	)
+}
+
+func markReadLink(label string, attributes templ.Attributes) templ.Component {
+	return link.Build(
+		link.WithContent(
+			templ.Join(tabler.Bookmark(i.Props{Size: i.SizeXS}), components.SetContent(label)),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(attributes),
+		link.WithExtraClasses("w-fit", "text-xs"),
+	).Show()
+}
+
+func markUnreadLink(label string, attributes templ.Attributes) templ.Component {
+	return link.Build(
+		link.WithContent(
+			templ.Join(tabler.BookmarkFilled(i.Props{Size: i.SizeXS}), components.SetContent(label)),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(attributes),
+		link.WithExtraClasses("w-fit", "text-xs"),
+	).Show()
+}

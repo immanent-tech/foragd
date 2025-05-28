@@ -3,9 +3,25 @@
 
 package partials
 
-// ShowRelativeTimestamp sets the text of the element to a relative timestamp based on the value in the value attribute.
-templ ShowRelativeTimestamp() {
+import (
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"time"
+)
+
+templ generateRelativeTimestamp() {
 	<script>
 		me().innerText = me().formatTimestamp()
 	</script>
+}
+
+templ ShowTimestamp(timestamp time.Time) {
+	@text.Build(
+		generateRelativeTimestamp(),
+		text.WithSize(text.XS),
+		text.AsItalicText(),
+		text.WithWeight(text.Light),
+		text.WithAttributes(templ.Attributes{
+			"value": timestamp.Format("2006-01-02T15:04:05-0700"),
+		}),
+	).Show()
 }

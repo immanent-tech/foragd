@@ -126,28 +126,6 @@ func (i *Item) GetContent() string {
 	return i.Content
 }
 
-func (i *Item) HasState() bool {
-	return i.State != nil
-}
-
-func (i *Item) IsUnread() bool {
-	if !i.HasState() {
-		return true
-	}
-	return *i.State == StateUnread
-}
-
-func (i *Item) GetUserState() State {
-	if i.HasState() {
-		return *i.State
-	}
-	return StateUnread
-}
-
-func (i *Item) SetUserItemState(state State) {
-	i.State = &state
-}
-
 func (i *Item) GetTimestamp() time.Time {
 	if valid, _ := ValidateDatetime(i.GetUpdatedDate()); valid {
 		return i.GetUpdatedDate()

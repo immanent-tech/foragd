@@ -386,10 +386,31 @@ components:
               $ref: '#/components/schemas/ItemID'
             feed_id:
               $ref: '#/components/schemas/FeedID'
-            state:
-              $ref: '#/components/schemas/State'
             content:
               description: >
                 contains the item content.
               type: string
               x-go-type-skip-optional-pointer: true
+    Article:
+      description: represents an individual item (e.g., an individual feed item) with additional user-specific fields.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ItemState'
+        - type: object
+          required:
+            - subscription_id
+            - feed_id
+          properties:
+            subscription_id:
+              $ref: '#/components/schemas/SubscriptionID'
+            feed_id:
+              $ref: '#/components/schemas/FeedID'
+            item:
+              description: >
+                is the original item that the article represents.
+              allOf:
+                - $ref: '#/components/schemas/Item'
+              x-oapi-codegen-extra-tags:
+                json: '-'
+                form: '-'
+                validate: 'required'

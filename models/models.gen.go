@@ -43,6 +43,24 @@ const (
 	StateUnread State = "unread"
 )
 
+// Article defines model for Article.
+type Article struct {
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+
+	// Item is the original item that the article represents.
+	Item *Item `form:"-" json:"-" validate:"required"`
+
+	// ItemID is the unique ID of an item.
+	ItemID ItemID `form:"feed_id" json:"item_id" validate:"required,startswith=item_"`
+
+	// State Tracks the state of an object.
+	State State `json:"state" validate:"oneof=read unread saved"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
 // Category represents a taxonomy applied to an object.
 type Category = string
 
@@ -148,9 +166,6 @@ type Item struct {
 
 	// SourceType indicates what type of source the object came from.
 	SourceType ItemSourceType `json:"source_type"`
-
-	// State Tracks the state of an object.
-	State *State `json:"state" validate:"oneof=read unread saved"`
 
 	// Title is the title of the feed or item.
 	Title string `json:"title" validate:"required"`

@@ -70,8 +70,8 @@ type DataAPI interface {
 	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
-	GetItem(ctx context.Context, itemID models.ItemID) (*models.Item, bool, error)
-	GetItemsByFeed(ctx context.Context, filters models.Filters, pagination models.Pagination, feedIDs ...models.FeedID) (models.Items, models.Pagination, error)
+	GetArticle(ctx context.Context, itemID models.ItemID) (*models.Article, bool, error)
+	GetArticlesBySubscription(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, error)
 	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error
 	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error)
 }
@@ -156,10 +156,10 @@ func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handle
 			switch {
 			case route == "/home/{collection}":
 				backlink = models.PageState{Path: "/home"}
-			case strings.HasPrefix(route, "/feed"):
-				backlink = models.PageStateFromSession(req.Context(), api, "/home/feeds")
-			case strings.HasPrefix(route, "/item"):
-				backlink = models.PageStateFromSession(req.Context(), api, "/feed")
+			case strings.HasPrefix(route, "/subscription"):
+				backlink = models.PageStateFromSession(req.Context(), api, "/home/subscriptions")
+			case strings.HasPrefix(route, "/article"):
+				backlink = models.PageStateFromSession(req.Context(), api, "/subscription")
 			}
 			// Save backlink into context.
 			ctx := models.BacklinkToCtx(req.Context(), backlink)

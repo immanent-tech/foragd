@@ -151,7 +151,7 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 		}
 	case models.CollectionItems:
 		if params.Articles != nil {
-			displayFunc = handlers.DisplayArticles(s.DataAPI(), s.SessionAPI(), pagination, *params.Articles...)
+			displayFunc = handlers.DisplayArticles(s.DataAPI(), s.SessionAPI(), pagination, *params.Subscriptions...)
 		} else {
 			displayFunc = handlers.DisplayArticles(s.DataAPI(), s.SessionAPI(), pagination)
 		}
@@ -195,7 +195,7 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 }
 
 // ActionItem handles performing an action on an item.
-func (s Server) ActionItem(res http.ResponseWriter, req *http.Request, action Action, item ItemID, params ActionItemParams) {
+func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action Action, item ItemID, params ActionArticleParams) {
 	var actionFunc http.Handler
 
 	switch action {
@@ -215,19 +215,41 @@ func (s Server) ActionItem(res http.ResponseWriter, req *http.Request, action Ac
 }
 
 // ShowItem handles showing an item.
-func (s Server) ShowItem(res http.ResponseWriter, req *http.Request, item ItemID) {
+func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, item ItemID) {
 	chain := alice.New(
 		handlers.RouteLogger,
-	).Then(handlers.DisplayItem(s.DataAPI(), s.SessionAPI(), item))
+		handlers.SaveState(s.SessionAPI()),
+		handlers.GenerateBacklink(s.SessionAPI()),
+	).Then(handlers.DisplayArticle(s.DataAPI(), s.SessionAPI(), item))
 	chain.ServeHTTP(res, req)
 }
 
 // ActionFeed handles performing an action on a feed.
-func (s Server) ActionFeed(res http.ResponseWriter, req *http.Request, action Action, feed FeedID, params ActionFeedParams) {
+func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, action Action, sub SubscriptionID, params ActionSubscriptionParams) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
 
-// ShowFeed handles showing items for a feed.
-func (s Server) ShowFeed(res http.ResponseWriter, req *http.Request, feed FeedID, params ShowFeedParams) {
-	res.WriteHeader(http.StatusNotImplemented)
+// ShowSubscription handles showing items for a feed.
+func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params ShowSubscriptionParams) {
+	// Extract any pagination value.
+	var pagination models.Pagination
+	if params.Pagination != nil {
+		pagination = *params.Pagination
+	}
+	// Retrieve filters.
+	filters, err := models.NewFiltersFromParams(params)
+	if err != nil {
+		handlers.InternalServerError(res, req, err)
+		return
+	}
+	ctx := models.FiltersToCtx(req.Context(), *filters)
+	// Generate handler chain.
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.CheckRequiredFilters,
+		handlers.SaveState(s.SessionAPI()),
+		handlers.GenerateBacklink(s.SessionAPI()),
+	).Then(handlers.DisplayArticles(s.DataAPI(), s.SessionAPI(), pagination, sub))
+	// Run chain.
+	chain.ServeHTTP(res, req.WithContext(ctx))
 }
