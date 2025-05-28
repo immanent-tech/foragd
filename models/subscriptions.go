@@ -5,6 +5,7 @@ package models
 
 import (
 	"cmp"
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -175,10 +176,10 @@ func (s Subscriptions) FindByURL(url string) *Subscription {
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *Subscription) Valid() (bool, error) {
 	if valid, err := validation.ValidateStruct(s); err != nil || !valid {
-		return false, NewMessage("subscription is invalid", MessageStatusError, WithError(err))
+		return false, fmt.Errorf("subscription is invalid: %w", err)
 	}
 	if s.Feed == nil {
-		return false, NewMessage("subscription is invalid", MessageStatusError)
+		return false, errors.New("no feed associated with subscription")
 	}
 	return true, nil
 }
@@ -390,7 +391,7 @@ func CompareSubscriptionUpdatedDate(a, b *Subscription) int {
 func (r *SubscriptionRequest) Valid() (bool, error) {
 	valid, err := validation.ValidateStruct(r)
 	if !valid || err != nil {
-		return false, NewMessage("Details are invalid", MessageStatusError, WithError(err))
+		return false, fmt.Errorf("subscription is invalid: %w", err)
 	}
 	return true, nil
 }
@@ -472,7 +473,7 @@ func (r SubscriptionRequests) FilterWithResults() SubscriptionRequests {
 }
 
 // FilterByStatus will return all requests that have the given status.
-func (r SubscriptionRequests) FilterByStatus(status MessageStatus) SubscriptionRequests {
+func (r SubscriptionRequests) FilterByStatus(status UserMessageStatus) SubscriptionRequests {
 	return slices.Collect(FilterSlice(r, func(v *SubscriptionRequest) bool {
 		if v.Result != nil {
 			return v.Result.Status == status
@@ -500,20 +501,22 @@ func (r SubscriptionRequests) FilterWithSubscription() SubscriptionRequests {
 func (r SubscriptionRequests) FilterValid() SubscriptionRequests {
 	return slices.Collect(FilterSlice(r.FilterNoResults(), func(request *SubscriptionRequest) bool {
 		if request.Subscription == nil {
-			request.Result = NewMessage(
-				"No subscription data for "+request.GetURL(),
-				MessageStatusError)
+			request.Result = &UserMessage{
+				Status:  UserMessageStatusError,
+				Summary: "No subscription data for " + request.GetURL(),
+			}
 			return false
 		}
 		if valid, err := request.Subscription.Valid(); !valid || err != nil {
-			request.Result = NewMessage(
-				fmt.Sprintf("Invalid details for %s (%s)",
+			details := err.Error()
+			request.Result = &UserMessage{
+				Status: UserMessageStatusError,
+				Summary: fmt.Sprintf("Invalid details for %s (%s)",
 					request.Subscription.GetTitle(),
 					request.Subscription.GetSourceURL(),
 				),
-				MessageStatusError,
-				WithDetails(err.Error()),
-				WithError(err))
+				Details: &details,
+			}
 			return false
 		}
 		return true
@@ -545,7 +548,7 @@ func NewSubscription(request *SubscriptionRequest, feed *Feed) *Subscription {
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *SubscriptionCustomisation) Valid() (bool, error) {
 	if valid, err := validation.ValidateStruct(s); err != nil || !valid {
-		return false, NewMessage("subscription is invalid", MessageStatusError, WithError(err))
+		return false, fmt.Errorf("subscription is invalid: %w", err)
 	}
 	return true, nil
 }

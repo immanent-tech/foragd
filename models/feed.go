@@ -128,7 +128,7 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 	results := feeds.NewFeedsFromURLs(ctx, url)
 	for result := range slices.Values(results) {
 		if result.Err != nil {
-			return nil, NewMessage("Could not create feed from URL "+url, MessageStatusError, WithError(result.Err))
+			return nil, fmt.Errorf("could not create feed from URL %s: %w", url, result.Err)
 		}
 		feed = NewFeedFromSource(result.Feed.FeedSource, string(result.Feed.SourceType))
 	}

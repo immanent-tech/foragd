@@ -55,7 +55,7 @@ func (r *SubscriptionRequest) inputNickname() *textinput.Props {
 	)
 }
 
-templ (r *SubscriptionRequest) Form(msg *models.Message) {
+templ (r *SubscriptionRequest) Form(msg *models.UserMessage) {
 	<div id={ SubscriptionDetailsID.String() }>
 		if msg != nil {
 			@partials.NewMessage(msg).AsNotification()
@@ -110,7 +110,7 @@ func NewSubscriptionRequest(req *models.SubscriptionRequest) *SubscriptionReques
 }
 
 // NewSubscriptionModal will display a modal for the user to enter new Subscription details.
-templ NewSubscriptionModal(req *models.SubscriptionRequest, msg *models.Message) {
+templ NewSubscriptionModal(req *models.SubscriptionRequest, msg *models.UserMessage) {
 	@modal.Build(
 		modal.WithID(partials.ModalID.String()),
 		modal.WithCloseButton(),

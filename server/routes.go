@@ -5,7 +5,6 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"slices"
 
@@ -133,7 +132,14 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	// Retrieve filters.
 	filters, err := models.NewFiltersFromParams(params)
 	if err != nil {
-		handlers.InternalServerError(res, req, err)
+		handlers.ResponseError(res, req, &models.Response{
+			StatusCode:    http.StatusInternalServerError,
+			InternalError: err,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "An internal server error occurred.",
+			},
+		})
 		return
 	}
 	ctx := models.FiltersToCtx(req.Context(), *filters)
@@ -156,7 +162,13 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 			displayFunc = handlers.DisplayArticles(s.DataAPI(), s.SessionAPI(), pagination)
 		}
 	default:
-		handlers.InternalServerError(res, req, fmt.Errorf("%w: %s for collection is unknown", ErrInvalidParam, collection))
+		handlers.ResponseError(res, req, &models.Response{
+			StatusCode: http.StatusNoContent,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "Collection is unknown.",
+			},
+		})
 		return
 	}
 	// Generate handler chain.
@@ -251,7 +263,14 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 	// Retrieve filters.
 	filters, err := models.NewFiltersFromParams(params)
 	if err != nil {
-		handlers.InternalServerError(res, req, err)
+		handlers.ResponseError(res, req, &models.Response{
+			StatusCode:    http.StatusInternalServerError,
+			InternalError: err,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "An internal server error occurred.",
+			},
+		})
 		return
 	}
 	ctx := models.FiltersToCtx(req.Context(), *filters)

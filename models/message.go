@@ -6,22 +6,18 @@ package models
 import (
 	"errors"
 	"fmt"
-	"slices"
 	"strings"
 )
 
 var ErrUnknown = errors.New("an unknown error occurred")
 
-// MessageOption is a functional option to apply to a Message.
-type MessageOption func(*Message)
-
 // HasDetails returns a boolean indicating whether the message has additional details.
-func (msg *Message) HasDetails() bool {
+func (msg *UserMessage) HasDetails() bool {
 	return msg.Details != nil
 }
 
 // String returns the message as a formatted string. This allows Message to satisfy the Stringer interface.
-func (msg *Message) String() string {
+func (msg *UserMessage) String() string {
 	var str strings.Builder
 	str.WriteString(fmt.Sprintf("%s: %s", strings.ToTitle(string(msg.Status)), msg.Summary))
 	if msg.Details != nil {
@@ -31,7 +27,7 @@ func (msg *Message) String() string {
 }
 
 // CSVString writes the message out in a format suitable as a record in a CSV file.
-func (msg *Message) CSVString() string {
+func (msg *UserMessage) CSVString() string {
 	if msg == nil {
 		return ""
 	}
@@ -46,37 +42,6 @@ func (msg *Message) CSVString() string {
 
 // Error returns an error string representing the Message. This allows Message to satisfy the Error interface and be
 // used as an error.
-func (msg *Message) Error() string {
-	if msg.InternalError != nil {
-		return msg.InternalError.Error()
-	}
-	return ErrUnknown.Error()
-}
-
-// WithDetails option sets the details, or extra information on the Message.
-func WithDetails(details string) MessageOption {
-	return func(notice *Message) {
-		notice.Details = &details
-	}
-}
-
-// WithError option sets the internal error for the Message.
-func WithError(err error) MessageOption {
-	return func(notice *Message) {
-		notice.InternalError = err
-	}
-}
-
-// NewMessage creates a new Message with the given summary, status and options.
-func NewMessage(summary string, status MessageStatus, options ...MessageOption) *Message {
-	notice := &Message{
-		Summary: summary,
-		Status:  status,
-	}
-
-	for option := range slices.Values(options) {
-		option(notice)
-	}
-
-	return notice
+func (msg *UserMessage) Error() string {
+	return msg.String()
 }

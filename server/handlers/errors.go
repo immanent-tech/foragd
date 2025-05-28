@@ -4,7 +4,6 @@
 package handlers
 
 import (
-	"errors"
 	"log/slog"
 	"net/http"
 
@@ -16,42 +15,15 @@ import (
 )
 
 // InternalServerError handles errors related to non-specific internal server functionality failures.
-func InternalServerError(res http.ResponseWriter, req *http.Request, err error) {
-	msg := models.NewMessage("Internal server error", models.MessageStatusError, models.WithError(err))
-	slogctx.FromCtx(req.Context()).Error("Cannot display content.",
-		slog.Any("error", msg))
-	if err := htmx.NewResponse().RenderTempl(req.Context(), res, partials.ShowNotification(msg)); err != nil {
-		http.Error(res, msg.String(), http.StatusInternalServerError)
+func ResponseError(res http.ResponseWriter, req *http.Request, resp *models.Response) {
+	slogctx.FromCtx(req.Context()).Error("Backend returned an error.",
+		slog.String("error", resp.String()))
+	// Display a notification if a user message is set.
+	if resp.UserMessage != nil {
+		if err := htmx.NewResponse().RenderTempl(req.Context(), res, partials.ShowNotification(resp.UserMessage)); err != nil {
+			http.Error(res, "Internal server error.", http.StatusInternalServerError)
+		}
 	}
-}
-
-type HTTPError struct {
-	error
-	Code int
-}
-
-func NewError(code int, message string) *HTTPError {
-	return &HTTPError{
-		error: errors.New(message),
-		Code:  code,
-	}
-}
-
-func NotFound(message string) *HTTPError {
-	return NewError(http.StatusNotFound, message)
-}
-
-// InternalServerError handles errors related to non-specific internal server functionality failures.
-func HandleError(res http.ResponseWriter, req *http.Request, err *HTTPError) {
-	var httpErr *HTTPError
-	if errors.As(err, &httpErr) {
-		http.Error(res, err.Error(), httpErr.Code)
-		slogctx.FromCtx(req.Context()).Error("Error occurred.",
-			slog.Any("error", err))
-	} else {
-		// Default to 500
-		http.Error(res, err.Error(), http.StatusInternalServerError)
-		slogctx.FromCtx(req.Context()).Error("Internal server error.",
-			slog.Any("error", err))
-	}
+	// Write the status code.
+	res.WriteHeader(resp.StatusCode)
 }

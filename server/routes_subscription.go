@@ -58,10 +58,12 @@ func (f *SetImportMethodFormdataBody) Sanitise() error {
 func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
 	importMethod, valid, err := forms.DecodeForm[*SetImportMethodFormdataBody](req)
 	if err != nil || !valid {
-		msg := models.NewMessage(
-			"Error processing import.",
-			models.MessageStatusError,
-			models.WithError(err))
+		details := err.Error()
+		msg := &models.UserMessage{
+			Status:  models.UserMessageStatusError,
+			Summary: "Error processing import.",
+			Details: &details,
+		}
 		showImportFailed(res, req, msg)
 		return
 	}
@@ -73,7 +75,10 @@ func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, form); err != nil {
-		handlers.InternalServerError(res, req, err)
+		handlers.ResponseError(res, req, &models.Response{
+			StatusCode:    http.StatusInternalServerError,
+			InternalError: err,
+		})
 		return
 	}
 }
@@ -103,10 +108,12 @@ func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, sub
 func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
 	subscriptionEdits, valid, err := forms.DecodeForm[*models.SubscriptionCustomisation](req)
 	if err != nil || !valid {
-		msg := models.NewMessage(
-			"Error editing subscription.",
-			models.MessageStatusError,
-			models.WithError(err))
+		details := err.Error()
+		msg := &models.UserMessage{
+			Status:  models.UserMessageStatusError,
+			Summary: "Error editing subscription.",
+			Details: &details,
+		}
 		showImportFailed(res, req, msg)
 		return
 	}
@@ -124,13 +131,13 @@ func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, s
 	chain.ServeHTTP(res, req)
 }
 
-func showImportFailed(res http.ResponseWriter, req *http.Request, msg *models.Message) {
+func showImportFailed(res http.ResponseWriter, req *http.Request, msg *models.UserMessage) {
 	if err := htmx.NewResponse().
 		Retarget(subscription.ImportModalID.Target()).
 		Reswap(htmx.SwapOuterHTML).
 		RenderTempl(req.Context(), res,
 			subscription.ImportResultsModal(subscription.ImportFailed(msg)),
 		); err != nil {
-		handlers.InternalServerError(res, req, err)
+		// handlers.InternalServerError(res, req, err)
 	}
 }

@@ -6,6 +6,7 @@ package models
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"time"
 
@@ -144,17 +145,12 @@ func (u *User) MarkItems(mark Mark, feedID FeedID, itemIDs ...ItemID) {
 
 // Valid will check to ensure the UserSignupRequest contains valid data.
 func (u *UserSignupRequest) Valid() (bool, error) {
-	valid, problems := validation.ValidateStruct(u)
+	_, problems := validation.ValidateStruct(u)
 	if problems != nil {
-		u.Msg = NewMessage(
-			"User details are invalid.",
-			MessageStatusWarning,
-			WithDetails(problems.Error()),
-			WithError(problems),
-		)
+		return false, fmt.Errorf("user is invalid: %w", problems)
 	}
 
-	return valid, problems
+	return true, nil
 }
 
 // Sanitise will sanitise the UserSignupRequest.

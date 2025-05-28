@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"slices"
 	"strconv"
 	"strings"
@@ -27,84 +28,76 @@ import (
 var (
 	ErrUserActionFailed      = errors.New("user action failed")
 	ErrUserAlreadySubscribed = errors.New("user already subscribed")
+	RespInvalidUser          = &models.Response{
+		StatusCode:    http.StatusInternalServerError,
+		InternalError: ErrNoUserCtx,
+		UserMessage: &models.UserMessage{
+			Status:  models.UserMessageStatusError,
+			Summary: "Invalid or expired session.",
+		},
+	}
 )
 
 // GetUserSubscription retrieves the subscription with the given ID.
-func (e *API) GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, error) {
+func (e *API) GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, models.NewMessage(
-			"Could not fetch subscriptions.",
-			models.MessageStatusError,
-			models.WithError(ErrNoUserCtx))
+		return nil, RespInvalidUser
 	}
 
 	sub := user.GetSubscriptions().FindByID(subscriptionID)
 	if sub == nil {
-		return nil, models.NewMessage(
-			"Could not get subscription.",
-			models.MessageStatusError,
-		)
+		return nil, &models.Response{
+			StatusCode: http.StatusNoContent,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "No subscription with matching ID.",
+			},
+		}
 	}
 	feed, err := e.GetFeed(ctx, sub.GetFeedID())
 	if err != nil {
-		return nil, models.NewMessage(
-			"Could not get subscription.",
-			models.MessageStatusError,
-			models.WithError(err),
-		)
+		return nil, models.RespTemporaryIssue("The backend encountered an issue. Please retry.", err)
 	}
 	sub.Feed = feed
 	return sub, nil
 }
 
-func (e *API) EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) error {
+func (e *API) EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) *models.Response {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return models.NewMessage(
-			"Could not fetch subscriptions.",
-			models.MessageStatusError,
-			models.WithError(ErrNoUserCtx))
+		return RespInvalidUser
 	}
-
+	// Perform subscription edits.
 	user.EditSubscription(subscriptionID, edits)
-
+	// Save edits to user object.
 	return e.UpdateUser(ctx, user.GetID(), map[string]any{
 		"subscriptions": user.Subscriptions,
 		"updated_at":    time.Now().UTC(),
 	})
 }
 
-func (e *API) GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, error) {
+func (e *API) GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", models.NewMessage(
-			"Could not fetch subscriptions.",
-			models.MessageStatusError,
-			models.WithError(ErrNoUserCtx))
+		return nil, "", RespInvalidUser
 	}
 	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
 
 	// Get feeds matching subscriptions.
 	feeds, err := e.GetAllFeeds(ctx, subscriptions.GetFeedIDs()...)
 	if err != nil {
-		return nil, "", models.NewMessage(
-			"Could not fetch subscriptions.",
-			models.MessageStatusError,
-			models.WithError(err))
+		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
 	}
 	// Filter by feeds.
 	subscriptions = subscriptions.FilterByFeed(feeds)
 	// Add unread counts to feeds.
 	err = e.GetSubscriptionUnreadCounts(ctx, subscriptions)
 	if err != nil {
-		return nil, "", models.NewMessage(
-			"Could not fetch subscription unread counts",
-			models.MessageStatusWarning,
-			models.WithError(err))
+		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
 	}
 	// Filter subscriptions with given filters.
 	subscriptions = subscriptions.
@@ -118,7 +111,7 @@ func (e *API) GetSubscriptionsByID(ctx context.Context, filters models.Filters, 
 	}
 	to := min(from+filters.Count, len(subscriptions))
 	pagination = strconv.Itoa(to)
-	return subscriptions[from:to], pagination, nil
+	return subscriptions[from:to], pagination, models.RespSuccess("Subscriptions fetched.")
 }
 
 // GetFeedUnreadCounts performs an aggregation over the items index to calculate
@@ -155,16 +148,13 @@ func (e *API) GetSubscriptionUnreadCounts(ctx context.Context, subscriptions mod
 }
 
 // AddSubscriptions will add Subscriptions to a User.
-func (e *API) AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error {
+func (e *API) AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) *models.Response {
 	if len(subscriptions) == 0 {
 		return nil
 	}
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return models.NewMessage(
-			"Unable to add subscriptions.",
-			models.MessageStatusError,
-			models.WithError(ErrNoUserCtx))
+		return RespInvalidUser
 	}
 	// Add the subscriptions to the user.
 	user.AddSubscriptions(subscriptions)
@@ -176,16 +166,13 @@ func (e *API) AddSubscriptions(ctx context.Context, subscriptions models.Subscri
 }
 
 // RemoveSubscriptions will remove the subscriptions for a user.
-func (e *API) RemoveSubscriptions(ctx context.Context, subscriptions ...models.SubscriptionID) error {
+func (e *API) RemoveSubscriptions(ctx context.Context, subscriptions ...models.SubscriptionID) *models.Response {
 	if len(subscriptions) == 0 {
 		return nil
 	}
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return models.NewMessage(
-			"Unable to remove subscriptions.",
-			models.MessageStatusError,
-			models.WithError(ErrNoUserCtx))
+		return RespInvalidUser
 	}
 	// Add the subscriptions to the user.
 	user.RemoveSubscriptions(subscriptions...)
@@ -197,10 +184,10 @@ func (e *API) RemoveSubscriptions(ctx context.Context, subscriptions ...models.S
 }
 
 // UserActionMarkSubscriptions will mark user subscriptions with the given state.
-func (e *API) MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptions ...models.SubscriptionID) error {
+func (e *API) MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptions ...models.SubscriptionID) *models.Response {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return ErrNoUserCtx
+		return RespInvalidUser
 	}
 	// Mark subscriptions.
 	user.MarkSubscriptions(mark, subscriptions...)
@@ -218,15 +205,21 @@ func (e *API) MarkSubscriptions(ctx context.Context, mark models.Mark, subscript
 // GetItem retrieves the specified item with the given id and from the given
 // feed. It checks for a subscription and will return false (without an error)
 // if the current user is not subscribed.
-func (e *API) GetArticle(ctx context.Context, itemID models.ItemID) (*models.Article, bool, error) {
+func (e *API) GetArticle(ctx context.Context, itemID models.ItemID) (*models.Article, bool, *models.Response) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, false, errors.Join(ErrSearchFailed, ErrFetchCtx)
+		return nil, false, &models.Response{
+			StatusCode: http.StatusInternalServerError,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "Could not fetch article.",
+			},
+		}
 	}
 
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, false, ErrNoUserCtx
+		return nil, false, RespInvalidUser
 	}
 
 	req := NewSearchRequest(e.GetAPI(),
@@ -252,27 +245,27 @@ func (e *API) GetArticle(ctx context.Context, itemID models.ItemID) (*models.Art
 
 	res, err := req.Do(ctx)
 	if err != nil {
-		return nil, false, errors.Join(ErrSearchFailed, err)
+		return nil, false, models.RespTemporaryIssue("Could not fetch article. Please try again.", err)
 	}
 
 	item, err := ExtractSource[*models.Item](res.Hits.Hits[0].Source_)
 	if err != nil {
-		return nil, false, errors.Join(ErrSearchFailed, err)
+		return nil, false, models.RespTemporaryIssue("Could not fetch article. Please try again.", err)
 	}
 
 	if !user.IsSubscribed(item.GetFeedID()) {
-		return nil, false, ErrNoUserCtx
+		return nil, false, models.RespTemporaryIssue("Could not fetch article. Please try again.", err)
 	}
 
 	articles := models.GenerateArticles(user, item)
 
-	return articles[0], true, nil
+	return articles[0], true, models.RespSuccess("Fetched article.")
 }
 
-func (e *API) GetArticlesBySubscription(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, error) {
+func (e *API) GetArticlesBySubscription(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", ErrFetchCtx
+		return nil, "", RespInvalidUser
 	}
 	// Get subscriptions matching the filters.
 	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
@@ -295,7 +288,7 @@ func (e *API) GetArticlesBySubscription(ctx context.Context, filters models.Filt
 	// items.
 	resp, err := e.ItemsSearch(ctx, query, filters, pagination)
 	if err != nil {
-		return nil, "", errors.Join(ErrUserActionFailed, err)
+		return nil, "", models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
 	}
 	// Extract items and pagination values.
 	items, lastSortValue, warnings := ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
@@ -306,12 +299,12 @@ func (e *API) GetArticlesBySubscription(ctx context.Context, filters models.Filt
 	// Encode the pagination value.
 	pagination, err = encodePagination(lastSortValue)
 	if err != nil {
-		return nil, "", errors.Join(ErrUserActionFailed, err)
+		return nil, "", models.RespTemporaryIssue("Could not fetch article. Please try again.", err)
 	}
 	// Create articles from the items.
 	articles := models.GenerateArticles(user, items...)
 
-	return articles, pagination, nil
+	return articles, pagination, models.RespSuccess("Fetched articles.")
 }
 
 // GetItemsByID fetches the items with the given IDs.
@@ -349,10 +342,10 @@ func (e *API) GetArticlesByID(ctx context.Context, itemIDs ...models.ItemID) (mo
 }
 
 // MarkItems will mark the given items for the given feeds with the given state for the user.
-func (e *API) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error {
+func (e *API) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) *models.Response {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return ErrNoUserCtx
+		return RespInvalidUser
 	}
 	if len(itemIDs) == 0 {
 		slogctx.FromCtx(ctx).Warn("Mark items requested but not items provided.")
@@ -361,7 +354,7 @@ func (e *API) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models
 	// Get item details.
 	articles, err := e.GetArticlesByID(ctx, itemIDs...)
 	if err != nil {
-		return fmt.Errorf("could not mark items: %w", err)
+		return models.RespTemporaryIssue("Could not perform action. Please try again.", err)
 	}
 	// Mark each item in the user data.
 	for feedID := range slices.Values(articles.GetItems().GetFeedIDs()) {
@@ -375,7 +368,7 @@ func (e *API) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models
 }
 
 // GetTopItemCategories gets the top 10 most-used categories across the list of feeds.
-func (e *API) GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error) {
+func (e *API) GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response) {
 	query := query.Bool(
 		query.Filter(
 			// Must match any of the given feed IDs.
@@ -384,15 +377,29 @@ func (e *API) GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) 
 	)
 	resp, err := e.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
 	if err != nil {
-		return nil, ErrFetchCtx
+		return nil, &models.Response{
+			StatusCode:    http.StatusNoContent,
+			InternalError: err,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "Could not retrieve categories.",
+			},
+		}
 	}
 	var topCategories aggregations.TermsAggregationResults
 	topCategories.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](resp.Aggregations, "TopCategories")
 	if err != nil {
-		return nil, ErrFetchCtx
+		return nil, &models.Response{
+			StatusCode:    http.StatusNoContent,
+			InternalError: err,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "Could not retrieve categories.",
+			},
+		}
 	}
 
-	return topCategories.BucketNames(), nil
+	return topCategories.BucketNames(), models.RespSuccess("Retrieved categories.")
 }
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.

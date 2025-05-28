@@ -59,13 +59,13 @@ func MarkFeeds(api DataAPI, mark models.Mark, feeds ...models.FeedID) http.Handl
 		// Get the user details.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			InternalServerError(res, req, ErrInvalidUser)
+			ResponseError(res, req, elastic.RespInvalidUser)
 		}
 		// Get the user subscriptions matching the feeds
 		subscriptions := user.GetSubscriptions().FilterByFeedID(feeds...)
 		// Mark the subscriptions.
 		if err := api.MarkSubscriptions(req.Context(), mark, subscriptions.GetIDs()...); err != nil {
-			InternalServerError(res, req, err)
+			ResponseError(res, req, err)
 			return
 		}
 		res.WriteHeader(http.StatusOK)
@@ -77,7 +77,7 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Mark the feeds.
 		if err := api.MarkItems(req.Context(), mark, items...); err != nil {
-			InternalServerError(res, req, err)
+			ResponseError(res, req, err)
 			return
 		}
 		res.WriteHeader(http.StatusOK)
@@ -86,9 +86,9 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 
 func DisplaySubscriptions(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscriptions, pagination, err := dataAPI.GetSubscriptionsByID(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
-		if err != nil {
-			InternalServerError(res, req, err)
+		subscriptions, pagination, resp := dataAPI.GetSubscriptionsByID(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
+		if resp.IsError() {
+			ResponseError(res, req, resp)
 			return
 		}
 		pageTitle := "Subscriptions"
@@ -119,9 +119,9 @@ func DisplaySubscriptions(dataAPI DataAPI, sessionAPI models.SessionAPI, paginat
 
 func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		articles, pagination, err := dataAPI.GetArticlesBySubscription(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
-		if err != nil {
-			InternalServerError(res, req, err)
+		articles, pagination, resp := dataAPI.GetArticlesBySubscription(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
+		if resp.IsError() {
+			ResponseError(res, req, resp)
 			return
 		}
 		switch {
@@ -155,7 +155,7 @@ func DisplayArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, itemID models
 		article, found, err := dataAPI.GetArticle(req.Context(), itemID)
 		if err != nil || !found {
 			spew.Dump(err, found)
-			InternalServerError(res, req, err)
+			ResponseError(res, req, err)
 			return
 		}
 		content := views.BuildArticleLayout(article)

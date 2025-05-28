@@ -59,21 +59,21 @@ type DataAPI interface {
 	AddUser(ctx context.Context, userID models.UserID) error
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 	// Subscription methods:
-	GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, error)
-	GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, error)
-	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) error
-	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) error
-	EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) error
-	RemoveSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) error
+	GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, *models.Response)
+	GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response)
+	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) *models.Response
+	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) *models.Response
+	EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) *models.Response
+	RemoveSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) *models.Response
 	// Feeds methods:
 	// GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
 	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
-	GetArticle(ctx context.Context, itemID models.ItemID) (*models.Article, bool, error)
-	GetArticlesBySubscription(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, error)
-	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) error
-	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, error)
+	GetArticle(ctx context.Context, itemID models.ItemID) (*models.Article, bool, *models.Response)
+	GetArticlesBySubscription(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response)
+	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) *models.Response
+	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)
 }
 
 // AuthAPI represents the API surface for interacting with the auth backend.
@@ -110,7 +110,14 @@ func FullRender(title string, pageOptions ...templates.PageOption) http.Handler 
 		slogctx.FromCtx(req.Context()).Debug("Performing full page render.")
 		page := templates.NewPage(title, pageOptions...)
 		if err := page.Template().Render(req.Context(), res); err != nil {
-			InternalServerError(res, req, err)
+			ResponseError(res, req, &models.Response{
+				StatusCode:    http.StatusInternalServerError,
+				InternalError: err,
+				UserMessage: &models.UserMessage{
+					Status:  models.UserMessageStatusError,
+					Summary: "Could not render content.",
+				},
+			})
 		}
 	})
 }
@@ -183,7 +190,14 @@ func SetupRedirect(api models.SessionAPI, path *string) func(next http.Handler) 
 				HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
 				data, err := json.Marshal(HxLocationData)
 				if err != nil {
-					InternalServerError(res, req, err)
+					ResponseError(res, req, &models.Response{
+						StatusCode:    http.StatusInternalServerError,
+						InternalError: err,
+						UserMessage: &models.UserMessage{
+							Status:  models.UserMessageStatusError,
+							Summary: "Redirection failed.",
+						},
+					})
 				}
 				// Set-up client-side redirect to view.
 				res.Header().Add(htmx.HeaderLocation, string(data))

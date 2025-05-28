@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
@@ -96,10 +97,10 @@ func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
 	return nil
 }
 
-func (e *API) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) error {
+func (e *API) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) *models.Response {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
-		return errors.Join(ErrUpdateFailed, ErrFetchCtx)
+		return RespInvalidUser
 	}
 
 	// Updated the `updated_at` timestamp.
@@ -110,12 +111,18 @@ func (e *API) UpdateUser(ctx context.Context, id models.UserID, partialUpdate ma
 		WithPartialDocUpdate(partialUpdate),
 	).Do(ctx)
 	if err != nil {
-		return errors.Join(ErrUpdateFailed, err)
+		return &models.Response{
+			StatusCode: http.StatusNoContent,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "User updated failed.",
+			},
+		}
 	}
 
 	slog.Debug("Updated user.",
 		slog.String("result", resp.Result.String()),
 		slog.Int64("version", resp.Version_))
 
-	return nil
+	return models.RespSuccess("User updated.")
 }

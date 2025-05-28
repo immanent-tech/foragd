@@ -6,6 +6,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/server/handlers"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
@@ -42,11 +44,14 @@ func (s Server) ProcessSignUp(res http.ResponseWriter, req *http.Request) {
 	}
 	// Process the user sign-up and create the new user.
 	if err := s.addUser(req.Context(), userSignup); err != nil {
-		userSignup.Msg = backendErrorMsg(err)
-		if err := resp.RenderTempl(req.Context(), res, layouts.SignupForm(userSignup)); err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", err))
-			http.Error(res, "user signup failed!", http.StatusInternalServerError)
-		}
+		handlers.ResponseError(res, req, &models.Response{
+			StatusCode:    http.StatusInternalServerError,
+			InternalError: err,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "An internal server error occurred.",
+			},
+		})
 		return
 	}
 	// Display success and prompt user to log in with new account.
@@ -60,7 +65,7 @@ func (s Server) addUser(ctx context.Context, userSignup *models.UserSignupReques
 	// Create the user in the auth backend.
 	userID, err := s.API.user.Create(ctx, userSignup)
 	if err != nil {
-		return models.NewMessage("Add user failed.", models.MessageStatusError, models.WithError(err))
+		return fmt.Errorf("add user failed: %w", err)
 	}
 
 	// Create new user in the database backend.
@@ -68,7 +73,7 @@ func (s Server) addUser(ctx context.Context, userSignup *models.UserSignupReques
 
 	err = s.DataAPI().AddUser(addUserCtx, userID)
 	if err != nil {
-		return models.NewMessage("Add user failed.", models.MessageStatusError, models.WithError(err))
+		return fmt.Errorf("add user failed: %w", err)
 	}
 
 	return nil

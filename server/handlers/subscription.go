@@ -16,6 +16,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -29,16 +30,20 @@ func ParseSubscriptionRequest(next http.Handler) http.Handler {
 		ctx := req.Context()
 		request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 		if err != nil {
-			request.Result = models.NewMessage(
-				"Error parsing form.",
-				models.MessageStatusError,
-				models.WithError(err))
+			details := err.Error()
+			request.Result = &models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "Unable to parse request.",
+				Details: &details,
+			}
 		}
 		if !valid {
-			request.Result = models.NewMessage(
-				"Details are invalid.",
-				models.MessageStatusError,
-				models.WithError(err))
+			details := err.Error()
+			request.Result = &models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "Unable to parse request.",
+				Details: &details,
+			}
 		}
 		// Store subscriptions in context.
 		ctx = context.WithValue(ctx, subscriptionRequestsCtxKey, models.SubscriptionRequests{request})
@@ -54,20 +59,22 @@ func ParseOPMLFromFile(next http.Handler) http.Handler {
 		opmlFile := &models.OPMLFile{}
 		opmlFile, valid, err := forms.DecodeMultipartFile(req, "data", opmlFile)
 		if err != nil || !valid {
-			ImportResults(models.NewMessage(
-				"Could not parse OPML file.",
-				models.MessageStatusError,
-				models.WithError(err)),
-			).ServeHTTP(res, req)
+			details := err.Error()
+			ImportResults(&models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "Could not parse OPML file.",
+				Details: &details,
+			}).ServeHTTP(res, req)
 			return
 		}
 		opmlImport, err := opmlFile.Parse()
 		if err != nil {
-			ImportResults(models.NewMessage(
-				"Could not parse OPML file.",
-				models.MessageStatusError,
-				models.WithError(err)),
-			).ServeHTTP(res, req)
+			details := err.Error()
+			ImportResults(&models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "Could not parse OPML file.",
+				Details: &details,
+			}).ServeHTTP(res, req)
 			return
 		}
 		// Extract the individual feeds from the OPML object and create a subscription
@@ -90,11 +97,12 @@ func ProcessImportMethod(next http.Handler) http.Handler {
 		// Decode the import source.
 		importMethod, err := forms.DecodeMultipartValue(req, "source")
 		if err != nil {
-			ImportResults(models.NewMessage(
-				"Error processing OPML import.",
-				models.MessageStatusError,
-				models.WithError(err)),
-			).ServeHTTP(res, req)
+			details := err.Error()
+			ImportResults(&models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "Error processing OPML import.",
+				Details: &details,
+			}).ServeHTTP(res, req)
 			return
 		}
 		// Generate subscription requests using the import source.
@@ -114,7 +122,7 @@ func MatchRequestsWithFeeds(api DataAPI) func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			user, found := models.UserFromCtx(req.Context())
 			if !found {
-				InternalServerError(res, req, models.ErrUserCtx)
+				ResponseError(res, req, elastic.RespInvalidUser)
 				return
 			}
 			requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
@@ -128,11 +136,12 @@ func MatchRequestsWithFeeds(api DataAPI) func(next http.Handler) http.Handler {
 			// existingFeeds, err := api.GetFeedsByURL(req.Context(), requests.URLs()...)
 			existingFeeds, err := api.FeedsSearchAll(req.Context(), query.URLs("source", requests.URLs()...))
 			if err != nil {
-				ImportResults(models.NewMessage(
-					"Could not process request.",
-					models.MessageStatusError,
-					models.WithError(err)),
-				).ServeHTTP(res, req)
+				details := err.Error()
+				ImportResults(&models.UserMessage{
+					Status:  models.UserMessageStatusError,
+					Summary: "Could not process request.",
+					Details: &details,
+				}).ServeHTTP(res, req)
 				return
 			}
 			// Loop over existing feeds.
@@ -144,10 +153,12 @@ func MatchRequestsWithFeeds(api DataAPI) func(next http.Handler) http.Handler {
 				}
 				if user.IsSubscribed(feed.GetID()) {
 					// Ignore requests where the user is already subscribed to the feed.
-					request.Result = models.NewMessage("Already Subscribed",
-						models.MessageStatusWarning,
-						models.WithDetails("A subscription for "+feed.String()+" already exists."),
-					)
+					details := "A subscription for " + feed.String() + " already exists."
+					request.Result = &models.UserMessage{
+						Status:  models.UserMessageStatusInfo,
+						Summary: "Already Subscribed",
+						Details: &details,
+					}
 					slogctx.FromCtx(req.Context()).Warn("Already subscribed.",
 						slog.String("subscription_nickname", request.UserNickname),
 						slog.String("feed_id", feed.GetID()),
@@ -192,11 +203,12 @@ func CreateNewFeedsForRequests(next http.Handler) http.Handler {
 			// Create a new feed from the request.
 			newFeed, err := models.NewFeedFromURL(req.Context(), request.GetURL())
 			if err != nil {
-				request.Result = models.NewMessage("Could not add "+request.String(),
-					models.MessageStatusError,
-					models.WithDetails(err.Error()),
-					models.WithError(err),
-				)
+				details := err.Error()
+				request.Result = &models.UserMessage{
+					Status:  models.UserMessageStatusError,
+					Summary: "Could not add " + request.String(),
+					Details: &details,
+				}
 				slogctx.FromCtx(req.Context()).Debug("Create feed failed.",
 					slog.String("subscription_nickname", request.UserNickname),
 					slog.String("source_url", request.GetURL()),
@@ -253,10 +265,12 @@ func AddFeedsForRequests(api DataAPI) func(next http.Handler) http.Handler {
 							slog.Any("feed", feed))
 						continue
 					} else {
-						request.Result = models.NewMessage("Could not create feed for "+feed.GetSourceURL(),
-							models.MessageStatusWarning,
-							models.WithError(err),
-						)
+						details := err.Error()
+						request.Result = &models.UserMessage{
+							Status:  models.UserMessageStatusError,
+							Summary: "Could not create feed for " + feed.GetSourceURL(),
+							Details: &details,
+						}
 					}
 				}
 			}
@@ -281,7 +295,12 @@ func AddFeedsForRequests(api DataAPI) func(next http.Handler) http.Handler {
 				}
 				// If the new feed failed to be added, record an error against the request.
 				if _, err := result.State(); err != nil {
-					request.Result = models.NewMessage("Add subscription failed.", models.MessageStatusError, models.WithError(err))
+					details := err.Error()
+					request.Result = &models.UserMessage{
+						Status:  models.UserMessageStatusError,
+						Summary: "Add subscription failed.",
+						Details: &details,
+					}
 				}
 			}
 
@@ -310,16 +329,14 @@ func AddSubscriptionsForRequests(api DataAPI) func(next http.Handler) http.Handl
 			err := api.AddSubscriptions(req.Context(), validRequests.Subscriptions())
 			if err != nil {
 				for request := range slices.Values(validRequests) {
-					request.Result = models.NewMessage(
-						"Add subscription failed.",
-						models.MessageStatusError,
-						models.WithError(err))
+					request.Result = err.UserMessage
 				}
 			} else {
 				for request := range slices.Values(validRequests) {
-					request.Result = models.NewMessage(
-						fmt.Sprintf("Subscription for feed %s created!", request.String()),
-						models.MessageStatusSuccess)
+					request.Result = &models.UserMessage{
+						Status:  models.UserMessageStatusSuccess,
+						Summary: fmt.Sprintf("Subscription for feed %s created!", request.String()),
+					}
 				}
 			}
 			// Store requests in context.
@@ -336,14 +353,20 @@ func AddSubscriptionResults() http.Handler {
 		// Get the request.
 		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
 		if !found {
-			InternalServerError(res, req, ErrMissingRequestData)
+			ResponseError(res, req, &models.Response{
+				StatusCode: http.StatusNoContent,
+				UserMessage: &models.UserMessage{
+					Status:  models.UserMessageStatusWarning,
+					Summary: "No response!",
+				},
+			})
 		}
 		PartialRender(partials.ShowNotification(requests[0].Result)).ServeHTTP(res, req.WithContext(req.Context()))
 	})
 }
 
 // ImportResults handles showing the result of an import.
-func ImportResults(err *models.Message) http.Handler {
+func ImportResults(err *models.UserMessage) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			if err := htmx.NewResponse().
@@ -352,14 +375,19 @@ func ImportResults(err *models.Message) http.Handler {
 				RenderTempl(req.Context(), res,
 					subscription.ImportResultsModal(subscription.ImportFailed(err)),
 				); err != nil {
-				InternalServerError(res, req, err)
 			}
 			return
 		}
 		// Get the request.
 		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
 		if !found {
-			InternalServerError(res, req, ErrMissingRequestData)
+			ResponseError(res, req, &models.Response{
+				StatusCode: http.StatusNoContent,
+				UserMessage: &models.UserMessage{
+					Status:  models.UserMessageStatusWarning,
+					Summary: "No requests found!",
+				},
+			})
 		}
 		// Generate a csv file containing all subscription request results.
 		var resultsFile strings.Builder
@@ -370,7 +398,7 @@ func ImportResults(err *models.Message) http.Handler {
 		}
 		fmt.Fprintf(&resultsFile, "</script>")
 
-		numSuccess := len(requests.FilterByStatus(models.MessageStatusSuccess))
+		numSuccess := len(requests.FilterByStatus(models.UserMessageStatusSuccess))
 		numFail := len(requests) - numSuccess
 
 		if err := htmx.NewResponse().
@@ -379,7 +407,6 @@ func ImportResults(err *models.Message) http.Handler {
 			RenderTempl(req.Context(), res,
 				subscription.ImportResultsModal(subscription.ImportSuccess(numSuccess, numFail, resultsFile.String())),
 			); err != nil {
-			InternalServerError(res, req, err)
 		}
 	})
 }
@@ -397,7 +424,7 @@ func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confi
 				slog.String("subscription_id", subscriptionID),
 			)
 			if err := api.RemoveSubscriptions(ctx, subscriptionID); err != nil {
-				InternalServerError(res, req.WithContext(ctx), err)
+				ResponseError(res, req.WithContext(ctx), err)
 				return
 			}
 			res.WriteHeader(http.StatusOK)
@@ -411,8 +438,8 @@ func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confi
 			resp.Reswap(htmx.SwapNone)
 			ctx = HTMXResponseToCtx(ctx, resp)
 			// Display a notification acknowledging cancellation of request.
-			msg := models.NewMessage("Subscription not modified.", models.MessageStatusInfo)
-			PartialRender(partials.ShowNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
+			// msg := models.NewMessage("Subscription not modified.", models.MessageStatusInfo)
+			// PartialRender(partials.ShowNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
 		default:
 			slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
 				slog.String("subscription_id", subscriptionID),
@@ -431,9 +458,9 @@ func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confi
 func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get the subscription details.
-		sub, err := api.GetSubscription(req.Context(), id)
-		if err != nil {
-			HandleError(res, req, NewError(http.StatusInternalServerError, err.Error()))
+		sub, resp := api.GetSubscription(req.Context(), id)
+		if resp != nil {
+			ResponseError(res, req, resp)
 			return
 		}
 		// Encapsulate subscription in edit request.
@@ -441,8 +468,8 @@ func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
 			Subscription: sub,
 		}
 		// Add top categories across items in subscription.
-		categories, err := api.GetTopItemCategories(req.Context(), sub.GetFeedID())
-		if err == nil {
+		categories, resp := api.GetTopItemCategories(req.Context(), sub.GetFeedID())
+		if !resp.IsError() {
 			subEdit.TopCategories = categories
 		}
 		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
@@ -456,26 +483,22 @@ func SaveSubscription(api DataAPI, id models.SubscriptionID, edits *models.Subsc
 		// Add a new HTMX response writer to the context.
 		ctx := HTMXResponseToCtx(req.Context(), htmx.NewResponse())
 
-		err := api.EditSubscription(ctx, id, edits)
-		if err != nil {
-			msg := models.NewMessage(
-				"Error editing subscription.",
-				models.MessageStatusError,
-				models.WithError(err))
-			InternalServerError(res, req.WithContext(ctx), msg)
+		resp := api.EditSubscription(ctx, id, edits)
+		if resp.IsError() {
+			ResponseError(res, req, resp)
 			return
 		}
 		// Display a notification acknowledging save.
-		msg := models.NewMessage("Subscription edits saved.", models.MessageStatusSuccess)
-		PartialRender(partials.ShowNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
+		// msg := models.NewMessage("Subscription edits saved.", models.MessageStatusSuccess)
+		// PartialRender(partials.ShowNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 
 // MarkSubscriptions handles marking subscriptions with the given IDs with the given mark.
 func MarkSubscriptions(api DataAPI, mark models.Mark, subscriptions ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if err := api.MarkSubscriptions(req.Context(), mark, subscriptions...); err != nil {
-			InternalServerError(res, req, err)
+		if resp := api.MarkSubscriptions(req.Context(), mark, subscriptions...); resp.IsError() {
+			ResponseError(res, req, resp)
 			return
 		}
 	})

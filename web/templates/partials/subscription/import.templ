@@ -120,7 +120,7 @@ templ ImportResultsModal(content templ.Component) {
 	}
 }
 
-templ ImportFailed(msg *models.Message) {
+templ ImportFailed(msg *models.UserMessage) {
 	@partials.NewMessage(msg).AsNote()
 	<div class="modal-action">
 		@button.Build(

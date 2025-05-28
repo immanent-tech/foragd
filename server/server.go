@@ -14,7 +14,6 @@ import (
 	"github.com/joshuar/go-feed-me/components/auth"
 	"github.com/joshuar/go-feed-me/components/config"
 	"github.com/joshuar/go-feed-me/components/session"
-	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/auth0"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 )
@@ -87,11 +86,4 @@ func NewServer(ctx context.Context) (Server, error) {
 	}
 
 	return svr, nil
-}
-
-func backendErrorMsg(err error) *models.Message {
-	return models.NewMessage(
-		"A backend error occurred.",
-		models.MessageStatusError,
-		models.WithError(err))
 }

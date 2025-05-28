@@ -119,26 +119,6 @@ components:
         - $ref: '#/components/schemas/RequiredFilters'
         - type: object
           properties:
-            # feeds:
-            #   description: is a list of feed IDs.
-            #   type: array
-            #   items:
-            #     $ref: 'models.yaml#/components/schemas/FeedID'
-            #   x-oapi-codegen-extra-tags:
-            #     json: 'feeds'
-            #     form: 'feeds[]'
-            #     validate: 'omitnil,unique,dive,startswith=feed_'
-            #   x-go-type-skip-optional-pointer: true
-            # items:
-            #   description: is a list of items IDs.
-            #   type: array
-            #   items:
-            #     $ref: 'models.yaml#/components/schemas/ItemID'
-            #   x-oapi-codegen-extra-tags:
-            #     json: 'items'
-            #     form: 'items[]'
-            #     validate: 'omitnil,unique,dive,startswith=item_'
-            #   x-go-type-skip-optional-pointer: true
             categories:
               description: is a list of categories.
               type: array
@@ -181,7 +161,7 @@ components:
             validate: 'required,min=10'
             form: 'password'
         msg:
-          $ref: '#/components/schemas/Message'
+          $ref: '#/components/schemas/UserMessage'
     ImportSource:
       description: >
         defines the source that will be used for an import.
@@ -217,7 +197,7 @@ components:
               description: >
                 the results of processing the subscription request.
               allOf:
-                - $ref: 'models.yaml#/components/schemas/Message'
+                - $ref: 'models.yaml#/components/schemas/UserMessage'
               x-oapi-codegen-extra-tags:
                 json: '-'
                 form: '-'
@@ -242,10 +222,9 @@ components:
           $ref: 'models.yaml#/components/schemas/URL'
         updated_at:
           $ref: 'models.yaml#/components/schemas/UpdatedAt'
-    Message:
+    UserMessage:
       description: >
-        represents a message, such as an error message or log message, generated
-        by some part of the service
+        represents a message that can be displayed to the user as the result of an action.
       type: object
       required:
         - summary
@@ -269,6 +248,20 @@ components:
           enum: ['info', 'success', 'warning', 'error']
           x-oapi-codegen-extra-tags:
             validate: 'required'
+    Response:
+      description: >
+        is a response from the backend or a component in the backend.
+      type: object
+      required:
+        - status_code
+      properties:
+        status_code:
+          description: >
+            is a status code, typically a HTTP response code.
+          type: integer
+          default: 200
+        user_message:
+          $ref: '#/components/schemas/UserMessage'
         internal_error:
           description: >
             is any error that is associated with the message.
