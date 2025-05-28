@@ -352,16 +352,21 @@ templ visitExternalLinkAction(label, url string) {
 
 func markSubscriptionAction(id models.SubscriptionID, isRead bool) templ.Component {
 	// Create htmx attributes.
-	attrs := maps.Clone(actionAttributes)
+	attrs := templ.Attributes{
+		"hx-replace-url":  "false",
+		"hx-target":       "#" + id,
+		"hx-target-error": templates.ErrorID.Target(),
+		"hx-swap":         "outerHTML swap:1s",
+	}
 	// Create url parameters.
 	params := make(url.Values)
-	params.Add(models.ParamRedirect, string(models.PageViewIDFeeds))
+	// params.Add(models.ParamRedirect, "/home/subscriptions")
 
 	if isRead {
-		attrs["hx-post"] = "/subscription/mark/" + string(models.MarkRead) + "/" + id + "?" + params.Encode()
+		attrs["hx-post"] = "/subscription/" + string(models.MarkRead) + "/" + id + "?" + params.Encode()
 		return markReadLink("Mark Read", attrs)
 	}
-	attrs["hx-post"] = "/subscription/mark/" + string(models.MarkUnread) + "/" + id + "?" + params.Encode()
+	attrs["hx-post"] = "/subscription/" + string(models.MarkUnread) + "/" + id + "?" + params.Encode()
 	return markUnreadLink("Mark Unread", attrs)
 }
 

@@ -224,9 +224,21 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, item Ite
 	chain.ServeHTTP(res, req)
 }
 
-// ActionFeed handles performing an action on a feed.
+// ActionSubscription performs an action on a subscription.
 func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, action Action, sub SubscriptionID, params ActionSubscriptionParams) {
-	res.WriteHeader(http.StatusNotImplemented)
+	var actionFunc http.Handler
+	switch action {
+	case models.ActionRead, models.ActionUnread:
+		actionFunc = handlers.MarkSubscriptions(s.DataAPI(), models.Mark(action), sub)
+	default:
+		res.WriteHeader(http.StatusNotImplemented)
+		return
+	}
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetupRedirect(s.SessionAPI(), params.Redirect),
+	).Then(actionFunc)
+	chain.ServeHTTP(res, req)
 }
 
 // ShowSubscription handles showing items for a feed.
