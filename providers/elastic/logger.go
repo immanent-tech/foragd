@@ -14,6 +14,8 @@ import (
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/joshuar/go-feed-me/components/logging"
 )
 
 var _ elastictransport.Logger = (*Logger)(nil)
@@ -108,7 +110,7 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		baseAttributes...,
 	)
 
-	level := slog.LevelDebug
+	level := logging.LevelTrace
 	if status >= http.StatusInternalServerError {
 		level = slog.LevelError
 	} else if status >= http.StatusBadRequest && status < http.StatusInternalServerError {
