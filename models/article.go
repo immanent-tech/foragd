@@ -3,7 +3,9 @@
 
 package models
 
-import "slices"
+import (
+	"slices"
+)
 
 // Articles is a slices of individual articles.
 type Articles []*Article
@@ -15,6 +17,14 @@ func (a Articles) GetItems() Items {
 		items = append(items, article.Item)
 	}
 	return items
+}
+
+func (a Articles) GetSubscriptionIDs() []SubscriptionID {
+	subIDs := make([]SubscriptionID, 0, len(a))
+	for article := range slices.Values(a) {
+		subIDs = append(subIDs, article.SubscriptionID)
+	}
+	return slices.Compact(subIDs)
 }
 
 func (a *Article) HasState() bool {

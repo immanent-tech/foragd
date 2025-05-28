@@ -75,7 +75,7 @@ func (s Server) SetImportMethod(res http.ResponseWriter, req *http.Request) {
 	}
 
 	if err := htmx.NewResponse().RenderTempl(req.Context(), res, form); err != nil {
-		handlers.ResponseError(res, req, &models.Response{
+		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode:    http.StatusInternalServerError,
 			InternalError: err,
 		})

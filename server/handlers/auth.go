@@ -28,7 +28,7 @@ func PerformAuth(api AuthAPI) http.Handler {
 			slogctx.FromCtx(req.Context()).Warn("Authentication required.", slog.Any("error", err))
 			url, err := api.GetAuthURL(req)
 			if err != nil {
-				ResponseError(res, req, &models.Response{
+				ProcessResponse(res, req, &models.Response{
 					StatusCode:    http.StatusInternalServerError,
 					InternalError: err,
 					UserMessage: &models.UserMessage{
@@ -52,7 +52,7 @@ func PerformAuth(api AuthAPI) http.Handler {
 func AuthCallback(authAPI AuthAPI, sessionAPI models.SessionAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if err := authAPI.CompleteUserAuth(res, req); err != nil {
-			ResponseError(res, req, &models.Response{
+			ProcessResponse(res, req, &models.Response{
 				StatusCode:    http.StatusInternalServerError,
 				InternalError: err,
 				UserMessage: &models.UserMessage{

@@ -110,7 +110,7 @@ func FullRender(title string, pageOptions ...templates.PageOption) http.Handler 
 		slogctx.FromCtx(req.Context()).Debug("Performing full page render.")
 		page := templates.NewPage(title, pageOptions...)
 		if err := page.Template().Render(req.Context(), res); err != nil {
-			ResponseError(res, req, &models.Response{
+			ProcessResponse(res, req, &models.Response{
 				StatusCode:    http.StatusInternalServerError,
 				InternalError: err,
 				UserMessage: &models.UserMessage{
@@ -190,7 +190,7 @@ func SetupRedirect(api models.SessionAPI, path *string) func(next http.Handler) 
 				HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
 				data, err := json.Marshal(HxLocationData)
 				if err != nil {
-					ResponseError(res, req, &models.Response{
+					ProcessResponse(res, req, &models.Response{
 						StatusCode:    http.StatusInternalServerError,
 						InternalError: err,
 						UserMessage: &models.UserMessage{

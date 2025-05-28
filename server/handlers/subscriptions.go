@@ -122,7 +122,7 @@ func MatchRequestsWithFeeds(api DataAPI) func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			user, found := models.UserFromCtx(req.Context())
 			if !found {
-				ResponseError(res, req, elastic.RespInvalidUser)
+				ProcessResponse(res, req, elastic.RespInvalidUser)
 				return
 			}
 			requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
@@ -353,7 +353,7 @@ func AddSubscriptionResults() http.Handler {
 		// Get the request.
 		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
 		if !found {
-			ResponseError(res, req, &models.Response{
+			ProcessResponse(res, req, &models.Response{
 				StatusCode: http.StatusNoContent,
 				UserMessage: &models.UserMessage{
 					Status:  models.UserMessageStatusWarning,
@@ -381,7 +381,7 @@ func ImportResults(err *models.UserMessage) http.Handler {
 		// Get the request.
 		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
 		if !found {
-			ResponseError(res, req, &models.Response{
+			ProcessResponse(res, req, &models.Response{
 				StatusCode: http.StatusNoContent,
 				UserMessage: &models.UserMessage{
 					Status:  models.UserMessageStatusWarning,
@@ -424,7 +424,7 @@ func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confi
 				slog.String("subscription_id", subscriptionID),
 			)
 			if err := api.RemoveSubscriptions(ctx, subscriptionID); err != nil {
-				ResponseError(res, req.WithContext(ctx), err)
+				ProcessResponse(res, req.WithContext(ctx), err)
 				return
 			}
 			res.WriteHeader(http.StatusOK)
@@ -460,7 +460,7 @@ func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
 		// Get the subscription details.
 		sub, resp := api.GetSubscription(req.Context(), id)
 		if resp != nil {
-			ResponseError(res, req, resp)
+			ProcessResponse(res, req, resp)
 			return
 		}
 		// Encapsulate subscription in edit request.
@@ -485,7 +485,7 @@ func SaveSubscription(api DataAPI, id models.SubscriptionID, edits *models.Subsc
 
 		resp := api.EditSubscription(ctx, id, edits)
 		if resp.IsError() {
-			ResponseError(res, req, resp)
+			ProcessResponse(res, req, resp)
 			return
 		}
 		// Display a notification acknowledging save.
@@ -498,8 +498,9 @@ func SaveSubscription(api DataAPI, id models.SubscriptionID, edits *models.Subsc
 func MarkSubscriptions(api DataAPI, mark models.Mark, subscriptions ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if resp := api.MarkSubscriptions(req.Context(), mark, subscriptions...); resp.IsError() {
-			ResponseError(res, req, resp)
+			ProcessResponse(res, req, resp)
 			return
 		}
+		res.WriteHeader(http.StatusOK)
 	})
 }

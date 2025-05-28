@@ -132,7 +132,7 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	// Retrieve filters.
 	filters, err := models.NewFiltersFromParams(params)
 	if err != nil {
-		handlers.ResponseError(res, req, &models.Response{
+		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode:    http.StatusInternalServerError,
 			InternalError: err,
 			UserMessage: &models.UserMessage{
@@ -162,7 +162,7 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 			displayFunc = handlers.DisplayArticles(s.DataAPI(), s.SessionAPI(), pagination)
 		}
 	default:
-		handlers.ResponseError(res, req, &models.Response{
+		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode: http.StatusNoContent,
 			UserMessage: &models.UserMessage{
 				Status:  models.UserMessageStatusWarning,
@@ -189,7 +189,7 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 	switch {
 	case collection == models.CollectionSubscriptions && slices.Contains([]Action{models.ActionRead, models.ActionUnread}, action):
 		// Mark feeds read/unread.
-		actionFunc = handlers.MarkFeeds(s.DataAPI(), models.Mark(action), *params.Subscriptions...)
+		actionFunc = handlers.MarkSubscriptions(s.DataAPI(), models.Mark(action), *params.Subscriptions...)
 	case collection == models.CollectionItems && slices.Contains([]Action{models.ActionRead, models.ActionUnread}, action):
 		// Mark items read/unread.
 		actionFunc = handlers.MarkItems(s.DataAPI(), models.Mark(action), *params.Articles...)
@@ -263,7 +263,7 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 	// Retrieve filters.
 	filters, err := models.NewFiltersFromParams(params)
 	if err != nil {
-		handlers.ResponseError(res, req, &models.Response{
+		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode:    http.StatusInternalServerError,
 			InternalError: err,
 			UserMessage: &models.UserMessage{

@@ -14,8 +14,8 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
-// InternalServerError handles errors related to non-specific internal server functionality failures.
-func ResponseError(res http.ResponseWriter, req *http.Request, resp *models.Response) {
+// ProcessResponse handles appropriate display and logging of a models.Response object.
+func ProcessResponse(res http.ResponseWriter, req *http.Request, resp *models.Response) {
 	slogctx.FromCtx(req.Context()).Error("Backend returned an error.",
 		slog.String("error", resp.String()))
 	// Display a notification if a user message is set.

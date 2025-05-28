@@ -53,31 +53,12 @@ func CheckRequiredFilters(next http.Handler) http.Handler {
 	})
 }
 
-// MarkFeeds will mark the user's subscriptions that match the given feeds with the given mark.
-func MarkFeeds(api DataAPI, mark models.Mark, feeds ...models.FeedID) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Get the user details.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			ResponseError(res, req, elastic.RespInvalidUser)
-		}
-		// Get the user subscriptions matching the feeds
-		subscriptions := user.GetSubscriptions().FilterByFeedID(feeds...)
-		// Mark the subscriptions.
-		if err := api.MarkSubscriptions(req.Context(), mark, subscriptions.GetIDs()...); err != nil {
-			ResponseError(res, req, err)
-			return
-		}
-		res.WriteHeader(http.StatusOK)
-	})
-}
-
 // MarkItems handles marking items as read.
 func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Mark the feeds.
 		if err := api.MarkItems(req.Context(), mark, items...); err != nil {
-			ResponseError(res, req, err)
+			ProcessResponse(res, req, err)
 			return
 		}
 		res.WriteHeader(http.StatusOK)
@@ -88,7 +69,7 @@ func DisplaySubscriptions(dataAPI DataAPI, sessionAPI models.SessionAPI, paginat
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		subscriptions, pagination, resp := dataAPI.GetSubscriptionsByID(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
 		if resp.IsError() {
-			ResponseError(res, req, resp)
+			ProcessResponse(res, req, resp)
 			return
 		}
 		pageTitle := "Subscriptions"
@@ -121,7 +102,7 @@ func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination m
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		articles, pagination, resp := dataAPI.GetArticlesBySubscription(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
 		if resp.IsError() {
-			ResponseError(res, req, resp)
+			ProcessResponse(res, req, resp)
 			return
 		}
 		switch {
@@ -136,7 +117,7 @@ func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination m
 					partials.UpdateActions(
 						views.AddSubscriptionAction(),
 						views.ImportAction(),
-						views.MarkAllArticlesAction(req.Context(), articles.GetItems().GetFeedIDs()),
+						views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
 					),
 				),
 				templates.SetPageTitle("Items"),
@@ -155,7 +136,7 @@ func DisplayArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, itemID models
 		article, found, err := dataAPI.GetArticle(req.Context(), itemID)
 		if err != nil || !found {
 			spew.Dump(err, found)
-			ResponseError(res, req, err)
+			ProcessResponse(res, req, err)
 			return
 		}
 		content := views.BuildArticleLayout(article)

@@ -5,15 +5,16 @@ package models
 
 // Defines values for Param.
 const (
-	ParamCategories = "categories"
-	ParamCount      = "count"
-	ParamFeeds      = "feeds"
-	ParamItems      = "items"
-	ParamPagination = "pagination"
-	ParamSortBy     = "sort_by"
-	ParamSortOrder  = "sort_order"
-	ParamView       = "view"
-	ParamFeedID     = "feed_id"
-	ParamItemID     = "item_id"
-	ParamRedirect   = "redirect_to"
+	ParamCategories    = "categories"
+	ParamCount         = "count"
+	ParamFeeds         = "feeds"
+	ParamItems         = "items"
+	ParamSubscriptions = "subscriptions"
+	ParamPagination    = "pagination"
+	ParamSortBy        = "sort_by"
+	ParamSortOrder     = "sort_order"
+	ParamView          = "view"
+	ParamFeedID        = "feed_id"
+	ParamItemID        = "item_id"
+	ParamRedirect      = "redirect"
 )

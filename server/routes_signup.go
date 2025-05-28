@@ -44,7 +44,7 @@ func (s Server) ProcessSignUp(res http.ResponseWriter, req *http.Request) {
 	}
 	// Process the user sign-up and create the new user.
 	if err := s.addUser(req.Context(), userSignup); err != nil {
-		handlers.ResponseError(res, req, &models.Response{
+		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode:    http.StatusInternalServerError,
 			InternalError: err,
 			UserMessage: &models.UserMessage{

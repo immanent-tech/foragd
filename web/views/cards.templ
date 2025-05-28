@@ -181,7 +181,7 @@ func BuildArticlesLayout(ctx context.Context, pagination models.Pagination, arti
 				partials.UpdateActions(
 					AddSubscriptionAction(),
 					ImportAction(),
-					MarkAllArticlesAction(ctx, articles.GetItems().GetFeedIDs()),
+					MarkAllArticlesAction(ctx, articles.GetSubscriptionIDs()...),
 				),
 			),
 		),
@@ -405,20 +405,20 @@ func markArticleAction(feedID models.FeedID, itemID models.ItemID, isUnread bool
 
 // MarkAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
 // depending on the current view.
-func MarkAllArticlesAction(ctx context.Context, feeds []models.FeedID) templ.Component {
+func MarkAllArticlesAction(ctx context.Context, subIDs ...models.SubscriptionID) templ.Component {
 	// Create htmx attributes.
 	attrs := maps.Clone(actionAttributes)
 	// Create url parameters.
 	params := make(url.Values)
-	params.Add(models.ParamRedirect, string(models.PageViewIDFeeds))
-	params.Add(models.ParamFeeds, strings.Join(feeds, ","))
+	params.Add(models.ParamRedirect, "/home/subscriptions")
+	params.Add(models.ParamSubscriptions, strings.Join(subIDs, ","))
 
 	switch models.FiltersFromCtx(ctx).View {
 	case models.ViewUnread:
-		attrs["hx-post"] = "home/feeds/" + string(models.MarkRead) + "?" + params.Encode()
+		attrs["hx-post"] = "/home/subscriptions/" + string(models.MarkRead) + "?" + params.Encode()
 		return markReadLink("Mark All Read", attrs)
 	case models.ViewRead:
-		attrs["hx-post"] = "home/feeds/" + string(models.MarkUnread) + "?" + params.Encode()
+		attrs["hx-post"] = "/home/subscriptions/" + string(models.MarkUnread) + "?" + params.Encode()
 		return markUnreadLink("Mark All Unread", attrs)
 	default:
 		return nil
