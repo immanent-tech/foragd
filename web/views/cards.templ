@@ -369,16 +369,14 @@ func markSubscriptionAction(id models.SubscriptionID, isRead bool) templ.Compone
 func MarkAllSubscriptionsAction(ctx context.Context) templ.Component {
 	// Create htmx attributes.
 	attrs := maps.Clone(actionAttributes)
-	// Create url parameters.
-	params := make(url.Values)
-	params.Add(models.ParamRedirect, string(models.PageViewIDHome))
+	attrs["_"] = "on htmx:afterOnLoad call history.back()"
 
 	switch models.FiltersFromCtx(ctx).View {
 	case models.ViewUnread:
-		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead) + "?" + params.Encode()
+		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead)
 		return markReadLink("Mark All Read", attrs)
 	case models.ViewRead:
-		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread) + "?" + params.Encode()
+		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread)
 		return markUnreadLink("Mark All Unread", attrs)
 	default:
 		return nil
@@ -405,11 +403,14 @@ func markArticleAction(feedID models.FeedID, itemID models.ItemID, isUnread bool
 // depending on the current view.
 func MarkAllArticlesAction(ctx context.Context, subIDs ...models.SubscriptionID) templ.Component {
 	// Create htmx attributes.
-	attrs := maps.Clone(actionAttributes)
+	attrs := templ.Attributes{
+		"hx-replace-url": "false",
+		"hx-swap":        "none",
+	}
 	// Create url parameters.
 	params := make(url.Values)
-	params.Add(models.ParamRedirect, "/home/subscriptions")
 	params.Add(models.ParamSubscriptions, strings.Join(subIDs, ","))
+	params.Add(models.ParamRedirect, "/home/subscriptions")
 
 	switch models.FiltersFromCtx(ctx).View {
 	case models.ViewUnread:

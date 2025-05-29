@@ -161,6 +161,7 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	// Generate handler chain.
 	chain := alice.New(
 		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
 		handlers.SaveFilters(params, collection),
 		handlers.SaveState,
 	).Then(displayFunc)
@@ -187,6 +188,7 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 
 	chain := alice.New(
 		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
 		handlers.SetupRedirect(params.Redirect),
 	).Then(actionFunc)
 	chain.ServeHTTP(res, req)
@@ -233,7 +235,6 @@ func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, a
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(params.Redirect),
 	).Then(actionFunc)
 	chain.ServeHTTP(res, req)
 }

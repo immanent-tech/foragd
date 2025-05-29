@@ -13,7 +13,6 @@ import (
 
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 
-	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
@@ -127,10 +126,7 @@ func GenerateHomePageContent(ctx context.Context, api *elastic.API) templ.Compon
 		slogctx.FromCtx(ctx).Warn("Unable to random items.", slog.Any("error", err))
 	}
 
-	subscriptionPage := models.PageState{Path: "/home/subscriptions", Params: models.NewFilters().ToQueryParams()}
-	if filters, ok := session.Manager.Get(ctx, "filters_"+string(models.CollectionSubscriptions)).(models.Filters); ok {
-		subscriptionPage.Params = filters.ToQueryParams()
-	}
+	subscriptionPage := ctx.Value("subscriptionsLink").(models.PageState)
 
 	return layoutHomePageContent(subscriptionPage, topCategories, rareCategories, randomItems)
 }

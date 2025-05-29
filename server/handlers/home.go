@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"strconv"
 	"strings"
@@ -135,7 +136,10 @@ func DisplayArticle(dataAPI DataAPI, itemID models.ItemID) http.Handler {
 
 func DisplayHome(dataAPI DataAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		content := views.GenerateHomePageContent(req.Context(), dataAPI.(*elastic.API))
+		subscriptionsLink := RestorePageState(req.Context(), "/home/subscriptions")
+		ctx := context.WithValue(req.Context(), "subscriptionsLink", subscriptionsLink)
+
+		content := views.GenerateHomePageContent(ctx, dataAPI.(*elastic.API))
 		header := partials.Header(
 			partials.DefaultHeaderStart(),
 			partials.DefaultHeaderCenter(),
@@ -150,7 +154,7 @@ func DisplayHome(dataAPI DataAPI) http.Handler {
 				header,
 				footer,
 				templates.SetPageTitle("Home"),
-			).ServeHTTP(res, req)
+			).ServeHTTP(res, req.WithContext(ctx))
 		default:
 			// Generate full layout for non-HTMX powered request.
 			FullRender("Home", templates.WithBody(
@@ -159,7 +163,7 @@ func DisplayHome(dataAPI DataAPI) http.Handler {
 					templates.WithBodyFooter(footer),
 				),
 			),
-			).ServeHTTP(res, req)
+			).ServeHTTP(res, req.WithContext(ctx))
 		}
 	})
 }

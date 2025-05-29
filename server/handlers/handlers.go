@@ -106,7 +106,6 @@ func HTMXResponseFromCtx(ctx context.Context) htmx.Response {
 // FullRender renders a full page with the given title and options.
 func FullRender(title string, pageOptions ...templates.PageOption) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Add("Vary", "HX-Request")
 		slogctx.FromCtx(req.Context()).Debug("Performing full page render.")
 		page := templates.NewPage(title, pageOptions...)
 		if err := page.Template().Render(req.Context(), res); err != nil {
@@ -126,7 +125,6 @@ func FullRender(title string, pageOptions ...templates.PageOption) http.Handler 
 func PartialRender(templates ...templ.Component) http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
-			res.Header().Add("Vary", "HX-Request")
 			slogctx.FromCtx(req.Context()).Debug("Performing partial renders.")
 			if !htmx.IsHTMX(req) {
 				slogctx.FromCtx(req.Context()).Warn("Partial render for non-HTMX request.")
@@ -175,6 +173,14 @@ func SaveFilters(params any, collection models.Collection) func(next http.Handle
 	}
 }
 
+// SaveState saves the current page state in the session.
+func SetResponseHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Add("Vary", "HX-Request")
+		next.ServeHTTP(res, req)
+	})
+}
+
 // SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
 // been made through HTMX.
 func SetupRedirect(path *string) func(next http.Handler) http.Handler {
@@ -184,7 +190,7 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
 					slog.String("path", *path),
 				)
-				view := models.PageState{Path: "/home"}
+				view := RestorePageState(req.Context(), *path)
 				// view := models.GetPreviousViewedPage(req.Context(), api)
 				HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
 				data, err := json.Marshal(HxLocationData)
@@ -233,5 +239,22 @@ func UpdateTheme() func(next http.Handler) http.Handler {
 			ctx := HTMXResponseToCtx(req.Context(), resp)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
+	}
+}
+
+func RestorePageState(ctx context.Context, path string) models.PageState {
+	switch path {
+	case "/home/subscriptions":
+		if filters, ok := session.Manager.Get(ctx, "filters_"+string(models.CollectionSubscriptions)).(models.Filters); ok {
+			return models.PageState{Path: "/home/subscriptions", Params: filters.ToQueryParams()}
+		}
+		return models.PageState{Path: "/home/subscriptions", Params: models.NewFilters().ToQueryParams()}
+	case "/home/articles":
+		if filters, ok := session.Manager.Get(ctx, "filters_"+string(models.CollectionItems)).(models.Filters); ok {
+			return models.PageState{Path: "/home/articles", Params: filters.ToQueryParams()}
+		}
+		return models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()}
+	default:
+		return models.PageState{Path: "/home"}
 	}
 }
