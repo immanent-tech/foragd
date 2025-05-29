@@ -55,17 +55,3 @@ func FiltersFromCtx(ctx context.Context) Filters {
 	}
 	return filters
 }
-
-// SessionToCtx stores the session manager API in a context.
-func SessionToCtx(ctx context.Context, api SessionAPI) context.Context {
-	return context.WithValue(ctx, sessionAPICtxKey, api)
-}
-
-// SessionFromCtx retrieves the session manager API from a context.
-func SessionFromCtx(ctx context.Context) SessionAPI {
-	api, found := ctx.Value(sessionAPICtxKey).(SessionAPI)
-	if !found {
-		return nil
-	}
-	return api
-}

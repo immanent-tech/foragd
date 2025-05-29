@@ -30,6 +30,7 @@ const (
 
 func init() {
 	gob.Register(UserAuth{})
+	gob.Register(sessions.Session{})
 }
 
 // Ensure the session manager implements the Gorilla Store interface.

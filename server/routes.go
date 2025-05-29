@@ -43,7 +43,7 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 	s.AuthAPI().SetProviderName(req.Context(), provider)
 	chain := alice.New(
 		handlers.RouteLogger,
-	).Then(handlers.AuthCallback(s.AuthAPI(), session.Manager))
+	).Then(handlers.AuthCallback(s.AuthAPI()))
 	chain.ServeHTTP(res, req)
 }
 
@@ -98,7 +98,7 @@ func (s Server) GetTheme(res http.ResponseWriter, req *http.Request) {
 func (s Server) SetTheme(res http.ResponseWriter, req *http.Request) {
 	theme := req.FormValue("theme")
 	handler := handlers.BaseChain.Append(
-		handlers.SaveTheme(session.Manager, theme),
+		handlers.SaveTheme(theme),
 		// handlers.UpdateTheme(session.Manager),
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		resp := handlers.HTMXResponseFromCtx(req.Context())
@@ -118,8 +118,8 @@ func (s Server) Logout(res http.ResponseWriter, req *http.Request) {
 func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SaveState(session.Manager),
-	).Then(handlers.DisplayHome(s.DataAPI(), session.Manager))
+		handlers.SaveState,
+	).Then(handlers.DisplayHome(s.DataAPI()))
 	chain.ServeHTTP(res, req)
 }
 
@@ -152,15 +152,15 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	switch collection {
 	case models.CollectionSubscriptions:
 		if params.Subscriptions != nil {
-			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), session.Manager, pagination, *params.Subscriptions...)
+			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), pagination, *params.Subscriptions...)
 		} else {
-			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), session.Manager, pagination)
+			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), pagination)
 		}
 	case models.CollectionItems:
 		if params.Articles != nil {
-			displayFunc = handlers.DisplayArticles(s.DataAPI(), session.Manager, pagination, *params.Subscriptions...)
+			displayFunc = handlers.DisplayArticles(s.DataAPI(), pagination, *params.Subscriptions...)
 		} else {
-			displayFunc = handlers.DisplayArticles(s.DataAPI(), session.Manager, pagination)
+			displayFunc = handlers.DisplayArticles(s.DataAPI(), pagination)
 		}
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
@@ -176,8 +176,7 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
-		handlers.SaveState(session.Manager),
-		handlers.GenerateBacklink(session.Manager),
+		handlers.SaveState,
 	).Then(displayFunc)
 	// Run chain.
 	chain.ServeHTTP(res, req.WithContext(ctx))
@@ -202,7 +201,7 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(session.Manager, params.Redirect),
+		handlers.SetupRedirect(params.Redirect),
 	).Then(actionFunc)
 	chain.ServeHTTP(res, req)
 }
@@ -222,7 +221,7 @@ func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action
 
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(session.Manager, params.Redirect),
+		handlers.SetupRedirect(params.Redirect),
 	).Then(actionFunc)
 	chain.ServeHTTP(res, req)
 }
@@ -231,9 +230,8 @@ func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action
 func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, item ItemID) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SaveState(session.Manager),
-		handlers.GenerateBacklink(session.Manager),
-	).Then(handlers.DisplayArticle(s.DataAPI(), session.Manager, item))
+		handlers.SaveState,
+	).Then(handlers.DisplayArticle(s.DataAPI(), item))
 	chain.ServeHTTP(res, req)
 }
 
@@ -249,7 +247,7 @@ func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, a
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetupRedirect(session.Manager, params.Redirect),
+		handlers.SetupRedirect(params.Redirect),
 	).Then(actionFunc)
 	chain.ServeHTTP(res, req)
 }
@@ -279,9 +277,8 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
-		handlers.SaveState(session.Manager),
-		handlers.GenerateBacklink(session.Manager),
-	).Then(handlers.DisplayArticles(s.DataAPI(), session.Manager, pagination, sub))
+		handlers.SaveState,
+	).Then(handlers.DisplayArticles(s.DataAPI(), pagination, sub))
 	// Run chain.
 	chain.ServeHTTP(res, req.WithContext(ctx))
 }

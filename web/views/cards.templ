@@ -316,10 +316,10 @@ func viewAction(ctx context.Context, id string, viewed bool) templ.Attributes {
 		view = models.PageState{Path: "/article/" + id}
 	}
 	return templ.Attributes{
-		"hx-get":         view.String(),
-		"hx-target":      templates.ContentID.Target(),
-		"hx-replace-url": "true",
-		"hx-swap":        "morph:innerHTML show:top",
+		"hx-get":      view.String(),
+		"hx-target":   templates.ContentID.Target(),
+		"hx-push-url": "true",
+		"hx-swap":     "morph:innerHTML show:top",
 	}
 }
 

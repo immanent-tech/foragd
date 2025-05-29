@@ -26,7 +26,7 @@ import (
 )
 
 // DisplaySubscriptions fetches subscriptions by ID and displays them as a list of cards.
-func DisplaySubscriptions(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
+func DisplaySubscriptions(dataAPI DataAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		subscriptions, pagination, resp := dataAPI.GetSubscriptionsByID(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
 		if resp.IsError() {

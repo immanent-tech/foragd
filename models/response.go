@@ -45,3 +45,14 @@ func RespSuccess(msg string) *Response {
 		},
 	}
 }
+
+func RespServerError(msg string, err error) *Response {
+	return &Response{
+		StatusCode:    http.StatusInternalServerError,
+		InternalError: err,
+		UserMessage: &UserMessage{
+			Status:  UserMessageStatusError,
+			Summary: msg,
+		},
+	}
+}

@@ -105,19 +105,20 @@ func ParseDomain(value string) string {
 }
 
 type List[T any] struct {
-	Head, Tail *element[T]
+	Head, Tail *Element[T]
 }
-type element[T any] struct {
-	Next *element[T]
+
+type Element[T any] struct {
+	Next *Element[T]
 	Val  T
 }
 
 func (lst *List[T]) Push(v T) {
 	if lst.Tail == nil {
-		lst.Head = &element[T]{Val: v}
+		lst.Head = &Element[T]{Val: v}
 		lst.Tail = lst.Head
 	} else {
-		lst.Tail.Next = &element[T]{Val: v}
+		lst.Tail.Next = &Element[T]{Val: v}
 		lst.Tail = lst.Tail.Next
 	}
 }

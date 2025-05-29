@@ -77,7 +77,6 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 			middlewares.ElasticMiddleware(),
 			handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),
 			session.Manager.LoadAndSave,
-			middlewares.StoreSessionAPI(session.Manager),
 		},
 	})
 	serverObj := &http.Server{

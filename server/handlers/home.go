@@ -64,7 +64,7 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 	})
 }
 
-func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
+func DisplayArticles(dataAPI DataAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		articles, pagination, resp := dataAPI.GetArticlesBySubscription(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
 		if resp.IsError() {
@@ -97,7 +97,7 @@ func DisplayArticles(dataAPI DataAPI, sessionAPI models.SessionAPI, pagination m
 }
 
 // DisplayArticle handles displaying an item as an article.
-func DisplayArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, itemID models.ItemID) http.Handler {
+func DisplayArticle(dataAPI DataAPI, itemID models.ItemID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		article, found, resp := dataAPI.GetArticle(req.Context(), itemID)
 		if resp.IsError() || !found {
@@ -133,7 +133,7 @@ func DisplayArticle(dataAPI DataAPI, sessionAPI models.SessionAPI, itemID models
 	})
 }
 
-func DisplayHome(dataAPI DataAPI, sessionAPI models.SessionAPI) http.Handler {
+func DisplayHome(dataAPI DataAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		content := views.GenerateHomePageContent(req.Context(), dataAPI.(*elastic.API))
 		header := partials.Header(

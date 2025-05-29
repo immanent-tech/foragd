@@ -17,6 +17,7 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
@@ -105,6 +106,7 @@ func HTMXResponseFromCtx(ctx context.Context) htmx.Response {
 // FullRender renders a full page with the given title and options.
 func FullRender(title string, pageOptions ...templates.PageOption) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Add("Vary", "HX-Request")
 		slogctx.FromCtx(req.Context()).Debug("Performing full page render.")
 		page := templates.NewPage(title, pageOptions...)
 		if err := page.Template().Render(req.Context(), res); err != nil {
@@ -124,6 +126,7 @@ func FullRender(title string, pageOptions ...templates.PageOption) http.Handler 
 func PartialRender(templates ...templ.Component) http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
+			res.Header().Add("Vary", "HX-Request")
 			slogctx.FromCtx(req.Context()).Debug("Performing partial renders.")
 			if !htmx.IsHTMX(req) {
 				slogctx.FromCtx(req.Context()).Warn("Partial render for non-HTMX request.")
@@ -137,46 +140,31 @@ func PartialRender(templates ...templ.Component) http.Handler {
 		})
 }
 
-// SaveState saves the current page state in the session.
-func SaveState(api models.SessionAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Save page state.
-			state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
-			models.SavePageHistory(req.Context(), api, state)
-			ctx := models.PageStateToCtx(req.Context(), state)
-			slogctx.FromCtx(ctx).Debug("Saved page state.")
-			// Pass control to next handler.
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
+var sessionkey = "aaa"
 
-// GenerateBacklink creates the appropriate backlink for the current page view.
-func GenerateBacklink(api models.SessionAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Get last viewed page.
-			backlink := models.GetPreviousViewedPage(req.Context(), api)
-			// Save backlink into context.
-			ctx := models.BacklinkToCtx(req.Context(), backlink)
-			slogctx.FromCtx(ctx).Debug("Generated backlink.", slog.String("backlink", backlink.String()))
-			// Pass control to next handler.
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
+// SaveState saves the current page state in the session.
+func SaveState(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Save page state.
+		state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
+		ctx := models.PageStateToCtx(req.Context(), state)
+		slogctx.FromCtx(ctx).Debug("Saved page state.")
+		// Pass control to next handler.
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
 }
 
 // SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
 // been made through HTMX.
-func SetupRedirect(api models.SessionAPI, path *string) func(next http.Handler) http.Handler {
+func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			if htmx.IsHTMX(req) && path != nil {
 				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
 					slog.String("path", string(*path)),
 				)
-				view := models.GetPreviousViewedPage(req.Context(), api)
+				view := models.PageState{Path: "/home"}
+				// view := models.GetPreviousViewedPage(req.Context(), api)
 				HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
 				data, err := json.Marshal(HxLocationData)
 				if err != nil {
@@ -198,20 +186,20 @@ func SetupRedirect(api models.SessionAPI, path *string) func(next http.Handler) 
 }
 
 // SaveTheme handles saving the theme in the session.
-func SaveTheme(api models.SessionAPI, theme string) func(next http.Handler) http.Handler {
+func SaveTheme(theme string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			api.Put(req.Context(), models.ThemeSessionKey, theme)
+			session.Manager.Put(req.Context(), models.ThemeSessionKey, theme)
 			next.ServeHTTP(res, req)
 		})
 	}
 }
 
 // UpdateTheme handles firing an event trigger as part of the response to update the page theme.
-func UpdateTheme(api models.SessionAPI) func(next http.Handler) http.Handler {
+func UpdateTheme() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			theme, ok := api.Get(req.Context(), models.ThemeSessionKey).(string)
+			theme, ok := session.Manager.Get(req.Context(), models.ThemeSessionKey).(string)
 			if !ok {
 				slogctx.FromCtx(req.Context()).Warn("Could not retrieve theme from session.")
 				next.ServeHTTP(res, req)

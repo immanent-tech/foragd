@@ -15,10 +15,10 @@ import (
 templ BuildArticleLayout(item *models.Article) {
 	@article.Build(
 		article.WithExtraAttributes(templ.Attributes{
-			"hx-post":        "/article/read/" + item.ItemID,
-			"hx-swap":        "none",
-			"hx-replace-url": "false",
-			"hx-trigger":     "load delay:2s",
+			"hx-post":     "/article/read/" + item.ItemID,
+			"hx-swap":     "none",
+			"hx-push-url": "false",
+			"hx-trigger":  "load delay:2s",
 		}),
 	).Show() {
 		<h2>
