@@ -7,6 +7,7 @@ import (
 	"context"
 	"encoding/gob"
 	"net/url"
+	"strings"
 
 	slogctx "github.com/veqryn/slog-context"
 )
@@ -16,14 +17,12 @@ func init() {
 }
 
 const (
-	ThemeSessionKey               = "theme"
-	SubscriptionFiltersSessionKey = "subscription_filters"
-	ArticlesFiltersSessionKey     = "article_filters"
+	ThemeSessionKey = "theme"
 )
 
 type PageState struct {
-	Path   string     `json:"path"`
-	Params url.Values `json:"params"`
+	Path   string
+	Params url.Values
 }
 
 func (s PageState) String() string {
@@ -31,6 +30,16 @@ func (s PageState) String() string {
 		return s.Path + "?" + s.Params.Encode()
 	}
 	return s.Path
+}
+
+func (s PageState) GetFilters() Filters {
+	filters := NewFilters()
+	filters.Categories = strings.Split(s.Params.Get(ParamCategories), ",")
+	filters.Count = s.Params.Get(ParamCount)
+	filters.View = View(s.Params.Get(ParamView))
+	filters.SortBy = SortBy(s.Params.Get(ParamSortBy))
+	filters.SortOrder = SortOrder(s.Params.Get(ParamSortOrder))
+	return *filters
 }
 
 func PageStateToCtx(ctx context.Context, view PageState) context.Context {

@@ -6,7 +6,6 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"strconv"
 	"strings"
 
 	"github.com/a-h/templ"
@@ -32,7 +31,7 @@ func CheckRequiredFilters(next http.Handler) http.Handler {
 		params := req.URL.Query()
 
 		if !params.Has(string(models.ParamCount)) {
-			params.Set(string(models.ParamCount), strconv.Itoa(models.DefaultCount))
+			params.Set(string(models.ParamCount), models.DefaultCount)
 		}
 
 		if !params.Has(string(models.ParamView)) {
@@ -57,8 +56,8 @@ func CheckRequiredFilters(next http.Handler) http.Handler {
 func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Mark the feeds.
-		if err := api.MarkItems(req.Context(), mark, items...); err != nil {
-			ProcessResponse(res, req, err)
+		if resp := api.MarkItems(req.Context(), mark, items...); resp.IsError() {
+			ProcessResponse(res, req, resp)
 			return
 		}
 		res.WriteHeader(http.StatusOK)

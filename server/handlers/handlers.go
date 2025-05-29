@@ -6,6 +6,7 @@ package handlers
 
 import (
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -45,9 +46,8 @@ const (
 
 // Keys for objects stored within the session.
 const (
-	feedFiltersSessionKey = "feed_filters"
-	itemFiltersSessionKey = "item_filters"
-	LastViewedSessionKey  = "last_viewed"
+	subscriptionsPageState = "subscriptions_state"
+	articlesPageState      = "articles_state"
 )
 
 type contextKey string
@@ -85,6 +85,10 @@ type AuthAPI interface {
 type HXLocation struct {
 	Path   string `json:"path"`
 	Target string `json:"target"`
+}
+
+func init() {
+	gob.Register(models.PageState{})
 }
 
 // HTMXResponseToCtx adds the given htmx.Response object to the context.
@@ -139,18 +143,6 @@ func PartialRender(templates ...templ.Component) http.Handler {
 }
 
 // SaveState saves the current page state in the session.
-func SaveState(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Save page state.
-		state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
-		ctx := models.PageStateToCtx(req.Context(), state)
-		slogctx.FromCtx(ctx).Debug("Saved page state.")
-		// Pass control to next handler.
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-// SaveState saves the current page state in the session.
 func SaveFilters(params any, collection models.Collection) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -166,7 +158,6 @@ func SaveFilters(params any, collection models.Collection) func(next http.Handle
 				)
 				filters = models.NewFilters()
 			}
-			session.Manager.Put(req.Context(), "filters_"+string(collection), *filters)
 			ctx := models.FiltersToCtx(req.Context(), *filters)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -242,16 +233,35 @@ func UpdateTheme() func(next http.Handler) http.Handler {
 	}
 }
 
+// SavePageState saves the current page state in the session.
+func SavePageState(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Save page state.
+		state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
+		ctx := models.PageStateToCtx(req.Context(), state)
+		// Store page states for some paths into session for history restoration.
+		switch req.URL.Path {
+		case "/home/subscriptions":
+			session.Manager.Put(req.Context(), subscriptionsPageState, state)
+		case "/home/articles":
+			session.Manager.Put(req.Context(), articlesPageState, state)
+		}
+		slogctx.FromCtx(ctx).Debug("Saved page state.")
+		// Pass control to next handler.
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
 func RestorePageState(ctx context.Context, path string) models.PageState {
 	switch path {
 	case "/home/subscriptions":
-		if filters, ok := session.Manager.Get(ctx, "filters_"+string(models.CollectionSubscriptions)).(models.Filters); ok {
-			return models.PageState{Path: "/home/subscriptions", Params: filters.ToQueryParams()}
+		if state, ok := session.Manager.Get(ctx, subscriptionsPageState).(models.PageState); ok {
+			return state
 		}
 		return models.PageState{Path: "/home/subscriptions", Params: models.NewFilters().ToQueryParams()}
 	case "/home/articles":
-		if filters, ok := session.Manager.Get(ctx, "filters_"+string(models.CollectionItems)).(models.Filters); ok {
-			return models.PageState{Path: "/home/articles", Params: filters.ToQueryParams()}
+		if state, ok := session.Manager.Get(ctx, articlesPageState).(models.PageState); ok {
+			return state
 		}
 		return models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()}
 	default:

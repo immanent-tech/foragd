@@ -118,7 +118,7 @@ func (s Server) Logout(res http.ResponseWriter, req *http.Request) {
 func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SaveState,
+		handlers.SavePageState,
 	).Then(handlers.DisplayHome(s.DataAPI()))
 	chain.ServeHTTP(res, req)
 }
@@ -163,7 +163,7 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,
 		handlers.SaveFilters(params, collection),
-		handlers.SaveState,
+		handlers.SavePageState,
 	).Then(displayFunc)
 	// Run chain.
 	chain.ServeHTTP(res, req)
@@ -218,7 +218,7 @@ func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action
 func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, item ItemID) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SaveState,
+		handlers.SavePageState,
 	).Then(handlers.DisplayArticle(s.DataAPI(), item))
 	chain.ServeHTTP(res, req)
 }
@@ -264,7 +264,7 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.CheckRequiredFilters,
-		handlers.SaveState,
+		handlers.SavePageState,
 	).Then(handlers.DisplayArticles(s.DataAPI(), pagination, sub))
 	// Run chain.
 	chain.ServeHTTP(res, req.WithContext(ctx))

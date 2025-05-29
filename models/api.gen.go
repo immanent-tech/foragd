@@ -83,7 +83,7 @@ type Action string
 type Collection string
 
 // Count is the count of items to retrieve with a request.
-type Count = int
+type Count = string
 
 // FeedState tracks the state of a feed.
 type FeedState struct {

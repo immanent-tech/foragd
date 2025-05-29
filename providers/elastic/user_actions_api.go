@@ -109,7 +109,7 @@ func (e *API) GetSubscriptionsByID(ctx context.Context, filters models.Filters, 
 	if err != nil {
 		from = 0
 	}
-	to := min(from+filters.Count, len(subscriptions))
+	to := min(from+filters.CountAsInt(), len(subscriptions))
 	pagination = strconv.Itoa(to)
 	return subscriptions[from:to], pagination, models.RespSuccess("Subscriptions fetched.")
 }

@@ -34,6 +34,9 @@ templ (p *Page) Template() {
 			log 'theme changed to ' + theme
 			set @data-theme to theme
 		end
+		on htmx:historyRestore
+			log 'restoring history for ' + detail.path
+		end
 		"
 	>
 		@p.Head.Show()

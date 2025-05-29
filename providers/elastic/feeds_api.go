@@ -195,7 +195,7 @@ func (e *API) ItemsSearch(ctx context.Context, query query.Option, filters model
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
 		WithSearchAfter(sortValues),
-		WithSearchSize(filters.Count),
+		WithSearchSize(filters.CountAsInt()),
 		WithSortOptions(setItemSort(filters.Sort())),
 	).Do(ctx)
 	if err != nil {

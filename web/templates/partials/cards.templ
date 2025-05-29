@@ -1,0 +1,27 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"slices"
+)
+
+var CardsID = attributes.ID("cards")
+
+templ LayoutCards(cards ...templ.Component) {
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2" id={ CardsID.String() }>
+		for cards := range slices.Values(cards) {
+			@cards
+		}
+	</div>
+	<div id="content-loading" class="items-center justify-center">
+		@loading.Build(loading.Bars,
+			loading.AsHTMXIndicator(),
+			loading.WithThemeColor(color.Accent),
+		).Show()
+	</div>
+}

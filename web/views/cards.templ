@@ -73,7 +73,7 @@ func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscri
 	cards := make([]templ.Component, 0, len(subscriptions))
 	for idx, subscription := range subscriptions {
 		var card templ.Component
-		if idx == len(subscriptions)-1 && len(subscriptions) == filters.Count {
+		if idx == len(subscriptions)-1 && len(subscriptions) == filters.CountAsInt() {
 			card = newSubscriptionCard(ctx, subscription, &pagination)
 		} else {
 			card = newSubscriptionCard(ctx, subscription, nil)
@@ -193,7 +193,7 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles, paginat
 	for idx, article := range articles {
 		var card templ.Component
 		// Create a card for this item.
-		if idx == len(articles)-1 && len(articles) == filters.Count && pagination != "" {
+		if idx == len(articles)-1 && len(articles) == filters.CountAsInt() && pagination != "" {
 			// Add a pagination action to the last item.
 			card = newArticleCard(ctx, article, &pagination)
 		} else {

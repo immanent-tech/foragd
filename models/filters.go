@@ -38,7 +38,7 @@ const (
 	MinUserCount = 1
 
 	// DefaultCount is to show 10 objects.
-	DefaultCount = 10
+	DefaultCount = "10"
 	// DefaultView is to show unread objects.
 	DefaultView = ViewUnread
 	// DefaultSortBy is to sort on updated.
@@ -110,6 +110,14 @@ func (f *Filters) Sort() Sort {
 	}
 }
 
+func (f *Filters) CountAsInt() int {
+	value, err := strconv.Atoi(f.Count)
+	if err != nil {
+		return 10
+	}
+	return value
+}
+
 // ToQueryParams returns the filters as a url.Values object.
 func (f *Filters) ToQueryParams() url.Values {
 	params := make(url.Values)
@@ -125,7 +133,7 @@ func (f *Filters) ToQueryParams() url.Values {
 	params.Set(ParamSortBy, string(f.SortBy))
 	params.Set(ParamSortOrder, string(f.SortOrder))
 	params.Set(ParamView, string(f.View))
-	params.Set(ParamCount, strconv.Itoa(f.Count))
+	params.Set(ParamCount, string(f.Count))
 
 	return params
 }
@@ -253,7 +261,11 @@ func setValidSortOrder(value SortOrder) SortOrder {
 // represents. If the value is not a valid Count, the default Count is
 // returned.
 func setValidCount(value Count) Count {
-	if value < MinUserCount || value > MaxUserCount {
+	numeric, err := strconv.Atoi(value)
+	if err != nil {
+		return DefaultCount
+	}
+	if numeric < MinUserCount || numeric > MaxUserCount {
 		return DefaultCount
 	}
 	return value

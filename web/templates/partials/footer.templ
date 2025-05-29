@@ -72,7 +72,7 @@ func newCategoryFilter(ctx context.Context, category models.CategoryCount) *Filt
 		value: category.Category,
 	}
 	view := models.PageStateFromCtx(ctx)
-	filters := models.FiltersFromCtx(ctx)
+	filters := view.GetFilters()
 	// Check if this category is in the current view filters.
 	if found, _ := filters.HasCategory(category.Category); found {
 		filter.active = true
@@ -93,7 +93,7 @@ type CategoryFilters []*Filter
 func newViewFilter(ctx context.Context, view models.View) *Filter {
 	// Get the current view.
 	link := models.PageStateFromCtx(ctx)
-	filters := models.FiltersFromCtx(ctx)
+	filters := link.GetFilters()
 	filter := &Filter{
 		value: string(view),
 	}
@@ -184,7 +184,7 @@ func buildSortFilters(ctx context.Context) SortFilters {
 	)
 	// If viewing feeds and not viewing read items, add additional sorting options on unread count.
 	view := models.PageStateFromCtx(ctx)
-	if (strings.HasPrefix(view.Path, "/home/subscriptions") || strings.HasPrefix(view.Path, "/subscription")) && models.FiltersFromCtx(ctx).View != models.ViewRead {
+	if (strings.HasPrefix(view.Path, "/home/subscriptions") || strings.HasPrefix(view.Path, "/subscription")) && view.GetFilters().View != models.ViewRead {
 		sorts = append(sorts,
 			NewSortFilter(ctx, models.SortUnreadCountDesc),
 			NewSortFilter(ctx, models.SortUnreadCountAsc),
@@ -198,7 +198,7 @@ type SortFilters []*Filter
 
 func NewSortFilter(ctx context.Context, sort models.Sort) *Filter {
 	view := models.PageStateFromCtx(ctx)
-	filters := models.FiltersFromCtx(ctx)
+	filters := view.GetFilters()
 	filter := &Filter{
 		value: sort.String(),
 	}
