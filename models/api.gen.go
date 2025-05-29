@@ -97,7 +97,7 @@ type FeedState struct {
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
-// Filters defines model for Filters.
+// Filters contains filter parameters that are common across all requests.
 type Filters struct {
 	// Categories is a list of categories.
 	Categories []Category `form:"categories[]" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
@@ -148,21 +148,6 @@ type PageViewID string
 
 // Pagination contains data for paginating through results.
 type Pagination = string
-
-// RequiredFilters contains filter parameters that are always required across different kinds of operations.
-type RequiredFilters struct {
-	// Count is the count of items to retrieve with a request.
-	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
-
-	// SortBy represents the selected field to sort on.
-	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
-
-	// SortOrder represents the order for sorting the selected field.
-	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
-
-	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"oneof=read unread all"`
-}
 
 // Response is a response from the backend or a component in the backend.
 type Response struct {

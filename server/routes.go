@@ -130,20 +130,6 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	if params.Pagination != nil {
 		pagination = *params.Pagination
 	}
-	// Retrieve filters.
-	filters, err := models.NewFiltersFromParams(params)
-	if err != nil {
-		handlers.ProcessResponse(res, req, &models.Response{
-			StatusCode:    http.StatusInternalServerError,
-			InternalError: err,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusError,
-				Summary: "An internal server error occurred.",
-			},
-		})
-		return
-	}
-	ctx := models.FiltersToCtx(req.Context(), *filters)
 
 	// Generate appropriate display function and view based on collection parameter.
 	var (
@@ -175,11 +161,11 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	// Generate handler chain.
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.CheckRequiredFilters,
+		handlers.SaveFilters(params, collection),
 		handlers.SaveState,
 	).Then(displayFunc)
 	// Run chain.
-	chain.ServeHTTP(res, req.WithContext(ctx))
+	chain.ServeHTTP(res, req)
 }
 
 // ActionCollection handles performing an action on a collection of objects.

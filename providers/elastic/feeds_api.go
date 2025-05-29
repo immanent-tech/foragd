@@ -127,53 +127,6 @@ func (e *API) GetAllFeeds(ctx context.Context, feedIDs ...models.FeedID) (models
 	return feeds, nil
 }
 
-// FeedsSearch searches the feeds index for feeds matching the relevant filters.
-func (e *API) FeedsSearch(ctx context.Context, filters models.Filters, pagination models.Pagination, feedIDs ...models.FeedID) (models.Feeds, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
-	}
-
-	sortValues, err := decodePagination(pagination)
-	if err != nil {
-		return nil, errors.Join(ErrSearchFailed, err)
-	}
-
-	resp, err := NewSearchRequest(e.GetAPI(),
-		WithSearchIndex(index),
-		WithSearchQueryOptions(
-			query.Bool(
-				// Match either the FeedID OR the Category.
-				query.Should(
-					query.FeedIDs(feedIDs...),
-					query.Categories(filters.Categories...),
-				),
-			),
-		),
-		WithSearchSize(filters.Count),
-		WithSearchAfter(sortValues),
-		WithSortOptions(setFeedSort(filters.Sort())),
-	).Do(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrSearchFailed, err)
-	}
-	// Stop if there are no hits
-	if len(resp.Hits.Hits) == 0 {
-		return nil, nil
-	}
-	// Loop through this set of results.
-	sources, _, warnings := ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
-	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
-			slog.Any("warnings", err))
-	}
-
-	slogctx.FromCtx(ctx).Debug("Searched feeds.",
-		slog.Int64("hits", resp.Hits.Total.Value))
-
-	return sources, nil
-}
-
 // FeedsSearchAll will retrieve all feeds matching the given queries, sorted by the given sort. It paginates through the
 // entire feeds index.
 func (a *API) FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error) {

@@ -92,10 +92,9 @@ components:
       type: string
       enum: ['Home', 'Feeds', 'Items', 'Feed', 'Item']
       default: 'Home'
-    RequiredFilters:
+    Filters:
       description: >
-        contains filter parameters that are always required across different kinds of
-        operations.
+        contains filter parameters that are common across all requests.
       type: object
       required:
         - view
@@ -111,24 +110,16 @@ components:
           $ref: '#/components/schemas/SortBy'
         sort_order:
           $ref: '#/components/schemas/SortOrder'
-    Filters:
-      description: >
-        contains parameters for filtering.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/RequiredFilters'
-        - type: object
-          properties:
-            categories:
-              description: is a list of categories.
-              type: array
-              items:
-                $ref: 'models.yaml#/components/schemas/Category'
-              x-oapi-codegen-extra-tags:
-                json: 'categories'
-                form: 'categories[]'
-                validate: 'omitnil,unique,dive,url_encoded'
-              x-go-type-skip-optional-pointer: true
+        categories:
+          description: is a list of categories.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            json: 'categories'
+            form: 'categories[]'
+            validate: 'omitnil,unique,dive,url_encoded'
+          x-go-type-skip-optional-pointer: true
     UserConfirmation:
       description: >
         indicates the user's decision for a (usually) destructive action.

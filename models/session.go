@@ -5,14 +5,20 @@ package models
 
 import (
 	"context"
+	"encoding/gob"
 	"net/url"
 
 	slogctx "github.com/veqryn/slog-context"
 )
 
+func init() {
+	gob.Register(Filters{})
+}
+
 const (
-	ThemeSessionKey       = "theme"
-	PageHistorySessionKey = "page_history"
+	ThemeSessionKey               = "theme"
+	SubscriptionFiltersSessionKey = "subscription_filters"
+	ArticlesFiltersSessionKey     = "article_filters"
 )
 
 type PageState struct {

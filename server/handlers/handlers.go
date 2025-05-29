@@ -140,8 +140,6 @@ func PartialRender(templates ...templ.Component) http.Handler {
 		})
 }
 
-var sessionkey = "aaa"
-
 // SaveState saves the current page state in the session.
 func SaveState(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -154,6 +152,29 @@ func SaveState(next http.Handler) http.Handler {
 	})
 }
 
+// SaveState saves the current page state in the session.
+func SaveFilters(params any, collection models.Collection) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			// Retrieve filters.
+			var (
+				filters *models.Filters
+				err     error
+			)
+			filters, err = models.NewFiltersFromParams(params)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Unable to extract filters from params.",
+					slog.Any("error", err),
+				)
+				filters = models.NewFilters()
+			}
+			session.Manager.Put(req.Context(), "filters_"+string(collection), *filters)
+			ctx := models.FiltersToCtx(req.Context(), *filters)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
 // SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
 // been made through HTMX.
 func SetupRedirect(path *string) func(next http.Handler) http.Handler {
@@ -161,7 +182,7 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			if htmx.IsHTMX(req) && path != nil {
 				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
-					slog.String("path", string(*path)),
+					slog.String("path", *path),
 				)
 				view := models.PageState{Path: "/home"}
 				// view := models.GetPreviousViewedPage(req.Context(), api)
