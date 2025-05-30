@@ -7,6 +7,7 @@
 @plugin "daisyui" {
   themes: all;
 }
+@plugin "./catppuccin.mocha.ts";
 
 /* Fade in notification messages */
 #notifications.htmx-added {

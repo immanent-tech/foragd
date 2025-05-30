@@ -23,6 +23,7 @@
     "build:css": "postcss ./assets/styles.css -o ./static/styles.css"
   },
   "dependencies": {
+    "@catppuccin/daisyui": "^2.1.1",
     "@tabler/icons": "^3.31.0",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
