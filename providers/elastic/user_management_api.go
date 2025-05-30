@@ -100,7 +100,7 @@ func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
 func (e *API) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) *models.Response {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
-		return RespInvalidUser
+		return models.RespInvalidUser()
 	}
 
 	// Updated the `updated_at` timestamp.

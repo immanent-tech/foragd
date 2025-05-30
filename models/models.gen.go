@@ -325,6 +325,9 @@ type User struct {
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
 	MaxHistory MaxHistory `form:"-" json:"max_history"`
 
+	// Settings contains user-specific settings for the application.
+	Settings *UserSettings `json:"settings,omitempty"`
+
 	// Subscriptions is the list of subscriptions for the user.
 	Subscriptions []*Subscription `json:"subscriptions,omitempty"`
 
@@ -348,4 +351,10 @@ type UserSession struct {
 
 	// Token the session token for the user.
 	Token string `json:"token"`
+}
+
+// UserSettings contains user-specific settings for the application.
+type UserSettings struct {
+	// Theme the user interface theme chosen by the user.
+	Theme string `json:"theme,omitempty"`
 }

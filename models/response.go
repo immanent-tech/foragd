@@ -67,3 +67,14 @@ func RespForbidden(msg string, err error) *Response {
 		},
 	}
 }
+
+func RespInvalidUser() *Response {
+	return &Response{
+		StatusCode:    http.StatusInternalServerError,
+		InternalError: ErrNoUserCtx,
+		UserMessage: &UserMessage{
+			Status:  UserMessageStatusError,
+			Summary: "Invalid or expired session.",
+		},
+	}
+}

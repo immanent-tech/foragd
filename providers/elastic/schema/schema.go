@@ -168,6 +168,9 @@ func UserMappingsTemplate() *putcomponenttemplate.Request {
 						WithDateNanosProperty("updated_at"),
 						WithKeywordProperty("max_history"),
 						WithObjectProperty("subscriptions", SubscriptionMappingTemplate()),
+						WithObjectProperty("settings", map[string]types.Property{
+							"theme": types.NewKeywordProperty(),
+						}),
 					),
 				),
 			),

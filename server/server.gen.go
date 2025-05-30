@@ -107,6 +107,17 @@ type PaginateCollectionParams struct {
 	SortOrder     SortOrder      `form:"sort_order" json:"sort_order"`
 }
 
+// UpdateCollectionParams defines parameters for UpdateCollection.
+type UpdateCollectionParams struct {
+	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
+	Articles      *Articles      `form:"articles,omitempty" json:"articles,omitempty"`
+	Categories    *Categories    `form:"categories,omitempty" json:"categories,omitempty"`
+	View          View           `form:"view" json:"view"`
+	Count         Count          `form:"count" json:"count"`
+	SortBy        SortBy         `form:"sort_by" json:"sort_by"`
+	SortOrder     SortOrder      `form:"sort_order" json:"sort_order"`
+}
+
 // ActionCollectionParams defines parameters for ActionCollection.
 type ActionCollectionParams struct {
 	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
@@ -273,6 +284,9 @@ type ServerInterface interface {
 	// Paginate through a collection of objects, with optional filtering.
 	// (POST /home/{collection})
 	PaginateCollection(w http.ResponseWriter, r *http.Request, collection Collection, params PaginateCollectionParams)
+	// Changes the state of the current collection of objects, for example, updating the sorting or filtering.
+	// (PUT /home/{collection})
+	UpdateCollection(w http.ResponseWriter, r *http.Request, collection Collection, params UpdateCollectionParams)
 	// Performs an action on a collection of objects.
 	// (POST /home/{collection}/{action})
 	ActionCollection(w http.ResponseWriter, r *http.Request, collection Collection, action Action, params ActionCollectionParams)
@@ -374,6 +388,12 @@ func (_ Unimplemented) ShowCollection(w http.ResponseWriter, r *http.Request, co
 // Paginate through a collection of objects, with optional filtering.
 // (POST /home/{collection})
 func (_ Unimplemented) PaginateCollection(w http.ResponseWriter, r *http.Request, collection Collection, params PaginateCollectionParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Changes the state of the current collection of objects, for example, updating the sorting or filtering.
+// (PUT /home/{collection})
+func (_ Unimplemented) UpdateCollection(w http.ResponseWriter, r *http.Request, collection Collection, params UpdateCollectionParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -830,6 +850,118 @@ func (siw *ServerInterfaceWrapper) PaginateCollection(w http.ResponseWriter, r *
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.PaginateCollection(w, r, collection, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateCollection operation middleware
+func (siw *ServerInterfaceWrapper) UpdateCollection(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "collection" -------------
+	var collection Collection
+
+	err = runtime.BindStyledParameterWithOptions("simple", "collection", chi.URLParam(r, "collection"), &collection, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collection", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateCollectionParams
+
+	// ------------- Optional query parameter "subscriptions" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "articles" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "articles", r.URL.Query(), &params.Articles)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "articles", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_by" -------------
+
+	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_order" -------------
+
+	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateCollection(w, r, collection, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1586,6 +1718,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/home/{collection}", wrapper.PaginateCollection)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/home/{collection}", wrapper.UpdateCollection)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/home/{collection}/{action}", wrapper.ActionCollection)

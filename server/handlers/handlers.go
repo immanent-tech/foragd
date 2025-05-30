@@ -225,16 +225,6 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 	}
 }
 
-// SaveTheme handles saving the theme in the session.
-func SaveTheme(theme string) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			session.Manager.Put(req.Context(), models.ThemeSessionKey, theme)
-			next.ServeHTTP(res, req)
-		})
-	}
-}
-
 // UpdateTheme handles firing an event trigger as part of the response to update the page theme.
 func UpdateTheme() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

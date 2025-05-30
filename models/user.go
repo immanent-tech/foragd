@@ -13,6 +13,8 @@ import (
 	"github.com/joshuar/go-feed-me/components/validation"
 )
 
+const DefaultSettingTheme = "dracula"
+
 var (
 	ErrAddUser               = errors.New("add subscription failed")
 	ErrUpdateUser            = errors.New("update user failed")
@@ -34,6 +36,15 @@ func (u *User) GetID() UserID {
 // items.
 func (u *User) GetMaxHistory() time.Time {
 	return parseMaxHistory(u.MaxHistory)
+}
+
+// GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be
+// returned.
+func (u *User) GetSettings() *UserSettings {
+	if u.Settings != nil {
+		return u.Settings
+	}
+	return NewUserSettings()
 }
 
 // GetMarkedRead retrieves the datetime when the user last marked the given Feed
@@ -162,4 +173,11 @@ func (u *UserSignupRequest) Sanitise() error {
 
 func NewUserSignup() *UserSignupRequest {
 	return &UserSignupRequest{}
+}
+
+// NewUserSettings returns a new instance of the default user settings.
+func NewUserSettings() *UserSettings {
+	return &UserSettings{
+		Theme: DefaultSettingTheme,
+	}
 }

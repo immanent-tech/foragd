@@ -16,7 +16,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -185,7 +184,7 @@ func MatchRequestsWithFeeds(api DataAPI) func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			user, found := models.UserFromCtx(req.Context())
 			if !found {
-				ProcessResponse(res, req, elastic.RespInvalidUser)
+				ProcessResponse(res, req, models.RespInvalidUser())
 				return
 			}
 			requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)

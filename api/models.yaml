@@ -166,6 +166,19 @@ components:
               x-go-type-skip-optional-pointer: true
             max_history:
               $ref: '#/components/schemas/MaxHistory'
+            settings:
+              $ref: '#/components/schemas/UserSettings'
+    UserSettings:
+      description: >
+        contains user-specific settings for the application.
+      type: object
+      properties:
+        theme:
+          description: >
+            the user interface theme chosen by the user.
+          type: string
+          default: dracula
+          x-go-type-skip-optional-pointer: true
     ObjectCommon:
       description: contains common fields across objects.
       type: object

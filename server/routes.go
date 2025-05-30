@@ -7,12 +7,11 @@ import (
 	"errors"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
-	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/handlers"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -84,29 +83,36 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 
 func (s Server) GetTheme(res http.ResponseWriter, req *http.Request) {
 	handler := handlers.BaseChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		theme, ok := session.Manager.Get(req.Context(), models.ThemeSessionKey).(string)
-		if !ok {
-			slogctx.FromCtx(req.Context()).Debug("No theme in session. Using a default.")
-			theme = "light"
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			handlers.ProcessResponse(res, req, models.RespInvalidUser())
+			return
 		}
 		res.WriteHeader(http.StatusOK)
-		res.Write([]byte(theme))
+		res.Write([]byte(user.GetSettings().Theme))
 	})
 	handler.ServeHTTP(res, req)
 }
 
 func (s Server) SetTheme(res http.ResponseWriter, req *http.Request) {
 	theme := req.FormValue("theme")
-	handler := handlers.BaseChain.Append(
-		handlers.SaveTheme(theme),
-		// handlers.UpdateTheme(session.Manager),
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		resp := handlers.HTMXResponseFromCtx(req.Context())
-		resp.Write(res)
-		res.WriteHeader(http.StatusOK)
-		res.Write(nil)
+	user, found := models.UserFromCtx(req.Context())
+	if !found {
+		handlers.ProcessResponse(res, req, models.RespInvalidUser())
+		return
+	}
+	settings := user.GetSettings()
+	settings.Theme = theme
+	resp := s.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
+		"settings":   settings,
+		"updated_at": time.Now().UTC(),
 	})
-	handler.ServeHTTP(res, req)
+	if resp.IsError() {
+		handlers.ProcessResponse(res, req, resp)
+		res.WriteHeader(http.StatusNoContent)
+	} else {
+		res.WriteHeader(http.StatusOK)
+	}
 }
 
 // Logout handler handles user logout.
@@ -163,6 +169,10 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	}
 
 	displayFunc.ServeHTTP(res, req)
+}
+
+// UpdateCollection handles updating the display of a collection of objects after changing filters.
+func (s Server) UpdateCollection(res http.ResponseWriter, req *http.Request, collection Collection, params UpdateCollectionParams) {
 }
 
 // PaginateCollection handles displaying a collection of objects, with optional filtering.

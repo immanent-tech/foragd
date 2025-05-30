@@ -28,14 +28,6 @@ import (
 var (
 	ErrUserActionFailed      = errors.New("user action failed")
 	ErrUserAlreadySubscribed = errors.New("user already subscribed")
-	RespInvalidUser          = &models.Response{
-		StatusCode:    http.StatusInternalServerError,
-		InternalError: ErrNoUserCtx,
-		UserMessage: &models.UserMessage{
-			Status:  models.UserMessageStatusError,
-			Summary: "Invalid or expired session.",
-		},
-	}
 )
 
 // GetUserSubscription retrieves the subscription with the given ID.
@@ -43,7 +35,7 @@ func (e *API) GetSubscription(ctx context.Context, subscriptionID models.Subscri
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, RespInvalidUser
+		return nil, models.RespInvalidUser()
 	}
 
 	sub := user.GetSubscriptions().FindByID(subscriptionID)
@@ -68,7 +60,7 @@ func (e *API) EditSubscription(ctx context.Context, subscriptionID models.Subscr
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return RespInvalidUser
+		return models.RespInvalidUser()
 	}
 	// Perform subscription edits.
 	user.EditSubscription(subscriptionID, edits)
@@ -83,7 +75,7 @@ func (e *API) GetSubscriptionsByID(ctx context.Context, filters models.Filters, 
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", RespInvalidUser
+		return nil, "", models.RespInvalidUser()
 	}
 	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
 
@@ -154,7 +146,7 @@ func (e *API) AddSubscriptions(ctx context.Context, subscriptions models.Subscri
 	}
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return RespInvalidUser
+		return models.RespInvalidUser()
 	}
 	// Add the subscriptions to the user.
 	user.AddSubscriptions(subscriptions)
@@ -172,7 +164,7 @@ func (e *API) RemoveSubscriptions(ctx context.Context, subscriptions ...models.S
 	}
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return RespInvalidUser
+		return models.RespInvalidUser()
 	}
 	// Add the subscriptions to the user.
 	user.RemoveSubscriptions(subscriptions...)
@@ -187,7 +179,7 @@ func (e *API) RemoveSubscriptions(ctx context.Context, subscriptions ...models.S
 func (e *API) MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptions ...models.SubscriptionID) *models.Response {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return RespInvalidUser
+		return models.RespInvalidUser()
 	}
 	// Mark subscriptions.
 	user.MarkSubscriptions(mark, subscriptions...)
@@ -219,7 +211,7 @@ func (e *API) GetArticle(ctx context.Context, itemID models.ItemID) (*models.Art
 
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, false, RespInvalidUser
+		return nil, false, models.RespInvalidUser()
 	}
 
 	req := NewSearchRequest(e.GetAPI(),
@@ -265,7 +257,7 @@ func (e *API) GetArticle(ctx context.Context, itemID models.ItemID) (*models.Art
 func (e *API) GetArticlesBySubscription(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", RespInvalidUser
+		return nil, "", models.RespInvalidUser()
 	}
 	// Get subscriptions matching the filters.
 	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
@@ -345,7 +337,7 @@ func (e *API) GetArticlesByID(ctx context.Context, itemIDs ...models.ItemID) (mo
 func (e *API) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) *models.Response {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return RespInvalidUser
+		return models.RespInvalidUser()
 	}
 	if len(itemIDs) == 0 {
 		slogctx.FromCtx(ctx).Warn("Mark items requested but not items provided.")
