@@ -43,7 +43,7 @@ func FetchSubscriptions(dataAPI DataAPI, pagination models.Pagination, subIDs ..
 }
 
 // FetchSubscriptions fetches subscriptions from the data backend and stores them in the request context for usage by other handlers.
-func GenerateSubscriptionCards(next http.Handler) http.Handler {
+func GenerateSubscriptionsContent(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		subscriptions, ok := req.Context().Value(subscriptionsCtxKey).(models.Subscriptions)
 		if !ok {
@@ -52,44 +52,36 @@ func GenerateSubscriptionCards(next http.Handler) http.Handler {
 			return
 		}
 		pagination, _ := req.Context().Value(paginationCtxKey).(models.Pagination)
-		templates := views.GenerateSubscriptionCards(req.Context(), subscriptions, pagination)
-		ctx := req.Context()
-		ctx = context.WithValue(ctx, templatesCtxKey, templates)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
+		cards := views.GenerateSubscriptionCards(req.Context(), subscriptions, pagination)
 
-// DisplaySubscriptions fetches subscriptions by ID and displays them as a list of cards.
-func DisplaySubscriptions(dataAPI DataAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscriptions, pagination, resp := dataAPI.GetSubscriptionsByID(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
-		if resp.IsError() {
-			ProcessResponse(res, req, resp)
-			return
-		}
-		pageTitle := "Subscriptions"
-		switch {
-		case htmx.IsHTMX(req):
-			// Update partial content for HTMX powered request.
-			PartialRender(
-				templ.Join(views.GenerateSubscriptionCards(req.Context(), subscriptions, pagination)...),
-				partials.Footer(
-					partials.UpdateBacklink(),
-					partials.UpdateFilters(subscriptions.GetCategoryCounts()),
-					partials.UpdateSorting(),
-					partials.UpdateActions(
-						views.AddSubscriptionAction(),
-						views.ImportAction(),
-						views.MarkAllSubscriptionsAction(req.Context()),
+		var content []templ.Component
+
+		if req.Method == http.MethodGet {
+			if !htmx.IsHTMX(req) {
+				content = append(content, views.GenerateFullPageCardLayout(req.Context(), "Articles", cards...))
+			} else {
+				content = append(content,
+					partials.LayoutCards(cards...),
+					partials.Footer(
+						partials.UpdateBacklink(),
+						partials.UpdateFilters(subscriptions.GetCategoryCounts()),
+						partials.UpdateSorting(),
+						partials.UpdateActions(
+							views.AddSubscriptionAction(),
+							views.ImportAction(),
+							views.MarkAllSubscriptionsAction(req.Context()),
+						),
 					),
-				),
-				templates.SetPageTitle(pageTitle),
-			).ServeHTTP(res, req)
-		default:
-			// Generate full layout for non-HTMX powered request.
-			layout := views.BuildSubscriptionsLayout(req.Context(), pagination, subscriptions)
-			FullRender(pageTitle, templates.WithBody(layout)).ServeHTTP(res, req)
+					templates.SetPageTitle("Articles"),
+				)
+			}
+		} else {
+			content = append(content, cards...)
 		}
+
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, templatesCtxKey, content)
+		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 

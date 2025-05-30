@@ -125,23 +125,30 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 
 // ShowCollection handles displaying a collection of objects, with optional filtering.
 func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, collection Collection, params ShowCollectionParams) {
-	// Generate appropriate display function and view based on collection parameter.
-	var (
-		displayFunc http.Handler
+	baseChain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
+		handlers.SavePageState,
+		handlers.SaveFilters(params),
 	)
+
+	var subIDs []models.SubscriptionID
+	if params.Subscriptions != nil {
+		subIDs = append(subIDs, *params.Subscriptions...)
+	}
+
+	var displayFunc http.Handler
 	switch collection {
 	case models.CollectionSubscriptions:
-		if params.Subscriptions != nil {
-			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), "", *params.Subscriptions...)
-		} else {
-			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), "")
-		}
-	case models.CollectionItems:
-		if params.Articles != nil {
-			displayFunc = handlers.DisplayArticles(s.DataAPI(), "", *params.Subscriptions...)
-		} else {
-			displayFunc = handlers.DisplayArticles(s.DataAPI(), "")
-		}
+		displayFunc = baseChain.Append(
+			handlers.FetchSubscriptions(s.DataAPI(), "", subIDs...),
+			handlers.GenerateSubscriptionsContent,
+		).Then(handlers.RenderTemplates())
+	case models.CollectionArticles:
+		displayFunc = baseChain.Append(
+			handlers.FetchArticles(s.DataAPI(), "", subIDs...),
+			handlers.GenerateArticleContent,
+		).Then(handlers.RenderTemplates())
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode: http.StatusNoContent,
@@ -152,15 +159,8 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 		})
 		return
 	}
-	// Generate handler chain.
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
-		handlers.SaveFilters(params, collection),
-		handlers.SavePageState,
-	).Then(displayFunc)
-	// Run chain.
-	chain.ServeHTTP(res, req)
+
+	displayFunc.ServeHTTP(res, req)
 }
 
 // PaginateCollection handles displaying a collection of objects, with optional filtering.
@@ -180,7 +180,7 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,
 		handlers.SavePageState,
-		handlers.SaveFilters(params, collection),
+		handlers.SaveFilters(params),
 	)
 
 	var displayFunc http.Handler
@@ -188,12 +188,12 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 	case models.CollectionSubscriptions:
 		displayFunc = baseChain.Append(
 			handlers.FetchSubscriptions(s.DataAPI(), pagination),
-			handlers.GenerateSubscriptionCards,
+			handlers.GenerateSubscriptionsContent,
 		).Then(handlers.RenderTemplates())
 	case models.CollectionArticles:
 		displayFunc = baseChain.Append(
 			handlers.FetchArticles(s.DataAPI(), pagination),
-			handlers.GenerateArticleCards,
+			handlers.GenerateArticleContent,
 		).Then(handlers.RenderTemplates())
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
@@ -263,6 +263,43 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, item Ite
 	chain.ServeHTTP(res, req)
 }
 
+// ShowSubscription handles showing items for a feed.
+func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params ShowSubscriptionParams) {
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
+		handlers.SavePageState,
+		handlers.SaveFilters(params),
+		handlers.FetchArticles(s.DataAPI(), "", sub),
+		handlers.GenerateArticleContent,
+	).Then(handlers.RenderTemplates())
+	// Run chain.
+	chain.ServeHTTP(res, req)
+}
+
+func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params PaginateSubscriptionParams) {
+	// Pagination requests are only driven by htmx requests.
+	if !htmx.IsHTMX(req) {
+		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		return
+	}
+	// Extract any pagination value.
+	var pagination models.Pagination
+	if params.Pagination != nil {
+		pagination = *params.Pagination
+	}
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
+		handlers.SavePageState,
+		handlers.SaveFilters(params),
+		handlers.FetchArticles(s.DataAPI(), pagination),
+		handlers.GenerateArticleContent,
+	).Then(handlers.RenderTemplates())
+
+	chain.ServeHTTP(res, req)
+}
+
 // ActionSubscription performs an action on a subscription.
 func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, action Action, sub SubscriptionID, params ActionSubscriptionParams) {
 	var actionFunc http.Handler
@@ -277,67 +314,4 @@ func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, a
 		handlers.RouteLogger,
 	).Then(actionFunc)
 	chain.ServeHTTP(res, req)
-}
-
-// ShowSubscription handles showing items for a feed.
-func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params ShowSubscriptionParams) {
-	// Retrieve filters.
-	filters, err := models.NewFiltersFromParams(params)
-	if err != nil {
-		handlers.ProcessResponse(res, req, &models.Response{
-			StatusCode:    http.StatusInternalServerError,
-			InternalError: err,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusError,
-				Summary: "An internal server error occurred.",
-			},
-		})
-		return
-	}
-	ctx := models.FiltersToCtx(req.Context(), *filters)
-	// Generate handler chain.
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
-		handlers.SavePageState,
-	).Then(handlers.DisplayArticles(s.DataAPI(), "", sub))
-	// Run chain.
-	chain.ServeHTTP(res, req.WithContext(ctx))
-}
-
-func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params PaginateSubscriptionParams) {
-	// Pagination requests are only driven by htmx requests.
-	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
-		return
-	}
-	// Extract any pagination value.
-	var pagination models.Pagination
-	if params.Pagination != nil {
-		pagination = *params.Pagination
-	}
-	// Retrieve filters.
-	filters, err := models.NewFiltersFromParams(params)
-	if err != nil {
-		handlers.ProcessResponse(res, req, &models.Response{
-			StatusCode:    http.StatusInternalServerError,
-			InternalError: err,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusError,
-				Summary: "An internal server error occurred.",
-			},
-		})
-		return
-	}
-	ctx := models.FiltersToCtx(req.Context(), *filters)
-
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
-		handlers.SavePageState,
-		handlers.FetchArticles(s.DataAPI(), pagination),
-		handlers.GenerateArticleCards,
-	).Then(handlers.RenderTemplates())
-
-	chain.ServeHTTP(res, req.WithContext(ctx))
 }

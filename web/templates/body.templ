@@ -5,8 +5,6 @@ package templates
 
 import (
 	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/feedback/loading"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"slices"
 )
 
@@ -28,29 +26,16 @@ templ (b *Body) Template() {
 	if b.header != nil {
 		@b.header
 	}
-	@Content(b.content)
-	if b.footer != nil {
-		@b.footer
-	}
-}
-
-templ Content(components ...templ.Component) {
 	<div
 		id={ ContentID.String() }
-		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2"
 		hx-swap="morph:innerHTML"
 		hx-target-error={ ErrorID.Target() }
 	>
-		for component := range slices.Values(components) {
-			@component
-		}
+		@b.content
 	</div>
-	<div id="content-loading" class="items-center justify-center">
-		@loading.Build(loading.Bars,
-			loading.AsHTMXIndicator(),
-			loading.WithThemeColor(color.Accent),
-		).Show()
-	</div>
+	if b.footer != nil {
+		@b.footer
+	}
 }
 
 // BodyOption is a functional option to apply to the body.

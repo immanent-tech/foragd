@@ -256,3 +256,9 @@ templ UpdateActions(actions ...templ.Component) {
 		}
 	</div>
 }
+
+templ DefaultFooter() {
+	@Footer(
+		UpdateBacklink(),
+	)
+}

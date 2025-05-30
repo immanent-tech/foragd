@@ -86,3 +86,11 @@ templ DefaultHeaderEnd() {
 		}
 	</div>
 }
+
+templ DefaultHeader() {
+	@Header(
+		DefaultHeaderStart(),
+		DefaultHeaderCenter(),
+		DefaultHeaderEnd(),
+	)
+}

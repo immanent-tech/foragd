@@ -41,33 +41,6 @@ var actionAttributes = templ.Attributes{
 	"hx-swap":         "morph:innerHTML swap:1s",
 }
 
-func BuildSubscriptionsLayout(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) *templates.Body {
-	cards := GenerateSubscriptionCards(ctx, subscriptions, pagination)
-	// Generate backlink.
-	return templates.NewBody(
-		templ.Join(cards...),
-		templates.WithBodyHeader(
-			partials.Header(
-				partials.DefaultHeaderStart(),
-				partials.DefaultHeaderCenter(),
-				partials.DefaultHeaderEnd(),
-			),
-		),
-		templates.WithBodyFooter(
-			partials.Footer(
-				partials.UpdateBacklink(),
-				partials.UpdateFilters(subscriptions.GetCategoryCounts()),
-				partials.UpdateSorting(),
-				partials.UpdateActions(
-					AddSubscriptionAction(),
-					ImportAction(),
-					MarkAllSubscriptionsAction(ctx),
-				),
-			),
-		),
-	)
-}
-
 func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscriptions, pagination models.Pagination) []templ.Component {
 	filters := models.FiltersFromCtx(ctx)
 	cards := make([]templ.Component, 0, len(subscriptions))
@@ -161,33 +134,6 @@ templ subscriptionCardContent(subscription *models.Subscription) {
 			text.WithOverflow(text.Truncate),
 		).Show()
 	}
-}
-
-func BuildArticlesLayout(ctx context.Context, pagination models.Pagination, articles models.Articles) *templates.Body {
-	cards := GenerateArticleCards(ctx, articles, pagination)
-	// Return the home items layout.
-	return templates.NewBody(
-		templ.Join(cards...),
-		templates.WithBodyHeader(
-			partials.Header(
-				partials.DefaultHeaderStart(),
-				partials.DefaultHeaderCenter(),
-				partials.DefaultHeaderEnd(),
-			),
-		),
-		templates.WithBodyFooter(
-			partials.Footer(
-				partials.UpdateBacklink(),
-				partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),
-				partials.UpdateSorting(),
-				partials.UpdateActions(
-					AddSubscriptionAction(),
-					ImportAction(),
-					MarkAllArticlesAction(ctx, articles.GetSubscriptionIDs()...),
-				),
-			),
-		),
-	)
 }
 
 func GenerateArticleCards(ctx context.Context, articles models.Articles, pagination models.Pagination) []templ.Component {
@@ -482,4 +428,16 @@ func markUnreadLink(label string, attributes templ.Attributes) templ.Component {
 		link.WithExtraAttributes(attributes),
 		link.WithExtraClasses("w-fit", "text-xs"),
 	).Show()
+}
+
+func GenerateFullPageCardLayout(ctx context.Context, title string, cards ...templ.Component) templ.Component {
+	return templates.NewPage(title,
+		templates.WithBody(
+			templates.NewBody(
+				templ.Join(partials.LayoutCards(cards...)),
+				templates.WithBodyHeader(partials.DefaultHeader()),
+				templates.WithBodyFooter(partials.DefaultFooter()),
+			),
+		),
+	).Template()
 }

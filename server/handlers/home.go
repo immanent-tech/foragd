@@ -7,7 +7,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -26,38 +25,6 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 			return
 		}
 		res.WriteHeader(http.StatusOK)
-	})
-}
-
-func DisplayArticles(dataAPI DataAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		articles, pagination, resp := dataAPI.GetArticlesBySubscription(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
-		if resp.IsError() {
-			ProcessResponse(res, req, resp)
-			return
-		}
-		switch {
-		case htmx.IsHTMX(req):
-			// Update partial content for HTMX powered request.
-			PartialRender(
-				templ.Join(views.GenerateArticleCards(req.Context(), articles, pagination)...),
-				partials.Footer(
-					partials.UpdateBacklink(),
-					partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),
-					partials.UpdateSorting(),
-					partials.UpdateActions(
-						views.AddSubscriptionAction(),
-						views.ImportAction(),
-						views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
-					),
-				),
-				templates.SetPageTitle("Items"),
-			).ServeHTTP(res, req)
-		default:
-			// Generate full layout for non-HTMX powered request.
-			layout := views.BuildArticlesLayout(req.Context(), pagination, articles)
-			FullRender("Items", templates.WithBody(layout)).ServeHTTP(res, req)
-		}
 	})
 }
 

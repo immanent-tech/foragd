@@ -164,8 +164,8 @@ func RenderTemplates() http.Handler {
 		})
 }
 
-// SaveState saves the current page state in the session.
-func SaveFilters(params any, collection models.Collection) func(next http.Handler) http.Handler {
+// SaveFilters extracts the filters from the request params and stores them in the context.
+func SaveFilters(params any) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Retrieve filters.
@@ -261,6 +261,9 @@ func SavePageState(next http.Handler) http.Handler {
 		// Save page state.
 		state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
 		ctx := models.PageStateToCtx(req.Context(), state)
+		slogctx.FromCtx(ctx).Debug("Saved page state to context.",
+			slog.String("state", state.String()),
+		)
 		// Store page states for some paths into session for history restoration.
 		if req.Method == http.MethodGet {
 			switch req.URL.Path {
@@ -269,8 +272,10 @@ func SavePageState(next http.Handler) http.Handler {
 			case "/home/articles":
 				session.Manager.Put(req.Context(), articlesPageState, state)
 			}
+			slogctx.FromCtx(ctx).Debug("Saved page state to session.",
+				slog.String("state", state.String()),
+			)
 		}
-		slogctx.FromCtx(ctx).Debug("Saved page state.")
 		// Pass control to next handler.
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
