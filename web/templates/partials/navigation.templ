@@ -11,9 +11,8 @@ import (
 	"github.com/sebasvil20/templicons/tabler"
 )
 
-// UpdateBacklink will update the back button as an OOB swap.
-templ UpdateBacklink() {
-	// {{ view := models.BacklinkFromCtx(ctx) }}
+// BackButton generates a button for navigating back using the browser history.
+templ BackButton() {
 	<div id="backlink" hx-swap-oob="true">
 		@tooltip.Build("Back").Show() {
 			@link.Build(

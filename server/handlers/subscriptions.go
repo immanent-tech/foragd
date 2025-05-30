@@ -54,25 +54,26 @@ func GenerateSubscriptionsContent(next http.Handler) http.Handler {
 		pagination, _ := req.Context().Value(paginationCtxKey).(models.Pagination)
 		cards := views.GenerateSubscriptionCards(req.Context(), subscriptions, pagination)
 
+		cardLayout := partials.LayoutCards(cards...)
+		cardSorting := partials.UpdateSorting()
+		cardFilters := partials.UpdateFilters(subscriptions.GetCategoryCounts())
+		markAllAction := views.MarkAllSubscriptionsAction(req.Context())
+
 		var content []templ.Component
 
 		if req.Method == http.MethodGet {
 			if !htmx.IsHTMX(req) {
-				content = append(content, views.GenerateFullPageCardLayout(req.Context(), "Articles", cards...))
+				content = append(content, views.GenerateFullPage("Subscriptions",
+					views.GenerateCardControls(markAllAction, cardSorting, cardFilters),
+					cardLayout,
+				))
 			} else {
+				// Append content that needs updating.
 				content = append(content,
-					partials.LayoutCards(cards...),
-					partials.Footer(
-						partials.UpdateBacklink(),
-						partials.UpdateFilters(subscriptions.GetCategoryCounts()),
-						partials.UpdateSorting(),
-						partials.UpdateActions(
-							views.AddSubscriptionAction(),
-							views.ImportAction(),
-							views.MarkAllSubscriptionsAction(req.Context()),
-						),
-					),
-					templates.SetPageTitle("Articles"),
+					views.GenerateCardControls(markAllAction, cardSorting, cardFilters),
+					cardLayout,
+					partials.Footer(partials.BackButton()),
+					templates.SetPageTitle("Subscriptions"),
 				)
 			}
 		} else {

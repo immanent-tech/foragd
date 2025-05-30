@@ -62,7 +62,7 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 			handlers.PartialRender(
 				settings.SettingsContent(),
 				header,
-				partials.UpdateBacklink(),
+				partials.BackButton(),
 				settings.ResetFooter(),
 			),
 		)
@@ -118,8 +118,10 @@ func (s Server) Logout(res http.ResponseWriter, req *http.Request) {
 func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
 		handlers.SavePageState,
-	).Then(handlers.DisplayHome(s.DataAPI()))
+		handlers.GenerateHomeContent(s.DataAPI()),
+	).Then(handlers.RenderTemplates())
 	chain.ServeHTTP(res, req)
 }
 

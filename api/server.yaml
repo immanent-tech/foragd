@@ -229,6 +229,10 @@ paths:
       summary: >
         Shows a collection of objects, with optional filtering.
       operationId: showCollection
+    put:
+      summary: >
+        Changes the state of the current collection of objects, for example, updating the sorting or filtering.
+      operationId: updateCollection
     post:
       summary: >
         Paginate through a collection of objects, with optional filtering.

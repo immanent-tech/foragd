@@ -9,7 +9,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -21,7 +20,6 @@ import (
 func FetchArticles(dataAPI DataAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			spew.Dump(subIDs)
 			articles, pagination, resp := dataAPI.GetArticlesBySubscription(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
@@ -50,12 +48,26 @@ func GenerateArticleContent(next http.Handler) http.Handler {
 
 		if req.Method == http.MethodGet {
 			if !htmx.IsHTMX(req) {
-				content = append(content, views.GenerateFullPageCardLayout(req.Context(), "Articles", cards...))
+				// Generate a page body layout.
+				body := templates.NewBody(
+					templ.Join(
+						views.GenerateCardControls(
+							partials.UpdateSorting(),
+							partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),
+						),
+						partials.LayoutCards(cards...),
+					),
+					templates.WithBodyHeader(partials.DefaultHeader()),
+					templates.WithBodyFooter(partials.Footer(partials.BackButton())),
+				)
+				// Generate a page layout.
+				page := templates.NewPage("Articles", templates.WithBody(body))
+				content = append(content, page.Template())
 			} else {
 				content = append(content,
 					partials.LayoutCards(cards...),
 					partials.Footer(
-						partials.UpdateBacklink(),
+						partials.BackButton(),
 						partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),
 						partials.UpdateSorting(),
 						partials.UpdateActions(

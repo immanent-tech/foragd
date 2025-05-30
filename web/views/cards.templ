@@ -324,7 +324,11 @@ func MarkAllSubscriptionsAction(ctx context.Context) templ.Component {
 	switch models.FiltersFromCtx(ctx).View {
 	case models.ViewUnread:
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead)
-		return markReadLink("Mark All Read", attrs)
+		return button.Build(
+			button.AsShape(button.Square),
+			button.WithContent(tabler.Checks(i.Props{Size: i.SizeXS})),
+			button.WithExtraAttributes(attrs),
+		).Show()
 	case models.ViewRead:
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread)
 		return markUnreadLink("Mark All Unread", attrs)
@@ -430,14 +434,23 @@ func markUnreadLink(label string, attributes templ.Attributes) templ.Component {
 	).Show()
 }
 
-func GenerateFullPageCardLayout(ctx context.Context, title string, cards ...templ.Component) templ.Component {
-	return templates.NewPage(title,
-		templates.WithBody(
-			templates.NewBody(
-				templ.Join(partials.LayoutCards(cards...)),
-				templates.WithBodyHeader(partials.DefaultHeader()),
-				templates.WithBodyFooter(partials.DefaultFooter()),
-			),
-		),
-	).Template()
+templ GenerateCardControls(controls ...templ.Component) {
+	<div id="card-controls" class="flex flex-row justify-end p-2">
+		for control := range slices.Values(controls) {
+			@control
+		}
+	</div>
+}
+
+func GenerateFullPage(title string, content ...templ.Component) templ.Component {
+	// Generate a page body layout.
+	body := templates.NewBody(
+		templ.Join(content...),
+		templates.WithBodyHeader(partials.DefaultHeader()),
+		templates.WithBodyFooter(partials.Footer(partials.BackButton())),
+	)
+	// Generate a page layout.
+	page := templates.NewPage(title, templates.WithBody(body))
+	return page.Template()
+
 }

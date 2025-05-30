@@ -7,6 +7,7 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -42,7 +43,7 @@ func DisplayArticle(dataAPI DataAPI, itemID models.ItemID) http.Handler {
 			partials.DefaultHeaderCenter(),
 			partials.DefaultHeaderEnd(),
 		)
-		footer := partials.Footer(partials.UpdateBacklink())
+		footer := partials.Footer(partials.BackButton())
 		switch {
 		case htmx.IsHTMX(req):
 			// Update partial content for HTMX powered request.
@@ -65,36 +66,32 @@ func DisplayArticle(dataAPI DataAPI, itemID models.ItemID) http.Handler {
 	})
 }
 
-func DisplayHome(dataAPI DataAPI) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscriptionsLink := RestorePageState(req.Context(), "/home/subscriptions")
-		ctx := context.WithValue(req.Context(), "subscriptionsLink", subscriptionsLink)
+func GenerateHomeContent(api DataAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			subscriptionsLink := RestorePageState(req.Context(), "/home/subscriptions")
+			ctx := context.WithValue(req.Context(), "subscriptionsLink", subscriptionsLink)
+			homePageContent := views.GenerateHomePageContent(ctx, api.(*elastic.API))
 
-		content := views.GenerateHomePageContent(ctx, dataAPI.(*elastic.API))
-		header := partials.Header(
-			partials.DefaultHeaderStart(),
-			partials.DefaultHeaderCenter(),
-			partials.DefaultHeaderEnd(),
-		)
-		footer := partials.Footer()
-		switch {
-		case htmx.IsHTMX(req):
-			// Update partial content for HTMX powered request.
-			PartialRender(
-				content,
-				header,
-				footer,
-				templates.SetPageTitle("Home"),
-			).ServeHTTP(res, req.WithContext(ctx))
-		default:
-			// Generate full layout for non-HTMX powered request.
-			FullRender("Home", templates.WithBody(
-				templates.NewBody(content,
-					templates.WithBodyHeader(header),
-					templates.WithBodyFooter(footer),
-				),
-			),
-			).ServeHTTP(res, req.WithContext(ctx))
-		}
-	})
+			var content []templ.Component
+
+			switch {
+			case htmx.IsHTMX(req):
+				content = append(content,
+					homePageContent,
+					partials.Footer(),
+					templates.SetPageTitle("Home"),
+				)
+			default:
+				body := templates.NewBody(homePageContent,
+					templates.WithBodyHeader(partials.DefaultHeader()),
+					templates.WithBodyFooter(partials.Footer()),
+				)
+				page := templates.NewPage("Home", templates.WithBody(body))
+				content = append(content, page.Template())
+			}
+			ctx = context.WithValue(ctx, templatesCtxKey, content)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }

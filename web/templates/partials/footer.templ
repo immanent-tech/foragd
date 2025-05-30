@@ -20,7 +20,7 @@ import (
 var FooterID = attributes.ID("footer")
 
 templ Footer(items ...templ.Component) {
-	<div id={ FooterID.String() } class="bg-base-200 dock dock-sm" hx-swap-oob="true">
+	<div id={ FooterID.String() } class="bg-base-200 dock dock-sm" hx-swap-oob="true" hx-swap="morph:outerHTML">
 		if len(items) > 0 {
 			for item := range slices.Values(items) {
 				@FooterItem() {
@@ -113,12 +113,13 @@ func newViewFilter(ctx context.Context, view models.View) *Filter {
 type ViewFilters []*Filter
 
 templ UpdateFilters(categories models.CategoryCounts) {
-	<div id="content-filters">
+	<div id="card-filters">
 		@tooltip.Build("Filtering").Show() {
 			@dropdown.Build(
-				dropdown.WithButtonContent(tabler.Filter(i.Props{Size: i.SizeSM})),
-				dropdown.WithOpenFrom(dropdown.OpenTop),
-				dropdown.WithOpenAlignment(dropdown.AlignCenter),
+				dropdown.WithButtonContent(tabler.Filter(i.Props{Size: i.SizeXS})),
+				dropdown.WithButtonClasses("p-2"),
+				dropdown.WithOpenFrom(dropdown.OpenBottom),
+				dropdown.WithOpenAlignment(dropdown.AlignEnd),
 				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 			).Show() {
 				<li class="menu-title">View:</li>
@@ -156,12 +157,13 @@ func buildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCou
 }
 
 templ UpdateSorting() {
-	<div id="content-sorting">
+	<div id="card-sorting">
 		@tooltip.Build("Sorting").Show() {
 			@dropdown.Build(
-				dropdown.WithButtonContent(tabler.ArrowsSort(i.Props{Size: i.SizeSM})),
-				dropdown.WithOpenFrom(dropdown.OpenTop),
-				dropdown.WithOpenAlignment(dropdown.AlignCenter),
+				dropdown.WithButtonContent(tabler.ArrowsSort(i.Props{Size: i.SizeXS})),
+				dropdown.WithButtonClasses("p-2"),
+				dropdown.WithOpenFrom(dropdown.OpenBottom),
+				dropdown.WithOpenAlignment(dropdown.AlignEnd),
 				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 			).Show() {
 				<li class="menu-title">Sorting:</li>
@@ -255,10 +257,4 @@ templ UpdateActions(actions ...templ.Component) {
 			}
 		}
 	</div>
-}
-
-templ DefaultFooter() {
-	@Footer(
-		UpdateBacklink(),
-	)
 }
