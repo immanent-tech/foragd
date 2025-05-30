@@ -293,7 +293,7 @@ func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request,
 		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
-		handlers.FetchArticles(s.DataAPI(), pagination),
+		handlers.FetchArticles(s.DataAPI(), pagination, sub),
 		handlers.GenerateArticleContent,
 	).Then(handlers.RenderTemplates())
 
