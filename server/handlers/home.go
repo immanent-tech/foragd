@@ -6,7 +6,6 @@ package handlers
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -17,40 +16,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
 )
-
-// CheckRequiredFilters will ensure a request has the required filters set. If any required filters are missing,
-// defaults will be substituted.
-func CheckRequiredFilters(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if !(strings.HasPrefix(req.URL.Path, "/home") && req.Method == http.MethodGet) {
-			next.ServeHTTP(res, req)
-			return
-		}
-
-		ctx := req.Context()
-		params := req.URL.Query()
-
-		if !params.Has(string(models.ParamCount)) {
-			params.Set(string(models.ParamCount), models.DefaultCount)
-		}
-
-		if !params.Has(string(models.ParamView)) {
-			params.Set(string(models.ParamView), string(models.DefaultView))
-		}
-
-		if !params.Has(string(models.ParamSortBy)) {
-			params.Set(string(models.ParamSortBy), string(models.DefaultSortBy))
-		}
-
-		if !params.Has(string(models.ParamSortOrder)) {
-			params.Set(string(models.ParamSortOrder), string(models.DefaultSortOrder))
-		}
-
-		req.URL.RawQuery = params.Encode()
-
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
 
 // MarkItems handles marking items as read.
 func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handler {

@@ -213,23 +213,28 @@ paths:
         default:
           $ref: '#/components/responses/html'
   /home/{collection}:
+    parameters:
+      - $ref: '#/components/parameters/Collection'
+      - $ref: '#/components/parameters/Subscriptions'
+      - $ref: '#/components/parameters/Articles'
+      - $ref: '#/components/parameters/Categories'
+      - $ref: '#/components/parameters/View'
+      - $ref: '#/components/parameters/Count'
+      - $ref: '#/components/parameters/SortBy'
+      - $ref: '#/components/parameters/SortOrder'
+    responses:
+      default:
+        $ref: '#/components/responses/html'
     get:
       summary: >
         Shows a collection of objects, with optional filtering.
       operationId: showCollection
+    post:
+      summary: >
+        Paginate through a collection of objects, with optional filtering.
       parameters:
-        - $ref: '#/components/parameters/Collection'
-        - $ref: '#/components/parameters/Subscriptions'
-        - $ref: '#/components/parameters/Articles'
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/View'
-        - $ref: '#/components/parameters/Count'
-        - $ref: '#/components/parameters/SortBy'
-        - $ref: '#/components/parameters/SortOrder'
         - $ref: '#/components/parameters/Pagination'
-      responses:
-        default:
-          $ref: '#/components/responses/html'
+      operationId: paginateCollection
   /home/{collection}/{action}:
     post:
       summary: >
@@ -245,21 +250,26 @@ paths:
         default:
           $ref: '#/components/responses/html'
   /subscription/{subscription}:
+    parameters:
+      - $ref: '#/components/parameters/SubscriptionID'
+      - $ref: '#/components/parameters/Categories'
+      - $ref: '#/components/parameters/View'
+      - $ref: '#/components/parameters/Count'
+      - $ref: '#/components/parameters/SortBy'
+      - $ref: '#/components/parameters/SortOrder'
+    responses:
+      default:
+        $ref: '#/components/responses/html'
     get:
       summary: >
         Shows a items for the given subscription, with optional filtering.
       operationId: showSubscription
+    post:
+      summary: >
+        Paginate through items for the given subscription, with optional filtering.
+      operationId: paginateSubscription
       parameters:
-        - $ref: '#/components/parameters/SubscriptionID'
-        - $ref: '#/components/parameters/Categories'
-        - $ref: '#/components/parameters/View'
-        - $ref: '#/components/parameters/Count'
-        - $ref: '#/components/parameters/SortBy'
-        - $ref: '#/components/parameters/SortOrder'
         - $ref: '#/components/parameters/Pagination'
-      responses:
-        default:
-          $ref: '#/components/responses/html'
   /subscription/{action}/{subscription}:
     post:
       summary: >

@@ -125,12 +125,6 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 
 // ShowCollection handles displaying a collection of objects, with optional filtering.
 func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, collection Collection, params ShowCollectionParams) {
-	// Extract any pagination value.
-	var pagination models.Pagination
-	if params.Pagination != nil {
-		pagination = *params.Pagination
-	}
-
 	// Generate appropriate display function and view based on collection parameter.
 	var (
 		displayFunc http.Handler
@@ -138,15 +132,15 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	switch collection {
 	case models.CollectionSubscriptions:
 		if params.Subscriptions != nil {
-			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), pagination, *params.Subscriptions...)
+			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), "", *params.Subscriptions...)
 		} else {
-			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), pagination)
+			displayFunc = handlers.DisplaySubscriptions(s.DataAPI(), "")
 		}
 	case models.CollectionItems:
 		if params.Articles != nil {
-			displayFunc = handlers.DisplayArticles(s.DataAPI(), pagination, *params.Subscriptions...)
+			displayFunc = handlers.DisplayArticles(s.DataAPI(), "", *params.Subscriptions...)
 		} else {
-			displayFunc = handlers.DisplayArticles(s.DataAPI(), pagination)
+			displayFunc = handlers.DisplayArticles(s.DataAPI(), "")
 		}
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
@@ -167,6 +161,52 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	).Then(displayFunc)
 	// Run chain.
 	chain.ServeHTTP(res, req)
+}
+
+// PaginateCollection handles displaying a collection of objects, with optional filtering.
+func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, collection Collection, params PaginateCollectionParams) {
+	// Pagination requests are only driven by htmx requests.
+	if !htmx.IsHTMX(req) {
+		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		return
+	}
+	// Extract any pagination value.
+	var pagination models.Pagination
+	if params.Pagination != nil {
+		pagination = *params.Pagination
+	}
+
+	baseChain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
+		handlers.SavePageState,
+		handlers.SaveFilters(params, collection),
+	)
+
+	var displayFunc http.Handler
+	switch collection {
+	case models.CollectionSubscriptions:
+		displayFunc = baseChain.Append(
+			handlers.FetchSubscriptions(s.DataAPI(), pagination),
+			handlers.GenerateSubscriptionCards,
+		).Then(handlers.RenderTemplates())
+	case models.CollectionArticles:
+		displayFunc = baseChain.Append(
+			handlers.FetchArticles(s.DataAPI(), pagination),
+			handlers.GenerateArticleCards,
+		).Then(handlers.RenderTemplates())
+	default:
+		handlers.ProcessResponse(res, req, &models.Response{
+			StatusCode: http.StatusNoContent,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "Collection is unknown.",
+			},
+		})
+		return
+	}
+
+	displayFunc.ServeHTTP(res, req)
 }
 
 // ActionCollection handles performing an action on a collection of objects.
@@ -241,6 +281,36 @@ func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, a
 
 // ShowSubscription handles showing items for a feed.
 func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params ShowSubscriptionParams) {
+	// Retrieve filters.
+	filters, err := models.NewFiltersFromParams(params)
+	if err != nil {
+		handlers.ProcessResponse(res, req, &models.Response{
+			StatusCode:    http.StatusInternalServerError,
+			InternalError: err,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "An internal server error occurred.",
+			},
+		})
+		return
+	}
+	ctx := models.FiltersToCtx(req.Context(), *filters)
+	// Generate handler chain.
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
+		handlers.SavePageState,
+	).Then(handlers.DisplayArticles(s.DataAPI(), "", sub))
+	// Run chain.
+	chain.ServeHTTP(res, req.WithContext(ctx))
+}
+
+func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params PaginateSubscriptionParams) {
+	// Pagination requests are only driven by htmx requests.
+	if !htmx.IsHTMX(req) {
+		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		return
+	}
 	// Extract any pagination value.
 	var pagination models.Pagination
 	if params.Pagination != nil {
@@ -260,12 +330,14 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 		return
 	}
 	ctx := models.FiltersToCtx(req.Context(), *filters)
-	// Generate handler chain.
+
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.CheckRequiredFilters,
+		handlers.SetResponseHeaders,
 		handlers.SavePageState,
-	).Then(handlers.DisplayArticles(s.DataAPI(), pagination, sub))
-	// Run chain.
+		handlers.FetchArticles(s.DataAPI(), pagination),
+		handlers.GenerateArticleCards,
+	).Then(handlers.RenderTemplates())
+
 	chain.ServeHTTP(res, req.WithContext(ctx))
 }

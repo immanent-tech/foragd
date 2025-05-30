@@ -40,6 +40,9 @@ var BaseChain = alice.New(
 const (
 	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
 	subscriptionsCtxKey        contextKey = "subscriptions"
+	articlesCtxKey             contextKey = "articles"
+	paginationCtxKey           contextKey = "pagination"
+	templatesCtxKey            contextKey = "templates"
 	feedsCtxKey                contextKey = "feeds"
 	htmxRespCtxKey             contextKey = "htmxResp"
 )
@@ -132,6 +135,25 @@ func PartialRender(templates ...templ.Component) http.Handler {
 			slogctx.FromCtx(req.Context()).Debug("Performing partial renders.")
 			if !htmx.IsHTMX(req) {
 				slogctx.FromCtx(req.Context()).Warn("Partial render for non-HTMX request.")
+			}
+			resp := HTMXResponseFromCtx(req.Context())
+			for template := range slices.Values(templates) {
+				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
+				}
+			}
+		})
+}
+
+// RenderTemplates will render any templates found in the context. If none are found, it returns a 204 response.
+func RenderTemplates() http.Handler {
+	return http.HandlerFunc(
+		func(res http.ResponseWriter, req *http.Request) {
+			templates, ok := req.Context().Value(templatesCtxKey).([]templ.Component)
+			if !ok {
+				slogctx.FromCtx(req.Context()).Warn("No templates found in context.")
+				res.WriteHeader(http.StatusNoContent)
+				return
 			}
 			resp := HTMXResponseFromCtx(req.Context())
 			for template := range slices.Values(templates) {
@@ -240,11 +262,13 @@ func SavePageState(next http.Handler) http.Handler {
 		state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
 		ctx := models.PageStateToCtx(req.Context(), state)
 		// Store page states for some paths into session for history restoration.
-		switch req.URL.Path {
-		case "/home/subscriptions":
-			session.Manager.Put(req.Context(), subscriptionsPageState, state)
-		case "/home/articles":
-			session.Manager.Put(req.Context(), articlesPageState, state)
+		if req.Method == http.MethodGet {
+			switch req.URL.Path {
+			case "/home/subscriptions":
+				session.Manager.Put(req.Context(), subscriptionsPageState, state)
+			case "/home/articles":
+				session.Manager.Put(req.Context(), articlesPageState, state)
+			}
 		}
 		slogctx.FromCtx(ctx).Debug("Saved page state.")
 		// Pass control to next handler.

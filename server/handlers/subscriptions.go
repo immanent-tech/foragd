@@ -25,6 +25,40 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
+// FetchSubscriptions fetches subscriptions from the data backend and stores them in the request context for usage by other handlers.
+func FetchSubscriptions(dataAPI DataAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			subscriptions, pagination, resp := dataAPI.GetSubscriptionsByID(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
+			if resp.IsError() {
+				ProcessResponse(res, req, resp)
+				return
+			}
+			ctx := req.Context()
+			ctx = context.WithValue(ctx, subscriptionsCtxKey, subscriptions)
+			ctx = context.WithValue(ctx, paginationCtxKey, pagination)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+// FetchSubscriptions fetches subscriptions from the data backend and stores them in the request context for usage by other handlers.
+func GenerateSubscriptionCards(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		subscriptions, ok := req.Context().Value(subscriptionsCtxKey).(models.Subscriptions)
+		if !ok {
+			slogctx.FromCtx(req.Context()).Warn("No subscriptions found in context.")
+			next.ServeHTTP(res, req)
+			return
+		}
+		pagination, _ := req.Context().Value(paginationCtxKey).(models.Pagination)
+		templates := views.GenerateSubscriptionCards(req.Context(), subscriptions, pagination)
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, templatesCtxKey, templates)
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
 // DisplaySubscriptions fetches subscriptions by ID and displays them as a list of cards.
 func DisplaySubscriptions(dataAPI DataAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {

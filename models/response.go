@@ -56,3 +56,14 @@ func RespServerError(msg string, err error) *Response {
 		},
 	}
 }
+
+func RespForbidden(msg string, err error) *Response {
+	return &Response{
+		StatusCode:    http.StatusForbidden,
+		InternalError: err,
+		UserMessage: &UserMessage{
+			Status:  UserMessageStatusError,
+			Summary: msg,
+		},
+	}
+}

@@ -21,6 +21,7 @@ const (
 
 // Defines values for Collection.
 const (
+	CollectionArticles      Collection = "articles"
 	CollectionFeeds         Collection = "feeds"
 	CollectionItems         Collection = "items"
 	CollectionSubscriptions Collection = "subscriptions"

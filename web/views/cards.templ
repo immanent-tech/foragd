@@ -110,6 +110,9 @@ func newSubscriptionCard(ctx context.Context, subscription *models.Subscription,
 	if subscription.UnreadCount == 0 {
 		card.WithExtraClasses(opacity.Apply(75))(cardProps)
 	}
+	if pagination != nil {
+		card.WithExtraAttributes(addPaginationAttributes(ctx, *pagination))(cardProps)
+	}
 
 	return cardProps.Show()
 }
@@ -271,8 +274,9 @@ templ articleCardContent(article *models.Article) {
 // addPagination adds htmx attributes for triggering pagination to a card.
 func addPaginationAttributes(ctx context.Context, pagination models.Pagination) templ.Attributes {
 	view := models.PageStateFromCtx(ctx)
+	view.Params.Set(models.ParamPagination, pagination)
 	return templ.Attributes{
-		"hx-get":         view.String() + "&pagination=" + pagination,
+		"hx-post":        view.String(),
 		"hx-trigger":     "intersect once",
 		"hx-swap":        "afterend",
 		"hx-replace-url": "false",

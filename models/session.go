@@ -34,7 +34,9 @@ func (s PageState) String() string {
 
 func (s PageState) GetFilters() Filters {
 	filters := NewFilters()
-	filters.Categories = strings.Split(s.Params.Get(ParamCategories), ",")
+	if s.Params.Has(ParamCategories) {
+		filters.Categories = strings.Split(s.Params.Get(ParamCategories), ",")
+	}
 	filters.Count = s.Params.Get(ParamCount)
 	filters.View = View(s.Params.Get(ParamView))
 	filters.SortBy = SortBy(s.Params.Get(ParamSortBy))

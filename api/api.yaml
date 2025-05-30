@@ -15,9 +15,9 @@ components:
       description: >
         is a group of objects, such as feeds, items or subscriptions.
       type: string
-      enum: ['feeds', 'items', 'subscriptions']
+      enum: ['feeds', 'items', 'subscriptions', 'articles']
       x-oapi-codegen-extra-tags:
-        validate: 'oneof=feeds items subscriptions'
+        validate: 'oneof=feeds items subscriptions articles'
     Action:
       description: >
         defines an operation to change the state of objects.
