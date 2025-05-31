@@ -31,9 +31,9 @@ templ Header(start, center, end templ.Component) {
 
 templ DefaultHeaderStart() {
 	<div class="flex-none">
-		<label for="home_drawer_toggle" aria-label="Open Drawer" class="btn btn-square lg:hidden drawer-button">
-			@tabler.Menu()
-		</label>
+		<div hx-get="/home" hx-target={ ContentID.Target() } hx-push-url="true" class="cursor-pointer">
+			@tabler.Home()
+		</div>
 	</div>
 }
 

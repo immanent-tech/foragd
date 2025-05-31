@@ -4,10 +4,18 @@
 package partials
 
 import (
+	"context"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"slices"
+	"strings"
 )
 
 var CardsID = attributes.ID("cards")
@@ -23,5 +31,243 @@ templ LayoutCards(cards ...templ.Component) {
 			loading.AsHTMXIndicator(),
 			loading.WithThemeColor(color.Accent),
 		).Show()
+	</div>
+}
+
+// Filter represents a filter action on a page. It has a value (displayed in the UI) and a link which will trigger a
+// htmx request.
+type Filter struct {
+	label  string
+	value  string
+	link   models.PageState
+	active bool
+}
+
+// AsBadge displays the category filter as a badge with appropriate htmx attributes.
+templ (f *Filter) AsBadge(attributes templ.Attributes) {
+	switch  {
+		case f.active:
+			<div class="badge badge-sm badge-outline badge-primary capitalize cursor-pointer" { attributes... }>{ f.label }</div>
+		default:
+			<div class="badge badge-sm badge-dash badge-primary capitalize cursor-pointer" { attributes... }>{ f.label }</div>
+	}
+}
+
+templ (f *Filter) AsRadio(name string, attributes templ.Attributes) {
+	<label class="flex gap-2 cursor-pointer items-center">
+		switch  {
+			case f.active:
+				<input
+					type="radio"
+					class="radio radio-xs radio-primary"
+					checked="checked"
+					{ attributes... }
+				/>
+				<div class="text-primary capitalize">{ f.label }</div>
+			default:
+				<input type="radio" class="radio radio-xs" { attributes... }/>
+				<div class="capitalize">{ f.label }</div>
+		}
+	</label>
+}
+
+// NewCategoryFilter creates a new category filter component. Existing filters will be utilised and the request URL will
+// use the given path.
+func newCategoryFilter(ctx context.Context, category models.CategoryCount) *Filter {
+	filter := &Filter{
+		label: category.Category,
+		value: category.Category,
+	}
+	view := models.PageStateFromCtx(ctx)
+	filters := view.GetFilters()
+	// Check if this category is in the current view filters.
+	if found, _ := filters.HasCategory(category.Category); found {
+		filter.active = true
+		filters.RemoveCategory(category.Category)
+	} else {
+		filters.AddCategory(category.Category)
+	}
+	// Generate a view.
+	view.Params = filters.ToQueryParams()
+	filter.link = view
+
+	return filter
+}
+
+// CategoryFilters is a slice of category filters.
+type CategoryFilters []*Filter
+
+func newViewFilter(ctx context.Context, view models.View) *Filter {
+	// Get the current view.
+	link := models.PageStateFromCtx(ctx)
+	filters := link.GetFilters()
+	filter := &Filter{
+		label: string(view),
+		value: string(view),
+	}
+	// If the current view filters indicate this view is active, mark as so.
+	if view == filters.View {
+		filter.active = true
+	}
+	// Set the view filter to this view.
+	filters.View = view
+	link.Params = filters.ToQueryParams()
+	filter.link = link
+
+	return filter
+}
+
+// ViewFilters is a slice of filters for changing the view.
+type ViewFilters []*Filter
+
+templ UpdateFilters(categories models.CategoryCounts) {
+	<div id="card-filters">
+		<div class="dropdown dropdown-bottom dropdown-end">
+			<div tabindex="0" role="button" class="btn btn-square m-1">
+				@tabler.Filter(i.Props{Size: i.SizeXS})
+			</div>
+			<div tabindex="0" class="card card-sm bg-base-100 z-1 w-48 shadow-md dropdown-content">
+				<div class="card-body">
+					<div class="text-accent font-semibold">View:</div>
+					for view := range slices.Values(buildViewFilters(ctx)) {
+						@view.AsRadio("view", templ.Attributes{
+							"hx-get":         view.link.String(),
+							"hx-replace-url": "true",
+							"hx-target":      ContentID.Target(),
+						})
+					}
+					<div class="text-accent font-semibold">Category:</div>
+					for category := range slices.Values(buildCategoryFilters(ctx,categories)) {
+						@category.AsBadge(templ.Attributes{
+							"hx-get":         category.link.String(),
+							"hx-replace-url": "true",
+							"hx-target":      ContentID.Target(),
+						})
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+func buildViewFilters(ctx context.Context) ViewFilters {
+	return ViewFilters{
+		newViewFilter(ctx, models.ViewRead),
+		newViewFilter(ctx, models.ViewUnread),
+		newViewFilter(ctx, models.ViewAll),
+	}
+}
+
+func buildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCounts) CategoryFilters {
+	categoryFilters := make(CategoryFilters, 0, len(categoryCounts))
+	for categoryCount := range slices.Values(categoryCounts.GetTopCategories(10)) {
+		categoryFilters = append(categoryFilters, newCategoryFilter(ctx, categoryCount))
+	}
+
+	return categoryFilters
+}
+
+templ UpdateSorting() {
+	<div id="card-sorting">
+		<div class="dropdown dropdown-bottom dropdown-end">
+			<div tabindex="0" role="button" class="btn btn-square m-1">
+				@tabler.ArrowsSort(i.Props{Size: i.SizeXS})
+			</div>
+			<div tabindex="0" class="card card-sm bg-base-100 z-1 w-48 shadow-md dropdown-content">
+				<div class="card-body">
+					<div class="text-accent font-semibold">Sort:</div>
+					for sort := range slices.Values(buildSortFilters(ctx)) {
+						@sort.AsRadio("sort_by", templ.Attributes{
+							"hx-get":         sort.link.String(),
+							"hx-replace-url": "true",
+							"hx-target":      ContentID.Target(),
+						})
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+func buildSortFilters(ctx context.Context) SortFilters {
+	var sorts SortFilters
+	// Add sorting options for updated date.
+	sorts = append(sorts,
+		NewSortFilter(ctx, models.SortLastUpdatedDesc),
+		NewSortFilter(ctx, models.SortLastUpdatedAsc),
+	)
+	// If viewing feeds and not viewing read items, add additional sorting options on unread count.
+	view := models.PageStateFromCtx(ctx)
+	if (strings.HasPrefix(view.Path, "/home/subscriptions") || strings.HasPrefix(view.Path, "/subscription")) && view.GetFilters().View != models.ViewRead {
+		sorts = append(sorts,
+			NewSortFilter(ctx, models.SortUnreadCountDesc),
+			NewSortFilter(ctx, models.SortUnreadCountAsc),
+		)
+	}
+	return sorts
+}
+
+// SortFilters is a slice of filters for sorting the view.
+type SortFilters []*Filter
+
+func NewSortFilter(ctx context.Context, sort models.Sort) *Filter {
+	view := models.PageStateFromCtx(ctx)
+	filters := view.GetFilters()
+	filter := &Filter{
+		value: sort.SortBy.String(),
+		label: sort.String(),
+	}
+	// Set this sort as active if indicated in the current view filters.
+	if filters.SortBy == sort.SortBy && filters.SortOrder == sort.SortOrder {
+		filter.active = true
+	} else {
+		filters.SortBy = sort.SortBy
+		filters.SortOrder = sort.SortOrder
+	}
+	// Generate a view.
+	view.Params = filters.ToQueryParams()
+	filter.link = view
+
+	return filter
+}
+
+templ activeOption(label string, attributes templ.Attributes) {
+	@button.Build(
+		button.WithContent(label),
+		button.WithColor(button.Primary),
+		button.WithStyle(button.Soft),
+		button.WithSize(button.XS),
+		button.WithExtraAttributes(attributes),
+		button.WithExtraClasses("join-item", "capitalize", "p-2"),
+	).Show()
+}
+
+templ inactiveOption(label string, attributes templ.Attributes) {
+	@button.Build(
+		button.WithContent(label),
+		button.WithSize(button.XS),
+		button.WithExtraAttributes(attributes),
+		button.WithExtraClasses("join-item", "capitalize", "p-2"),
+	).Show()
+}
+
+templ UpdateActions(actions ...templ.Component) {
+	<div id="content-actions">
+		@tooltip.Build("Actions").Show() {
+			@dropdown.Build(
+				dropdown.WithButtonContent(tabler.Menu(i.Props{Size: i.SizeSM})),
+				dropdown.WithOpenFrom(dropdown.OpenTop),
+				dropdown.WithOpenAlignment(dropdown.AlignEnd),
+				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+			).Show() {
+				for item := range slices.Values(actions) {
+					if item != nil {
+						<li>
+							@item
+						</li>
+					}
+				}
+			}
+		}
 	</div>
 }

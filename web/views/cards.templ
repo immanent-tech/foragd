@@ -255,6 +255,7 @@ func viewAction(ctx context.Context, id string, viewed bool) templ.Attributes {
 	switch models.IdentifyID(id) {
 	case models.SubscriptionPFX:
 		filters := models.FiltersFromCtx(ctx)
+		filters.SortBy = models.SortByLastUpdated
 		view = models.PageState{Path: "/subscription/" + id, Params: filters.ToQueryParams()}
 		if viewed {
 			filters.View = models.ViewUnread
@@ -368,7 +369,11 @@ func MarkAllArticlesAction(ctx context.Context, subIDs ...models.SubscriptionID)
 	switch models.FiltersFromCtx(ctx).View {
 	case models.ViewUnread:
 		attrs["hx-post"] = "/home/subscriptions/" + string(models.MarkRead) + "?" + params.Encode()
-		return markReadLink("Mark All Read", attrs)
+		return button.Build(
+			button.AsShape(button.Square),
+			button.WithContent(tabler.Checks(i.Props{Size: i.SizeXS})),
+			button.WithExtraAttributes(attrs),
+		).Show()
 	case models.ViewRead:
 		attrs["hx-post"] = "/home/subscriptions/" + string(models.MarkUnread) + "?" + params.Encode()
 		return markUnreadLink("Mark All Unread", attrs)

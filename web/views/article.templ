@@ -13,42 +13,44 @@ import (
 
 // Show renders an item as an article.
 templ BuildArticleLayout(item *models.Article) {
-	@article.Build(
-		article.WithExtraAttributes(templ.Attributes{
-			"hx-post":     "/article/read/" + item.ItemID,
-			"hx-swap":     "none",
-			"hx-push-url": "false",
-			"hx-trigger":  "load delay:2s",
-		}),
-	).Show() {
-		<h2>
-			@text.Build(item.Item.GetTitle(),
-				text.WithWeight(text.Semibold),
-				text.WithSize(text.LG),
-			).Show("flex-1")
-		</h2>
-		<div class="flex w-full justify-items-end px-2">
-			if len(item.Item.GetAuthors()) > 0 {
-				<div class="flex-1">
-					@text.Build(strings.Join(item.Item.GetAuthors(), ","),
-						text.WithSize(text.XS),
-						text.AsItalicText(),
-					).Show()
-				</div>
-			}
-			<div class="flex-none">
-				@partials.ShowTimestamp(item.Item.GetUpdatedDate())
-			</div>
-		</div>
-		@partials.ShowCategoriesAsBadges(item.Item.GetCategories()...)
-		<div id="article_content" class="text-sm max-w-prose">
-			if item.Item.GetContent() != "" {
-				@templ.Raw(item.Item.GetContent())
-			} else {
-				if desc := item.Item.GetDescription(); desc != "" {
-					@templ.Raw(desc)
+	<div id={ item.ItemID } class="p-4">
+		@article.Build(
+			article.WithExtraAttributes(templ.Attributes{
+				"hx-post":     "/article/read/" + item.ItemID,
+				"hx-swap":     "none",
+				"hx-push-url": "false",
+				"hx-trigger":  "load delay:2s",
+			}),
+		).Show() {
+			<h2>
+				@text.Build(item.Item.GetTitle(),
+					text.WithWeight(text.Semibold),
+					text.WithSize(text.LG),
+				).Show("flex-1")
+			</h2>
+			<div class="flex w-full justify-items-end px-2">
+				if len(item.Item.GetAuthors()) > 0 {
+					<div class="flex-1">
+						@text.Build(strings.Join(item.Item.GetAuthors(), ","),
+							text.WithSize(text.XS),
+							text.AsItalicText(),
+						).Show()
+					</div>
 				}
-			}
-		</div>
-	}
+				<div class="flex-none">
+					@partials.ShowTimestamp(item.Item.GetUpdatedDate())
+				</div>
+			</div>
+			@partials.ShowCategoriesAsBadges(item.Item.GetCategories()...)
+			<div id="article_content" class="text-sm max-w-prose">
+				if item.Item.GetContent() != "" {
+					@templ.Raw(item.Item.GetContent())
+				} else {
+					if desc := item.Item.GetDescription(); desc != "" {
+						@templ.Raw(desc)
+					}
+				}
+			</div>
+		}
+	</div>
 }
