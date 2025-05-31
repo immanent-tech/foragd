@@ -22,3 +22,7 @@ templ ShowCategoriesAsBadges(categories ...models.Category) {
 		}
 	</div>
 }
+
+templ CategoryBadge(category models.Category, attributes templ.Attributes) {
+	<div class="badge badge-sm badge-primary capitalize cursor-pointer m-1" { attributes... }>{ category }</div>
+}
