@@ -6,7 +6,6 @@ package partials
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
@@ -54,13 +53,13 @@ templ (f *Filter) AsBadge() {
 			@activeOption(f.value, templ.Attributes{
 				"hx-get":         f.link.String(),
 				"hx-replace-url": "true",
-				"hx-target":      templates.ContentID.Target(),
+				"hx-target":      ContentID.Target(),
 			})
 		default:
 			@inactiveOption(f.value, templ.Attributes{
 				"hx-get":         f.link.String(),
 				"hx-replace-url": "true",
-				"hx-target":      templates.ContentID.Target(),
+				"hx-target":      ContentID.Target(),
 			})
 	}
 }

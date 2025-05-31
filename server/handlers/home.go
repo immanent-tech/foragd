@@ -12,7 +12,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
 )
@@ -26,43 +26,6 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 			return
 		}
 		res.WriteHeader(http.StatusOK)
-	})
-}
-
-// DisplayArticle handles displaying an item as an article.
-func DisplayArticle(dataAPI DataAPI, itemID models.ItemID) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		article, found, resp := dataAPI.GetArticle(req.Context(), itemID)
-		if resp.IsError() || !found {
-			ProcessResponse(res, req, resp)
-			return
-		}
-		content := views.BuildArticleLayout(article)
-		header := partials.Header(
-			partials.DefaultHeaderStart(),
-			partials.DefaultHeaderCenter(),
-			partials.DefaultHeaderEnd(),
-		)
-		footer := partials.Footer(partials.BackButton())
-		switch {
-		case htmx.IsHTMX(req):
-			// Update partial content for HTMX powered request.
-			PartialRender(
-				content,
-				footer,
-				templates.SetPageTitle(article.Item.GetTitle()),
-			).ServeHTTP(res, req)
-		default:
-			// Generate full layout for non-HTMX powered request.
-			FullRender(article.Item.GetTitle(),
-				templates.WithBody(
-					templates.NewBody(views.BuildArticleLayout(article),
-						templates.WithBodyHeader(header),
-						templates.WithBodyFooter(footer),
-					),
-				),
-			).ServeHTTP(res, req)
-		}
 	})
 }
 
@@ -80,18 +43,42 @@ func GenerateHomeContent(api DataAPI) func(next http.Handler) http.Handler {
 				content = append(content,
 					homePageContent,
 					partials.Footer(),
-					templates.SetPageTitle("Home"),
+					partials.SetPageTitle("Home"),
 				)
 			default:
-				body := templates.NewBody(homePageContent,
-					templates.WithBodyHeader(partials.DefaultHeader()),
-					templates.WithBodyFooter(partials.Footer()),
+				body := partials.NewBody(homePageContent,
+					partials.WithBodyFooter(partials.Footer()),
 				)
-				page := templates.NewPage("Home", templates.WithBody(body))
+				page := partials.NewPage("Home", partials.WithBody(body))
 				content = append(content, page.Template())
 			}
 			ctx = context.WithValue(ctx, templatesCtxKey, content)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
+}
+
+// GenerateArticle handles displaying an item as an article.
+func GenerateSettings(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		settingsLayout := settings.SettingsContent()
+
+		var content []templ.Component
+
+		if !htmx.IsHTMX(req) {
+			body := partials.NewBody(settingsLayout, partials.WithBodyFooter(partials.BackButton()))
+			content = append(content, partials.NewPage("Settings", partials.WithBody(body)).Template())
+		} else {
+			// Append content that needs updating.
+			content = append(content,
+				settingsLayout,
+				partials.Footer(partials.BackButton()),
+				partials.SetPageTitle("Settings"),
+			)
+		}
+
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, templatesCtxKey, content)
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
 }

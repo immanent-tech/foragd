@@ -5,15 +5,10 @@ package partials
 
 import (
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
-	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
 )
-
-var NotificationsID = attributes.ID("notifications")
-var ModalID = attributes.ID("modal")
 
 type UserMessage struct {
 	*models.UserMessage
@@ -75,7 +70,7 @@ templ (m *UserMessage) AsNote() {
 }
 
 templ (m *UserMessage) AsNotification() {
-	<div id={ templates.NotificationsID.String() } hx-swap-oob="true">
+	<div id={ NotificationsID.String() } hx-swap-oob="true">
 		@alert.Build(
 			alert.AlertState(m.Status),
 			alert.WithStyle(alert.Soft),
@@ -89,7 +84,7 @@ templ (m *UserMessage) AsNotification() {
 
 // ShowNotification displays the given message as a notification in the UI.
 templ ShowNotification(msg *models.UserMessage) {
-	<div id={ templates.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50" hx-swap-oob="true" hx-swap="outerHTML swap:1s settle:1s">
+	<div id={ NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50" hx-swap-oob="true" hx-swap="outerHTML swap:1s settle:1s">
 		@alert.Build(
 			alert.AlertState(msgStatusToAlertState(msg.Status)),
 			alert.WithExtraAttributes(templ.Attributes{

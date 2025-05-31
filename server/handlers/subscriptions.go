@@ -18,7 +18,6 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 	"github.com/joshuar/go-feed-me/web/views"
@@ -42,7 +41,7 @@ func FetchSubscriptions(dataAPI DataAPI, pagination models.Pagination, subIDs ..
 }
 
 // FetchSubscriptions fetches subscriptions from the data backend and stores them in the request context for usage by other handlers.
-func GenerateSubscriptionsContent(next http.Handler) http.Handler {
+func GenerateSubscriptionCollection(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		subscriptions, ok := req.Context().Value(subscriptionsCtxKey).(models.Subscriptions)
 		if !ok {
@@ -62,17 +61,18 @@ func GenerateSubscriptionsContent(next http.Handler) http.Handler {
 
 		if req.Method == http.MethodGet {
 			if !htmx.IsHTMX(req) {
-				content = append(content, views.GenerateFullPage("Subscriptions",
-					views.GenerateCardControls(markAllAction, cardSorting, cardFilters),
-					cardLayout,
-				))
+				body := partials.NewBody(
+					templ.Join(cardLayout, views.GenerateCardControls(markAllAction, cardSorting, cardFilters)),
+					partials.WithBodyFooter(partials.BackButton()),
+				)
+				content = append(content, partials.NewPage("Subscriptions", partials.WithBody(body)).Template())
 			} else {
 				// Append content that needs updating.
 				content = append(content,
 					views.GenerateCardControls(markAllAction, cardSorting, cardFilters),
 					cardLayout,
 					partials.Footer(partials.BackButton()),
-					templates.SetPageTitle("Subscriptions"),
+					partials.SetPageTitle("Subscriptions"),
 				)
 			}
 		} else {
@@ -413,7 +413,7 @@ func AddSubscriptionsForRequests(api DataAPI) func(next http.Handler) http.Handl
 func AddSubscriptionResults() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Get the request.
-		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
+		_, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
 		if !found {
 			ProcessResponse(res, req, &models.Response{
 				StatusCode: http.StatusNoContent,
@@ -423,7 +423,7 @@ func AddSubscriptionResults() http.Handler {
 				},
 			})
 		}
-		PartialRender(partials.ShowNotification(requests[0].Result)).ServeHTTP(res, req.WithContext(req.Context()))
+		// PartialRender(partials.ShowNotification(requests[0].Result)).ServeHTTP(res, req.WithContext(req.Context()))
 	})
 }
 
@@ -506,12 +506,12 @@ func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confi
 			slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
 				slog.String("subscription_id", subscriptionID),
 			)
-			modal := partials.AskQuestion("Unsubscribe?", templ.Attributes{
-				"hx-delete": "/subscription/remove/" + subscriptionID,
-				"hx-target": "#" + subscriptionID,
-				"hx-swap":   "outerHTML swap:1s",
-			})
-			PartialRender(modal).ServeHTTP(res, req.WithContext(ctx))
+			// modal := partials.AskQuestion("Unsubscribe?", templ.Attributes{
+			// 	"hx-delete": "/subscription/remove/" + subscriptionID,
+			// 	"hx-target": "#" + subscriptionID,
+			// 	"hx-swap":   "outerHTML swap:1s",
+			// })
+			// PartialRender(modal).ServeHTTP(res, req.WithContext(ctx))
 		}
 	})
 }
@@ -534,8 +534,8 @@ func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
 		if !resp.IsError() {
 			subEdit.TopCategories = categories
 		}
-		ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-		PartialRender(subEdit.SubscriptionDetailsModal()).ServeHTTP(res, req.WithContext(ctx))
+		// ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
+		// PartialRender(subEdit.SubscriptionDetailsModal()).ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 

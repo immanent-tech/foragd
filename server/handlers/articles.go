@@ -12,7 +12,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
 )
@@ -33,7 +32,7 @@ func FetchArticles(dataAPI DataAPI, pagination models.Pagination, subIDs ...mode
 	}
 }
 
-func GenerateArticleContent(next http.Handler) http.Handler {
+func GenerateArticleCollection(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		articles, ok := req.Context().Value(articlesCtxKey).(models.Articles)
 		if !ok {
@@ -49,7 +48,7 @@ func GenerateArticleContent(next http.Handler) http.Handler {
 		if req.Method == http.MethodGet {
 			if !htmx.IsHTMX(req) {
 				// Generate a page body layout.
-				body := templates.NewBody(
+				body := partials.NewBody(
 					templ.Join(
 						views.GenerateCardControls(
 							partials.UpdateSorting(),
@@ -57,11 +56,10 @@ func GenerateArticleContent(next http.Handler) http.Handler {
 						),
 						partials.LayoutCards(cards...),
 					),
-					templates.WithBodyHeader(partials.DefaultHeader()),
-					templates.WithBodyFooter(partials.Footer(partials.BackButton())),
+					partials.WithBodyFooter(partials.Footer(partials.BackButton())),
 				)
 				// Generate a page layout.
-				page := templates.NewPage("Articles", templates.WithBody(body))
+				page := partials.NewPage("Articles", partials.WithBody(body))
 				content = append(content, page.Template())
 			} else {
 				content = append(content,
@@ -76,7 +74,7 @@ func GenerateArticleContent(next http.Handler) http.Handler {
 							views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
 						),
 					),
-					templates.SetPageTitle("Articles"),
+					partials.SetPageTitle("Articles"),
 				)
 			}
 		} else {
@@ -87,4 +85,39 @@ func GenerateArticleContent(next http.Handler) http.Handler {
 		ctx = context.WithValue(ctx, templatesCtxKey, content)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
+}
+
+// GenerateArticle handles displaying an item as an article.
+func GenerateArticle(dataAPI DataAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			article, found, resp := dataAPI.GetArticle(req.Context(), itemID)
+			if resp.IsError() || !found {
+				ProcessResponse(res, req, resp)
+				return
+			}
+			articleLayout := views.BuildArticleLayout(article)
+
+			var content []templ.Component
+
+			if !htmx.IsHTMX(req) {
+				content = append(content, partials.NewPage(
+					article.Item.GetTitle(),
+					partials.WithBody(partials.NewBody(articleLayout, partials.WithBodyFooter(partials.Footer(partials.BackButton())))),
+				).Template(),
+				)
+			} else {
+				// Append content that needs updating.
+				content = append(content,
+					articleLayout,
+					partials.Footer(partials.BackButton()),
+					partials.SetPageTitle(article.Item.GetTitle()),
+				)
+			}
+
+			ctx := req.Context()
+			ctx = context.WithValue(ctx, templatesCtxKey, content)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }

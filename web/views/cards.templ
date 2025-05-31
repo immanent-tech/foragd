@@ -6,7 +6,6 @@ package views
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -36,8 +35,8 @@ const defaultCardClasses = "bg-base-300 m-2 p-2"
 // actionAttributes are the common htmx attributes for mark actions.
 var actionAttributes = templ.Attributes{
 	"hx-replace-url":  "false",
-	"hx-target":       templates.ContentID.Target(),
-	"hx-target-error": templates.ErrorID.Target(),
+	"hx-target":       partials.ContentID.Target(),
+	"hx-target-error": partials.ErrorID.Target(),
 	"hx-swap":         "morph:innerHTML swap:1s",
 }
 
@@ -267,7 +266,7 @@ func viewAction(ctx context.Context, id string, viewed bool) templ.Attributes {
 	}
 	return templ.Attributes{
 		"hx-get":      view.String(),
-		"hx-target":   templates.ContentID.Target(),
+		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
 		"hx-swap":     "morph:innerHTML show:top",
 	}
@@ -303,7 +302,7 @@ func markSubscriptionAction(id models.SubscriptionID, isRead bool) templ.Compone
 	attrs := templ.Attributes{
 		"hx-replace-url":  "false",
 		"hx-target":       "#" + id,
-		"hx-target-error": templates.ErrorID.Target(),
+		"hx-target-error": partials.ErrorID.Target(),
 		"hx-swap":         "outerHTML swap:1s",
 	}
 	if isRead {
@@ -440,17 +439,4 @@ templ GenerateCardControls(controls ...templ.Component) {
 			@control
 		}
 	</div>
-}
-
-func GenerateFullPage(title string, content ...templ.Component) templ.Component {
-	// Generate a page body layout.
-	body := templates.NewBody(
-		templ.Join(content...),
-		templates.WithBodyHeader(partials.DefaultHeader()),
-		templates.WithBodyFooter(partials.Footer(partials.BackButton())),
-	)
-	// Generate a page layout.
-	page := templates.NewPage(title, templates.WithBody(body))
-	return page.Template()
-
 }

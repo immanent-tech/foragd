@@ -17,7 +17,6 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/veqryn/slog-context"
@@ -226,7 +225,7 @@ templ layoutHomePageContent(showSubscriptions models.PageState, topCategories, r
 	@link.Build(link.WithContent("Subscriptions"),
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":      showSubscriptions.String(),
-			"hx-target":   templates.ContentID.Target(),
+			"hx-target":   partials.ContentID.Target(),
 			"hx-swap":     "morph:innerHTML",
 			"hx-push-url": "true",
 		}),

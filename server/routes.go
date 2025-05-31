@@ -14,18 +14,14 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/handlers"
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 var ErrInvalidParam = errors.New("invalid parameter")
 
 // Index handler handles the index page.
 func (s Server) Index(res http.ResponseWriter, req *http.Request) {
-	layout := &layouts.IndexLayout{}
-	handlers.PartialRender(layout.FullRender()).ServeHTTP(res, req)
+	// layout := &layouts.IndexLayout{}
+	// handlers.PartialRender(layout.FullRender()).ServeHTTP(res, req)
 }
 
 // Login handler handles login requests.
@@ -48,39 +44,15 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 
 // GetSettings handles opening the settings modal.
 func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
-	var handler http.Handler
-	header := partials.Header(
-		partials.DefaultHeaderStart(),
-		partials.DefaultHeaderCenter(),
-		partials.DefaultHeaderEnd(),
-	)
-
-	switch htmx.IsHTMX(req) {
-	case true:
-		handler = handlers.BaseChain.Then(
-			handlers.PartialRender(
-				settings.SettingsContent(),
-				header,
-				partials.BackButton(),
-				settings.ResetFooter(),
-			),
-		)
-	case false:
-		handler = handlers.BaseChain.Then(
-			handlers.FullRender("Settings",
-				templates.WithBody(
-					templates.NewBody(settings.SettingsContent(),
-						templates.WithBodyHeader(header),
-						templates.WithBodyFooter(settings.ResetFooter()),
-					),
-				),
-			),
-		)
-	}
-
-	handler.ServeHTTP(res, req)
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
+		handlers.GenerateSettings,
+	).Then(handlers.RenderTemplates())
+	chain.ServeHTTP(res, req)
 }
 
+// GetTheme retrieves the user's chosen theme.
 func (s Server) GetTheme(res http.ResponseWriter, req *http.Request) {
 	handler := handlers.BaseChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user, found := models.UserFromCtx(req.Context())
@@ -94,6 +66,7 @@ func (s Server) GetTheme(res http.ResponseWriter, req *http.Request) {
 	handler.ServeHTTP(res, req)
 }
 
+// SetTheme saves the user's chosen theme.
 func (s Server) SetTheme(res http.ResponseWriter, req *http.Request) {
 	theme := req.FormValue("theme")
 	user, found := models.UserFromCtx(req.Context())
@@ -150,12 +123,12 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	case models.CollectionSubscriptions:
 		displayFunc = baseChain.Append(
 			handlers.FetchSubscriptions(s.DataAPI(), "", subIDs...),
-			handlers.GenerateSubscriptionsContent,
+			handlers.GenerateSubscriptionCollection,
 		).Then(handlers.RenderTemplates())
 	case models.CollectionArticles:
 		displayFunc = baseChain.Append(
 			handlers.FetchArticles(s.DataAPI(), "", subIDs...),
-			handlers.GenerateArticleContent,
+			handlers.GenerateArticleCollection,
 		).Then(handlers.RenderTemplates())
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
@@ -200,12 +173,12 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 	case models.CollectionSubscriptions:
 		displayFunc = baseChain.Append(
 			handlers.FetchSubscriptions(s.DataAPI(), pagination),
-			handlers.GenerateSubscriptionsContent,
+			handlers.GenerateSubscriptionCollection,
 		).Then(handlers.RenderTemplates())
 	case models.CollectionArticles:
 		displayFunc = baseChain.Append(
 			handlers.FetchArticles(s.DataAPI(), pagination),
-			handlers.GenerateArticleContent,
+			handlers.GenerateArticleCollection,
 		).Then(handlers.RenderTemplates())
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
@@ -267,11 +240,13 @@ func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action
 }
 
 // ShowItem handles showing an item.
-func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, item ItemID) {
+func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, itemID ItemID) {
 	chain := alice.New(
 		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
 		handlers.SavePageState,
-	).Then(handlers.DisplayArticle(s.DataAPI(), item))
+		handlers.GenerateArticle(s.DataAPI(), itemID),
+	).Then(handlers.RenderTemplates())
 	chain.ServeHTTP(res, req)
 }
 
@@ -283,7 +258,7 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
 		handlers.FetchArticles(s.DataAPI(), "", sub),
-		handlers.GenerateArticleContent,
+		handlers.GenerateArticleCollection,
 	).Then(handlers.RenderTemplates())
 	// Run chain.
 	chain.ServeHTTP(res, req)
@@ -306,7 +281,7 @@ func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
 		handlers.FetchArticles(s.DataAPI(), pagination, sub),
-		handlers.GenerateArticleContent,
+		handlers.GenerateArticleCollection,
 	).Then(handlers.RenderTemplates())
 
 	chain.ServeHTTP(res, req)

@@ -3,15 +3,10 @@
 
 package settings
 
-import "github.com/joshuar/go-feed-me/web/templates"
+import "github.com/joshuar/go-feed-me/web/templates/partials"
 
 templ SettingsContent() {
 	<h2>Display</h2>
 	@themeChangeMenu()
-	@templates.SetPageTitle("Settings")
-}
-
-templ ResetFooter() {
-	<div id="content-filters" hx-swap-oob="true"></div>
-	<div id="content-sorting" hx-swap-oob="true"></div>
+	@partials.SetPageTitle("Settings")
 }

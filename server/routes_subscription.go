@@ -19,8 +19,8 @@ import (
 )
 
 func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
-	handler := handlers.PartialRender(subscription.NewSubscriptionModal(models.NewSubscriptionRequest(""), nil))
-	handler.ServeHTTP(res, req)
+	// handler := handlers.PartialRender(subscription.NewSubscriptionModal(models.NewSubscriptionRequest(""), nil))
+	// handler.ServeHTTP(res, req)
 }
 
 // AddSubscription handles an add subscription request.
@@ -38,8 +38,8 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 
 // StartImport sets up an import for the user.
 func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
-	handler := handlers.PartialRender(subscription.ImportModal())
-	handler.ServeHTTP(res, req)
+	// handler := handlers.PartialRender(subscription.ImportModal())
+	// handler.ServeHTTP(res, req)
 }
 
 func (f *SetImportMethodFormdataBody) Valid() (bool, error) {

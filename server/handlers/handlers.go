@@ -22,7 +22,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
-	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 var (
@@ -110,41 +110,6 @@ func HTMXResponseFromCtx(ctx context.Context) htmx.Response {
 	return resp
 }
 
-// FullRender renders a full page with the given title and options.
-func FullRender(title string, pageOptions ...templates.PageOption) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		slogctx.FromCtx(req.Context()).Debug("Performing full page render.")
-		page := templates.NewPage(title, pageOptions...)
-		if err := page.Template().Render(req.Context(), res); err != nil {
-			ProcessResponse(res, req, &models.Response{
-				StatusCode:    http.StatusInternalServerError,
-				InternalError: err,
-				UserMessage: &models.UserMessage{
-					Status:  models.UserMessageStatusError,
-					Summary: "Could not render content.",
-				},
-			})
-		}
-	})
-}
-
-// PartialRender will return a handler that will render the given templates via a htmx response.
-func PartialRender(templates ...templ.Component) http.Handler {
-	return http.HandlerFunc(
-		func(res http.ResponseWriter, req *http.Request) {
-			slogctx.FromCtx(req.Context()).Debug("Performing partial renders.")
-			if !htmx.IsHTMX(req) {
-				slogctx.FromCtx(req.Context()).Warn("Partial render for non-HTMX request.")
-			}
-			resp := HTMXResponseFromCtx(req.Context())
-			for template := range slices.Values(templates) {
-				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
-				}
-			}
-		})
-}
-
 // RenderTemplates will render any templates found in the context. If none are found, it returns a 204 response.
 func RenderTemplates() http.Handler {
 	return http.HandlerFunc(
@@ -205,7 +170,7 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 				)
 				view := RestorePageState(req.Context(), *path)
 				// view := models.GetPreviousViewedPage(req.Context(), api)
-				HxLocationData := HXLocation{Path: view.String(), Target: templates.ContentID.Target()}
+				HxLocationData := HXLocation{Path: view.String(), Target: partials.ContentID.Target()}
 				data, err := json.Marshal(HxLocationData)
 				if err != nil {
 					ProcessResponse(res, req, &models.Response{
