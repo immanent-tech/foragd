@@ -13,6 +13,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
@@ -79,6 +80,30 @@ func GenerateSettings(next http.Handler) http.Handler {
 			body := templates.NewBody(settingsLayout, templates.WithBodyFooter(footer))
 			page := templates.NewPage("Settings", body)
 			content = append(content, page.Show())
+		}
+
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, templatesCtxKey, content)
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+// GenerateArticle handles displaying an item as an article.
+func GenerateIndex(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		indexLayout := &layouts.IndexLayout{}
+
+		var content []templ.Component
+
+		if htmx.IsHTMX(req) {
+			// Render content that needs updating.
+			content = append(content,
+				indexLayout.PartialRender(),
+				templates.SetPageTitle("Index"),
+			)
+		} else {
+			// Render a full page.
+			content = append(content, indexLayout.FullRender())
 		}
 
 		ctx := req.Context()

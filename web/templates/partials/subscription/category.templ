@@ -36,7 +36,8 @@ templ (i *categoryInput) Show(classes ...string) {
 		@button.Build(
 			button.AsShape(button.Square),
 			button.WithContent(tabler.CategoryPlus()),
-		).Show("join-item")
+			button.WithExtraClasses("join-item"),
+		).Show()
 	}
 }
 
@@ -63,7 +64,8 @@ templ manageCategories(categories ...string) {
 				@button.Build(
 					button.AsShape(button.Square),
 					button.WithContent(tabler.CategoryPlus()),
-				).Show("join-item")
+					button.WithExtraClasses("join-item"),
+				).Show()
 			}
 		</fieldset>
 	</form>

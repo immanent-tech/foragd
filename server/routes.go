@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -20,8 +22,12 @@ var ErrInvalidParam = errors.New("invalid parameter")
 
 // Index handler handles the index page.
 func (s Server) Index(res http.ResponseWriter, req *http.Request) {
-	// layout := &layouts.IndexLayout{}
-	// handlers.PartialRender(layout.FullRender()).ServeHTTP(res, req)
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SetResponseHeaders,
+		handlers.GenerateIndex,
+	).Then(handlers.RenderTemplates())
+	chain.ServeHTTP(res, req)
 }
 
 // Login handler handles login requests.
@@ -106,6 +112,7 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 
 // ShowCollection handles displaying a collection of objects, with optional filtering.
 func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, collection Collection, params ShowCollectionParams) {
+	spew.Dump(chi.RouteContext(req.Context()).URLParams)
 	baseChain := alice.New(
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,

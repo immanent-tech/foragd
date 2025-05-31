@@ -54,7 +54,8 @@
     "partials",
     "templates",
     "session",
-    "elastic"
+    "elastic",
+    "views"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {
