@@ -1,9 +1,10 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package partials
+package templates
 
 import (
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"slices"
 	"strings"
 )
@@ -16,43 +17,8 @@ const DefaultPageTitle = "Go Feed Me"
 
 // Page represents a single HTML page.
 type Page struct {
-	Head           Head
-	BodyAttributes templ.Attributes
-	Body           *Body
-}
-
-templ (p *Page) Template() {
-	<!DOCTYPE html>
-	<html
-		lang="en"
-		data-theme=""
-		_="
-		init
-			fetch /settings/theme then
-				put the result into @data-theme
-		on setTheme(theme)
-			log 'theme changed to ' + theme
-			set @data-theme to theme
-		end
-		on htmx:historyRestore
-			log 'restoring history for ' + detail.path
-		end
-		"
-	>
-		@p.Head.Show()
-		<body
-			hx-ext="morph,sse,response-targets"
-			hx-target-error={ NotificationsID.String() }
-		>
-			<div id={ ModalID.String() }></div>
-			<div id={ NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50"></div>
-			if p.Body != nil {
-				@p.Body.Template()
-			} else {
-				{ children... }
-			}
-		</body>
-	</html>
+	Head Head
+	Body *Body
 }
 
 // PageOption is a functional option to apply to a page.
@@ -72,21 +38,54 @@ func WithKeywords(keywords ...string) PageOption {
 	}
 }
 
-// WithBody option sets the body of the page.
-func WithBody(body *Body) PageOption {
-	return func(p *Page) {
-		p.Body = body
-	}
-}
-
 // NewPage creates a new page with the given title and options.
-func NewPage(title string, options ...PageOption) *Page {
+func NewPage(title string, body *Body, options ...PageOption) *Page {
 	page := &Page{}
 	page.Head.Title = title
+
+	// Set the page body if specified.
+	if body != nil {
+		page.Body = body
+	}
 
 	for option := range slices.Values(options) {
 		option(page)
 	}
 
 	return page
+}
+
+// Show renders the page as a templ Component.
+templ (page *Page) Show() {
+	<!DOCTYPE html>
+	<html
+		lang="en"
+		data-theme=""
+		_="
+		init
+			fetch /settings/theme then
+				put the result into @data-theme
+		on setTheme(theme)
+			log 'theme changed to ' + theme
+			set @data-theme to theme
+		end
+		on htmx:historyRestore
+			log 'restoring history for ' + detail.path
+		end
+		"
+	>
+		@page.Head.Show()
+		<body
+			hx-ext="morph,sse,response-targets"
+			hx-target-error={ partials.NotificationsID.String() }
+		>
+			<div id={ partials.ModalID.String() }></div>
+			<div id={ partials.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50"></div>
+			if page.Body != nil {
+				@page.Body.Show()
+			} else {
+				{ children... }
+			}
+		</body>
+	</html>
 }

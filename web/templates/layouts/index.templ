@@ -3,14 +3,14 @@
 
 package layouts
 
-import "github.com/joshuar/go-feed-me/web/templates/partials"
+import "github.com/joshuar/go-feed-me/web/templates"
 
 type IndexLayout struct{}
 
 templ (i *IndexLayout) FullRender() {
-	@partials.NewPage("Go Feed Me",
-		partials.WithDescription("Welcome to Go Feed Me"),
-	).Template() {
+	@templates.NewPage("Go Feed Me", nil,
+		templates.WithDescription("Welcome to Go Feed Me"),
+	).Show() {
 		<div id="index-hero" class="hero bg-base-200 min-h-screen">
 			<div class="hero-content text-center">
 				<div class="max-w-md">

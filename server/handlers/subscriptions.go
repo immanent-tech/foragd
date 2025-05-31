@@ -18,6 +18,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 	"github.com/joshuar/go-feed-me/web/views"
@@ -56,24 +57,23 @@ func GenerateSubscriptionCollection(next http.Handler) http.Handler {
 		cardSorting := partials.UpdateSorting()
 		cardFilters := partials.UpdateFilters(subscriptions.GetCategoryCounts())
 		markAllAction := views.MarkAllSubscriptionsAction(req.Context())
+		cardControls := views.GenerateCardControls(markAllAction, cardSorting, cardFilters)
+		footer := partials.Footer(partials.BackButton())
 
 		var content []templ.Component
 
 		if req.Method == http.MethodGet {
-			if !htmx.IsHTMX(req) {
-				body := partials.NewBody(
-					templ.Join(cardLayout, views.GenerateCardControls(markAllAction, cardSorting, cardFilters)),
-					partials.WithBodyFooter(partials.BackButton()),
-				)
-				content = append(content, partials.NewPage("Subscriptions", partials.WithBody(body)).Template())
-			} else {
-				// Append content that needs updating.
+			if htmx.IsHTMX(req) {
 				content = append(content,
-					views.GenerateCardControls(markAllAction, cardSorting, cardFilters),
+					cardControls,
 					cardLayout,
-					partials.Footer(partials.BackButton()),
-					partials.SetPageTitle("Subscriptions"),
+					footer,
+					templates.SetPageTitle("Subscriptions"),
 				)
+			} else {
+				body := templates.NewBody(templ.Join(cardControls, cardLayout), templates.WithBodyFooter(footer))
+				page := templates.NewPage("Subscriptions", body)
+				content = append(content, page.Show())
 			}
 		} else {
 			content = append(content, cards...)

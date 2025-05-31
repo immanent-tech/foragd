@@ -5,6 +5,7 @@ package layouts
 
 import (
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/attributes"
@@ -20,9 +21,9 @@ var SignupDetailsID = attributes.ID("signup-details")
 var SignupFormID = attributes.ID("signup-form")
 
 templ SignUpPage(userDetails *models.UserSignupRequest) {
-	@partials.NewPage("Go Feed Me",
-		partials.WithDescription("Welcome to Go Feed Me"),
-	).Template() {
+	@templates.NewPage("Go Feed Me", nil,
+		templates.WithDescription("Welcome to Go Feed Me"),
+	).Show() {
 		<div class="hero bg-base-200 min-h-screen">
 			<div class="hero-content flex-col lg:flex-row-reverse">
 				<div class="text-center lg:text-left">

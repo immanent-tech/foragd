@@ -12,6 +12,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
@@ -40,17 +41,17 @@ func GenerateHomeContent(api DataAPI) func(next http.Handler) http.Handler {
 
 			switch {
 			case htmx.IsHTMX(req):
+				// Render content that needs updating.
 				content = append(content,
 					homePageContent,
 					partials.Footer(),
-					partials.SetPageTitle("Home"),
+					templates.SetPageTitle("Home"),
 				)
 			default:
-				body := partials.NewBody(homePageContent,
-					partials.WithBodyFooter(partials.Footer()),
-				)
-				page := partials.NewPage("Home", partials.WithBody(body))
-				content = append(content, page.Template())
+				// Render a full page.
+				body := templates.NewBody(homePageContent)
+				page := templates.NewPage("Home", body)
+				content = append(content, page.Show())
 			}
 			ctx = context.WithValue(ctx, templatesCtxKey, content)
 			next.ServeHTTP(res, req.WithContext(ctx))
@@ -62,19 +63,22 @@ func GenerateHomeContent(api DataAPI) func(next http.Handler) http.Handler {
 func GenerateSettings(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		settingsLayout := settings.SettingsContent()
+		footer := partials.Footer(partials.BackButton())
 
 		var content []templ.Component
 
-		if !htmx.IsHTMX(req) {
-			body := partials.NewBody(settingsLayout, partials.WithBodyFooter(partials.BackButton()))
-			content = append(content, partials.NewPage("Settings", partials.WithBody(body)).Template())
-		} else {
-			// Append content that needs updating.
+		if htmx.IsHTMX(req) {
+			// Render content that needs updating.
 			content = append(content,
 				settingsLayout,
 				partials.Footer(partials.BackButton()),
-				partials.SetPageTitle("Settings"),
+				templates.SetPageTitle("Settings"),
 			)
+		} else {
+			// Render a full page.
+			body := templates.NewBody(settingsLayout, templates.WithBodyFooter(footer))
+			page := templates.NewPage("Settings", body)
+			content = append(content, page.Show())
 		}
 
 		ctx := req.Context()

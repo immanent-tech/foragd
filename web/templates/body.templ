@@ -1,41 +1,18 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package partials
+package templates
 
 import (
-	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"slices"
 )
 
-var (
-	ContentID       = attributes.ID("content")
-	ErrorID         = attributes.ID("error")
-	ModalID         = attributes.ID("modal-container")
-	NotificationsID = attributes.ID("notifications")
-)
-
-// contains the components for rendering a /home page layout.
+// Body represents a page's <body></body> element.
 type Body struct {
 	header  templ.Component
 	footer  templ.Component
 	content templ.Component
-}
-
-templ (b *Body) Template() {
-	if b.header != nil {
-		@b.header
-	}
-	<div
-		id={ ContentID.String() }
-		hx-swap="morph:innerHTML"
-		hx-target-error={ ErrorID.Target() }
-	>
-		@b.content
-	</div>
-	if b.footer != nil {
-		@b.footer
-	}
 }
 
 // BodyOption is a functional option to apply to the body.
@@ -60,22 +37,33 @@ func NewBody(content templ.Component, options ...BodyOption) *Body {
 	body := &Body{
 		content: content,
 	}
-
 	for option := range slices.Values(options) {
 		option(body)
 	}
+	return body
+}
 
-	// Set defaults for header and footer if not specified.
-	if body.header == nil {
-		body.header = Header(
-			DefaultHeaderStart(),
-			DefaultHeaderCenter(),
-			DefaultHeaderEnd(),
+// Show renders the Body as a templ Component.
+templ (body *Body) Show() {
+	if body.header != nil {
+		@body.header
+	} else {
+		@partials.Header(
+			partials.DefaultHeaderStart(),
+			partials.DefaultHeaderCenter(),
+			partials.DefaultHeaderEnd(),
 		)
 	}
-	if body.footer == nil {
-		body.footer = Footer()
+	<div
+		id={ partials.ContentID.String() }
+		hx-swap="morph:innerHTML"
+		hx-target-error={ partials.ErrorID.Target() }
+	>
+		@body.content
+	</div>
+	if body.footer != nil {
+		@body.footer
+	} else {
+		@partials.Footer()
 	}
-
-	return body
 }

@@ -12,6 +12,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
 )
@@ -43,39 +44,27 @@ func GenerateArticleCollection(next http.Handler) http.Handler {
 		pagination, _ := req.Context().Value(paginationCtxKey).(models.Pagination)
 		cards := views.GenerateArticleCards(req.Context(), articles, pagination)
 
+		cardLayout := partials.LayoutCards(cards...)
+		cardSorting := partials.UpdateSorting()
+		cardFilters := partials.UpdateFilters(articles.GetItems().GetCategoryCounts())
+		markAllAction := views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...)
+		cardControls := views.GenerateCardControls(markAllAction, cardSorting, cardFilters)
+		footer := partials.Footer(partials.BackButton())
+
 		var content []templ.Component
 
 		if req.Method == http.MethodGet {
-			if !htmx.IsHTMX(req) {
-				// Generate a page body layout.
-				body := partials.NewBody(
-					templ.Join(
-						views.GenerateCardControls(
-							partials.UpdateSorting(),
-							partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),
-						),
-						partials.LayoutCards(cards...),
-					),
-					partials.WithBodyFooter(partials.Footer(partials.BackButton())),
-				)
-				// Generate a page layout.
-				page := partials.NewPage("Articles", partials.WithBody(body))
-				content = append(content, page.Template())
-			} else {
+			if htmx.IsHTMX(req) {
 				content = append(content,
-					partials.LayoutCards(cards...),
-					partials.Footer(
-						partials.BackButton(),
-						partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),
-						partials.UpdateSorting(),
-						partials.UpdateActions(
-							views.AddSubscriptionAction(),
-							views.ImportAction(),
-							views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
-						),
-					),
-					partials.SetPageTitle("Articles"),
+					cardControls,
+					cardLayout,
+					footer,
+					templates.SetPageTitle("Articles"),
 				)
+			} else {
+				body := templates.NewBody(templ.Join(cardControls, cardLayout), templates.WithBodyFooter(footer))
+				page := templates.NewPage("Articles", body)
+				content = append(content, page.Show())
 			}
 		} else {
 			content = append(content, cards...)
@@ -97,22 +86,17 @@ func GenerateArticle(dataAPI DataAPI, itemID models.ItemID) func(next http.Handl
 				return
 			}
 			articleLayout := views.BuildArticleLayout(article)
+			footer := partials.Footer(partials.BackButton())
 
 			var content []templ.Component
 
-			if !htmx.IsHTMX(req) {
-				content = append(content, partials.NewPage(
-					article.Item.GetTitle(),
-					partials.WithBody(partials.NewBody(articleLayout, partials.WithBodyFooter(partials.Footer(partials.BackButton())))),
-				).Template(),
-				)
-			} else {
+			if htmx.IsHTMX(req) {
 				// Append content that needs updating.
-				content = append(content,
-					articleLayout,
-					partials.Footer(partials.BackButton()),
-					partials.SetPageTitle(article.Item.GetTitle()),
-				)
+				content = append(content, articleLayout, footer, templates.SetPageTitle(article.Item.GetTitle()))
+			} else {
+				body := templates.NewBody(articleLayout, templates.WithBodyFooter(footer))
+				page := templates.NewPage(article.Item.GetTitle(), body)
+				content = append(content, page.Show())
 			}
 
 			ctx := req.Context()
