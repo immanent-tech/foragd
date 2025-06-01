@@ -1,0 +1,31 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+)
+
+templ formatString(category models.Category) {
+	<div class="capitalize">{ category } </div>
+}
+
+templ InactiveButton(label string, attributes templ.Attributes) {
+	@button.Build(
+		button.WithStyle(button.Ghost),
+		button.WithSize(button.XS),
+		button.WithExtraAttributes(attributes),
+		button.WithContent(formatString(label)),
+	).Show()
+}
+
+templ ActiveButton(label string, attributes templ.Attributes) {
+	@button.Build(
+		button.WithColor(button.Primary),
+		button.WithSize(button.XS),
+		button.WithExtraAttributes(attributes),
+		button.WithContent(formatString(label)),
+	).Show()
+}

@@ -8,6 +8,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/text"
+	"slices"
 	"strings"
 )
 
@@ -41,7 +42,11 @@ templ BuildArticleLayout(item *models.Article) {
 					@partials.ShowTimestamp(item.Item.GetUpdatedDate())
 				</div>
 			</div>
-			@partials.ShowCategoriesAsBadges(item.Item.GetCategories()...)
+			// Display the categories associated with the article.
+			for category := range slices.Values(item.Item.GetCategories()) {
+				@partials.InactiveButton(category, nil)
+			}
+			// Display the article content.
 			<div id="article_content" class="text-sm max-w-prose">
 				if item.Item.GetContent() != "" {
 					@templ.Raw(item.Item.GetContent())

@@ -53,6 +53,15 @@ templ (f *Filter) AsBadge(attributes templ.Attributes) {
 	}
 }
 
+templ (f *Filter) AsButton(attributes templ.Attributes) {
+	switch  {
+		case f.active:
+			@ActiveButton(f.label, attributes)
+		default:
+			@InactiveButton(f.label, attributes)
+	}
+}
+
 templ (f *Filter) AsRadio(name string, attributes templ.Attributes) {
 	<label class="flex gap-2 cursor-pointer items-center">
 		switch  {
@@ -138,7 +147,7 @@ templ UpdateFilters(categories models.CategoryCounts) {
 					}
 					<div class="text-accent font-semibold">Category:</div>
 					for category := range slices.Values(buildCategoryFilters(ctx,categories)) {
-						@category.AsBadge(templ.Attributes{
+						@category.AsButton(templ.Attributes{
 							"hx-get":         category.link.String(),
 							"hx-replace-url": "true",
 							"hx-target":      ContentID.Target(),

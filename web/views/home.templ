@@ -222,13 +222,13 @@ templ layoutHomePageContent(topCategories, rareCategories templ.Component, rando
 	}
 	if topCategories != nil {
 		<h1>Top Categories:</h1>
-		<div id="top-categories" class="flex flex-wrap justify-items-center p-2">
+		<div id="top-categories" class="flex flex-wrap p-2">
 			@topCategories
 		</div>
 	}
 	if rareCategories != nil {
 		<h1>Interesting Categories:</h1>
-		<div id="rare-categories" class="flex flex-wrap justify-items-center p-2">
+		<div id="rare-categories" class="flex flex-wrap p-2">
 			@rareCategories
 		</div>
 	}
@@ -252,13 +252,7 @@ func createCategoryLinks(categoryCounts models.CategoryCounts) templ.Component {
 			"hx-push-url": "true",
 			"hx-target":   partials.ContentID.Target(),
 		}
-		categoryLinks = append(categoryLinks,
-			button.Build(
-				button.WithStyle(button.Ghost),
-				button.WithSize(button.SM),
-				button.WithExtraAttributes(attributes),
-				button.WithContent(prettyCategory(category.Category)),
-			).Show())
+		categoryLinks = append(categoryLinks, partials.InactiveButton(category.Category, attributes))
 	}
 	return templ.Join(categoryLinks...)
 }
