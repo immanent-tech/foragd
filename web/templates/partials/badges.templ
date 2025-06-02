@@ -1,0 +1,24 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import "github.com/joshuar/go-templ-daisyui/display/badge"
+
+templ InactiveBadge(label string, attributes templ.Attributes) {
+	@badge.Build(
+		badge.WithStyle(badge.Ghost),
+		badge.WithSize(badge.XS),
+		badge.WithExtraAttributes(attributes),
+		badge.WithContent(formatString(label)),
+	).Show()
+}
+
+templ ActiveBadge(label string, attributes templ.Attributes) {
+	@badge.Build(
+		badge.WithColor(badge.Primary),
+		badge.WithSize(badge.XS),
+		badge.WithExtraAttributes(attributes),
+		badge.WithContent(formatString(label)),
+	).Show()
+}

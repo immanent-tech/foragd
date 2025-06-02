@@ -19,74 +19,62 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/placeholder"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
-	"github.com/joshuar/go-templ-daisyui/layout/mask"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"maps"
 	"net/url"
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
-const defaultCardClasses = "bg-base-300 m-2 p-2"
-
-// actionAttributes are the common htmx attributes for mark actions.
-var actionAttributes = templ.Attributes{
-	"hx-replace-url":  "false",
-	"hx-target":       partials.ContentID.Target(),
-	"hx-target-error": partials.ErrorID.Target(),
-	"hx-swap":         "morph:innerHTML swap:1s",
+var defaultCardOptions = []card.Option{
+	card.WithStyle(card.Border),
+	card.WithShadow(shadow.SM),
+	card.WithExtraClasses("card-sm", "lg:card-md"),
 }
 
 func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscriptions, pagination models.Pagination) []templ.Component {
 	filters := models.FiltersFromCtx(ctx)
 	cards := make([]templ.Component, 0, len(subscriptions))
 	for idx, subscription := range subscriptions {
-		var card templ.Component
+		cardOptions := slices.Clone(defaultCardOptions)
+		cardOptions = append(cardOptions,
+			card.WithID(subscription.GetID()),
+			card.WithBodyOptions(
+				// Card title.
+				card.WithTitle(subscriptionCardTitle(subscription)),
+				// Card content.
+				card.WithContent(
+					templ.Join(
+						cardDetails(subscription.GetAuthors(), subscription.GetUpdatedDate()),
+						cardDescription(subscription.GetDescription()),
+					),
+				),
+				// Card actions.
+				card.WithActions(
+					buildCardActionsMenu(
+						shareAction(nil),
+						visitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
+						markSubscriptionAction(subscription.GetID(), subscription.IsUnread()),
+						editSubscriptionAction(subscription.GetID()),
+						unsubscribeAction(subscription.GetID())),
+				),
+			),
+		)
+		// Add pagination htmx props to last article.
 		if idx == len(subscriptions)-1 && len(subscriptions) == filters.CountAsInt() {
-			card = newSubscriptionCard(ctx, subscription, &pagination)
-		} else {
-			card = newSubscriptionCard(ctx, subscription, nil)
+			cardOptions = append(cardOptions, card.WithExtraAttributes(addPaginationAttributes(ctx, pagination)))
 		}
-		cards = append(cards, card)
+		// Reduce opacity for read articles.
+		if !subscription.IsUnread() {
+			cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
+		}
+
+		cards = append(cards, card.Build(cardOptions...).Show())
 	}
 	return cards
-}
-
-func newSubscriptionCard(ctx context.Context, subscription *models.Subscription, pagination *models.Pagination) templ.Component {
-	// Generate actions for card menu.
-	var cardActions []templ.Component
-	cardActions = append(cardActions,
-		shareAction(nil),
-		visitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
-		markSubscriptionAction(subscription.GetID(), subscription.IsUnread()),
-		editSubscriptionAction(subscription.GetID()),
-		unsubscribeAction(subscription.GetID()),
-	)
-
-	cardProps := card.Build(
-		card.WithStyle(card.Border),
-		card.WithSize(card.SM),
-		card.WithShadow(shadow.MD),
-		card.WithBodyOptions(
-			card.WithTitle(subscriptionCardTitle(subscription)),
-			card.WithContent(subscriptionCardContent(subscription)),
-			card.WithActions(buildCardActionsMenu(cardActions...)),
-		),
-		card.WithID(subscription.GetID()),
-		card.WithExtraClasses(defaultCardClasses),
-	)
-
-	if subscription.UnreadCount == 0 {
-		card.WithExtraClasses(opacity.Apply(75))(cardProps)
-	}
-	if pagination != nil {
-		card.WithExtraAttributes(addPaginationAttributes(ctx, *pagination))(cardProps)
-	}
-
-	return cardProps.Show()
 }
 
 templ subscriptionCardTitle(subscription *models.Subscription) {
@@ -125,95 +113,95 @@ templ subscriptionCardTitle(subscription *models.Subscription) {
 	</div>
 }
 
-templ subscriptionCardContent(subscription *models.Subscription) {
-	@partials.ShowTimestamp(subscription.GetUpdatedDate())
-	if desc := subscription.GetDescription(); desc != "" {
+func GenerateArticleCards(ctx context.Context, articles models.Articles, pagination models.Pagination) []templ.Component {
+	filters := models.FiltersFromCtx(ctx)
+	cards := make([]templ.Component, 0, len(articles))
+	for idx, article := range articles {
+		cardOptions := slices.Clone(defaultCardOptions)
+		// Add an image if the article has one.
+		if articleImage := article.Item.GetImage(); articleImage != nil {
+			cardOptions = append(cardOptions,
+				card.WithImage(
+					image.Build(
+						articleImage.URL(),
+						image.WithLazyLoading(),
+						image.WithExtraClasses("h-40", "max-w-full", "aspect-auto", "object-contain", "rounded-box"),
+					),
+					// figure.WithFigureClasses("h-40"),
+				),
+			)
+		}
+		cardOptions = append(cardOptions,
+			card.WithID(article.Item.GetID()),
+			card.WithBodyOptions(
+				// Card title.
+				card.WithTitle(
+					link.Build(
+						link.WithContent(article.Item.GetTitle()),
+						link.WithUnderlineOnHover(),
+						link.WithExtraAttributes(viewAction(ctx, article.Item.ItemID, article.IsUnread())),
+					).Show(),
+				),
+				// Card content.
+				card.WithContent(
+					templ.Join(
+						cardDetails(article.Item.GetAuthors(), article.Item.GetUpdatedDate()),
+						cardCategories(article.Item.GetCategories()...),
+					),
+				),
+				// Card actions.
+				card.WithActions(
+					buildCardActionsMenu(
+						shareAction(nil),
+						visitExternalLinkAction("External URL", article.Item.GetLink()),
+						markArticleAction(article.FeedID, article.ItemID, article.IsUnread()),
+					),
+				),
+			),
+		)
+		// Add pagination htmx props to last article.
+		if idx == len(articles)-1 && len(articles) == filters.CountAsInt() && pagination != "" {
+			cardOptions = append(cardOptions, card.WithExtraAttributes(addPaginationAttributes(ctx, pagination)))
+		}
+		// Reduce opacity for read articles.
+		if !article.IsUnread() {
+			cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
+		}
+
+		// Append the card to the list of cards.
+		cards = append(cards, card.Build(cardOptions...).Show())
+	}
+	return cards
+}
+
+templ cardDetails(authors []string, updated time.Time) {
+	<div>
+		if len(authors) > 0 {
+			<strong>{ strings.Join(authors, ",") }</strong>
+		}
+		<span>
+			@partials.ShowTimestamp(updated)
+		</span>
+	</div>
+}
+
+templ cardCategories(categories ...models.Category) {
+	if len(categories) > 0 {
+		<div class="flex w-full overflow-hidden m-2">
+			for category := range slices.Values(categories) {
+				@partials.InactiveBadge(category, nil)
+			}
+		</div>
+	}
+}
+
+templ cardDescription(desc string) {
+	if desc != "" {
 		@text.Build(desc,
 			text.WithSize(text.XS),
 			text.WithOverflow(text.Truncate),
 		).Show()
 	}
-}
-
-func GenerateArticleCards(ctx context.Context, articles models.Articles, pagination models.Pagination) []templ.Component {
-	filters := models.FiltersFromCtx(ctx)
-	cards := make([]templ.Component, 0, len(articles))
-	for idx, article := range articles {
-		var card templ.Component
-		// Create a card for this item.
-		if idx == len(articles)-1 && len(articles) == filters.CountAsInt() && pagination != "" {
-			// Add a pagination action to the last item.
-			card = newArticleCard(ctx, article, &pagination)
-		} else {
-			card = newArticleCard(ctx, article, nil)
-		}
-		// Append the card to the list of cards.
-		cards = append(cards, card)
-	}
-	return cards
-}
-
-func newArticleCard(ctx context.Context, article *models.Article, pagination *models.Pagination) templ.Component {
-	// Generate actions for card menu.
-	var cardActions []templ.Component
-	cardActions = append(cardActions,
-		shareAction(nil),
-		visitExternalLinkAction("External URL", article.Item.GetLink()),
-		markArticleAction(article.FeedID, article.ItemID, article.IsUnread()),
-	)
-	// Generate card image.
-	var imageOption card.Option
-	if cardImage := article.Item.GetImage(); cardImage != nil {
-		imageOption = card.WithImage(
-			cardImage.URL(),
-			image.WithLazyLoading(),
-			image.WithMask(mask.MaskSquircle),
-			image.WithExtraClasses("object-cover", "max-w-1/4"),
-		)
-	}
-	cardProps := card.Build(
-		card.WithLayout(card.LayoutSide),
-		imageOption,
-		card.WithSize(card.SM),
-		card.WithStyle(card.Border),
-		card.WithShadow(shadow.MD),
-		card.WithBodyOptions(
-			card.WithContent(articleCardContent(article)),
-			card.WithActions(buildCardActionsMenu(cardActions...)),
-			card.WithBodyExtraClasses("p-2"),
-		),
-		card.WithID(article.ItemID),
-		card.WithExtraClasses(defaultCardClasses),
-	)
-	if pagination != nil {
-		card.WithExtraAttributes(addPaginationAttributes(ctx, *pagination))(cardProps)
-	}
-	switch {
-	case models.FiltersFromCtx(ctx).View == models.ViewRead:
-		fallthrough
-	case article.GetUserState() == models.StateRead:
-		card.WithExtraClasses(opacity.Apply(75))(cardProps)
-	}
-	return cardProps.Show()
-}
-
-// articleCardContent defines the layout of an article card content.
-templ articleCardContent(article *models.Article) {
-	<div class="flex-1">
-		@link.Build(
-			link.WithContent(
-				text.Build(article.Item.GetTitle(),
-					text.WithWeight(text.Semibold),
-					text.WithExtraClasses("text-pretty"),
-				).Show(),
-			),
-			link.WithUnderlineOnHover(),
-			link.WithExtraAttributes(viewAction(ctx, article.ItemID, article.IsUnread())),
-		).Show()
-	</div>
-	<div class="flex-none">
-		@partials.ShowTimestamp(article.Item.GetUpdatedDate())
-	</div>
 }
 
 // addPagination adds htmx attributes for triggering pagination to a card.
@@ -223,6 +211,7 @@ func addPaginationAttributes(ctx context.Context, pagination models.Pagination) 
 	return templ.Attributes{
 		"hx-post":        view.String(),
 		"hx-trigger":     "intersect once",
+		"hx-target":      "#cards",
 		"hx-swap":        "afterend",
 		"hx-replace-url": "false",
 		"hx-indicator":   "#content-loading",
@@ -318,8 +307,13 @@ func markSubscriptionAction(id models.SubscriptionID, isRead bool) templ.Compone
 // the current view.
 func MarkAllSubscriptionsAction(ctx context.Context) templ.Component {
 	// Create htmx attributes.
-	attrs := maps.Clone(actionAttributes)
-	attrs["_"] = "on htmx:afterOnLoad call history.back()"
+	attrs := templ.Attributes{
+		"hx-replace-url":  "false",
+		"hx-target":       partials.ContentID.Target(),
+		"hx-target-error": partials.ErrorID.Target(),
+		"hx-swap":         "morph:innerHTML swap:1s",
+		"_":               "on htmx:afterOnLoad call history.back()",
+	}
 
 	switch models.FiltersFromCtx(ctx).View {
 	case models.ViewUnread:

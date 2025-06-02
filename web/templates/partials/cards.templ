@@ -21,7 +21,7 @@ import (
 var CardsID = attributes.ID("cards")
 
 templ LayoutCards(cards ...templ.Component) {
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center p-2" id={ CardsID.String() }>
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center m-2 gap-4" id={ CardsID.String() }>
 		for cards := range slices.Values(cards) {
 			@cards
 		}
