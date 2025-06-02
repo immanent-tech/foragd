@@ -54,6 +54,8 @@ linters:
           - paralleltest
           - testpackage
           - varnamelen
+    paths-except:
+      - '(.+)_templ\.go'
 formatters:
   enable:
     - gofumpt
