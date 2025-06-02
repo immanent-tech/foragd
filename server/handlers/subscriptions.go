@@ -51,7 +51,7 @@ func GenerateSubscriptionCollection(next http.Handler) http.Handler {
 			return
 		}
 		pagination, _ := req.Context().Value(paginationCtxKey).(models.Pagination)
-		cards := views.GenerateSubscriptionCards(req.Context(), subscriptions, pagination)
+		cards := views.GenerateSubscriptionCards(req.Context(), pagination, subscriptions)
 
 		cardLayout := partials.LayoutCards(cards...)
 		cardControls := views.ShowControls(

@@ -37,7 +37,7 @@ var defaultCardOptions = []card.Option{
 	card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
 }
 
-func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscriptions, pagination models.Pagination) []templ.Component {
+func GenerateSubscriptionCards(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) []templ.Component {
 	filters := models.FiltersFromCtx(ctx)
 	cards := make([]templ.Component, 0, len(subscriptions))
 	for idx, subscription := range subscriptions {
@@ -57,24 +57,35 @@ func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscri
 				// Card actions.
 				card.WithActions(
 					buildCardActionsMenu(
-						shareAction(nil),
-						visitExternalLinkAction(models.ParseDomain(subscription.GetLink()), subscription.GetLink()),
+						// Share subscription action.
+						partials.LinkWithIcon(tabler.Share(i.Props{Size: i.SizeXS}), "Share", nil, []string{"text-xs"}),
+						// Visit subscription link action.
+						partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
+							"Visit "+models.ParseDomain(subscription.GetLink()),
+							templ.Attributes{
+								"href": subscription.GetLink(),
+								"_":    "on mouseenter add .menu-active to me end on mouseleave remove .menu-active from me end",
+							},
+							[]string{"text-xs"},
+						),
+						// Mark subscription action.
 						markSubscriptionAction(subscription.GetID(), subscription.IsUnread()),
+						// Edit subscription action.
 						editSubscriptionAction(subscription.GetID()),
+						// Unsubscribe from subscription action.
 						unsubscribeAction(subscription.GetID())),
 				),
 			),
 		)
-		// Add pagination htmx props to last article.
-		if idx == len(subscriptions)-1 && len(subscriptions) == filters.CountAsInt() {
-			cardOptions = append(cardOptions, card.WithExtraAttributes(addPaginationAttributes(ctx, pagination)))
-		}
 		// Reduce opacity for read articles.
 		if !subscription.IsUnread() {
 			cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
 		}
-
 		cards = append(cards, card.Build(cardOptions...).Show())
+		// Add pagination htmx props to last article.
+		if idx == len(subscriptions)-1 && len(subscriptions) == filters.CountAsInt() {
+			cards = append(cards, paginationControl(ctx, pagination))
+		}
 	}
 	return cards
 }
@@ -155,17 +166,20 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles, paginat
 				// Card actions.
 				card.WithActions(
 					buildCardActionsMenu(
-						shareAction(nil),
-						visitExternalLinkAction("External URL", article.Item.GetLink()),
+						// Share article action.
+						partials.LinkWithIcon(tabler.Share(i.Props{Size: i.SizeXS}), "Share", nil, []string{"text-xs"}),
+						// Visit external article link action.
+						partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
+							"External Link",
+							templ.Attributes{"href": article.Item.GetLink()},
+							[]string{"text-xs"},
+						),
+						// Mark article action.
 						markArticleAction(article.FeedID, article.ItemID, article.IsUnread()),
 					),
 				),
 			),
 		)
-		// Add pagination htmx props to last article.
-		if idx == len(articles)-1 && len(articles) == filters.CountAsInt() && pagination != "" {
-			cardOptions = append(cardOptions, card.WithExtraAttributes(addPaginationAttributes(ctx, pagination)))
-		}
 		// Reduce opacity for read articles.
 		if !article.IsUnread() {
 			cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
@@ -173,22 +187,28 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles, paginat
 
 		// Append the card to the list of cards.
 		cards = append(cards, card.Build(cardOptions...).Show())
+
+		// Add a pagination trigger element after the last card .
+		if idx == len(articles)-1 && len(articles) == filters.CountAsInt() && pagination != "" {
+			cards = append(cards, paginationControl(ctx, pagination))
+		}
+
 	}
 	return cards
 }
 
-// addPagination adds htmx attributes for triggering pagination to a card.
-func addPaginationAttributes(ctx context.Context, pagination models.Pagination) templ.Attributes {
-	view := models.PageStateFromCtx(ctx)
-	view.Params.Set(models.ParamPagination, pagination)
-	return templ.Attributes{
-		"hx-post":        view.String(),
-		"hx-trigger":     "intersect once",
-		"hx-target":      "#cards",
-		"hx-swap":        "afterend",
-		"hx-replace-url": "false",
-		"hx-indicator":   "#content-loading",
-	}
+templ paginationControl(ctx context.Context, pagination models.Pagination) {
+	{{ view := models.PageStateFromCtx(ctx) }}
+	{{ view.Params.Set(models.ParamPagination, pagination) }}
+	<div
+		id="pagination_placeholder"
+		hx-post={ view.String() }
+		hx-trigger="intersect once"
+		hx-target="#pagination_placeholder"
+		hx-swap="outerHTML"
+		hx-replace-url="false"
+		hx-indicator="#content-loading"
+	></div>
 }
 
 // buildCardActionsMenu generates a menu for the card containing the given actions.
@@ -233,25 +253,6 @@ func viewAction(ctx context.Context, id string, viewed bool) templ.Attributes {
 		"hx-push-url": "true",
 		"hx-swap":     "morph:innerHTML show:top",
 	}
-}
-
-templ shareAction(attributes templ.Attributes) {
-	@partials.LinkWithIcon(
-		tabler.Share(i.Props{Size: i.SizeXS}),
-		"Share",
-		attributes,
-	)
-}
-
-templ visitExternalLinkAction(label, url string) {
-	@partials.LinkWithIcon(
-		tabler.ExternalLink(i.Props{Size: i.SizeXS}),
-		"Visit "+label,
-		templ.Attributes{
-			"href": url,
-			"_":    "on mouseenter add .menu-active to me end on mouseleave remove .menu-active from me end",
-		},
-	)
 }
 
 templ RefreshAction() {
@@ -387,6 +388,7 @@ templ markReadLink(label string, attributes templ.Attributes) {
 		tabler.Bookmark(i.Props{Size: i.SizeXS}),
 		label,
 		attributes,
+		[]string{"text-xs"},
 	)
 }
 
@@ -395,13 +397,14 @@ templ markUnreadLink(label string, attributes templ.Attributes) {
 		tabler.BookmarkFilled(i.Props{Size: i.SizeXS}),
 		label,
 		attributes,
+		[]string{"text-xs"},
 	)
 }
 
 // Show renders an item as an article.
 templ BuildArticleLayout(art *models.Article) {
 	@article.Build(
-		article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2"),
+		article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2", "overflow-scroll"),
 		article.WithExtraAttributes(templ.Attributes{
 			"hx-post":     "/article/read/" + art.ItemID,
 			"hx-swap":     "none",
