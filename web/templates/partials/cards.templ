@@ -132,7 +132,7 @@ type ViewFilters []*Filter
 templ UpdateFilters(categories models.CategoryCounts) {
 	<div id="card-filters">
 		<div class="dropdown dropdown-bottom dropdown-end">
-			<div tabindex="0" role="button" class="btn btn-square m-1">
+			<div tabindex="0" role="button" class="btn btn-square">
 				@tabler.Filter(i.Props{Size: i.SizeXS})
 			</div>
 			<div tabindex="0" class="card card-sm bg-base-100 z-1 w-48 shadow-md dropdown-content">
@@ -179,7 +179,7 @@ func buildCategoryFilters(ctx context.Context, categoryCounts models.CategoryCou
 templ UpdateSorting() {
 	<div id="card-sorting">
 		<div class="dropdown dropdown-bottom dropdown-end">
-			<div tabindex="0" role="button" class="btn btn-square m-1">
+			<div tabindex="0" role="button" class="btn btn-square">
 				@tabler.ArrowsSort(i.Props{Size: i.SizeXS})
 			</div>
 			<div tabindex="0" class="card card-sm bg-base-100 z-1 w-48 shadow-md dropdown-content">

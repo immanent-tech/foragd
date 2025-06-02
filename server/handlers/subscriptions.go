@@ -54,10 +54,14 @@ func GenerateSubscriptionCollection(next http.Handler) http.Handler {
 		cards := views.GenerateSubscriptionCards(req.Context(), subscriptions, pagination)
 
 		cardLayout := partials.LayoutCards(cards...)
-		cardSorting := partials.UpdateSorting()
-		cardFilters := partials.UpdateFilters(subscriptions.GetCategoryCounts())
-		markAllAction := views.MarkAllSubscriptionsAction(req.Context())
-		cardControls := views.GenerateCardControls(markAllAction, cardSorting, cardFilters)
+		cardControls := views.ShowControls(
+			views.RefreshAction(),
+			partials.UpdateSorting(),
+			partials.UpdateFilters(subscriptions.GetCategoryCounts()),
+			views.CollectionActionsMenu(
+				views.MarkAllSubscriptionsAction(req.Context()),
+			),
+		)
 		footer := partials.Footer(partials.BackButton())
 
 		var content []templ.Component

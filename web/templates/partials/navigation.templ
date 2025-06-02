@@ -27,3 +27,15 @@ templ BackButton() {
 		}
 	</div>
 }
+
+templ LinkWithIcon(icon templ.Component, label string, attributes templ.Attributes) {
+	<div class="flex gap-2">
+		@icon
+		@link.Build(
+			link.WithContent(label),
+			link.WithUnderlineOnHover(),
+			link.WithExtraAttributes(attributes),
+			link.WithExtraClasses("text-xs"),
+		).Show()
+	</div>
+}

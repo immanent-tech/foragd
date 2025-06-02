@@ -197,45 +197,47 @@ func getHomePageData(ctx context.Context, api *elastic.API) (HomePageData, error
 templ layoutHomePageContent(topCategories, rareCategories templ.Component, randomItems []templ.Component) {
 	{{ subscriptionsPage := models.PageState{Path: "/home/subscriptions", Params: models.NewFilters().ToQueryParams()} }}
 	{{ articlesPage := models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()} }}
-	<h1>Go To:</h1>
-	@button.Build(
-		button.WithStyle(button.Ghost),
-		button.WithExtraAttributes(templ.Attributes{
-			"hx-get":      subscriptionsPage.String(),
-			"hx-target":   partials.ContentID.Target(),
-			"hx-swap":     "morph:innerHTML",
-			"hx-push-url": "true",
-		}),
-	).Show() {
-		<div class="capitalize">Subscriptions</div>
-	}
-	@button.Build(
-		button.WithStyle(button.Ghost),
-		button.WithExtraAttributes(templ.Attributes{
-			"hx-get":      articlesPage.String(),
-			"hx-target":   partials.ContentID.Target(),
-			"hx-swap":     "morph:innerHTML",
-			"hx-push-url": "true",
-		}),
-	).Show() {
-		<div class="capitalize">Articles</div>
-	}
-	if topCategories != nil {
-		<h1>Top Categories:</h1>
-		<div id="top-categories" class="flex flex-wrap p-2">
-			@topCategories
-		</div>
-	}
-	if rareCategories != nil {
-		<h1>Interesting Categories:</h1>
-		<div id="rare-categories" class="flex flex-wrap p-2">
-			@rareCategories
-		</div>
-	}
-	if randomItems != nil {
-		<h1>Random Articles:</h1>
-		@partials.LayoutCards(randomItems...)
-	}
+	<div class="flex flex-col max-w-fit p-2 justify-items-center">
+		<h1>Go To:</h1>
+		@button.Build(
+			button.WithStyle(button.Ghost),
+			button.WithExtraAttributes(templ.Attributes{
+				"hx-get":      subscriptionsPage.String(),
+				"hx-target":   partials.ContentID.Target(),
+				"hx-swap":     "morph:innerHTML",
+				"hx-push-url": "true",
+			}),
+		).Show() {
+			<div class="capitalize">Subscriptions</div>
+		}
+		@button.Build(
+			button.WithStyle(button.Ghost),
+			button.WithExtraAttributes(templ.Attributes{
+				"hx-get":      articlesPage.String(),
+				"hx-target":   partials.ContentID.Target(),
+				"hx-swap":     "morph:innerHTML",
+				"hx-push-url": "true",
+			}),
+		).Show() {
+			<div class="capitalize">Articles</div>
+		}
+		if topCategories != nil {
+			<h1>Top Categories:</h1>
+			<div id="top-categories" class="flex flex-row flex-wrap gap-2">
+				@topCategories
+			</div>
+		}
+		if rareCategories != nil {
+			<h1>Interesting Categories:</h1>
+			<div id="rare-categories" class="flex flex-wrap p-2">
+				@rareCategories
+			</div>
+		}
+		if randomItems != nil {
+			<h1>Random Articles:</h1>
+			@partials.LayoutCards(randomItems...)
+		}
+	</div>
 }
 
 templ prettyCategory(category models.Category) {

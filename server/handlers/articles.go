@@ -45,10 +45,14 @@ func GenerateArticleCollection(next http.Handler) http.Handler {
 		cards := views.GenerateArticleCards(req.Context(), articles, pagination)
 
 		cardLayout := partials.LayoutCards(cards...)
-		cardSorting := partials.UpdateSorting()
-		cardFilters := partials.UpdateFilters(articles.GetItems().GetCategoryCounts())
-		markAllAction := views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...)
-		cardControls := views.GenerateCardControls(markAllAction, cardSorting, cardFilters)
+		cardControls := views.ShowControls(
+			views.RefreshAction(),
+			partials.UpdateSorting(),
+			partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),
+			views.CollectionActionsMenu(
+				views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
+			),
+		)
 		footer := partials.Footer(partials.BackButton())
 
 		var content []templ.Component
