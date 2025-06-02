@@ -55,7 +55,9 @@
     "templates",
     "session",
     "elastic",
-    "views"
+    "views",
+    "components/join",
+    "components"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

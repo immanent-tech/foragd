@@ -44,8 +44,8 @@ func GenerateArticleCollection(next http.Handler) http.Handler {
 		pagination, _ := req.Context().Value(paginationCtxKey).(models.Pagination)
 		cards := views.GenerateArticleCards(req.Context(), articles, pagination)
 
-		cardLayout := partials.LayoutCards(cards...)
-		cardControls := views.ShowControls(
+		cardLayout := partials.CardGrid(cards...)
+		cardControls := partials.CardControls(
 			views.RefreshAction(),
 			partials.UpdateSorting(),
 			partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),

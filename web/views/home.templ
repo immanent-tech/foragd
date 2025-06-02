@@ -235,13 +235,9 @@ templ layoutHomePageContent(topCategories, rareCategories templ.Component, rando
 		}
 		if randomItems != nil {
 			<h1>Random Articles:</h1>
-			@partials.LayoutCards(randomItems...)
+			@partials.CardGrid(randomItems...)
 		}
 	</div>
-}
-
-templ prettyCategory(category models.Category) {
-	<div class="capitalize">{ category } </div>
 }
 
 func createCategoryLinks(categoryCounts models.CategoryCounts) templ.Component {

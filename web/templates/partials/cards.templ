@@ -20,8 +20,9 @@ import (
 
 var CardsID = attributes.ID("cards")
 
-templ LayoutCards(cards ...templ.Component) {
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center m-2 gap-4" id={ CardsID.String() }>
+// CardGrid renders the given card components in a grid container.
+templ CardGrid(cards ...templ.Component) {
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
 		for cards := range slices.Values(cards) {
 			@cards
 		}
@@ -31,6 +32,15 @@ templ LayoutCards(cards ...templ.Component) {
 			loading.AsHTMXIndicator(),
 			loading.WithThemeColor(color.Accent),
 		).Show()
+	</div>
+}
+
+// CardControls renders a list of controls for manipulating cards.
+templ CardControls(controls ...templ.Component) {
+	<div id="card-controls" class="flex flex-row justify-end gap-2 m-2">
+		for control := range slices.Values(controls) {
+			@control
+		}
 	</div>
 }
 

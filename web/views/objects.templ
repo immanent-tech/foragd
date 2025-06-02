@@ -469,13 +469,6 @@ templ showContent(article *models.Article) {
 	</div>
 }
 
-templ ShowControls(controls ...templ.Component) {
-	<div id="card-controls" class="flex flex-row justify-end gap-2">
-		for control := range slices.Values(controls) {
-			@control
-		}
-	</div>
-}
 
 templ CollectionActionsMenu(actions ...templ.Component) {
 	<div id="card-actions">
