@@ -12,6 +12,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
+	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/avatar"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
@@ -32,7 +33,7 @@ import (
 var defaultCardOptions = []card.Option{
 	card.WithStyle(card.Border),
 	card.WithShadow(shadow.SM),
-	card.WithExtraClasses("card-sm", "lg:card-md"),
+	card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
 }
 
 func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscriptions, pagination models.Pagination) []templ.Component {
@@ -48,8 +49,8 @@ func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscri
 				// Card content.
 				card.WithContent(
 					templ.Join(
-						cardDetails(subscription.GetAuthors(), subscription.GetUpdatedDate()),
-						cardDescription(subscription.GetDescription()),
+						showDetails(subscription.GetAuthors(), subscription.GetUpdatedDate()),
+						showDescription(subscription.GetDescription()),
 					),
 				),
 				// Card actions.
@@ -85,6 +86,7 @@ templ subscriptionCardTitle(subscription *models.Subscription) {
 			subscription.GetImage().URL(),
 			avatar.WithWidth("w-12"),
 			avatar.WithImageOptions(image.WithLazyLoading()),
+			avatar.WithExtraClasses("rounded"),
 		).Show()
 	} else {
 		// Otherwise, take the first letter of the title and create a placeholder avatar.
@@ -145,8 +147,8 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles, paginat
 				// Card content.
 				card.WithContent(
 					templ.Join(
-						cardDetails(article.Item.GetAuthors(), article.Item.GetUpdatedDate()),
-						cardCategories(article.Item.GetCategories()...),
+						showDetails(article.Item.GetAuthors(), article.Item.GetUpdatedDate()),
+						showCategories(article.Item.GetCategories()...),
 					),
 				),
 				// Card actions.
@@ -172,36 +174,6 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles, paginat
 		cards = append(cards, card.Build(cardOptions...).Show())
 	}
 	return cards
-}
-
-templ cardDetails(authors []string, updated time.Time) {
-	<div>
-		if len(authors) > 0 {
-			<strong>{ strings.Join(authors, ",") }</strong>
-		}
-		<span>
-			@partials.ShowTimestamp(updated)
-		</span>
-	</div>
-}
-
-templ cardCategories(categories ...models.Category) {
-	if len(categories) > 0 {
-		<div class="flex w-full overflow-hidden m-2">
-			for category := range slices.Values(categories) {
-				@partials.InactiveBadge(category, nil)
-			}
-		</div>
-	}
-}
-
-templ cardDescription(desc string) {
-	if desc != "" {
-		@text.Build(desc,
-			text.WithSize(text.XS),
-			text.WithOverflow(text.Truncate),
-		).Show()
-	}
 }
 
 // addPagination adds htmx attributes for triggering pagination to a card.
@@ -436,6 +408,75 @@ templ GenerateCardControls(controls ...templ.Component) {
 	<div id="card-controls" class="flex flex-row justify-end p-2">
 		for control := range slices.Values(controls) {
 			@control
+		}
+	</div>
+}
+
+// Show renders an item as an article.
+templ BuildArticleLayout(art *models.Article) {
+	<div id={ art.ItemID } class="shadow-sm bg-base-300 p-2 rounded-box">
+		@article.Build(
+			article.WithExtraAttributes(templ.Attributes{
+				"hx-post":     "/article/read/" + art.ItemID,
+				"hx-swap":     "none",
+				"hx-push-url": "false",
+				"hx-trigger":  "load delay:2s",
+			}),
+		).Show() {
+			<h2>
+				@text.Build(art.Item.GetTitle(),
+					text.WithWeight(text.Semibold),
+					text.WithSize(text.LG),
+				).Show("flex-1")
+			</h2>
+			@showDetails(art.Item.GetAuthors(), art.Item.GetUpdatedDate())
+			// Display the categories associated with the article.
+			@showCategories(art.Item.GetCategories()...)
+			// Display the article content.
+			@showContent(art)
+		}
+	</div>
+}
+
+templ showCategories(categories ...models.Category) {
+	if len(categories) > 0 {
+		<div class="grid grid-flow-row auto-rows-max">
+			for category := range slices.Values(categories) {
+				<div>
+					@partials.InactiveBadge(category, nil)
+				</div>
+			}
+		</div>
+	}
+}
+
+templ showDescription(desc string) {
+	if desc != "" {
+		@text.Build(desc,
+			text.WithSize(text.XS),
+			text.WithOverflow(text.Truncate),
+		).Show()
+	}
+}
+
+templ showDetails(authors []string, updated time.Time) {
+	<div>
+		if len(authors) > 0 {
+			<strong>{ strings.Join(authors, ",") }</strong>
+		}
+		<span>
+			@partials.ShowTimestamp(updated)
+		</span>
+	</div>
+}
+
+templ showContent(article *models.Article) {
+	<div id="article_content" class="text-sm max-w-prose">
+		switch  {
+			case article.Item.GetContent() != "":
+				@templ.Raw(article.Item.GetContent())
+			case article.Item.GetDescription() != "":
+				@templ.Raw(article.Item.GetDescription())
 		}
 	</div>
 }

@@ -9,8 +9,9 @@ templ InactiveBadge(label string, attributes templ.Attributes) {
 	@badge.Build(
 		badge.WithStyle(badge.Ghost),
 		badge.WithSize(badge.XS),
+		badge.WithContent(label),
+		badge.WithExtraClasses("capitalize", "w-fit-content"),
 		badge.WithExtraAttributes(attributes),
-		badge.WithContent(formatString(label)),
 	).Show()
 }
 
@@ -18,7 +19,8 @@ templ ActiveBadge(label string, attributes templ.Attributes) {
 	@badge.Build(
 		badge.WithColor(badge.Primary),
 		badge.WithSize(badge.XS),
+		badge.WithContent(label),
+		badge.WithExtraClasses("capitalize", "w-fit-content"),
 		badge.WithExtraAttributes(attributes),
-		badge.WithContent(formatString(label)),
 	).Show()
 }

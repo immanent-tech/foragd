@@ -56,6 +56,7 @@ templ (body *Body) Show() {
 	}
 	<div
 		id={ partials.ContentID.String() }
+		class="m-2"
 		hx-swap="morph:innerHTML"
 		hx-target={ partials.ContentID.Target() }
 		hx-target-error={ partials.ErrorID.Target() }
