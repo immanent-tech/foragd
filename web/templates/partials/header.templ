@@ -31,9 +31,9 @@ templ Header(start, center, end templ.Component) {
 
 templ DefaultHeaderStart() {
 	<div class="flex-none">
-		<div hx-get="/home" hx-target={ ContentID.Target() } hx-push-url="true" class="cursor-pointer">
-			@tabler.Home()
-		</div>
+		<label for="body-drawer" class="btn btn-square drawer-button">
+			@tabler.Menu()
+		</label>
 	</div>
 }
 

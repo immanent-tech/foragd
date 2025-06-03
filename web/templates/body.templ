@@ -45,27 +45,35 @@ func NewBody(content templ.Component, options ...BodyOption) *Body {
 
 // Show renders the Body as a templ Component.
 templ (body *Body) Show() {
-	if body.header != nil {
-		@body.header
-	} else {
-		@partials.Header(
-			partials.DefaultHeaderStart(),
-			partials.DefaultHeaderCenter(),
-			partials.DefaultHeaderEnd(),
-		)
-	}
-	<div
-		id={ partials.ContentID.String() }
-		class="m-2"
-		hx-swap="morph:innerHTML"
-		hx-target={ partials.ContentID.Target() }
-		hx-target-error={ partials.ErrorID.Target() }
-	>
-		@body.content
+	<div class="drawer">
+		<input id="body-drawer" type="checkbox" class="drawer-toggle"/>
+		<div class="drawer-content">
+			if body.header != nil {
+				@body.header
+			} else {
+				@partials.Header(
+					partials.DefaultHeaderStart(),
+					partials.DefaultHeaderCenter(),
+					partials.DefaultHeaderEnd(),
+				)
+			}
+			<div
+				id={ partials.ContentID.String() }
+				class="m-2"
+				hx-swap="morph:innerHTML"
+				hx-target={ partials.ContentID.Target() }
+				hx-target-error={ partials.ErrorID.Target() }
+			>
+				@body.content
+			</div>
+			if body.footer != nil {
+				@body.footer
+			} else {
+				@partials.Footer()
+			}
+		</div>
+		<div class="drawer-side">
+			@partials.DrawerDefault()
+		</div>
 	</div>
-	if body.footer != nil {
-		@body.footer
-	} else {
-		@partials.Footer()
-	}
 }
