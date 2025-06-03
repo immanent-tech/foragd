@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package subscription
+package views
 
 import (
 	"github.com/joshuar/go-feed-me/models"
@@ -22,6 +22,54 @@ import (
 type SubscriptionEditRequest struct {
 	*models.Subscription
 	TopCategories []models.Category
+}
+
+templ (s *SubscriptionEditRequest) EditSubscriptionModal() {
+	@modal.Build(
+		modal.WithID(partials.ModalID.String()),
+		modal.WithCloseButton(),
+		modal.WithCloseOutside(),
+	).Show() {
+		@text.Build("Edit Subscription", text.WithSize(text.LG)).Show()
+		// Display the Subscription details.
+		@form.BuildForm(
+			form.WithID(s.GetID()+"_edit"),
+			form.WithExtraAttributes(
+				templ.Attributes{
+					"hx-put":       "/subscription/edit/" + s.GetID(),
+					"hx-swap":      "none",
+					"hx-indicator": "#add-processing",
+				},
+			),
+			form.WithElements(
+				fieldset.Build(
+					fieldset.WithField("",
+						hiddeninput.Build(
+							hiddeninput.WithName("subscription_id"),
+							hiddeninput.WithValue(s.GetID()),
+						),
+					),
+					fieldset.WithField("Nickname (optional)", s.editNickname()),
+				).Show(),
+			),
+		).Show()
+		@s.editCategories()
+		// Add a button to submit the Subscription details when finished editing.
+		@fieldset.Build(
+			fieldset.WithField("",
+				button.Build(
+					button.WithContent("Make it so!"),
+					button.WithExtraAttributes(templ.Attributes{
+						"form": s.GetID() + "_edit",
+						"_":    "on click remove @open from " + partials.ModalID.Target(),
+					})),
+			),
+		).Show()
+		<center id="add-processing" class="htmx-indicator">
+			Adding
+			@loading.Build(loading.Infinity).Show()
+		</center>
+	}
 }
 
 func (s *SubscriptionEditRequest) editNickname() *textinput.Props {
@@ -114,52 +162,4 @@ templ (s *SubscriptionEditRequest) editCategories() {
 			}
 		</fieldset>
 	</form>
-}
-
-templ (s *SubscriptionEditRequest) SubscriptionDetailsModal() {
-	@modal.Build(
-		modal.WithID(partials.ModalID.String()),
-		modal.WithCloseButton(),
-		modal.WithCloseOutside(),
-	).Show() {
-		@text.Build("Edit subscription", text.WithSize(text.LG)).Show()
-		// Display the Subscription details.
-		@form.BuildForm(
-			form.WithID(s.GetID()+"_edit"),
-			form.WithExtraAttributes(
-				templ.Attributes{
-					"hx-put":       "/subscription/edit/" + s.GetID(),
-					"hx-swap":      "none",
-					"hx-indicator": "#add-processing",
-				},
-			),
-			form.WithElements(
-				fieldset.Build(
-					fieldset.WithField("",
-						hiddeninput.Build(
-							hiddeninput.WithName("subscription_id"),
-							hiddeninput.WithValue(s.GetID()),
-						),
-					),
-					fieldset.WithField("Nickname (optional)", s.editNickname()),
-				).Show(),
-			),
-		).Show()
-		@s.editCategories()
-		// Add a button to submit the Subscription details when finished editing.
-		@fieldset.Build(
-			fieldset.WithField("",
-				button.Build(
-					button.WithContent("Make it so!"),
-					button.WithExtraAttributes(templ.Attributes{
-						"form": s.GetID() + "_edit",
-						"_":    "on click remove @open from " + partials.ModalID.Target(),
-					})),
-			),
-		).Show()
-		<center id="add-processing" class="htmx-indicator">
-			Adding
-			@loading.Build(loading.Infinity).Show()
-		</center>
-	}
 }

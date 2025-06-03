@@ -71,7 +71,15 @@ func GenerateSubscriptionCards(ctx context.Context, pagination models.Pagination
 						// Mark subscription action.
 						markSubscriptionAction(subscription.GetID(), subscription.IsUnread()),
 						// Edit subscription action.
-						editSubscriptionAction(subscription.GetID()),
+						partials.LinkWithIcon(tabler.Edit(i.Props{Size: i.SizeXS}),
+							"Edit Subscription",
+							templ.Attributes{
+								"hx-get":    "/subscription/edit/" + subscription.GetID(),
+								"hx-target": partials.ModalContainerID.Target(),
+								"_":         partials.HyperscriptOpenModal(partials.ModalID.Target()),
+							},
+							[]string{"text-xs"},
+						),
 						// Unsubscribe from subscription action.
 						unsubscribeAction(subscription.GetID())),
 				),
@@ -367,14 +375,6 @@ func ImportAction() templ.Component {
 	)
 }
 
-func editSubscriptionAction(id models.SubscriptionID) templ.Component {
-	return openModalLink(
-		"hx-get",
-		"/subscription/edit/"+id,
-		templ.Join(tabler.Edit(i.Props{Size: i.SizeXS}), components.SetContent("Edit")),
-	)
-}
-
 func unsubscribeAction(id models.SubscriptionID) templ.Component {
 	return openModalLink(
 		"hx-delete",
@@ -468,7 +468,6 @@ templ showContent(article *models.Article) {
 		}
 	</div>
 }
-
 
 templ CollectionActionsMenu(actions ...templ.Component) {
 	<div id="card-actions">

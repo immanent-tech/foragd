@@ -79,7 +79,7 @@ templ (page *Page) Show() {
 			hx-ext="morph,sse,response-targets"
 			hx-target-error={ partials.NotificationsID.String() }
 		>
-			<div id={ partials.ModalID.String() }></div>
+			<div id={ partials.ModalContainerID.String() }></div>
 			<div id={ partials.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50"></div>
 			if page.Body != nil {
 				@page.Body.Show()

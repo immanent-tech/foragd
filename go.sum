@@ -305,6 +305,8 @@ github.com/veqryn/slog-json v0.4.0 h1:+8o/Xu41zjdrD+ESS9IQyEtuvEcUDZoE8PwjvK4P5W
 github.com/veqryn/slog-json v0.4.0/go.mod h1:YHXhsj90rtJlinjMWWASZTjIca8l2yGC7buL7SAkzR0=
 github.com/vmware-labs/yaml-jsonpath v0.3.2 h1:/5QKeCBGdsInyDCyVNLbXyilb61MXGi9NP674f9Hobk=
 github.com/vmware-labs/yaml-jsonpath v0.3.2/go.mod h1:U6whw1z03QyqgWdgXxvVnQ90zN1BWz5V+51Ewf8k+rQ=
+github.com/yassinebenaid/godump v0.11.1 h1:SPujx/XaYqGDfmNh7JI3dOyCUVrG0bG2duhO3Eh2EhI=
+github.com/yassinebenaid/godump v0.11.1/go.mod h1:dc/0w8wmg6kVIvNGAzbKH1Oa54dXQx8SNKh4dPRyW44=
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 go.devnw.com/structs v1.0.0 h1:FFkBoBOkapCdxFEIkpOZRmMOMr9b9hxjKTD3bJYl9lk=

@@ -119,6 +119,7 @@ require (
 	github.com/veqryn/slog-context v0.8.0
 	github.com/veqryn/slog-json v0.4.0
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
+	github.com/yassinebenaid/godump v0.11.1
 	go.devnw.com/structs v1.0.0 // indirect
 	go.opentelemetry.io/otel v1.29.0 // indirect
 	go.opentelemetry.io/otel/metric v1.29.0 // indirect

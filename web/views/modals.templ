@@ -16,9 +16,9 @@ func openModalLink(method, path string, content templ.Component) templ.Component
 		link.WithExtraClasses("w-fit", "text-xs"),
 		link.WithExtraAttributes(templ.Attributes{
 			method:      path,
-			"hx-target": partials.ModalID.Target(),
+			"hx-target": partials.ModalContainerID.Target(),
 			// "_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
-			"_": partials.HyperscriptOpenModal(partials.ModalID.Target()) + " then " + partials.HyperscriptCloseDropdown(),
+			"_": partials.HyperscriptOpenModal(partials.ModalID.Target()),
 		}),
 	).Show()
 }

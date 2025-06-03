@@ -30,47 +30,6 @@ var (
 	ErrUserAlreadySubscribed = errors.New("user already subscribed")
 )
 
-// GetUserSubscription retrieves the subscription with the given ID.
-func (e *API) GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, *models.Response) {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, models.RespInvalidUser()
-	}
-
-	sub := user.GetSubscriptions().FindByID(subscriptionID)
-	if sub == nil {
-		return nil, &models.Response{
-			StatusCode: http.StatusNoContent,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "No subscription with matching ID.",
-			},
-		}
-	}
-	feed, err := e.GetFeed(ctx, sub.GetFeedID())
-	if err != nil {
-		return nil, models.RespTemporaryIssue("The backend encountered an issue. Please retry.", err)
-	}
-	sub.Feed = feed
-	return sub, nil
-}
-
-func (e *API) EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) *models.Response {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return models.RespInvalidUser()
-	}
-	// Perform subscription edits.
-	user.EditSubscription(subscriptionID, edits)
-	// Save edits to user object.
-	return e.UpdateUser(ctx, user.GetID(), map[string]any{
-		"subscriptions": user.Subscriptions,
-		"updated_at":    time.Now().UTC(),
-	})
-}
-
 func (e *API) GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)

@@ -55,17 +55,24 @@ const (
 
 type contextKey string
 
+type FeedsAPI interface {
+	GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error)
+	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)
+}
+
+type UserAPI interface {
+	UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) *models.Response
+}
+
 // DataAPI represents the API surface for interacting with the database/datastore backend.
 type DataAPI interface {
 	// User methods:
 	AddUser(ctx context.Context, userID models.UserID) error
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 	// Subscription methods:
-	GetSubscription(ctx context.Context, subscriptionID models.SubscriptionID) (*models.Subscription, *models.Response)
 	GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response)
 	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) *models.Response
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) *models.Response
-	EditSubscription(ctx context.Context, subscriptionID models.SubscriptionID, edits *models.SubscriptionCustomisation) *models.Response
 	RemoveSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) *models.Response
 	// Feeds methods:
 	// GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
@@ -104,7 +111,6 @@ func HTMXResponseToCtx(ctx context.Context, resp htmx.Response) context.Context 
 func HTMXResponseFromCtx(ctx context.Context) htmx.Response {
 	resp, found := ctx.Value(htmxRespCtxKey).(htmx.Response)
 	if !found {
-		slogctx.FromCtx(ctx).Warn("No existing htmx response object, creating new one.")
 		return htmx.NewResponse()
 	}
 	return resp
@@ -114,8 +120,14 @@ func HTMXResponseFromCtx(ctx context.Context) htmx.Response {
 func RenderTemplates() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
-			templates, ok := req.Context().Value(templatesCtxKey).([]templ.Component)
-			if !ok {
+			var templates []templ.Component
+			data := req.Context().Value(templatesCtxKey)
+			switch value := data.(type) {
+			case []templ.Component:
+				templates = append(templates, value...)
+			case templ.Component:
+				templates = append(templates, value)
+			default:
 				slogctx.FromCtx(req.Context()).Warn("No templates found in context.")
 				res.WriteHeader(http.StatusNoContent)
 				return

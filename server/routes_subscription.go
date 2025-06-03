@@ -100,7 +100,8 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
 	chain := alice.New(
 		handlers.RouteLogger,
-	).Then(handlers.EditSubscription(s.DataAPI(), subscriptionID))
+		handlers.EditSubscription(s.DataAPI(), subscriptionID),
+	).Then(handlers.RenderTemplates())
 	chain.ServeHTTP(res, req)
 }
 
@@ -119,7 +120,8 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-	).Then(handlers.SaveSubscription(s.DataAPI(), subscriptionID, subscriptionEdits))
+		handlers.SaveSubscription(s.DataAPI(), subscriptionID, subscriptionEdits),
+	).Then(handlers.RenderTemplates())
 	chain.ServeHTTP(res, req)
 }
 

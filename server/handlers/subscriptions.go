@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -521,43 +522,83 @@ func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confi
 }
 
 // EditSubscription retrieves the subscription with the given ID and presents a form for the user to edit it.
-func EditSubscription(api DataAPI, id models.SubscriptionID) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Get the subscription details.
-		sub, resp := api.GetSubscription(req.Context(), id)
-		if resp != nil {
-			ProcessResponse(res, req, resp)
-			return
-		}
-		// Encapsulate subscription in edit request.
-		subEdit := &subscription.SubscriptionEditRequest{
-			Subscription: sub,
-		}
-		// Add top categories across items in subscription.
-		categories, resp := api.GetTopItemCategories(req.Context(), sub.GetFeedID())
-		if !resp.IsError() {
-			subEdit.TopCategories = categories
-		}
-		// ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmx.NewResponse())
-		// PartialRender(subEdit.SubscriptionDetailsModal()).ServeHTTP(res, req.WithContext(ctx))
-	})
+func EditSubscription(api FeedsAPI, subID models.SubscriptionID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			// Retrieve user object.
+			user, found := models.UserFromCtx(req.Context())
+			if !found {
+				ProcessResponse(res, req, models.RespInvalidUser())
+				return
+			}
+			// Retrieve subscription.
+			subscription := user.GetSubscriptions().FindByID(subID)
+			if subscription == nil {
+				ProcessResponse(res, req, &models.Response{
+					StatusCode: http.StatusNoContent,
+					UserMessage: &models.UserMessage{
+						Status:  models.UserMessageStatusWarning,
+						Summary: "No subscription with matching ID.",
+					},
+				})
+				return
+			}
+			feed, err := api.GetFeed(req.Context(), subscription.GetFeedID())
+			if err != nil {
+				ProcessResponse(res, req, models.RespTemporaryIssue("The backend encountered an issue. Please retry.", err))
+				return
+			}
+			subscription.Feed = feed
+
+			// Encapsulate subscription in edit request.
+			editRequest := &views.SubscriptionEditRequest{
+				Subscription: subscription,
+			}
+			// Add top categories across items in subscription.
+			categories, resp := api.GetTopItemCategories(req.Context(), subscription.GetFeedID())
+			if !resp.IsError() {
+				editRequest.TopCategories = categories
+			}
+			ctx := context.WithValue(req.Context(), templatesCtxKey, editRequest.EditSubscriptionModal())
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }
 
 // SaveSubscription handles saving any user edits to an existing subscription.
-func SaveSubscription(api DataAPI, id models.SubscriptionID, edits *models.SubscriptionCustomisation) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Add a new HTMX response writer to the context.
-		ctx := HTMXResponseToCtx(req.Context(), htmx.NewResponse())
-
-		resp := api.EditSubscription(ctx, id, edits)
-		if resp.IsError() {
-			ProcessResponse(res, req, resp)
-			return
-		}
-		// Display a notification acknowledging save.
-		// msg := models.NewMessage("Subscription edits saved.", models.MessageStatusSuccess)
-		// PartialRender(partials.ShowNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
-	})
+func SaveSubscription(api UserAPI, subID models.SubscriptionID, edits *models.SubscriptionCustomisation) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			var resp *models.Response
+			// Add a new HTMX response writer to the context.
+			ctx := HTMXResponseToCtx(req.Context(), htmx.NewResponse())
+			// Retrieve user object.
+			user, found := models.UserFromCtx(ctx)
+			if !found {
+				resp = models.RespInvalidUser()
+			}
+			if resp != nil && !resp.IsError() {
+				// Perform subscription edits.
+				user.EditSubscription(subID, edits)
+				// Save edits to user object.
+				resp = api.UpdateUser(ctx, user.GetID(), map[string]any{
+					"subscriptions": user.Subscriptions,
+					"updated_at":    time.Now().UTC(),
+				})
+			}
+			if resp != nil && resp.IsError() {
+				ProcessResponse(res, req, resp)
+				return
+			}
+			msg := &models.UserMessage{
+				Status:  models.UserMessageStatusSuccess,
+				Summary: "Subscription updated.",
+			}
+			// Display a notification acknowledging save.
+			ctx = context.WithValue(req.Context(), templatesCtxKey, partials.ShowNotification(msg))
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }
 
 // MarkSubscriptions handles marking subscriptions with the given IDs with the given mark.
