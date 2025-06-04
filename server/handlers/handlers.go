@@ -15,14 +15,18 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 var (
@@ -45,6 +49,11 @@ const (
 	templatesCtxKey            contextKey = "templates"
 	feedsCtxKey                contextKey = "feeds"
 	htmxRespCtxKey             contextKey = "htmxResp"
+
+	headerContentCtxKey contextKey = "headerContent"
+	footerContentCtxKey contextKey = "footerContent"
+	drawerContentCtxKey contextKey = "drawerContent"
+	contentCtxKey       contextKey = "content"
 )
 
 // Keys for objects stored within the session.
@@ -57,7 +66,12 @@ type contextKey string
 
 type FeedsAPI interface {
 	GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error)
+	GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)
+	GetSubscriptionUnreadCounts(ctx context.Context, subscriptions models.Subscriptions) error
+	GetArticlesByID(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error)
+	ItemsSearch(ctx context.Context, query query.Option, filters models.Filters, pagination models.Pagination) (*search.Response, error)
+	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error)
 }
 
 type UserAPI interface {
@@ -79,8 +93,8 @@ type DataAPI interface {
 	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
+	GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	GetArticle(ctx context.Context, itemID models.ItemID) (*models.Article, bool, *models.Response)
-	GetArticlesBySubscription(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response)
 	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) *models.Response
 	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)
 }
@@ -134,6 +148,63 @@ func RenderTemplates() http.Handler {
 			}
 			resp := HTMXResponseFromCtx(req.Context())
 			for template := range slices.Values(templates) {
+				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
+				}
+			}
+		})
+}
+
+func RenderPage(title string) http.Handler {
+	return http.HandlerFunc(
+		func(res http.ResponseWriter, req *http.Request) {
+			header, ok := req.Context().Value(headerContentCtxKey).(templ.Component)
+			if !ok || header == nil {
+				header = partials.Header()
+			}
+			footer, ok := req.Context().Value(footerContentCtxKey).(templ.Component)
+			if !ok || header == nil {
+				footer = partials.Footer()
+			}
+			drawer, ok := req.Context().Value(drawerContentCtxKey).(templ.Component)
+			if !ok || drawer == nil {
+				drawer = partials.Drawer()
+			}
+			content, ok := req.Context().Value(contentCtxKey).(templ.Component)
+			if !ok {
+				slogctx.FromCtx(req.Context()).Error("Invalid content.")
+				http.Error(res, "Invalid content.", http.StatusInternalServerError)
+				return
+			}
+			page := views.FullPage(title, header, footer, drawer, content)
+			if err := page.Render(req.Context(), res); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
+			}
+		})
+}
+
+func RenderPartials(title string) http.Handler {
+	return http.HandlerFunc(
+		func(res http.ResponseWriter, req *http.Request) {
+			var partials []templ.Component
+			if content, ok := req.Context().Value(contentCtxKey).(templ.Component); ok {
+				partials = append(partials, content)
+			}
+			if header, ok := req.Context().Value(headerContentCtxKey).(templ.Component); ok {
+				partials = append(partials, header)
+			}
+			if footer, ok := req.Context().Value(footerContentCtxKey).(templ.Component); ok {
+				partials = append(partials, footer)
+			}
+			if drawer, ok := req.Context().Value(drawerContentCtxKey).(templ.Component); ok {
+				partials = append(partials, drawer)
+			}
+			if title != "" {
+				partials = append(partials, templates.SetPageTitle(title))
+			}
+			resp := htmx.NewResponse()
+			for template := range slices.Values(partials) {
 				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
 				}
@@ -262,5 +333,20 @@ func RestorePageState(ctx context.Context, path string) models.PageState {
 		return models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()}
 	default:
 		return models.PageState{Path: "/home"}
+	}
+}
+
+func UpdateDrawer(api FeedsAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
+			subscriptions, resp := getAllSubscriptions(req.Context(), api)
+			if resp.IsError() {
+				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.InternalError))
+			} else {
+				ctx = context.WithValue(ctx, drawerContentCtxKey, views.SubscriptionList(subscriptions))
+			}
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
 	}
 }

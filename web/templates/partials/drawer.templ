@@ -3,33 +3,35 @@
 
 package partials
 
-import "github.com/sebasvil20/templicons/tabler"
+import (
+	"github.com/sebasvil20/templicons/tabler"
+	"slices"
+)
 
-templ DrawerDefault() {
-	<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-	<div class="bg-base-200 text-base-content min-h-full w-80 p-4">
-		@LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
-			"hx-get":      "/home",
-			"hx-target":   ContentID.Target(),
-			"hx-push-url": "true",
-		}, nil)
-		<div class="collapse">
-			<input type="checkbox"/>
-			<div class="collapse-title font-semibold">
-				<div class="flex gap-2">
-					@tabler.Rss()
-					Subscriptions
-				</div>
-			</div>
-			<div class="collapse-content text-sm">
-				Click the "Sign Up" button in the top right corner and follow the registration process.
-			</div>
+// <div class="collapse">
+// 	<input type="checkbox"/>
+// 	<div class="collapse-title font-semibold">
+// 		<div class="flex gap-2">
+// 			@tabler.Rss()
+// 			Subscriptions
+// 		</div>
+// 	</div>
+// 	<div id="subscriptions-list" class="collapse-content text-sm">
+// 		Click the "Sign Up" button in the top right corner and follow the registration process.
+// 	</div>
+// </div>
+templ Drawer(contents ...templ.Component) {
+	<div class="drawer-side">
+		<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+		<div class="bg-base-200 text-base-content min-h-full w-80 p-4">
+			@LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
+				"hx-get":      "/home",
+				"hx-target":   ContentID.Target(),
+				"hx-push-url": "true",
+			}, nil)
+			for content := range slices.Values(contents) {
+				@content
+			}
 		</div>
 	</div>
-	// <ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-	// 	<li></li>
-	// 	<!-- Sidebar content here -->
-	// 	<li><a>Sidebar Item 1</a></li>
-	// 	<li><a>Sidebar Item 2</a></li>
-	// </ul>
 }

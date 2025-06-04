@@ -14,7 +14,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
-	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/veqryn/slog-context"
@@ -86,112 +86,16 @@ func (d HomePageData) generateRandomItemsCards(ctx context.Context, api *elastic
 	// return nil, nil
 }
 
-func GenerateHomePageContent(ctx context.Context, api *elastic.API) templ.Component {
+func GenerateHomePageContent(ctx context.Context, data HomePageData, articles models.Articles) templ.Component {
 	// Get the required data.
-	data, err := getHomePageData(ctx, api)
-	if err != nil {
-		slogctx.FromCtx(ctx).Error("Could not generate home page content.", slog.Any("error", err))
-	}
 	// Generate a links to top categories from the data.
 	topCategories := data.generateTopCategoriesLinks(ctx)
 	// Generate links to rare categories from the data.
 	rareCategories := data.generateRareCategoriesLinks(ctx)
 	// Generate a random collection of article cards from the data.
-	randomItems, err := data.generateRandomItemsCards(ctx, api)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to random items.", slog.Any("error", err))
-	}
+	randomItems := GenerateArticleCards(ctx, articles, "")
 
 	return layoutHomePageContent(topCategories, rareCategories, randomItems)
-}
-
-func getHomePageData(ctx context.Context, api *elastic.API) (HomePageData, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, fmt.Errorf("%w: no user found", elastic.ErrFetchCtx)
-	}
-	// Get subscriptions.
-	subscriptions := user.GetSubscriptions()
-	// Query definition for fetching unread items for all subscriptions.
-	query := query.Bool(
-		query.BoolQueryName("item_filters"),
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.FeedIDs(subscriptions.GetFeedIDs()...),
-			// And should match one feed clause.
-			query.Bool(
-				query.Should(elastic.BuildSubscriptionQueries(subscriptions, models.ViewUnread)...),
-			),
-		),
-	)
-
-	var aggs []aggregations.Aggregation
-	TermsField := "categories.raw"
-
-	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
-	SampleField := "feed_id"
-	DefaultMaxDocsPerValue := 10
-	ShardSize := 1000
-	aggs = append(aggs,
-		aggregations.Aggregation{
-			Name: "top_categories_sample",
-			Definition: types.Aggregations{
-				DiversifiedSampler: &types.DiversifiedSamplerAggregation{
-					Field:           &SampleField,
-					MaxDocsPerValue: &DefaultMaxDocsPerValue,
-					ShardSize:       &ShardSize,
-				},
-				Aggregations: map[string]types.Aggregations{
-					"top_categories": {
-						Terms: &types.TermsAggregation{
-							Field: &TermsField,
-						},
-					},
-				},
-			},
-		},
-	)
-	// Aggregation definition for fetching the rare item categories across all subscriptions.
-	MaxDocCount := int64(5)
-	aggs = append(aggs,
-		aggregations.Aggregation{
-			Name: "rare_categories",
-			Definition: types.Aggregations{
-				RareTerms: &types.RareTermsAggregation{
-					Field:       &TermsField,
-					MaxDocCount: &MaxDocCount,
-				},
-			},
-		},
-	)
-
-	// Aggregation definition for fetching a set of random items from all subscriptions.
-	ItemIDField := "item_id"
-	aggs = append(aggs,
-		aggregations.Aggregation{
-			Name: "random_items",
-			Definition: types.Aggregations{
-				RandomSampler: &types.RandomSamplerAggregation{
-					Probability: 0.1,
-				},
-				Aggregations: map[string]types.Aggregations{
-					"items": {
-						Terms: &types.TermsAggregation{
-							Field: &ItemIDField,
-						},
-					},
-				},
-			},
-		},
-	)
-
-	// Perform the request.
-	resp, err := api.ItemsAggregation(ctx, query, aggs...)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", elastic.ErrReqFailed, err)
-	}
-
-	return resp.Aggregations, nil
 }
 
 templ layoutHomePageContent(topCategories, rareCategories templ.Component, randomItems []templ.Component) {
@@ -253,4 +157,15 @@ func createCategoryLinks(categoryCounts models.CategoryCounts) templ.Component {
 		categoryLinks = append(categoryLinks, partials.InactiveButton(category.Category, attributes))
 	}
 	return templ.Join(categoryLinks...)
+}
+
+func FullPage(title string, header, footer, drawer, content templ.Component) templ.Component {
+	return templates.NewPage(title,
+		templates.NewBody(
+			content,
+			templates.WithBodyHeader(header),
+			templates.WithBodyFooter(footer),
+			templates.WithDrawerContent(drawer),
+		),
+	).Show()
 }

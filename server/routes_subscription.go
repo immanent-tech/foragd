@@ -96,14 +96,6 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 	chain.ServeHTTP(res, req)
 }
 
-// EditSubscription handles a request to edit a user's subscription.
-func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.EditSubscription(s.DataAPI(), subscriptionID),
-	).Then(handlers.RenderTemplates())
-	chain.ServeHTTP(res, req)
-}
 
 // SaveSubscription handles saving any edits to a user's subscription.
 func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {

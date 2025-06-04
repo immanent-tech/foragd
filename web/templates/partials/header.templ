@@ -16,16 +16,12 @@ import (
 
 var HeaderID = attributes.ID("header")
 
-templ Header(start, center, end templ.Component) {
-	@navbar.Build(navbar.WithID("header"),
+templ Header() {
+	@navbar.Build(navbar.WithID(HeaderID.String()),
 		navbar.WithBaseColor(color.Base200),
-		navbar.NavBarStart(start),
-		navbar.NavBarCenter(center),
-		navbar.NavBarEnd(end),
-		navbar.WithExtraAttributes(templ.Attributes{
-			"hx-swap-oob": "true",
-			"hx-swap":     "morph:outerHTML",
-		}),
+		navbar.NavBarStart(DefaultHeaderStart()),
+		navbar.NavBarCenter(DefaultHeaderCenter()),
+		navbar.NavBarEnd(DefaultHeaderEnd()),
 	).Show()
 }
 
@@ -85,12 +81,4 @@ templ DefaultHeaderEnd() {
 			</li>
 		}
 	</div>
-}
-
-templ DefaultHeader() {
-	@Header(
-		DefaultHeaderStart(),
-		DefaultHeaderCenter(),
-		DefaultHeaderEnd(),
-	)
 }

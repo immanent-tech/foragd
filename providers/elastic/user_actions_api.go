@@ -39,7 +39,7 @@ func (e *API) GetSubscriptionsByID(ctx context.Context, filters models.Filters, 
 	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
 
 	// Get feeds matching subscriptions.
-	feeds, err := e.GetAllFeeds(ctx, subscriptions.GetFeedIDs()...)
+	feeds, err := e.GetFeedsByID(ctx, subscriptions.GetFeedIDs()...)
 	if err != nil {
 		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
 	}
@@ -211,51 +211,6 @@ func (e *API) GetArticle(ctx context.Context, itemID models.ItemID) (*models.Art
 	articles := models.GenerateArticles(user, item)
 
 	return articles[0], true, models.RespSuccess("Fetched article.")
-}
-
-func (e *API) GetArticlesBySubscription(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, "", models.RespInvalidUser()
-	}
-	// Get subscriptions matching the filters.
-	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
-
-	query := query.Bool(
-		query.BoolQueryName("get_items"),
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.FeedIDs(subscriptions.GetFeedIDs()...),
-			// Must match any of the given categories.
-			query.Categories(filters.Categories...),
-			// And should match one feed clause.
-			query.Bool(
-				query.Should(BuildSubscriptionQueries(subscriptions, filters.View)...),
-			),
-		),
-	)
-
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	resp, err := e.ItemsSearch(ctx, query, filters, pagination)
-	if err != nil {
-		return nil, "", models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
-	}
-	// Extract items and pagination values.
-	items, lastSortValue, warnings := ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
-	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
-			slog.Any("warnings", err))
-	}
-	// Encode the pagination value.
-	pagination, err = encodePagination(lastSortValue)
-	if err != nil {
-		return nil, "", models.RespTemporaryIssue("Could not fetch article. Please try again.", err)
-	}
-	// Create articles from the items.
-	articles := models.GenerateArticles(user, items...)
-
-	return articles, pagination, models.RespSuccess("Fetched articles.")
 }
 
 // GetItemsByID fetches the items with the given IDs.

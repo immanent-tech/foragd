@@ -69,9 +69,6 @@ templ (page *Page) Show() {
 			log 'theme changed to ' + theme
 			set @data-theme to theme
 		end
-		on htmx:historyRestore
-			log 'back to ' + detail.path
-		end
 		"
 	>
 		@page.Head.Show()

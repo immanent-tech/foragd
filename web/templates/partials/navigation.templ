@@ -3,30 +3,8 @@
 
 package partials
 
-import (
-	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
-)
-
-// BackButton generates a button for navigating back using the browser history.
-templ BackButton() {
-	<div id="backlink" hx-swap-oob="true">
-		@tooltip.Build("Back").Show() {
-			@link.Build(
-				link.WithContent(tabler.ArrowBackUp(i.Props{Size: i.SizeSM})),
-				link.WithUnderlineOnHover(),
-				link.WithExtraAttributes(templ.Attributes{
-					"_":              "on click call history.back()",
-					"hx-target":      ContentID.Target(),
-					"hx-replace-url": "true",
-					"hx-swap":        "morph:innerHTML show:top",
-				}),
-			).Show()
-		}
-	</div>
-}
+import "github.com/joshuar/go-templ-daisyui/navigation/link"
+import "github.com/joshuar/go-templ-daisyui/actions/button"
 
 templ LinkWithIcon(icon templ.Component, label string, attributes templ.Attributes, classes []string) {
 	<div class="flex gap-2">
@@ -38,4 +16,15 @@ templ LinkWithIcon(icon templ.Component, label string, attributes templ.Attribut
 			link.WithExtraClasses(classes...),
 		).Show()
 	</div>
+}
+
+templ ButtonLink(icon templ.Component, label string, attributes templ.Attributes, classes []string) {
+	@button.Build(
+		button.WithExtraAttributes(attributes),
+		button.WithStyle(button.Ghost),
+		button.WithSize(button.SM),
+	).Show() {
+		@icon
+		<span>{ label }</span>
+	}
 }

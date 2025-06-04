@@ -5,27 +5,39 @@ package partials
 
 import (
 	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/navigation/dock"
+	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
 
 var FooterID = attributes.ID("footer")
 
 templ Footer(items ...templ.Component) {
-	<div id={ FooterID.String() } class="bg-base-200 dock dock-sm" hx-swap-oob="true" hx-swap="morph:outerHTML">
-		if len(items) > 0 {
-			for item := range slices.Values(items) {
-				@FooterItem() {
-					@item
-				}
-			}
-		} else {
-			{ children... }
+	@dock.Build(
+		dock.WithID(FooterID.String()),
+		dock.WithSize(dock.SM),
+		dock.WithClasses("bg-base-200"),
+		dock.WithAttributes(templ.Attributes{
+			"hx-swap-oob": "true",
+			"hx-swap":     "morph:outerHTML",
+		}),
+	).Show() {
+		for item := range slices.Values(items) {
+			@item
 		}
+	}
+}
+
+templ FooterItem(hidden bool) {
+	<div class={ "basis-xs", "grow", templ.KV("invisible",hidden) }>
+		{ children... }
 	</div>
 }
 
-templ FooterItem() {
-	<div class="basis-xs grow">
-		{ children... }
-	</div>
+// BackButton generates a button for navigating back using the browser history.
+templ FooterBackButton() {
+	<button id="backlink" _="on click call history.back()">
+		@tabler.ArrowBackUp()
+		<span class="dock-label">Back</span>
+	</button>
 }

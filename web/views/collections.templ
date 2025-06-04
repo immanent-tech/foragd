@@ -485,3 +485,36 @@ templ CollectionActionsMenu(actions ...templ.Component) {
 		</div>
 	</div>
 }
+
+templ SubscriptionList(subscriptions models.Subscriptions) {
+	<div id="subscriptions-list" class="collapse bg-base-100 border-base-300 border" hx-swap-oob="true" hx-target="#subscriptions-list">
+		<input type="checkbox"/>
+		<div class="collapse-title font-semibold">Subscriptions</div>
+		<div class="collapse-content text-sm">
+			for subscription := range slices.Values(subscriptions) {
+				<div class="flex">
+					<div class="text-sm flex-1">
+						@link.Build(
+							link.WithContent(subscription.GetTitle()),
+							link.WithUnderlineOnHover(),
+							link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
+						).Show()
+					</div>
+					// Display unread count (if any).
+					<div class="flex-none">
+						if subscription.IsUnread() {
+							@badge.Build(
+								badge.WithSize(badge.SM),
+								badge.WithColor(badge.Secondary),
+								badge.WithContent(strconv.Itoa(subscription.UnreadCount)),
+								// badge.WithExtraAttributes(templ.Attributes{
+								// 	"sse-swap": subscription.GetFeedID() + "_unread",
+								// }),
+							).Show()
+						}
+					</div>
+				</div>
+			}
+		</div>
+	</div>
+}

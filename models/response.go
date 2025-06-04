@@ -11,6 +11,9 @@ import (
 // IsError returns a boolean indicating whether the response is an error. The criteria for being an error is having a
 // non-nil InternalError field.
 func (r *Response) IsError() bool {
+	if r == nil {
+		return false
+	}
 	return r.InternalError != nil
 }
 

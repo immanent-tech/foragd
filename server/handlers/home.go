@@ -11,7 +11,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
@@ -31,30 +30,25 @@ func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handl
 	})
 }
 
-func GenerateHomeContent(api DataAPI) func(next http.Handler) http.Handler {
+func GenerateHomeContent(api FeedsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			subscriptionsLink := RestorePageState(req.Context(), "/home/subscriptions")
-			ctx := context.WithValue(req.Context(), "subscriptionsLink", subscriptionsLink)
-			homePageContent := views.GenerateHomePageContent(ctx, api.(*elastic.API))
-
-			var content []templ.Component
-
-			switch {
-			case htmx.IsHTMX(req):
-				// Render content that needs updating.
-				content = append(content,
-					homePageContent,
-					partials.Footer(),
-					templates.SetPageTitle("Home"),
-				)
-			default:
-				// Render a full page.
-				body := templates.NewBody(homePageContent)
-				page := templates.NewPage("Home", body)
-				content = append(content, page.Show())
+			ctx := req.Context()
+			data, resp := getHomePageData(ctx, api)
+			if resp.IsError() {
+				ProcessResponse(res, req, resp)
+				return
 			}
-			ctx = context.WithValue(ctx, templatesCtxKey, content)
+			articles, resp := getHomePageArticles(ctx, api, data)
+			if resp.IsError() {
+				ProcessResponse(res, req, resp)
+				return
+			}
+
+			homePageContent := views.GenerateHomePageContent(ctx, data, articles)
+
+			ctx = context.WithValue(ctx, contentCtxKey, homePageContent)
+
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -64,7 +58,7 @@ func GenerateHomeContent(api DataAPI) func(next http.Handler) http.Handler {
 func GenerateSettings(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		settingsLayout := settings.SettingsContent()
-		footer := partials.Footer(partials.BackButton())
+		footer := partials.Footer(partials.FooterBackButton())
 
 		var content []templ.Component
 
@@ -72,7 +66,7 @@ func GenerateSettings(next http.Handler) http.Handler {
 			// Render content that needs updating.
 			content = append(content,
 				settingsLayout,
-				partials.Footer(partials.BackButton()),
+				footer,
 				templates.SetPageTitle("Settings"),
 			)
 		} else {

@@ -19,75 +19,52 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
 // FetchSubscriptions fetches subscriptions from the data backend and stores them in the request context for usage by other handlers.
-func FetchSubscriptions(dataAPI DataAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			subscriptions, pagination, resp := dataAPI.GetSubscriptionsByID(req.Context(), models.FiltersFromCtx(req.Context()), pagination, subIDs...)
+			subscriptions, pagination, resp := getFilteredSubscriptions(req.Context(), api, pagination, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
 			}
-			ctx := req.Context()
-			ctx = context.WithValue(ctx, subscriptionsCtxKey, subscriptions)
-			ctx = context.WithValue(ctx, paginationCtxKey, pagination)
+
+			cards := views.GenerateSubscriptionCards(req.Context(), pagination, subscriptions)
+
+			cardLayout := partials.CardGrid(cards...)
+			cardControls := partials.CardControls(
+				views.RefreshAction(),
+				partials.UpdateSorting(),
+				partials.UpdateFilters(subscriptions.GetCategoryCounts()),
+				views.CollectionActionsMenu(
+					views.MarkAllSubscriptionsAction(req.Context()),
+				),
+			)
+
+			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
 
-// FetchSubscriptions fetches subscriptions from the data backend and stores them in the request context for usage by other handlers.
-func GenerateSubscriptionCollection(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		subscriptions, ok := req.Context().Value(subscriptionsCtxKey).(models.Subscriptions)
-		if !ok {
-			slogctx.FromCtx(req.Context()).Warn("No subscriptions found in context.")
-			next.ServeHTTP(res, req)
-			return
-		}
-		pagination, _ := req.Context().Value(paginationCtxKey).(models.Pagination)
-		cards := views.GenerateSubscriptionCards(req.Context(), pagination, subscriptions)
-
-		cardLayout := partials.CardGrid(cards...)
-		cardControls := partials.CardControls(
-			views.RefreshAction(),
-			partials.UpdateSorting(),
-			partials.UpdateFilters(subscriptions.GetCategoryCounts()),
-			views.CollectionActionsMenu(
-				views.MarkAllSubscriptionsAction(req.Context()),
-			),
-		)
-		footer := partials.Footer(partials.BackButton())
-
-		var content []templ.Component
-
-		if req.Method == http.MethodGet {
-			if htmx.IsHTMX(req) {
-				content = append(content,
-					cardControls,
-					cardLayout,
-					footer,
-					templates.SetPageTitle("Subscriptions"),
-				)
-			} else {
-				body := templates.NewBody(templ.Join(cardControls, cardLayout), templates.WithBodyFooter(footer))
-				page := templates.NewPage("Subscriptions", body)
-				content = append(content, page.Show())
+func PaginateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			subscriptions, pagination, resp := getFilteredSubscriptions(req.Context(), api, pagination, subIDs...)
+			if resp.IsError() {
+				ProcessResponse(res, req, resp)
+				return
 			}
-		} else {
-			content = append(content, cards...)
-		}
-
-		ctx := req.Context()
-		ctx = context.WithValue(ctx, templatesCtxKey, content)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
+			cards := views.GenerateSubscriptionCards(req.Context(), pagination, subscriptions)
+			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cards...))
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }
 
 // ParseSubscriptionRequest will extract the subscription request, validate it and then store it in the context for
@@ -521,8 +498,8 @@ func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confi
 	})
 }
 
-// EditSubscription retrieves the subscription with the given ID and presents a form for the user to edit it.
-func EditSubscription(api FeedsAPI, subID models.SubscriptionID) func(next http.Handler) http.Handler {
+// ShowSubscriptionEditModal retrieves the subscription with the given ID and presents a form for the user to edit it.
+func ShowSubscriptionEditModal(api FeedsAPI, subID models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Retrieve user object.
@@ -559,7 +536,7 @@ func EditSubscription(api FeedsAPI, subID models.SubscriptionID) func(next http.
 			if !resp.IsError() {
 				editRequest.TopCategories = categories
 			}
-			ctx := context.WithValue(req.Context(), templatesCtxKey, editRequest.EditSubscriptionModal())
+			ctx := context.WithValue(req.Context(), contentCtxKey, editRequest.EditSubscriptionModal())
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

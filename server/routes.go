@@ -103,18 +103,26 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,
 		handlers.SavePageState,
+		handlers.UpdateDrawer(s.DataAPI()),
 		handlers.GenerateHomeContent(s.DataAPI()),
-	).Then(handlers.RenderTemplates())
-	chain.ServeHTTP(res, req)
+	)
+
+	switch htmx.IsHTMX(req) {
+	case true:
+		chain.Then(handlers.RenderPartials("Home")).ServeHTTP(res, req)
+	case false:
+		chain.Then(handlers.RenderPage("Home")).ServeHTTP(res, req)
+	}
 }
 
 // ShowCollection handles displaying a collection of objects, with optional filtering.
 func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, collection Collection, params ShowCollectionParams) {
-	baseChain := alice.New(
+	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
+		handlers.UpdateDrawer(s.DataAPI()),
 	)
 
 	var subIDs []models.SubscriptionID
@@ -122,18 +130,14 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 		subIDs = append(subIDs, *params.Subscriptions...)
 	}
 
-	var displayFunc http.Handler
+	var title string
 	switch collection {
 	case models.CollectionSubscriptions:
-		displayFunc = baseChain.Append(
-			handlers.FetchSubscriptions(s.DataAPI(), "", subIDs...),
-			handlers.GenerateSubscriptionCollection,
-		).Then(handlers.RenderTemplates())
+		chain = chain.Append(handlers.GenerateSubscriptionCollection(s.DataAPI(), "", subIDs...))
+		title = "Subscriptions"
 	case models.CollectionArticles:
-		displayFunc = baseChain.Append(
-			handlers.FetchArticles(s.DataAPI(), "", subIDs...),
-			handlers.GenerateArticleCollection,
-		).Then(handlers.RenderTemplates())
+		chain = chain.Append(handlers.GenerateArticleCollection(s.DataAPI(), "", subIDs...))
+		title = "Articles"
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode: http.StatusNoContent,
@@ -145,7 +149,12 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 		return
 	}
 
-	displayFunc.ServeHTTP(res, req)
+	switch htmx.IsHTMX(req) {
+	case true:
+		chain.Then(handlers.RenderPartials(title)).ServeHTTP(res, req)
+	case false:
+		chain.Then(handlers.RenderPage(title)).ServeHTTP(res, req)
+	}
 }
 
 // UpdateCollection handles updating the display of a collection of objects after changing filters.
@@ -165,25 +174,18 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 		pagination = *params.Pagination
 	}
 
-	baseChain := alice.New(
+	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
 	)
 
-	var displayFunc http.Handler
 	switch collection {
 	case models.CollectionSubscriptions:
-		displayFunc = baseChain.Append(
-			handlers.FetchSubscriptions(s.DataAPI(), pagination),
-			handlers.GenerateSubscriptionCollection,
-		).Then(handlers.RenderTemplates())
+		chain = chain.Append(handlers.PaginateSubscriptionCollection(s.DataAPI(), pagination))
 	case models.CollectionArticles:
-		displayFunc = baseChain.Append(
-			handlers.FetchArticles(s.DataAPI(), pagination),
-			handlers.GenerateArticleCollection,
-		).Then(handlers.RenderTemplates())
+		chain = chain.Append(handlers.PaginateSubscriptionCollection(s.DataAPI(), pagination))
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode: http.StatusNoContent,
@@ -195,7 +197,7 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 		return
 	}
 
-	displayFunc.ServeHTTP(res, req)
+	chain.Then(handlers.RenderPartials("")).ServeHTTP(res, req)
 }
 
 // ActionCollection handles performing an action on a collection of objects.
@@ -261,11 +263,15 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
-		handlers.FetchArticles(s.DataAPI(), "", sub),
-		handlers.GenerateArticleCollection,
-	).Then(handlers.RenderTemplates())
-	// Run chain.
-	chain.ServeHTTP(res, req)
+		handlers.GenerateArticleCollection(s.DataAPI(), "", sub),
+	)
+
+	switch htmx.IsHTMX(req) {
+	case true:
+		chain.Then(handlers.RenderPartials("Subscription")).ServeHTTP(res, req)
+	case false:
+		chain.Then(handlers.RenderPage("Subscription")).ServeHTTP(res, req)
+	}
 }
 
 func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params PaginateSubscriptionParams) {
@@ -279,16 +285,13 @@ func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request,
 	if params.Pagination != nil {
 		pagination = *params.Pagination
 	}
-	chain := alice.New(
+	alice.New(
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
-		handlers.FetchArticles(s.DataAPI(), pagination, sub),
-		handlers.GenerateArticleCollection,
-	).Then(handlers.RenderTemplates())
-
-	chain.ServeHTTP(res, req)
+		handlers.GenerateArticleCollection(s.DataAPI(), pagination, sub),
+	).Then(handlers.RenderPartials("")).ServeHTTP(res, req)
 }
 
 // ActionSubscription performs an action on a subscription.
@@ -304,5 +307,20 @@ func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, a
 	chain := alice.New(
 		handlers.RouteLogger,
 	).Then(actionFunc)
+	chain.ServeHTTP(res, req)
+}
+
+// EditSubscription handles a request to edit a user's subscription.
+func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
+	// Edit requests are only driven by htmx requests.
+	if !htmx.IsHTMX(req) {
+		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		return
+	}
+
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.ShowSubscriptionEditModal(s.DataAPI(), subscriptionID),
+	).Then(handlers.RenderPartials(""))
 	chain.ServeHTTP(res, req)
 }

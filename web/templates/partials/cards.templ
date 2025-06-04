@@ -22,7 +22,13 @@ var CardsID = attributes.ID("cards")
 
 // CardGrid renders the given card components in a grid container.
 templ CardGrid(cards ...templ.Component) {
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
+	<div
+		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4"
+		id={ CardsID.String() }
+		hx-trigger="htmx:historyRestore"
+		hx-get={ models.PageStateFromCtx(ctx).String() }
+		hx-target={ ContentID.Target() }
+	>
 		for cards := range slices.Values(cards) {
 			@cards
 		}

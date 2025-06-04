@@ -107,7 +107,7 @@ func (e *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, erro
 	return state, nil
 }
 
-func (e *API) GetAllFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error) {
+func (e *API) GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)

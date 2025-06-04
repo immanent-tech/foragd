@@ -13,6 +13,7 @@ type Body struct {
 	header  templ.Component
 	footer  templ.Component
 	content templ.Component
+	drawer  templ.Component
 }
 
 // BodyOption is a functional option to apply to the body.
@@ -29,6 +30,13 @@ func WithBodyHeader(header templ.Component) BodyOption {
 func WithBodyFooter(footer templ.Component) BodyOption {
 	return func(b *Body) {
 		b.footer = footer
+	}
+}
+
+// WithBodyFooter option adds a footer component to the body.
+func WithDrawerContent(content templ.Component) BodyOption {
+	return func(b *Body) {
+		b.drawer = content
 	}
 }
 
@@ -51,11 +59,7 @@ templ (body *Body) Show() {
 			if body.header != nil {
 				@body.header
 			} else {
-				@partials.Header(
-					partials.DefaultHeaderStart(),
-					partials.DefaultHeaderCenter(),
-					partials.DefaultHeaderEnd(),
-				)
+				<div id={ partials.HeaderID.String() }></div>
 			}
 			<div
 				id={ partials.ContentID.String() }
@@ -69,11 +73,11 @@ templ (body *Body) Show() {
 			if body.footer != nil {
 				@body.footer
 			} else {
-				@partials.Footer()
+				<div id={ partials.FooterID.String() }></div>
 			}
 		</div>
-		<div class="drawer-side">
-			@partials.DrawerDefault()
-		</div>
+		if body.drawer != nil {
+			@partials.Drawer(body.drawer)
+		}
 	</div>
 }
