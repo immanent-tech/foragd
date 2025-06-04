@@ -58,7 +58,8 @@
     "views",
     "components/join",
     "components",
-    "components/dock"
+    "components/dock",
+    "schemas"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {
