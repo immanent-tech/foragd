@@ -574,7 +574,7 @@ func ShowSubscriptionEditModal(api FeedsAPI, subID models.SubscriptionID) func(n
 				Subscription: subscription,
 			}
 			// Add top categories across items in subscription.
-			categories, resp := api.GetTopItemCategories(req.Context(), subscription.GetFeedID())
+			categories, resp := getItemTopCategories(req.Context(), api, subscription.GetFeedID())
 			if !resp.IsError() {
 				editRequest.TopCategories = categories
 			}

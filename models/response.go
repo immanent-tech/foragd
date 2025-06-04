@@ -49,6 +49,17 @@ func RespSuccess(msg string) *Response {
 	}
 }
 
+func RespNonCriticalError(msg string, err error) *Response {
+	return &Response{
+		StatusCode:    http.StatusInternalServerError,
+		InternalError: err,
+		UserMessage: &UserMessage{
+			Status:  UserMessageStatusWarning,
+			Summary: msg,
+		},
+	}
+}
+
 func RespServerError(msg string, err error) *Response {
 	return &Response{
 		StatusCode:    http.StatusInternalServerError,

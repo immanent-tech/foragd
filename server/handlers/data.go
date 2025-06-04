@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"net/url"
 	"slices"
 	"strconv"
@@ -40,9 +41,8 @@ func getAllSubscriptions(ctx context.Context, api FeedsAPI) (models.Subscription
 	// Filter by feeds.
 	subscriptions = subscriptions.FilterByFeed(feeds)
 	// Add unread counts to feeds.
-	err = api.GetSubscriptionUnreadCounts(ctx, subscriptions)
-	if err != nil {
-		return nil, models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+	if resp := setSubscriptionUnreadCounts(ctx, api, subscriptions); resp.IsError() {
+		return subscriptions, resp
 	}
 	// Filter subscriptions with given filters.
 	subscriptions = subscriptions.Sort(
@@ -71,9 +71,8 @@ func getFilteredSubscriptions(ctx context.Context, api FeedsAPI, pagination mode
 	// Filter by feeds.
 	subscriptions = subscriptions.FilterByFeed(feeds)
 	// Add unread counts to feeds.
-	err = api.GetSubscriptionUnreadCounts(ctx, subscriptions)
-	if err != nil {
-		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+	if resp := setSubscriptionUnreadCounts(ctx, api, subscriptions); resp.IsError() {
+		return subscriptions, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
 	}
 
 	filters := models.FiltersFromCtx(ctx)
@@ -91,6 +90,37 @@ func getFilteredSubscriptions(ctx context.Context, api FeedsAPI, pagination mode
 	to := min(from+filters.CountAsInt(), len(subscriptions))
 	pagination = strconv.Itoa(to)
 	return subscriptions[from:to], pagination, models.RespSuccess("Subscriptions fetched.")
+}
+
+func setSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, subscriptions models.Subscriptions) *models.Response {
+	subscriptionQueries := make([]query.Option, 0, len(subscriptions))
+	for subscription := range slices.Values(subscriptions) {
+		subscriptionQueries = append(subscriptionQueries, subscriptionQueryUnreadItems(subscription))
+	}
+	query := query.Bool(
+		query.BoolQueryName("all_unread_items"),
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.FeedIDs(subscriptions.GetFeedIDs()...),
+			// And should match one feed clause.
+			query.Bool(
+				query.Should(subscriptionQueries...),
+			),
+		),
+	)
+	resp, err := api.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(subscriptions)))
+	if err != nil {
+		return models.RespNonCriticalError("Subscription unread counts could not be retrieved.", err)
+	}
+	var categoryCounts aggregations.TermsAggregationResults
+	categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](resp.Aggregations, "UnreadCounts")
+	if err != nil {
+		return models.RespNonCriticalError("Subscription unread counts could not be retrieved.", err)
+	}
+	for subscription := range slices.Values(subscriptions) {
+		subscription.SetUnreadCount(categoryCounts.GetCount(subscription.GetFeedID()))
+	}
+	return nil
 }
 
 func getFilteredArticles(ctx context.Context, api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
@@ -137,6 +167,40 @@ func getFilteredArticles(ctx context.Context, api FeedsAPI, pagination models.Pa
 	articles := models.GenerateArticles(user, items...)
 
 	return articles, pagination, models.RespSuccess("Fetched articles.")
+}
+
+func getItemTopCategories(ctx context.Context, api FeedsAPI, feeds ...models.FeedID) ([]models.Category, *models.Response) {
+	query := query.Bool(
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.FeedIDs(feeds...),
+		),
+	)
+	resp, err := api.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
+	if err != nil {
+		return nil, &models.Response{
+			StatusCode:    http.StatusNoContent,
+			InternalError: err,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "Could not retrieve categories.",
+			},
+		}
+	}
+	var topCategories aggregations.TermsAggregationResults
+	topCategories.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](resp.Aggregations, "TopCategories")
+	if err != nil {
+		return nil, &models.Response{
+			StatusCode:    http.StatusNoContent,
+			InternalError: err,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "Could not retrieve categories.",
+			},
+		}
+	}
+
+	return topCategories.BucketNames(), models.RespSuccess("Retrieved categories.")
 }
 
 // getHomePageData retrieves the data required to construct the home page content.

@@ -65,8 +65,7 @@ type contextKey string
 type FeedsAPI interface {
 	GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error)
 	GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
-	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)
-	GetSubscriptionUnreadCounts(ctx context.Context, subscriptions models.Subscriptions) error
+	// GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)
 	GetArticlesByID(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error)
 	ItemsSearch(ctx context.Context, query query.Option, filters models.Filters, pagination models.Pagination) (*search.Response, error)
 	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error)
@@ -82,7 +81,7 @@ type DataAPI interface {
 	AddUser(ctx context.Context, userID models.UserID) error
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 	// Subscription methods:
-	GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response)
+	// GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response)
 	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) *models.Response
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) *models.Response
 	RemoveSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) *models.Response
@@ -94,7 +93,7 @@ type DataAPI interface {
 	GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	GetArticle(ctx context.Context, itemID models.ItemID) (*models.Article, bool, *models.Response)
 	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) *models.Response
-	GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)
+	// GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)
 }
 
 // AuthAPI represents the API surface for interacting with the auth backend.

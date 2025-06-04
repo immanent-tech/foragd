@@ -9,15 +9,12 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
@@ -28,74 +25,6 @@ var (
 	ErrUserActionFailed      = errors.New("user action failed")
 	ErrUserAlreadySubscribed = errors.New("user already subscribed")
 )
-
-func (e *API) GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response) {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, "", models.RespInvalidUser()
-	}
-	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
-
-	// Get feeds matching subscriptions.
-	feeds, err := e.GetFeedsByID(ctx, subscriptions.GetFeedIDs()...)
-	if err != nil {
-		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
-	}
-	// Filter by feeds.
-	subscriptions = subscriptions.FilterByFeed(feeds)
-	// Add unread counts to feeds.
-	err = e.GetSubscriptionUnreadCounts(ctx, subscriptions)
-	if err != nil {
-		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
-	}
-	// Filter subscriptions with given filters.
-	subscriptions = subscriptions.
-		FilterByCategory(filters.Categories...).
-		FilterByView(filters.View).
-		Sort(filters.Sort())
-	// Generate pagination.
-	from, err := strconv.Atoi(pagination)
-	if err != nil {
-		from = 0
-	}
-	to := min(from+filters.CountAsInt(), len(subscriptions))
-	pagination = strconv.Itoa(to)
-	return subscriptions[from:to], pagination, models.RespSuccess("Subscriptions fetched.")
-}
-
-// GetFeedUnreadCounts performs an aggregation over the items index to calculate
-// unread counts for the given feed subscriptions.
-func (e *API) GetSubscriptionUnreadCounts(ctx context.Context, subscriptions models.Subscriptions) error {
-	subscriptionQueries := make([]query.Option, 0, len(subscriptions))
-	for subscription := range slices.Values(subscriptions) {
-		subscriptionQueries = append(subscriptionQueries, subscriptionQueryUnreadItems(subscription))
-	}
-	query := query.Bool(
-		query.BoolQueryName("all_unread_items"),
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.FeedIDs(subscriptions.GetFeedIDs()...),
-			// And should match one feed clause.
-			query.Bool(
-				query.Should(subscriptionQueries...),
-			),
-		),
-	)
-	resp, err := e.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(subscriptions)))
-	if err != nil {
-		return ErrFetchCtx
-	}
-	var categoryCounts aggregations.TermsAggregationResults
-	categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](resp.Aggregations, "UnreadCounts")
-	if err != nil {
-		return ErrFetchCtx
-	}
-	for subscription := range slices.Values(subscriptions) {
-		subscription.SetUnreadCount(categoryCounts.GetCount(subscription.GetFeedID()))
-	}
-	return nil
-}
 
 // AddSubscriptions will add Subscriptions to a User.
 func (e *API) AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) *models.Response {
@@ -236,41 +165,6 @@ func (e *API) MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models
 		"subscriptions": user.Subscriptions,
 		"updated_at":    time.Now().UTC(),
 	})
-}
-
-// GetTopItemCategories gets the top 10 most-used categories across the list of feeds.
-func (e *API) GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response) {
-	query := query.Bool(
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.FeedIDs(feeds...),
-		),
-	)
-	resp, err := e.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
-	if err != nil {
-		return nil, &models.Response{
-			StatusCode:    http.StatusNoContent,
-			InternalError: err,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "Could not retrieve categories.",
-			},
-		}
-	}
-	var topCategories aggregations.TermsAggregationResults
-	topCategories.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](resp.Aggregations, "TopCategories")
-	if err != nil {
-		return nil, &models.Response{
-			StatusCode:    http.StatusNoContent,
-			InternalError: err,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "Could not retrieve categories.",
-			},
-		}
-	}
-
-	return topCategories.BucketNames(), models.RespSuccess("Retrieved categories.")
 }
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
