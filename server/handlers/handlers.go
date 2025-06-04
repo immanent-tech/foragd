@@ -7,7 +7,6 @@ package handlers
 import (
 	"context"
 	"encoding/gob"
-	"encoding/json"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -16,10 +15,11 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
@@ -46,9 +46,7 @@ const (
 	subscriptionsCtxKey        contextKey = "subscriptions"
 	articlesCtxKey             contextKey = "articles"
 	paginationCtxKey           contextKey = "pagination"
-	templatesCtxKey            contextKey = "templates"
 	feedsCtxKey                contextKey = "feeds"
-	htmxRespCtxKey             contextKey = "htmxResp"
 
 	headerContentCtxKey contextKey = "headerContent"
 	footerContentCtxKey contextKey = "footerContent"
@@ -115,46 +113,21 @@ func init() {
 	gob.Register(models.PageState{})
 }
 
-// HTMXResponseToCtx adds the given htmx.Response object to the context.
-func HTMXResponseToCtx(ctx context.Context, resp htmx.Response) context.Context {
-	return context.WithValue(ctx, htmxRespCtxKey, resp)
+// RouteLogger decorates the logger in the request context with routing information.
+func RouteLogger(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		ctx := slogctx.With(req.Context(),
+			slog.String("route", chi.RouteContext(req.Context()).RoutePattern()),
+			slog.String("method", req.Method),
+		)
+		ctx = slogctx.With(ctx, slog.Group("req", slog.String("id", middleware.GetReqID(ctx))))
+		slogctx.FromCtx(ctx).Debug("Processing route.", slog.String("url", req.URL.String()))
+
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
 }
 
-// HTMXResponseFromCtx fetches the a htmx.Response object from the context. If no object exists, a new htmx.Response is
-// returned.
-func HTMXResponseFromCtx(ctx context.Context) htmx.Response {
-	resp, found := ctx.Value(htmxRespCtxKey).(htmx.Response)
-	if !found {
-		return htmx.NewResponse()
-	}
-	return resp
-}
-
-// RenderTemplates will render any templates found in the context. If none are found, it returns a 204 response.
-func RenderTemplates() http.Handler {
-	return http.HandlerFunc(
-		func(res http.ResponseWriter, req *http.Request) {
-			var templates []templ.Component
-			data := req.Context().Value(templatesCtxKey)
-			switch value := data.(type) {
-			case []templ.Component:
-				templates = append(templates, value...)
-			case templ.Component:
-				templates = append(templates, value)
-			default:
-				slogctx.FromCtx(req.Context()).Warn("No templates found in context.")
-				res.WriteHeader(http.StatusNoContent)
-				return
-			}
-			resp := HTMXResponseFromCtx(req.Context())
-			for template := range slices.Values(templates) {
-				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
-				}
-			}
-		})
-}
-
+// RenderPage will render a full page (i.e. non-HTMX) response.
 func RenderPage(title string) http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
@@ -184,6 +157,7 @@ func RenderPage(title string) http.Handler {
 		})
 }
 
+// RenderPartials will render individual content updates (i.e., HTMX response).
 func RenderPartials(title string) http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
@@ -212,141 +186,16 @@ func RenderPartials(title string) http.Handler {
 		})
 }
 
-// SaveFilters extracts the filters from the request params and stores them in the context.
-func SaveFilters(params any) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Retrieve filters.
-			var (
-				filters *models.Filters
-				err     error
-			)
-			filters, err = models.NewFiltersFromParams(params)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Unable to extract filters from params.",
-					slog.Any("error", err),
-				)
-				filters = models.NewFilters()
-			}
-			ctx := models.FiltersToCtx(req.Context(), *filters)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// SaveState saves the current page state in the session.
-func SetResponseHeaders(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Add("Vary", "HX-Request")
-		next.ServeHTTP(res, req)
-	})
-}
-
-// SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
-// been made through HTMX.
-func SetupRedirect(path *string) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			if htmx.IsHTMX(req) && path != nil {
-				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
-					slog.String("path", *path),
-				)
-				view := RestorePageState(req.Context(), *path)
-				// view := models.GetPreviousViewedPage(req.Context(), api)
-				HxLocationData := HXLocation{Path: view.String(), Target: partials.ContentID.Target()}
-				data, err := json.Marshal(HxLocationData)
-				if err != nil {
-					ProcessResponse(res, req, &models.Response{
-						StatusCode:    http.StatusInternalServerError,
-						InternalError: err,
-						UserMessage: &models.UserMessage{
-							Status:  models.UserMessageStatusError,
-							Summary: "Redirection failed.",
-						},
-					})
-				}
-				// Set-up client-side redirect to view.
-				res.Header().Add(htmx.HeaderLocation, string(data))
-			}
-			next.ServeHTTP(res, req)
-		})
-	}
-}
-
-// UpdateTheme handles firing an event trigger as part of the response to update the page theme.
-func UpdateTheme() func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			theme, ok := session.Manager.Get(req.Context(), models.ThemeSessionKey).(string)
-			if !ok {
-				slogctx.FromCtx(req.Context()).Warn("Could not retrieve theme from session.")
-				next.ServeHTTP(res, req)
-			}
-			slogctx.FromCtx(req.Context()).Debug("Setting theme.",
-				slog.String("theme", theme),
-			)
-			resp := HTMXResponseFromCtx(req.Context())
-			resp = resp.AddTrigger(htmx.TriggerDetail("setTheme", theme))
-			ctx := HTMXResponseToCtx(req.Context(), resp)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// SavePageState saves the current page state in the session.
-func SavePageState(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Save page state.
-		state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
-		ctx := models.PageStateToCtx(req.Context(), state)
-		slogctx.FromCtx(ctx).Debug("Saved page state to context.",
-			slog.String("state", state.String()),
-		)
-		// Store page states for some paths into session for history restoration.
-		if req.Method == http.MethodGet {
-			switch req.URL.Path {
-			case "/home/subscriptions":
-				session.Manager.Put(req.Context(), subscriptionsPageState, state)
-			case "/home/articles":
-				session.Manager.Put(req.Context(), articlesPageState, state)
-			}
-			slogctx.FromCtx(ctx).Debug("Saved page state to session.",
-				slog.String("state", state.String()),
-			)
+// ProcessResponse handles appropriate display and logging of a models.Response object.
+func ProcessResponse(res http.ResponseWriter, req *http.Request, resp *models.Response) {
+	slogctx.FromCtx(req.Context()).Error("Backend returned an error.",
+		slog.String("error", resp.String()))
+	// Display a notification if a user message is set.
+	if resp.UserMessage != nil {
+		if err := htmx.NewResponse().RenderTempl(req.Context(), res, partials.ShowNotification(resp.UserMessage)); err != nil {
+			http.Error(res, "Internal server error.", http.StatusInternalServerError)
 		}
-		// Pass control to next handler.
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-func RestorePageState(ctx context.Context, path string) models.PageState {
-	switch path {
-	case "/home/subscriptions":
-		if state, ok := session.Manager.Get(ctx, subscriptionsPageState).(models.PageState); ok {
-			return state
-		}
-		return models.PageState{Path: "/home/subscriptions", Params: models.NewFilters().ToQueryParams()}
-	case "/home/articles":
-		if state, ok := session.Manager.Get(ctx, articlesPageState).(models.PageState); ok {
-			return state
-		}
-		return models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()}
-	default:
-		return models.PageState{Path: "/home"}
 	}
-}
-
-func UpdateDrawer(api FeedsAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			subscriptions, resp := getAllSubscriptions(req.Context(), api)
-			if resp.IsError() {
-				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.InternalError))
-			} else {
-				ctx = context.WithValue(ctx, drawerContentCtxKey, views.SubscriptionList(subscriptions))
-			}
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
+	// Write the status code.
+	res.WriteHeader(resp.StatusCode)
 }

@@ -7,14 +7,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
-
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
@@ -58,26 +53,8 @@ func GenerateHomeContent(api FeedsAPI) func(next http.Handler) http.Handler {
 func GenerateSettings(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		settingsLayout := settings.SettingsContent()
-		footer := partials.Footer(partials.FooterBackButton())
-
-		var content []templ.Component
-
-		if htmx.IsHTMX(req) {
-			// Render content that needs updating.
-			content = append(content,
-				settingsLayout,
-				footer,
-				templates.SetPageTitle("Settings"),
-			)
-		} else {
-			// Render a full page.
-			body := templates.NewBody(settingsLayout, templates.WithBodyFooter(footer))
-			page := templates.NewPage("Settings", body)
-			content = append(content, page.Show())
-		}
-
 		ctx := req.Context()
-		ctx = context.WithValue(ctx, templatesCtxKey, content)
+		ctx = context.WithValue(ctx, contentCtxKey, settingsLayout)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -86,22 +63,8 @@ func GenerateSettings(next http.Handler) http.Handler {
 func GenerateIndex(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		indexLayout := &layouts.IndexLayout{}
-
-		var content []templ.Component
-
-		if htmx.IsHTMX(req) {
-			// Render content that needs updating.
-			content = append(content,
-				indexLayout.PartialRender(),
-				templates.SetPageTitle("Index"),
-			)
-		} else {
-			// Render a full page.
-			content = append(content, indexLayout.FullRender())
-		}
-
 		ctx := req.Context()
-		ctx = context.WithValue(ctx, templatesCtxKey, content)
+		ctx = context.WithValue(ctx, contentCtxKey, indexLayout.FullRender())
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }

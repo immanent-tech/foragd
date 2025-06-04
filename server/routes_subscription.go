@@ -96,7 +96,6 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 	chain.ServeHTTP(res, req)
 }
 
-
 // SaveSubscription handles saving any edits to a user's subscription.
 func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
 	subscriptionEdits, valid, err := forms.DecodeForm[*models.SubscriptionCustomisation](req)
@@ -113,7 +112,7 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.SaveSubscription(s.DataAPI(), subscriptionID, subscriptionEdits),
-	).Then(handlers.RenderTemplates())
+	).Then(handlers.RenderPartials(""))
 	chain.ServeHTTP(res, req)
 }
 

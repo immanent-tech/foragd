@@ -24,6 +24,51 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
+func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			articles, pagination, resp := getFilteredArticles(req.Context(), api, pagination, subIDs...)
+			if resp.IsError() {
+				ProcessResponse(res, req, resp)
+				return
+			}
+
+			cards := views.GenerateArticleCards(req.Context(), articles, pagination)
+
+			cardLayout := partials.CardGrid(cards...)
+			cardControls := partials.CardControls(
+				views.RefreshAction(),
+				views.UpdateSorting(),
+				views.UpdateFilters(articles.GetItems().GetCategoryCounts()),
+				views.CollectionActionsMenu(
+					views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
+				),
+			)
+
+			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+// GenerateArticle handles displaying an item as an article.
+func GenerateArticle(dataAPI DataAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			article, found, resp := dataAPI.GetArticle(req.Context(), itemID)
+			if resp.IsError() || !found {
+				ProcessResponse(res, req, resp)
+				return
+			}
+			articleLayout := views.BuildArticleLayout(article)
+
+			ctx := req.Context()
+			ctx = context.WithValue(ctx, contentCtxKey, articleLayout)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
 // FetchSubscriptions fetches subscriptions from the data backend and stores them in the request context for usage by other handlers.
 func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -459,7 +504,7 @@ func ImportResults(err *models.UserMessage) http.Handler {
 func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confirmation models.UserConfirmation) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Add a new HTMX response writer to the context.
-		ctx := HTMXResponseToCtx(req.Context(), htmx.NewResponse())
+		ctx := req.Context()
 
 		// Act according to user confirmation.
 		switch confirmation {
@@ -478,9 +523,6 @@ func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confi
 				slog.String("subscription_id", subscriptionID),
 			)
 			// Don't swap any main content for user cancellation.
-			resp := HTMXResponseFromCtx(ctx)
-			resp.Reswap(htmx.SwapNone)
-			ctx = HTMXResponseToCtx(ctx, resp)
 			// Display a notification acknowledging cancellation of request.
 			// msg := models.NewMessage("Subscription not modified.", models.MessageStatusInfo)
 			// PartialRender(partials.ShowNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
@@ -548,7 +590,7 @@ func SaveSubscription(api UserAPI, subID models.SubscriptionID, edits *models.Su
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			var resp *models.Response
 			// Add a new HTMX response writer to the context.
-			ctx := HTMXResponseToCtx(req.Context(), htmx.NewResponse())
+			ctx := req.Context()
 			// Retrieve user object.
 			user, found := models.UserFromCtx(ctx)
 			if !found {
@@ -572,7 +614,7 @@ func SaveSubscription(api UserAPI, subID models.SubscriptionID, edits *models.Su
 				Summary: "Subscription updated.",
 			}
 			// Display a notification acknowledging save.
-			ctx = context.WithValue(req.Context(), templatesCtxKey, partials.ShowNotification(msg))
+			ctx = context.WithValue(req.Context(), contentCtxKey, partials.ShowNotification(msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -587,4 +629,19 @@ func MarkSubscriptions(api DataAPI, mark models.Mark, subscriptions ...models.Su
 		}
 		res.WriteHeader(http.StatusOK)
 	})
+}
+
+func UpdateDrawer(api FeedsAPI) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
+			subscriptions, resp := getAllSubscriptions(req.Context(), api)
+			if resp.IsError() {
+				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.InternalError))
+			} else {
+				ctx = context.WithValue(ctx, drawerContentCtxKey, views.SubscriptionList(subscriptions))
+			}
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }

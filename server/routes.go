@@ -24,7 +24,7 @@ func (s Server) Index(res http.ResponseWriter, req *http.Request) {
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,
 		handlers.GenerateIndex,
-	).Then(handlers.RenderTemplates())
+	).Then(handlers.RenderPage("Go Feed Me"))
 	chain.ServeHTTP(res, req)
 }
 
@@ -52,8 +52,14 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,
 		handlers.GenerateSettings,
-	).Then(handlers.RenderTemplates())
-	chain.ServeHTTP(res, req)
+	)
+
+	switch htmx.IsHTMX(req) {
+	case true:
+		chain.Then(handlers.RenderPartials("Settings")).ServeHTTP(res, req)
+	case false:
+		chain.Then(handlers.RenderPage("Settings")).ServeHTTP(res, req)
+	}
 }
 
 // GetTheme retrieves the user's chosen theme.
@@ -252,8 +258,14 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, itemID I
 		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.GenerateArticle(s.DataAPI(), itemID),
-	).Then(handlers.RenderTemplates())
-	chain.ServeHTTP(res, req)
+	)
+
+	switch htmx.IsHTMX(req) {
+	case true:
+		chain.Then(handlers.RenderPartials("Article")).ServeHTTP(res, req)
+	case false:
+		chain.Then(handlers.RenderPage("Article")).ServeHTTP(res, req)
+	}
 }
 
 // ShowSubscription handles showing items for a feed.
