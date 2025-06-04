@@ -8,30 +8,21 @@ import (
 	"slices"
 )
 
-// <div class="collapse">
-// 	<input type="checkbox"/>
-// 	<div class="collapse-title font-semibold">
-// 		<div class="flex gap-2">
-// 			@tabler.Rss()
-// 			Subscriptions
-// 		</div>
-// 	</div>
-// 	<div id="subscriptions-list" class="collapse-content text-sm">
-// 		Click the "Sign Up" button in the top right corner and follow the registration process.
-// 	</div>
-// </div>
 templ Drawer(contents ...templ.Component) {
 	<div class="drawer-side">
 		<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-		<div class="bg-base-200 text-base-content min-h-full w-80 p-4">
-			@LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
-				"hx-get":      "/home",
-				"hx-target":   ContentID.Target(),
-				"hx-push-url": "true",
-			}, nil)
+		<ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
+			<li class="menu-title">Navigation</li>
+			<li>
+				@LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
+					"hx-get":      "/home",
+					"hx-target":   ContentID.Target(),
+					"hx-push-url": "true",
+				}, nil)
+			</li>
 			for content := range slices.Values(contents) {
 				@content
 			}
-		</div>
+		</ul>
 	</div>
 }

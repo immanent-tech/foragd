@@ -39,8 +39,8 @@ func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, 
 			cardLayout := partials.CardGrid(cards...)
 			cardControls := partials.CardControls(
 				views.RefreshAction(),
-				partials.UpdateSorting(),
-				partials.UpdateFilters(subscriptions.GetCategoryCounts()),
+				views.UpdateSorting(),
+				views.UpdateFilters(subscriptions.GetCategoryCounts()),
 				views.CollectionActionsMenu(
 					views.MarkAllSubscriptionsAction(req.Context()),
 				),

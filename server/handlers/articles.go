@@ -30,8 +30,8 @@ func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subID
 			cardLayout := partials.CardGrid(cards...)
 			cardControls := partials.CardControls(
 				views.RefreshAction(),
-				partials.UpdateSorting(),
-				partials.UpdateFilters(articles.GetItems().GetCategoryCounts()),
+				views.UpdateSorting(),
+				views.UpdateFilters(articles.GetItems().GetCategoryCounts()),
 				views.CollectionActionsMenu(
 					views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
 				),

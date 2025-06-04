@@ -6,7 +6,6 @@ package elastic
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"slices"
@@ -211,40 +210,6 @@ func (e *API) GetArticle(ctx context.Context, itemID models.ItemID) (*models.Art
 	articles := models.GenerateArticles(user, item)
 
 	return articles[0], true, models.RespSuccess("Fetched article.")
-}
-
-// GetItemsByID fetches the items with the given IDs.
-func (e *API) GetArticlesByID(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, ErrFetchCtx
-	}
-
-	index := ItemsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
-	}
-
-	resp, err := NewSearchRequest(e.GetAPI(),
-		WithSearchIndex(index),
-		WithSearchQueryOptions(query.ItemIDs(itemIDs...)),
-		WithSearchSize(len(itemIDs)),
-	).Do(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
-	}
-
-	slogctx.FromCtx(ctx).Debug("Searched items.",
-		slog.Int64("hits", resp.Hits.Total.Value))
-
-	items, _, err := ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
-	}
-
-	articles := models.GenerateArticles(user, items...)
-
-	return articles, nil
 }
 
 // MarkItems will mark the given items for the given feeds with the given state for the user.

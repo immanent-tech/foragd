@@ -57,7 +57,8 @@
     "elastic",
     "views",
     "components/join",
-    "components"
+    "components",
+    "components/dock"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

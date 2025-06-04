@@ -232,6 +232,40 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 	return resp, nil
 }
 
+// GetItemsByID fetches the items with the given IDs.
+func (e *API) GetArticlesByID(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, ErrFetchCtx
+	}
+
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	resp, err := NewSearchRequest(e.GetAPI(),
+		WithSearchIndex(index),
+		WithSearchQueryOptions(query.ItemIDs(itemIDs...)),
+		WithSearchSize(len(itemIDs)),
+	).Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
+	}
+
+	slogctx.FromCtx(ctx).Debug("Searched items.",
+		slog.Int64("hits", resp.Hits.Total.Value))
+
+	items, _, err := ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
+	}
+
+	articles := models.GenerateArticles(user, items...)
+
+	return articles, nil
+}
+
 // MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).
 func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 	index := FeedsIndexFromCtx(ctx)

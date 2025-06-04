@@ -21,6 +21,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/placeholder"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -487,34 +488,282 @@ templ CollectionActionsMenu(actions ...templ.Component) {
 }
 
 templ SubscriptionList(subscriptions models.Subscriptions) {
-	<div id="subscriptions-list" class="collapse bg-base-100 border-base-300 border" hx-swap-oob="true" hx-target="#subscriptions-list">
-		<input type="checkbox"/>
-		<div class="collapse-title font-semibold">Subscriptions</div>
-		<div class="collapse-content text-sm">
-			for subscription := range slices.Values(subscriptions) {
-				<div class="flex">
-					<div class="text-sm flex-1">
-						@link.Build(
-							link.WithContent(subscription.GetTitle()),
-							link.WithUnderlineOnHover(),
-							link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
-						).Show()
-					</div>
-					// Display unread count (if any).
-					<div class="flex-none">
-						if subscription.IsUnread() {
-							@badge.Build(
-								badge.WithSize(badge.SM),
-								badge.WithColor(badge.Secondary),
-								badge.WithContent(strconv.Itoa(subscription.UnreadCount)),
-								// badge.WithExtraAttributes(templ.Attributes{
-								// 	"sse-swap": subscription.GetFeedID() + "_unread",
-								// }),
-							).Show()
-						}
-					</div>
-				</div>
-			}
+	<li>
+		<div class="flex gap-2">
+			@tabler.Rss()
+			<span class="menu-dropdown-toggle menu-dropdown-show">Subscriptions</span>
 		</div>
+		<ul class="menu-dropdown menu-dropdown-show">
+			for subscription := range slices.Values(subscriptions) {
+				<li>
+					<div class="flex">
+						<div class="text-sm flex-1">
+							@link.Build(
+								link.WithContent(subscription.GetTitle()),
+								link.WithUnderlineOnHover(),
+								link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
+							).Show()
+						</div>
+						// Display unread count (if any).
+						<div class="flex-none">
+							if subscription.IsUnread() {
+								@badge.Build(
+									badge.WithSize(badge.SM),
+									badge.WithColor(badge.Secondary),
+									badge.WithContent(strconv.Itoa(subscription.UnreadCount)),
+									// badge.WithExtraAttributes(templ.Attributes{
+									// 	"sse-swap": subscription.GetFeedID() + "_unread",
+									// }),
+								).Show()
+							}
+						</div>
+					</div>
+				</li>
+			}
+		</ul>
+	</li>
+}
+
+// Filter represents a filter action on a page. It has a value (displayed in the UI) and a link which will trigger a
+// htmx request.
+type Filter struct {
+	label  string
+	value  string
+	link   models.PageState
+	active bool
+}
+
+templ (filter *Filter) AsLink() {
+	if filter.active {
+		@link.Build(
+			link.WithThemeColor(color.Primary),
+			link.WithContent(filter.label),
+			link.WithUnderlineOnHover(),
+			link.WithExtraClasses("capitalize", "text-xs"),
+			link.WithExtraAttributes(templ.Attributes{
+				"hx-get":         filter.link.String(),
+				"hx-replace-url": "true",
+				"hx-target":      partials.ContentID.Target(),
+			}),
+		).Show()
+	} else {
+		@link.Build(
+			link.WithThemeColor(color.Neutral),
+			link.WithContent(filter.label),
+			link.WithUnderlineOnHover(),
+			link.WithExtraClasses("capitalize", "text-xs"),
+			link.WithExtraAttributes(templ.Attributes{
+				"hx-get":         filter.link.String(),
+				"hx-replace-url": "true",
+				"hx-target":      partials.ContentID.Target(),
+			}),
+		).Show()
+	}
+}
+
+// NewCategoryFilter creates a new category filter component. Existing filters will be utilised and the request URL will
+// use the given path.
+func newCategoryFilter(ctx context.Context, category models.CategoryCount) *Filter {
+	filter := &Filter{
+		label: category.Category,
+		value: category.Category,
+	}
+	view := models.PageStateFromCtx(ctx)
+	filters := view.GetFilters()
+	// Check if this category is in the current view filters.
+	if found, _ := filters.HasCategory(category.Category); found {
+		filter.active = true
+		filters.RemoveCategory(category.Category)
+	} else {
+		filters.AddCategory(category.Category)
+	}
+	// Generate a view.
+	view.Params = filters.ToQueryParams()
+	filter.link = view
+
+	return filter
+}
+
+func newViewFilter(ctx context.Context, view models.View) *Filter {
+	// Get the current view.
+	link := models.PageStateFromCtx(ctx)
+	filters := link.GetFilters()
+	filter := &Filter{
+		label: string(view),
+		value: string(view),
+	}
+	// If the current view filters indicate this view is active, mark as so.
+	if view == filters.View {
+		filter.active = true
+	}
+	// Set the view filter to this view.
+	filters.View = view
+	link.Params = filters.ToQueryParams()
+	filter.link = link
+
+	return filter
+}
+
+templ UpdateFilters(categories models.CategoryCounts) {
+	<div id="card-filters">
+		<div class="dropdown dropdown-bottom dropdown-end">
+			<div tabindex="0" role="button" class="btn btn-square">
+				@tabler.Filter(i.Props{Size: i.SizeXS})
+			</div>
+			<ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+				<li class="menu-title text-xs">View:</li>
+				for view := range slices.Values([]models.View{models.ViewUnread,models.ViewRead,models.ViewAll}) {
+					<li>
+						@newViewFilter(ctx, view).AsLink()
+					</li>
+				}
+				if len(categories) > 0 {
+					<li class="menu-title text-xs">Category:</li>
+					for category := range slices.Values(categories.GetTopCategories(10)) {
+						<li>
+							@newCategoryFilter(ctx, category).AsLink()
+						</li>
+					}
+				}
+			</ul>
+		</div>
+	</div>
+}
+
+templ UpdateSorting() {
+	<div id="card-sorting">
+		<div class="dropdown dropdown-bottom dropdown-end">
+			<div tabindex="0" role="button" class="btn btn-square">
+				@tabler.ArrowsSort(i.Props{Size: i.SizeXS})
+			</div>
+			<ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
+				<li class="menu-title text-xs">Sort:</li>
+				for sort := range slices.Values(buildSortFilters(ctx)) {
+					<li>
+						@sort.AsLink()
+					</li>
+				}
+			</ul>
+		</div>
+	</div>
+}
+
+func buildSortFilters(ctx context.Context) []*SortOption {
+	var sorts []*SortOption
+	// Add sorting options for updated date.
+	sorts = append(sorts,
+		NewSortFilter(ctx, models.SortLastUpdatedDesc),
+		NewSortFilter(ctx, models.SortLastUpdatedAsc),
+	)
+	// If viewing feeds and not viewing read items, add additional sorting options on unread count.
+	view := models.PageStateFromCtx(ctx)
+	if (strings.HasPrefix(view.Path, "/home/subscriptions") || strings.HasPrefix(view.Path, "/subscription")) && view.GetFilters().View != models.ViewRead {
+		sorts = append(sorts,
+			NewSortFilter(ctx, models.SortUnreadCountDesc),
+			NewSortFilter(ctx, models.SortUnreadCountAsc),
+		)
+	}
+	return sorts
+}
+
+type SortOption struct {
+	active bool
+	link   models.PageState
+	label  string
+	icon   templ.Component
+}
+
+func NewSortFilter(ctx context.Context, sort models.Sort) *SortOption {
+	filters := models.FiltersFromCtx(ctx)
+	option := &SortOption{
+		label: sort.String(),
+	}
+
+	// Set this sort as active if indicated in the current view filters.
+	if filters.SortBy == sort.SortBy && filters.SortOrder == sort.SortOrder {
+		option.active = true
+	}
+
+	// Set icons to represent sort option.
+	switch sort.SortBy {
+	case models.SortByLastUpdated:
+		switch sort.SortOrder {
+		case models.SortOrderDesc:
+			option.icon = tabler.SortDescending()
+		case models.SortOrderAsc:
+			option.icon = tabler.SortAscending()
+		}
+	case models.SortByUnreadCount:
+		switch sort.SortOrder {
+		case models.SortOrderDesc:
+			option.icon = tabler.SortDescendingNumbers()
+		case models.SortOrderAsc:
+			option.icon = tabler.SortAscendingNumbers()
+		}
+	}
+
+	// Generate a view.
+	filters.SortBy = sort.SortBy
+	filters.SortOrder = sort.SortOrder
+	view := models.PageStateFromCtx(ctx)
+	view.Params = filters.ToQueryParams()
+	option.link = view
+
+	return option
+}
+
+templ (option *SortOption) Show() {
+	<div class="flex gap-2">
+		@option.icon
+		{ option.label }
+	</div>
+}
+
+templ (option *SortOption) AsLink() {
+	if option.active {
+		@link.Build(
+			link.WithThemeColor(color.Primary),
+			link.WithContent(option.Show()),
+			link.WithUnderlineOnHover(),
+			link.WithExtraClasses("capitalize", "text-xs"),
+			link.WithExtraAttributes(templ.Attributes{
+				"hx-get":         option.link.String(),
+				"hx-replace-url": "true",
+				"hx-target":      partials.ContentID.Target(),
+			}),
+		).Show()
+	} else {
+		@link.Build(
+			link.WithThemeColor(color.Neutral),
+			link.WithContent(option.Show()),
+			link.WithUnderlineOnHover(),
+			link.WithExtraClasses("capitalize", "text-xs"),
+			link.WithExtraAttributes(templ.Attributes{
+				"hx-get":         option.link.String(),
+				"hx-replace-url": "true",
+				"hx-target":      partials.ContentID.Target(),
+			}),
+		).Show()
+	}
+}
+
+templ UpdateActions(actions ...templ.Component) {
+	<div id="content-actions">
+		@tooltip.Build("Actions").Show() {
+			@dropdown.Build(
+				dropdown.WithButtonContent(tabler.Menu(i.Props{Size: i.SizeSM})),
+				dropdown.WithOpenFrom(dropdown.OpenTop),
+				dropdown.WithOpenAlignment(dropdown.AlignEnd),
+				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+			).Show() {
+				for item := range slices.Values(actions) {
+					if item != nil {
+						<li>
+							@item
+						</li>
+					}
+				}
+			}
+		}
 	</div>
 }
