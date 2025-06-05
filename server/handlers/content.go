@@ -91,10 +91,10 @@ func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, 
 				),
 			)
 
-			htmxResp := htmx.NewResponse()
-			htmxResp = htmxResp.AddTriggerAfterSwap(htmx.Trigger("UpdateState"))
-			ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmxResp)
-			ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, cardLayout))
+			// htmxResp := htmx.NewResponse()
+			// htmxResp = htmxResp.AddTriggerAfterSwap(htmx.Trigger("UpdateState"))
+			// ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmxResp)
+			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

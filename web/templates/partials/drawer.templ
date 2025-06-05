@@ -24,7 +24,7 @@ templ Drawer(contents ...templ.Component) {
 			<li
 				id="subscriptions-list"
 				hx-get="/subscriptions/state"
-				hx-trigger="load queue:none,htmx:historyRestore queue:none,UpdateState queue:none"
+				hx-trigger="htmx:historyRestore from:body queue:none,UpdateState queue:none"
 			></li>
 			for content := range slices.Values(contents) {
 				@content
