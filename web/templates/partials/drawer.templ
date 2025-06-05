@@ -3,32 +3,39 @@
 
 package partials
 
-import (
-	"github.com/sebasvil20/templicons/tabler"
-	"slices"
-)
+import "github.com/sebasvil20/templicons/tabler"
 
-//
-templ Drawer(contents ...templ.Component) {
-	<div class="drawer-side">
-		<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-		<ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-			<li class="menu-title">Navigation</li>
-			<li>
-				@LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
-					"hx-get":      "/home",
-					"hx-target":   ContentID.Target(),
-					"hx-push-url": "true",
-				}, nil)
-			</li>
-			<li
-				id="subscriptions-list"
-				hx-get="/subscriptions/state"
-				hx-trigger="htmx:historyRestore from:body queue:none,UpdateState queue:none"
-			></li>
-			for content := range slices.Values(contents) {
-				@content
-			}
-		</ul>
+// Drawer is the container for a full-page drawer
+templ Drawer(content, side templ.Component) {
+	<div class="drawer">
+		<input id="body-drawer" type="checkbox" class="drawer-toggle"/>
+		<div class="drawer-content">
+			@content
+		</div>
+		<div class="drawer-side">
+			@side
+		</div>
 	</div>
+}
+
+// DrawerSide is the container for the drawer side-bar.
+templ DrawerSide(subscriptionList templ.Component) {
+	<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+	<ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
+		<li class="menu-title">Navigation</li>
+		<li>
+			@LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
+				"hx-get":      "/home",
+				"hx-target":   ContentID.Target(),
+				"hx-push-url": "true",
+			}, nil)
+		</li>
+		<li
+			id="subscriptions-list"
+			hx-get="/subscriptions/state"
+			hx-trigger="htmx:historyRestore from:body,UpdateState"
+		>
+			@subscriptionList
+		</li>
+	</ul>
 }

@@ -112,7 +112,7 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.SaveSubscription(s.DataAPI(), subscriptionID, subscriptionEdits),
-	).Then(handlers.RenderPartials(""))
+	).Then(handlers.RenderPartials())
 	chain.ServeHTTP(res, req)
 }
 

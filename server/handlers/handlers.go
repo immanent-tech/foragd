@@ -47,11 +47,9 @@ const (
 	paginationCtxKey           contextKey = "pagination"
 	feedsCtxKey                contextKey = "feeds"
 
-	htmxRespCtxKey      contextKey = "htmxResponse"
-	headerContentCtxKey contextKey = "headerContent"
-	footerContentCtxKey contextKey = "footerContent"
-	drawerContentCtxKey contextKey = "drawerContent"
-	contentCtxKey       contextKey = "content"
+	htmxRespCtxKey contextKey = "htmxResponse"
+	titleCtxKey    contextKey = "title"
+	contentCtxKey  contextKey = "content"
 )
 
 // Keys for objects stored within the session.
@@ -65,7 +63,6 @@ type contextKey string
 type FeedsAPI interface {
 	GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error)
 	GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
-	// GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)
 	GetArticlesByID(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error)
 	ItemsSearch(ctx context.Context, query query.Option, filters models.Filters, pagination models.Pagination) (*search.Response, error)
 	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error)
@@ -127,28 +124,34 @@ func RouteLogger(next http.Handler) http.Handler {
 }
 
 // RenderPage will render a full page (i.e. non-HTMX) response.
-func RenderPage(title string) http.Handler {
+func RenderPage(api FeedsAPI) http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
-			header, ok := req.Context().Value(headerContentCtxKey).(templ.Component)
-			if !ok || header == nil {
-				header = partials.Header()
-			}
-			footer, ok := req.Context().Value(footerContentCtxKey).(templ.Component)
-			if !ok || header == nil {
-				footer = partials.Footer()
-			}
-			drawer, ok := req.Context().Value(drawerContentCtxKey).(templ.Component)
-			if !ok || drawer == nil {
-				drawer = partials.Drawer()
-			}
-			content, ok := req.Context().Value(contentCtxKey).(templ.Component)
+			mainContent, ok := req.Context().Value(contentCtxKey).(templ.Component)
 			if !ok {
 				slogctx.FromCtx(req.Context()).Error("Invalid content.")
 				http.Error(res, "Invalid content.", http.StatusInternalServerError)
 				return
 			}
-			page := views.FullPage(title, header, footer, drawer, content)
+			// Generate drawer content.
+			drawerContent := templ.Join(partials.Header(), partials.Content(mainContent), partials.Footer())
+			// Generate drawer side content.
+			var drawerSide templ.Component
+			subscriptions, resp := getAllSubscriptions(req.Context(), api)
+			if resp.IsError() {
+				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.InternalError))
+			} else {
+				drawerSide = partials.DrawerSide(views.SubscriptionList(subscriptions))
+			}
+			// Get page title.
+			title, ok := req.Context().Value(titleCtxKey).(string)
+			if !ok {
+				title = "Go Feed Me"
+			}
+			// Render page.
+			page := templates.NewPage(title,
+				partials.Drawer(drawerContent, drawerSide),
+			).Show()
 			if err := page.Render(req.Context(), res); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
@@ -157,23 +160,15 @@ func RenderPage(title string) http.Handler {
 }
 
 // RenderPartials will render individual content updates (i.e., HTMX response).
-func RenderPartials(title string) http.Handler {
+func RenderPartials() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
 			var partials []templ.Component
 			if content, ok := req.Context().Value(contentCtxKey).(templ.Component); ok {
 				partials = append(partials, content)
 			}
-			if header, ok := req.Context().Value(headerContentCtxKey).(templ.Component); ok {
-				partials = append(partials, header)
-			}
-			if footer, ok := req.Context().Value(footerContentCtxKey).(templ.Component); ok {
-				partials = append(partials, footer)
-			}
-			if drawer, ok := req.Context().Value(drawerContentCtxKey).(templ.Component); ok {
-				partials = append(partials, drawer)
-			}
-			if title != "" {
+			// Update page title.
+			if title, ok := req.Context().Value(titleCtxKey).(string); ok {
 				partials = append(partials, templates.SetPageTitle(title))
 			}
 			// Get any existing htmx response writer.

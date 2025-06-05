@@ -46,6 +46,7 @@ func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subID
 			)
 
 			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
+			ctx = context.WithValue(ctx, titleCtxKey, "Articles")
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -64,6 +65,7 @@ func GenerateArticle(dataAPI DataAPI, itemID models.ItemID) func(next http.Handl
 
 			ctx := req.Context()
 			ctx = context.WithValue(ctx, contentCtxKey, articleLayout)
+			ctx = context.WithValue(ctx, titleCtxKey, article.Item.GetTitle())
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -91,10 +93,8 @@ func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, 
 				),
 			)
 
-			// htmxResp := htmx.NewResponse()
-			// htmxResp = htmxResp.AddTriggerAfterSwap(htmx.Trigger("UpdateState"))
-			// ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmxResp)
 			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
+			ctx = context.WithValue(ctx, titleCtxKey, "Subscriptions")
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

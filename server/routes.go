@@ -5,27 +5,38 @@ package server
 
 import (
 	"errors"
+	"log/slog"
 	"net/http"
 	"slices"
 	"time"
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/handlers"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
 var ErrInvalidParam = errors.New("invalid parameter")
 
 // Index handler handles the index page.
 func (s Server) Index(res http.ResponseWriter, req *http.Request) {
-	chain := alice.New(
+	alice.New(
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,
-		handlers.GenerateIndex,
-	).Then(handlers.RenderPage("Go Feed Me"))
-	chain.ServeHTTP(res, req)
+	).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
+		indexLayout := &layouts.IndexLayout{}
+		page := templates.NewPage("Go Feed Me",
+			indexLayout.FullRender(),
+		).Show()
+		if err := page.Render(req.Context(), res); err != nil {
+			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+			http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
+		}
+	}).ServeHTTP(res, req)
 }
 
 // Login handler handles login requests.
@@ -56,9 +67,9 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials("Settings")).ServeHTTP(res, req)
+		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Then(handlers.RenderPage("Settings")).ServeHTTP(res, req)
+		chain.Then(handlers.RenderPage(s.DataAPI())).ServeHTTP(res, req)
 	}
 }
 
@@ -114,9 +125,9 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials("Home")).ServeHTTP(res, req)
+		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Then(handlers.RenderPage("Home")).ServeHTTP(res, req)
+		chain.Then(handlers.RenderPage(s.DataAPI())).ServeHTTP(res, req)
 	}
 }
 
@@ -133,14 +144,11 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	if params.Subscriptions != nil {
 		subIDs = append(subIDs, *params.Subscriptions...)
 	}
-	var title string
 	switch collection {
 	case models.CollectionSubscriptions:
 		chain = chain.Append(handlers.GenerateSubscriptionCollection(s.DataAPI(), "", subIDs...))
-		title = "Subscriptions"
 	case models.CollectionArticles:
 		chain = chain.Append(handlers.GenerateArticleCollection(s.DataAPI(), "", subIDs...))
-		title = "Articles"
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode: http.StatusNoContent,
@@ -154,9 +162,9 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials(title)).ServeHTTP(res, req)
+		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Then(handlers.RenderPage(title)).ServeHTTP(res, req)
+		chain.Then(handlers.RenderPage(s.DataAPI())).ServeHTTP(res, req)
 	}
 }
 
@@ -200,7 +208,7 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 		return
 	}
 
-	chain.Then(handlers.RenderPartials("")).ServeHTTP(res, req)
+	chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
 
 // ActionCollection handles performing an action on a collection of objects.
@@ -259,9 +267,9 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, itemID I
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials("Article")).ServeHTTP(res, req)
+		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Then(handlers.RenderPage("Article")).ServeHTTP(res, req)
+		chain.Then(handlers.RenderPage(s.DataAPI())).ServeHTTP(res, req)
 	}
 }
 
@@ -277,9 +285,9 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials("Subscription")).ServeHTTP(res, req)
+		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Then(handlers.RenderPage("Subscription")).ServeHTTP(res, req)
+		chain.Then(handlers.RenderPage(s.DataAPI())).ServeHTTP(res, req)
 	}
 }
 
@@ -300,7 +308,7 @@ func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
 		handlers.GenerateArticleCollection(s.DataAPI(), pagination, sub),
-	).Then(handlers.RenderPartials("")).ServeHTTP(res, req)
+	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
 
 // ActionSubscription performs an action on a subscription.
@@ -330,7 +338,7 @@ func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, sub
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.ShowSubscriptionEditModal(s.DataAPI(), subscriptionID),
-	).Then(handlers.RenderPartials(""))
+	).Then(handlers.RenderPartials())
 	chain.ServeHTTP(res, req)
 }
 
@@ -338,6 +346,6 @@ func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Requ
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.UpdateDrawer(s.DataAPI()),
-	).Then(handlers.RenderPartials(""))
+	).Then(handlers.RenderPartials())
 	chain.ServeHTTP(res, req)
 }

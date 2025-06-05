@@ -14,7 +14,6 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/veqryn/slog-context"
@@ -157,15 +156,4 @@ func createCategoryLinks(categoryCounts models.CategoryCounts) templ.Component {
 		categoryLinks = append(categoryLinks, partials.InactiveButton(category.Category, attributes))
 	}
 	return templ.Join(categoryLinks...)
-}
-
-func FullPage(title string, header, footer, drawer, content templ.Component) templ.Component {
-	return templates.NewPage(title,
-		templates.NewBody(
-			content,
-			templates.WithBodyHeader(header),
-			templates.WithBodyFooter(footer),
-			templates.WithDrawerContent(drawer),
-		),
-	).Show()
 }

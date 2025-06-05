@@ -26,4 +26,4 @@ htmx.config.allowNestedOobSwaps = false
 // Log all events.
 //
 // https://v1.htmx.org/docs/#debugging
-htmx.logAll()
+// htmx.logAll()
