@@ -3,8 +3,6 @@
 
 package partials
 
-import "github.com/sebasvil20/templicons/tabler"
-
 // Drawer is the container for a full-page drawer
 templ Drawer(content, side templ.Component) {
 	<div class="drawer">
@@ -18,24 +16,22 @@ templ Drawer(content, side templ.Component) {
 	</div>
 }
 
-// DrawerSide is the container for the drawer side-bar.
-templ DrawerSide(subscriptionList templ.Component) {
+// DrawerMenu is the container for the drawer side-bar menu.
+templ DrawerMenu(items ...templ.Component) {
 	<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
 	<ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
-		<li class="menu-title">Navigation</li>
-		<li>
-			@LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
-				"hx-get":      "/home",
-				"hx-target":   ContentID.Target(),
-				"hx-push-url": "true",
-			}, nil)
-		</li>
-		<li
-			id="subscriptions-list"
-			hx-get="/subscriptions/state"
-			hx-trigger="htmx:historyRestore from:body,UpdateState"
-		>
-			@subscriptionList
-		</li>
+		@templ.Join(items...)
 	</ul>
+}
+
+// MenuItemTitle renders the text as a title element in the drawer side-bar menu.
+templ MenuItemTitle(text string) {
+	<li class="menu-title">{ text }</li>
+}
+
+// MenuItem renders an item element in the drawer side-bar menu.
+templ MenuItem(content templ.Component, attributes templ.Attributes) {
+	<li { attributes... }>
+		@content
+	</li>
 }

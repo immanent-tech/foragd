@@ -491,45 +491,6 @@ templ CollectionActionsMenu(actions ...templ.Component) {
 	</div>
 }
 
-templ SubscriptionList(subscriptions models.Subscriptions) {
-	<details>
-		<summary>
-			<div class="flex gap-2">
-				@tabler.Rss()
-				Subscriptions
-			</div>
-		</summary>
-		<ul>
-			for subscription := range slices.Values(subscriptions) {
-				<li>
-					<div class="flex">
-						<div class="text-sm flex-1">
-							@link.Build(
-								link.WithContent(subscription.GetTitle()),
-								link.WithUnderlineOnHover(),
-								link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
-							).Show()
-						</div>
-						// Display unread count (if any).
-						<div class="flex-none">
-							if subscription.IsUnread() {
-								@badge.Build(
-									badge.WithSize(badge.SM),
-									badge.WithColor(badge.Secondary),
-									badge.WithContent(strconv.Itoa(subscription.UnreadCount)),
-									// badge.WithExtraAttributes(templ.Attributes{
-									// 	"sse-swap": subscription.GetFeedID() + "_unread",
-									// }),
-								).Show()
-							}
-						</div>
-					</div>
-				</li>
-			}
-		</ul>
-	</details>
-}
-
 // Filter represents a filter action on a page. It has a value (displayed in the UI) and a link which will trigger a
 // htmx request.
 type Filter struct {

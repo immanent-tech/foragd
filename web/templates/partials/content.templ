@@ -10,7 +10,6 @@ templ Content(content templ.Component) {
 		class="m-2"
 		hx-swap="morph:innerHTML"
 		hx-target={ ContentID.Target() }
-		hx-target-error={ ErrorID.Target() }
 	>
 		@content
 	</div>

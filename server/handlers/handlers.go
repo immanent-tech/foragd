@@ -17,6 +17,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/alice"
+	"github.com/sebasvil20/templicons/tabler"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -141,7 +142,19 @@ func RenderPage(api FeedsAPI) http.Handler {
 			if resp.IsError() {
 				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.InternalError))
 			} else {
-				drawerSide = partials.DrawerSide(views.SubscriptionList(subscriptions))
+				drawerSide = partials.DrawerMenu(
+					partials.MenuItemTitle("Navigation"),
+					partials.MenuItem(partials.LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
+						"hx-get":      "/home",
+						"hx-target":   partials.ContentID.Target(),
+						"hx-push-url": "true",
+					}, nil), nil),
+					partials.MenuItem(views.SubscriptionList(subscriptions), templ.Attributes{
+						"id":         "subscriptions-list",
+						"hx-get":     "/subscriptions/state",
+						"hx-trigger": "htmx:historyRestore from:body,UpdateState",
+					}),
+				)
 			}
 			// Get page title.
 			title, ok := req.Context().Value(titleCtxKey).(string)
