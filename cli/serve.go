@@ -76,6 +76,7 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 			// middlewares.CSP(server.ServerConfig.CSP),
 			middlewares.ElasticMiddleware(),
 			handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),
+			middlewares.SetupHTMX(),
 			session.Manager.LoadAndSave,
 		},
 	})

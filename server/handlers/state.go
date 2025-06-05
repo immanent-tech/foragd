@@ -39,14 +39,6 @@ func SaveFilters(params any) func(next http.Handler) http.Handler {
 	}
 }
 
-// SaveState saves the current page state in the session.
-func SetResponseHeaders(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Add("Vary", "HX-Request")
-		next.ServeHTTP(res, req)
-	})
-}
-
 // SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
 // been made through HTMX.
 func SetupRedirect(path *string) func(next http.Handler) http.Handler {

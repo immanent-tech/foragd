@@ -26,7 +26,6 @@ var ErrInvalidParam = errors.New("invalid parameter")
 func (s Server) Index(res http.ResponseWriter, req *http.Request) {
 	alice.New(
 		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
 	).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
 		indexLayout := &layouts.IndexLayout{}
 		page := templates.NewPage("Go Feed Me",
@@ -61,7 +60,6 @@ func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provid
 func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
 		handlers.GenerateSettings,
 	)
 
@@ -118,7 +116,6 @@ func (s Server) Logout(res http.ResponseWriter, req *http.Request) {
 func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.GenerateHomeContent(s.DataAPI()),
 	)
@@ -135,7 +132,6 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, collection Collection, params ShowCollectionParams) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
 	)
@@ -187,7 +183,6 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
 	)
@@ -230,7 +225,6 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
 		handlers.SetupRedirect(params.Redirect),
 	).Then(actionFunc)
 	chain.ServeHTTP(res, req)
@@ -260,7 +254,6 @@ func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action
 func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, itemID ItemID) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.GenerateArticle(s.DataAPI(), itemID),
 	)
@@ -277,7 +270,6 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, itemID I
 func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params ShowSubscriptionParams) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
 		handlers.GenerateArticleCollection(s.DataAPI(), "", sub),
@@ -304,7 +296,6 @@ func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request,
 	}
 	alice.New(
 		handlers.RouteLogger,
-		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
 		handlers.GenerateArticleCollection(s.DataAPI(), pagination, sub),
