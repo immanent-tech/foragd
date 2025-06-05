@@ -26,6 +26,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 var (
@@ -131,9 +132,8 @@ func RenderPage() http.Handler {
 			// Get main content.
 			mainContent, ok := req.Context().Value(contentCtxKey).(templ.Component)
 			if !ok {
-				slogctx.FromCtx(req.Context()).Error("Invalid content.")
-				http.Error(res, "Invalid content.", http.StatusInternalServerError)
-				return
+				// If there is no content, use the empty content template.
+				mainContent = views.EmptyContent()
 			}
 			// Wrap main content.
 			drawerContent := templ.Join(partials.Header(), partials.Content(mainContent), partials.Footer())
@@ -152,11 +152,7 @@ func RenderPage() http.Handler {
 					"hx-target":   partials.ContentID.Target(),
 					"hx-push-url": "true",
 				}, nil), nil),
-				partials.MenuItem(drawerSideContent, templ.Attributes{
-					"id":         "subscriptions-list",
-					"hx-get":     "/subscriptions/state",
-					"hx-trigger": "htmx:historyRestore from:body,UpdateState",
-				}),
+				views.DrawerSubscriptionList(drawerSideContent),
 			)
 			// Get page title.
 			title, ok := req.Context().Value(titleCtxKey).(string)

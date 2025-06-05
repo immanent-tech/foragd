@@ -27,6 +27,7 @@ import (
 func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
 			articles, pagination, resp := getFilteredArticles(req.Context(), api, pagination, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
@@ -34,18 +35,21 @@ func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subID
 			}
 
 			cards := views.GenerateArticleCards(req.Context(), articles, pagination)
+			if len(cards) > 0 {
+				cardLayout := partials.CardGrid(cards...)
+				cardControls := partials.CardControls(
+					views.RefreshAction(),
+					views.UpdateSorting(),
+					views.UpdateFilters(articles.GetItems().GetCategoryCounts()),
+					views.CollectionActionsMenu(
+						views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
+					),
+				)
 
-			cardLayout := partials.CardGrid(cards...)
-			cardControls := partials.CardControls(
-				views.RefreshAction(),
-				views.UpdateSorting(),
-				views.UpdateFilters(articles.GetItems().GetCategoryCounts()),
-				views.CollectionActionsMenu(
-					views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
-				),
-			)
-
-			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
+				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, cardLayout))
+			} else {
+				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
+			}
 			ctx = context.WithValue(ctx, titleCtxKey, "Articles")
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -81,19 +85,22 @@ func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, 
 				return
 			}
 
+			ctx := req.Context()
 			cards := views.GenerateSubscriptionCards(req.Context(), pagination, subscriptions)
-
-			cardLayout := partials.CardGrid(cards...)
-			cardControls := partials.CardControls(
-				views.RefreshAction(),
-				views.UpdateSorting(),
-				views.UpdateFilters(subscriptions.GetCategoryCounts()),
-				views.CollectionActionsMenu(
-					views.MarkAllSubscriptionsAction(req.Context()),
-				),
-			)
-
-			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
+			if len(cards) > 0 {
+				cardLayout := partials.CardGrid(cards...)
+				cardControls := partials.CardControls(
+					views.RefreshAction(),
+					views.UpdateSorting(),
+					views.UpdateFilters(subscriptions.GetCategoryCounts()),
+					views.CollectionActionsMenu(
+						views.MarkAllSubscriptionsAction(req.Context()),
+					),
+				)
+				ctx = context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
+			} else {
+				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
+			}
 			ctx = context.WithValue(ctx, titleCtxKey, "Subscriptions")
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

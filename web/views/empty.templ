@@ -3,20 +3,54 @@
 
 package views
 
+import (
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/classes/shadow"
+	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+)
+
 // EmptyContent renders a hero with options for the user when the request
 // returned no other content.
 templ EmptyContent() {
-	<div class="hero bg-base-200 min-h-screen">
-		<div class="hero-content text-center">
-			<div class="max-w-md">
-				<h1 class="text-5xl font-bold">Nothing to show.</h1>
-				<p class="py-6">
-					Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda excepturi exercitationem
-					quasi. In deleniti eaque aut repudiandae et a id nisi.
-				</p>
-				@AddSubscriptionAction()
-				@ImportAction()
-			</div>
+	@card.Build(
+		card.WithSize(card.LG),
+		card.WithShadow(shadow.XL),
+		card.WithBaseColor(color.Base300),
+		card.WithBodyOptions(
+			card.WithCenteredContent(),
+			card.WithTitle("Nothing here but 1s and 0s"),
+		),
+	).Show() {
+		<p>Something else?</p>
+		<div class="flex gap-2">
+			@button.Build(
+				button.WithSize(button.SM),
+				button.WithContent("Home"),
+				button.WithExtraAttributes(templ.Attributes{
+					"hx-get":    "/home",
+					"hx-target": partials.ContentID.Target(),
+				}),
+			).Show()
+			@button.Build(
+				button.WithSize(button.SM),
+				button.WithContent("Add Subscription"),
+				button.WithExtraAttributes(templ.Attributes{
+					"hx-get":    "/subscription/new",
+					"hx-target": partials.ModalContainerID.Target(),
+					"_":         partials.HyperscriptOpenModal(partials.ModalID.Target()),
+				}),
+			).Show()
+			@button.Build(
+				button.WithSize(button.SM),
+				button.WithContent("Import Subscription"),
+				button.WithExtraAttributes(templ.Attributes{
+					"hx-get":    "/subscription/import",
+					"hx-target": partials.ModalContainerID.Target(),
+					"_":         partials.HyperscriptOpenModal(partials.ModalID.Target()),
+				}),
+			).Show()
 		</div>
-	</div>
+	}
 }

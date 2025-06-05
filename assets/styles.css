@@ -17,3 +17,7 @@
   opacity: 1;
   transition: opacity 1s ease-out;
 }
+
+.card {
+  transition: all ease-in 1s;
+}

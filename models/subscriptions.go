@@ -78,6 +78,7 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 	return counts
 }
 
+// Sort will sort the subscription list based on the given sort option.
 func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	switch {
 	case sort.SortBy == SortByUnreadCount:

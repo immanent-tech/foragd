@@ -5,12 +5,28 @@ package views
 
 import (
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 	"strconv"
 )
+
+// DrawerSubscriptionListID is the ID of the element containing the subscription list in the drawer.
+var DrawerSubscriptionListID = attributes.ID("drawer-subscriptions-list")
+
+// TriggerSubscriptionListUpdateHS is a hyperscript snippet to trigger an update of the subscription list in the drawer.
+var TriggerSubscriptionListUpdateHS = "on htmx:afterRequest send UpdateState to " + DrawerSubscriptionListID.Target()
+
+templ DrawerSubscriptionList(list templ.Component) {
+	@partials.MenuItem(list, templ.Attributes{
+		"id":         DrawerSubscriptionListID.String(),
+		"hx-get":     "/subscriptions/state",
+		"hx-trigger": "htmx:historyRestore from:body,UpdateState",
+	})
+}
 
 templ SubscriptionList(subscriptions models.Subscriptions) {
 	<details>
@@ -29,6 +45,7 @@ templ SubscriptionList(subscriptions models.Subscriptions) {
 								link.WithContent(subscription.GetTitle()),
 								link.WithUnderlineOnHover(),
 								link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
+								link.WithExtraClasses("text-sm"),
 							).Show()
 						</div>
 						// Display unread count (if any).
