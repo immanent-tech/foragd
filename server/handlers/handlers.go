@@ -26,7 +26,6 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/views"
 )
 
 var (
@@ -51,6 +50,7 @@ const (
 	htmxRespCtxKey contextKey = "htmxResponse"
 	titleCtxKey    contextKey = "title"
 	contentCtxKey  contextKey = "content"
+	drawerCtxKey   contextKey = "drawer"
 )
 
 // Keys for objects stored within the session.
@@ -125,37 +125,39 @@ func RouteLogger(next http.Handler) http.Handler {
 }
 
 // RenderPage will render a full page (i.e. non-HTMX) response.
-func RenderPage(api FeedsAPI) http.Handler {
+func RenderPage() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
+			// Get main content.
 			mainContent, ok := req.Context().Value(contentCtxKey).(templ.Component)
 			if !ok {
 				slogctx.FromCtx(req.Context()).Error("Invalid content.")
 				http.Error(res, "Invalid content.", http.StatusInternalServerError)
 				return
 			}
-			// Generate drawer content.
+			// Wrap main content.
 			drawerContent := templ.Join(partials.Header(), partials.Content(mainContent), partials.Footer())
-			// Generate drawer side content.
-			var drawerSide templ.Component
-			subscriptions, resp := getAllSubscriptions(req.Context(), api)
-			if resp.IsError() {
-				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.InternalError))
-			} else {
-				drawerSide = partials.DrawerMenu(
-					partials.MenuItemTitle("Navigation"),
-					partials.MenuItem(partials.LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
-						"hx-get":      "/home",
-						"hx-target":   partials.ContentID.Target(),
-						"hx-push-url": "true",
-					}, nil), nil),
-					partials.MenuItem(views.SubscriptionList(subscriptions), templ.Attributes{
-						"id":         "subscriptions-list",
-						"hx-get":     "/subscriptions/state",
-						"hx-trigger": "htmx:historyRestore from:body,UpdateState",
-					}),
-				)
+			// Get drawer side content.
+			drawerSideContent, ok := req.Context().Value(drawerCtxKey).(templ.Component)
+			if !ok {
+				slogctx.FromCtx(req.Context()).Error("Invalid content.")
+				http.Error(res, "Invalid content.", http.StatusInternalServerError)
+				return
 			}
+			// Wrap drawer side content.
+			drawerSideContent = partials.DrawerMenu(
+				partials.MenuItemTitle("Navigation"),
+				partials.MenuItem(partials.LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
+					"hx-get":      "/home",
+					"hx-target":   partials.ContentID.Target(),
+					"hx-push-url": "true",
+				}, nil), nil),
+				partials.MenuItem(drawerSideContent, templ.Attributes{
+					"id":         "subscriptions-list",
+					"hx-get":     "/subscriptions/state",
+					"hx-trigger": "htmx:historyRestore from:body,UpdateState",
+				}),
+			)
 			// Get page title.
 			title, ok := req.Context().Value(titleCtxKey).(string)
 			if !ok {
@@ -163,7 +165,7 @@ func RenderPage(api FeedsAPI) http.Handler {
 			}
 			// Render page.
 			page := templates.NewPage(title,
-				partials.Drawer(drawerContent, drawerSide),
+				partials.Drawer(drawerContent, drawerSideContent),
 			).Show()
 			if err := page.Render(req.Context(), res); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -177,10 +179,15 @@ func RenderPartials() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
 			var partials []templ.Component
+			// Add any content updates.
 			if content, ok := req.Context().Value(contentCtxKey).(templ.Component); ok {
 				partials = append(partials, content)
 			}
-			// Update page title.
+			// Add any drawer side-bar updates.
+			if content, ok := req.Context().Value(drawerCtxKey).(templ.Component); ok {
+				partials = append(partials, content)
+			}
+			// Add any page title updates.
 			if title, ok := req.Context().Value(titleCtxKey).(string); ok {
 				partials = append(partials, templates.SetPageTitle(title))
 			}
@@ -189,6 +196,7 @@ func RenderPartials() http.Handler {
 			if !ok {
 				resp = htmx.NewResponse()
 			}
+			// Render as a template.
 			if err := resp.RenderTempl(req.Context(), res, templ.Join(partials...)); err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
 			}

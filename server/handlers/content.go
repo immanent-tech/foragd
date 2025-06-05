@@ -642,7 +642,7 @@ func UpdateDrawer(api FeedsAPI) func(next http.Handler) http.Handler {
 			if resp.IsError() {
 				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.InternalError))
 			} else {
-				ctx = context.WithValue(ctx, contentCtxKey, views.SubscriptionList(subscriptions))
+				ctx = context.WithValue(ctx, drawerCtxKey, views.SubscriptionList(subscriptions))
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
