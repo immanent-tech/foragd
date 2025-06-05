@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"maps"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/joshuar/go-feed-me/components/validation"
@@ -80,9 +81,20 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 func (s Subscriptions) Sort(sort Sort) Subscriptions {
 	switch {
 	case sort.SortBy == SortByUnreadCount:
-		slices.SortFunc(s, CompareSubscriptionUnreadCount)
+		slices.SortFunc(s, func(a, b *Subscription) int {
+			return cmp.Or(
+				CompareSubscriptionUnreadCount(a, b),
+				CompareSubscriptionUpdatedDate(a, b),
+				strings.Compare(a.GetName(), b.GetName()),
+			)
+		})
 	default:
-		slices.SortFunc(s, CompareSubscriptionUpdatedDate)
+		slices.SortFunc(s, func(a, b *Subscription) int {
+			return cmp.Or(
+				CompareSubscriptionUpdatedDate(a, b),
+				strings.Compare(a.GetName(), b.GetName()),
+			)
+		})
 	}
 	if sort.SortOrder == SortOrderDesc {
 		slices.Reverse(s)
@@ -377,6 +389,9 @@ func (s *Subscription) MarkItemsUnread(items ...ItemID) {
 // CompareSubscriptionUnreadCount is a helper function for sorting Subscriptions by unread count, in ascending order. If
 // descending order is required, slices.Reverse can be called after sorting the slice with this function.
 func CompareSubscriptionUnreadCount(a, b *Subscription) int {
+	if a.GetUnreadCount() == b.GetUnreadCount() {
+		return CompareSubscriptionUpdatedDate(a, b)
+	}
 	return cmp.Compare(a.GetUnreadCount(), b.GetUnreadCount())
 }
 
