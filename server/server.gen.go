@@ -350,6 +350,9 @@ type ServerInterface interface {
 	// Paginate through items for the given subscription, with optional filtering.
 	// (POST /subscription/{subscription})
 	PaginateSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params PaginateSubscriptionParams)
+	// Fetches all subscription states.
+	// (GET /subscriptions/state)
+	GetAllSubscriptionsState(w http.ResponseWriter, r *http.Request)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -517,6 +520,12 @@ func (_ Unimplemented) ShowSubscription(w http.ResponseWriter, r *http.Request, 
 // Paginate through items for the given subscription, with optional filtering.
 // (POST /subscription/{subscription})
 func (_ Unimplemented) PaginateSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params PaginateSubscriptionParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Fetches all subscription states.
+// (GET /subscriptions/state)
+func (_ Unimplemented) GetAllSubscriptionsState(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1588,6 +1597,20 @@ func (siw *ServerInterfaceWrapper) PaginateSubscription(w http.ResponseWriter, r
 	handler.ServeHTTP(w, r)
 }
 
+// GetAllSubscriptionsState operation middleware
+func (siw *ServerInterfaceWrapper) GetAllSubscriptionsState(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAllSubscriptionsState(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -1784,6 +1807,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/subscription/{subscription}", wrapper.PaginateSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/subscriptions/state", wrapper.GetAllSubscriptionsState)
 	})
 
 	return r

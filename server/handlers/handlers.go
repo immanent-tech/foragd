@@ -10,7 +10,6 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"slices"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -48,6 +47,7 @@ const (
 	paginationCtxKey           contextKey = "pagination"
 	feedsCtxKey                contextKey = "feeds"
 
+	htmxRespCtxKey      contextKey = "htmxResponse"
 	headerContentCtxKey contextKey = "headerContent"
 	footerContentCtxKey contextKey = "footerContent"
 	drawerContentCtxKey contextKey = "drawerContent"
@@ -176,11 +176,13 @@ func RenderPartials(title string) http.Handler {
 			if title != "" {
 				partials = append(partials, templates.SetPageTitle(title))
 			}
-			resp := htmx.NewResponse()
-			for template := range slices.Values(partials) {
-				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
-				}
+			// Get any existing htmx response writer.
+			resp, ok := req.Context().Value(htmxRespCtxKey).(htmx.Response)
+			if !ok {
+				resp = htmx.NewResponse()
+			}
+			if err := resp.RenderTempl(req.Context(), res, templ.Join(partials...)); err != nil {
+				slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
 			}
 		})
 }

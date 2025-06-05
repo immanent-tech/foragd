@@ -273,6 +273,7 @@ templ RefreshAction() {
 			"hx-target":   partials.ContentID.Target(),
 			"hx-push-url": "false",
 			"tabindex":    "0",
+			"_":           "on htmx:afterRequest send UpdateState to #subscriptions-list",
 		}),
 	).Show()
 }
@@ -284,6 +285,7 @@ func markSubscriptionAction(id models.SubscriptionID, isRead bool) templ.Compone
 		"hx-target":       "#" + id,
 		"hx-target-error": partials.ErrorID.Target(),
 		"hx-swap":         "outerHTML swap:1s",
+		"_":               "on htmx:afterRequest send UpdateState to #subscriptions-list",
 	}
 	if isRead {
 		attrs["hx-post"] = "/subscription/" + string(models.MarkRead) + "/" + id
@@ -323,6 +325,7 @@ func markArticleAction(feedID models.FeedID, itemID models.ItemID, isUnread bool
 		"hx-swap":        "outerHTML swap:1s",
 		"hx-target":      "#" + itemID,
 		"hx-replace-url": "false",
+		"_":              "on htmx:afterRequest send UpdateState to #subscriptions-list",
 	}
 
 	if isUnread {
@@ -340,6 +343,7 @@ func MarkAllArticlesAction(ctx context.Context, subIDs ...models.SubscriptionID)
 	attrs := templ.Attributes{
 		"hx-replace-url": "false",
 		"hx-swap":        "none",
+		"_":              "on htmx:afterRequest send UpdateState to #subscriptions-list",
 	}
 	// Create url parameters.
 	params := make(url.Values)
@@ -488,44 +492,42 @@ templ CollectionActionsMenu(actions ...templ.Component) {
 }
 
 templ SubscriptionList(subscriptions models.Subscriptions) {
-	<li>
-		<details>
-			<summary>
-				<div class="flex gap-2">
-					@tabler.Rss()
-					Subscriptions
-				</div>
-			</summary>
-			<ul>
-				for subscription := range slices.Values(subscriptions) {
-					<li>
-						<div class="flex">
-							<div class="text-sm flex-1">
-								@link.Build(
-									link.WithContent(subscription.GetTitle()),
-									link.WithUnderlineOnHover(),
-									link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
-								).Show()
-							</div>
-							// Display unread count (if any).
-							<div class="flex-none">
-								if subscription.IsUnread() {
-									@badge.Build(
-										badge.WithSize(badge.SM),
-										badge.WithColor(badge.Secondary),
-										badge.WithContent(strconv.Itoa(subscription.UnreadCount)),
-										// badge.WithExtraAttributes(templ.Attributes{
-										// 	"sse-swap": subscription.GetFeedID() + "_unread",
-										// }),
-									).Show()
-								}
-							</div>
+	<details>
+		<summary>
+			<div class="flex gap-2">
+				@tabler.Rss()
+				Subscriptions
+			</div>
+		</summary>
+		<ul>
+			for subscription := range slices.Values(subscriptions) {
+				<li>
+					<div class="flex">
+						<div class="text-sm flex-1">
+							@link.Build(
+								link.WithContent(subscription.GetTitle()),
+								link.WithUnderlineOnHover(),
+								link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
+							).Show()
 						</div>
-					</li>
-				}
-			</ul>
-		</details>
-	</li>
+						// Display unread count (if any).
+						<div class="flex-none">
+							if subscription.IsUnread() {
+								@badge.Build(
+									badge.WithSize(badge.SM),
+									badge.WithColor(badge.Secondary),
+									badge.WithContent(strconv.Itoa(subscription.UnreadCount)),
+									// badge.WithExtraAttributes(templ.Attributes{
+									// 	"sse-swap": subscription.GetFeedID() + "_unread",
+									// }),
+								).Show()
+							}
+						</div>
+					</div>
+				</li>
+			}
+		</ul>
+	</details>
 }
 
 // Filter represents a filter action on a page. It has a value (displayed in the UI) and a link which will trigger a

@@ -109,7 +109,6 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 		handlers.RouteLogger,
 		handlers.SetResponseHeaders,
 		handlers.SavePageState,
-		handlers.UpdateDrawer(s.DataAPI()),
 		handlers.GenerateHomeContent(s.DataAPI()),
 	)
 
@@ -128,14 +127,12 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 		handlers.SetResponseHeaders,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
-		handlers.UpdateDrawer(s.DataAPI()),
 	)
 
 	var subIDs []models.SubscriptionID
 	if params.Subscriptions != nil {
 		subIDs = append(subIDs, *params.Subscriptions...)
 	}
-
 	var title string
 	switch collection {
 	case models.CollectionSubscriptions:
@@ -333,6 +330,14 @@ func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, sub
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.ShowSubscriptionEditModal(s.DataAPI(), subscriptionID),
+	).Then(handlers.RenderPartials(""))
+	chain.ServeHTTP(res, req)
+}
+
+func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Request) {
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.UpdateDrawer(s.DataAPI()),
 	).Then(handlers.RenderPartials(""))
 	chain.ServeHTTP(res, req)
 }

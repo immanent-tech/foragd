@@ -91,7 +91,10 @@ func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, 
 				),
 			)
 
-			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
+			htmxResp := htmx.NewResponse()
+			htmxResp = htmxResp.AddTriggerAfterSwap(htmx.Trigger("UpdateState"))
+			ctx := context.WithValue(req.Context(), htmxRespCtxKey, htmxResp)
+			ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, cardLayout))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -639,7 +642,7 @@ func UpdateDrawer(api FeedsAPI) func(next http.Handler) http.Handler {
 			if resp.IsError() {
 				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.InternalError))
 			} else {
-				ctx = context.WithValue(ctx, drawerContentCtxKey, views.SubscriptionList(subscriptions))
+				ctx = context.WithValue(ctx, contentCtxKey, views.SubscriptionList(subscriptions))
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

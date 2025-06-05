@@ -16,8 +16,7 @@ window.htmx = htmx
 htmx.config.allowNestedOobSwaps = false
 
 // Allow event logging.
-//
-// https://htmx.org/docs/#logging
+
 // htmx.logger = function (elt, event, data) {
 //   if (console) {
 //     console.log(event, elt, data)

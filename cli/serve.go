@@ -72,7 +72,7 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 			middleware.Recoverer,
 			middleware.RequestID,
 			middleware.RealIP,
-			// middlewares.CORS(config.Environment()),
+			middlewares.CORS(config.Environment()),
 			// middlewares.CSP(server.ServerConfig.CSP),
 			middlewares.ElasticMiddleware(),
 			handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),

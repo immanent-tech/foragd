@@ -253,6 +253,14 @@ paths:
       responses:
         default:
           $ref: '#/components/responses/html'
+  /subscriptions/state:
+    get:
+      summary: >
+        Fetches all subscription states.
+      operationId: getAllSubscriptionsState
+      responses:
+        default:
+          $ref: '#/components/responses/html'
   /subscription/{subscription}:
     parameters:
       - $ref: '#/components/parameters/SubscriptionID'
