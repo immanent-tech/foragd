@@ -68,7 +68,7 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 	case true:
 		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.UpdateDrawer(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -125,7 +125,7 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 	case true:
 		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.UpdateDrawer(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -161,7 +161,7 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	case true:
 		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.UpdateDrawer(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -263,7 +263,7 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, itemID I
 	case true:
 		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.UpdateDrawer(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -280,7 +280,7 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 	case true:
 		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.UpdateDrawer(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -384,7 +384,7 @@ func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.UpdateDrawer(s.DataAPI()),
+		handlers.GenerateDrawerContent(s.DataAPI()),
 	).Then(handlers.RenderPartials())
 	chain.ServeHTTP(res, req)
 }

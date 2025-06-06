@@ -8,8 +8,6 @@ import (
 	"net/http"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
@@ -48,24 +46,4 @@ func GenerateHomeContent(api FeedsAPI) func(next http.Handler) http.Handler {
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
-}
-
-// GenerateArticle handles displaying an item as an article.
-func GenerateSettings(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		settingsLayout := settings.SettingsContent()
-		ctx := req.Context()
-		ctx = context.WithValue(ctx, contentCtxKey, settingsLayout)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-// GenerateArticle handles displaying an item as an article.
-func GenerateIndex(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		indexLayout := &layouts.IndexLayout{}
-		ctx := req.Context()
-		ctx = context.WithValue(ctx, contentCtxKey, indexLayout.FullRender())
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
 }

@@ -19,6 +19,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 	"github.com/joshuar/go-feed-me/web/views"
@@ -663,7 +664,17 @@ func MarkSubscriptions(api DataAPI, mark models.Mark, subscriptions ...models.Su
 	})
 }
 
-func UpdateDrawer(api FeedsAPI) func(next http.Handler) http.Handler {
+// GenerateSettings handles displaying the user settings page.
+func GenerateSettings(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		settingsLayout := settings.SettingsContent()
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, contentCtxKey, settingsLayout)
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+func GenerateDrawerContent(api FeedsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
