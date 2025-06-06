@@ -511,43 +511,57 @@ func ImportResults(err *models.UserMessage) http.Handler {
 }
 
 // RemoveSubscription handles processing a subscription removal request.
-func RemoveSubscription(api DataAPI, subscriptionID models.SubscriptionID, confirmation models.UserConfirmation) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Add a new HTMX response writer to the context.
-		ctx := req.Context()
+func RemoveSubscription(api UserAPI, subscriptionID models.SubscriptionID, confirmation models.UserConfirmation) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			// Add a new HTMX response writer to the context.
+			ctx := req.Context()
 
-		// Act according to user confirmation.
-		switch confirmation {
-		case models.UserConfirmationYes:
-			slogctx.FromCtx(ctx).Debug("Subscription removal confirmed.",
-				slog.String("subscription_id", subscriptionID),
-			)
-			if err := api.RemoveSubscriptions(ctx, subscriptionID); err != nil {
-				ProcessResponse(res, req.WithContext(ctx), err)
-				return
+			// Act according to user confirmation.
+			switch confirmation {
+			case models.UserConfirmationYes:
+				slogctx.FromCtx(ctx).Debug("Subscription removal confirmed.",
+					slog.String("subscription_id", subscriptionID),
+				)
+				if resp := removeSubscriptions(ctx, api, subscriptionID); resp.IsError() {
+					ProcessResponse(res, req.WithContext(ctx), resp)
+					return
+				}
+				// Show success notification.
+				msg := &models.UserMessage{
+					Summary: "Unsubscribed.",
+					Status:  models.UserMessageStatusSuccess,
+				}
+				ctx = context.WithValue(ctx, contentCtxKey, partials.ShowNotification(msg))
+				// Trigger state updates.
+				htmxResp := htmx.NewResponse()
+				htmxResp = htmxResp.AddTrigger(htmx.Trigger("UpdateState"))
+				ctx = context.WithValue(ctx, htmxRespCtxKey, htmxResp)
+			case models.UserConfirmationCancel:
+				slogctx.FromCtx(ctx).Debug("Subscription removal cancelled.",
+					slog.String("subscription_id", subscriptionID),
+				)
+				// Don't swap any main content for user cancellation.
+				// Display a notification acknowledging cancellation of request.
+				msg := &models.UserMessage{
+					Summary: "Request cancelled.",
+					Status:  models.UserMessageStatusInfo,
+				}
+				ctx = context.WithValue(ctx, contentCtxKey, partials.ShowNotification(msg))
+			default:
+				slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
+					slog.String("subscription_id", subscriptionID),
+				)
+				modal := partials.AskQuestion("Unsubscribe?", templ.Attributes{
+					"hx-delete": "/subscription/remove/" + subscriptionID,
+					"hx-target": "#" + subscriptionID,
+					"hx-swap":   "morph:outerHTML",
+				})
+				ctx = context.WithValue(ctx, contentCtxKey, modal)
 			}
-			res.WriteHeader(http.StatusOK)
-			res.Write(nil)
-		case models.UserConfirmationCancel:
-			slogctx.FromCtx(ctx).Debug("Subscription removal cancelled.",
-				slog.String("subscription_id", subscriptionID),
-			)
-			// Don't swap any main content for user cancellation.
-			// Display a notification acknowledging cancellation of request.
-			// msg := models.NewMessage("Subscription not modified.", models.MessageStatusInfo)
-			// PartialRender(partials.ShowNotification(msg)).ServeHTTP(res, req.WithContext(ctx))
-		default:
-			slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
-				slog.String("subscription_id", subscriptionID),
-			)
-			// modal := partials.AskQuestion("Unsubscribe?", templ.Attributes{
-			// 	"hx-delete": "/subscription/remove/" + subscriptionID,
-			// 	"hx-target": "#" + subscriptionID,
-			// 	"hx-swap":   "outerHTML swap:1s",
-			// })
-			// PartialRender(modal).ServeHTTP(res, req.WithContext(ctx))
-		}
-	})
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }
 
 // ShowSubscriptionEditModal retrieves the subscription with the given ID and presents a form for the user to edit it.

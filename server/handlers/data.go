@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"slices"
 	"strconv"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
@@ -201,6 +202,23 @@ func getItemTopCategories(ctx context.Context, api FeedsAPI, feeds ...models.Fee
 	}
 
 	return topCategories.BucketNames(), models.RespSuccess("Retrieved categories.")
+}
+
+func removeSubscriptions(ctx context.Context, api UserAPI, subscriptions ...models.SubscriptionID) *models.Response {
+	if len(subscriptions) == 0 {
+		return nil
+	}
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.RespInvalidUser()
+	}
+	// Add the subscriptions to the user.
+	user.RemoveSubscriptions(subscriptions...)
+	// Update the user object.
+	return api.UpdateUser(ctx, user.GetID(), map[string]any{
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
+	})
 }
 
 // getHomePageData retrieves the data required to construct the home page content.

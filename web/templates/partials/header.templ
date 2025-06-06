@@ -9,7 +9,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/input"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/joshuar/go-templ-daisyui/navigation/navbar"
 	"github.com/sebasvil20/templicons/tabler"
 )
@@ -60,24 +59,30 @@ templ DefaultHeaderEnd() {
 			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 		).Show() {
 			<li>
-				@link.Build(
-					link.WithContent("Settings"),
-					link.WithExtraAttributes(templ.Attributes{
-						"hx-get":         "/settings",
-						"hx-target":      "#content",
-						"hx-replace-url": "true",
-					}),
-					link.WithUnderlineOnHover(),
-				).Show()
+				@LinkWithIcon(tabler.Settings(), "Settings", templ.Attributes{
+					"hx-get":         "/settings",
+					"hx-target":      ContentID.Target(),
+					"hx-replace-url": "true",
+				}, []string{"text-sm"})
 			</li>
 			<li>
-				@link.Build(
-					link.WithContent("Logout"),
-					link.WithExtraAttributes(templ.Attributes{
-						"href": "/logout",
-					}),
-					link.WithUnderlineOnHover(),
-				).Show()
+				@LinkWithIcon(tabler.FilePlus(), "Add Subscription", templ.Attributes{
+					"hx-get":    "/susbcription/new",
+					"hx-target": ModalContainerID.Target(),
+					"_":         HyperscriptOpenModal(ModalID.Target()),
+				}, []string{"text-sm"})
+			</li>
+			<li>
+				@LinkWithIcon(tabler.FilePlus(), "Import Subscriptions", templ.Attributes{
+					"hx-get":    "/susbcription/import",
+					"hx-target": ModalContainerID.Target(),
+					"_":         HyperscriptOpenModal(ModalID.Target()),
+				}, []string{"text-sm"})
+			</li>
+			<li>
+				@LinkWithIcon(tabler.Logout(), "Logout", templ.Attributes{
+					"href": "/logout",
+				}, []string{"text-sm"})
 			</li>
 		}
 	</div>

@@ -7,7 +7,6 @@ import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
@@ -82,7 +81,16 @@ func GenerateSubscriptionCards(ctx context.Context, pagination models.Pagination
 							[]string{"text-xs"},
 						),
 						// Unsubscribe from subscription action.
-						unsubscribeAction(subscription.GetID())),
+						partials.LinkWithIcon(tabler.Trash(i.Props{Size: i.SizeXS}),
+							"Unsubscribe",
+							templ.Attributes{
+								"hx-delete": "/subscription/remove/" + subscription.GetID() + "?confirmation=no",
+								"hx-target": partials.ModalContainerID.Target(),
+								"_":         partials.HyperscriptOpenModal(partials.ModalID.Target()),
+							},
+							[]string{"text-xs"},
+						),
+					),
 				),
 			),
 		)
@@ -360,32 +368,6 @@ func MarkAllArticlesAction(ctx context.Context, subIDs ...models.SubscriptionID)
 	default:
 		return nil
 	}
-}
-
-// AddSubscriptionButton creates a button for displaying a modal to add a new subscription.
-func AddSubscriptionAction() templ.Component {
-	return openModalLink(
-		"hx-get",
-		"/subscription/new",
-		templ.Join(tabler.CloudPlus(i.Props{Size: i.SizeXS}), components.SetContent("Add Subscription")),
-	)
-}
-
-// ImportAction creates a button for displaying a modal to import feeds (i.e. // via opml).
-func ImportAction() templ.Component {
-	return openModalLink(
-		"hx-get",
-		"/subscription/import",
-		templ.Join(tabler.CloudUpload(i.Props{Size: i.SizeXS}), components.SetContent("Import Subscriptions")),
-	)
-}
-
-func unsubscribeAction(id models.SubscriptionID) templ.Component {
-	return openModalLink(
-		"hx-delete",
-		"/subscription/remove/"+id+"?confirmation=no",
-		templ.Join(tabler.Trash(i.Props{Size: i.SizeSM}), components.SetContent("Unsubscribe")),
-	)
 }
 
 templ markReadLink(label string, attributes templ.Attributes) {

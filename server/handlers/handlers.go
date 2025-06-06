@@ -17,7 +17,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/alice"
-	"github.com/sebasvil20/templicons/tabler"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -83,7 +82,7 @@ type DataAPI interface {
 	// GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response)
 	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) *models.Response
 	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) *models.Response
-	RemoveSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) *models.Response
+	// RemoveSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) *models.Response
 	// Feeds methods:
 	// GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
 	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
@@ -147,11 +146,7 @@ func RenderPage() http.Handler {
 			// Wrap drawer side content.
 			drawerSideContent = partials.DrawerMenu(
 				partials.MenuItemTitle("Navigation"),
-				partials.MenuItem(partials.LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
-					"hx-get":      "/home",
-					"hx-target":   partials.ContentID.Target(),
-					"hx-push-url": "true",
-				}, nil), nil),
+				views.DrawerHomeLink(),
 				views.DrawerSubscriptionList(drawerSideContent),
 			)
 			// Get page title.

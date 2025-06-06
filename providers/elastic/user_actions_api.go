@@ -44,24 +44,6 @@ func (e *API) AddSubscriptions(ctx context.Context, subscriptions models.Subscri
 	})
 }
 
-// RemoveSubscriptions will remove the subscriptions for a user.
-func (e *API) RemoveSubscriptions(ctx context.Context, subscriptions ...models.SubscriptionID) *models.Response {
-	if len(subscriptions) == 0 {
-		return nil
-	}
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return models.RespInvalidUser()
-	}
-	// Add the subscriptions to the user.
-	user.RemoveSubscriptions(subscriptions...)
-	// Update the user object.
-	return e.UpdateUser(ctx, user.GetID(), map[string]any{
-		"subscriptions": user.Subscriptions,
-		"updated_at":    time.Now().UTC(),
-	})
-}
-
 // UserActionMarkSubscriptions will mark user subscriptions with the given state.
 func (e *API) MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptions ...models.SubscriptionID) *models.Response {
 	user, found := models.UserFromCtx(ctx)

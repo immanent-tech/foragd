@@ -20,11 +20,19 @@ var DrawerSubscriptionListID = attributes.ID("drawer-subscriptions-list")
 // TriggerSubscriptionListUpdateHS is a hyperscript snippet to trigger an update of the subscription list in the drawer.
 var TriggerSubscriptionListUpdateHS = "on htmx:afterRequest send UpdateState to " + DrawerSubscriptionListID.Target()
 
+templ DrawerHomeLink() {
+	@partials.MenuItem(partials.LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
+		"hx-get":      "/home",
+		"hx-target":   partials.ContentID.Target(),
+		"hx-push-url": "true",
+	}, nil), nil)
+}
+
 templ DrawerSubscriptionList(list templ.Component) {
 	@partials.MenuItem(list, templ.Attributes{
 		"id":         DrawerSubscriptionListID.String(),
 		"hx-get":     "/subscriptions/state",
-		"hx-trigger": "htmx:historyRestore from:body,UpdateState",
+		"hx-trigger": "htmx:historyRestore from:body,UpdateState from:body,UpdateState",
 	})
 }
 
