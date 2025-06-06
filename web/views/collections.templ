@@ -64,7 +64,6 @@ func GenerateSubscriptionCards(ctx context.Context, pagination models.Pagination
 							"Visit "+models.ParseDomain(subscription.GetLink()),
 							templ.Attributes{
 								"href": subscription.GetLink(),
-								"_":    "on mouseenter add .menu-active to me end on mouseleave remove .menu-active from me end",
 							},
 							[]string{"text-xs"},
 						),
@@ -76,7 +75,7 @@ func GenerateSubscriptionCards(ctx context.Context, pagination models.Pagination
 							templ.Attributes{
 								"hx-get":    "/subscription/edit/" + subscription.GetID(),
 								"hx-target": partials.ModalContainerID.Target(),
-								"_":         partials.HyperscriptOpenModal(partials.ModalID.Target()),
+								"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
 							},
 							[]string{"text-xs"},
 						),
@@ -86,7 +85,7 @@ func GenerateSubscriptionCards(ctx context.Context, pagination models.Pagination
 							templ.Attributes{
 								"hx-delete": "/subscription/remove/" + subscription.GetID() + "?confirmation=no",
 								"hx-target": partials.ModalContainerID.Target(),
-								"_":         partials.HyperscriptOpenModal(partials.ModalID.Target()),
+								"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
 							},
 							[]string{"text-xs"},
 						),

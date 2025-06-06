@@ -510,6 +510,14 @@ func ImportResults(err *models.UserMessage) http.Handler {
 	})
 }
 
+// NewSubscription generates a form for the user to enter details to add a new subscription.
+func NewSubscription(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		ctx := context.WithValue(req.Context(), contentCtxKey, views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil))
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
 // RemoveSubscription handles processing a subscription removal request.
 func RemoveSubscription(api UserAPI, subscriptionID models.SubscriptionID, confirmation models.UserConfirmation) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -564,8 +572,8 @@ func RemoveSubscription(api UserAPI, subscriptionID models.SubscriptionID, confi
 	}
 }
 
-// ShowSubscriptionEditModal retrieves the subscription with the given ID and presents a form for the user to edit it.
-func ShowSubscriptionEditModal(api FeedsAPI, subID models.SubscriptionID) func(next http.Handler) http.Handler {
+// EditSubscription retrieves the subscription with the given ID and presents a form for the user to edit it.
+func EditSubscription(api FeedsAPI, subID models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Retrieve user object.

@@ -39,7 +39,7 @@ templ EmptyContent() {
 				button.WithExtraAttributes(templ.Attributes{
 					"hx-get":    "/subscription/new",
 					"hx-target": partials.ModalContainerID.Target(),
-					"_":         partials.HyperscriptOpenModal(partials.ModalID.Target()),
+					"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
 				}),
 			).Show()
 			@button.Build(
@@ -48,7 +48,7 @@ templ EmptyContent() {
 				button.WithExtraAttributes(templ.Attributes{
 					"hx-get":    "/subscription/import",
 					"hx-target": partials.ModalContainerID.Target(),
-					"_":         partials.HyperscriptOpenModal(partials.ModalID.Target()),
+					"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
 				}),
 			).Show()
 		</div>

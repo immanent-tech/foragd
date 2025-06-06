@@ -8,6 +8,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
+	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/input/fieldset"
@@ -160,6 +161,169 @@ templ (s *SubscriptionEditRequest) editCategories() {
 					}),
 				).Show()
 			}
+		</fieldset>
+	</form>
+}
+
+// SubscriptionDetailsID is the ID of the element containing Subscription details.
+var SubscriptionDetailsID = attributes.ID("subscription-details")
+
+// AddSubscriptionDetailsFormID is the ID of the form for adding Subscription details.
+var AddSubscriptionDetailsFormID = attributes.ID("add-subscription-details-form")
+
+// AddCategoryFormID is the ID of the form for adding a Category.
+var AddCategoryFormID = attributes.ID("add-category-form")
+
+// CategoryListID is the ID of the element containing a list of Categories for a subscription.
+var CategoryListID = attributes.ID("category-list")
+
+// SubscriptionRequest is a wrapper around models.SubscriptionRequest to allow extending it with templates.
+type SubscriptionRequest struct {
+	*models.SubscriptionRequest
+	TopCategories []models.Category
+}
+
+func (r *SubscriptionRequest) inputURL() *textinput.Props {
+	return textinput.Build(
+		textinput.WithName("url"),
+		textinput.AsType(textinput.URL),
+		textinput.WithPlaceholder("https://awesomefeed.lol.rss"),
+		textinput.Required(),
+		textinput.Validate(),
+		textinput.ValidateHint("A valid URL to a feed is required."),
+		textinput.WithValue(r.URL),
+	)
+}
+
+func (r *SubscriptionRequest) inputNickname() *textinput.Props {
+	return textinput.Build(
+		textinput.WithName("user_nickname"),
+		textinput.WithValue(r.UserNickname),
+		textinput.WithPlaceholder("My memorable feed name"),
+	)
+}
+
+templ (r *SubscriptionRequest) Form(msg *models.UserMessage) {
+	<div id={ SubscriptionDetailsID.String() }>
+		if msg != nil {
+			@partials.NewMessage(msg).AsNotification()
+		}
+		// Display the Subscription details.
+		@form.BuildForm(
+			form.WithID(AddSubscriptionDetailsFormID.String()),
+			form.WithExtraAttributes(
+				templ.Attributes{
+					"hx-put":       "/subscription/add",
+					"hx-swap":      "none",
+					"hx-indicator": "#add-processing",
+				},
+			),
+			form.WithElements(
+				fieldset.Build(
+					fieldset.WithField("",
+						hiddeninput.Build(
+							hiddeninput.WithName("subscription_id"),
+							hiddeninput.WithValue(r.GetID()),
+						),
+					),
+					fieldset.WithLegend("Subscription details:"),
+					fieldset.WithField("URL", r.inputURL()),
+					fieldset.WithField("Nickname (optional)", r.inputNickname()),
+				).Show(),
+			),
+		).Show()
+		@manageCategories(r.UserCategories...)
+		// Add a button to submit the Subscription details when finished editing.
+		@fieldset.Build(
+			fieldset.WithField("",
+				button.Build(
+					button.WithContent("Make it so!"),
+					button.WithExtraAttributes(templ.Attributes{
+						"form": AddSubscriptionDetailsFormID.String(),
+						"_":    "on click remove @open from " + partials.ModalID.Target(),
+					})),
+			),
+		).Show()
+		<center id="add-processing" class="htmx-indicator">
+			Adding
+			@loading.Build(loading.Infinity).Show()
+		</center>
+	</div>
+}
+
+func NewSubscriptionRequest(req *models.SubscriptionRequest) *SubscriptionRequest {
+	return &SubscriptionRequest{
+		SubscriptionRequest: req,
+	}
+}
+
+// NewSubscriptionModal will display a modal for the user to enter new Subscription details.
+templ NewSubscriptionModal(req *models.SubscriptionRequest, msg *models.UserMessage) {
+	@modal.Build(
+		modal.WithID(partials.ModalID.String()),
+		modal.WithCloseButton(),
+		modal.WithCloseOutside(),
+	).Show() {
+		@text.Build("Add a new subscription", text.WithSize(text.LG)).Show()
+		if req != nil {
+			@NewSubscriptionRequest(req).Form(msg)
+		}
+	}
+}
+
+templ manageCategories(categories ...string) {
+	<script type="text/hyperscript" src="/static/category-mgmt._hs"></script>
+	<form
+		id="addCategoryForm"
+		_="on submit
+      halt the event
+      set categoryInput to (first <input/> in me).value
+      send newCategory(category: categoryInput) to #categories
+      set value of first <input/> in me to ''"
+	>
+		<fieldset class="fieldset">
+			<label class="label">Add Category (optional)</label>
+			@join.Horizontally() {
+				@textinput.Build(
+					textinput.WithPlaceholder("CoolStuff"),
+				).Show("join-item")
+				@button.Build(
+					button.AsShape(button.Square),
+					button.WithContent(tabler.CategoryPlus()),
+					button.WithExtraClasses("join-item"),
+				).Show()
+			}
+		</fieldset>
+	</form>
+	<form>
+		<fieldset
+			id="categories"
+			class="fieldset"
+			_="
+			on newCategory(category)
+			  addCategory(add-subscription-details-form)
+			end
+
+			on delCategory(category)
+			  tell <input[id=`${category}`]/>
+			  	remove yourself
+			  end
+			for el in #shown-categories.children
+         	  if innerHTML of el == category
+           	  	remove el
+         	  end
+       		end
+			"
+		>
+			<label class="label">Current Categories (click a category to remove):</label>
+			<ul
+				id="shown-categories"
+				_="on click send delCategory(category: innerHTML of target) to #categories"
+			>
+				for category := range slices.Values(categories) {
+					<li>{ category }</li>
+				}
+			</ul>
 		</fieldset>
 	</form>
 }

@@ -18,10 +18,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
 
-func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
-	// handler := handlers.PartialRender(subscription.NewSubscriptionModal(models.NewSubscriptionRequest(""), nil))
-	// handler.ServeHTTP(res, req)
-}
 
 // AddSubscription handles an add subscription request.
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
@@ -93,35 +89,6 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 		handlers.AddFeedsForRequests(s.DataAPI()),
 		handlers.AddSubscriptionsForRequests(s.DataAPI()),
 	).Then(handlers.ImportResults(nil))
-	chain.ServeHTTP(res, req)
-}
-
-// SaveSubscription handles saving any edits to a user's subscription.
-func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
-	subscriptionEdits, valid, err := forms.DecodeForm[*models.SubscriptionCustomisation](req)
-	if err != nil || !valid {
-		details := err.Error()
-		msg := &models.UserMessage{
-			Status:  models.UserMessageStatusError,
-			Summary: "Error editing subscription.",
-			Details: &details,
-		}
-		showImportFailed(res, req, msg)
-		return
-	}
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.SaveSubscription(s.DataAPI(), subscriptionID, subscriptionEdits),
-	).Then(handlers.RenderPartials())
-	chain.ServeHTTP(res, req)
-}
-
-// RemoveSubscription handles unsubscribing from a feed.
-func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID, params RemoveSubscriptionParams) {
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.RemoveSubscription(s.DataAPI(), subscriptionID, params.Confirmation),
-	).Then(handlers.RenderPartials())
 	chain.ServeHTTP(res, req)
 }
 

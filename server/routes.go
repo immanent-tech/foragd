@@ -15,6 +15,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/server/handlers"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
@@ -328,9 +329,56 @@ func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, sub
 
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.ShowSubscriptionEditModal(s.DataAPI(), subscriptionID),
+		handlers.EditSubscription(s.DataAPI(), subscriptionID),
 	).Then(handlers.RenderPartials())
 	chain.ServeHTTP(res, req)
+}
+
+// SaveSubscription handles saving any edits to a user's subscription.
+func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
+	subscriptionEdits, valid, err := forms.DecodeForm[*models.SubscriptionCustomisation](req)
+	if err != nil || !valid {
+		details := err.Error()
+		msg := &models.UserMessage{
+			Status:  models.UserMessageStatusError,
+			Summary: "Error editing subscription.",
+			Details: &details,
+		}
+		showImportFailed(res, req, msg)
+		return
+	}
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.SaveSubscription(s.DataAPI(), subscriptionID, subscriptionEdits),
+	).Then(handlers.RenderPartials())
+	chain.ServeHTTP(res, req)
+}
+
+// RemoveSubscription handles unsubscribing from a feed.
+func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID, params RemoveSubscriptionParams) {
+	// Remove requests are only driven by htmx requests.
+	if !htmx.IsHTMX(req) {
+		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		return
+	}
+
+	alice.New(
+		handlers.RouteLogger,
+		handlers.RemoveSubscription(s.DataAPI(), subscriptionID, params.Confirmation),
+	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+}
+
+func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
+	// Add requests are only driven by htmx requests.
+	if !htmx.IsHTMX(req) {
+		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		return
+	}
+
+	alice.New(
+		handlers.RouteLogger,
+		handlers.NewSubscription,
+	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
 
 func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Request) {
