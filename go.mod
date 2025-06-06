@@ -5,23 +5,23 @@ go 1.24.2
 replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
 
 require (
-	github.com/a-h/templ v0.3.865
+	github.com/a-h/templ v0.3.894
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/angelofallars/htmx-go v0.5.0
-	github.com/auth0/go-auth0 v1.20.0
+	github.com/auth0/go-auth0 v1.22.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v8 v8.18.0
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.26.0
-	github.com/gorilla/sessions v1.1.1
+	github.com/gorilla/sessions v1.4.0
 	github.com/gowebly/helpers v0.4.0
 	github.com/joshuar/go-templ-daisyui v0.0.0
 	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/providers/env v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.0
 	github.com/knadh/koanf/v2 v2.2.0
-	github.com/lmittmann/tint v1.0.7
+	github.com/lmittmann/tint v1.1.1
 	github.com/matoous/go-nanoid v1.5.1
 	github.com/mattn/go-isatty v0.0.20
 	github.com/oapi-codegen/runtime v1.1.1
@@ -51,7 +51,7 @@ require (
 	github.com/gorilla/context v1.1.1 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/gorilla/securecookie v1.1.1 // indirect
+	github.com/gorilla/securecookie v1.1.2 // indirect
 	github.com/gowebly/gowebly/v2 v2.7.2 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
@@ -69,7 +69,7 @@ require (
 require (
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
-	github.com/alecthomas/kong v1.8.1
+	github.com/alecthomas/kong v1.11.0
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
@@ -77,7 +77,7 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.7.0
-	github.com/fatih/color v1.17.0
+	github.com/fatih/color v1.18.0
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/getkin/kin-openapi v0.127.0 // indirect
