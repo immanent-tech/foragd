@@ -62,8 +62,9 @@ const (
 type contextKey string
 
 type FeedsAPI interface {
-	GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error)
-	GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
+	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
+	SearchFeeds(ctx context.Context, queries ...query.Option) (models.Feeds, error)
+	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	GetArticlesByID(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error)
 	ItemsSearch(ctx context.Context, query query.Option, filters models.Filters, pagination models.Pagination) (*search.Response, error)
 	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error)
@@ -71,6 +72,11 @@ type FeedsAPI interface {
 
 type UserAPI interface {
 	UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) *models.Response
+}
+
+type BackendAPI interface {
+	FeedsAPI
+	UserAPI
 }
 
 // DataAPI represents the API surface for interacting with the database/datastore backend.
@@ -81,14 +87,14 @@ type DataAPI interface {
 	// Subscription methods:
 	// GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response)
 	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) *models.Response
-	AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) *models.Response
+	// AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) *models.Response
 	// RemoveSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) *models.Response
 	// Feeds methods:
 	// GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
-	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
+	// FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	// Item methods:
-	GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
+	// GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	GetArticle(ctx context.Context, itemID models.ItemID) (*models.Article, bool, *models.Response)
 	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) *models.Response
 	// GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)

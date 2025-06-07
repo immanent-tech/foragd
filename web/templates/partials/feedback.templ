@@ -85,21 +85,9 @@ templ (m *UserMessage) AsNotification() {
 // ShowNotification displays the given message as a notification in the UI.
 templ ShowNotification(msg *models.UserMessage) {
 	<div id={ NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50" hx-swap-oob="true" hx-swap="outerHTML swap:1s settle:1s">
-		@alert.Build(
-			alert.AlertState(msgStatusToAlertState(msg.Status)),
-			alert.WithExtraAttributes(templ.Attributes{
-				"_": "on load wait 5s then transition opacity to 0 then remove me",
-			}),
-		).Show() {
-			if msg.HasDetails() {
-				<div>
-					<h3 class="font-bold">{ msg.Summary }</h3>
-					<div class="text-xs">{ *msg.Details }</div>
-				</div>
-			} else {
-				<span>{ msg.Summary }</span>
-			}
-		}
+		@Alert(msg, templ.Attributes{
+			"_": "on load wait 5s then transition opacity to 0 then remove me",
+		})
 	</div>
 }
 
@@ -129,6 +117,22 @@ templ CopyTextButton(label, text string) {
 			}),
 		).Show()
 	</div>
+}
+
+templ Alert(msg *models.UserMessage, attrs templ.Attributes) {
+	@alert.Build(
+		alert.AlertState(msgStatusToAlertState(msg.Status)),
+		alert.WithExtraAttributes(attrs),
+	).Show() {
+		if msg.HasDetails() {
+			<div>
+				<h3 class="font-bold">{ msg.Summary }</h3>
+				<div class="text-xs">{ *msg.Details }</div>
+			</div>
+		} else {
+			<span>{ msg.Summary }</span>
+		}
+	}
 }
 
 func msgStatusToAlertState(status models.UserMessageStatus) alert.AlertState {

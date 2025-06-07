@@ -439,10 +439,6 @@ func (r *SubscriptionRequest) GetURL() string {
 	return r.URL
 }
 
-func (r *SubscriptionRequest) GetID() string {
-	return r.SubscriptionID
-}
-
 // SubscriptionRequests is a list of subscription requests.
 type SubscriptionRequests []*SubscriptionRequest
 
@@ -539,19 +535,11 @@ func (r SubscriptionRequests) FilterValid() SubscriptionRequests {
 	}))
 }
 
-// NewSubscriptionRequest creates a new SubscriptionRequest with the given URL.
-func NewSubscriptionRequest(url string) *SubscriptionRequest {
-	return &SubscriptionRequest{
-		SubscriptionID: NewID(SubscriptionPFX),
-		URL:            url,
-	}
-}
-
 // NewSubscription creates a Subscription from the request and feed details.
 func NewSubscription(request *SubscriptionRequest, feed *Feed) *Subscription {
 	return &Subscription{
 		CreatedAt:      time.Now().UTC(),
-		SubscriptionID: request.SubscriptionID,
+		SubscriptionID: NewID(SubscriptionPFX),
 		UserCategories: request.UserCategories,
 		UserNickname:   request.UserNickname,
 		MarkedRead:     UnixEpoch,

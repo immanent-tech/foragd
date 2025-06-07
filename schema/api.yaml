@@ -172,8 +172,6 @@ components:
             - URL
             - ID
           properties:
-            ID:
-              $ref: 'models.yaml#/components/schemas/SubscriptionID'
             URL:
               description: the canonical URL to the feed.
               type: string

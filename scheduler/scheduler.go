@@ -25,8 +25,8 @@ import (
 
 // DataAPI is the interface that provides access to the data-store backend in use.
 type DataAPI interface {
-	GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error)
-	FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
+	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
+	SearchFeeds(ctx context.Context, queries ...query.Option) (models.Feeds, error)
 	// GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error)
 	AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error)
 	MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error
@@ -112,7 +112,7 @@ func Run(ctx context.Context) error {
 }
 
 func (m *Manager) checkFeeds(ctx context.Context) error {
-	feeds, err := m.db.FeedsSearchAll(ctx, query.Since("created_at", m.checkpoint))
+	feeds, err := m.db.SearchFeeds(ctx, query.Since("created_at", m.checkpoint))
 	if err != nil {
 		return fmt.Errorf("checking for new feeds failed: %w", err)
 	}

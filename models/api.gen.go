@@ -182,9 +182,6 @@ type SortOrder string
 
 // SubscriptionRequest defines model for SubscriptionRequest.
 type SubscriptionRequest struct {
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-
 	// Result the results of processing the subscription request.
 	Result *UserMessage `form:"-" json:"-"`
 

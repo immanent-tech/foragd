@@ -119,13 +119,13 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 	}
 
 	// Retrieve the feed details.
-	feed, err := api.GetFeed(ctx, job.FeedID)
+	feeds, err := api.GetFeeds(ctx, job.FeedID)
 	if err != nil && !errors.Is(err, ErrNoJob) {
 		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
 
 	// Get new items since the last fetch.
-	items, err := job.getItemsSince(feed.Updated)
+	items, err := job.getItemsSince(feeds[0].Updated)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
@@ -140,7 +140,7 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 		}
 		slogctx.FromCtx(ctx).Debug("Job execution finished.",
 			slog.String("job", job.Description()),
-			slog.Time("updated_at", feed.Updated),
+			slog.Time("updated_at", feeds[0].Updated),
 			slog.Int("items_added", len(items)),
 		)
 	}

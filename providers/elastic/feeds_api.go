@@ -81,33 +81,8 @@ func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Respon
 	return &resp, nil
 }
 
-// GetFeed retrieves the feed with the given id.
-func (e *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
-	}
-
-	resp, err := NewGetRequest(e.GetAPI(), index, id).Do(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrGetFailed, err)
-	}
-
-	// Stop if there are no hits
-	if !resp.Found {
-		return nil, errors.Join(ErrGetFailed, errors.New("no job state"))
-	}
-
-	// Loop through this set of results.
-	state, err := ExtractSource[*models.Feed](resp.Source_)
-	if err != nil {
-		return nil, errors.Join(ErrGetFailed, err)
-	}
-
-	return state, nil
-}
-
-func (e *API) GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error) {
+// GetFeeds retrieves the feeds with the given IDs.
+func (e *API) GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
@@ -129,7 +104,7 @@ func (e *API) GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (model
 
 // FeedsSearchAll will retrieve all feeds matching the given queries, sorted by the given sort. It paginates through the
 // entire feeds index.
-func (a *API) FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error) {
+func (a *API) SearchFeeds(ctx context.Context, queries ...query.Option) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)

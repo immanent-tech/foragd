@@ -92,75 +92,72 @@ func NewSubscriptionRequest(req *models.SubscriptionRequest) *SubscriptionReques
 }
 
 // NewSubscriptionModal will display a modal for the user to enter new Subscription details.
-templ NewSubscriptionModal(req *models.SubscriptionRequest, msg *models.UserMessage) {
+templ NewSubscriptionModal(request *models.SubscriptionRequest) {
 	@modal.Build(
 		modal.WithID(partials.ModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
 	).Show() {
 		@text.Build("Add a new subscription", text.WithSize(text.LG)).Show()
-		if req != nil {
-			if msg != nil {
-				@partials.NewMessage(msg).AsNotification()
-			}
-			// Display the Subscription details.
-			@form.BuildForm(
-				form.WithID("subscription_details"),
-				form.WithExtraAttributes(
-					templ.Attributes{
-						"hx-put":       "/subscription/add",
-						"hx-swap":      "none",
-						"hx-indicator": "#add-processing",
-					},
-				),
-				form.WithElements(
-					fieldset.Build(
-						fieldset.WithField("",
-							hiddeninput.Build(
-								hiddeninput.WithName("subscription_id"),
-								hiddeninput.WithValue(req.GetID()),
-							),
-						),
-						fieldset.WithLegend("Subscription details:"),
-						fieldset.WithField("URL",
-							textinput.Build(
-								textinput.WithName("url"),
-								textinput.AsType(textinput.URL),
-								textinput.WithPlaceholder("https://awesomefeed.lol.rss"),
-								textinput.Required(),
-								textinput.Validate(),
-								textinput.ValidateHint("A valid URL to a feed is required."),
-								textinput.WithValue(req.URL),
-							),
-						),
-						fieldset.WithField("Nickname (optional)",
-							textinput.Build(
-								textinput.WithName("user_nickname"),
-								textinput.WithValue(req.UserNickname),
-								textinput.WithPlaceholder("My memorable feed name"),
-							),
-						),
-					).Show(),
-				),
-			).Show()
-			@editCategories(req.UserCategories, nil)
-			// @manageCategories(r.UserCategories...)
-			// Add a button to submit the Subscription details when finished editing.
-			@fieldset.Build(
-				fieldset.WithField("",
-					button.Build(
-						button.WithContent("Make it so!"),
-						button.WithExtraAttributes(templ.Attributes{
-							"form": "subscription_details",
-							"_":    "on click remove @open from " + partials.ModalID.Target(),
-						})),
-				),
-			).Show()
-			<center id="add-processing" class="htmx-indicator">
-				Adding
-				@loading.Build(loading.Infinity).Show()
-			</center>
+		if request.Result != nil {
+			@partials.Alert(request.Result, nil)
 		}
+		// Display the Subscription details.
+		@form.BuildForm(
+			form.WithID("subscription_details"),
+			form.WithExtraAttributes(
+				templ.Attributes{
+					"hx-put":       "/subscription/add",
+					"hx-target":    partials.ModalID.Target(),
+					"hx-swap":      "morph:outerHTML",
+					"hx-indicator": "#add-processing",
+				},
+			),
+			form.WithElements(
+				fieldset.Build(
+					// fieldset.WithField("",
+					// 	hiddeninput.Build(
+					// 		hiddeninput.WithName("subscription_id"),
+					// 		hiddeninput.WithValue(request.GetID()),
+					// 	),
+					// ),
+					fieldset.WithLegend("Subscription details:"),
+					fieldset.WithField("URL",
+						textinput.Build(
+							textinput.AsType(textinput.URL),
+							textinput.WithName("url"),
+							textinput.WithPlaceholder("https://awesomefeed.lol.rss"),
+							textinput.Required(),
+							textinput.Validate(),
+							textinput.ValidateHint("A valid URL to a feed is required."),
+							textinput.WithValue(request.URL),
+						),
+					),
+					fieldset.WithField("Nickname (optional)",
+						textinput.Build(
+							textinput.WithName("user_nickname"),
+							textinput.WithValue(request.UserNickname),
+							textinput.WithPlaceholder("My memorable feed name"),
+						),
+					),
+				).Show(),
+			),
+		).Show()
+		@editCategories(request.UserCategories, nil)
+		// Add a button to submit the Subscription details when finished editing.
+		@fieldset.Build(
+			fieldset.WithField("",
+				button.Build(
+					button.WithContent("Make it so!"),
+					button.WithExtraAttributes(templ.Attributes{
+						"form": "subscription_details",
+					})),
+			),
+		).Show()
+		<center id="add-processing" class="htmx-indicator">
+			Adding
+			@loading.Build(loading.Infinity).Show()
+		</center>
 	}
 }
 

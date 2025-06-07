@@ -18,20 +18,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 )
 
-
-// AddSubscription handles an add subscription request.
-func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.ParseSubscriptionRequest,
-		handlers.MatchRequestsWithFeeds(s.DataAPI()),
-		handlers.CreateNewFeedsForRequests,
-		handlers.AddFeedsForRequests(s.DataAPI()),
-		handlers.AddSubscriptionsForRequests(s.DataAPI()),
-	).Then(handlers.AddSubscriptionResults())
-	chain.ServeHTTP(res, req)
-}
-
 // StartImport sets up an import for the user.
 func (s Server) StartImport(res http.ResponseWriter, req *http.Request) {
 	// handler := handlers.PartialRender(subscription.ImportModal())
@@ -84,10 +70,7 @@ func (s Server) ProcessImport(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.ProcessImportMethod,
-		handlers.MatchRequestsWithFeeds(s.DataAPI()),
-		handlers.CreateNewFeedsForRequests,
-		handlers.AddFeedsForRequests(s.DataAPI()),
-		handlers.AddSubscriptionsForRequests(s.DataAPI()),
+		handlers.ProcessSubscriptionRequests(s.DataAPI()),
 	).Then(handlers.ImportResults(nil))
 	chain.ServeHTTP(res, req)
 }

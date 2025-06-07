@@ -35,7 +35,7 @@ func getAllSubscriptions(ctx context.Context, api FeedsAPI) (models.Subscription
 	subscriptions := user.GetSubscriptions()
 
 	// Get feeds matching subscriptions.
-	feeds, err := api.GetFeedsByID(ctx, subscriptions.GetFeedIDs()...)
+	feeds, err := api.GetFeeds(ctx, subscriptions.GetFeedIDs()...)
 	if err != nil {
 		return nil, models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
 	}
@@ -65,7 +65,7 @@ func getFilteredSubscriptions(ctx context.Context, api FeedsAPI, pagination mode
 	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
 
 	// Get feeds matching subscriptions.
-	feeds, err := api.GetFeedsByID(ctx, subscriptions.GetFeedIDs()...)
+	feeds, err := api.GetFeeds(ctx, subscriptions.GetFeedIDs()...)
 	if err != nil {
 		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
 	}
@@ -202,6 +202,23 @@ func getItemTopCategories(ctx context.Context, api FeedsAPI, feeds ...models.Fee
 	}
 
 	return topCategories.BucketNames(), models.RespSuccess("Retrieved categories.")
+}
+
+func addSubscriptions(ctx context.Context, api UserAPI, subscriptions models.Subscriptions) *models.Response {
+	if len(subscriptions) == 0 {
+		return nil
+	}
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.RespInvalidUser()
+	}
+	// Add the subscriptions to the user.
+	user.AddSubscriptions(subscriptions)
+	// Update the user object.
+	return api.UpdateUser(ctx, user.GetID(), map[string]any{
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
+	})
 }
 
 func removeSubscriptions(ctx context.Context, api UserAPI, subscriptions ...models.SubscriptionID) *models.Response {

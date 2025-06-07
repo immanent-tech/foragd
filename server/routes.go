@@ -381,10 +381,25 @@ func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
 
+// AddSubscription handles an add subscription request.
+func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
+	// Add requests are only driven by htmx requests.
+	if !htmx.IsHTMX(req) {
+		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		return
+	}
+
+	alice.New(
+		handlers.RouteLogger,
+		handlers.ParseAddSubscriptionRequest,
+		handlers.ProcessSubscriptionRequests(s.DataAPI()),
+		handlers.ProcessAddSubscriptionRequestResult,
+	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+}
+
 func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Request) {
-	chain := alice.New(
+	alice.New(
 		handlers.RouteLogger,
 		handlers.GenerateDrawerContent(s.DataAPI()),
-	).Then(handlers.RenderPartials())
-	chain.ServeHTTP(res, req)
+	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
