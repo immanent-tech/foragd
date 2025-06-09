@@ -57,6 +57,21 @@ func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subID
 	}
 }
 
+func PaginateArticleCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			articles, pagination, resp := searchArticles(req.Context(), api, pagination, subIDs...)
+			if resp.IsError() {
+				ProcessResponse(res, req, resp)
+				return
+			}
+			cards := views.GenerateArticleCards(req.Context(), articles, pagination)
+			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cards...))
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
 // GenerateArticle handles displaying an item as an article.
 func GenerateArticle(api FeedsAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -601,25 +616,29 @@ func SaveSubscription(api UserAPI, subID models.SubscriptionID, edits *models.Su
 }
 
 // MarkSubscriptions handles marking subscriptions with the given IDs with the given mark.
-func MarkSubscriptions(api UserAPI, mark models.Mark, subscriptions ...models.SubscriptionID) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if resp := markSubscriptions(req.Context(), api, mark, subscriptions...); resp.IsError() {
-			ProcessResponse(res, req, resp)
-			return
-		}
-		res.WriteHeader(http.StatusOK)
-	})
+func MarkSubscriptions(api UserAPI, mark models.Mark, subscriptions ...models.SubscriptionID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			if resp := markSubscriptions(req.Context(), api, mark, subscriptions...); resp.IsError() {
+				ProcessResponse(res, req, resp)
+				return
+			}
+			next.ServeHTTP(res, req)
+		})
+	}
 }
 
-func MarkItems(api BackendAPI, mark models.Mark, items ...models.ItemID) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Mark the feeds.
-		if resp := markArticles(req.Context(), api, mark, items...); resp.IsError() {
-			ProcessResponse(res, req, resp)
-			return
-		}
-		res.WriteHeader(http.StatusOK)
-	})
+func MarkItems(api BackendAPI, mark models.Mark, items ...models.ItemID) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			// Mark the feeds.
+			if resp := markArticles(req.Context(), api, mark, items...); resp.IsError() {
+				ProcessResponse(res, req, resp)
+				return
+			}
+			next.ServeHTTP(res, req)
+		})
+	}
 }
 
 // GenerateSettings handles displaying the user settings page.

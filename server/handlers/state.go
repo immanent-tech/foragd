@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
 	"log/slog"
 	"net/http"
 
@@ -44,28 +43,21 @@ func SaveFilters(params any) func(next http.Handler) http.Handler {
 func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
 			if htmx.IsHTMX(req) && path != nil {
 				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
 					slog.String("path", *path),
 				)
 				view := RestorePageState(req.Context(), *path)
-				// view := models.GetPreviousViewedPage(req.Context(), api)
-				HxLocationData := HXLocation{Path: view.String(), Target: partials.ContentID.Target()}
-				data, err := json.Marshal(HxLocationData)
-				if err != nil {
-					ProcessResponse(res, req, &models.Response{
-						StatusCode:    http.StatusInternalServerError,
-						InternalError: err,
-						UserMessage: &models.UserMessage{
-							Status:  models.UserMessageStatusError,
-							Summary: "Redirection failed.",
-						},
-					})
-				}
 				// Set-up client-side redirect to view.
-				res.Header().Add(htmx.HeaderLocation, string(data))
+				htmxResp := htmx.NewResponse().LocationWithContext(
+					view.String(),
+					htmx.LocationContext{
+						Target: partials.ContentID.Target(),
+					})
+				ctx = context.WithValue(ctx, htmxRespCtxKey, htmxResp)
 			}
-			next.ServeHTTP(res, req)
+			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }

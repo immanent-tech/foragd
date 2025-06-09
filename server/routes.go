@@ -192,7 +192,7 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 	case models.CollectionSubscriptions:
 		chain = chain.Append(handlers.PaginateSubscriptionCollection(s.DataAPI(), pagination))
 	case models.CollectionArticles:
-		chain = chain.Append(handlers.PaginateSubscriptionCollection(s.DataAPI(), pagination))
+		chain = chain.Append(handlers.PaginateArticleCollection(s.DataAPI(), pagination))
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode: http.StatusNoContent,
@@ -209,7 +209,7 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 
 // ActionCollection handles performing an action on a collection of objects.
 func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, collection Collection, action Action, params ActionCollectionParams) {
-	var actionFunc http.Handler
+	var actionFunc func(next http.Handler) http.Handler
 
 	switch {
 	case collection == models.CollectionSubscriptions && slices.Contains([]Action{models.ActionRead, models.ActionUnread}, action):
@@ -227,13 +227,14 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.SetupRedirect(params.Redirect),
-	).Then(actionFunc)
+		actionFunc,
+	).Then(handlers.RenderPartials())
 	chain.ServeHTTP(res, req)
 }
 
 // ActionItem handles performing an action on an item.
 func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action Action, item ItemID, params ActionArticleParams) {
-	var actionFunc http.Handler
+	var actionFunc func(next http.Handler) http.Handler
 
 	switch action {
 	case models.ActionRead, models.ActionUnread:
@@ -247,7 +248,8 @@ func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.SetupRedirect(params.Redirect),
-	).Then(actionFunc)
+		actionFunc,
+	).Then(handlers.RenderPartials())
 	chain.ServeHTTP(res, req)
 }
 
@@ -299,13 +301,13 @@ func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request,
 		handlers.RouteLogger,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
-		handlers.GenerateArticleCollection(s.DataAPI(), pagination, sub),
+		handlers.PaginateArticleCollection(s.DataAPI(), pagination, sub),
 	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
 
 // ActionSubscription performs an action on a subscription.
 func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, action Action, sub SubscriptionID, params ActionSubscriptionParams) {
-	var actionFunc http.Handler
+	var actionFunc func(next http.Handler) http.Handler
 	switch action {
 	case models.ActionRead, models.ActionUnread:
 		actionFunc = handlers.MarkSubscriptions(s.DataAPI(), models.Mark(action), sub)
@@ -315,7 +317,8 @@ func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, a
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-	).Then(actionFunc)
+		actionFunc,
+	).Then(handlers.RenderPartials())
 	chain.ServeHTTP(res, req)
 }
 

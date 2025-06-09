@@ -61,6 +61,7 @@ const (
 
 type contextKey string
 
+// FeedsAPI contains methods for manipulating feed/item data.
 type FeedsAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	SearchFeeds(ctx context.Context, queries ...query.Option) (models.Feeds, error)
@@ -69,12 +70,14 @@ type FeedsAPI interface {
 	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error)
 }
 
+// UserAPI contains methods for manipulating user data.
 type UserAPI interface {
 	AddUser(ctx context.Context, userID models.UserID) error
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 	UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) *models.Response
 }
 
+// BackendAPI contains the feed/user apis.
 type BackendAPI interface {
 	FeedsAPI
 	UserAPI
@@ -85,11 +88,6 @@ type AuthAPI interface {
 	GetAuthURL(req *http.Request) (string, error)
 	CompleteUserAuth(res http.ResponseWriter, req *http.Request) error
 	GetUserID(ctx context.Context) models.UserID
-}
-
-type HXLocation struct {
-	Path   string `json:"path"`
-	Target string `json:"target"`
 }
 
 func init() {
