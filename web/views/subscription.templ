@@ -11,10 +11,14 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/input/fieldset"
+	"github.com/joshuar/go-templ-daisyui/input/fileinput"
 	"github.com/joshuar/go-templ-daisyui/input/form"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
+	"github.com/joshuar/go-templ-daisyui/input/option"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/layout/join"
+	"strconv"
+
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
@@ -242,4 +246,118 @@ templ editCategories(existing []models.Category, suggested []models.Category) {
 			}
 		</fieldset>
 	</form>
+}
+
+templ ImportSubscriptionLayout() {
+	<div class="max-w-md text-center">
+		<h1 class="font-bold">Import Subscriptions</h1>
+		<div class="py-6">
+			@option.Build(
+				option.WithLabel("Pick Import Method:"),
+				option.Required(),
+				option.WithName("source"),
+				option.WithValues(
+					// option.Value{Label: "From OPML URL", Value: string(models.ImportSourceOPMLURL)},
+					option.Value{Label: "From OPML File", Value: string(models.ImportSourceOPMLFile)},
+					// option.Value{Label: "From a list URLs", Value: string(models.ImportSourceURLs)},
+				),
+				option.WithExtraAttributes(templ.Attributes{
+					"hx-put":    "/subscriptions/import",
+					"hx-target": "#import-subscriptions",
+				}),
+			).Show()
+		</div>
+		<div class="py-6">
+			@form.BuildForm(
+				form.WithID("import-subscriptions"),
+				form.WithExtraAttributes(
+					templ.Attributes{
+						"hx-post":      "/subscriptions/import",
+						"hx-encoding":  "multipart/form-data",
+						"hx-target":    "#import-results",
+						"hx-indicator": "#import-processing",
+					},
+				),
+			).Show()
+		</div>
+		<center id="import-processing" class="htmx-indicator">
+			Processing
+			@loading.Build(loading.Infinity).Show()
+		</center>
+	</div>
+	<div id="import-results" class="py-6"></div>
+}
+
+// ImportFromOPML shows inputs for choosing an OPML file as the input source.
+templ ImportFromOPML() {
+	<p>Select the OPML file to use:</p>
+	@fieldset.Build(
+		fieldset.WithField("",
+			hiddeninput.Build(
+				hiddeninput.WithName("source"),
+				hiddeninput.WithValue(string(models.ImportSourceOPMLFile)),
+			),
+		),
+		fieldset.WithField("",
+			fileinput.Build(
+				fileinput.WithName("data"),
+				fileinput.Required(),
+			),
+		),
+		fieldset.WithField("",
+			button.Build(
+				button.WithContent("Import"),
+			),
+		),
+	).Show()
+	// <progress id="import-form-progress" class="progress" value="0" max="100"></progress>
+}
+
+templ ImportResults(requests models.SubscriptionRequests) {
+	{{ numSuccess := len(requests.FilterByStatus(models.UserMessageStatusSuccess)) }}
+	{{ numFail := len(requests) - numSuccess }}
+	<div class="max-w-md text-center">
+		<h1 class="font-bold">Import Results</h1>
+		<p class="py-4">Imported: { strconv.Itoa(numSuccess) } Failed: { strconv.Itoa(numFail) }</p>
+	</div>
+	<div class="overflow-x-auto">
+		<table class="table table-xs">
+			<thead>
+				<tr>
+					<th>Title</th>
+					<th>URL</th>
+					<th>Status</th>
+					<th>Result</th>
+					<th>Details</th>
+				</tr>
+			</thead>
+			<tbody>
+				for request := range slices.Values(requests) {
+					<tr>
+						if request.Result.Status != models.UserMessageStatusSuccess {
+							<th></th>
+							<td>{ request.GetURL() }</td>
+							<td>{ string(request.Result.Status) }</td>
+							<td>{ request.Result.Summary }</td>
+							if request.Result.HasDetails() {
+								<td>{ *request.Result.Details }</td>
+							} else {
+								<td></td>
+							}
+						} else {
+							<th>{ request.Subscription.GetTitle() }</th>
+							<td>{ request.GetURL() }</td>
+							<td>{ string(request.Result.Status) }</td>
+							<td>{ request.Result.Summary }</td>
+							if request.Result.HasDetails() {
+								<td>{ *request.Result.Details }</td>
+							} else {
+								<td></td>
+							}
+						}
+					</tr>
+				}
+			</tbody>
+		</table>
+	</div>
 }

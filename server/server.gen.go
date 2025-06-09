@@ -127,12 +127,6 @@ type ActionCollectionParams struct {
 	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
-// SetImportMethodFormdataBody defines parameters for SetImportMethod.
-type SetImportMethodFormdataBody struct {
-	// From defines the source that will be used for an import.
-	From externalRef0.ImportSource `form:"source" json:"source" validate:"oneof=opml_file opml_url url_list"`
-}
-
 // RemoveSubscriptionParams defines parameters for RemoveSubscription.
 type RemoveSubscriptionParams struct {
 	// Confirmation indicates the confirmation state from the user for a destructive action.
@@ -164,17 +158,23 @@ type PaginateSubscriptionParams struct {
 	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
 }
 
+// SetSubscriptionImportMethodFormdataBody defines parameters for SetSubscriptionImportMethod.
+type SetSubscriptionImportMethodFormdataBody struct {
+	// From defines the source that will be used for an import.
+	From externalRef0.ImportSource `form:"source" json:"source" validate:"oneof=opml_file opml_url url_list"`
+}
+
 // ProcessSignUpFormdataRequestBody defines body for ProcessSignUp for application/x-www-form-urlencoded ContentType.
 type ProcessSignUpFormdataRequestBody = externalRef0.UserSignupRequest
 
 // AddSubscriptionFormdataRequestBody defines body for AddSubscription for application/x-www-form-urlencoded ContentType.
 type AddSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
-// ProcessImportMultipartRequestBody defines body for ProcessImport for multipart/form-data ContentType.
-type ProcessImportMultipartRequestBody = Import
+// ProcessSubscriptionImportMultipartRequestBody defines body for ProcessSubscriptionImport for multipart/form-data ContentType.
+type ProcessSubscriptionImportMultipartRequestBody = Import
 
-// SetImportMethodFormdataRequestBody defines body for SetImportMethod for application/x-www-form-urlencoded ContentType.
-type SetImportMethodFormdataRequestBody SetImportMethodFormdataBody
+// SetSubscriptionImportMethodFormdataRequestBody defines body for SetSubscriptionImportMethod for application/x-www-form-urlencoded ContentType.
+type SetSubscriptionImportMethodFormdataRequestBody SetSubscriptionImportMethodFormdataBody
 
 // AsImportOPML returns the union data inside the Import_Data as a ImportOPML
 func (t Import_Data) AsImportOPML() (ImportOPML, error) {
@@ -326,15 +326,6 @@ type ServerInterface interface {
 	// Save a subscription.
 	// (PUT /subscription/edit/{subscription})
 	SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
-
-	// (GET /subscription/import)
-	StartImport(w http.ResponseWriter, r *http.Request)
-
-	// (POST /subscription/import)
-	ProcessImport(w http.ResponseWriter, r *http.Request)
-
-	// (PUT /subscription/import)
-	SetImportMethod(w http.ResponseWriter, r *http.Request)
 	// New subscription handling.
 	// (GET /subscription/new)
 	NewSubscription(w http.ResponseWriter, r *http.Request)
@@ -350,6 +341,15 @@ type ServerInterface interface {
 	// Paginate through items for the given subscription, with optional filtering.
 	// (POST /subscription/{subscription})
 	PaginateSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params PaginateSubscriptionParams)
+
+	// (GET /subscriptions/import)
+	StartSubscriptionImport(w http.ResponseWriter, r *http.Request)
+
+	// (POST /subscriptions/import)
+	ProcessSubscriptionImport(w http.ResponseWriter, r *http.Request)
+
+	// (PUT /subscriptions/import)
+	SetSubscriptionImportMethod(w http.ResponseWriter, r *http.Request)
 	// Fetches all subscription states.
 	// (GET /subscriptions/state)
 	GetAllSubscriptionsState(w http.ResponseWriter, r *http.Request)
@@ -478,21 +478,6 @@ func (_ Unimplemented) SaveSubscription(w http.ResponseWriter, r *http.Request, 
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// (GET /subscription/import)
-func (_ Unimplemented) StartImport(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// (POST /subscription/import)
-func (_ Unimplemented) ProcessImport(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// (PUT /subscription/import)
-func (_ Unimplemented) SetImportMethod(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
 // New subscription handling.
 // (GET /subscription/new)
 func (_ Unimplemented) NewSubscription(w http.ResponseWriter, r *http.Request) {
@@ -520,6 +505,21 @@ func (_ Unimplemented) ShowSubscription(w http.ResponseWriter, r *http.Request, 
 // Paginate through items for the given subscription, with optional filtering.
 // (POST /subscription/{subscription})
 func (_ Unimplemented) PaginateSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params PaginateSubscriptionParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (GET /subscriptions/import)
+func (_ Unimplemented) StartSubscriptionImport(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (POST /subscriptions/import)
+func (_ Unimplemented) ProcessSubscriptionImport(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// (PUT /subscriptions/import)
+func (_ Unimplemented) SetSubscriptionImportMethod(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1253,48 +1253,6 @@ func (siw *ServerInterfaceWrapper) SaveSubscription(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
-// StartImport operation middleware
-func (siw *ServerInterfaceWrapper) StartImport(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.StartImport(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ProcessImport operation middleware
-func (siw *ServerInterfaceWrapper) ProcessImport(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ProcessImport(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// SetImportMethod operation middleware
-func (siw *ServerInterfaceWrapper) SetImportMethod(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.SetImportMethod(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // NewSubscription operation middleware
 func (siw *ServerInterfaceWrapper) NewSubscription(w http.ResponseWriter, r *http.Request) {
 
@@ -1597,6 +1555,48 @@ func (siw *ServerInterfaceWrapper) PaginateSubscription(w http.ResponseWriter, r
 	handler.ServeHTTP(w, r)
 }
 
+// StartSubscriptionImport operation middleware
+func (siw *ServerInterfaceWrapper) StartSubscriptionImport(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StartSubscriptionImport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ProcessSubscriptionImport operation middleware
+func (siw *ServerInterfaceWrapper) ProcessSubscriptionImport(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ProcessSubscriptionImport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetSubscriptionImportMethod operation middleware
+func (siw *ServerInterfaceWrapper) SetSubscriptionImportMethod(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetSubscriptionImportMethod(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetAllSubscriptionsState operation middleware
 func (siw *ServerInterfaceWrapper) GetAllSubscriptionsState(w http.ResponseWriter, r *http.Request) {
 
@@ -1785,15 +1785,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/subscription/edit/{subscription}", wrapper.SaveSubscription)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/subscription/import", wrapper.StartImport)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/subscription/import", wrapper.ProcessImport)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/subscription/import", wrapper.SetImportMethod)
-	})
-	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscription/new", wrapper.NewSubscription)
 	})
 	r.Group(func(r chi.Router) {
@@ -1807,6 +1798,15 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/subscription/{subscription}", wrapper.PaginateSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/subscriptions/import", wrapper.StartSubscriptionImport)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/subscriptions/import", wrapper.ProcessSubscriptionImport)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/subscriptions/import", wrapper.SetSubscriptionImportMethod)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscriptions/state", wrapper.GetAllSubscriptionsState)

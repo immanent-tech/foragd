@@ -74,9 +74,10 @@ templ DefaultHeaderEnd() {
 			</li>
 			<li _="on click call document.activeElement.blur()">
 				@LinkWithIcon(tabler.FilePlus(), "Import Subscriptions", templ.Attributes{
-					"hx-get":    "/subscription/import",
-					"hx-target": ModalContainerID.Target(),
-					"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + ModalID.Target(),
+					"hx-get":    "/subscriptions/import",
+					"hx-target": ContentID.Target(),
+					"hx-replace-url": "true",
+					// "_":         "on htmx:afterOnLoad wait 10ms then add @open to " + ModalID.Target(),
 				}, []string{"text-sm"})
 			</li>
 			<li>

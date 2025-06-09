@@ -138,37 +138,6 @@ paths:
       responses:
         default:
           $ref: '#/components/responses/html'
-  /subscription/import:
-    get:
-      description: >
-        Start an import.
-      operationId: startImport
-    put:
-      description: >
-        Set the import method.
-      operationId: setImportMethod
-      requestBody:
-        required: true
-        content:
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              required:
-                - from
-              properties:
-                from:
-                  $ref: 'api.yaml#/components/schemas/ImportSource'
-      # parameters:
-      #   - $ref: "api.yaml#/components/parameters/ImportSource"
-    post:
-      description: >
-        Process an import.
-      operationId: processImport
-      requestBody:
-        $ref: '#/components/requestBodies/ImportRequest'
-    responses:
-      default:
-        $ref: '#/components/responses/html'
   /subscription/edit/{subscription}:
     parameters:
       - $ref: '#/components/parameters/SubscriptionID'
@@ -261,6 +230,35 @@ paths:
       responses:
         default:
           $ref: '#/components/responses/html'
+  /subscriptions/import:
+    get:
+      description: >
+        Start an import.
+      operationId: startSubscriptionImport
+    put:
+      description: >
+        Set the import method.
+      operationId: setSubscriptionImportMethod
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - from
+              properties:
+                from:
+                  $ref: 'api.yaml#/components/schemas/ImportSource'
+    post:
+      description: >
+        Process an import.
+      operationId: processSubscriptionImport
+      requestBody:
+        $ref: '#/components/requestBodies/ImportRequest'
+    responses:
+      default:
+        $ref: '#/components/responses/html'
   /subscription/{subscription}:
     parameters:
       - $ref: '#/components/parameters/SubscriptionID'

@@ -9,7 +9,6 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -21,7 +20,6 @@ import (
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/templates/partials/subscription"
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
@@ -141,70 +139,6 @@ func PaginateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, 
 	}
 }
 
-// ParseOPMLFromFile will parse an OPML file that has been uploaded via the request and generate subscription requests
-// from it.
-func ParseOPMLFromFile(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Decode the OPML file form input.
-		opmlFile := &models.OPMLFile{}
-		opmlFile, valid, err := forms.DecodeMultipartFile(req, "data", opmlFile)
-		if err != nil || !valid {
-			details := err.Error()
-			ImportResults(&models.UserMessage{
-				Status:  models.UserMessageStatusError,
-				Summary: "Could not parse OPML file.",
-				Details: &details,
-			}).ServeHTTP(res, req)
-			return
-		}
-		opmlImport, err := opmlFile.Parse()
-		if err != nil {
-			details := err.Error()
-			ImportResults(&models.UserMessage{
-				Status:  models.UserMessageStatusError,
-				Summary: "Could not parse OPML file.",
-				Details: &details,
-			}).ServeHTTP(res, req)
-			return
-		}
-		// Extract the individual feeds from the OPML object and create a subscription
-		// request for each one.
-		feeds := opmlImport.ExtractRSS()
-		requests := make(models.SubscriptionRequests, 0, len(feeds))
-		for _, feed := range feeds {
-			requests = append(requests, &models.SubscriptionRequest{URL: feed.XMLURL})
-		}
-		// Store requests in context.
-		ctx := context.WithValue(req.Context(), subscriptionRequestsCtxKey, requests)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-// ProcessImportMethod will parse which import method has been chosen from the request, then call the appropriate
-// handler for handling that type of import.
-func ProcessImportMethod(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Decode the import source.
-		importMethod, err := forms.DecodeMultipartValue(req, "source")
-		if err != nil {
-			details := err.Error()
-			ImportResults(&models.UserMessage{
-				Status:  models.UserMessageStatusError,
-				Summary: "Error processing OPML import.",
-				Details: &details,
-			}).ServeHTTP(res, req)
-			return
-		}
-		// Generate subscription requests using the import source.
-		switch importMethod {
-		case string(models.ImportSourceOPMLFile):
-			slogctx.FromCtx(req.Context()).Debug("Starting import from OPML file.")
-			next = ParseOPMLFromFile(next)
-		}
-		next.ServeHTTP(res, req)
-	})
-}
-
 // AddSubscriptionResults handles showing the result of adding a new subscription.
 func AddSubscriptionResults() http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -223,52 +157,6 @@ func AddSubscriptionResults() http.Handler {
 	})
 }
 
-// ImportResults handles showing the result of an import.
-func ImportResults(err *models.UserMessage) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if err != nil {
-			if err := htmx.NewResponse().
-				Retarget(subscription.ImportModalID.Target()).
-				Reswap(htmx.SwapOuterHTML).
-				RenderTempl(req.Context(), res,
-					subscription.ImportResultsModal(subscription.ImportFailed(err)),
-				); err != nil {
-			}
-			return
-		}
-		// Get the request.
-		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
-		if !found {
-			ProcessResponse(res, req, &models.Response{
-				StatusCode: http.StatusNoContent,
-				UserMessage: &models.UserMessage{
-					Status:  models.UserMessageStatusWarning,
-					Summary: "No requests found!",
-				},
-			})
-		}
-		// Generate a csv file containing all subscription request results.
-		var resultsFile strings.Builder
-		fmt.Fprintf(&resultsFile, `<script id="resultscsv" type="text/csv">`)
-		fmt.Fprintf(&resultsFile, "status,summary,details\n")
-		for request := range slices.Values(requests) {
-			fmt.Fprintf(&resultsFile, request.Result.CSVString())
-		}
-		fmt.Fprintf(&resultsFile, "</script>")
-
-		numSuccess := len(requests.FilterByStatus(models.UserMessageStatusSuccess))
-		numFail := len(requests) - numSuccess
-
-		if err := htmx.NewResponse().
-			Retarget(subscription.ImportModalID.Target()).
-			Reswap(htmx.SwapOuterHTML).
-			RenderTempl(req.Context(), res,
-				subscription.ImportResultsModal(subscription.ImportSuccess(numSuccess, numFail, resultsFile.String())),
-			); err != nil {
-		}
-	})
-}
-
 // NewSubscription generates a form for the user to enter details to add a new subscription.
 func NewSubscription(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -277,9 +165,9 @@ func NewSubscription(next http.Handler) http.Handler {
 	})
 }
 
-// ParseAddSubscriptionRequest will extract the subscription request, validate it and then store it in the context for
+// ParseNewSubscriptionRequest will extract the subscription request, validate it and then store it in the context for
 // further processing.
-func ParseAddSubscriptionRequest(next http.Handler) http.Handler {
+func ParseNewSubscriptionRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
@@ -295,6 +183,105 @@ func ParseAddSubscriptionRequest(next http.Handler) http.Handler {
 			ctx = context.WithValue(ctx, subscriptionRequestsCtxKey, models.SubscriptionRequests{request})
 		}
 
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+// NewSubscriptionRequestResult handles processing the result of an add subscription request.
+func NewSubscriptionRequestResult(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Extract the processed request from the context.
+		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
+		if !found {
+			next.ServeHTTP(res, req)
+			return
+		}
+		// Display the modal with the request results shown.
+		ctx := context.WithValue(req.Context(), contentCtxKey, views.NewSubscriptionModal(requests[0]))
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+// NewSubscriptionsImport handles setting up a new subscription import process for the user.
+func NewSubscriptionsImport(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		ctx := context.WithValue(req.Context(), contentCtxKey, views.ImportSubscriptionLayout())
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+// ProcessSubscriptionsImport handles both setting up the method and actioning the method used for the subscription
+// import process.
+func ProcessSubscriptionsImport(importMethod string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
+			switch req.Method {
+			case http.MethodPut:
+				switch importMethod {
+				case "opml_file":
+					ctx = context.WithValue(ctx, contentCtxKey, views.ImportFromOPML())
+				}
+			case http.MethodPost:
+				switch importMethod {
+				case "opml_file":
+					// Decode the OPML file form input.
+					opmlFile := &models.OPMLFile{}
+					opmlFile, valid, err := forms.DecodeMultipartFile(req, "data", opmlFile)
+					if err != nil || !valid {
+						ProcessResponse(res, req, &models.Response{
+							StatusCode: http.StatusNoContent,
+							UserMessage: &models.UserMessage{
+								Status:  models.UserMessageStatusWarning,
+								Summary: "Could not parse OPML file.",
+							},
+							InternalError: err,
+						})
+						return
+					}
+					opmlImport, err := opmlFile.Parse()
+					if err != nil {
+						ProcessResponse(res, req, &models.Response{
+							StatusCode: http.StatusNoContent,
+							UserMessage: &models.UserMessage{
+								Status:  models.UserMessageStatusWarning,
+								Summary: "Could not parse OPML file.",
+							},
+							InternalError: err,
+						})
+						return
+					}
+					// Extract the individual feeds from the OPML object and create a subscription
+					// request for each one.
+					feeds := opmlImport.ExtractRSS()
+					requests := make(models.SubscriptionRequests, 0, len(feeds))
+					for _, feed := range feeds {
+						requests = append(requests, &models.SubscriptionRequest{URL: feed.XMLURL})
+					}
+					// Store requests in context.
+					ctx = context.WithValue(req.Context(), subscriptionRequestsCtxKey, requests)
+				}
+			}
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+// SubscriptionsImportResults handles showing the result of a subscriptions import.
+func SubscriptionsImportResults(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get the request.
+		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
+		if !found {
+			ProcessResponse(res, req, &models.Response{
+				StatusCode: http.StatusNoContent,
+				UserMessage: &models.UserMessage{
+					Status:  models.UserMessageStatusWarning,
+					Summary: "No response!",
+				},
+			})
+		}
+		ctx := context.WithValue(req.Context(), contentCtxKey, views.ImportResults(requests))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -467,21 +454,6 @@ func ProcessSubscriptionRequests(api BackendAPI) func(next http.Handler) http.Ha
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
-}
-
-// ProcessAddSubscriptionRequestResult handles processing the result of an add subscription request.
-func ProcessAddSubscriptionRequestResult(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Extract the processed request from the context.
-		requests, found := req.Context().Value(subscriptionRequestsCtxKey).(models.SubscriptionRequests)
-		if !found {
-			next.ServeHTTP(res, req)
-			return
-		}
-		// Display the modal with the request results shown.
-		ctx := context.WithValue(req.Context(), contentCtxKey, views.NewSubscriptionModal(requests[0]))
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
 }
 
 // RemoveSubscription handles processing a subscription removal request.

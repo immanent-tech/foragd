@@ -14,6 +14,7 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/joshuar/go-feed-me/components/validation"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/server/handlers"
@@ -342,13 +343,14 @@ func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, sub
 func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
 	subscriptionEdits, valid, err := forms.DecodeForm[*models.SubscriptionCustomisation](req)
 	if err != nil || !valid {
-		details := err.Error()
-		msg := &models.UserMessage{
-			Status:  models.UserMessageStatusError,
-			Summary: "Error editing subscription.",
-			Details: &details,
-		}
-		showImportFailed(res, req, msg)
+		handlers.ProcessResponse(res, req, &models.Response{
+			StatusCode: http.StatusNoContent,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "There was a problem saving the subscription edits.",
+			},
+			InternalError: err,
+		})
 		return
 	}
 	chain := alice.New(
@@ -396,10 +398,81 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 
 	alice.New(
 		handlers.RouteLogger,
-		handlers.ParseAddSubscriptionRequest,
+		handlers.ParseNewSubscriptionRequest,
 		handlers.ProcessSubscriptionRequests(s.DataAPI()),
-		handlers.ProcessAddSubscriptionRequestResult,
+		handlers.NewSubscriptionRequestResult,
 	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+}
+
+func (s Server) StartSubscriptionImport(res http.ResponseWriter, req *http.Request) {
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.NewSubscriptionsImport,
+	)
+
+	switch htmx.IsHTMX(req) {
+	case true:
+		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
+	case false:
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+	}
+}
+
+func (f *SetSubscriptionImportMethodFormdataBody) Valid() (bool, error) {
+	valid, err := validation.ValidateStruct(f)
+	if !valid || err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func (f *SetSubscriptionImportMethodFormdataBody) Sanitise() error {
+	return nil
+}
+
+func (s Server) SetSubscriptionImportMethod(res http.ResponseWriter, req *http.Request) {
+	importMethod, valid, err := forms.DecodeForm[*SetSubscriptionImportMethodFormdataBody](req)
+	if err != nil || !valid {
+		handlers.ProcessResponse(res, req, &models.Response{
+			StatusCode: http.StatusNoContent,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "There was a problem parsing the import method.",
+			},
+			InternalError: err,
+		})
+		return
+	}
+
+	alice.New(
+		handlers.RouteLogger,
+		handlers.ProcessSubscriptionsImport(string(importMethod.From)),
+	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+}
+
+// ProcessImport performs the actions required to import requests from any source.
+func (s Server) ProcessSubscriptionImport(res http.ResponseWriter, req *http.Request) {
+	// Decode the import source.
+	importMethod, err := forms.DecodeMultipartValue(req, "source")
+	if err != nil {
+		handlers.ProcessResponse(res, req, &models.Response{
+			StatusCode: http.StatusNoContent,
+			UserMessage: &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "There was a problem parsing the import method.",
+			},
+			InternalError: err,
+		})
+		return
+	}
+
+	chain := alice.New(
+		handlers.RouteLogger,
+		handlers.ProcessSubscriptionsImport(importMethod),
+		handlers.ProcessSubscriptionRequests(s.DataAPI()),
+		handlers.SubscriptionsImportResults,
+	).Then(handlers.RenderPartials())
+	chain.ServeHTTP(res, req)
 }
 
 // GetAllSubscriptionsState handles fetching the current state of all user subscriptions.
