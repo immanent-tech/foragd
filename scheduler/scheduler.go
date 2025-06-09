@@ -26,7 +26,7 @@ import (
 // DataAPI is the interface that provides access to the data-store backend in use.
 type DataAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
-	SearchFeeds(ctx context.Context, queries ...query.Option) (models.Feeds, error)
+	SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error)
 	// GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error)
 	AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error)
 	MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error
@@ -112,15 +112,39 @@ func Run(ctx context.Context) error {
 }
 
 func (m *Manager) checkFeeds(ctx context.Context) error {
-	feeds, err := m.db.SearchFeeds(ctx, query.Since("created_at", m.checkpoint))
-	if err != nil {
-		return fmt.Errorf("checking for new feeds failed: %w", err)
+	slogctx.FromCtx(ctx).Debug("Searching for new feeds...")
+	// Paginate to retrieve all feeds.
+	var feeds models.Feeds
+	var pagination *models.Pagination
+	for {
+		results, next, err := m.db.SearchFeeds(ctx, query.Since("created_at", m.checkpoint), 100, nil, pagination)
+		if err != nil {
+			return fmt.Errorf("checking for new feeds failed: %w", err)
+		}
+
+		feeds = append(feeds, results...)
+
+		if len(feeds) < 100 {
+			break
+		}
+		pagination = &next
 	}
+
+	if len(feeds) == 0 {
+		return nil
+	}
+
+	slogctx.FromCtx(ctx).Debug("Retrieved feeds.",
+		slog.Int("count", len(feeds)),
+	)
 
 	m.checkpoint = time.Now().UTC()
 
 	for feed := range slices.Values(feeds) {
-		var job quartz.ScheduledJob
+		var (
+			job quartz.ScheduledJob
+			err error
+		)
 		job, err = NewFeedJob(feed.GetID(), feed.GetSourceURL(), NewPollTrigger(defaultPollInterval, defaultPollJitter))
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Failed to schedule job for feed.",
