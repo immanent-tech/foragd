@@ -74,13 +74,17 @@ func ExtractSourceFromDocs[T any](docs []types.MgetResponseItem) ([]T, error) {
 		case types.MultiGetError:
 			warnings = errors.Join(warnings, formatError(obj.Error))
 		case *types.GetResult:
+			if !obj.Found {
+				continue
+			}
 			source, err := ExtractSource[T](obj.Source_)
 			if err != nil {
 				warnings = errors.Join(warnings, err)
 				continue
 			}
-
 			sources = append(sources, source)
+		default:
+			warnings = errors.Join(warnings, errors.New("unknown doc type"))
 		}
 	}
 
