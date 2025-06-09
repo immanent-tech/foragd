@@ -65,39 +65,19 @@ type FeedsAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	SearchFeeds(ctx context.Context, queries ...query.Option) (models.Feeds, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
-	GetArticlesByID(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error)
-	ItemsSearch(ctx context.Context, query query.Option, filters models.Filters, pagination models.Pagination) (*search.Response, error)
+	SearchItems(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Items, models.Pagination, error)
 	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error)
 }
 
 type UserAPI interface {
+	AddUser(ctx context.Context, userID models.UserID) error
+	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
 	UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) *models.Response
 }
 
 type BackendAPI interface {
 	FeedsAPI
 	UserAPI
-}
-
-// DataAPI represents the API surface for interacting with the database/datastore backend.
-type DataAPI interface {
-	// User methods:
-	AddUser(ctx context.Context, userID models.UserID) error
-	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
-	// Subscription methods:
-	// GetSubscriptionsByID(ctx context.Context, filters models.Filters, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response)
-	MarkSubscriptions(ctx context.Context, mark models.Mark, subscriptionIDs ...models.SubscriptionID) *models.Response
-	// AddSubscriptions(ctx context.Context, subscriptions models.Subscriptions) *models.Response
-	// RemoveSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) *models.Response
-	// Feeds methods:
-	// GetFeedsByURL(ctx context.Context, urls ...models.URL) (models.Feeds, error)
-	// FeedsSearchAll(ctx context.Context, queries ...query.Option) (models.Feeds, error)
-	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
-	// Item methods:
-	// GetFeedsByID(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
-	GetArticle(ctx context.Context, itemID models.ItemID) (*models.Article, bool, *models.Response)
-	MarkItems(ctx context.Context, mark models.Mark, itemIDs ...models.ItemID) *models.Response
-	// GetTopItemCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response)
 }
 
 // AuthAPI represents the API surface for interacting with the auth backend.

@@ -5,14 +5,12 @@ package views
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -55,34 +53,6 @@ func (d HomePageData) generateRareCategoriesLinks(ctx context.Context) templ.Com
 	rareCategoryCounts.Sort()
 
 	return createCategoryLinks(rareCategoryCounts[:10])
-}
-
-func (d HomePageData) generateRandomItemsCards(ctx context.Context, api *elastic.API) ([]templ.Component, error) {
-	// Get the rare categories aggregation.
-	randomItemsAgg, err := aggregations.ExtractAggregation[map[string]any](d, "random_items")
-	if err != nil {
-		return nil, fmt.Errorf("could not get random items: %w", err)
-	}
-	// itemsAgg, err := aggregations.ExtractAggregation[*types.StringTermsAggregate](randomItemsAgg, "sterms#items")
-	itemsAgg := randomItemsAgg["sterms#items"].(map[string]any)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("could not get random items: %w", err)
-	// }
-	var itemIDs []models.ItemID
-	for bucket := range slices.Values(itemsAgg["buckets"].([]any)) {
-		value := bucket.(map[string]any)
-		itemIDs = append(itemIDs, value["key"].(string))
-	}
-
-	items, err := api.GetArticlesByID(ctx, itemIDs...)
-	if err != nil {
-		return nil, fmt.Errorf("could not get random items: %w", err)
-	}
-
-	cards := GenerateArticleCards(ctx, items, "")
-
-	return cards, nil
-	// return nil, nil
 }
 
 func GenerateHomePageContent(ctx context.Context, data HomePageData, articles models.Articles) templ.Component {

@@ -7,21 +7,8 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/views"
 )
-
-// MarkItems handles marking items as read.
-func MarkItems(api DataAPI, mark models.Mark, items ...models.ItemID) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Mark the feeds.
-		if resp := api.MarkItems(req.Context(), mark, items...); resp.IsError() {
-			ProcessResponse(res, req, resp)
-			return
-		}
-		res.WriteHeader(http.StatusOK)
-	})
-}
 
 func GenerateHomeContent(api FeedsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

@@ -29,7 +29,7 @@ func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subID
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
-			articles, pagination, resp := getFilteredArticles(req.Context(), api, pagination, subIDs...)
+			articles, pagination, resp := searchArticles(req.Context(), api, pagination, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
@@ -58,19 +58,19 @@ func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subID
 }
 
 // GenerateArticle handles displaying an item as an article.
-func GenerateArticle(dataAPI DataAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
+func GenerateArticle(api FeedsAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			article, found, resp := dataAPI.GetArticle(req.Context(), itemID)
-			if resp.IsError() || !found {
+			articles, resp := getArticles(req.Context(), api, itemID)
+			if resp.IsError() || len(articles) == 0 {
 				ProcessResponse(res, req, resp)
 				return
 			}
-			articleLayout := views.BuildArticleLayout(article)
+			articleLayout := views.BuildArticleLayout(articles[0])
 
 			ctx := req.Context()
 			ctx = context.WithValue(ctx, contentCtxKey, articleLayout)
-			ctx = context.WithValue(ctx, titleCtxKey, article.Item.GetTitle())
+			ctx = context.WithValue(ctx, titleCtxKey, articles[0].Item.GetTitle())
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -601,9 +601,20 @@ func SaveSubscription(api UserAPI, subID models.SubscriptionID, edits *models.Su
 }
 
 // MarkSubscriptions handles marking subscriptions with the given IDs with the given mark.
-func MarkSubscriptions(api DataAPI, mark models.Mark, subscriptions ...models.SubscriptionID) http.Handler {
+func MarkSubscriptions(api UserAPI, mark models.Mark, subscriptions ...models.SubscriptionID) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if resp := api.MarkSubscriptions(req.Context(), mark, subscriptions...); resp.IsError() {
+		if resp := markSubscriptions(req.Context(), api, mark, subscriptions...); resp.IsError() {
+			ProcessResponse(res, req, resp)
+			return
+		}
+		res.WriteHeader(http.StatusOK)
+	})
+}
+
+func MarkItems(api BackendAPI, mark models.Mark, items ...models.ItemID) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Mark the feeds.
+		if resp := markArticles(req.Context(), api, mark, items...); resp.IsError() {
 			ProcessResponse(res, req, resp)
 			return
 		}

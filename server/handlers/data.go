@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
@@ -124,7 +125,7 @@ func setSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, subscription
 	return nil
 }
 
-func getFilteredArticles(ctx context.Context, api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
+func searchArticles(ctx context.Context, api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", models.RespInvalidUser()
@@ -133,6 +134,8 @@ func getFilteredArticles(ctx context.Context, api FeedsAPI, pagination models.Pa
 	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
 	filters := models.FiltersFromCtx(ctx)
 
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
 	query := query.Bool(
 		query.BoolQueryName("get_items"),
 		query.Filter(
@@ -146,28 +149,72 @@ func getFilteredArticles(ctx context.Context, api FeedsAPI, pagination models.Pa
 			),
 		),
 	)
+	sort := filters.Sort()
 
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	resp, err := api.ItemsSearch(ctx, query, filters, pagination)
+	items, pagination, err := api.SearchItems(ctx, query, filters.CountAsInt(), &sort, &pagination)
 	if err != nil {
 		return nil, "", models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
 	}
-	// Extract items and pagination values.
-	items, lastSortValue, warnings := elastic.ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
-	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
-			slog.Any("warnings", err))
-	}
-	// Encode the pagination value.
-	pagination, err = encodePagination(lastSortValue)
-	if err != nil {
-		return nil, "", models.RespTemporaryIssue("Could not fetch article. Please try again.", err)
-	}
+
 	// Create articles from the items.
 	articles := models.GenerateArticles(user, items...)
 
 	return articles, pagination, models.RespSuccess("Fetched articles.")
+}
+
+func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (models.Articles, *models.Response) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, models.RespInvalidUser()
+	}
+	// Get subscriptions matching the filters.
+	subscriptions := user.GetSubscriptions()
+
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	query := query.Bool(
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.FeedIDs(subscriptions.GetFeedIDs()...),
+			// Must match any of the given item IDs,
+			query.ItemIDs(itemIDs...),
+		),
+	)
+
+	items, _, err := api.SearchItems(ctx, query, len(itemIDs), nil, nil)
+	if err != nil {
+		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+	}
+
+	// Create articles from the items.
+	articles := models.GenerateArticles(user, items...)
+
+	return articles, models.RespSuccess("Fetched articles.")
+}
+
+func markArticles(ctx context.Context, api BackendAPI, mark models.Mark, itemIDs ...models.ItemID) *models.Response {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.RespInvalidUser()
+	}
+	if len(itemIDs) == 0 {
+		slogctx.FromCtx(ctx).Warn("Mark items requested but not items provided.")
+		return nil
+	}
+
+	articles, resp := getArticles(ctx, api, itemIDs...)
+	if resp.IsError() {
+		return resp
+	}
+	// Mark each item in the user data.
+	for feedID := range slices.Values(articles.GetItems().GetFeedIDs()) {
+		user.MarkItems(mark, feedID, articles.GetItems().FilterByFeed(feedID).GetIDs()...)
+	}
+	// Update the user object.
+	return api.UpdateUser(ctx, user.GetID(), map[string]any{
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
+	})
 }
 
 func getItemTopCategories(ctx context.Context, api FeedsAPI, feeds ...models.FeedID) ([]models.Category, *models.Response) {
@@ -238,6 +285,24 @@ func removeSubscriptions(ctx context.Context, api UserAPI, subscriptions ...mode
 	})
 }
 
+func markSubscriptions(ctx context.Context, api UserAPI, mark models.Mark, subscriptions ...models.SubscriptionID) *models.Response {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.RespInvalidUser()
+	}
+	// Mark subscriptions.
+	user.MarkSubscriptions(mark, subscriptions...)
+	slogctx.FromCtx(ctx).Debug("Marked subscriptions.",
+		slog.String("mark", string(mark)),
+		slog.String("subscriptions", strings.Join(subscriptions, ",")),
+	)
+	// Update the user object.
+	return api.UpdateUser(ctx, user.GetID(), map[string]any{
+		"subscriptions": user.Subscriptions,
+		"updated_at":    time.Now().UTC(),
+	})
+}
+
 // getHomePageData retrieves the data required to construct the home page content.
 func getHomePageData(ctx context.Context, api FeedsAPI) (map[string]types.Aggregate, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
@@ -254,7 +319,7 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (map[string]types.Aggreg
 			query.FeedIDs(subscriptions.GetFeedIDs()...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(elastic.BuildSubscriptionQueries(subscriptions, models.ViewUnread)...),
+				query.Should(BuildSubscriptionQueries(subscriptions, models.ViewUnread)...),
 			),
 		),
 	)
@@ -346,12 +411,12 @@ func getHomePageArticles(ctx context.Context, api FeedsAPI, data map[string]type
 		itemIDs = append(itemIDs, value["key"].(string))
 	}
 
-	items, err := api.GetArticlesByID(ctx, itemIDs...)
-	if err != nil {
+	articles, resp := getArticles(ctx, api, itemIDs...)
+	if resp.IsError() {
 		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
 	}
 
-	return items, nil
+	return articles, nil
 }
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
