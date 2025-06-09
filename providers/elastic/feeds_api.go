@@ -96,59 +96,82 @@ func (e *API) GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Fe
 	}
 	feeds, warnings := ExtractSourceFromDocs[*models.Feed](resp.Docs)
 	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
+		slogctx.FromCtx(ctx).Warn("Some feeds could not be extracted from docs.",
 			slog.Any("warnings", warnings))
 	}
 	return feeds, nil
 }
 
-// FeedsSearchAll will retrieve all feeds matching the given queries, sorted by the given sort. It paginates through the
-// entire feeds index.
-func (a *API) SearchFeeds(ctx context.Context, queries ...query.Option) (models.Feeds, error) {
+// SearchFeeds will search the feeds index for feed matching the given query. Count, sort and pagination values are
+// optional.
+//
+// count specifies the number of results. If not specified, up to 10 results will be returned.
+//
+// sort specifies how to sort the resuls. If not specified, doc value sorting is used.
+//
+// pagination specifies the sort after values to use for getting a specific window of the total results. When set, the
+// count parameter can be thought of as specifying how many new results are retrieved.
+func (a *API) SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error) {
 	index := FeedsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 
-	var results models.Feeds
-
-	searchSize := 100
-	pagination := make([]types.FieldValue, 0)
-
-	for {
-		var (
-			feeds    models.Feeds
-			warnings error
-		)
-
-		resp, err := NewSearchRequest(a.API,
-			WithSearchIndex(index),
-			WithSearchQueryOptions(queries...),
-			WithSearchSize(searchSize),
-			WithSearchAfter(pagination),
-			WithSortOptions(SortByDocID("feed_id")),
-		).Do(ctx)
+	var sortValues []types.FieldValue
+	if pagination != nil {
+		var err error
+		sortValues, err = decodePagination(*pagination)
 		if err != nil {
-			return nil, errors.Join(ErrSearchFailed, err)
-		}
-
-		feeds, pagination, warnings = ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
-		if warnings != nil {
-			slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
-				slog.Any("warnings", err))
-		}
-
-		results = append(results, feeds...)
-
-		// Stop if we are at the end of the results.
-		if int(resp.Hits.Total.Value) < searchSize {
-			break
+			return nil, "", errors.Join(ErrSearchFailed, err)
 		}
 	}
+	var sortOptions []types.SortCombinationsVariant
+	if sort != nil {
+		sortOptions = setFeedSort(*sort)
+	} else {
+		sortOptions = append(sortOptions, SortByDocID("feed_id"))
+	}
 
-	return results, nil
+	resp, err := NewSearchRequest(a.API,
+		WithSearchIndex(index),
+		WithSearchQueryOptions(query),
+		WithSearchAfter(sortValues),
+		WithSearchSize(count),
+		WithSortOptions(sortOptions...),
+	).Do(ctx)
+	if err != nil {
+		return nil, "", errors.Join(ErrSearchFailed, err)
+	}
+
+	var warnings error
+	var feeds models.Feeds
+
+	feeds, sortValues, warnings = ExtractSourceFromHits[*models.Feed](resp.Hits.Hits)
+	if warnings != nil {
+		slogctx.FromCtx(ctx).Warn("Some feeds could not be extracted from results.",
+			slog.Any("warnings", warnings))
+	}
+
+	if pagination != nil {
+		*pagination, err = encodePagination(sortValues)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+		return feeds, *pagination, nil
+	}
+
+	return feeds, "", nil
 }
 
+// SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
+// optional.
+//
+// count specifies the number of results. If not specified, up to 10 results will be returned.
+//
+// sort specifies how to sort the resuls. If not specified, doc value sorting is used.
+//
+// pagination specifies the sort after values to use for getting a specific window of the total results. When set, the
+// count parameter can be thought of as specifying how many new results are retrieved.
 func (e *API) SearchItems(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Items, models.Pagination, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
@@ -165,7 +188,7 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 	}
 	var sortOptions []types.SortCombinationsVariant
 	if sort != nil {
-		sortOptions = SetItemSort(*sort)
+		sortOptions = setItemSort(*sort)
 	} else {
 		sortOptions = append(sortOptions, SortByDocID("item_id"))
 	}
@@ -186,8 +209,8 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 
 	items, sortValues, warnings = ExtractSourceFromHits[*models.Item](resp.Hits.Hits)
 	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
-			slog.Any("warnings", err))
+		slogctx.FromCtx(ctx).Warn("Some items could not be extracted from results.",
+			slog.Any("warnings", warnings))
 	}
 
 	if pagination != nil {
@@ -214,7 +237,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 		WithSearchQueryOptions(query),
 		WithSearchSize(0),
 		WithAggregations(aggregations...),
-		WithSortOptions(SetItemSort(models.NewFilters().Sort())...),
+		WithSortOptions(setItemSort(models.NewFilters().Sort())...),
 	)
 
 	resp, err := req.Do(ctx)
@@ -248,25 +271,23 @@ func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 }
 
 // setFeedSort will define how Feeds are sorted based on the given sort options (from filters).
-func setFeedSort(sort models.Sort) (FieldSort, FieldSort) {
+func setFeedSort(sort models.Sort) []types.SortCombinationsVariant {
 	// Adjust based on given sort options.
-	switch sort.SortBy {
-	case models.SortByLastUpdated:
+	if sort.SortBy == models.SortByLastUpdated {
 		switch sort.SortOrder {
 		case models.SortOrderAsc:
-			return NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("feed_id", models.SortOrderDesc)
+			return []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("feed_id", models.SortOrderDesc)}
 		case models.SortOrderDesc:
-			return NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("feed_id", models.SortOrderDesc)
+			return []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("feed_id", models.SortOrderDesc)}
 		}
 	}
-	return NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("feed_id", models.SortOrderDesc)
+	return []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("feed_id", models.SortOrderDesc)}
 }
 
-// SetItemSort will define how Items are sorted based on the given sort options (from filters).
-func SetItemSort(sort models.Sort) []types.SortCombinationsVariant {
+// setItemSort will define how Items are sorted based on the given sort options (from filters).
+func setItemSort(sort models.Sort) []types.SortCombinationsVariant {
 	// Adjust based on given sort options.
-	switch sort.SortBy {
-	case models.SortByLastUpdated:
+	if sort.SortBy == models.SortByLastUpdated {
 		switch sort.SortOrder {
 		case models.SortOrderAsc:
 			return []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("item_id", models.SortOrderDesc)}
