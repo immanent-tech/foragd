@@ -10,6 +10,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
+// GenerateHomeContent handles generating the content for the home page.
 func GenerateHomeContent(api FeedsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {

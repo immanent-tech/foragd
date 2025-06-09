@@ -21,10 +21,6 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 )
 
-func (s Server) AppSecret() string {
-	return ServerConfig.Secret
-}
-
 // Port returns the port on which the server is listening.
 func Port() int {
 	return ServerConfig.Port

@@ -11,10 +11,12 @@ import (
 )
 
 const (
-	CORSMaxAge = 300 // Maximum value not ignored by any of major browsers.
+	// CORSMaxAge sets the maximum value not ignored by any of major browsers.
+	CORSMaxAge = 300
 )
 
-func CORS(env string) func(next http.Handler) http.Handler {
+// SetupCORS handles adding the appropriate headers for CORS to the request.
+func SetupCORS(env string) func(next http.Handler) http.Handler {
 	options := cors.Options{
 		AllowCredentials:    true,
 		MaxAge:              CORSMaxAge,

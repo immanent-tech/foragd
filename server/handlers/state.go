@@ -88,6 +88,7 @@ func SavePageState(next http.Handler) http.Handler {
 	})
 }
 
+// RestorePageState retrieves the state for a given page from the session store.
 func RestorePageState(ctx context.Context, path string) models.PageState {
 	switch path {
 	case "/home/subscriptions":

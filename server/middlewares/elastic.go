@@ -11,9 +11,9 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 )
 
-// ElasticMiddleware sets up handlers with the necessary data for backend
+// SetupElastic sets up handlers with the necessary data for backend
 // requests with the Elastic API.
-func ElasticMiddleware() func(next http.Handler) http.Handler {
+func SetupElastic() func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()

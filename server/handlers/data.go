@@ -304,6 +304,8 @@ func markSubscriptions(ctx context.Context, api UserAPI, mark models.Mark, subsc
 }
 
 // getHomePageData retrieves the data required to construct the home page content.
+//
+//nolint:funlen
 func getHomePageData(ctx context.Context, api FeedsAPI) (map[string]types.Aggregate, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -401,14 +403,29 @@ func getHomePageArticles(ctx context.Context, api FeedsAPI, data map[string]type
 		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
 	}
 	// itemsAgg, err := aggregations.ExtractAggregation[*types.StringTermsAggregate](randomItemsAgg, "sterms#items")
-	itemsAgg := randomItemsAgg["sterms#items"].(map[string]any)
+	itemsAgg, ok := randomItemsAgg["sterms#items"].(map[string]any)
+	if !ok {
+		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+	}
 	// if err != nil {
 	// 	return nil, fmt.Errorf("could not get random items: %w", err)
 	// }
-	var itemIDs []models.ItemID
-	for bucket := range slices.Values(itemsAgg["buckets"].([]any)) {
-		value := bucket.(map[string]any)
-		itemIDs = append(itemIDs, value["key"].(string))
+	buckets, ok := itemsAgg["buckets"].([]any)
+	if !ok {
+		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+	}
+
+	itemIDs := make([]models.ItemID, 0, len(buckets))
+	for bucket := range slices.Values(buckets) {
+		value, ok := bucket.(map[string]any)
+		if !ok {
+			continue
+		}
+		key, ok := value["key"].(string)
+		if !ok {
+			continue
+		}
+		itemIDs = append(itemIDs, key)
 	}
 
 	articles, resp := getArticles(ctx, api, itemIDs...)

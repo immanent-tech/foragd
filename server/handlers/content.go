@@ -25,6 +25,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
+// GenerateArticleCollection handles searching for articles with the current filters and then generating cards for each found article.
 func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -57,6 +58,7 @@ func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subID
 	}
 }
 
+// PaginateArticleCollection handles fetching the next set of articles and creating cards from them.
 func PaginateArticleCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -91,7 +93,7 @@ func GenerateArticle(api FeedsAPI, itemID models.ItemID) func(next http.Handler)
 	}
 }
 
-// FetchSubscriptions fetches subscriptions from the data backend and stores them in the request context for usage by other handlers.
+// GenerateSubscriptionCollection handles searching for subscriptions with the current filters and then generating cards for each found subscription.
 func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -123,6 +125,7 @@ func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, 
 	}
 }
 
+// PaginateSubscriptionCollection handles fetching the next set of subscriptions and creating cards from them.
 func PaginateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -628,7 +631,8 @@ func MarkSubscriptions(api UserAPI, mark models.Mark, subscriptions ...models.Su
 	}
 }
 
-func MarkItems(api BackendAPI, mark models.Mark, items ...models.ItemID) func(next http.Handler) http.Handler {
+// MarkArticles handles marking articles with the given mark.
+func MarkArticles(api BackendAPI, mark models.Mark, items ...models.ItemID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Mark the feeds.

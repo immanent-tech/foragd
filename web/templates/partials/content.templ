@@ -7,7 +7,7 @@ package partials
 templ Content(content templ.Component) {
 	<div
 		id={ ContentID.String() }
-		class="m-2"
+		class="m-2 h-full"
 		hx-swap="morph:innerHTML"
 		hx-target={ ContentID.Target() }
 	>

@@ -217,7 +217,7 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 		actionFunc = handlers.MarkSubscriptions(s.DataAPI(), models.Mark(action), *params.Subscriptions...)
 	case collection == models.CollectionItems && slices.Contains([]Action{models.ActionRead, models.ActionUnread}, action):
 		// Mark items read/unread.
-		actionFunc = handlers.MarkItems(s.DataAPI(), models.Mark(action), *params.Articles...)
+		actionFunc = handlers.MarkArticles(s.DataAPI(), models.Mark(action), *params.Articles...)
 	default:
 		// Unsupported action for a collection.
 		res.WriteHeader(http.StatusNotImplemented)
@@ -232,13 +232,13 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 	chain.ServeHTTP(res, req)
 }
 
-// ActionItem handles performing an action on an item.
+// ActionArticle handles performing an action on an article.
 func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action Action, item ItemID, params ActionArticleParams) {
 	var actionFunc func(next http.Handler) http.Handler
 
 	switch action {
 	case models.ActionRead, models.ActionUnread:
-		actionFunc = handlers.MarkItems(s.DataAPI(), models.Mark(action), item)
+		actionFunc = handlers.MarkArticles(s.DataAPI(), models.Mark(action), item)
 	default:
 		// Unimplemented action for an item.
 		res.WriteHeader(http.StatusNotImplemented)
@@ -253,7 +253,7 @@ func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action
 	chain.ServeHTTP(res, req)
 }
 
-// ShowItem handles showing an item.
+// ShowArticle handles showing an article's content.
 func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, itemID ItemID) {
 	chain := alice.New(
 		handlers.RouteLogger,
@@ -286,6 +286,7 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 	}
 }
 
+// PaginateSubscription handles paginating through the articles in a subscription.
 func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params PaginateSubscriptionParams) {
 	// Pagination requests are only driven by htmx requests.
 	if !htmx.IsHTMX(req) {
@@ -371,6 +372,7 @@ func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, s
 	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
 
+// NewSubscription handles presenting the user with a form to enter details about a new subscription.
 func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 	// Add requests are only driven by htmx requests.
 	if !htmx.IsHTMX(req) {
@@ -400,6 +402,7 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
 
+// GetAllSubscriptionsState handles fetching the current state of all user subscriptions.
 func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Request) {
 	alice.New(
 		handlers.RouteLogger,
