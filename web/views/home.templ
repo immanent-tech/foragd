@@ -123,7 +123,15 @@ func createCategoryLinks(categoryCounts models.CategoryCounts) templ.Component {
 			"hx-push-url": "true",
 			"hx-target":   partials.ContentID.Target(),
 		}
-		categoryLinks = append(categoryLinks, partials.InactiveButton(category.Category, attributes))
+		categoryLinks = append(categoryLinks,
+			button.Build(
+				button.WithStyle(button.Ghost),
+				button.WithSize(button.XS),
+				button.WithExtraAttributes(attributes),
+				button.WithContent(category.Category),
+			).Show(),
+		)
+
 	}
 	return templ.Join(categoryLinks...)
 }

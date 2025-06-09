@@ -161,13 +161,17 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles, paginat
 				),
 			)
 		}
+		var title string
+		if title = article.Item.GetTitle(); title == "" {
+			title = "(no title)"
+		}
 		cardOptions = append(cardOptions,
 			card.WithID(article.Item.GetID()),
 			card.WithBodyOptions(
 				// Card title.
 				card.WithTitle(
 					link.Build(
-						link.WithContent(article.Item.GetTitle()),
+						link.WithContent(title),
 						link.WithUnderlineOnHover(),
 						link.WithExtraAttributes(viewAction(ctx, article.Item.ItemID, article.IsUnread())),
 					).Show(),
@@ -176,7 +180,7 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles, paginat
 				card.WithContent(
 					templ.Join(
 						showDetails(article.Item.GetAuthors(), article.Item.GetUpdatedDate()),
-						showCategories(article.Item.GetCategories()...),
+						// showCategories(article.Item.GetCategories()...),
 					),
 				),
 				// Card actions.
@@ -406,21 +410,16 @@ templ BuildArticleLayout(art *models.Article) {
 		</h2>
 		@showDetails(art.Item.GetAuthors(), art.Item.GetUpdatedDate())
 		// Display the categories associated with the article.
-		@showCategories(art.Item.GetCategories()...)
+		for category := range slices.Values(art.Item.GetCategories()) {
+			@badge.Build(
+				badge.WithStyle(badge.Ghost),
+				badge.WithSize(badge.XS),
+				badge.WithContent(category),
+				badge.WithExtraClasses("capitalize", "w-fit-content"),
+			).Show()
+		}
 		// Display the article content.
 		@showContent(art)
-	}
-}
-
-templ showCategories(categories ...models.Category) {
-	if len(categories) > 0 {
-		<div class="grid grid-flow-row auto-rows-max">
-			for category := range slices.Values(categories) {
-				<div>
-					@partials.InactiveBadge(category, nil)
-				</div>
-			}
-		</div>
 	}
 }
 
