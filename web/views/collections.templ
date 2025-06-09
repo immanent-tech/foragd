@@ -323,10 +323,10 @@ func MarkAllSubscriptionsAction(ctx context.Context) templ.Component {
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead)
 		return markReadLink("Mark All Read", attrs)
 	case models.ViewRead:
+		fallthrough
+	default:
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread)
 		return markUnreadLink("Mark All Unread", attrs)
-	default:
-		return nil
 	}
 }
 
@@ -495,7 +495,6 @@ templ (filter *Filter) AsLink() {
 		).Show()
 	} else {
 		@link.Build(
-			link.WithThemeColor(color.Neutral),
 			link.WithContent(filter.label),
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
@@ -577,7 +576,7 @@ templ UpdateFilters(categories models.CategoryCounts) {
 	</div>
 }
 
-templ UpdateSorting() {
+templ UpdateSorting(collection models.Collection) {
 	<div id="card-sorting">
 		<div class="dropdown dropdown-bottom dropdown-end">
 			<div tabindex="0" role="button" class="btn btn-square">
@@ -585,32 +584,23 @@ templ UpdateSorting() {
 			</div>
 			<ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
 				<li class="menu-title text-xs">Sort:</li>
-				for sort := range slices.Values(buildSortFilters(ctx)) {
+				<li>
+					@NewSortFilter(ctx, models.SortLastUpdatedDesc).AsLink()
+				</li>
+				<li>
+					@NewSortFilter(ctx, models.SortLastUpdatedAsc).AsLink()
+				</li>
+				if collection == models.CollectionSubscriptions {
 					<li>
-						@sort.AsLink()
+						@NewSortFilter(ctx, models.SortUnreadCountDesc).AsLink()
+					</li>
+					<li>
+						@NewSortFilter(ctx, models.SortUnreadCountAsc).AsLink()
 					</li>
 				}
 			</ul>
 		</div>
 	</div>
-}
-
-func buildSortFilters(ctx context.Context) []*SortOption {
-	var sorts []*SortOption
-	// Add sorting options for updated date.
-	sorts = append(sorts,
-		NewSortFilter(ctx, models.SortLastUpdatedDesc),
-		NewSortFilter(ctx, models.SortLastUpdatedAsc),
-	)
-	// If viewing feeds and not viewing read items, add additional sorting options on unread count.
-	view := models.PageStateFromCtx(ctx)
-	if (strings.HasPrefix(view.Path, "/home/subscriptions") || strings.HasPrefix(view.Path, "/subscription")) && view.GetFilters().View != models.ViewRead {
-		sorts = append(sorts,
-			NewSortFilter(ctx, models.SortUnreadCountDesc),
-			NewSortFilter(ctx, models.SortUnreadCountAsc),
-		)
-	}
-	return sorts
 }
 
 type SortOption struct {
@@ -681,7 +671,6 @@ templ (option *SortOption) AsLink() {
 		).Show()
 	} else {
 		@link.Build(
-			link.WithThemeColor(color.Neutral),
 			link.WithContent(option.Show()),
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),

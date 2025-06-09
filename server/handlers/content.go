@@ -39,7 +39,7 @@ func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subID
 				cardLayout := partials.CardGrid(cards...)
 				cardControls := partials.CardControls(
 					views.RefreshAction(),
-					views.UpdateSorting(),
+					views.UpdateSorting(models.CollectionArticles),
 					views.UpdateFilters(articles.GetItems().GetCategoryCounts()),
 					views.CollectionActionsMenu(
 						views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
@@ -107,7 +107,7 @@ func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, 
 				cardLayout := partials.CardGrid(cards...)
 				cardControls := partials.CardControls(
 					views.RefreshAction(),
-					views.UpdateSorting(),
+					views.UpdateSorting(models.CollectionSubscriptions),
 					views.UpdateFilters(subscriptions.GetCategoryCounts()),
 					views.CollectionActionsMenu(
 						views.MarkAllSubscriptionsAction(req.Context()),
