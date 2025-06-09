@@ -24,11 +24,11 @@
   },
   "dependencies": {
     "@catppuccin/daisyui": "^2.1.1",
-    "@tabler/icons": "^3.31.0",
+    "@tabler/icons": "^3.34.0",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "autoprefixer": "^10.4.21",
-    "daisyui": "^5.0.35",
+    "daisyui": "^5.0.43",
     "date-fns": "^4.1.0",
     "htmx-ext-response-targets": "^2.0.3",
     "htmx-ext-sse": "^2.2.3",
@@ -38,17 +38,17 @@
     "tailwindcss": "4.0.9"
   },
   "devDependencies": {
-    "@eslint/js": "^9.26.0",
+    "@eslint/js": "^9.28.0",
     "@prettier/plugin-xml": "^3.4.1",
-    "@tailwindcss/cli": "^4.1.6",
-    "@tailwindcss/postcss": "^4.1.6",
-    "eslint": "^9.26.0",
+    "@tailwindcss/cli": "^4.1.8",
+    "@tailwindcss/postcss": "^4.1.8",
+    "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
-    "globals": "^16.1.0",
-    "postcss": "^8.5.3",
+    "globals": "^16.2.0",
+    "postcss": "^8.5.4",
     "postcss-cli": "^11.0.1",
     "prettier": "^3.5.3",
-    "prettier-plugin-tailwindcss": "^0.6.11",
+    "prettier-plugin-tailwindcss": "^0.6.12",
     "prettier-plugin-toml": "^2.0.5"
   }
 }

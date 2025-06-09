@@ -5,10 +5,10 @@ go 1.24.2
 replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
 
 require (
-	github.com/a-h/templ v0.3.894
+	github.com/a-h/templ v0.3.898
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/angelofallars/htmx-go v0.5.0
-	github.com/auth0/go-auth0 v1.22.1
+	github.com/auth0/go-auth0 v1.22.2
 	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v8 v8.18.0
 	github.com/go-chi/chi/v5 v5.2.1
@@ -20,8 +20,8 @@ require (
 	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/providers/env v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.0
-	github.com/knadh/koanf/v2 v2.2.0
-	github.com/lmittmann/tint v1.1.1
+	github.com/knadh/koanf/v2 v2.2.1
+	github.com/lmittmann/tint v1.1.2
 	github.com/matoous/go-nanoid v1.5.1
 	github.com/mattn/go-isatty v0.0.20
 	github.com/oapi-codegen/runtime v1.1.1
