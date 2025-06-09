@@ -404,6 +404,7 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
 
+// StartSubscriptionImport handles starting a subscriptions import process for the user.
 func (s Server) StartSubscriptionImport(res http.ResponseWriter, req *http.Request) {
 	chain := alice.New(
 		handlers.RouteLogger,
@@ -430,6 +431,8 @@ func (f *SetSubscriptionImportMethodFormdataBody) Sanitise() error {
 	return nil
 }
 
+// SetSubscriptionImportMethod handles setting the method that will be used for importing susbcriptions from the user's
+// choice.
 func (s Server) SetSubscriptionImportMethod(res http.ResponseWriter, req *http.Request) {
 	importMethod, valid, err := forms.DecodeForm[*SetSubscriptionImportMethodFormdataBody](req)
 	if err != nil || !valid {
@@ -450,7 +453,7 @@ func (s Server) SetSubscriptionImportMethod(res http.ResponseWriter, req *http.R
 	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
 
-// ProcessImport performs the actions required to import requests from any source.
+// ProcessSubscriptionImport handles using the user's chosen import method to import their subscriptions.
 func (s Server) ProcessSubscriptionImport(res http.ResponseWriter, req *http.Request) {
 	// Decode the import source.
 	importMethod, err := forms.DecodeMultipartValue(req, "source")

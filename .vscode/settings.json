@@ -7,10 +7,10 @@
     "editor.formatOnSave": true
   },
   "[go]": {
-    "editor.defaultFormatter": "golang.go",
     "editor.codeActionsOnSave": {
       "source.fixAll": "always"
-    }
+    },
+    "editor.defaultFormatter": "golang.go"
   },
   "[templ]": {
     "editor.defaultFormatter": "a-h.templ"
@@ -59,7 +59,8 @@
     "components/join",
     "components",
     "components/dock",
-    "schemas"
+    "schemas",
+    "cli"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {
@@ -82,6 +83,7 @@
   },
   "go.formatFlags": ["fmt", "--stdin"],
   "go.formatTool": "custom",
+  "go.inlayHints.constantValues": true,
   "go.lintFlags": [
     "run",
     "--timeout=5m",
@@ -103,6 +105,7 @@
   "tailwindCSS.includeLanguages": {
     "templ": "html"
   },
+  "templ.goplsRemote": "auto",
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000
 }
