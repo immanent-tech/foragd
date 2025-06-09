@@ -17,11 +17,14 @@ import (
 	"github.com/veqryn/slog-context"
 )
 
-type HomePageData aggregations.AggregationResults
+type HomePageData struct {
+	Aggregations aggregations.AggregationResults
+	Links        map[string]models.PageState
+}
 
-func (d HomePageData) generateTopCategoriesLinks(ctx context.Context) templ.Component {
+func (d *HomePageData) generateTopCategoriesLinks(ctx context.Context) templ.Component {
 	// Get the top categories.
-	topCategoriesSamplerAgg, err := aggregations.ExtractAggregation[*types.SamplerAggregate](d, "top_categories_sample")
+	topCategoriesSamplerAgg, err := aggregations.ExtractAggregation[*types.SamplerAggregate](d.Aggregations, "top_categories_sample")
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to show top categories.", slog.Any("error", err))
 	}
@@ -39,9 +42,9 @@ func (d HomePageData) generateTopCategoriesLinks(ctx context.Context) templ.Comp
 	return createCategoryLinks(topCategoryCounts)
 }
 
-func (d HomePageData) generateRareCategoriesLinks(ctx context.Context) templ.Component {
+func (d *HomePageData) generateRareCategoriesLinks(ctx context.Context) templ.Component {
 	// Get the rare categories.
-	rareCategoriesAgg, err := aggregations.ExtractAggregation[*types.StringRareTermsAggregate](d, "rare_categories")
+	rareCategoriesAgg, err := aggregations.ExtractAggregation[*types.StringRareTermsAggregate](d.Aggregations, "rare_categories")
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to show rare categories.", slog.Any("error", err))
 	}
@@ -55,7 +58,7 @@ func (d HomePageData) generateRareCategoriesLinks(ctx context.Context) templ.Com
 	return createCategoryLinks(rareCategoryCounts[:10])
 }
 
-func GenerateHomePageContent(ctx context.Context, data HomePageData, articles models.Articles) templ.Component {
+func GenerateHomePageContent(ctx context.Context, data *HomePageData, articles models.Articles) templ.Component {
 	// Get the required data.
 	// Generate a links to top categories from the data.
 	topCategories := data.generateTopCategoriesLinks(ctx)
@@ -64,12 +67,12 @@ func GenerateHomePageContent(ctx context.Context, data HomePageData, articles mo
 	// Generate a random collection of article cards from the data.
 	randomItems := GenerateArticleCards(ctx, articles, "")
 
-	return layoutHomePageContent(topCategories, rareCategories, randomItems)
+	return layoutHomePageContent(data.Links, topCategories, rareCategories, randomItems)
 }
 
-templ layoutHomePageContent(topCategories, rareCategories templ.Component, randomItems []templ.Component) {
-	{{ subscriptionsPage := models.PageState{Path: "/home/subscriptions", Params: models.NewFilters().ToQueryParams()} }}
-	{{ articlesPage := models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()} }}
+templ layoutHomePageContent(links map[string]models.PageState, topCategories, rareCategories templ.Component, randomItems []templ.Component) {
+	{{ subscriptionsPage := links["subscriptions"] }}
+	{{ articlesPage := links["articles"] }}
 	<div class="flex flex-col max-w-fit p-2 justify-items-center">
 		<h1>Go To:</h1>
 		@button.Build(

@@ -95,7 +95,9 @@ func RestorePageState(ctx context.Context, path string) models.PageState {
 		if state, ok := session.Manager.Get(ctx, subscriptionsPageState).(models.PageState); ok {
 			return state
 		}
-		return models.PageState{Path: "/home/subscriptions", Params: models.NewFilters().ToQueryParams()}
+		filters := models.NewFilters()
+		filters.SortBy = models.SortByUnreadCount
+		return models.PageState{Path: "/home/subscriptions", Params: filters.ToQueryParams()}
 	case "/home/articles":
 		if state, ok := session.Manager.Get(ctx, articlesPageState).(models.PageState); ok {
 			return state

@@ -436,7 +436,7 @@ func (r *SubscriptionRequest) String() string {
 }
 
 func (r *SubscriptionRequest) GetURL() string {
-	return r.URL
+	return strings.TrimSpace(r.URL)
 }
 
 // SubscriptionRequests is a list of subscription requests.

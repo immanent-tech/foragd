@@ -315,16 +315,39 @@ func ProcessSubscriptionRequests(api BackendAPI) func(next http.Handler) http.Ha
 
 			// STEP 1: Match requests to existing feeds.
 			slogctx.FromCtx(req.Context()).Debug("Matching subscription requests to existing feeds...")
-			existingFeeds, err := api.SearchFeeds(req.Context(), query.URLs("source", requests.URLs()...))
-			if err != nil {
-				ctx := generateErrorResponse(req.Context(), models.RespServerError("Backend error occurred.", err).UserMessage)
-				next.ServeHTTP(res, req.WithContext(ctx))
-				return
+			var (
+				feedPagination *models.Pagination
+				existingFeeds  models.Feeds
+			)
+			for {
+				count := 100
+				feeds, nextResults, err := api.SearchFeeds(req.Context(), query.URLs("source", requests.URLs()...), count, nil, feedPagination)
+				if err != nil {
+					ctx := generateErrorResponse(req.Context(), models.RespServerError("Backend error occurred.", err).UserMessage)
+					next.ServeHTTP(res, req.WithContext(ctx))
+					return
+				}
+
+				existingFeeds = append(existingFeeds, feeds...)
+
+				if len(feeds) < count {
+					break
+				}
+				feedPagination = &nextResults
 			}
+
+			slogctx.FromCtx(req.Context()).Debug("Retrieved existing feeds.",
+				slog.Int("count", len(existingFeeds)),
+			)
+
 			// Loop over existing feeds.
 			for request := range slices.Values(requests) { //nolint:contextcheck
+				slogctx.FromCtx(req.Context()).Debug("Searching for existing feed.",
+					slog.String("url", request.GetURL()),
+				)
 				feed := existingFeeds.FindByURL(request.GetURL())
 				if feed == nil {
+					slogctx.FromCtx(req.Context()).Debug("No match for request url.", slog.String("url", request.GetURL()))
 					// No existing feed matches request, will add new feed in next step.
 					continue
 				}
@@ -392,62 +415,62 @@ func ProcessSubscriptionRequests(api BackendAPI) func(next http.Handler) http.Ha
 				)
 			}
 
-			// STEP 3: Add new feeds.
-			slogctx.FromCtx(req.Context()).Debug("Adding new feeds for subscription requests.")
-			// Add the new feeds.
-			newFeedsResp, err := api.AddFeeds(req.Context(), newFeeds...)
-			if err != nil {
-				ctx := generateErrorResponse(req.Context(), models.RespServerError("Backend error occurred.", err).UserMessage)
-				next.ServeHTTP(res, req.WithContext(ctx))
-				return
-			}
-			// Loop over the results
-			for result := range slices.Values(newFeedsResp.Responses) {
-				// Ignore unknown results.
-				if result.Id_ == nil {
-					slogctx.FromCtx(req.Context()).Warn("Unknown add feed result.", slog.Any("result", result))
-					continue
-				}
-				// Match feed to result, ignore results with no feed.
-				feed := newFeeds.FindByID(*result.Id_)
-				if feed == nil {
-					slogctx.FromCtx(req.Context()).Warn("Result with unmatched feed.", slog.Any("result", result))
-					continue
-				}
-				// Get the request that matches the new feed.
-				request := requests.FindByURL(feed.URL)
-				if request == nil {
-					slogctx.FromCtx(req.Context()).Warn("Result with unmatched request", slog.Any("result", result))
-					continue
-				}
-				// If the new feed failed to be added, record an error against the request.
-				if _, err := result.State(); err != nil {
-					details := err.Error()
-					request.Result = &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "Add subscription failed.",
-						Details: &details,
-					}
-				}
-			}
+			// // STEP 3: Add new feeds.
+			// slogctx.FromCtx(req.Context()).Debug("Adding new feeds for subscription requests.")
+			// // Add the new feeds.
+			// newFeedsResp, err := api.AddFeeds(req.Context(), newFeeds...)
+			// if err != nil {
+			// 	ctx := generateErrorResponse(req.Context(), models.RespServerError("Backend error occurred.", err).UserMessage)
+			// 	next.ServeHTTP(res, req.WithContext(ctx))
+			// 	return
+			// }
+			// // Loop over the results
+			// for result := range slices.Values(newFeedsResp.Responses) {
+			// 	// Ignore unknown results.
+			// 	if result.Id_ == nil {
+			// 		slogctx.FromCtx(req.Context()).Warn("Unknown add feed result.", slog.Any("result", result))
+			// 		continue
+			// 	}
+			// 	// Match feed to result, ignore results with no feed.
+			// 	feed := newFeeds.FindByID(*result.Id_)
+			// 	if feed == nil {
+			// 		slogctx.FromCtx(req.Context()).Warn("Result with unmatched feed.", slog.Any("result", result))
+			// 		continue
+			// 	}
+			// 	// Get the request that matches the new feed.
+			// 	request := requests.FindByURL(feed.URL)
+			// 	if request == nil {
+			// 		slogctx.FromCtx(req.Context()).Warn("Result with unmatched request", slog.Any("result", result))
+			// 		continue
+			// 	}
+			// 	// If the new feed failed to be added, record an error against the request.
+			// 	if _, err := result.State(); err != nil {
+			// 		details := err.Error()
+			// 		request.Result = &models.UserMessage{
+			// 			Status:  models.UserMessageStatusError,
+			// 			Summary: "Add subscription failed.",
+			// 			Details: &details,
+			// 		}
+			// 	}
+			// }
 
 			// STEP 4: Add new subscriptions.
 			slogctx.FromCtx(req.Context()).Debug("Adding subscriptions.")
 			// Validate subscriptions.
 			validRequests := requests.FilterValid().FilterWithSubscription()
 			// Add valid subscriptions.
-			if resp := addSubscriptions(req.Context(), api, validRequests.Subscriptions()); resp.IsError() {
-				ctx := generateErrorResponse(req.Context(), resp.UserMessage)
-				next.ServeHTTP(res, req.WithContext(ctx))
-				return
-			} else {
-				for request := range slices.Values(validRequests) {
-					request.Result = &models.UserMessage{
-						Status:  models.UserMessageStatusSuccess,
-						Summary: fmt.Sprintf("Subscription %s created!", request.String()),
-					}
+			// if resp := addSubscriptions(req.Context(), api, validRequests.Subscriptions()); resp.IsError() {
+			// 	ctx := generateErrorResponse(req.Context(), resp.UserMessage)
+			// 	next.ServeHTTP(res, req.WithContext(ctx))
+			// 	return
+			// } else {
+			for request := range slices.Values(validRequests) {
+				request.Result = &models.UserMessage{
+					Status:  models.UserMessageStatusSuccess,
+					Summary: fmt.Sprintf("Subscription %s created!", request.String()),
 				}
 			}
+			// }
 
 			// Store the processed requests in the context for the next handler.
 			ctx := context.WithValue(req.Context(), subscriptionRequestsCtxKey, requests)

@@ -23,6 +23,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 // getAllSubscriptions retrieves all the users subscriptions.
@@ -306,7 +307,15 @@ func markSubscriptions(ctx context.Context, api UserAPI, mark models.Mark, subsc
 // getHomePageData retrieves the data required to construct the home page content.
 //
 //nolint:funlen
-func getHomePageData(ctx context.Context, api FeedsAPI) (map[string]types.Aggregate, *models.Response) {
+func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *models.Response) {
+	data := &views.HomePageData{
+		Links: make(map[string]models.PageState),
+	}
+
+	// Generate links.
+	data.Links["subscriptions"] = RestorePageState(ctx, "/home/subscriptions")
+	data.Links["articles"] = RestorePageState(ctx, "/home/articles")
+
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, models.RespInvalidUser()
@@ -391,14 +400,16 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (map[string]types.Aggreg
 	if err != nil {
 		return nil, models.RespTemporaryIssue("Could not fetch data. Please try again.", err)
 	}
+	// Add the aggregations to the data
+	data.Aggregations = resp.Aggregations
 
-	return resp.Aggregations, nil
+	return data, nil
 }
 
 // getHomePageArticles retrieves a list of articles to display on the home page along with other content.
-func getHomePageArticles(ctx context.Context, api FeedsAPI, data map[string]types.Aggregate) (models.Articles, *models.Response) {
+func getHomePageArticles(ctx context.Context, api FeedsAPI, data *views.HomePageData) (models.Articles, *models.Response) {
 	// Get the rare categories aggregation.
-	randomItemsAgg, err := aggregations.ExtractAggregation[map[string]any](data, "random_items")
+	randomItemsAgg, err := aggregations.ExtractAggregation[map[string]any](data.Aggregations, "random_items")
 	if err != nil {
 		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
 	}
