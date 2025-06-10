@@ -258,12 +258,12 @@ func viewAction(ctx context.Context, id string, viewed bool) templ.Attributes {
 	case models.SubscriptionPFX:
 		filters := models.FiltersFromCtx(ctx)
 		filters.SortBy = models.SortByLastUpdated
-		view = models.PageState{Path: "/subscription/" + id, Params: filters.ToQueryParams()}
 		if viewed {
 			filters.View = models.ViewUnread
 		} else {
 			filters.View = models.ViewRead
 		}
+		view = models.PageState{Path: "/subscription/" + id, Params: filters.ToQueryParams()}
 	case models.ItemPFX:
 		view = models.PageState{Path: "/article/" + id}
 	}
