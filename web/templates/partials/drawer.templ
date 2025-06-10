@@ -19,7 +19,7 @@ templ Drawer(content, side templ.Component) {
 // DrawerMenu is the container for the drawer side-bar menu.
 templ DrawerMenu(items ...templ.Component) {
 	<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-	<ul class="menu bg-base-200 text-base-content min-h-full w-80 p-4">
+	<ul class="menu bg-base-200 text-base-content text-xs min-h-full w-80 p-4">
 		@templ.Join(items...)
 	</ul>
 }

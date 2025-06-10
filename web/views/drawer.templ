@@ -44,16 +44,15 @@ templ SubscriptionList(subscriptions models.Subscriptions) {
 				Subscriptions
 			</div>
 		</summary>
-		<ul>
+		<ul class="text-base-content text-xs">
 			for subscription := range slices.Values(subscriptions) {
 				<li>
 					<div class="flex">
-						<div class="text-sm flex-1">
+						<div class="flex-1">
 							@link.Build(
 								link.WithContent(subscription.GetTitle()),
 								link.WithUnderlineOnHover(),
 								link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
-								link.WithExtraClasses("text-sm"),
 							).Show()
 						</div>
 						// Display unread count (if any).
