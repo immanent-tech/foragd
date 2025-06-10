@@ -61,7 +61,8 @@
     "components/dock",
     "schemas",
     "cli",
-    "css"
+    "css",
+    "js"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

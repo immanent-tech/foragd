@@ -5,7 +5,3 @@
 import './setup-htmx.js'
 // hyperscript
 import './setup-hyperscript.js'
-// fontawesome
-// import './fontawesome/js/brands.js'
-// import './fontawesome/js/solid.js'
-// import './fontawesome/js/fontawesome.js'
