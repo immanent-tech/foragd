@@ -447,6 +447,48 @@ func getHomePageArticles(ctx context.Context, api FeedsAPI, data *views.HomePage
 	return articles, nil
 }
 
+func getSearchSuggestions(ctx context.Context, api FeedsAPI, searchTerms string) (models.Feeds, models.Articles, *models.Response) {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, nil, models.RespInvalidUser()
+	}
+	subscriptions := user.GetSubscriptions()
+
+	feedsQuery := query.Build(
+		query.Bool(
+			query.Filter(
+				query.FeedIDs(subscriptions.GetFeedIDs()...),
+			),
+			query.Must(
+				query.Match("title", searchTerms),
+				query.Match("description", searchTerms),
+				query.Match("categories", searchTerms),
+			),
+		),
+	)
+
+	itemsQuery := query.Build(
+		query.Bool(
+			query.Filter(
+				query.FeedIDs(subscriptions.GetFeedIDs()...),
+			),
+			query.Must(
+				query.Match("title", searchTerms),
+				query.Match("description", searchTerms),
+				query.Match("categories", searchTerms),
+			),
+		),
+	)
+
+	feeds, items, err := api.MultiSearch(ctx, feedsQuery, itemsQuery)
+	if err != nil {
+		return nil, nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+	}
+
+	return feeds, models.GenerateArticles(user, items...), nil
+}
+
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
 func BuildSubscriptionQueries(subscriptions models.Subscriptions, view models.View) []query.Option {
 	queries := make([]query.Option, 0, len(subscriptions))

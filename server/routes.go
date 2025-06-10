@@ -13,6 +13,7 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
+	"github.com/yassinebenaid/godump"
 
 	"github.com/joshuar/go-feed-me/components/validation"
 	"github.com/joshuar/go-feed-me/models"
@@ -484,4 +485,17 @@ func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Requ
 		handlers.RouteLogger,
 		handlers.GenerateDrawerContent(s.DataAPI()),
 	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+}
+
+func (s Server) SearchSuggest(res http.ResponseWriter, req *http.Request) {
+	searchTerms := req.FormValue("search_terms")
+	alice.New(
+		handlers.RouteLogger,
+		handlers.GenerateSearchSuggestions(s.DataAPI(), searchTerms),
+	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+}
+
+func (s Server) SearchResults(res http.ResponseWriter, req *http.Request) {
+	godump.Dump(req.FormValue("search_terms"))
+	res.WriteHeader(http.StatusNotImplemented)
 }

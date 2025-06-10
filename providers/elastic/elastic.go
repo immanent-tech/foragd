@@ -21,6 +21,22 @@ var (
 	ErrRequestFailed = errors.New("request failed")
 )
 
+type SearchRequestCommon[T any] interface {
+	Index(index string) T
+	Header(key string, value string) T
+}
+
+type SearchRequest[T any] interface {
+	SearchRequestCommon[T]
+	Query(query types.QueryVariant) T
+	Aggregations(aggregations map[string]types.Aggregations) T
+}
+
+type MSearchRequest[T any] interface {
+	SearchRequestCommon[T]
+	AddSearch(header types.MultisearchHeader, body types.MultisearchBody) error
+}
+
 // var (
 // 	_ models.FeedManagementAPI = (*Client)(nil)
 // 	_ models.FeedJobStateAPI   = (*Client)(nil)

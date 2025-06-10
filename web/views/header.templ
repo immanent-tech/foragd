@@ -1,13 +1,12 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package partials
+package views
 
 import (
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/input"
-	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/navbar"
 	"github.com/sebasvil20/templicons/tabler"
@@ -34,20 +33,7 @@ templ DefaultHeaderStart() {
 
 templ DefaultHeaderCenter() {
 	<div class="flex-1">
-		@input.Build(
-			textinput.Build(
-				textinput.WithID("search"),
-				textinput.WithPlaceholder("Search anything..."),
-				textinput.WithExtraAttributes(templ.Attributes{
-					"tabindex":     0,
-					"hx-post":      "/home/search",
-					"hx-trigger":   "input changed delay:500ms, SearchRequest",
-					"hx-target":    "#search-results",
-					"hx-indicator": ".htmx-indicator",
-				}),
-			),
-			input.WithLabel(input.Left, tabler.Search()),
-		).Show()
+		@SearchForm()
 	</div>
 }
 
@@ -59,29 +45,29 @@ templ DefaultHeaderEnd() {
 			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 		).Show() {
 			<li>
-				@LinkWithIcon(tabler.Settings(), "Settings", templ.Attributes{
+				@partials.LinkWithIcon(tabler.Settings(), "Settings", templ.Attributes{
 					"hx-get":         "/settings",
-					"hx-target":      ContentID.Target(),
+					"hx-target":      partials.ContentID.Target(),
 					"hx-replace-url": "true",
 				}, []string{"text-sm"})
 			</li>
 			<li _="on click call document.activeElement.blur()">
-				@LinkWithIcon(tabler.FilePlus(), "Add Subscription", templ.Attributes{
+				@partials.LinkWithIcon(tabler.FilePlus(), "Add Subscription", templ.Attributes{
 					"hx-get":    "/subscription/new",
-					"hx-target": ModalContainerID.Target(),
+					"hx-target": partials.ModalContainerID.Target(),
 					// "_":         "on htmx:afterOnLoad wait 10ms then add @open to " + ModalID.Target(),
 				}, []string{"text-sm"})
 			</li>
 			<li _="on click call document.activeElement.blur()">
-				@LinkWithIcon(tabler.FilePlus(), "Import Subscriptions", templ.Attributes{
-					"hx-get":    "/subscriptions/import",
-					"hx-target": ContentID.Target(),
+				@partials.LinkWithIcon(tabler.FilePlus(), "Import Subscriptions", templ.Attributes{
+					"hx-get":         "/subscriptions/import",
+					"hx-target":      partials.ContentID.Target(),
 					"hx-replace-url": "true",
 					// "_":         "on htmx:afterOnLoad wait 10ms then add @open to " + ModalID.Target(),
 				}, []string{"text-sm"})
 			</li>
 			<li>
-				@LinkWithIcon(tabler.Logout(), "Logout", templ.Attributes{
+				@partials.LinkWithIcon(tabler.Logout(), "Logout", templ.Attributes{
 					"href": "/logout",
 				}, []string{"text-sm"})
 			</li>

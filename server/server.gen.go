@@ -299,9 +299,12 @@ type ServerInterface interface {
 	// User logout.
 	// (GET /logout)
 	Logout(w http.ResponseWriter, r *http.Request)
-	// Issue a user search request
-	// (POST /search)
-	Search(w http.ResponseWriter, r *http.Request)
+	// Displays a page of search results.
+	// (POST /search/results)
+	SearchResults(w http.ResponseWriter, r *http.Request)
+	// Displays search result suggestions.
+	// (POST /search/suggest)
+	SearchSuggest(w http.ResponseWriter, r *http.Request)
 	// Show user settings modal
 	// (GET /settings)
 	GetSettings(w http.ResponseWriter, r *http.Request)
@@ -424,9 +427,15 @@ func (_ Unimplemented) Logout(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Issue a user search request
-// (POST /search)
-func (_ Unimplemented) Search(w http.ResponseWriter, r *http.Request) {
+// Displays a page of search results.
+// (POST /search/results)
+func (_ Unimplemented) SearchResults(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Displays search result suggestions.
+// (POST /search/suggest)
+func (_ Unimplemented) SearchSuggest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1105,11 +1114,25 @@ func (siw *ServerInterfaceWrapper) Logout(w http.ResponseWriter, r *http.Request
 	handler.ServeHTTP(w, r)
 }
 
-// Search operation middleware
-func (siw *ServerInterfaceWrapper) Search(w http.ResponseWriter, r *http.Request) {
+// SearchResults operation middleware
+func (siw *ServerInterfaceWrapper) SearchResults(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.Search(w, r)
+		siw.Handler.SearchResults(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SearchSuggest operation middleware
+func (siw *ServerInterfaceWrapper) SearchSuggest(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SearchSuggest(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1758,7 +1781,10 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/logout", wrapper.Logout)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/search", wrapper.Search)
+		r.Post(options.BaseURL+"/search/results", wrapper.SearchResults)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/search/suggest", wrapper.SearchSuggest)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/settings", wrapper.GetSettings)

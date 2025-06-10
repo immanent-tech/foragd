@@ -10,8 +10,10 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/msearch"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -133,6 +135,7 @@ func (a *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 	}
 
 	resp, err := NewSearchRequest(a.API,
+		WithSearchID(middleware.GetReqID(ctx)),
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
 		WithSearchAfter(sortValues),
@@ -194,6 +197,7 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 	}
 
 	resp, err := NewSearchRequest(e.GetAPI(),
+		WithSearchID(middleware.GetReqID(ctx)),
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
 		WithSearchAfter(sortValues),
@@ -233,6 +237,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 	}
 
 	req := NewSearchRequest(e.GetAPI(),
+		WithSearchID(middleware.GetReqID(ctx)),
 		WithSearchIndex(index),
 		WithSearchQueryOptions(query),
 		WithSearchSize(0),
@@ -246,6 +251,62 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 	}
 
 	return resp, nil
+}
+
+func (a *API) MultiSearch(ctx context.Context, feedsQuery, itemsQuery *types.Query) (models.Feeds, models.Items, error) {
+	feedsIndex := FeedsIndexFromCtx(ctx)
+	if feedsIndex == "" {
+		return nil, nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
+	}
+	itemsIndex := ItemsIndexFromCtx(ctx)
+	if itemsIndex == "" {
+		return nil, nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
+	}
+
+	req := NewMSearchRequest(a.GetAPI(),
+		WithSearch[*msearch.Msearch](feedsIndex, feedsQuery),
+		WithSearch[*msearch.Msearch](itemsIndex, itemsQuery),
+		WithRequestID[*msearch.Msearch, SearchRequestCommon[*msearch.Msearch]](middleware.GetReqID(ctx)),
+	)
+
+	resp, err := req.Do(ctx)
+	if err != nil {
+		return nil, nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
+	}
+
+	results := make(map[string]*types.MultiSearchItem)
+
+	for idx, r := range []string{"feeds", "items"} {
+		switch res := resp.Responses[idx].(type) {
+		case *types.MultiSearchItem:
+			if res.Hits.Total.Value == 0 {
+				continue
+			}
+			results[r] = res
+		case types.ErrorResponseBase:
+		default:
+		}
+	}
+
+	var (
+		feeds    models.Feeds
+		items    models.Items
+		warnings error
+	)
+	if results["feeds"] != nil {
+		feeds, _, warnings = ExtractSourceFromHits[*models.Feed](results["feeds"].Hits.Hits)
+		if warnings != nil {
+			slogctx.FromCtx(ctx).Warn("Problem extracting hits.", slog.Any("err", err))
+		}
+	}
+	if results["items"] != nil {
+		items, _, warnings = ExtractSourceFromHits[*models.Item](results["items"].Hits.Hits)
+		if warnings != nil {
+			slogctx.FromCtx(ctx).Warn("Problem extracting hits.", slog.Any("err", err))
+		}
+	}
+
+	return feeds, items, nil
 }
 
 // MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).

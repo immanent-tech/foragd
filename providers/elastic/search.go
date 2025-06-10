@@ -17,21 +17,15 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
+const (
+	ReqIDHeader = "X-Opaque-Id"
+)
+
 // SearchOption is a functional option to apply to a search request.
 type SearchOption Option[*search.Search]
 
 // CountOption is a functional option to apply to a count request.
 type CountOption Option[*count.Count]
-
-type SearchRequest struct {
-	*search.Search
-	sortKeyOrder []string
-}
-
-// SearchResult represents a search request result.
-type SearchResult struct {
-	*search.Response
-}
 
 // WithSearchIndex sets the index (or index pattern) to search over.
 func WithSearchIndex(index string) SearchOption {
@@ -81,6 +75,12 @@ func WithFields(fields ...string) SearchOption {
 	}
 }
 
+func WithSuggestFromField(field string) SearchOption {
+	return func(s *search.Search) {
+		s.SuggestField(field)
+	}
+}
+
 // WithSearchSize defines the number of results returned.
 func WithSearchSize(size int) SearchOption {
 	return func(search *search.Search) {
@@ -110,6 +110,16 @@ func WithSearchAfter(value any) SearchOption {
 			search.SearchAfter(fieldValues...)
 		} else {
 			search.SearchAfter(NewFieldValue(value))
+		}
+	}
+}
+
+// WithSearchID sets the "X-Opaque-Id" header on the search request which can be used for associating and tracking a
+// search request to a http request.
+func WithSearchID(id string) SearchOption {
+	return func(search *search.Search) {
+		if id != "" {
+			search.Header(ReqIDHeader, id)
 		}
 	}
 }

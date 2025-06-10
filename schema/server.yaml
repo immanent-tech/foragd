@@ -85,10 +85,17 @@ paths:
       responses:
         default:
           $ref: '#/components/responses/html'
-  /search:
+  /search/suggest:
     post:
-      summary: Issue a user search request
-      operationId: Search
+      summary: Displays search result suggestions.
+      operationId: searchSuggest
+      responses:
+        default:
+          $ref: '#/components/responses/html'
+  /search/results:
+    post:
+      summary: Displays a page of search results.
+      operationId: searchResults
       responses:
         default:
           $ref: '#/components/responses/html'

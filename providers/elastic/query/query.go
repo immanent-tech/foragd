@@ -34,6 +34,19 @@ func MatchAll() Option {
 // Term adds a "Term" query on the given field with the given value.
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
+func Match(field string, value string) Option {
+	return func(query *types.Query) {
+		if value != "" {
+			query.Match = map[string]types.MatchQuery{
+				field: {Query: value},
+			}
+		}
+	}
+}
+
+// Term adds a "Term" query on the given field with the given value.
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
 func Term(field string, value any) Option {
 	return func(query *types.Query) {
 		if value != nil {

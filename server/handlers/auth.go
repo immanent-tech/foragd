@@ -18,7 +18,7 @@ import (
 )
 
 // ProtectedRoutes are routes that require user authentication.
-var ProtectedRoutes = []string{"/home", "/subscription", "/article", "/settings"}
+var ProtectedRoutes = []string{"/home", "/subscription", "/article", "/settings", "/search"}
 
 // PerformAuth will perform authentication for a user with a provider.
 func PerformAuth(api AuthAPI) http.Handler {

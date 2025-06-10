@@ -665,3 +665,28 @@ func GenerateDrawerContent(api FeedsAPI) func(next http.Handler) http.Handler {
 		})
 	}
 }
+
+// GenerateDrawerContent handles generating updated content for the drawer.
+func GenerateSearchSuggestions(api FeedsAPI, searchTerms string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
+
+			_, articles, resp := getSearchSuggestions(ctx, api, searchTerms)
+			if resp.IsError() {
+				ProcessResponse(res, req, resp)
+				return
+			}
+
+			suggestions := make([]templ.Component, 0, len(articles)+1)
+			suggestions = append(suggestions, views.SearchSuggestionHeader("Articles"))
+			for article := range slices.Values(articles) {
+				suggestions = append(suggestions, views.SearchSuggestionArticle(article))
+			}
+
+			ctx = context.WithValue(ctx, contentCtxKey, views.SearchSuggestions(suggestions...))
+
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}

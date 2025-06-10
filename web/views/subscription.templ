@@ -36,7 +36,7 @@ templ (s *SubscriptionEditRequest) EditSubscriptionModal() {
 	).Show() {
 		@text.Build("Edit Subscription", text.WithSize(text.LG)).Show()
 		// Display the Subscription details.
-		@form.BuildForm(
+		@form.Build(
 			form.WithID("subscription-details"),
 			form.WithExtraAttributes(
 				templ.Attributes{
@@ -107,7 +107,7 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest) {
 			@partials.Alert(request.Result, nil)
 		}
 		// Display the Subscription details.
-		@form.BuildForm(
+		@form.Build(
 			form.WithID("subscription_details"),
 			form.WithExtraAttributes(
 				templ.Attributes{
@@ -268,7 +268,7 @@ templ ImportSubscriptionLayout() {
 			).Show()
 		</div>
 		<div class="py-6">
-			@form.BuildForm(
+			@form.Build(
 				form.WithID("import-subscriptions"),
 				form.WithExtraAttributes(
 					templ.Attributes{

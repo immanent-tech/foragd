@@ -46,7 +46,7 @@ templ SignupForm(userDetails *models.UserSignupRequest) {
 	if userDetails.Msg != nil {
 		@partials.NewMessage(userDetails.Msg).AsNote()
 	}
-	@form.BuildForm(
+	@form.Build(
 		form.WithID(SignupFormID.String()),
 		form.WithExtraAttributes(
 			templ.Attributes{

@@ -1,0 +1,98 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package views
+
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/display/image"
+	"github.com/joshuar/go-templ-daisyui/input/form"
+	"github.com/joshuar/go-templ-daisyui/input/textinput"
+	"github.com/joshuar/go-templ-daisyui/layout/join"
+	"github.com/sebasvil20/templicons/tabler"
+	"slices"
+)
+
+templ SearchForm() {
+	@form.Build(
+		form.WithExtraAttributes(templ.Attributes{
+			"hx-post":   "/search/results",
+			"hx-target": partials.ContentID.Target(),
+		}),
+	).Show() {
+		@join.Horizontally() {
+			@textinput.Build(
+				textinput.WithID("search"),
+				textinput.WithName("search_terms"),
+				textinput.WithPlaceholder("Search anything..."),
+				textinput.WithExtraAttributes(templ.Attributes{
+					"hx-post":      "/search/suggest",
+					"hx-trigger":   "input changed delay:500ms",
+					"hx-target":    "#search-suggestions",
+					"hx-indicator": ".htmx-indicator",
+				}),
+				textinput.WithExtraClasses("join-item"),
+			).Show()
+			@button.Build(
+				button.AsSubmit(),
+				button.WithContent(tabler.Search()),
+				button.WithExtraAttributes(templ.Attributes{
+					"tabindex":   0,
+					"hx-trigger": "keyup[key=='Enter']",
+				}),
+				button.WithExtraClasses("join-item"),
+			).Show()
+		}
+	}
+	<div id="search-suggestions"></div>
+}
+
+templ SearchSuggestions(suggestions ...templ.Component) {
+	<ul class="list bg-base-100 rounded-box shadow-md">
+		for suggestion := range slices.Values(suggestions) {
+			@suggestion
+		}
+	</ul>
+}
+
+templ SearchSuggestionHeader(text string) {
+	<li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{ text }</li>
+}
+
+templ SearchSuggestionSubscription(subscription *models.Subscription) {
+	<li class="list-row">
+		<div><img class="size-10 rounded-box" src="https://img.daisyui.com/images/profile/demo/1@94.webp"/></div>
+		<div>
+			<div>Dio Lupa</div>
+			<div class="text-xs uppercase font-semibold opacity-60">Remaining Reason</div>
+		</div>
+		<button class="btn btn-square btn-ghost">
+			<svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M6 3L20 12 6 21 6 3z"></path></g></svg>
+		</button>
+		<button class="btn btn-square btn-ghost">
+			<svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></g></svg>
+		</button>
+	</li>
+}
+
+templ SearchSuggestionArticle(article *models.Article) {
+	<li class="list-row">
+		if img := article.Item.GetImage(); img != nil {
+			<div>
+				@image.Build(img.URL(), image.WithExtraClasses("size-10", "rounded-box")).Show()
+			</div>
+		}
+		<div>
+			<div class="text-xs">{ article.Item.GetTitle() }</div>
+			// <div class="text-xs uppercase font-semibold opacity-60">{ article.Item.GetDescription() }</div>
+		</div>
+		// <button class="btn btn-square btn-ghost">
+		// 	<svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M6 3L20 12 6 21 6 3z"></path></g></svg>
+		// </button>
+		// <button class="btn btn-square btn-ghost">
+		// 	<svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></g></svg>
+		// </button>
+	</li>
+}
