@@ -12,7 +12,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/go-playground/validator/v10"
 
@@ -21,22 +20,22 @@ import (
 
 var ErrParseFilters = errors.New("error parsing filters")
 
-// Sort by last updated, newest->oldest.
-var SortLastUpdatedDesc = Sort{SortBy: SortByLastUpdated, SortOrder: SortOrderDesc}
-
-// Sort by last updated, oldest->newest.
-var SortLastUpdatedAsc = Sort{SortBy: SortByLastUpdated, SortOrder: SortOrderAsc}
-
-// Sort by unread count, highest->lowest.
-var SortUnreadCountDesc = Sort{SortBy: SortByUnreadCount, SortOrder: SortOrderDesc}
-
-// Sort by unread count, lowest->highest.
-var SortUnreadCountAsc = Sort{SortBy: SortByUnreadCount, SortOrder: SortOrderAsc}
+var (
+	// Sort by last updated, newest->oldest.
+	SortLastUpdatedDesc = Sort{SortBy: SortByLastUpdated, SortOrder: SortOrderDesc}
+	// Sort by last updated, oldest->newest.
+	SortLastUpdatedAsc = Sort{SortBy: SortByLastUpdated, SortOrder: SortOrderAsc}
+	// Sort by unread count, highest->lowest.
+	SortUnreadCountDesc = Sort{SortBy: SortByUnreadCount, SortOrder: SortOrderDesc}
+	// Sort by unread count, lowest->highest.
+	SortUnreadCountAsc = Sort{SortBy: SortByUnreadCount, SortOrder: SortOrderAsc}
+)
 
 const (
+	// MaxUserCount is the maximum number of results a user can retrieve at a single time.
 	MaxUserCount = 20
+	// MinUserCount is the mininum number of results a user can retrieve at a single time.
 	MinUserCount = 1
-
 	// DefaultCount is to show 10 objects.
 	DefaultCount = "10"
 	// DefaultView is to show unread objects.
@@ -110,6 +109,7 @@ func (f *Filters) Sort() Sort {
 	}
 }
 
+// CountAsInt returns the count value (encoded as a string in the filters) as an int.
 func (f *Filters) CountAsInt() int {
 	value, err := strconv.Atoi(f.Count)
 	if err != nil {
@@ -133,7 +133,7 @@ func (f *Filters) ToQueryParams() url.Values {
 	params.Set(ParamSortBy, string(f.SortBy))
 	params.Set(ParamSortOrder, string(f.SortOrder))
 	params.Set(ParamView, string(f.View))
-	params.Set(ParamCount, string(f.Count))
+	params.Set(ParamCount, f.Count)
 
 	return params
 }
@@ -285,16 +285,4 @@ func setValidView(value View) View {
 	default:
 		return DefaultView
 	}
-}
-
-// setValidSince parses string representing a duration and returns the valid
-// Since value it represents. If the value cannot be parsed, the default Since
-// value is returned.
-func setValidSince(value string) Since {
-	since, err := time.ParseDuration(value)
-	if err != nil {
-		return DefaultSince
-	}
-
-	return since
 }

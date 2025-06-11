@@ -12,9 +12,23 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-func WithSearch[V MSearchRequest[*msearch.Msearch]](index string, query *types.Query) Option[V] {
+type MSearchOptions struct {
+	Query *types.Query
+	Sort  []types.SortCombinationsVariant
+}
+
+func (mso *MSearchOptions) GenerateSortCombination() []types.SortCombinations {
+	combos := make([]types.SortCombinations, 0, len(mso.Sort))
+	for sort := range slices.Values(mso.Sort) {
+		combos = append(combos, sort.SortCombinationsCaster())
+	}
+	return combos
+}
+
+// query *types.Query, sort []types.SortCombinations
+func WithSearch[V MSearchRequest[*msearch.Msearch]](index string, searchOptions *MSearchOptions) Option[V] {
 	return func(t V) {
-		if query == nil {
+		if searchOptions == nil {
 			return
 		}
 
@@ -22,7 +36,8 @@ func WithSearch[V MSearchRequest[*msearch.Msearch]](index string, query *types.Q
 		hdr.Index = append(hdr.Index, index)
 
 		search := types.NewMultisearchBody()
-		search.Query = query
+		search.Query = searchOptions.Query
+		search.Sort = searchOptions.GenerateSortCombination()
 
 		err := t.AddSearch(*hdr, *search)
 		if err != nil {

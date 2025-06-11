@@ -169,6 +169,8 @@ func (s Subscriptions) FilterByView(view View) Subscriptions {
 	return s
 }
 
+// FindByID searches the subscriptions slice and returns the subscription matching the given SubscriptionID. If none
+// match, nil is returned.
 func (s Subscriptions) FindByID(id SubscriptionID) *Subscription {
 	idx := slices.IndexFunc(s, func(v *Subscription) bool { return v.GetID() == id })
 	if idx == -1 {
@@ -177,8 +179,20 @@ func (s Subscriptions) FindByID(id SubscriptionID) *Subscription {
 	return s[idx]
 }
 
+// FindByURL searches the subscriptions slice and returns the subscription with the given source URL. If none
+// match, nil is returned.
 func (s Subscriptions) FindByURL(url string) *Subscription {
 	idx := slices.IndexFunc(s, func(v *Subscription) bool { return v.GetSourceURL() == url })
+	if idx == -1 {
+		return nil
+	}
+	return s[idx]
+}
+
+// FindByFeedID searches the subscriptions slice and returns the subscription matching the given FeedID. If none
+// match, nil is returned.
+func (s Subscriptions) FindByFeedID(id FeedID) *Subscription {
+	idx := slices.IndexFunc(s, func(v *Subscription) bool { return v.GetFeedID() == id })
 	if idx == -1 {
 		return nil
 	}
@@ -546,6 +560,22 @@ func NewSubscription(request *SubscriptionRequest, feed *Feed) *Subscription {
 		FeedID:         feed.GetID(),
 		Feed:           feed,
 	}
+}
+
+// ConvertFeedsToSubscriptions will take the given list of feeds and return the user subscriptions they match.
+func ConvertFeedsToSubscriptions(user *User, feeds ...*Feed) Subscriptions {
+	allSubscriptions := user.GetSubscriptions()
+	subscriptions := make(Subscriptions, 0, len(feeds))
+
+	for feed := range slices.Values(feeds) {
+		subscription := allSubscriptions.FindByFeedID(feed.GetID())
+		if subscription != nil {
+			subscription.Feed = feed
+			subscriptions = append(subscriptions, subscription)
+		}
+	}
+
+	return subscriptions
 }
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data

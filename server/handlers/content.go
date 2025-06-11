@@ -672,20 +672,32 @@ func GenerateSearchSuggestions(api FeedsAPI, searchTerms string) func(next http.
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 
-			_, articles, resp := getSearchSuggestions(ctx, api, searchTerms)
+			subscriptions, articles, resp := getSearchSuggestions(ctx, api, searchTerms)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
 			}
 
-			suggestions := make([]templ.Component, 0, len(articles)+1)
-			suggestions = append(suggestions, views.SearchSuggestionHeader("Articles"))
-			for article := range slices.Values(articles) {
-				suggestions = append(suggestions, views.SearchSuggestionArticle(article))
+			if len(subscriptions) > 0 || len(articles) > 0 {
+				suggestions := make([]templ.Component, 0, len(articles)+1)
+
+				if len(subscriptions) > 0 {
+					// Add subscription suggestions.
+					suggestions = append(suggestions, views.SearchSuggestionHeader("Subscriptions"))
+					for subscription := range slices.Values(subscriptions) {
+						suggestions = append(suggestions, views.SearchSuggestionSubscription(subscription))
+					}
+				}
+				if len(articles) > 0 {
+					// Add article suggestions.
+					suggestions = append(suggestions, views.SearchSuggestionHeader("Articles"))
+					for article := range slices.Values(articles) {
+						suggestions = append(suggestions, views.SearchSuggestionArticle(article))
+					}
+				}
+
+				ctx = context.WithValue(ctx, contentCtxKey, views.SearchSuggestions(suggestions...))
 			}
-
-			ctx = context.WithValue(ctx, contentCtxKey, views.SearchSuggestions(suggestions...))
-
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

@@ -31,6 +31,7 @@ type SourceType string
 type Item struct {
 	types.ItemSource `json:"source"`
 	SourceType       SourceType `json:"type"`
+	FeedTitle        string     `json:"feed_title"`
 }
 
 // UnmarshalJSON handles unmarshaling of an Item from JSON.
@@ -43,21 +44,21 @@ func (i *Item) UnmarshalJSON(v []byte) error {
 	switch sourceType {
 	case TypeAtom:
 		i.SourceType = TypeAtom
-		i.ItemSource, err = unMarshalSource[*atom.Entry](source)
+		i.ItemSource, err = unmarshalSource[*atom.Entry](source)
 		if err != nil {
 			return fmt.Errorf("%w: unable to unmarshal Atom data: %w", ErrUnmarshal, err)
 		}
 		return nil
 	case TypeRSS:
 		i.SourceType = TypeRSS
-		i.ItemSource, err = unMarshalSource[*rss.Item](source)
+		i.ItemSource, err = unmarshalSource[*rss.Item](source)
 		if err != nil {
 			return fmt.Errorf("%w: unable to unmarshal RSS data: %w", ErrUnmarshal, err)
 		}
 		return nil
 	case TypeJSONFeed:
 		i.SourceType = TypeJSONFeed
-		i.ItemSource, err = unMarshalSource[*jsonfeed.Item](source)
+		i.ItemSource, err = unmarshalSource[*jsonfeed.Item](source)
 		if err != nil {
 			return fmt.Errorf("%w: unable to unmarshal JSONFeed data: %w", ErrUnmarshal, err)
 		}
@@ -76,7 +77,12 @@ type Feed struct {
 func (f *Feed) GetItems() []Item {
 	items := make([]Item, 0, len(f.FeedSource.GetItems()))
 	for item := range slices.Values(f.FeedSource.GetItems()) {
-		items = append(items, Item{ItemSource: item, SourceType: f.SourceType})
+		items = append(items,
+			Item{
+				ItemSource: item,
+				SourceType: f.SourceType,
+				FeedTitle:  f.GetTitle(),
+			})
 	}
 	return items
 }
@@ -91,21 +97,21 @@ func (f *Feed) UnmarshalJSON(v []byte) error {
 	switch sourceType {
 	case TypeAtom:
 		f.SourceType = TypeAtom
-		f.FeedSource, err = unMarshalSource[*atom.Feed](source)
+		f.FeedSource, err = unmarshalSource[*atom.Feed](source)
 		if err != nil {
 			return fmt.Errorf("%w: unable to unmarshal Atom data: %w", ErrUnmarshal, err)
 		}
 		return nil
 	case TypeRSS:
 		f.SourceType = TypeRSS
-		f.FeedSource, err = unMarshalSource[*rss.RSS](source)
+		f.FeedSource, err = unmarshalSource[*rss.RSS](source)
 		if err != nil {
 			return fmt.Errorf("%w: unable to unmarshal RSS data: %w", ErrUnmarshal, err)
 		}
 		return nil
 	case TypeJSONFeed:
 		f.SourceType = TypeJSONFeed
-		f.FeedSource, err = unMarshalSource[*jsonfeed.Feed](source)
+		f.FeedSource, err = unmarshalSource[*jsonfeed.Feed](source)
 		if err != nil {
 			return fmt.Errorf("%w: unable to unmarshal JSONFeed data: %w", ErrUnmarshal, err)
 		}
@@ -133,7 +139,7 @@ func sourceFromBytes(v []byte) (SourceType, json.RawMessage, error) {
 	return sourceType, topLevel["source"], nil
 }
 
-func unMarshalSource[T any](v json.RawMessage) (T, error) {
+func unmarshalSource[T any](v json.RawMessage) (T, error) {
 	var source T
 	err := json.Unmarshal(v, &source)
 	if err != nil {

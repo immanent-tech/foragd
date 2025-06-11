@@ -158,7 +158,7 @@ func searchArticles(ctx context.Context, api FeedsAPI, pagination models.Paginat
 	}
 
 	// Create articles from the items.
-	articles := models.GenerateArticles(user, items...)
+	articles := models.ConvertItemsToArticles(user, items...)
 
 	return articles, pagination, models.RespSuccess("Fetched articles.")
 }
@@ -188,7 +188,7 @@ func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (m
 	}
 
 	// Create articles from the items.
-	articles := models.GenerateArticles(user, items...)
+	articles := models.ConvertItemsToArticles(user, items...)
 
 	return articles, models.RespSuccess("Fetched articles.")
 }
@@ -447,7 +447,7 @@ func getHomePageArticles(ctx context.Context, api FeedsAPI, data *views.HomePage
 	return articles, nil
 }
 
-func getSearchSuggestions(ctx context.Context, api FeedsAPI, searchTerms string) (models.Feeds, models.Articles, *models.Response) {
+func getSearchSuggestions(ctx context.Context, api FeedsAPI, searchTerms string) (models.Subscriptions, models.Articles, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -455,38 +455,44 @@ func getSearchSuggestions(ctx context.Context, api FeedsAPI, searchTerms string)
 	}
 	subscriptions := user.GetSubscriptions()
 
-	feedsQuery := query.Build(
-		query.Bool(
-			query.Filter(
-				query.FeedIDs(subscriptions.GetFeedIDs()...),
-			),
-			query.Must(
-				query.Match("title", searchTerms),
-				query.Match("description", searchTerms),
-				query.Match("categories", searchTerms),
-			),
-		),
-	)
-
-	itemsQuery := query.Build(
-		query.Bool(
-			query.Filter(
-				query.FeedIDs(subscriptions.GetFeedIDs()...),
-			),
-			query.Must(
-				query.Match("title", searchTerms),
-				query.Match("description", searchTerms),
-				query.Match("categories", searchTerms),
+	feedsSearch := &elastic.MSearchOptions{
+		Query: query.Build(
+			query.Bool(
+				query.Filter(
+					query.FeedIDs(subscriptions.GetFeedIDs()...),
+				),
+				query.Must(
+					query.Match("title", searchTerms),
+					query.Match("description", searchTerms),
+					query.Match("categories", searchTerms),
+				),
 			),
 		),
-	)
+		Sort: []types.SortCombinationsVariant{elastic.SortByScore(), elastic.NewFieldSort("published", models.SortOrderDesc)},
+	}
 
-	feeds, items, err := api.MultiSearch(ctx, feedsQuery, itemsQuery)
+	itemsSearch := &elastic.MSearchOptions{
+		Query: query.Build(
+			query.Bool(
+				query.Filter(
+					query.FeedIDs(subscriptions.GetFeedIDs()...),
+				),
+				query.Must(
+					query.Match("title", searchTerms),
+					query.Match("description", searchTerms),
+					query.Match("categories", searchTerms),
+				),
+			),
+		),
+		Sort: []types.SortCombinationsVariant{elastic.SortByScore(), elastic.NewFieldSort("published", models.SortOrderDesc)},
+	}
+
+	feeds, items, err := api.MultiSearch(ctx, feedsSearch, itemsSearch)
 	if err != nil {
 		return nil, nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
 	}
 
-	return feeds, models.GenerateArticles(user, items...), nil
+	return models.ConvertFeedsToSubscriptions(user, feeds...), models.ConvertItemsToArticles(user, items...), nil
 }
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.

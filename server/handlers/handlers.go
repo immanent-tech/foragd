@@ -14,13 +14,13 @@ import (
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
@@ -69,7 +69,7 @@ type FeedsAPI interface {
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	SearchItems(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Items, models.Pagination, error)
 	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error)
-	MultiSearch(ctx context.Context, feedsQuery, itemsQuery *types.Query) (models.Feeds, models.Items, error)
+	MultiSearch(ctx context.Context, feedsQuery, itemsQuery *elastic.MSearchOptions) (models.Feeds, models.Items, error)
 }
 
 // UserAPI contains methods for manipulating user data.

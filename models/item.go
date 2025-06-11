@@ -19,23 +19,24 @@ var _ types.ObjectCommon = (*Item)(nil)
 
 var ErrGetItem = errors.New("could not retrieve item")
 
+// Items is a slice of items.
 type Items []*Item
 
-// FilterSince filters the given slice of Items to ones which are newer than the given timestamp.
+// FilterSince filters items to ones which are newer than the given timestamp.
 func (i Items) FilterSince(since time.Time) Items {
 	return slices.Collect(FilterSlice(i, func(v *Item) bool {
 		return v.IsNewer(since)
 	}))
 }
 
-// FilterByFeed filters the given slice of Items to ones which match the given feed ID.
+// FilterByFeed filters items to ones which match the given feed ID.
 func (i Items) FilterByFeed(feedID FeedID) Items {
 	return slices.Collect(FilterSlice(i, func(v *Item) bool {
 		return v.GetFeedID() == feedID
 	}))
 }
 
-// GetFeedIDs retrieves a list of all FeedIDs for all items.
+// GetFeedIDs retrieves a list of all FeedIDs from all items.
 func (i Items) GetFeedIDs() []FeedID {
 	feedIDs := make([]FeedID, 0, len(i))
 	for item := range slices.Values(i) {
@@ -44,7 +45,7 @@ func (i Items) GetFeedIDs() []FeedID {
 	return slices.Compact(feedIDs)
 }
 
-// GetIDs retrieves a list of all ItemIDs for all items.
+// GetIDs retrieves a list of all ItemIDs from all items.
 func (i Items) GetIDs() []ItemID {
 	itemIDs := make([]ItemID, 0, len(i))
 	for item := range slices.Values(i) {
@@ -162,14 +163,14 @@ func GetFeedItems(ctx context.Context, id FeedID, url string) (Items, error) {
 			return nil, fmt.Errorf("unable to fetch feed items: %w", result.Err)
 		}
 		for item := range slices.Values(result.Items) {
-			items = append(items, newItemFromSource(item.ItemSource, id, string(item.SourceType)))
+			items = append(items, newItemFromSource(&item, id, string(item.SourceType)))
 		}
 	}
 	return items, nil
 }
 
 // newFeedFromSource converts the raw types.FeedSource into a Feed object.
-func newItemFromSource[T types.ItemSource](source T, feedID FeedID, sourceType string) *Item {
+func newItemFromSource(source *feeds.Item, feedID FeedID, sourceType string) *Item {
 	item := &Item{
 		ItemID:       NewID(ItemPFX),
 		FeedID:       feedID,
@@ -187,6 +188,7 @@ func newItemFromSource[T types.ItemSource](source T, feedID FeedID, sourceType s
 		Categories:   source.GetCategories(),
 		Image:        source.GetImage(),
 		Content:      source.GetContent().String(),
+		FeedTitle:    source.FeedTitle,
 	}
 
 	return item

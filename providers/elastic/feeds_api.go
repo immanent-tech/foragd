@@ -253,7 +253,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 	return resp, nil
 }
 
-func (a *API) MultiSearch(ctx context.Context, feedsQuery, itemsQuery *types.Query) (models.Feeds, models.Items, error) {
+func (a *API) MultiSearch(ctx context.Context, feedsSearch, itemsSearch *MSearchOptions) (models.Feeds, models.Items, error) {
 	feedsIndex := FeedsIndexFromCtx(ctx)
 	if feedsIndex == "" {
 		return nil, nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
@@ -264,8 +264,8 @@ func (a *API) MultiSearch(ctx context.Context, feedsQuery, itemsQuery *types.Que
 	}
 
 	req := NewMSearchRequest(a.GetAPI(),
-		WithSearch[*msearch.Msearch](feedsIndex, feedsQuery),
-		WithSearch[*msearch.Msearch](itemsIndex, itemsQuery),
+		WithSearch[*msearch.Msearch](feedsIndex, feedsSearch),
+		WithSearch[*msearch.Msearch](itemsIndex, itemsSearch),
 		WithRequestID[*msearch.Msearch, SearchRequestCommon[*msearch.Msearch]](middleware.GetReqID(ctx)),
 	)
 

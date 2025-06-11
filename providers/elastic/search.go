@@ -201,6 +201,19 @@ func SortByDocID(field string) FieldSort {
 	return NewFieldSort(field, models.SortOrderDesc)
 }
 
+type ScoreSort struct{}
+
+func (s ScoreSort) SortCombinationsCaster() *types.SortCombinations {
+	opts := types.NewSortOptions()
+	opts.Score_ = types.NewScoreSort()
+	sort := types.SortCombinations(opts)
+	return &sort
+}
+
+func SortByScore() ScoreSort {
+	return ScoreSort{}
+}
+
 // FieldValue represents a value of a field.
 type FieldValue struct {
 	value any

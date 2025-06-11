@@ -391,6 +391,7 @@ components:
           required:
             - item_id
             - feed_id
+            - feed_title
             - '@timestamp'
           properties:
             '@timestamp':
@@ -399,6 +400,12 @@ components:
               $ref: '#/components/schemas/ItemID'
             feed_id:
               $ref: '#/components/schemas/FeedID'
+            feed_title:
+              description: >
+                is the title of the feed to which this item belongs.
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: 'required'
             content:
               description: >
                 contains the item content.
@@ -416,6 +423,8 @@ components:
           properties:
             subscription_id:
               $ref: '#/components/schemas/SubscriptionID'
+            subscription_title:
+              type: string
             feed_id:
               $ref: '#/components/schemas/FeedID'
             item:

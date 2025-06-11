@@ -489,6 +489,10 @@ func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Requ
 
 func (s Server) SearchSuggest(res http.ResponseWriter, req *http.Request) {
 	searchTerms := req.FormValue("search_terms")
+	if searchTerms == "" {
+		res.WriteHeader(http.StatusOK)
+		return
+	}
 	alice.New(
 		handlers.RouteLogger,
 		handlers.GenerateSearchSuggestions(s.DataAPI(), searchTerms),

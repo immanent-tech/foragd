@@ -58,7 +58,8 @@ type Article struct {
 	State State `json:"state" validate:"oneof=read unread saved"`
 
 	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+	SubscriptionID    SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+	SubscriptionTitle *string        `json:"subscription_title,omitempty"`
 }
 
 // Category represents a taxonomy applied to an object.
@@ -153,6 +154,9 @@ type Item struct {
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+
+	// FeedTitle is the title of the feed to which this item belongs.
+	FeedTitle string `json:"feed_title" validate:"required"`
 
 	// Image is an abstraction of an Image across different types of specifications.
 	Image *externalRef0.Image `json:"image,omitempty"`
