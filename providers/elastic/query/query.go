@@ -31,9 +31,9 @@ func MatchAll() Option {
 	}
 }
 
-// Term adds a "Term" query on the given field with the given value.
+// Match adds a "Match" query on the given field with the given value.
 //
-// https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-term-query.html
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query
 func Match(field string, value string) Option {
 	return func(query *types.Query) {
 		if value != "" {
@@ -41,6 +41,16 @@ func Match(field string, value string) Option {
 				field: {Query: value},
 			}
 		}
+	}
+}
+
+func MoreLikeThisString(value string, fields ...string) Option {
+	return func(query *types.Query) {
+		mlt := types.NewMoreLikeThisQuery()
+		mlt.Like = []types.Like{types.Like(value)}
+		mlt.Fields = fields
+
+		query.MoreLikeThis = mlt
 	}
 }
 
