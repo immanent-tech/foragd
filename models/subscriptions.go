@@ -239,7 +239,6 @@ func (r *SubscriptionRequest) GenerateDetails(feed *Feed) {
 		UserCategories: r.UserCategories,
 		UserNickname:   r.UserNickname,
 		MarkedRead:     UnixEpoch,
-		MaxHistory:     MaxHistory(defaultMaxHistory),
 	}
 }
 
@@ -350,12 +349,8 @@ func (s *SubscriptionDetails) GetFeedID() FeedID {
 // GetMarkedRead retrieves the timestamp when the user last marked the
 // subscription feed as read.
 func (s *SubscriptionDetails) GetMarkedRead() time.Time {
-	maxHistory, err := time.ParseDuration(s.MaxHistory)
-	if err != nil {
-		maxHistory = defaultMaxHistory
-	}
 	if s.MarkedRead.IsZero() {
-		return time.Now().Add(-maxHistory)
+		return time.Now().Add(-DefaultMaxHistory)
 	}
 	return s.MarkedRead
 }
@@ -367,11 +362,6 @@ func (s *SubscriptionDetails) MarkRead(markedAt time.Time) {
 	s.MarkedRead = markedAt
 	s.ItemStates = nil
 	s.UpdatedAt = &updated
-}
-
-// GetMaxHistory returns a timestamp in the past that is the maximum datetime for unread items to be viewed.
-func (s *SubscriptionDetails) GetMaxHistory() time.Time {
-	return parseMaxHistory(s.MaxHistory)
 }
 
 func (s *SubscriptionDetails) GetUnreadCount() int {

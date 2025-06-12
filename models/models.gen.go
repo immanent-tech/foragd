@@ -266,9 +266,6 @@ type SubscriptionDetails struct {
 	// MarkedRead records when the subscription was last marked read.
 	MarkedRead time.Time `form:"-" json:"marked_read" validate:"required"`
 
-	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
-	MaxHistory MaxHistory `form:"-" json:"max_history"`
-
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 

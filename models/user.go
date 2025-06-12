@@ -10,6 +10,8 @@ import (
 	"slices"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
+
 	"github.com/joshuar/go-feed-me/components/validation"
 )
 
@@ -49,7 +51,7 @@ func (u *User) GetSettings() *UserSettings {
 
 // MarkSubscriptions will mark either the given list of subscriptions, or all user subscriptions if none given, with the
 // given mark.
-func (u *User) MarkSubscriptions(mark Mark, subscriptionIDs ...SubscriptionID) {
+func (u *User) MarkSubscriptions(mark Mark, ids ...SubscriptionID) {
 	// Based on the requested state change, calculate the marked read timestamp
 	// for the feed.
 	// For read state, this will be the current time.
@@ -63,17 +65,25 @@ func (u *User) MarkSubscriptions(mark Mark, subscriptionIDs ...SubscriptionID) {
 	}
 
 	switch {
-	case len(subscriptionIDs) == 0:
+	case len(ids) == 0:
 		// Mark all subscriptions.
 		for subscription := range slices.Values(u.Subscriptions) {
 			subscription.MarkRead(markedAt)
 		}
 	default:
 		// Mark the selected subscriptions.
-		for subscription := range slices.Values(u.Subscriptions) {
-			if slices.Contains(subscriptionIDs, subscription.GetID()) {
-				subscription.MarkRead(markedAt)
+		spew.Dump(ids)
+		for id := range slices.Values(ids) {
+			idx := slices.IndexFunc(u.Subscriptions, func(s SubscriptionDetails) bool {
+				return s.GetID() == id
+			})
+			if idx == -1 {
+				continue
 			}
+			details := u.GetSubscriptions(id)
+			details[0].MarkRead(markedAt)
+			u.Subscriptions[idx] = *details[0]
+			spew.Dump(u.Subscriptions[idx])
 		}
 	}
 }
@@ -112,16 +122,6 @@ func (u *User) GetSubscriptionByFeedID(id FeedID) *SubscriptionDetails {
 	}
 	return nil
 }
-
-// func (u *User) FilterSubscriptionsByID(ids ...SubscriptionID) []*SubscriptionDetails {
-// 	subscriptions := make([]*SubscriptionDetails, 0, len(ids))
-// 	for subscription := range FilterSlice(u.Subscriptions, func(details SubscriptionDetails) bool {
-// 		return slices.Contains(ids, details.GetSubscriptionID())
-// 	}) {
-// 		subscriptions = append(subscriptions, &subscription)
-// 	}
-// 	return subscriptions
-// }
 
 // RemoveSubscriptions removes the given Subscriptions from the User.
 func (u *User) RemoveSubscriptions(subscriptionIDs ...SubscriptionID) {

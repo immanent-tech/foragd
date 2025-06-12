@@ -128,7 +128,7 @@ func searchArticles(ctx context.Context, api FeedsAPI, subIDs ...models.Subscrip
 			query.Categories(filters.Categories...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(filters.View, subscriptions...)...),
+				query.Should(BuildSubscriptionQueries(ctx, filters.View, subscriptions...)...),
 			),
 		),
 	)
@@ -311,7 +311,7 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *m
 			query.FeedIDs(models.GetFeedIDs(subscriptions)...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(models.ViewUnread, subscriptions...)...),
+				query.Should(BuildSubscriptionQueries(ctx, models.ViewUnread, subscriptions...)...),
 			),
 		),
 	)
@@ -478,17 +478,17 @@ func getSearchSuggestions(ctx context.Context, api FeedsAPI, searchTerms string)
 }
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
-func BuildSubscriptionQueries(view models.View, subscriptions ...*models.SubscriptionDetails) []query.Option {
+func BuildSubscriptionQueries(ctx context.Context, view models.View, subscriptions ...*models.SubscriptionDetails) []query.Option {
 	queries := make([]query.Option, 0, len(subscriptions))
 	// Work out what query to use based on the state filter.
 	switch view {
 	case models.ViewRead:
 		for subscription := range slices.Values(subscriptions) {
-			queries = append(queries, subscriptionQueryReadItems(subscription))
+			queries = append(queries, subscriptionQueryReadItems(ctx, subscription))
 		}
 	case models.ViewAll:
 		for subscription := range slices.Values(subscriptions) {
-			queries = append(queries, subscriptionQueryAllItems(subscription))
+			queries = append(queries, subscriptionQueryAllItems(ctx, subscription))
 		}
 	case models.ViewUnread:
 		fallthrough
@@ -524,9 +524,15 @@ func subscriptionQueryUnreadItems(subscription *models.SubscriptionDetails) quer
 }
 
 // subscriptionQueryReadItems generates a query for finding read items for the given subscription.
-func subscriptionQueryReadItems(subscription *models.SubscriptionDetails) query.Option {
+func subscriptionQueryReadItems(ctx context.Context, subscription *models.SubscriptionDetails) query.Option {
+	maxHistory := time.Now().Add(-models.DefaultMaxHistory)
+	user, found := models.UserFromCtx(ctx)
+	if found {
+		maxHistory = user.GetMaxHistory()
+	}
+
 	switch {
-	case subscription.GetMarkedRead().Equal(subscription.GetMaxHistory()):
+	case subscription.GetMarkedRead().Equal(maxHistory):
 		return query.Bool(
 			query.BoolQueryName(subscription.GetFeedID()+"_match"),
 			query.Filter(
@@ -535,8 +541,8 @@ func subscriptionQueryReadItems(subscription *models.SubscriptionDetails) query.
 				// And be published/updated since the user max history.
 				query.Bool(
 					query.Should(
-						query.Since("published", subscription.GetMaxHistory()),
-						query.Since("updated", subscription.GetMaxHistory()),
+						query.Since("published", maxHistory),
+						query.Since("updated", maxHistory),
 						query.ItemIDs(subscription.GetReadItems()...),
 					),
 					// Must not match any unread items for the feed
@@ -554,8 +560,8 @@ func subscriptionQueryReadItems(subscription *models.SubscriptionDetails) query.
 				// And should be between the user max history and last read time.
 				query.Bool(
 					query.Should(
-						query.Between("published", subscription.GetMaxHistory(), subscription.GetMarkedRead()),
-						query.Between("updated", subscription.GetMaxHistory(), subscription.GetMarkedRead()),
+						query.Between("published", maxHistory, subscription.GetMarkedRead()),
+						query.Between("updated", maxHistory, subscription.GetMarkedRead()),
 						query.ItemIDs(subscription.GetReadItems()...),
 					),
 					// Must not match any unread items for the feed
@@ -569,7 +575,13 @@ func subscriptionQueryReadItems(subscription *models.SubscriptionDetails) query.
 }
 
 // subscriptionQueryReadItems generates a query for finding all items for the given subscription.
-func subscriptionQueryAllItems(subscription *models.SubscriptionDetails) query.Option {
+func subscriptionQueryAllItems(ctx context.Context, subscription *models.SubscriptionDetails) query.Option {
+	maxHistory := time.Now().Add(-models.DefaultMaxHistory)
+	user, found := models.UserFromCtx(ctx)
+	if found {
+		maxHistory = user.GetMaxHistory()
+	}
+
 	return query.Bool(
 		query.Filter(
 			// Must match this feed.
@@ -577,8 +589,8 @@ func subscriptionQueryAllItems(subscription *models.SubscriptionDetails) query.O
 			// And be published/updated since the user max history.
 			query.Bool(
 				query.Should(
-					query.Since("published", subscription.GetMaxHistory()),
-					query.Since("updated", subscription.GetMaxHistory()),
+					query.Since("published", maxHistory),
+					query.Since("updated", maxHistory),
 				),
 			),
 		),

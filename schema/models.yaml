@@ -350,8 +350,6 @@ components:
               $ref: '#/components/schemas/SubscriptionID'
             feed_id:
               $ref: '#/components/schemas/FeedID'
-            max_history:
-              $ref: '#/components/schemas/MaxHistory'
     # Subscription:
     #   description: >
     #     represents a feed a user has subscribed to.
