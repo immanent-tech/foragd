@@ -162,7 +162,9 @@ components:
             subscriptions:
               description: >
                 is the list of subscriptions for the user.
-              x-go-type: '[]*Subscription'
+              type: array
+              items:
+                $ref: '#/components/schemas/SubscriptionDetails'
               x-go-type-skip-optional-pointer: true
             max_history:
               $ref: '#/components/schemas/MaxHistory'
@@ -330,9 +332,9 @@ components:
             form: '-'
             validate: 'numeric,gte=0'
           x-go-type-skip-optional-pointer: true
-    Subscription:
+    SubscriptionDetails:
       description: >
-        represents a feed a user has subscribed to.
+        contains all details that define a user subscription.
       type: object
       allOf:
         - $ref: '#/components/schemas/Timestamps'
@@ -348,17 +350,15 @@ components:
               $ref: '#/components/schemas/SubscriptionID'
             feed_id:
               $ref: '#/components/schemas/FeedID'
-            feed:
-              description: >
-                contains the Feed details. This field will be populated at query time.
-              allOf:
-                - $ref: '#/components/schemas/Feed'
-              x-oapi-codegen-extra-tags:
-                json: '-'
-                form: '-'
-                validate: 'required'
             max_history:
               $ref: '#/components/schemas/MaxHistory'
+    # Subscription:
+    #   description: >
+    #     represents a feed a user has subscribed to.
+    #   type: object
+    #   allOf:
+    #     - $ref: '#/components/schemas/SubscriptionDetails'
+    #     - $ref: '#/components/schemas/Feed'
     Feed:
       description: represents a feed object.
       type: object

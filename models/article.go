@@ -53,18 +53,20 @@ func ArticleFromItem(item *Item) *Article {
 // ConvertItemsToArticles creates a list of article objects from the given items, populating them with appropriate user data.
 func ConvertItemsToArticles(user *User, items ...*Item) Articles {
 	articles := make(Articles, 0, len(items))
-	subscriptionsByFeed := user.GetSubscriptions().ByFeed()
+	subscriptions := user.GetAllSubscriptions()
 	for item := range slices.Values(items) {
 		article := ArticleFromItem(item)
-		subscription, found := subscriptionsByFeed[item.GetFeedID()]
-		if !found {
+		idx := slices.IndexFunc(subscriptions, func(sub *SubscriptionDetails) bool {
+			return sub.GetFeedID() == item.GetFeedID()
+		})
+		if idx == -1 {
 			continue
 		}
-		article.State = subscription.GetItemState(item.GetID())
-		article.SubscriptionID = subscription.GetID()
+		article.State = subscriptions[idx].GetItemState(item.GetID())
+		article.SubscriptionID = subscriptions[idx].GetID()
 		// Overwrite the feed title in the item to the subscription nickname, if set.
-		if subscription.UserNickname != "" {
-			article.Item.FeedTitle = subscription.UserNickname
+		if subscriptions[idx].UserNickname != "" {
+			article.Item.FeedTitle = subscriptions[idx].UserNickname
 		}
 		articles = append(articles, article)
 	}

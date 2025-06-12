@@ -82,7 +82,8 @@ func (r *PruneCmd) Run(_ *Arguments) error {
 	// Get all feeds from all users.
 	var activeFeedIDs []models.FeedID
 	for user := range slices.Values(users) {
-		activeFeedIDs = append(activeFeedIDs, user.GetSubscriptionFeedIDs()...)
+		feedIDs := models.GetFeedIDs(user.GetAllSubscriptions())
+		activeFeedIDs = append(activeFeedIDs, feedIDs...)
 	}
 
 	// Prune any feeds that are not subscribed to by any user.

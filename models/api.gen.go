@@ -182,11 +182,11 @@ type SortOrder string
 
 // SubscriptionRequest defines model for SubscriptionRequest.
 type SubscriptionRequest struct {
+	// Details the subscription details associated with this request.
+	Details *SubscriptionDetails `form:"-" json:"-"`
+
 	// Result the results of processing the subscription request.
 	Result *UserMessage `form:"-" json:"-"`
-
-	// Subscription the subscription object associated with this request.
-	Subscription *Subscription `form:"-" json:"-"`
 
 	// URL the canonical URL to the feed.
 	URL string `form:"url" json:"url" validate:"required,url"`

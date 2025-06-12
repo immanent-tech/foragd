@@ -26,76 +26,131 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
-// getAllSubscriptions retrieves all the users subscriptions.
-func getAllSubscriptions(ctx context.Context, api FeedsAPI) (models.Subscriptions, *models.Response) {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, models.RespInvalidUser()
-	}
-	// Get user subscriptions.
-	subscriptions := user.GetSubscriptions()
-
-	// Get feeds matching subscriptions.
-	feeds, err := api.GetFeeds(ctx, subscriptions.GetFeedIDs()...)
-	if err != nil {
-		return nil, models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
-	}
-	// Filter by feeds.
-	subscriptions = subscriptions.FilterByFeed(feeds)
-	// Add unread counts to feeds.
-	if resp := setSubscriptionUnreadCounts(ctx, api, subscriptions); resp.IsError() {
-		return subscriptions, resp
-	}
-	// Filter subscriptions with given filters.
-	subscriptions = subscriptions.Sort(
-		models.Sort{
-			SortBy:    models.SortByUnreadCount,
-			SortOrder: models.SortOrderDesc,
-		})
-
-	return subscriptions, models.RespSuccess("Subscriptions fetched.")
-}
-
-// getFilteredSubscriptions retrieves filtered user subscriptions, and potentially paginated.
-func getFilteredSubscriptions(ctx context.Context, api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response) {
+func getSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filters, pagination models.Pagination, ids ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", models.RespInvalidUser()
 	}
-	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
-
-	// Get feeds matching subscriptions.
-	feeds, err := api.GetFeeds(ctx, subscriptions.GetFeedIDs()...)
+	// Get user subscription details.
+	var details []*models.SubscriptionDetails
+	if len(ids) == 0 {
+		details = user.GetAllSubscriptions()
+	} else {
+		details = user.GetSubscriptions(ids...)
+	}
+	// Get feeds for subscriptions.
+	feeds, err := api.GetFeeds(ctx, models.GetFeedIDs(details)...)
 	if err != nil {
 		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
 	}
-	// Filter by feeds.
-	subscriptions = subscriptions.FilterByFeed(feeds)
-	// Add unread counts to feeds.
-	if resp := setSubscriptionUnreadCounts(ctx, api, subscriptions); resp.IsError() {
-		return subscriptions, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+	// Get unread counts.
+	categoryCounts, err := getSubscriptionUnreadCounts(ctx, api, details...)
+	if err != nil {
+		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
 	}
-
-	filters := models.FiltersFromCtx(ctx)
-
-	// Filter subscriptions with given filters.
-	subscriptions = subscriptions.
-		FilterByCategory(filters.Categories...).
-		FilterByView(filters.View).
-		Sort(filters.Sort())
+	// Generate subscriptions.
+	subscriptions := models.ConvertFeedsToSubscriptions(user, feeds...)
+	for subscription := range slices.Values(subscriptions) {
+		subscription.SetUnreadCount(categoryCounts.GetCount(subscription.GetFeedID()))
+	}
+	count := 10
+	if filters != nil {
+		// Filter subscriptions with given filters.
+		subscriptions = subscriptions.
+			FilterByCategory(filters.Categories...).
+			FilterByView(filters.View).
+			Sort(filters.Sort())
+		count = filters.CountAsInt()
+	}
 	// Generate pagination.
 	from, err := strconv.Atoi(pagination)
 	if err != nil {
 		from = 0
 	}
-	to := min(from+filters.CountAsInt(), len(subscriptions))
+	to := min(from+count, len(subscriptions))
 	pagination = strconv.Itoa(to)
 	return subscriptions[from:to], pagination, models.RespSuccess("Subscriptions fetched.")
 }
 
-func setSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, subscriptions models.Subscriptions) *models.Response {
+// // getAllSubscriptions retrieves all the users subscriptions.
+// func getAllSubscriptions(ctx context.Context, api FeedsAPI) (models.Subscriptions, *models.Response) {
+// 	// Retrieve user object.
+// 	user, found := models.UserFromCtx(ctx)
+// 	if !found {
+// 		return nil, models.RespInvalidUser()
+// 	}
+// 	// Get feeds for subscriptions.
+// 	feeds, err := api.GetFeeds(ctx, models.GetFeedIDs(user.GetAllSubscriptions())...)
+// 	if err != nil {
+// 		return nil, models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+// 	}
+// 	// Generate subscriptions.
+// 	subscriptions := models.ConvertFeedsToSubscriptions(user, feeds...)
+// 	// Add unread counts to feeds.
+// 	categoryCounts, err := setSubscriptionUnreadCounts(ctx, api, user.GetAllSubscriptions())
+// 	if err != nil {
+// 		return nil, models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+// 	}
+// 	for subscription := range slices.Values(subscriptions) {
+// 		subscription.SetUnreadCount(categoryCounts.GetCount(subscription.GetID()))
+// 	}
+// 	// Filter subscriptions with given filters.
+// 	subscriptions = subscriptions.Sort(
+// 		models.Sort{
+// 			SortBy:    models.SortByUnreadCount,
+// 			SortOrder: models.SortOrderDesc,
+// 		})
+
+// 	return subscriptions, models.RespSuccess("Subscriptions fetched.")
+// }
+
+// // getFilteredSubscriptions retrieves filtered user subscriptions, and potentially paginated.
+// func getFilteredSubscriptions(ctx context.Context, api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response) {
+// 	// Retrieve user object.
+// 	user, found := models.UserFromCtx(ctx)
+// 	if !found {
+// 		return nil, "", models.RespInvalidUser()
+// 	}
+
+// 	subscriptions := user.GetAllSubscriptions()
+
+// 	models.FilterByID[models.SubscriptionID](subscriptions, subIDs)
+
+// 	// Get feeds matching subscriptions.
+// 	feeds, err := api.GetFeeds(ctx, models.GetFeedIDs(user.FilterSubscriptionsByID(subIDs...))...)
+// 	if err != nil {
+// 		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+// 	}
+// 	// Generate subscriptions.
+// 	subscriptions := models.ConvertFeedsToSubscriptions(user, feeds...)
+// 	// Add unread counts to feeds.
+// 	categoryCounts, err := setSubscriptionUnreadCounts(ctx, api, user.FilterSubscriptionsByID(subIDs...))
+// 	if err != nil {
+// 		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+// 	}
+// 	for subscription := range slices.Values(subscriptions) {
+// 		subscription.SetUnreadCount(categoryCounts.GetCount(subscription.GetSubscriptionID()))
+// 	}
+
+// 	filters := models.FiltersFromCtx(ctx)
+
+// 	// Filter subscriptions with given filters.
+// 	subscriptions = subscriptions.
+// 		FilterByCategory(filters.Categories...).
+// 		FilterByView(filters.View).
+// 		Sort(filters.Sort())
+// 	// Generate pagination.
+// 	from, err := strconv.Atoi(pagination)
+// 	if err != nil {
+// 		from = 0
+// 	}
+// 	to := min(from+filters.CountAsInt(), len(subscriptions))
+// 	pagination = strconv.Itoa(to)
+// 	return subscriptions[from:to], pagination, models.RespSuccess("Subscriptions fetched.")
+// }
+
+func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, subscriptions ...*models.SubscriptionDetails) (*aggregations.TermsAggregationResults, error) {
 	subscriptionQueries := make([]query.Option, 0, len(subscriptions))
 	for subscription := range slices.Values(subscriptions) {
 		subscriptionQueries = append(subscriptionQueries, subscriptionQueryUnreadItems(subscription))
@@ -104,7 +159,7 @@ func setSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, subscription
 		query.BoolQueryName("all_unread_items"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.FeedIDs(subscriptions.GetFeedIDs()...),
+			query.FeedIDs(models.GetFeedIDs(subscriptions)...),
 			// And should match one feed clause.
 			query.Bool(
 				query.Should(subscriptionQueries...),
@@ -113,17 +168,15 @@ func setSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, subscription
 	)
 	resp, err := api.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(subscriptions)))
 	if err != nil {
-		return models.RespNonCriticalError("Subscription unread counts could not be retrieved.", err)
+		return nil, fmt.Errorf("could not retrieve subscription category counts: %w", err)
 	}
 	var categoryCounts aggregations.TermsAggregationResults
 	categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](resp.Aggregations, "UnreadCounts")
 	if err != nil {
-		return models.RespNonCriticalError("Subscription unread counts could not be retrieved.", err)
+		return nil, fmt.Errorf("could not retrieve subscription category counts: %w", err)
 	}
-	for subscription := range slices.Values(subscriptions) {
-		subscription.SetUnreadCount(categoryCounts.GetCount(subscription.GetFeedID()))
-	}
-	return nil
+
+	return &categoryCounts, nil
 }
 
 func searchArticles(ctx context.Context, api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
@@ -132,7 +185,7 @@ func searchArticles(ctx context.Context, api FeedsAPI, pagination models.Paginat
 		return nil, "", models.RespInvalidUser()
 	}
 	// Get subscriptions matching the filters.
-	subscriptions := user.GetSubscriptions().FilterByID(subIDs...)
+	subscriptions := user.GetSubscriptions(subIDs...)
 	filters := models.FiltersFromCtx(ctx)
 
 	// Search through items matching any given feeds filters, excluding any read
@@ -141,12 +194,12 @@ func searchArticles(ctx context.Context, api FeedsAPI, pagination models.Paginat
 		query.BoolQueryName("get_items"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.FeedIDs(subscriptions.GetFeedIDs()...),
+			query.FeedIDs(models.GetFeedIDs(subscriptions)...),
 			// Must match any of the given categories.
 			query.Categories(filters.Categories...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(subscriptions, filters.View)...),
+				query.Should(BuildSubscriptionQueries(filters.View, subscriptions...)...),
 			),
 		),
 	)
@@ -168,15 +221,15 @@ func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (m
 	if !found {
 		return nil, models.RespInvalidUser()
 	}
-	// Get subscriptions matching the filters.
-	subscriptions := user.GetSubscriptions()
+
+	feedIDs := models.GetFeedIDs(user.GetAllSubscriptions())
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
 	query := query.Bool(
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.FeedIDs(subscriptions.GetFeedIDs()...),
+			query.FeedIDs(feedIDs...),
 			// Must match any of the given item IDs,
 			query.ItemIDs(itemIDs...),
 		),
@@ -252,8 +305,8 @@ func getItemTopCategories(ctx context.Context, api FeedsAPI, feeds ...models.Fee
 	return topCategories.BucketNames(), models.RespSuccess("Retrieved categories.")
 }
 
-func addSubscriptions(ctx context.Context, api UserAPI, subscriptions models.Subscriptions) *models.Response {
-	if len(subscriptions) == 0 {
+func addSubscriptions(ctx context.Context, api UserAPI, details ...*models.SubscriptionDetails) *models.Response {
+	if len(details) == 0 {
 		return nil
 	}
 	user, found := models.UserFromCtx(ctx)
@@ -261,7 +314,7 @@ func addSubscriptions(ctx context.Context, api UserAPI, subscriptions models.Sub
 		return models.RespInvalidUser()
 	}
 	// Add the subscriptions to the user.
-	user.AddSubscriptions(subscriptions)
+	user.AddSubscriptions(details...)
 	// Update the user object.
 	return api.UpdateUser(ctx, user.GetID(), map[string]any{
 		"subscriptions": user.Subscriptions,
@@ -321,16 +374,16 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *m
 		return nil, models.RespInvalidUser()
 	}
 	// Get subscriptions.
-	subscriptions := user.GetSubscriptions()
+	subscriptions := user.GetAllSubscriptions()
 	// Query definition for fetching unread items for all subscriptions.
 	query := query.Bool(
 		query.BoolQueryName("item_filters"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.FeedIDs(subscriptions.GetFeedIDs()...),
+			query.FeedIDs(models.GetFeedIDs(subscriptions)...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(subscriptions, models.ViewUnread)...),
+				query.Should(BuildSubscriptionQueries(models.ViewUnread, subscriptions...)...),
 			),
 		),
 	)
@@ -453,13 +506,14 @@ func getSearchSuggestions(ctx context.Context, api FeedsAPI, searchTerms string)
 	if !found {
 		return nil, nil, models.RespInvalidUser()
 	}
-	subscriptions := user.GetSubscriptions()
+	subscriptions := user.GetAllSubscriptions()
+	feedIDs := models.GetFeedIDs(subscriptions)
 
 	feedsSearch := &elastic.MSearchOptions{
 		Query: query.Build(
 			query.Bool(
 				query.Filter(
-					query.FeedIDs(subscriptions.GetFeedIDs()...),
+					query.FeedIDs(feedIDs...),
 				),
 				query.Must(
 					query.Match("title", searchTerms),
@@ -475,7 +529,7 @@ func getSearchSuggestions(ctx context.Context, api FeedsAPI, searchTerms string)
 		Query: query.Build(
 			query.Bool(
 				query.Filter(
-					query.FeedIDs(subscriptions.GetFeedIDs()...),
+					query.FeedIDs(feedIDs...),
 				),
 				query.Must(
 					query.Match("title", searchTerms),
@@ -496,7 +550,7 @@ func getSearchSuggestions(ctx context.Context, api FeedsAPI, searchTerms string)
 }
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
-func BuildSubscriptionQueries(subscriptions models.Subscriptions, view models.View) []query.Option {
+func BuildSubscriptionQueries(view models.View, subscriptions ...*models.SubscriptionDetails) []query.Option {
 	queries := make([]query.Option, 0, len(subscriptions))
 	// Work out what query to use based on the state filter.
 	switch view {
@@ -519,7 +573,7 @@ func BuildSubscriptionQueries(subscriptions models.Subscriptions, view models.Vi
 }
 
 // subscriptionQueryUnreadItems generates a query for finding unread items for the given subscription.
-func subscriptionQueryUnreadItems(subscription *models.Subscription) query.Option {
+func subscriptionQueryUnreadItems(subscription *models.SubscriptionDetails) query.Option {
 	return query.Bool(
 		query.BoolQueryName(subscription.GetFeedID()+"_query_unread"),
 		query.Filter(
@@ -542,7 +596,7 @@ func subscriptionQueryUnreadItems(subscription *models.Subscription) query.Optio
 }
 
 // subscriptionQueryReadItems generates a query for finding read items for the given subscription.
-func subscriptionQueryReadItems(subscription *models.Subscription) query.Option {
+func subscriptionQueryReadItems(subscription *models.SubscriptionDetails) query.Option {
 	switch {
 	case subscription.GetMarkedRead().Equal(subscription.GetMaxHistory()):
 		return query.Bool(
@@ -587,7 +641,7 @@ func subscriptionQueryReadItems(subscription *models.Subscription) query.Option 
 }
 
 // subscriptionQueryReadItems generates a query for finding all items for the given subscription.
-func subscriptionQueryAllItems(subscription *models.Subscription) query.Option {
+func subscriptionQueryAllItems(subscription *models.SubscriptionDetails) query.Option {
 	return query.Bool(
 		query.Filter(
 			// Must match this feed.

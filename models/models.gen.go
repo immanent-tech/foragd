@@ -243,13 +243,19 @@ type ObjectCommonSourceType string
 // State Tracks the state of an object.
 type State string
 
-// Subscription defines model for Subscription.
-type Subscription struct {
+// SubscriptionCustomisation represents the properties of a subscription a user can customize.
+type SubscriptionCustomisation struct {
+	// UserCategories is a user-defined list of Category names for the subscription.
+	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
+
+	// UserNickname is a friendly name or nickname for the feed given by the user.
+	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
+}
+
+// SubscriptionDetails defines model for SubscriptionDetails.
+type SubscriptionDetails struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
-
-	// Feed contains the Feed details. This field will be populated at query time.
-	Feed *Feed `form:"-" json:"-" validate:"required"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
@@ -272,15 +278,6 @@ type Subscription struct {
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
-	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
-
-	// UserNickname is a friendly name or nickname for the feed given by the user.
-	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
-}
-
-// SubscriptionCustomisation represents the properties of a subscription a user can customize.
-type SubscriptionCustomisation struct {
 	// UserCategories is a user-defined list of Category names for the subscription.
 	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
 
@@ -333,7 +330,7 @@ type User struct {
 	Settings *UserSettings `json:"settings,omitempty"`
 
 	// Subscriptions is the list of subscriptions for the user.
-	Subscriptions []*Subscription `json:"subscriptions,omitempty"`
+	Subscriptions []SubscriptionDetails `json:"subscriptions,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`

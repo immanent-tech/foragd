@@ -188,11 +188,12 @@ components:
               x-oapi-codegen-extra-tags:
                 json: '-'
                 form: '-'
-            Subscription:
+            Details:
               description: >
-                the subscription object associated with this request.
+                the subscription details associated with this request.
+              # x-go-type: '*Subscription'
               allOf:
-                - $ref: 'models.yaml#/components/schemas/Subscription'
+                - $ref: 'models.yaml#/components/schemas/SubscriptionDetails'
               x-oapi-codegen-extra-tags:
                 json: '-'
                 form: '-'

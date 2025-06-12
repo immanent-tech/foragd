@@ -47,36 +47,6 @@ func (u *User) GetSettings() *UserSettings {
 	return NewUserSettings()
 }
 
-// GetMarkedRead retrieves the datetime when the user last marked the given Feed
-// as read. If the Feed is unread, it will return the user's max history limit.
-func (u *User) GetMarkedRead(id FeedID) time.Time {
-	idx := slices.IndexFunc(u.Subscriptions, func(v *Subscription) bool {
-		return v.GetFeedID() == id
-	})
-	if idx != -1 {
-		if u.Subscriptions[idx].GetMarkedRead().IsZero() {
-			return u.GetMaxHistory()
-		}
-		return u.Subscriptions[idx].GetMarkedRead()
-	}
-	return u.GetMaxHistory()
-}
-
-// GetSubscriptions retrieves all Subscriptions for the user.
-func (u *User) GetSubscriptions() Subscriptions {
-	return u.Subscriptions
-}
-
-// GetSubscriptionFeedIDs gets all FeedIDs for all Subscriptions for the user.
-func (u *User) GetSubscriptionFeedIDs() []FeedID {
-	return u.GetSubscriptions().GetFeedIDs()
-}
-
-// GetSubscriptionCategories gets all Categories for all Subscriptions for the user.
-func (u *User) GetSubscriptionCategories() []Category {
-	return u.GetSubscriptions().GetCategories()
-}
-
 // MarkSubscriptions will mark either the given list of subscriptions, or all user subscriptions if none given, with the
 // given mark.
 func (u *User) MarkSubscriptions(mark Mark, subscriptionIDs ...SubscriptionID) {
@@ -109,16 +79,54 @@ func (u *User) MarkSubscriptions(mark Mark, subscriptionIDs ...SubscriptionID) {
 }
 
 // AddSubscriptions adds the given Subscriptions to the User.
-func (u *User) AddSubscriptions(subscriptions Subscriptions) {
-	for subscription := range slices.Values(subscriptions) {
-		u.Subscriptions = append(u.Subscriptions, subscription)
+func (u *User) AddSubscriptions(details ...*SubscriptionDetails) {
+	for subscription := range slices.Values(details) {
+		u.Subscriptions = append(u.Subscriptions, *subscription)
 	}
 }
+
+func (u *User) GetAllSubscriptions() []*SubscriptionDetails {
+	subscriptions := make([]*SubscriptionDetails, 0, len(u.Subscriptions))
+	for details := range slices.Values(u.Subscriptions) {
+		subscriptions = append(subscriptions, &details)
+	}
+	return subscriptions
+}
+
+func (u *User) GetSubscriptions(ids ...SubscriptionID) []*SubscriptionDetails {
+	subscriptions := make([]*SubscriptionDetails, 0, len(u.Subscriptions))
+	for details := range FilterSlice(u.Subscriptions, func(details SubscriptionDetails) bool {
+		return slices.Contains(ids, details.GetID())
+	}) {
+		subscriptions = append(subscriptions, &details)
+	}
+	return subscriptions
+}
+
+func (u *User) GetSubscriptionByFeedID(id FeedID) *SubscriptionDetails {
+	idx := slices.IndexFunc(u.Subscriptions, func(details SubscriptionDetails) bool {
+		return details.GetFeedID() == id
+	})
+	if idx != -1 {
+		return &u.Subscriptions[idx]
+	}
+	return nil
+}
+
+// func (u *User) FilterSubscriptionsByID(ids ...SubscriptionID) []*SubscriptionDetails {
+// 	subscriptions := make([]*SubscriptionDetails, 0, len(ids))
+// 	for subscription := range FilterSlice(u.Subscriptions, func(details SubscriptionDetails) bool {
+// 		return slices.Contains(ids, details.GetSubscriptionID())
+// 	}) {
+// 		subscriptions = append(subscriptions, &subscription)
+// 	}
+// 	return subscriptions
+// }
 
 // RemoveSubscriptions removes the given Subscriptions from the User.
 func (u *User) RemoveSubscriptions(subscriptionIDs ...SubscriptionID) {
 	for id := range slices.Values(subscriptionIDs) {
-		u.Subscriptions = slices.DeleteFunc(u.Subscriptions, func(s *Subscription) bool {
+		u.Subscriptions = slices.DeleteFunc(u.Subscriptions, func(s SubscriptionDetails) bool {
 			return id == s.GetID()
 		})
 	}
@@ -126,7 +134,7 @@ func (u *User) RemoveSubscriptions(subscriptionIDs ...SubscriptionID) {
 
 // EditSubscription will apply the given user customisation to the subscription with the given ID.
 func (u *User) EditSubscription(subscriptionID SubscriptionID, edits *SubscriptionCustomisation) {
-	idx := slices.IndexFunc(u.Subscriptions, func(v *Subscription) bool { return v.GetID() == subscriptionID })
+	idx := slices.IndexFunc(u.Subscriptions, func(v SubscriptionDetails) bool { return v.GetID() == subscriptionID })
 	if idx != -1 {
 		// Update categories.
 		u.Subscriptions[idx].UserCategories = edits.UserCategories
@@ -136,14 +144,15 @@ func (u *User) EditSubscription(subscriptionID SubscriptionID, edits *Subscripti
 }
 
 // IsSubscribed returns a boolean indicating whether the user is subscribed to the feed with the given ID.
-func (u *User) IsSubscribed(feedID FeedID) bool {
-	subscriptions := u.GetSubscriptions().FilterByFeedID(feedID)
-	return len(subscriptions) > 0
+func (u *User) IsSubscribed(id FeedID) bool {
+	return slices.ContainsFunc(u.Subscriptions, func(details SubscriptionDetails) bool {
+		return details.GetFeedID() == id
+	})
 }
 
 // MarkItems will mark all items for the given feed with the given mark for the user.
 func (u *User) MarkItems(mark Mark, feedID FeedID, itemIDs ...ItemID) {
-	idx := slices.IndexFunc(u.Subscriptions, func(v *Subscription) bool { return v.GetFeedID() == feedID })
+	idx := slices.IndexFunc(u.Subscriptions, func(v SubscriptionDetails) bool { return v.GetFeedID() == feedID })
 	if idx != -1 {
 		switch mark {
 		case MarkRead:

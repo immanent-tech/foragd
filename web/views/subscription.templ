@@ -24,7 +24,7 @@ import (
 )
 
 type SubscriptionEditRequest struct {
-	*models.Subscription
+	*models.SubscriptionDetails
 	TopCategories []models.Category
 }
 
@@ -56,7 +56,7 @@ templ (s *SubscriptionEditRequest) EditSubscriptionModal() {
 					fieldset.WithField("Nickname (optional)",
 						textinput.Build(
 							textinput.WithName("user_nickname"),
-							textinput.WithValue(s.GetName()),
+							textinput.WithValue(s.GetTitle()),
 							textinput.WithPlaceholder("My memorable feed name"),
 							textinput.Required(),
 						),
@@ -345,7 +345,10 @@ templ ImportResults(requests models.SubscriptionRequests) {
 								<td></td>
 							}
 						} else {
-							<th>{ request.Subscription.GetTitle() }</th>
+							if title := request.Details.GetTitle(); title != "" {
+								<th>{ title }</th>
+							}
+							<th></th>
 							<td>{ request.GetURL() }</td>
 							<td>{ string(request.Result.Status) }</td>
 							<td>{ request.Result.Summary }</td>

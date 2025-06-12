@@ -13,6 +13,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -95,7 +96,9 @@ func GenerateArticle(api FeedsAPI, itemID models.ItemID) func(next http.Handler)
 func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			subscriptions, pagination, resp := getFilteredSubscriptions(req.Context(), api, pagination, subIDs...)
+			filters := models.FiltersFromCtx(req.Context())
+			spew.Dump(filters)
+			subscriptions, pagination, resp := getSubscriptions(req.Context(), api, &filters, pagination, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
@@ -127,7 +130,8 @@ func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, 
 func PaginateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			subscriptions, pagination, resp := getFilteredSubscriptions(req.Context(), api, pagination, subIDs...)
+			filters := models.FiltersFromCtx(req.Context())
+			subscriptions, pagination, resp := getSubscriptions(req.Context(), api, &filters, pagination, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
@@ -368,9 +372,9 @@ func ProcessSubscriptionRequests(api BackendAPI) func(next http.Handler) http.Ha
 					continue
 				}
 				// Attach the subscription to the request.
-				request.Subscription = models.NewSubscription(request, feed)
+				request.GenerateDetails(feed)
 				slogctx.FromCtx(req.Context()).Debug("New subscription (existing feed).",
-					slog.String("subscription_id", request.Subscription.GetID()),
+					slog.String("subscription_id", request.Details.GetID()),
 					slog.String("subscription_nickname", request.UserNickname),
 					slog.String("feed_id", feed.GetID()),
 					slog.String("feed_name", feed.GetTitle()),
@@ -405,9 +409,9 @@ func ProcessSubscriptionRequests(api BackendAPI) func(next http.Handler) http.Ha
 				// Update the request URL (in case of redirection).
 				request.URL = newFeed.GetSourceURL()
 				// Create a subscription.
-				request.Subscription = models.NewSubscription(request, newFeed)
+				request.GenerateDetails(newFeed)
 				slogctx.FromCtx(req.Context()).Debug("New subscription (new feed).",
-					slog.String("subscription_id", request.Subscription.GetID()),
+					slog.String("subscription_id", request.Details.GetID()),
 					slog.String("subscription_nickname", request.UserNickname),
 					slog.String("feed_id", newFeed.GetID()),
 					slog.String("feed_name", newFeed.GetTitle()),
@@ -544,7 +548,7 @@ func EditSubscription(api FeedsAPI, subID models.SubscriptionID) func(next http.
 				return
 			}
 			// Retrieve subscription.
-			subscription := user.GetSubscriptions().FindByID(subID)
+			subscription := user.GetSubscriptions(subID)
 			if subscription == nil {
 				ProcessResponse(res, req, &models.Response{
 					StatusCode: http.StatusNoContent,
@@ -555,19 +559,19 @@ func EditSubscription(api FeedsAPI, subID models.SubscriptionID) func(next http.
 				})
 				return
 			}
-			feeds, err := api.GetFeeds(req.Context(), subscription.GetFeedID())
-			if err != nil {
-				ProcessResponse(res, req, models.RespTemporaryIssue("The backend encountered an issue. Please retry.", err))
-				return
-			}
-			subscription.Feed = feeds[0]
+			// feeds, err := api.GetFeeds(req.Context(), subscription.GetFeedID())
+			// if err != nil {
+			// 	ProcessResponse(res, req, models.RespTemporaryIssue("The backend encountered an issue. Please retry.", err))
+			// 	return
+			// }
+			// subscription.Feed = feeds[0]
 
 			// Encapsulate subscription in edit request.
 			editRequest := &views.SubscriptionEditRequest{
-				Subscription: subscription,
+				SubscriptionDetails: subscription[0],
 			}
 			// Add top categories across items in subscription.
-			categories, resp := getItemTopCategories(req.Context(), api, subscription.GetFeedID())
+			categories, resp := getItemTopCategories(req.Context(), api, subscription[0].GetFeedID())
 			if !resp.IsError() {
 				editRequest.TopCategories = categories
 			}
@@ -655,7 +659,7 @@ func GenerateDrawerContent(api FeedsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
-			subscriptions, resp := getAllSubscriptions(req.Context(), api)
+			subscriptions, _, resp := getSubscriptions(req.Context(), api, nil, "")
 			if resp.IsError() {
 				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.InternalError))
 			} else {
