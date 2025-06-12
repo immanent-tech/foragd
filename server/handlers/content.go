@@ -28,14 +28,19 @@ func GenerateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) fu
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
+			filters := models.FiltersFromCtx(ctx)
 			articles, pagination, resp := searchArticles(req.Context(), api, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
 			}
 
-			cards := views.GenerateArticleCards(req.Context(), articles, pagination)
+			cards := views.GenerateArticleCards(req.Context(), articles)
 			if len(cards) > 0 {
+				// Add pagination htmx props to last article.
+				if len(cards) == filters.CountAsInt() {
+					cards = append(cards, views.PaginationControl(ctx, pagination))
+				}
 				cardLayout := partials.CardGrid(cards...)
 				cardControls := partials.CardControls(
 					views.RefreshAction(),
@@ -60,12 +65,18 @@ func GenerateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) fu
 func PaginateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			filters := models.FiltersFromCtx(req.Context())
 			articles, pagination, resp := searchArticles(req.Context(), api, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
 			}
-			cards := views.GenerateArticleCards(req.Context(), articles, pagination)
+			cards := views.GenerateArticleCards(req.Context(), articles)
+			// Add pagination htmx props to last article.
+			if len(cards) == filters.CountAsInt() {
+				cards = append(cards, views.PaginationControl(req.Context(), pagination))
+			}
+
 			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cards...))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -102,8 +113,13 @@ func GenerateSubscriptionCollection(api FeedsAPI, subIDs ...models.SubscriptionI
 				return
 			}
 			ctx := req.Context()
-			cards := views.GenerateSubscriptionCards(req.Context(), pagination, subscriptions)
+			cards := views.GenerateSubscriptionCards(req.Context(), subscriptions)
 			if len(cards) > 0 {
+				// Add pagination htmx props to last article.
+				if len(cards) == filters.CountAsInt() {
+					cards = append(cards, views.PaginationControl(ctx, pagination))
+				}
+
 				cardLayout := partials.CardGrid(cards...)
 				cardControls := partials.CardControls(
 					views.RefreshAction(),
@@ -133,7 +149,12 @@ func PaginateSubscriptionCollection(api FeedsAPI, subIDs ...models.SubscriptionI
 				ProcessResponse(res, req, resp)
 				return
 			}
-			cards := views.GenerateSubscriptionCards(req.Context(), pagination, subscriptions)
+			cards := views.GenerateSubscriptionCards(req.Context(), subscriptions)
+			// Add pagination htmx props to last article.
+			if len(cards) == filters.CountAsInt() {
+				cards = append(cards, views.PaginationControl(req.Context(), pagination))
+			}
+
 			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cards...))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

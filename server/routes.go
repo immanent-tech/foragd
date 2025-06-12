@@ -290,16 +290,11 @@ func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request,
 		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
 		return
 	}
-	// Extract any pagination value.
-	var pagination models.Pagination
-	if params.Pagination != nil {
-		pagination = *params.Pagination
-	}
 	alice.New(
 		handlers.RouteLogger,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
-		handlers.PaginateArticleCollection(s.DataAPI(), pagination, sub),
+		handlers.PaginateArticleCollection(s.DataAPI(), sub),
 	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
 }
 

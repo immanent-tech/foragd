@@ -217,15 +217,12 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 			slog.Any("warnings", warnings))
 	}
 
-	if pagination != nil {
-		*pagination, err = encodePagination(sortValues)
-		if err != nil {
-			return nil, "", errors.Join(ErrSearchFailed, err)
-		}
-		return items, *pagination, nil
+	newPagination, err := encodePagination(sortValues)
+	if err != nil {
+		return nil, "", errors.Join(ErrSearchFailed, err)
 	}
 
-	return items, "", nil
+	return items, newPagination, nil
 }
 
 // ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query

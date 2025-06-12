@@ -37,10 +37,9 @@ var defaultCardOptions = []card.Option{
 	card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
 }
 
-func GenerateSubscriptionCards(ctx context.Context, pagination models.Pagination, subscriptions models.Subscriptions) []templ.Component {
-	filters := models.FiltersFromCtx(ctx)
+func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscriptions) []templ.Component {
 	cards := make([]templ.Component, 0, len(subscriptions))
-	for idx, subscription := range subscriptions {
+	for subscription := range slices.Values(subscriptions) {
 		cardOptions := slices.Clone(defaultCardOptions)
 		cardOptions = append(cardOptions,
 			card.WithID(subscription.GetID()),
@@ -98,10 +97,6 @@ func GenerateSubscriptionCards(ctx context.Context, pagination models.Pagination
 			cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
 		}
 		cards = append(cards, card.Build(cardOptions...).Show())
-		// Add pagination htmx props to last article.
-		if idx == len(subscriptions)-1 && len(subscriptions) == filters.CountAsInt() {
-			cards = append(cards, paginationControl(ctx, pagination))
-		}
 	}
 	return cards
 }
@@ -143,10 +138,9 @@ templ subscriptionCardTitle(subscription *models.Subscription) {
 	</div>
 }
 
-func GenerateArticleCards(ctx context.Context, articles models.Articles, pagination models.Pagination) []templ.Component {
-	filters := models.FiltersFromCtx(ctx)
+func GenerateArticleCards(ctx context.Context, articles models.Articles) []templ.Component {
 	cards := make([]templ.Component, 0, len(articles))
-	for idx, article := range articles {
+	for article := range slices.Values(articles) {
 		cardOptions := slices.Clone(defaultCardOptions)
 		// Add an image if the article has one.
 		if articleImage := article.Item.GetImage(); articleImage != nil {
@@ -207,17 +201,11 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles, paginat
 
 		// Append the card to the list of cards.
 		cards = append(cards, card.Build(cardOptions...).Show())
-
-		// Add a pagination trigger element after the last card .
-		if idx == len(articles)-1 && len(articles) == filters.CountAsInt() && pagination != "" {
-			cards = append(cards, paginationControl(ctx, pagination))
-		}
-
 	}
 	return cards
 }
 
-templ paginationControl(ctx context.Context, pagination models.Pagination) {
+templ PaginationControl(ctx context.Context, pagination models.Pagination) {
 	{{ view := models.PageStateFromCtx(ctx) }}
 	{{ view.Params.Set(models.ParamPagination, pagination) }}
 	<div

@@ -65,7 +65,7 @@ func GenerateHomePageContent(ctx context.Context, data *HomePageData, articles m
 	// Generate links to rare categories from the data.
 	rareCategories := data.generateRareCategoriesLinks(ctx)
 	// Generate a random collection of article cards from the data.
-	randomItems := GenerateArticleCards(ctx, articles, "")
+	randomItems := GenerateArticleCards(ctx, articles)
 
 	return layoutHomePageContent(data.Links, topCategories, rareCategories, randomItems)
 }

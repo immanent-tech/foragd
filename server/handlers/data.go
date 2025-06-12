@@ -138,7 +138,6 @@ func searchArticles(ctx context.Context, api FeedsAPI, subIDs ...models.Subscrip
 	if err != nil {
 		return nil, "", models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
 	}
-
 	// Create articles from the items.
 	articles := models.ConvertItemsToArticles(user, items...)
 
