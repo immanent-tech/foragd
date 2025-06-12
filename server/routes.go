@@ -145,9 +145,9 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	}
 	switch collection {
 	case models.CollectionSubscriptions:
-		chain = chain.Append(handlers.GenerateSubscriptionCollection(s.DataAPI(), "", subIDs...))
+		chain = chain.Append(handlers.GenerateSubscriptionCollection(s.DataAPI(), subIDs...))
 	case models.CollectionArticles:
-		chain = chain.Append(handlers.GenerateArticleCollection(s.DataAPI(), "", subIDs...))
+		chain = chain.Append(handlers.GenerateArticleCollection(s.DataAPI(), subIDs...))
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode: http.StatusNoContent,
@@ -178,11 +178,6 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
 		return
 	}
-	// Extract any pagination value.
-	var pagination models.Pagination
-	if params.Pagination != nil {
-		pagination = *params.Pagination
-	}
 
 	chain := alice.New(
 		handlers.RouteLogger,
@@ -192,9 +187,9 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 
 	switch collection {
 	case models.CollectionSubscriptions:
-		chain = chain.Append(handlers.PaginateSubscriptionCollection(s.DataAPI(), pagination))
+		chain = chain.Append(handlers.PaginateSubscriptionCollection(s.DataAPI()))
 	case models.CollectionArticles:
-		chain = chain.Append(handlers.PaginateArticleCollection(s.DataAPI(), pagination))
+		chain = chain.Append(handlers.PaginateArticleCollection(s.DataAPI()))
 	default:
 		handlers.ProcessResponse(res, req, &models.Response{
 			StatusCode: http.StatusNoContent,

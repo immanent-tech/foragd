@@ -13,7 +13,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -25,11 +24,11 @@ import (
 )
 
 // GenerateArticleCollection handles searching for articles with the current filters and then generating cards for each found article.
-func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func GenerateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
-			articles, pagination, resp := searchArticles(req.Context(), api, pagination, subIDs...)
+			articles, pagination, resp := searchArticles(req.Context(), api, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
@@ -58,10 +57,10 @@ func GenerateArticleCollection(api FeedsAPI, pagination models.Pagination, subID
 }
 
 // PaginateArticleCollection handles fetching the next set of articles and creating cards from them.
-func PaginateArticleCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func PaginateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			articles, pagination, resp := searchArticles(req.Context(), api, pagination, subIDs...)
+			articles, pagination, resp := searchArticles(req.Context(), api, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
@@ -93,17 +92,15 @@ func GenerateArticle(api FeedsAPI, itemID models.ItemID) func(next http.Handler)
 }
 
 // GenerateSubscriptionCollection handles searching for subscriptions with the current filters and then generating cards for each found subscription.
-func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func GenerateSubscriptionCollection(api FeedsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
-			spew.Dump(filters)
-			subscriptions, pagination, resp := getSubscriptions(req.Context(), api, &filters, pagination, subIDs...)
+			subscriptions, pagination, resp := getSubscriptions(req.Context(), api, &filters, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
 			}
-
 			ctx := req.Context()
 			cards := views.GenerateSubscriptionCards(req.Context(), pagination, subscriptions)
 			if len(cards) > 0 {
@@ -127,11 +124,11 @@ func GenerateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, 
 }
 
 // PaginateSubscriptionCollection handles fetching the next set of subscriptions and creating cards from them.
-func PaginateSubscriptionCollection(api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func PaginateSubscriptionCollection(api FeedsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
-			subscriptions, pagination, resp := getSubscriptions(req.Context(), api, &filters, pagination, subIDs...)
+			subscriptions, pagination, resp := getSubscriptions(req.Context(), api, &filters, subIDs...)
 			if resp.IsError() {
 				ProcessResponse(res, req, resp)
 				return
@@ -659,7 +656,7 @@ func GenerateDrawerContent(api FeedsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
-			subscriptions, _, resp := getSubscriptions(req.Context(), api, nil, "")
+			subscriptions, _, resp := getSubscriptions(req.Context(), api, nil)
 			if resp.IsError() {
 				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.InternalError))
 			} else {

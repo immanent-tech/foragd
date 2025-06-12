@@ -26,7 +26,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
-func getSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filters, pagination models.Pagination, ids ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response) {
+func getSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filters, ids ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -39,6 +39,7 @@ func getSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filters
 	} else {
 		details = user.GetSubscriptions(ids...)
 	}
+
 	// Get feeds for subscriptions.
 	feeds, err := api.GetFeeds(ctx, models.GetFeedIDs(details)...)
 	if err != nil {
@@ -54,101 +55,29 @@ func getSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filters
 	for subscription := range slices.Values(subscriptions) {
 		subscription.SetUnreadCount(categoryCounts.GetCount(subscription.GetFeedID()))
 	}
-	count := 10
+	var pagination models.Pagination
 	if filters != nil {
+		var from, to int
 		// Filter subscriptions with given filters.
 		subscriptions = subscriptions.
 			FilterByCategory(filters.Categories...).
 			FilterByView(filters.View).
 			Sort(filters.Sort())
-		count = filters.CountAsInt()
+		// Generate pagination.
+		if filters.HasPagination() {
+			from, _ = strconv.Atoi(*filters.Pagination)
+		}
+		to = min(from+filters.CountAsInt(), len(subscriptions))
+		pagination = strconv.Itoa(to)
+		subscriptions = subscriptions[from:to]
+	} else {
+		subscriptions = subscriptions.Sort(models.Sort{
+			SortBy:    models.SortByUnreadCount,
+			SortOrder: models.SortOrderDesc,
+		})
 	}
-	// Generate pagination.
-	from, err := strconv.Atoi(pagination)
-	if err != nil {
-		from = 0
-	}
-	to := min(from+count, len(subscriptions))
-	pagination = strconv.Itoa(to)
-	return subscriptions[from:to], pagination, models.RespSuccess("Subscriptions fetched.")
+	return subscriptions, pagination, models.RespSuccess("Subscriptions fetched.")
 }
-
-// // getAllSubscriptions retrieves all the users subscriptions.
-// func getAllSubscriptions(ctx context.Context, api FeedsAPI) (models.Subscriptions, *models.Response) {
-// 	// Retrieve user object.
-// 	user, found := models.UserFromCtx(ctx)
-// 	if !found {
-// 		return nil, models.RespInvalidUser()
-// 	}
-// 	// Get feeds for subscriptions.
-// 	feeds, err := api.GetFeeds(ctx, models.GetFeedIDs(user.GetAllSubscriptions())...)
-// 	if err != nil {
-// 		return nil, models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
-// 	}
-// 	// Generate subscriptions.
-// 	subscriptions := models.ConvertFeedsToSubscriptions(user, feeds...)
-// 	// Add unread counts to feeds.
-// 	categoryCounts, err := setSubscriptionUnreadCounts(ctx, api, user.GetAllSubscriptions())
-// 	if err != nil {
-// 		return nil, models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
-// 	}
-// 	for subscription := range slices.Values(subscriptions) {
-// 		subscription.SetUnreadCount(categoryCounts.GetCount(subscription.GetID()))
-// 	}
-// 	// Filter subscriptions with given filters.
-// 	subscriptions = subscriptions.Sort(
-// 		models.Sort{
-// 			SortBy:    models.SortByUnreadCount,
-// 			SortOrder: models.SortOrderDesc,
-// 		})
-
-// 	return subscriptions, models.RespSuccess("Subscriptions fetched.")
-// }
-
-// // getFilteredSubscriptions retrieves filtered user subscriptions, and potentially paginated.
-// func getFilteredSubscriptions(ctx context.Context, api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Subscriptions, models.Pagination, *models.Response) {
-// 	// Retrieve user object.
-// 	user, found := models.UserFromCtx(ctx)
-// 	if !found {
-// 		return nil, "", models.RespInvalidUser()
-// 	}
-
-// 	subscriptions := user.GetAllSubscriptions()
-
-// 	models.FilterByID[models.SubscriptionID](subscriptions, subIDs)
-
-// 	// Get feeds matching subscriptions.
-// 	feeds, err := api.GetFeeds(ctx, models.GetFeedIDs(user.FilterSubscriptionsByID(subIDs...))...)
-// 	if err != nil {
-// 		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
-// 	}
-// 	// Generate subscriptions.
-// 	subscriptions := models.ConvertFeedsToSubscriptions(user, feeds...)
-// 	// Add unread counts to feeds.
-// 	categoryCounts, err := setSubscriptionUnreadCounts(ctx, api, user.FilterSubscriptionsByID(subIDs...))
-// 	if err != nil {
-// 		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
-// 	}
-// 	for subscription := range slices.Values(subscriptions) {
-// 		subscription.SetUnreadCount(categoryCounts.GetCount(subscription.GetSubscriptionID()))
-// 	}
-
-// 	filters := models.FiltersFromCtx(ctx)
-
-// 	// Filter subscriptions with given filters.
-// 	subscriptions = subscriptions.
-// 		FilterByCategory(filters.Categories...).
-// 		FilterByView(filters.View).
-// 		Sort(filters.Sort())
-// 	// Generate pagination.
-// 	from, err := strconv.Atoi(pagination)
-// 	if err != nil {
-// 		from = 0
-// 	}
-// 	to := min(from+filters.CountAsInt(), len(subscriptions))
-// 	pagination = strconv.Itoa(to)
-// 	return subscriptions[from:to], pagination, models.RespSuccess("Subscriptions fetched.")
-// }
 
 func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, subscriptions ...*models.SubscriptionDetails) (*aggregations.TermsAggregationResults, error) {
 	subscriptionQueries := make([]query.Option, 0, len(subscriptions))
@@ -179,7 +108,7 @@ func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, subscription
 	return &categoryCounts, nil
 }
 
-func searchArticles(ctx context.Context, api FeedsAPI, pagination models.Pagination, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
+func searchArticles(ctx context.Context, api FeedsAPI, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", models.RespInvalidUser()
@@ -205,7 +134,7 @@ func searchArticles(ctx context.Context, api FeedsAPI, pagination models.Paginat
 	)
 	sort := filters.Sort()
 
-	items, pagination, err := api.SearchItems(ctx, query, filters.CountAsInt(), &sort, &pagination)
+	items, pagination, err := api.SearchItems(ctx, query, filters.CountAsInt(), &sort, filters.Pagination)
 	if err != nil {
 		return nil, "", models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
 	}

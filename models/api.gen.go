@@ -106,6 +106,9 @@ type Filters struct {
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
 
+	// Pagination contains data for paginating through results.
+	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
+
 	// SortBy represents the selected field to sort on.
 	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
 

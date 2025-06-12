@@ -130,6 +130,10 @@ func (f *Filters) ToQueryParams() url.Values {
 		params.Set(ParamCategories, strings.Join(f.Categories, ","))
 	}
 
+	if f.Pagination != nil {
+		params.Set(ParamPagination, *f.Pagination)
+	}
+
 	params.Set(ParamSortBy, string(f.SortBy))
 	params.Set(ParamSortOrder, string(f.SortOrder))
 	params.Set(ParamView, string(f.View))
@@ -160,6 +164,11 @@ func (f *Filters) RemoveCategory(category Category) {
 	if found, idx := f.HasCategory(category); found {
 		f.Categories = slices.Delete(f.Categories, idx, idx+1)
 	}
+}
+
+// HasPagination returns a boolean indicating whether there are pagination values.
+func (f *Filters) HasPagination() bool {
+	return f.Pagination != nil
 }
 
 // NewFiltersFromParams creates new filters with values extracted from the given request params.

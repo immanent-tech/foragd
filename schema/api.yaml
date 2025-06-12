@@ -108,6 +108,8 @@ components:
           $ref: '#/components/schemas/SortBy'
         sort_order:
           $ref: '#/components/schemas/SortOrder'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
         categories:
           description: is a list of categories.
           type: array
