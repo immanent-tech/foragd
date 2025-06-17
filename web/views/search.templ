@@ -87,7 +87,7 @@ templ SearchSuggestionSubscription(subscription *models.Subscription) {
 
 templ SearchSuggestionArticle(article *models.Article) {
 	<li class="list-row" _="on click call document.activeElement.blur()">
-		if img := article.Item.GetImage(); img != nil {
+		if img := article.GetImage(); img != nil {
 			<div>
 				@image.Build(img.URL(), image.WithExtraClasses("size-12", "rounded-box", "object-scale-down")).Show()
 			</div>
@@ -95,12 +95,12 @@ templ SearchSuggestionArticle(article *models.Article) {
 		<div>
 			<div class="list-col-wrap text-xs">
 				@link.Build(
-					link.WithContent(article.Item.GetTitle()),
-					link.WithExtraAttributes(viewAction(ctx, article.ItemID, article.IsUnread())),
+					link.WithContent(article.GetTitle()),
+					link.WithExtraAttributes(viewAction(ctx, article.GetID(), article.State.IsRead())),
 					link.WithUnderlineOnHover(),
 				).Show()
 			</div>
-			<div class="text-xs uppercase font-semibold opacity-60">{ article.Item.FeedTitle }</div>
+			<div class="text-xs uppercase font-semibold opacity-60">{ article.GetFeedTitle() }</div>
 		</div>
 		// <button class="btn btn-square btn-ghost">
 		// 	<svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M6 3L20 12 6 21 6 3z"></path></g></svg>

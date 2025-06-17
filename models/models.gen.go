@@ -43,23 +43,19 @@ const (
 	StateUnread State = "unread"
 )
 
-// Article defines model for Article.
+// Article is the representation of an item from the user's perspective. It holds the original item and additional fields to track the state of the item from the perspective of the user.
 type Article struct {
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+	// Item represents an individual item (e.g., an individual feed item).
+	Item *Item `json:"item,omitempty"`
 
-	// Item is the original item that the article represents.
-	Item *Item `form:"-" json:"-" validate:"required"`
+	// State tracks the state of an object.
+	State *ObjectState `json:"state,omitempty"`
 
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `form:"feed_id" json:"item_id" validate:"required,startswith=item_"`
-
-	// State Tracks the state of an object.
-	State State `json:"state" validate:"oneof=read unread saved"`
+	// SubscriptionCustomisation contains object fields that can be customised (overridden) by a user
+	SubscriptionCustomisation *ObjectCustomisation `json:"subscription_customisation,omitempty"`
 
 	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID    SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-	SubscriptionTitle *string        `json:"subscription_title,omitempty"`
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
 // Category represents a taxonomy applied to an object.
@@ -97,7 +93,7 @@ type Feed struct {
 	Description string `json:"description"`
 
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
 
 	// Image is an abstraction of an Image across different types of specifications.
 	Image    *externalRef0.Image `json:"image,omitempty"`
@@ -153,7 +149,7 @@ type Item struct {
 	Description string `json:"description"`
 
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
 
 	// FeedTitle is the title of the feed to which this item belongs.
 	FeedTitle string `json:"feed_title" validate:"required"`
@@ -162,7 +158,7 @@ type Item struct {
 	Image *externalRef0.Image `json:"image,omitempty"`
 
 	// ItemID is the unique ID of an item.
-	ItemID   ItemID `form:"feed_id" json:"item_id" validate:"required,startswith=item_"`
+	ItemID   ItemID `json:"item_id" validate:"required,startswith=item_"`
 	Language string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
@@ -187,20 +183,8 @@ type ItemSourceType string
 // ItemID is the unique ID of an item.
 type ItemID = string
 
-// ItemState contains the user state for the item.
-type ItemState struct {
-	// ItemID is the unique ID of an item.
-	ItemID ItemID `form:"feed_id" json:"item_id" validate:"required,startswith=item_"`
-
-	// State Tracks the state of an object.
-	State State `json:"state" validate:"oneof=read unread saved"`
-}
-
 // Mark applies the given mark action to objects.
 type Mark string
-
-// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
-type MaxHistory = string
 
 // ObjectCommon contains common fields across objects.
 type ObjectCommon struct {
@@ -221,17 +205,11 @@ type ObjectCommon struct {
 	Image    *externalRef0.Image `json:"image,omitempty"`
 	Language string              `json:"language,omitempty"`
 
-	// Published is the datetime at which the feed or item was published.
-	Published time.Time `json:"published"`
-
 	// SourceType indicates what type of source the object came from.
 	SourceType ObjectCommonSourceType `json:"source_type"`
 
 	// Title is the title of the feed or item.
 	Title string `json:"title" validate:"required"`
-
-	// Updated is the datetime at which the feed or item was updated.
-	Updated time.Time `json:"updated,omitempty"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty" validate:"omitempty,url"`
@@ -240,61 +218,94 @@ type ObjectCommon struct {
 // ObjectCommonSourceType indicates what type of source the object came from.
 type ObjectCommonSourceType string
 
+// ObjectCustomisation contains object fields that can be customised (overridden) by a user
+type ObjectCustomisation struct {
+	// Categories is a custom list of categories for an object.
+	Categories []Category `form:"user_categories[]" json:"categories,omitempty" validate:"omitempty,unique"`
+
+	// Title is a friendly name or nickname for an object.
+	Title string `form:"user_nickname" json:"title,omitempty" validate:"omitempty"`
+}
+
+// ObjectState tracks the state of an object.
+type ObjectState struct {
+	// Read indicates whether the object has been read (true) or is unread (false).
+	Read bool `json:"read"`
+
+	// Saved indicates whether the object has been saved (true) or is not saved (false).
+	Saved bool `json:"saved"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+}
+
+// ObjectTimestamps contains timestamps for objects.
+type ObjectTimestamps struct {
+	// Published is the datetime at which the feed or item was published.
+	Published time.Time `json:"published"`
+
+	// Updated is the datetime at which the feed or item was updated.
+	Updated time.Time `json:"updated,omitempty"`
+}
+
 // State Tracks the state of an object.
 type State string
 
-// SubscriptionCustomisation represents the properties of a subscription a user can customize.
-type SubscriptionCustomisation struct {
-	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
+// Subscription represents a feed a user has subscribed to.
+type Subscription struct {
+	// Customisation contains object fields that can be customised (overridden) by a user
+	Customisation *ObjectCustomisation `json:"customisation,omitempty"`
 
-	// UserNickname is a friendly name or nickname for the feed given by the user.
-	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
-}
+	// Feed represents a feed object.
+	Feed *Feed `json:"feed,omitempty"`
 
-// SubscriptionDetails defines model for SubscriptionDetails.
-type SubscriptionDetails struct {
-	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at" validate:"required"`
-
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-
-	// ItemStates contains states of items that the user has explicitly marked or saved.
-	ItemStates []ItemState `form:"-" json:"item_states,omitempty" validate:"omitempty,unique"`
-
-	// MarkedRead records when the subscription was last marked read.
-	MarkedRead time.Time `form:"-" json:"marked_read" validate:"required"`
+	// State tracks the state of an object.
+	State *ObjectState `json:"state,omitempty"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
-	// UnreadCount indicates how many items are unread for the subscription.
-	UnreadCount int `form:"-" json:"-" validate:"numeric,gte=0"`
+	// UnreadCount is the value of items that are not explicitly marked unread by the user for this subscription. Calculated dynamically at runtime.
+	UnreadCount int `json:"-" validate:"gte=0"`
 
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+	// UserID is the unique ID of a user.
+	UserID UserID `json:"user_id" validate:"required"`
+}
 
-	// UserCategories is a user-defined list of Category names for the subscription.
-	UserCategories []Category `form:"user_categories[]" json:"user_categories" validate:"omitempty,unique"`
+// SubscriptionCustomisation defines model for SubscriptionCustomisation.
+type SubscriptionCustomisation struct {
+	// Categories is a custom list of categories for an object.
+	Categories []Category `form:"user_categories[]" json:"categories,omitempty" validate:"omitempty,unique"`
 
-	// UserNickname is a friendly name or nickname for the feed given by the user.
-	UserNickname string `form:"user_nickname" json:"user_nickname,omitempty" validate:"omitempty"`
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// Title is a friendly name or nickname for an object.
+	Title string `form:"user_nickname" json:"title,omitempty" validate:"omitempty"`
+
+	// UserID is the unique ID of a user.
+	UserID UserID `json:"user_id" validate:"required"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
 
-// SubscriptionState contains properties tracking the state of the subscription.
+// SubscriptionState contains all details that define a user subscription.
 type SubscriptionState struct {
-	// ItemStates contains states of items that the user has explicitly marked or saved.
-	ItemStates []ItemState `form:"-" json:"item_states,omitempty" validate:"omitempty,unique"`
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
 
-	// MarkedRead records when the subscription was last marked read.
-	MarkedRead time.Time `form:"-" json:"marked_read" validate:"required"`
+	// ItemStates contains the states of items marked explicitly as read/unread/saved by the user.
+	ItemStates map[ItemID]ObjectState `json:"item_states,omitempty"`
 
-	// UnreadCount indicates how many items are unread for the subscription.
-	UnreadCount int `form:"-" json:"-" validate:"numeric,gte=0"`
+	// State tracks the state of an object.
+	State *ObjectState `json:"state,omitempty"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
 // Timestamp is when the document was created.
@@ -321,13 +332,13 @@ type User struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
-	MaxHistory MaxHistory `form:"-" json:"max_history"`
+	MaxHistory string `json:"max_history"`
 
 	// Settings contains user-specific settings for the application.
 	Settings *UserSettings `json:"settings,omitempty"`
 
-	// Subscriptions is the list of subscriptions for the user.
-	Subscriptions []SubscriptionDetails `json:"subscriptions,omitempty"`
+	// SubscriptionStates is a list of the states of all subscriptions the user has.
+	SubscriptionStates []SubscriptionState `json:"subscription_states,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`

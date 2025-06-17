@@ -7,36 +7,25 @@ package schema
 import (
 	"context"
 	"errors"
+	"fmt"
+	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/cluster/putcomponenttemplate"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/ilm/putlifecycle"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/create"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/putindextemplate"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/components/config"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 )
 
-var validMigrations = []string{"feeds", "feeditems", "users", "ingest", "scheduler", "session"}
+var validMigrations = []string{"feeds", "feeditems", "subscription", "users", "ingest", "scheduler", "session"}
 
 var ErrMigrationFailed = errors.New("schema migration failed")
 
-type client interface {
-	PutILM(ctx context.Context, name string, policy *putlifecycle.Request) error
-	PutComponentTemplate(ctx context.Context, name string, template *putcomponenttemplate.Request) error
-	PutIndexTemplate(ctx context.Context, name string, template *putindextemplate.Request) error
-	PutIngestPipeline(ctx context.Context, name string, pipeline *putpipeline.Request) error
-	IndexExists(ctx context.Context, index string) (bool, error)
-	NewIndexRequest(name string, options ...elastic.CreateIndexOption) *create.Create
-}
-
 // Migration will create all necessary index templates settings and policies.
-func Migration(ctx context.Context, api *typedapi.API, migrations ...string) error {
+func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrations ...string) error {
 	// If no migrations are specified, perform migrations for all items.
-	if len(migrations) == 0 {
+	if slices.Contains(migrations, "all") {
 		migrations = validMigrations
 	}
 
@@ -46,15 +35,17 @@ func Migration(ctx context.Context, api *typedapi.API, migrations ...string) err
 
 		switch migration {
 		case "users":
-			err = migrateUsers(ctx, api)
+			err = migrateUsers(ctx, api, destructive)
 		case "feeds":
-			err = migrateFeeds(ctx, api)
+			err = migrateFeeds(ctx, api, destructive)
 		case "feeditems":
-			err = migrateFeedItems(ctx, api)
+			err = migrateFeedItems(ctx, api, destructive)
+		case "subscription":
+			err = migrateSubscriptions(ctx, api, destructive)
 		case "scheduler":
-			err = migrateScheduler(ctx, api)
+			err = migrateScheduler(ctx, api, destructive)
 		case "session":
-			err = migrateSession(ctx, api)
+			err = migrateSession(ctx, api, destructive)
 		case "ingest":
 			err = migrateIngest(ctx, api)
 		}
@@ -69,30 +60,80 @@ func Migration(ctx context.Context, api *typedapi.API, migrations ...string) err
 
 // migrateUsers contains migration actions for migrating users indices and
 // settings.
-func migrateUsers(ctx context.Context, api *typedapi.API) error {
-	slogctx.FromCtx(ctx).Debug("Migrating users...")
-
-	if err := elastic.PutComponentTemplate(ctx, api, UsersMappings, UserMappingsTemplate()); err != nil {
+func migrateUsers(ctx context.Context, api *typedapi.API, destructive bool) error {
+	if err := elastic.PutComponentTemplate(ctx, api, UsersSchemaPrefix, NewComponentTemplateRequest(userComponentTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
+	slogctx.FromCtx(ctx).Debug("Added users component template...")
 
-	if err := elastic.PutComponentTemplate(ctx, api, UsersSettings, UsersSettingsTemplate()); err != nil {
+	if err := elastic.PutIndexTemplate(ctx, api, UsersSchemaPrefix,
+		NewIndexTemplateRequest(
+			WithIndexPatterns(UsersSchemaPrefix+"_*"),
+			WithComponentTemplates(UsersSchemaPrefix),
+		),
+	); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
-
-	if err := elastic.PutIndexTemplate(ctx, api, UsersSchemaPrefix, UsersIndexTemplate()); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
+	slogctx.FromCtx(ctx).Debug("Added users index template...")
 
 	userIndex := UsersSchemaPrefix + "_" + config.Environment()
-	// Check that a job queue index exists.
-	found, err := elastic.IndexExists(ctx, api, userIndex)
+	// Delete index if destructive set.
+	if destructive {
+		if _, err := api.Indices.Delete(userIndex).Do(ctx); err != nil && !ignoreErr(err) {
+			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		}
+		slogctx.FromCtx(ctx).Debug("Deleted existing users index...")
+	}
+	// Make sure the index doesn't exist before continuing.
+	found, err := api.Indices.Exists(userIndex).Do(ctx)
 	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 	// Create a job queue index if not found.
 	if !found {
 		_, err = elastic.NewIndexRequest(api, userIndex).Do(ctx)
+		if err != nil {
+			return errors.Join(ErrMigrationFailed, err)
+		}
+		slogctx.FromCtx(ctx).Debug("Created new users index...")
+	}
+
+	return nil
+}
+
+// migrateSubscriptions contains migration actions for migrating subscriptions indices and
+// settings.
+func migrateSubscriptions(ctx context.Context, api *typedapi.API, destructive bool) error {
+	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
+
+	if err := elastic.PutComponentTemplate(ctx, api, SubscriptionsSchemaPrefix, NewComponentTemplateRequest(subscriptionsCustomisationTemplate())); err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+
+	if err := elastic.PutIndexTemplate(ctx, api, SubscriptionsSchemaPrefix,
+		NewIndexTemplateRequest(
+			WithIndexPatterns(SubscriptionsSchemaPrefix+"_*"),
+			WithComponentTemplates(SubscriptionsSchemaPrefix),
+		),
+	); err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+
+	index := SubscriptionsSchemaPrefix + "_" + config.Environment()
+	// Delete index if destructive set.
+	if destructive {
+		if _, err := api.Indices.Delete(index).Do(ctx); err != nil && !ignoreErr(err) {
+			// return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		}
+	}
+	// Make sure the index doesn't exist before continuing.
+	found, err := api.Indices.Exists(index).Do(ctx)
+	if err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	// Create a job queue index if not found.
+	if !found {
+		_, err = elastic.NewIndexRequest(api, index).Do(ctx)
 		if err != nil {
 			return errors.Join(ErrMigrationFailed, err)
 		}
@@ -103,24 +144,31 @@ func migrateUsers(ctx context.Context, api *typedapi.API) error {
 
 // migrateFeeds contains migration actions for migrating feeds indices and
 // settings.
-func migrateFeeds(ctx context.Context, api *typedapi.API) error {
+func migrateFeeds(ctx context.Context, api *typedapi.API, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
 
-	if err := elastic.PutComponentTemplate(ctx, api, FeedsMappings, FeedsMappingsTemplate()); err != nil {
+	if err := elastic.PutComponentTemplate(ctx, api, FeedsSchemaPrefix, NewComponentTemplateRequest(feedsComponentTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := elastic.PutComponentTemplate(ctx, api, FeedsSettings, FeedsSettingsTemplate()); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-
-	if err := elastic.PutIndexTemplate(ctx, api, FeedsSchemaPrefix, FeedsIndexTemplate()); err != nil {
+	if err := elastic.PutIndexTemplate(ctx, api, FeedsSchemaPrefix,
+		NewIndexTemplateRequest(
+			WithIndexPatterns(FeedsSchemaPrefix+"_*"),
+			WithComponentTemplates(FeedsSchemaPrefix),
+		),
+	); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
 	feedsIndex := FeedsSchemaPrefix + "_" + config.Environment()
-	// Check that a job queue index exists.
-	found, err := elastic.IndexExists(ctx, api, feedsIndex)
+	// Delete index if destructive set.
+	if destructive {
+		if _, err := api.Indices.Delete(feedsIndex).Do(ctx); err != nil && !ignoreErr(err) {
+			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		}
+	}
+	// Make sure the index doesn't exist before continuing.
+	found, err := api.Indices.Exists(feedsIndex).Do(ctx)
 	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
@@ -137,22 +185,34 @@ func migrateFeeds(ctx context.Context, api *typedapi.API) error {
 
 // migrateFeedItems contains migration actions for migrating feed items
 // index mappings & settings and ILM policy.
-func migrateFeedItems(ctx context.Context, api *typedapi.API) error {
+func migrateFeedItems(ctx context.Context, api *typedapi.API, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating feed items...")
 
-	if err := elastic.PutILM(ctx, api, FeedItemsSchemaPrefix, FeedItemsILMPolicy()); err != nil {
+	if destructive {
+		if _, err := api.Indices.DeleteDataStream(FeedItemsSchemaPrefix + "_" + config.Environment()).Do(ctx); err != nil && !ignoreErr(err) {
+			// return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		}
+		if _, err := api.Ilm.DeleteLifecycle(FeedItemsSchemaPrefix).Do(ctx); err != nil && !ignoreErr(err) {
+			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		}
+	}
+
+	if _, err := api.Ilm.PutLifecycle(FeedItemsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx); err != nil {
+		return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+	}
+
+	if err := elastic.PutComponentTemplate(ctx, api, FeedItemsSchemaPrefix, NewComponentTemplateRequest(itemsComponentTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := elastic.PutComponentTemplate(ctx, api, FeedsItemsMappings, FeedItemsMappingsTemplate()); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-
-	if err := elastic.PutComponentTemplate(ctx, api, FeedsItemsSettings, FeedItemsSettingsTemplate()); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-
-	if err := elastic.PutIndexTemplate(ctx, api, FeedItemsSchemaPrefix, FeedItemsIndexTemplate()); err != nil {
+	if err := elastic.PutIndexTemplate(ctx, api, FeedItemsSchemaPrefix,
+		NewIndexTemplateRequest(
+			WithIndexPatterns(FeedItemsSchemaPrefix+"_*"),
+			WithComponentTemplates(FeedItemsSchemaPrefix),
+			WithPriority(500),
+			AsDataStream(),
+		),
+	); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
@@ -161,7 +221,7 @@ func migrateFeedItems(ctx context.Context, api *typedapi.API) error {
 
 // migrateScheduler contains migration actions for migrating scheduler
 // index mappings & settings and ILM policy.
-func migrateScheduler(ctx context.Context, api *typedapi.API) error {
+func migrateScheduler(ctx context.Context, api *typedapi.API, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating feed items...")
 
 	var (
@@ -171,21 +231,29 @@ func migrateScheduler(ctx context.Context, api *typedapi.API) error {
 
 	// scheduler jobs indicies
 
-	if err = elastic.PutComponentTemplate(ctx, api, SchedulerJobsMappings, SchedulerJobsMappingsTemplate()); err != nil {
+	if err = elastic.PutComponentTemplate(ctx, api, SchedulerJobsSchemaPrefix, NewComponentTemplateRequest(schedulerJobsComponentTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err = elastic.PutComponentTemplate(ctx, api, SchedulerJobsSettings, SchedulerJobsSettingsTemplate()); err != nil {
+	if err = elastic.PutIndexTemplate(ctx, api, SchedulerJobsSchemaPrefix,
+		NewIndexTemplateRequest(
+			WithIndexPatterns(SchedulerJobsSchemaPrefix+"_*"),
+			WithComponentTemplates(SchedulerJobsSchemaPrefix),
+			WithPriority(500),
+		),
+	); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err = elastic.PutIndexTemplate(ctx, api, SchedulerJobsPrefix, SchedulerJobsIndexTemplate()); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
+	jobsStateIndex := SchedulerJobsSchemaPrefix + "_" + config.Environment()
+	// Delete index if destructive set.
+	if destructive {
+		if _, err := api.Indices.Delete(jobsStateIndex).Do(ctx); err != nil && !ignoreErr(err) {
+			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		}
 	}
-
-	jobsStateIndex := SchedulerJobsPrefix + "_" + config.Environment()
-	// Check that a job queue index exists.
-	found, err = elastic.IndexExists(ctx, api, jobsStateIndex)
+	// Make sure the index doesn't exist before continuing.
+	found, err = api.Indices.Exists(jobsStateIndex).Do(ctx)
 	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
@@ -202,24 +270,32 @@ func migrateScheduler(ctx context.Context, api *typedapi.API) error {
 
 // migrateSession contains migration actions for migrating session indices and
 // settings.
-func migrateSession(ctx context.Context, api *typedapi.API) error {
+func migrateSession(ctx context.Context, api *typedapi.API, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
 
-	if err := elastic.PutComponentTemplate(ctx, api, SessionsMappings, SessionsMappingsTemplate()); err != nil {
+	if err := elastic.PutComponentTemplate(ctx, api, SessionsSchemaPrefix, NewComponentTemplateRequest(sessionsComponentTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := elastic.PutComponentTemplate(ctx, api, SessionsSettings, SessionsSettingsTemplate()); err != nil {
+	if err := elastic.PutIndexTemplate(ctx, api, SessionsSchemaPrefix,
+		NewIndexTemplateRequest(
+			WithIndexPatterns(SessionsSchemaPrefix+"_*"),
+			WithComponentTemplates(SessionsSchemaPrefix),
+			WithPriority(500),
+		),
+	); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := elastic.PutIndexTemplate(ctx, api, SessionsPrefix, SessionsIndexTemplate()); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
+	sessionIndex := SessionsSchemaPrefix + "_" + config.Environment()
+	// Delete index if destructive set.
+	if destructive {
+		if _, err := api.Indices.Delete(sessionIndex).Do(ctx); err != nil && !ignoreErr(err) {
+			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		}
 	}
-
-	sessionIndex := SessionsPrefix + "_" + config.Environment()
-	// Check that a job queue index exists.
-	found, err := elastic.IndexExists(ctx, api, sessionIndex)
+	// Make sure the index doesn't exist before continuing.
+	found, err := api.Indices.Exists(sessionIndex).Do(ctx)
 	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
@@ -238,9 +314,25 @@ func migrateSession(ctx context.Context, api *typedapi.API) error {
 func migrateIngest(ctx context.Context, api *typedapi.API) error {
 	slogctx.FromCtx(ctx).Debug("Migrating ingest pipeline...")
 
-	if err := elastic.PutIngestPipeline(ctx, api, IngestPipelineID, IngestPipelineFeeds()); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
+	if _, err := api.Ingest.DeletePipeline(IngestPipelineID).Do(ctx); err != nil && !ignoreErr(err) {
+		return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 	}
+	slogctx.FromCtx(ctx).Debug("Deleted existing ingest pipeline.")
+
+	if _, err := api.Ingest.PutPipeline(IngestPipelineID).Request(ingestPipelineFeeds()).Do(ctx); err != nil {
+		return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+	}
+	slogctx.FromCtx(ctx).Debug("Added ingest pipeline.")
 
 	return nil
+}
+
+func ignoreErr(err error) bool {
+	var esErr types.ElasticsearchError
+	if errors.Is(err, &esErr) {
+		if esErr.Status != 404 {
+			return true
+		}
+	}
+	return false
 }

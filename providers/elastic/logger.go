@@ -4,9 +4,7 @@
 package elastic
 
 import (
-	"bufio"
 	"bytes"
-	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -14,6 +12,8 @@ import (
 
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/tidwall/pretty"
 
 	"github.com/joshuar/go-feed-me/components/logging"
 )
@@ -131,13 +131,19 @@ func (l *Logger) ResponseBodyEnabled() bool {
 	return l.EnableResponseBody
 }
 
-func logBodyAsText(body io.Reader) string {
-	scanner := bufio.NewScanner(body)
-	for scanner.Scan() {
-		s := scanner.Text()
-		if s != "" {
-			return s
-		}
-	}
-	return ""
+func logBodyAsText(body *bytes.Buffer) string {
+	// formatted, err := json.MarshalIndent(body.Bytes(), "", "  ")
+	// if err != nil {
+	// 	spew.Dump(err)
+	// 	return ""
+	// }
+	return string(pretty.Color(body.Bytes(), nil))
+	// scanner := bufio.NewScanner(body)
+	// for scanner.Scan() {
+	// 	s := scanner.Text()
+	// 	if s != "" {
+	// 		return s
+	// 	}
+	// }
+	// return ""
 }

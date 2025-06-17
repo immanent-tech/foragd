@@ -6,6 +6,8 @@ package elastic
 import "errors"
 
 var (
+	ErrAPIRequestFailed = errors.New("api request failed")
+
 	ErrConnectFailed = errors.New("elasticsearch connection failed")
 	ErrSetupFailed   = errors.New("elasticsearch setup failed")
 

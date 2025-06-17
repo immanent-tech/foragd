@@ -143,14 +143,6 @@ func (i *Item) IsNewer(since time.Time) bool {
 	return i.GetTimestamp().After(since)
 }
 
-func (s ItemState) IsUnread() bool {
-	return s.State == StateUnread
-}
-
-func (s ItemState) IsRead() bool {
-	return s.State == StateRead
-}
-
 func GetFeedItems(ctx context.Context, id FeedID, url string) (Items, error) {
 	var items Items
 

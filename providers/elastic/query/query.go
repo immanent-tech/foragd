@@ -6,6 +6,7 @@ package query
 
 import (
 	"reflect"
+	"slices"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
@@ -73,6 +74,19 @@ func User(user models.UserID) Option {
 		if user != "" {
 			query.Term = map[string]types.TermQuery{
 				"user_id": {Value: user},
+			}
+		}
+	}
+}
+
+// SubscriptionIDs adds a "Terms" clause with the given Subscription IDs.
+func SubscriptionIDs(ids ...models.SubscriptionID) Option {
+	return func(query *types.Query) {
+		if len(ids) > 0 {
+			query.Terms = &types.TermsQuery{
+				TermsQuery: map[string]types.TermsQueryField{
+					"subscription_id": ids,
+				},
 			}
 		}
 	}
@@ -327,4 +341,17 @@ func Build(options ...Option) *types.Query {
 	}
 
 	return nil
+}
+
+type MSearchOptions struct {
+	Query *types.Query
+	Sort  []types.SortCombinationsVariant
+}
+
+func (mso *MSearchOptions) GenerateSortCombination() []types.SortCombinations {
+	combos := make([]types.SortCombinations, 0, len(mso.Sort))
+	for sort := range slices.Values(mso.Sort) {
+		combos = append(combos, sort.SortCombinationsCaster())
+	}
+	return combos
 }

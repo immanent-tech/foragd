@@ -4,35 +4,35 @@
 package models
 
 import (
-	"context"
 	"errors"
 
 	"github.com/joshuar/go-feed-me/models/feeds/types"
-	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 )
 
 var ErrBackend = errors.New("backend API error")
 
-// UserManagementAPI contains methods for user management.
-type UserManagementAPI interface {
-	UserExists(ctx context.Context, userID UserID) (bool, error)
-	GetUser(ctx context.Context) (*User, error)
-	AddUser(ctx context.Context, userID UserID) error
-	UpdateUser(ctx context.Context, userID UserID, update map[string]any) error
-}
-
-// type FeedJobStateAPI interface {
-// 	GetFeedJobState(ctx context.Context, feedID FeedID) (*APIFeedState, error)
-// 	UpdateFeedJobState(ctx context.Context, state *APIFeedState) error
+// // FeedsAPI contains methods for manipulating feed/item data.
+// type FeedsAPI interface {
+// 	GetFeeds(ctx context.Context, feedIDs ...FeedID) (Feeds, error)
+// 	SearchFeeds(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Feeds, Pagination, error)
+// 	AddFeeds(ctx context.Context, feeds ...*Feed) (*bulk.Response, error)
+// 	SearchItems(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (Items, Pagination, error)
+// 	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error)
+// 	MultiSearch(ctx context.Context, feedsQuery, itemsQuery *query.MSearchOptions) (Feeds, Items, error)
 // }
 
-// FeedManagementAPI contains methods for feed/item management.
-type FeedManagementAPI interface {
-	GetFeedByURL(ctx context.Context, url URL) (*Feed, error)
-	AddFeeds(ctx context.Context, feeds ...Feed) (*bulk.Response, error)
-	AddItems(ctx context.Context, items ...Item) (*bulk.Response, error)
-	// FeedJobStateAPI
-}
+// // UserAPI contains methods for manipulating user data.
+// type UserAPI interface {
+// 	AddUser(ctx context.Context, userID UserID) error
+// 	GetUser(ctx context.Context, userID UserID) (*User, error)
+// 	UpdateUser(ctx context.Context, id UserID, partialUpdate map[string]any) *Response
+// }
+
+// // BackendAPI contains the feed/user apis.
+// type BackendAPI interface {
+// 	FeedsAPI
+// 	UserAPI
+// }
 
 // Source represents a single source of data. This might be an individual feed or item.
 type Source interface {

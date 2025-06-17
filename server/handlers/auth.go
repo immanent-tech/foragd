@@ -78,8 +78,6 @@ func RequireUserAuth(dataAPI UserAPI, authAPI AuthAPI) func(next http.Handler) h
 			if !slices.ContainsFunc(ProtectedRoutes, func(route string) bool {
 				return strings.HasPrefix(routePattern, route)
 			}) {
-				slogctx.FromCtx(req.Context()).Debug("Route does not require auth.",
-					slog.String("route", routePattern))
 				next.ServeHTTP(res, req)
 				return
 			}

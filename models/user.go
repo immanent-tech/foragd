@@ -10,8 +10,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/joshuar/go-feed-me/components/validation"
 )
 
@@ -25,6 +23,8 @@ var (
 	ErrNotSubscribed         = errors.New("user not subscribed to feed")
 )
 
+// Valid returns a boolean indicating whether the user data is valid. If not valid, it will also return a non-nil error
+// that contains the validation issues.
 func (u *User) Valid(_ context.Context) (bool, error) {
 	return validation.ValidateStruct(u)
 }
@@ -43,124 +43,53 @@ func (u *User) GetMaxHistory() time.Time {
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be
 // returned.
 func (u *User) GetSettings() *UserSettings {
-	if u.Settings != nil {
-		return u.Settings
+	if u.Settings == nil {
+		return NewUserSettings()
 	}
-	return NewUserSettings()
+	return u.Settings
 }
 
-// MarkSubscriptions will mark either the given list of subscriptions, or all user subscriptions if none given, with the
-// given mark.
-func (u *User) MarkSubscriptions(mark Mark, ids ...SubscriptionID) {
-	// Based on the requested state change, calculate the marked read timestamp
-	// for the feed.
-	// For read state, this will be the current time.
-	// For unread state, this will be the max history of the user.
-	var markedAt time.Time
-	switch mark {
-	case MarkRead:
-		markedAt = time.Now().UTC()
-	case MarkUnread:
-		markedAt = u.GetMaxHistory()
-	}
-
-	switch {
-	case len(ids) == 0:
-		// Mark all subscriptions.
-		for subscription := range slices.Values(u.Subscriptions) {
-			subscription.MarkRead(markedAt)
-		}
-	default:
-		// Mark the selected subscriptions.
-		spew.Dump(ids)
-		for id := range slices.Values(ids) {
-			idx := slices.IndexFunc(u.Subscriptions, func(s SubscriptionDetails) bool {
-				return s.GetID() == id
-			})
-			if idx == -1 {
-				continue
-			}
-			details := u.GetSubscriptions(id)
-			details[0].MarkRead(markedAt)
-			u.Subscriptions[idx] = *details[0]
-			spew.Dump(u.Subscriptions[idx])
-		}
-	}
-}
-
-// AddSubscriptions adds the given Subscriptions to the User.
-func (u *User) AddSubscriptions(details ...*SubscriptionDetails) {
-	for subscription := range slices.Values(details) {
-		u.Subscriptions = append(u.Subscriptions, *subscription)
-	}
-}
-
-func (u *User) GetAllSubscriptions() []*SubscriptionDetails {
-	subscriptions := make([]*SubscriptionDetails, 0, len(u.Subscriptions))
-	for details := range slices.Values(u.Subscriptions) {
-		subscriptions = append(subscriptions, &details)
-	}
-	return subscriptions
-}
-
-func (u *User) GetSubscriptions(ids ...SubscriptionID) []*SubscriptionDetails {
-	subscriptions := make([]*SubscriptionDetails, 0, len(u.Subscriptions))
-	for details := range FilterSlice(u.Subscriptions, func(details SubscriptionDetails) bool {
-		return slices.Contains(ids, details.GetID())
-	}) {
-		subscriptions = append(subscriptions, &details)
-	}
-	return subscriptions
-}
-
-func (u *User) GetSubscriptionByFeedID(id FeedID) *SubscriptionDetails {
-	idx := slices.IndexFunc(u.Subscriptions, func(details SubscriptionDetails) bool {
-		return details.GetFeedID() == id
-	})
-	if idx != -1 {
-		return &u.Subscriptions[idx]
-	}
-	return nil
-}
-
-// RemoveSubscriptions removes the given Subscriptions from the User.
-func (u *User) RemoveSubscriptions(subscriptionIDs ...SubscriptionID) {
-	for id := range slices.Values(subscriptionIDs) {
-		u.Subscriptions = slices.DeleteFunc(u.Subscriptions, func(s SubscriptionDetails) bool {
-			return id == s.GetID()
-		})
-	}
-}
-
-// EditSubscription will apply the given user customisation to the subscription with the given ID.
-func (u *User) EditSubscription(subscriptionID SubscriptionID, edits *SubscriptionCustomisation) {
-	idx := slices.IndexFunc(u.Subscriptions, func(v SubscriptionDetails) bool { return v.GetID() == subscriptionID })
-	if idx != -1 {
-		// Update categories.
-		u.Subscriptions[idx].UserCategories = edits.UserCategories
-		// Update nickname.
-		u.Subscriptions[idx].UserNickname = edits.UserNickname
-	}
-}
-
-// IsSubscribed returns a boolean indicating whether the user is subscribed to the feed with the given ID.
-func (u *User) IsSubscribed(id FeedID) bool {
-	return slices.ContainsFunc(u.Subscriptions, func(details SubscriptionDetails) bool {
-		return details.GetFeedID() == id
+// GetAllSubscriptionStates returns a map of subscription states by subscription id.
+func (u *User) GetAllSubscriptionStates() map[SubscriptionID]*SubscriptionState {
+	return SliceToMap(u.SubscriptionStates, func(s SubscriptionState) (SubscriptionID, *SubscriptionState) {
+		return s.SubscriptionID, &s
 	})
 }
 
-// MarkItems will mark all items for the given feed with the given mark for the user.
-func (u *User) MarkItems(mark Mark, feedID FeedID, itemIDs ...ItemID) {
-	idx := slices.IndexFunc(u.Subscriptions, func(v SubscriptionDetails) bool { return v.GetFeedID() == feedID })
-	if idx != -1 {
-		switch mark {
-		case MarkRead:
-			u.Subscriptions[idx].MarkItemsRead(itemIDs...)
-		case MarkUnread:
-			u.Subscriptions[idx].MarkItemsUnread(itemIDs...)
-		}
+// FilterSubscriptionStatesByID returns a map of subscription states by subscription id, filtered by the given
+// subscription ids.
+func (u *User) FilterSubscriptionStatesByID(ids ...SubscriptionID) map[SubscriptionID]*SubscriptionState {
+	return SliceToMap(slices.Collect(FilterSlice(u.SubscriptionStates, func(s SubscriptionState) bool {
+		return slices.Contains(ids, s.GetID())
+	})), func(s SubscriptionState) (SubscriptionID, *SubscriptionState) {
+		return s.SubscriptionID, &s
+	})
+}
+
+// GetAllSubscriptionStatesByFeed returns a map of subscription states by feed id.
+func (u *User) GetAllSubscriptionStatesByFeed() map[FeedID]*SubscriptionState {
+	return SliceToMap(u.SubscriptionStates, func(s SubscriptionState) (FeedID, *SubscriptionState) {
+		return s.GetFeedID(), &s
+	})
+}
+
+// FilterSubscriptionStatesByFeedID returns a map of subscription states by feed id, filtered by the given
+// feed ids.
+func (u *User) FilterSubscriptionStatesByFeed(ids ...FeedID) map[FeedID]*SubscriptionState {
+	return SliceToMap(slices.Collect(FilterSlice(u.SubscriptionStates, func(s SubscriptionState) bool {
+		return slices.Contains(ids, s.GetFeedID())
+	})), func(s SubscriptionState) (FeedID, *SubscriptionState) {
+		return s.GetFeedID(), &s
+	})
+}
+
+// IsSubscribed returns a boolean indicating whether the user has a subscription to the feed with the given feed id.
+func (u *User) IsSubscribed(feedID FeedID) bool {
+	states := u.FilterSubscriptionStatesByFeed()
+	if _, found := states[feedID]; found {
+		return true
 	}
+	return false
 }
 
 // Valid will check to ensure the UserSignupRequest contains valid data.

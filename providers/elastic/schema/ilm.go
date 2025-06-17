@@ -8,17 +8,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-const (
-	HotPhase Phase = iota
-	WarmPhase
-	ColdPhase
-	FrozenPhase
-	DeletePhase
-)
-
-// Phase represents a phase in an ILM policy.
-type Phase int
-
 // WithDelete will add a delete action to the phase.
 func WithDelete() Option[*types.IlmActions] {
 	return func(action *types.IlmActions) *types.IlmActions {
@@ -98,29 +87,25 @@ func WithMinAge(age string) Option[*types.Phase] {
 	}
 }
 
-// NewILMPhase creates a new ILM Phase with the given options.
-func NewILMPhase(options ...Option[*types.Phase]) *types.Phase {
-	phase := &types.Phase{}
-
-	for _, option := range options {
-		phase = option(phase)
-	}
-
-	return phase
-}
-
 // WithPhase adds a phase to the ILM policy with the given phase options.
-func WithPhase(phase Phase, options ...Option[*types.Phase]) Option[*types.IlmPolicy] {
+func WithPhase(name string, options ...Option[*types.Phase]) Option[*types.IlmPolicy] {
 	return func(ilm *types.IlmPolicy) *types.IlmPolicy {
-		switch phase {
-		case HotPhase:
-			ilm.Phases.Hot = NewILMPhase(options...)
-		case WarmPhase:
-			ilm.Phases.Warm = NewILMPhase(options...)
-		case ColdPhase:
-			ilm.Phases.Cold = NewILMPhase(options...)
-		case FrozenPhase:
-			ilm.Phases.Frozen = NewILMPhase(options...)
+		phase := types.NewPhase()
+		for _, option := range options {
+			phase = option(phase)
+		}
+
+		switch name {
+		case "hot":
+			ilm.Phases.Hot = phase
+		case "warm":
+			ilm.Phases.Warm = phase
+		case "cold":
+			ilm.Phases.Cold = phase
+		case "frozen":
+			ilm.Phases.Frozen = phase
+		case "delete":
+			ilm.Phases.Delete = phase
 		}
 
 		return ilm
@@ -128,9 +113,7 @@ func WithPhase(phase Phase, options ...Option[*types.Phase]) Option[*types.IlmPo
 }
 
 func NewILMPolicy(options ...Option[*types.IlmPolicy]) *putlifecycle.Request {
-	policy := &types.IlmPolicy{
-		Meta_: defaultMetadata,
-	}
+	policy := &types.IlmPolicy{}
 
 	for _, option := range options {
 		policy = option(policy)

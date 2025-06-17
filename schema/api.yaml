@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
-
 # Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
@@ -163,42 +161,37 @@ components:
         json: 'source'
         form: 'source'
         validate: 'oneof=opml_file opml_url url_list'
+    SubscriptionEdit:
+      description: >
+        represents subscription details for editing by the user.
+      type: object
+      allOf:
+        - $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
+        - type: object
+          required:
+            - subscription_id
+          properties:
+            subscription_id:
+              $ref: 'models.yaml#/components/schemas/SubscriptionID'
+            top_categories:
+              description: >
+                - contains the top categories from items in the subscription.
+              type: array
+              items:
+                $ref: 'models.yaml#/components/schemas/Category'
+              x-go-type-skip-optional-pointer: true
     SubscriptionRequest:
       description: >
-        represents a request to add or edit a subscription.
+        represents a request to create a subscription.
       type: object
       allOf:
         - $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
         - type: object
           required:
             - URL
-            - ID
           properties:
             URL:
-              description: the canonical URL to the feed.
-              type: string
-              x-go-name: 'URL'
-              x-oapi-codegen-extra-tags:
-                json: 'url'
-                form: 'url'
-                validate: 'required,url'
-            Result:
-              description: >
-                the results of processing the subscription request.
-              allOf:
-                - $ref: 'models.yaml#/components/schemas/UserMessage'
-              x-oapi-codegen-extra-tags:
-                json: '-'
-                form: '-'
-            Details:
-              description: >
-                the subscription details associated with this request.
-              # x-go-type: '*Subscription'
-              allOf:
-                - $ref: 'models.yaml#/components/schemas/SubscriptionDetails'
-              x-oapi-codegen-extra-tags:
-                json: '-'
-                form: '-'
+              $ref: 'models.yaml#/components/schemas/URL'
     FeedState:
       description: tracks the state of a feed.
       type: object

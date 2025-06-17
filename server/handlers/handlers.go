@@ -20,7 +20,6 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
@@ -42,16 +41,14 @@ var BaseChain = alice.New(
 
 // Keys for objects stored within the context and passed between handlers.
 const (
-	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
-	subscriptionsCtxKey        contextKey = "subscriptions"
-	articlesCtxKey             contextKey = "articles"
-	paginationCtxKey           contextKey = "pagination"
-	feedsCtxKey                contextKey = "feeds"
+	subscriptionRequestsCtxKey    contextKey = "subscriptionRequests"
+	addSubscriptionsResultsCtxKey contextKey = "addSubscriptionsResults"
 
 	htmxRespCtxKey contextKey = "htmxResponse"
 	titleCtxKey    contextKey = "title"
 	contentCtxKey  contextKey = "content"
 	drawerCtxKey   contextKey = "drawer"
+	pageCtxKey     contextKey = "page"
 )
 
 // Keys for objects stored within the session.
@@ -64,19 +61,27 @@ type contextKey string
 
 // FeedsAPI contains methods for manipulating feed/item data.
 type FeedsAPI interface {
+	GetSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) (models.SubscriptionCustomisations, error)
+	AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) (*bulk.Response, error)
+	SearchSubscriptions(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.SubscriptionCustomisations, models.Pagination, error)
 	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	SearchItems(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Items, models.Pagination, error)
 	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error)
-	MultiSearch(ctx context.Context, feedsQuery, itemsQuery *elastic.MSearchOptions) (models.Feeds, models.Items, error)
+	MultiSearch(ctx context.Context, feedsQuery, itemsQuery *query.MSearchOptions) (models.Feeds, models.Items, error)
 }
 
 // UserAPI contains methods for manipulating user data.
 type UserAPI interface {
 	AddUser(ctx context.Context, userID models.UserID) error
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
-	UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) *models.Response
+	UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) error
+	UpdateSubscriptionCustomisation(ctx context.Context, id models.SubscriptionID, partialUpdate map[string]any) error
+}
+
+type UserBackendAPI interface {
+	Create(ctx context.Context, details *models.UserSignupRequest) (string, error)
 }
 
 // BackendAPI contains the feed/user apis.
@@ -110,8 +115,26 @@ func RouteLogger(next http.Handler) http.Handler {
 	})
 }
 
-// RenderPage will render a full page (i.e. non-HTMX) response.
+// RenderContentPage will render a full page (i.e. non-HTMX) response.
 func RenderPage() http.Handler {
+	return http.HandlerFunc(
+		func(res http.ResponseWriter, req *http.Request) {
+			// Get main content.
+			page, ok := req.Context().Value(pageCtxKey).(templ.Component)
+			if !ok {
+				slogctx.FromCtx(req.Context()).Warn("Invalid or missing page content.")
+				http.Error(res, "Invalid page content.", http.StatusInternalServerError)
+				return
+			}
+			if err := page.Render(req.Context(), res); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
+			}
+		})
+}
+
+// RenderContentPage will render a full page (i.e. non-HTMX) response.
+func RenderContentPage() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
 			// Get main content.
@@ -125,7 +148,7 @@ func RenderPage() http.Handler {
 			// Get drawer side content.
 			drawerSideContent, ok := req.Context().Value(drawerCtxKey).(templ.Component)
 			if !ok {
-				slogctx.FromCtx(req.Context()).Error("Invalid content.")
+				slogctx.FromCtx(req.Context()).Warn("Invalid content.")
 				http.Error(res, "Invalid content.", http.StatusInternalServerError)
 				return
 			}
@@ -151,8 +174,8 @@ func RenderPage() http.Handler {
 		})
 }
 
-// RenderPartials will render individual content updates (i.e., HTMX response).
-func RenderPartials() http.Handler {
+// RenderContentPartials will render individual content updates (i.e., HTMX response).
+func RenderContentPartials() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
 			var partials []templ.Component
@@ -183,7 +206,7 @@ func RenderPartials() http.Handler {
 // ProcessResponse handles appropriate display and logging of a models.Response object.
 func ProcessResponse(res http.ResponseWriter, req *http.Request, resp *models.Response) {
 	slogctx.FromCtx(req.Context()).Error("Backend returned an error.",
-		slog.String("error", resp.String()))
+		slog.Any("error", resp.InternalError))
 	// Display a notification if a user message is set.
 	if resp.UserMessage != nil {
 		if err := htmx.NewResponse().RenderTempl(req.Context(), res, partials.ShowNotification(resp.UserMessage)); err != nil {

@@ -9,26 +9,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-// WithIndexOptions adds the given index options to the component template.
-func WithIndexOptions(state types.IndexState) Option[*putcomponenttemplate.Request] {
-	return func(template *putcomponenttemplate.Request) *putcomponenttemplate.Request {
-		template.Template = state
-		return template
-	}
-}
-
-func NewComponentTemplateRequest(options ...Option[*putcomponenttemplate.Request]) *putcomponenttemplate.Request {
-	template := &putcomponenttemplate.Request{
-		Meta_: defaultMetadata,
-	}
-
-	for _, option := range options {
-		template = option(template)
-	}
-
-	return template
-}
-
 // WithComponentTemplates assigns the given component templates to the index template.
 func WithComponentTemplates(components ...string) Option[*putindextemplate.Request] {
 	return func(template *putindextemplate.Request) *putindextemplate.Request {
@@ -63,7 +43,9 @@ func AsDataStream() Option[*putindextemplate.Request] {
 
 func NewIndexTemplateRequest(options ...Option[*putindextemplate.Request]) *putindextemplate.Request {
 	template := &putindextemplate.Request{
-		Meta_: defaultMetadata,
+		Meta_: types.Metadata{
+
+		},
 	}
 
 	for _, option := range options {
@@ -71,4 +53,10 @@ func NewIndexTemplateRequest(options ...Option[*putindextemplate.Request]) *puti
 	}
 
 	return template
+}
+
+func NewComponentTemplateRequest(template types.IndexState) *putcomponenttemplate.Request {
+	return &putcomponenttemplate.Request{
+		Template: template,
+	}
 }

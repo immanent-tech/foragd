@@ -130,3 +130,137 @@ func (lst *List[T]) AllElements() []T {
 	}
 	return elems
 }
+
+type HasFeedInfo interface {
+	GetFeedID() FeedID
+}
+
+func GetFeedIDs[T HasFeedInfo](objects iter.Seq[T]) []FeedID {
+	var ids []FeedID
+	for details := range objects {
+		ids = append(ids, details.GetFeedID())
+	}
+	return ids
+}
+
+func FindByFeedID[T HasFeedInfo](id FeedID, objects iter.Seq[T]) (T, bool) {
+	for object := range objects {
+		if object.GetFeedID() == id {
+			return object, true
+		}
+	}
+	return *new(T), false
+}
+
+type HasCategories interface {
+	GetCategories() []Category
+}
+
+func GetCategories[T HasCategories](objects iter.Seq[T]) []Category {
+	var categories []string
+	for object := range objects {
+		categories = append(categories, object.GetCategories()...)
+	}
+	slices.Sort(categories)
+	return slices.Compact(categories)
+}
+
+// GetCategoryCounts returns a count of the occurrence of a Category across all
+// the Subscriptions.
+func GetCategoryCounts[T HasCategories](objects iter.Seq[T]) CategoryCounts {
+	countsMap := make(map[Category]int)
+	for object := range objects {
+		for category := range slices.Values(object.GetCategories()) {
+			countsMap[category]++
+		}
+	}
+	var counts CategoryCounts
+	for category, count := range maps.All(countsMap) {
+		counts = append(counts, CategoryCount{Category: category, Count: count})
+	}
+
+	return counts
+}
+
+type HasState interface {
+	IsUnread() bool
+}
+
+type IsFilterable interface {
+	HasCategories
+	HasState
+}
+
+// FilterByCategory will filter the list of subscriptions by the given
+// Categories. If no categories are provided, the full list is returned.
+func FilterByCategory[T IsFilterable](objects iter.Seq[T], categories ...Category) iter.Seq[T] {
+	var filtered iter.Seq[T]
+	if len(categories) > 0 {
+		filtered = FilterSlice(slices.Collect(objects), func(v T) bool {
+			var hasCategory bool
+			for subscriptionCategory := range slices.Values(v.GetCategories()) {
+				if slices.Contains(categories, subscriptionCategory) {
+					hasCategory = true
+				}
+			}
+			return hasCategory
+		})
+	}
+	return filtered
+}
+
+// FilterByView will filter subscriptions to those that match the view filter.
+func FilterByView[T IsFilterable](objects iter.Seq[T], view View) iter.Seq[T] {
+	var filtered iter.Seq[T]
+	switch view {
+	case ViewRead:
+		filtered = FilterSlice(slices.Collect(objects), func(v T) bool {
+			return !v.IsUnread()
+		})
+	case ViewUnread:
+		filtered = FilterSlice(slices.Collect(objects), func(v T) bool {
+			return v.IsUnread()
+		})
+	}
+	return filtered
+}
+
+// NewObjectState initialises a new ObjectState for use. It sets the updated at timestamp to the current time. All state
+// values (read, saved etc.) will be false.
+func NewObjectState() *ObjectState {
+	updated := time.Now().UTC()
+	return &ObjectState{
+		UpdatedAt: &updated,
+	}
+}
+
+func (s *ObjectState) IsRead() bool {
+	if s == nil {
+		return false
+	}
+	return s.Read
+}
+
+func (s *ObjectState) IsSaved() bool {
+	if s == nil {
+		return false
+	}
+	return s.Saved
+}
+
+func (s *ObjectState) GetLastUpdate() time.Time {
+	if s == nil {
+		return time.Now().Add(-DefaultMaxHistory)
+	}
+	return *s.UpdatedAt
+}
+
+func (s *ObjectState) MarkRead(markedAt time.Time) {
+	s.Read = true
+	s.UpdatedAt = &markedAt
+}
+
+func (s *ObjectState) MarkUnread(markedAt time.Time) {
+	s.Read = false
+	s.UpdatedAt = &markedAt
+}

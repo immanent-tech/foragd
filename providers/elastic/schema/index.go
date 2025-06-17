@@ -24,6 +24,14 @@ func WithIndexLifecycle(name string) Option[*types.IndexSettings] {
 	}
 }
 
+// WithIndexLifeCycle will assign the ILM policy with the given name to the index.
+func WithAnalysis(analysis types.IndexSettingsAnalysis) Option[*types.IndexSettings] {
+	return func(settings *types.IndexSettings) *types.IndexSettings {
+		settings.Analysis = &analysis
+		return settings
+	}
+}
+
 // NewIndexSettings creates a new index settings object with the given options.
 func NewIndexSettings(options ...Option[*types.IndexSettings]) *types.IndexSettings {
 	settings := &types.IndexSettings{}

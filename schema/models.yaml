@@ -1,5 +1,3 @@
-# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/refs/heads/main/schemas/v3.0/schema.yaml
-
 # Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 # SPDX-License-Identifier: 	AGPL-3.0-or-later
 
@@ -37,12 +35,6 @@ components:
         json: 'deleted_at,omitempty'
         validate: 'omitnil'
       deprecated: true
-    MaxHistory:
-      description: >
-        is a duration representing the maximum time-frame over which objects contained within are available.
-      type: string
-      x-oapi-codegen-extra-tags:
-        form: '-'
     URL: &URL
       description: is a URL.
       type: string
@@ -80,7 +72,6 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'required,startswith=feed_'
         json: 'feed_id'
-        form: 'feed_id'
     ItemID:
       description: is the unique ID of an item.
       type: string
@@ -88,7 +79,6 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'required,startswith=item_'
         json: 'item_id'
-        form: 'feed_id'
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
@@ -97,20 +87,6 @@ components:
         validate: 'required,startswith=sub_'
         form: 'subscription_id'
         json: 'subscription_id'
-    ItemState:
-      description: >
-        contains the user state for the item.
-      type: object
-      required:
-        - item_id
-        - state
-      properties:
-        item_id:
-          $ref: '#/components/schemas/ItemID'
-        state:
-          $ref: '#/components/schemas/State'
-      x-oapi-codegen-extra-tags:
-        json: '-'
     UserID:
       description: is the unique ID of a user.
       type: string
@@ -159,17 +135,19 @@ components:
           properties:
             user_id:
               $ref: '#/components/schemas/UserID'
-            subscriptions:
-              description: >
-                is the list of subscriptions for the user.
-              type: array
-              items:
-                $ref: '#/components/schemas/SubscriptionDetails'
-              x-go-type-skip-optional-pointer: true
             max_history:
-              $ref: '#/components/schemas/MaxHistory'
+              description: >
+                is a duration representing the maximum time-frame over which objects contained within are available.
+              type: string
             settings:
               $ref: '#/components/schemas/UserSettings'
+            subscription_states:
+              description: >
+                is a list of the states of all subscriptions the user has.
+              type: array
+              items:
+                $ref: '#/components/schemas/SubscriptionState'
+              x-go-type-skip-optional-pointer: true
     UserSettings:
       description: >
         contains user-specific settings for the application.
@@ -181,6 +159,57 @@ components:
           type: string
           default: dracula
           x-go-type-skip-optional-pointer: true
+    UserSession:
+      description: tracks a user session.
+      type: object
+      required:
+        - token
+        - data
+        - expiry
+      properties:
+        token:
+          description: the session token for the user.
+          type: string
+        data:
+          description: the encoded session data.
+          x-go-type: '[]byte'
+        expiry:
+          description: the time at which this session token expires.
+          x-go-type: time.Time
+    ObjectState:
+      description: >
+        tracks the state of an object.
+      type: object
+      required:
+        - read
+        - saved
+      properties:
+        read:
+          description: >
+            indicates whether the object has been read (true) or is unread (false).
+          type: boolean
+        saved:
+          description: >
+            indicates whether the object has been saved (true) or is not saved (false).
+          type: boolean
+        updated_at:
+          $ref: '#/components/schemas/UpdatedAt'
+    ObjectTimestamps:
+      description: >
+        contains timestamps for objects.
+      type: object
+      required:
+        - published
+      properties:
+        published:
+          description: >
+            is the datetime at which the feed or item was published.
+          x-go-type: time.Time
+        updated:
+          description: >
+            is the datetime at which the feed or item was updated.
+          x-go-type: time.Time
+          x-go-type-skip-optional-pointer: true
     ObjectCommon:
       description: contains common fields across objects.
       type: object
@@ -188,7 +217,6 @@ components:
         - source_type
         - title
         - description
-        - published
       properties:
         source_type:
           description: >
@@ -213,15 +241,6 @@ components:
           x-go-name: URL
           x-oapi-codegen-extra-tags:
             validate: 'omitempty,url'
-          x-go-type-skip-optional-pointer: true
-        published:
-          description: >
-            is the datetime at which the feed or item was published.
-          x-go-type: time.Time
-        updated:
-          description: >
-            is the datetime at which the feed or item was updated.
-          x-go-type: time.Time
           x-go-type-skip-optional-pointer: true
         categories:
           description: >
@@ -258,110 +277,35 @@ components:
         copyright:
           type: string
           x-go-type-skip-optional-pointer: true
-    UserSession:
-      description: tracks a user session.
-      type: object
-      required:
-        - token
-        - data
-        - expiry
-      properties:
-        token:
-          description: the session token for the user.
-          type: string
-        data:
-          description: the encoded session data.
-          x-go-type: '[]byte'
-        expiry:
-          description: the time at which this session token expires.
-          x-go-type: time.Time
-    SubscriptionCustomisation:
+    ObjectCustomisation:
       description: >
-        represents the properties of a subscription a user can customize.
+        contains object fields that can be customised (overridden) by a user
       type: object
       properties:
-        user_nickname:
+        title:
           description: >
-            is a friendly name or nickname for the feed given by the user.
+            is a friendly name or nickname for an object.
           type: string
           x-oapi-codegen-extra-tags:
             form: 'user_nickname'
             validate: 'omitempty'
           x-go-type-skip-optional-pointer: true
-        user_categories:
+        categories:
           description: >
-            is a user-defined list of Category names for the subscription.
+            is a custom list of categories for an object.
           type: array
           items:
             $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
-            json: 'user_categories'
             form: 'user_categories[]'
             validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
-    SubscriptionState:
-      description: >
-        contains properties tracking the state of the subscription.
-      type: object
-      required:
-        - marked_read
-      properties:
-        marked_read:
-          description: records when the subscription was last marked read.
-          x-go-type: 'time.Time'
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            validate: 'required'
-        item_states:
-          description: >
-            contains states of items that the user has explicitly marked or saved.
-          type: array
-          items:
-            $ref: '#/components/schemas/ItemState'
-          x-oapi-codegen-extra-tags:
-            form: '-'
-            validate: 'omitempty,unique'
-          x-go-type-skip-optional-pointer: true
-        unread_count:
-          description: >
-            indicates how many items are unread for the subscription.
-          type: integer
-          minimum: 0
-          x-oapi-codegen-extra-tags:
-            json: '-'
-            form: '-'
-            validate: 'numeric,gte=0'
-          x-go-type-skip-optional-pointer: true
-    SubscriptionDetails:
-      description: >
-        contains all details that define a user subscription.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/Timestamps'
-        - $ref: '#/components/schemas/SubscriptionCustomisation'
-        - $ref: '#/components/schemas/SubscriptionState'
-        - type: object
-          required:
-            - subscription_id
-            - feed_id
-            - max_history
-          properties:
-            subscription_id:
-              $ref: '#/components/schemas/SubscriptionID'
-            feed_id:
-              $ref: '#/components/schemas/FeedID'
-    # Subscription:
-    #   description: >
-    #     represents a feed a user has subscribed to.
-    #   type: object
-    #   allOf:
-    #     - $ref: '#/components/schemas/SubscriptionDetails'
-    #     - $ref: '#/components/schemas/Feed'
     Feed:
       description: represents a feed object.
       type: object
       allOf:
         - $ref: '#/components/schemas/ObjectCommon'
+        - $ref: '#/components/schemas/ObjectTimestamps'
         - type: object
           required:
             - feed_id
@@ -385,14 +329,15 @@ components:
       type: object
       allOf:
         - $ref: '#/components/schemas/ObjectCommon'
+        - $ref: '#/components/schemas/ObjectTimestamps'
         - type: object
           required:
             - item_id
             - feed_id
             - feed_title
-            - '@timestamp'
+            - Timestamp
           properties:
-            '@timestamp':
+            Timestamp:
               $ref: '#/components/schemas/Timestamp'
             item_id:
               $ref: '#/components/schemas/ItemID'
@@ -409,28 +354,83 @@ components:
                 contains the item content.
               type: string
               x-go-type-skip-optional-pointer: true
-    Article:
-      description: represents an individual item (e.g., an individual feed item) with additional user-specific fields.
+    SubscriptionCustomisation:
+      description: >
+        represents the properties of a subscription a user can customize.
       type: object
       allOf:
-        - $ref: '#/components/schemas/ItemState'
+        - $ref: '#/components/schemas/ObjectCustomisation'
         - type: object
           required:
+            - user_id
             - subscription_id
             - feed_id
           properties:
+            user_id:
+              $ref: '#/components/schemas/UserID'
             subscription_id:
               $ref: '#/components/schemas/SubscriptionID'
-            subscription_title:
-              type: string
             feed_id:
               $ref: '#/components/schemas/FeedID'
-            item:
-              description: >
-                is the original item that the article represents.
-              allOf:
-                - $ref: '#/components/schemas/Item'
-              x-oapi-codegen-extra-tags:
-                json: '-'
-                form: '-'
-                validate: 'required'
+    SubscriptionState:
+      description: >
+        contains all details that define a user subscription.
+      type: object
+      required:
+        - subscription_id
+        - feed_id
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        feed_id:
+          $ref: '#/components/schemas/FeedID'
+        state:
+          $ref: '#/components/schemas/ObjectState'
+        item_states:
+          description: >
+            contains the states of items marked explicitly as read/unread/saved by the user.
+          x-go-type: 'map[ItemID]ObjectState'
+          x-go-type-skip-optional-pointer: true
+    Subscription:
+      description: >
+        represents a feed a user has subscribed to.
+      type: object
+      required:
+        - user_id
+        - subscription_id
+      properties:
+        user_id:
+          $ref: '#/components/schemas/UserID'
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        feed:
+          $ref: '#/components/schemas/Feed'
+        customisation:
+          $ref: '#/components/schemas/ObjectCustomisation'
+        state:
+          $ref: '#/components/schemas/ObjectState'
+        unread_count:
+          description: >
+            is the value of items that are not explicitly marked unread by the user for this subscription.
+            Calculated dynamically at runtime.
+          type: integer
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            json: '-'
+            validate: 'gte=0'
+    Article:
+      description: >
+        is the representation of an item from the user's perspective. It holds the original item and additional fields
+        to track the state of the item from the perspective of the user.
+      type: object
+      required:
+        - subscription_id
+      properties:
+        item:
+          $ref: '#/components/schemas/Item'
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        subscription_customisation:
+          $ref: '#/components/schemas/ObjectCustomisation'
+        state:
+          $ref: '#/components/schemas/ObjectState'

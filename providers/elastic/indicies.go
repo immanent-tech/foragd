@@ -10,24 +10,13 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/cluster/putcomponenttemplate"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/ilm/putlifecycle"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/create"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/putindextemplate"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
 // CreateIndexOption is a functional option for a create index request.
 type CreateIndexOption Option[*CreateIndexRequest]
-
-func PutILM(ctx context.Context, api *typedapi.API, name string, policy *putlifecycle.Request) error {
-	_, err := api.Ilm.PutLifecycle(name).Request(policy).Do(ctx)
-	if err != nil {
-		return errors.Join(ErrPutILMPolicyFailed, err)
-	}
-
-	return nil
-}
 
 func PutComponentTemplate(ctx context.Context, api *typedapi.API, name string, template *putcomponenttemplate.Request) error {
 	_, err := api.Cluster.PutComponentTemplate(name).Request(template).Do(ctx)
@@ -40,15 +29,6 @@ func PutComponentTemplate(ctx context.Context, api *typedapi.API, name string, t
 
 func PutIndexTemplate(ctx context.Context, api *typedapi.API, name string, template *putindextemplate.Request) error {
 	_, err := api.Indices.PutIndexTemplate(name).Request(template).Do(ctx)
-	if err != nil {
-		return errors.Join(ErrPutILMPolicyFailed, err)
-	}
-
-	return nil
-}
-
-func PutIngestPipeline(ctx context.Context, api *typedapi.API, name string, pipeline *putpipeline.Request) error {
-	_, err := api.Ingest.PutPipeline(name).Request(pipeline).Do(ctx)
 	if err != nil {
 		return errors.Join(ErrPutILMPolicyFailed, err)
 	}
@@ -97,18 +77,8 @@ func NewIndexRequest(api *typedapi.API, name string, options ...CreateIndexOptio
 	}
 
 	if len(req.aliases) > 0 {
-		req.Create.Aliases(req.aliases)
+		req.Aliases(req.aliases)
 	}
 
 	return req.Create
-}
-
-// IndexExists checks whether an index with the given name exists.
-func IndexExists(ctx context.Context, api *typedapi.API, name string) (bool, error) {
-	resp, err := api.Indices.Exists(name).Do(ctx)
-	if err != nil {
-		return false, errors.Join(ErrExistsFailed, err)
-	}
-
-	return resp, nil
 }

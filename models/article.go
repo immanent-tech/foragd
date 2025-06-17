@@ -4,71 +4,125 @@
 package models
 
 import (
+	"fmt"
+	"maps"
 	"slices"
+	"time"
+
+	"github.com/joshuar/go-feed-me/components/validation"
+	"github.com/joshuar/go-feed-me/models/feeds/types"
 )
 
 // Articles is a slices of individual articles.
 type Articles []*Article
 
-// GetItems retrieves all the items for the articles.
-func (a Articles) GetItems() Items {
-	items := make(Items, 0, len(a))
+// GetCategoryCounts returns a count of the occurrence of a Category across all
+// the Articles in the slice.
+func (a Articles) GetCategoryCounts() CategoryCounts {
+	countsMap := make(map[Category]int)
 	for article := range slices.Values(a) {
-		items = append(items, article.Item)
+		for category := range slices.Values(article.GetCategories()) {
+			countsMap[category]++
+		}
 	}
-	return items
+	var counts CategoryCounts
+	for category, count := range maps.All(countsMap) {
+		counts = append(counts, CategoryCount{Category: category, Count: count})
+	}
+
+	return counts
 }
 
-// GetSubscriptionIDs retrieves a slice of the SubscriptionID for each article.
+// GetSubscriptionIDs retrieves the subscription ids for all articles in the slice.
 func (a Articles) GetSubscriptionIDs() []SubscriptionID {
-	subIDs := make([]SubscriptionID, 0, len(a))
+	ids := make([]SubscriptionID, 0, len(a))
 	for article := range slices.Values(a) {
-		subIDs = append(subIDs, article.SubscriptionID)
+		ids = append(ids, article.SubscriptionID)
 	}
-	return slices.Compact(subIDs)
+	return slices.Compact(ids)
 }
 
-// HasState returns a boolean indicating whether this article has a user state.
-func (a *Article) HasState() bool {
-	return a.State != ""
-}
-
-// IsUnread returns a boolean indicating whether this article is unread by the user.
-func (a *Article) IsUnread() bool {
-	if !a.HasState() {
-		return true
+// GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
+// and state is required.
+func GenerateArticle(item *Item, state *SubscriptionState, customisation *SubscriptionCustomisation) (*Article, error) {
+	article := &Article{
+		Item:           item,
+		SubscriptionID: state.GetID(),
+		State:          state.GetItemState(item.GetID()),
 	}
-	return a.State == StateUnread
-}
-
-// ArticleFromItem generates an article object from the given item object.
-func ArticleFromItem(item *Item) *Article {
-	return &Article{
-		FeedID: item.GetFeedID(),
-		ItemID: item.GetID(),
-		Item:   item,
-	}
-}
-
-// ConvertItemsToArticles creates a list of article objects from the given items, populating them with appropriate user data.
-func ConvertItemsToArticles(user *User, items ...*Item) Articles {
-	articles := make(Articles, 0, len(items))
-	subscriptions := user.GetAllSubscriptions()
-	for item := range slices.Values(items) {
-		article := ArticleFromItem(item)
-		idx := slices.IndexFunc(subscriptions, func(sub *SubscriptionDetails) bool {
-			return sub.GetFeedID() == item.GetFeedID()
-		})
-		if idx == -1 {
-			continue
+	// Add the custom subscription title if set.
+	if customisation != nil {
+		if customisation.Title != "" {
+			article.SubscriptionCustomisation.Title = customisation.Title
 		}
-		article.State = subscriptions[idx].GetItemState(item.GetID())
-		article.SubscriptionID = subscriptions[idx].GetID()
-		// Overwrite the feed title in the item to the subscription nickname, if set.
-		if subscriptions[idx].UserNickname != "" {
-			article.Item.FeedTitle = subscriptions[idx].UserNickname
-		}
-		articles = append(articles, article)
 	}
-	return articles
+
+	// Validate the subscription.
+	if valid, err := article.Valid(); !valid {
+		return nil, fmt.Errorf("subscription data is invalid: %w", err)
+	}
+
+	return article, nil
+}
+
+// Valid returns a boolean indicating if the article contains valid data (true). If it contains invalid data
+// (false) a non-nil error is also returned which contains validation issues.
+func (a *Article) Valid() (bool, error) {
+	if valid, err := validation.ValidateStruct(a); err != nil || !valid {
+		return false, fmt.Errorf("article is invalid: %w", err)
+	}
+	return true, nil
+}
+
+func (a *Article) GetID() ItemID {
+	return a.Item.GetID()
+}
+
+func (a *Article) GetSubscriptionID() SubscriptionID {
+	return a.SubscriptionID
+}
+
+func (a *Article) GetFeedID() FeedID {
+	return a.Item.GetFeedID()
+}
+
+func (a *Article) GetTitle() string {
+	return a.Item.GetTitle()
+}
+
+func (a *Article) GetDescription() string {
+	return a.Item.GetDescription()
+}
+
+func (a *Article) GetContent() string {
+	return a.Item.GetContent()
+}
+
+func (a *Article) GetImage() *types.Image {
+	return a.Item.GetImage()
+}
+
+func (a *Article) GetAuthors() []string {
+	return a.Item.GetAuthors()
+}
+
+func (a *Article) GetUpdatedDate() time.Time {
+	return a.Item.GetUpdatedDate()
+}
+
+func (a *Article) GetLink() string {
+	return a.Item.GetLink()
+}
+
+func (a *Article) GetCategories() []string {
+	return a.Item.GetCategories()
+}
+
+func (a *Article) GetFeedTitle() string {
+	if a.SubscriptionCustomisation != nil {
+		if a.SubscriptionCustomisation.Title != "" {
+			return a.SubscriptionCustomisation.Title
+		}
+	}
+	return a.Item.FeedTitle
 }

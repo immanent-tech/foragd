@@ -49,9 +49,7 @@ func WithRemoveProcessor(options ...Option[*types.RemoveProcessor]) Option[*putp
 
 // NewIngestPipeline creates a new ingest pipeline from the given options.
 func NewIngestPipeline(options ...Option[*putpipeline.Request]) *putpipeline.Request {
-	pipeline := &putpipeline.Request{
-		Meta_: defaultMetadata,
-	}
+	pipeline := &putpipeline.Request{}
 
 	for _, option := range options {
 		pipeline = option(pipeline)

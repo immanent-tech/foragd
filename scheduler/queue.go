@@ -53,7 +53,7 @@ func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
 	return &JobQueue{
 		client: client,
 		logger: slogctx.FromCtx(ctx).WithGroup("job_queue"),
-		index:  schema.SchedulerJobsPrefix,
+		index:  schema.SchedulerJobsSchemaPrefix,
 	}, nil
 }
 

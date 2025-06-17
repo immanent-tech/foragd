@@ -163,7 +163,7 @@ func NewSessionStore(ctx context.Context, client *elastic.API) (*Store, error) {
 	sessionCtx = ctx
 	return &Store{
 		client: client,
-		index:  schema.SessionsPrefix,
+		index:  schema.SessionsSchemaPrefix,
 	}, nil
 }
 

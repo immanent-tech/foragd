@@ -17,18 +17,12 @@ import (
 	"github.com/joshuar/go-templ-daisyui/input/option"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/layout/join"
-	"strconv"
 
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
 
-type SubscriptionEditRequest struct {
-	*models.SubscriptionDetails
-	TopCategories []models.Category
-}
-
-templ (s *SubscriptionEditRequest) EditSubscriptionModal() {
+templ EditSubscriptionModal(request *models.SubscriptionEdit) {
 	@modal.Build(
 		modal.WithID(partials.ModalID.String()),
 		modal.WithCloseButton(),
@@ -40,7 +34,7 @@ templ (s *SubscriptionEditRequest) EditSubscriptionModal() {
 			form.WithID("subscription-details"),
 			form.WithExtraAttributes(
 				templ.Attributes{
-					"hx-put":       "/subscription/edit/" + s.GetID(),
+					"hx-put":       "/subscription/edit/" + request.SubscriptionID,
 					"hx-swap":      "none",
 					"hx-indicator": "#add-processing",
 				},
@@ -50,13 +44,13 @@ templ (s *SubscriptionEditRequest) EditSubscriptionModal() {
 					fieldset.WithField("",
 						hiddeninput.Build(
 							hiddeninput.WithName("subscription_id"),
-							hiddeninput.WithValue(s.GetID()),
+							hiddeninput.WithValue(request.SubscriptionID),
 						),
 					),
 					fieldset.WithField("Nickname (optional)",
 						textinput.Build(
 							textinput.WithName("user_nickname"),
-							textinput.WithValue(s.GetTitle()),
+							textinput.WithValue(request.Title),
 							textinput.WithPlaceholder("My memorable feed name"),
 							textinput.Required(),
 						),
@@ -64,7 +58,7 @@ templ (s *SubscriptionEditRequest) EditSubscriptionModal() {
 				).Show(),
 			),
 		).Show()
-		@editCategories(s.GetCategories(), s.TopCategories)
+		@editCategories(request.Categories, request.TopCategories)
 		// Add a button to submit the Subscription details when finished editing.
 		@fieldset.Build(
 			fieldset.WithField("",
@@ -83,28 +77,16 @@ templ (s *SubscriptionEditRequest) EditSubscriptionModal() {
 	}
 }
 
-// SubscriptionRequest is a wrapper around models.SubscriptionRequest to allow extending it with templates.
-type SubscriptionRequest struct {
-	*models.SubscriptionRequest
-	TopCategories []models.Category
-}
-
-func NewSubscriptionRequest(req *models.SubscriptionRequest) *SubscriptionRequest {
-	return &SubscriptionRequest{
-		SubscriptionRequest: req,
-	}
-}
-
 // NewSubscriptionModal will display a modal for the user to enter new Subscription details.
-templ NewSubscriptionModal(request *models.SubscriptionRequest) {
+templ NewSubscriptionModal(request *models.SubscriptionRequest, result *models.UserMessage) {
 	@modal.Build(
 		modal.WithID(partials.ModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
 	).Show() {
 		@text.Build("Add a new subscription", text.WithSize(text.LG)).Show()
-		if request.Result != nil {
-			@partials.Alert(request.Result, nil)
+		if result != nil {
+			@partials.Alert(result, nil)
 		}
 		// Display the Subscription details.
 		@form.Build(
@@ -119,12 +101,6 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest) {
 			),
 			form.WithElements(
 				fieldset.Build(
-					// fieldset.WithField("",
-					// 	hiddeninput.Build(
-					// 		hiddeninput.WithName("subscription_id"),
-					// 		hiddeninput.WithValue(request.GetID()),
-					// 	),
-					// ),
 					fieldset.WithLegend("Subscription details:"),
 					fieldset.WithField("URL",
 						textinput.Build(
@@ -140,14 +116,14 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest) {
 					fieldset.WithField("Nickname (optional)",
 						textinput.Build(
 							textinput.WithName("user_nickname"),
-							textinput.WithValue(request.UserNickname),
+							textinput.WithValue(request.Title),
 							textinput.WithPlaceholder("My memorable feed name"),
 						),
 					),
 				).Show(),
 			),
 		).Show()
-		@editCategories(request.UserCategories, nil)
+		@editCategories(request.Categories, nil)
 		// Add a button to submit the Subscription details when finished editing.
 		@fieldset.Build(
 			fieldset.WithField("",
@@ -313,50 +289,31 @@ templ ImportFromOPML() {
 	// <progress id="import-form-progress" class="progress" value="0" max="100"></progress>
 }
 
-templ ImportResults(requests models.SubscriptionRequests) {
-	{{ numSuccess := len(requests.FilterByStatus(models.UserMessageStatusSuccess)) }}
-	{{ numFail := len(requests) - numSuccess }}
+templ ImportResults(results ...*models.UserMessage) {
+	// {{ numSuccess := len(requests.FilterByStatus(models.UserMessageStatusSuccess)) }}
+	// {{ numFail := len(requests) - numSuccess }}
 	<div class="max-w-md text-center">
 		<h1 class="font-bold">Import Results</h1>
-		<p class="py-4">Imported: { strconv.Itoa(numSuccess) } Failed: { strconv.Itoa(numFail) }</p>
+		// <p class="py-4">Imported: { strconv.Itoa(numSuccess) } Failed: { strconv.Itoa(numFail) }</p>
 	</div>
 	<div class="overflow-x-auto">
 		<table class="table table-xs">
 			<thead>
 				<tr>
-					<th>Title</th>
-					<th>URL</th>
 					<th>Status</th>
-					<th>Result</th>
+					<th>Summary</th>
 					<th>Details</th>
 				</tr>
 			</thead>
 			<tbody>
-				for request := range slices.Values(requests) {
+				for result := range slices.Values(results) {
 					<tr>
-						if request.Result.Status != models.UserMessageStatusSuccess {
-							<th></th>
-							<td>{ request.GetURL() }</td>
-							<td>{ string(request.Result.Status) }</td>
-							<td>{ request.Result.Summary }</td>
-							if request.Result.HasDetails() {
-								<td>{ *request.Result.Details }</td>
-							} else {
-								<td></td>
-							}
+						<td>{ string(result.Status) }</td>
+						<td>{ result.Summary }</td>
+						if result.HasDetails() {
+							<td>{ *result.Details }</td>
 						} else {
-							if title := request.Details.GetTitle(); title != "" {
-								<th>{ title }</th>
-							}
-							<th></th>
-							<td>{ request.GetURL() }</td>
-							<td>{ string(request.Result.Status) }</td>
-							<td>{ request.Result.Summary }</td>
-							if request.Result.HasDetails() {
-								<td>{ *request.Result.Details }</td>
-							} else {
-								<td></td>
-							}
+							<td></td>
 						}
 					</tr>
 				}

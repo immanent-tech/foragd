@@ -83,6 +83,119 @@ func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Respon
 	return &resp, nil
 }
 
+// AddSubscriptions will bulk index the given subscriptions.
+func (e *API) AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) (*bulk.Response, error) {
+	index := SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, ErrFetchCtx
+	}
+
+	bulkOps, respCh := bulk.NewRequest(ctx, e)
+
+	go func() {
+		defer close(bulkOps)
+
+		for _, subscription := range subscriptions {
+			slogctx.FromCtx(ctx).Debug("Adding feed",
+				slog.String("name", subscription.GetTitle()),
+				slog.String("feed_id", subscription.GetID()),
+			)
+
+			bulkOps <- bulk.NewOperation(&subscription,
+				bulk.SetDocID(subscription.GetID()),
+				bulk.ToIndex(index),
+			)
+		}
+	}()
+
+	resp := <-respCh
+
+	return &resp, nil
+}
+
+// GetFeeds retrieves the feeds with the given IDs.
+func (e *API) GetSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionCustomisations, error) {
+	index := SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	resp, err := NewMGetRequest(e.GetAPI(),
+		GetFromIndex(index),
+		GetIDs(ids...)).Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrGetFailed, err)
+	}
+	subscriptions, warnings := ExtractSourceFromDocs[*models.SubscriptionCustomisation](resp.Docs)
+	if warnings != nil {
+		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
+			slog.Any("warnings", warnings))
+	}
+	return subscriptions, nil
+}
+
+// SearchFeeds will search the feeds index for feed matching the given query. Count, sort and pagination values are
+// optional.
+//
+// count specifies the number of results. If not specified, up to 10 results will be returned.
+//
+// sort specifies how to sort the resuls. If not specified, doc value sorting is used.
+//
+// pagination specifies the sort after values to use for getting a specific window of the total results. When set, the
+// count parameter can be thought of as specifying how many new results are retrieved.
+func (a *API) SearchSubscriptions(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.SubscriptionCustomisations, models.Pagination, error) {
+	index := SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	var sortValues []types.FieldValue
+	if pagination != nil {
+		var err error
+		sortValues, err = decodePagination(*pagination)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+	}
+	var sortOptions []types.SortCombinationsVariant
+	if sort != nil {
+		sortOptions = setFeedSort(*sort)
+	} else {
+		sortOptions = append(sortOptions, SortByDocID("subscription_id"))
+	}
+
+	resp, err := NewSearchRequest(a.API,
+		WithSearchID(middleware.GetReqID(ctx)),
+		WithSearchIndex(index),
+		WithSearchQueryOptions(query),
+		WithSearchAfter(sortValues),
+		WithSearchSize(count),
+		WithSortOptions(sortOptions...),
+	).Do(ctx)
+	if err != nil {
+		return nil, "", errors.Join(ErrSearchFailed, err)
+	}
+
+	var warnings error
+	var subscriptions []*models.SubscriptionCustomisation
+
+	subscriptions, sortValues, warnings = ExtractSourceFromHits[*models.SubscriptionCustomisation](resp.Hits.Hits)
+	if warnings != nil {
+		slogctx.FromCtx(ctx).Warn("Some feeds could not be extracted from results.",
+			slog.Any("warnings", warnings))
+	}
+
+	if pagination != nil {
+		pagination, err := encodePagination(sortValues)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+		return subscriptions, pagination, nil
+	}
+
+	return subscriptions, "", nil
+}
+
 // GetFeeds retrieves the feeds with the given IDs.
 func (e *API) GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error) {
 	index := FeedsIndexFromCtx(ctx)
@@ -250,9 +363,9 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 	return resp, nil
 }
 
-func (a *API) MultiSearch(ctx context.Context, feedsSearch, itemsSearch *MSearchOptions) (models.Feeds, models.Items, error) {
-	feedsIndex := FeedsIndexFromCtx(ctx)
-	if feedsIndex == "" {
+func (a *API) MultiSearch(ctx context.Context, feedsSearch, itemsSearch *query.MSearchOptions) (models.Feeds, models.Items, error) {
+	subscriptionsIndex := FeedsIndexFromCtx(ctx)
+	if subscriptionsIndex == "" {
 		return nil, nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
 	}
 	itemsIndex := ItemsIndexFromCtx(ctx)
@@ -261,7 +374,7 @@ func (a *API) MultiSearch(ctx context.Context, feedsSearch, itemsSearch *MSearch
 	}
 
 	req := NewMSearchRequest(a.GetAPI(),
-		WithSearch[*msearch.Msearch](feedsIndex, feedsSearch),
+		WithSearch[*msearch.Msearch](subscriptionsIndex, feedsSearch),
 		WithSearch[*msearch.Msearch](itemsIndex, itemsSearch),
 		WithRequestID[*msearch.Msearch, SearchRequestCommon[*msearch.Msearch]](middleware.GetReqID(ctx)),
 	)
@@ -273,7 +386,7 @@ func (a *API) MultiSearch(ctx context.Context, feedsSearch, itemsSearch *MSearch
 
 	results := make(map[string]*types.MultiSearchItem)
 
-	for idx, r := range []string{"feeds", "items"} {
+	for idx, r := range []string{"subscriptions", "items"} {
 		switch res := resp.Responses[idx].(type) {
 		case *types.MultiSearchItem:
 			if res.Hits.Total.Value == 0 {
@@ -290,8 +403,8 @@ func (a *API) MultiSearch(ctx context.Context, feedsSearch, itemsSearch *MSearch
 		items    models.Items
 		warnings error
 	)
-	if results["feeds"] != nil {
-		feeds, _, warnings = ExtractSourceFromHits[*models.Feed](results["feeds"].Hits.Hits)
+	if results["subscriptions"] != nil {
+		feeds, _, warnings = ExtractSourceFromHits[*models.Feed](results["subscriptions"].Hits.Hits)
 		if warnings != nil {
 			slogctx.FromCtx(ctx).Warn("Problem extracting hits.", slog.Any("err", err))
 		}
@@ -304,6 +417,30 @@ func (a *API) MultiSearch(ctx context.Context, feedsSearch, itemsSearch *MSearch
 	}
 
 	return feeds, items, nil
+}
+
+func (e *API) UpdateSubscriptionCustomisation(ctx context.Context, id models.SubscriptionID, partialUpdate map[string]any) error {
+	index := UserIndexFromCtx(ctx)
+	if index == "" {
+		return fmt.Errorf("could not update subscription: %w", ErrGetUserFailed)
+	}
+
+	// Updated the `updated_at` timestamp.
+	// partialUpdate["updated_at"] = time.Now().UTC()
+
+	// Update the user in the store with the new list of read items.
+	resp, err := NewDocUpdateRequest(e.GetAPI(), index, id,
+		WithPartialDocUpdate(partialUpdate),
+	).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("could not update subscription: %w", err)
+	}
+
+	slog.Debug("Updated subscription.",
+		slog.String("result", resp.Result.String()),
+		slog.Int64("version", resp.Version_))
+
+	return nil
 }
 
 // MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).

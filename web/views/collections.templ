@@ -143,7 +143,7 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles) []templ
 	for article := range slices.Values(articles) {
 		cardOptions := slices.Clone(defaultCardOptions)
 		// Add an image if the article has one.
-		if articleImage := article.Item.GetImage(); articleImage != nil {
+		if articleImage := article.GetImage(); articleImage != nil {
 			cardOptions = append(cardOptions,
 				card.WithImage(
 					image.Build(
@@ -156,24 +156,24 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles) []templ
 			)
 		}
 		var title string
-		if title = article.Item.GetTitle(); title == "" {
+		if title = article.GetTitle(); title == "" {
 			title = "(no title)"
 		}
 		cardOptions = append(cardOptions,
-			card.WithID(article.Item.GetID()),
+			card.WithID(article.GetID()),
 			card.WithBodyOptions(
 				// Card title.
 				card.WithTitle(
 					link.Build(
 						link.WithContent(title),
 						link.WithUnderlineOnHover(),
-						link.WithExtraAttributes(viewAction(ctx, article.Item.ItemID, article.IsUnread())),
+						link.WithExtraAttributes(viewAction(ctx, article.GetID(), article.State.IsRead())),
 					).Show(),
 				),
 				// Card content.
 				card.WithContent(
 					templ.Join(
-						showDetails(article.Item.GetAuthors(), article.Item.GetUpdatedDate()),
+						showDetails(article.GetAuthors(), article.GetUpdatedDate()),
 						// showCategories(article.Item.GetCategories()...),
 					),
 				),
@@ -185,17 +185,17 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles) []templ
 						// Visit external article link action.
 						partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
 							"External Link",
-							templ.Attributes{"href": article.Item.GetLink()},
+							templ.Attributes{"href": article.GetLink()},
 							[]string{"text-xs"},
 						),
 						// Mark article action.
-						markArticleAction(article.FeedID, article.ItemID, article.IsUnread()),
+						markArticleAction(article.GetFeedID(), article.GetID(), article.State.IsRead()),
 					),
 				),
 			),
 		)
 		// Reduce opacity for read articles.
-		if !article.IsUnread() {
+		if article.State.IsRead() {
 			cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
 		}
 
@@ -384,21 +384,21 @@ templ BuildArticleLayout(art *models.Article) {
 	@article.Build(
 		article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2", "overflow-scroll"),
 		article.WithExtraAttributes(templ.Attributes{
-			"hx-post":     "/article/read/" + art.ItemID,
+			"hx-post":     "/article/read/" + art.GetID(),
 			"hx-swap":     "none",
 			"hx-push-url": "false",
 			"hx-trigger":  "load delay:2s",
 		}),
 	).Show() {
 		<h2>
-			@text.Build(art.Item.GetTitle(),
+			@text.Build(art.GetTitle(),
 				text.WithWeight(text.Semibold),
 				text.WithSize(text.LG),
 			).Show("flex-1")
 		</h2>
-		@showDetails(art.Item.GetAuthors(), art.Item.GetUpdatedDate())
+		@showDetails(art.GetAuthors(), art.GetUpdatedDate())
 		// Display the categories associated with the article.
-		for category := range slices.Values(art.Item.GetCategories()) {
+		for category := range slices.Values(art.GetCategories()) {
 			@badge.Build(
 				badge.WithStyle(badge.Ghost),
 				badge.WithSize(badge.XS),
@@ -434,10 +434,10 @@ templ showDetails(authors []string, updated time.Time) {
 templ showContent(article *models.Article) {
 	<div id="article_content" class="text-sm max-w-prose">
 		switch  {
-			case article.Item.GetContent() != "":
-				@templ.Raw(article.Item.GetContent())
-			case article.Item.GetDescription() != "":
-				@templ.Raw(article.Item.GetDescription())
+			case article.GetContent() != "":
+				@templ.Raw(article.GetContent())
+			case article.GetDescription() != "":
+				@templ.Raw(article.GetDescription())
 		}
 	</div>
 }

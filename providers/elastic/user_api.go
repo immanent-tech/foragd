@@ -6,8 +6,8 @@ package elastic
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
-	"net/http"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
@@ -81,26 +81,27 @@ func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
 		index,
 		userID,
 		&models.User{
-			UserID:    userID,
-			CreatedAt: created,
+			UserID:     userID,
+			CreatedAt:  created,
+			MaxHistory: models.DefaultMaxHistory.String(),
 		},
 		refresh.True).
 		Do(ctx)
 	if err != nil {
-		return errors.Join(ErrCreateUserFailed, err)
+		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Added user.",
 		slog.String("result", resp.Result.String()),
-		slog.Int64("version", resp.Version_))
+	)
 
 	return nil
 }
 
-func (e *API) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) *models.Response {
+func (e *API) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) error {
 	index := UserIndexFromCtx(ctx)
 	if index == "" {
-		return models.RespInvalidUser()
+		return ErrNoUser
 	}
 
 	// Updated the `updated_at` timestamp.
@@ -111,18 +112,12 @@ func (e *API) UpdateUser(ctx context.Context, id models.UserID, partialUpdate ma
 		WithPartialDocUpdate(partialUpdate),
 	).Do(ctx)
 	if err != nil {
-		return &models.Response{
-			StatusCode: http.StatusNoContent,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "User updated failed.",
-			},
-		}
+		return fmt.Errorf("update user failed: %w", err)
 	}
 
 	slog.Debug("Updated user.",
 		slog.String("result", resp.Result.String()),
 		slog.Int64("version", resp.Version_))
 
-	return models.RespSuccess("User updated.")
+	return nil
 }

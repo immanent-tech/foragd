@@ -21,9 +21,40 @@ import (
 	"github.com/joshuar/go-feed-me/server/handlers"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 var ErrInvalidParam = errors.New("invalid parameter")
+
+// SignUp handles presenting a form for the user to enter sign-up details.
+func (s Server) SignUp(res http.ResponseWriter, req *http.Request) {
+	alice.New(
+		handlers.NewUserSignup,
+	).Then(handlers.RenderPage()).ServeHTTP(res, req)
+}
+
+// ProcessSignUp handles validating and processing a user sign-up request.
+func (s Server) ProcessSignUp(res http.ResponseWriter, req *http.Request) {
+	resp := htmx.NewResponse()
+	// Decode and validate the user sign-up request.
+	userSignup, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
+	if err != nil || !valid {
+		slogctx.FromCtx(req.Context()).Debug("Problem decoding user signup form data.",
+			slog.Bool("valid", valid),
+			slog.Any("error", err),
+		)
+		if err := resp.RenderTempl(req.Context(), res, views.SignupForm(userSignup)); err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Bad request.", slog.Any("error", err))
+			http.Error(res, "user signup failed!", http.StatusInternalServerError)
+		}
+		return
+	}
+	// Process the sign-up request.
+	alice.New(
+		handlers.RouteLogger,
+		handlers.ProcessUserSignup(s.UserAPI(), s.DataAPI(), userSignup),
+	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
+}
 
 // Index handler handles the index page.
 func (s Server) Index(res http.ResponseWriter, req *http.Request) {
@@ -68,9 +99,9 @@ func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
+		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -98,12 +129,11 @@ func (s Server) SetTheme(res http.ResponseWriter, req *http.Request) {
 	}
 	settings := user.GetSettings()
 	settings.Theme = theme
-	resp := s.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
+	if err := s.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
 		"settings":   settings,
 		"updated_at": time.Now().UTC(),
-	})
-	if resp.IsError() {
-		handlers.ProcessResponse(res, req, resp)
+	}); err != nil {
+		handlers.ProcessResponse(res, req, models.RespServerError("Failed to save theme.", err))
 		res.WriteHeader(http.StatusNoContent)
 	} else {
 		res.WriteHeader(http.StatusOK)
@@ -125,9 +155,9 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
+		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -161,9 +191,9 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
+		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -201,7 +231,7 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 		return
 	}
 
-	chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
+	chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
 // ActionCollection handles performing an action on a collection of objects.
@@ -225,7 +255,7 @@ func (s Server) ActionCollection(res http.ResponseWriter, req *http.Request, col
 		handlers.RouteLogger,
 		handlers.SetupRedirect(params.Redirect),
 		actionFunc,
-	).Then(handlers.RenderPartials())
+	).Then(handlers.RenderContentPartials())
 	chain.ServeHTTP(res, req)
 }
 
@@ -246,7 +276,7 @@ func (s Server) ActionArticle(res http.ResponseWriter, req *http.Request, action
 		handlers.RouteLogger,
 		handlers.SetupRedirect(params.Redirect),
 		actionFunc,
-	).Then(handlers.RenderPartials())
+	).Then(handlers.RenderContentPartials())
 	chain.ServeHTTP(res, req)
 }
 
@@ -260,9 +290,9 @@ func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, itemID I
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
+		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -277,9 +307,9 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
+		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -295,7 +325,7 @@ func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request,
 		handlers.SavePageState,
 		handlers.SaveFilters(params),
 		handlers.PaginateArticleCollection(s.DataAPI(), sub),
-	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
 // ActionSubscription performs an action on a subscription.
@@ -311,7 +341,7 @@ func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, a
 	chain := alice.New(
 		handlers.RouteLogger,
 		actionFunc,
-	).Then(handlers.RenderPartials())
+	).Then(handlers.RenderContentPartials())
 	chain.ServeHTTP(res, req)
 }
 
@@ -326,12 +356,12 @@ func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, sub
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.EditSubscription(s.DataAPI(), subscriptionID),
-	).Then(handlers.RenderPartials())
+	).Then(handlers.RenderContentPartials())
 	chain.ServeHTTP(res, req)
 }
 
 // SaveSubscription handles saving any edits to a user's subscription.
-func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
+func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, _ models.SubscriptionID) {
 	subscriptionEdits, valid, err := forms.DecodeForm[*models.SubscriptionCustomisation](req)
 	if err != nil || !valid {
 		handlers.ProcessResponse(res, req, &models.Response{
@@ -346,8 +376,8 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, sub
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SaveSubscription(s.DataAPI(), subscriptionID, subscriptionEdits),
-	).Then(handlers.RenderPartials())
+		handlers.SaveSubscription(s.DataAPI(), subscriptionEdits),
+	).Then(handlers.RenderContentPartials())
 	chain.ServeHTTP(res, req)
 }
 
@@ -362,7 +392,7 @@ func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, s
 	alice.New(
 		handlers.RouteLogger,
 		handlers.RemoveSubscription(s.DataAPI(), subscriptionID, params.Confirmation),
-	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
 // NewSubscription handles presenting the user with a form to enter details about a new subscription.
@@ -376,7 +406,7 @@ func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 	alice.New(
 		handlers.RouteLogger,
 		handlers.NewSubscription,
-	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
 // AddSubscription handles an add subscription request.
@@ -390,9 +420,9 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	alice.New(
 		handlers.RouteLogger,
 		handlers.ParseNewSubscriptionRequest,
-		handlers.ProcessSubscriptionRequests(s.DataAPI()),
+		handlers.AddSubscriptions(s.DataAPI()),
 		handlers.NewSubscriptionRequestResult,
-	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
 // StartSubscriptionImport handles starting a subscriptions import process for the user.
@@ -404,9 +434,9 @@ func (s Server) StartSubscriptionImport(res http.ResponseWriter, req *http.Reque
 
 	switch htmx.IsHTMX(req) {
 	case true:
-		chain.Then(handlers.RenderPartials()).ServeHTTP(res, req)
+		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderPage()).ServeHTTP(res, req)
+		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
 	}
 }
 
@@ -441,7 +471,7 @@ func (s Server) SetSubscriptionImportMethod(res http.ResponseWriter, req *http.R
 	alice.New(
 		handlers.RouteLogger,
 		handlers.ProcessSubscriptionsImport(string(importMethod.From)),
-	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
 // ProcessSubscriptionImport handles using the user's chosen import method to import their subscriptions.
@@ -463,9 +493,9 @@ func (s Server) ProcessSubscriptionImport(res http.ResponseWriter, req *http.Req
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.ProcessSubscriptionsImport(importMethod),
-		handlers.ProcessSubscriptionRequests(s.DataAPI()),
+		handlers.AddSubscriptions(s.DataAPI()),
 		handlers.SubscriptionsImportResults,
-	).Then(handlers.RenderPartials())
+	).Then(handlers.RenderContentPartials())
 	chain.ServeHTTP(res, req)
 }
 
@@ -474,7 +504,7 @@ func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Requ
 	alice.New(
 		handlers.RouteLogger,
 		handlers.GenerateDrawerContent(s.DataAPI()),
-	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
 func (s Server) SearchSuggest(res http.ResponseWriter, req *http.Request) {
@@ -486,7 +516,7 @@ func (s Server) SearchSuggest(res http.ResponseWriter, req *http.Request) {
 	alice.New(
 		handlers.RouteLogger,
 		handlers.GenerateSearchSuggestions(s.DataAPI(), searchTerms),
-	).Then(handlers.RenderPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
 func (s Server) SearchResults(res http.ResponseWriter, req *http.Request) {

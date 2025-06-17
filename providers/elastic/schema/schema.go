@@ -4,101 +4,77 @@
 package schema
 
 import (
-	"github.com/elastic/go-elasticsearch/v8/typedapi/cluster/putcomponenttemplate"
+	"maps"
+	"runtime"
+
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ilm/putlifecycle"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/putindextemplate"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/dynamicmapping"
+)
+
+var (
+	GitCommit = "NOCOMMIT"
+	GoVersion = runtime.Version()
+	BuildDate = ""
 )
 
 const (
-	MappingsSuffix        = "_mappings"
-	SettingsSuffix        = "_settings"
-	FeedsSchemaPrefix     = "feeds"
-	FeedItemsSchemaPrefix = "feeditems"
-	UsersSchemaPrefix     = "users"
-	SchedulerJobsPrefix   = "scheduler_jobs"
-	SessionsPrefix        = "sessions"
+	FeedsSchemaPrefix         = "feeds"
+	FeedItemsSchemaPrefix     = "feeditems"
+	UsersSchemaPrefix         = "users"
+	SchedulerJobsSchemaPrefix = "scheduler_jobs"
+	SessionsSchemaPrefix      = "sessions"
+	SubscriptionsSchemaPrefix = "subscriptions"
 
 	IngestPipelineID = "gofeed"
-
-	FeedsMappings         = FeedsSchemaPrefix + MappingsSuffix
-	FeedsSettings         = FeedsSchemaPrefix + SettingsSuffix
-	FeedsItemsMappings    = FeedItemsSchemaPrefix + MappingsSuffix
-	FeedsItemsSettings    = FeedItemsSchemaPrefix + SettingsSuffix
-	UsersMappings         = UsersSchemaPrefix + MappingsSuffix
-	UsersSettings         = UsersSchemaPrefix + SettingsSuffix
-	SchedulerJobsMappings = SchedulerJobsPrefix + MappingsSuffix
-	SchedulerJobsSettings = SchedulerJobsPrefix + SettingsSuffix
-	SessionsMappings      = SessionsPrefix + MappingsSuffix
-	SessionsSettings      = SessionsPrefix + SettingsSuffix
-
-	schemaVersion = "v0.0.0"
 )
 
-var defaultMetadata = NewMetadata(WithMetadataField("version", schemaVersion))
+var EnglishExactAnalyzerName = "english_exact"
 
-// Option is a reusable generic function for applying options to a type.
-type Option[T any] func(T) T
-
-var SubscriptionMappings = map[string]types.Property{
-	"subscription_id": types.NewKeywordProperty(),
-	"feed_id":         types.NewKeywordProperty(),
-	"created_at":      types.NewDateNanosProperty(),
-	"updated_at":      types.NewDateNanosProperty(),
-	"max_history":     types.NewKeywordProperty(),
-	"user_nickname":   asTextAndKeyword(),
-	"user_categories": asTextAndKeyword(),
-	"marked_read":     types.NewDateNanosProperty(),
-	"item_states": types.ObjectProperty{
+var CommonObjectMappings = map[string]types.Property{
+	"published":    types.NewDateNanosProperty(),
+	"updated":      types.NewDateNanosProperty(),
+	"title":        shortTextFieldProperty(),
+	"description":  longTextFieldProperty(),
+	"content":      longTextFieldProperty(),
+	"authors":      shortTextFieldProperty(),
+	"contributors": shortTextFieldProperty(),
+	"categories":   shortTextFieldProperty(),
+	"language":     shortTextFieldProperty(),
+	"copyright":    longTextFieldProperty(),
+	"source_type":  types.NewKeywordProperty(),
+	"url":          types.NewKeywordProperty(),
+	"image": types.ObjectProperty{
 		Properties: map[string]types.Property{
-			"item_id": types.NewKeywordProperty(),
-			"state":   types.NewKeywordProperty(),
+			"value": types.NewKeywordProperty(),
+			"title": longTextFieldProperty(),
 		},
 	},
 }
+
+// Option is a reusable generic function for applying options to a type.
+type Option[T any] func(T) T
 
 //
 // SESSION
 //
 
-// SessionsMappingsTemplate returns a Component Template for
-// sessions index field mappings.
-func SessionsMappingsTemplate() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithMappings(
-					NewPropertyMapping(
-						WithoutDynamicMapping(),
-						WithDateNanosProperty("expiry"),
-						WithKeywordProperty("token"),
-						WithBinaryProperty("data"),
-					),
-				),
-			),
-		),
-	)
+func sessionsMappings() map[string]types.Property {
+	return map[string]types.Property{
+		"expiry": types.NewDateNanosProperty(),
+		"token":  types.NewKeywordProperty(),
+		"data":   types.NewBinaryProperty(),
+	}
 }
 
-// SessionsSettingsTemplate returns a Component Template for sessions
-// index settings.
-func SessionsSettingsTemplate() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithAliases(SessionsPrefix, types.Alias{}),
-			),
-		),
-	)
-}
-
-// SessionsIndexTemplate returns an Index Template for sessions indices.
-func SessionsIndexTemplate() *putindextemplate.Request {
-	return NewIndexTemplateRequest(
-		WithIndexPatterns(SessionsPrefix+"_*"),
-		WithComponentTemplates(SessionsMappings, SessionsSettings),
-		WithPriority(500),
+func sessionsComponentTemplate() types.IndexState {
+	return NewIndexState(
+		WithMappings(&types.TypeMapping{
+			Dynamic:    &dynamicmapping.False,
+			Properties: sessionsMappings(),
+		}),
+		WithAliases(SessionsSchemaPrefix, types.Alias{}),
 	)
 }
 
@@ -106,47 +82,24 @@ func SessionsIndexTemplate() *putindextemplate.Request {
 // SCHEDULER
 //
 
-// SchedulerJobsMappingsTemplate returns a Component Template for
-// scheduler jobs index field mappings.
-func SchedulerJobsMappingsTemplate() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithMappings(
-					NewPropertyMapping(
-						WithoutDynamicMapping(),
-						WithDateNanosProperty("created_at"),
-						WithFlattenedProperty("job_options"),
-						WithFlattenedProperty("job_data"),
-						WithKeywordProperty("job_type"),
-						WithFlattenedProperty("job_trigger"),
-						WithDateNanosProperty("job_next_run"),
-						WithKeywordProperty("scheduler_id"),
-					),
-				),
-			),
-		),
-	)
+func schedulerJobsMappings() map[string]types.Property {
+	return map[string]types.Property{
+		"created_at":   types.NewDateNanosProperty(),
+		"job_options":  types.NewFlattenedProperty(),
+		"job_data":     types.NewFlattenedProperty(),
+		"job_type":     types.NewKeywordProperty(),
+		"job_trigger":  types.NewFlattenedProperty(),
+		"job_next_run": types.NewDateNanosProperty(),
+	}
 }
 
-// ComponentTemplateFeedItemsSettings returns a Component Template for scheduler
-// jobs index settings.
-func SchedulerJobsSettingsTemplate() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithAliases(SchedulerJobsPrefix, types.Alias{}),
-			),
-		),
-	)
-}
-
-// SchedulerJobsIndexTemplate returns an Index Template for scheduler jobs indices.
-func SchedulerJobsIndexTemplate() *putindextemplate.Request {
-	return NewIndexTemplateRequest(
-		WithIndexPatterns(SchedulerJobsPrefix+"_*"),
-		WithComponentTemplates(SchedulerJobsMappings, SchedulerJobsSettings),
-		WithPriority(500),
+func schedulerJobsComponentTemplate() types.IndexState {
+	return NewIndexState(
+		WithMappings(&types.TypeMapping{
+			Dynamic:    &dynamicmapping.False,
+			Properties: schedulerJobsMappings(),
+		}),
+		WithAliases(SchedulerJobsSchemaPrefix, types.Alias{}),
 	)
 }
 
@@ -154,48 +107,58 @@ func SchedulerJobsIndexTemplate() *putindextemplate.Request {
 // USERS
 //
 
-// UserMappingsTemplate returns a Component Template for users
-// index field mappings.
-func UserMappingsTemplate() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithMappings(
-					NewPropertyMapping(
-						WithoutDynamicMapping(),
-						WithKeywordProperty("user_id"),
-						WithDateNanosProperty("created_at"),
-						WithDateNanosProperty("updated_at"),
-						WithKeywordProperty("max_history"),
-						WithObjectProperty("subscriptions", SubscriptionMappingTemplate()),
-						WithObjectProperty("settings", map[string]types.Property{
-							"theme": types.NewKeywordProperty(),
-						}),
-					),
-				),
-			),
-		),
+func userMappings() map[string]types.Property {
+	return map[string]types.Property{
+		"user_id":       types.NewKeywordProperty(),
+		"created_at":    types.NewDateNanosProperty(),
+		"updated_at":    types.NewDateNanosProperty(),
+		"max_history":   types.NewKeywordProperty(),
+		"settings":      types.NewFlattenedProperty(),
+		"subscriptions": types.NewFlattenedProperty(),
+	}
+}
+
+func userComponentTemplate() types.IndexState {
+	return NewIndexState(
+		WithMappings(&types.TypeMapping{
+			Dynamic:    &dynamicmapping.False,
+			Properties: userMappings(),
+		}),
+		WithAliases(UsersSchemaPrefix, types.Alias{}),
 	)
 }
 
-// UsersSettingsTemplate returns a Component Template for users
-// index settings.
-func UsersSettingsTemplate() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithAliases(UsersSchemaPrefix, types.Alias{}),
-			),
-		),
-	)
+//
+// SUBSCRIPTIONS
+//
+
+func subscriptionCustomisationMappings() map[string]types.Property {
+	return map[string]types.Property{
+		"user_id":         types.NewKeywordProperty(),
+		"subscription_id": types.NewKeywordProperty(),
+		"feed_id":         types.NewKeywordProperty(),
+		"categories":      shortTextFieldProperty(),
+		"title":           shortTextFieldProperty(),
+	}
 }
 
-// UsersIndexTemplate returns an Index Template for users indices.
-func UsersIndexTemplate() *putindextemplate.Request {
-	return NewIndexTemplateRequest(
-		WithIndexPatterns(UsersSchemaPrefix+"_*"),
-		WithComponentTemplates(UsersMappings, UsersSettings),
-		WithPriority(500),
+func subscriptionsCustomisationTemplate() types.IndexState {
+	return NewIndexState(
+		WithMappings(&types.TypeMapping{
+			Dynamic:    &dynamicmapping.False,
+			Properties: subscriptionCustomisationMappings(),
+		}),
+		WithAliases(SubscriptionsSchemaPrefix, types.Alias{}),
+		WithIndexSettings(
+			WithAnalysis(types.IndexSettingsAnalysis{
+				Analyzer: map[string]types.Analyzer{
+					EnglishExactAnalyzerName: types.CustomAnalyzer{
+						Tokenizer: "standard",
+						Filter:    []string{"lowercase"},
+					},
+				},
+			}),
+		),
 	)
 }
 
@@ -203,57 +166,33 @@ func UsersIndexTemplate() *putindextemplate.Request {
 // FEEDS
 //
 
-// FeedsMappingsTemplate returns a Component Template for feeds
-// index field mappings.
-func FeedsMappingsTemplate() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithMappings(
-					NewPropertyMapping(
-						WithoutDynamicMapping(),
-						WithKeywordProperty("feed_id"),
-						WithDateNanosProperty("created_at"),
-						WithDateNanosProperty("updated"),
-						WithDateNanosProperty("published"),
-						WithTextAndKeywordProperty("title"),
-						WithTextProperty("description"),
-						WithTextAndKeywordProperty("authors"),
-						WithTextAndKeywordProperty("contributors"),
-						WithTextAndKeywordProperty("categories"),
-						WithTextAndKeywordProperty("language"),
-						WithTextAndKeywordProperty("copyright"),
-						WithKeywordProperty("source_type"),
-						WithKeywordProperty("source"),
-						WithKeywordProperty("url"),
-						WithObjectProperty("image", map[string]types.Property{
-							"value": types.NewKeywordProperty(),
-							"title": asTextAndKeyword(),
-						}),
-					),
-				),
-			),
-		),
-	)
+func feedsMappings() map[string]types.Property {
+	mapping := map[string]types.Property{
+		"feed_id":    types.NewKeywordProperty(),
+		"created_at": types.NewDateNanosProperty(),
+		"updated_at": types.NewDateNanosProperty(),
+	}
+	maps.Copy(mapping, CommonObjectMappings)
+	return mapping
 }
 
-// FeedsSettingsTemplate returns a Component Template for feeds
-// index settings.
-func FeedsSettingsTemplate() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithAliases(FeedsSchemaPrefix, types.Alias{}),
-			),
+func feedsComponentTemplate() types.IndexState {
+	return NewIndexState(
+		WithMappings(&types.TypeMapping{
+			Dynamic:    &dynamicmapping.False,
+			Properties: feedsMappings(),
+		}),
+		WithAliases(FeedsSchemaPrefix, types.Alias{}),
+		WithIndexSettings(
+			WithAnalysis(types.IndexSettingsAnalysis{
+				Analyzer: map[string]types.Analyzer{
+					EnglishExactAnalyzerName: types.CustomAnalyzer{
+						Tokenizer: "standard",
+						Filter:    []string{"lowercase"},
+					},
+				},
+			}),
 		),
-	)
-}
-
-// FeedsIndexTemplate returns an Index Template for feeds indices.
-func FeedsIndexTemplate() *putindextemplate.Request {
-	return NewIndexTemplateRequest(
-		WithIndexPatterns(FeedsSchemaPrefix+"_*"),
-		WithComponentTemplates(FeedsMappings, FeedsSettings),
 	)
 }
 
@@ -261,102 +200,69 @@ func FeedsIndexTemplate() *putindextemplate.Request {
 // FEED ITEMS
 //
 
-// ComponentTemplateFeedsMappings returns a Component Template for feed items
-// index field mappings.
-func FeedItemsMappingsTemplate() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithMappings(
-					NewPropertyMapping(
-						WithoutDynamicMapping(),
-						WithDateNanosProperty("@timestamp"),
-						WithDateNanosProperty("created"),
-						WithDateNanosProperty("published"),
-						WithDateNanosProperty("updated"),
-						WithKeywordProperty("feed_id"),
-						WithKeywordProperty("item_id"),
-						WithTextAndKeywordProperty("title"),
-						WithTextProperty("description"),
-						WithTextProperty("content"),
-						WithTextAndKeywordProperty("authors"),
-						WithTextAndKeywordProperty("contributors"),
-						WithTextAndKeywordProperty("categories"),
-						WithTextAndKeywordProperty("language"),
-						WithTextAndKeywordProperty("copyright"),
-						WithKeywordProperty("source_type"),
-						WithKeywordProperty("url"),
-						WithObjectProperty("image", map[string]types.Property{
-							"value": types.NewKeywordProperty(),
-							"title": asTextAndKeyword(),
-						}),
-					),
-				),
-			),
+func itemsMappings() map[string]types.Property {
+	mapping := map[string]types.Property{
+		"@timestamp": types.NewDateNanosProperty(),
+		"feed_id":    types.NewKeywordProperty(),
+		"item_id":    types.NewKeywordProperty(),
+		"created":    types.NewDateNanosProperty(),
+	}
+	maps.Copy(mapping, CommonObjectMappings)
+	return mapping
+}
+
+func itemsComponentTemplate() types.IndexState {
+	return NewIndexState(
+		WithMappings(&types.TypeMapping{
+			Dynamic:    &dynamicmapping.False,
+			Properties: itemsMappings(),
+		}),
+		WithAliases(FeedItemsSchemaPrefix, types.Alias{}),
+		WithIndexSettings(
+			WithAnalysis(types.IndexSettingsAnalysis{
+				Analyzer: map[string]types.Analyzer{
+					EnglishExactAnalyzerName: types.CustomAnalyzer{
+						Tokenizer: "standard",
+						Filter:    []string{"lowercase"},
+					},
+				},
+			}),
 		),
 	)
 }
 
-// FeedItemsSettingsTemplate returns a Component Template for feed item
-// index settings.
-func FeedItemsSettingsTemplate() *putcomponenttemplate.Request {
-	return NewComponentTemplateRequest(
-		WithIndexOptions(
-			NewIndexState(
-				WithIndexSettings(
-					WithIndexLifecycle(FeedItemsSchemaPrefix),
-				),
-			),
-		),
-	)
+// itemsILMPolicy is the ILM policy for feed items indices.
+func itemsILMPolicy() *putlifecycle.Request {
+	return defaultILMPolicy()
 }
 
-// IndexTemplateFeeds returns an Index Template for feed item indices.
-func FeedItemsIndexTemplate() *putindextemplate.Request {
-	return NewIndexTemplateRequest(
-		WithIndexPatterns(FeedItemsSchemaPrefix+"_*"),
-		WithComponentTemplates(FeedsItemsMappings, FeedsItemsSettings),
-		WithPriority(500),
-		AsDataStream(),
-	)
-}
-
-// FeedItemsILMPolicy is the ILM policy for feed items indices.
-func FeedItemsILMPolicy() *putlifecycle.Request {
-	return DefaultILMPolicy()
-}
-
-// DefaultILMPolicy is a default ILM policy that will apply the following phases:
+// defaultILMPolicy is a default ILM policy that will apply the following phases:
 //
 // - Hot Phase: rollover indices once they reach 50gb size.
 //
 // - Warm Phase: shrink and forcemerge indices down to 1 shard and 1 segment.
 //
 // - Delete Phase: delete indices older than 735 days.
-func DefaultILMPolicy() *putlifecycle.Request {
+func defaultILMPolicy() *putlifecycle.Request {
 	return NewILMPolicy(
-		WithPhase(HotPhase,
+		WithPhase("hot",
 			WithActions(WithRolloverMaxSize("50gb")),
 		),
-		WithPhase(WarmPhase,
+		WithPhase("warm",
 			WithActions(
 				WithShrinkToShards(1),
 				WithForceMergeSegments(1),
 			),
 		),
-		WithPhase(DeletePhase,
+		WithPhase("delete",
 			WithMinAge("735d"),
 			WithActions(WithDelete()),
 		),
 	)
 }
 
-func SubscriptionMappingTemplate() map[string]types.Property {
-	return SubscriptionMappings
-}
-
-// IngestPipelineFeeds is an ingest pipeline to clean-up feed and item data.
-func IngestPipelineFeeds() *putpipeline.Request {
+// ingestPipelineFeeds is an ingest pipeline to clean-up feed and item data.
+func ingestPipelineFeeds() *putpipeline.Request {
 	return NewIngestPipeline(
 		WithRemoveProcessor(
 			RemoveDescription("Remove deprecated and/or unneeded fields"),
@@ -364,4 +270,27 @@ func IngestPipelineFeeds() *putpipeline.Request {
 			RemoveIgnoreMissing(true),
 		),
 	)
+}
+
+// shortTextFieldMapping defines a mapping appropriate for fields containing short amounts of text, such as titles and
+// categories.
+func shortTextFieldProperty() types.TextProperty {
+	return types.TextProperty{
+		Type: "text",
+		Fields: map[string]types.Property{
+			"raw": types.NewKeywordProperty(),
+			"exact": types.TextProperty{
+				Analyzer: &EnglishExactAnalyzerName,
+			},
+			"search": types.NewSearchAsYouTypeProperty(),
+		},
+	}
+}
+
+// longTextFieldMapping defines a mapping appropriate for fields containing longer amounts of text, such as
+// descriptions, and full content.
+func longTextFieldProperty() types.TextProperty {
+	return types.TextProperty{
+		Type: "text",
+	}
 }
