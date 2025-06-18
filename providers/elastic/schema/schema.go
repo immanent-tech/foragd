@@ -171,6 +171,7 @@ func feedsMappings() map[string]types.Property {
 		"feed_id":    types.NewKeywordProperty(),
 		"created_at": types.NewDateNanosProperty(),
 		"updated_at": types.NewDateNanosProperty(),
+		"source_url": types.NewKeywordProperty(),
 	}
 	maps.Copy(mapping, CommonObjectMappings)
 	return mapping

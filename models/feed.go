@@ -43,7 +43,9 @@ func (f Feeds) FindByID(id FeedID) *Feed {
 }
 
 func (f Feeds) FindByURL(url string) *Feed {
-	idx := slices.IndexFunc(f, func(v *Feed) bool { return v.GetSourceURL() == url })
+	idx := slices.IndexFunc(f, func(v *Feed) bool {
+		return v.GetSourceURL() == url
+	})
 	if idx == -1 {
 		return nil
 	}

@@ -264,3 +264,7 @@ func (s *ObjectState) MarkUnread(markedAt time.Time) {
 	s.Read = false
 	s.UpdatedAt = &markedAt
 }
+
+type HasID[T ~string] interface {
+	GetID() T
+}

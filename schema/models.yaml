@@ -141,7 +141,7 @@ components:
               type: string
             settings:
               $ref: '#/components/schemas/UserSettings'
-            subscription_states:
+            subscriptions:
               description: >
                 is a list of the states of all subscriptions the user has.
               type: array
@@ -309,12 +309,12 @@ components:
         - type: object
           required:
             - feed_id
-            - source
+            - source_url
             - created_at
           properties:
             feed_id:
               $ref: '#/components/schemas/FeedID'
-            source:
+            source_url:
               description: >
                 is a URL to the source Feed document.
               allOf:

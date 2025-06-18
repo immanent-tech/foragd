@@ -110,13 +110,13 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest, result *models.U
 							textinput.Required(),
 							textinput.Validate(),
 							textinput.ValidateHint("A valid URL to a feed is required."),
-							textinput.WithValue(request.URL),
+							textinput.WithValue(request.GetURL()),
 						),
 					),
 					fieldset.WithField("Nickname (optional)",
 						textinput.Build(
 							textinput.WithName("user_nickname"),
-							textinput.WithValue(request.Title),
+							textinput.WithValue(request.GetNickname()),
 							textinput.WithPlaceholder("My memorable feed name"),
 						),
 					),
@@ -289,7 +289,7 @@ templ ImportFromOPML() {
 	// <progress id="import-form-progress" class="progress" value="0" max="100"></progress>
 }
 
-templ ImportResults(results ...*models.UserMessage) {
+templ ImportResults(results map[*models.SubscriptionRequest]*models.UserMessage) {
 	// {{ numSuccess := len(requests.FilterByStatus(models.UserMessageStatusSuccess)) }}
 	// {{ numFail := len(requests) - numSuccess }}
 	<div class="max-w-md text-center">
@@ -302,19 +302,13 @@ templ ImportResults(results ...*models.UserMessage) {
 				<tr>
 					<th>Status</th>
 					<th>Summary</th>
-					<th>Details</th>
 				</tr>
 			</thead>
 			<tbody>
-				for result := range slices.Values(results) {
+				for _, response := range results {
 					<tr>
-						<td>{ string(result.Status) }</td>
-						<td>{ result.Summary }</td>
-						if result.HasDetails() {
-							<td>{ *result.Details }</td>
-						} else {
-							<td></td>
-						}
+						<td>{ string(response.Status) }</td>
+						<td>{ response.String() }</td>
 					</tr>
 				}
 			</tbody>

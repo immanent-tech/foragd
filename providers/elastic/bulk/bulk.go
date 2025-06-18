@@ -125,6 +125,18 @@ type OperationResponse struct {
 	*types.ResponseItem
 }
 
+func (r *OperationResponse) Created() bool {
+	return r.Result != nil && *r.Result == "created"
+}
+
+func (r *OperationResponse) Updated() bool {
+	return r.Result != nil && *r.Result == "updated"
+}
+
+func (r *OperationResponse) Deleted() bool {
+	return r.Result != nil && *r.Result == "deleted"
+}
+
 // State returns a string indicating the operation result and a non-nil error if one occurred.
 func (r *OperationResponse) State() (string, error) {
 	var status string

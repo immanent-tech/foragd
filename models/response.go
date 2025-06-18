@@ -4,91 +4,79 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 )
 
-// IsError returns a boolean indicating whether the response is an error. The criteria for being an error is having a
-// non-nil InternalError field.
-func (r *Response) IsError() bool {
-	if r == nil {
-		return false
+var (
+	ErrInvalidUser  = errors.New("user is invalid")
+	ErrHTMXRequired = errors.New("htmx is required")
+	ErrInvalidInput = errors.New("invalid or unknown input")
+)
+
+func NewResponse(status int, err error) *Response {
+	resp := &Response{
+		StatusCode: status,
 	}
-	return r.InternalError != nil
+	if err != nil {
+		resp.InternalError = err
+	}
+	return resp
+}
+
+func (r *Response) Ok() bool {
+	switch {
+	case r == nil:
+		return true
+	case r.StatusCode >= 400:
+		return false
+	default:
+		return true
+	}
+}
+
+func (r *Response) IsNotFound() bool {
+	return r.StatusCode == http.StatusNotFound
 }
 
 func (r *Response) String() string {
 	switch {
-	case r.UserMessage != nil:
-		return r.UserMessage.String()
-	case r.IsError():
-		return r.InternalError.Error()
+	case r.InternalError != nil:
+		return fmt.Sprintf("%d: %s", r.StatusCode, r.InternalError.Error())
 	default:
-		return fmt.Sprintf("%d: An unknown error occurred.", r.StatusCode)
+		return http.StatusText(r.StatusCode)
 	}
 }
 
-func RespTemporaryIssue(msg string, err error) *Response {
+func (r *Response) Error() string {
+	return r.String()
+}
+
+func RespErrUnauthorized() *Response {
 	return &Response{
-		StatusCode:    http.StatusNoContent,
-		InternalError: err,
-		UserMessage: &UserMessage{
-			Status:  UserMessageStatusWarning,
-			Summary: msg,
-		},
+		StatusCode:    http.StatusUnauthorized,
+		InternalError: ErrInvalidUser,
 	}
 }
 
-func RespSuccess(msg string) *Response {
-	return &Response{
-		StatusCode: http.StatusOK,
-		UserMessage: &UserMessage{
-			Status:  UserMessageStatusSuccess,
-			Summary: msg,
-		},
-	}
-}
-
-func RespNonCriticalError(msg string, err error) *Response {
+func RespErrBackend(err error) *Response {
 	return &Response{
 		StatusCode:    http.StatusInternalServerError,
 		InternalError: err,
-		UserMessage: &UserMessage{
-			Status:  UserMessageStatusWarning,
-			Summary: msg,
-		},
 	}
 }
 
-func RespServerError(msg string, err error) *Response {
-	return &Response{
-		StatusCode:    http.StatusInternalServerError,
-		InternalError: err,
-		UserMessage: &UserMessage{
-			Status:  UserMessageStatusError,
-			Summary: msg,
-		},
-	}
-}
-
-func RespForbidden(msg string, err error) *Response {
+func RespForbidden(err error) *Response {
 	return &Response{
 		StatusCode:    http.StatusForbidden,
 		InternalError: err,
-		UserMessage: &UserMessage{
-			Status:  UserMessageStatusError,
-			Summary: msg,
-		},
 	}
 }
 
-func RespInvalidUser() *Response {
+func RespInvalidInput() *Response {
 	return &Response{
-		StatusCode:    http.StatusInternalServerError,
-		InternalError: ErrNoUserCtx,
-		UserMessage: &UserMessage{
-			Status:  UserMessageStatusError,
-			Summary: "Invalid or expired session.",
-		},
+		StatusCode:    http.StatusNoContent,
+		InternalError: ErrInvalidInput,
 	}
 }

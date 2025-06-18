@@ -28,7 +28,7 @@ func getSubscriptions(ctx context.Context, api FeedsAPI, ids ...models.Subscript
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, models.RespInvalidUser()
+		return nil, models.RespErrUnauthorized()
 	}
 
 	var states models.SubscriptionStates[models.SubscriptionID]
@@ -42,7 +42,7 @@ func getSubscriptions(ctx context.Context, api FeedsAPI, ids ...models.Subscript
 	// Get customisation details for subscriptions.
 	customisations, err := api.GetSubscriptions(ctx, ids...)
 	if err != nil {
-		return nil, models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+		return nil, models.RespErrBackend(err)
 	}
 	// Get feed data for subscriptions
 	feedIDs := make([]models.FeedID, 0, len(states))
@@ -51,15 +51,15 @@ func getSubscriptions(ctx context.Context, api FeedsAPI, ids ...models.Subscript
 	}
 	feeds, err := api.GetFeeds(ctx, feedIDs...)
 	if err != nil {
-		return nil, models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+		return nil, models.RespErrBackend(err)
 	}
 	// Get unread counts.
 	categoryCounts, err := getSubscriptionUnreadCounts(ctx, api, user.GetAllSubscriptionStatesByFeed())
 	if err != nil {
-		return nil, models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+		return nil, models.RespErrBackend(err)
 	}
 	// Generate subscriptions from data sources.
-	var subscriptions []*models.Subscription
+	subscriptions := make(models.Subscriptions, 0, len(feeds))
 	for feed := range slices.Values(feeds) {
 		var state *models.SubscriptionState
 		for _, s := range states {
@@ -88,9 +88,13 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", models.RespInvalidUser()
+		return nil, "", models.RespErrUnauthorized()
 	}
 	states := user.GetAllSubscriptionStatesByFeed()
+
+	if len(states) == 0 {
+		return nil, "", &models.Response{StatusCode: 404}
+	}
 
 	var feedIDs []models.FeedID
 	var subscriptionIDs []models.SubscriptionID
@@ -99,11 +103,11 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 
 	switch filters.View {
 	case models.ViewUnread:
-		var err error
+		var resp *models.Response
 		// Get unread counts.
-		unreadCounts, err = getSubscriptionUnreadCounts(ctx, api, states)
-		if err != nil {
-			return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+		unreadCounts, resp = getSubscriptionUnreadCounts(ctx, api, states)
+		if !resp.Ok() {
+			return nil, "", resp
 		}
 		for _, state := range states {
 			if !state.IsRead() && unreadCounts.GetCount(state.GetFeedID()) > 0 {
@@ -121,7 +125,7 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 	case models.ViewAll:
 		feedIDs = slices.Collect(maps.Keys(user.GetAllSubscriptionStatesByFeed()))
 		for _, state := range states {
-			subscriptionIDs = append(feedIDs, state.GetID())
+			subscriptionIDs = append(subscriptionIDs, state.GetID())
 		}
 	}
 	// Search subscription customisations for matches.
@@ -135,7 +139,7 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 	)
 	customisations, _, err := api.SearchSubscriptions(ctx, customisationQuery, len(subscriptionIDs), nil, nil)
 	if err != nil {
-		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+		return nil, "", models.RespErrBackend(err)
 	}
 	var customisationIDs []models.SubscriptionID
 	for customisation := range slices.Values(customisations) {
@@ -160,7 +164,7 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 	sort := filters.Sort()
 	feeds, pagination, err := api.SearchFeeds(ctx, feedsQuery, filters.CountAsInt(), &sort, filters.Pagination)
 	if err != nil {
-		return nil, "", models.RespTemporaryIssue("Could not fetch subscriptions. Please try again.", err)
+		return nil, "", models.RespErrBackend(err)
 	}
 	// Generate subscriptions from data sources.
 	var subscriptions []*models.Subscription
@@ -191,10 +195,10 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 		subscriptions = append(subscriptions, subscription)
 	}
 
-	return subscriptions, pagination, models.RespSuccess("Subscriptions fetched.")
+	return subscriptions, pagination, nil
 }
 
-func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, states models.SubscriptionStates[models.FeedID]) (*aggregations.TermsAggregationResults, error) {
+func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, states models.SubscriptionStates[models.FeedID]) (*aggregations.TermsAggregationResults, *models.Response) {
 	subscriptionQueries := make([]query.Option, 0, len(states))
 	for _, state := range states {
 		subscriptionQueries = append(subscriptionQueries, subscriptionQueryUnreadItems(state))
@@ -210,14 +214,17 @@ func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, states model
 			),
 		),
 	)
-	resp, err := api.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(states)))
-	if err != nil {
-		return nil, fmt.Errorf("could not retrieve subscription category counts: %w", err)
+	aggResults, resp := api.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(states)))
+	if !resp.Ok() {
+		return nil, resp
 	}
-	var categoryCounts aggregations.TermsAggregationResults
-	categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](resp.Aggregations, "UnreadCounts")
+	var (
+		categoryCounts aggregations.TermsAggregationResults
+		err            error
+	)
+	categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggResults.Aggregations, "UnreadCounts")
 	if err != nil {
-		return nil, fmt.Errorf("could not retrieve subscription category counts: %w", err)
+		return nil, models.NewResponse(http.StatusInternalServerError, fmt.Errorf("could not extract category counts: %w", err))
 	}
 
 	return &categoryCounts, nil
@@ -226,7 +233,7 @@ func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, states model
 func filterArticles(ctx context.Context, api FeedsAPI, filters *models.Filters) (models.Articles, models.Pagination, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", models.RespInvalidUser()
+		return nil, "", models.RespErrUnauthorized()
 	}
 
 	// Search through items matching any given feeds filters, excluding any read
@@ -249,13 +256,13 @@ func filterArticles(ctx context.Context, api FeedsAPI, filters *models.Filters) 
 	// Find items matching filters.
 	items, pagination, err := api.SearchItems(ctx, query, filters.CountAsInt(), &sort, filters.Pagination)
 	if err != nil {
-		return nil, "", models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+		return nil, "", models.RespErrBackend(err)
 	}
 	// Retrieve subscription customisations for feed subscriptions.
 	states := user.FilterSubscriptionStatesByFeed(items.GetFeedIDs()...)
 	customisations, err := api.GetSubscriptions(ctx, models.GetIDsFromStates(states)...)
 	if err != nil {
-		return nil, "", models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+		return nil, "", models.RespErrBackend(err)
 	}
 	// Create articles from the items.
 	articles := make(models.Articles, 0, len(items))
@@ -273,13 +280,13 @@ func filterArticles(ctx context.Context, api FeedsAPI, filters *models.Filters) 
 
 	}
 
-	return articles, pagination, models.RespSuccess("Fetched articles.")
+	return articles, pagination, models.RespErrBackend(err)
 }
 
 func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (models.Articles, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, models.RespInvalidUser()
+		return nil, models.RespErrUnauthorized()
 	}
 
 	// Search through items matching any given feeds filters, excluding any read
@@ -293,14 +300,14 @@ func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (m
 
 	items, _, err := api.SearchItems(ctx, query, len(itemIDs), nil, nil)
 	if err != nil {
-		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+		return nil, models.RespErrBackend(err)
 	}
 
 	// Retrieve subscription customisations for feed subscriptions.
 	states := user.FilterSubscriptionStatesByFeed(items.GetFeedIDs()...)
 	customisations, err := api.GetSubscriptions(ctx, models.GetIDsFromStates(states)...)
 	if err != nil {
-		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+		return nil, models.RespErrBackend(err)
 	}
 	// Create articles from the items.
 	articles := make(models.Articles, 0, len(items))
@@ -318,7 +325,7 @@ func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (m
 
 	}
 
-	return articles, models.RespSuccess("Fetched articles.")
+	return articles, nil
 }
 
 func markArticles(ctx context.Context, api BackendAPI, mark models.Mark, itemIDs ...models.ItemID) *models.Response {
@@ -354,31 +361,20 @@ func getItemTopCategories(ctx context.Context, api FeedsAPI, feeds ...models.Fee
 			query.FeedIDs(feeds...),
 		),
 	)
-	resp, err := api.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
-	if err != nil {
-		return nil, &models.Response{
-			StatusCode:    http.StatusNoContent,
-			InternalError: err,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "Could not retrieve categories.",
-			},
-		}
+	aggsResult, resp := api.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
+	if !resp.Ok() {
+		return nil, resp
 	}
-	var topCategories aggregations.TermsAggregationResults
-	topCategories.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](resp.Aggregations, "TopCategories")
+	var (
+		topCategories aggregations.TermsAggregationResults
+		err           error
+	)
+	topCategories.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggsResult.Aggregations, "TopCategories")
 	if err != nil {
-		return nil, &models.Response{
-			StatusCode:    http.StatusNoContent,
-			InternalError: err,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "Could not retrieve categories.",
-			},
-		}
+		return nil, models.NewResponse(http.StatusInternalServerError, fmt.Errorf("could not extract category counts: %w", err))
 	}
 
-	return topCategories.BucketNames(), models.RespSuccess("Retrieved categories.")
+	return topCategories.BucketNames(), nil
 }
 
 func removeSubscriptions(ctx context.Context, api UserAPI, subscriptions ...models.SubscriptionID) *models.Response {
@@ -425,7 +421,7 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *m
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, models.RespInvalidUser()
+		return nil, models.RespErrUnauthorized()
 	}
 
 	data := &views.HomePageData{
@@ -438,7 +434,10 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *m
 
 	// Get subscriptions.
 	subscriptions, _, resp := filterSubscriptions(ctx, api, models.NewFilters())
-	if resp.IsError() {
+	if resp.IsNotFound() {
+		return data, resp
+	}
+	if !resp.Ok() {
 		return nil, resp
 	}
 	// Query definition for fetching unread items for all subscriptions.
@@ -517,7 +516,7 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *m
 	// Perform the request.
 	aggsResult, err := api.ItemsAggregation(ctx, query, aggs...)
 	if err != nil {
-		return nil, models.RespTemporaryIssue("Could not fetch data. Please try again.", err)
+		return nil, models.RespErrBackend(err)
 	}
 	// Add the aggregations to the data
 	data.Aggregations = aggsResult.Aggregations
@@ -530,19 +529,19 @@ func getHomePageArticles(ctx context.Context, api FeedsAPI, data *views.HomePage
 	// Get the rare categories aggregation.
 	randomItemsAgg, err := aggregations.ExtractAggregation[map[string]any](data.Aggregations, "random_items")
 	if err != nil {
-		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+		return nil, models.RespErrBackend(err)
 	}
 	// itemsAgg, err := aggregations.ExtractAggregation[*types.StringTermsAggregate](randomItemsAgg, "sterms#items")
 	itemsAgg, ok := randomItemsAgg["sterms#items"].(map[string]any)
 	if !ok {
-		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+		return nil, models.RespErrBackend(err)
 	}
 	// if err != nil {
 	// 	return nil, fmt.Errorf("could not get random items: %w", err)
 	// }
 	buckets, ok := itemsAgg["buckets"].([]any)
 	if !ok {
-		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+		return nil, models.RespErrBackend(err)
 	}
 
 	itemIDs := make([]models.ItemID, 0, len(buckets))
@@ -559,8 +558,8 @@ func getHomePageArticles(ctx context.Context, api FeedsAPI, data *views.HomePage
 	}
 
 	articles, resp := getArticles(ctx, api, itemIDs...)
-	if resp.IsError() {
-		return nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
+	if !resp.Ok() {
+		return nil, models.RespErrBackend(err)
 	}
 
 	return articles, nil
@@ -613,9 +612,43 @@ func getSearchSuggestions(ctx context.Context, api FeedsAPI, searchTerms string)
 	return nil, nil, nil
 }
 
+func subscriptionRequestsFromCtx(ctx context.Context) models.SubscriptionRequests {
+	data := ctx.Value(subscriptionRequestsCtxKey)
+	if data == nil {
+		return nil
+	}
+	var requests models.SubscriptionRequests
+	switch value := data.(type) {
+	case *models.SubscriptionRequest:
+		requests = append(requests, value)
+	case []*models.SubscriptionRequest:
+		requests = append(requests, value...)
+	default:
+		return nil
+	}
+
+	return requests
+}
+
+func subscriptionResultsFromCtx(ctx context.Context) map[*models.SubscriptionRequest]*models.UserMessage {
+	data, ok := ctx.Value(subscriptionResultsCtxKey).(map[*models.SubscriptionRequest]*models.UserMessage)
+	if !ok || data == nil {
+		return make(map[*models.SubscriptionRequest]*models.UserMessage)
+	}
+	return data
+}
+
+func subscriptionsFromCtx(ctx context.Context) map[*models.SubscriptionRequest]*models.Feed {
+	data, ok := ctx.Value(subscriptionsCtxKey).(map[*models.SubscriptionRequest]*models.Feed)
+	if !ok || data == nil {
+		return make(map[*models.SubscriptionRequest]*models.Feed)
+	}
+	return data
+}
+
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
 func BuildSubscriptionQueries(user *models.User, view models.View) []query.Option {
-	queries := make([]query.Option, 0, len(user.SubscriptionStates))
+	queries := make([]query.Option, 0, len(user.Subscriptions))
 	// Work out what query to use based on the state filter.
 	states := user.GetAllSubscriptionStates()
 	switch view {

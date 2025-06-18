@@ -5,6 +5,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"slices"
@@ -110,7 +111,7 @@ func (s Server) GetTheme(res http.ResponseWriter, req *http.Request) {
 	handler := handlers.BaseChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			handlers.ProcessResponse(res, req, models.RespInvalidUser())
+			handlers.ProcessResponse(res, req, models.RespErrUnauthorized())
 			return
 		}
 		res.WriteHeader(http.StatusOK)
@@ -124,17 +125,16 @@ func (s Server) SetTheme(res http.ResponseWriter, req *http.Request) {
 	theme := req.FormValue("theme")
 	user, found := models.UserFromCtx(req.Context())
 	if !found {
-		handlers.ProcessResponse(res, req, models.RespInvalidUser())
+		handlers.ProcessResponse(res, req, models.RespErrUnauthorized())
 		return
 	}
 	settings := user.GetSettings()
 	settings.Theme = theme
-	if err := s.DataAPI().UpdateUser(req.Context(), user.GetID(), map[string]any{
+	if err := s.DataAPI().UpdateUser(req.Context(), map[string]any{
 		"settings":   settings,
 		"updated_at": time.Now().UTC(),
 	}); err != nil {
-		handlers.ProcessResponse(res, req, models.RespServerError("Failed to save theme.", err))
-		res.WriteHeader(http.StatusNoContent)
+		handlers.ProcessResponse(res, req, models.NewResponse(http.StatusNoContent, fmt.Errorf("failed to update theme: %w", err)))
 	} else {
 		res.WriteHeader(http.StatusOK)
 	}
@@ -179,13 +179,7 @@ func (s Server) ShowCollection(res http.ResponseWriter, req *http.Request, colle
 	case models.CollectionArticles:
 		chain = chain.Append(handlers.GenerateArticleCollection(s.DataAPI(), subIDs...))
 	default:
-		handlers.ProcessResponse(res, req, &models.Response{
-			StatusCode: http.StatusNoContent,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "Collection is unknown.",
-			},
-		})
+		handlers.ProcessResponse(res, req, models.RespInvalidInput())
 		return
 	}
 
@@ -205,7 +199,7 @@ func (s Server) UpdateCollection(res http.ResponseWriter, req *http.Request, col
 func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, collection Collection, params PaginateCollectionParams) {
 	// Pagination requests are only driven by htmx requests.
 	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
 		return
 	}
 
@@ -221,13 +215,7 @@ func (s Server) PaginateCollection(res http.ResponseWriter, req *http.Request, c
 	case models.CollectionArticles:
 		chain = chain.Append(handlers.PaginateArticleCollection(s.DataAPI()))
 	default:
-		handlers.ProcessResponse(res, req, &models.Response{
-			StatusCode: http.StatusNoContent,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "Collection is unknown.",
-			},
-		})
+		handlers.ProcessResponse(res, req, models.RespInvalidInput())
 		return
 	}
 
@@ -317,7 +305,7 @@ func (s Server) ShowSubscription(res http.ResponseWriter, req *http.Request, sub
 func (s Server) PaginateSubscription(res http.ResponseWriter, req *http.Request, sub SubscriptionID, params PaginateSubscriptionParams) {
 	// Pagination requests are only driven by htmx requests.
 	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
 		return
 	}
 	alice.New(
@@ -349,7 +337,7 @@ func (s Server) ActionSubscription(res http.ResponseWriter, req *http.Request, a
 func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
 	// Edit requests are only driven by htmx requests.
 	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
 		return
 	}
 
@@ -364,14 +352,7 @@ func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, sub
 func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, _ models.SubscriptionID) {
 	subscriptionEdits, valid, err := forms.DecodeForm[*models.SubscriptionCustomisation](req)
 	if err != nil || !valid {
-		handlers.ProcessResponse(res, req, &models.Response{
-			StatusCode: http.StatusNoContent,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "There was a problem saving the subscription edits.",
-			},
-			InternalError: err,
-		})
+		handlers.ProcessResponse(res, req, models.RespErrBackend(err))
 		return
 	}
 	chain := alice.New(
@@ -385,7 +366,7 @@ func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, _ m
 func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID, params RemoveSubscriptionParams) {
 	// Remove requests are only driven by htmx requests.
 	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
 		return
 	}
 
@@ -399,7 +380,7 @@ func (s Server) RemoveSubscription(res http.ResponseWriter, req *http.Request, s
 func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 	// Add requests are only driven by htmx requests.
 	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
 		return
 	}
 
@@ -413,13 +394,15 @@ func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
 func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 	// Add requests are only driven by htmx requests.
 	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden("Request is not allowed.", nil))
+		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
 		return
 	}
 
 	alice.New(
 		handlers.RouteLogger,
 		handlers.ParseNewSubscriptionRequest,
+		handlers.MatchFeedsToSubscriptionRequests(s.DataAPI()),
+		handlers.AddFeedsForSubscriptionRequests(s.DataAPI()),
 		handlers.AddSubscriptions(s.DataAPI()),
 		handlers.NewSubscriptionRequestResult,
 	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
@@ -457,14 +440,7 @@ func (f *SetSubscriptionImportMethodFormdataBody) Sanitise() error {
 func (s Server) SetSubscriptionImportMethod(res http.ResponseWriter, req *http.Request) {
 	importMethod, valid, err := forms.DecodeForm[*SetSubscriptionImportMethodFormdataBody](req)
 	if err != nil || !valid {
-		handlers.ProcessResponse(res, req, &models.Response{
-			StatusCode: http.StatusNoContent,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "There was a problem parsing the import method.",
-			},
-			InternalError: err,
-		})
+		handlers.ProcessResponse(res, req, models.RespErrBackend(err))
 		return
 	}
 
@@ -479,20 +455,15 @@ func (s Server) ProcessSubscriptionImport(res http.ResponseWriter, req *http.Req
 	// Decode the import source.
 	importMethod, err := forms.DecodeMultipartValue(req, "source")
 	if err != nil {
-		handlers.ProcessResponse(res, req, &models.Response{
-			StatusCode: http.StatusNoContent,
-			UserMessage: &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "There was a problem parsing the import method.",
-			},
-			InternalError: err,
-		})
+		handlers.ProcessResponse(res, req, models.RespErrBackend(err))
 		return
 	}
 
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.ProcessSubscriptionsImport(importMethod),
+		handlers.MatchFeedsToSubscriptionRequests(s.DataAPI()),
+		handlers.AddFeedsForSubscriptionRequests(s.DataAPI()),
 		handlers.AddSubscriptions(s.DataAPI()),
 		handlers.SubscriptionsImportResults,
 	).Then(handlers.RenderContentPartials())

@@ -102,11 +102,11 @@ type Feed struct {
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
 
-	// SourceURL is a URL to the source Feed document.
-	SourceURL URL `json:"source" validate:"required,url"`
-
 	// SourceType indicates what type of source the object came from.
 	SourceType FeedSourceType `json:"source_type"`
+
+	// SourceURL is a URL to the source Feed document.
+	SourceURL URL `json:"source_url" validate:"required,url"`
 
 	// Title is the title of the feed or item.
 	Title string `json:"title" validate:"required"`
@@ -337,8 +337,8 @@ type User struct {
 	// Settings contains user-specific settings for the application.
 	Settings *UserSettings `json:"settings,omitempty"`
 
-	// SubscriptionStates is a list of the states of all subscriptions the user has.
-	SubscriptionStates []SubscriptionState `json:"subscription_states,omitempty"`
+	// Subscriptions is a list of the states of all subscriptions the user has.
+	Subscriptions []SubscriptionState `json:"subscriptions,omitempty"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`

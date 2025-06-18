@@ -15,13 +15,20 @@ func GenerateHomeContent(api FeedsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
+			ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
+
 			data, resp := getHomePageData(ctx, api)
-			if resp.IsError() {
+			if resp.IsNotFound() {
+				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
+				next.ServeHTTP(res, req.WithContext(ctx))
+				return
+			}
+			if !resp.Ok() {
 				ProcessResponse(res, req, resp)
 				return
 			}
 			articles, resp := getHomePageArticles(ctx, api, data)
-			if resp.IsError() {
+			if !resp.Ok() {
 				ProcessResponse(res, req, resp)
 				return
 			}
@@ -29,7 +36,6 @@ func GenerateHomeContent(api FeedsAPI) func(next http.Handler) http.Handler {
 			homePageContent := views.GenerateHomePageContent(ctx, data, articles)
 
 			ctx = context.WithValue(ctx, contentCtxKey, homePageContent)
-			ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
 
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

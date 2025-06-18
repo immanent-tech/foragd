@@ -59,15 +59,17 @@ func (d *HomePageData) generateRareCategoriesLinks(ctx context.Context) templ.Co
 }
 
 func GenerateHomePageContent(ctx context.Context, data *HomePageData, articles models.Articles) templ.Component {
-	// Get the required data.
-	// Generate a links to top categories from the data.
-	topCategories := data.generateTopCategoriesLinks(ctx)
-	// Generate links to rare categories from the data.
-	rareCategories := data.generateRareCategoriesLinks(ctx)
-	// Generate a random collection of article cards from the data.
-	randomItems := GenerateArticleCards(ctx, articles)
+	if data.Aggregations != nil {
+		// Generate a links to top categories from the data.
+		topCategories := data.generateTopCategoriesLinks(ctx)
+		// Generate links to rare categories from the data.
+		rareCategories := data.generateRareCategoriesLinks(ctx)
+		// Generate a random collection of article cards from the data.
+		randomItems := GenerateArticleCards(ctx, articles)
+		return layoutHomePageContent(data.Links, topCategories, rareCategories, randomItems)
+	}
+	return layoutHomePageContent(data.Links, nil, nil, nil)
 
-	return layoutHomePageContent(data.Links, topCategories, rareCategories, randomItems)
 }
 
 templ layoutHomePageContent(links map[string]models.PageState, topCategories, rareCategories templ.Component, randomItems []templ.Component) {

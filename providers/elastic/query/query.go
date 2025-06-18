@@ -118,8 +118,8 @@ func ItemIDs(itemIDs ...models.ItemID) Option {
 	}
 }
 
-// URLs adds a "Terms" clause to query the given field with a list of URLs.
-func URLs(field string, urls ...string) Option {
+// Terms adds a "Terms" clause to query the given field with a list of Terms.
+func Terms(field string, urls ...string) Option {
 	return func(query *types.Query) {
 		if len(urls) > 0 {
 			query.Terms = &types.TermsQuery{

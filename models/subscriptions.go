@@ -140,7 +140,10 @@ func (r *SubscriptionRequest) Valid() (bool, error) {
 // Sanitise will sanitise the input values of the SubscriptionRequest.
 func (r *SubscriptionRequest) Sanitise() error {
 	r.URL = validation.SanitizeString(r.URL)
-	r.Title = validation.SanitizeString(r.Title)
+	if r.Nickname != nil {
+		sanitizedNickname := validation.SanitizeString(*r.Nickname)
+		r.Nickname = &sanitizedNickname
+	}
 	categories := make([]Category, 0, len(r.Categories))
 	for category := range slices.Values(r.Categories) {
 		category = validation.SanitizeString(category)
@@ -151,8 +154,8 @@ func (r *SubscriptionRequest) Sanitise() error {
 }
 
 func (r *SubscriptionRequest) String() string {
-	if r.Title != "" {
-		return fmt.Sprintf("%s (%s)", r.Title, r.GetURL())
+	if r.Nickname != nil {
+		return fmt.Sprintf("%s (%s)", *r.Nickname, r.GetURL())
 	}
 	return "URL: " + r.GetURL()
 }
@@ -161,10 +164,32 @@ func (r *SubscriptionRequest) GetURL() string {
 	return strings.TrimSpace(r.URL)
 }
 
+func (r *SubscriptionRequest) GetNickname() string {
+	if r.Nickname != nil {
+		return *r.Nickname
+	}
+	return ""
+}
+
+func (r *SubscriptionRequest) GenerateCustomisation(id SubscriptionID, userID UserID, feedID FeedID) *SubscriptionCustomisation {
+	if r.GetNickname() != "" || len(r.Categories) > 0 {
+		return &SubscriptionCustomisation{
+			UserID:         userID,
+			FeedID:         feedID,
+			SubscriptionID: id,
+			Categories:     r.Categories,
+			Title:          r.GetNickname(),
+		}
+	}
+	return nil
+}
+
+type SubscriptionRequests []*SubscriptionRequest
+
 // NewSubscriptionState creates a new subscription state with the given subscription and feed ids.
-func NewSubscriptionState(id SubscriptionID, feedID FeedID) *SubscriptionState {
+func NewSubscriptionState(feedID FeedID) *SubscriptionState {
 	return &SubscriptionState{
-		SubscriptionID: id,
+		SubscriptionID: NewID(SubscriptionPFX),
 		FeedID:         feedID,
 		State:          NewObjectState(),
 		ItemStates:     make(map[ItemID]ObjectState),
@@ -273,6 +298,10 @@ func GetIDsFromStates[T comparable](states SubscriptionStates[T]) []Subscription
 		ids = append(ids, state.GetID())
 	}
 	return ids
+}
+
+func (s *SubscriptionCustomisation) GetID() SubscriptionID {
+	return s.SubscriptionID
 }
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data

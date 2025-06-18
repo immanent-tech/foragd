@@ -51,7 +51,7 @@ func (u *User) GetSettings() *UserSettings {
 
 // GetAllSubscriptionStates returns a map of subscription states by subscription id.
 func (u *User) GetAllSubscriptionStates() map[SubscriptionID]*SubscriptionState {
-	return SliceToMap(u.SubscriptionStates, func(s SubscriptionState) (SubscriptionID, *SubscriptionState) {
+	return SliceToMap(u.Subscriptions, func(s SubscriptionState) (SubscriptionID, *SubscriptionState) {
 		return s.SubscriptionID, &s
 	})
 }
@@ -59,7 +59,7 @@ func (u *User) GetAllSubscriptionStates() map[SubscriptionID]*SubscriptionState 
 // FilterSubscriptionStatesByID returns a map of subscription states by subscription id, filtered by the given
 // subscription ids.
 func (u *User) FilterSubscriptionStatesByID(ids ...SubscriptionID) map[SubscriptionID]*SubscriptionState {
-	return SliceToMap(slices.Collect(FilterSlice(u.SubscriptionStates, func(s SubscriptionState) bool {
+	return SliceToMap(slices.Collect(FilterSlice(u.Subscriptions, func(s SubscriptionState) bool {
 		return slices.Contains(ids, s.GetID())
 	})), func(s SubscriptionState) (SubscriptionID, *SubscriptionState) {
 		return s.SubscriptionID, &s
@@ -68,7 +68,7 @@ func (u *User) FilterSubscriptionStatesByID(ids ...SubscriptionID) map[Subscript
 
 // GetAllSubscriptionStatesByFeed returns a map of subscription states by feed id.
 func (u *User) GetAllSubscriptionStatesByFeed() map[FeedID]*SubscriptionState {
-	return SliceToMap(u.SubscriptionStates, func(s SubscriptionState) (FeedID, *SubscriptionState) {
+	return SliceToMap(u.Subscriptions, func(s SubscriptionState) (FeedID, *SubscriptionState) {
 		return s.GetFeedID(), &s
 	})
 }
@@ -76,7 +76,7 @@ func (u *User) GetAllSubscriptionStatesByFeed() map[FeedID]*SubscriptionState {
 // FilterSubscriptionStatesByFeedID returns a map of subscription states by feed id, filtered by the given
 // feed ids.
 func (u *User) FilterSubscriptionStatesByFeed(ids ...FeedID) map[FeedID]*SubscriptionState {
-	return SliceToMap(slices.Collect(FilterSlice(u.SubscriptionStates, func(s SubscriptionState) bool {
+	return SliceToMap(slices.Collect(FilterSlice(u.Subscriptions, func(s SubscriptionState) bool {
 		return slices.Contains(ids, s.GetFeedID())
 	})), func(s SubscriptionState) (FeedID, *SubscriptionState) {
 		return s.GetFeedID(), &s
@@ -85,9 +85,10 @@ func (u *User) FilterSubscriptionStatesByFeed(ids ...FeedID) map[FeedID]*Subscri
 
 // IsSubscribed returns a boolean indicating whether the user has a subscription to the feed with the given feed id.
 func (u *User) IsSubscribed(feedID FeedID) bool {
-	states := u.FilterSubscriptionStatesByFeed()
-	if _, found := states[feedID]; found {
-		return true
+	for state := range slices.Values(u.Subscriptions) {
+		if state.GetFeedID() == feedID {
+			return true
+		}
 	}
 	return false
 }

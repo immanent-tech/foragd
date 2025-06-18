@@ -160,9 +160,6 @@ type Response struct {
 
 	// StatusCode is a status code, typically a HTTP response code.
 	StatusCode int `json:"status_code"`
-
-	// UserMessage represents a message that can be displayed to the user as the result of an action.
-	UserMessage *UserMessage `json:"user_message,omitempty"`
 }
 
 // Since is a duration to filter results.
@@ -204,25 +201,16 @@ type SubscriptionEdit struct {
 	UserID UserID `json:"user_id" validate:"required"`
 }
 
-// SubscriptionRequest defines model for SubscriptionRequest.
+// SubscriptionRequest represents a request to create a subscription.
 type SubscriptionRequest struct {
-	// URL is a URL.
-	URL URL `json:"url" validate:"url"`
+	// URL is the URL of the feed data.
+	URL string `form:"url" json:"URL" validate:"required,url"`
 
-	// Categories is a custom list of categories for an object.
-	Categories []Category `form:"user_categories[]" json:"categories,omitempty" validate:"omitempty,unique"`
+	// Categories a list  custom categories for the subscription. Combined with the feed's own categories.
+	Categories []Category `form:"user_categories[]" json:"categories,omitempty"`
 
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-
-	// Title is a friendly name or nickname for an object.
-	Title string `form:"user_nickname" json:"title,omitempty" validate:"omitempty"`
-
-	// UserID is the unique ID of a user.
-	UserID UserID `json:"user_id" validate:"required"`
+	// Nickname a custom name for the subscription. Overrides the feed name.
+	Nickname *string `form:"user_nickname" json:"nickname,omitempty"`
 }
 
 // UserConfirmation indicates the user's decision for a (usually) destructive action.

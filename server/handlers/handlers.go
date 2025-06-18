@@ -41,14 +41,18 @@ var BaseChain = alice.New(
 
 // Keys for objects stored within the context and passed between handlers.
 const (
-	subscriptionRequestsCtxKey    contextKey = "subscriptionRequests"
-	addSubscriptionsResultsCtxKey contextKey = "addSubscriptionsResults"
+	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
+	subscriptionResultsCtxKey  contextKey = "subscriptionsResults"
+	feedsCtxKey                contextKey = "feeds"
+	subscriptionsCtxKey        contextKey = "subscriptions"
 
 	htmxRespCtxKey contextKey = "htmxResponse"
 	titleCtxKey    contextKey = "title"
 	contentCtxKey  contextKey = "content"
 	drawerCtxKey   contextKey = "drawer"
 	pageCtxKey     contextKey = "page"
+
+	respCtxKey contextKey = "response"
 )
 
 // Keys for objects stored within the session.
@@ -62,13 +66,13 @@ type contextKey string
 // FeedsAPI contains methods for manipulating feed/item data.
 type FeedsAPI interface {
 	GetSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) (models.SubscriptionCustomisations, error)
-	AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) (*bulk.Response, error)
+	AddSubscriptionCustomisations(ctx context.Context, customisations ...*models.SubscriptionCustomisation) (map[models.SubscriptionID]*bulk.OperationResponse, error)
 	SearchSubscriptions(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.SubscriptionCustomisations, models.Pagination, error)
 	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
+	AddFeeds(ctx context.Context, feeds ...*models.Feed) (map[models.FeedID]*bulk.OperationResponse, error)
 	SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error)
-	AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error)
 	SearchItems(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Items, models.Pagination, error)
-	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error)
+	ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, *models.Response)
 	MultiSearch(ctx context.Context, feedsQuery, itemsQuery *query.MSearchOptions) (models.Feeds, models.Items, error)
 }
 
@@ -76,7 +80,7 @@ type FeedsAPI interface {
 type UserAPI interface {
 	AddUser(ctx context.Context, userID models.UserID) error
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
-	UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) error
+	UpdateUser(ctx context.Context, partialUpdate map[string]any) error
 	UpdateSubscriptionCustomisation(ctx context.Context, id models.SubscriptionID, partialUpdate map[string]any) error
 }
 
@@ -148,9 +152,7 @@ func RenderContentPage() http.Handler {
 			// Get drawer side content.
 			drawerSideContent, ok := req.Context().Value(drawerCtxKey).(templ.Component)
 			if !ok {
-				slogctx.FromCtx(req.Context()).Warn("Invalid content.")
-				http.Error(res, "Invalid content.", http.StatusInternalServerError)
-				return
+				slogctx.FromCtx(req.Context()).Warn("No side drawer content provided.")
 			}
 			// Wrap drawer side content.
 			drawerSideContent = partials.DrawerMenu(
@@ -200,19 +202,22 @@ func RenderContentPartials() http.Handler {
 			if err := resp.RenderTempl(req.Context(), res, templ.Join(partials...)); err != nil {
 				slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
 			}
+
+			errResp, found := req.Context().Value(respCtxKey).(*models.Response)
+			if found {
+				slogctx.FromCtx(req.Context()).Error("Response error.",
+					slog.Any("error", errResp.Error),
+				)
+				res.WriteHeader(errResp.StatusCode)
+			}
 		})
 }
 
 // ProcessResponse handles appropriate display and logging of a models.Response object.
 func ProcessResponse(res http.ResponseWriter, req *http.Request, resp *models.Response) {
 	slogctx.FromCtx(req.Context()).Error("Backend returned an error.",
-		slog.Any("error", resp.InternalError))
-	// Display a notification if a user message is set.
-	if resp.UserMessage != nil {
-		if err := htmx.NewResponse().RenderTempl(req.Context(), res, partials.ShowNotification(resp.UserMessage)); err != nil {
-			http.Error(res, "Internal server error.", http.StatusInternalServerError)
-		}
-	}
+		slog.String("error", resp.String()),
+	)
 	// Write the status code.
 	res.WriteHeader(resp.StatusCode)
 }

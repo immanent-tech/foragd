@@ -28,14 +28,7 @@ func PerformAuth(api AuthAPI) http.Handler {
 			slogctx.FromCtx(req.Context()).Warn("Authentication required.", slog.Any("error", err))
 			url, err := api.GetAuthURL(req)
 			if err != nil {
-				ProcessResponse(res, req, &models.Response{
-					StatusCode:    http.StatusInternalServerError,
-					InternalError: err,
-					UserMessage: &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "Authentication failed.",
-					},
-				})
+				ProcessResponse(res, req, models.NewResponse(http.StatusInternalServerError, err))
 				return
 			}
 			slogctx.FromCtx(req.Context()).Debug("Redirecting to provider.", slog.String("url", url))
@@ -52,14 +45,7 @@ func PerformAuth(api AuthAPI) http.Handler {
 func AuthCallback(authAPI AuthAPI) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if err := authAPI.CompleteUserAuth(res, req); err != nil {
-			ProcessResponse(res, req, &models.Response{
-				StatusCode:    http.StatusInternalServerError,
-				InternalError: err,
-				UserMessage: &models.UserMessage{
-					Status:  models.UserMessageStatusError,
-					Summary: "Authentication failed.",
-				},
-			})
+			ProcessResponse(res, req, models.NewResponse(http.StatusInternalServerError, err))
 			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("Authenticated.")

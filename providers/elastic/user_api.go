@@ -98,26 +98,16 @@ func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
 	return nil
 }
 
-func (e *API) UpdateUser(ctx context.Context, id models.UserID, partialUpdate map[string]any) error {
+func (a *API) UpdateUser(ctx context.Context, updates map[string]any) error {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return fmt.Errorf("user update failed: %w", ErrNoUserCtx)
+	}
 	index := UserIndexFromCtx(ctx)
-	if index == "" {
-		return ErrNoUser
+
+	if err := UpdateDoc(ctx, a.GetAPI(), index, user.GetID(), updates); err != nil {
+		return fmt.Errorf("user update failed: %w", err)
 	}
-
-	// Updated the `updated_at` timestamp.
-	partialUpdate["updated_at"] = time.Now().UTC()
-
-	// Update the user in the store with the new list of read items.
-	resp, err := NewDocUpdateRequest(e.GetAPI(), index, id,
-		WithPartialDocUpdate(partialUpdate),
-	).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("update user failed: %w", err)
-	}
-
-	slog.Debug("Updated user.",
-		slog.String("result", resp.Result.String()),
-		slog.Int64("version", resp.Version_))
-
 	return nil
 }

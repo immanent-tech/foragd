@@ -53,36 +53,6 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (*bulk.Respon
 	return &resp, nil
 }
 
-// AddFeeds will bulk index the given feeds.
-func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (*bulk.Response, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ErrFetchCtx
-	}
-
-	bulkOps, respCh := bulk.NewRequest(ctx, e)
-
-	go func() {
-		defer close(bulkOps)
-
-		for _, feed := range feeds {
-			slogctx.FromCtx(ctx).Debug("Adding feed",
-				slog.String("name", feed.GetTitle()),
-				slog.String("feed_id", feed.GetID()),
-			)
-
-			bulkOps <- bulk.NewOperation(&feed,
-				bulk.SetDocID(feed.GetID()),
-				bulk.ToIndex(index),
-			)
-		}
-	}()
-
-	resp := <-respCh
-
-	return &resp, nil
-}
-
 // AddSubscriptions will bulk index the given subscriptions.
 func (e *API) AddSubscriptions(ctx context.Context, subscriptions ...*models.Subscription) (*bulk.Response, error) {
 	index := SubscriptionsIndexFromCtx(ctx)
@@ -340,10 +310,10 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 
 // ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
 // options. It returns the raw search response.
-func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, error) {
+func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, *models.Response) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+		return nil, parseError(ErrFetchCtx)
 	}
 
 	req := NewSearchRequest(e.GetAPI(),
@@ -357,7 +327,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 
 	resp, err := req.Do(ctx)
 	if err != nil {
-		return nil, errors.Join(ErrSearchFailed, err)
+		return nil, parseError(err)
 	}
 
 	return resp, nil
