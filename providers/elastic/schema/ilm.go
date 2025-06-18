@@ -112,6 +112,7 @@ func WithPhase(name string, options ...Option[*types.Phase]) Option[*types.IlmPo
 	}
 }
 
+// NewILMPolicy creates a new ILM policy with the given options and encapsulates it in an appropriate request object.
 func NewILMPolicy(options ...Option[*types.IlmPolicy]) *putlifecycle.Request {
 	policy := &types.IlmPolicy{}
 

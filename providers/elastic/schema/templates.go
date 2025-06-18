@@ -41,11 +41,11 @@ func AsDataStream() Option[*putindextemplate.Request] {
 	}
 }
 
+// NewIndexTemplateRequest generates an index template from the given options and returns the appropriate request object
+// for execution through the Elasticsearch API.
 func NewIndexTemplateRequest(options ...Option[*putindextemplate.Request]) *putindextemplate.Request {
 	template := &putindextemplate.Request{
-		Meta_: types.Metadata{
-
-		},
+		Meta_: types.Metadata{},
 	}
 
 	for _, option := range options {
@@ -55,6 +55,8 @@ func NewIndexTemplateRequest(options ...Option[*putindextemplate.Request]) *puti
 	return template
 }
 
+// NewComponentTemplateRequest generates a component template from the given options and returns the appropriate request object
+// for execution through the Elasticsearch API.
 func NewComponentTemplateRequest(template types.IndexState) *putcomponenttemplate.Request {
 	return &putcomponenttemplate.Request{
 		Template: template,

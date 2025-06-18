@@ -4,47 +4,38 @@
 package schema
 
 import (
-	"errors"
-
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
-var (
-	ErrPutComponentTemplate = errors.New("put component template failed")
-	ErrPutIndexTemplate     = errors.New("put index template failed")
-)
+// IndexSettingsOption is a functional option for applying an index setting.
+type IndexSettingsOption func(*types.IndexSettings)
 
-// WithIndexLifeCycle will assign the ILM policy with the given name to the index.
-func WithIndexLifecycle(name string) Option[*types.IndexSettings] {
-	return func(settings *types.IndexSettings) *types.IndexSettings {
+// WithIndexLifecycle option will assign the ILM policy with the given name to the index.
+func WithIndexLifecycle(name string) IndexSettingsOption {
+	return func(settings *types.IndexSettings) {
 		settings.Lifecycle = types.NewIndexSettingsLifecycle()
 		settings.Lifecycle.Name = &name
-
-		return settings
 	}
 }
 
-// WithIndexLifeCycle will assign the ILM policy with the given name to the index.
-func WithAnalysis(analysis types.IndexSettingsAnalysis) Option[*types.IndexSettings] {
-	return func(settings *types.IndexSettings) *types.IndexSettings {
+// WithAnalysis option will apply the provided analysis settings.
+func WithAnalysis(analysis types.IndexSettingsAnalysis) IndexSettingsOption {
+	return func(settings *types.IndexSettings) {
 		settings.Analysis = &analysis
-		return settings
 	}
 }
 
 // NewIndexSettings creates a new index settings object with the given options.
-func NewIndexSettings(options ...Option[*types.IndexSettings]) *types.IndexSettings {
+func NewIndexSettings(options ...IndexSettingsOption) *types.IndexSettings {
 	settings := &types.IndexSettings{}
-
 	for _, option := range options {
-		settings = option(settings)
+		option(settings)
 	}
-
 	return settings
 }
 
 // WithIndexSettings applies the given settings to the index.
-func WithIndexSettings(options ...Option[*types.IndexSettings]) Option[types.IndexState] {
+func WithIndexSettings(options ...IndexSettingsOption) Option[types.IndexState] {
 	return func(state types.IndexState) types.IndexState {
 		state.Settings = NewIndexSettings(options...)
 		return state

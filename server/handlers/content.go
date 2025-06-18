@@ -475,7 +475,7 @@ func AddFeedsForSubscriptionRequests(api BackendAPI) func(next http.Handler) htt
 // handles: matching and filtering out requests against existing subscriptions, matching requests to existing feeds,
 // creating new feeds as necessary and finally creating user subscriptions.
 //
-//nolint:funlen // breaking up this function would actually add debugging/development complexity.
+//nolint:funlen,gocognit // breaking up this function would actually add debugging/development complexity.
 func AddSubscriptions(api BackendAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -513,9 +513,11 @@ func AddSubscriptions(api BackendAPI) func(next http.Handler) http.Handler {
 				// Add subscription state and mark successful.
 				state := models.NewSubscriptionState(feed.GetID())
 				states = append(states, *state)
+				details := request.String()
 				results[request] = &models.UserMessage{
 					Status:  models.UserMessageStatusSuccess,
-					Summary: "Subscription created: " + request.String(),
+					Summary: "Subscription created!",
+					Details: &details,
 				}
 				// Accrue any subscription customisations.
 				if customisation := request.GenerateCustomisation(state.GetID(), user.GetID(), state.GetFeedID()); customisation != nil {

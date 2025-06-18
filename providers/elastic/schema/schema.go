@@ -5,7 +5,6 @@ package schema
 
 import (
 	"maps"
-	"runtime"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ilm/putlifecycle"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
@@ -13,21 +12,21 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/dynamicmapping"
 )
 
-var (
-	GitCommit = "NOCOMMIT"
-	GoVersion = runtime.Version()
-	BuildDate = ""
-)
-
 const (
-	FeedsSchemaPrefix         = "feeds"
-	FeedItemsSchemaPrefix     = "feeditems"
-	UsersSchemaPrefix         = "users"
-	SchedulerJobsSchemaPrefix = "scheduler_jobs"
-	SessionsSchemaPrefix      = "sessions"
+	// FeedsSchemaPrefix is a prefix used for feed related index/mapping/settings.
+	FeedsSchemaPrefix = "feeds"
+	// ItemsSchemaPrefix is a prefix used for item related index/mapping/settings.
+	ItemsSchemaPrefix = "feeditems"
+	// UsersSchemaPrefix is a prefix used for feed related index/mapping/settings.
+	UsersSchemaPrefix = "users"
+	// SchedulerSchemaPrefix is a prefix used for feed related index/mapping/settings.
+	SchedulerSchemaPrefix = "scheduler_jobs"
+	// SessionsSchemaPrefix is a prefix used for feed related index/mapping/settings.
+	SessionsSchemaPrefix = "sessions"
+	// SubscriptionsSchemaPrefix is a prefix used for feed related index/mapping/settings.
 	SubscriptionsSchemaPrefix = "subscriptions"
 
-	IngestPipelineID = "gofeed"
+	ingestPipelineID = "gofeed"
 )
 
 var EnglishExactAnalyzerName = "english_exact"
@@ -99,7 +98,7 @@ func schedulerJobsComponentTemplate() types.IndexState {
 			Dynamic:    &dynamicmapping.False,
 			Properties: schedulerJobsMappings(),
 		}),
-		WithAliases(SchedulerJobsSchemaPrefix, types.Alias{}),
+		WithAliases(SchedulerSchemaPrefix, types.Alias{}),
 	)
 }
 
@@ -218,7 +217,7 @@ func itemsComponentTemplate() types.IndexState {
 			Dynamic:    &dynamicmapping.False,
 			Properties: itemsMappings(),
 		}),
-		WithAliases(FeedItemsSchemaPrefix, types.Alias{}),
+		WithAliases(ItemsSchemaPrefix, types.Alias{}),
 		WithIndexSettings(
 			WithAnalysis(types.IndexSettingsAnalysis{
 				Analyzer: map[string]types.Analyzer{

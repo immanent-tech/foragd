@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
@@ -39,6 +40,15 @@ func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (map[models.F
 	return BulkAdd(ctx, e, index, feeds...)
 }
 
+// AddItems will bulk index the given items.
+func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.ItemID]*bulk.OperationResponse, error) {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, ErrFetchCtx
+	}
+	return BulkAdd(ctx, e, index, items...)
+}
+
 // AddSubscriptionCustomisations performs a bulk add operation to add the given subscription customisations.
 func (e *API) AddSubscriptionCustomisations(ctx context.Context, customisations ...*models.SubscriptionCustomisation) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
 	index := SubscriptionsIndexFromCtx(ctx)
@@ -46,6 +56,23 @@ func (e *API) AddSubscriptionCustomisations(ctx context.Context, customisations 
 		return nil, ErrFetchCtx
 	}
 	return BulkAdd(ctx, e, index, customisations...)
+}
+
+// MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).
+func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return errors.Join(ErrUpdateFailed, ErrFetchCtx)
+	}
+
+	updates := map[string]any{
+		"updated": time.Now().UTC(),
+	}
+
+	if err := UpdateDoc(ctx, e.GetAPI(), index, feedID, updates); err != nil {
+		return fmt.Errorf("feed update failed: %w", err)
+	}
+	return nil
 }
 
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.

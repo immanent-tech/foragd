@@ -18,7 +18,7 @@ func SetupElastic() func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
-			ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
+			ctx = elastic.ItemsIndexToCtx(ctx, schema.ItemsSchemaPrefix+"_"+config.Environment())
 			ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 			ctx = elastic.SubscriptionsIndexToCtx(ctx, schema.SubscriptionsSchemaPrefix)
 			next.ServeHTTP(res, req.WithContext(ctx))

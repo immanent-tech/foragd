@@ -154,10 +154,10 @@ func (r *SubscriptionRequest) Sanitise() error {
 }
 
 func (r *SubscriptionRequest) String() string {
-	if r.Nickname != nil {
-		return fmt.Sprintf("%s (%s)", *r.Nickname, r.GetURL())
+	if r.GetNickname() != "" {
+		return fmt.Sprintf("%s (%s)", r.GetNickname(), r.GetURL())
 	}
-	return "URL: " + r.GetURL()
+	return fmt.Sprintf("(%s)", r.GetURL())
 }
 
 func (r *SubscriptionRequest) GetURL() string {

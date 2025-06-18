@@ -1,7 +1,6 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//nolint:dupl
 package schema
 
 import (
@@ -30,7 +29,7 @@ func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrati
 	}
 
 	// Perform requested migrations.
-	for _, migration := range migrations {
+	for migration := range slices.Values(migrations) {
 		var err error
 
 		switch migration {
@@ -40,7 +39,7 @@ func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrati
 			err = migrateFeeds(ctx, api, destructive)
 		case "feeditems":
 			err = migrateFeedItems(ctx, api, destructive)
-		case "subscription":
+		case "subscriptions":
 			err = migrateSubscriptions(ctx, api, destructive)
 		case "scheduler":
 			err = migrateScheduler(ctx, api, destructive)
@@ -104,7 +103,7 @@ func migrateUsers(ctx context.Context, api *typedapi.API, destructive bool) erro
 // migrateSubscriptions contains migration actions for migrating subscriptions indices and
 // settings.
 func migrateSubscriptions(ctx context.Context, api *typedapi.API, destructive bool) error {
-	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
+	slogctx.FromCtx(ctx).Debug("Migrating subscriptions...")
 
 	if err := elastic.PutComponentTemplate(ctx, api, SubscriptionsSchemaPrefix, NewComponentTemplateRequest(subscriptionsCustomisationTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
@@ -189,26 +188,26 @@ func migrateFeedItems(ctx context.Context, api *typedapi.API, destructive bool) 
 	slogctx.FromCtx(ctx).Debug("Migrating feed items...")
 
 	if destructive {
-		if _, err := api.Indices.DeleteDataStream(FeedItemsSchemaPrefix + "_" + config.Environment()).Do(ctx); err != nil && !ignoreErr(err) {
+		if _, err := api.Indices.DeleteDataStream(ItemsSchemaPrefix + "_" + config.Environment()).Do(ctx); err != nil && !ignoreErr(err) {
 			// return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
-		if _, err := api.Ilm.DeleteLifecycle(FeedItemsSchemaPrefix).Do(ctx); err != nil && !ignoreErr(err) {
+		if _, err := api.Ilm.DeleteLifecycle(ItemsSchemaPrefix).Do(ctx); err != nil && !ignoreErr(err) {
 			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
 	}
 
-	if _, err := api.Ilm.PutLifecycle(FeedItemsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx); err != nil {
+	if _, err := api.Ilm.PutLifecycle(ItemsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx); err != nil {
 		return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 	}
 
-	if err := elastic.PutComponentTemplate(ctx, api, FeedItemsSchemaPrefix, NewComponentTemplateRequest(itemsComponentTemplate())); err != nil {
+	if err := elastic.PutComponentTemplate(ctx, api, ItemsSchemaPrefix, NewComponentTemplateRequest(itemsComponentTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := elastic.PutIndexTemplate(ctx, api, FeedItemsSchemaPrefix,
+	if err := elastic.PutIndexTemplate(ctx, api, ItemsSchemaPrefix,
 		NewIndexTemplateRequest(
-			WithIndexPatterns(FeedItemsSchemaPrefix+"_*"),
-			WithComponentTemplates(FeedItemsSchemaPrefix),
+			WithIndexPatterns(ItemsSchemaPrefix+"_*"),
+			WithComponentTemplates(ItemsSchemaPrefix),
 			WithPriority(500),
 			AsDataStream(),
 		),
@@ -231,21 +230,21 @@ func migrateScheduler(ctx context.Context, api *typedapi.API, destructive bool) 
 
 	// scheduler jobs indicies
 
-	if err = elastic.PutComponentTemplate(ctx, api, SchedulerJobsSchemaPrefix, NewComponentTemplateRequest(schedulerJobsComponentTemplate())); err != nil {
+	if err = elastic.PutComponentTemplate(ctx, api, SchedulerSchemaPrefix, NewComponentTemplateRequest(schedulerJobsComponentTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err = elastic.PutIndexTemplate(ctx, api, SchedulerJobsSchemaPrefix,
+	if err = elastic.PutIndexTemplate(ctx, api, SchedulerSchemaPrefix,
 		NewIndexTemplateRequest(
-			WithIndexPatterns(SchedulerJobsSchemaPrefix+"_*"),
-			WithComponentTemplates(SchedulerJobsSchemaPrefix),
+			WithIndexPatterns(SchedulerSchemaPrefix+"_*"),
+			WithComponentTemplates(SchedulerSchemaPrefix),
 			WithPriority(500),
 		),
 	); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	jobsStateIndex := SchedulerJobsSchemaPrefix + "_" + config.Environment()
+	jobsStateIndex := SchedulerSchemaPrefix + "_" + config.Environment()
 	// Delete index if destructive set.
 	if destructive {
 		if _, err := api.Indices.Delete(jobsStateIndex).Do(ctx); err != nil && !ignoreErr(err) {
@@ -314,12 +313,12 @@ func migrateSession(ctx context.Context, api *typedapi.API, destructive bool) er
 func migrateIngest(ctx context.Context, api *typedapi.API) error {
 	slogctx.FromCtx(ctx).Debug("Migrating ingest pipeline...")
 
-	if _, err := api.Ingest.DeletePipeline(IngestPipelineID).Do(ctx); err != nil && !ignoreErr(err) {
+	if _, err := api.Ingest.DeletePipeline(ingestPipelineID).Do(ctx); err != nil && !ignoreErr(err) {
 		return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 	}
 	slogctx.FromCtx(ctx).Debug("Deleted existing ingest pipeline.")
 
-	if _, err := api.Ingest.PutPipeline(IngestPipelineID).Request(ingestPipelineFeeds()).Do(ctx); err != nil {
+	if _, err := api.Ingest.PutPipeline(ingestPipelineID).Request(ingestPipelineFeeds()).Do(ctx); err != nil {
 		return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 	}
 	slogctx.FromCtx(ctx).Debug("Added ingest pipeline.")

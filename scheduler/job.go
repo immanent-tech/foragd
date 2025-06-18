@@ -131,8 +131,16 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 	}
 	if len(items) > 0 {
 		// Add any new items.
-		if resp, err := api.AddItems(ctx, items...); err != nil || resp.Err != nil {
+		if results, err := api.AddItems(ctx, items...); err != nil {
 			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
+		} else {
+			for _, result := range results {
+				if !result.Created() {
+					slogctx.FromCtx(ctx).Warn("Failing to index an item.",
+						slog.Any("error", result),
+					)
+				}
+			}
 		}
 		// Update the feed timestamp.
 		if err := api.MarkFeedUpdated(ctx, job.FeedID); err != nil {

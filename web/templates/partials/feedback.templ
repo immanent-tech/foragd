@@ -127,10 +127,10 @@ templ Alert(msg *models.UserMessage, attrs templ.Attributes) {
 		if msg.HasDetails() {
 			<div>
 				<h3 class="font-bold">{ msg.Summary }</h3>
-				<div class="text-xs">{ *msg.Details }</div>
+				<p class="text-xs">{ *msg.Details }</p>
 			</div>
 		} else {
-			<span>{ msg.Summary }</span>
+			<h3 class="font-bold">{ msg.Summary }</h3>
 		}
 	}
 }

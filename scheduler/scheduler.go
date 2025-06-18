@@ -28,7 +28,7 @@ type DataAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error)
 	// GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error)
-	AddItems(ctx context.Context, items ...*models.Item) (*bulk.Response, error)
+	AddItems(ctx context.Context, items ...*models.Item) (map[models.ItemID]*bulk.OperationResponse, error)
 	MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error
 }
 
@@ -56,7 +56,7 @@ func Run(ctx context.Context) error {
 
 	ctx = FeedManagementAPIToCtx(ctx, db)
 	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
-	ctx = elastic.ItemsIndexToCtx(ctx, schema.FeedItemsSchemaPrefix+"_"+config.Environment())
+	ctx = elastic.ItemsIndexToCtx(ctx, schema.ItemsSchemaPrefix+"_"+config.Environment())
 
 	jobQueue, err := NewJobQueue(ctx, esClient)
 	if err != nil {

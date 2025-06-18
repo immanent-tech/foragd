@@ -24,8 +24,12 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 )
 
-// MigrateCmd defines the `migrate` command, which performs data-store migrations for schema changes.
-type PruneCmd struct{}
+var allOptions = []string{"feeds", "scheduler"}
+
+// PruneCmd defines the command and options for the `prune` cli command.
+type PruneCmd struct {
+	Options []string `arg:"" default:"all" enum:"all,feeds,scheduler" help:"What things to prune."`
+}
 
 // Run contains the logic for performing the migrate command.
 func (r *PruneCmd) Run(_ *Arguments) error {
@@ -33,16 +37,41 @@ func (r *PruneCmd) Run(_ *Arguments) error {
 	defer cancelFunc()
 
 	// Load the Elastic backend
-	es, err := elastic.Connect(ctx)
+	api, err := elastic.Connect(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to connect to backend: %w", err)
 	}
 
+	var options []string
+
+	// If no migrations are specified, perform migrations for all items.
+	if slices.Contains(r.Options, "all") {
+		options = allOptions
+	}
+
+	// Perform requested migrations.
+	for option := range slices.Values(options) {
+		var err error
+		switch option {
+		case "feeds":
+			err = pruneFeeds(ctx, api)
+		case "scheduler":
+			err = pruneScheduler(ctx, api)
+		}
+		if err != nil {
+			return fmt.Errorf("prune failed: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func pruneFeeds(ctx context.Context, api *elastic.API) error {
 	users_index := schema.UsersSchemaPrefix
 	ctx = elastic.UserIndexToCtx(ctx, users_index)
 	feeds_index := schema.FeedsSchemaPrefix
 	ctx = elastic.FeedsIndexToCtx(ctx, feeds_index)
-	items_index := schema.FeedItemsSchemaPrefix + "_" + config.Environment()
+	items_index := schema.ItemsSchemaPrefix + "_" + config.Environment()
 	ctx = elastic.ItemsIndexToCtx(ctx, items_index)
 
 	searchSize := 100
@@ -56,7 +85,7 @@ func (r *PruneCmd) Run(_ *Arguments) error {
 			warnings error
 		)
 
-		resp, err := elastic.NewSearchRequest(es.GetAPI(),
+		resp, err := elastic.NewSearchRequest(api.GetAPI(),
 			elastic.WithSearchIndex(users_index),
 			elastic.WithSearchSize(searchSize),
 			elastic.WithSearchAfter(pagination),
@@ -88,7 +117,7 @@ func (r *PruneCmd) Run(_ *Arguments) error {
 	}
 
 	// Prune any feeds that are not subscribed to by any user.
-	resp, err := index.NewDeleteByQueryRequest(es.GetAPI(), feeds_index,
+	resp, err := index.NewDeleteByQueryRequest(api.GetAPI(), feeds_index,
 		index.WithDeleteQueryOptions(query.Bool(
 			query.MustNot(query.FeedIDs(activeFeedIDs...)),
 		)),
@@ -101,7 +130,7 @@ func (r *PruneCmd) Run(_ *Arguments) error {
 	)
 
 	// Prune items for feeds that are not subscribed to by any user.
-	resp, err = index.NewDeleteByQueryRequest(es.GetAPI(), items_index,
+	resp, err = index.NewDeleteByQueryRequest(api.GetAPI(), items_index,
 		index.WithDeleteQueryOptions(query.Bool(
 			query.MustNot(query.FeedIDs(activeFeedIDs...)),
 		)),
@@ -113,5 +142,9 @@ func (r *PruneCmd) Run(_ *Arguments) error {
 		slog.Int64("count", *resp.Deleted),
 	)
 
+	return nil
+}
+
+func pruneScheduler(ctx context.Context, api *elastic.API) error {
 	return nil
 }
