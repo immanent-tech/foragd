@@ -13,6 +13,8 @@ import (
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"github.com/joshuar/go-feed-me/components/logging"
+
 	"github.com/tidwall/pretty"
 )
 
@@ -108,14 +110,14 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		baseAttributes...,
 	)
 
-	// level := logging.LevelTrace
-	// if status >= http.StatusInternalServerError {
-	// 	level = slog.LevelError
-	// } else if status >= http.StatusBadRequest && status < http.StatusInternalServerError {
-	// 	level = slog.LevelWarn
-	// }
+	level := logging.LevelTrace
+	if status >= http.StatusInternalServerError {
+		level = slog.LevelError
+	} else if status >= http.StatusBadRequest && status < http.StatusInternalServerError {
+		level = slog.LevelWarn
+	}
 
-	l.logger.LogAttrs(req.Context(), slog.LevelInfo, strconv.Itoa(status)+": "+http.StatusText(status), attributes...)
+	l.logger.LogAttrs(req.Context(), level, strconv.Itoa(status)+": "+http.StatusText(status), attributes...)
 	return err
 }
 

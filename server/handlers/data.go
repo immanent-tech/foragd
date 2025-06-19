@@ -144,7 +144,7 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 	if err != nil {
 		return nil, "", models.RespErrBackend(err)
 	}
-	var customisationIDs []models.SubscriptionID
+	customisationIDs := make([]models.SubscriptionID, 0, len(customisations))
 	for customisation := range slices.Values(customisations) {
 		customisationIDs = append(customisationIDs, customisation.FeedID)
 	}
@@ -170,15 +170,16 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 		return nil, "", models.RespErrBackend(err)
 	}
 	// Generate subscriptions from data sources.
-	var subscriptions []*models.Subscription
+	subscriptions := make(models.Subscriptions, 0, len(feeds))
 	for feed := range slices.Values(feeds) {
 		var state *models.SubscriptionState
 		var count int
-		for _, s := range states {
-			if s.GetFeedID() == feed.GetID() {
-				state = s
-				break
-			}
+		var found bool
+		if state, found = states[feed.GetID()]; !found {
+			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved feed.",
+				slog.String("feed_id", feed.GetID()),
+			)
+			continue
 		}
 		if unreadCounts != nil {
 			count = unreadCounts.GetCount(feed.GetID())
@@ -366,10 +367,7 @@ func markArticles(ctx context.Context, api BackendAPI, mark models.Mark, itemIDs
 		}
 	}
 	// Update the states in the user object.
-	if resp := updateUserSubscriptionStates(ctx, api, slices.Collect(maps.Values(states))...); resp != nil {
-		return resp
-	}
-	return nil
+	return updateUserSubscriptionStates(ctx, api, slices.Collect(maps.Values(states))...)
 }
 
 func getItems(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (models.Items, *models.Response) {
@@ -432,23 +430,28 @@ func removeSubscriptions(ctx context.Context, api UserAPI, subscriptions ...mode
 	// })
 }
 
-func markSubscriptions(ctx context.Context, api UserAPI, mark models.Mark, subscriptions ...models.SubscriptionID) *models.Response {
-	return nil
-	// user, found := models.UserFromCtx(ctx)
-	// if !found {
-	// 	return models.RespInvalidUser()
-	// }
-	// // Mark subscriptions.
-	// user.MarkSubscriptions(mark, subscriptions...)
-	// slogctx.FromCtx(ctx).Debug("Marked subscriptions.",
-	// 	slog.String("mark", string(mark)),
-	// 	slog.String("subscriptions", strings.Join(subscriptions, ",")),
-	// )
-	// // Update the user object.
-	// return api.UpdateUser(ctx, user.GetID(), map[string]any{
-	// 	"subscriptions": user.Subscriptions,
-	// 	"updated_at":    time.Now().UTC(),
-	// })
+func markSubscriptions(ctx context.Context, api UserAPI, mark models.Mark, subIDs ...models.SubscriptionID) *models.Response {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.RespErrUnauthorized()
+	}
+	// Set marked at to current timestamp.
+	markedAt := time.Now().UTC()
+	// Get all user subscription states.
+	states := user.GetAllSubscriptionStates()
+	// Loop through given subscription IDs and update states.
+	for id := range slices.Values(subIDs) {
+		if state, found := states[id]; !found {
+			slogctx.FromCtx(ctx).Warn("Trying to mark non-existent user subscription.",
+				slog.String("subscription_id", id),
+			)
+			continue
+		} else {
+			state.Mark(mark, markedAt)
+		}
+	}
+	// Update the user object.
+	return updateUserSubscriptionStates(ctx, api, slices.Collect(maps.Values(states))...)
 }
 
 func updateUserSubscriptionStates(ctx context.Context, api UserAPI, states ...*models.SubscriptionState) *models.Response {

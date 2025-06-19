@@ -16,6 +16,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/joshuar/go-feed-me/components/logging"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 )
@@ -107,6 +108,21 @@ func (e *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds,
 	return feeds, nil
 }
 
+// UpdateUser performs a partial update of the user object. On an error, a non-nil response is returned.
+func (a *API) UpdateUser(ctx context.Context, updates map[string]any) *models.Response {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.RespErrUnauthorized()
+	}
+	index := UserIndexFromCtx(ctx)
+
+	if err := UpdateDoc(ctx, a.GetAPI(), index, user.GetID(), updates); err != nil {
+		return &models.Response{StatusCode: http.StatusInternalServerError, InternalError: err}
+	}
+	return nil
+}
+
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
 func BulkAdd[T ~string, O models.HasID[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {
@@ -145,6 +161,8 @@ func BulkAdd[T ~string, O models.HasID[T]](ctx context.Context, api *API, index 
 	return responses, nil
 }
 
+// GetDocs performs an `_mget` request to fetch the documents from the given index with the given ids. A non-nil error
+// is returned on a failure.
 func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index string, ids ...T) ([]O, error) {
 	docIDs := make([]string, 0, len(ids))
 	for id := range slices.Values(ids) {
@@ -165,13 +183,21 @@ func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index str
 	return objects, nil
 }
 
+// UpdateDoc performs a partial doc update on the document with the given id in the given index. A non-nil error is
+// returned on a failure.
 func UpdateDoc[T ~string](ctx context.Context, api *typedapi.API, index string, id T, updates map[string]any) error {
 	// Update the user in the store with the new list of read items.
-	_, err := NewDocUpdateRequest(api, index, string(id),
+	resp, err := NewDocUpdateRequest(api, index, string(id),
 		WithPartialDocUpdate(updates),
 	).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+	if resp != nil {
+		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Updated document.",
+			slog.String("id", resp.Id_),
+			slog.String("result", resp.Result.String()),
+		)
 	}
 
 	return nil

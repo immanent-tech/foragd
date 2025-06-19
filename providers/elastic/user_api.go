@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"net/http"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
@@ -96,19 +95,5 @@ func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
 		slog.String("result", resp.Result.String()),
 	)
 
-	return nil
-}
-
-func (a *API) UpdateUser(ctx context.Context, updates map[string]any) *models.Response {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return models.RespErrUnauthorized()
-	}
-	index := UserIndexFromCtx(ctx)
-
-	if err := UpdateDoc(ctx, a.GetAPI(), index, user.GetID(), updates); err != nil {
-		return &models.Response{StatusCode: http.StatusInternalServerError, InternalError: err}
-	}
 	return nil
 }

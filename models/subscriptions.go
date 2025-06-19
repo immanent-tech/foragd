@@ -211,8 +211,13 @@ func (s *SubscriptionState) GetMarkedRead() time.Time {
 
 // MarkRead will mark the subscription as read. This involves setting the MarkedRead field to the given value and
 // removing any individual unread/read items.
-func (s *SubscriptionState) MarkRead(markedAt time.Time) {
-	s.State.MarkRead(markedAt)
+func (s *SubscriptionState) Mark(mark Mark, markedAt time.Time) {
+	switch mark {
+	case MarkRead:
+		s.State.MarkRead(markedAt)
+	case MarkUnread:
+		s.State.MarkUnread(markedAt)
+	}
 	s.ItemStates = nil
 }
 
@@ -244,10 +249,12 @@ func (s *SubscriptionState) GetReadItems() []ItemID {
 // subscription. By default it will return unread unless the user has explicitly
 // marked or saved the item.
 func (s *SubscriptionState) GetItemState(id ItemID) *ObjectState {
+	// Retrieve any explicitly set state of the item.
 	if state, found := s.ItemStates[id]; found {
 		return &state
 	}
-	return NewObjectState()
+	// If an item doesn't have an explicit state, its state should reflect the subscription state.
+	return s.State
 }
 
 func (s *SubscriptionState) SetItemState(id ItemID, state *ObjectState) {
