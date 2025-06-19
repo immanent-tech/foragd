@@ -10,8 +10,6 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
-	"github.com/joshuar/go-feed-me/models"
 )
 
 // Option is a functional option for queries.
@@ -68,76 +66,19 @@ func Term(field string, value any) Option {
 	}
 }
 
-// User adds a "Term" query to search for docs with the given User ID.
-func User(user models.UserID) Option {
+// Terms adds a "Terms" query on the given field with the given value.
+//
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query
+func Terms[T ~string](field string, values ...T) Option {
 	return func(query *types.Query) {
-		if user != "" {
-			query.Term = map[string]types.TermQuery{
-				"user_id": {Value: user},
+		if len(values) > 0 {
+			terms := make([]string, 0, len(values))
+			for value := range slices.Values(values) {
+				terms = append(terms, string(value))
 			}
-		}
-	}
-}
-
-// SubscriptionIDs adds a "Terms" clause with the given Subscription IDs.
-func SubscriptionIDs(ids ...models.SubscriptionID) Option {
-	return func(query *types.Query) {
-		if len(ids) > 0 {
 			query.Terms = &types.TermsQuery{
 				TermsQuery: map[string]types.TermsQueryField{
-					"subscription_id": ids,
-				},
-			}
-		}
-	}
-}
-
-// FeedIDs adds a "Terms" clause with the given Feed IDs.
-func FeedIDs(feedIDs ...models.FeedID) Option {
-	return func(query *types.Query) {
-		if len(feedIDs) > 0 {
-			query.Terms = &types.TermsQuery{
-				TermsQuery: map[string]types.TermsQueryField{
-					"feed_id": feedIDs,
-				},
-			}
-		}
-	}
-}
-
-// ItemIDs adds a "Terms" clause with the given Item IDs.
-func ItemIDs(itemIDs ...models.ItemID) Option {
-	return func(query *types.Query) {
-		if len(itemIDs) > 0 {
-			query.Terms = &types.TermsQuery{
-				TermsQuery: map[string]types.TermsQueryField{
-					"item_id": itemIDs,
-				},
-			}
-		}
-	}
-}
-
-// Terms adds a "Terms" clause to query the given field with a list of Terms.
-func Terms(field string, urls ...string) Option {
-	return func(query *types.Query) {
-		if len(urls) > 0 {
-			query.Terms = &types.TermsQuery{
-				TermsQuery: map[string]types.TermsQueryField{
-					field: urls,
-				},
-			}
-		}
-	}
-}
-
-// Categories adds a "Terms" clause to query by the given list of category names.
-func Categories(categories ...models.Category) Option {
-	return func(query *types.Query) {
-		if len(categories) > 0 {
-			query.Terms = &types.TermsQuery{
-				TermsQuery: map[string]types.TermsQueryField{
-					"categories.raw": categories,
+					field: terms,
 				},
 			}
 		}

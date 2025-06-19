@@ -57,7 +57,7 @@ func AuthCallback(authAPI AuthAPI) http.Handler {
 }
 
 // RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
-func RequireUserAuth(dataAPI UserAPI, authAPI AuthAPI) func(next http.Handler) http.Handler {
+func RequireUserAuth(dataAPI models.DocumentsAPI, authAPI AuthAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			routePattern := chi.RouteContext(req.Context()).RoutePattern()

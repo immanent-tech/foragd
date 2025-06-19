@@ -119,7 +119,7 @@ func pruneFeeds(ctx context.Context, api *elastic.API) error {
 	// Prune any feeds that are not subscribed to by any user.
 	resp, err := index.NewDeleteByQueryRequest(api.GetAPI(), feeds_index,
 		index.WithDeleteQueryOptions(query.Bool(
-			query.MustNot(query.FeedIDs(activeFeedIDs...)),
+			query.MustNot(query.Terms("feed_id", activeFeedIDs...)),
 		)),
 	).Do(ctx)
 	if err != nil {
@@ -132,7 +132,7 @@ func pruneFeeds(ctx context.Context, api *elastic.API) error {
 	// Prune items for feeds that are not subscribed to by any user.
 	resp, err = index.NewDeleteByQueryRequest(api.GetAPI(), items_index,
 		index.WithDeleteQueryOptions(query.Bool(
-			query.MustNot(query.FeedIDs(activeFeedIDs...)),
+			query.MustNot(query.Terms("feed_id", activeFeedIDs...)),
 		)),
 	).Do(ctx)
 	if err != nil {

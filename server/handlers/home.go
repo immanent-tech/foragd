@@ -7,11 +7,12 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
 // GenerateHomeContent handles generating the content for the home page.
-func GenerateHomeContent(api FeedsAPI) func(next http.Handler) http.Handler {
+func GenerateHomeContent(api models.DocumentsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()

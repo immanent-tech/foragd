@@ -26,7 +26,7 @@ import (
 )
 
 // GenerateArticleCollection handles searching for articles with the current filters and then generating cards for each found article.
-func GenerateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func GenerateArticleCollection(api models.DocumentsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
@@ -63,7 +63,7 @@ func GenerateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) fu
 }
 
 // PaginateArticleCollection handles fetching the next set of articles and creating cards from them.
-func PaginateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func PaginateArticleCollection(api models.DocumentsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
@@ -85,7 +85,7 @@ func PaginateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) fu
 }
 
 // GenerateArticle handles displaying an item as an article.
-func GenerateArticle(api FeedsAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
+func GenerateArticle(api models.DocumentsAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			articles, resp := getArticles(req.Context(), api, itemID)
@@ -104,7 +104,7 @@ func GenerateArticle(api FeedsAPI, itemID models.ItemID) func(next http.Handler)
 }
 
 // GenerateSubscriptionCollection handles searching for subscriptions with the current filters and then generating cards for each found subscription.
-func GenerateSubscriptionCollection(api FeedsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func GenerateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
@@ -141,7 +141,7 @@ func GenerateSubscriptionCollection(api FeedsAPI, subIDs ...models.SubscriptionI
 }
 
 // PaginateSubscriptionCollection handles fetching the next set of subscriptions and creating cards from them.
-func PaginateSubscriptionCollection(api FeedsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func PaginateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
@@ -307,7 +307,7 @@ func SubscriptionsImportResults(next http.Handler) http.Handler {
 // stores the subscriptions that need new feeds and any with existing feeds in the context for the next handler.
 //
 //nolint:funlen
-func MatchFeedsToSubscriptionRequests(api BackendAPI) func(next http.Handler) http.Handler {
+func MatchFeedsToSubscriptionRequests(api models.DocumentsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Skip processing if there is already a response in the context.
@@ -412,7 +412,7 @@ func MatchFeedsToSubscriptionRequests(api BackendAPI) func(next http.Handler) ht
 // AddFeedsForSubscriptionRequests takes a map of subscription requests that need new feeds and adds those feeds to the
 // database. Successful adds are then added to the subscriptions that need creating while unsuccessful adds have their
 // result recorded. This data is then passed to the next handler through the context.
-func AddFeedsForSubscriptionRequests(api BackendAPI) func(next http.Handler) http.Handler {
+func AddFeedsForSubscriptionRequests(api models.DocumentsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Skip processing if there is already a response in the context.
@@ -474,7 +474,7 @@ func AddFeedsForSubscriptionRequests(api BackendAPI) func(next http.Handler) htt
 // creating new feeds as necessary and finally creating user subscriptions.
 //
 //nolint:funlen,gocognit // breaking up this function would actually add debugging/development complexity.
-func AddSubscriptions(api BackendAPI) func(next http.Handler) http.Handler {
+func AddSubscriptions(api models.DocumentsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Skip processing if there is already a response in the context.
@@ -548,8 +548,10 @@ func AddSubscriptions(api BackendAPI) func(next http.Handler) http.Handler {
 					}
 				}
 			}
-
-			resp := updateUserSubscriptionStates(req.Context(), api, slices.Collect(maps.Values(newSubscriptions))...)
+			// Update the user object.
+			resp := api.UpdateUser(req.Context(), map[string]any{
+				"subscriptions": slices.Collect(maps.Values(newSubscriptions)),
+			})
 			if resp != nil {
 				ctx := context.WithValue(req.Context(), respCtxKey, resp)
 				next.ServeHTTP(res, req.WithContext(ctx))
@@ -563,7 +565,7 @@ func AddSubscriptions(api BackendAPI) func(next http.Handler) http.Handler {
 }
 
 // RemoveSubscription handles processing a subscription removal request.
-func RemoveSubscription(api UserAPI, subscriptionID models.SubscriptionID, confirmation models.UserConfirmation) func(next http.Handler) http.Handler {
+func RemoveSubscription(api models.DocumentsAPI, subscriptionID models.SubscriptionID, confirmation models.UserConfirmation) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Add a new HTMX response writer to the context.
@@ -617,7 +619,7 @@ func RemoveSubscription(api UserAPI, subscriptionID models.SubscriptionID, confi
 }
 
 // EditSubscription retrieves the subscription with the given ID and presents a form for the user to edit it.
-func EditSubscription(api FeedsAPI, subID models.SubscriptionID) func(next http.Handler) http.Handler {
+func EditSubscription(api models.DocumentsAPI, subID models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Retrieve subscription.
@@ -646,7 +648,7 @@ func EditSubscription(api FeedsAPI, subID models.SubscriptionID) func(next http.
 }
 
 // SaveSubscription handles saving any user edits to an existing subscription.
-func SaveSubscription(api UserAPI, edits *models.SubscriptionCustomisation) func(next http.Handler) http.Handler {
+func SaveSubscription(api models.DocumentsAPI, edits *models.SubscriptionCustomisation) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Add a new HTMX response writer to the context.
@@ -670,7 +672,7 @@ func SaveSubscription(api UserAPI, edits *models.SubscriptionCustomisation) func
 }
 
 // MarkSubscriptions handles marking subscriptions with the given IDs with the given mark.
-func MarkSubscriptions(api UserAPI, mark models.Mark, subscriptions ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func MarkSubscriptions(api models.DocumentsAPI, mark models.Mark, subscriptions ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			if resp := markSubscriptions(req.Context(), api, mark, subscriptions...); resp != nil {
@@ -683,7 +685,7 @@ func MarkSubscriptions(api UserAPI, mark models.Mark, subscriptions ...models.Su
 }
 
 // MarkArticles handles marking articles with the given mark.
-func MarkArticles(api BackendAPI, mark models.Mark, items ...models.ItemID) func(next http.Handler) http.Handler {
+func MarkArticles(api models.DocumentsAPI, mark models.Mark, items ...models.ItemID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			if resp := markArticles(req.Context(), api, mark, items...); resp != nil {
@@ -706,7 +708,7 @@ func GenerateSettings(next http.Handler) http.Handler {
 }
 
 // GenerateDrawerContent handles generating updated content for the drawer.
-func GenerateDrawerContent(api FeedsAPI) func(next http.Handler) http.Handler {
+func GenerateDrawerContent(api models.DocumentsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
@@ -723,7 +725,7 @@ func GenerateDrawerContent(api FeedsAPI) func(next http.Handler) http.Handler {
 }
 
 // GenerateDrawerContent handles generating updated content for the drawer.
-func GenerateSearchSuggestions(api FeedsAPI, searchTerms string) func(next http.Handler) http.Handler {
+func GenerateSearchSuggestions(api models.DocumentsAPI, searchTerms string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
@@ -766,7 +768,7 @@ func NewUserSignup(next http.Handler) http.Handler {
 	})
 }
 
-func ProcessUserSignup(userBackendAPI UserBackendAPI, userFrontendAPI UserAPI, signupRequest *models.UserSignupRequest) func(next http.Handler) http.Handler {
+func ProcessUserSignup(userBackendAPI UserBackendAPI, userFrontendAPI models.DocumentsAPI, signupRequest *models.UserSignupRequest) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Create the user in the auth backend.

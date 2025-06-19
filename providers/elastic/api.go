@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"maps"
 	"net/http"
 	"slices"
 	"time"
@@ -279,6 +280,17 @@ func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index str
 // UpdateDoc performs a partial doc update on the document with the given id in the given index. A non-nil error is
 // returned on a failure.
 func UpdateDoc[T ~string](ctx context.Context, api *typedapi.API, index string, id T, updates map[string]any) error {
+	baseUpdates := map[string]any{
+		"updated_at": time.Now().UTC(),
+	}
+	if updates != nil {
+		// Add the updated_at field.
+		maps.Copy(updates, baseUpdates)
+	} else {
+		// Just update the updated_at field (i.e., `touch` the document).
+		updates = baseUpdates
+	}
+
 	// Update the user in the store with the new list of read items.
 	resp, err := NewDocUpdateRequest(api, index, string(id),
 		WithPartialDocUpdate(updates),

@@ -21,7 +21,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
-func getSubscriptions(ctx context.Context, api FeedsAPI, ids ...models.SubscriptionID) (models.Subscriptions, *models.Response) {
+func getSubscriptions(ctx context.Context, api models.DocumentsAPI, ids ...models.SubscriptionID) (models.Subscriptions, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -83,7 +83,7 @@ func getSubscriptions(ctx context.Context, api FeedsAPI, ids ...models.Subscript
 	return subscriptions, nil
 }
 
-func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filters) (models.Subscriptions, models.Pagination, *models.Response) {
+func filterSubscriptions(ctx context.Context, api models.DocumentsAPI, filters *models.Filters) (models.Subscriptions, models.Pagination, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -135,9 +135,9 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 	customisationQuery := query.Bool(
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.SubscriptionIDs(subscriptionIDs...),
+			query.Terms("subscription_id", subscriptionIDs...),
 			// Must match one of the given categories (if set).
-			query.Categories(filters.Categories...),
+			query.Terms("categories.raw", filters.Categories...),
 		),
 	)
 	customisations, _, err := api.SearchSubscriptionCustomisations(ctx, customisationQuery, len(subscriptionIDs), nil, nil)
@@ -153,11 +153,11 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 		query.Filter(
 			query.Bool(
 				query.Should(
-					query.FeedIDs(customisationIDs...),
+					query.Terms("feed_id", customisationIDs...),
 					query.Bool(
 						query.Filter(
-							query.FeedIDs(feedIDs...),
-							query.Categories(filters.Categories...),
+							query.Terms("feed_id", feedIDs...),
+							query.Terms("categories_raw", filters.Categories...),
 						),
 					),
 				),
@@ -204,7 +204,7 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 	return subscriptions, pagination, nil
 }
 
-func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, states models.SubscriptionStates[models.FeedID]) (*aggregations.TermsAggregationResults, *models.Response) {
+func getSubscriptionUnreadCounts(ctx context.Context, api models.DocumentsAPI, states models.SubscriptionStates[models.FeedID]) (*aggregations.TermsAggregationResults, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -238,7 +238,7 @@ func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, states model
 	return &categoryCounts, nil
 }
 
-func filterArticlesBySubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filters, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
+func filterArticlesBySubscriptions(ctx context.Context, api models.DocumentsAPI, filters *models.Filters, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", models.RespErrUnauthorized()
@@ -256,9 +256,9 @@ func filterArticlesBySubscriptions(ctx context.Context, api FeedsAPI, filters *m
 		query.BoolQueryName("get_items"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.FeedIDs(feedIDs...),
+			query.Terms("feed_id", feedIDs...),
 			// Must match any of the given categories.
-			query.Categories(filters.Categories...),
+			query.Terms("categories.raw", filters.Categories...),
 			// And should match one feed clause.
 			query.Bool(
 				query.Should(buildSubscriptionQueries(user, filters.View, slices.Collect(maps.Values(subscriptionStates))...)...),
@@ -297,7 +297,7 @@ func filterArticlesBySubscriptions(ctx context.Context, api FeedsAPI, filters *m
 	return articles, pagination, nil
 }
 
-func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (models.Articles, *models.Response) {
+func getArticles(ctx context.Context, api models.DocumentsAPI, itemIDs ...models.ItemID) (models.Articles, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, models.RespErrUnauthorized()
@@ -308,7 +308,7 @@ func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (m
 	query := query.Bool(
 		query.Filter(
 			// Must match any of the given item IDs,
-			query.ItemIDs(itemIDs...),
+			query.Terms("item_id", itemIDs...),
 		),
 	)
 
@@ -344,7 +344,7 @@ func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (m
 
 // markArticles will update the subscription state in the user object, explicitly marking the given articles for the
 // subscription with the given mark.
-func markArticles(ctx context.Context, api BackendAPI, mark models.Mark, itemIDs ...models.ItemID) *models.Response {
+func markArticles(ctx context.Context, api models.DocumentsAPI, mark models.Mark, itemIDs ...models.ItemID) *models.Response {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return models.RespErrUnauthorized()
@@ -366,11 +366,12 @@ func markArticles(ctx context.Context, api BackendAPI, mark models.Mark, itemIDs
 			states[item.GetFeedID()].MarkItemsRead(item.GetID())
 		}
 	}
-	// Update the states in the user object.
-	return updateUserSubscriptionStates(ctx, api, slices.Collect(maps.Values(states))...)
+	return api.UpdateUser(ctx, map[string]any{
+		"subscriptions": slices.Collect(maps.Values(states)),
+	})
 }
 
-func getItems(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (models.Items, *models.Response) {
+func getItems(ctx context.Context, api models.DocumentsAPI, itemIDs ...models.ItemID) (models.Items, *models.Response) {
 	if len(itemIDs) == 0 {
 		slogctx.FromCtx(ctx).Warn("No item IDs given.")
 		return nil, &models.Response{StatusCode: http.StatusNoContent}
@@ -378,7 +379,7 @@ func getItems(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (mode
 	// Match the given item IDs.
 	query := query.Bool(
 		query.Filter(
-			query.ItemIDs(itemIDs...),
+			query.Terms("item_id", itemIDs...),
 		),
 	)
 	items, _, err := api.SearchItems(ctx, query, len(itemIDs), nil, nil)
@@ -389,11 +390,11 @@ func getItems(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (mode
 	return items, nil
 }
 
-func getItemTopCategories(ctx context.Context, api FeedsAPI, feeds ...models.FeedID) ([]models.Category, *models.Response) {
+func getItemTopCategories(ctx context.Context, api models.DocumentsAPI, feeds ...models.FeedID) ([]models.Category, *models.Response) {
 	query := query.Bool(
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.FeedIDs(feeds...),
+			query.Terms("feed_id", feeds...),
 		),
 	)
 	aggsResult, resp := api.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
@@ -412,7 +413,7 @@ func getItemTopCategories(ctx context.Context, api FeedsAPI, feeds ...models.Fee
 	return topCategories.BucketNames(), nil
 }
 
-func removeSubscriptions(ctx context.Context, api UserAPI, subscriptions ...models.SubscriptionID) *models.Response {
+func removeSubscriptions(ctx context.Context, api models.DocumentsAPI, subscriptions ...models.SubscriptionID) *models.Response {
 	return nil
 	// if len(subscriptions) == 0 {
 	// 	return nil
@@ -430,7 +431,7 @@ func removeSubscriptions(ctx context.Context, api UserAPI, subscriptions ...mode
 	// })
 }
 
-func markSubscriptions(ctx context.Context, api UserAPI, mark models.Mark, subIDs ...models.SubscriptionID) *models.Response {
+func markSubscriptions(ctx context.Context, api models.DocumentsAPI, mark models.Mark, subIDs ...models.SubscriptionID) *models.Response {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return models.RespErrUnauthorized()
@@ -451,23 +452,15 @@ func markSubscriptions(ctx context.Context, api UserAPI, mark models.Mark, subID
 		}
 	}
 	// Update the user object.
-	return updateUserSubscriptionStates(ctx, api, slices.Collect(maps.Values(states))...)
-}
-
-func updateUserSubscriptionStates(ctx context.Context, api UserAPI, states ...*models.SubscriptionState) *models.Response {
-	if resp := api.UpdateUser(ctx, map[string]any{
-		"subscriptions": states,
-		"updated_at":    time.Now().UTC(),
-	}); resp != nil {
-		return resp
-	}
-	return nil
+	return api.UpdateUser(ctx, map[string]any{
+		"subscriptions": slices.Collect(maps.Values(states)),
+	})
 }
 
 // getHomePageData retrieves the data required to construct the home page content.
 //
 //nolint:funlen
-func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *models.Response) {
+func getHomePageData(ctx context.Context, api models.DocumentsAPI) (*views.HomePageData, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -495,7 +488,7 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *m
 		query.BoolQueryName("item_filters"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.FeedIDs(models.GetFeedIDs(slices.Values(subscriptions))...),
+			query.Terms("feed_id", models.GetFeedIDs(slices.Values(subscriptions))...),
 			// And should match one feed clause.
 			query.Bool(
 				query.Should(buildSubscriptionQueries(user, models.ViewUnread)...),
@@ -575,7 +568,7 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *m
 }
 
 // getHomePageArticles retrieves a list of articles to display on the home page along with other content.
-func getHomePageArticles(ctx context.Context, api FeedsAPI, data *views.HomePageData) (models.Articles, *models.Response) {
+func getHomePageArticles(ctx context.Context, api models.DocumentsAPI, data *views.HomePageData) (models.Articles, *models.Response) {
 	// Get the rare categories aggregation.
 	randomItemsAgg, err := aggregations.ExtractAggregation[map[string]any](data.Aggregations, "random_items")
 	if err != nil {
@@ -615,7 +608,7 @@ func getHomePageArticles(ctx context.Context, api FeedsAPI, data *views.HomePage
 	return articles, nil
 }
 
-func getSearchSuggestions(ctx context.Context, api FeedsAPI, searchTerms string) (models.Subscriptions, models.Articles, *models.Response) {
+func getSearchSuggestions(ctx context.Context, api models.DocumentsAPI, searchTerms string) (models.Subscriptions, models.Articles, *models.Response) {
 	// Retrieve user object.
 	// user, found := models.UserFromCtx(ctx)
 	// if !found {
@@ -742,11 +735,11 @@ func subscriptionQueryUnreadItems(user *models.User, subscription *models.Subscr
 				query.Should(
 					query.Since("published", since),
 					query.Since("updated", since),
-					query.ItemIDs(subscription.GetUnreadItems()...),
+					query.Terms("item_id", subscription.GetUnreadItems()...),
 				),
 				// Must not match any read items for the feed
 				query.MustNot(
-					query.ItemIDs(subscription.GetReadItems()...),
+					query.Terms("item_id", subscription.GetReadItems()...),
 				),
 			),
 		),
@@ -769,11 +762,11 @@ func subscriptionQueryReadItems(user *models.User, subscription *models.Subscrip
 					query.Should(
 						// query.Since("published", maxHistory),
 						// query.Since("updated", maxHistory),
-						query.ItemIDs(subscription.GetReadItems()...),
+						query.Terms("item_id", subscription.GetReadItems()...),
 					),
 					// Must not match any unread items for the feed
 					query.MustNot(
-						query.ItemIDs(subscription.GetUnreadItems()...),
+						query.Terms("item_id", subscription.GetUnreadItems()...),
 					),
 				),
 			),
@@ -789,11 +782,11 @@ func subscriptionQueryReadItems(user *models.User, subscription *models.Subscrip
 					query.Should(
 						query.Between("published", maxHistory, subscription.GetMarkedRead()),
 						query.Between("updated", maxHistory, subscription.GetMarkedRead()),
-						query.ItemIDs(subscription.GetReadItems()...),
+						query.Terms("item_id", subscription.GetReadItems()...),
 					),
 					// Must not match any unread items for the feed
 					query.MustNot(
-						query.ItemIDs(subscription.GetUnreadItems()...),
+						query.Terms("item_id", subscription.GetUnreadItems()...),
 					),
 				),
 			),
