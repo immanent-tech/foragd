@@ -57,6 +57,9 @@ func GenerateArticle(item *Item, state *ObjectState, subID SubscriptionID, custo
 			article.SubscriptionCustomisation.Title = customisation.Title
 		}
 	}
+	if item.GetPublishedDate().After(*article.State.UpdatedAt) {
+		article.State.MarkUnread(item.GetPublishedDate())
+	}
 
 	// Validate the subscription.
 	if valid, err := article.Valid(); !valid {

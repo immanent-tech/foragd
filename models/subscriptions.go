@@ -41,6 +41,9 @@ func GenerateSubscription(userID UserID, feed *Feed, customisation *Subscription
 	}
 	// Add unread count.
 	subscription.UnreadCount = unread
+	if unread > 0 {
+		subscription.State.MarkUnread(*subscription.State.UpdatedAt)
+	}
 	// Validate the subscription.
 	if valid, err := subscription.Valid(); !valid {
 		return nil, fmt.Errorf("subscription data is invalid: %w", err)
@@ -254,7 +257,8 @@ func (s *SubscriptionState) GetItemState(id ItemID) *ObjectState {
 		return &state
 	}
 	// If an item doesn't have an explicit state, its state should reflect the subscription state.
-	return s.State
+	state := *s.State
+	return &state
 }
 
 func (s *SubscriptionState) SetItemState(id ItemID, state *ObjectState) {

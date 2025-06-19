@@ -65,9 +65,9 @@ type contextKey string
 
 // FeedsAPI contains methods for manipulating feed/item data.
 type FeedsAPI interface {
-	GetSubscriptions(ctx context.Context, subscriptionIDs ...models.SubscriptionID) (models.SubscriptionCustomisations, error)
+	GetSubscriptionCustomisations(ctx context.Context, subscriptionIDs ...models.SubscriptionID) (models.SubscriptionCustomisations, error)
 	AddSubscriptionCustomisations(ctx context.Context, customisations ...*models.SubscriptionCustomisation) (map[models.SubscriptionID]*bulk.OperationResponse, error)
-	SearchSubscriptions(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.SubscriptionCustomisations, models.Pagination, error)
+	SearchSubscriptionCustomisations(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.SubscriptionCustomisations, models.Pagination, error)
 	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	AddFeeds(ctx context.Context, feeds ...*models.Feed) (map[models.FeedID]*bulk.OperationResponse, error)
 	SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error)
@@ -113,8 +113,6 @@ func RouteLogger(next http.Handler) http.Handler {
 			slog.String("method", req.Method),
 		)
 		ctx = slogctx.With(ctx, slog.Group("req", slog.String("id", middleware.GetReqID(ctx))))
-		slogctx.FromCtx(ctx).Debug("Processing route.", slog.String("url", req.URL.String()))
-
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }

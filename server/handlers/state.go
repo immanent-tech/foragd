@@ -45,9 +45,6 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			if htmx.IsHTMX(req) && path != nil {
-				slogctx.FromCtx(req.Context()).Debug("Setting-up client-side redirect.",
-					slog.String("path", *path),
-				)
 				view := RestorePageState(req.Context(), *path)
 				// Set-up client-side redirect to view.
 				htmxResp := htmx.NewResponse().LocationWithContext(
@@ -65,12 +62,9 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 // SavePageState saves the current page state in the session.
 func SavePageState(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Save page state.
+		// Save page state in context.
 		state := models.PageState{Path: req.URL.Path, Params: req.URL.Query()}
 		ctx := models.PageStateToCtx(req.Context(), state)
-		slogctx.FromCtx(ctx).Debug("Saved page state to context.",
-			slog.String("state", state.String()),
-		)
 		// Store page states for some paths into session for history restoration.
 		if req.Method == http.MethodGet {
 			switch req.URL.Path {
@@ -79,11 +73,7 @@ func SavePageState(next http.Handler) http.Handler {
 			case "/home/articles":
 				session.Manager.Put(req.Context(), articlesPageState, state)
 			}
-			slogctx.FromCtx(ctx).Debug("Saved page state to session.",
-				slog.String("state", state.String()),
-			)
 		}
-		// Pass control to next handler.
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }

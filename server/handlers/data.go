@@ -37,7 +37,7 @@ func getSubscriptions(ctx context.Context, api FeedsAPI, ids ...models.Subscript
 	}
 
 	// Get customisation details for subscriptions.
-	customisations, err := api.GetSubscriptions(ctx, slices.Collect(maps.Keys(states))...)
+	customisations, err := api.GetSubscriptionCustomisations(ctx, slices.Collect(maps.Keys(states))...)
 	if err != nil {
 		return nil, models.RespErrBackend(err)
 	}
@@ -99,24 +99,24 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 	var subscriptionIDs []models.SubscriptionID
 
 	var unreadCounts *aggregations.TermsAggregationResults
+	var resp *models.Response
+	// Get unread counts.
+	unreadCounts, resp = getSubscriptionUnreadCounts(ctx, api, states)
+	if resp != nil {
+		return nil, "", resp
+	}
 
 	switch filters.View {
 	case models.ViewUnread:
-		var resp *models.Response
-		// Get unread counts.
-		unreadCounts, resp = getSubscriptionUnreadCounts(ctx, api, states)
-		if resp != nil {
-			return nil, "", resp
-		}
 		for _, state := range states {
-			if !state.IsRead() && unreadCounts.GetCount(state.GetFeedID()) > 0 {
+			if !state.IsRead() || unreadCounts.GetCount(state.GetFeedID()) > 0 {
 				feedIDs = append(feedIDs, state.GetFeedID())
 				subscriptionIDs = append(subscriptionIDs, state.GetID())
 			}
 		}
 	case models.ViewRead:
 		for _, state := range states {
-			if state.IsRead() {
+			if state.IsRead() && unreadCounts.GetCount(state.GetFeedID()) == 0 {
 				feedIDs = append(feedIDs, state.GetFeedID())
 				subscriptionIDs = append(subscriptionIDs, state.GetID())
 			}
@@ -140,7 +140,7 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 			query.Categories(filters.Categories...),
 		),
 	)
-	customisations, _, err := api.SearchSubscriptions(ctx, customisationQuery, len(subscriptionIDs), nil, nil)
+	customisations, _, err := api.SearchSubscriptionCustomisations(ctx, customisationQuery, len(subscriptionIDs), nil, nil)
 	if err != nil {
 		return nil, "", models.RespErrBackend(err)
 	}
@@ -274,7 +274,7 @@ func filterArticlesBySubscriptions(ctx context.Context, api FeedsAPI, filters *m
 	}
 	// Retrieve subscription customisations for feed subscriptions.
 	states := user.FilterSubscriptionStatesByFeed(items.GetFeedIDs()...)
-	customisations, err := api.GetSubscriptions(ctx, models.GetIDsFromStates(states)...)
+	customisations, err := api.GetSubscriptionCustomisations(ctx, models.GetIDsFromStates(states)...)
 	if err != nil {
 		return nil, "", models.RespErrBackend(err)
 	}
@@ -319,7 +319,7 @@ func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (m
 
 	// Retrieve subscription customisations for feed subscriptions.
 	states := user.FilterSubscriptionStatesByFeed(items.GetFeedIDs()...)
-	customisations, err := api.GetSubscriptions(ctx, models.GetIDsFromStates(states)...)
+	customisations, err := api.GetSubscriptionCustomisations(ctx, models.GetIDsFromStates(states)...)
 	if err != nil {
 		return nil, models.RespErrBackend(err)
 	}

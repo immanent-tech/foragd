@@ -6,7 +6,6 @@ package models
 import (
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 )
 
@@ -35,7 +34,6 @@ func (r *Response) IsNotFound() bool {
 
 func (r *Response) String() string {
 	if r == nil {
-		slog.Info("nil response")
 		return "unknown error"
 	}
 	switch {

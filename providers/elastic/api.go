@@ -14,15 +14,14 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/components/logging"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
+	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
-
-// InternalPaginationCount defines the number of docs to retrieve in a pagination request.
-const InternalPaginationCount = 1000
 
 // API is an object that provides access to the Elasticsearch API.
 type API struct {
@@ -34,6 +33,35 @@ func (a *API) GetAPI() *typedapi.API {
 	return a.API
 }
 
+// SearchFeeds will search the feeds index for feed matching the given query. Count, sort and pagination values are
+// optional.
+func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	var sortOptions []types.SortCombinationsVariant
+	if sort != nil {
+		if sort.SortBy == models.SortByLastUpdated {
+			switch sort.SortOrder {
+			case models.SortOrderAsc:
+				sortOptions = []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("feed_id", models.SortOrderDesc)}
+			case models.SortOrderDesc:
+				sortOptions = []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("feed_id", models.SortOrderDesc)}
+			}
+		}
+	} else {
+		sortOptions = append(sortOptions, SortByDocID("_doc"))
+	}
+
+	feeds, nextResults, err := SearchDocs[*models.Feed](ctx, e.GetAPI(), index, query, count, sortOptions, pagination)
+	if err != nil {
+		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+	return feeds, nextResults, nil
+}
+
 // AddFeeds will bulk index the given feeds.
 func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (map[models.FeedID]*bulk.OperationResponse, error) {
 	index := FeedsIndexFromCtx(ctx)
@@ -41,6 +69,50 @@ func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (map[models.F
 		return nil, ErrFetchCtx
 	}
 	return BulkAdd(ctx, e, index, feeds...)
+}
+
+// GetFeeds retrieves the feeds with the given IDs.
+func (e *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, e.GetAPI(), index, ids...)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
+			slog.Any("warnings", err))
+	}
+	return feeds, nil
+}
+
+// SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
+// optional.
+func (e *API) SearchItems(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Items, models.Pagination, error) {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	var sortOptions []types.SortCombinationsVariant
+	if sort != nil {
+		if sort.SortBy == models.SortByLastUpdated {
+			switch sort.SortOrder {
+			case models.SortOrderAsc:
+				sortOptions = []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("item_id", models.SortOrderDesc)}
+			case models.SortOrderDesc:
+				sortOptions = []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("item_id", models.SortOrderDesc)}
+			}
+		}
+	} else {
+		sortOptions = append(sortOptions, SortByDocID("_doc"))
+	}
+
+	items, nextResults, err := SearchDocs[*models.Item](ctx, e.GetAPI(), index, query, count, sortOptions, pagination)
+	if err != nil {
+		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+	return items, nextResults, nil
 }
 
 // AddItems will bulk index the given items.
@@ -52,6 +124,24 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 	return BulkAdd(ctx, e, index, items...)
 }
 
+// SearchSubscriptionCustomisations will search the feeds index for feed matching the given query. Count, sort and
+// pagination values are optional.
+func (e *API) SearchSubscriptionCustomisations(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.SubscriptionCustomisations, models.Pagination, error) {
+	index := SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	var sortOptions []types.SortCombinationsVariant
+	sortOptions = append(sortOptions, SortByDocID("_doc"))
+
+	customisations, nextResults, err := SearchDocs[*models.SubscriptionCustomisation](ctx, e.GetAPI(), index, query, count, sortOptions, pagination)
+	if err != nil {
+		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+	return customisations, nextResults, nil
+}
+
 // AddSubscriptionCustomisations performs a bulk add operation to add the given subscription customisations.
 func (e *API) AddSubscriptionCustomisations(ctx context.Context, customisations ...*models.SubscriptionCustomisation) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
 	index := SubscriptionsIndexFromCtx(ctx)
@@ -59,6 +149,39 @@ func (e *API) AddSubscriptionCustomisations(ctx context.Context, customisations 
 		return nil, ErrFetchCtx
 	}
 	return BulkAdd(ctx, e, index, customisations...)
+}
+
+// GetSubscriptionCustomisations retrieves the subscription customisations with the given IDs.
+func (e *API) GetSubscriptionCustomisations(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionCustomisations, error) {
+	index := SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, ErrFetchCtx
+	}
+
+	subscriptions, err := GetDocs[models.SubscriptionID, *models.SubscriptionCustomisation](ctx, e.GetAPI(), index, ids...)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
+			slog.Any("warnings", err))
+	}
+	return subscriptions, nil
+}
+
+func (e *API) UpdateSubscriptionCustomisation(ctx context.Context, id models.SubscriptionID, partialUpdate map[string]any) error {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.RespErrUnauthorized()
+	}
+	index := UserIndexFromCtx(ctx)
+	if index == "" {
+		return fmt.Errorf("could not update subscription: %w", ErrGetUserFailed)
+	}
+
+	if err := UpdateDoc(ctx, e.GetAPI(), index, user.GetID(), partialUpdate); err != nil {
+		return &models.Response{StatusCode: http.StatusInternalServerError, InternalError: err}
+	}
+
+	return nil
 }
 
 // MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).
@@ -76,36 +199,6 @@ func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 		return fmt.Errorf("feed update failed: %w", err)
 	}
 	return nil
-}
-
-// GetSubscriptions retrieves the subscription customisations with the given IDs.
-func (e *API) GetSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionCustomisations, error) {
-	index := SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
-	}
-
-	subscriptions, err := GetDocs[models.SubscriptionID, *models.SubscriptionCustomisation](ctx, e.GetAPI(), index, ids...)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
-			slog.Any("warnings", err))
-	}
-	return subscriptions, nil
-}
-
-// GetFeeds retrieves the feeds with the given IDs.
-func (e *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
-	}
-
-	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, e.GetAPI(), index, ids...)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
-			slog.Any("warnings", err))
-	}
-	return feeds, nil
 }
 
 // UpdateUser performs a partial update of the user object. On an error, a non-nil response is returned.
@@ -201,6 +294,56 @@ func UpdateDoc[T ~string](ctx context.Context, api *typedapi.API, index string, 
 	}
 
 	return nil
+}
+
+// SearchDocs performs a _search request to find documents matching the given query.
+//
+// count specifies the number of results. If not specified, up to 10 results will be returned.
+//
+// sort specifies how to sort the resuls. If not specified, doc value sorting is used.
+//
+// pagination specifies the sort after values to use for getting a specific window of the total results. When set, the
+// count parameter can be thought of as specifying how many new results are retrieved.
+func SearchDocs[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, sort []types.SortCombinationsVariant, pagination *models.Pagination) ([]O, models.Pagination, error) {
+	var sortValues []types.FieldValue
+	if pagination != nil {
+		var err error
+		sortValues, err = decodePagination(*pagination)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+	}
+
+	resp, err := NewSearchRequest(api,
+		WithSearchID(middleware.GetReqID(ctx)),
+		WithSearchIndex(index),
+		WithSearchQueryOptions(query),
+		WithSearchAfter(sortValues),
+		WithSearchSize(count),
+		WithSortOptions(sort...),
+	).Do(ctx)
+	if err != nil {
+		return nil, "", errors.Join(ErrSearchFailed, err)
+	}
+
+	var warnings error
+	var docs []O
+
+	docs, sortValues, warnings = ExtractSourceFromHits[O](resp.Hits.Hits)
+	if warnings != nil {
+		slogctx.FromCtx(ctx).Warn("Some docs could not be extracted.",
+			slog.Any("warnings", warnings))
+	}
+
+	if pagination != nil {
+		*pagination, err = encodePagination(sortValues)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+		return docs, *pagination, nil
+	}
+
+	return docs, "", nil
 }
 
 func parseError(err error) *models.Response {
