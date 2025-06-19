@@ -80,7 +80,7 @@ type FeedsAPI interface {
 type UserAPI interface {
 	AddUser(ctx context.Context, userID models.UserID) error
 	GetUser(ctx context.Context, userID models.UserID) (*models.User, error)
-	UpdateUser(ctx context.Context, partialUpdate map[string]any) error
+	UpdateUser(ctx context.Context, partialUpdate map[string]any) *models.Response
 	UpdateSubscriptionCustomisation(ctx context.Context, id models.SubscriptionID, partialUpdate map[string]any) error
 }
 

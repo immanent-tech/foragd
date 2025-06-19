@@ -220,8 +220,8 @@ func (s *SubscriptionState) MarkRead(markedAt time.Time) {
 // user has explicitly marked as unread.
 func (s *SubscriptionState) GetUnreadItems() []ItemID {
 	var ids []ItemID
-	for id := range s.ItemStates {
-		if !s.State.IsRead() {
+	for id, state := range s.ItemStates {
+		if !state.IsRead() {
 			ids = append(ids, id)
 		}
 	}
@@ -232,8 +232,8 @@ func (s *SubscriptionState) GetUnreadItems() []ItemID {
 // user has explicitly marked as read.
 func (s *SubscriptionState) GetReadItems() []ItemID {
 	var ids []ItemID
-	for id := range s.ItemStates {
-		if s.State.IsRead() {
+	for id, state := range s.ItemStates {
+		if state.IsRead() {
 			ids = append(ids, id)
 		}
 	}
@@ -247,7 +247,14 @@ func (s *SubscriptionState) GetItemState(id ItemID) *ObjectState {
 	if state, found := s.ItemStates[id]; found {
 		return &state
 	}
-	return nil
+	return NewObjectState()
+}
+
+func (s *SubscriptionState) SetItemState(id ItemID, state *ObjectState) {
+	if s.ItemStates == nil {
+		s.ItemStates = make(map[ItemID]ObjectState)
+	}
+	s.ItemStates[id] = *state
 }
 
 // MarkItemsRead will mark the given items as read for the subscription.
@@ -258,7 +265,7 @@ func (s *SubscriptionState) MarkItemsRead(ids ...ItemID) {
 			state = NewObjectState()
 		}
 		state.MarkRead(time.Now().UTC())
-		s.ItemStates[id] = *state
+		s.SetItemState(id, state)
 	}
 }
 
@@ -270,7 +277,7 @@ func (s *SubscriptionState) MarkItemsUnread(ids ...ItemID) {
 			state = NewObjectState()
 		}
 		state.MarkUnread(time.Now().UTC())
-		s.ItemStates[id] = *state
+		s.SetItemState(id, state)
 	}
 }
 

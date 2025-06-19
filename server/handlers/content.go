@@ -10,7 +10,6 @@ import (
 	"maps"
 	"net/http"
 	"slices"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -37,7 +36,6 @@ func GenerateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) fu
 				ProcessResponse(res, req, resp)
 				return
 			}
-
 			cards := views.GenerateArticleCards(req.Context(), articles)
 			if len(cards) > 0 {
 				// Add pagination htmx props to last article.
@@ -502,7 +500,7 @@ func AddSubscriptions(api BackendAPI) func(next http.Handler) http.Handler {
 				return
 			}
 			// Get the existing subscription states from the user.
-			states := user.Subscriptions
+			newSubscriptions := make(map[models.SubscriptionID]*models.SubscriptionState)
 
 			slogctx.FromCtx(req.Context()).Debug("Adding new subscriptions.")
 
@@ -512,7 +510,7 @@ func AddSubscriptions(api BackendAPI) func(next http.Handler) http.Handler {
 			for request, feed := range subscriptions {
 				// Add subscription state and mark successful.
 				state := models.NewSubscriptionState(feed.GetID())
-				states = append(states, *state)
+				newSubscriptions[state.GetID()] = state
 				details := request.String()
 				results[request] = &models.UserMessage{
 					Status:  models.UserMessageStatusSuccess,
@@ -551,20 +549,12 @@ func AddSubscriptions(api BackendAPI) func(next http.Handler) http.Handler {
 				}
 			}
 
-			// Update the subscription states in the user object.
-			states = slices.CompactFunc(states, func(s1, s2 models.SubscriptionState) bool {
-				return s1.GetID() == s2.GetID()
-			})
-			if err := api.UpdateUser(req.Context(), map[string]any{
-				"subscriptions": states,
-				"updated_at":    time.Now().UTC(),
-			}); err != nil {
-				ctx := context.WithValue(req.Context(), respCtxKey,
-					models.NewResponse(http.StatusInternalServerError, fmt.Errorf("failed to update user: %w", err)))
+			resp := updateUserSubscriptionStates(req.Context(), api, slices.Collect(maps.Values(newSubscriptions))...)
+			if resp != nil {
+				ctx := context.WithValue(req.Context(), respCtxKey, resp)
 				next.ServeHTTP(res, req.WithContext(ctx))
 				return
 			}
-
 			// Store the results in the context for the next handler.
 			ctx := context.WithValue(req.Context(), subscriptionResultsCtxKey, results)
 			next.ServeHTTP(res, req.WithContext(ctx))
@@ -696,7 +686,6 @@ func MarkSubscriptions(api UserAPI, mark models.Mark, subscriptions ...models.Su
 func MarkArticles(api BackendAPI, mark models.Mark, items ...models.ItemID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Mark the feeds.
 			if resp := markArticles(req.Context(), api, mark, items...); resp != nil {
 				ProcessResponse(res, req, resp)
 				return

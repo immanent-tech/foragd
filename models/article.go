@@ -44,11 +44,11 @@ func (a Articles) GetSubscriptionIDs() []SubscriptionID {
 
 // GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
 // and state is required.
-func GenerateArticle(item *Item, state *SubscriptionState, customisation *SubscriptionCustomisation) (*Article, error) {
+func GenerateArticle(item *Item, state *ObjectState, subID SubscriptionID, customisation *SubscriptionCustomisation) (*Article, error) {
 	article := &Article{
 		Item:                      item,
-		SubscriptionID:            state.GetID(),
-		State:                     state.GetItemState(item.GetID()),
+		SubscriptionID:            subID,
+		State:                     state,
 		SubscriptionCustomisation: &ObjectCustomisation{},
 	}
 	// Add the custom subscription title if set.
@@ -60,7 +60,7 @@ func GenerateArticle(item *Item, state *SubscriptionState, customisation *Subscr
 
 	// Validate the subscription.
 	if valid, err := article.Valid(); !valid {
-		return nil, fmt.Errorf("subscription data is invalid: %w", err)
+		return nil, fmt.Errorf("article data is invalid: %w", err)
 	}
 
 	return article, nil

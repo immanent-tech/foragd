@@ -282,7 +282,7 @@ func filterArticlesBySubscriptions(ctx context.Context, api FeedsAPI, filters *m
 	for item := range slices.Values(items) {
 		state := states[item.GetFeedID()]
 		customisation := customisations.GetCustomisation(state.GetID())
-		article, err := models.GenerateArticle(item, state, customisation)
+		article, err := models.GenerateArticle(item, state.GetItemState(item.GetID()), state.GetID(), customisation)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
 				slog.Any("error", err),
@@ -327,7 +327,7 @@ func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (m
 	for item := range slices.Values(items) {
 		state := states[item.GetFeedID()]
 		customisation := customisations.GetCustomisation(state.GetID())
-		article, err := models.GenerateArticle(item, state, customisation)
+		article, err := models.GenerateArticle(item, state.GetItemState(item.GetID()), state.GetID(), customisation)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
 				slog.Any("error", err),
@@ -341,30 +341,54 @@ func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (m
 	return articles, nil
 }
 
+// markArticles will update the subscription state in the user object, explicitly marking the given articles for the
+// subscription with the given mark.
 func markArticles(ctx context.Context, api BackendAPI, mark models.Mark, itemIDs ...models.ItemID) *models.Response {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.RespErrUnauthorized()
+	}
+	// Retrieve full item details.
+	items, resp := getItems(ctx, api, itemIDs...)
+	if resp != nil {
+		return resp
+	}
+	states := user.GetAllSubscriptionStatesByFeed()
+	// Mark each item in the user data.
+	switch mark {
+	case models.MarkRead:
+		for item := range slices.Values(items) {
+			states[item.GetFeedID()].MarkItemsRead(item.GetID())
+		}
+	case models.MarkUnread:
+		for item := range slices.Values(items) {
+			states[item.GetFeedID()].MarkItemsRead(item.GetID())
+		}
+	}
+	// Update the states in the user object.
+	if resp := updateUserSubscriptionStates(ctx, api, slices.Collect(maps.Values(states))...); resp != nil {
+		return resp
+	}
 	return nil
-	// user, found := models.UserFromCtx(ctx)
-	// if !found {
-	// 	return models.RespInvalidUser()
-	// }
-	// if len(itemIDs) == 0 {
-	// 	slogctx.FromCtx(ctx).Warn("Mark items requested but not items provided.")
-	// 	return nil
-	// }
+}
 
-	// articles, resp := getArticles(ctx, api, itemIDs...)
-	// if resp.IsError() {
-	// 	return resp
-	// }
-	// // Mark each item in the user data.
-	// for feedID := range slices.Values(articles.GetItems().GetFeedIDs()) {
-	// 	user.MarkItems(mark, feedID, articles.GetItems().FilterByFeed(feedID).GetIDs()...)
-	// }
-	// // Update the user object.
-	// return api.UpdateUser(ctx, user.GetID(), map[string]any{
-	// 	"subscriptions": user.Subscriptions,
-	// 	"updated_at":    time.Now().UTC(),
-	// })
+func getItems(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (models.Items, *models.Response) {
+	if len(itemIDs) == 0 {
+		slogctx.FromCtx(ctx).Warn("No item IDs given.")
+		return nil, &models.Response{StatusCode: http.StatusNoContent}
+	}
+	// Match the given item IDs.
+	query := query.Bool(
+		query.Filter(
+			query.ItemIDs(itemIDs...),
+		),
+	)
+	items, _, err := api.SearchItems(ctx, query, len(itemIDs), nil, nil)
+	if err != nil {
+		return nil, models.RespErrBackend(err)
+	}
+
+	return items, nil
 }
 
 func getItemTopCategories(ctx context.Context, api FeedsAPI, feeds ...models.FeedID) ([]models.Category, *models.Response) {
@@ -425,6 +449,16 @@ func markSubscriptions(ctx context.Context, api UserAPI, mark models.Mark, subsc
 	// 	"subscriptions": user.Subscriptions,
 	// 	"updated_at":    time.Now().UTC(),
 	// })
+}
+
+func updateUserSubscriptionStates(ctx context.Context, api UserAPI, states ...*models.SubscriptionState) *models.Response {
+	if resp := api.UpdateUser(ctx, map[string]any{
+		"subscriptions": states,
+		"updated_at":    time.Now().UTC(),
+	}); resp != nil {
+		return resp
+	}
+	return nil
 }
 
 // getHomePageData retrieves the data required to construct the home page content.
@@ -697,7 +731,7 @@ func subscriptionQueryUnreadItems(user *models.User, subscription *models.Subscr
 	}
 
 	return query.Bool(
-		query.BoolQueryName(subscription.GetFeedID()+"_query_unread"),
+		query.BoolQueryName(subscription.GetFeedID()+"_unread_items"),
 		query.Filter(
 			// Must match this feed.
 			query.Term("feed_id", subscription.GetFeedID()),
@@ -723,6 +757,7 @@ func subscriptionQueryReadItems(user *models.User, subscription *models.Subscrip
 	switch {
 	case !subscription.IsRead():
 		return query.Bool(
+			query.BoolQueryName(subscription.GetFeedID()+"_read_items"),
 			query.Filter(
 				// Must match this feed.
 				query.Term("feed_id", subscription.GetFeedID()),
@@ -742,6 +777,7 @@ func subscriptionQueryReadItems(user *models.User, subscription *models.Subscrip
 		)
 	default:
 		return query.Bool(
+			query.BoolQueryName(subscription.GetFeedID()+"_read_items"),
 			query.Filter(
 				// Must match this feed.
 				query.Term("feed_id", subscription.GetFeedID()),
@@ -765,8 +801,8 @@ func subscriptionQueryReadItems(user *models.User, subscription *models.Subscrip
 // subscriptionQueryReadItems generates a query for finding all items for the given subscription.
 func subscriptionQueryAllItems(user *models.User, subscription *models.SubscriptionState) query.Option {
 	maxHistory := user.GetMaxHistory()
-
 	return query.Bool(
+		query.BoolQueryName(subscription.GetFeedID()+"_all_items"),
 		query.Filter(
 			// Must match this feed.
 			query.Term("feed_id", subscription.GetFeedID()),

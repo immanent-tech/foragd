@@ -443,20 +443,24 @@ templ showContent(article *models.Article) {
 }
 
 templ CollectionActionsMenu(actions ...templ.Component) {
-	<div id="card-actions">
-		<div class="dropdown dropdown-bottom dropdown-end">
-			<div tabindex="0" role="button" class="btn btn-square">
-				@tabler.DotsVertical(i.Props{Size: i.SizeXS})
-			</div>
-			<div tabindex="0" class="card card-sm bg-base-100 z-1 w-48 shadow-md dropdown-content">
-				<div class="card-body">
-					for action := range slices.Values(actions) {
-						@action
-					}
+	if len(actions) > 0 {
+		<div id="card-actions">
+			<div class="dropdown dropdown-bottom dropdown-end">
+				<div tabindex="0" role="button" class="btn btn-square">
+					@tabler.DotsVertical(i.Props{Size: i.SizeXS})
+				</div>
+				<div tabindex="0" class="card card-sm bg-base-100 z-1 w-48 shadow-md dropdown-content">
+					<div class="card-body">
+						for action := range slices.Values(actions) {
+							if action != nil {
+								@action
+							}
+						}
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
+	}
 }
 
 // Filter represents a filter action on a page. It has a value (displayed in the UI) and a link which will trigger a
