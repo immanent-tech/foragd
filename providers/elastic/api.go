@@ -7,12 +7,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"slices"
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
@@ -75,6 +77,36 @@ func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 	return nil
 }
 
+// GetSubscriptions retrieves the subscription customisations with the given IDs.
+func (e *API) GetSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionCustomisations, error) {
+	index := SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	subscriptions, err := GetDocs[models.SubscriptionID, *models.SubscriptionCustomisation](ctx, e.GetAPI(), index, ids...)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
+			slog.Any("warnings", err))
+	}
+	return subscriptions, nil
+}
+
+// GetFeeds retrieves the feeds with the given IDs.
+func (e *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
+	}
+
+	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, e.GetAPI(), index, ids...)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
+			slog.Any("warnings", err))
+	}
+	return feeds, nil
+}
+
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
 func BulkAdd[T ~string, O models.HasID[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {
@@ -111,6 +143,26 @@ func BulkAdd[T ~string, O models.HasID[T]](ctx context.Context, api *API, index 
 	}
 
 	return responses, nil
+}
+
+func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index string, ids ...T) ([]O, error) {
+	docIDs := make([]string, 0, len(ids))
+	for id := range slices.Values(ids) {
+		docIDs = append(docIDs, string(id))
+	}
+
+	resp, err := NewMGetRequest(api,
+		GetFromIndex(index),
+		GetIDs(docIDs...)).Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrGetFailed, err)
+	}
+	objects, warnings := ExtractSourceFromDocs[O](resp.Docs)
+	if warnings != nil {
+		slogctx.FromCtx(ctx).Warn("Some docs could not be extracted.",
+			slog.Any("warnings", warnings))
+	}
+	return objects, nil
 }
 
 func UpdateDoc[T ~string](ctx context.Context, api *typedapi.API, index string, id T, updates map[string]any) error {

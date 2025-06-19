@@ -5,20 +5,17 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
 	"net/http"
-	"net/url"
 	"slices"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/web/views"
@@ -40,7 +37,7 @@ func getSubscriptions(ctx context.Context, api FeedsAPI, ids ...models.Subscript
 	}
 
 	// Get customisation details for subscriptions.
-	customisations, err := api.GetSubscriptions(ctx, ids...)
+	customisations, err := api.GetSubscriptions(ctx, slices.Collect(maps.Keys(states))...)
 	if err != nil {
 		return nil, models.RespErrBackend(err)
 	}
@@ -54,9 +51,9 @@ func getSubscriptions(ctx context.Context, api FeedsAPI, ids ...models.Subscript
 		return nil, models.RespErrBackend(err)
 	}
 	// Get unread counts.
-	categoryCounts, err := getSubscriptionUnreadCounts(ctx, api, user.GetAllSubscriptionStatesByFeed())
-	if err != nil {
-		return nil, models.RespErrBackend(err)
+	categoryCounts, resp := getSubscriptionUnreadCounts(ctx, api, user.GetAllSubscriptionStatesByFeed())
+	if resp != nil {
+		return nil, resp
 	}
 	// Generate subscriptions from data sources.
 	subscriptions := make(models.Subscriptions, 0, len(feeds))
@@ -68,7 +65,9 @@ func getSubscriptions(ctx context.Context, api FeedsAPI, ids ...models.Subscript
 				break
 			}
 		}
-		subscription, err := models.GenerateSubscription(feed,
+		subscription, err := models.GenerateSubscription(
+			user.GetID(),
+			feed,
 			customisations.GetCustomisation(state.GetID()),
 			state,
 			categoryCounts.GetCount(feed.GetID()))
@@ -106,7 +105,7 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 		var resp *models.Response
 		// Get unread counts.
 		unreadCounts, resp = getSubscriptionUnreadCounts(ctx, api, states)
-		if !resp.Ok() {
+		if resp != nil {
 			return nil, "", resp
 		}
 		for _, state := range states {
@@ -128,6 +127,10 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 			subscriptionIDs = append(subscriptionIDs, state.GetID())
 		}
 	}
+	if len(subscriptionIDs) == 0 {
+		return nil, "", &models.Response{StatusCode: http.StatusNotFound}
+	}
+
 	// Search subscription customisations for matches.
 	customisationQuery := query.Bool(
 		query.Filter(
@@ -181,7 +184,9 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 			count = unreadCounts.GetCount(feed.GetID())
 		}
 
-		subscription, err := models.GenerateSubscription(feed,
+		subscription, err := models.GenerateSubscription(
+			user.GetID(),
+			feed,
 			customisations.GetCustomisation(state.GetID()),
 			state,
 			count,
@@ -199,23 +204,25 @@ func filterSubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filt
 }
 
 func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, states models.SubscriptionStates[models.FeedID]) (*aggregations.TermsAggregationResults, *models.Response) {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, models.RespErrUnauthorized()
+	}
+
 	subscriptionQueries := make([]query.Option, 0, len(states))
 	for _, state := range states {
-		subscriptionQueries = append(subscriptionQueries, subscriptionQueryUnreadItems(state))
+		subscriptionQueries = append(subscriptionQueries, subscriptionQueryUnreadItems(user, state))
 	}
 	query := query.Bool(
-		query.BoolQueryName("all_unread_items"),
 		query.Filter(
-			// Must match any of the given feed IDs.
-			query.FeedIDs(slices.Collect(maps.Keys(states))...),
-			// And should match one feed clause.
 			query.Bool(
 				query.Should(subscriptionQueries...),
 			),
 		),
 	)
 	aggResults, resp := api.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(states)))
-	if !resp.Ok() {
+	if resp != nil {
 		return nil, resp
 	}
 	var (
@@ -362,7 +369,7 @@ func getItemTopCategories(ctx context.Context, api FeedsAPI, feeds ...models.Fee
 		),
 	)
 	aggsResult, resp := api.ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
-	if !resp.Ok() {
+	if resp != nil {
 		return nil, resp
 	}
 	var (
@@ -434,10 +441,10 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *m
 
 	// Get subscriptions.
 	subscriptions, _, resp := filterSubscriptions(ctx, api, models.NewFilters())
-	if resp.IsNotFound() {
+	if resp != nil && resp.IsNotFound() {
 		return data, resp
 	}
-	if !resp.Ok() {
+	if resp != nil {
 		return nil, resp
 	}
 	// Query definition for fetching unread items for all subscriptions.
@@ -558,7 +565,7 @@ func getHomePageArticles(ctx context.Context, api FeedsAPI, data *views.HomePage
 	}
 
 	articles, resp := getArticles(ctx, api, itemIDs...)
-	if !resp.Ok() {
+	if resp != nil {
 		return nil, models.RespErrBackend(err)
 	}
 
@@ -664,24 +671,32 @@ func BuildSubscriptionQueries(user *models.User, view models.View) []query.Optio
 		fallthrough
 	default:
 		for _, state := range states {
-			queries = append(queries, subscriptionQueryUnreadItems(state))
+			queries = append(queries, subscriptionQueryUnreadItems(user, state))
 		}
 	}
 	return queries
 }
 
 // subscriptionQueryUnreadItems generates a query for finding unread items for the given subscription.
-func subscriptionQueryUnreadItems(subscription *models.SubscriptionState) query.Option {
+func subscriptionQueryUnreadItems(user *models.User, subscription *models.SubscriptionState) query.Option {
+	var since time.Time
+	if subscription.IsRead() {
+		// Match the item if it is published/updated since last time subscription was marked read.
+		since = subscription.GetMarkedRead()
+	} else {
+		// Match the item if it is published/updated since the max user history window.
+		since = user.GetMaxHistory()
+	}
+
 	return query.Bool(
 		query.BoolQueryName(subscription.GetFeedID()+"_query_unread"),
 		query.Filter(
 			// Must match this feed.
 			query.Term("feed_id", subscription.GetFeedID()),
-			// And should be newer than last read or explicitly marked unread.
 			query.Bool(
 				query.Should(
-					query.Since("published", subscription.GetMarkedRead()),
-					query.Since("updated", subscription.GetMarkedRead()),
+					query.Since("published", since),
+					query.Since("updated", since),
 					query.ItemIDs(subscription.GetUnreadItems()...),
 				),
 				// Must not match any read items for the feed
@@ -698,17 +713,16 @@ func subscriptionQueryReadItems(user *models.User, subscription *models.Subscrip
 	maxHistory := user.GetMaxHistory()
 
 	switch {
-	case subscription.GetMarkedRead().Equal(maxHistory):
+	case !subscription.IsRead():
 		return query.Bool(
-			query.BoolQueryName(subscription.GetFeedID()+"_match"),
 			query.Filter(
 				// Must match this feed.
 				query.Term("feed_id", subscription.GetFeedID()),
 				// And be published/updated since the user max history.
 				query.Bool(
 					query.Should(
-						query.Since("published", maxHistory),
-						query.Since("updated", maxHistory),
+						// query.Since("published", maxHistory),
+						// query.Since("updated", maxHistory),
 						query.ItemIDs(subscription.GetReadItems()...),
 					),
 					// Must not match any unread items for the feed
@@ -757,41 +771,4 @@ func subscriptionQueryAllItems(user *models.User, subscription *models.Subscript
 			),
 		),
 	)
-}
-
-// encodePagination will take sort values returned from a query, marshal them to
-// JSON, then HTML-escape the string into a models.Pagination object, which is
-// safe for use in API query parameters.
-func encodePagination(sortValues []types.FieldValue) (models.Pagination, error) {
-	if len(sortValues) == 0 {
-		return "", nil
-	}
-	// Marshal sort values into json.
-	data, err := json.Marshal(sortValues)
-	if err != nil {
-		return "", errors.Join(elastic.ErrPagination, fmt.Errorf("could not encode pagination values: %w", err))
-	}
-	// Return as HTML encoded string.
-	return url.QueryEscape(string(data)), nil
-}
-
-// decodePagination will take a models.Pagination object, HTML-unescape the
-// string then unmarshal it back into sort values.
-func decodePagination(pagination models.Pagination) ([]types.FieldValue, error) {
-	if pagination == "" {
-		return nil, nil
-	}
-	// Unescape HTML encoded data.
-	data, err := url.QueryUnescape(pagination)
-	if err != nil {
-		return nil, errors.Join(elastic.ErrPagination, fmt.Errorf("could not decode pagination values: %w", err))
-	}
-	// Unmarshal sort values.
-	var sortValues []types.FieldValue
-	err = json.Unmarshal([]byte(data), &sortValues)
-	if err != nil {
-		return nil, errors.Join(elastic.ErrPagination, fmt.Errorf("could not decode pagination values: %w", err))
-	}
-	// Return sort values.
-	return sortValues, nil
 }

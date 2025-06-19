@@ -55,7 +55,12 @@ func (d *HomePageData) generateRareCategoriesLinks(ctx context.Context) templ.Co
 	}
 	rareCategoryCounts.Sort()
 
-	return createCategoryLinks(rareCategoryCounts[:10])
+	count := 10
+	if len(rareCategoryCounts) < 10 {
+		count = len(rareCategoryCounts)
+	}
+
+	return createCategoryLinks(rareCategoryCounts[:count])
 }
 
 func GenerateHomePageContent(ctx context.Context, data *HomePageData, articles models.Articles) templ.Component {

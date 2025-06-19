@@ -20,27 +20,6 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
-// GetFeeds retrieves the feeds with the given IDs.
-func (e *API) GetSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionCustomisations, error) {
-	index := SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
-	}
-
-	resp, err := NewMGetRequest(e.GetAPI(),
-		GetFromIndex(index),
-		GetIDs(ids...)).Do(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrGetFailed, err)
-	}
-	subscriptions, warnings := ExtractSourceFromDocs[*models.SubscriptionCustomisation](resp.Docs)
-	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
-			slog.Any("warnings", warnings))
-	}
-	return subscriptions, nil
-}
-
 // SearchFeeds will search the feeds index for feed matching the given query. Count, sort and pagination values are
 // optional.
 //
@@ -101,27 +80,6 @@ func (a *API) SearchSubscriptions(ctx context.Context, query query.Option, count
 	}
 
 	return subscriptions, "", nil
-}
-
-// GetFeeds retrieves the feeds with the given IDs.
-func (e *API) GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
-	}
-
-	resp, err := NewMGetRequest(e.GetAPI(),
-		GetFromIndex(index),
-		GetIDs(feedIDs...)).Do(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrGetFailed, err)
-	}
-	feeds, warnings := ExtractSourceFromDocs[*models.Feed](resp.Docs)
-	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Some feeds could not be extracted from docs.",
-			slog.Any("warnings", warnings))
-	}
-	return feeds, nil
 }
 
 // SearchFeeds will search the feeds index for feed matching the given query. Count, sort and pagination values are

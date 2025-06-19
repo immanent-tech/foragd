@@ -33,7 +33,7 @@ func GenerateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) fu
 			ctx := req.Context()
 			filters := models.FiltersFromCtx(ctx)
 			articles, pagination, resp := filterArticles(req.Context(), api, &filters)
-			if !resp.Ok() {
+			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
@@ -70,7 +70,7 @@ func PaginateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) fu
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
 			articles, pagination, resp := filterArticles(req.Context(), api, &filters)
-			if !resp.Ok() {
+			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
@@ -91,7 +91,7 @@ func GenerateArticle(api FeedsAPI, itemID models.ItemID) func(next http.Handler)
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			articles, resp := getArticles(req.Context(), api, itemID)
-			if !resp.Ok() || len(articles) == 0 {
+			if resp != nil || len(articles) == 0 {
 				ProcessResponse(res, req, resp)
 				return
 			}
@@ -111,12 +111,20 @@ func GenerateSubscriptionCollection(api FeedsAPI, subIDs ...models.SubscriptionI
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
 			subscriptions, pagination, resp := filterSubscriptions(req.Context(), api, &filters)
-			if !resp.Ok() {
+			if resp != nil && !resp.IsNotFound() {
 				ProcessResponse(res, req, resp)
 				return
 			}
 			ctx := req.Context()
 			cards := views.GenerateSubscriptionCards(req.Context(), subscriptions)
+			cardControls := partials.CardControls(
+				views.RefreshAction(),
+				views.UpdateSorting(models.CollectionSubscriptions),
+				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions))),
+				views.CollectionActionsMenu(
+					views.MarkAllSubscriptionsAction(req.Context()),
+				),
+			)
 			if len(cards) > 0 {
 				// Add pagination htmx props to last article.
 				if len(cards) == filters.CountAsInt() {
@@ -124,17 +132,9 @@ func GenerateSubscriptionCollection(api FeedsAPI, subIDs ...models.SubscriptionI
 				}
 
 				cardLayout := partials.CardGrid(cards...)
-				cardControls := partials.CardControls(
-					views.RefreshAction(),
-					views.UpdateSorting(models.CollectionSubscriptions),
-					views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions))),
-					views.CollectionActionsMenu(
-						views.MarkAllSubscriptionsAction(req.Context()),
-					),
-				)
 				ctx = context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
 			} else {
-				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
+				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, views.EmptyContent()))
 			}
 			ctx = context.WithValue(ctx, titleCtxKey, "Subscriptions")
 			next.ServeHTTP(res, req.WithContext(ctx))
@@ -148,7 +148,7 @@ func PaginateSubscriptionCollection(api FeedsAPI, subIDs ...models.SubscriptionI
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
 			subscriptions, pagination, resp := filterSubscriptions(req.Context(), api, &filters)
-			if !resp.Ok() {
+			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
@@ -585,7 +585,7 @@ func RemoveSubscription(api UserAPI, subscriptionID models.SubscriptionID, confi
 				slogctx.FromCtx(ctx).Debug("Subscription removal confirmed.",
 					slog.String("subscription_id", subscriptionID),
 				)
-				if resp := removeSubscriptions(ctx, api, subscriptionID); !resp.Ok() {
+				if resp := removeSubscriptions(ctx, api, subscriptionID); resp != nil {
 					ProcessResponse(res, req.WithContext(ctx), resp)
 					return
 				}
@@ -632,7 +632,7 @@ func EditSubscription(api FeedsAPI, subID models.SubscriptionID) func(next http.
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Retrieve subscription.
 			subscriptions, resp := getSubscriptions(req.Context(), api, subID)
-			if !resp.Ok() {
+			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
@@ -646,7 +646,7 @@ func EditSubscription(api FeedsAPI, subID models.SubscriptionID) func(next http.
 
 			// Add top categories across items in subscription.
 			categories, resp := getItemTopCategories(req.Context(), api, subscription.GetFeedID())
-			if !!resp.Ok() {
+			if resp == nil {
 				request.TopCategories = categories
 			}
 			ctx := context.WithValue(req.Context(), contentCtxKey, views.EditSubscriptionModal(request))
@@ -683,7 +683,7 @@ func SaveSubscription(api UserAPI, edits *models.SubscriptionCustomisation) func
 func MarkSubscriptions(api UserAPI, mark models.Mark, subscriptions ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			if resp := markSubscriptions(req.Context(), api, mark, subscriptions...); !resp.Ok() {
+			if resp := markSubscriptions(req.Context(), api, mark, subscriptions...); resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
@@ -697,7 +697,7 @@ func MarkArticles(api BackendAPI, mark models.Mark, items ...models.ItemID) func
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Mark the feeds.
-			if resp := markArticles(req.Context(), api, mark, items...); !resp.Ok() {
+			if resp := markArticles(req.Context(), api, mark, items...); resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
@@ -721,9 +721,10 @@ func GenerateDrawerContent(api FeedsAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
+			slogctx.FromCtx(req.Context()).Debug("Getting subscription data for drawer.")
 			subscriptions, resp := getSubscriptions(req.Context(), api)
-			if !resp.Ok() {
-				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.Error))
+			if resp != nil {
+				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.Error()))
 			} else {
 				ctx = context.WithValue(ctx, drawerCtxKey, views.SubscriptionList(subscriptions))
 			}
@@ -739,7 +740,7 @@ func GenerateSearchSuggestions(api FeedsAPI, searchTerms string) func(next http.
 			ctx := req.Context()
 
 			subscriptions, articles, resp := getSearchSuggestions(ctx, api, searchTerms)
-			if !resp.Ok() {
+			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}

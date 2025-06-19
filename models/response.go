@@ -6,6 +6,7 @@ package models
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 )
 
@@ -25,22 +26,18 @@ func NewResponse(status int, err error) *Response {
 	return resp
 }
 
-func (r *Response) Ok() bool {
-	switch {
-	case r == nil:
-		return true
-	case r.StatusCode >= 400:
-		return false
-	default:
-		return true
-	}
-}
-
 func (r *Response) IsNotFound() bool {
-	return r.StatusCode == http.StatusNotFound
+	if r != nil {
+		return r.StatusCode == http.StatusNotFound
+	}
+	return false
 }
 
 func (r *Response) String() string {
+	if r == nil {
+		slog.Info("nil response")
+		return "unknown error"
+	}
 	switch {
 	case r.InternalError != nil:
 		return fmt.Sprintf("%d: %s", r.StatusCode, r.InternalError.Error())

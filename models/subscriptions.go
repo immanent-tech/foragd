@@ -4,7 +4,7 @@
 package models
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
@@ -14,18 +14,22 @@ import (
 	"github.com/joshuar/go-feed-me/models/feeds/types"
 )
 
+var ErrInvalidSubscriptionState = errors.New("invalid subscription state")
+
 // GenerateSubscription creates a subscription from the given data sources: a feed, any user customisation of feed
 // values, subscription state and an unread count. All data besides the feed is optional.
-func GenerateSubscription(feed *Feed, customisation *SubscriptionCustomisation, state *SubscriptionState, unread int) (*Subscription, error) {
+func GenerateSubscription(userID UserID, feed *Feed, customisation *SubscriptionCustomisation, state *SubscriptionState, unread int) (*Subscription, error) {
 	subscription := &Subscription{
-		Feed: feed,
+		UserID:        userID,
+		Feed:          feed,
+		Customisation: &ObjectCustomisation{},
 	}
 	// Create a new subscription object.
-	if state != nil {
-		subscription.State = state.State
-	} else {
-		subscription.State = NewObjectState()
+	if state == nil {
+		return nil, fmt.Errorf("unable to generate subscription: %w", ErrInvalidSubscriptionState)
 	}
+	subscription.SubscriptionID = state.GetID()
+	subscription.State = state.State
 	// Add any user customisations.
 	if customisation != nil {
 		if customisation.Title != "" {
@@ -37,15 +41,6 @@ func GenerateSubscription(feed *Feed, customisation *SubscriptionCustomisation, 
 	}
 	// Add unread count.
 	subscription.UnreadCount = unread
-	// Marshal the feed data.
-	data, err := json.Marshal(feed)
-	if err != nil {
-		return nil, fmt.Errorf("could not marshal feed data for subscription: %w", err)
-	}
-	// Unmarshal the feed data into the subscription.
-	if err = json.Unmarshal(data, subscription); err != nil {
-		return nil, fmt.Errorf("could not unmarshal feed data for subscription: %w", err)
-	}
 	// Validate the subscription.
 	if valid, err := subscription.Valid(); !valid {
 		return nil, fmt.Errorf("subscription data is invalid: %w", err)

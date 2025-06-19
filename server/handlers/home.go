@@ -23,12 +23,12 @@ func GenerateHomeContent(api FeedsAPI) func(next http.Handler) http.Handler {
 				next.ServeHTTP(res, req.WithContext(ctx))
 				return
 			}
-			if !resp.Ok() {
+			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
 			articles, resp := getHomePageArticles(ctx, api, data)
-			if !resp.Ok() {
+			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}

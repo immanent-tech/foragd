@@ -84,9 +84,6 @@ func WithSuggestFromField(field string) SearchOption {
 // WithSearchSize defines the number of results returned.
 func WithSearchSize(size int) SearchOption {
 	return func(search *search.Search) {
-		if size == 0 {
-			return
-		}
 		search.Size(size)
 	}
 }

@@ -46,9 +46,10 @@ func (a Articles) GetSubscriptionIDs() []SubscriptionID {
 // and state is required.
 func GenerateArticle(item *Item, state *SubscriptionState, customisation *SubscriptionCustomisation) (*Article, error) {
 	article := &Article{
-		Item:           item,
-		SubscriptionID: state.GetID(),
-		State:          state.GetItemState(item.GetID()),
+		Item:                      item,
+		SubscriptionID:            state.GetID(),
+		State:                     state.GetItemState(item.GetID()),
+		SubscriptionCustomisation: &ObjectCustomisation{},
 	}
 	// Add the custom subscription title if set.
 	if customisation != nil {
