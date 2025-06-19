@@ -54,15 +54,6 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		slog.Int("status", status),
 	}
 
-	if requestID := middleware.GetReqID(req.Context()); requestID != "" {
-		requestAttributes = append(requestAttributes,
-			slog.String("id", requestID),
-		)
-		responseAttributes = append(responseAttributes,
-			slog.String("id", requestID),
-		)
-	}
-
 	baseAttributes = append(baseAttributes,
 		slog.Duration("took", dur),
 	)
@@ -71,9 +62,14 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 			slog.Any("error", err),
 		)
 	}
+	if requestID := middleware.GetReqID(req.Context()); requestID != "" {
+		baseAttributes = append(baseAttributes,
+			slog.String("id", requestID),
+		)
+	}
 
 	// request body
-	if l.RequestBodyEnabled() && req != nil && req.Body != nil && req.Body != http.NoBody {
+	if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil && req.Body != http.NoBody {
 		var buf bytes.Buffer
 		if req.GetBody != nil {
 			b, _ := req.GetBody()
@@ -87,7 +83,7 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 	}
 
 	// response body
-	if l.ResponseBodyEnabled() && res != nil && res.Body != nil && res.Body != http.NoBody {
+	if (logging.Level == logging.LevelTrace || l.ResponseBodyEnabled()) && res != nil && res.Body != nil && res.Body != http.NoBody {
 		defer res.Body.Close() //nolint:errcheck
 		var buf bytes.Buffer
 		buf.ReadFrom(res.Body) //nolint:errcheck
@@ -110,7 +106,7 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		baseAttributes...,
 	)
 
-	level := logging.LevelTrace
+	level := logging.Level
 	if status >= http.StatusInternalServerError {
 		level = slog.LevelError
 	} else if status >= http.StatusBadRequest && status < http.StatusInternalServerError {

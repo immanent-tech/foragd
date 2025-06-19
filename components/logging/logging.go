@@ -39,12 +39,14 @@ type Options struct {
 }
 
 // DefaultLogFile is the default log file location.
-var DefaultLogFile = "deployments/server.log"
+var (
+	DefaultLogFile = "deployments/server.log"
+	Level          slog.Level
+)
 
 // New creates a new logger with the given options.
 func New(options Options) *slog.Logger {
 	var (
-		logLevel slog.Level
 		logFile  string
 		handlers []slog.Handler
 	)
@@ -52,11 +54,11 @@ func New(options Options) *slog.Logger {
 	// Set the log level.
 	switch options.LogLevel {
 	case "trace":
-		logLevel = LevelTrace
+		Level = LevelTrace
 	case "debug":
-		logLevel = slog.LevelDebug
+		Level = slog.LevelDebug
 	default:
-		logLevel = slog.LevelInfo
+		Level = slog.LevelInfo
 	}
 
 	// Set a log file if specified.
@@ -67,7 +69,7 @@ func New(options Options) *slog.Logger {
 	}
 
 	handlers = append(handlers,
-		tint.NewHandler(os.Stderr, generateConsoleOptions(logLevel, os.Stderr.Fd())),
+		tint.NewHandler(os.Stderr, generateConsoleOptions(Level, os.Stderr.Fd())),
 	)
 	// Unless no log file was requested, set up file logging.
 	if logFile != "" {
@@ -78,7 +80,7 @@ func New(options Options) *slog.Logger {
 				slog.Any("error", err))
 		} else {
 			handlers = append(handlers,
-				slogjson.NewHandler(logFH, generateFileOpts(logLevel)),
+				slogjson.NewHandler(logFH, generateFileOpts(Level)),
 			)
 		}
 	}
