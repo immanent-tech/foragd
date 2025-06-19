@@ -237,10 +237,16 @@ func getSubscriptionUnreadCounts(ctx context.Context, api FeedsAPI, states model
 	return &categoryCounts, nil
 }
 
-func filterArticles(ctx context.Context, api FeedsAPI, filters *models.Filters) (models.Articles, models.Pagination, *models.Response) {
+func filterArticlesBySubscriptions(ctx context.Context, api FeedsAPI, filters *models.Filters, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", models.RespErrUnauthorized()
+	}
+
+	subscriptionStates := user.FilterSubscriptionStatesByID(subIDs...)
+	feedIDs := make([]models.FeedID, 0, len(subscriptionStates))
+	for _, state := range subscriptionStates {
+		feedIDs = append(feedIDs, state.GetFeedID())
 	}
 
 	// Search through items matching any given feeds filters, excluding any read
@@ -249,12 +255,12 @@ func filterArticles(ctx context.Context, api FeedsAPI, filters *models.Filters) 
 		query.BoolQueryName("get_items"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.FeedIDs(slices.Collect(maps.Keys(user.GetAllSubscriptionStatesByFeed()))...),
+			query.FeedIDs(feedIDs...),
 			// Must match any of the given categories.
 			query.Categories(filters.Categories...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, filters.View)...),
+				query.Should(buildSubscriptionQueries(user, filters.View, slices.Collect(maps.Values(subscriptionStates))...)...),
 			),
 		),
 	)
@@ -287,7 +293,7 @@ func filterArticles(ctx context.Context, api FeedsAPI, filters *models.Filters) 
 
 	}
 
-	return articles, pagination, models.RespErrBackend(err)
+	return articles, pagination, nil
 }
 
 func getArticles(ctx context.Context, api FeedsAPI, itemIDs ...models.ItemID) (models.Articles, *models.Response) {
@@ -455,7 +461,7 @@ func getHomePageData(ctx context.Context, api FeedsAPI) (*views.HomePageData, *m
 			query.FeedIDs(models.GetFeedIDs(slices.Values(subscriptions))...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(BuildSubscriptionQueries(user, models.ViewUnread)...),
+				query.Should(buildSubscriptionQueries(user, models.ViewUnread)...),
 			),
 		),
 	)
@@ -653,11 +659,13 @@ func subscriptionsFromCtx(ctx context.Context) map[*models.SubscriptionRequest]*
 	return data
 }
 
-// BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
-func BuildSubscriptionQueries(user *models.User, view models.View) []query.Option {
+// buildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
+func buildSubscriptionQueries(user *models.User, view models.View, states ...*models.SubscriptionState) []query.Option {
 	queries := make([]query.Option, 0, len(user.Subscriptions))
 	// Work out what query to use based on the state filter.
-	states := user.GetAllSubscriptionStates()
+	if len(states) == 0 {
+		states = slices.Collect(maps.Values(user.GetAllSubscriptionStates()))
+	}
 	switch view {
 	case models.ViewRead:
 		for _, state := range states {

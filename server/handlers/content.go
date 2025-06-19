@@ -32,7 +32,7 @@ func GenerateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) fu
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			filters := models.FiltersFromCtx(ctx)
-			articles, pagination, resp := filterArticles(req.Context(), api, &filters)
+			articles, pagination, resp := filterArticlesBySubscriptions(req.Context(), api, &filters, subIDs...)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
@@ -69,7 +69,7 @@ func PaginateArticleCollection(api FeedsAPI, subIDs ...models.SubscriptionID) fu
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
-			articles, pagination, resp := filterArticles(req.Context(), api, &filters)
+			articles, pagination, resp := filterArticlesBySubscriptions(req.Context(), api, &filters, subIDs...)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
