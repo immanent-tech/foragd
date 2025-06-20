@@ -577,7 +577,7 @@ func RemoveSubscription(api models.DocumentsAPI, subscriptionID models.Subscript
 				slogctx.FromCtx(ctx).Debug("Subscription removal confirmed.",
 					slog.String("subscription_id", subscriptionID),
 				)
-				if resp := removeSubscriptions(ctx, api, subscriptionID); resp != nil {
+				if resp := models.Unsubscribe(ctx, api, subscriptionID); resp != nil {
 					ProcessResponse(res, req.WithContext(ctx), resp)
 					return
 				}

@@ -22,6 +22,7 @@ type SubscriptionsAPI interface {
 	AddSubscriptionCustomisations(ctx context.Context, customisations ...*SubscriptionCustomisation) (map[SubscriptionID]*bulk.OperationResponse, error)
 	SearchSubscriptionCustomisations(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (SubscriptionCustomisations, Pagination, error)
 	UpdateSubscriptionCustomisation(ctx context.Context, edits *SubscriptionEdit) error
+	DeleteSubscriptionCustomisations(ctx context.Context, subscriptionIDs ...SubscriptionID) error
 }
 
 // FeedsAPI contains methods for manipulating feed data.

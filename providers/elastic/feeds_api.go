@@ -57,7 +57,7 @@ func (a *API) MultiSearch(ctx context.Context, feedsSearch, itemsSearch *query.M
 	req := NewMSearchRequest(a.GetAPI(),
 		WithSearch[*msearch.Msearch](subscriptionsIndex, feedsSearch),
 		WithSearch[*msearch.Msearch](itemsIndex, itemsSearch),
-		WithRequestID[*msearch.Msearch, SearchRequestCommon[*msearch.Msearch]](middleware.GetReqID(ctx)),
+		WithRequestID[*msearch.Msearch, RequestCommon[*msearch.Msearch]](middleware.GetReqID(ctx)),
 	)
 
 	resp, err := req.Do(ctx)

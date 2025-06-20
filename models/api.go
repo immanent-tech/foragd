@@ -6,7 +6,11 @@ package models
 import (
 	"context"
 	"errors"
+	"log/slog"
+	"maps"
 	"slices"
+
+	slogctx "github.com/veqryn/slog-context"
 )
 
 var ErrNoSubscriptionCustomisation = errors.New("no subscription customisation found")
@@ -39,6 +43,34 @@ func GetSubscriptionCustomisation(ctx context.Context, api SubscriptionsAPI, id 
 		SubscriptionID: state.GetID(),
 		UserID:         user.GetID(),
 	}, nil
+}
+
+func Unsubscribe(ctx context.Context, api DocumentsAPI, ids ...SubscriptionID) *Response {
+	if len(ids) == 0 {
+		return nil
+	}
+	user, found := UserFromCtx(ctx)
+	if !found {
+		return RespErrUnauthorized()
+	}
+
+	// Remove any subscription customisations. This is non-critical.
+	if err := api.DeleteSubscriptionCustomisations(ctx, ids...); err != nil {
+		slogctx.FromCtx(ctx).Warn("Unable to delete user subscription customisations.",
+			slog.Any("error", err),
+		)
+	}
+	// Remove states for given subscriptions from user.
+	states := user.GetAllSubscriptionStates()
+	for id := range states {
+		if slices.Contains(ids, id) {
+			delete(states, id)
+		}
+	}
+	// Update the user.
+	return api.UpdateUser(ctx, map[string]any{
+		"subscriptions": slices.Collect(maps.Values(states)),
+	})
 }
 
 // func UpdateSubscriptionCustomisation(ctx context.Context, api DocumentsAPI, edits *SubscriptionEdit) error {

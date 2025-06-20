@@ -14,6 +14,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
 var (
@@ -21,20 +22,42 @@ var (
 	ErrRequestFailed = errors.New("request failed")
 )
 
-type SearchRequestCommon[T any] interface {
-	Index(index string) T
+type RequestCommon[T any] interface {
 	Header(key string, value string) T
 }
 
-type SearchRequest[T any] interface {
-	SearchRequestCommon[T]
+type RequestWithQuery[T any] interface {
 	Query(query types.QueryVariant) T
+}
+
+type SearchRequest[T any] interface {
+	RequestCommon[T]
+	RequestWithQuery[T]
+	Index(index string) T
 	Aggregations(aggregations map[string]types.Aggregations) T
 }
 
 type MSearchRequest[T any] interface {
-	SearchRequestCommon[T]
+	RequestCommon[T]
 	AddSearch(header types.MultisearchHeader, body types.MultisearchBody) error
+}
+
+// WithQueryOptions option applies the given query options to the request.
+func WithQueryOptions[T any, R RequestWithQuery[T]](options ...query.Option) Option[R] {
+	return func(req R) {
+		if query := query.Build(options...); query != nil {
+			req.Query(query)
+		}
+	}
+}
+
+// WithRequestID option sets the appropriate request ID header to the given value in the request.
+func WithRequestID[T any, V RequestCommon[T]](id string) Option[V] {
+	return func(t V) {
+		if id != "" {
+			t.Header(ReqIDHeader, id)
+		}
+	}
 }
 
 // var (

@@ -413,24 +413,6 @@ func getItemTopCategories(ctx context.Context, api models.DocumentsAPI, feeds ..
 	return topCategories.BucketNames(), nil
 }
 
-func removeSubscriptions(ctx context.Context, api models.DocumentsAPI, subscriptions ...models.SubscriptionID) *models.Response {
-	return nil
-	// if len(subscriptions) == 0 {
-	// 	return nil
-	// }
-	// user, found := models.UserFromCtx(ctx)
-	// if !found {
-	// 	return models.RespInvalidUser()
-	// }
-	// // Add the subscriptions to the user.
-	// user.RemoveSubscriptions(subscriptions...)
-	// // Update the user object.
-	// return api.UpdateUser(ctx, user.GetID(), map[string]any{
-	// 	"subscriptions": user.Subscriptions,
-	// 	"updated_at":    time.Now().UTC(),
-	// })
-}
-
 func markSubscriptions(ctx context.Context, api models.DocumentsAPI, mark models.Mark, subIDs ...models.SubscriptionID) *models.Response {
 	user, found := models.UserFromCtx(ctx)
 	if !found {

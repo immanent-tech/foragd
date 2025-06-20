@@ -6,10 +6,12 @@ package elastic
 import (
 	"encoding/json"
 	"log/slog"
+	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/create"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/delete"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/exists"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/update"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
@@ -103,4 +105,25 @@ func NewDocCreateRequest(api *typedapi.API, index, id string, doc any, refreshVa
 // NewExistsRequest creates a new document delete request.
 func NewDocDeleteRequest(api *typedapi.API, index, id string, refreshValue refresh.Refresh) *delete.Delete {
 	return api.Delete(index, id).Refresh(refreshValue)
+}
+
+// NewDeleteByQueryRequest creates a new delete by query request that will operate on the given index with the given
+// options.
+func NewDeleteByQueryRequest(api *typedapi.API, index string, options ...any) *deletebyquery.DeleteByQuery {
+	req := api.DeleteByQuery(index)
+
+	for option := range slices.Values(options) {
+		switch value := option.(type) {
+		case Option[RequestCommon[*deletebyquery.DeleteByQuery]]:
+			value(req)
+		case Option[RequestWithQuery[*deletebyquery.DeleteByQuery]]:
+			value(req)
+		case Option[*deletebyquery.DeleteByQuery]:
+			value(req)
+		default:
+			slog.Warn("ignoring option")
+		}
+	}
+
+	return req
 }

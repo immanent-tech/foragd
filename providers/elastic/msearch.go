@@ -35,20 +35,12 @@ func WithSearch[V MSearchRequest[*msearch.Msearch]](index string, searchOptions 
 	}
 }
 
-func WithRequestID[T any, V SearchRequestCommon[T]](id string) Option[V] {
-	return func(t V) {
-		if id != "" {
-			t.Header(ReqIDHeader, id)
-		}
-	}
-}
-
 func NewMSearchRequest(api *typedapi.API, options ...any) *msearch.Msearch {
 	req := api.Msearch()
 
 	for option := range slices.Values(options) {
 		switch value := option.(type) {
-		case Option[SearchRequestCommon[*msearch.Msearch]]:
+		case Option[RequestCommon[*msearch.Msearch]]:
 			value(req)
 		case Option[*msearch.Msearch]:
 			value(req)

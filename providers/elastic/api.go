@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 	"github.com/go-chi/chi/v5/middleware"
@@ -211,6 +212,21 @@ func (e *API) UpdateSubscriptionCustomisation(ctx context.Context, edits *models
 	return nil
 }
 
+func (e *API) DeleteSubscriptionCustomisations(ctx context.Context, ids ...models.SubscriptionID) error {
+	index := SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return ErrFetchCtx
+	}
+
+	err := DeleteDocs(ctx, e.GetAPI(), index,
+		query.Terms("subscription_id", ids...),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to delete subscription customisations: %w", err)
+	}
+	return nil
+}
+
 // MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).
 func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 	index := FeedsIndexFromCtx(ctx)
@@ -382,6 +398,23 @@ func SearchDocs[O any](ctx context.Context, api *typedapi.API, index string, que
 	}
 
 	return docs, "", nil
+}
+
+// DeleteDocs performs a delete by query request on the given index to delete documents matching the given queries.
+func DeleteDocs(ctx context.Context, api *typedapi.API, index string, queries ...query.Option) error {
+	resp, err := NewDeleteByQueryRequest(api, index,
+		WithRequestID[*deletebyquery.DeleteByQuery, RequestCommon[*deletebyquery.DeleteByQuery]](middleware.GetReqID(ctx)),
+		WithQueryOptions[*deletebyquery.DeleteByQuery, RequestWithQuery[*deletebyquery.DeleteByQuery]](queries...),
+	).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+	if resp != nil {
+		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Delete documents.",
+			slog.Int64("count", *resp.Deleted),
+		)
+	}
+	return nil
 }
 
 func parseError(err error) *models.Response {
