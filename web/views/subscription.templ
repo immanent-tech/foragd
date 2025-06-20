@@ -310,8 +310,8 @@ templ ImportResults(results map[*models.SubscriptionRequest]*models.UserMessage)
 			<tbody>
 				for _, response := range results {
 					<tr>
-						<td>{ string(response.Status) }</td>
-						<td>{ response.String() }</td>
+						<td class="capitalize">{ string(response.Status) }</td>
+						<td>{ response.Summary }</td>
 					</tr>
 				}
 			</tbody>

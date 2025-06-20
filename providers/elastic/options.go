@@ -12,24 +12,24 @@ type hasIndexOption[T any] interface {
 	Index(value string) T
 }
 
-// WithIndex option specifies the index (or index pattern) to use.
-func WithIndex[T hasIndexOption[T]](value string) Option[T] {
-	return func(req T) {
-		req = req.Index(value)
-	}
-}
+// // WithIndex option specifies the index (or index pattern) to use.
+// func WithIndex[T hasIndexOption[T]](value string) Option[T] {
+// 	return func(req T) {
+// 		req = req.Index(value)
+// 	}
+// }
 
 // hasIDsOption represents requests that have an option to set the doc IDs.
 type hasIDsOption[T any] interface {
 	Ids(ids ...string) T
 }
 
-// WithIDs option retrieves the documents with the given IDs.
-func WithIDs[T hasIDsOption[T]](ids ...string) Option[T] {
-	return func(req T) {
-		req = req.Ids(ids...)
-	}
-}
+// // WithIDs option retrieves the documents with the given IDs.
+// func WithIDs[T hasIDsOption[T]](ids ...string) Option[T] {
+// 	return func(req T) {
+// 		req = req.Ids(ids...)
+// 	}
+// }
 
 // hasSourceOption represents requests that have an option to fetch the source
 // (or particular fields from the source).

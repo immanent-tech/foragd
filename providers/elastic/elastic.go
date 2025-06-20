@@ -30,10 +30,17 @@ type RequestWithQuery[T any] interface {
 	Query(query types.QueryVariant) T
 }
 
+type RequestWithIDs[T any] interface {
+	Ids(id ...string) T
+}
+
+type RequestWithIndex[T any] interface {
+	Index(index string) T
+}
+
 type SearchRequest[T any] interface {
 	RequestCommon[T]
 	RequestWithQuery[T]
-	Index(index string) T
 	Aggregations(aggregations map[string]types.Aggregations) T
 }
 
@@ -57,6 +64,21 @@ func WithRequestID[T any, V RequestCommon[T]](id string) Option[V] {
 		if id != "" {
 			t.Header(ReqIDHeader, id)
 		}
+	}
+}
+
+// WithRequestID option sets the appropriate request ID header to the given value in the request.
+func WithIndex[T any, V RequestWithIndex[T]](index string) Option[V] {
+	return func(t V) {
+		if index != "" {
+			t.Index(index)
+		}
+	}
+}
+
+func WithIDs[T any, V RequestWithIDs[T]](ids ...string) Option[V] {
+	return func(v V) {
+		v.Ids(ids...)
 	}
 }
 

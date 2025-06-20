@@ -14,6 +14,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/exists"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/update"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 )
@@ -140,6 +141,22 @@ func NewGetRequest(api *typedapi.API, index, id string, options ...any) *get.Get
 		default:
 			slog.Warn("ignoring option")
 		}
+	}
+
+	return req
+}
+
+type MgetRequest interface {
+	RequestCommon[*mget.Mget]
+	RequestWithIDs[*mget.Mget]
+	RequestWithIndex[*mget.Mget]
+}
+
+// NewMGetRequest creates a new mget object with the given options.
+func NewMGetRequest(api *typedapi.API, options ...Option[MgetRequest]) *mget.Mget {
+	req := api.Mget()
+	for option := range slices.Values(options) {
+		option(req)
 	}
 
 	return req

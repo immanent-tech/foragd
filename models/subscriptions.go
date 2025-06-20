@@ -4,9 +4,12 @@
 package models
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -124,6 +127,66 @@ func (s *Subscription) IsUnread() bool {
 }
 
 type Subscriptions []*Subscription
+
+func (s Subscriptions) FilterByCategories(categories ...Category) Subscriptions {
+	if len(categories) == 0 {
+		return s
+	}
+	return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+		for category := range slices.Values(categories) {
+			return slices.Contains(subscription.GetCategories(), category)
+		}
+		return false
+	}))
+}
+
+func (s Subscriptions) FilterByView(view View) Subscriptions {
+	switch view {
+	case ViewRead:
+		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+			return !subscription.IsUnread()
+		}))
+	case ViewUnread:
+		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
+			return subscription.IsUnread()
+		}))
+	default:
+		return s
+	}
+}
+
+func (s Subscriptions) Sort(sort Sort) Subscriptions {
+	switch sort.SortBy {
+	case SortByLastUpdated:
+		slices.SortFunc(s, func(a, b *Subscription) int {
+			return a.GetUpdatedDate().Compare(b.GetUpdatedDate())
+		})
+	case SortByUnreadCount:
+		slices.SortFunc(s, func(a, b *Subscription) int {
+			cmpValue := cmp.Compare(a.GetUnreadCount(), b.GetUnreadCount())
+			if cmpValue == 0 {
+				return a.GetUpdatedDate().Compare(b.GetUpdatedDate())
+			}
+			return cmpValue
+		})
+	}
+	if sort.SortOrder == SortOrderDesc {
+		slices.Reverse(s)
+	}
+	return s
+}
+
+func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions, Pagination) {
+	var from, to int
+	if pagination != "" {
+		if value, err := strconv.Atoi(pagination); err == nil {
+			from = value
+		}
+	}
+	to = min(from+count, len(s))
+	pagination = strconv.Itoa(to)
+	return s[from:to], pagination
+}
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
@@ -303,6 +366,12 @@ func (s *SubscriptionState) Valid() (bool, error) {
 
 // SubscriptionStates is a map of subscription states by either subscription or feed id.
 type SubscriptionStates[T comparable] map[T]*SubscriptionState
+
+func FilterStatesByID[T comparable](states map[T]*SubscriptionState, ids ...SubscriptionID) map[T]*SubscriptionState {
+	return maps.Collect(FilterMap(states, func(_ T, state *SubscriptionState) bool {
+		return slices.Contains(ids, state.GetID())
+	}))
+}
 
 // GetIDsFromStates retrieves the subscription ids from the map of subscription states.
 func GetIDsFromStates[T comparable](states SubscriptionStates[T]) []SubscriptionID {

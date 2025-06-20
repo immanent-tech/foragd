@@ -108,7 +108,7 @@ func GenerateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.Su
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
-			subscriptions, pagination, resp := filterSubscriptions(req.Context(), api, &filters)
+			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, &filters)
 			if resp != nil && !resp.IsNotFound() {
 				ProcessResponse(res, req, resp)
 				return
@@ -145,7 +145,7 @@ func PaginateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.Su
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			filters := models.FiltersFromCtx(req.Context())
-			subscriptions, pagination, resp := filterSubscriptions(req.Context(), api, &filters)
+			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, &filters)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
@@ -708,7 +708,7 @@ func GenerateDrawerContent(api models.DocumentsAPI) func(next http.Handler) http
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			slogctx.FromCtx(req.Context()).Debug("Getting subscription data for drawer.")
-			subscriptions, resp := getSubscriptions(req.Context(), api)
+			subscriptions, resp := models.GetSubscriptions(req.Context(), api)
 			if resp != nil {
 				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.Error()))
 			} else {

@@ -16,6 +16,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 	"github.com/go-chi/chi/v5/middleware"
@@ -322,8 +323,10 @@ func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index str
 	}
 
 	resp, err := NewMGetRequest(api,
-		GetFromIndex(index),
-		GetIDs(docIDs...)).Do(ctx)
+		WithRequestID[*mget.Mget, MgetRequest](middleware.GetReqID(ctx)),
+		WithIndex[*mget.Mget, MgetRequest](index),
+		WithIDs[*mget.Mget, MgetRequest](docIDs...),
+	).Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrGetFailed, err)
 	}
