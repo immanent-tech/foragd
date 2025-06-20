@@ -26,7 +26,7 @@ type CronTrigger struct {
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
 	// FeedID is the unique ID of a feed.
-	FeedID externalRef0.FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID externalRef0.FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// URL is a URL.
 	URL externalRef0.URL `json:"url" validate:"url"`

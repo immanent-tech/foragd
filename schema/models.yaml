@@ -72,6 +72,7 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'required,startswith=feed_'
         json: 'feed_id'
+        form: 'feed_id'
     ItemID:
       description: is the unique ID of an item.
       type: string
@@ -79,14 +80,15 @@ components:
       x-oapi-codegen-extra-tags:
         validate: 'required,startswith=item_'
         json: 'item_id'
+        form: 'item_id'
     SubscriptionID:
       description: is the unique ID of a subscription.
       type: string
       x-go-name: SubscriptionID
       x-oapi-codegen-extra-tags:
         validate: 'required,startswith=sub_'
-        form: 'subscription_id'
         json: 'subscription_id'
+        form: 'subscription_id'
     UserID:
       description: is the unique ID of a user.
       type: string
@@ -94,6 +96,7 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'user_id'
         validate: 'required'
+        form: 'user_id'
     Category:
       description: >
         represents a taxonomy applied to an object.

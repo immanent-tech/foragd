@@ -133,6 +133,7 @@ func userComponentTemplate() types.IndexState {
 
 func subscriptionCustomisationMappings() map[string]types.Property {
 	return map[string]types.Property{
+		"updated_at":      types.NewDateNanosProperty(),
 		"user_id":         types.NewKeywordProperty(),
 		"subscription_id": types.NewKeywordProperty(),
 		"feed_id":         types.NewKeywordProperty(),

@@ -93,7 +93,7 @@ type Feed struct {
 	Description string `json:"description"`
 
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// Image is an abstraction of an Image across different types of specifications.
 	Image    *externalRef0.Image `json:"image,omitempty"`
@@ -149,7 +149,7 @@ type Item struct {
 	Description string `json:"description"`
 
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// FeedTitle is the title of the feed to which this item belongs.
 	FeedTitle string `json:"feed_title" validate:"required"`
@@ -158,7 +158,7 @@ type Item struct {
 	Image *externalRef0.Image `json:"image,omitempty"`
 
 	// ItemID is the unique ID of an item.
-	ItemID   ItemID `json:"item_id" validate:"required,startswith=item_"`
+	ItemID   ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
 	Language string `json:"language,omitempty"`
 
 	// Published is the datetime at which the feed or item was published.
@@ -269,7 +269,7 @@ type Subscription struct {
 	UnreadCount int `json:"-" validate:"gte=0"`
 
 	// UserID is the unique ID of a user.
-	UserID UserID `json:"user_id" validate:"required"`
+	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
 }
 
 // SubscriptionCustomisation defines model for SubscriptionCustomisation.
@@ -278,7 +278,7 @@ type SubscriptionCustomisation struct {
 	Categories []Category `form:"user_categories[]" json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -287,7 +287,7 @@ type SubscriptionCustomisation struct {
 	Title string `form:"user_nickname" json:"title,omitempty" validate:"omitempty"`
 
 	// UserID is the unique ID of a user.
-	UserID UserID `json:"user_id" validate:"required"`
+	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
@@ -296,7 +296,7 @@ type SubscriptionID = string
 // SubscriptionState contains all details that define a user subscription.
 type SubscriptionState struct {
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// ItemStates contains the states of items marked explicitly as read/unread/saved by the user.
 	ItemStates map[ItemID]ObjectState `json:"item_states,omitempty"`
@@ -344,7 +344,7 @@ type User struct {
 	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
 	// UserID is the unique ID of a user.
-	UserID UserID `json:"user_id" validate:"required"`
+	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
 }
 
 // UserID is the unique ID of a user.

@@ -350,14 +350,14 @@ func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, sub
 
 // SaveSubscription handles saving any edits to a user's subscription.
 func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, _ models.SubscriptionID) {
-	subscriptionEdits, valid, err := forms.DecodeForm[*models.SubscriptionCustomisation](req)
+	edits, valid, err := forms.DecodeForm[*models.SubscriptionEdit](req)
 	if err != nil || !valid {
 		handlers.ProcessResponse(res, req, models.RespErrBackend(err))
 		return
 	}
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.SaveSubscription(s.DataAPI(), subscriptionEdits),
+		handlers.SaveSubscription(s.DataAPI(), edits),
 	).Then(handlers.RenderContentPartials())
 	chain.ServeHTTP(res, req)
 }

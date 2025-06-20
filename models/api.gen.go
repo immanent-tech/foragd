@@ -89,7 +89,7 @@ type Count = string
 // FeedState tracks the state of a feed.
 type FeedState struct {
 	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// URL is a URL.
 	URL URL `json:"url" validate:"url"`
@@ -185,20 +185,11 @@ type SubscriptionEdit struct {
 	// Categories is a custom list of categories for an object.
 	Categories []Category `form:"user_categories[]" json:"categories,omitempty" validate:"omitempty,unique"`
 
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `json:"feed_id" validate:"required,startswith=feed_"`
-
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 
 	// Title is a friendly name or nickname for an object.
 	Title string `form:"user_nickname" json:"title,omitempty" validate:"omitempty"`
-
-	// TopCategories - contains the top categories from items in the subscription.
-	TopCategories []Category `json:"top_categories,omitempty"`
-
-	// UserID is the unique ID of a user.
-	UserID UserID `json:"user_id" validate:"required"`
 }
 
 // SubscriptionRequest represents a request to create a subscription.

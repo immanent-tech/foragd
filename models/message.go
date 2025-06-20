@@ -26,22 +26,24 @@ func (msg *UserMessage) String() string {
 	return str.String()
 }
 
-// CSVString writes the message out in a format suitable as a record in a CSV file.
-func (msg *UserMessage) CSVString() string {
-	if msg == nil {
-		return ""
+func SuccessUserMessage(summary string, details *string) *UserMessage {
+	msg := &UserMessage{
+		Status:  UserMessageStatusSuccess,
+		Summary: summary,
 	}
-	csv := fmt.Sprintf(`%s,%q`, msg.Status, msg.Summary)
-	if msg.Details != nil {
-		csv += fmt.Sprintf(`,%q`, *msg.Details)
-	} else {
-		csv += `,""`
+	if details != nil {
+		msg.Details = details
 	}
-	return csv + "\n"
+	return msg
 }
 
-// Error returns an error string representing the Message. This allows Message to satisfy the Error interface and be
-// used as an error.
-func (msg *UserMessage) Error() string {
-	return msg.String()
+func FailedUserMessage(summary string, details *string) *UserMessage {
+	msg := &UserMessage{
+		Status:  UserMessageStatusError,
+		Summary: summary,
+	}
+	if details != nil {
+		msg.Details = details
+	}
+	return msg
 }

@@ -166,20 +166,13 @@ components:
         represents subscription details for editing by the user.
       type: object
       allOf:
-        - $ref: 'models.yaml#/components/schemas/SubscriptionCustomisation'
+        - $ref: 'models.yaml#/components/schemas/ObjectCustomisation'
         - type: object
           required:
             - subscription_id
           properties:
             subscription_id:
               $ref: 'models.yaml#/components/schemas/SubscriptionID'
-            top_categories:
-              description: >
-                - contains the top categories from items in the subscription.
-              type: array
-              items:
-                $ref: 'models.yaml#/components/schemas/Category'
-              x-go-type-skip-optional-pointer: true
     SubscriptionRequest:
       description: >
         represents a request to create a subscription.

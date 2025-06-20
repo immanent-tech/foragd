@@ -59,9 +59,6 @@ const (
 
 type contextKey string
 
-type UserBackendAPI interface {
-	Create(ctx context.Context, details *models.UserSignupRequest) (string, error)
-}
 
 // AuthAPI represents the API surface for interacting with the auth backend.
 type AuthAPI interface {

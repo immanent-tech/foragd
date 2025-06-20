@@ -9,7 +9,6 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 
-	"github.com/joshuar/go-feed-me/models/feeds/types"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
@@ -22,7 +21,7 @@ type SubscriptionsAPI interface {
 	GetSubscriptionCustomisations(ctx context.Context, subscriptionIDs ...SubscriptionID) (SubscriptionCustomisations, error)
 	AddSubscriptionCustomisations(ctx context.Context, customisations ...*SubscriptionCustomisation) (map[SubscriptionID]*bulk.OperationResponse, error)
 	SearchSubscriptionCustomisations(ctx context.Context, query query.Option, count int, sort *Sort, pagination *Pagination) (SubscriptionCustomisations, Pagination, error)
-	UpdateSubscriptionCustomisation(ctx context.Context, id SubscriptionID, partialUpdate map[string]any) error
+	UpdateSubscriptionCustomisation(ctx context.Context, edits *SubscriptionEdit) error
 }
 
 // FeedsAPI contains methods for manipulating feed data.
@@ -54,16 +53,7 @@ type DocumentsAPI interface {
 	MultiSearch(ctx context.Context, feedsQuery, itemsQuery *query.MSearchOptions) (Feeds, Items, error)
 }
 
-// Source represents a single source of data. This might be an individual feed or item.
-type Source interface {
-	types.ObjectCommon
-	GetID() string
-	GetFeedID() FeedID
-	IsUnread() bool
-}
-
-// SourceWithContent is a source that has its content embedded.
-type SourceWithContent interface {
-	Source
-	GetContent() string
+// UserBackendAPI contains the methods for creating users on an auth backend.
+type UserBackendAPI interface {
+	Create(ctx context.Context, details *UserSignupRequest) (string, error)
 }

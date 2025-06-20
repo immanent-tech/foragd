@@ -383,7 +383,7 @@ func MatchFeedsToSubscriptionRequests(api models.DocumentsAPI) func(next http.Ha
 						slog.String("subscription", request.String()),
 						slog.String("feed", newFeed.String()),
 					)
-				case user.IsSubscribed(feed.GetID()): // user already subscribed, ignore request.
+				case user.IsSubscribedToFeed(feed.GetID()): // user already subscribed, ignore request.
 					results[request] = &models.UserMessage{
 						Status:  models.UserMessageStatusWarning,
 						Summary: "Already subscribed to feed with URL: " + request.GetURL(),
@@ -622,47 +622,42 @@ func RemoveSubscription(api models.DocumentsAPI, subscriptionID models.Subscript
 func EditSubscription(api models.DocumentsAPI, subID models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Retrieve subscription.
-			subscriptions, resp := getSubscriptions(req.Context(), api, subID)
+			// Retrieve subscription customisation.
+			customisation, resp := models.GetSubscriptionCustomisation(req.Context(), api, subID)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
-			subscription := subscriptions[0]
-
-			request := &models.SubscriptionEdit{
-				SubscriptionID: subscription.GetID(),
-				Title:          subscription.GetTitle(),
-				Categories:     subscription.GetCategories(),
+			edit := &models.SubscriptionEdit{
+				SubscriptionID: customisation.GetID(),
+				Title:          customisation.Title,
+				Categories:     customisation.Categories,
 			}
-
-			// Add top categories across items in subscription.
-			categories, resp := getItemTopCategories(req.Context(), api, subscription.GetFeedID())
+			// Get top categories across items in subscription feed.
+			var topItemCategories []models.Category
+			categories, resp := getItemTopCategories(req.Context(), api, customisation.GetFeedID())
 			if resp == nil {
-				request.TopCategories = categories
+				topItemCategories = categories
 			}
-			ctx := context.WithValue(req.Context(), contentCtxKey, views.EditSubscriptionModal(request))
+			ctx := context.WithValue(req.Context(), contentCtxKey, views.EditSubscriptionModal(edit, topItemCategories, nil))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
 
 // SaveSubscription handles saving any user edits to an existing subscription.
-func SaveSubscription(api models.DocumentsAPI, edits *models.SubscriptionCustomisation) func(next http.Handler) http.Handler {
+func SaveSubscription(api models.DocumentsAPI, edits *models.SubscriptionEdit) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Add a new HTMX response writer to the context.
+			var msg *models.UserMessage
 			ctx := req.Context()
-			if err := api.UpdateSubscriptionCustomisation(ctx, edits.SubscriptionID, map[string]any{
-				"user_nickname":   edits.Title,
-				"user_categories": edits.Categories,
-			}); err != nil {
+			if err := api.UpdateSubscriptionCustomisation(ctx, edits); err != nil {
 				ProcessResponse(res, req,
 					models.NewResponse(http.StatusInternalServerError, fmt.Errorf("failed to update user: %w", err)))
-			}
-			msg := &models.UserMessage{
-				Status:  models.UserMessageStatusSuccess,
-				Summary: "Subscription updated.",
+				msg = models.FailedUserMessage("Failed to update the subscription.", nil)
+			} else {
+				msg = models.SuccessUserMessage("Subscription updated.", nil)
 			}
 			// Display a notification acknowledging save.
 			ctx = context.WithValue(req.Context(), contentCtxKey, partials.ShowNotification(msg))
@@ -768,7 +763,7 @@ func NewUserSignup(next http.Handler) http.Handler {
 	})
 }
 
-func ProcessUserSignup(userBackendAPI UserBackendAPI, userFrontendAPI models.DocumentsAPI, signupRequest *models.UserSignupRequest) func(next http.Handler) http.Handler {
+func ProcessUserSignup(userBackendAPI models.UserBackendAPI, userFrontendAPI models.DocumentsAPI, signupRequest *models.UserSignupRequest) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Create the user in the auth backend.

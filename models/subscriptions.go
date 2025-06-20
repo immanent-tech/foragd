@@ -317,6 +317,10 @@ func (s *SubscriptionCustomisation) GetID() SubscriptionID {
 	return s.SubscriptionID
 }
 
+func (s *SubscriptionCustomisation) GetFeedID() FeedID {
+	return s.FeedID
+}
+
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *SubscriptionCustomisation) Valid() (bool, error) {
@@ -349,5 +353,26 @@ func (c SubscriptionCustomisations) GetCustomisation(id SubscriptionID) *Subscri
 	}); idx != -1 {
 		return c[idx]
 	}
+	return nil
+}
+
+// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
+// (false) a non-nil error is also returned which contains validation issues.
+func (s *SubscriptionEdit) Valid() (bool, error) {
+	if valid, err := validation.ValidateStruct(s); err != nil || !valid {
+		return false, fmt.Errorf("subscription is invalid: %w", err)
+	}
+	return true, nil
+}
+
+// Sanitise will sanitise the user input for a SubscriptionCustomisation.
+func (s *SubscriptionEdit) Sanitise() error {
+	s.Title = validation.SanitizeString(s.Title)
+	categories := make([]Category, 0, len(s.Title))
+	for category := range slices.Values(s.Categories) {
+		category = validation.SanitizeString(category)
+		categories = append(categories, category)
+	}
+	s.Categories = categories
 	return nil
 }

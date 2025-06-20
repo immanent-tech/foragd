@@ -15,6 +15,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -167,18 +168,43 @@ func (e *API) GetSubscriptionCustomisations(ctx context.Context, ids ...models.S
 	return subscriptions, nil
 }
 
-func (e *API) UpdateSubscriptionCustomisation(ctx context.Context, id models.SubscriptionID, partialUpdate map[string]any) error {
+func (e *API) UpdateSubscriptionCustomisation(ctx context.Context, edits *models.SubscriptionEdit) error {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return models.RespErrUnauthorized()
+		return models.ErrInvalidID
 	}
-	index := UserIndexFromCtx(ctx)
+	index := SubscriptionsIndexFromCtx(ctx)
 	if index == "" {
-		return fmt.Errorf("could not update subscription: %w", ErrGetUserFailed)
+		return ErrFetchCtx
 	}
 
-	if err := UpdateDoc(ctx, e.GetAPI(), index, user.GetID(), partialUpdate); err != nil {
+	found, err := NewDocExistsRequest(e.GetAPI(), index, edits.SubscriptionID).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to update subscription: %w", err)
+	}
+	if !found {
+		state := user.GetSubscriptionState(edits.SubscriptionID)
+		customisation := &models.SubscriptionCustomisation{
+			SubscriptionID: edits.SubscriptionID,
+			FeedID:         state.GetFeedID(),
+			UserID:         user.GetID(),
+			Title:          edits.Title,
+			Categories:     edits.Categories,
+		}
+		_, err := NewDocCreateRequest(e.GetAPI(), index, edits.SubscriptionID, customisation, refresh.True).Do(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to update subscription: %w", err)
+		}
+		return nil
+	}
+
+	updates := map[string]any{
+		"title":      edits.Title,
+		"categories": edits.Categories,
+	}
+
+	if err := UpdateDoc(ctx, e.GetAPI(), index, edits.SubscriptionID, updates); err != nil {
 		return &models.Response{StatusCode: http.StatusInternalServerError, InternalError: err}
 	}
 

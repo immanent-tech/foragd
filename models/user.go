@@ -49,6 +49,16 @@ func (u *User) GetSettings() *UserSettings {
 	return u.Settings
 }
 
+// GetSubscriptionState returns the subscription state matching the given id.
+func (u *User) GetSubscriptionState(id SubscriptionID) *SubscriptionState {
+	for state := range slices.Values(u.Subscriptions) {
+		if state.GetID() == id {
+			return &state
+		}
+	}
+	return nil
+}
+
 // GetAllSubscriptionStates returns a map of subscription states by subscription id.
 func (u *User) GetAllSubscriptionStates() map[SubscriptionID]*SubscriptionState {
 	return SliceToMap(u.Subscriptions, func(s SubscriptionState) (SubscriptionID, *SubscriptionState) {
@@ -83,10 +93,20 @@ func (u *User) FilterSubscriptionStatesByFeed(ids ...FeedID) map[FeedID]*Subscri
 	})
 }
 
-// IsSubscribed returns a boolean indicating whether the user has a subscription to the feed with the given feed id.
-func (u *User) IsSubscribed(feedID FeedID) bool {
+// IsSubscribedToFeed returns a boolean indicating whether the user has a subscription to the feed with the given feed id.
+func (u *User) IsSubscribedToFeed(feedID FeedID) bool {
 	for state := range slices.Values(u.Subscriptions) {
 		if state.GetFeedID() == feedID {
+			return true
+		}
+	}
+	return false
+}
+
+// HasSubscription returns a boolean indicating whether the user has a subscription with the given id.
+func (u *User) HasSubscription(id SubscriptionID) bool {
+	for state := range slices.Values(u.Subscriptions) {
+		if state.GetID() == id {
 			return true
 		}
 	}

@@ -75,3 +75,10 @@ func RespInvalidInput() *Response {
 		InternalError: ErrInvalidInput,
 	}
 }
+
+func RespNotFound(err error) *Response {
+	return &Response{
+		StatusCode:    http.StatusNotFound,
+		InternalError: err,
+	}
+}

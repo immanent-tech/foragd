@@ -11,7 +11,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
-	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/avatar"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
@@ -181,15 +180,11 @@ func GenerateArticleCards(ctx context.Context, articles models.Articles) []templ
 				card.WithActions(
 					buildCardActionsMenu(
 						// Share article action.
-						partials.LinkWithIcon(tabler.Share(i.Props{Size: i.SizeXS}), "Share", nil, []string{"text-xs"}),
+						shareArticleLink(),
 						// Visit external article link action.
-						partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
-							"External Link",
-							templ.Attributes{"href": article.GetLink()},
-							[]string{"text-xs"},
-						),
+						visitArticleLink(article.GetLink()),
 						// Mark article action.
-						markArticleAction(article.GetFeedID(), article.GetID(), article.State.IsRead()),
+						markArticleLink(article.GetID(), article.State.IsRead()),
 					),
 				),
 			),
@@ -318,23 +313,6 @@ func MarkAllSubscriptionsAction(ctx context.Context) templ.Component {
 	}
 }
 
-func markArticleAction(feedID models.FeedID, itemID models.ItemID, isUnread bool) templ.Component {
-	// Set up htmx attributes for action.
-	attributes := templ.Attributes{
-		"hx-swap":        "morph:outerHTML",
-		"hx-target":      "#" + itemID,
-		"hx-replace-url": "false",
-		"_":              TriggerSubscriptionListUpdateHS,
-	}
-
-	if isUnread {
-		attributes["hx-post"] = "/article/" + string(models.MarkRead) + "/" + itemID
-		return markReadLink("Mark Read", attributes)
-	}
-	attributes["hx-post"] = "/article/" + string(models.MarkUnread) + "/" + itemID
-	return markUnreadLink("Mark Unread", attributes)
-}
-
 // MarkAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
 // depending on the current view.
 func MarkAllArticlesAction(ctx context.Context, subIDs ...models.SubscriptionID) templ.Component {
@@ -377,38 +355,6 @@ templ markUnreadLink(label string, attributes templ.Attributes) {
 		attributes,
 		[]string{"text-xs"},
 	)
-}
-
-// Show renders an item as an article.
-templ BuildArticleLayout(art *models.Article) {
-	@article.Build(
-		article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2", "overflow-scroll"),
-		article.WithExtraAttributes(templ.Attributes{
-			"hx-post":     "/article/read/" + art.GetID(),
-			"hx-swap":     "none",
-			"hx-push-url": "false",
-			"hx-trigger":  "load delay:2s",
-		}),
-	).Show() {
-		<h2>
-			@text.Build(art.GetTitle(),
-				text.WithWeight(text.Semibold),
-				text.WithSize(text.LG),
-			).Show("flex-1")
-		</h2>
-		@showDetails(art.GetAuthors(), art.GetUpdatedDate())
-		// Display the categories associated with the article.
-		for category := range slices.Values(art.GetCategories()) {
-			@badge.Build(
-				badge.WithStyle(badge.Ghost),
-				badge.WithSize(badge.XS),
-				badge.WithContent(category),
-				badge.WithExtraClasses("capitalize", "w-fit-content"),
-			).Show()
-		}
-		// Display the article content.
-		@showContent(art)
-	}
 }
 
 templ showDescription(desc string) {

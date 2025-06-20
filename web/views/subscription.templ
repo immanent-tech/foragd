@@ -22,19 +22,22 @@ import (
 	"slices"
 )
 
-templ EditSubscriptionModal(request *models.SubscriptionEdit) {
+templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []models.Category, msg *models.UserMessage) {
 	@modal.Build(
 		modal.WithID(partials.ModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
 	).Show() {
 		@text.Build("Edit Subscription", text.WithSize(text.LG)).Show()
+		if msg != nil {
+			@partials.Alert(msg, nil)
+		}
 		// Display the Subscription details.
 		@form.Build(
 			form.WithID("subscription-details"),
 			form.WithExtraAttributes(
 				templ.Attributes{
-					"hx-put":       "/subscription/edit/" + request.SubscriptionID,
+					"hx-put":       "/subscription/edit/" + edits.SubscriptionID,
 					"hx-swap":      "none",
 					"hx-indicator": "#add-processing",
 				},
@@ -44,13 +47,13 @@ templ EditSubscriptionModal(request *models.SubscriptionEdit) {
 					fieldset.WithField("",
 						hiddeninput.Build(
 							hiddeninput.WithName("subscription_id"),
-							hiddeninput.WithValue(request.SubscriptionID),
+							hiddeninput.WithValue(edits.SubscriptionID),
 						),
 					),
 					fieldset.WithField("Nickname (optional)",
 						textinput.Build(
 							textinput.WithName("user_nickname"),
-							textinput.WithValue(request.Title),
+							textinput.WithValue(edits.Title),
 							textinput.WithPlaceholder("My memorable feed name"),
 							textinput.Required(),
 						),
@@ -58,7 +61,7 @@ templ EditSubscriptionModal(request *models.SubscriptionEdit) {
 				).Show(),
 			),
 		).Show()
-		@editCategories(request.Categories, request.TopCategories)
+		@editCategories(edits.Categories, topCategories)
 		// Add a button to submit the Subscription details when finished editing.
 		@fieldset.Build(
 			fieldset.WithField("",
