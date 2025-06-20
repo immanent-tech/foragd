@@ -15,6 +15,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 	"github.com/go-chi/chi/v5/middleware"
@@ -244,6 +245,21 @@ func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 	return nil
 }
 
+// GetUser fetches the user record from Elasticsearch.
+func (e *API) GetUser(ctx context.Context, userID models.UserID) (*models.User, error) {
+	index := UserIndexFromCtx(ctx)
+	if index == "" {
+		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
+	}
+
+	user, err := GetDoc[models.UserID, *models.User](ctx, e.GetAPI(), index, userID)
+	if err != nil {
+		return nil, fmt.Errorf("get user failed: %w", err)
+	}
+
+	return user, nil
+}
+
 // UpdateUser performs a partial update of the user object. On an error, a non-nil response is returned.
 func (a *API) UpdateUser(ctx context.Context, updates map[string]any) *models.Response {
 	// Retrieve user object.
@@ -317,6 +333,24 @@ func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index str
 			slog.Any("warnings", warnings))
 	}
 	return objects, nil
+}
+
+// GetDoc retrieves the doc with the given id from the given index. A non-nil error is returned on a failure.
+func GetDoc[T ~string, O any](ctx context.Context, api *typedapi.API, index string, id T) (O, error) {
+	var doc O
+	resp, err := NewGetRequest(api, index, string(id),
+		WithRequestID[*get.Get, RequestCommon[*get.Get]](middleware.GetReqID(ctx)),
+	).Do(ctx)
+	if err != nil {
+		return doc, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+
+	doc, err = ExtractSource[O](resp.Source_)
+	if err != nil {
+		return doc, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+
+	return doc, nil
 }
 
 // UpdateDoc performs a partial doc update on the document with the given id in the given index. A non-nil error is

@@ -5,7 +5,6 @@ package elastic
 
 import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
@@ -23,16 +22,16 @@ func WithGetDocID(id string) MGetOperationOption {
 	}
 }
 
-// GetDoc creates a get doc operation.
-func GetDoc(options ...MGetOperationOption) *types.MgetOperation {
-	req := &types.MgetOperation{}
+// // GetDoc creates a get doc operation.
+// func GetDoc(options ...MGetOperationOption) *types.MgetOperation {
+// 	req := &types.MgetOperation{}
 
-	for _, option := range options {
-		option(req)
-	}
+// 	for _, option := range options {
+// 		option(req)
+// 	}
 
-	return req
-}
+// 	return req
+// }
 
 // GetIDs option sets the document IDs to get.
 func GetIDs(ids ...string) MGetOption {
@@ -57,8 +56,4 @@ func NewMGetRequest(api *typedapi.API, options ...MGetOption) *mget.Mget {
 	}
 
 	return req
-}
-
-func NewGetRequest(api *typedapi.API, index, id string) *get.Get {
-	return api.Get(index, id)
 }

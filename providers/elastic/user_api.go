@@ -24,30 +24,6 @@ var (
 	ErrNoUser           = errors.New("no user found")
 )
 
-// GetUser fetches the user record from Elasticsearch.
-func (e *API) GetUser(ctx context.Context, userID models.UserID) (*models.User, error) {
-	index := UserIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
-	}
-
-	resp, err := NewGetRequest(e.GetAPI(), index, userID).Do(ctx)
-	if err != nil {
-		return nil, errors.Join(ErrGetFailed, err)
-	}
-
-	if !resp.Found {
-		return nil, ErrNoUser
-	}
-
-	user, err := ExtractSource[models.User](resp.Source_)
-	if err != nil {
-		return nil, errors.Join(ErrGetFailed, err)
-	}
-
-	return &user, nil
-}
-
 // UserExists checks if a user record exists in Elasticsearch for the given user ID.
 func UserExists(ctx context.Context, api *typedapi.API, userID models.UserID) (bool, error) {
 	index := UserIndexFromCtx(ctx)

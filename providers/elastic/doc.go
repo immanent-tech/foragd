@@ -13,6 +13,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/delete"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/exists"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/update"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 )
@@ -119,6 +120,22 @@ func NewDeleteByQueryRequest(api *typedapi.API, index string, options ...any) *d
 		case Option[RequestWithQuery[*deletebyquery.DeleteByQuery]]:
 			value(req)
 		case Option[*deletebyquery.DeleteByQuery]:
+			value(req)
+		default:
+			slog.Warn("ignoring option")
+		}
+	}
+
+	return req
+}
+
+func NewGetRequest(api *typedapi.API, index, id string, options ...any) *get.Get {
+	req := api.Get(index, id)
+	for option := range slices.Values(options) {
+		switch value := option.(type) {
+		case Option[RequestCommon[*get.Get]]:
+			value(req)
+		case Option[*get.Get]:
 			value(req)
 		default:
 			slog.Warn("ignoring option")
