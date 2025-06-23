@@ -27,7 +27,6 @@ import (
 type DataAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
 	SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error)
-	// GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error)
 	AddItems(ctx context.Context, items ...*models.Item) (map[models.ItemID]*bulk.OperationResponse, error)
 	MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error
 }

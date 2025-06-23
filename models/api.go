@@ -5,11 +5,13 @@ package models
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
 	"net/http"
+	"net/url"
 	"slices"
 	"time"
 
@@ -390,4 +392,67 @@ func queryAllItems(user *User, subscription *SubscriptionState) query.Option {
 			),
 		),
 	)
+}
+
+func querySuggestSubscriptions(text string) *types.Query {
+	return query.Build(
+		query.Bool(
+			query.Should(
+				query.SearchAsYouType(text, "title"),
+				query.SearchAsYouType(text, "description"),
+			),
+		),
+	)
+	// subscriptionSearch := &query.MSearchOptions{
+	// 	Query: query.Build(
+	// 		query.Bool(
+	// 			query.Filter(
+	// 				query.Term("user_id", user.GetID()),
+	// 			),
+	// 			query.Must(
+	// 				query.Match("title", searchTerms),
+	// 				query.Match("description", searchTerms),
+	// 				query.Match("categories", searchTerms),
+	// 			),
+	// 		),
+	// 	),
+	// 	Sort: []types.SortCombinationsVariant{elastic.SortByScore(), elastic.NewFieldSort("published", models.SortOrderDesc)},
+	// }
+}
+
+// EncodePagination will take sort values returned from a query, marshal them to
+// JSON, then HTML-escape the string into a models.Pagination object, which is
+// safe for use in API query parameters.
+func EncodePagination(sortValues []types.FieldValue) (Pagination, error) {
+	if len(sortValues) == 0 {
+		return "", nil
+	}
+	// Marshal sort values into json.
+	data, err := json.Marshal(sortValues)
+	if err != nil {
+		return "", fmt.Errorf("could not encode pagination values: %w", err)
+	}
+	// Return as HTML encoded string.
+	return url.QueryEscape(string(data)), nil
+}
+
+// DecodePagination will take a models.Pagination object, HTML-unescape the
+// string then unmarshal it back into sort values.
+func DecodePagination(pagination Pagination) ([]types.FieldValue, error) {
+	if pagination == "" {
+		return nil, nil
+	}
+	// Unescape HTML encoded data.
+	data, err := url.QueryUnescape(pagination)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode pagination values: %w", err)
+	}
+	// Unmarshal sort values.
+	var sortValues []types.FieldValue
+	err = json.Unmarshal([]byte(data), &sortValues)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode pagination values: %w", err)
+	}
+	// Return sort values.
+	return sortValues, nil
 }

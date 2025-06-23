@@ -4,125 +4,37 @@
 package elastic
 
 import (
-	"slices"
+	"log/slog"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/msearch"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/update"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
-
-const (
-	ReqIDHeader = "X-Opaque-Id"
-)
-
-// SearchOption is a functional option to apply to a search request.
-type SearchOption Option[*search.Search]
 
 // CountOption is a functional option to apply to a count request.
 type CountOption Option[*count.Count]
 
-// WithSearchIndex sets the index (or index pattern) to search over.
-func WithSearchIndex(index string) SearchOption {
-	return func(s *search.Search) {
-		s.Index(index)
-	}
+type SearchRequest[T any] interface {
+	RequestCommon[T]
+	RequestWithIndex[T]
+	RequestWithQuery[T]
+	RequestWithAggregations[T]
+	RequestWithSize[T]
+	RequestWithSearchAfter[T]
+	RequestWithSort[T]
 }
 
-// WithAggregations adds the given aggregation definitions to the search.
-func WithAggregations(definitions ...aggregations.Aggregation) SearchOption {
-	return func(search *search.Search) {
-		aggregations := make(map[string]types.Aggregations)
-
-		for _, definition := range definitions {
-			aggregations[definition.Name] = definition.Definition
-		}
-
-		search.Aggregations(aggregations)
-	}
-}
-
-// WithSearchQueryOptions adds the given query options (conditions) to the search.
-func WithSearchQueryOptions(options ...query.Option) SearchOption {
-	return func(search *search.Search) {
-		if query := query.Build(options...); query != nil {
-			search.Query(query)
-		}
-	}
-}
-
-// WithSortOptions adds the given sorting options to the search.
-func WithSortOptions(options ...types.SortCombinationsVariant) SearchOption {
-	return func(search *search.Search) {
-		search.Sort(options...)
-	}
-}
-
-// WithFields ensures the search will return the given fields in the response.
-func WithFields(fields ...string) SearchOption {
-	return func(search *search.Search) {
-		fieldsReturned := make([]types.FieldAndFormatVariant, len(fields))
-		for i, name := range fields {
-			fieldsReturned[i] = &types.FieldAndFormat{Field: name}
-		}
-
-		search.Fields(fieldsReturned...)
-	}
-}
-
-func WithSuggestFromField(field string) SearchOption {
-	return func(s *search.Search) {
-		s.SuggestField(field)
-	}
-}
-
-// WithSearchSize defines the number of results returned.
-func WithSearchSize(size int) SearchOption {
-	return func(search *search.Search) {
-		search.Size(size)
-	}
-}
-
-// WithSearchAfter sets the sort value to fetch the next set of results. It can
-// accept either a []types.FieldValue or a []byte (html-encoded
-// []types.FieldValue).
-//
-// https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
-func WithSearchAfter(value any) SearchOption {
-	return func(search *search.Search) {
-		if value == nil {
-			return
-		}
-
-		if values, ok := value.([]types.FieldValue); ok {
-			fieldValues := make([]types.FieldValueVariant, 0, len(values))
-			for value := range slices.Values(values) {
-				fieldValues = append(fieldValues, NewFieldValue(value))
-			}
-			search.SearchAfter(fieldValues...)
-		} else {
-			search.SearchAfter(NewFieldValue(value))
-		}
-	}
-}
-
-// WithSearchID sets the "X-Opaque-Id" header on the search request which can be used for associating and tracking a
-// search request to a http request.
-func WithSearchID(id string) SearchOption {
-	return func(search *search.Search) {
-		if id != "" {
-			search.Header(ReqIDHeader, id)
-		}
-	}
-}
+type SearchAPIRequest SearchRequest[*search.Search]
 
 // NewSearchRequest creates a new search request with the given options.
-func NewSearchRequest(api *typedapi.API, options ...SearchOption) *search.Search {
+func NewSearchRequest(api *typedapi.API, options ...Option[SearchAPIRequest]) *search.Search {
 	req := api.Search()
 
 	for _, option := range options {
@@ -130,6 +42,66 @@ func NewSearchRequest(api *typedapi.API, options ...SearchOption) *search.Search
 	}
 
 	return req
+}
+
+// query *types.Query, sort []types.SortCombinations
+func WithSearch(search *query.MsearchSearch) Option[MsearchRequest] {
+	return func(req MsearchRequest) {
+		if search == nil {
+			return
+		}
+
+		hdr := types.NewMultisearchHeader()
+		hdr.Index = append(hdr.Index, search.Index)
+
+		searchBody := types.NewMultisearchBody()
+		searchBody.Query = search.Query
+		searchBody.Sort = search.GenerateSortCombination()
+
+		err := req.AddSearch(*hdr, *searchBody)
+		if err != nil {
+			slog.Warn("error occurred", slog.Any("error", err))
+		}
+	}
+}
+
+type MsearchRequest interface {
+	RequestCommon[*msearch.Msearch]
+	AddSearch(header types.MultisearchHeader, body types.MultisearchBody) error
+}
+
+func NewMSearchRequest(api *typedapi.API, options ...Option[MsearchRequest]) *msearch.Msearch {
+	req := api.Msearch()
+
+	for _, option := range options {
+		option(req)
+	}
+
+	return req
+}
+
+// UpdateDocRequest wraps the doc update api.
+type UpdateDocRequest interface {
+	RequestCommon[*update.Update]
+	DocAsUpsert(docasupsert bool) *update.Update
+}
+
+// NewUpdateDocRequest creates a new doc update request with the given options.
+func NewUpdateDocRequest(api *typedapi.API, index, id string, doc any, options ...Option[UpdateDocRequest]) *update.Update {
+	req := api.Update(index, id).Doc(doc)
+
+	for _, option := range options {
+		option(req)
+	}
+
+	return req
+}
+
+// UpdateDocAsUpsert ensures that a doc update will act as an upsert if there is no existing doc.
+func UpdateDocAsUpsert() Option[UpdateDocRequest] {
+	return func(req UpdateDocRequest) {
+		req.DocAsUpsert(true)
+	}
 }
 
 // WithCountIndex sets the index (or index pattern) to search over.

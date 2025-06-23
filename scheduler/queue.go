@@ -10,7 +10,6 @@ import (
 	"log/slog"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -63,16 +62,23 @@ func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
 func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	data, err := MarshalJob(job)
 	if err != nil {
-		return errors.Join(ErrPushJobFailed, err)
+		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
-	_, err = elastic.NewDocCreateRequest(jq.client.GetAPI(),
-		jq.index,
-		job.JobDetail().JobKey().String(),
-		data,
-		refresh.True,
-	).Do(schedCtx)
+
+	id := job.JobDetail().JobKey().String()
+
+	found, err := elastic.Exists(schedCtx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
-		return errors.Join(ErrPushJobFailed, err)
+		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
+	}
+	if found {
+		if err := jq.delete(id); err != nil {
+			return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
+		}
+	}
+
+	if err := elastic.CreateDoc(schedCtx, jq.client.GetAPI(), jq.index, id, data); err != nil {
+		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
 
 	return nil
@@ -149,33 +155,18 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 	// Loop until we've paginated through all results.
 	for {
 		var (
-			jobs     []ScheduledJob
-			warnings error
+			jobs []ScheduledJob
+			err  error
 		)
 
-		resp, err := elastic.NewSearchRequest(jq.client.GetAPI(),
-			elastic.WithSearchIndex(jq.index),
-			elastic.WithSearchQueryOptions(query.MatchAll()),
-			elastic.WithSearchSize(searchSize),
-			elastic.WithSearchAfter(pagination),
-		).Do(schedCtx)
+		jobs, pagination, err = elastic.Search[ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), searchSize, nil, pagination)
 		if err != nil {
 			return nil, errors.Join(elastic.ErrSearchFailed, err)
-		}
-		// Stop if there are no hits
-		if len(resp.Hits.Hits) == 0 {
-			return nil, nil
-		}
-		// Loop through this set of results.
-		jobs, pagination, warnings = elastic.ExtractSourceFromHits[ScheduledJob](resp.Hits.Hits)
-		if warnings != nil {
-			jq.logger.Warn("Could not extract all jobs.",
-				slog.Any("warnings", warnings))
 		}
 
 		allJobs = append(allJobs, jobs...)
 		// Stop if the number of hits is less than the search size (i.e., last set of hits).
-		if len(resp.Hits.Hits) < searchSize {
+		if len(jobs) < searchSize {
 			break
 		}
 	}
@@ -210,40 +201,23 @@ func (jq *JobQueue) Clear() error {
 }
 
 func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
-	resp, err := elastic.NewSearchRequest(jq.client.GetAPI(),
-		elastic.WithSearchIndex(jq.index),
-		elastic.WithSearchQueryOptions(
-			query.MatchAll(),
-		),
-		elastic.WithSearchSize(1),
-		elastic.WithSortOptions(elastic.NewFieldSort("job_next_run", models.SortOrderAsc)),
-	).Do(schedCtx)
+	sortBy := []types.SortCombinationsVariant{elastic.NewFieldSort("job_next_run", models.SortOrderAsc)}
+	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1, sortBy, nil)
 	if err != nil {
 		return nil, errors.Join(ErrNoJobFound, err)
 	}
-	// Stop if there are no hits
-	if len(resp.Hits.Hits) == 0 {
+	if len(jobs) == 0 {
 		return nil, errors.Join(ErrNoJobFound, err)
 	}
 
-	// Loop through this set of results.
-	nextJob, err := elastic.ExtractSource[ScheduledJob](resp.Hits.Hits[0].Source_)
-	if err != nil {
-		return nil, errors.Join(ErrParseJobFailed, err)
-	}
+	jq.logger.Debug("Found next job.", slog.Any("job", jobs[0].JobDetail().Job().Description()))
 
-	// jq.logger.Debug("Found next job.", slog.Any("job", nextJob))
-
-	return &nextJob, nil
+	return jobs[0], nil
 }
 
 // delete removes the job doc from Elasticsearch.
 func (jq *JobQueue) delete(id string) error {
-	_, err := elastic.NewDocDeleteRequest(jq.client.GetAPI(),
-		jq.index,
-		id,
-		refresh.True,
-	).Do(schedCtx)
+	err := elastic.DeleteDoc(schedCtx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
 		return errors.Join(ErrDeleteJobFailed, err)
 	}

@@ -8,12 +8,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
-	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
@@ -22,40 +21,12 @@ var (
 	ErrRequestFailed = errors.New("request failed")
 )
 
+const (
+	ReqIDHeader = "X-Opaque-Id"
+)
+
 type RequestCommon[T any] interface {
 	Header(key string, value string) T
-}
-
-type RequestWithQuery[T any] interface {
-	Query(query types.QueryVariant) T
-}
-
-type RequestWithIDs[T any] interface {
-	Ids(id ...string) T
-}
-
-type RequestWithIndex[T any] interface {
-	Index(index string) T
-}
-
-type SearchRequest[T any] interface {
-	RequestCommon[T]
-	RequestWithQuery[T]
-	Aggregations(aggregations map[string]types.Aggregations) T
-}
-
-type MSearchRequest[T any] interface {
-	RequestCommon[T]
-	AddSearch(header types.MultisearchHeader, body types.MultisearchBody) error
-}
-
-// WithQueryOptions option applies the given query options to the request.
-func WithQueryOptions[T any, R RequestWithQuery[T]](options ...query.Option) Option[R] {
-	return func(req R) {
-		if query := query.Build(options...); query != nil {
-			req.Query(query)
-		}
-	}
 }
 
 // WithRequestID option sets the appropriate request ID header to the given value in the request.
@@ -67,6 +38,40 @@ func WithRequestID[T any, V RequestCommon[T]](id string) Option[V] {
 	}
 }
 
+type RequestWithQuery[T any] interface {
+	Query(query types.QueryVariant) T
+}
+
+// WithQueryOptions option applies the given query options to the request.
+func WithQueryOptions[T any, R RequestWithQuery[T]](options ...query.Option) Option[R] {
+	return func(req R) {
+		if query := query.Build(options...); query != nil {
+			req.Query(query)
+		}
+	}
+}
+
+type RequestWithAggregations[T any] interface {
+	Aggregations(aggs map[string]types.Aggregations) T
+}
+
+// WithAggregations adds the given aggregation definitions to the search.
+func WithAggregations[T any, R RequestWithAggregations[T]](definitions ...aggregations.Aggregation) Option[R] {
+	return func(req R) {
+		aggregations := make(map[string]types.Aggregations)
+
+		for _, definition := range definitions {
+			aggregations[definition.Name] = definition.Definition
+		}
+
+		req.Aggregations(aggregations)
+	}
+}
+
+type RequestWithIndex[T any] interface {
+	Index(index string) T
+}
+
 // WithRequestID option sets the appropriate request ID header to the given value in the request.
 func WithIndex[T any, V RequestWithIndex[T]](index string) Option[V] {
 	return func(t V) {
@@ -76,18 +81,64 @@ func WithIndex[T any, V RequestWithIndex[T]](index string) Option[V] {
 	}
 }
 
+type RequestWithIDs[T any] interface {
+	Ids(id ...string) T
+}
+
 func WithIDs[T any, V RequestWithIDs[T]](ids ...string) Option[V] {
 	return func(v V) {
 		v.Ids(ids...)
 	}
 }
 
-// var (
-// 	_ models.FeedManagementAPI = (*Client)(nil)
-// 	_ models.FeedJobStateAPI   = (*Client)(nil)
-// 	_ models.UserActionsAPI    = (*Client)(nil)
-// 	_ models.UserManagementAPI = (*Client)(nil)
-// )
+type RequestWithSize[T any] interface {
+	Size(size int) T
+}
+
+// WithSearchSize defines the number of results returned.
+func WithSize[T any, V RequestWithSize[T]](size int) Option[V] {
+	return func(v V) {
+		v.Size(size)
+	}
+}
+
+type RequestWithSearchAfter[T any] interface {
+	SearchAfter(values ...types.FieldValueVariant) T
+}
+
+// WithSearchAfter sets the sort value to fetch the next set of results. It can
+// accept either a []types.FieldValue or a []byte (html-encoded
+// []types.FieldValue).
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
+func WithSearchAfter[T any, V RequestWithSearchAfter[T]](value any) Option[V] {
+	return func(req V) {
+		if value == nil {
+			return
+		}
+
+		if values, ok := value.([]types.FieldValue); ok {
+			fieldValues := make([]types.FieldValueVariant, 0, len(values))
+			for value := range slices.Values(values) {
+				fieldValues = append(fieldValues, NewFieldValue(value))
+			}
+			req.SearchAfter(fieldValues...)
+		} else {
+			req.SearchAfter(NewFieldValue(value))
+		}
+	}
+}
+
+type RequestWithSort[T any] interface {
+	Sort(sort ...types.SortCombinationsVariant) T
+}
+
+// WithSortOptions adds the given sorting options to the search.
+func WithSortOptions[T any, V RequestWithSort[T]](options ...types.SortCombinationsVariant) Option[V] {
+	return func(req V) {
+		req.Sort(options...)
+	}
+}
 
 // ExtractSourceFromHits loops through the given hits array and extracts the `_source`
 // field of each document as type `T`, returning the document sources as an array
@@ -210,41 +261,4 @@ func ExtractFieldValue[T any](field string, fields map[string]json.RawMessage) (
 // formatError formats an error cause from Elasticsearch into an error value.
 func formatError(err types.ErrorCause) error {
 	return fmt.Errorf("%s: %s", err.Type, *err.Reason)
-}
-
-// encodePagination will take sort values returned from a query, marshal them to
-// JSON, then HTML-escape the string into a models.Pagination object, which is
-// safe for use in API query parameters.
-func encodePagination(sortValues []types.FieldValue) (models.Pagination, error) {
-	if len(sortValues) == 0 {
-		return "", nil
-	}
-	// Marshal sort values into json.
-	data, err := json.Marshal(sortValues)
-	if err != nil {
-		return "", errors.Join(ErrPagination, fmt.Errorf("could not encode pagination values: %w", err))
-	}
-	// Return as HTML encoded string.
-	return url.QueryEscape(string(data)), nil
-}
-
-// decodePagination will take a models.Pagination object, HTML-unescape the
-// string then unmarshal it back into sort values.
-func decodePagination(pagination models.Pagination) ([]types.FieldValue, error) {
-	if pagination == "" {
-		return nil, nil
-	}
-	// Unescape HTML encoded data.
-	data, err := url.QueryUnescape(pagination)
-	if err != nil {
-		return nil, errors.Join(ErrPagination, fmt.Errorf("could not decode pagination values: %w", err))
-	}
-	// Unmarshal sort values.
-	var sortValues []types.FieldValue
-	err = json.Unmarshal([]byte(data), &sortValues)
-	if err != nil {
-		return nil, errors.Join(ErrPagination, fmt.Errorf("could not decode pagination values: %w", err))
-	}
-	// Return sort values.
-	return sortValues, nil
 }

@@ -51,7 +51,6 @@ type DocumentsAPI interface {
 	FeedsAPI
 	ItemsAPI
 	UserAPI
-	MultiSearch(ctx context.Context, feedsQuery, itemsQuery *query.MSearchOptions) (Feeds, Items, error)
 }
 
 // UserBackendAPI contains the methods for creating users on an auth backend.

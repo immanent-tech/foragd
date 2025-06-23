@@ -17,6 +17,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/msearch"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 	"github.com/go-chi/chi/v5/middleware"
@@ -46,6 +48,15 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 
+	var sortValues []types.FieldValue
+	if pagination != nil {
+		var err error
+		sortValues, err = models.DecodePagination(*pagination)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+	}
+
 	var sortOptions []types.SortCombinationsVariant
 	if sort != nil {
 		if sort.SortBy == models.SortByLastUpdated {
@@ -60,11 +71,20 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 		sortOptions = append(sortOptions, SortByDocID("_doc"))
 	}
 
-	feeds, nextResults, err := SearchDocs[*models.Feed](ctx, e.GetAPI(), index, query, count, sortOptions, pagination)
+	feeds, searchAfter, err := Search[*models.Feed](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
 	if err != nil {
 		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
-	return feeds, nextResults, nil
+
+	if pagination != nil {
+		*pagination, err = models.EncodePagination(searchAfter)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+		return feeds, *pagination, nil
+	}
+
+	return feeds, "", nil
 }
 
 // AddFeeds will bulk index the given feeds.
@@ -99,6 +119,15 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 
+	var sortValues []types.FieldValue
+	if pagination != nil {
+		var err error
+		sortValues, err = models.DecodePagination(*pagination)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+	}
+
 	var sortOptions []types.SortCombinationsVariant
 	if sort != nil {
 		if sort.SortBy == models.SortByLastUpdated {
@@ -113,11 +142,20 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 		sortOptions = append(sortOptions, SortByDocID("_doc"))
 	}
 
-	items, nextResults, err := SearchDocs[*models.Item](ctx, e.GetAPI(), index, query, count, sortOptions, pagination)
+	items, searchAfter, err := Search[*models.Item](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
 	if err != nil {
 		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
-	return items, nextResults, nil
+
+	if pagination != nil {
+		*pagination, err = models.EncodePagination(searchAfter)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+		return items, *pagination, nil
+	}
+
+	return items, "", nil
 }
 
 // AddItems will bulk index the given items.
@@ -137,14 +175,32 @@ func (e *API) SearchSubscriptionCustomisations(ctx context.Context, query query.
 		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 
+	var sortValues []types.FieldValue
+	if pagination != nil {
+		var err error
+		sortValues, err = models.DecodePagination(*pagination)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+	}
+
 	var sortOptions []types.SortCombinationsVariant
 	sortOptions = append(sortOptions, SortByDocID("_doc"))
 
-	customisations, nextResults, err := SearchDocs[*models.SubscriptionCustomisation](ctx, e.GetAPI(), index, query, count, sortOptions, pagination)
+	customisations, searchAfter, err := Search[*models.SubscriptionCustomisation](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
 	if err != nil {
 		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
-	return customisations, nextResults, nil
+
+	if pagination != nil {
+		*pagination, err = models.EncodePagination(searchAfter)
+		if err != nil {
+			return nil, "", errors.Join(ErrSearchFailed, err)
+		}
+		return customisations, *pagination, nil
+	}
+
+	return customisations, "", nil
 }
 
 // AddSubscriptionCustomisations performs a bulk add operation to add the given subscription customisations.
@@ -182,7 +238,7 @@ func (e *API) UpdateSubscriptionCustomisation(ctx context.Context, edits *models
 		return ErrFetchCtx
 	}
 
-	found, err := NewDocExistsRequest(e.GetAPI(), index, edits.SubscriptionID).Do(ctx)
+	found, err := Exists(ctx, e.GetAPI(), index, edits.SubscriptionID)
 	if err != nil {
 		return fmt.Errorf("failed to update subscription: %w", err)
 	}
@@ -195,7 +251,7 @@ func (e *API) UpdateSubscriptionCustomisation(ctx context.Context, edits *models
 			Title:          edits.Title,
 			Categories:     edits.Categories,
 		}
-		_, err := NewDocCreateRequest(e.GetAPI(), index, edits.SubscriptionID, customisation, refresh.True).Do(ctx)
+		err := CreateDoc(ctx, e.GetAPI(), index, edits.SubscriptionID, customisation)
 		if err != nil {
 			return fmt.Errorf("failed to update subscription: %w", err)
 		}
@@ -314,6 +370,17 @@ func BulkAdd[T ~string, O models.HasID[T]](ctx context.Context, api *API, index 
 	return responses, nil
 }
 
+// Exists checks if the document with the given id exists in the given index.
+func Exists[T ~string](ctx context.Context, api *typedapi.API, index string, id T) (bool, error) {
+	found, err := api.Exists(index, string(id)).
+		Header(ReqIDHeader, middleware.GetReqID(ctx)).
+		Do(ctx)
+	if err != nil {
+		return false, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+	return found, nil
+}
+
 // GetDocs performs an `_mget` request to fetch the documents from the given index with the given ids. A non-nil error
 // is returned on a failure.
 func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index string, ids ...T) ([]O, error) {
@@ -356,9 +423,28 @@ func GetDoc[T ~string, O any](ctx context.Context, api *typedapi.API, index stri
 	return doc, nil
 }
 
+// CreateDoc will create the given document, with given id, in the given index.
+func CreateDoc[T ~string, O any](ctx context.Context, api *typedapi.API, index string, id T, doc O) error {
+	resp, err := api.Create(index, string(id)).
+		Document(doc).
+		Header(ReqIDHeader, middleware.GetReqID(ctx)).
+		Refresh(refresh.True).
+		Do(ctx)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+	if resp != nil {
+		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Created document.",
+			slog.String("id", resp.Id_),
+			slog.String("result", resp.Result.String()),
+		)
+	}
+	return nil
+}
+
 // UpdateDoc performs a partial doc update on the document with the given id in the given index. A non-nil error is
 // returned on a failure.
-func UpdateDoc[T ~string](ctx context.Context, api *typedapi.API, index string, id T, updates map[string]any) error {
+func UpdateDoc[T ~string](ctx context.Context, api *typedapi.API, index string, id T, updates map[string]any, options ...Option[UpdateDocRequest]) error {
 	baseUpdates := map[string]any{
 		"updated_at": time.Now().UTC(),
 	}
@@ -371,9 +457,7 @@ func UpdateDoc[T ~string](ctx context.Context, api *typedapi.API, index string, 
 	}
 
 	// Update the user in the store with the new list of read items.
-	resp, err := NewDocUpdateRequest(api, index, string(id),
-		WithPartialDocUpdate(updates),
-	).Do(ctx)
+	resp, err := NewUpdateDocRequest(api, index, string(id), updates, options...).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
@@ -387,54 +471,22 @@ func UpdateDoc[T ~string](ctx context.Context, api *typedapi.API, index string, 
 	return nil
 }
 
-// SearchDocs performs a _search request to find documents matching the given query.
-//
-// count specifies the number of results. If not specified, up to 10 results will be returned.
-//
-// sort specifies how to sort the resuls. If not specified, doc value sorting is used.
-//
-// pagination specifies the sort after values to use for getting a specific window of the total results. When set, the
-// count parameter can be thought of as specifying how many new results are retrieved.
-func SearchDocs[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, sort []types.SortCombinationsVariant, pagination *models.Pagination) ([]O, models.Pagination, error) {
-	var sortValues []types.FieldValue
-	if pagination != nil {
-		var err error
-		sortValues, err = decodePagination(*pagination)
-		if err != nil {
-			return nil, "", errors.Join(ErrSearchFailed, err)
-		}
-	}
-
-	resp, err := NewSearchRequest(api,
-		WithSearchID(middleware.GetReqID(ctx)),
-		WithSearchIndex(index),
-		WithSearchQueryOptions(query),
-		WithSearchAfter(sortValues),
-		WithSearchSize(count),
-		WithSortOptions(sort...),
-	).Do(ctx)
+// DeleteDoc deletes the document with the given id from the given index.
+func DeleteDoc[T ~string](ctx context.Context, api *typedapi.API, index string, id T) error {
+	resp, err := api.Delete(index, string(id)).
+		Header(ReqIDHeader, middleware.GetReqID(ctx)).
+		Refresh(refresh.True).
+		Do(ctx)
 	if err != nil {
-		return nil, "", errors.Join(ErrSearchFailed, err)
+		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
-
-	var warnings error
-	var docs []O
-
-	docs, sortValues, warnings = ExtractSourceFromHits[O](resp.Hits.Hits)
-	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Some docs could not be extracted.",
-			slog.Any("warnings", warnings))
+	if resp != nil {
+		slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Deleted document.",
+			slog.String("id", resp.Id_),
+			slog.String("result", resp.Result.String()),
+		)
 	}
-
-	if pagination != nil {
-		*pagination, err = encodePagination(sortValues)
-		if err != nil {
-			return nil, "", errors.Join(ErrSearchFailed, err)
-		}
-		return docs, *pagination, nil
-	}
-
-	return docs, "", nil
+	return nil
 }
 
 // DeleteDocs performs a delete by query request on the given index to delete documents matching the given queries.
@@ -453,6 +505,72 @@ func DeleteDocs(ctx context.Context, api *typedapi.API, index string, queries ..
 	}
 	return nil
 }
+
+// Search performs a _search request to find documents matching the given query.
+//
+// count specifies the number of results. If not specified, up to 10 results will be returned.
+//
+// sort specifies how to sort the resuls. If not specified, doc value sorting is used.
+//
+// pagination specifies the sort after values to use for getting a specific window of the total results. When set, the
+// count parameter can be thought of as specifying how many new results are retrieved.
+func Search[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, sort []types.SortCombinationsVariant, searchAfter []types.FieldValue) ([]O, []types.FieldValue, error) {
+	resp, err := NewSearchRequest(api,
+		WithRequestID[*search.Search, SearchAPIRequest](middleware.GetReqID(ctx)),
+		WithIndex[*search.Search, SearchAPIRequest](index),
+		WithQueryOptions[*search.Search, SearchAPIRequest](query),
+		WithSize[*search.Search, SearchAPIRequest](count),
+		WithSearchAfter[*search.Search, SearchAPIRequest](searchAfter),
+		WithSortOptions[*search.Search, SearchAPIRequest](sort...),
+	).Do(ctx)
+	if err != nil {
+		return nil, nil, errors.Join(ErrSearchFailed, err)
+	}
+
+	var warnings error
+	var docs []O
+
+	docs, searchAfter, warnings = ExtractSourceFromHits[O](resp.Hits.Hits)
+	if warnings != nil {
+		slogctx.FromCtx(ctx).Warn("Some docs could not be extracted.",
+			slog.Any("warnings", warnings))
+	}
+
+	return docs, searchAfter, nil
+}
+
+func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.MsearchSearch) (MultiSearchResults, error) {
+	subscriptionsIndex := FeedsIndexFromCtx(ctx)
+	if subscriptionsIndex == "" {
+		return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
+	}
+	itemsIndex := ItemsIndexFromCtx(ctx)
+	if itemsIndex == "" {
+		return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
+	}
+
+	var options []Option[MsearchRequest]
+	options = append(options, WithRequestID[*msearch.Msearch, MsearchRequest](middleware.GetReqID(ctx)))
+	for search := range slices.Values(searches) {
+		options = append(options, WithSearch(search))
+	}
+
+	resp, err := NewMSearchRequest(api, options...).Do(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
+	}
+
+	results := make(map[string]*types.MultiSearchItem)
+	for idx, search := range searches {
+		if result, ok := resp.Responses[idx].(*types.MultiSearchItem); ok {
+			results[search.Name] = result
+		}
+	}
+
+	return results, nil
+}
+
+type MultiSearchResults map[string]*types.MultiSearchItem
 
 func parseError(err error) *models.Response {
 	var esErr *types.ElasticsearchError

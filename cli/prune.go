@@ -76,35 +76,25 @@ func pruneFeeds(ctx context.Context, api *elastic.API) error {
 
 	searchSize := 100
 	pagination := make([]types.FieldValue, 0)
+	sort := []types.SortCombinationsVariant{elastic.SortByDocID("_doc")}
 
 	// Get all users
 	var users []*models.User
 	for {
 		var (
-			data     []*models.User
-			warnings error
+			data []*models.User
+			err  error
 		)
 
-		resp, err := elastic.NewSearchRequest(api.GetAPI(),
-			elastic.WithSearchIndex(users_index),
-			elastic.WithSearchSize(searchSize),
-			elastic.WithSearchAfter(pagination),
-			elastic.WithSortOptions(elastic.SortByDocID("user_id")),
-		).Do(ctx)
+		data, pagination, err = elastic.Search[*models.User](ctx, api.GetAPI(), users_index, query.MatchAll(), searchSize, sort, pagination)
 		if err != nil {
 			return fmt.Errorf("prune failed: %w", err)
-		}
-
-		data, pagination, warnings = elastic.ExtractSourceFromHits[*models.User](resp.Hits.Hits)
-		if warnings != nil {
-			slogctx.FromCtx(ctx).Warn("Problems occurred while extracting source from docs.",
-				slog.Any("warnings", err))
 		}
 
 		users = append(users, data...)
 
 		// Stop if we are at the end of the results.
-		if int(resp.Hits.Total.Value) < searchSize {
+		if len(data) < searchSize {
 			break
 		}
 	}

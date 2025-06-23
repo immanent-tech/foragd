@@ -6,14 +6,11 @@ package store
 import (
 	"context"
 	"errors"
-	"log/slog"
+	"fmt"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
-	"github.com/go-chi/chi/v5/middleware"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
@@ -45,11 +42,7 @@ type Store struct {
 // session store. If the token does not exist then Delete should be a no-op
 // and return nil (not an error).
 func (s *Store) Delete(token string) error {
-	_, err := elastic.NewDocDeleteRequest(s.client.GetAPI(),
-		s.index,
-		token,
-		refresh.True,
-	).Do(sessionCtx)
+	err := elastic.DeleteDoc(sessionCtx, s.client.GetAPI(), s.index, token)
 	if err != nil {
 		return errors.Join(ErrDeleteSessionFailed, err)
 	}
@@ -91,20 +84,17 @@ func (s *Store) Find(token string) ([]byte, bool, error) {
 // expiry time. If the session token already exists, then the data and
 // expiry time should be overwritten.
 func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
-	session := &models.UserSession{
-		Token:  token,
-		Data:   b,
-		Expiry: expiry,
-	}
-
-	_, err := elastic.NewDocUpdateRequest(s.client.GetAPI(),
-		s.index,
+	err := elastic.UpdateDoc(sessionCtx, s.client.GetAPI(), s.index,
 		token,
-		elastic.WithDocUpdate(session, true),
-		elastic.WithForcedRefresh(),
-	).Do(sessionCtx)
+		map[string]any{
+			"token":  token,
+			"data":   b,
+			"expiry": expiry,
+		},
+		elastic.UpdateDocAsUpsert(),
+	)
 	if err != nil {
-		return errors.Join(ErrCommitSessionFailed, err)
+		return fmt.Errorf("%w: %w", ErrCommitSessionFailed, err)
 	}
 
 	return nil
@@ -118,32 +108,23 @@ func (s *Store) All() (map[string][]byte, error) {
 	searchSize := 1000
 	pagination := make([]types.FieldValue, 0)
 	data := make(map[string][]byte)
+	query := query.Since("expiry", time.Now().UTC())
+	sort := []types.SortCombinationsVariant{elastic.SortByDocID("_doc")}
 
 	// Loop until we've paginated through all results.
 	for {
 		var (
 			sessions []models.UserSession
-			warnings error
+			err      error
 		)
 
-		resp, err := elastic.NewSearchRequest(s.client.GetAPI(),
-			elastic.WithSearchIndex(s.index),
-			elastic.WithSearchQueryOptions(query.Since("expiry", time.Now().UTC())),
-			elastic.WithSearchSize(searchSize),
-			elastic.WithSearchAfter(pagination),
-		).Do(sessionCtx)
+		sessions, pagination, err = elastic.Search[models.UserSession](sessionCtx, s.client.GetAPI(), s.index, query, searchSize, sort, pagination)
 		if err != nil {
 			return nil, errors.Join(elastic.ErrSearchFailed, err)
 		}
 		// Stop if there are no hits
-		if len(resp.Hits.Hits) == 0 {
-			return nil, nil
-		}
-		// Loop through this set of results.
-		sessions, pagination, warnings = elastic.ExtractSourceFromHits[models.UserSession](resp.Hits.Hits)
-		if warnings != nil {
-			logger(sessionCtx).Warn("Could not extract some session data.",
-				slog.Any("warnings", warnings))
+		if len(sessions) == 0 {
+			break
 		}
 
 		for _, session := range sessions {
@@ -151,7 +132,7 @@ func (s *Store) All() (map[string][]byte, error) {
 		}
 
 		// Stop if the number of hits is less than the search size (i.e., last set of hits).
-		if len(resp.Hits.Hits) < searchSize {
+		if len(sessions) < searchSize {
 			break
 		}
 	}
@@ -165,12 +146,4 @@ func NewSessionStore(ctx context.Context, client *elastic.API) (*Store, error) {
 		client: client,
 		index:  schema.SessionsSchemaPrefix,
 	}, nil
-}
-
-func logger(ctx context.Context) *slog.Logger {
-	logger := slogctx.FromCtx(ctx)
-	if id := middleware.GetReqID(ctx); id != "" {
-		logger = logger.With(slog.String("id", id))
-	}
-	return logger.WithGroup("session")
 }

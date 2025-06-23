@@ -10,8 +10,6 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -23,21 +21,6 @@ var (
 	ErrCreateUserFailed = errors.New("create user request failed")
 	ErrNoUser           = errors.New("no user found")
 )
-
-// UserExists checks if a user record exists in Elasticsearch for the given user ID.
-func UserExists(ctx context.Context, api *typedapi.API, userID models.UserID) (bool, error) {
-	index := UserIndexFromCtx(ctx)
-	if index == "" {
-		return false, errors.Join(ErrExistsFailed, ErrFetchCtx)
-	}
-
-	found, err := NewDocExistsRequest(api, index, userID).Do(ctx)
-	if err != nil {
-		return false, errors.Join(ErrExistsFailed, err)
-	}
-
-	return found, nil
-}
 
 // AddUser creates a new user record.
 func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
@@ -53,23 +36,16 @@ func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
 		CreatedAt: created,
 	}))
 
-	resp, err := NewDocCreateRequest(e.GetAPI(),
-		index,
-		userID,
-		&models.User{
-			UserID:     userID,
-			CreatedAt:  created,
-			MaxHistory: models.DefaultMaxHistory.String(),
-		},
-		refresh.True).
-		Do(ctx)
+	user := &models.User{
+		UserID:     userID,
+		CreatedAt:  created,
+		MaxHistory: models.DefaultMaxHistory.String(),
+	}
+
+	err := CreateDoc(ctx, e.GetAPI(), index, userID, user)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
-
-	slogctx.FromCtx(ctx).Debug("Added user.",
-		slog.String("result", resp.Result.String()),
-	)
 
 	return nil
 }

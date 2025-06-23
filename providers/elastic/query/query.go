@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/textquerytype"
 )
 
 // Option is a functional option for queries.
@@ -154,6 +155,20 @@ func NumberRange(field string, options ...NumberRangeOption) Option {
 	}
 }
 
+func SearchAsYouType(query string, field string) Option {
+	return func(q *types.Query) {
+		mmq := types.NewMultiMatchQuery()
+		mmq.Query = query
+		mmq.Type = &textquerytype.Boolprefix
+		mmq.Fields = []string{
+			field,
+			field + "_2gram",
+			field + "_3gram",
+		}
+		q.MultiMatch = mmq
+	}
+}
+
 // Filter sets the given query options as the "filter" clause of the bool query.
 func Filter(queryOptions ...Option) BoolOption {
 	return func(boolQueryClause *types.BoolQuery) {
@@ -284,12 +299,14 @@ func Build(options ...Option) *types.Query {
 	return nil
 }
 
-type MSearchOptions struct {
+type MsearchSearch struct {
+	Name  string
+	Index string
 	Query *types.Query
 	Sort  []types.SortCombinationsVariant
 }
 
-func (mso *MSearchOptions) GenerateSortCombination() []types.SortCombinations {
+func (mso *MsearchSearch) GenerateSortCombination() []types.SortCombinations {
 	combos := make([]types.SortCombinations, 0, len(mso.Sort))
 	for sort := range slices.Values(mso.Sort) {
 		combos = append(combos, sort.SortCombinationsCaster())
