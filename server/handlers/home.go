@@ -18,7 +18,10 @@ func GenerateHomeContent(api models.DocumentsAPI) func(next http.Handler) http.H
 			ctx := req.Context()
 			ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
 
-			data, resp := getHomePageData(ctx, api)
+			subscriptionsLink := RestorePageState(ctx, "/home/subscriptions")
+			articlesLink := RestorePageState(ctx, "/home/articles")
+
+			data, resp := views.NewHomePageData(ctx, api, subscriptionsLink, articlesLink)
 			if resp.IsNotFound() {
 				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
 				next.ServeHTTP(res, req.WithContext(ctx))
@@ -28,15 +31,8 @@ func GenerateHomeContent(api models.DocumentsAPI) func(next http.Handler) http.H
 				ProcessResponse(res, req, resp)
 				return
 			}
-			articles, resp := getHomePageArticles(ctx, api, data)
-			if resp != nil {
-				ProcessResponse(res, req, resp)
-				return
-			}
 
-			homePageContent := views.GenerateHomePageContent(ctx, data, articles)
-
-			ctx = context.WithValue(ctx, contentCtxKey, homePageContent)
+			ctx = context.WithValue(ctx, contentCtxKey, data.Show())
 
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

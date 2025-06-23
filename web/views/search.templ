@@ -5,6 +5,7 @@ package views
 
 import (
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/cards"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/image"
@@ -67,18 +68,9 @@ templ SearchSuggestionHeader(text string) {
 
 templ SearchSuggestionSubscription(subscription *models.Subscription) {
 	<li class="list-row" _="on click call document.activeElement.blur()">
-		if img := subscription.GetImage(); img != nil {
-			<div>
-				@image.Build(img.URL(), image.WithExtraClasses("size-10", "rounded-box", "object-scale-down")).Show()
-			</div>
-		}
 		<div>
 			<div class="list-col-wrap text-xs">
-				@link.Build(
-					link.WithContent(subscription.GetTitle()),
-					link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
-					link.WithUnderlineOnHover(),
-				).Show()
+				@cards.NewSubscriptionCard(subscription).Title()
 			</div>
 			// <div class="text-xs uppercase font-semibold opacity-60">{ article.Item.FeedTitle }</div>
 		</div>

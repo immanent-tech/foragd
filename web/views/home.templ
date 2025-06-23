@@ -12,19 +12,152 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
+	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
 	"github.com/veqryn/slog-context"
+	"strconv"
 )
 
 type HomePageData struct {
-	Aggregations aggregations.AggregationResults
-	Links        map[string]models.PageState
+	Links              map[string]models.PageState
+	TotalSubscriptions int
+	TotalUnread        int
+	TopCategories      templ.Component
+	RareCategories     templ.Component
+	RandomArticles     []templ.Component
 }
 
-func (d *HomePageData) generateTopCategoriesLinks(ctx context.Context) templ.Component {
+// getHomePageData retrieves the data required to construct the home page content.
+//
+//nolint:funlen
+func NewHomePageData(ctx context.Context, api models.DocumentsAPI, subscriptionsLink, articlesLink models.PageState) (*HomePageData, *models.Response) {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, models.RespErrUnauthorized()
+	}
+
+	data := &HomePageData{
+		TotalSubscriptions: len(user.Subscriptions),
+		Links: map[string]models.PageState{
+			"subscriptions": subscriptionsLink,
+			"articles":      articlesLink,
+		},
+	}
+
+	count, err := api.CountAllUnread(ctx)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not retrieve unread items count.",
+			slog.Any("error", err),
+		)
+	}
+	data.TotalUnread = int(count)
+
+	// Get subscriptions.
+	subscriptions, _, resp := models.FilterSubscriptions(ctx, api, models.NewFilters())
+	if resp != nil && resp.IsNotFound() {
+		return data, resp
+	}
+	if resp != nil {
+		return nil, resp
+	}
+	// Query definition for fetching unread items for all subscriptions.
+	query := query.Bool(
+		query.BoolQueryName("item_filters"),
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", models.GetFeedIDs(slices.Values(subscriptions))...),
+			// And should match one feed clause.
+			query.Bool(
+				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread)...),
+			),
+		),
+	)
+
+	var aggs []aggregations.Aggregation
+	TermsField := "categories.raw"
+
+	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
+	SampleField := "feed_id"
+	DefaultMaxDocsPerValue := 10
+	ShardSize := 1000
+	aggs = append(aggs,
+		aggregations.Aggregation{
+			Name: "top_categories_sample",
+			Definition: types.Aggregations{
+				DiversifiedSampler: &types.DiversifiedSamplerAggregation{
+					Field:           &SampleField,
+					MaxDocsPerValue: &DefaultMaxDocsPerValue,
+					ShardSize:       &ShardSize,
+				},
+				Aggregations: map[string]types.Aggregations{
+					"top_categories": {
+						Terms: &types.TermsAggregation{
+							Field: &TermsField,
+						},
+					},
+				},
+			},
+		},
+	)
+	// Aggregation definition for fetching the rare item categories across all subscriptions.
+	MaxDocCount := int64(5)
+	aggs = append(aggs,
+		aggregations.Aggregation{
+			Name: "rare_categories",
+			Definition: types.Aggregations{
+				RareTerms: &types.RareTermsAggregation{
+					Field:       &TermsField,
+					MaxDocCount: &MaxDocCount,
+				},
+			},
+		},
+	)
+
+	// Aggregation definition for fetching a set of random items from all subscriptions.
+	ItemIDField := "item_id"
+	aggs = append(aggs,
+		aggregations.Aggregation{
+			Name: "random_items",
+			Definition: types.Aggregations{
+				RandomSampler: &types.RandomSamplerAggregation{
+					Probability: 0.1,
+				},
+				Aggregations: map[string]types.Aggregations{
+					"items": {
+						Terms: &types.TermsAggregation{
+							Field: &ItemIDField,
+						},
+					},
+				},
+			},
+		},
+	)
+
+	// Perform the request.
+	aggsResult, resp := api.ItemsAggregation(ctx, query, aggs...)
+	if resp != nil {
+		return nil, models.RespErrBackend(err)
+	}
+	// Extract aggregations.
+	aggregations := aggsResult.Aggregations
+	// Use aggregations to generate data.
+	data.GenerateTopCategoriesLinks(ctx, aggregations)
+	data.GenerateRareCategoriesLinks(ctx, aggregations)
+	data.GetRandomArticles(ctx, api, aggregations)
+
+	return data, nil
+}
+
+func (d *HomePageData) GenerateTopCategoriesLinks(ctx context.Context, aggs aggregations.AggregationResults) {
+	if aggs == nil {
+		return
+	}
 	// Get the top categories.
-	topCategoriesSamplerAgg, err := aggregations.ExtractAggregation[*types.SamplerAggregate](d.Aggregations, "top_categories_sample")
+	topCategoriesSamplerAgg, err := aggregations.ExtractAggregation[*types.SamplerAggregate](aggs, "top_categories_sample")
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to show top categories.", slog.Any("error", err))
 	}
@@ -39,12 +172,15 @@ func (d *HomePageData) generateTopCategoriesLinks(ctx context.Context) templ.Com
 	}
 	topCategoryCounts.Sort()
 
-	return createCategoryLinks(topCategoryCounts)
+	d.TopCategories = createCategoryLinks(topCategoryCounts)
 }
 
-func (d *HomePageData) generateRareCategoriesLinks(ctx context.Context) templ.Component {
+func (d *HomePageData) GenerateRareCategoriesLinks(ctx context.Context, aggs aggregations.AggregationResults) {
+	if aggs == nil {
+		return
+	}
 	// Get the rare categories.
-	rareCategoriesAgg, err := aggregations.ExtractAggregation[*types.StringRareTermsAggregate](d.Aggregations, "rare_categories")
+	rareCategoriesAgg, err := aggregations.ExtractAggregation[*types.StringRareTermsAggregate](aggs, "rare_categories")
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to show rare categories.", slog.Any("error", err))
 	}
@@ -60,26 +196,86 @@ func (d *HomePageData) generateRareCategoriesLinks(ctx context.Context) templ.Co
 		count = len(rareCategoryCounts)
 	}
 
-	return createCategoryLinks(rareCategoryCounts[:count])
+	d.RareCategories = createCategoryLinks(rareCategoryCounts[:count])
 }
 
-func GenerateHomePageContent(ctx context.Context, data *HomePageData, articles models.Articles) templ.Component {
-	if data.Aggregations != nil {
-		// Generate a links to top categories from the data.
-		topCategories := data.generateTopCategoriesLinks(ctx)
-		// Generate links to rare categories from the data.
-		rareCategories := data.generateRareCategoriesLinks(ctx)
-		// Generate a random collection of article cards from the data.
-		randomItems := GenerateArticleCards(ctx, articles)
-		return layoutHomePageContent(data.Links, topCategories, rareCategories, randomItems)
+// getHomePageArticles retrieves a list of articles to display on the home page along with other content.
+func (d *HomePageData) GetRandomArticles(ctx context.Context, api models.DocumentsAPI, aggs aggregations.AggregationResults) {
+	if aggs == nil {
+		return
 	}
-	return layoutHomePageContent(data.Links, nil, nil, nil)
+	// Get the rare categories aggregation.
+	randomItemsAgg, err := aggregations.ExtractAggregation[map[string]any](aggs, "random_items")
+	if err != nil {
+		return
+	}
+	// itemsAgg, err := aggregations.ExtractAggregation[*types.StringTermsAggregate](randomItemsAgg, "sterms#items")
+	itemsAgg, ok := randomItemsAgg["sterms#items"].(map[string]any)
+	if !ok {
+		return
+	}
+	// if err != nil {
+	// 	return nil, fmt.Errorf("could not get random items: %w", err)
+	// }
+	buckets, ok := itemsAgg["buckets"].([]any)
+	if !ok {
+		return
+	}
 
+	itemIDs := make([]models.ItemID, 0, len(buckets))
+	for bucket := range slices.Values(buckets) {
+		value, ok := bucket.(map[string]any)
+		if !ok {
+			continue
+		}
+		key, ok := value["key"].(string)
+		if !ok {
+			continue
+		}
+		itemIDs = append(itemIDs, key)
+	}
+
+	articles, resp := models.GetArticles(ctx, api, itemIDs...)
+	if resp != nil {
+		return
+	}
+
+	d.RandomArticles = GenerateArticleCards(ctx, articles)
 }
 
-templ layoutHomePageContent(links map[string]models.PageState, topCategories, rareCategories templ.Component, randomItems []templ.Component) {
-	{{ subscriptionsPage := links["subscriptions"] }}
-	{{ articlesPage := links["articles"] }}
+templ (d *HomePageData) Show() {
+	{{ subscriptionsPage := d.Links["subscriptions"] }}
+	{{ articlesPage := d.Links["articles"] }}
+	<div class="max-w-screen justify-items-center">
+		<div class="stats shadow">
+			<div class="stat">
+				<div class="stat-figure text-primary">
+					@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold})
+				</div>
+				<div class="stat-title">Subscriptions</div>
+				<div class="stat-value text-primary">{ strconv.Itoa(d.TotalSubscriptions) }</div>
+			</div>
+			<div class="stat">
+				<div class="stat-figure text-secondary">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						class="inline-block h-8 w-8 stroke-current"
+					>
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M13 10V3L4 14h7v7l9-11h-7z"
+						></path>
+					</svg>
+				</div>
+				<div class="stat-title">Unread Items</div>
+				<div class="stat-value text-secondary">{ strconv.Itoa(d.TotalUnread) }</div>
+			</div>
+		</div>
+	</div>
 	<div class="flex flex-col max-w-fit p-2 justify-items-center">
 		<h1>Go To:</h1>
 		@button.Build(
@@ -104,21 +300,21 @@ templ layoutHomePageContent(links map[string]models.PageState, topCategories, ra
 		).Show() {
 			<div class="capitalize">Articles</div>
 		}
-		if topCategories != nil {
+		if d.TopCategories != nil {
 			<h1>Top Categories:</h1>
 			<div id="top-categories" class="flex flex-row flex-wrap gap-2">
-				@topCategories
+				@d.TopCategories
 			</div>
 		}
-		if rareCategories != nil {
+		if d.RareCategories != nil {
 			<h1>Interesting Categories:</h1>
 			<div id="rare-categories" class="flex flex-wrap p-2">
-				@rareCategories
+				@d.RareCategories
 			</div>
 		}
-		if randomItems != nil {
+		if d.RandomArticles != nil {
 			<h1>Random Articles:</h1>
-			@partials.CardGrid(randomItems...)
+			@partials.CardGrid(d.RandomArticles...)
 		}
 	</div>
 }

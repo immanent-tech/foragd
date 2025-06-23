@@ -1,0 +1,194 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package cards
+
+import (
+	"context"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/classes/opacity"
+	"github.com/joshuar/go-templ-daisyui/display/avatar"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/display/image"
+	"github.com/joshuar/go-templ-daisyui/display/placeholder"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+	"strconv"
+)
+
+type SubscriptionCard struct {
+	*models.Subscription
+	classes []components.Class
+}
+
+func NewSubscriptionCard(subscription *models.Subscription) *SubscriptionCard {
+	card := &SubscriptionCard{
+		Subscription: subscription,
+	}
+	if subscription.IsUnread() {
+		card.classes = append(card.classes, opacity.Apply(75))
+	}
+	return card
+}
+
+// Visit is the action for visiting the subscription's source webpage.
+templ (c *SubscriptionCard) Visit() {
+	@partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
+		"Visit "+models.ParseDomain(c.GetLink()),
+		templ.Attributes{
+			"href": c.GetLink(),
+		},
+		[]string{"text-xs"},
+	)
+}
+
+// Share is the action for sharing the subscription to an external service.
+templ (c *SubscriptionCard) Share() {
+	@partials.LinkWithIcon(tabler.Share(i.Props{Size: i.SizeXS}), "Share", nil, []string{"text-xs"})
+}
+
+// Mark is the action for marking a subscription read/unread.
+templ (c *SubscriptionCard) Mark() {
+	if c.IsUnread() {
+		@partials.LinkWithIcon(
+			tabler.Bookmark(i.Props{Size: i.SizeXS}),
+			"Mark Read",
+			c.markAttributes(),
+			[]string{"text-xs"},
+		)
+	} else {
+		@partials.LinkWithIcon(
+			tabler.BookmarkFilled(i.Props{Size: i.SizeXS}),
+			"Mark Unread",
+			c.markAttributes(),
+			[]string{"text-xs"},
+		)
+	}
+}
+
+// Edit is the action for editing a subscription.
+templ (c *SubscriptionCard) Edit() {
+	@partials.LinkWithIcon(tabler.Edit(i.Props{Size: i.SizeXS}),
+		"Edit Subscription",
+		templ.Attributes{
+			"hx-get":    "/subscription/edit/" + c.GetID(),
+			"hx-target": partials.ModalContainerID.Target(),
+			"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
+		},
+		[]string{"text-xs"},
+	)
+}
+
+// Unsubscribe is the action for unsubscribing from a subscription.
+templ (c *SubscriptionCard) Unsubscribe() {
+	@partials.LinkWithIcon(tabler.Trash(i.Props{Size: i.SizeXS}),
+		"Unsubscribe",
+		templ.Attributes{
+			"hx-delete": "/subscription/remove/" + c.GetID() + "?confirmation=no",
+			"hx-target": partials.ModalContainerID.Target(),
+			"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
+		},
+		[]string{"text-xs"},
+	)
+}
+
+// Title generates a title for a subscription card.
+templ (c *SubscriptionCard) Title() {
+	@link.Build(
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(c.viewAttributes(ctx)),
+	).Show() {
+		<div class="flex flex-row gap-2">
+			// Generate a thumbnail to display next to the title.
+			if c.GetImage() != nil {
+				// If the source has an image, use that as the avatar.
+				@avatar.Build(
+					c.GetImage().URL(),
+					avatar.WithWidth("w-12"),
+					avatar.WithImageOptions(image.WithLazyLoading()),
+					avatar.WithExtraClasses("rounded"),
+				).Show()
+			} else {
+				// Otherwise, take the first letter of the title and create a placeholder avatar.
+				@placeholder.Build(c.GetTitle()[0:1], placeholder.SM).Show()
+			}
+			// Title text is a link to the view action of the card.
+			<div class="text-sm flex-1 content-center">
+				{ c.GetTitle() }
+			</div>
+			// Display unread count (if any).
+			<div class="flex-none">
+				if c.IsUnread() {
+					@badge.Build(
+						badge.WithSize(badge.SM),
+						badge.WithColor(badge.Secondary),
+						badge.WithContent(strconv.Itoa(c.GetUnreadCount())+" Unread"),
+						badge.WithExtraAttributes(templ.Attributes{
+							"sse-swap": c.GetFeedID() + "_unread",
+						}),
+					).Show()
+				}
+			</div>
+		</div>
+	}
+}
+
+templ (c *SubscriptionCard) Show() {
+	@card.Build(
+		card.WithID(c.GetID()),
+		card.WithBodyOptions(
+			// Card title.
+			card.WithTitle(c.Title()),
+			// Card content.
+			card.WithContent(
+				templ.Join(
+					cardMeta(c.GetAuthors(), c.GetUpdatedDate()),
+					cardDescription(c.GetDescription()),
+				),
+			),
+			// Card actions.
+			card.WithActions(
+				cardMenu(c.Share(), c.Visit(), c.Mark(), c.Edit(), c.Unsubscribe()),
+			),
+		),
+		card.WithExtraClasses(c.classes...),
+	).Show()
+}
+
+func (c *SubscriptionCard) markAttributes() templ.Attributes {
+	// Create htmx attributes: don't replace URL, swap the subscription card only.
+	attrs := templ.Attributes{
+		"hx-replace-url":  "false",
+		"hx-target":       "#" + c.GetID(),
+		"hx-target-error": partials.ErrorID.Target(),
+		"hx-swap":         "morph:outerHTML",
+		"_":               "on htmx:afterRequest send UpdateState to #drawer-subscription-list",
+	}
+	if c.IsUnread() {
+		attrs["hx-post"] = "/subscription/" + string(models.MarkRead) + "/" + c.GetID()
+		return attrs
+	}
+	attrs["hx-post"] = "/subscription/" + string(models.MarkUnread) + "/" + c.GetID()
+	return attrs
+}
+
+func (c *SubscriptionCard) viewAttributes(ctx context.Context) templ.Attributes {
+	filters := models.FiltersFromCtx(ctx)
+	filters.SortBy = models.SortByLastUpdated
+	if c.IsUnread() {
+		filters.View = models.ViewUnread
+	} else {
+		filters.View = models.ViewRead
+	}
+	view := models.PageState{Path: "/subscription/" + c.GetID(), Params: filters.ToQueryParams()}
+	return templ.Attributes{
+		"hx-get":      view.String(),
+		"hx-target":   partials.ContentID.Target(),
+		"hx-push-url": "true",
+		"hx-swap":     "morph:innerHTML show:top",
+	}
+}

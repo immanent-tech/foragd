@@ -90,7 +90,7 @@ func GetSubscriptionUnreadCounts(ctx context.Context, api DocumentsAPI, states S
 
 	subscriptionQueries := make([]query.Option, 0, len(states))
 	for _, state := range states {
-		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, state))
+		subscriptionQueries = append(subscriptionQueries, QueryUnreadItems(user, state))
 	}
 	query := query.Bool(
 		query.Filter(
@@ -226,6 +226,51 @@ func Unsubscribe(ctx context.Context, api DocumentsAPI, ids ...SubscriptionID) *
 	return api.UpdateUser(ctx, map[string]any{
 		"subscriptions": slices.Collect(maps.Values(states)),
 	})
+}
+
+func GetArticles(ctx context.Context, api DocumentsAPI, itemIDs ...ItemID) (Articles, *Response) {
+	user, found := UserFromCtx(ctx)
+	if !found {
+		return nil, RespErrUnauthorized()
+	}
+
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	query := query.Bool(
+		query.Filter(
+			// Must match any of the given item IDs,
+			query.Terms("item_id", itemIDs...),
+		),
+	)
+
+	items, _, err := api.SearchItems(ctx, query, len(itemIDs), nil, nil)
+	if err != nil {
+		return nil, RespErrBackend(err)
+	}
+
+	// Retrieve subscription customisations for feed subscriptions.
+	states := user.FilterSubscriptionStatesByFeed(items.GetFeedIDs()...)
+	customisations, err := api.GetSubscriptionCustomisations(ctx, GetIDsFromStates(states)...)
+	if err != nil {
+		return nil, RespErrBackend(err)
+	}
+	// Create articles from the items.
+	articles := make(Articles, 0, len(items))
+	for item := range slices.Values(items) {
+		state := states[item.GetFeedID()]
+		customisation := customisations.GetCustomisation(state.GetID())
+		article, err := GenerateArticle(item, state.GetItemState(item.GetID()), state.GetID(), customisation)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
+				slog.Any("error", err),
+			)
+			continue
+		}
+		articles = append(articles, article)
+
+	}
+
+	return articles, nil
 }
 
 func GetSearchSuggestions(ctx context.Context, api DocumentsAPI, searchTerms string) (Subscriptions, Articles, *Response) {
@@ -416,7 +461,7 @@ func BuildSubscriptionQueries(user *User, view View, states ...*SubscriptionStat
 		fallthrough
 	default:
 		for _, state := range states {
-			queries = append(queries, queryUnreadItems(user, state))
+			queries = append(queries, QueryUnreadItems(user, state))
 		}
 	}
 	return queries
@@ -470,8 +515,8 @@ func queryReadItems(user *User, subscription *SubscriptionState) query.Option {
 	}
 }
 
-// queryUnreadItems generates a query for finding unread items for the given subscription.
-func queryUnreadItems(user *User, subscription *SubscriptionState) query.Option {
+// QueryUnreadItems generates a query for finding unread items for the given subscription.
+func QueryUnreadItems(user *User, subscription *SubscriptionState) query.Option {
 	var since time.Time
 	if subscription.IsRead() {
 		// Match the item if it is published/updated since last time subscription was marked read.

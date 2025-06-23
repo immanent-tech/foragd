@@ -224,28 +224,14 @@ func UpdateDocAsUpsert() Option[UpdateDocRequest] {
 	}
 }
 
-// WithCountIndex sets the index (or index pattern) to search over.
-func WithCountIndex(index string) CountOption {
-	return func(s *count.Count) {
-		s.Index(index)
-	}
-}
-
-// WithCountQueryOptions adds the given query options (conditions) to the count.
-func WithCountQueryOptions(options ...query.Option) CountOption {
-	return func(count *count.Count) {
-		queryOptions := &types.Query{}
-
-		for _, option := range options {
-			option(queryOptions)
-		}
-
-		count.Query(queryOptions)
-	}
+type CountRequest interface {
+	RequestCommon[*count.Count]
+	RequestWithIndex[*count.Count]
+	RequestWithQuery[*count.Count]
 }
 
 // NewCountRequest creates a new count request with the given options.
-func NewCountRequest(api *typedapi.API, options ...CountOption) *count.Count {
+func NewCountRequest(api *typedapi.API, options ...Option[CountRequest]) *count.Count {
 	req := api.Count()
 
 	for _, option := range options {

@@ -88,7 +88,7 @@ func PaginateArticleCollection(api models.DocumentsAPI, subIDs ...models.Subscri
 func GenerateArticle(api models.DocumentsAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			articles, resp := getArticles(req.Context(), api, itemID)
+			articles, resp := models.GetArticles(req.Context(), api, itemID)
 			if resp != nil || len(articles) == 0 {
 				ProcessResponse(res, req, resp)
 				return

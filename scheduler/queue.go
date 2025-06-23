@@ -174,16 +174,11 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 // Size returns the size of the job queue.
 func (jq *JobQueue) Size() (int, error) {
-	resp, err := elastic.NewCountRequest(jq.client.GetAPI(),
-		elastic.WithCountIndex(jq.index),
-		elastic.WithCountQueryOptions(
-			query.MatchAll(),
-		),
-	).Do(schedCtx)
+	count, err := elastic.Count(schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll())
 	if err != nil {
 		return 0, fmt.Errorf("could not get size of scheduled jobs queue: %w", err)
 	}
-	return int(resp.Count), nil
+	return int(count), nil
 }
 
 // Clear clears the job queue.

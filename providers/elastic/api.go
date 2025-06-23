@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
@@ -287,6 +288,33 @@ func (e *API) DeleteSubscriptionCustomisations(ctx context.Context, ids ...model
 	return nil
 }
 
+func (a *API) CountAllUnread(ctx context.Context) (int64, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return 0, ErrNoUserCtx
+	}
+	index := UserIndexFromCtx(ctx)
+
+	states := user.GetAllSubscriptionStatesByFeed()
+	subscriptionQueries := make([]query.Option, 0, len(states))
+	for _, state := range states {
+		subscriptionQueries = append(subscriptionQueries, models.QueryUnreadItems(user, state))
+	}
+	query := query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(subscriptionQueries...),
+			),
+		),
+	)
+
+	count, err := Count(ctx, a.GetAPI(), index, query)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+	return count, nil
+}
+
 // MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).
 func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 	index := FeedsIndexFromCtx(ctx)
@@ -457,6 +485,20 @@ func Exists[T ~string](ctx context.Context, api *typedapi.API, index string, id 
 		return false, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
 	return found, nil
+}
+
+// Count will return the number of docs matching the given queries in the given index.
+func Count(ctx context.Context, api *typedapi.API, index string, queries ...query.Option) (int64, error) {
+	resp, err := NewCountRequest(api,
+		WithRequestID[*count.Count, CountRequest](middleware.GetReqID(ctx)),
+		WithIndex[*count.Count, CountRequest](index),
+		WithQueryOptions[*count.Count, CountRequest](queries...),
+	).Do(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+
+	return resp.Count, nil
 }
 
 // GetDocs performs an `_mget` request to fetch the documents from the given index with the given ids. A non-nil error

@@ -53,6 +53,7 @@ type DocumentsAPI interface {
 	ItemsAPI
 	UserAPI
 	FindSuggestions(ctx context.Context, searchTerms string) (results.MSearchResults, error)
+	CountAllUnread(ctx context.Context) (int64, error)
 }
 
 // UserBackendAPI contains the methods for creating users on an auth backend.

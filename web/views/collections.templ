@@ -6,17 +6,15 @@ package views
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/cards"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
-	"github.com/joshuar/go-templ-daisyui/display/avatar"
-	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/figure"
 	"github.com/joshuar/go-templ-daisyui/display/image"
-	"github.com/joshuar/go-templ-daisyui/display/placeholder"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
@@ -25,7 +23,6 @@ import (
 	"github.com/sebasvil20/templicons/tabler"
 	"net/url"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -37,104 +34,11 @@ var defaultCardOptions = []card.Option{
 }
 
 func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscriptions) []templ.Component {
-	cards := make([]templ.Component, 0, len(subscriptions))
+	subscriptionCards := make([]templ.Component, 0, len(subscriptions))
 	for subscription := range slices.Values(subscriptions) {
-		cardOptions := slices.Clone(defaultCardOptions)
-		cardOptions = append(cardOptions,
-			card.WithID(subscription.GetID()),
-			card.WithBodyOptions(
-				// Card title.
-				card.WithTitle(subscriptionCardTitle(subscription)),
-				// Card content.
-				card.WithContent(
-					templ.Join(
-						showDetails(subscription.GetAuthors(), subscription.GetUpdatedDate()),
-						showDescription(subscription.GetDescription()),
-					),
-				),
-				// Card actions.
-				card.WithActions(
-					buildCardActionsMenu(
-						// Share subscription action.
-						partials.LinkWithIcon(tabler.Share(i.Props{Size: i.SizeXS}), "Share", nil, []string{"text-xs"}),
-						// Visit subscription link action.
-						partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
-							"Visit "+models.ParseDomain(subscription.GetLink()),
-							templ.Attributes{
-								"href": subscription.GetLink(),
-							},
-							[]string{"text-xs"},
-						),
-						// Mark subscription action.
-						markSubscriptionAction(subscription.GetID(), subscription.IsUnread()),
-						// Edit subscription action.
-						partials.LinkWithIcon(tabler.Edit(i.Props{Size: i.SizeXS}),
-							"Edit Subscription",
-							templ.Attributes{
-								"hx-get":    "/subscription/edit/" + subscription.GetID(),
-								"hx-target": partials.ModalContainerID.Target(),
-								"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
-							},
-							[]string{"text-xs"},
-						),
-						// Unsubscribe from subscription action.
-						partials.LinkWithIcon(tabler.Trash(i.Props{Size: i.SizeXS}),
-							"Unsubscribe",
-							templ.Attributes{
-								"hx-delete": "/subscription/remove/" + subscription.GetID() + "?confirmation=no",
-								"hx-target": partials.ModalContainerID.Target(),
-								"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
-							},
-							[]string{"text-xs"},
-						),
-					),
-				),
-			),
-		)
-		// Reduce opacity for read articles.
-		if !subscription.IsUnread() {
-			cardOptions = append(cardOptions, card.WithExtraClasses(opacity.Apply(75)))
-		}
-		cards = append(cards, card.Build(cardOptions...).Show())
+		subscriptionCards = append(subscriptionCards, cards.NewSubscriptionCard(subscription).Show())
 	}
-	return cards
-}
-
-templ subscriptionCardTitle(subscription *models.Subscription) {
-	// Generate a thumbnail to display next to the title.
-	if subscription.GetImage() != nil {
-		// If the source has an image, use that as the avatar.
-		@avatar.Build(
-			subscription.GetImage().URL(),
-			avatar.WithWidth("w-12"),
-			avatar.WithImageOptions(image.WithLazyLoading()),
-			avatar.WithExtraClasses("rounded"),
-		).Show()
-	} else {
-		// Otherwise, take the first letter of the title and create a placeholder avatar.
-		@placeholder.Build(subscription.GetTitle()[0:1], placeholder.SM).Show()
-	}
-	// Title text is a link to the view action of the card.
-	<div class="text-sm flex-1">
-		@link.Build(
-			link.WithContent(subscription.GetTitle()),
-			link.WithUnderlineOnHover(),
-			link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
-		).Show()
-	</div>
-	// Display unread count (if any).
-	<div class="flex-none">
-		if subscription.IsUnread() {
-			@badge.Build(
-				badge.WithSize(badge.SM),
-				badge.WithColor(badge.Secondary),
-				badge.WithContent(strconv.Itoa(subscription.UnreadCount)+" Unread"),
-				badge.WithExtraAttributes(templ.Attributes{
-					"sse-swap": subscription.GetFeedID() + "_unread",
-				}),
-			).Show()
-		}
-	</div>
+	return subscriptionCards
 }
 
 func GenerateArticleCards(ctx context.Context, articles models.Articles) []templ.Component {
