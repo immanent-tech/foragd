@@ -56,19 +56,7 @@ func (s *Store) Delete(token string) error {
 // or malformed tokens should result in a found return value of false and a
 // nil err value. The err return value should be used for system errors only.
 func (s *Store) Find(token string) ([]byte, bool, error) {
-	resp, err := elastic.NewGetRequest(s.client.GetAPI(),
-		s.index,
-		token,
-	).Do(sessionCtx)
-	if err != nil {
-		return nil, false, errors.Join(ErrFindSessionFailed, err)
-	}
-	// Check for session found.
-	if !resp.Found {
-		return nil, false, nil
-	}
-	// Extract (and validate) session data.
-	session, err := elastic.ExtractSource[models.UserSession](resp.Source_)
+	session, err := elastic.GetDoc[string, models.UserSession](sessionCtx, s.client.GetAPI(), s.index, token)
 	if err != nil {
 		return nil, false, errors.Join(ErrFindSessionFailed, err)
 	}

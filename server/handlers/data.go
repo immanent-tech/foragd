@@ -373,53 +373,6 @@ func getHomePageArticles(ctx context.Context, api models.DocumentsAPI, data *vie
 	return articles, nil
 }
 
-func getSearchSuggestions(ctx context.Context, api models.DocumentsAPI, searchTerms string) (models.Subscriptions, models.Articles, *models.Response) {
-	// Retrieve user object.
-	// user, found := models.UserFromCtx(ctx)
-	// if !found {
-	// 	return nil, nil, models.RespInvalidUser()
-	// }
-
-	// subscriptionSearch := &query.MSearchOptions{
-	// 	Query: query.Build(
-	// 		query.Bool(
-	// 			query.Filter(
-	// 				query.Term("user_id", user.GetID()),
-	// 			),
-	// 			query.Must(
-	// 				query.Match("title", searchTerms),
-	// 				query.Match("description", searchTerms),
-	// 				query.Match("categories", searchTerms),
-	// 			),
-	// 		),
-	// 	),
-	// 	Sort: []types.SortCombinationsVariant{elastic.SortByScore(), elastic.NewFieldSort("published", models.SortOrderDesc)},
-	// }
-
-	// itemsSearch := &query.MSearchOptions{
-	// 	Query: query.Build(
-	// 		query.Bool(
-	// 			// query.Filter(
-	// 			// 	query.FeedIDs(feedIDs...),
-	// 			// ),
-	// 			query.Must(
-	// 				query.Match("title", searchTerms),
-	// 				query.Match("description", searchTerms),
-	// 				query.Match("categories", searchTerms),
-	// 			),
-	// 		),
-	// 	),
-	// 	Sort: []types.SortCombinationsVariant{elastic.SortByScore(), elastic.NewFieldSort("published", models.SortOrderDesc)},
-	// }
-
-	// subscriptions, articles, err := api.MultiSearch(ctx, subscriptionSearch, itemsSearch)
-	// if err != nil {
-	// 	return nil, nil, models.RespTemporaryIssue("Could not fetch articles. Please try again.", err)
-	// }
-
-	return nil, nil, nil
-}
-
 func subscriptionRequestsFromCtx(ctx context.Context) models.SubscriptionRequests {
 	data := ctx.Value(subscriptionRequestsCtxKey)
 	if data == nil {

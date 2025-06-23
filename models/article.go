@@ -61,7 +61,7 @@ func GenerateArticle(item *Item, state *ObjectState, subID SubscriptionID, custo
 		article.State.MarkUnread(item.GetPublishedDate())
 	}
 
-	// Validate the subscription.
+	// Validate the article.
 	if valid, err := article.Valid(); !valid {
 		return nil, fmt.Errorf("article data is invalid: %w", err)
 	}

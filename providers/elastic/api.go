@@ -29,6 +29,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/providers/elastic/results"
 )
 
 // API is an object that provides access to the Elasticsearch API.
@@ -94,7 +95,7 @@ func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (map[models.F
 	if index == "" {
 		return nil, ErrFetchCtx
 	}
-	return BulkAdd(ctx, e, index, feeds...)
+	return BulkAdd[models.FeedID, *models.Feed](ctx, e, index, feeds...)
 }
 
 // GetFeeds retrieves the feeds with the given IDs.
@@ -165,7 +166,7 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 	if index == "" {
 		return nil, ErrFetchCtx
 	}
-	return BulkAdd(ctx, e, index, items...)
+	return BulkAdd[models.ItemID, *models.Item](ctx, e, index, items...)
 }
 
 // SearchSubscriptionCustomisations will search the feeds index for feed matching the given query. Count, sort and
@@ -210,7 +211,7 @@ func (e *API) AddSubscriptionCustomisations(ctx context.Context, customisations 
 	if index == "" {
 		return nil, ErrFetchCtx
 	}
-	return BulkAdd(ctx, e, index, customisations...)
+	return BulkAdd[models.SubscriptionID, *models.SubscriptionCustomisation](ctx, e, index, customisations...)
 }
 
 // GetSubscriptionCustomisations retrieves the subscription customisations with the given IDs.
@@ -333,9 +334,85 @@ func (a *API) UpdateUser(ctx context.Context, updates map[string]any) *models.Re
 	return nil
 }
 
+func (e *API) FindSuggestions(ctx context.Context, searchTerms string) (results.MSearchResults, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, ErrFetchCtx
+	}
+
+	feedIDs := slices.Collect(maps.Keys(user.GetAllSubscriptionStatesByFeed()))
+
+	subscriptionsQuery := &query.MsearchSearch{
+		Name:  "customisations",
+		Index: FeedsIndexFromCtx(ctx),
+		Query: query.Build(
+			query.Bool(
+				query.Filter(
+					query.Term("user_id", user.GetID()),
+				),
+				query.Should(
+					query.SearchAsYouType(searchTerms, "title"),
+					query.SearchAsYouType(searchTerms, "categories"),
+				),
+			),
+		),
+	}
+
+	feedsQuery := &query.MsearchSearch{
+		Name:  "feeds",
+		Index: FeedsIndexFromCtx(ctx),
+		Query: query.Build(
+			query.Bool(
+				query.Filter(
+					query.Terms("feed_id", feedIDs...),
+				),
+				query.Must(
+					query.Bool(
+						query.Should(
+							query.SearchAsYouType(searchTerms, "title"),
+							query.SearchAsYouType(searchTerms, "description"),
+							query.SearchAsYouType(searchTerms, "content"),
+							query.SearchAsYouType(searchTerms, "categories"),
+						),
+					),
+				),
+			),
+		),
+	}
+
+	articlesQuery := &query.MsearchSearch{
+		Name:  "items",
+		Index: ItemsIndexFromCtx(ctx),
+		Query: query.Build(
+			query.Bool(
+				query.Filter(
+					query.Terms("feed_id", feedIDs...),
+				),
+				query.Must(
+					query.Bool(
+						query.Should(
+							query.SearchAsYouType(searchTerms, "title"),
+							query.SearchAsYouType(searchTerms, "description"),
+							query.SearchAsYouType(searchTerms, "content"),
+							query.SearchAsYouType(searchTerms, "categories"),
+						),
+					),
+				),
+			),
+		),
+	}
+
+	results, err := MultiSearch(ctx, e.GetAPI(), subscriptionsQuery, feedsQuery, articlesQuery)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+	}
+
+	return results, nil
+}
+
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
-func BulkAdd[T ~string, O models.HasID[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {
+func BulkAdd[T ~string, O Object[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {
 	bulkOps, respCh := bulk.NewRequest(ctx, api)
 
 	go func() {
@@ -398,7 +475,7 @@ func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index str
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrGetFailed, err)
 	}
-	objects, warnings := ExtractSourceFromDocs[O](resp.Docs)
+	objects, warnings := results.ExtractSourceFromDocs[O](resp.Docs)
 	if warnings != nil {
 		slogctx.FromCtx(ctx).Warn("Some docs could not be extracted.",
 			slog.Any("warnings", warnings))
@@ -416,7 +493,7 @@ func GetDoc[T ~string, O any](ctx context.Context, api *typedapi.API, index stri
 		return doc, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
 
-	doc, err = ExtractSource[O](resp.Source_)
+	doc, err = results.ExtractSource[O](resp.Source_)
 	if err != nil {
 		return doc, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
@@ -531,7 +608,7 @@ func Search[O any](ctx context.Context, api *typedapi.API, index string, query q
 	var warnings error
 	var docs []O
 
-	docs, searchAfter, warnings = ExtractSourceFromHits[O](resp.Hits.Hits)
+	docs, searchAfter, warnings = results.ExtractSourceFromHits[O](resp.Hits.Hits)
 	if warnings != nil {
 		slogctx.FromCtx(ctx).Warn("Some docs could not be extracted.",
 			slog.Any("warnings", warnings))
@@ -540,7 +617,7 @@ func Search[O any](ctx context.Context, api *typedapi.API, index string, query q
 	return docs, searchAfter, nil
 }
 
-func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.MsearchSearch) (MultiSearchResults, error) {
+func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.MsearchSearch) (results.MSearchResults, error) {
 	subscriptionsIndex := FeedsIndexFromCtx(ctx)
 	if subscriptionsIndex == "" {
 		return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
@@ -570,8 +647,6 @@ func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.Msea
 
 	return results, nil
 }
-
-type MultiSearchResults map[string]*types.MultiSearchItem
 
 func parseError(err error) *models.Response {
 	var esErr *types.ElasticsearchError

@@ -112,15 +112,7 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 // Get returns the scheduled job with the specified key without removing it
 // from the queue.
 func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
-	resp, err := elastic.NewGetRequest(jq.client.GetAPI(),
-		jq.index,
-		jobKey.String(),
-	).Do(schedCtx)
-	if err != nil {
-		return nil, errors.Join(ErrGetJobFailed, err)
-	}
-
-	job, err := elastic.ExtractSource[ScheduledJob](resp.Source_)
+	job, err := elastic.GetDoc[string, ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, jobKey.String())
 	if err != nil {
 		return nil, errors.Join(ErrGetJobFailed, err)
 	}

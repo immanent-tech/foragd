@@ -12,7 +12,6 @@ var (
 	ErrSetupFailed   = errors.New("elasticsearch setup failed")
 
 	ErrNoClient      = errors.New("no client")
-	ErrFieldNotFound = errors.New("field not found")
 	ErrReqFailed     = errors.New("api request failed")
 	ErrNotFound      = errors.New("not found")
 

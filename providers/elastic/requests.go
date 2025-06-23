@@ -5,6 +5,7 @@ package elastic
 
 import (
 	"log/slog"
+	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
@@ -15,8 +16,128 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
+
+const (
+	ReqIDHeader = "X-Opaque-Id"
+)
+
+type RequestCommon[T any] interface {
+	Header(key string, value string) T
+}
+
+// WithRequestID option sets the appropriate request ID header to the given value in the request.
+func WithRequestID[T any, V RequestCommon[T]](id string) Option[V] {
+	return func(t V) {
+		if id != "" {
+			t.Header(ReqIDHeader, id)
+		}
+	}
+}
+
+type RequestWithQuery[T any] interface {
+	Query(query types.QueryVariant) T
+}
+
+// WithQueryOptions option applies the given query options to the request.
+func WithQueryOptions[T any, R RequestWithQuery[T]](options ...query.Option) Option[R] {
+	return func(req R) {
+		if query := query.Build(options...); query != nil {
+			req.Query(query)
+		}
+	}
+}
+
+type RequestWithAggregations[T any] interface {
+	Aggregations(aggs map[string]types.Aggregations) T
+}
+
+// WithAggregations adds the given aggregation definitions to the search.
+func WithAggregations[T any, R RequestWithAggregations[T]](definitions ...aggregations.Aggregation) Option[R] {
+	return func(req R) {
+		aggregations := make(map[string]types.Aggregations)
+
+		for _, definition := range definitions {
+			aggregations[definition.Name] = definition.Definition
+		}
+
+		req.Aggregations(aggregations)
+	}
+}
+
+type RequestWithIndex[T any] interface {
+	Index(index string) T
+}
+
+// WithRequestID option sets the appropriate request ID header to the given value in the request.
+func WithIndex[T any, V RequestWithIndex[T]](index string) Option[V] {
+	return func(t V) {
+		if index != "" {
+			t.Index(index)
+		}
+	}
+}
+
+type RequestWithIDs[T any] interface {
+	Ids(id ...string) T
+}
+
+func WithIDs[T any, V RequestWithIDs[T]](ids ...string) Option[V] {
+	return func(v V) {
+		v.Ids(ids...)
+	}
+}
+
+type RequestWithSize[T any] interface {
+	Size(size int) T
+}
+
+// WithSearchSize defines the number of results returned.
+func WithSize[T any, V RequestWithSize[T]](size int) Option[V] {
+	return func(v V) {
+		v.Size(size)
+	}
+}
+
+type RequestWithSearchAfter[T any] interface {
+	SearchAfter(values ...types.FieldValueVariant) T
+}
+
+// WithSearchAfter sets the sort value to fetch the next set of results. It can
+// accept either a []types.FieldValue or a []byte (html-encoded
+// []types.FieldValue).
+//
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
+func WithSearchAfter[T any, V RequestWithSearchAfter[T]](value any) Option[V] {
+	return func(req V) {
+		if value == nil {
+			return
+		}
+
+		if values, ok := value.([]types.FieldValue); ok {
+			fieldValues := make([]types.FieldValueVariant, 0, len(values))
+			for value := range slices.Values(values) {
+				fieldValues = append(fieldValues, NewFieldValue(value))
+			}
+			req.SearchAfter(fieldValues...)
+		} else {
+			req.SearchAfter(NewFieldValue(value))
+		}
+	}
+}
+
+type RequestWithSort[T any] interface {
+	Sort(sort ...types.SortCombinationsVariant) T
+}
+
+// WithSortOptions adds the given sorting options to the search.
+func WithSortOptions[T any, V RequestWithSort[T]](options ...types.SortCombinationsVariant) Option[V] {
+	return func(req V) {
+		req.Sort(options...)
+	}
+}
 
 // CountOption is a functional option to apply to a count request.
 type CountOption Option[*count.Count]

@@ -12,6 +12,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/providers/elastic/results"
 )
 
 var ErrBackend = errors.New("backend API error")
@@ -51,6 +52,7 @@ type DocumentsAPI interface {
 	FeedsAPI
 	ItemsAPI
 	UserAPI
+	FindSuggestions(ctx context.Context, searchTerms string) (results.MSearchResults, error)
 }
 
 // UserBackendAPI contains the methods for creating users on an auth backend.

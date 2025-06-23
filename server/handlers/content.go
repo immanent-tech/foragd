@@ -725,13 +725,11 @@ func GenerateSearchSuggestions(api models.DocumentsAPI, searchTerms string) func
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 
-			subscriptions, articles, resp := getSearchSuggestions(ctx, api, searchTerms)
+			subscriptions, articles, resp := models.GetSearchSuggestions(ctx, api, searchTerms)
 			if resp != nil {
-				ProcessResponse(res, req, resp)
-				return
-			}
-
-			if len(subscriptions) > 0 || len(articles) > 0 {
+				slogctx.FromCtx(req.Context()).Warn("Failed to get search suggestions.", slog.Any("error", resp.Error()))
+				next.ServeHTTP(res, req)
+			} else if len(subscriptions) > 0 || len(articles) > 0 {
 				suggestions := make([]templ.Component, 0, len(articles)+1)
 
 				if len(subscriptions) > 0 {
@@ -751,6 +749,7 @@ func GenerateSearchSuggestions(api models.DocumentsAPI, searchTerms string) func
 
 				ctx = context.WithValue(ctx, contentCtxKey, views.SearchSuggestions(suggestions...))
 			}
+
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

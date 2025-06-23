@@ -20,6 +20,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/providers/elastic/results"
 )
 
 var ErrNoSubscriptionCustomisation = errors.New("no subscription customisation found")
@@ -227,6 +228,131 @@ func Unsubscribe(ctx context.Context, api DocumentsAPI, ids ...SubscriptionID) *
 	})
 }
 
+func GetSearchSuggestions(ctx context.Context, api DocumentsAPI, searchTerms string) (Subscriptions, Articles, *Response) {
+	// Retrieve user object.
+	user, found := UserFromCtx(ctx)
+	if !found {
+		return nil, nil, RespErrUnauthorized()
+	}
+
+	states := user.GetAllSubscriptionStatesByFeed()
+
+	msearchResults, err := api.FindSuggestions(ctx, searchTerms)
+	if err != nil {
+		return nil, nil, RespErrBackend(err)
+	}
+
+	customisations, _ := results.GetHits[*SubscriptionCustomisation]("customisations", msearchResults)
+	feeds, _ := results.GetHits[*Feed]("feeds", msearchResults)
+	items, _ := results.GetHits[*Item]("items", msearchResults)
+
+	// Generate subscriptions from data sources.
+	subscriptions := make(Subscriptions, 0, len(feeds))
+	maxSubscriptionResults := 10
+
+	// Make subscriptions from customisation results, up to the maxObjectResults.
+	for idx, customisation := range customisations {
+		var feed *Feed
+		if fidx := slices.IndexFunc(feeds, func(f *Feed) bool {
+			// Feed already fetched in msearch results, use it.
+			return f.GetID() == customisation.GetFeedID()
+		}); fidx != -1 {
+			feed = feeds[fidx]
+		} else {
+			// Get feed details.
+			f, err := api.GetFeeds(ctx, customisation.GetFeedID())
+			if err != nil {
+				continue
+			}
+			feed = f[0]
+		}
+		subscription, err := GenerateSubscription(
+			user.GetID(),
+			feed,
+			customisation,
+			states[customisation.GetFeedID()],
+			0,
+		)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not generate subscription from data.",
+				slog.Any("error", err),
+			)
+			continue
+		}
+		if idx == maxSubscriptionResults {
+			break
+		}
+		subscriptions = append(subscriptions, subscription)
+	}
+	// Make subscriptions from the feed results up to maxObjectResults - customisationResults.
+	for idx, feed := range feeds {
+		var state *SubscriptionState
+		var found bool
+		if state, found = states[feed.GetID()]; !found {
+			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved feed.",
+				slog.String("feed_id", feed.GetID()),
+			)
+			continue
+		}
+		subscription, err := GenerateSubscription(
+			user.GetID(),
+			feed,
+			nil,
+			state,
+			0,
+		)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not generate subscription from data.",
+				slog.Any("error", err),
+			)
+			continue
+		}
+		if idx == (maxSubscriptionResults - len(customisations)) {
+			break
+		}
+		subscriptions = append(subscriptions, subscription)
+	}
+
+	articles := make(Articles, 0, len(items))
+	for item := range slices.Values(items) {
+		var state *SubscriptionState
+		var found bool
+		if state, found = states[item.GetFeedID()]; !found {
+			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved item.",
+				slog.String("item_id", item.GetID()),
+			)
+			continue
+		}
+		var customisation *SubscriptionCustomisation
+		if cidx := slices.IndexFunc(customisations, func(c *SubscriptionCustomisation) bool {
+			// Feed already fetched in msearch results, use it.
+			return c.GetFeedID() == item.GetFeedID()
+		}); cidx != -1 {
+			customisation = customisations[cidx]
+		} else {
+			// Get customisation details.
+			c, err := api.GetSubscriptionCustomisations(ctx, state.GetID())
+			if err != nil {
+				continue
+			}
+			if len(c) > 0 {
+				customisation = c[0]
+			}
+		}
+
+		article, err := GenerateArticle(item, state.GetItemState(item.GetID()), state.GetID(), customisation)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
+				slog.Any("error", err),
+			)
+			continue
+		}
+		articles = append(articles, article)
+	}
+
+	return subscriptions, articles, nil
+}
+
 // func UpdateSubscriptionCustomisation(ctx context.Context, api DocumentsAPI, edits *SubscriptionEdit) error {
 // 	// Retrieve user object.
 // 	user, found := UserFromCtx(ctx)
@@ -392,32 +518,6 @@ func queryAllItems(user *User, subscription *SubscriptionState) query.Option {
 			),
 		),
 	)
-}
-
-func querySuggestSubscriptions(text string) *types.Query {
-	return query.Build(
-		query.Bool(
-			query.Should(
-				query.SearchAsYouType(text, "title"),
-				query.SearchAsYouType(text, "description"),
-			),
-		),
-	)
-	// subscriptionSearch := &query.MSearchOptions{
-	// 	Query: query.Build(
-	// 		query.Bool(
-	// 			query.Filter(
-	// 				query.Term("user_id", user.GetID()),
-	// 			),
-	// 			query.Must(
-	// 				query.Match("title", searchTerms),
-	// 				query.Match("description", searchTerms),
-	// 				query.Match("categories", searchTerms),
-	// 			),
-	// 		),
-	// 	),
-	// 	Sort: []types.SortCombinationsVariant{elastic.SortByScore(), elastic.NewFieldSort("published", models.SortOrderDesc)},
-	// }
 }
 
 // EncodePagination will take sort values returned from a query, marshal them to
