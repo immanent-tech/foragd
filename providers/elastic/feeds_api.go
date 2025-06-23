@@ -23,11 +23,11 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 	}
 
 	req := NewSearchRequest(e.GetAPI(),
-		WithRequestID[*search.Search, SearchAPIRequest](middleware.GetReqID(ctx)),
-		WithIndex[*search.Search, SearchAPIRequest](index),
-		WithQueryOptions[*search.Search, SearchAPIRequest](query),
-		WithSize[*search.Search, SearchAPIRequest](0),
-		WithAggregations[*search.Search, SearchAPIRequest](aggregations...),
+		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
+		WithIndex[*search.Search, SearchRequest](index),
+		WithQueryOptions[*search.Search, SearchRequest](query),
+		WithSize[*search.Search, SearchRequest](0),
+		WithAggregations[*search.Search, SearchRequest](aggregations...),
 	)
 
 	resp, err := req.Do(ctx)

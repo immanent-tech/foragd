@@ -21,20 +21,19 @@ import (
 // CountOption is a functional option to apply to a count request.
 type CountOption Option[*count.Count]
 
-type SearchRequest[T any] interface {
-	RequestCommon[T]
-	RequestWithIndex[T]
-	RequestWithQuery[T]
-	RequestWithAggregations[T]
-	RequestWithSize[T]
-	RequestWithSearchAfter[T]
-	RequestWithSort[T]
+// SearchRequest represents a `_search` API request.
+type SearchRequest interface {
+	RequestCommon[*search.Search]
+	RequestWithIndex[*search.Search]
+	RequestWithQuery[*search.Search]
+	RequestWithAggregations[*search.Search]
+	RequestWithSize[*search.Search]
+	RequestWithSearchAfter[*search.Search]
+	RequestWithSort[*search.Search]
 }
 
-type SearchAPIRequest SearchRequest[*search.Search]
-
 // NewSearchRequest creates a new search request with the given options.
-func NewSearchRequest(api *typedapi.API, options ...Option[SearchAPIRequest]) *search.Search {
+func NewSearchRequest(api *typedapi.API, options ...Option[SearchRequest]) *search.Search {
 	req := api.Search()
 
 	for _, option := range options {

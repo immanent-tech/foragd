@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+//nolint:dupl
 package elastic
 
 import (
@@ -516,12 +517,12 @@ func DeleteDocs(ctx context.Context, api *typedapi.API, index string, queries ..
 // count parameter can be thought of as specifying how many new results are retrieved.
 func Search[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, sort []types.SortCombinationsVariant, searchAfter []types.FieldValue) ([]O, []types.FieldValue, error) {
 	resp, err := NewSearchRequest(api,
-		WithRequestID[*search.Search, SearchAPIRequest](middleware.GetReqID(ctx)),
-		WithIndex[*search.Search, SearchAPIRequest](index),
-		WithQueryOptions[*search.Search, SearchAPIRequest](query),
-		WithSize[*search.Search, SearchAPIRequest](count),
-		WithSearchAfter[*search.Search, SearchAPIRequest](searchAfter),
-		WithSortOptions[*search.Search, SearchAPIRequest](sort...),
+		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
+		WithIndex[*search.Search, SearchRequest](index),
+		WithQueryOptions[*search.Search, SearchRequest](query),
+		WithSize[*search.Search, SearchRequest](count),
+		WithSearchAfter[*search.Search, SearchRequest](searchAfter),
+		WithSortOptions[*search.Search, SearchRequest](sort...),
 	).Do(ctx)
 	if err != nil {
 		return nil, nil, errors.Join(ErrSearchFailed, err)
