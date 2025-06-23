@@ -1,0 +1,139 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package cards
+
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/classes/opacity"
+	"github.com/joshuar/go-templ-daisyui/classes/shadow"
+	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/display/figure"
+	"github.com/joshuar/go-templ-daisyui/display/image"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+)
+
+type ArticleCard struct {
+	*models.Article
+	classes []components.Class
+}
+
+func NewArticleCard(article *models.Article) *ArticleCard {
+	card := &ArticleCard{
+		Article: article,
+	}
+	if article.IsUnread() {
+		card.classes = append(card.classes, opacity.Apply(75))
+	}
+	return card
+}
+
+// Visit is the action for visiting the webpage for the article.
+templ (c *ArticleCard) Visit() {
+	@partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
+		"External Link",
+		templ.Attributes{"href": c.GetLink()},
+		[]string{"text-xs"},
+	)
+}
+
+// Share is the action for sharing an article to an external service.
+templ (c *ArticleCard) Share() {
+	@partials.LinkWithIcon(tabler.Share(i.Props{Size: i.SizeXS}), "Share", nil, []string{"text-xs"})
+}
+
+// Mark is the action for marking an article read/unread.
+templ (c *ArticleCard) Mark() {
+	if c.IsUnread() {
+		@partials.LinkWithIcon(
+			tabler.Bookmark(i.Props{Size: i.SizeXS}),
+			"Mark Read",
+			c.markAttributes(),
+			[]string{"text-xs"},
+		)
+	} else {
+		@partials.LinkWithIcon(
+			tabler.BookmarkFilled(i.Props{Size: i.SizeXS}),
+			"Mark Unread",
+			c.markAttributes(),
+			[]string{"text-xs"},
+		)
+	}
+}
+
+templ (c *ArticleCard) Show() {
+	@card.Build(
+		card.WithStyle(card.Border),
+		card.WithLayout(card.LayoutSide),
+		card.WithShadow(shadow.SM),
+		card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
+		card.WithID(c.GetID()),
+		card.WithImage(c.image()),
+		card.WithBodyOptions(
+			// Card title.
+			card.WithTitle(link.Build(
+				link.WithContent(c.GetTitle()),
+				link.WithUnderlineOnHover(),
+				link.WithExtraAttributes(c.viewAttributes()),
+			).Show()),
+			// Card content.
+			card.WithContent(
+				templ.Join(
+					cardMeta(c.GetAuthors(), c.GetUpdatedDate()),
+				),
+			),
+			// Card actions.
+			card.WithActions(
+				cardMenu(c.Share(), c.Visit(), c.Mark()),
+			),
+		),
+		card.WithExtraClasses(c.classes...),
+	).Show()
+}
+
+func (c ArticleCard) image() any {
+	if c.GetImage() != nil {
+		return figure.Build(
+			image.Build(
+				c.GetImage().URL(),
+				image.WithLazyLoading(),
+				image.WithExtraClasses("h-40", "max-w-full", "aspect-auto", "object-contain", "rounded-box"),
+			),
+			figure.WithFigureClasses("m-2"),
+		)
+	}
+	return tabler.Article(i.Props{
+		Class: "h-40 max-w-full rounded-box",
+	})
+}
+
+func (c *ArticleCard) markAttributes() templ.Attributes {
+	// Set up htmx attributes for action.
+	attributes := templ.Attributes{
+		"hx-swap":        "morph:outerHTML",
+		"hx-target":      "#" + c.GetID(),
+		"hx-replace-url": "false",
+		"_":              "on htmx:afterRequest send UpdateState to #drawer-subscription-list",
+	}
+
+	if c.IsUnread() {
+		attributes["hx-post"] = "/article/" + string(models.MarkRead) + "/" + c.GetID()
+	} else {
+		attributes["hx-post"] = "/article/" + string(models.MarkUnread) + "/" + c.GetID()
+	}
+	return attributes
+}
+
+func (c *ArticleCard) viewAttributes() templ.Attributes {
+	view := models.PageState{Path: "/article/" + c.GetID()}
+	return templ.Attributes{
+		"hx-get":      view.String(),
+		"hx-target":   partials.ContentID.Target(),
+		"hx-push-url": "true",
+		"hx-swap":     "morph:innerHTML show:top",
+	}
+}

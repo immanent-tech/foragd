@@ -130,3 +130,7 @@ func (a *Article) GetFeedTitle() string {
 	}
 	return a.Item.FeedTitle
 }
+
+func (a *Article) IsUnread() bool {
+	return !a.State.IsRead()
+}

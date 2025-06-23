@@ -9,6 +9,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
+	"github.com/joshuar/go-templ-daisyui/classes/shadow"
 	"github.com/joshuar/go-templ-daisyui/display/avatar"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
@@ -137,8 +138,12 @@ templ (c *SubscriptionCard) Title() {
 	}
 }
 
+// Show will render the subscription card.
 templ (c *SubscriptionCard) Show() {
 	@card.Build(
+		card.WithStyle(card.Border),
+		card.WithShadow(shadow.SM),
+		card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
 		card.WithID(c.GetID()),
 		card.WithBodyOptions(
 			// Card title.
