@@ -5,7 +5,7 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-bin = "tmp/gowebly_chi --log-level=debug --profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true' serve"
+bin = "tmp/gowebly_chi --profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true' serve"
 cmd = "go tool github.com/a-h/templ/cmd/templ generate && go build -o ./tmp/gowebly_chi ."
 delay = 1000
 exclude_dir = [

@@ -14,8 +14,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/joshuar/go-feed-me/components/logging"
-
-	"github.com/tidwall/pretty"
 )
 
 var _ elastictransport.Logger = (*Logger)(nil)
@@ -79,18 +77,18 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		}
 		requestAttributes = append(requestAttributes,
 			slog.Int("length", int(res.ContentLength)),
-			slog.String("body", logBodyAsText(&buf)))
+			slog.String("body", buf.String()))
 	}
 
-	// response body
-	if (logging.Level == logging.LevelTrace || l.ResponseBodyEnabled()) && res != nil && res.Body != nil && res.Body != http.NoBody {
-		defer res.Body.Close() //nolint:errcheck
-		var buf bytes.Buffer
-		buf.ReadFrom(res.Body) //nolint:errcheck
-		requestAttributes = append(requestAttributes,
-			slog.Int("length", int(res.ContentLength)),
-			slog.String("body", logBodyAsText(&buf)))
-	}
+	// // response body
+	// if (logging.Level == logging.LevelTrace || l.ResponseBodyEnabled()) && res != nil && res.Body != nil && res.Body != http.NoBody {
+	// 	defer res.Body.Close() //nolint:errcheck
+	// 	var buf bytes.Buffer
+	// 	buf.ReadFrom(res.Body) //nolint:errcheck
+	// 	responseAttributes = append(responseAttributes,
+	// 		slog.Int("length", int(res.ContentLength)),
+	// 		slog.String("body", buf.String()))
+	// }
 
 	attributes := append(
 		[]slog.Attr{
@@ -127,19 +125,19 @@ func (l *Logger) ResponseBodyEnabled() bool {
 	return l.EnableResponseBody
 }
 
-func logBodyAsText(body *bytes.Buffer) string {
-	// formatted, err := json.MarshalIndent(body.Bytes(), "", "  ")
-	// if err != nil {
-	// 	spew.Dump(err)
-	// 	return ""
-	// }
-	return string(pretty.Color(body.Bytes(), nil))
-	// scanner := bufio.NewScanner(body)
-	// for scanner.Scan() {
-	// 	s := scanner.Text()
-	// 	if s != "" {
-	// 		return s
-	// 	}
-	// }
-	// return ""
-}
+// func logBodyAsText(body *bytes.Buffer) string {
+// 	// formatted, err := json.MarshalIndent(body.Bytes(), "", "  ")
+// 	// if err != nil {
+// 	// 	spew.Dump(err)
+// 	// 	return ""
+// 	// }
+// 	return string(pretty.Color(body.Bytes(), nil))
+// 	// scanner := bufio.NewScanner(body)
+// 	// for scanner.Scan() {
+// 	// 	s := scanner.Text()
+// 	// 	if s != "" {
+// 	// 		return s
+// 	// 	}
+// 	// }
+// 	// return ""
+// }

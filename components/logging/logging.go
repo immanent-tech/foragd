@@ -34,8 +34,8 @@ var LevelNames = map[slog.Leveler]string{
 
 // Options are options for controlling logging.
 type Options struct {
-	LogLevel  string `name:"log-level" enum:"info,debug,trace" default:"info" help:"Set logging level."`
-	NoLogFile bool   `name:"no-log-file" help:"Don't write to a log file." default:"false"`
+	LogLevel  string `env:"GOFEEDME_LOGLEVEL" name:"log-level" enum:"info,debug,trace" default:"info" help:"Set logging level."`
+	NoLogFile bool   `env:"GOFEEDME_NOLOGFILE" name:"no-log-file" help:"Don't write to a log file." default:"false"`
 }
 
 // DefaultLogFile is the default log file location.
@@ -132,7 +132,9 @@ func consolelevelReplacer(_ []string, attr slog.Attr) slog.Attr {
 		case slog.LevelInfo:
 			attr.Value = slog.StringValue(color.HiGreenString("INFO"))
 		case slog.LevelDebug:
-			attr.Value = slog.StringValue(color.MagentaString("DEBUG"))
+			attr.Value = slog.StringValue(color.HiMagentaString("DEBUG"))
+		case LevelTrace:
+			attr.Value = slog.StringValue(color.HiWhiteString("TRACE"))
 		default:
 			attr.Value = slog.StringValue("UNKNOWN")
 		}

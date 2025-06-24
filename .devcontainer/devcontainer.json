@@ -5,7 +5,8 @@
   "containerUser": "vscode",
   "containerEnv": {
     "TZ": "${localEnv:TZ:Australia/Brisbane}",
-    "HOME": "/home/vscode"
+    "HOME": "/home/vscode",
+    "GOFEEDME_LOGLEVEL": "debug"
   },
   "updateRemoteUserUID": true,
   "workspaceFolder": "/workspace",
