@@ -135,9 +135,8 @@ func (s Server) SetTheme(res http.ResponseWriter, req *http.Request) {
 		"updated_at": time.Now().UTC(),
 	}); err != nil {
 		handlers.ProcessResponse(res, req, models.NewResponse(http.StatusNoContent, fmt.Errorf("failed to update theme: %w", err)))
-	} else {
-		res.WriteHeader(http.StatusOK)
 	}
+	s.GetSettings(res, req)
 }
 
 // Logout handler handles user logout.
