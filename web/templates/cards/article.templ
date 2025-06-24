@@ -65,6 +65,7 @@ templ (c *ArticleCard) Mark() {
 	}
 }
 
+// Show will render the article card.
 templ (c *ArticleCard) Show() {
 	@card.Build(
 		card.WithStyle(card.Border),
@@ -95,24 +96,23 @@ templ (c *ArticleCard) Show() {
 	).Show()
 }
 
+// image returns an appropriate image to use in the article card. It will either be the article's image or a
+// placeholder.
 func (c ArticleCard) image() any {
 	if c.GetImage() != nil {
 		return figure.Build(
 			image.Build(
 				c.GetImage().URL(),
 				image.WithLazyLoading(),
-				image.WithExtraClasses("h-40", "max-w-full", "aspect-auto", "object-contain", "rounded-box"),
+				image.WithExtraClasses("size-16", "object-scale-down", "rounded-box"),
 			),
 			figure.WithFigureClasses("m-2"),
 		)
 	}
-	return tabler.Article(i.Props{
-		Class: "h-40 max-w-full rounded-box",
-	})
+	return articlePlaceholderImage()
 }
 
 func (c *ArticleCard) markAttributes() templ.Attributes {
-	// Set up htmx attributes for action.
 	attributes := templ.Attributes{
 		"hx-swap":        "morph:outerHTML",
 		"hx-target":      "#" + c.GetID(),
@@ -136,4 +136,12 @@ func (c *ArticleCard) viewAttributes() templ.Attributes {
 		"hx-push-url": "true",
 		"hx-swap":     "morph:innerHTML show:top",
 	}
+}
+
+templ articlePlaceholderImage() {
+	<div class="content-center">
+		@tabler.Article(i.Props{
+			Size: "64",
+		})
+	</div>
 }
