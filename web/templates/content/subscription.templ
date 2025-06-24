@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package cards
+package content
 
 import (
 	"context"
@@ -21,23 +21,23 @@ import (
 	"strconv"
 )
 
-type SubscriptionCard struct {
+type Subscription struct {
 	*models.Subscription
 	classes []components.Class
 }
 
-func NewSubscriptionCard(subscription *models.Subscription) *SubscriptionCard {
-	card := &SubscriptionCard{
+func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
+	card := &Subscription{
 		Subscription: subscription,
 	}
-	if subscription.IsUnread() {
+	if !subscription.IsUnread() {
 		card.classes = append(card.classes, opacity.Apply(75))
 	}
 	return card
 }
 
 // Visit is the action for visiting the subscription's source webpage.
-templ (c *SubscriptionCard) Visit() {
+templ (c *Subscription) Visit() {
 	@partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
 		"Visit "+models.ParseDomain(c.GetLink()),
 		templ.Attributes{
@@ -48,12 +48,12 @@ templ (c *SubscriptionCard) Visit() {
 }
 
 // Share is the action for sharing the subscription to an external service.
-templ (c *SubscriptionCard) Share() {
+templ (c *Subscription) Share() {
 	@partials.LinkWithIcon(tabler.Share(i.Props{Size: i.SizeXS}), "Share", nil, []string{"text-xs"})
 }
 
 // Mark is the action for marking a subscription read/unread.
-templ (c *SubscriptionCard) Mark() {
+templ (c *Subscription) Mark() {
 	if c.IsUnread() {
 		@partials.LinkWithIcon(
 			tabler.Bookmark(i.Props{Size: i.SizeXS}),
@@ -72,7 +72,7 @@ templ (c *SubscriptionCard) Mark() {
 }
 
 // Edit is the action for editing a subscription.
-templ (c *SubscriptionCard) Edit() {
+templ (c *Subscription) Edit() {
 	@partials.LinkWithIcon(tabler.Edit(i.Props{Size: i.SizeXS}),
 		"Edit Subscription",
 		templ.Attributes{
@@ -85,7 +85,7 @@ templ (c *SubscriptionCard) Edit() {
 }
 
 // Unsubscribe is the action for unsubscribing from a subscription.
-templ (c *SubscriptionCard) Unsubscribe() {
+templ (c *Subscription) Unsubscribe() {
 	@partials.LinkWithIcon(tabler.Trash(i.Props{Size: i.SizeXS}),
 		"Unsubscribe",
 		templ.Attributes{
@@ -97,8 +97,8 @@ templ (c *SubscriptionCard) Unsubscribe() {
 	)
 }
 
-// Title generates a title for a subscription card.
-templ (c *SubscriptionCard) Title() {
+// Summary displays the subscription's image (or a avatar), title and unread count (if any).
+templ (c *Subscription) Summary() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(c.viewAttributes(ctx)),
@@ -118,11 +118,11 @@ templ (c *SubscriptionCard) Title() {
 				@placeholder.Build(c.GetTitle()[0:1], placeholder.SM).Show()
 			}
 			// Title text is a link to the view action of the card.
-			<div class="text-sm flex-1 content-center">
+			<div class="text-sm grow content-center">
 				{ c.GetTitle() }
 			</div>
 			// Display unread count (if any).
-			<div class="flex-none">
+			<div class="content-center">
 				if c.IsUnread() {
 					@badge.Build(
 						badge.WithSize(badge.SM),
@@ -131,6 +131,7 @@ templ (c *SubscriptionCard) Title() {
 						badge.WithExtraAttributes(templ.Attributes{
 							"sse-swap": c.GetFeedID() + "_unread",
 						}),
+						badge.WithExtraClasses("grow", "text-nowrap"),
 					).Show()
 				}
 			</div>
@@ -138,8 +139,36 @@ templ (c *SubscriptionCard) Title() {
 	}
 }
 
-// Show will render the subscription card.
-templ (c *SubscriptionCard) Show() {
+// State displays the subscription title and its unread count (if any).
+templ (s *Subscription) State() {
+	@link.Build(
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(s.viewAttributes(ctx)),
+	).Show() {
+		<div class="flex gap-2 w-full">
+			<div class="flex-1 text-sm content-center">
+				{ s.GetTitle() }
+			</div>
+			// Display unread count (if any).
+			<div class="content-center">
+				if s.IsUnread() {
+					@badge.Build(
+						badge.WithSize(badge.SM),
+						badge.WithColor(badge.Secondary),
+						badge.WithContent(strconv.Itoa(s.GetUnreadCount())+" Unread"),
+						badge.WithExtraAttributes(templ.Attributes{
+							"sse-swap": s.GetFeedID() + "_unread",
+						}),
+						badge.WithExtraClasses("grow", "text-nowrap"),
+					).Show()
+				}
+			</div>
+		</div>
+	}
+}
+
+// Card displays the subscription as a card.
+templ (c *Subscription) Card() {
 	@card.Build(
 		card.WithStyle(card.Border),
 		card.WithShadow(shadow.SM),
@@ -147,7 +176,7 @@ templ (c *SubscriptionCard) Show() {
 		card.WithID(c.GetID()),
 		card.WithBodyOptions(
 			// Card title.
-			card.WithTitle(c.Title()),
+			card.WithTitle(c.Summary()),
 			// Card content.
 			card.WithContent(
 				templ.Join(
@@ -164,7 +193,7 @@ templ (c *SubscriptionCard) Show() {
 	).Show()
 }
 
-func (c *SubscriptionCard) markAttributes() templ.Attributes {
+func (c *Subscription) markAttributes() templ.Attributes {
 	// Create htmx attributes: don't replace URL, swap the subscription card only.
 	attrs := templ.Attributes{
 		"hx-replace-url":  "false",
@@ -181,7 +210,7 @@ func (c *SubscriptionCard) markAttributes() templ.Attributes {
 	return attrs
 }
 
-func (c *SubscriptionCard) viewAttributes(ctx context.Context) templ.Attributes {
+func (c *Subscription) viewAttributes(ctx context.Context) templ.Attributes {
 	filters := models.FiltersFromCtx(ctx)
 	filters.SortBy = models.SortByLastUpdated
 	if c.IsUnread() {

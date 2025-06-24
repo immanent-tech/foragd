@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package cards
+package content
 
 import (
 	"github.com/joshuar/go-feed-me/models"
@@ -9,21 +9,25 @@ import (
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
+	"github.com/joshuar/go-templ-daisyui/display/article"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/figure"
 	"github.com/joshuar/go-templ-daisyui/display/image"
+	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"slices"
 )
 
-type ArticleCard struct {
+type Article struct {
 	*models.Article
 	classes []components.Class
 }
 
-func NewArticleCard(article *models.Article) *ArticleCard {
-	card := &ArticleCard{
+func NewArticleContent(article *models.Article) *Article {
+	card := &Article{
 		Article: article,
 	}
 	if article.IsUnread() {
@@ -33,7 +37,7 @@ func NewArticleCard(article *models.Article) *ArticleCard {
 }
 
 // Visit is the action for visiting the webpage for the article.
-templ (c *ArticleCard) Visit() {
+templ (c *Article) Visit() {
 	@partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
 		"External Link",
 		templ.Attributes{"href": c.GetLink()},
@@ -42,12 +46,12 @@ templ (c *ArticleCard) Visit() {
 }
 
 // Share is the action for sharing an article to an external service.
-templ (c *ArticleCard) Share() {
+templ (c *Article) Share() {
 	@partials.LinkWithIcon(tabler.Share(i.Props{Size: i.SizeXS}), "Share", nil, []string{"text-xs"})
 }
 
 // Mark is the action for marking an article read/unread.
-templ (c *ArticleCard) Mark() {
+templ (c *Article) Mark() {
 	if c.IsUnread() {
 		@partials.LinkWithIcon(
 			tabler.Bookmark(i.Props{Size: i.SizeXS}),
@@ -65,8 +69,29 @@ templ (c *ArticleCard) Mark() {
 	}
 }
 
-// Show will render the article card.
-templ (c *ArticleCard) Show() {
+// Summary displays a summary of the article.
+templ (c *Article) Summary() {
+	@link.Build(
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(c.viewAttributes()),
+	).Show() {
+		<div class="flex flex-row gap-2">
+			switch value := c.image().(type) {
+				case *figure.Props:
+					@value.Show()
+				case templ.Component:
+					@value
+			}
+			<div class="text-sm flex-1 text-justify">{ c.GetTitle() }</div>
+		</div>
+		<div class="flex flex-row justify-end">
+			<div class="text-xs uppercase font-semibold opacity-60">{ c.GetFeedTitle() }</div>
+		</div>
+	}
+}
+
+// Show will display the article as a card.
+templ (c *Article) Card() {
 	@card.Build(
 		card.WithStyle(card.Border),
 		card.WithLayout(card.LayoutSide),
@@ -96,9 +121,58 @@ templ (c *ArticleCard) Show() {
 	).Show()
 }
 
+// Show will display the article content.
+templ (c *Article) View() {
+	@article.Build(
+		article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2", "overflow-scroll"),
+		article.WithExtraAttributes(templ.Attributes{
+			"hx-post":     "/article/read/" + c.GetID(),
+			"hx-swap":     "none",
+			"hx-push-url": "false",
+			"hx-trigger":  "load delay:2s",
+		}),
+	).Show() {
+		<h2>
+			@text.Build(c.GetTitle(),
+				text.WithWeight(text.Semibold),
+				text.WithSize(text.LG),
+			).Show("flex-1")
+		</h2>
+		@cardMeta(c.GetAuthors(), c.GetUpdatedDate())
+		// Display the categories associated with the article.
+		for category := range slices.Values(c.GetCategories()) {
+			@badge.Build(
+				badge.WithStyle(badge.Ghost),
+				badge.WithSize(badge.XS),
+				badge.WithContent(category),
+				badge.WithExtraClasses("capitalize", "w-fit-content"),
+			).Show()
+		}
+		// Display the article content.
+		<div id="article_content" class="text-sm max-w-prose">
+			switch  {
+				case c.GetContent() != "":
+					@templ.Raw(c.GetContent())
+				case c.GetDescription() != "":
+					@templ.Raw(c.GetDescription())
+			}
+		</div>
+		<div class="flex justify-center m-2 gap-2">
+			<div>
+				// Share article action.
+				@c.Share()
+			</div>
+			<div>
+				// Visit external article link action.
+				@c.Visit()
+			</div>
+		</div>
+	}
+}
+
 // image returns an appropriate image to use in the article card. It will either be the article's image or a
 // placeholder.
-func (c ArticleCard) image() any {
+func (c Article) image() any {
 	if c.GetImage() != nil {
 		return figure.Build(
 			image.Build(
@@ -112,7 +186,7 @@ func (c ArticleCard) image() any {
 	return articlePlaceholderImage()
 }
 
-func (c *ArticleCard) markAttributes() templ.Attributes {
+func (c *Article) markAttributes() templ.Attributes {
 	attributes := templ.Attributes{
 		"hx-swap":        "morph:outerHTML",
 		"hx-target":      "#" + c.GetID(),
@@ -128,7 +202,7 @@ func (c *ArticleCard) markAttributes() templ.Attributes {
 	return attributes
 }
 
-func (c *ArticleCard) viewAttributes() templ.Attributes {
+func (c *Article) viewAttributes() templ.Attributes {
 	view := models.PageState{Path: "/article/" + c.GetID()}
 	return templ.Attributes{
 		"hx-get":      view.String(),

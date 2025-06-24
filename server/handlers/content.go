@@ -20,6 +20,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
@@ -36,14 +37,18 @@ func GenerateArticleCollection(api models.DocumentsAPI, subIDs ...models.Subscri
 				ProcessResponse(res, req, resp)
 				return
 			}
-			cards := views.GenerateArticleCards(req.Context(), articles)
+			// Generate article cards.
+			cards := make([]templ.Component, 0, len(articles))
+			for article := range slices.Values(articles) {
+				cards = append(cards, content.NewArticleContent(article).Card())
+			}
 			if len(cards) > 0 {
-				// Add pagination htmx props to last article.
+				// Generate pagination control after last card.
 				if len(cards) == filters.CountAsInt() {
-					cards = append(cards, views.PaginationControl(ctx, pagination))
+					cards = append(cards, content.PaginationControl(ctx, pagination))
 				}
-				cardLayout := partials.CardGrid(cards...)
-				cardControls := partials.CardControls(
+				cardLayout := content.CardGrid(cards...)
+				cardControls := content.CardControls(
 					views.RefreshAction(),
 					views.UpdateSorting(models.CollectionArticles),
 					views.UpdateFilters(articles.GetCategoryCounts()),
@@ -72,10 +77,13 @@ func PaginateArticleCollection(api models.DocumentsAPI, subIDs ...models.Subscri
 				ProcessResponse(res, req, resp)
 				return
 			}
-			cards := views.GenerateArticleCards(req.Context(), articles)
+			cards := make([]templ.Component, 0, len(articles))
+			for article := range slices.Values(articles) {
+				cards = append(cards, content.NewArticleContent(article).Card())
+			}
 			// Add pagination htmx props to last article.
 			if len(cards) == filters.CountAsInt() {
-				cards = append(cards, views.PaginationControl(req.Context(), pagination))
+				cards = append(cards, content.PaginationControl(req.Context(), pagination))
 			}
 
 			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cards...))
@@ -93,7 +101,7 @@ func GenerateArticle(api models.DocumentsAPI, itemID models.ItemID) func(next ht
 				ProcessResponse(res, req, resp)
 				return
 			}
-			articleLayout := views.BuildArticleLayout(articles[0])
+			articleLayout := content.NewArticleContent(articles[0]).View()
 
 			ctx := req.Context()
 			ctx = context.WithValue(ctx, contentCtxKey, articleLayout)
@@ -114,8 +122,13 @@ func GenerateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.Su
 				return
 			}
 			ctx := req.Context()
-			cards := views.GenerateSubscriptionCards(req.Context(), subscriptions)
-			cardControls := partials.CardControls(
+			// Generate subscription cards.
+			cards := make([]templ.Component, 0, len(subscriptions))
+			for subscription := range slices.Values(subscriptions) {
+				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
+			}
+			// Generate controls for subscriptions.
+			cardControls := content.CardControls(
 				views.RefreshAction(),
 				views.UpdateSorting(models.CollectionSubscriptions),
 				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions))),
@@ -126,10 +139,10 @@ func GenerateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.Su
 			if len(cards) > 0 {
 				// Add pagination htmx props to last article.
 				if len(cards) == filters.CountAsInt() {
-					cards = append(cards, views.PaginationControl(ctx, pagination))
+					cards = append(cards, content.PaginationControl(ctx, pagination))
 				}
 
-				cardLayout := partials.CardGrid(cards...)
+				cardLayout := content.CardGrid(cards...)
 				ctx = context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
 			} else {
 				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, views.EmptyContent()))
@@ -150,10 +163,14 @@ func PaginateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.Su
 				ProcessResponse(res, req, resp)
 				return
 			}
-			cards := views.GenerateSubscriptionCards(req.Context(), subscriptions)
-			// Add pagination htmx props to last article.
+			// Generate subscription cards.
+			cards := make([]templ.Component, 0, len(subscriptions))
+			for subscription := range slices.Values(subscriptions) {
+				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
+			}
+			// Add pagination control after last card.
 			if len(cards) == filters.CountAsInt() {
-				cards = append(cards, views.PaginationControl(req.Context(), pagination))
+				cards = append(cards, content.PaginationControl(req.Context(), pagination))
 			}
 
 			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cards...))

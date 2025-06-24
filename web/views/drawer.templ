@@ -5,13 +5,11 @@ package views
 
 import (
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/display/badge"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
-	"strconv"
 )
 
 // DrawerSubscriptionListID is the ID of the element containing the subscription list in the drawer.
@@ -50,30 +48,9 @@ templ SubscriptionList(subscriptions models.Subscriptions) {
 			</div>
 		</summary>
 		<ul class="text-base-content text-xs">
-			for subscription := range slices.Values(subscriptions) {
+			for subscription := range slices.Values(subscriptions.Sort(nil)) {
 				<li>
-					<div class="flex">
-						<div class="flex-1">
-							@link.Build(
-								link.WithContent(subscription.GetTitle()),
-								link.WithUnderlineOnHover(),
-								link.WithExtraAttributes(viewAction(ctx, subscription.GetID(), subscription.IsUnread())),
-							).Show()
-						</div>
-						// Display unread count (if any).
-						<div class="flex-none">
-							if subscription.IsUnread() {
-								@badge.Build(
-									badge.WithSize(badge.SM),
-									badge.WithColor(badge.Secondary),
-									badge.WithContent(strconv.Itoa(subscription.UnreadCount)),
-									// badge.WithExtraAttributes(templ.Attributes{
-									// 	"sse-swap": subscription.GetFeedID() + "_unread",
-									// }),
-								).Show()
-							}
-						</div>
-					</div>
+					@content.NewSubscriptionContent(subscription).State()
 				</li>
 			}
 		</ul>

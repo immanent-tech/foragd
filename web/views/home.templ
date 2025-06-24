@@ -13,6 +13,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/sebasvil20/templicons/i"
@@ -240,7 +241,9 @@ func (d *HomePageData) GetRandomArticles(ctx context.Context, api models.Documen
 		return
 	}
 
-	d.RandomArticles = GenerateArticleCards(ctx, articles)
+	for article := range slices.Values(articles) {
+		d.RandomArticles = append(d.RandomArticles, content.NewArticleContent(article).Card())
+	}
 }
 
 templ (d *HomePageData) Show() {
@@ -314,7 +317,7 @@ templ (d *HomePageData) Show() {
 		}
 		if d.RandomArticles != nil {
 			<h1>Random Articles:</h1>
-			@partials.CardGrid(d.RandomArticles...)
+			@content.CardGrid(d.RandomArticles...)
 		}
 	</div>
 }

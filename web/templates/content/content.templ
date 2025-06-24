@@ -1,0 +1,24 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package content
+
+import (
+	"context"
+	"github.com/joshuar/go-feed-me/models"
+)
+
+// PaginationControl generates an element that will cause a pagination request when scrolled into view.
+templ PaginationControl(ctx context.Context, pagination models.Pagination) {
+	{{ view := models.PageStateFromCtx(ctx) }}
+	{{ view.Params.Set(models.ParamPagination, pagination) }}
+	<div
+		id="pagination_placeholder"
+		hx-post={ view.String() }
+		hx-trigger="intersect once"
+		hx-target="#pagination_placeholder"
+		hx-swap="outerHTML"
+		hx-replace-url="false"
+		hx-indicator="#content-loading"
+	></div>
+}

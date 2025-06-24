@@ -6,7 +6,6 @@ package views
 import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/cards"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
@@ -20,68 +19,12 @@ import (
 	"net/url"
 	"slices"
 	"strings"
-	"time"
 )
 
 var defaultCardOptions = []card.Option{
 	card.WithStyle(card.Border),
 	card.WithShadow(shadow.SM),
 	card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
-}
-
-func GenerateSubscriptionCards(ctx context.Context, subscriptions models.Subscriptions) []templ.Component {
-	subscriptionCards := make([]templ.Component, 0, len(subscriptions))
-	for subscription := range slices.Values(subscriptions) {
-		subscriptionCards = append(subscriptionCards, cards.NewSubscriptionCard(subscription).Show())
-	}
-	return subscriptionCards
-}
-
-func GenerateArticleCards(ctx context.Context, articles models.Articles) []templ.Component {
-	articleCards := make([]templ.Component, 0, len(articles))
-	for article := range slices.Values(articles) {
-		articleCards = append(articleCards, cards.NewArticleCard(article).Show())
-	}
-	return articleCards
-}
-
-templ PaginationControl(ctx context.Context, pagination models.Pagination) {
-	{{ view := models.PageStateFromCtx(ctx) }}
-	{{ view.Params.Set(models.ParamPagination, pagination) }}
-	<div
-		id="pagination_placeholder"
-		hx-post={ view.String() }
-		hx-trigger="intersect once"
-		hx-target="#pagination_placeholder"
-		hx-swap="outerHTML"
-		hx-replace-url="false"
-		hx-indicator="#content-loading"
-	></div>
-}
-
-// viewAction returns the action for viewing the card's content. For a Feed card this would be the Feed's item as cards.
-// For a Item card, this would be the item content.
-func viewAction(ctx context.Context, id string, viewed bool) templ.Attributes {
-	var view models.PageState
-	switch models.IdentifyID(id) {
-	case models.SubscriptionPFX:
-		filters := models.FiltersFromCtx(ctx)
-		filters.SortBy = models.SortByLastUpdated
-		if viewed {
-			filters.View = models.ViewUnread
-		} else {
-			filters.View = models.ViewRead
-		}
-		view = models.PageState{Path: "/subscription/" + id, Params: filters.ToQueryParams()}
-	case models.ItemPFX:
-		view = models.PageState{Path: "/article/" + id}
-	}
-	return templ.Attributes{
-		"hx-get":      view.String(),
-		"hx-target":   partials.ContentID.Target(),
-		"hx-push-url": "true",
-		"hx-swap":     "morph:innerHTML show:top",
-	}
 }
 
 templ RefreshAction() {
@@ -164,28 +107,6 @@ templ markUnreadLink(label string, attributes templ.Attributes) {
 		attributes,
 		[]string{"text-xs"},
 	)
-}
-
-templ showDetails(authors []string, updated time.Time) {
-	<div>
-		if len(authors) > 0 {
-			<strong>{ strings.Join(authors, ",") }</strong>
-		}
-		<span>
-			@partials.ShowTimestamp(updated)
-		</span>
-	</div>
-}
-
-templ showContent(article *models.Article) {
-	<div id="article_content" class="text-sm max-w-prose">
-		switch  {
-			case article.GetContent() != "":
-				@templ.Raw(article.GetContent())
-			case article.GetDescription() != "":
-				@templ.Raw(article.GetDescription())
-		}
-	</div>
 }
 
 templ CollectionActionsMenu(actions ...templ.Component) {

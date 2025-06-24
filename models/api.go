@@ -187,10 +187,11 @@ func FilterSubscriptions(ctx context.Context, api DocumentsAPI, filters *Filters
 	if resp != nil {
 		return nil, "", resp
 	}
+	sort := filters.Sort()
 
 	subscriptions = subscriptions.FilterByCategories(filters.Categories...).
 		FilterByView(filters.View).
-		Sort(filters.Sort())
+		Sort(&sort)
 
 	var pagination string
 	if filters.Pagination != nil {

@@ -155,7 +155,13 @@ func (s Subscriptions) FilterByView(view View) Subscriptions {
 	}
 }
 
-func (s Subscriptions) Sort(sort Sort) Subscriptions {
+func (s Subscriptions) Sort(sort *Sort) Subscriptions {
+	if sort == nil {
+		sort = &Sort{
+			SortBy:    SortByUnreadCount,
+			SortOrder: SortOrderDesc,
+		}
+	}
 	switch sort.SortBy {
 	case SortByLastUpdated:
 		slices.SortFunc(s, func(a, b *Subscription) int {

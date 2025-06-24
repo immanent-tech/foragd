@@ -5,14 +5,12 @@ package views
 
 import (
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/cards"
+	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/input/form"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/layout/join"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
@@ -55,7 +53,7 @@ templ SearchForm() {
 }
 
 templ SearchSuggestions(suggestions ...templ.Component) {
-	<ul class="list dropdown-content bg-base-200 w-full rounded-box shadow-md" tabindex="3">
+	<ul class="list dropdown-content self-center bg-base-200 w-screen lg:w-full rounded-box shadow-md" tabindex="3">
 		for suggestion := range slices.Values(suggestions) {
 			@suggestion
 		}
@@ -70,7 +68,7 @@ templ SearchSuggestionSubscription(subscription *models.Subscription) {
 	<li class="list-row" _="on click call document.activeElement.blur()">
 		<div>
 			<div class="list-col-wrap text-xs">
-				@cards.NewSubscriptionCard(subscription).Title()
+				@content.NewSubscriptionContent(subscription).Summary()
 			</div>
 			// <div class="text-xs uppercase font-semibold opacity-60">{ article.Item.FeedTitle }</div>
 		</div>
@@ -79,20 +77,10 @@ templ SearchSuggestionSubscription(subscription *models.Subscription) {
 
 templ SearchSuggestionArticle(article *models.Article) {
 	<li class="list-row" _="on click call document.activeElement.blur()">
-		if img := article.GetImage(); img != nil {
-			<div>
-				@image.Build(img.URL(), image.WithExtraClasses("size-12", "rounded-box", "object-scale-down")).Show()
-			</div>
-		}
 		<div>
 			<div class="list-col-wrap text-xs">
-				@link.Build(
-					link.WithContent(article.GetTitle()),
-					link.WithExtraAttributes(viewAction(ctx, article.GetID(), article.State.IsRead())),
-					link.WithUnderlineOnHover(),
-				).Show()
+				@content.NewArticleContent(article).Summary()
 			</div>
-			<div class="text-xs uppercase font-semibold opacity-60">{ article.GetFeedTitle() }</div>
 		</div>
 		// <button class="btn btn-square btn-ghost">
 		// 	<svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M6 3L20 12 6 21 6 3z"></path></g></svg>
