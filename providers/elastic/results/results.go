@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"slices"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 )
 
@@ -43,6 +44,7 @@ func ExtractSourceFromHits[T any](hits []types.Hit) ([]T, []types.FieldValue, er
 	}
 	// Retrieve the sort value for the last hit.
 	if len(hits) > 0 {
+		spew.Dump(hits[len(hits)-1].Sort)
 		lastSortValue = hits[len(hits)-1].Sort
 	}
 

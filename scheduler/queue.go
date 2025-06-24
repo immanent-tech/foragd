@@ -10,10 +10,10 @@ import (
 	"log/slog"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
@@ -188,8 +188,15 @@ func (jq *JobQueue) Clear() error {
 }
 
 func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
-	sortBy := []types.SortCombinations{elastic.NewFieldSort("job_next_run", models.SortOrderAsc)}
-	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1, sortBy, nil)
+	sort := []types.SortCombinations{
+		types.SortOptions{
+			Doc_: types.NewScoreSort(),
+			SortOptions: map[string]types.FieldSort{
+				"job_next_run": {Order: &sortorder.Asc},
+			},
+		},
+	}
+	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1, sort, nil)
 	if err != nil {
 		return nil, errors.Join(ErrNoJobFound, err)
 	}

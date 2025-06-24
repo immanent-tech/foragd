@@ -58,7 +58,7 @@ func (s *Store) Delete(token string) error {
 func (s *Store) Find(token string) ([]byte, bool, error) {
 	session, err := elastic.GetDoc[string, models.UserSession](sessionCtx, s.client.GetAPI(), s.index, token)
 	if err != nil {
-		return nil, false, errors.Join(ErrFindSessionFailed, err)
+		return nil, false, fmt.Errorf("could not find a valid session: %w", err)
 	}
 	// Check for expired session.
 	if session.Expiry.Before(time.Now().UTC()) {
@@ -97,7 +97,6 @@ func (s *Store) All() (map[string][]byte, error) {
 	pagination := make([]types.FieldValue, 0)
 	data := make(map[string][]byte)
 	query := query.Since("expiry", time.Now().UTC())
-	sort := []types.SortCombinations{elastic.SortByDocID("_doc")}
 
 	// Loop until we've paginated through all results.
 	for {
@@ -106,7 +105,7 @@ func (s *Store) All() (map[string][]byte, error) {
 			err      error
 		)
 
-		sessions, pagination, err = elastic.Search[models.UserSession](sessionCtx, s.client.GetAPI(), s.index, query, searchSize, sort, pagination)
+		sessions, pagination, err = elastic.Search[models.UserSession](sessionCtx, s.client.GetAPI(), s.index, query, searchSize, nil, pagination)
 		if err != nil {
 			return nil, errors.Join(elastic.ErrSearchFailed, err)
 		}

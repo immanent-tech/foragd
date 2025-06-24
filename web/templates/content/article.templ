@@ -30,7 +30,7 @@ func NewArticleContent(article *models.Article) *Article {
 	card := &Article{
 		Article: article,
 	}
-	if article.IsUnread() {
+	if !article.IsUnread() {
 		card.classes = append(card.classes, opacity.Apply(75))
 	}
 	return card

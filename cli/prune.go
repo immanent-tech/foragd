@@ -76,7 +76,6 @@ func pruneFeeds(ctx context.Context, api *elastic.API) error {
 
 	searchSize := 100
 	pagination := make([]types.FieldValue, 0)
-	sort := []types.SortCombinations{elastic.SortByDocID("_doc")}
 
 	// Get all users
 	var users []*models.User
@@ -86,7 +85,7 @@ func pruneFeeds(ctx context.Context, api *elastic.API) error {
 			err  error
 		)
 
-		data, pagination, err = elastic.Search[*models.User](ctx, api.GetAPI(), users_index, query.MatchAll(), searchSize, sort, pagination)
+		data, pagination, err = elastic.Search[*models.User](ctx, api.GetAPI(), users_index, query.MatchAll(), searchSize, nil, pagination)
 		if err != nil {
 			return fmt.Errorf("prune failed: %w", err)
 		}

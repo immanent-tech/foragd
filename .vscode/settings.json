@@ -63,7 +63,8 @@
     "cli",
     "css",
     "js",
-    "routes"
+    "routes",
+    "server"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

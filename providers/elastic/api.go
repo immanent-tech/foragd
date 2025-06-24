@@ -14,6 +14,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
@@ -28,6 +29,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/components/logging"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/results"
@@ -62,16 +64,9 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 
 	var sortOptions []types.SortCombinations
 	if sort != nil {
-		if sort.SortBy == models.SortByLastUpdated {
-			switch sort.SortOrder {
-			case models.SortOrderAsc:
-				sortOptions = []types.SortCombinations{NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("feed_id", models.SortOrderDesc)}
-			case models.SortOrderDesc:
-				sortOptions = []types.SortCombinations{NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("feed_id", models.SortOrderDesc)}
-			}
-		}
+		sortOptions = append(sortOptions, sortByID("feed_id", sort.SortOrder))
 	} else {
-		sortOptions = append(sortOptions, SortByDocID("_doc"))
+		sortOptions = append(sortOptions, sortByDoc())
 	}
 
 	feeds, searchAfter, err := Search[*models.Feed](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
@@ -130,19 +125,13 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 			return nil, "", errors.Join(ErrSearchFailed, err)
 		}
 	}
+	spew.Dump(sortValues)
 
 	var sortOptions []types.SortCombinations
 	if sort != nil {
-		if sort.SortBy == models.SortByLastUpdated {
-			switch sort.SortOrder {
-			case models.SortOrderAsc:
-				sortOptions = []types.SortCombinations{NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("item_id", models.SortOrderDesc)}
-			case models.SortOrderDesc:
-				sortOptions = []types.SortCombinations{NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("item_id", models.SortOrderDesc)}
-			}
-		}
+		sortOptions = append(sortOptions, sortByID("item_id", sort.SortOrder))
 	} else {
-		sortOptions = append(sortOptions, SortByDocID("_doc"))
+		sortOptions = append(sortOptions, sortByDoc())
 	}
 
 	items, searchAfter, err := Search[*models.Item](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
@@ -150,15 +139,36 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
 
-	if pagination != nil {
-		*pagination, err = models.EncodePagination(searchAfter)
-		if err != nil {
-			return nil, "", errors.Join(ErrSearchFailed, err)
-		}
-		return items, *pagination, nil
+	newPagination, err := models.EncodePagination(searchAfter)
+	if err != nil {
+		return nil, "", errors.Join(ErrSearchFailed, err)
+	}
+	return items, newPagination, nil
+}
+
+// ItemsAggregation performs a search aggregation (i.e., only aggregations returned) on feed items with the given query
+// options. It returns the raw search response.
+func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, *models.Response) {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, parseError(ErrFetchCtx)
 	}
 
-	return items, "", nil
+	req := NewSearchRequest(e.GetAPI(),
+		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
+		WithIndex[*search.Search, SearchRequest](index),
+		WithQueryOptions[*search.Search, SearchRequest](query),
+		WithSize[*search.Search, SearchRequest](0),
+		WithSortOptions[*search.Search, SearchRequest](sortByDoc()),
+		WithAggregations[*search.Search, SearchRequest](aggregations...),
+	)
+
+	resp, err := req.Do(ctx)
+	if err != nil {
+		return nil, parseError(err)
+	}
+
+	return resp, nil
 }
 
 // AddItems will bulk index the given items.
@@ -188,7 +198,11 @@ func (e *API) SearchSubscriptionCustomisations(ctx context.Context, query query.
 	}
 
 	var sortOptions []types.SortCombinations
-	sortOptions = append(sortOptions, SortByDocID("_doc"))
+	if sort != nil {
+		sortOptions = append(sortOptions, sortByID("subscription_id", sort.SortOrder))
+	} else {
+		sortOptions = append(sortOptions, sortByDoc())
+	}
 
 	customisations, searchAfter, err := Search[*models.SubscriptionCustomisation](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
 	if err != nil {
@@ -534,7 +548,6 @@ func GetDoc[T ~string, O any](ctx context.Context, api *typedapi.API, index stri
 	if err != nil {
 		return doc, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
-
 	doc, err = results.ExtractSource[O](resp.Source_)
 	if err != nil {
 		return doc, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
@@ -644,7 +657,7 @@ func Search[O any](ctx context.Context, api *typedapi.API, index string, query q
 		WithSortOptions[*search.Search, SearchRequest](sort...),
 	).Do(ctx)
 	if err != nil {
-		return nil, nil, errors.Join(ErrSearchFailed, err)
+		return nil, nil, fmt.Errorf("search request failed: %w", err)
 	}
 
 	var warnings error

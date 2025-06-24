@@ -5,7 +5,6 @@ package elastic
 
 import (
 	"log/slog"
-	"slices"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
@@ -110,21 +109,12 @@ type RequestWithSearchAfter[T any] interface {
 // []types.FieldValue).
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
-func WithSearchAfter[T any, V RequestWithSearchAfter[T]](value any) Option[V] {
+func WithSearchAfter[T any, V RequestWithSearchAfter[T]](value []types.FieldValue) Option[V] {
 	return func(req V) {
 		if value == nil {
 			return
 		}
-
-		if values, ok := value.([]types.FieldValue); ok {
-			fieldValues := make([]types.FieldValue, 0, len(values))
-			for value := range slices.Values(values) {
-				fieldValues = append(fieldValues, NewFieldValue(value))
-			}
-			req.SearchAfter(fieldValues...)
-		} else {
-			req.SearchAfter(NewFieldValue(value))
-		}
+		req.SearchAfter(value...)
 	}
 }
 
@@ -241,54 +231,6 @@ func NewCountRequest(api *typedapi.API, options ...Option[CountRequest]) *count.
 	return req
 }
 
-// FieldSort represents the sorting order for a field.
-type FieldSort struct {
-	field string
-	order models.SortOrder
-}
-
-func (s FieldSort) SortCombinationsCaster() *types.SortCombinations {
-	opts := types.NewSortOptions()
-	switch s.order {
-	case models.SortOrderAsc:
-		opts.SortOptions[s.field] = types.FieldSort{Order: &sortorder.Asc}
-	case models.SortOrderDesc:
-		opts.SortOptions[s.field] = types.FieldSort{Order: &sortorder.Desc}
-	}
-	sort := types.SortCombinations(opts)
-	return &sort
-}
-
-// NewFieldSort creates a new FieldSort for the given field with the given sort order.
-func NewFieldSort(field string, order models.SortOrder) FieldSort {
-	return FieldSort{field: field, order: order}
-}
-
-// SortTimestampDesc returns a sort parameter for a search that will sort
-// results by the @timestamp field in descending order.
-func SortTimestampDesc() FieldSort {
-	return NewFieldSort("@timestamp", models.SortOrderDesc)
-}
-
-// SortByDocID will sort search results by `_doc`, effectively unordered but
-// most efficient sorting. Useful when paginating through *all* docs.
-func SortByDocID(field string) FieldSort {
-	return NewFieldSort(field, models.SortOrderDesc)
-}
-
-type ScoreSort struct{}
-
-func (s ScoreSort) SortCombinationsCaster() *types.SortCombinations {
-	opts := types.NewSortOptions()
-	opts.Score_ = types.NewScoreSort()
-	sort := types.SortCombinations(opts)
-	return &sort
-}
-
-func SortByScore() ScoreSort {
-	return ScoreSort{}
-}
-
 // FieldValue represents a value of a field.
 type FieldValue struct {
 	value any
@@ -307,4 +249,28 @@ func (v FieldValue) FieldValueCaster() *types.FieldValue {
 // NewFieldValue converts any value into a FieldValue.
 func NewFieldValue(value any) FieldValue {
 	return FieldValue{value: value}
+}
+
+func sortByID(idField string, sortOrder models.SortOrder) types.SortOptions {
+	var order *sortorder.SortOrder
+	switch sortOrder {
+	case models.SortOrderAsc:
+		order = &sortorder.Asc
+	case models.SortOrderDesc:
+		fallthrough
+	default:
+		order = &sortorder.Desc
+	}
+	return types.SortOptions{
+		SortOptions: map[string]types.FieldSort{
+			"updated": {Order: order},
+			idField:   {Order: order},
+		},
+	}
+}
+
+func sortByDoc() types.SortOptions {
+	return types.SortOptions{
+		Doc_: &types.ScoreSort{Order: &sortorder.Asc},
+	}
 }
