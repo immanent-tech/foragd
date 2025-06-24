@@ -163,7 +163,7 @@ func (d *HomePageData) GenerateTopCategoriesLinks(ctx context.Context, aggs aggr
 	var topCategories content.Categories
 	for category := range slices.Values(topCategoriesAgg.Buckets.([]types.StringTermsBucket)) {
 		link := models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()}
-		topCategories = append(topCategories, content.NewCategoryContent(category.Key.(string), int(category.DocCount), link))
+		topCategories = append(topCategories, content.NewCategoryContent(category.Key.(string), int(category.DocCount), &link))
 	}
 	topCategories.Sort()
 	// Display list of categories.
@@ -188,7 +188,7 @@ func (d *HomePageData) GenerateRareCategoriesLinks(ctx context.Context, aggs agg
 	var rareCategoryCounts content.Categories
 	for category := range slices.Values(rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket)) {
 		link := models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()}
-		rareCategoryCounts = append(rareCategoryCounts, content.NewCategoryContent(category.Key, int(category.DocCount), link))
+		rareCategoryCounts = append(rareCategoryCounts, content.NewCategoryContent(category.Key, int(category.DocCount), &link))
 	}
 	rareCategoryCounts.Sort()
 

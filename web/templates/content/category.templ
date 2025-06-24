@@ -16,10 +16,10 @@ import (
 type Category struct {
 	Label models.Category
 	Count int
-	Link  models.PageState
+	Link  *models.PageState
 }
 
-func NewCategoryContent(category models.Category, count int, link models.PageState) *Category {
+func NewCategoryContent(category models.Category, count int, link *models.PageState) *Category {
 	// Add this category to the link's parameters.
 	link.Params.Set(models.ParamCategories, category)
 	return &Category{
