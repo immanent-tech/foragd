@@ -97,7 +97,7 @@ func (s *Store) All() (map[string][]byte, error) {
 	pagination := make([]types.FieldValue, 0)
 	data := make(map[string][]byte)
 	query := query.Since("expiry", time.Now().UTC())
-	sort := []types.SortCombinationsVariant{elastic.SortByDocID("_doc")}
+	sort := []types.SortCombinations{elastic.SortByDocID("_doc")}
 
 	// Loop until we've paginated through all results.
 	for {

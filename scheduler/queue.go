@@ -188,7 +188,7 @@ func (jq *JobQueue) Clear() error {
 }
 
 func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
-	sortBy := []types.SortCombinationsVariant{elastic.NewFieldSort("job_next_run", models.SortOrderAsc)}
+	sortBy := []types.SortCombinations{elastic.NewFieldSort("job_next_run", models.SortOrderAsc)}
 	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1, sortBy, nil)
 	if err != nil {
 		return nil, errors.Join(ErrNoJobFound, err)

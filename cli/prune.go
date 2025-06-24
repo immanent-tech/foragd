@@ -76,7 +76,7 @@ func pruneFeeds(ctx context.Context, api *elastic.API) error {
 
 	searchSize := 100
 	pagination := make([]types.FieldValue, 0)
-	sort := []types.SortCombinationsVariant{elastic.SortByDocID("_doc")}
+	sort := []types.SortCombinations{elastic.SortByDocID("_doc")}
 
 	// Get all users
 	var users []*models.User

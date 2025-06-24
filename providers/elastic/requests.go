@@ -38,7 +38,7 @@ func WithRequestID[T any, V RequestCommon[T]](id string) Option[V] {
 }
 
 type RequestWithQuery[T any] interface {
-	Query(query types.QueryVariant) T
+	Query(query *types.Query) T
 }
 
 // WithQueryOptions option applies the given query options to the request.
@@ -102,7 +102,7 @@ func WithSize[T any, V RequestWithSize[T]](size int) Option[V] {
 }
 
 type RequestWithSearchAfter[T any] interface {
-	SearchAfter(values ...types.FieldValueVariant) T
+	SearchAfter(values ...types.FieldValue) T
 }
 
 // WithSearchAfter sets the sort value to fetch the next set of results. It can
@@ -117,7 +117,7 @@ func WithSearchAfter[T any, V RequestWithSearchAfter[T]](value any) Option[V] {
 		}
 
 		if values, ok := value.([]types.FieldValue); ok {
-			fieldValues := make([]types.FieldValueVariant, 0, len(values))
+			fieldValues := make([]types.FieldValue, 0, len(values))
 			for value := range slices.Values(values) {
 				fieldValues = append(fieldValues, NewFieldValue(value))
 			}
@@ -129,11 +129,11 @@ func WithSearchAfter[T any, V RequestWithSearchAfter[T]](value any) Option[V] {
 }
 
 type RequestWithSort[T any] interface {
-	Sort(sort ...types.SortCombinationsVariant) T
+	Sort(sort ...types.SortCombinations) T
 }
 
 // WithSortOptions adds the given sorting options to the search.
-func WithSortOptions[T any, V RequestWithSort[T]](options ...types.SortCombinationsVariant) Option[V] {
+func WithSortOptions[T any, V RequestWithSort[T]](options ...types.SortCombinations) Option[V] {
 	return func(req V) {
 		req.Sort(options...)
 	}
@@ -176,7 +176,7 @@ func WithSearch(search *query.MsearchSearch) Option[MsearchRequest] {
 
 		searchBody := types.NewMultisearchBody()
 		searchBody.Query = search.Query
-		searchBody.Sort = search.GenerateSortCombination()
+		searchBody.Sort = search.Sort
 
 		err := req.AddSearch(*hdr, *searchBody)
 		if err != nil {

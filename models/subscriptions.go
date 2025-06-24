@@ -194,6 +194,15 @@ func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions
 	return s[from:to], pagination
 }
 
+// GetTotalUnreadCount calculates the total unread articles across all subscriptions in the slice.
+func (s Subscriptions) GetTotalUnreadCount() int {
+	var unread int
+	for subscription := range slices.Values(s) {
+		unread += subscription.GetUnreadCount()
+	}
+	return unread
+}
+
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
 // and any validation errors if applicable.
 func (r *SubscriptionRequest) Valid() (bool, error) {

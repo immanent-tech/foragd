@@ -303,13 +303,13 @@ type MsearchSearch struct {
 	Name  string
 	Index string
 	Query *types.Query
-	Sort  []types.SortCombinationsVariant
+	Sort  []types.SortCombinations
 }
 
-func (mso *MsearchSearch) GenerateSortCombination() []types.SortCombinations {
-	combos := make([]types.SortCombinations, 0, len(mso.Sort))
-	for sort := range slices.Values(mso.Sort) {
-		combos = append(combos, sort.SortCombinationsCaster())
-	}
-	return combos
-}
+// func (mso *MsearchSearch) GenerateSortCombination() []types.SortCombinations {
+// 	combos := make([]types.SortCombinations, 0, len(mso.Sort))
+// 	for sort := range slices.Values(mso.Sort) {
+// 		combos = append(combos, sort.SortCombinationsCaster())
+// 	}
+// 	return combos
+// }

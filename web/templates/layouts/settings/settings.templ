@@ -4,6 +4,15 @@
 package settings
 
 templ SettingsContent() {
-	<h2>Display</h2>
-	@themeChangeMenu()
+	<!-- name of each tab group should be unique -->
+	<div class="tabs">
+		<input type="radio" name="my_tabs_2" class="tab" aria-label="Display" checked="checked"/>
+		<div class="tab-content border-base-300 bg-base-100 p-10">
+			@themeChangeMenu()
+		</div>
+		<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 2" checked="checked"/>
+		<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 2</div>
+		<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 3"/>
+		<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 3</div>
+	</div>
 }

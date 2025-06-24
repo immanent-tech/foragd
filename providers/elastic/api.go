@@ -60,14 +60,14 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 		}
 	}
 
-	var sortOptions []types.SortCombinationsVariant
+	var sortOptions []types.SortCombinations
 	if sort != nil {
 		if sort.SortBy == models.SortByLastUpdated {
 			switch sort.SortOrder {
 			case models.SortOrderAsc:
-				sortOptions = []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("feed_id", models.SortOrderDesc)}
+				sortOptions = []types.SortCombinations{NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("feed_id", models.SortOrderDesc)}
 			case models.SortOrderDesc:
-				sortOptions = []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("feed_id", models.SortOrderDesc)}
+				sortOptions = []types.SortCombinations{NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("feed_id", models.SortOrderDesc)}
 			}
 		}
 	} else {
@@ -131,14 +131,14 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 		}
 	}
 
-	var sortOptions []types.SortCombinationsVariant
+	var sortOptions []types.SortCombinations
 	if sort != nil {
 		if sort.SortBy == models.SortByLastUpdated {
 			switch sort.SortOrder {
 			case models.SortOrderAsc:
-				sortOptions = []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("item_id", models.SortOrderDesc)}
+				sortOptions = []types.SortCombinations{NewFieldSort("updated", models.SortOrderAsc), NewFieldSort("item_id", models.SortOrderDesc)}
 			case models.SortOrderDesc:
-				sortOptions = []types.SortCombinationsVariant{NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("item_id", models.SortOrderDesc)}
+				sortOptions = []types.SortCombinations{NewFieldSort("updated", models.SortOrderDesc), NewFieldSort("item_id", models.SortOrderDesc)}
 			}
 		}
 	} else {
@@ -187,7 +187,7 @@ func (e *API) SearchSubscriptionCustomisations(ctx context.Context, query query.
 		}
 	}
 
-	var sortOptions []types.SortCombinationsVariant
+	var sortOptions []types.SortCombinations
 	sortOptions = append(sortOptions, SortByDocID("_doc"))
 
 	customisations, searchAfter, err := Search[*models.SubscriptionCustomisation](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
@@ -634,7 +634,7 @@ func DeleteDocs(ctx context.Context, api *typedapi.API, index string, queries ..
 //
 // pagination specifies the sort after values to use for getting a specific window of the total results. When set, the
 // count parameter can be thought of as specifying how many new results are retrieved.
-func Search[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, sort []types.SortCombinationsVariant, searchAfter []types.FieldValue) ([]O, []types.FieldValue, error) {
+func Search[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, sort []types.SortCombinations, searchAfter []types.FieldValue) ([]O, []types.FieldValue, error) {
 	resp, err := NewSearchRequest(api,
 		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
 		WithIndex[*search.Search, SearchRequest](index),

@@ -15,7 +15,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"github.com/veqryn/slog-context"
@@ -23,12 +23,11 @@ import (
 )
 
 type HomePageData struct {
-	Links              map[string]models.PageState
-	TotalSubscriptions int
-	TotalUnread        int
-	TopCategories      templ.Component
-	RareCategories     templ.Component
-	RandomArticles     []templ.Component
+	Links          map[string]models.PageState
+	Subscriptions  models.Subscriptions
+	TopCategories  templ.Component
+	RareCategories templ.Component
+	RandomArticles []templ.Component
 }
 
 // getHomePageData retrieves the data required to construct the home page content.
@@ -42,29 +41,22 @@ func NewHomePageData(ctx context.Context, api models.DocumentsAPI, subscriptions
 	}
 
 	data := &HomePageData{
-		TotalSubscriptions: len(user.Subscriptions),
 		Links: map[string]models.PageState{
 			"subscriptions": subscriptionsLink,
 			"articles":      articlesLink,
 		},
 	}
 
-	count, err := api.CountAllUnread(ctx)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Could not retrieve unread items count.",
-			slog.Any("error", err),
-		)
-	}
-	data.TotalUnread = int(count)
-
 	// Get subscriptions.
-	subscriptions, _, resp := models.FilterSubscriptions(ctx, api, models.NewFilters())
+	subscriptions, resp := models.GetSubscriptions(ctx, api)
 	if resp != nil && resp.IsNotFound() {
 		return data, resp
 	}
 	if resp != nil {
 		return nil, resp
 	}
+	data.Subscriptions = subscriptions
+
 	// Query definition for fetching unread items for all subscriptions.
 	query := query.Bool(
 		query.BoolQueryName("item_filters"),
@@ -141,7 +133,7 @@ func NewHomePageData(ctx context.Context, api models.DocumentsAPI, subscriptions
 	// Perform the request.
 	aggsResult, resp := api.ItemsAggregation(ctx, query, aggs...)
 	if resp != nil {
-		return nil, models.RespErrBackend(err)
+		return nil, resp
 	}
 	// Extract aggregations.
 	aggregations := aggsResult.Aggregations
@@ -166,14 +158,21 @@ func (d *HomePageData) GenerateTopCategoriesLinks(ctx context.Context, aggs aggr
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to show top categories.", slog.Any("error", err))
 	}
-	// Generate category counts from buckets.
-	var topCategoryCounts models.CategoryCounts
-	for category := range slices.Values(topCategoriesAgg.Buckets.([]types.StringTermsBucket)) {
-		topCategoryCounts = append(topCategoryCounts, models.CategoryCount{Category: category.Key.(string), Count: int(category.DocCount)})
-	}
-	topCategoryCounts.Sort()
 
-	d.TopCategories = createCategoryLinks(topCategoryCounts)
+	// Generate categories from aggregation.
+	var topCategories content.Categories
+	for category := range slices.Values(topCategoriesAgg.Buckets.([]types.StringTermsBucket)) {
+		link := models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()}
+		topCategories = append(topCategories, content.NewCategoryContent(category.Key.(string), int(category.DocCount), link))
+	}
+	topCategories.Sort()
+	// Display list of categories.
+	var categoryList []templ.Component
+	for category := range slices.Values(topCategories) {
+		categoryList = append(categoryList, category.Badge())
+	}
+
+	d.TopCategories = templ.Join(categoryList...)
 }
 
 func (d *HomePageData) GenerateRareCategoriesLinks(ctx context.Context, aggs aggregations.AggregationResults) {
@@ -186,9 +185,10 @@ func (d *HomePageData) GenerateRareCategoriesLinks(ctx context.Context, aggs agg
 		slogctx.FromCtx(ctx).Warn("Unable to show rare categories.", slog.Any("error", err))
 	}
 	// Generate category counts from buckets.
-	var rareCategoryCounts models.CategoryCounts
+	var rareCategoryCounts content.Categories
 	for category := range slices.Values(rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket)) {
-		rareCategoryCounts = append(rareCategoryCounts, models.CategoryCount{Category: category.Key, Count: int(category.DocCount)})
+		link := models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()}
+		rareCategoryCounts = append(rareCategoryCounts, content.NewCategoryContent(category.Key, int(category.DocCount), link))
 	}
 	rareCategoryCounts.Sort()
 
@@ -196,8 +196,12 @@ func (d *HomePageData) GenerateRareCategoriesLinks(ctx context.Context, aggs agg
 	if len(rareCategoryCounts) < 10 {
 		count = len(rareCategoryCounts)
 	}
+	var categoryList []templ.Component
+	for idx := range count {
+		categoryList = append(categoryList, rareCategoryCounts[idx].Badge())
+	}
 
-	d.RareCategories = createCategoryLinks(rareCategoryCounts[:count])
+	d.RareCategories = templ.Join(categoryList...)
 }
 
 // getHomePageArticles retrieves a list of articles to display on the home page along with other content.
@@ -249,98 +253,64 @@ func (d *HomePageData) GetRandomArticles(ctx context.Context, api models.Documen
 templ (d *HomePageData) Show() {
 	{{ subscriptionsPage := d.Links["subscriptions"] }}
 	{{ articlesPage := d.Links["articles"] }}
-	<div class="max-w-screen justify-items-center">
+	<div class="grid justify-center">
 		<div class="stats shadow">
-			<div class="stat">
-				<div class="stat-figure text-primary">
-					@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold})
+			@link.Build(
+				link.WithUnderlineOnHover(),
+				link.WithExtraAttributes(templ.Attributes{
+					"hx-get":      subscriptionsPage.String(),
+					"hx-target":   partials.ContentID.Target(),
+					"hx-swap":     "morph:innerHTML",
+					"hx-push-url": "true",
+				}),
+			).Show() {
+				<div class="stat bg-base-300">
+					<div class="stat-figure">
+						@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
+					</div>
+					<div class="stat-title">Subscriptions</div>
+					<div class="stat-value">{ strconv.Itoa(len(d.Subscriptions)) }</div>
 				</div>
-				<div class="stat-title">Subscriptions</div>
-				<div class="stat-value text-primary">{ strconv.Itoa(d.TotalSubscriptions) }</div>
-			</div>
-			<div class="stat">
-				<div class="stat-figure text-secondary">
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						fill="none"
-						viewBox="0 0 24 24"
-						class="inline-block h-8 w-8 stroke-current"
-					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M13 10V3L4 14h7v7l9-11h-7z"
-						></path>
-					</svg>
+			}
+			@link.Build(
+				link.WithUnderlineOnHover(),
+				link.WithExtraAttributes(templ.Attributes{
+					"hx-get":      articlesPage.String(),
+					"hx-target":   partials.ContentID.Target(),
+					"hx-swap":     "morph:innerHTML",
+					"hx-push-url": "true",
+				}),
+			).Show() {
+				<div class="stat bg-base-300">
+					<div class="stat-figure">
+						@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
+					</div>
+					<div class="stat-title">Unread Articles</div>
+					<div class="stat-value">{ strconv.Itoa(d.Subscriptions.GetTotalUnreadCount()) }</div>
 				</div>
-				<div class="stat-title">Unread Items</div>
-				<div class="stat-value text-secondary">{ strconv.Itoa(d.TotalUnread) }</div>
-			</div>
+			}
 		</div>
 	</div>
-	<div class="flex flex-col max-w-fit p-2 justify-items-center">
-		<h1>Go To:</h1>
-		@button.Build(
-			button.WithStyle(button.Ghost),
-			button.WithExtraAttributes(templ.Attributes{
-				"hx-get":      subscriptionsPage.String(),
-				"hx-target":   partials.ContentID.Target(),
-				"hx-swap":     "morph:innerHTML",
-				"hx-push-url": "true",
-			}),
-		).Show() {
-			<div class="capitalize">Subscriptions</div>
-		}
-		@button.Build(
-			button.WithStyle(button.Ghost),
-			button.WithExtraAttributes(templ.Attributes{
-				"hx-get":      articlesPage.String(),
-				"hx-target":   partials.ContentID.Target(),
-				"hx-swap":     "morph:innerHTML",
-				"hx-push-url": "true",
-			}),
-		).Show() {
-			<div class="capitalize">Articles</div>
-		}
-		if d.TopCategories != nil {
-			<h1>Top Categories:</h1>
+	if d.TopCategories != nil {
+		<div class="flex justify-center gap-2 m-4">
+			<h1 class="content-center text-center">Top Categories:</h1>
 			<div id="top-categories" class="flex flex-row flex-wrap gap-2">
 				@d.TopCategories
 			</div>
-		}
-		if d.RareCategories != nil {
-			<h1>Interesting Categories:</h1>
-			<div id="rare-categories" class="flex flex-wrap p-2">
+		</div>
+	}
+	if d.RareCategories != nil {
+		<div class="flex justify-center gap-2 m-4">
+			<h1 class="content-center text-center">Interesting Categories:</h1>
+			<div id="rare-categories" class="flex flex-row flex-wrap gap-2">
 				@d.RareCategories
 			</div>
-		}
-		if d.RandomArticles != nil {
+		</div>
+	}
+	if d.RandomArticles != nil {
+		<div class="flex flex-col gap-2">
 			<h1>Random Articles:</h1>
 			@content.CardGrid(d.RandomArticles...)
-		}
-	</div>
-}
-
-func createCategoryLinks(categoryCounts models.CategoryCounts) templ.Component {
-	var categoryLinks []templ.Component
-	for category := range slices.Values(categoryCounts) {
-		articlesPage := models.PageState{Path: "/home/articles", Params: models.NewFilters().ToQueryParams()}
-		articlesPage.Params.Set(models.ParamCategories, category.Category)
-		attributes := templ.Attributes{
-			"hx-get":      articlesPage.String(),
-			"hx-push-url": "true",
-			"hx-target":   partials.ContentID.Target(),
-		}
-		categoryLinks = append(categoryLinks,
-			button.Build(
-				button.WithStyle(button.Ghost),
-				button.WithSize(button.XS),
-				button.WithExtraAttributes(attributes),
-				button.WithContent(category.Category),
-			).Show(),
-		)
-
+		</div>
 	}
-	return templ.Join(categoryLinks...)
 }
