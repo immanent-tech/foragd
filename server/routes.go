@@ -14,7 +14,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
-	"github.com/yassinebenaid/godump"
 
 	"github.com/joshuar/go-feed-me/components/validation"
 	"github.com/joshuar/go-feed-me/models"
@@ -115,7 +114,9 @@ func (s Server) GetTheme(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 		res.WriteHeader(http.StatusOK)
-		res.Write([]byte(user.GetSettings().Theme))
+		if _, err := res.Write([]byte(user.GetSettings().Theme)); err != nil {
+			handlers.ProcessResponse(res, req, models.RespErrBackend(err))
+		}
 	})
 	handler.ServeHTTP(res, req)
 }
@@ -477,6 +478,7 @@ func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Requ
 	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
+// SearchSuggest handles processing and displaying a list of search suggestions.
 func (s Server) SearchSuggest(res http.ResponseWriter, req *http.Request) {
 	searchTerms := req.FormValue("search_terms")
 	if searchTerms == "" {
@@ -489,7 +491,15 @@ func (s Server) SearchSuggest(res http.ResponseWriter, req *http.Request) {
 	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
+// SearchResults handles processing and displaying a page of search results.
 func (s Server) SearchResults(res http.ResponseWriter, req *http.Request) {
-	godump.Dump(req.FormValue("search_terms"))
-	res.WriteHeader(http.StatusNotImplemented)
+	searchTerms := req.FormValue("search_terms")
+	if searchTerms == "" {
+		res.WriteHeader(http.StatusOK)
+		return
+	}
+	alice.New(
+		handlers.RouteLogger,
+		handlers.GenerateSearchResults(s.DataAPI(), searchTerms),
+	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }

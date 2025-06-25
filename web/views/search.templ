@@ -19,8 +19,9 @@ templ SearchForm() {
 	<div class="dropdown">
 		@form.Build(
 			form.WithExtraAttributes(templ.Attributes{
-				"hx-post":   "/search/results",
-				"hx-target": partials.ContentID.Target(),
+				"hx-post":        "/search/results",
+				"hx-target":      partials.ContentID.Target(),
+				"hx-replace-url": "true",
 			}),
 		).Show() {
 			@join.Horizontally() {
@@ -29,11 +30,12 @@ templ SearchForm() {
 					textinput.WithName("search_terms"),
 					textinput.WithPlaceholder("Search anything..."),
 					textinput.WithExtraAttributes(templ.Attributes{
-						"hx-post":      "/search/suggest",
-						"hx-trigger":   "input changed delay:500ms",
-						"hx-target":    "#search-suggestions",
-						"hx-indicator": ".htmx-indicator",
-						"tabindex":     0,
+						"hx-post":        "/search/suggest",
+						"hx-trigger":     "input changed delay:500ms",
+						"hx-target":      "#search-suggestions",
+						"hx-indicator":   ".htmx-indicator",
+						"tabindex":       0,
+						"hx-replace-url": "false",
 					}),
 					textinput.WithExtraClasses("join-item"),
 				).Show()
@@ -82,11 +84,35 @@ templ SearchSuggestionArticle(article *models.Article) {
 				@content.NewArticleContent(article).Summary()
 			</div>
 		</div>
-		// <button class="btn btn-square btn-ghost">
-		// 	<svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M6 3L20 12 6 21 6 3z"></path></g></svg>
-		// </button>
-		// <button class="btn btn-square btn-ghost">
-		// 	<svg class="size-[1.2em]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke-linejoin="round" stroke-linecap="round" stroke-width="2" fill="none" stroke="currentColor"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path></g></svg>
-		// </button>
 	</li>
+}
+
+templ SearchResultsPage(subscriptions models.Subscriptions, articles models.Articles) {
+	// <script type="text/hyperscript">
+	// 	on load hide #search-suggestions
+	// </script>
+	<div class="m-2">
+		if len(subscriptions) > 0 {
+			<div id="subscription-results">
+				<div class="grid grid-cols-2 md:grid-cols-6 justify-center gap-4">
+					for subscription := range slices.Values(subscriptions) {
+						<div class="rounded-box shadow-md bg-base-300 p-4">
+							@content.NewSubscriptionContent(subscription).Summary()
+						</div>
+					}
+				</div>
+			</div>
+		}
+		if len(articles) > 0 {
+			<div id="article-results">
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4">
+					for article := range slices.Values(articles) {
+						<div class="rounded-box shadow-md bg-base-300 p-4">
+							@content.NewArticleContent(article).Summary()
+						</div>
+					}
+				</div>
+			</div>
+		}
+	</div>
 }

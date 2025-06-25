@@ -45,10 +45,22 @@ templ CardGrid(cards ...templ.Component) {
 
 // CardControls renders a list of controls for manipulating cards.
 templ CardControls(controls ...templ.Component) {
-	<div id="card-controls" class="flex flex-row justify-end gap-2 m-2">
-		for control := range slices.Values(controls) {
-			@control
-		}
+	<div id="card-controls" class="flex flex-row m-2">
+		<div class="breadcrumbs text-sm flex-1">
+			<ul>
+				<li>
+					@tabler.Home()
+				</li>
+				<li>
+					@tabler.Rss()
+				</li>
+			</ul>
+		</div>
+		<div class="flex flex-row justify-end gap-2">
+			for control := range slices.Values(controls) {
+				@control
+			}
+		</div>
 	</div>
 }
 
