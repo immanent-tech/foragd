@@ -160,7 +160,6 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-// ShowCollection handles displaying a collection of objects, with optional filtering.
 func (s Server) ShowSubscriptions(res http.ResponseWriter, req *http.Request, params ShowSubscriptionsParams) {
 	filters, err := models.FiltersFromParams[*models.SubscriptionFilters](params)
 	if err != nil {

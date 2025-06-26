@@ -12,7 +12,7 @@ import (
 templ PaginationControl(ctx context.Context, route models.Route) {
 	<div
 		id="pagination_placeholder"
-		hx-post={ route.String() }
+		hx-get={ route.String() }
 		hx-trigger="intersect once"
 		hx-target="#pagination_placeholder"
 		hx-swap="outerHTML"

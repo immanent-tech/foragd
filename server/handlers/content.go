@@ -116,16 +116,59 @@ func GenerateArticle(api models.DocumentsAPI, itemID models.ItemID) func(next ht
 }
 
 // GenerateSubscriptionCollection handles searching for subscriptions with the current filters and then generating cards for each found subscription.
-func GenerateSubscriptionCollection(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
+func GetSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			route := models.NewRoute("/subscriptions", filters)
 			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
 			if resp != nil && !resp.IsNotFound() {
 				ProcessResponse(res, req, resp)
 				return
 			}
 			filters.Pagination = &pagination
+			route := models.NewRoute("/subscriptions", filters)
+			ctx := req.Context()
+			// Generate subscription cards.
+			cards := make([]templ.Component, 0, len(subscriptions))
+			for subscription := range slices.Values(subscriptions) {
+				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
+			}
+			// Generate controls for subscriptions.
+			cardControls := content.CardControls(
+				views.RefreshAction(route),
+				views.UpdateSorting(models.CollectionSubscriptions, route),
+				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions)), route),
+				views.CollectionActionsMenu(
+					views.MarkAllSubscriptionsAction(req.Context(), filters.View),
+				),
+			)
+			if len(cards) > 0 {
+				// Add pagination htmx props to last article.
+				if len(cards) == filters.GetCount() {
+					cards = append(cards, content.PaginationControl(ctx, route))
+				}
+
+				cardLayout := content.CardGrid(route, cards...)
+				ctx = context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
+			} else {
+				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, views.EmptyContent()))
+			}
+			ctx = context.WithValue(ctx, titleCtxKey, "Subscriptions")
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+// GenerateSubscriptionCollection handles searching for subscriptions with the current filters and then generating cards for each found subscription.
+func GenerateSubscriptionCollection(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
+			if resp != nil && !resp.IsNotFound() {
+				ProcessResponse(res, req, resp)
+				return
+			}
+			filters.Pagination = &pagination
+			route := models.NewRoute("/subscriptions", filters)
 			ctx := req.Context()
 			// Generate subscription cards.
 			cards := make([]templ.Component, 0, len(subscriptions))
@@ -162,13 +205,13 @@ func GenerateSubscriptionCollection(api models.DocumentsAPI, filters *models.Sub
 func PaginateSubscriptionCollection(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			route := models.NewRoute("/subscriptions", filters)
 			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
 			filters.Pagination = &pagination
+			route := models.NewRoute("/subscriptions", filters)
 
 			// Generate subscription cards.
 			cards := make([]templ.Component, 0, len(subscriptions))

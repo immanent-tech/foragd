@@ -5,7 +5,6 @@ package views
 
 import (
 	"context"
-	"fmt"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -270,8 +269,6 @@ type SortOption struct {
 
 func NewSortFilter(ctx context.Context, sort models.Sort, route models.Route) *SortOption {
 	link := route.Clone()
-	fmt.Printf("Type=%T Address=%p Value=%v\n", route, &route, route)
-	fmt.Printf("Type=%T Address=%p Value=%v\n", link, &link, link)
 	option := &SortOption{
 		label: sort.String(),
 	}

@@ -14,7 +14,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
@@ -125,7 +124,6 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 			return nil, "", errors.Join(ErrSearchFailed, err)
 		}
 	}
-	spew.Dump(sortValues)
 
 	var sortOptions []types.SortCombinations
 	if sort != nil {

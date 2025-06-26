@@ -13,7 +13,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/joshuar/go-feed-me/components/validation"
@@ -301,9 +300,8 @@ func ArticleFiltersValidation(sl validator.StructLevel) {
 		sl.ReportError(filters.Subscriptions, "subscriptions", "Subscriptions", "subscriptionsorarticles", "")
 		sl.ReportError(filters.Articles, "articles", "articles", "subscriptionsorarticles", "")
 	}
-	// Cannot have both a list of subscription/article IDs and a list of categories.
-	if (len(filters.Subscriptions) > 0 || len(filters.Articles) > 0) && len(filters.Categories) > 0 {
-		sl.ReportError(filters.Subscriptions, "subscriptions", "Subscriptions", "subscriptionsorcategories", "")
+	// Cannot have both a list of article IDs and a list of categories.
+	if len(filters.Articles) > 0 && len(filters.Categories) > 0 {
 		sl.ReportError(filters.Articles, "articles", "articles", "articlesorcategories", "")
 		sl.ReportError(filters.Categories, "categories", "categories", "categoriesorids", "")
 	}
@@ -368,7 +366,6 @@ func (f ArticleFilters) ToQueryParams() url.Values {
 }
 
 func (f ArticleFilters) IsSorted(sort Sort) bool {
-	spew.Dump(sort, f.GetSort())
 	return f.SortBy == sort.SortBy && f.SortOrder == sort.SortOrder
 }
 
