@@ -9,12 +9,10 @@ import (
 )
 
 // PaginationControl generates an element that will cause a pagination request when scrolled into view.
-templ PaginationControl(ctx context.Context, pagination models.Pagination) {
-	{{ view := models.PageStateFromCtx(ctx) }}
-	{{ view.Params.Set(models.ParamPagination, pagination) }}
+templ PaginationControl(ctx context.Context, route models.Route) {
 	<div
 		id="pagination_placeholder"
-		hx-post={ view.String() }
+		hx-post={ route.String() }
 		hx-trigger="intersect once"
 		hx-target="#pagination_placeholder"
 		hx-swap="outerHTML"

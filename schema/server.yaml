@@ -122,29 +122,7 @@ paths:
       summary: >
         Sets the current theme.
       operationId: setTheme
-  /subscription/new:
-    get:
-      summary: >
-        New subscription handling.
-      description: >
-        Presents a form for the user to enter details to add a new subscription.
-      operationId: newSubscription
-      responses:
-        default:
-          $ref: '#/components/responses/html'
-  /subscription/add:
-    put:
-      summary: >
-        Add a subscription.
-      description: >
-        Adds a subscription for a user.
-      operationId: addSubscription
-      requestBody:
-        $ref: '#/components/requestBodies/SubscriptionRequest'
-      responses:
-        default:
-          $ref: '#/components/responses/html'
-  /subscription/edit/{subscription}:
+  /user/subscription/{subscription}:
     parameters:
       - $ref: '#/components/parameters/SubscriptionID'
     get:
@@ -167,14 +145,25 @@ paths:
       responses:
         default:
           $ref: '#/components/responses/html'
-  /subscription/remove/{subscription}:
-    delete:
+  /user/subscription/create:
+    get:
       summary: >
-        Remove a subscription.
-      parameters:
-        - $ref: '#/components/parameters/SubscriptionID'
-        - $ref: '#/components/parameters/Confirmation'
-      operationId: removeSubscription
+        New subscription handling.
+      description: >
+        Presents a form for the user to enter details to add a new subscription.
+      operationId: newSubscription
+      responses:
+        default:
+          $ref: '#/components/responses/html'
+  /user/subscription/add:
+    put:
+      summary: >
+        Add a subscription.
+      description: >
+        Adds a subscription for a user.
+      operationId: addSubscription
+      requestBody:
+        $ref: '#/components/requestBodies/SubscriptionRequest'
       responses:
         default:
           $ref: '#/components/responses/html'
@@ -187,55 +176,45 @@ paths:
       responses:
         default:
           $ref: '#/components/responses/html'
-  /home/{collection}:
+  /subscriptions:
     parameters:
-      - $ref: '#/components/parameters/Collection'
       - $ref: '#/components/parameters/Subscriptions'
-      - $ref: '#/components/parameters/Articles'
       - $ref: '#/components/parameters/Categories'
       - $ref: '#/components/parameters/View'
       - $ref: '#/components/parameters/Count'
       - $ref: '#/components/parameters/SortBy'
       - $ref: '#/components/parameters/SortOrder'
+      - $ref: '#/components/parameters/Pagination'
     responses:
       default:
         $ref: '#/components/responses/html'
     get:
       summary: >
-        Shows a collection of objects, with optional filtering.
-      operationId: showCollection
-    put:
-      summary: >
-        Changes the state of the current collection of objects, for example, updating the sorting or filtering.
-      operationId: updateCollection
+        Shows subscriptions, with optional filtering and pagination.
+      operationId: showSubscriptions
+  /subscriptions/mark/{mark}:
+    parameters:
+      - $ref: '#/components/parameters/Subscriptions'
+      - $ref: '#/components/parameters/Mark'
+      - $ref: '#/components/parameters/Redirect'
+    responses:
+      default:
+        $ref: '#/components/responses/html'
     post:
       summary: >
-        Paginate through a collection of objects, with optional filtering.
-      parameters:
-        - $ref: '#/components/parameters/Pagination'
-      operationId: paginateCollection
-  /home/{collection}/{action}:
+        Mark subscriptions read or unread.
+      operationId: markSubscriptions
+  /subscriptions/remove:
+    parameters:
+      - $ref: '#/components/parameters/Subscriptions'
+      - $ref: '#/components/parameters/Confirmation'
+    responses:
+      default:
+        $ref: '#/components/responses/html'
     post:
       summary: >
-        Performs an action on a collection of objects.
-      operationId: actionCollection
-      parameters:
-        - $ref: '#/components/parameters/Collection'
-        - $ref: '#/components/parameters/Action'
-        - $ref: '#/components/parameters/Subscriptions'
-        - $ref: '#/components/parameters/Articles'
-        - $ref: '#/components/parameters/Redirect'
-      responses:
-        default:
-          $ref: '#/components/responses/html'
-  /subscriptions/state:
-    get:
-      summary: >
-        Fetches all subscription states.
-      operationId: getAllSubscriptionsState
-      responses:
-        default:
-          $ref: '#/components/responses/html'
+        Remove (unsubscribe) subscriptions.
+      operationId: removeSubscriptions
   /subscriptions/import:
     get:
       description: >
@@ -265,58 +244,71 @@ paths:
     responses:
       default:
         $ref: '#/components/responses/html'
-  /subscription/{subscription}:
+  /subscriptions/export:
+    get:
+      summary: Set-up a subscriptions export.
+      operationId: setupSubscriptionsExport
+    post:
+      summary: Perform a subscription export.
+      operationId: performSubscriptionsExport
+    responses:
+      default:
+        $ref: '#/components/responses/html'
+  /articles:
     parameters:
-      - $ref: '#/components/parameters/SubscriptionID'
+      - $ref: '#/components/parameters/Subscriptions'
+      - $ref: '#/components/parameters/Articles'
       - $ref: '#/components/parameters/Categories'
       - $ref: '#/components/parameters/View'
       - $ref: '#/components/parameters/Count'
       - $ref: '#/components/parameters/SortBy'
       - $ref: '#/components/parameters/SortOrder'
+      - $ref: '#/components/parameters/Pagination'
     responses:
       default:
         $ref: '#/components/responses/html'
     get:
       summary: >
-        Shows a items for the given subscription, with optional filtering.
-      operationId: showSubscription
+        Shows articles, with optional filtering and pagination.
+      operationId: showArticles
+  /articles/mark/{mark}:
+    parameters:
+      - $ref: '#/components/parameters/Articles'
+      - $ref: '#/components/parameters/Mark'
+      - $ref: '#/components/parameters/Redirect'
+    responses:
+      default:
+        $ref: '#/components/responses/html'
     post:
       summary: >
-        Paginate through items for the given subscription, with optional filtering.
-      operationId: paginateSubscription
-      parameters:
-        - $ref: '#/components/parameters/Pagination'
-  /subscription/{action}/{subscription}:
+        Mark articles read or unread.
+      operationId: markArticles
+  /articles/action/{action}:
+    parameters:
+      - $ref: '#/components/parameters/Articles'
+      - $ref: '#/components/parameters/Action'
+    responses:
+      default:
+        $ref: '#/components/responses/html'
     post:
       summary: >
-        Performs the given action on a subscription.
-      operationId: actionSubscription
-      parameters:
-        - $ref: '#/components/parameters/Action'
-        - $ref: '#/components/parameters/SubscriptionID'
-        - $ref: '#/components/parameters/Redirect'
+        Perform an action on articles.
+      operationId: actionArticles
+  /subscriptions/state:
+    get:
+      summary: >
+        Fetches all subscription states.
+      operationId: getAllSubscriptionsState
       responses:
         default:
           $ref: '#/components/responses/html'
-  /article/{item}:
+  /view/{item}:
     get:
       summary: >
         Shows an item as an article.
       operationId: showArticle
       parameters:
         - $ref: '#/components/parameters/ItemID'
-      responses:
-        default:
-          $ref: '#/components/responses/html'
-  /article/{action}/{item}:
-    post:
-      summary: >
-        Performs the given action on an article.
-      operationId: actionArticle
-      parameters:
-        - $ref: '#/components/parameters/Action'
-        - $ref: '#/components/parameters/ItemID'
-        - $ref: '#/components/parameters/Redirect'
       responses:
         default:
           $ref: '#/components/responses/html'
@@ -522,14 +514,6 @@ components:
         multipart/form-data:
           schema:
             $ref: '#/components/schemas/Import'
-    MarkRequest:
-      description: >
-        Holds options for marking objects.
-      required: true
-      content:
-        application/x-www-form-urlencoded:
-          schema:
-            $ref: 'api.yaml#/components/schemas/MarkObjects'
     UserSignupRequestBody:
       description: >
         Holds details for adding/saving a user signup.

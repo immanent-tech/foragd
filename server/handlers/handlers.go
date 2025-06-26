@@ -6,7 +6,6 @@ package handlers
 
 import (
 	"context"
-	"encoding/gob"
 	"errors"
 	"log/slog"
 	"net/http"
@@ -51,24 +50,13 @@ const (
 	respCtxKey contextKey = "response"
 )
 
-// Keys for objects stored within the session.
-const (
-	subscriptionsPageState = "subscriptions_state"
-	articlesPageState      = "articles_state"
-)
-
 type contextKey string
-
 
 // AuthAPI represents the API surface for interacting with the auth backend.
 type AuthAPI interface {
 	GetAuthURL(req *http.Request) (string, error)
 	CompleteUserAuth(res http.ResponseWriter, req *http.Request) error
 	GetUserID(ctx context.Context) models.UserID
-}
-
-func init() {
-	gob.Register(models.PageState{})
 }
 
 // RouteLogger decorates the logger in the request context with routing information.
@@ -83,7 +71,7 @@ func RouteLogger(next http.Handler) http.Handler {
 	})
 }
 
-// RenderContentPage will render a full page (i.e. non-HTMX) response.
+// RenderPage will render a full page (i.e. non-HTMX) response.
 func RenderPage() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {

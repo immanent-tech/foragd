@@ -34,15 +34,6 @@ const (
 	ImportSourceURLs     ImportSource = "url_list"
 )
 
-// Defines values for PageViewID.
-const (
-	PageViewIDFeed  PageViewID = "Feed"
-	PageViewIDFeeds PageViewID = "Feeds"
-	PageViewIDHome  PageViewID = "Home"
-	PageViewIDItem  PageViewID = "Item"
-	PageViewIDItems PageViewID = "Items"
-)
-
 // Defines values for SortBy.
 const (
 	SortByLastUpdated SortBy = "last_updated"
@@ -80,26 +71,11 @@ const (
 // Action defines an operation to change the state of objects.
 type Action string
 
-// Collection is a group of objects, such as feeds, items or subscriptions.
-type Collection string
+// ArticleFilters defines model for ArticleFilters.
+type ArticleFilters struct {
+	// Articles is a list of item IDs.
+	Articles []ItemID `form:"articles[]" json:"articles" validate:"omitnil,unique,dive,startswith=item_"`
 
-// Count is the count of items to retrieve with a request.
-type Count = string
-
-// FeedState tracks the state of a feed.
-type FeedState struct {
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-
-	// URL is a URL.
-	URL URL `json:"url" validate:"url"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt *UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
-}
-
-// Filters contains filter parameters that are common across all requests.
-type Filters struct {
 	// Categories is a list of categories.
 	Categories []Category `form:"categories[]" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
 
@@ -115,40 +91,36 @@ type Filters struct {
 	// SortOrder represents the order for sorting the selected field.
 	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
 
+	// Subscriptions is a list of subscription IDs.
+	Subscriptions []SubscriptionID `form:"subscriptions[]" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
+
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
+// Collection is a group of objects, such as feeds, items or subscriptions.
+type Collection string
+
+// CommonFilters contains filter parameters that are common across all requests.
+type CommonFilters struct {
+	// Count is the count of items to retrieve with a request.
+	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
+
+	// SortBy represents the selected field to sort on.
+	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
+
+	// SortOrder represents the order for sorting the selected field.
+	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
+
+	// View The state of objects to view.
+	View View `form:"view" json:"view" validate:"oneof=read unread all"`
+}
+
+// Count is the count of items to retrieve with a request.
+type Count = string
+
 // ImportSource defines the source that will be used for an import.
 type ImportSource string
-
-// MarkFeedItems contains details for marking a feed's items.
-type MarkFeedItems struct {
-	Feed FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-
-	// Items is a list of Items IDs to mark.
-	Items []ItemID `form:"items" json:"items" validate:"unique,dive,required,startswith=item_"`
-
-	// Mark applies the given mark action to objects.
-	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-}
-
-// MarkFeeds contains details for marking a feed.
-type MarkFeeds struct {
-	// Feeds is a list of Feed IDs to mark.
-	Feeds []FeedID `form:"feeds" json:"feeds" validate:"unique,dive,required,startswith=feed_"`
-
-	// Mark applies the given mark action to objects.
-	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
-}
-
-// MarkObjects mark one or more objects
-type MarkObjects struct {
-	union json.RawMessage
-}
-
-// PageViewID is an ID that represents a page view.
-type PageViewID string
 
 // Pagination contains data for paginating through results.
 type Pagination = string
@@ -160,6 +132,17 @@ type Response struct {
 
 	// StatusCode is a status code, typically a HTTP response code.
 	StatusCode int `json:"status_code"`
+}
+
+// Route defines model for Route.
+type Route struct {
+	Filters *Route_Filters `json:"filters,omitempty"`
+	Path    string         `json:"path"`
+}
+
+// Route_Filters defines model for Route.Filters.
+type Route_Filters struct {
+	union json.RawMessage
 }
 
 // Since is a duration to filter results.
@@ -190,6 +173,30 @@ type SubscriptionEdit struct {
 
 	// Title is a friendly name or nickname for an object.
 	Title string `form:"user_nickname" json:"title,omitempty" validate:"omitempty"`
+}
+
+// SubscriptionFilters defines model for SubscriptionFilters.
+type SubscriptionFilters struct {
+	// Categories is a list of categories.
+	Categories []Category `form:"categories[]" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
+
+	// Count is the count of items to retrieve with a request.
+	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
+
+	// Pagination contains data for paginating through results.
+	Pagination *Pagination `form:"pagination" json:"pagination,omitempty" validate:"omitempty,url_encoded"`
+
+	// SortBy represents the selected field to sort on.
+	SortBy SortBy `form:"sort_by" json:"sort_by" validate:"oneof=unread_count last_updated"`
+
+	// SortOrder represents the order for sorting the selected field.
+	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
+
+	// Subscriptions is a list of subscription IDs.
+	Subscriptions []SubscriptionID `form:"subscriptions[]" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
+
+	// View The state of objects to view.
+	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
 // SubscriptionRequest represents a request to create a subscription.
@@ -235,22 +242,22 @@ type UserSignupRequest struct {
 // View The state of objects to view.
 type View string
 
-// AsMarkFeeds returns the union data inside the MarkObjects as a MarkFeeds
-func (t MarkObjects) AsMarkFeeds() (MarkFeeds, error) {
-	var body MarkFeeds
+// AsSubscriptionFilters returns the union data inside the Route_Filters as a SubscriptionFilters
+func (t Route_Filters) AsSubscriptionFilters() (SubscriptionFilters, error) {
+	var body SubscriptionFilters
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromMarkFeeds overwrites any union data inside the MarkObjects as the provided MarkFeeds
-func (t *MarkObjects) FromMarkFeeds(v MarkFeeds) error {
+// FromSubscriptionFilters overwrites any union data inside the Route_Filters as the provided SubscriptionFilters
+func (t *Route_Filters) FromSubscriptionFilters(v SubscriptionFilters) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeMarkFeeds performs a merge with any union data inside the MarkObjects, using the provided MarkFeeds
-func (t *MarkObjects) MergeMarkFeeds(v MarkFeeds) error {
+// MergeSubscriptionFilters performs a merge with any union data inside the Route_Filters, using the provided SubscriptionFilters
+func (t *Route_Filters) MergeSubscriptionFilters(v SubscriptionFilters) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -261,22 +268,22 @@ func (t *MarkObjects) MergeMarkFeeds(v MarkFeeds) error {
 	return err
 }
 
-// AsMarkFeedItems returns the union data inside the MarkObjects as a MarkFeedItems
-func (t MarkObjects) AsMarkFeedItems() (MarkFeedItems, error) {
-	var body MarkFeedItems
+// AsArticleFilters returns the union data inside the Route_Filters as a ArticleFilters
+func (t Route_Filters) AsArticleFilters() (ArticleFilters, error) {
+	var body ArticleFilters
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromMarkFeedItems overwrites any union data inside the MarkObjects as the provided MarkFeedItems
-func (t *MarkObjects) FromMarkFeedItems(v MarkFeedItems) error {
+// FromArticleFilters overwrites any union data inside the Route_Filters as the provided ArticleFilters
+func (t *Route_Filters) FromArticleFilters(v ArticleFilters) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeMarkFeedItems performs a merge with any union data inside the MarkObjects, using the provided MarkFeedItems
-func (t *MarkObjects) MergeMarkFeedItems(v MarkFeedItems) error {
+// MergeArticleFilters performs a merge with any union data inside the Route_Filters, using the provided ArticleFilters
+func (t *Route_Filters) MergeArticleFilters(v ArticleFilters) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -287,12 +294,12 @@ func (t *MarkObjects) MergeMarkFeedItems(v MarkFeedItems) error {
 	return err
 }
 
-func (t MarkObjects) MarshalJSON() ([]byte, error) {
+func (t Route_Filters) MarshalJSON() ([]byte, error) {
 	b, err := t.union.MarshalJSON()
 	return b, err
 }
 
-func (t *MarkObjects) UnmarshalJSON(b []byte) error {
+func (t *Route_Filters) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

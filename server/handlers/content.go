@@ -10,6 +10,7 @@ import (
 	"maps"
 	"net/http"
 	"slices"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -27,16 +28,17 @@ import (
 )
 
 // GenerateArticleCollection handles searching for articles with the current filters and then generating cards for each found article.
-func GenerateArticleCollection(api models.DocumentsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func GenerateArticleCollection(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
-			filters := models.FiltersFromCtx(ctx)
-			articles, pagination, resp := filterArticlesBySubscriptions(req.Context(), api, &filters, subIDs...)
+			route := models.NewRoute("/articles", filters)
+			articles, pagination, resp := filterArticlesBySubscriptions(req.Context(), api, filters)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
+			filters.Pagination = &pagination
 			// Generate article cards.
 			cards := make([]templ.Component, 0, len(articles))
 			for article := range slices.Values(articles) {
@@ -44,16 +46,16 @@ func GenerateArticleCollection(api models.DocumentsAPI, subIDs ...models.Subscri
 			}
 			if len(cards) > 0 {
 				// Generate pagination control after last card.
-				if len(cards) == filters.CountAsInt() {
-					cards = append(cards, content.PaginationControl(ctx, pagination))
+				if len(cards) == filters.GetCount() {
+					cards = append(cards, content.PaginationControl(ctx, route))
 				}
-				cardLayout := content.CardGrid(cards...)
+				cardLayout := content.CardGrid(route, cards...)
 				cardControls := content.CardControls(
-					views.RefreshAction(),
-					views.UpdateSorting(models.CollectionArticles),
-					views.UpdateFilters(articles.GetCategoryCounts()),
+					views.RefreshAction(route),
+					views.UpdateSorting(models.CollectionArticles, route),
+					views.UpdateFilters(articles.GetCategoryCounts(), route),
 					views.CollectionActionsMenu(
-						views.MarkAllArticlesAction(req.Context(), articles.GetSubscriptionIDs()...),
+						views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
 					),
 				)
 
@@ -68,22 +70,24 @@ func GenerateArticleCollection(api models.DocumentsAPI, subIDs ...models.Subscri
 }
 
 // PaginateArticleCollection handles fetching the next set of articles and creating cards from them.
-func PaginateArticleCollection(api models.DocumentsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func PaginateArticleCollection(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			filters := models.FiltersFromCtx(req.Context())
-			articles, pagination, resp := filterArticlesBySubscriptions(req.Context(), api, &filters, subIDs...)
+			route := models.NewRoute("/articles", filters)
+
+			articles, pagination, resp := filterArticlesBySubscriptions(req.Context(), api, filters)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
+			filters.Pagination = &pagination
 			cards := make([]templ.Component, 0, len(articles))
 			for article := range slices.Values(articles) {
 				cards = append(cards, content.NewArticleContent(article).Card())
 			}
 			// Add pagination htmx props to last article.
-			if len(cards) == filters.CountAsInt() {
-				cards = append(cards, content.PaginationControl(req.Context(), pagination))
+			if len(cards) == filters.GetCount() {
+				cards = append(cards, content.PaginationControl(req.Context(), route))
 			}
 
 			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cards...))
@@ -112,15 +116,16 @@ func GenerateArticle(api models.DocumentsAPI, itemID models.ItemID) func(next ht
 }
 
 // GenerateSubscriptionCollection handles searching for subscriptions with the current filters and then generating cards for each found subscription.
-func GenerateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func GenerateSubscriptionCollection(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			filters := models.FiltersFromCtx(req.Context())
-			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, &filters)
+			route := models.NewRoute("/subscriptions", filters)
+			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
 			if resp != nil && !resp.IsNotFound() {
 				ProcessResponse(res, req, resp)
 				return
 			}
+			filters.Pagination = &pagination
 			ctx := req.Context()
 			// Generate subscription cards.
 			cards := make([]templ.Component, 0, len(subscriptions))
@@ -129,20 +134,20 @@ func GenerateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.Su
 			}
 			// Generate controls for subscriptions.
 			cardControls := content.CardControls(
-				views.RefreshAction(),
-				views.UpdateSorting(models.CollectionSubscriptions),
-				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions))),
+				views.RefreshAction(route),
+				views.UpdateSorting(models.CollectionSubscriptions, route),
+				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions)), route),
 				views.CollectionActionsMenu(
-					views.MarkAllSubscriptionsAction(req.Context()),
+					views.MarkAllSubscriptionsAction(req.Context(), filters.View),
 				),
 			)
 			if len(cards) > 0 {
 				// Add pagination htmx props to last article.
-				if len(cards) == filters.CountAsInt() {
-					cards = append(cards, content.PaginationControl(ctx, pagination))
+				if len(cards) == filters.GetCount() {
+					cards = append(cards, content.PaginationControl(ctx, route))
 				}
 
-				cardLayout := content.CardGrid(cards...)
+				cardLayout := content.CardGrid(route, cards...)
 				ctx = context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
 			} else {
 				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, views.EmptyContent()))
@@ -154,23 +159,25 @@ func GenerateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.Su
 }
 
 // PaginateSubscriptionCollection handles fetching the next set of subscriptions and creating cards from them.
-func PaginateSubscriptionCollection(api models.DocumentsAPI, subIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
+func PaginateSubscriptionCollection(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			filters := models.FiltersFromCtx(req.Context())
-			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, &filters)
+			route := models.NewRoute("/subscriptions", filters)
+			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
+			filters.Pagination = &pagination
+
 			// Generate subscription cards.
 			cards := make([]templ.Component, 0, len(subscriptions))
 			for subscription := range slices.Values(subscriptions) {
 				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
 			}
 			// Add pagination control after last card.
-			if len(cards) == filters.CountAsInt() {
-				cards = append(cards, content.PaginationControl(req.Context(), pagination))
+			if len(cards) == filters.GetCount() {
+				cards = append(cards, content.PaginationControl(req.Context(), route))
 			}
 
 			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cards...))
@@ -582,7 +589,7 @@ func AddSubscriptions(api models.DocumentsAPI) func(next http.Handler) http.Hand
 }
 
 // RemoveSubscription handles processing a subscription removal request.
-func RemoveSubscription(api models.DocumentsAPI, subscriptionID models.SubscriptionID, confirmation models.UserConfirmation) func(next http.Handler) http.Handler {
+func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirmation, subscriptionIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Add a new HTMX response writer to the context.
@@ -592,9 +599,9 @@ func RemoveSubscription(api models.DocumentsAPI, subscriptionID models.Subscript
 			switch confirmation {
 			case models.UserConfirmationYes:
 				slogctx.FromCtx(ctx).Debug("Subscription removal confirmed.",
-					slog.String("subscription_id", subscriptionID),
+					slog.String("subscription_id", strings.Join(subscriptionIDs, ",")),
 				)
-				if resp := models.Unsubscribe(ctx, api, subscriptionID); resp != nil {
+				if resp := models.Unsubscribe(ctx, api, subscriptionIDs...); resp != nil {
 					ProcessResponse(res, req.WithContext(ctx), resp)
 					return
 				}
@@ -610,7 +617,7 @@ func RemoveSubscription(api models.DocumentsAPI, subscriptionID models.Subscript
 				ctx = context.WithValue(ctx, htmxRespCtxKey, htmxResp)
 			case models.UserConfirmationCancel:
 				slogctx.FromCtx(ctx).Debug("Subscription removal cancelled.",
-					slog.String("subscription_id", subscriptionID),
+					slog.String("subscription_id", strings.Join(subscriptionIDs, ",")),
 				)
 				// Don't swap any main content for user cancellation.
 				// Display a notification acknowledging cancellation of request.
@@ -621,12 +628,12 @@ func RemoveSubscription(api models.DocumentsAPI, subscriptionID models.Subscript
 				ctx = context.WithValue(ctx, contentCtxKey, partials.ShowNotification(msg))
 			default:
 				slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
-					slog.String("subscription_id", subscriptionID),
+					slog.String("subscription_id", strings.Join(subscriptionIDs, ",")),
 				)
 				modal := partials.AskQuestion("Unsubscribe?", templ.Attributes{
-					"hx-delete": "/subscription/remove/" + subscriptionID,
-					"hx-target": "#" + subscriptionID,
-					"hx-swap":   "morph:outerHTML",
+					"hx-delete": "/subscription/remove?subscriptions=" + strings.Join(subscriptionIDs, ","),
+					// "hx-target": "#" + subscriptionID,
+					"hx-swap": "morph:outerHTML",
 				})
 				ctx = context.WithValue(ctx, contentCtxKey, modal)
 			}

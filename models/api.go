@@ -182,12 +182,12 @@ func GetSubscriptions(ctx context.Context, api DocumentsAPI, ids ...Subscription
 	return subscriptions, nil
 }
 
-func FilterSubscriptions(ctx context.Context, api DocumentsAPI, filters *Filters) (Subscriptions, Pagination, *Response) {
+func FilterSubscriptions(ctx context.Context, api DocumentsAPI, filters *SubscriptionFilters) (Subscriptions, Pagination, *Response) {
 	subscriptions, resp := GetSubscriptions(ctx, api)
 	if resp != nil {
 		return nil, "", resp
 	}
-	sort := filters.Sort()
+	sort := filters.GetSort()
 
 	subscriptions = subscriptions.FilterByCategories(filters.Categories...).
 		FilterByView(filters.View).
@@ -197,7 +197,7 @@ func FilterSubscriptions(ctx context.Context, api DocumentsAPI, filters *Filters
 	if filters.Pagination != nil {
 		pagination = *filters.Pagination
 	}
-	subscriptions, pagination = subscriptions.Paginate(pagination, filters.CountAsInt())
+	subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
 	return subscriptions, pagination, nil
 }
 
@@ -601,4 +601,242 @@ func DecodePagination(pagination Pagination) ([]types.FieldValue, error) {
 	}
 	// Return sort values.
 	return sortValues, nil
+}
+
+func NewRoute(path string, filters Filters) Route {
+	route := &Route{
+		Path:    path,
+		Filters: &Route_Filters{},
+	}
+	switch value := filters.(type) {
+	case *SubscriptionFilters:
+		err := route.Filters.FromSubscriptionFilters(*value)
+		if err != nil {
+			route.Filters.FromSubscriptionFilters(NewSubscriptionFilters())
+		}
+	case *ArticleFilters:
+		err := route.Filters.FromArticleFilters(*value)
+		if err != nil {
+			route.Filters.FromArticleFilters(NewArticleFilters())
+		}
+	}
+	return *route
+}
+
+// Clone creates a new value of the Route. This includes making a copy of the filters. The clone can then be manipulated
+// independently from the original.
+func (r Route) Clone() Route {
+	filtersCopy := *r.Filters
+	return Route{
+		Path:    r.Path,
+		Filters: &filtersCopy,
+	}
+}
+
+func (r Route) String() string {
+	if r.Filters == nil {
+		return r.Path
+	}
+	switch r.Path {
+	case "/subscriptions":
+		filters, err := r.Filters.AsSubscriptionFilters()
+		if err != nil {
+			filters = NewSubscriptionFilters()
+		}
+		return r.Path + "?" + filters.ToQueryParams().Encode()
+	case "/articles":
+		filters, err := r.Filters.AsArticleFilters()
+		if err != nil {
+			filters = NewArticleFilters()
+		}
+		return r.Path + "?" + filters.ToQueryParams().Encode()
+	default:
+		return r.Path
+	}
+}
+
+func (r Route) IsSorted(sort Sort) bool {
+	if r.Filters == nil {
+		return false
+	}
+	switch r.Path {
+	case "/subscriptions":
+		filters, err := r.Filters.AsSubscriptionFilters()
+		if err != nil {
+			filters = NewSubscriptionFilters()
+		}
+		return filters.IsSorted(sort)
+	case "/articles":
+		filters, err := r.Filters.AsArticleFilters()
+		if err != nil {
+			filters = NewArticleFilters()
+		}
+		return filters.IsSorted(sort)
+	default:
+		return false
+	}
+}
+
+func (r Route) SetSort(sort Sort) {
+	if r.Filters == nil {
+		return
+	}
+	switch r.Path {
+	case "/subscriptions":
+		filters, err := r.Filters.AsSubscriptionFilters()
+		if err != nil {
+			filters = NewSubscriptionFilters()
+		}
+		f := &filters
+		f.SetSort(sort)
+		err = r.Filters.FromSubscriptionFilters(*f)
+		if err != nil {
+			r.Filters.FromSubscriptionFilters(NewSubscriptionFilters())
+		}
+	case "/articles":
+		filters, err := r.Filters.AsArticleFilters()
+		if err != nil {
+			filters = NewArticleFilters()
+		}
+		f := &filters
+		f.SetSort(sort)
+		err = r.Filters.FromArticleFilters(*f)
+		if err != nil {
+			r.Filters.FromArticleFilters(NewArticleFilters())
+		}
+	}
+}
+
+func (r Route) HasCategory(category Category) bool {
+	if r.Filters == nil {
+		return false
+	}
+	switch r.Path {
+	case "/subscriptions":
+		filters, err := r.Filters.AsSubscriptionFilters()
+		if err != nil {
+			filters = NewSubscriptionFilters()
+		}
+		return filters.HasCategory(category)
+	case "/articles":
+		filters, err := r.Filters.AsArticleFilters()
+		if err != nil {
+			filters = NewArticleFilters()
+		}
+		return filters.HasCategory(category)
+	default:
+		return false
+	}
+}
+
+func (r Route) AddCategory(category Category) {
+	if r.Filters == nil {
+		return
+	}
+	switch r.Path {
+	case "/subscriptions":
+		filters, err := r.Filters.AsSubscriptionFilters()
+		if err != nil {
+			filters = NewSubscriptionFilters()
+		}
+		f := &filters
+		f.AddCategory(category)
+		err = r.Filters.FromSubscriptionFilters(*f)
+		if err != nil {
+			r.Filters.FromSubscriptionFilters(NewSubscriptionFilters())
+		}
+	case "/articles":
+		filters, err := r.Filters.AsArticleFilters()
+		if err != nil {
+			filters = NewArticleFilters()
+		}
+		f := &filters
+		f.AddCategory(category)
+		err = r.Filters.FromArticleFilters(*f)
+		if err != nil {
+			r.Filters.FromArticleFilters(NewArticleFilters())
+		}
+	}
+}
+
+func (r Route) RemoveCategory(category Category) {
+	if r.Filters == nil {
+		return
+	}
+	switch r.Path {
+	case "/subscriptions":
+		filters, err := r.Filters.AsSubscriptionFilters()
+		if err != nil {
+			filters = NewSubscriptionFilters()
+		}
+		f := &filters
+		f.RemoveCategory(category)
+		err = r.Filters.FromSubscriptionFilters(*f)
+		if err != nil {
+			r.Filters.FromSubscriptionFilters(NewSubscriptionFilters())
+		}
+	case "/articles":
+		filters, err := r.Filters.AsArticleFilters()
+		if err != nil {
+			filters = NewArticleFilters()
+		}
+		f := &filters
+		f.RemoveCategory(category)
+		err = r.Filters.FromArticleFilters(*f)
+		if err != nil {
+			r.Filters.FromArticleFilters(NewArticleFilters())
+		}
+	}
+}
+
+func (r Route) IsView(view View) bool {
+	if r.Filters == nil {
+		return false
+	}
+	switch r.Path {
+	case "/subscriptions":
+		filters, err := r.Filters.AsSubscriptionFilters()
+		if err != nil {
+			filters = NewSubscriptionFilters()
+		}
+		return filters.IsView(view)
+	case "/articles":
+		filters, err := r.Filters.AsArticleFilters()
+		if err != nil {
+			filters = NewArticleFilters()
+		}
+		return filters.IsView(view)
+	default:
+		return false
+	}
+}
+
+func (r Route) SetView(view View) {
+	if r.Filters == nil {
+		return
+	}
+	switch r.Path {
+	case "/subscriptions":
+		filters, err := r.Filters.AsSubscriptionFilters()
+		if err != nil {
+			filters = NewSubscriptionFilters()
+		}
+		f := &filters
+		f.SetView(view)
+		err = r.Filters.FromSubscriptionFilters(*f)
+		if err != nil {
+			r.Filters.FromSubscriptionFilters(NewSubscriptionFilters())
+		}
+	case "/articles":
+		filters, err := r.Filters.AsArticleFilters()
+		if err != nil {
+			filters = NewArticleFilters()
+		}
+		f := &filters
+		f.SetView(view)
+		err = r.Filters.FromArticleFilters(*f)
+		if err != nil {
+			r.Filters.FromArticleFilters(NewArticleFilters())
+		}
+	}
 }

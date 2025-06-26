@@ -6,22 +6,32 @@ package session
 
 import (
 	"context"
+	"encoding/gob"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/components/session/store"
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 )
 
 const (
-	sessionLifetime            = 24 * time.Hour
-	apiCtxKey       contextKey = "session"
+	sessionLifetime = 24 * time.Hour
 )
 
-type contextKey string
+const (
+	subscriptionFiltersSessionKey = "subscription_filters"
+	articleFiltersSessionKey      = "article_filters"
+)
+
+func init() {
+	gob.Register(models.SubscriptionFilters{})
+	gob.Register(models.ArticleFilters{})
+}
 
 var Manager *scs.SessionManager
 
@@ -41,4 +51,34 @@ func NewSessionManager(ctx context.Context, api *elastic.API, name string) error
 	Manager.Cookie.HttpOnly = true
 	Manager.Cookie.SameSite = http.SameSiteLaxMode
 	return nil
+}
+
+func FiltersToSession(ctx context.Context, filters any) {
+	var key string
+	switch filters.(type) {
+	case *models.SubscriptionFilters:
+		key = subscriptionFiltersSessionKey
+	case *models.ArticleFilters:
+		key = articleFiltersSessionKey
+	default:
+		slogctx.FromCtx(ctx).Debug("No filters or indeterminate filter type. Not saving.")
+		return
+	}
+	Manager.Put(ctx, key, filters)
+}
+
+func SubscriptionFiltersFromSession(ctx context.Context) models.SubscriptionFilters {
+	value, ok := Manager.Get(ctx, subscriptionFiltersSessionKey).(*models.SubscriptionFilters)
+	if !ok {
+		return models.NewSubscriptionFilters()
+	}
+	return *value
+}
+
+func ArticleFiltersFromSession(ctx context.Context) models.ArticleFilters {
+	value, ok := Manager.Get(ctx, articleFiltersSessionKey).(*models.ArticleFilters)
+	if !ok {
+		return models.NewArticleFilters()
+	}
+	return *value
 }

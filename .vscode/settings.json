@@ -64,7 +64,8 @@
     "css",
     "js",
     "routes",
-    "server"
+    "server",
+    "components/link"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

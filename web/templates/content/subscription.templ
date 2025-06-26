@@ -5,6 +5,7 @@ package content
 
 import (
 	"context"
+	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
@@ -211,16 +212,17 @@ func (c *Subscription) markAttributes() templ.Attributes {
 }
 
 func (c *Subscription) viewAttributes(ctx context.Context) templ.Attributes {
-	filters := models.FiltersFromCtx(ctx)
+	filters := session.SubscriptionFiltersFromSession(ctx)
 	filters.SortBy = models.SortByLastUpdated
+	filters.Subscriptions = append(filters.Subscriptions, c.GetID())
+	filters.Pagination = nil
 	if c.IsUnread() {
 		filters.View = models.ViewUnread
 	} else {
 		filters.View = models.ViewRead
 	}
-	view := models.PageState{Path: "/subscription/" + c.GetID(), Params: filters.ToQueryParams()}
 	return templ.Attributes{
-		"hx-get":      view.String(),
+		"hx-get":      "/articles?" + filters.ToQueryParams().Encode(),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
 		"hx-swap":     "morph:innerHTML show:top",

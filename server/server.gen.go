@@ -45,9 +45,6 @@ type Articles = []externalRef0.ItemID
 // Categories is a list of categories.
 type Categories = []externalRef0.Category
 
-// Collection is a group of objects, such as feeds, items or subscriptions.
-type Collection = externalRef0.Collection
-
 // Confirmation indicates the user's decision for a (usually) destructive action.
 type Confirmation = externalRef0.UserConfirmation
 
@@ -56,6 +53,9 @@ type Count = externalRef0.Count
 
 // ItemID is the unique ID of an item.
 type ItemID = externalRef0.ItemID
+
+// Mark applies the given mark action to objects.
+type Mark = externalRef0.Mark
 
 // Pagination contains data for paginating through results.
 type Pagination = externalRef0.Pagination
@@ -78,14 +78,8 @@ type Subscriptions = []externalRef0.SubscriptionID
 // View The state of objects to view.
 type View = externalRef0.View
 
-// ActionArticleParams defines parameters for ActionArticle.
-type ActionArticleParams struct {
-	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
-}
-
-// ShowCollectionParams defines parameters for ShowCollection.
-type ShowCollectionParams struct {
+// ShowArticlesParams defines parameters for ShowArticles.
+type ShowArticlesParams struct {
 	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
 	Articles      *Articles      `form:"articles,omitempty" json:"articles,omitempty"`
 	Categories    *Categories    `form:"categories,omitempty" json:"categories,omitempty"`
@@ -93,69 +87,31 @@ type ShowCollectionParams struct {
 	Count         Count          `form:"count" json:"count"`
 	SortBy        SortBy         `form:"sort_by" json:"sort_by"`
 	SortOrder     SortOrder      `form:"sort_order" json:"sort_order"`
-}
-
-// PaginateCollectionParams defines parameters for PaginateCollection.
-type PaginateCollectionParams struct {
 	Pagination    *Pagination    `form:"pagination,omitempty" json:"pagination,omitempty"`
-	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
-	Articles      *Articles      `form:"articles,omitempty" json:"articles,omitempty"`
-	Categories    *Categories    `form:"categories,omitempty" json:"categories,omitempty"`
-	View          View           `form:"view" json:"view"`
-	Count         Count          `form:"count" json:"count"`
-	SortBy        SortBy         `form:"sort_by" json:"sort_by"`
-	SortOrder     SortOrder      `form:"sort_order" json:"sort_order"`
 }
 
-// UpdateCollectionParams defines parameters for UpdateCollection.
-type UpdateCollectionParams struct {
-	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
-	Articles      *Articles      `form:"articles,omitempty" json:"articles,omitempty"`
-	Categories    *Categories    `form:"categories,omitempty" json:"categories,omitempty"`
-	View          View           `form:"view" json:"view"`
-	Count         Count          `form:"count" json:"count"`
-	SortBy        SortBy         `form:"sort_by" json:"sort_by"`
-	SortOrder     SortOrder      `form:"sort_order" json:"sort_order"`
+// ActionArticlesParams defines parameters for ActionArticles.
+type ActionArticlesParams struct {
+	Articles *Articles `form:"articles,omitempty" json:"articles,omitempty"`
 }
 
-// ActionCollectionParams defines parameters for ActionCollection.
-type ActionCollectionParams struct {
-	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
-	Articles      *Articles      `form:"articles,omitempty" json:"articles,omitempty"`
+// MarkArticlesParams defines parameters for MarkArticles.
+type MarkArticlesParams struct {
+	Articles *Articles `form:"articles,omitempty" json:"articles,omitempty"`
 
 	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
 	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
 }
 
-// RemoveSubscriptionParams defines parameters for RemoveSubscription.
-type RemoveSubscriptionParams struct {
-	// Confirmation indicates the confirmation state from the user for a destructive action.
-	Confirmation Confirmation `form:"confirmation" json:"confirmation"`
-}
-
-// ActionSubscriptionParams defines parameters for ActionSubscription.
-type ActionSubscriptionParams struct {
-	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
-}
-
-// ShowSubscriptionParams defines parameters for ShowSubscription.
-type ShowSubscriptionParams struct {
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
-	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
-	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
-}
-
-// PaginateSubscriptionParams defines parameters for PaginateSubscription.
-type PaginateSubscriptionParams struct {
-	Pagination *Pagination `form:"pagination,omitempty" json:"pagination,omitempty"`
-	Categories *Categories `form:"categories,omitempty" json:"categories,omitempty"`
-	View       View        `form:"view" json:"view"`
-	Count      Count       `form:"count" json:"count"`
-	SortBy     SortBy      `form:"sort_by" json:"sort_by"`
-	SortOrder  SortOrder   `form:"sort_order" json:"sort_order"`
+// ShowSubscriptionsParams defines parameters for ShowSubscriptions.
+type ShowSubscriptionsParams struct {
+	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
+	Categories    *Categories    `form:"categories,omitempty" json:"categories,omitempty"`
+	View          View           `form:"view" json:"view"`
+	Count         Count          `form:"count" json:"count"`
+	SortBy        SortBy         `form:"sort_by" json:"sort_by"`
+	SortOrder     SortOrder      `form:"sort_order" json:"sort_order"`
+	Pagination    *Pagination    `form:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 // SetSubscriptionImportMethodFormdataBody defines parameters for SetSubscriptionImportMethod.
@@ -164,17 +120,33 @@ type SetSubscriptionImportMethodFormdataBody struct {
 	From externalRef0.ImportSource `form:"source" json:"source" validate:"oneof=opml_file opml_url url_list"`
 }
 
+// MarkSubscriptionsParams defines parameters for MarkSubscriptions.
+type MarkSubscriptionsParams struct {
+	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
+
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect,omitempty" json:"redirect,omitempty"`
+}
+
+// RemoveSubscriptionsParams defines parameters for RemoveSubscriptions.
+type RemoveSubscriptionsParams struct {
+	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
+
+	// Confirmation indicates the confirmation state from the user for a destructive action.
+	Confirmation Confirmation `form:"confirmation" json:"confirmation"`
+}
+
 // ProcessSignUpFormdataRequestBody defines body for ProcessSignUp for application/x-www-form-urlencoded ContentType.
 type ProcessSignUpFormdataRequestBody = externalRef0.UserSignupRequest
-
-// AddSubscriptionFormdataRequestBody defines body for AddSubscription for application/x-www-form-urlencoded ContentType.
-type AddSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
 // ProcessSubscriptionImportMultipartRequestBody defines body for ProcessSubscriptionImport for multipart/form-data ContentType.
 type ProcessSubscriptionImportMultipartRequestBody = Import
 
 // SetSubscriptionImportMethodFormdataRequestBody defines body for SetSubscriptionImportMethod for application/x-www-form-urlencoded ContentType.
 type SetSubscriptionImportMethodFormdataRequestBody SetSubscriptionImportMethodFormdataBody
+
+// AddSubscriptionFormdataRequestBody defines body for AddSubscription for application/x-www-form-urlencoded ContentType.
+type AddSubscriptionFormdataRequestBody = externalRef0.SubscriptionRequest
 
 // AsImportOPML returns the union data inside the Import_Data as a ImportOPML
 func (t Import_Data) AsImportOPML() (ImportOPML, error) {
@@ -269,27 +241,18 @@ type ServerInterface interface {
 
 	// (GET /)
 	Index(w http.ResponseWriter, r *http.Request)
-	// Performs the given action on an article.
-	// (POST /article/{action}/{item})
-	ActionArticle(w http.ResponseWriter, r *http.Request, action Action, item ItemID, params ActionArticleParams)
-	// Shows an item as an article.
-	// (GET /article/{item})
-	ShowArticle(w http.ResponseWriter, r *http.Request, item ItemID)
+	// Shows articles, with optional filtering and pagination.
+	// (GET /articles)
+	ShowArticles(w http.ResponseWriter, r *http.Request, params ShowArticlesParams)
+	// Perform an action on articles.
+	// (POST /articles/action/{action})
+	ActionArticles(w http.ResponseWriter, r *http.Request, action Action, params ActionArticlesParams)
+	// Mark articles read or unread.
+	// (POST /articles/mark/{mark})
+	MarkArticles(w http.ResponseWriter, r *http.Request, mark Mark, params MarkArticlesParams)
 	// Shows a page of curated feeds and content based on the user's subscriptions and viewing preferences.
 	// (GET /home)
 	Home(w http.ResponseWriter, r *http.Request)
-	// Shows a collection of objects, with optional filtering.
-	// (GET /home/{collection})
-	ShowCollection(w http.ResponseWriter, r *http.Request, collection Collection, params ShowCollectionParams)
-	// Paginate through a collection of objects, with optional filtering.
-	// (POST /home/{collection})
-	PaginateCollection(w http.ResponseWriter, r *http.Request, collection Collection, params PaginateCollectionParams)
-	// Changes the state of the current collection of objects, for example, updating the sorting or filtering.
-	// (PUT /home/{collection})
-	UpdateCollection(w http.ResponseWriter, r *http.Request, collection Collection, params UpdateCollectionParams)
-	// Performs an action on a collection of objects.
-	// (POST /home/{collection}/{action})
-	ActionCollection(w http.ResponseWriter, r *http.Request, collection Collection, action Action, params ActionCollectionParams)
 	// Process a user login with given provider
 	// (GET /login/{provider})
 	Login(w http.ResponseWriter, r *http.Request, provider string)
@@ -320,30 +283,15 @@ type ServerInterface interface {
 	// Process a sign-up request.
 	// (POST /signup)
 	ProcessSignUp(w http.ResponseWriter, r *http.Request)
-	// Add a subscription.
-	// (PUT /subscription/add)
-	AddSubscription(w http.ResponseWriter, r *http.Request)
-	// Edit a subscription.
-	// (GET /subscription/edit/{subscription})
-	EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
-	// Save a subscription.
-	// (PUT /subscription/edit/{subscription})
-	SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
-	// New subscription handling.
-	// (GET /subscription/new)
-	NewSubscription(w http.ResponseWriter, r *http.Request)
-	// Remove a subscription.
-	// (DELETE /subscription/remove/{subscription})
-	RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params RemoveSubscriptionParams)
-	// Performs the given action on a subscription.
-	// (POST /subscription/{action}/{subscription})
-	ActionSubscription(w http.ResponseWriter, r *http.Request, action Action, subscription SubscriptionID, params ActionSubscriptionParams)
-	// Shows a items for the given subscription, with optional filtering.
-	// (GET /subscription/{subscription})
-	ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params ShowSubscriptionParams)
-	// Paginate through items for the given subscription, with optional filtering.
-	// (POST /subscription/{subscription})
-	PaginateSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params PaginateSubscriptionParams)
+	// Shows subscriptions, with optional filtering and pagination.
+	// (GET /subscriptions)
+	ShowSubscriptions(w http.ResponseWriter, r *http.Request, params ShowSubscriptionsParams)
+	// Set-up a subscriptions export.
+	// (GET /subscriptions/export)
+	SetupSubscriptionsExport(w http.ResponseWriter, r *http.Request)
+	// Perform a subscription export.
+	// (POST /subscriptions/export)
+	PerformSubscriptionsExport(w http.ResponseWriter, r *http.Request)
 
 	// (GET /subscriptions/import)
 	StartSubscriptionImport(w http.ResponseWriter, r *http.Request)
@@ -353,9 +301,30 @@ type ServerInterface interface {
 
 	// (PUT /subscriptions/import)
 	SetSubscriptionImportMethod(w http.ResponseWriter, r *http.Request)
+	// Mark subscriptions read or unread.
+	// (POST /subscriptions/mark/{mark})
+	MarkSubscriptions(w http.ResponseWriter, r *http.Request, mark Mark, params MarkSubscriptionsParams)
+	// Remove (unsubscribe) subscriptions.
+	// (POST /subscriptions/remove)
+	RemoveSubscriptions(w http.ResponseWriter, r *http.Request, params RemoveSubscriptionsParams)
 	// Fetches all subscription states.
 	// (GET /subscriptions/state)
 	GetAllSubscriptionsState(w http.ResponseWriter, r *http.Request)
+	// Add a subscription.
+	// (PUT /user/subscription/add)
+	AddSubscription(w http.ResponseWriter, r *http.Request)
+	// New subscription handling.
+	// (GET /user/subscription/create)
+	NewSubscription(w http.ResponseWriter, r *http.Request)
+	// Edit a subscription.
+	// (GET /user/subscription/{subscription})
+	EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
+	// Save a subscription.
+	// (PUT /user/subscription/{subscription})
+	SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID)
+	// Shows an item as an article.
+	// (GET /view/{item})
+	ShowArticle(w http.ResponseWriter, r *http.Request, item ItemID)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -367,45 +336,27 @@ func (_ Unimplemented) Index(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Performs the given action on an article.
-// (POST /article/{action}/{item})
-func (_ Unimplemented) ActionArticle(w http.ResponseWriter, r *http.Request, action Action, item ItemID, params ActionArticleParams) {
+// Shows articles, with optional filtering and pagination.
+// (GET /articles)
+func (_ Unimplemented) ShowArticles(w http.ResponseWriter, r *http.Request, params ShowArticlesParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Shows an item as an article.
-// (GET /article/{item})
-func (_ Unimplemented) ShowArticle(w http.ResponseWriter, r *http.Request, item ItemID) {
+// Perform an action on articles.
+// (POST /articles/action/{action})
+func (_ Unimplemented) ActionArticles(w http.ResponseWriter, r *http.Request, action Action, params ActionArticlesParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Mark articles read or unread.
+// (POST /articles/mark/{mark})
+func (_ Unimplemented) MarkArticles(w http.ResponseWriter, r *http.Request, mark Mark, params MarkArticlesParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
 // Shows a page of curated feeds and content based on the user's subscriptions and viewing preferences.
 // (GET /home)
 func (_ Unimplemented) Home(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Shows a collection of objects, with optional filtering.
-// (GET /home/{collection})
-func (_ Unimplemented) ShowCollection(w http.ResponseWriter, r *http.Request, collection Collection, params ShowCollectionParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Paginate through a collection of objects, with optional filtering.
-// (POST /home/{collection})
-func (_ Unimplemented) PaginateCollection(w http.ResponseWriter, r *http.Request, collection Collection, params PaginateCollectionParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Changes the state of the current collection of objects, for example, updating the sorting or filtering.
-// (PUT /home/{collection})
-func (_ Unimplemented) UpdateCollection(w http.ResponseWriter, r *http.Request, collection Collection, params UpdateCollectionParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Performs an action on a collection of objects.
-// (POST /home/{collection}/{action})
-func (_ Unimplemented) ActionCollection(w http.ResponseWriter, r *http.Request, collection Collection, action Action, params ActionCollectionParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -469,51 +420,21 @@ func (_ Unimplemented) ProcessSignUp(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Add a subscription.
-// (PUT /subscription/add)
-func (_ Unimplemented) AddSubscription(w http.ResponseWriter, r *http.Request) {
+// Shows subscriptions, with optional filtering and pagination.
+// (GET /subscriptions)
+func (_ Unimplemented) ShowSubscriptions(w http.ResponseWriter, r *http.Request, params ShowSubscriptionsParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Edit a subscription.
-// (GET /subscription/edit/{subscription})
-func (_ Unimplemented) EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
+// Set-up a subscriptions export.
+// (GET /subscriptions/export)
+func (_ Unimplemented) SetupSubscriptionsExport(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
-// Save a subscription.
-// (PUT /subscription/edit/{subscription})
-func (_ Unimplemented) SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// New subscription handling.
-// (GET /subscription/new)
-func (_ Unimplemented) NewSubscription(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Remove a subscription.
-// (DELETE /subscription/remove/{subscription})
-func (_ Unimplemented) RemoveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params RemoveSubscriptionParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Performs the given action on a subscription.
-// (POST /subscription/{action}/{subscription})
-func (_ Unimplemented) ActionSubscription(w http.ResponseWriter, r *http.Request, action Action, subscription SubscriptionID, params ActionSubscriptionParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Shows a items for the given subscription, with optional filtering.
-// (GET /subscription/{subscription})
-func (_ Unimplemented) ShowSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params ShowSubscriptionParams) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Paginate through items for the given subscription, with optional filtering.
-// (POST /subscription/{subscription})
-func (_ Unimplemented) PaginateSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID, params PaginateSubscriptionParams) {
+// Perform a subscription export.
+// (POST /subscriptions/export)
+func (_ Unimplemented) PerformSubscriptionsExport(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -532,9 +453,51 @@ func (_ Unimplemented) SetSubscriptionImportMethod(w http.ResponseWriter, r *htt
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Mark subscriptions read or unread.
+// (POST /subscriptions/mark/{mark})
+func (_ Unimplemented) MarkSubscriptions(w http.ResponseWriter, r *http.Request, mark Mark, params MarkSubscriptionsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Remove (unsubscribe) subscriptions.
+// (POST /subscriptions/remove)
+func (_ Unimplemented) RemoveSubscriptions(w http.ResponseWriter, r *http.Request, params RemoveSubscriptionsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Fetches all subscription states.
 // (GET /subscriptions/state)
 func (_ Unimplemented) GetAllSubscriptionsState(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Add a subscription.
+// (PUT /user/subscription/add)
+func (_ Unimplemented) AddSubscription(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// New subscription handling.
+// (GET /user/subscription/create)
+func (_ Unimplemented) NewSubscription(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Edit a subscription.
+// (GET /user/subscription/{subscription})
+func (_ Unimplemented) EditSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Save a subscription.
+// (PUT /user/subscription/{subscription})
+func (_ Unimplemented) SaveSubscription(w http.ResponseWriter, r *http.Request, subscription SubscriptionID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Shows an item as an article.
+// (GET /view/{item})
+func (_ Unimplemented) ShowArticle(w http.ResponseWriter, r *http.Request, item ItemID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -561,8 +524,119 @@ func (siw *ServerInterfaceWrapper) Index(w http.ResponseWriter, r *http.Request)
 	handler.ServeHTTP(w, r)
 }
 
-// ActionArticle operation middleware
-func (siw *ServerInterfaceWrapper) ActionArticle(w http.ResponseWriter, r *http.Request) {
+// ShowArticles operation middleware
+func (siw *ServerInterfaceWrapper) ShowArticles(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ShowArticlesParams
+
+	// ------------- Optional query parameter "subscriptions" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "articles" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "articles", r.URL.Query(), &params.Articles)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "articles", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_by" -------------
+
+	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_order" -------------
+
+	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ShowArticles(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ActionArticles operation middleware
+func (siw *ServerInterfaceWrapper) ActionArticles(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
@@ -575,17 +649,52 @@ func (siw *ServerInterfaceWrapper) ActionArticle(w http.ResponseWriter, r *http.
 		return
 	}
 
-	// ------------- Path parameter "item" -------------
-	var item ItemID
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ActionArticlesParams
 
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	// ------------- Optional query parameter "articles" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "articles", r.URL.Query(), &params.Articles)
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "articles", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ActionArticles(w, r, action, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MarkArticles operation middleware
+func (siw *ServerInterfaceWrapper) MarkArticles(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "mark" -------------
+	var mark Mark
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
 		return
 	}
 
 	// Parameter object where we will unmarshal all parameters from the context
-	var params ActionArticleParams
+	var params MarkArticlesParams
+
+	// ------------- Optional query parameter "articles" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "articles", r.URL.Query(), &params.Articles)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "articles", Err: err})
+		return
+	}
 
 	// ------------- Optional query parameter "redirect" -------------
 
@@ -596,32 +705,7 @@ func (siw *ServerInterfaceWrapper) ActionArticle(w http.ResponseWriter, r *http.
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ActionArticle(w, r, action, item, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ShowArticle operation middleware
-func (siw *ServerInterfaceWrapper) ShowArticle(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "item" -------------
-	var item ItemID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ShowArticle(w, r, item)
+		siw.Handler.MarkArticles(w, r, mark, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -636,411 +720,6 @@ func (siw *ServerInterfaceWrapper) Home(w http.ResponseWriter, r *http.Request) 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Home(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ShowCollection operation middleware
-func (siw *ServerInterfaceWrapper) ShowCollection(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "collection" -------------
-	var collection Collection
-
-	err = runtime.BindStyledParameterWithOptions("simple", "collection", chi.URLParam(r, "collection"), &collection, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collection", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ShowCollectionParams
-
-	// ------------- Optional query parameter "subscriptions" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "articles" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "articles", r.URL.Query(), &params.Articles)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "articles", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "view" -------------
-
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_by" -------------
-
-	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_order" -------------
-
-	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ShowCollection(w, r, collection, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// PaginateCollection operation middleware
-func (siw *ServerInterfaceWrapper) PaginateCollection(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "collection" -------------
-	var collection Collection
-
-	err = runtime.BindStyledParameterWithOptions("simple", "collection", chi.URLParam(r, "collection"), &collection, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collection", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params PaginateCollectionParams
-
-	// ------------- Optional query parameter "pagination" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "subscriptions" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "articles" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "articles", r.URL.Query(), &params.Articles)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "articles", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "view" -------------
-
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_by" -------------
-
-	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_order" -------------
-
-	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PaginateCollection(w, r, collection, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// UpdateCollection operation middleware
-func (siw *ServerInterfaceWrapper) UpdateCollection(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "collection" -------------
-	var collection Collection
-
-	err = runtime.BindStyledParameterWithOptions("simple", "collection", chi.URLParam(r, "collection"), &collection, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collection", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params UpdateCollectionParams
-
-	// ------------- Optional query parameter "subscriptions" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "articles" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "articles", r.URL.Query(), &params.Articles)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "articles", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "view" -------------
-
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_by" -------------
-
-	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_order" -------------
-
-	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.UpdateCollection(w, r, collection, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ActionCollection operation middleware
-func (siw *ServerInterfaceWrapper) ActionCollection(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "collection" -------------
-	var collection Collection
-
-	err = runtime.BindStyledParameterWithOptions("simple", "collection", chi.URLParam(r, "collection"), &collection, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "collection", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "action" -------------
-	var action Action
-
-	err = runtime.BindStyledParameterWithOptions("simple", "action", chi.URLParam(r, "action"), &action, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ActionCollectionParams
-
-	// ------------- Optional query parameter "subscriptions" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "articles" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "articles", r.URL.Query(), &params.Articles)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "articles", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "redirect" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ActionCollection(w, r, collection, action, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1212,11 +891,298 @@ func (siw *ServerInterfaceWrapper) ProcessSignUp(w http.ResponseWriter, r *http.
 	handler.ServeHTTP(w, r)
 }
 
+// ShowSubscriptions operation middleware
+func (siw *ServerInterfaceWrapper) ShowSubscriptions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ShowSubscriptionsParams
+
+	// ------------- Optional query parameter "subscriptions" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "categories" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "view" -------------
+
+	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "count" -------------
+
+	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_by" -------------
+
+	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "sort_order" -------------
+
+	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "pagination" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ShowSubscriptions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetupSubscriptionsExport operation middleware
+func (siw *ServerInterfaceWrapper) SetupSubscriptionsExport(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetupSubscriptionsExport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PerformSubscriptionsExport operation middleware
+func (siw *ServerInterfaceWrapper) PerformSubscriptionsExport(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PerformSubscriptionsExport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// StartSubscriptionImport operation middleware
+func (siw *ServerInterfaceWrapper) StartSubscriptionImport(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.StartSubscriptionImport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// ProcessSubscriptionImport operation middleware
+func (siw *ServerInterfaceWrapper) ProcessSubscriptionImport(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ProcessSubscriptionImport(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// SetSubscriptionImportMethod operation middleware
+func (siw *ServerInterfaceWrapper) SetSubscriptionImportMethod(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.SetSubscriptionImportMethod(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// MarkSubscriptions operation middleware
+func (siw *ServerInterfaceWrapper) MarkSubscriptions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "mark" -------------
+	var mark Mark
+
+	err = runtime.BindStyledParameterWithOptions("simple", "mark", chi.URLParam(r, "mark"), &mark, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "mark", Err: err})
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params MarkSubscriptionsParams
+
+	// ------------- Optional query parameter "subscriptions" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
+		return
+	}
+
+	// ------------- Optional query parameter "redirect" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.MarkSubscriptions(w, r, mark, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// RemoveSubscriptions operation middleware
+func (siw *ServerInterfaceWrapper) RemoveSubscriptions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RemoveSubscriptionsParams
+
+	// ------------- Optional query parameter "subscriptions" -------------
+
+	err = runtime.BindQueryParameter("form", true, false, "subscriptions", r.URL.Query(), &params.Subscriptions)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscriptions", Err: err})
+		return
+	}
+
+	// ------------- Required query parameter "confirmation" -------------
+
+	if paramValue := r.URL.Query().Get("confirmation"); paramValue != "" {
+
+	} else {
+		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "confirmation"})
+		return
+	}
+
+	err = runtime.BindQueryParameter("form", true, true, "confirmation", r.URL.Query(), &params.Confirmation)
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "confirmation", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.RemoveSubscriptions(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetAllSubscriptionsState operation middleware
+func (siw *ServerInterfaceWrapper) GetAllSubscriptionsState(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetAllSubscriptionsState(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // AddSubscription operation middleware
 func (siw *ServerInterfaceWrapper) AddSubscription(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AddSubscription(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// NewSubscription operation middleware
+func (siw *ServerInterfaceWrapper) NewSubscription(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.NewSubscription(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1276,355 +1242,22 @@ func (siw *ServerInterfaceWrapper) SaveSubscription(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
-// NewSubscription operation middleware
-func (siw *ServerInterfaceWrapper) NewSubscription(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.NewSubscription(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// RemoveSubscription operation middleware
-func (siw *ServerInterfaceWrapper) RemoveSubscription(w http.ResponseWriter, r *http.Request) {
+// ShowArticle operation middleware
+func (siw *ServerInterfaceWrapper) ShowArticle(w http.ResponseWriter, r *http.Request) {
 
 	var err error
 
-	// ------------- Path parameter "subscription" -------------
-	var subscription SubscriptionID
+	// ------------- Path parameter "item" -------------
+	var item ItemID
 
-	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	err = runtime.BindStyledParameterWithOptions("simple", "item", chi.URLParam(r, "item"), &item, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
 	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params RemoveSubscriptionParams
-
-	// ------------- Required query parameter "confirmation" -------------
-
-	if paramValue := r.URL.Query().Get("confirmation"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "confirmation"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "confirmation", r.URL.Query(), &params.Confirmation)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "confirmation", Err: err})
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "item", Err: err})
 		return
 	}
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.RemoveSubscription(w, r, subscription, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ActionSubscription operation middleware
-func (siw *ServerInterfaceWrapper) ActionSubscription(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "action" -------------
-	var action Action
-
-	err = runtime.BindStyledParameterWithOptions("simple", "action", chi.URLParam(r, "action"), &action, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "action", Err: err})
-		return
-	}
-
-	// ------------- Path parameter "subscription" -------------
-	var subscription SubscriptionID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ActionSubscriptionParams
-
-	// ------------- Optional query parameter "redirect" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "redirect", r.URL.Query(), &params.Redirect)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "redirect", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ActionSubscription(w, r, action, subscription, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ShowSubscription operation middleware
-func (siw *ServerInterfaceWrapper) ShowSubscription(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "subscription" -------------
-	var subscription SubscriptionID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params ShowSubscriptionParams
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "view" -------------
-
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_by" -------------
-
-	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_order" -------------
-
-	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ShowSubscription(w, r, subscription, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// PaginateSubscription operation middleware
-func (siw *ServerInterfaceWrapper) PaginateSubscription(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-
-	// ------------- Path parameter "subscription" -------------
-	var subscription SubscriptionID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "subscription", chi.URLParam(r, "subscription"), &subscription, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "subscription", Err: err})
-		return
-	}
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params PaginateSubscriptionParams
-
-	// ------------- Optional query parameter "pagination" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "pagination", r.URL.Query(), &params.Pagination)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "pagination", Err: err})
-		return
-	}
-
-	// ------------- Optional query parameter "categories" -------------
-
-	err = runtime.BindQueryParameter("form", true, false, "categories", r.URL.Query(), &params.Categories)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "categories", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "view" -------------
-
-	if paramValue := r.URL.Query().Get("view"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "view"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "view", r.URL.Query(), &params.View)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "view", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "count" -------------
-
-	if paramValue := r.URL.Query().Get("count"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "count"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "count", r.URL.Query(), &params.Count)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "count", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_by" -------------
-
-	if paramValue := r.URL.Query().Get("sort_by"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_by"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_by", r.URL.Query(), &params.SortBy)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_by", Err: err})
-		return
-	}
-
-	// ------------- Required query parameter "sort_order" -------------
-
-	if paramValue := r.URL.Query().Get("sort_order"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "sort_order"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "sort_order", r.URL.Query(), &params.SortOrder)
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sort_order", Err: err})
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PaginateSubscription(w, r, subscription, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// StartSubscriptionImport operation middleware
-func (siw *ServerInterfaceWrapper) StartSubscriptionImport(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.StartSubscriptionImport(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// ProcessSubscriptionImport operation middleware
-func (siw *ServerInterfaceWrapper) ProcessSubscriptionImport(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.ProcessSubscriptionImport(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// SetSubscriptionImportMethod operation middleware
-func (siw *ServerInterfaceWrapper) SetSubscriptionImportMethod(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.SetSubscriptionImportMethod(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// GetAllSubscriptionsState operation middleware
-func (siw *ServerInterfaceWrapper) GetAllSubscriptionsState(w http.ResponseWriter, r *http.Request) {
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetAllSubscriptionsState(w, r)
+		siw.Handler.ShowArticle(w, r, item)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -1751,25 +1384,16 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/", wrapper.Index)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/article/{action}/{item}", wrapper.ActionArticle)
+		r.Get(options.BaseURL+"/articles", wrapper.ShowArticles)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/article/{item}", wrapper.ShowArticle)
+		r.Post(options.BaseURL+"/articles/action/{action}", wrapper.ActionArticles)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/articles/mark/{mark}", wrapper.MarkArticles)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/home", wrapper.Home)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/home/{collection}", wrapper.ShowCollection)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/{collection}", wrapper.PaginateCollection)
-	})
-	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/home/{collection}", wrapper.UpdateCollection)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/home/{collection}/{action}", wrapper.ActionCollection)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/login/{provider}", wrapper.Login)
@@ -1802,28 +1426,13 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/signup", wrapper.ProcessSignUp)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/subscription/add", wrapper.AddSubscription)
+		r.Get(options.BaseURL+"/subscriptions", wrapper.ShowSubscriptions)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/subscription/edit/{subscription}", wrapper.EditSubscription)
+		r.Get(options.BaseURL+"/subscriptions/export", wrapper.SetupSubscriptionsExport)
 	})
 	r.Group(func(r chi.Router) {
-		r.Put(options.BaseURL+"/subscription/edit/{subscription}", wrapper.SaveSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/subscription/new", wrapper.NewSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Delete(options.BaseURL+"/subscription/remove/{subscription}", wrapper.RemoveSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/subscription/{action}/{subscription}", wrapper.ActionSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/subscription/{subscription}", wrapper.ShowSubscription)
-	})
-	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/subscription/{subscription}", wrapper.PaginateSubscription)
+		r.Post(options.BaseURL+"/subscriptions/export", wrapper.PerformSubscriptionsExport)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscriptions/import", wrapper.StartSubscriptionImport)
@@ -1835,7 +1444,28 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Put(options.BaseURL+"/subscriptions/import", wrapper.SetSubscriptionImportMethod)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/subscriptions/mark/{mark}", wrapper.MarkSubscriptions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/subscriptions/remove", wrapper.RemoveSubscriptions)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/subscriptions/state", wrapper.GetAllSubscriptionsState)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/user/subscription/add", wrapper.AddSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/user/subscription/create", wrapper.NewSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/user/subscription/{subscription}", wrapper.EditSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/user/subscription/{subscription}", wrapper.SaveSubscription)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/view/{item}", wrapper.ShowArticle)
 	})
 
 	return r

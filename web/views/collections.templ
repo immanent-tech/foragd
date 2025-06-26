@@ -5,6 +5,7 @@ package views
 
 import (
 	"context"
+	"fmt"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
@@ -27,12 +28,12 @@ var defaultCardOptions = []card.Option{
 	card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
 }
 
-templ RefreshAction() {
+templ RefreshAction(route models.Route) {
 	@button.Build(
 		button.AsShape(button.Square),
 		button.WithContent(tabler.Refresh(i.Props{Size: i.SizeXS})),
 		button.WithExtraAttributes(templ.Attributes{
-			"hx-get":      models.PageStateFromCtx(ctx).String(),
+			"hx-get":      route.String(),
 			"hx-target":   partials.ContentID.Target(),
 			"hx-push-url": "false",
 			"tabindex":    "0",
@@ -43,7 +44,7 @@ templ RefreshAction() {
 
 // MarkAllFeedsAction generates an action for the footer menu to mark all feeds as either read or unread, depending on
 // the current view.
-func MarkAllSubscriptionsAction(ctx context.Context) templ.Component {
+func MarkAllSubscriptionsAction(ctx context.Context, view models.View) templ.Component {
 	// Create htmx attributes.
 	attrs := templ.Attributes{
 		"hx-replace-url":  "false",
@@ -53,7 +54,7 @@ func MarkAllSubscriptionsAction(ctx context.Context) templ.Component {
 		"_":               "on htmx:afterOnLoad call history.back()",
 	}
 
-	switch models.FiltersFromCtx(ctx).View {
+	switch view {
 	case models.ViewUnread:
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead)
 		return markReadLink("Mark All Read", attrs)
@@ -67,7 +68,7 @@ func MarkAllSubscriptionsAction(ctx context.Context) templ.Component {
 
 // MarkAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
 // depending on the current view.
-func MarkAllArticlesAction(ctx context.Context, subIDs ...models.SubscriptionID) templ.Component {
+func MarkAllArticlesAction(ctx context.Context, view models.View, subIDs ...models.SubscriptionID) templ.Component {
 	// Create htmx attributes.
 	attrs := templ.Attributes{
 		"hx-replace-url": "false",
@@ -79,7 +80,7 @@ func MarkAllArticlesAction(ctx context.Context, subIDs ...models.SubscriptionID)
 	params.Add(models.ParamSubscriptions, strings.Join(subIDs, ","))
 	params.Add(models.ParamRedirect, "/home/subscriptions")
 
-	switch models.FiltersFromCtx(ctx).View {
+	switch view {
 	case models.ViewUnread:
 		attrs["hx-post"] = "/home/subscriptions/" + string(models.MarkRead) + "?" + params.Encode()
 		return markReadLink("Mark All Read", attrs)
@@ -135,7 +136,7 @@ templ CollectionActionsMenu(actions ...templ.Component) {
 type Filter struct {
 	label  string
 	value  string
-	link   models.PageState
+	link   string
 	active bool
 }
 
@@ -147,7 +148,7 @@ templ (filter *Filter) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         filter.link.String(),
+				"hx-get":         filter.link,
 				"hx-replace-url": "true",
 				"hx-target":      partials.ContentID.Target(),
 			}),
@@ -158,7 +159,7 @@ templ (filter *Filter) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         filter.link.String(),
+				"hx-get":         filter.link,
 				"hx-replace-url": "true",
 				"hx-target":      partials.ContentID.Target(),
 			}),
@@ -168,48 +169,46 @@ templ (filter *Filter) AsLink() {
 
 // NewCategoryFilter creates a new category filter component. Existing filters will be utilised and the request URL will
 // use the given path.
-func newCategoryFilter(ctx context.Context, category models.CategoryCount) *Filter {
+func newCategoryFilter(ctx context.Context, category models.CategoryCount, route models.Route) *Filter {
+	link := route.Clone()
 	filter := &Filter{
 		label: category.Category,
 		value: category.Category,
 	}
-	view := models.PageStateFromCtx(ctx)
-	filters := view.GetFilters()
 	// Check if this category is in the current view filters.
-	if found, _ := filters.HasCategory(category.Category); found {
+	if link.HasCategory(category.Category) {
 		filter.active = true
-		filters.RemoveCategory(category.Category)
+		link.RemoveCategory(category.Category)
 	} else {
-		filters.AddCategory(category.Category)
+		link.AddCategory(category.Category)
 	}
 	// Generate a view.
-	view.Params = filters.ToQueryParams()
-	filter.link = view
+	filter.link = link.String()
 
 	return filter
 }
 
-func newViewFilter(ctx context.Context, view models.View) *Filter {
+func newViewFilter(ctx context.Context, view models.View, route models.Route) *Filter {
+	link := route.Clone()
 	// Get the current view.
-	link := models.PageStateFromCtx(ctx)
-	filters := link.GetFilters()
 	filter := &Filter{
 		label: string(view),
 		value: string(view),
 	}
 	// If the current view filters indicate this view is active, mark as so.
-	if view == filters.View {
+	if link.IsView(view) {
 		filter.active = true
 	}
 	// Set the view filter to this view.
-	filters.View = view
-	link.Params = filters.ToQueryParams()
-	filter.link = link
+	link.SetView(view)
+	filter.link = link.String()
 
 	return filter
 }
 
-templ UpdateFilters(categories models.CategoryCounts) {
+templ UpdateFilters(categories models.CategoryCounts, route models.Route) {
+	// {{ fmt.Printf("Type=%T Address=%p Value=%v\n", route, &route, route) }}
+	// {{ fmt.Printf("Type=%T Address=%p Value=%v\n", route.Filters, route.Filters, route.Filters) }}
 	<div id="card-filters">
 		<div class="dropdown dropdown-bottom dropdown-end">
 			<div tabindex="0" role="button" class="btn btn-square">
@@ -219,14 +218,14 @@ templ UpdateFilters(categories models.CategoryCounts) {
 				<li class="menu-title text-xs">View:</li>
 				for view := range slices.Values([]models.View{models.ViewUnread,models.ViewRead,models.ViewAll}) {
 					<li>
-						@newViewFilter(ctx, view).AsLink()
+						@newViewFilter(ctx, view, route).AsLink()
 					</li>
 				}
 				if len(categories) > 0 {
 					<li class="menu-title text-xs">Category:</li>
 					for category := range slices.Values(categories.GetTopCategories(10)) {
 						<li>
-							@newCategoryFilter(ctx, category).AsLink()
+							@newCategoryFilter(ctx, category, route).AsLink()
 						</li>
 					}
 				}
@@ -235,7 +234,7 @@ templ UpdateFilters(categories models.CategoryCounts) {
 	</div>
 }
 
-templ UpdateSorting(collection models.Collection) {
+templ UpdateSorting(collection models.Collection, route models.Route) {
 	<div id="card-sorting">
 		<div class="dropdown dropdown-bottom dropdown-end">
 			<div tabindex="0" role="button" class="btn btn-square">
@@ -244,17 +243,17 @@ templ UpdateSorting(collection models.Collection) {
 			<ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
 				<li class="menu-title text-xs">Sort:</li>
 				<li>
-					@NewSortFilter(ctx, models.SortLastUpdatedDesc).AsLink()
+					@NewSortFilter(ctx, models.SortLastUpdatedDesc, route).AsLink()
 				</li>
 				<li>
-					@NewSortFilter(ctx, models.SortLastUpdatedAsc).AsLink()
+					@NewSortFilter(ctx, models.SortLastUpdatedAsc, route).AsLink()
 				</li>
 				if collection == models.CollectionSubscriptions {
 					<li>
-						@NewSortFilter(ctx, models.SortUnreadCountDesc).AsLink()
+						@NewSortFilter(ctx, models.SortUnreadCountDesc, route).AsLink()
 					</li>
 					<li>
-						@NewSortFilter(ctx, models.SortUnreadCountAsc).AsLink()
+						@NewSortFilter(ctx, models.SortUnreadCountAsc, route).AsLink()
 					</li>
 				}
 			</ul>
@@ -264,19 +263,21 @@ templ UpdateSorting(collection models.Collection) {
 
 type SortOption struct {
 	active bool
-	link   models.PageState
+	link   string
 	label  string
 	icon   templ.Component
 }
 
-func NewSortFilter(ctx context.Context, sort models.Sort) *SortOption {
-	filters := models.FiltersFromCtx(ctx)
+func NewSortFilter(ctx context.Context, sort models.Sort, route models.Route) *SortOption {
+	link := route.Clone()
+	fmt.Printf("Type=%T Address=%p Value=%v\n", route, &route, route)
+	fmt.Printf("Type=%T Address=%p Value=%v\n", link, &link, link)
 	option := &SortOption{
 		label: sort.String(),
 	}
 
 	// Set this sort as active if indicated in the current view filters.
-	if filters.SortBy == sort.SortBy && filters.SortOrder == sort.SortOrder {
+	if link.IsSorted(sort) {
 		option.active = true
 	}
 
@@ -299,11 +300,8 @@ func NewSortFilter(ctx context.Context, sort models.Sort) *SortOption {
 	}
 
 	// Generate a view.
-	filters.SortBy = sort.SortBy
-	filters.SortOrder = sort.SortOrder
-	view := models.PageStateFromCtx(ctx)
-	view.Params = filters.ToQueryParams()
-	option.link = view
+	link.SetSort(sort)
+	option.link = link.String()
 
 	return option
 }
@@ -323,7 +321,7 @@ templ (option *SortOption) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         option.link.String(),
+				"hx-get":         option.link,
 				"hx-replace-url": "true",
 				"hx-target":      partials.ContentID.Target(),
 			}),
@@ -334,7 +332,7 @@ templ (option *SortOption) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         option.link.String(),
+				"hx-get":         option.link,
 				"hx-replace-url": "true",
 				"hx-target":      partials.ContentID.Target(),
 			}),

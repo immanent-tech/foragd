@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-playground/validator/v10"
 
 	"github.com/joshuar/go-feed-me/components/validation"
@@ -47,161 +48,6 @@ const (
 	// DefaultSince is maximum duration (approx 290 years).
 	DefaultSince = math.MaxInt64
 )
-
-// FiltersValidation is a custom struct-level validation function for Filters.
-// In this case, we validate that either a list of Feeds or Items has been
-// provided, and fail validation if both have been provided.
-func FiltersValidation(sl validator.StructLevel) {
-	// filters := sl.Current().Interface().(Filters)
-	// if len(filters.Feeds) > 0 && len(filters.Items) > 0 {
-	// 	sl.ReportError(filters.Feeds, "feeds", "Feeds", "feedsoritems", "")
-	// 	sl.ReportError(filters.Items, "items", "Items", "feedsoritems", "")
-	// }
-}
-
-// Valid will return a boolean indicating whether the filters are valid and a
-// non-nil error with details if not.
-func (f *Filters) Valid() (bool, error) {
-	// Register custom struct-level validation function.
-	validation.AddStructValidationFunc(FiltersValidation, Filters{})
-	// Set required filters to valid values as necessary.
-	f.SortBy = setValidSortBy(f.SortBy)
-	f.SortOrder = setValidSortOrder(f.SortOrder)
-	f.Count = setValidCount(f.Count)
-	f.View = setValidView(f.View)
-	// Validate struct.
-	return validation.ValidateStruct(f)
-}
-
-// // MarshalJSON ensures Filters satisfies the json.Marshaler interface.
-// func (f *Filters) MarshalJSON() ([]byte, error) {
-// 	return json.Marshal(f)
-// }
-
-// // MarshalJSON ensures Filters satisfies the json.Unmarshaler interface.
-// func (f *Filters) UnmarshalJSON(data []byte) error {
-// 	return json.Unmarshal(data, f)
-// }
-
-// ViewRead returns a boolean indicating whether the Filters are set to view
-// read items.
-func (f *Filters) ViewRead() bool {
-	return f.View == ViewRead
-}
-
-// ViewUnread returns a boolean indicating whether the Filters are set to view
-// unread items.
-func (f *Filters) ViewUnread() bool {
-	return f.View == ViewUnread
-}
-
-// ViewAll returns a boolean indicating whether the Filters are set to view
-// all (read and unread) items.
-func (f *Filters) ViewAll() bool {
-	return f.View == ViewAll
-}
-
-// Sort returns the Sort object for the Filters.
-func (f *Filters) Sort() Sort {
-	return Sort{
-		SortBy:    f.SortBy,
-		SortOrder: f.SortOrder,
-	}
-}
-
-// CountAsInt returns the count value (encoded as a string in the filters) as an int.
-func (f *Filters) CountAsInt() int {
-	value, err := strconv.Atoi(f.Count)
-	if err != nil {
-		return 10
-	}
-	return value
-}
-
-// ToQueryParams returns the filters as a url.Values object.
-func (f *Filters) ToQueryParams() url.Values {
-	params := make(url.Values)
-
-	// if len(f.Feeds) > 0 {
-	// 	params.Set(ParamFeeds, strings.Join(f.Feeds, ","))
-	// }
-
-	if len(f.Categories) > 0 {
-		params.Set(ParamCategories, strings.Join(f.Categories, ","))
-	}
-
-	if f.Pagination != nil {
-		params.Set(ParamPagination, *f.Pagination)
-	}
-
-	params.Set(ParamSortBy, string(f.SortBy))
-	params.Set(ParamSortOrder, string(f.SortOrder))
-	params.Set(ParamView, string(f.View))
-	params.Set(ParamCount, f.Count)
-
-	return params
-}
-
-// HasCategory returns a boolean indicating whether the given category is set in the filters. If true, a positive
-// integer will also be returned indicating the index value of the category in the slice.
-func (f *Filters) HasCategory(category Category) (bool, int) {
-	idx := slices.IndexFunc(f.Categories, func(c Category) bool { return c == category })
-	if idx != -1 {
-		return true, idx
-	}
-	return false, idx
-}
-
-// AddCategory adds the given category to the filters. Duplicate values will not be added.
-func (f *Filters) AddCategory(category Category) {
-	if found, _ := f.HasCategory(category); !found {
-		f.Categories = append(f.Categories, category)
-	}
-}
-
-// RemoveCategory removes the given category from the filters.
-func (f *Filters) RemoveCategory(category Category) {
-	if found, idx := f.HasCategory(category); found {
-		f.Categories = slices.Delete(f.Categories, idx, idx+1)
-	}
-}
-
-// HasPagination returns a boolean indicating whether there are pagination values.
-func (f *Filters) HasPagination() bool {
-	return f.Pagination != nil
-}
-
-// NewFiltersFromParams creates new filters with values extracted from the given request params.
-func NewFiltersFromParams(params any) (*Filters, error) {
-	filters := NewFilters()
-	// Marshal params to JSON.
-	data, err := json.Marshal(params)
-	if err != nil {
-		return nil, fmt.Errorf("unable to marshal params: %w", err)
-	}
-	// Unmarshal JSON to filters.
-	err = json.Unmarshal(data, filters)
-	if err != nil {
-		return nil, fmt.Errorf("unable to marshal params: %w", err)
-	}
-
-	valid, err := filters.Valid()
-	if !valid || err != nil {
-		return nil, fmt.Errorf("invalid filters: %w", err)
-	}
-
-	return filters, nil
-}
-
-// NewFilters creates a new Filters object with default values.
-func NewFilters() *Filters {
-	return &Filters{
-		Count:     DefaultCount,
-		View:      DefaultView,
-		SortBy:    DefaultSortBy,
-		SortOrder: DefaultSortOrder,
-	}
-}
 
 func (sb SortBy) String() string {
 	switch sb {
@@ -294,4 +140,260 @@ func setValidView(value View) View {
 	default:
 		return DefaultView
 	}
+}
+
+// Filters represents either Subscription or Article filters.
+type Filters interface {
+	Valid() (bool, error)
+	GetSort() Sort
+	GetCount() int
+	ToQueryParams() url.Values
+	IsSorted(sort Sort) bool
+	SetSort(sort Sort)
+	HasCategory(category Category) bool
+	AddCategory(category Category)
+	RemoveCategory(category Category)
+	IsView(view View) bool
+	SetView(view View)
+}
+
+func FiltersFromParams[F Filters](params any) (F, error) {
+	var filters F
+	// Marshal params to JSON.
+	data, err := json.Marshal(params)
+	if err != nil {
+		return filters, fmt.Errorf("unable to marshal params: %w", err)
+	}
+	// Unmarshal JSON to filters.
+	err = json.Unmarshal(data, &filters)
+	if err != nil {
+		return filters, fmt.Errorf("unable to unmarshal params: %w", err)
+	}
+
+	valid, err := filters.Valid()
+	if !valid || err != nil {
+		return filters, fmt.Errorf("invalid filters: %w", err)
+	}
+
+	return filters, nil
+}
+
+func NewSubscriptionFilters() SubscriptionFilters {
+	return SubscriptionFilters{
+		SortBy:    SortByUnreadCount,
+		SortOrder: SortOrderDesc,
+		Count:     DefaultCount,
+		View:      DefaultView,
+	}
+}
+
+// FiltersValidation is a custom struct-level validation function for Filters.
+// In this case, we validate that either a list of Feeds or Items has been
+// provided, and fail validation if both have been provided.
+func SubscriptionFiltersValidation(sl validator.StructLevel) {
+	filters := sl.Current().Interface().(SubscriptionFilters)
+	if len(filters.Subscriptions) > 0 && len(filters.Categories) > 0 {
+		sl.ReportError(filters.Subscriptions, "subscriptions", "Subscriptions", "subscriptionsorcategories", "")
+		sl.ReportError(filters.Categories, "categories", "categories", "subscriptionsorcategories", "")
+	}
+}
+
+// Valid will return a boolean indicating whether the filters are valid and a
+// non-nil error with details if not.
+func (f *SubscriptionFilters) Valid() (bool, error) {
+	// Register custom struct-level validation function.
+	validation.AddStructValidationFunc(SubscriptionFiltersValidation, SubscriptionFilters{})
+	// Set required filters to valid values as necessary.
+	f.SortBy = setValidSortBy(f.SortBy)
+	f.SortOrder = setValidSortOrder(f.SortOrder)
+	f.Count = setValidCount(f.Count)
+	f.View = setValidView(f.View)
+	// Validate struct.
+	return validation.ValidateStruct(f)
+}
+
+// Sort returns the Sort object for the Filters.
+func (f SubscriptionFilters) GetSort() Sort {
+	return Sort{
+		SortBy:    f.SortBy,
+		SortOrder: f.SortOrder,
+	}
+}
+
+// CountAsInt returns the count value (encoded as a string in the filters) as an int.
+func (f SubscriptionFilters) GetCount() int {
+	value, err := strconv.Atoi(f.Count)
+	if err != nil {
+		return 10
+	}
+	return value
+}
+
+func (f SubscriptionFilters) ToQueryParams() url.Values {
+	params := make(url.Values)
+
+	if len(f.Subscriptions) > 0 {
+		params.Set(ParamSubscriptions, strings.Join(f.Subscriptions, ","))
+	}
+
+	if len(f.Categories) > 0 {
+		params.Set(ParamCategories, strings.Join(f.Categories, ","))
+	}
+
+	if f.Pagination != nil {
+		params.Set(ParamPagination, *f.Pagination)
+	}
+
+	params.Set(ParamSortBy, string(f.SortBy))
+	params.Set(ParamSortOrder, string(f.SortOrder))
+	params.Set(ParamView, string(f.View))
+	params.Set(ParamCount, f.Count)
+
+	return params
+}
+
+func (f SubscriptionFilters) IsSorted(sort Sort) bool {
+	return f.SortBy == sort.SortBy && f.SortOrder == sort.SortOrder
+}
+
+func (f *SubscriptionFilters) SetSort(sort Sort) {
+	f.SortBy = sort.SortBy
+	f.SortOrder = sort.SortOrder
+}
+
+func (f SubscriptionFilters) HasCategory(category Category) bool {
+	return slices.Contains(f.Categories, category)
+}
+
+func (f *SubscriptionFilters) AddCategory(category Category) {
+	f.Categories = append(f.Categories, category)
+	f.Categories = slices.Compact(f.Categories)
+}
+
+func (f *SubscriptionFilters) RemoveCategory(category Category) {
+	f.Categories = slices.DeleteFunc(f.Categories, func(c Category) bool { return c == category })
+}
+
+func (f SubscriptionFilters) IsView(view View) bool {
+	return f.View == view
+}
+
+func (f *SubscriptionFilters) SetView(view View) {
+	f.View = view
+}
+
+func NewArticleFilters() ArticleFilters {
+	return ArticleFilters{
+		SortBy:    SortByUnreadCount,
+		SortOrder: SortOrderDesc,
+		Count:     DefaultCount,
+		View:      DefaultView,
+	}
+}
+
+// FiltersValidation is a custom struct-level validation function for Filters.
+// In this case, we validate that either a list of Feeds or Items has been
+// provided, and fail validation if both have been provided.
+func ArticleFiltersValidation(sl validator.StructLevel) {
+	filters := sl.Current().Interface().(ArticleFilters)
+	// Cannot have both subscription IDs and article IDs.
+	if len(filters.Subscriptions) > 0 && len(filters.Articles) > 0 {
+		sl.ReportError(filters.Subscriptions, "subscriptions", "Subscriptions", "subscriptionsorarticles", "")
+		sl.ReportError(filters.Articles, "articles", "articles", "subscriptionsorarticles", "")
+	}
+	// Cannot have both a list of subscription/article IDs and a list of categories.
+	if (len(filters.Subscriptions) > 0 || len(filters.Articles) > 0) && len(filters.Categories) > 0 {
+		sl.ReportError(filters.Subscriptions, "subscriptions", "Subscriptions", "subscriptionsorcategories", "")
+		sl.ReportError(filters.Articles, "articles", "articles", "articlesorcategories", "")
+		sl.ReportError(filters.Categories, "categories", "categories", "categoriesorids", "")
+	}
+}
+
+// Valid will return a boolean indicating whether the filters are valid and a
+// non-nil error with details if not.
+func (f *ArticleFilters) Valid() (bool, error) {
+	// Register custom struct-level validation function.
+	validation.AddStructValidationFunc(ArticleFiltersValidation, ArticleFilters{})
+	// Set required filters to valid values as necessary.
+	f.SortBy = setValidSortBy(f.SortBy)
+	f.SortOrder = setValidSortOrder(f.SortOrder)
+	f.Count = setValidCount(f.Count)
+	f.View = setValidView(f.View)
+	// Validate struct.
+	return validation.ValidateStruct(f)
+}
+
+// Sort returns the Sort object for the Filters.
+func (f ArticleFilters) GetSort() Sort {
+	return Sort{
+		SortBy:    f.SortBy,
+		SortOrder: f.SortOrder,
+	}
+}
+
+// CountAsInt returns the count value (encoded as a string in the filters) as an int.
+func (f ArticleFilters) GetCount() int {
+	value, err := strconv.Atoi(f.Count)
+	if err != nil {
+		return 10
+	}
+	return value
+}
+
+func (f ArticleFilters) ToQueryParams() url.Values {
+	params := make(url.Values)
+
+	if len(f.Subscriptions) > 0 {
+		params.Set(ParamSubscriptions, strings.Join(f.Subscriptions, ","))
+	}
+
+	if len(f.Articles) > 0 {
+		params.Set(ParamArticles, strings.Join(f.Articles, ","))
+	}
+
+	if len(f.Categories) > 0 {
+		params.Set(ParamCategories, strings.Join(f.Categories, ","))
+	}
+
+	if f.Pagination != nil {
+		params.Set(ParamPagination, *f.Pagination)
+	}
+
+	params.Set(ParamSortBy, string(f.SortBy))
+	params.Set(ParamSortOrder, string(f.SortOrder))
+	params.Set(ParamView, string(f.View))
+	params.Set(ParamCount, f.Count)
+
+	return params
+}
+
+func (f ArticleFilters) IsSorted(sort Sort) bool {
+	spew.Dump(sort, f.GetSort())
+	return f.SortBy == sort.SortBy && f.SortOrder == sort.SortOrder
+}
+
+func (f *ArticleFilters) SetSort(sort Sort) {
+	f.SortBy = sort.SortBy
+	f.SortOrder = sort.SortOrder
+}
+
+func (f ArticleFilters) HasCategory(category Category) bool {
+	return slices.Contains(f.Categories, category)
+}
+
+func (f *ArticleFilters) AddCategory(category Category) {
+	f.Categories = append(f.Categories, category)
+	f.Categories = slices.Compact(f.Categories)
+}
+
+func (f *ArticleFilters) RemoveCategory(category Category) {
+	f.Categories = slices.DeleteFunc(f.Categories, func(c Category) bool { return c == category })
+}
+
+func (f ArticleFilters) IsView(view View) bool {
+	return f.View == view
+}
+
+func (f *ArticleFilters) SetView(view View) {
+	f.View = view
 }

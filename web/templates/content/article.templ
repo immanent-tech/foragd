@@ -203,9 +203,8 @@ func (c *Article) markAttributes() templ.Attributes {
 }
 
 func (c *Article) viewAttributes() templ.Attributes {
-	view := models.PageState{Path: "/article/" + c.GetID()}
 	return templ.Attributes{
-		"hx-get":      view.String(),
+		"hx-get":      "/article/" + c.GetID(),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
 		"hx-swap":     "morph:innerHTML show:top",

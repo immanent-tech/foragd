@@ -20,13 +20,13 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
-func filterArticlesBySubscriptions(ctx context.Context, api models.DocumentsAPI, filters *models.Filters, subIDs ...models.SubscriptionID) (models.Articles, models.Pagination, *models.Response) {
+func filterArticlesBySubscriptions(ctx context.Context, api models.DocumentsAPI, filters *models.ArticleFilters) (models.Articles, models.Pagination, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", models.RespErrUnauthorized()
 	}
 
-	subscriptionStates := user.FilterSubscriptionStatesByID(subIDs...)
+	subscriptionStates := user.FilterSubscriptionStatesByID(filters.Subscriptions...)
 	feedIDs := make([]models.FeedID, 0, len(subscriptionStates))
 	for _, state := range subscriptionStates {
 		feedIDs = append(feedIDs, state.GetFeedID())
@@ -47,10 +47,10 @@ func filterArticlesBySubscriptions(ctx context.Context, api models.DocumentsAPI,
 			),
 		),
 	)
-	sort := filters.Sort()
+	sort := filters.GetSort()
 
 	// Find items matching filters.
-	items, pagination, err := api.SearchItems(ctx, query, filters.CountAsInt(), &sort, filters.Pagination)
+	items, pagination, err := api.SearchItems(ctx, query, filters.GetCount(), &sort, filters.Pagination)
 	if err != nil {
 		return nil, "", models.RespErrBackend(err)
 	}
