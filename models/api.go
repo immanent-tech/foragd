@@ -840,3 +840,33 @@ func (r Route) SetView(view View) {
 		}
 	}
 }
+
+func (r Route) SetPagination(pagination Pagination) {
+	if r.Filters == nil {
+		return
+	}
+	switch r.Path {
+	case "/subscriptions":
+		filters, err := r.Filters.AsSubscriptionFilters()
+		if err != nil {
+			filters = NewSubscriptionFilters()
+		}
+		f := &filters
+		f.SetPagination(pagination)
+		err = r.Filters.FromSubscriptionFilters(*f)
+		if err != nil {
+			r.Filters.FromSubscriptionFilters(NewSubscriptionFilters())
+		}
+	case "/articles":
+		filters, err := r.Filters.AsArticleFilters()
+		if err != nil {
+			filters = NewArticleFilters()
+		}
+		f := &filters
+		f.SetPagination(pagination)
+		err = r.Filters.FromArticleFilters(*f)
+		if err != nil {
+			r.Filters.FromArticleFilters(NewArticleFilters())
+		}
+	}
+}

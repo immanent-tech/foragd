@@ -27,70 +27,79 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
-// GenerateArticleCollection handles searching for articles with the current filters and then generating cards for each found article.
-func GenerateArticleCollection(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
+// GetArticles retrieves articles using the given filters and places them in the context for additional handling.
+func GetArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			route := models.NewRoute("/articles", filters)
-			articles, pagination, resp := filterArticlesBySubscriptions(req.Context(), api, filters)
+			articles, pagination, resp := filterArticles(req.Context(), api, filters)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
-			filters.Pagination = &pagination
-			// Generate article cards.
-			cards := make([]templ.Component, 0, len(articles))
-			for article := range slices.Values(articles) {
-				cards = append(cards, content.NewArticleContent(article).Card())
-			}
-			if len(cards) > 0 {
-				// Generate pagination control after last card.
-				if len(cards) == filters.GetCount() {
-					cards = append(cards, content.PaginationControl(ctx, route))
-				}
-				cardLayout := content.CardGrid(route, cards...)
-				cardControls := content.CardControls(
-					views.RefreshAction(route),
-					views.UpdateSorting(models.CollectionArticles, route),
-					views.UpdateFilters(articles.GetCategoryCounts(), route),
-					views.CollectionActionsMenu(
-						views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
-					),
-				)
-
-				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, cardLayout))
-			} else {
-				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
-			}
-			ctx = context.WithValue(ctx, titleCtxKey, "Articles")
+			ctx := req.Context()
+			ctx = ArticlesToCtx(ctx, articles)
+			ctx = PaginationToCtx(ctx, &pagination)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
 
-// PaginateArticleCollection handles fetching the next set of articles and creating cards from them.
-func PaginateArticleCollection(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
+func GenerateArticleCards(filters *models.ArticleFilters) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			route := models.NewRoute("/articles", filters)
-
-			articles, pagination, resp := filterArticlesBySubscriptions(req.Context(), api, filters)
-			if resp != nil {
-				ProcessResponse(res, req, resp)
-				return
+			ctx := req.Context()
+			// Get the list of articles from the context.
+			articles := ArticlesFromCtx(ctx)
+			if articles == nil {
+				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
 			}
-			filters.Pagination = &pagination
+			// Generate cards for the articles.
 			cards := make([]templ.Component, 0, len(articles))
 			for article := range slices.Values(articles) {
 				cards = append(cards, content.NewArticleContent(article).Card())
 			}
-			// Add pagination htmx props to last article.
-			if len(cards) == filters.GetCount() {
+			// Get the pagination from the context.
+			pagination := PaginationFromCtx(ctx)
+			if pagination != nil && len(cards) == filters.GetCount() {
+				route := models.NewRoute("/articles", filters)
+				route.SetPagination(*pagination)
+				// Add pagination htmx props to last article.
 				cards = append(cards, content.PaginationControl(req.Context(), route))
+				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cards...))
 			}
+			if filters.Pagination == nil {
+				route := models.NewRoute("/articles", filters)
+				ctx = context.WithValue(ctx, contentCtxKey, content.CardGrid(route, cards...))
+			}
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
 
-			ctx := context.WithValue(req.Context(), contentCtxKey, templ.Join(cards...))
+func GenerateArticleCardControls(filters *models.ArticleFilters) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
+			// Get the list of articles from the context.
+			articles := ArticlesFromCtx(ctx)
+			if articles == nil {
+				next.ServeHTTP(res, req.WithContext(ctx))
+			}
+			// Get the content from the context.
+			cards, ok := ctx.Value(contentCtxKey).(templ.Component)
+			if !ok {
+				next.ServeHTTP(res, req.WithContext(ctx))
+			}
+			route := models.NewRoute("/articles", filters)
+			cardControls := content.CardControls(
+				views.RefreshAction(route),
+				views.UpdateSorting(models.CollectionArticles, route),
+				views.UpdateFilters(articles.GetCategoryCounts(), route),
+				views.CollectionActionsMenu(
+					views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
+				),
+			)
+			ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, cards))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -110,49 +119,6 @@ func GenerateArticle(api models.DocumentsAPI, itemID models.ItemID) func(next ht
 			ctx := req.Context()
 			ctx = context.WithValue(ctx, contentCtxKey, articleLayout)
 			ctx = context.WithValue(ctx, titleCtxKey, articles[0].GetTitle())
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// GenerateSubscriptionCollection handles searching for subscriptions with the current filters and then generating cards for each found subscription.
-func GetSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
-			if resp != nil && !resp.IsNotFound() {
-				ProcessResponse(res, req, resp)
-				return
-			}
-			filters.Pagination = &pagination
-			route := models.NewRoute("/subscriptions", filters)
-			ctx := req.Context()
-			// Generate subscription cards.
-			cards := make([]templ.Component, 0, len(subscriptions))
-			for subscription := range slices.Values(subscriptions) {
-				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
-			}
-			// Generate controls for subscriptions.
-			cardControls := content.CardControls(
-				views.RefreshAction(route),
-				views.UpdateSorting(models.CollectionSubscriptions, route),
-				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions)), route),
-				views.CollectionActionsMenu(
-					views.MarkAllSubscriptionsAction(req.Context(), filters.View),
-				),
-			)
-			if len(cards) > 0 {
-				// Add pagination htmx props to last article.
-				if len(cards) == filters.GetCount() {
-					cards = append(cards, content.PaginationControl(ctx, route))
-				}
-
-				cardLayout := content.CardGrid(route, cards...)
-				ctx = context.WithValue(req.Context(), contentCtxKey, templ.Join(cardControls, cardLayout))
-			} else {
-				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, views.EmptyContent()))
-			}
-			ctx = context.WithValue(ctx, titleCtxKey, "Subscriptions")
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

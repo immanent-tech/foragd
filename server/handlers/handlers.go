@@ -39,7 +39,6 @@ const (
 	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
 	subscriptionResultsCtxKey  contextKey = "subscriptionsResults"
 	feedsCtxKey                contextKey = "feeds"
-	subscriptionsCtxKey        contextKey = "subscriptions"
 
 	htmxRespCtxKey contextKey = "htmxResponse"
 	titleCtxKey    contextKey = "title"

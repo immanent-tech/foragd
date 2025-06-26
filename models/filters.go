@@ -281,6 +281,10 @@ func (f *SubscriptionFilters) SetView(view View) {
 	f.View = view
 }
 
+func (f *SubscriptionFilters) SetPagination(pagination Pagination) {
+	f.Pagination = &pagination
+}
+
 func NewArticleFilters() ArticleFilters {
 	return ArticleFilters{
 		SortBy:    SortByUnreadCount,
@@ -393,4 +397,8 @@ func (f ArticleFilters) IsView(view View) bool {
 
 func (f *ArticleFilters) SetView(view View) {
 	f.View = view
+}
+
+func (f *ArticleFilters) SetPagination(pagination Pagination) {
+	f.Pagination = &pagination
 }

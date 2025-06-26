@@ -20,7 +20,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 )
 
-func filterArticlesBySubscriptions(ctx context.Context, api models.DocumentsAPI, filters *models.ArticleFilters) (models.Articles, models.Pagination, *models.Response) {
+func filterArticles(ctx context.Context, api models.DocumentsAPI, filters *models.ArticleFilters) (models.Articles, models.Pagination, *models.Response) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, "", models.RespErrUnauthorized()

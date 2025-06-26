@@ -216,12 +216,12 @@ func (s Server) ShowArticles(res http.ResponseWriter, req *http.Request, params 
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.SavePageState(filters),
+		handlers.GetArticles(s.DataAPI(), filters),
+		handlers.GenerateArticleCards(filters),
 	)
 
-	if filters.Pagination != nil {
-		chain = chain.Append(handlers.PaginateArticleCollection(s.DataAPI(), filters))
-	} else {
-		chain = chain.Append(handlers.GenerateArticleCollection(s.DataAPI(), filters))
+	if filters.Pagination == nil {
+		chain = chain.Append(handlers.GenerateArticleCardControls(filters))
 	}
 
 	switch htmx.IsHTMX(req) {
