@@ -15,15 +15,15 @@ import (
 // PaginationControl generates an element that will cause a pagination request when scrolled into view.
 templ PaginationControl(ctx context.Context, route string, pagination models.Pagination) {
 	<div
-		id="pagination_placeholder"
 		hx-get={ route }
 		hx-include="#content-filters"
 		hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
 		hx-trigger="intersect once"
-		hx-target="#pagination_placeholder"
-		hx-swap="outerHTML"
+		hx-target={ CardsID.Target() }
+		hx-swap="beforeend"
 		hx-replace-url="false"
 		hx-indicator="#content-loading"
+		_="on htmx:afterRequest remove me"
 	></div>
 }
 
