@@ -5,7 +5,6 @@ package models
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/oapi-codegen/runtime"
 )
@@ -17,14 +16,6 @@ const (
 	ActionRemove Action = "remove"
 	ActionSave   Action = "save"
 	ActionUnread Action = "unread"
-)
-
-// Defines values for Collection.
-const (
-	CollectionArticles      Collection = "articles"
-	CollectionFeeds         Collection = "feeds"
-	CollectionItems         Collection = "items"
-	CollectionSubscriptions Collection = "subscriptions"
 )
 
 // Defines values for ImportSource.
@@ -98,9 +89,6 @@ type ArticleFilters struct {
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
-// Collection is a group of objects, such as feeds, items or subscriptions.
-type Collection string
-
 // CommonFilters contains filter parameters that are common across all requests.
 type CommonFilters struct {
 	// Count is the count of items to retrieve with a request.
@@ -144,9 +132,6 @@ type Route struct {
 type Route_Filters struct {
 	union json.RawMessage
 }
-
-// Since is a duration to filter results.
-type Since = time.Duration
 
 // Sort contains information on sorting objects.
 type Sort struct {

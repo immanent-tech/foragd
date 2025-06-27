@@ -206,8 +206,6 @@ func newViewFilter(ctx context.Context, view models.View, route models.Route) *F
 }
 
 templ UpdateFilters(categories models.CategoryCounts, route models.Route) {
-	// {{ fmt.Printf("Type=%T Address=%p Value=%v\n", route, &route, route) }}
-	// {{ fmt.Printf("Type=%T Address=%p Value=%v\n", route.Filters, route.Filters, route.Filters) }}
 	<div id="card-filters">
 		<div class="dropdown dropdown-bottom dropdown-end">
 			<div tabindex="0" role="button" class="btn btn-square">
@@ -233,7 +231,7 @@ templ UpdateFilters(categories models.CategoryCounts, route models.Route) {
 	</div>
 }
 
-templ UpdateSorting(collection models.Collection, route models.Route) {
+templ UpdateSorting(route models.Route) {
 	<div id="card-sorting">
 		<div class="dropdown dropdown-bottom dropdown-end">
 			<div tabindex="0" role="button" class="btn btn-square">
@@ -247,7 +245,7 @@ templ UpdateSorting(collection models.Collection, route models.Route) {
 				<li>
 					@NewSortFilter(ctx, models.SortLastUpdatedAsc, route).AsLink()
 				</li>
-				if collection == models.CollectionSubscriptions {
+				if route.Path == "/subscriptions" {
 					<li>
 						@NewSortFilter(ctx, models.SortUnreadCountDesc, route).AsLink()
 					</li>

@@ -9,13 +9,6 @@ info:
 paths: {}
 components:
   schemas:
-    Collection:
-      description: >
-        is a group of objects, such as feeds, items or subscriptions.
-      type: string
-      enum: ['feeds', 'items', 'subscriptions', 'articles']
-      x-oapi-codegen-extra-tags:
-        validate: 'oneof=feeds items subscriptions articles'
     Action:
       description: >
         defines an operation to change the state of objects.
@@ -46,12 +39,6 @@ components:
       x-oapi-codegen-extra-tags:
         form: 'pagination'
         validate: 'omitempty,url_encoded'
-    Since:
-      description: is a duration to filter results.
-      x-go-type: time.Duration
-      x-oapi-codegen-extra-tags:
-        form: 'since'
-        validate: 'omitempty'
     SortBy:
       description: >
         represents the selected field to sort on.

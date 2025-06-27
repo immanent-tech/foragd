@@ -93,7 +93,7 @@ func GenerateArticleCardControls(filters *models.ArticleFilters) func(next http.
 			route := models.NewRoute("/articles", filters)
 			cardControls := content.CardControls(
 				views.RefreshAction(route),
-				views.UpdateSorting(models.CollectionArticles, route),
+				views.UpdateSorting(route),
 				views.UpdateFilters(articles.GetCategoryCounts(), route),
 				views.CollectionActionsMenu(
 					views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
@@ -190,7 +190,7 @@ func GenerateSubscriptionCardControls(filters *models.SubscriptionFilters) func(
 			route := models.NewRoute("/subscriptions", filters)
 			cardControls := content.CardControls(
 				views.RefreshAction(route),
-				views.UpdateSorting(models.CollectionSubscriptions, route),
+				views.UpdateSorting(route),
 				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions)), route),
 				views.CollectionActionsMenu(
 					views.MarkAllSubscriptionsAction(req.Context(), filters.View),

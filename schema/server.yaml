@@ -383,12 +383,6 @@ components:
       required: true
       schema:
         $ref: 'api.yaml#/components/schemas/Action'
-    Collection:
-      name: collection
-      in: path
-      required: true
-      schema:
-        $ref: 'api.yaml#/components/schemas/Collection'
     Mark:
       name: mark
       in: path
