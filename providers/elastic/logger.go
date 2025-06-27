@@ -104,11 +104,14 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		baseAttributes...,
 	)
 
-	level := logging.Level
-	if status >= http.StatusInternalServerError {
+	var level slog.Level
+	switch {
+	case status >= http.StatusInternalServerError:
 		level = slog.LevelError
-	} else if status >= http.StatusBadRequest && status < http.StatusInternalServerError {
+	case status >= http.StatusBadRequest && status < http.StatusInternalServerError:
 		level = slog.LevelWarn
+	default:
+		level = logging.LevelTrace
 	}
 
 	l.logger.LogAttrs(req.Context(), level, strconv.Itoa(status)+": "+http.StatusText(status), attributes...)
