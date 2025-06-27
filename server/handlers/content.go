@@ -37,8 +37,8 @@ func GetArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(n
 				return
 			}
 			ctx := req.Context()
-			ctx = ArticlesToCtx(ctx, articles)
-			ctx = PaginationToCtx(ctx, &pagination)
+			ctx = articlesToCtx(ctx, articles)
+			ctx = paginationToCtx(ctx, &pagination)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -49,7 +49,7 @@ func GenerateArticleCards(filters *models.ArticleFilters) func(next http.Handler
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			// Get the list of articles from the context.
-			articles := ArticlesFromCtx(ctx)
+			articles := articlesFromCtx(ctx)
 			if articles == nil {
 				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
 			}
@@ -59,7 +59,7 @@ func GenerateArticleCards(filters *models.ArticleFilters) func(next http.Handler
 				cards = append(cards, content.NewArticleContent(article).Card())
 			}
 			// Get the pagination from the context.
-			pagination := PaginationFromCtx(ctx)
+			pagination := paginationFromCtx(ctx)
 			if pagination != nil && len(cards) == filters.GetCount() {
 				route := models.NewRoute("/articles", filters)
 				route.SetPagination(*pagination)
@@ -81,7 +81,7 @@ func GenerateArticleCardControls(filters *models.ArticleFilters) func(next http.
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			// Get the list of articles from the context.
-			articles := ArticlesFromCtx(ctx)
+			articles := articlesFromCtx(ctx)
 			if articles == nil {
 				next.ServeHTTP(res, req.WithContext(ctx))
 			}
@@ -134,8 +134,8 @@ func GetSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilte
 				return
 			}
 			ctx := req.Context()
-			ctx = SubscriptionsToCtx(ctx, subscriptions)
-			ctx = PaginationToCtx(ctx, &pagination)
+			ctx = subscriptionsToCtx(ctx, subscriptions)
+			ctx = paginationToCtx(ctx, &pagination)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -146,7 +146,7 @@ func GenerateSubscriptionCards(filters *models.SubscriptionFilters) func(next ht
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			// Get the list of articles from the context.
-			subscriptions := SubscriptionsFromCtx(ctx)
+			subscriptions := subscriptionsFromCtx(ctx)
 			if subscriptions == nil {
 				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
 			}
@@ -156,7 +156,7 @@ func GenerateSubscriptionCards(filters *models.SubscriptionFilters) func(next ht
 				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
 			}
 			// Get the pagination from the context.
-			pagination := PaginationFromCtx(ctx)
+			pagination := paginationFromCtx(ctx)
 			if pagination != nil && len(cards) == filters.GetCount() {
 				route := models.NewRoute("/subscriptions", filters)
 				route.SetPagination(*pagination)
@@ -178,7 +178,7 @@ func GenerateSubscriptionCardControls(filters *models.SubscriptionFilters) func(
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			// Get the list of articles from the context.
-			subscriptions := SubscriptionsFromCtx(ctx)
+			subscriptions := subscriptionsFromCtx(ctx)
 			if subscriptions == nil {
 				next.ServeHTTP(res, req.WithContext(ctx))
 			}
@@ -473,7 +473,7 @@ func AddFeedsForSubscriptionRequests(api models.DocumentsAPI) func(next http.Han
 			// Extract any existing results map from the context
 			results := subscriptionResultsFromCtx(req.Context())
 			// Extract new subscriptions from the context.
-			subscriptions := subscriptionsFromCtx(req.Context())
+			subscriptions := subscriptionsNeededFromCtx(req.Context())
 
 			// Add the new feeds.
 			addFeedsResults, err := api.AddFeeds(req.Context(), slices.Collect(maps.Values(newFeeds))...)
@@ -534,7 +534,7 @@ func AddSubscriptions(api models.DocumentsAPI) func(next http.Handler) http.Hand
 			// Extract any existing results map from the context
 			results := subscriptionResultsFromCtx(req.Context())
 			// Extract new subscriptions from the context.
-			subscriptions := subscriptionsFromCtx(req.Context())
+			subscriptions := subscriptionsNeededFromCtx(req.Context())
 			if len(subscriptions) == 0 {
 				next.ServeHTTP(res, req)
 				return

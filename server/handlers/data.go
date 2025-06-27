@@ -202,7 +202,7 @@ func subscriptionResultsFromCtx(ctx context.Context) map[*models.SubscriptionReq
 	return data
 }
 
-func subscriptionsFromCtx(ctx context.Context) map[*models.SubscriptionRequest]*models.Feed {
+func subscriptionsNeededFromCtx(ctx context.Context) map[*models.SubscriptionRequest]*models.Feed {
 	data, ok := ctx.Value(subscriptionsCtxKey).(map[*models.SubscriptionRequest]*models.Feed)
 	if !ok || data == nil {
 		return make(map[*models.SubscriptionRequest]*models.Feed)
