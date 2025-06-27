@@ -204,10 +204,10 @@ func (c *Subscription) markAttributes() templ.Attributes {
 		"_":               "on htmx:afterRequest send UpdateState to #drawer-subscription-list",
 	}
 	if c.IsUnread() {
-		attrs["hx-post"] = "/subscription/" + string(models.MarkRead) + "/" + c.GetID()
+		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead) + "?subscriptions=" + c.GetID()
 		return attrs
 	}
-	attrs["hx-post"] = "/subscription/" + string(models.MarkUnread) + "/" + c.GetID()
+	attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread) + "?subscriptions=" + c.GetID()
 	return attrs
 }
 
@@ -225,6 +225,6 @@ func (c *Subscription) viewAttributes(ctx context.Context) templ.Attributes {
 		"hx-get":      "/articles?" + filters.ToQueryParams().Encode(),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
-		"hx-swap":     "morph:innerHTML show:top",
+		"hx-swap":     "morph:innerHTML",
 	}
 }

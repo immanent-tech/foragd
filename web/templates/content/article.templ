@@ -207,7 +207,7 @@ func (c *Article) viewAttributes() templ.Attributes {
 		"hx-get":      "/view/" + c.GetID(),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
-		"hx-swap":     "morph:innerHTML show:top",
+		"hx-swap":     "morph:innerHTML",
 	}
 }
 

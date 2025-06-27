@@ -77,14 +77,14 @@ func MarkAllArticlesAction(ctx context.Context, view models.View, subIDs ...mode
 	// Create url parameters.
 	params := make(url.Values)
 	params.Add(models.ParamSubscriptions, strings.Join(subIDs, ","))
-	params.Add(models.ParamRedirect, "/home/subscriptions")
+	params.Add(models.ParamRedirect, "/subscriptions")
 
 	switch view {
 	case models.ViewUnread:
-		attrs["hx-post"] = "/home/subscriptions/" + string(models.MarkRead) + "?" + params.Encode()
+		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead) + "?" + params.Encode()
 		return markReadLink("Mark All Read", attrs)
 	case models.ViewRead:
-		attrs["hx-post"] = "/home/subscriptions/" + string(models.MarkUnread) + "?" + params.Encode()
+		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread) + "?" + params.Encode()
 		return markUnreadLink("Mark All Unread", attrs)
 	default:
 		return nil
