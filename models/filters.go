@@ -74,6 +74,10 @@ func (s *Sort) String() string {
 	return s.SortBy.String() + ": " + s.SortOrder.String()
 }
 
+func (s Sort) IsEqual(value Sort) bool {
+	return s.SortBy == value.SortBy && s.SortOrder == value.SortOrder
+}
+
 // Valid checks whether the Sort options are valid values.
 func (s *Sort) Valid() bool {
 	valid, err := validation.ValidateStruct(s)
@@ -150,10 +154,11 @@ type Filters interface {
 	IsSorted(sort Sort) bool
 	SetSort(sort Sort)
 	HasCategory(category Category) bool
-	AddCategory(category Category)
-	RemoveCategory(category Category)
+	// AddCategory(category Category)
+	// RemoveCategory(category Category)
 	IsView(view View) bool
 	SetView(view View)
+	GetView() View
 }
 
 func FiltersFromParams[F Filters](params any) (F, error) {
@@ -264,14 +269,14 @@ func (f SubscriptionFilters) HasCategory(category Category) bool {
 	return slices.Contains(f.Categories, category)
 }
 
-func (f *SubscriptionFilters) AddCategory(category Category) {
-	f.Categories = append(f.Categories, category)
-	f.Categories = slices.Compact(f.Categories)
-}
+// func (f *SubscriptionFilters) AddCategory(category Category) {
+// 	f.Categories = append(f.Categories, category)
+// 	f.Categories = slices.Compact(f.Categories)
+// }
 
-func (f *SubscriptionFilters) RemoveCategory(category Category) {
-	f.Categories = slices.DeleteFunc(f.Categories, func(c Category) bool { return c == category })
-}
+// func (f *SubscriptionFilters) RemoveCategory(category Category) {
+// 	f.Categories = slices.DeleteFunc(f.Categories, func(c Category) bool { return c == category })
+// }
 
 func (f SubscriptionFilters) IsView(view View) bool {
 	return f.View == view
@@ -279,6 +284,10 @@ func (f SubscriptionFilters) IsView(view View) bool {
 
 func (f *SubscriptionFilters) SetView(view View) {
 	f.View = view
+}
+
+func (f SubscriptionFilters) GetView() View {
+	return f.View
 }
 
 func (f *SubscriptionFilters) SetPagination(pagination Pagination) {
@@ -382,14 +391,14 @@ func (f ArticleFilters) HasCategory(category Category) bool {
 	return slices.Contains(f.Categories, category)
 }
 
-func (f *ArticleFilters) AddCategory(category Category) {
-	f.Categories = append(f.Categories, category)
-	f.Categories = slices.Compact(f.Categories)
-}
+// func (f *ArticleFilters) AddCategory(category Category) {
+// 	f.Categories = append(f.Categories, category)
+// 	f.Categories = slices.Compact(f.Categories)
+// }
 
-func (f *ArticleFilters) RemoveCategory(category Category) {
-	f.Categories = slices.DeleteFunc(f.Categories, func(c Category) bool { return c == category })
-}
+// func (f *ArticleFilters) RemoveCategory(category Category) {
+// 	f.Categories = slices.DeleteFunc(f.Categories, func(c Category) bool { return c == category })
+// }
 
 func (f ArticleFilters) IsView(view View) bool {
 	return f.View == view
@@ -397,6 +406,10 @@ func (f ArticleFilters) IsView(view View) bool {
 
 func (f *ArticleFilters) SetView(view View) {
 	f.View = view
+}
+
+func (f ArticleFilters) GetView() View {
+	return f.View
 }
 
 func (f *ArticleFilters) SetPagination(pagination Pagination) {

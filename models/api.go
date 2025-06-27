@@ -729,65 +729,65 @@ func (r Route) HasCategory(category Category) bool {
 	}
 }
 
-func (r Route) AddCategory(category Category) {
-	if r.Filters == nil {
-		return
-	}
-	switch r.Path {
-	case "/subscriptions":
-		filters, err := r.Filters.AsSubscriptionFilters()
-		if err != nil {
-			filters = NewSubscriptionFilters()
-		}
-		f := &filters
-		f.AddCategory(category)
-		err = r.Filters.FromSubscriptionFilters(*f)
-		if err != nil {
-			r.Filters.FromSubscriptionFilters(NewSubscriptionFilters())
-		}
-	case "/articles":
-		filters, err := r.Filters.AsArticleFilters()
-		if err != nil {
-			filters = NewArticleFilters()
-		}
-		f := &filters
-		f.AddCategory(category)
-		err = r.Filters.FromArticleFilters(*f)
-		if err != nil {
-			r.Filters.FromArticleFilters(NewArticleFilters())
-		}
-	}
-}
+// func (r Route) AddCategory(category Category) {
+// 	if r.Filters == nil {
+// 		return
+// 	}
+// 	switch r.Path {
+// 	case "/subscriptions":
+// 		filters, err := r.Filters.AsSubscriptionFilters()
+// 		if err != nil {
+// 			filters = NewSubscriptionFilters()
+// 		}
+// 		f := &filters
+// 		f.AddCategory(category)
+// 		err = r.Filters.FromSubscriptionFilters(*f)
+// 		if err != nil {
+// 			r.Filters.FromSubscriptionFilters(NewSubscriptionFilters())
+// 		}
+// 	case "/articles":
+// 		filters, err := r.Filters.AsArticleFilters()
+// 		if err != nil {
+// 			filters = NewArticleFilters()
+// 		}
+// 		f := &filters
+// 		f.AddCategory(category)
+// 		err = r.Filters.FromArticleFilters(*f)
+// 		if err != nil {
+// 			r.Filters.FromArticleFilters(NewArticleFilters())
+// 		}
+// 	}
+// }
 
-func (r Route) RemoveCategory(category Category) {
-	if r.Filters == nil {
-		return
-	}
-	switch r.Path {
-	case "/subscriptions":
-		filters, err := r.Filters.AsSubscriptionFilters()
-		if err != nil {
-			filters = NewSubscriptionFilters()
-		}
-		f := &filters
-		f.RemoveCategory(category)
-		err = r.Filters.FromSubscriptionFilters(*f)
-		if err != nil {
-			r.Filters.FromSubscriptionFilters(NewSubscriptionFilters())
-		}
-	case "/articles":
-		filters, err := r.Filters.AsArticleFilters()
-		if err != nil {
-			filters = NewArticleFilters()
-		}
-		f := &filters
-		f.RemoveCategory(category)
-		err = r.Filters.FromArticleFilters(*f)
-		if err != nil {
-			r.Filters.FromArticleFilters(NewArticleFilters())
-		}
-	}
-}
+// func (r Route) RemoveCategory(category Category) {
+// 	if r.Filters == nil {
+// 		return
+// 	}
+// 	switch r.Path {
+// 	case "/subscriptions":
+// 		filters, err := r.Filters.AsSubscriptionFilters()
+// 		if err != nil {
+// 			filters = NewSubscriptionFilters()
+// 		}
+// 		f := &filters
+// 		f.RemoveCategory(category)
+// 		err = r.Filters.FromSubscriptionFilters(*f)
+// 		if err != nil {
+// 			r.Filters.FromSubscriptionFilters(NewSubscriptionFilters())
+// 		}
+// 	case "/articles":
+// 		filters, err := r.Filters.AsArticleFilters()
+// 		if err != nil {
+// 			filters = NewArticleFilters()
+// 		}
+// 		f := &filters
+// 		f.RemoveCategory(category)
+// 		err = r.Filters.FromArticleFilters(*f)
+// 		if err != nil {
+// 			r.Filters.FromArticleFilters(NewArticleFilters())
+// 		}
+// 	}
+// }
 
 func (r Route) IsView(view View) bool {
 	if r.Filters == nil {

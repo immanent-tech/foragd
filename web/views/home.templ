@@ -314,7 +314,7 @@ templ (d *HomePageData) Show() {
 		if d.RandomArticles != nil {
 			<div class="flex flex-col gap-2">
 				<h1>Random Articles:</h1>
-				@content.CardGrid(subscriptionsPage, d.RandomArticles...)
+				@content.CardGrid(d.RandomArticles...)
 			</div>
 		}
 	</div>

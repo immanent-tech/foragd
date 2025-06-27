@@ -27,16 +27,16 @@ var defaultCardOptions = []card.Option{
 	card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
 }
 
-templ RefreshAction(route models.Route) {
+templ RefreshAction(route string) {
 	@button.Build(
 		button.AsShape(button.Square),
 		button.WithContent(tabler.Refresh(i.Props{Size: i.SizeXS})),
 		button.WithExtraAttributes(templ.Attributes{
-			"hx-get":      route.String(),
+			"hx-get":      route,
+			"hx-include":  "#content-filters",
 			"hx-target":   partials.ContentID.Target(),
 			"hx-push-url": "false",
 			"tabindex":    "0",
-			"_":           TriggerSubscriptionListUpdateHS,
 		}),
 	).Show()
 }
@@ -134,9 +134,14 @@ templ CollectionActionsMenu(actions ...templ.Component) {
 // htmx request.
 type Filter struct {
 	label  string
+	name   string
 	value  string
-	link   string
+	route  string
 	active bool
+}
+
+func (f Filter) HXVal() string {
+	return `{"` + f.name + `":"` + f.value + `"}`
 }
 
 templ (filter *Filter) AsLink() {
@@ -147,7 +152,10 @@ templ (filter *Filter) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         filter.link,
+				"hx-get":         filter.route,
+				"hx-include":     "#content-filters",
+				"hx-vals":        filter.HXVal(),
+				"hx-params":      "not " + models.ParamCategories,
 				"hx-replace-url": "true",
 				"hx-target":      partials.ContentID.Target(),
 			}),
@@ -158,7 +166,9 @@ templ (filter *Filter) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         filter.link,
+				"hx-get":         filter.route,
+				"hx-include":     "#content-filters",
+				"hx-vals":        filter.HXVal(),
 				"hx-replace-url": "true",
 				"hx-target":      partials.ContentID.Target(),
 			}),
@@ -169,38 +179,37 @@ templ (filter *Filter) AsLink() {
 // NewCategoryFilter creates a new category filter component. Existing filters will be utilised and the request URL will
 // use the given path.
 func newCategoryFilter(ctx context.Context, category models.CategoryCount, route models.Route) *Filter {
-	link := route.Clone()
 	filter := &Filter{
 		label: category.Category,
 		value: category.Category,
+		name:  models.ParamCategories,
 	}
 	// Check if this category is in the current view filters.
-	if link.HasCategory(category.Category) {
+	if route.HasCategory(category.Category) {
 		filter.active = true
-		link.RemoveCategory(category.Category)
+
 	} else {
-		link.AddCategory(category.Category)
+		filter.value = category.Category
 	}
 	// Generate a view.
-	filter.link = link.String()
+	filter.route = route.Path
 
 	return filter
 }
 
 func newViewFilter(ctx context.Context, view models.View, route models.Route) *Filter {
-	link := route.Clone()
 	// Get the current view.
 	filter := &Filter{
 		label: string(view),
+		name:  models.ParamView,
 		value: string(view),
 	}
 	// If the current view filters indicate this view is active, mark as so.
-	if link.IsView(view) {
+	if route.IsView(view) {
 		filter.active = true
 	}
 	// Set the view filter to this view.
-	link.SetView(view)
-	filter.link = link.String()
+	filter.route = route.Path
 
 	return filter
 }
@@ -231,7 +240,7 @@ templ UpdateFilters(categories models.CategoryCounts, route models.Route) {
 	</div>
 }
 
-templ UpdateSorting(route models.Route) {
+templ UpdateSorting(route string, current models.Sort) {
 	<div id="card-sorting">
 		<div class="dropdown dropdown-bottom dropdown-end">
 			<div tabindex="0" role="button" class="btn btn-square">
@@ -240,17 +249,17 @@ templ UpdateSorting(route models.Route) {
 			<ul tabindex="0" class="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm">
 				<li class="menu-title text-xs">Sort:</li>
 				<li>
-					@NewSortFilter(ctx, models.SortLastUpdatedDesc, route).AsLink()
+					@NewSortFilter(ctx, models.SortLastUpdatedDesc, route, current).AsLink()
 				</li>
 				<li>
-					@NewSortFilter(ctx, models.SortLastUpdatedAsc, route).AsLink()
+					@NewSortFilter(ctx, models.SortLastUpdatedAsc, route, current).AsLink()
 				</li>
-				if route.Path == "/subscriptions" {
+				if route == "/subscriptions" {
 					<li>
-						@NewSortFilter(ctx, models.SortUnreadCountDesc, route).AsLink()
+						@NewSortFilter(ctx, models.SortUnreadCountDesc, route, current).AsLink()
 					</li>
 					<li>
-						@NewSortFilter(ctx, models.SortUnreadCountAsc, route).AsLink()
+						@NewSortFilter(ctx, models.SortUnreadCountAsc, route, current).AsLink()
 					</li>
 				}
 			</ul>
@@ -260,19 +269,18 @@ templ UpdateSorting(route models.Route) {
 
 type SortOption struct {
 	active bool
-	link   string
-	label  string
+	route  string
+	value  models.Sort
 	icon   templ.Component
 }
 
-func NewSortFilter(ctx context.Context, sort models.Sort, route models.Route) *SortOption {
-	link := route.Clone()
+func NewSortFilter(ctx context.Context, sort models.Sort, route string, current models.Sort) *SortOption {
 	option := &SortOption{
-		label: sort.String(),
+		value: sort,
+		route: route,
 	}
-
 	// Set this sort as active if indicated in the current view filters.
-	if link.IsSorted(sort) {
+	if current.IsEqual(sort) {
 		option.active = true
 	}
 
@@ -294,17 +302,18 @@ func NewSortFilter(ctx context.Context, sort models.Sort, route models.Route) *S
 		}
 	}
 
-	// Generate a view.
-	link.SetSort(sort)
-	option.link = link.String()
-
 	return option
+}
+
+func (s SortOption) HXVal() string {
+	return `{"` + models.ParamSortBy + `":"` + string(s.value.SortBy) + `", "` + models.ParamSortOrder + `":"` + string(s.value.SortOrder) + `"}`
+
 }
 
 templ (option *SortOption) Show() {
 	<div class="flex gap-2">
 		@option.icon
-		{ option.label }
+		{ option.value.String() }
 	</div>
 }
 
@@ -316,7 +325,9 @@ templ (option *SortOption) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         option.link,
+				"hx-get":         option.route,
+				"hx-include":     "#content-filters",
+				"hx-vals":        option.HXVal(),
 				"hx-replace-url": "true",
 				"hx-target":      partials.ContentID.Target(),
 			}),
@@ -327,7 +338,9 @@ templ (option *SortOption) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         option.link,
+				"hx-get":         option.route,
+				"hx-include":     "#content-filters",
+				"hx-vals":        option.HXVal(),
 				"hx-replace-url": "true",
 				"hx-target":      partials.ContentID.Target(),
 			}),

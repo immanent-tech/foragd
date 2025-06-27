@@ -5,18 +5,45 @@ package content
 
 import (
 	"context"
+	"fmt"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
+	"strconv"
 )
 
 // PaginationControl generates an element that will cause a pagination request when scrolled into view.
-templ PaginationControl(ctx context.Context, route models.Route) {
+templ PaginationControl(ctx context.Context, route string, pagination models.Pagination) {
 	<div
 		id="pagination_placeholder"
-		hx-get={ route.String() }
+		hx-get={ route }
+		hx-include="#content-filters"
+		hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
 		hx-trigger="intersect once"
 		hx-target="#pagination_placeholder"
 		hx-swap="outerHTML"
 		hx-replace-url="false"
 		hx-indicator="#content-loading"
 	></div>
+}
+
+templ Filters(filters models.Filters) {
+	<div id="content-filters" class="hidden">
+		@hiddeninput.Build(
+			hiddeninput.WithName(models.ParamView),
+			hiddeninput.WithValue(attributes.Value(filters.GetView())),
+		).Show()
+		@hiddeninput.Build(
+			hiddeninput.WithName(models.ParamSortBy),
+			hiddeninput.WithValue(attributes.Value(filters.GetSort().SortBy)),
+		).Show()
+		@hiddeninput.Build(
+			hiddeninput.WithName(models.ParamSortOrder),
+			hiddeninput.WithValue(attributes.Value(filters.GetSort().SortOrder)),
+		).Show()
+		@hiddeninput.Build(
+			hiddeninput.WithName(models.ParamCount),
+			hiddeninput.WithValue(attributes.Value(strconv.Itoa(filters.GetCount()))),
+		).Show()
+	</div>
 }

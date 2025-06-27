@@ -75,6 +75,9 @@ templ (page *Page) Show() {
 		<body
 			hx-ext="morph,sse,response-targets"
 			hx-target-error={ partials.NotificationsID.String() }
+			hx-trigger="htmx:historyRestore"
+			hx-get=""
+			hx-target={ partials.ContentID.Target() }
 		>
 			<div id={ partials.ModalContainerID.String() }></div>
 			<div id={ partials.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50"></div>

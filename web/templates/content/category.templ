@@ -16,17 +16,18 @@ import (
 type Category struct {
 	Label models.Category
 	Count int
-	Link  string
+	route string
+}
+
+func (c Category) HXVal() string {
+	return `{"` + models.ParamCategories + `":"` + c.Label + `"}`
 }
 
 func NewCategoryContent(category models.Category, count int, route models.Route) *Category {
-	link := route.Clone()
-	// Add this category to the link's parameters.
-	link.AddCategory(category)
 	return &Category{
 		Label: category,
 		Count: count,
-		Link:  link.String(),
+		route: route.Path,
 	}
 }
 
@@ -34,7 +35,9 @@ templ (c *Category) Badge() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(templ.Attributes{
-			"hx-get":      c.Link,
+			"hx-get":      c.route,
+			"hx-include":  "#content-filters",
+			"hx-vals":     c.HXVal(),
 			"hx-push-url": "true",
 			"hx-target":   partials.ContentID.Target(),
 		}),

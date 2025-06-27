@@ -4,7 +4,6 @@
 package content
 
 import (
-	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
@@ -23,14 +22,10 @@ import (
 var CardsID = attributes.ID("cards")
 
 // CardGrid renders the given card components in a grid container.
-templ CardGrid(route models.Route, cards ...templ.Component) {
+templ CardGrid(cards ...templ.Component) {
 	<div
 		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4"
 		id={ CardsID.String() }
-		hx-trigger="htmx:historyRestore from:body"
-		_="on htmx:historyRestory log restored"
-		hx-get={ route.String() }
-		hx-target={ partials.ContentID.Target() }
 	>
 		for cards := range slices.Values(cards) {
 			@cards

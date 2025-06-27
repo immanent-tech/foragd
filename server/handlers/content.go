@@ -55,21 +55,19 @@ func GenerateArticleCards(filters *models.ArticleFilters) func(next http.Handler
 			}
 			// Generate cards for the articles.
 			cards := make([]templ.Component, 0, len(articles))
+			cards = append(cards, content.Filters(filters))
 			for article := range slices.Values(articles) {
 				cards = append(cards, content.NewArticleContent(article).Card())
 			}
 			// Get the pagination from the context.
 			pagination := paginationFromCtx(ctx)
 			if pagination != nil && len(cards) == filters.GetCount() {
-				route := models.NewRoute("/articles", filters)
-				route.SetPagination(*pagination)
 				// Add pagination htmx props to last article.
-				cards = append(cards, content.PaginationControl(req.Context(), route))
+				cards = append(cards, content.PaginationControl(req.Context(), "/articles", *pagination))
 				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cards...))
 			}
 			if filters.Pagination == nil {
-				route := models.NewRoute("/articles", filters)
-				ctx = context.WithValue(ctx, contentCtxKey, content.CardGrid(route, cards...))
+				ctx = context.WithValue(ctx, contentCtxKey, content.CardGrid(cards...))
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -92,8 +90,8 @@ func GenerateArticleCardControls(filters *models.ArticleFilters) func(next http.
 			}
 			route := models.NewRoute("/articles", filters)
 			cardControls := content.CardControls(
-				views.RefreshAction(route),
-				views.UpdateSorting(route),
+				views.RefreshAction("/subscriptions"),
+				views.UpdateSorting("/articles", filters.GetSort()),
 				views.UpdateFilters(articles.GetCategoryCounts(), route),
 				views.CollectionActionsMenu(
 					views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
@@ -152,22 +150,24 @@ func GenerateSubscriptionCards(filters *models.SubscriptionFilters) func(next ht
 			}
 			// Generate cards for the articles.
 			cards := make([]templ.Component, 0, len(subscriptions))
+			cards = append(cards, content.Filters(filters))
 			for subscription := range slices.Values(subscriptions) {
 				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
 			}
 			// Get the pagination from the context.
 			pagination := paginationFromCtx(ctx)
-			if pagination != nil && len(cards) == filters.GetCount() {
-				route := models.NewRoute("/subscriptions", filters)
-				route.SetPagination(*pagination)
+			var cardContent templ.Component
+			if pagination != nil && len(cards)-1 == filters.GetCount() {
 				// Add pagination htmx props to last article.
-				cards = append(cards, content.PaginationControl(req.Context(), route))
-				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cards...))
+				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", *pagination))
 			}
 			if filters.Pagination == nil {
-				route := models.NewRoute("/subscriptions", filters)
-				ctx = context.WithValue(ctx, contentCtxKey, content.CardGrid(route, cards...))
+				cardContent = content.CardGrid(cards...)
+			} else {
+				cardContent = templ.Join(cards...)
 			}
+
+			ctx = context.WithValue(ctx, contentCtxKey, cardContent)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -189,8 +189,8 @@ func GenerateSubscriptionCardControls(filters *models.SubscriptionFilters) func(
 			}
 			route := models.NewRoute("/subscriptions", filters)
 			cardControls := content.CardControls(
-				views.RefreshAction(route),
-				views.UpdateSorting(route),
+				views.RefreshAction("/subscriptions"),
+				views.UpdateSorting("/subscriptions", filters.GetSort()),
 				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions)), route),
 				views.CollectionActionsMenu(
 					views.MarkAllSubscriptionsAction(req.Context(), filters.View),
