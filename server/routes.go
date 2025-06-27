@@ -169,12 +169,12 @@ func (s Server) ShowSubscriptions(res http.ResponseWriter, req *http.Request, pa
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.SavePageState(filters),
+		handlers.GetSubscriptions(s.DataAPI(), filters),
+		handlers.GenerateSubscriptionCards(filters),
 	)
 
-	if filters.Pagination != nil {
-		chain = chain.Append(handlers.PaginateSubscriptionCollection(s.DataAPI(), filters))
-	} else {
-		chain = chain.Append(handlers.GenerateSubscriptionCollection(s.DataAPI(), filters))
+	if filters.Pagination == nil {
+		chain = chain.Append(handlers.GenerateSubscriptionCardControls(filters))
 	}
 
 	switch htmx.IsHTMX(req) {

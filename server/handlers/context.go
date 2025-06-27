@@ -26,6 +26,17 @@ func ArticlesFromCtx(ctx context.Context) models.Articles {
 	return nil
 }
 
+func SubscriptionsToCtx(ctx context.Context, subscriptions models.Subscriptions) context.Context {
+	return context.WithValue(ctx, subscriptionsCtxKey, subscriptions)
+}
+
+func SubscriptionsFromCtx(ctx context.Context) models.Subscriptions {
+	if subscriptions, ok := ctx.Value(subscriptionsCtxKey).(models.Subscriptions); ok {
+		return subscriptions
+	}
+	return nil
+}
+
 func PaginationToCtx(ctx context.Context, pagination *models.Pagination) context.Context {
 	return context.WithValue(ctx, paginationCtxKey, pagination)
 }

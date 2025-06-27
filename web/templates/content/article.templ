@@ -126,7 +126,7 @@ templ (c *Article) View() {
 	@article.Build(
 		article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2", "overflow-scroll"),
 		article.WithExtraAttributes(templ.Attributes{
-			"hx-post":     "/article/read/" + c.GetID(),
+			"hx-post":     "/articles/mark/read?articles=" + c.GetID(),
 			"hx-swap":     "none",
 			"hx-push-url": "false",
 			"hx-trigger":  "load delay:2s",
@@ -191,20 +191,20 @@ func (c *Article) markAttributes() templ.Attributes {
 		"hx-swap":        "morph:outerHTML",
 		"hx-target":      "#" + c.GetID(),
 		"hx-replace-url": "false",
-		"_":              "on htmx:afterRequest send UpdateState to #drawer-subscription-list",
+		"_":              "on htmx:afterRequest send UpdateState to #drawer-subscriptions-list",
 	}
 
 	if c.IsUnread() {
-		attributes["hx-post"] = "/article/" + string(models.MarkRead) + "/" + c.GetID()
+		attributes["hx-post"] = "/articles/mark/" + string(models.MarkRead) + "?articles=" + c.GetID()
 	} else {
-		attributes["hx-post"] = "/article/" + string(models.MarkUnread) + "/" + c.GetID()
+		attributes["hx-post"] = "/article/mark/" + string(models.MarkUnread) + "?articles=" + c.GetID()
 	}
 	return attributes
 }
 
 func (c *Article) viewAttributes() templ.Attributes {
 	return templ.Attributes{
-		"hx-get":      "/article/" + c.GetID(),
+		"hx-get":      "/view/" + c.GetID(),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
 		"hx-swap":     "morph:innerHTML show:top",
