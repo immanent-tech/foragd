@@ -3,6 +3,8 @@
 
 package partials
 
+import "encoding/json"
+
 // Content is the container for the main content of the page.
 templ Content(content templ.Component) {
 	<div
@@ -13,4 +15,14 @@ templ Content(content templ.Component) {
 	>
 		@content
 	</div>
+}
+
+// GenerateHXVals generates a JSON-formatted object containing the given key-value pairs suitable for use as a hx-vals attribute.
+// See also: https://htmx.org/attributes/hx-vals/
+func GenerateHXVals(values map[string]string) string {
+	data, err := json.Marshal(values)
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }

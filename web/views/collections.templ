@@ -140,10 +140,6 @@ type Filter struct {
 	active bool
 }
 
-func (f Filter) HXVal() string {
-	return `{"` + f.name + `":"` + f.value + `"}`
-}
-
 templ (filter *Filter) AsLink() {
 	if filter.active {
 		@link.Build(
@@ -154,7 +150,7 @@ templ (filter *Filter) AsLink() {
 			link.WithExtraAttributes(templ.Attributes{
 				"hx-get":         filter.route,
 				"hx-include":     "#content-filters",
-				"hx-vals":        filter.HXVal(),
+				"hx-vals":        partials.GenerateHXVals(map[string]string{filter.name: filter.value}),
 				"hx-params":      "not " + models.ParamCategories,
 				"hx-replace-url": "true",
 				"hx-target":      partials.ContentID.Target(),
@@ -168,7 +164,7 @@ templ (filter *Filter) AsLink() {
 			link.WithExtraAttributes(templ.Attributes{
 				"hx-get":         filter.route,
 				"hx-include":     "#content-filters",
-				"hx-vals":        filter.HXVal(),
+				"hx-vals":        partials.GenerateHXVals(map[string]string{filter.name: filter.value}),
 				"hx-replace-url": "true",
 				"hx-target":      partials.ContentID.Target(),
 			}),
@@ -178,26 +174,26 @@ templ (filter *Filter) AsLink() {
 
 // NewCategoryFilter creates a new category filter component. Existing filters will be utilised and the request URL will
 // use the given path.
-func newCategoryFilter(ctx context.Context, category models.CategoryCount, route models.Route) *Filter {
+func newCategoryFilter(ctx context.Context, category models.CategoryCount, route string, categoryFilters []models.Category) *Filter {
 	filter := &Filter{
 		label: category.Category,
 		value: category.Category,
 		name:  models.ParamCategories,
 	}
 	// Check if this category is in the current view filters.
-	if route.HasCategory(category.Category) {
+	if slices.Contains(categoryFilters, category.Category) {
 		filter.active = true
 
 	} else {
 		filter.value = category.Category
 	}
 	// Generate a view.
-	filter.route = route.Path
+	filter.route = route
 
 	return filter
 }
 
-func newViewFilter(ctx context.Context, view models.View, route models.Route) *Filter {
+func newViewFilter(ctx context.Context, view models.View, route string, current models.View) *Filter {
 	// Get the current view.
 	filter := &Filter{
 		label: string(view),
@@ -205,16 +201,16 @@ func newViewFilter(ctx context.Context, view models.View, route models.Route) *F
 		value: string(view),
 	}
 	// If the current view filters indicate this view is active, mark as so.
-	if route.IsView(view) {
+	if view == current {
 		filter.active = true
 	}
 	// Set the view filter to this view.
-	filter.route = route.Path
+	filter.route = route
 
 	return filter
 }
 
-templ UpdateFilters(categories models.CategoryCounts, route models.Route) {
+templ UpdateFilters(allCategories models.CategoryCounts, route string, categoryFilters []models.Category, viewFilter models.View) {
 	<div id="card-filters">
 		<div class="dropdown dropdown-bottom dropdown-end">
 			<div tabindex="0" role="button" class="btn btn-square">
@@ -224,14 +220,14 @@ templ UpdateFilters(categories models.CategoryCounts, route models.Route) {
 				<li class="menu-title text-xs">View:</li>
 				for view := range slices.Values([]models.View{models.ViewUnread,models.ViewRead,models.ViewAll}) {
 					<li>
-						@newViewFilter(ctx, view, route).AsLink()
+						@newViewFilter(ctx, view, route, viewFilter).AsLink()
 					</li>
 				}
-				if len(categories) > 0 {
+				if len(allCategories) > 0 {
 					<li class="menu-title text-xs">Category:</li>
-					for category := range slices.Values(categories.GetTopCategories(10)) {
+					for category := range slices.Values(allCategories.GetTopCategories(10)) {
 						<li>
-							@newCategoryFilter(ctx, category, route).AsLink()
+							@newCategoryFilter(ctx, category, route, categoryFilters).AsLink()
 						</li>
 					}
 				}

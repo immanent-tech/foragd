@@ -4,8 +4,6 @@
 package content
 
 import (
-	"context"
-	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
@@ -102,7 +100,7 @@ templ (c *Subscription) Unsubscribe() {
 templ (c *Subscription) Summary() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(c.viewAttributes(ctx)),
+		link.WithExtraAttributes(c.viewAttributes()),
 	).Show() {
 		<div class="flex flex-row gap-2">
 			// Generate a thumbnail to display next to the title.
@@ -144,7 +142,7 @@ templ (c *Subscription) Summary() {
 templ (s *Subscription) State() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(s.viewAttributes(ctx)),
+		link.WithExtraAttributes(s.viewAttributes()),
 	).Show() {
 		<div class="flex gap-2 w-full">
 			<div class="flex-1 text-sm content-center">
@@ -211,18 +209,20 @@ func (c *Subscription) markAttributes() templ.Attributes {
 	return attrs
 }
 
-func (c *Subscription) viewAttributes(ctx context.Context) templ.Attributes {
-	filters := session.SubscriptionFiltersFromSession(ctx)
-	filters.SortBy = models.SortByLastUpdated
-	filters.Subscriptions = append(filters.Subscriptions, c.GetID())
-	filters.Pagination = nil
+func (c *Subscription) viewAttributes() templ.Attributes {
+	overrides := map[string]string{
+		models.ParamSortBy:        string(models.SortByLastUpdated),
+		models.ParamSubscriptions: c.GetID(),
+	}
 	if c.IsUnread() {
-		filters.View = models.ViewUnread
+		overrides[models.ParamView] = string(models.ViewUnread)
 	} else {
-		filters.View = models.ViewRead
+		overrides[models.ParamView] = string(models.ViewRead)
 	}
 	return templ.Attributes{
-		"hx-get":      "/articles?" + filters.ToQueryParams().Encode(),
+		"hx-get":      "/articles",
+		"hx-include":  "#content-filters",
+		"hx-vals":     partials.GenerateHXVals(overrides),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
 		"hx-swap":     "morph:innerHTML",

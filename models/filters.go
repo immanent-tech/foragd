@@ -8,8 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"net/url"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -87,78 +85,12 @@ func (s *Sort) Valid() bool {
 	return true
 }
 
-// setValidSortBy takes a string value and returns the SortBy value it
-// represents. If the string is not a valid SortBy value, the default SortBy
-// value is returned.
-func setValidSortBy(value SortBy) SortBy {
-	switch value {
-	case SortByUnreadCount:
-		return value
-	case SortByLastUpdated:
-		return value
-	default:
-		return DefaultSortBy
-	}
-}
-
-// setValidSortOrder takes a string value and returns the SortOrder value it
-// represents. If the string is not a valid SortOrder value, the default SortOrder
-// value is returned.
-func setValidSortOrder(value SortOrder) SortOrder {
-	switch value {
-	case SortOrderAsc:
-		return value
-	case SortOrderDesc:
-		return value
-	default:
-		return DefaultSortOrder
-	}
-}
-
-// setValidCount takes a value representing a count and returns a valid Count it
-// represents. If the value is not a valid Count, the default Count is
-// returned.
-func setValidCount(value Count) Count {
-	numeric, err := strconv.Atoi(value)
-	if err != nil {
-		return DefaultCount
-	}
-	if numeric < MinUserCount || numeric > MaxUserCount {
-		return DefaultCount
-	}
-	return value
-}
-
-// setValidView takes a string representing a View and returns a valid View it
-// represents. If the value is not a valid View, the default View is
-// returned.
-func setValidView(value View) View {
-	switch value {
-	case ViewAll:
-		return ViewAll
-	case ViewRead:
-		return ViewRead
-	case ViewUnread:
-		return ViewUnread
-	default:
-		return DefaultView
-	}
-}
-
 // Filters represents either Subscription or Article filters.
 type Filters interface {
 	Valid() (bool, error)
 	GetSort() Sort
 	GetCount() int
-	ToQueryParams() url.Values
-	IsSorted(sort Sort) bool
-	SetSort(sort Sort)
-	HasCategory(category Category) bool
-	// AddCategory(category Category)
-	// RemoveCategory(category Category)
-	IsView(view View) bool
-	SetView(view View)
-	GetView() View
+	Parameters() map[string]string
 }
 
 func FiltersFromParams[F Filters](params any) (F, error) {
@@ -233,65 +165,27 @@ func (f SubscriptionFilters) GetCount() int {
 	return value
 }
 
-func (f SubscriptionFilters) ToQueryParams() url.Values {
-	params := make(url.Values)
+func (f SubscriptionFilters) Parameters() map[string]string {
+	params := make(map[string]string)
 
 	if len(f.Subscriptions) > 0 {
-		params.Set(ParamSubscriptions, strings.Join(f.Subscriptions, ","))
+		params[ParamSubscriptions] = strings.Join(f.Subscriptions, ",")
 	}
 
 	if len(f.Categories) > 0 {
-		params.Set(ParamCategories, strings.Join(f.Categories, ","))
+		params[ParamCategories] = strings.Join(f.Categories, ",")
 	}
 
 	if f.Pagination != nil {
-		params.Set(ParamPagination, *f.Pagination)
+		params[ParamPagination] = *f.Pagination
 	}
 
-	params.Set(ParamSortBy, string(f.SortBy))
-	params.Set(ParamSortOrder, string(f.SortOrder))
-	params.Set(ParamView, string(f.View))
-	params.Set(ParamCount, f.Count)
+	params[ParamSortBy] = string(f.SortBy)
+	params[ParamSortOrder] = string(f.SortOrder)
+	params[ParamView] = string(f.View)
+	params[ParamCount] = f.Count
 
 	return params
-}
-
-func (f SubscriptionFilters) IsSorted(sort Sort) bool {
-	return f.SortBy == sort.SortBy && f.SortOrder == sort.SortOrder
-}
-
-func (f *SubscriptionFilters) SetSort(sort Sort) {
-	f.SortBy = sort.SortBy
-	f.SortOrder = sort.SortOrder
-}
-
-func (f SubscriptionFilters) HasCategory(category Category) bool {
-	return slices.Contains(f.Categories, category)
-}
-
-// func (f *SubscriptionFilters) AddCategory(category Category) {
-// 	f.Categories = append(f.Categories, category)
-// 	f.Categories = slices.Compact(f.Categories)
-// }
-
-// func (f *SubscriptionFilters) RemoveCategory(category Category) {
-// 	f.Categories = slices.DeleteFunc(f.Categories, func(c Category) bool { return c == category })
-// }
-
-func (f SubscriptionFilters) IsView(view View) bool {
-	return f.View == view
-}
-
-func (f *SubscriptionFilters) SetView(view View) {
-	f.View = view
-}
-
-func (f SubscriptionFilters) GetView() View {
-	return f.View
-}
-
-func (f *SubscriptionFilters) SetPagination(pagination Pagination) {
-	f.Pagination = &pagination
 }
 
 func NewArticleFilters() ArticleFilters {
@@ -351,67 +245,87 @@ func (f ArticleFilters) GetCount() int {
 	return value
 }
 
-func (f ArticleFilters) ToQueryParams() url.Values {
-	params := make(url.Values)
+func (f ArticleFilters) Parameters() map[string]string {
+	params := make(map[string]string)
 
 	if len(f.Subscriptions) > 0 {
-		params.Set(ParamSubscriptions, strings.Join(f.Subscriptions, ","))
+		params[ParamSubscriptions] = strings.Join(f.Subscriptions, ",")
 	}
 
 	if len(f.Articles) > 0 {
-		params.Set(ParamArticles, strings.Join(f.Articles, ","))
+		params[ParamArticles] = strings.Join(f.Articles, ",")
 	}
 
 	if len(f.Categories) > 0 {
-		params.Set(ParamCategories, strings.Join(f.Categories, ","))
+		params[ParamCategories] = strings.Join(f.Categories, ",")
 	}
 
 	if f.Pagination != nil {
-		params.Set(ParamPagination, *f.Pagination)
+		params[ParamPagination] = *f.Pagination
 	}
 
-	params.Set(ParamSortBy, string(f.SortBy))
-	params.Set(ParamSortOrder, string(f.SortOrder))
-	params.Set(ParamView, string(f.View))
-	params.Set(ParamCount, f.Count)
+	params[ParamSortBy] = string(f.SortBy)
+	params[ParamSortOrder] = string(f.SortOrder)
+	params[ParamView] = string(f.View)
+	params[ParamCount] = f.Count
 
 	return params
 }
 
-func (f ArticleFilters) IsSorted(sort Sort) bool {
-	return f.SortBy == sort.SortBy && f.SortOrder == sort.SortOrder
+// setValidSortBy takes a string value and returns the SortBy value it
+// represents. If the string is not a valid SortBy value, the default SortBy
+// value is returned.
+func setValidSortBy(value SortBy) SortBy {
+	switch value {
+	case SortByUnreadCount:
+		return value
+	case SortByLastUpdated:
+		return value
+	default:
+		return DefaultSortBy
+	}
 }
 
-func (f *ArticleFilters) SetSort(sort Sort) {
-	f.SortBy = sort.SortBy
-	f.SortOrder = sort.SortOrder
+// setValidSortOrder takes a string value and returns the SortOrder value it
+// represents. If the string is not a valid SortOrder value, the default SortOrder
+// value is returned.
+func setValidSortOrder(value SortOrder) SortOrder {
+	switch value {
+	case SortOrderAsc:
+		return value
+	case SortOrderDesc:
+		return value
+	default:
+		return DefaultSortOrder
+	}
 }
 
-func (f ArticleFilters) HasCategory(category Category) bool {
-	return slices.Contains(f.Categories, category)
+// setValidCount takes a value representing a count and returns a valid Count it
+// represents. If the value is not a valid Count, the default Count is
+// returned.
+func setValidCount(value Count) Count {
+	numeric, err := strconv.Atoi(value)
+	if err != nil {
+		return DefaultCount
+	}
+	if numeric < MinUserCount || numeric > MaxUserCount {
+		return DefaultCount
+	}
+	return value
 }
 
-// func (f *ArticleFilters) AddCategory(category Category) {
-// 	f.Categories = append(f.Categories, category)
-// 	f.Categories = slices.Compact(f.Categories)
-// }
-
-// func (f *ArticleFilters) RemoveCategory(category Category) {
-// 	f.Categories = slices.DeleteFunc(f.Categories, func(c Category) bool { return c == category })
-// }
-
-func (f ArticleFilters) IsView(view View) bool {
-	return f.View == view
-}
-
-func (f *ArticleFilters) SetView(view View) {
-	f.View = view
-}
-
-func (f ArticleFilters) GetView() View {
-	return f.View
-}
-
-func (f *ArticleFilters) SetPagination(pagination Pagination) {
-	f.Pagination = &pagination
+// setValidView takes a string representing a View and returns a valid View it
+// represents. If the value is not a valid View, the default View is
+// returned.
+func setValidView(value View) View {
+	switch value {
+	case ViewAll:
+		return ViewAll
+	case ViewRead:
+		return ViewRead
+	case ViewUnread:
+		return ViewUnread
+	default:
+		return DefaultView
+	}
 }

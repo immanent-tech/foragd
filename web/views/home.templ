@@ -10,6 +10,7 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 
+	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
@@ -23,7 +24,6 @@ import (
 )
 
 type HomePageData struct {
-	Links          map[string]models.Route
 	Subscriptions  models.Subscriptions
 	TopCategories  templ.Component
 	RareCategories templ.Component
@@ -33,19 +33,14 @@ type HomePageData struct {
 // getHomePageData retrieves the data required to construct the home page content.
 //
 //nolint:funlen
-func NewHomePageData(ctx context.Context, api models.DocumentsAPI, subscriptionsLink, articlesLink models.Route) (*HomePageData, *models.Response) {
+func NewHomePageData(ctx context.Context, api models.DocumentsAPI) (*HomePageData, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, models.RespErrUnauthorized()
 	}
 
-	data := &HomePageData{
-		Links: map[string]models.Route{
-			"subscriptions": subscriptionsLink,
-			"articles":      articlesLink,
-		},
-	}
+	data := &HomePageData{}
 
 	// Get subscriptions.
 	subscriptions, resp := models.GetSubscriptions(ctx, api)
@@ -162,8 +157,7 @@ func (d *HomePageData) GenerateTopCategoriesLinks(ctx context.Context, aggs aggr
 	// Generate categories from aggregation.
 	var topCategories content.Categories
 	for category := range slices.Values(topCategoriesAgg.Buckets.([]types.StringTermsBucket)) {
-		link := d.Links["articles"]
-		topCategories = append(topCategories, content.NewCategoryContent(category.Key.(string), int(category.DocCount), link))
+		topCategories = append(topCategories, content.NewCategoryContent(ctx, category.Key.(string), int(category.DocCount), "/articles"))
 	}
 	topCategories.Sort()
 	// Display list of categories.
@@ -187,8 +181,7 @@ func (d *HomePageData) GenerateRareCategoriesLinks(ctx context.Context, aggs agg
 	// Generate category counts from buckets.
 	var rareCategoryCounts content.Categories
 	for category := range slices.Values(rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket)) {
-		link := d.Links["articles"]
-		rareCategoryCounts = append(rareCategoryCounts, content.NewCategoryContent(category.Key, int(category.DocCount), link))
+		rareCategoryCounts = append(rareCategoryCounts, content.NewCategoryContent(ctx, category.Key, int(category.DocCount), "/articles"))
 	}
 	rareCategoryCounts.Sort()
 
@@ -251,8 +244,6 @@ func (d *HomePageData) GetRandomArticles(ctx context.Context, api models.Documen
 }
 
 templ (d *HomePageData) Show() {
-	{{ subscriptionsPage := d.Links["subscriptions"] }}
-	{{ articlesPage := d.Links["articles"] }}
 	<div
 		hx-trigger="htmx:historyRestore from:body"
 		hx-get="/home"
@@ -262,7 +253,8 @@ templ (d *HomePageData) Show() {
 				@link.Build(
 					link.WithUnderlineOnHover(),
 					link.WithExtraAttributes(templ.Attributes{
-						"hx-get":      subscriptionsPage.String(),
+						"hx-get":      "/subscriptions",
+						"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
 						"hx-target":   partials.ContentID.Target(),
 						"hx-swap":     "morph:innerHTML",
 						"hx-push-url": "true",
@@ -279,7 +271,8 @@ templ (d *HomePageData) Show() {
 				@link.Build(
 					link.WithUnderlineOnHover(),
 					link.WithExtraAttributes(templ.Attributes{
-						"hx-get":      articlesPage.String(),
+						"hx-get":      "/articles",
+						"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
 						"hx-target":   partials.ContentID.Target(),
 						"hx-swap":     "morph:innerHTML",
 						"hx-push-url": "true",

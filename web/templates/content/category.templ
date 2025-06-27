@@ -5,6 +5,8 @@
 package content
 
 import (
+	"context"
+	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
@@ -14,21 +16,27 @@ import (
 )
 
 type Category struct {
-	Label models.Category
-	Count int
-	route string
+	Label  models.Category
+	Count  int
+	route  string
+	values map[string]string
 }
 
-func (c Category) HXVal() string {
-	return `{"` + models.ParamCategories + `":"` + c.Label + `"}`
-}
-
-func NewCategoryContent(category models.Category, count int, route models.Route) *Category {
-	return &Category{
-		Label: category,
-		Count: count,
-		route: route.Path,
+func NewCategoryContent(ctx context.Context, category models.Category, count int, route string) *Category {
+	content := &Category{
+		Label:  category,
+		Count:  count,
+		route:  route,
+		values: make(map[string]string),
 	}
+	switch route {
+	case "/subscriptions":
+		content.values = session.SubscriptionFiltersFromSession(ctx).Parameters()
+	case "/articles":
+		content.values = session.ArticleFiltersFromSession(ctx).Parameters()
+	}
+	content.values[models.ParamCategories] = category
+	return content
 }
 
 templ (c *Category) Badge() {
@@ -37,7 +45,7 @@ templ (c *Category) Badge() {
 		link.WithExtraAttributes(templ.Attributes{
 			"hx-get":      c.route,
 			"hx-include":  "#content-filters",
-			"hx-vals":     c.HXVal(),
+			"hx-vals":     partials.GenerateHXVals(c.values),
 			"hx-push-url": "true",
 			"hx-target":   partials.ContentID.Target(),
 		}),

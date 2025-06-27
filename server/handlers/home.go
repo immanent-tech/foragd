@@ -7,7 +7,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/views"
 )
@@ -19,13 +18,7 @@ func GenerateHomeContent(api models.DocumentsAPI) func(next http.Handler) http.H
 			ctx := req.Context()
 			ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
 
-			subscriptionFilters := session.SubscriptionFiltersFromSession(ctx)
-			subscriptionsLink := models.NewRoute("/subscriptions", &subscriptionFilters)
-
-			articleFilters := session.ArticleFiltersFromSession(ctx)
-			articlesLink := models.NewRoute("/articles", &articleFilters)
-
-			data, resp := views.NewHomePageData(ctx, api, subscriptionsLink, articlesLink)
+			data, resp := views.NewHomePageData(ctx, api)
 			if resp.IsNotFound() {
 				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
 				next.ServeHTTP(res, req.WithContext(ctx))
@@ -35,9 +28,7 @@ func GenerateHomeContent(api models.DocumentsAPI) func(next http.Handler) http.H
 				ProcessResponse(res, req, resp)
 				return
 			}
-
-			ctx = context.WithValue(ctx, contentCtxKey, data.Show())
-
+			ctx = pushContentToCtx(ctx, data.Show())
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

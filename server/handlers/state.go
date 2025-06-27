@@ -10,7 +10,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 
 	"github.com/joshuar/go-feed-me/components/session"
-	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
@@ -21,22 +20,22 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			if htmx.IsHTMX(req) && path != nil {
-				var route models.Route
-				switch *path {
-				case "/subscriptions":
-					filters := session.SubscriptionFiltersFromSession(ctx)
-					route = models.NewRoute("/subscriptions", &filters)
-				case "/articles":
-					filters := session.ArticleFiltersFromSession(ctx)
-					route = models.NewRoute("/articles", &filters)
-				default:
-					route = models.Route{Path: "/home"}
+				var route string
+				var values map[string]string
+				switch {
+				case path == nil:
+					route = "/home"
+				case *path == "/subscriptions":
+					values = session.SubscriptionFiltersFromSession(ctx).Parameters()
+				case *path == "/articles":
+					values = session.ArticleFiltersFromSession(ctx).Parameters()
 				}
 				// Set-up client-side redirect to view.
 				htmxResp := htmx.NewResponse().LocationWithContext(
-					route.String(),
+					route,
 					htmx.LocationContext{
 						Target: partials.ContentID.Target(),
+						Values: values,
 					})
 				ctx = context.WithValue(ctx, htmxRespCtxKey, htmxResp)
 			}

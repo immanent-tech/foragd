@@ -51,24 +51,30 @@ func GenerateArticleCards(filters *models.ArticleFilters) func(next http.Handler
 			// Get the list of articles from the context.
 			articles := articlesFromCtx(ctx)
 			if articles == nil {
-				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
+				return
+				// ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
+			}
+			if filters.Pagination == nil {
+				ctx = pushContentToCtx(ctx, content.Filters(filters))
 			}
 			// Generate cards for the articles.
 			cards := make([]templ.Component, 0, len(articles))
-			cards = append(cards, content.Filters(filters))
 			for article := range slices.Values(articles) {
 				cards = append(cards, content.NewArticleContent(article).Card())
 			}
+			var cardContent templ.Component
 			// Get the pagination from the context.
 			pagination := paginationFromCtx(ctx)
 			if pagination != nil && len(cards) == filters.GetCount() {
 				// Add pagination htmx props to last article.
 				cards = append(cards, content.PaginationControl(req.Context(), "/articles", *pagination))
-				ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cards...))
 			}
 			if filters.Pagination == nil {
-				ctx = context.WithValue(ctx, contentCtxKey, content.CardGrid(cards...))
+				cardContent = content.CardGrid(cards...)
+			} else {
+				cardContent = templ.Join(cards...)
 			}
+			ctx = pushContentToCtx(ctx, cardContent)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -83,21 +89,15 @@ func GenerateArticleCardControls(filters *models.ArticleFilters) func(next http.
 			if articles == nil {
 				next.ServeHTTP(res, req.WithContext(ctx))
 			}
-			// Get the content from the context.
-			cards, ok := ctx.Value(contentCtxKey).(templ.Component)
-			if !ok {
-				next.ServeHTTP(res, req.WithContext(ctx))
-			}
-			route := models.NewRoute("/articles", filters)
 			cardControls := content.CardControls(
-				views.RefreshAction("/subscriptions"),
+				views.RefreshAction("/articles"),
 				views.UpdateSorting("/articles", filters.GetSort()),
-				views.UpdateFilters(articles.GetCategoryCounts(), route),
+				views.UpdateFilters(articles.GetCategoryCounts(), "/articles", filters.Categories, filters.View),
 				views.CollectionActionsMenu(
 					views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
 				),
 			)
-			ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, cards))
+			ctx = shiftContentToCtx(ctx, cardControls)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -115,7 +115,7 @@ func GenerateArticle(api models.DocumentsAPI, itemID models.ItemID) func(next ht
 			articleLayout := content.NewArticleContent(articles[0]).View()
 
 			ctx := req.Context()
-			ctx = context.WithValue(ctx, contentCtxKey, articleLayout)
+			ctx = pushContentToCtx(ctx, articleLayout)
 			ctx = context.WithValue(ctx, titleCtxKey, articles[0].GetTitle())
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -146,18 +146,22 @@ func GenerateSubscriptionCards(filters *models.SubscriptionFilters) func(next ht
 			// Get the list of articles from the context.
 			subscriptions := subscriptionsFromCtx(ctx)
 			if subscriptions == nil {
-				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
+				return
+				// ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
+			}
+			// If we are not paginating, insert the filters control div.
+			if filters.Pagination == nil {
+				ctx = pushContentToCtx(ctx, content.Filters(filters))
 			}
 			// Generate cards for the articles.
 			cards := make([]templ.Component, 0, len(subscriptions))
-			cards = append(cards, content.Filters(filters))
 			for subscription := range slices.Values(subscriptions) {
 				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
 			}
 			// Get the pagination from the context.
 			pagination := paginationFromCtx(ctx)
 			var cardContent templ.Component
-			if pagination != nil && len(cards)-1 == filters.GetCount() {
+			if pagination != nil && len(cards) == filters.GetCount() {
 				// Add pagination htmx props to last article.
 				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", *pagination))
 			}
@@ -166,8 +170,7 @@ func GenerateSubscriptionCards(filters *models.SubscriptionFilters) func(next ht
 			} else {
 				cardContent = templ.Join(cards...)
 			}
-
-			ctx = context.WithValue(ctx, contentCtxKey, cardContent)
+			ctx = pushContentToCtx(ctx, cardContent)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -182,21 +185,15 @@ func GenerateSubscriptionCardControls(filters *models.SubscriptionFilters) func(
 			if subscriptions == nil {
 				next.ServeHTTP(res, req.WithContext(ctx))
 			}
-			// Get the content from the context.
-			cards, ok := ctx.Value(contentCtxKey).(templ.Component)
-			if !ok {
-				next.ServeHTTP(res, req.WithContext(ctx))
-			}
-			route := models.NewRoute("/subscriptions", filters)
 			cardControls := content.CardControls(
 				views.RefreshAction("/subscriptions"),
 				views.UpdateSorting("/subscriptions", filters.GetSort()),
-				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions)), route),
+				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions)), "/subscriptions", filters.Categories, filters.View),
 				views.CollectionActionsMenu(
 					views.MarkAllSubscriptionsAction(req.Context(), filters.View),
 				),
 			)
-			ctx = context.WithValue(ctx, contentCtxKey, templ.Join(cardControls, cards))
+			ctx = shiftContentToCtx(ctx, cardControls)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -205,7 +202,7 @@ func GenerateSubscriptionCardControls(filters *models.SubscriptionFilters) func(
 // NewSubscription generates a form for the user to enter details to add a new subscription.
 func NewSubscription(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := context.WithValue(req.Context(), contentCtxKey, views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil))
+		ctx := pushContentToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -243,7 +240,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 				Status:  models.UserMessageStatusError,
 				Summary: "A problem occurred while adding the subscription.",
 			}
-			ctx := context.WithValue(req.Context(), contentCtxKey, views.NewSubscriptionModal(request, msg))
+			ctx := pushContentToCtx(req.Context(), views.NewSubscriptionModal(request, msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		}
 		// Extract the processed request from the context.
@@ -254,7 +251,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 		}
 		// Display the modal with the request results shown.
 		for _, result := range results {
-			ctx := context.WithValue(req.Context(), contentCtxKey, views.NewSubscriptionModal(&models.SubscriptionRequest{}, result))
+			ctx := pushContentToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, result))
 			next.ServeHTTP(res, req.WithContext(ctx))
 			break
 		}
@@ -264,7 +261,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 // NewSubscriptionsImport handles setting up a new subscription import process for the user.
 func NewSubscriptionsImport(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := context.WithValue(req.Context(), contentCtxKey, views.ImportSubscriptionLayout())
+		ctx := pushContentToCtx(req.Context(), views.ImportSubscriptionLayout())
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -279,7 +276,7 @@ func ProcessSubscriptionsImport(importMethod string) func(next http.Handler) htt
 			case http.MethodPut:
 				switch importMethod {
 				case "opml_file":
-					ctx = context.WithValue(ctx, contentCtxKey, views.ImportFromOPML())
+					ctx = pushContentToCtx(ctx, views.ImportFromOPML())
 				}
 			case http.MethodPost:
 				switch importMethod {
@@ -327,7 +324,7 @@ func SubscriptionsImportResults(next http.Handler) http.Handler {
 				Status:  models.UserMessageStatusError,
 				Summary: "A problem occurred while importing subscriptions.",
 			}
-			ctx := context.WithValue(req.Context(), contentCtxKey, views.NewSubscriptionModal(&models.SubscriptionRequest{}, msg))
+			ctx := pushContentToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		}
 
@@ -337,7 +334,7 @@ func SubscriptionsImportResults(next http.Handler) http.Handler {
 			next.ServeHTTP(res, req)
 			return
 		}
-		ctx := context.WithValue(req.Context(), contentCtxKey, views.ImportResults(results))
+		ctx := pushContentToCtx(req.Context(), views.ImportResults(results))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -626,7 +623,7 @@ func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirm
 					Summary: "Unsubscribed.",
 					Status:  models.UserMessageStatusSuccess,
 				}
-				ctx = context.WithValue(ctx, contentCtxKey, partials.ShowNotification(msg))
+				ctx = pushContentToCtx(ctx, partials.ShowNotification(msg))
 				// Trigger state updates.
 				htmxResp := htmx.NewResponse()
 				htmxResp = htmxResp.AddTrigger(htmx.Trigger("UpdateState"))
@@ -641,7 +638,7 @@ func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirm
 					Summary: "Request cancelled.",
 					Status:  models.UserMessageStatusInfo,
 				}
-				ctx = context.WithValue(ctx, contentCtxKey, partials.ShowNotification(msg))
+				ctx = pushContentToCtx(ctx, partials.ShowNotification(msg))
 			default:
 				slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
 					slog.String("subscription_id", strings.Join(subscriptionIDs, ",")),
@@ -651,7 +648,7 @@ func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirm
 					// "hx-target": "#" + subscriptionID,
 					"hx-swap": "morph:outerHTML",
 				})
-				ctx = context.WithValue(ctx, contentCtxKey, modal)
+				ctx = pushContentToCtx(ctx, modal)
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -679,7 +676,7 @@ func EditSubscription(api models.DocumentsAPI, subID models.SubscriptionID) func
 			if resp == nil {
 				topItemCategories = categories
 			}
-			ctx := context.WithValue(req.Context(), contentCtxKey, views.EditSubscriptionModal(edit, topItemCategories, nil))
+			ctx := pushContentToCtx(req.Context(), views.EditSubscriptionModal(edit, topItemCategories, nil))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -700,7 +697,7 @@ func SaveSubscription(api models.DocumentsAPI, edits *models.SubscriptionEdit) f
 				msg = models.SuccessUserMessage("Subscription updated.", nil)
 			}
 			// Display a notification acknowledging save.
-			ctx = context.WithValue(req.Context(), contentCtxKey, partials.ShowNotification(msg))
+			ctx = pushContentToCtx(ctx, partials.ShowNotification(msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -736,8 +733,7 @@ func MarkArticles(api models.DocumentsAPI, mark models.Mark, items ...models.Ite
 func GenerateSettings(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		settingsLayout := settings.SettingsContent()
-		ctx := req.Context()
-		ctx = context.WithValue(ctx, contentCtxKey, settingsLayout)
+		ctx := pushContentToCtx(req.Context(), settingsLayout)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -787,7 +783,7 @@ func GenerateSearchSuggestions(api models.DocumentsAPI, searchTerms string) func
 					}
 				}
 
-				ctx = context.WithValue(ctx, contentCtxKey, views.SearchSuggestions(suggestions...))
+				ctx = pushContentToCtx(ctx, views.SearchSuggestions(suggestions...))
 			}
 
 			next.ServeHTTP(res, req.WithContext(ctx))
@@ -805,7 +801,7 @@ func GenerateSearchResults(api models.DocumentsAPI, searchTerms string) func(nex
 				slogctx.FromCtx(req.Context()).Warn("Failed to get search suggestions.", slog.Any("error", resp.Error()))
 				next.ServeHTTP(res, req)
 			} else if len(subscriptions) > 0 || len(articles) > 0 {
-				ctx = context.WithValue(ctx, contentCtxKey, views.SearchResultsPage(subscriptions, articles))
+				ctx = pushContentToCtx(ctx, views.SearchResultsPage(subscriptions, articles))
 			}
 
 			next.ServeHTTP(res, req.WithContext(ctx))
@@ -842,7 +838,7 @@ func ProcessUserSignup(userBackendAPI models.UserBackendAPI, userFrontendAPI mod
 				Status:  models.UserMessageStatusSuccess,
 				Summary: "Account created!",
 			}
-			ctx = context.WithValue(req.Context(), contentCtxKey, views.SignupForm(signupRequest))
+			ctx = pushContentToCtx(ctx, views.SignupForm(signupRequest))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

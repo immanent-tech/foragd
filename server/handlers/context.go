@@ -6,6 +6,8 @@ package handlers
 import (
 	"context"
 
+	"github.com/a-h/templ"
+
 	"github.com/joshuar/go-feed-me/models"
 )
 
@@ -46,4 +48,29 @@ func paginationFromCtx(ctx context.Context) *models.Pagination {
 		return pagination
 	}
 	return nil
+}
+
+// pushContentToCtx pushes (appends) the given content templates to the existing content templates stored in the
+// context. If no existing templates have been stored, a new slice of templates will be created.
+func pushContentToCtx(ctx context.Context, content ...templ.Component) context.Context {
+	templates := getContentFromCtx(ctx)
+	templates = append(templates, content...)
+	return context.WithValue(ctx, contentCtxKey, templates)
+}
+
+// shiftContentToCtx shifts (adds to the front) the given content templates to the existing content templates stored in
+// the context. If no existing templates have been stored, a new slice of templates will be created.
+func shiftContentToCtx(ctx context.Context, content ...templ.Component) context.Context {
+	templates := getContentFromCtx(ctx)
+	templates = append(content, templates...)
+	return context.WithValue(ctx, contentCtxKey, templates)
+}
+
+// getContentFromCtx retrieves the existing content templates from the context. If no templates are stored, an empty
+// slice is returned.
+func getContentFromCtx(ctx context.Context) []templ.Component {
+	if templates, ok := ctx.Value(contentCtxKey).([]templ.Component); ok {
+		return templates
+	}
+	return make([]templ.Component, 0)
 }

@@ -136,18 +136,6 @@ components:
                 form: 'articles[]'
                 validate: 'omitnil,unique,dive,startswith=item_'
               x-go-type-skip-optional-pointer: true
-    Route:
-      type: object
-      required:
-        - path
-      properties:
-        path:
-          type: string
-        filters:
-          type: object
-          oneof:
-            - $ref: '#/components/schemas/SubscriptionFilters'
-            - $ref: '#/components/schemas/ArticleFilters'
     UserConfirmation:
       description: >
         indicates the user's decision for a (usually) destructive action.

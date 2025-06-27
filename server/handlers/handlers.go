@@ -93,13 +93,13 @@ func RenderContentPage() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
 			// Get main content.
-			mainContent, ok := req.Context().Value(contentCtxKey).(templ.Component)
-			if !ok {
+			mainContent := getContentFromCtx(req.Context())
+			if len(mainContent) == 0 {
 				// If there is no content, use the empty content template.
-				mainContent = views.EmptyContent()
+				mainContent = append(mainContent, views.EmptyContent())
 			}
 			// Wrap main content.
-			drawerContent := templ.Join(views.Header(), partials.Content(mainContent), partials.Footer())
+			drawerContent := templ.Join(views.Header(), partials.Content(templ.Join(mainContent...)), partials.Footer())
 			// Get drawer side content.
 			drawerSideContent, ok := req.Context().Value(drawerCtxKey).(templ.Component)
 			if !ok {
@@ -133,8 +133,8 @@ func RenderContentPartials() http.Handler {
 		func(res http.ResponseWriter, req *http.Request) {
 			var partials []templ.Component
 			// Add any content updates.
-			if content, ok := req.Context().Value(contentCtxKey).(templ.Component); ok {
-				partials = append(partials, content)
+			if content, ok := req.Context().Value(contentCtxKey).([]templ.Component); ok {
+				partials = append(partials, templ.Join(content...))
 			}
 			// Add any drawer side-bar updates.
 			if content, ok := req.Context().Value(drawerCtxKey).(templ.Component); ok {
