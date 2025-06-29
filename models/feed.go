@@ -10,8 +10,8 @@ import (
 	"slices"
 	"time"
 
-	"github.com/joshuar/go-feed-me/models/feeds"
-	"github.com/joshuar/go-feed-me/models/feeds/types"
+	feeds "github.com/joshuar/go-syndication"
+	"github.com/joshuar/go-syndication/types"
 )
 
 var (

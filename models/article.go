@@ -9,8 +9,9 @@ import (
 	"slices"
 	"time"
 
+	"github.com/joshuar/go-syndication/types"
+
 	"github.com/joshuar/go-feed-me/components/validation"
-	"github.com/joshuar/go-feed-me/models/feeds/types"
 )
 
 // Articles is a slices of individual articles.

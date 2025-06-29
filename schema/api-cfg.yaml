@@ -13,7 +13,7 @@ output-options:
   nullable-type: true
 import-mapping:
   models.yaml: '-'
-  ../models/feeds/types.yaml: github.com/joshuar/go-feed-me/models/feeds/types
+  ../models/feeds/types.yaml: github.com/joshuar/go-syndication/types
 compatibility:
   allow-unexported-struct-field-names: true
   always-prefix-enum-values: true

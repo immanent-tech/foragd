@@ -10,7 +10,7 @@ import (
 	"mime"
 	"mime/multipart"
 
-	"github.com/joshuar/go-feed-me/models/feeds/opml"
+	"github.com/joshuar/go-syndication/opml"
 )
 
 type OPMLFile struct {
