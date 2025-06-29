@@ -1,3 +1,6 @@
 [submodule "web/templates/components"]
 	path = web/templates/components
 	url = git@github.com:joshuar/go-templ-daisyui.git
+[submodule "models/feeds"]
+	path = models/feeds
+	url = git@github.com:joshuar/go-syndication.git
