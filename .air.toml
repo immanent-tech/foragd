@@ -27,7 +27,7 @@ log = "deployments/build-errors-air.log"
 poll = false
 poll_interval = 500
 pre_cmd = [
-  "step ca renew --force localhost.crt localhost.key",
+  "step ca renew --password-file=.devcontainer/.step.password --force localhost.crt localhost.key",
   "bun run dev:build:js",
   "bun run build:css",
 ]
