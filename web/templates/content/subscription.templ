@@ -199,7 +199,7 @@ func (c *Subscription) markAttributes() templ.Attributes {
 		"hx-target":       "#" + c.GetID(),
 		"hx-target-error": partials.ErrorID.Target(),
 		"hx-swap":         "morph:outerHTML",
-		"_":               "on htmx:afterRequest send UpdateState to #drawer-subscription-list",
+		"_":               "on htmx:afterRequest send UpdateState to #drawer-subscriptions-list",
 	}
 	if c.IsUnread() {
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead) + "?subscriptions=" + c.GetID()

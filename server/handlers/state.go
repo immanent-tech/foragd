@@ -26,8 +26,10 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 				case path == nil:
 					route = "/home"
 				case *path == "/subscriptions":
+					route = *path
 					values = session.SubscriptionFiltersFromSession(ctx).Parameters()
 				case *path == "/articles":
+					route = *path
 					values = session.ArticleFiltersFromSession(ctx).Parameters()
 				}
 				// Set-up client-side redirect to view.
