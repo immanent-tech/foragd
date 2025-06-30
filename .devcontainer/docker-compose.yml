@@ -25,6 +25,8 @@ services:
     hostname: devcontainer
     networks:
       - go-feed-me
+    ports:
+      - 7000:7000
   stepca:
     hostname: stepca
     image: docker.io/smallstep/step-ca

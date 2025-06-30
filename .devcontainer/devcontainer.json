@@ -36,5 +36,10 @@
         "DavidAnson.vscode-markdownlint"
       ]
     }
+  },
+  "portsAttributes": {
+    "7000": {
+      "label": "Server"
+    }
   }
 }
