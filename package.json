@@ -31,24 +31,24 @@
     "date-fns": "^4.1.0",
     "htmx-ext-response-targets": "^2.0.3",
     "htmx-ext-sse": "^2.2.3",
-    "htmx.org": "^2.0.5",
+    "htmx.org": "^2.0.6",
     "hyperscript.org": "^0.9.14",
     "idiomorph": "^0.7.3",
-    "tailwindcss": "^4.1.10"
+    "tailwindcss": "^4.1.11"
   },
   "devDependencies": {
-    "@eslint/js": "^9.29.0",
+    "@eslint/js": "^9.30.0",
     "@prettier/plugin-xml": "^3.4.1",
-    "@tailwindcss/cli": "^4.1.10",
+    "@tailwindcss/cli": "^4.1.11",
     "@tailwindcss/nesting": "^0.0.0-insiders.565cd3e",
-    "@tailwindcss/postcss": "^4.1.10",
-    "eslint": "^9.29.0",
+    "@tailwindcss/postcss": "^4.1.11",
+    "eslint": "^9.30.0",
     "eslint-config-prettier": "^10.1.5",
     "globals": "^16.2.0",
     "postcss": "^8.5.6",
     "postcss-cli": "^11.0.1",
     "postcss-import": "^16.1.1",
-    "prettier": "^3.6.0",
+    "prettier": "^3.6.2",
     "prettier-plugin-tailwindcss": "^0.6.13",
     "prettier-plugin-toml": "^2.0.5"
   }
