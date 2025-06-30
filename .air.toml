@@ -5,7 +5,11 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-bin = "tmp/gowebly_chi --profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true' serve"
+bin = "tmp/gowebly_chi"
+args_bin = [
+  "--profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true'",
+  "serve",
+]
 cmd = "go tool github.com/a-h/templ/cmd/templ generate && go build -o ./tmp/gowebly_chi ."
 delay = 1000
 exclude_dir = [
@@ -27,7 +31,7 @@ log = "deployments/build-errors-air.log"
 poll = false
 poll_interval = 500
 pre_cmd = [
-  "step ca renew --password-file=.devcontainer/.step.password --force localhost.crt localhost.key",
+  "step ca renew --ca-url https://stepca:9000 --password-file=.devcontainer/.step.password --force localhost.crt localhost.key",
   "bun run dev:build:js",
   "bun run build:css",
 ]

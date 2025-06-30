@@ -24,9 +24,9 @@
       }
     },
     {
-      "label": "Logs: view server log",
+      "label": "service: scheduler",
       "type": "shell",
-      "command": "tail -F deployments/server.log",
+      "command": "go run main.go --log-level=debug scheduler",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
@@ -38,17 +38,17 @@
       }
     },
     {
-      "label": "scheduler: run",
+      "label": "Logs: view server log",
       "type": "shell",
-      "command": "go run main.go --log-level=debug scheduler",
+      "command": "tail -F deployments/server.log",
       "problemMatcher": [],
       "presentation": {
         "echo": true,
         "reveal": "always",
         "focus": false,
         "panel": "dedicated",
-        "showReuseMessage": false,
-        "clear": true
+        "showReuseMessage": true,
+        "clear": false
       }
     }
   ]
