@@ -92,36 +92,36 @@ func RenderContentPage() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
 			var drawerContent templ.Component
-			var drawerSide templ.Component
+			// var drawerSide templ.Component
 			var page templ.Component
 			// Get drawer main content.
 			if content := getContentFromCtx(req.Context()); len(content) != 0 {
 				// Wrap main content.
 				drawerContent = templ.Join(views.Header(), partials.Content(templ.Join(content...)), partials.Footer())
 			}
-			// Get drawer side content.
-			if content := getDrawerSideContentFromCtx(req.Context()); len(content) != 0 {
-				drawerSide = partials.DrawerMenu(
-					partials.MenuItemTitle("Navigation"),
-					views.DrawerHomeLink(),
-					views.DrawerSubscriptionList(templ.Join(content...)),
-				)
-			}
+			// // Get drawer side content.
+			// if content := getDrawerSideContentFromCtx(req.Context()); len(content) != 0 {
+			// 	drawerSide = partials.DrawerMenu(
+			// 		partials.MenuItemTitle("Navigation"),
+			// 		views.DrawerHomeLink(),
+			// 		views.DrawerSubscriptionList(templ.Join(content...)),
+			// 	)
+			// }
 			// Get page title.
 			title, ok := req.Context().Value(titleCtxKey).(string)
 			if !ok {
 				title = "Go Feed Me"
 			}
 			// Render page.
-			if drawerSide != nil {
-				page = templates.NewPage(title,
-					partials.Drawer(drawerContent, drawerSide),
-				).Show()
-			} else {
-				page = templates.NewPage(title,
-					drawerContent,
-				).Show()
-			}
+			// if drawerSide != nil {
+			page = templates.NewPage(title,
+				partials.Drawer(drawerContent),
+			).Show()
+			// } else {
+			// 	page = templates.NewPage(title,
+			// 		drawerContent,
+			// 	).Show()
+			// }
 			if err := page.Render(req.Context(), res); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)

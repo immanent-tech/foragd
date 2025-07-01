@@ -6,50 +6,25 @@ package views
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/content"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
-
-// DrawerSubscriptionListID is the ID of the element containing the subscription list in the drawer.
-var DrawerSubscriptionListID = attributes.ID("drawer-subscriptions-list")
-
-// TriggerSubscriptionListUpdateHS is a hyperscript snippet to trigger an update of the subscription list in the drawer.
-var TriggerSubscriptionListUpdateHS = "on htmx:afterRequest send UpdateState to " + DrawerSubscriptionListID.Target()
-
-templ DrawerHomeLink() {
-	@partials.MenuItem(partials.LinkHome(), nil)
-}
-
-templ DrawerSubscriptionList(list templ.Component) {
-	if list != nil {
-		@partials.MenuItem(list, templ.Attributes{
-			"id":         DrawerSubscriptionListID.String(),
-			"hx-get":     "/subscriptions/state",
-			"hx-trigger": "htmx:historyRestore from:body,UpdateState from:body,UpdateState",
-			"hx-target":  DrawerSubscriptionListID.String(),
-		})
-	}
-}
 
 templ SubscriptionList(subscriptions models.Subscriptions) {
 	if len(subscriptions) == 0 {
 		return
 	}
-	<details>
-		<summary>
-			<div class="flex gap-2">
-				@tabler.Rss()
-				Subscriptions
-			</div>
-		</summary>
-		<ul class="text-base-content text-xs">
-			for subscription := range slices.Values(subscriptions.Sort(nil)) {
-				<li>
-					@content.NewSubscriptionContent(subscription).State()
-				</li>
-			}
-		</ul>
-	</details>
+	<summary>
+		<div class="flex gap-2">
+			@tabler.Rss()
+			Subscriptions
+		</div>
+	</summary>
+	<ul class="text-base-content text-xs">
+		for subscription := range slices.Values(subscriptions.Sort(nil)) {
+			<li>
+				@content.NewSubscriptionContent(subscription).State()
+			</li>
+		}
+	</ul>
 }
