@@ -125,6 +125,7 @@ func RenderContentPartials() http.Handler {
 			if len(content) > 0 {
 				partials = append(partials, content...)
 			} else {
+				res.WriteHeader(http.StatusOK)
 				return
 			}
 			// Add any page title updates.
