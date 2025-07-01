@@ -9,12 +9,15 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/joshuar/go-feed-me/components/logging"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
@@ -70,6 +73,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 
 	found, err := elastic.Exists(schedCtx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
+		spew.Dump("here")
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
 	if found {
@@ -81,6 +85,12 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	if err := elastic.CreateDoc(schedCtx, jq.client.GetAPI(), jq.index, id, data); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
+
+	slogctx.FromCtx(schedCtx).Log(schedCtx, logging.LevelTrace, "Pushed job to queue.",
+		slog.Group("job",
+			slog.String("id", job.JobDetail().JobKey().String()),
+		),
+	)
 
 	return nil
 }
@@ -97,6 +107,12 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 		return nil, errors.Join(ErrPopJobFailed, err)
 	}
 
+	slogctx.FromCtx(schedCtx).Log(schedCtx, logging.LevelTrace, "Popped job from queue.",
+		slog.Group("job",
+			slog.String("id", job.JobDetail().JobKey().String()),
+		),
+	)
+
 	return job, nil
 }
 
@@ -108,6 +124,13 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 			slog.Any("error", err))
 	}
 
+	slog.Debug("Found next job.",
+		slog.Group("job",
+			slog.String("id", job.JobDetail().JobKey().String()),
+			slog.Time("next_run", time.Unix(0, job.NextRunTime())),
+		),
+	)
+
 	return job, err
 }
 
@@ -117,7 +140,7 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	id := jobKeyToDocID(jobKey.String())
 	job, err := elastic.GetDoc[string, ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
-		return nil, errors.Join(ErrGetJobFailed, err)
+		return nil, fmt.Errorf("%w: %w", ErrGetJobFailed, err)
 	}
 
 	return &job, nil
@@ -194,7 +217,6 @@ func (jq *JobQueue) Clear() error {
 func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
 	sort := []types.SortCombinations{
 		types.SortOptions{
-			Doc_: types.NewScoreSort(),
 			SortOptions: map[string]types.FieldSort{
 				"job_next_run": {Order: &sortorder.Asc},
 			},
@@ -208,7 +230,8 @@ func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
 		return nil, errors.Join(ErrNoJobFound, err)
 	}
 
-	return jobs[0], nil
+	nextJob := jobs[0]
+	return nextJob, nil
 }
 
 // delete removes the job doc from Elasticsearch.

@@ -138,6 +138,13 @@ func (m *Manager) checkFeeds(ctx context.Context) error {
 
 	m.checkpoint = time.Now().UTC()
 
+	existingJobs, err := m.scheduler.GetJobKeys()
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Could not get existing job keys from scheduler.",
+			slog.Any("error", err),
+		)
+	}
+
 	for feed := range slices.Values(feeds) {
 		var (
 			job quartz.ScheduledJob
@@ -151,25 +158,32 @@ func (m *Manager) checkFeeds(ctx context.Context) error {
 
 			continue
 		}
+		if slices.Contains(existingJobs, job.JobDetail().JobKey()) {
+			if err := m.scheduler.ResumeJob(job.JobDetail().JobKey()); err != nil {
+				slogctx.FromCtx(ctx).Warn("Failed to resume job for feed.",
+					slog.String("feed_id", feed.GetID()),
+					slog.Any("error", err))
+			}
+		} else {
+			if err := m.scheduler.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
+				slogctx.FromCtx(ctx).Warn("Failed to schedule job for feed.",
+					slog.String("feed_id", feed.GetID()),
+					slog.Any("error", err))
 
-		if err := m.scheduler.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
-			slogctx.FromCtx(ctx).Warn("Failed to schedule job for feed.",
-				slog.String("feed_id", feed.GetID()),
-				slog.Any("error", err))
-
-			continue
+				continue
+			}
+			slogctx.FromCtx(ctx).Debug("Added job for feed.",
+				slog.Group("feed",
+					slog.String("id", feed.GetID()),
+					slog.String("title", feed.GetTitle()),
+				),
+				slog.Group("job",
+					slog.String("id", job.JobDetail().JobKey().String()),
+					slog.String("schedule", job.Trigger().Description()),
+				),
+			)
 		}
 
-		slogctx.FromCtx(ctx).Debug("Adding job for feed.",
-			slog.Group("feed",
-				slog.String("id", feed.GetID()),
-				slog.String("title", feed.GetTitle()),
-			),
-			slog.Group("job",
-				slog.String("id", job.JobDetail().JobKey().String()),
-				slog.String("schedule", job.Trigger().Description()),
-			),
-		)
 	}
 
 	return nil
