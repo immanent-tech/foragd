@@ -99,29 +99,15 @@ func RenderContentPage() http.Handler {
 				// Wrap main content.
 				drawerContent = templ.Join(views.Header(), partials.Content(templ.Join(content...)), partials.Footer())
 			}
-			// // Get drawer side content.
-			// if content := getDrawerSideContentFromCtx(req.Context()); len(content) != 0 {
-			// 	drawerSide = partials.DrawerMenu(
-			// 		partials.MenuItemTitle("Navigation"),
-			// 		views.DrawerHomeLink(),
-			// 		views.DrawerSubscriptionList(templ.Join(content...)),
-			// 	)
-			// }
 			// Get page title.
 			title, ok := req.Context().Value(titleCtxKey).(string)
 			if !ok {
 				title = "Go Feed Me"
 			}
 			// Render page.
-			// if drawerSide != nil {
 			page = templates.NewPage(title,
 				partials.Drawer(drawerContent),
 			).Show()
-			// } else {
-			// 	page = templates.NewPage(title,
-			// 		drawerContent,
-			// 	).Show()
-			// }
 			if err := page.Render(req.Context(), res); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
@@ -141,10 +127,6 @@ func RenderContentPartials() http.Handler {
 			} else {
 				return
 			}
-			// // Add any drawer side-bar updates.
-			// if content, ok := req.Context().Value(drawerCtxKey).(templ.Component); ok {
-			// 	partials = append(partials, content)
-			// }
 			// Add any page title updates.
 			if title, ok := req.Context().Value(titleCtxKey).(string); ok {
 				partials = append(partials, templates.SetPageTitle(title))
@@ -165,6 +147,59 @@ func RenderContentPartials() http.Handler {
 					slog.Any("error", errResp.Error),
 				)
 				res.WriteHeader(errResp.StatusCode)
+			}
+		})
+}
+
+// RenderContentPage will render a full page (i.e. non-HTMX) response.
+func RenderContent() http.Handler {
+	return http.HandlerFunc(
+		func(res http.ResponseWriter, req *http.Request) {
+			var template templ.Component
+			// Get content templates.
+			content := getContentFromCtx(req.Context())
+			if len(content) == 0 {
+				return
+			}
+			// Get page title.
+			title, ok := req.Context().Value(titleCtxKey).(string)
+			if !ok {
+				title = "Go Feed Me"
+			}
+
+			switch htmx.IsHTMX(req) {
+			case false:
+				content = append([]templ.Component{views.Header()}, partials.Content(templ.Join(content...)))
+				content = append(content, partials.Footer())
+				template = templates.NewPage(title,
+					partials.Drawer(content...),
+				).Show()
+				// Render page.
+				if err := template.Render(req.Context(), res); err != nil {
+					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+					http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
+				}
+			default:
+				content = append(content, templates.SetPageTitle(title))
+				template = templ.Join(content...)
+				// Get any existing htmx response writer.
+				resp, ok := req.Context().Value(htmxRespCtxKey).(htmx.Response)
+				if !ok {
+					resp = htmx.NewResponse()
+				}
+				// Render as a template.
+				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
+				}
+
+				errResp, found := req.Context().Value(respCtxKey).(*models.Response)
+				if found {
+					slogctx.FromCtx(req.Context()).Error("Response error.",
+						slog.Any("error", errResp.Error),
+					)
+					res.WriteHeader(errResp.StatusCode)
+				}
+
 			}
 		})
 }

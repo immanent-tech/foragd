@@ -146,18 +146,11 @@ func (s Server) Logout(res http.ResponseWriter, req *http.Request) {
 
 // Home handles display of the home page.
 func (s Server) Home(res http.ResponseWriter, req *http.Request) {
-	chain := alice.New(
+	alice.New(
 		handlers.RouteLogger,
 		handlers.SavePageState(nil),
 		handlers.GenerateHomeContent(s.DataAPI()),
-	)
-
-	switch htmx.IsHTMX(req) {
-	case true:
-		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
-	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
-	}
+	).Then(handlers.RenderContent()).ServeHTTP(res, req)
 }
 
 func (s Server) ShowSubscriptions(res http.ResponseWriter, req *http.Request, params ShowSubscriptionsParams) {
@@ -169,20 +162,15 @@ func (s Server) ShowSubscriptions(res http.ResponseWriter, req *http.Request, pa
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.SavePageState(filters),
-		handlers.GetSubscriptions(s.DataAPI(), filters),
-		handlers.GenerateSubscriptionCards(filters),
 	)
 
 	if filters.Pagination == nil {
-		chain = chain.Append(handlers.GenerateSubscriptionCardControls(filters))
+		chain = chain.Append(handlers.ViewSubscriptions(s.DataAPI(), filters))
+	} else {
+		chain = chain.Append(handlers.PaginateSubscriptions(s.DataAPI(), filters))
 	}
 
-	switch htmx.IsHTMX(req) {
-	case true:
-		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
-	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
-	}
+	chain.Then(handlers.RenderContent()).ServeHTTP(res, req)
 }
 
 func (s Server) MarkSubscriptions(res http.ResponseWriter, req *http.Request, mark Mark, params MarkSubscriptionsParams) {
@@ -392,6 +380,12 @@ func (s Server) PerformSubscriptionsExport(res http.ResponseWriter, req *http.Re
 
 // GetAllSubscriptionsState handles fetching the current state of all user subscriptions.
 func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Request) {
+	// Add requests are only driven by htmx requests.
+	if !htmx.IsHTMX(req) {
+		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
+		return
+	}
+
 	alice.New(
 		handlers.RouteLogger,
 		handlers.GenerateDrawerContent(s.DataAPI()),

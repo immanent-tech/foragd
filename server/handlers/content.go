@@ -123,69 +123,19 @@ func GenerateArticle(api models.DocumentsAPI, itemID models.ItemID) func(next ht
 	}
 }
 
-// GetSubscriptions retrieves subscriptions using the given filters and places them in the context for additional handling.
-func GetSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
+func ViewSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
+			// Insert the filters control div.
+			ctx = pushContentToCtx(ctx, content.Filters(filters))
+			// Get subscriptions matching filters.
 			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
-			ctx := req.Context()
-			ctx = subscriptionsToCtx(ctx, subscriptions)
-			ctx = paginationToCtx(ctx, &pagination)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-func GenerateSubscriptionCards(filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			// Get the list of articles from the context.
-			subscriptions := subscriptionsFromCtx(ctx)
-			if subscriptions == nil {
-				return
-				// ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
-			}
-			// If we are not paginating, insert the filters control div.
-			if filters.Pagination == nil {
-				ctx = pushContentToCtx(ctx, content.Filters(filters))
-			}
-			// Generate cards for the articles.
-			cards := make([]templ.Component, 0, len(subscriptions))
-			for subscription := range slices.Values(subscriptions) {
-				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
-			}
-			// Get the pagination from the context.
-			pagination := paginationFromCtx(ctx)
-			var cardContent templ.Component
-			if pagination != nil && len(cards) == filters.GetCount() {
-				// Add pagination htmx props to last article.
-				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", *pagination))
-			}
-			if filters.Pagination == nil {
-				cardContent = content.CardGrid(cards...)
-			} else {
-				cardContent = templ.Join(cards...)
-			}
-			ctx = pushContentToCtx(ctx, cardContent)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-func GenerateSubscriptionCardControls(filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			// Get the list of articles from the context.
-			subscriptions := subscriptionsFromCtx(ctx)
-			if subscriptions == nil {
-				next.ServeHTTP(res, req.WithContext(ctx))
-			}
+			// Generate card controls and breadcrumbs.
 			buttons := content.CardButtons(
 				views.RefreshAction("/subscriptions"),
 				views.UpdateSorting("/subscriptions", filters.GetSort()),
@@ -194,7 +144,45 @@ func GenerateSubscriptionCardControls(filters *models.SubscriptionFilters) func(
 					views.MarkAllSubscriptionsAction(req.Context(), filters.View),
 				),
 			)
-			ctx = shiftContentToCtx(ctx, content.CardControls(content.CardBreadCrumbs(), buttons))
+			ctx = pushContentToCtx(ctx, content.CardControls(content.CardBreadCrumbs(), buttons))
+			// Generate cards.
+			cards := make([]templ.Component, 0, len(subscriptions))
+			for subscription := range slices.Values(subscriptions) {
+				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
+			}
+			// Add pagination element if pagination is required.
+			if pagination != "" && len(cards) == filters.GetCount() {
+				// Add pagination htmx props to last article.
+				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
+			}
+			ctx = pushContentToCtx(ctx, content.CardGrid(cards...))
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+func PaginateSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
+			// Get subscriptions matching filters.
+			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
+			if resp != nil {
+				ProcessResponse(res, req, resp)
+				return
+			}
+			// Generate cards for the articles.
+			cards := make([]templ.Component, 0, len(subscriptions))
+			for subscription := range slices.Values(subscriptions) {
+				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
+			}
+			// Add pagination element if pagination is required.
+			if pagination != "" && len(cards) == filters.GetCount() {
+				// Add pagination htmx props to last article.
+				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
+			}
+			// Push to content templates.
+			ctx = pushContentToCtx(ctx, cards...)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -749,7 +737,12 @@ func GenerateDrawerContent(api models.DocumentsAPI) func(next http.Handler) http
 			if resp != nil {
 				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.Error()))
 			} else {
-				ctx = pushContentToCtx(ctx, views.SubscriptionList(subscriptions))
+				subscriptions = subscriptions.Sort(nil)
+				states := make([]templ.Component, 0, len(subscriptions))
+				for subscription := range slices.Values(subscriptions) {
+					states = append(states, content.NewSubscriptionContent(subscription).State())
+				}
+				ctx = pushContentToCtx(ctx, partials.DrawerSubscriptionList(states...))
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
