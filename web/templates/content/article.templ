@@ -123,51 +123,53 @@ templ (c *Article) Card() {
 
 // Show will display the article content.
 templ (c *Article) View() {
-	@article.Build(
-		article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2", "overflow-scroll"),
-		article.WithExtraAttributes(templ.Attributes{
-			"hx-post":     "/articles/mark/read?articles=" + c.GetID(),
-			"hx-swap":     "none",
-			"hx-push-url": "false",
-			"hx-trigger":  "load delay:2s",
-		}),
-	).Show() {
-		<h2>
-			@text.Build(c.GetTitle(),
-				text.WithWeight(text.Semibold),
-				text.WithSize(text.LG),
-			).Show("flex-1")
-		</h2>
-		@cardMeta(c.GetAuthors(), c.GetUpdatedDate())
-		// Display the categories associated with the article.
-		for category := range slices.Values(c.GetCategories()) {
-			@badge.Build(
-				badge.WithStyle(badge.Ghost),
-				badge.WithSize(badge.XS),
-				badge.WithContent(category),
-				badge.WithExtraClasses("capitalize", "w-fit-content"),
-			).Show()
-		}
-		// Display the article content.
-		<div id="article_content" class="text-sm max-w-prose">
-			switch  {
-				case c.GetContent() != "":
-					@templ.Raw(c.GetContent())
-				case c.GetDescription() != "":
-					@templ.Raw(c.GetDescription())
+	<div class="flex justify-center">
+		@article.Build(
+			article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2", "overflow-scroll", "max-w-prose"),
+			article.WithExtraAttributes(templ.Attributes{
+				"hx-post":     "/articles/mark/read?articles=" + c.GetID(),
+				"hx-swap":     "none",
+				"hx-push-url": "false",
+				"hx-trigger":  "load delay:2s",
+			}),
+		).Show() {
+			<h2>
+				@text.Build(c.GetTitle(),
+					text.WithWeight(text.Semibold),
+					text.WithSize(text.LG),
+				).Show("flex-1")
+			</h2>
+			@cardMeta(c.GetAuthors(), c.GetUpdatedDate())
+			// Display the categories associated with the article.
+			for category := range slices.Values(c.GetCategories()) {
+				@badge.Build(
+					badge.WithStyle(badge.Ghost),
+					badge.WithSize(badge.XS),
+					badge.WithContent(category),
+					badge.WithExtraClasses("capitalize", "w-fit-content"),
+				).Show()
 			}
-		</div>
-		<div class="flex justify-center m-2 gap-2">
-			<div>
-				// Share article action.
-				@c.Share()
+			// Display the article content.
+			<div id="article_content" class="text-sm max-w-prose">
+				switch  {
+					case c.GetContent() != "":
+						@templ.Raw(c.GetContent())
+					case c.GetDescription() != "":
+						@templ.Raw(c.GetDescription())
+				}
 			</div>
-			<div>
-				// Visit external article link action.
-				@c.Visit()
+			<div class="flex justify-center m-2 gap-2">
+				<div>
+					// Share article action.
+					@c.Share()
+				</div>
+				<div>
+					// Visit external article link action.
+					@c.Visit()
+				</div>
 			</div>
-		</div>
-	}
+		}
+	</div>
 }
 
 // image returns an appropriate image to use in the article card. It will either be the article's image or a
@@ -207,7 +209,7 @@ func (c *Article) viewAttributes() templ.Attributes {
 		"hx-get":      "/view/" + c.GetID(),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
-		"hx-swap":     "morph:innerHTML",
+		"hx-swap":     "morph:innerHTML scroll:top",
 	}
 }
 
