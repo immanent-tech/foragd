@@ -28,6 +28,7 @@ templ DrawerSubscriptionList(list templ.Component) {
 			"id":         DrawerSubscriptionListID.String(),
 			"hx-get":     "/subscriptions/state",
 			"hx-trigger": "htmx:historyRestore from:body,UpdateState from:body,UpdateState",
+			"hx-target":  DrawerSubscriptionListID.String(),
 		})
 	}
 }

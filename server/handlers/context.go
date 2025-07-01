@@ -12,9 +12,11 @@ import (
 )
 
 const (
-	subscriptionsCtxKey contextKey = "subscriptions"
-	articlesCtxKey      contextKey = "articles"
-	paginationCtxKey    contextKey = "pagination"
+	subscriptionsCtxKey     contextKey = "subscriptions"
+	articlesCtxKey          contextKey = "articles"
+	paginationCtxKey        contextKey = "pagination"
+	contentCtxKey           contextKey = "content"
+	drawerSideContentCtxKey contextKey = "drawer_side_content"
 )
 
 func articlesToCtx(ctx context.Context, articles models.Articles) context.Context {
@@ -70,6 +72,23 @@ func shiftContentToCtx(ctx context.Context, content ...templ.Component) context.
 // slice is returned.
 func getContentFromCtx(ctx context.Context) []templ.Component {
 	if templates, ok := ctx.Value(contentCtxKey).([]templ.Component); ok {
+		return templates
+	}
+	return make([]templ.Component, 0)
+}
+
+// pushContentToCtx pushes (appends) the given content templates to the existing content templates stored in the
+// context. If no existing templates have been stored, a new slice of templates will be created.
+func pushDrawerSideContentToCtx(ctx context.Context, content ...templ.Component) context.Context {
+	templates := getDrawerSideContentFromCtx(ctx)
+	templates = append(templates, content...)
+	return context.WithValue(ctx, drawerSideContentCtxKey, templates)
+}
+
+// getContentFromCtx retrieves the existing content templates from the context. If no templates are stored, an empty
+// slice is returned.
+func getDrawerSideContentFromCtx(ctx context.Context) []templ.Component {
+	if templates, ok := ctx.Value(drawerSideContentCtxKey).([]templ.Component); ok {
 		return templates
 	}
 	return make([]templ.Component, 0)

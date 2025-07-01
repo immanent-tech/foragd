@@ -71,13 +71,13 @@ func MarkAllArticlesAction(ctx context.Context, view models.View, subIDs ...mode
 	// Create htmx attributes.
 	attrs := templ.Attributes{
 		"hx-replace-url": "false",
-		"hx-swap":        "none",
-		"_":              TriggerSubscriptionListUpdateHS,
+		"hx-swap":        "morph:innerHTML swap:1s",
+		"_":              "on htmx:afterOnLoad call history.back()",
 	}
 	// Create url parameters.
 	params := make(url.Values)
 	params.Add(models.ParamSubscriptions, strings.Join(subIDs, ","))
-	params.Add(models.ParamRedirect, "/subscriptions")
+	// params.Add(models.ParamRedirect, "/subscriptions")
 
 	switch view {
 	case models.ViewUnread:

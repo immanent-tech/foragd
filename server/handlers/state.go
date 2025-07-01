@@ -5,9 +5,11 @@ package handlers
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -40,6 +42,9 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 						Values: values,
 					})
 				ctx = context.WithValue(ctx, htmxRespCtxKey, htmxResp)
+				slogctx.FromCtx(ctx).Debug("Redirect in place.",
+					slog.String("redirect", route),
+				)
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})

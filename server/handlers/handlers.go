@@ -42,7 +42,6 @@ const (
 
 	htmxRespCtxKey contextKey = "htmxResponse"
 	titleCtxKey    contextKey = "title"
-	contentCtxKey  contextKey = "content"
 	drawerCtxKey   contextKey = "drawer"
 	pageCtxKey     contextKey = "page"
 
@@ -92,34 +91,37 @@ func RenderPage() http.Handler {
 func RenderContentPage() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
-			// Get main content.
-			mainContent := getContentFromCtx(req.Context())
-			if len(mainContent) == 0 {
-				// If there is no content, use the empty content template.
-				mainContent = append(mainContent, views.EmptyContent())
+			var drawerContent templ.Component
+			var drawerSide templ.Component
+			var page templ.Component
+			// Get drawer main content.
+			if content := getContentFromCtx(req.Context()); len(content) != 0 {
+				// Wrap main content.
+				drawerContent = templ.Join(views.Header(), partials.Content(templ.Join(content...)), partials.Footer())
 			}
-			// Wrap main content.
-			drawerContent := templ.Join(views.Header(), partials.Content(templ.Join(mainContent...)), partials.Footer())
 			// Get drawer side content.
-			drawerSideContent, ok := req.Context().Value(drawerCtxKey).(templ.Component)
-			if !ok {
-				slogctx.FromCtx(req.Context()).Warn("No side drawer content provided.")
+			if content := getDrawerSideContentFromCtx(req.Context()); len(content) != 0 {
+				drawerSide = partials.DrawerMenu(
+					partials.MenuItemTitle("Navigation"),
+					views.DrawerHomeLink(),
+					views.DrawerSubscriptionList(templ.Join(content...)),
+				)
 			}
-			// Wrap drawer side content.
-			drawerSideContent = partials.DrawerMenu(
-				partials.MenuItemTitle("Navigation"),
-				views.DrawerHomeLink(),
-				views.DrawerSubscriptionList(drawerSideContent),
-			)
 			// Get page title.
 			title, ok := req.Context().Value(titleCtxKey).(string)
 			if !ok {
 				title = "Go Feed Me"
 			}
 			// Render page.
-			page := templates.NewPage(title,
-				partials.Drawer(drawerContent, drawerSideContent),
-			).Show()
+			if drawerSide != nil {
+				page = templates.NewPage(title,
+					partials.Drawer(drawerContent, drawerSide),
+				).Show()
+			} else {
+				page = templates.NewPage(title,
+					drawerContent,
+				).Show()
+			}
 			if err := page.Render(req.Context(), res); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
@@ -133,13 +135,16 @@ func RenderContentPartials() http.Handler {
 		func(res http.ResponseWriter, req *http.Request) {
 			var partials []templ.Component
 			// Add any content updates.
-			if content, ok := req.Context().Value(contentCtxKey).([]templ.Component); ok {
-				partials = append(partials, templ.Join(content...))
+			content := getContentFromCtx(req.Context())
+			if len(content) > 0 {
+				partials = append(partials, content...)
+			} else {
+				return
 			}
-			// Add any drawer side-bar updates.
-			if content, ok := req.Context().Value(drawerCtxKey).(templ.Component); ok {
-				partials = append(partials, content)
-			}
+			// // Add any drawer side-bar updates.
+			// if content, ok := req.Context().Value(drawerCtxKey).(templ.Component); ok {
+			// 	partials = append(partials, content)
+			// }
 			// Add any page title updates.
 			if title, ok := req.Context().Value(titleCtxKey).(string); ok {
 				partials = append(partials, templates.SetPageTitle(title))

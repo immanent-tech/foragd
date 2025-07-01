@@ -749,7 +749,7 @@ func GenerateDrawerContent(api models.DocumentsAPI) func(next http.Handler) http
 			if resp != nil {
 				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.Error()))
 			} else {
-				ctx = context.WithValue(ctx, drawerCtxKey, views.SubscriptionList(subscriptions))
+				ctx = pushDrawerSideContentToCtx(ctx, views.SubscriptionList(subscriptions))
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
