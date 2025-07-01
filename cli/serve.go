@@ -77,6 +77,7 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 			middlewares.SetupElastic(),
 			handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),
 			middlewares.SetupHTMX(),
+			middlewares.Etag,
 			session.Manager.LoadAndSave,
 		},
 	})
