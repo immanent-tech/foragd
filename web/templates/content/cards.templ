@@ -12,6 +12,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/navigation/breadcrumbs"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
@@ -42,21 +43,25 @@ templ CardGrid(cards ...templ.Component) {
 // CardControls renders a list of controls for manipulating cards.
 templ CardControls(controls ...templ.Component) {
 	<div id="card-controls" class="flex flex-row m-2">
-		<div class="breadcrumbs text-sm flex-1">
-			<ul>
-				<li>
-					@tabler.Home()
-				</li>
-				<li>
-					@tabler.Rss()
-				</li>
-			</ul>
-		</div>
-		<div class="flex flex-row justify-end gap-2">
-			for control := range slices.Values(controls) {
-				@control
-			}
-		</div>
+		for control := range slices.Values(controls) {
+			@control
+		}
+	</div>
+}
+
+templ CardBreadCrumbs(crumbs ...templ.Component) {
+	{{ crumbs := append([]templ.Component{partials.LinkHomeIconOnly()}, crumbs...) }}
+	@breadcrumbs.Build(
+		breadcrumbs.WithClasses("text-sm", "flex-1"),
+		breadcrumbs.WithCrumbs(crumbs...),
+	).Show()
+}
+
+templ CardButtons(buttons ...templ.Component) {
+	<div class="flex flex-row justify-end gap-2">
+		for button := range slices.Values(buttons) {
+			@button
+		}
 	</div>
 }
 

@@ -17,6 +17,6 @@
   transition: opacity 1s ease-out;
 }
 
-.card {
+#content {
   transition: all ease-in 1s;
 }

@@ -19,11 +19,7 @@ var DrawerSubscriptionListID = attributes.ID("drawer-subscriptions-list")
 var TriggerSubscriptionListUpdateHS = "on htmx:afterRequest send UpdateState to " + DrawerSubscriptionListID.Target()
 
 templ DrawerHomeLink() {
-	@partials.MenuItem(partials.LinkWithIcon(tabler.Home(), "Home", templ.Attributes{
-		"hx-get":      "/home",
-		"hx-target":   partials.ContentID.Target(),
-		"hx-push-url": "true",
-	}, nil), nil)
+	@partials.MenuItem(partials.LinkHome(), nil)
 }
 
 templ DrawerSubscriptionList(list templ.Component) {

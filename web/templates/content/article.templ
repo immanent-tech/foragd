@@ -38,34 +38,25 @@ func NewArticleContent(article *models.Article) *Article {
 
 // Visit is the action for visiting the webpage for the article.
 templ (c *Article) Visit() {
-	@partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
-		"External Link",
-		templ.Attributes{"href": c.GetLink()},
-		[]string{"text-xs"},
-	)
+	@partials.LinkExternal("Original Article", c.GetLink())
 }
 
 // Share is the action for sharing an article to an external service.
 templ (c *Article) Share() {
-	@partials.LinkWithIcon(tabler.Share(i.Props{Size: i.SizeXS}), "Share", nil, []string{"text-xs"})
+	@link.Build(
+		link.WithContent(
+			partials.IconText(tabler.Share(i.Props{Size: i.SizeXS}), "Share")),
+		link.WithUnderlineOnHover(),
+		link.WithExtraClasses("text-xs"),
+	).Show()
 }
 
 // Mark is the action for marking an article read/unread.
 templ (c *Article) Mark() {
 	if c.IsUnread() {
-		@partials.LinkWithIcon(
-			tabler.Bookmark(i.Props{Size: i.SizeXS}),
-			"Mark Read",
-			c.markAttributes(),
-			[]string{"text-xs"},
-		)
+		@partials.LinkMarkRead("Mark Read", c.markAttributes())
 	} else {
-		@partials.LinkWithIcon(
-			tabler.BookmarkFilled(i.Props{Size: i.SizeXS}),
-			"Mark Unread",
-			c.markAttributes(),
-			[]string{"text-xs"},
-		)
+		@partials.LinkMarkUnread("Mark Unread", c.markAttributes())
 	}
 }
 

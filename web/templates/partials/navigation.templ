@@ -3,20 +3,13 @@
 
 package partials
 
-import "github.com/joshuar/go-templ-daisyui/navigation/link"
-import "github.com/joshuar/go-templ-daisyui/actions/button"
-
-templ LinkWithIcon(icon templ.Component, label string, attributes templ.Attributes, classes []string) {
-	<div class="flex gap-2">
-		@icon
-		@link.Build(
-			link.WithContent(label),
-			link.WithUnderlineOnHover(),
-			link.WithExtraAttributes(attributes),
-			link.WithExtraClasses(classes...),
-		).Show()
-	</div>
-}
+import (
+	"github.com/joshuar/go-feed-me/components/session"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+)
 
 templ ButtonLink(icon templ.Component, label string, attributes templ.Attributes, classes []string) {
 	@button.Build(
@@ -27,4 +20,81 @@ templ ButtonLink(icon templ.Component, label string, attributes templ.Attributes
 		@icon
 		<span>{ label }</span>
 	}
+}
+
+// LinkHome generates a link showing a icon and text that links to the home page.
+templ LinkHome() {
+	@link.Build(
+		link.WithContent(
+			IconText(tabler.Home(), "Home"),
+		),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(templ.Attributes{
+			"hx-get":      "/home",
+			"hx-target":   ContentID.Target(),
+			"hx-push-url": "true",
+		}),
+		link.WithExtraClasses("text-xs"),
+	).Show()
+}
+
+// LinkHomeIcon generates a link showing a icon that links to the home page.
+templ LinkHomeIconOnly() {
+	@link.Build(
+		link.WithContent(tabler.Home()),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(templ.Attributes{
+			"hx-get":      "/home",
+			"hx-target":   ContentID.Target(),
+			"hx-push-url": "true",
+		}),
+		link.WithExtraClasses("text-xs"),
+	).Show()
+}
+
+templ LinkSubscriptionsIconOnly() {
+	@link.Build(
+		link.WithUnderlineOnHover(),
+		link.WithContent(tabler.Rss()),
+		link.WithExtraAttributes(templ.Attributes{
+			"hx-get":      "/subscriptions",
+			"hx-vals":     GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
+			"hx-target":   ContentID.Target(),
+			"hx-swap":     "morph:innerHTML",
+			"hx-push-url": "true",
+		}),
+	).Show()
+}
+
+// LinkExternal generates a link showing an icon and the given text the links to the given URL.
+templ LinkExternal(text string, url string) {
+	@link.Build(
+		link.WithContent(
+			IconText(tabler.ExternalLink(i.Props{Size: i.SizeXS}), text)),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(templ.Attributes{"href": url}),
+		link.WithExtraClasses("text-xs"),
+	).Show()
+}
+
+// LinkMarkRead generates a link showing an icon and the given text that will trigger the action with the given attributes.
+templ LinkMarkRead(text string, attributes templ.Attributes) {
+	@link.Build(
+		link.WithContent(
+			IconText(tabler.Bookmark(i.Props{Size: i.SizeXS}), text)),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(attributes),
+		link.WithExtraClasses("text-xs"),
+	).Show()
+}
+
+// LinkMarkUnread generates a link showing an icon and the given text that will trigger the action with the given attributes.
+templ LinkMarkUnread(text string, attributes templ.Attributes) {
+	@link.Build(
+		link.WithContent(
+			IconText(tabler.BookmarkFilled(i.Props{Size: i.SizeXS}), text)),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(attributes),
+		link.WithExtraClasses("text-xs"),
+	).Show()
 }

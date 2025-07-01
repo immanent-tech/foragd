@@ -56,12 +56,12 @@ func MarkAllSubscriptionsAction(ctx context.Context, view models.View) templ.Com
 	switch view {
 	case models.ViewUnread:
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead)
-		return markReadLink("Mark All Read", attrs)
+		return partials.LinkMarkRead("Mark All Read", attrs)
 	case models.ViewRead:
 		fallthrough
 	default:
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread)
-		return markUnreadLink("Mark All Unread", attrs)
+		return partials.LinkMarkUnread("Mark All Unread", attrs)
 	}
 }
 
@@ -82,31 +82,13 @@ func MarkAllArticlesAction(ctx context.Context, view models.View, subIDs ...mode
 	switch view {
 	case models.ViewUnread:
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead) + "?" + params.Encode()
-		return markReadLink("Mark All Read", attrs)
+		return partials.LinkMarkRead("Mark All Read", attrs)
 	case models.ViewRead:
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread) + "?" + params.Encode()
-		return markUnreadLink("Mark All Unread", attrs)
+		return partials.LinkMarkUnread("Mark All Unread", attrs)
 	default:
 		return nil
 	}
-}
-
-templ markReadLink(label string, attributes templ.Attributes) {
-	@partials.LinkWithIcon(
-		tabler.Bookmark(i.Props{Size: i.SizeXS}),
-		label,
-		attributes,
-		[]string{"text-xs"},
-	)
-}
-
-templ markUnreadLink(label string, attributes templ.Attributes) {
-	@partials.LinkWithIcon(
-		tabler.BookmarkFilled(i.Props{Size: i.SizeXS}),
-		label,
-		attributes,
-		[]string{"text-xs"},
-	)
 }
 
 templ CollectionActionsMenu(actions ...templ.Component) {

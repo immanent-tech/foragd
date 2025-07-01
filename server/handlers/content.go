@@ -89,7 +89,8 @@ func GenerateArticleCardControls(filters *models.ArticleFilters) func(next http.
 			if articles == nil {
 				next.ServeHTTP(res, req.WithContext(ctx))
 			}
-			cardControls := content.CardControls(
+			cardBreadCrumbs := content.CardBreadCrumbs(partials.LinkSubscriptionsIconOnly())
+			cardButtons := content.CardButtons(
 				views.RefreshAction("/articles"),
 				views.UpdateSorting("/articles", filters.GetSort()),
 				views.UpdateFilters(articles.GetCategoryCounts(), "/articles", filters.Categories, filters.View),
@@ -97,7 +98,7 @@ func GenerateArticleCardControls(filters *models.ArticleFilters) func(next http.
 					views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
 				),
 			)
-			ctx = shiftContentToCtx(ctx, cardControls)
+			ctx = shiftContentToCtx(ctx, content.CardControls(cardBreadCrumbs, cardButtons))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -185,7 +186,7 @@ func GenerateSubscriptionCardControls(filters *models.SubscriptionFilters) func(
 			if subscriptions == nil {
 				next.ServeHTTP(res, req.WithContext(ctx))
 			}
-			cardControls := content.CardControls(
+			buttons := content.CardButtons(
 				views.RefreshAction("/subscriptions"),
 				views.UpdateSorting("/subscriptions", filters.GetSort()),
 				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions)), "/subscriptions", filters.Categories, filters.View),
@@ -193,7 +194,7 @@ func GenerateSubscriptionCardControls(filters *models.SubscriptionFilters) func(
 					views.MarkAllSubscriptionsAction(req.Context(), filters.View),
 				),
 			)
-			ctx = shiftContentToCtx(ctx, cardControls)
+			ctx = shiftContentToCtx(ctx, content.CardControls(content.CardBreadCrumbs(), buttons))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
