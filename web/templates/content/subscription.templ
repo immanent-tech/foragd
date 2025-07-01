@@ -38,7 +38,7 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 // Visit is the action for visiting the subscription's source webpage.
 templ (c *Subscription) Visit() {
 	@partials.LinkWithIcon(tabler.ExternalLink(i.Props{Size: i.SizeXS}),
-		"Visit "+models.ParseDomain(c.GetLink()),
+		"Feed Website",
 		templ.Attributes{
 			"href": c.GetLink(),
 		},
