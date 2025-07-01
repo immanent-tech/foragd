@@ -111,7 +111,6 @@ func Run(ctx context.Context) error {
 }
 
 func (m *Manager) checkFeeds(ctx context.Context) error {
-	slogctx.FromCtx(ctx).Debug("Searching for new feeds...")
 	// Paginate to retrieve all feeds.
 	var feeds models.Feeds
 	var pagination *models.Pagination
@@ -133,7 +132,7 @@ func (m *Manager) checkFeeds(ctx context.Context) error {
 		return nil
 	}
 
-	slogctx.FromCtx(ctx).Debug("Retrieved feeds.",
+	slogctx.FromCtx(ctx).Debug("Retrieved new feeds.",
 		slog.Int("count", len(feeds)),
 	)
 

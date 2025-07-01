@@ -65,7 +65,8 @@
     "js",
     "routes",
     "server",
-    "components/link"
+    "components/link",
+    "components/breadcrumbs"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

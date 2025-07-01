@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"strings"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
@@ -65,7 +66,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
 
-	id := job.JobDetail().JobKey().String()
+	id := jobKeyToDocID(job.JobDetail().JobKey().String())
 
 	found, err := elastic.Exists(schedCtx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
@@ -90,8 +91,9 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 	if err != nil {
 		return nil, errors.Join(ErrPopJobFailed, err)
 	}
+	id := jobKeyToDocID(job.JobDetail().JobKey().String())
 
-	if err := jq.delete(job.JobDetail().JobKey().String()); err != nil {
+	if err := jq.delete(id); err != nil {
 		return nil, errors.Join(ErrPopJobFailed, err)
 	}
 
@@ -112,7 +114,8 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 // Get returns the scheduled job with the specified key without removing it
 // from the queue.
 func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
-	job, err := elastic.GetDoc[string, ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, jobKey.String())
+	id := jobKeyToDocID(jobKey.String())
+	job, err := elastic.GetDoc[string, ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
 		return nil, errors.Join(ErrGetJobFailed, err)
 	}
@@ -126,8 +129,9 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	if err != nil {
 		return nil, errors.Join(ErrRemoveJobFailed, err)
 	}
+	id := jobKeyToDocID(jobKey.String())
 
-	if err := jq.delete(jobKey.String()); err != nil {
+	if err := jq.delete(id); err != nil {
 		return nil, errors.Join(ErrRemoveJobFailed, err)
 	}
 
@@ -204,8 +208,6 @@ func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
 		return nil, errors.Join(ErrNoJobFound, err)
 	}
 
-	jq.logger.Debug("Found next job.", slog.Any("job", jobs[0].JobDetail().Job().Description()))
-
 	return jobs[0], nil
 }
 
@@ -228,4 +230,9 @@ func isMatch(job quartz.ScheduledJob, matchers []quartz.Matcher[quartz.Scheduled
 	}
 
 	return true
+}
+
+func jobKeyToDocID(jobkey string) string {
+	parts := strings.Split(jobkey, "::")
+	return parts[1]
 }
