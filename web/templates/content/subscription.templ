@@ -218,6 +218,6 @@ func (c *Subscription) viewAttributes() templ.Attributes {
 		"hx-vals":     partials.GenerateHXVals(overrides),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
-		"hx-swap":     "morph:innerHTML",
+		"hx-swap":     "morph:innerHTML show:top",
 	}
 }
