@@ -49,7 +49,7 @@ func ViewArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(
 					views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
 				),
 			)
-			ctx = pushContentToCtx(ctx, content.CardControls(content.CardBreadCrumbs(breadcrumbs), buttons))
+			ctx = pushContentToCtx(ctx, content.CardControls(breadcrumbs, buttons))
 			// Generate cards for the articles.
 			cards := make([]templ.Component, 0, len(articles))
 			for article := range slices.Values(articles) {
