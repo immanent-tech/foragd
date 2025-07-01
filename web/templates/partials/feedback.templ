@@ -5,82 +5,9 @@ package partials
 
 import (
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
 )
-
-type UserMessage struct {
-	*models.UserMessage
-}
-
-func NewMessage(msg *models.UserMessage) *UserMessage {
-	return &UserMessage{UserMessage: msg}
-}
-
-// hsCopyText is hyperscript to insert the given text into the clipboard.
-func hsCopyText(text string) string {
-	return "on click writeText(" + text + ") on navigator.clipboard put 'Copied!' into me wait 1s put 'Copy' into me"
-}
-
-func (m *UserMessage) applyBackgroundColor() string {
-	switch m.Status {
-	case models.UserMessageStatusError:
-		return "bg-error/50"
-	case models.UserMessageStatusWarning:
-		return "bg-warning/50"
-	case models.UserMessageStatusSuccess:
-		return "bg-success/50"
-	case models.UserMessageStatusInfo:
-		fallthrough
-	default:
-		return "bg-info/50"
-	}
-}
-
-func (m *UserMessage) applyTextColor() string {
-	switch m.Status {
-	case models.UserMessageStatusError:
-		return "text-error-content"
-	case models.UserMessageStatusWarning:
-		return "text-warning-content"
-	case models.UserMessageStatusSuccess:
-		return "text-success-content"
-	case models.UserMessageStatusInfo:
-		fallthrough
-	default:
-		return "text-info-content"
-	}
-}
-
-// ShowMessage will show a models.Message as a collapsable component, with the summary shown and details revealed when
-// the collapse is opened.
-templ (m *UserMessage) AsNote() {
-	<div tabindex="0" class={ "collapse", "collapse-arrow", m.applyBackgroundColor() }>
-		<input type="checkbox"/>
-		<div class={ "collapse-title", "font-semibold", "text-justify", "text-sm", m.applyTextColor() }>
-			{ m.Summary }
-		</div>
-		<div class={ "collapse-content", "text-xs", "text-justify", m.applyTextColor() }>
-			if m.HasDetails() {
-				{ *m.Details }
-			}
-		</div>
-	</div>
-}
-
-templ (m *UserMessage) AsNotification() {
-	<div id={ NotificationsID.String() } hx-swap-oob="true">
-		@alert.Build(
-			alert.AlertState(m.Status),
-			alert.WithStyle(alert.Soft),
-			alert.WithText(m.Summary),
-			alert.WithExtraAttributes(templ.Attributes{
-				"_": "on load wait 5s then transition opacity to 0 then remove me",
-			}),
-		).Show()
-	</div>
-}
 
 // ShowNotification displays the given message as a notification in the UI.
 templ ShowNotification(msg *models.UserMessage) {
@@ -104,19 +31,6 @@ templ AskQuestion(question string, attributes templ.Attributes) {
 			</form>
 		</div>
 	}
-}
-
-// CopyTextButton builds a button that will copy the given text to the clipboard when clicked.
-templ CopyTextButton(label, text string) {
-	<div>
-		@button.Build(
-			button.WithContent(label),
-			button.WithSize(button.SM),
-			button.WithExtraAttributes(templ.Attributes{
-				"_": hsCopyText(text),
-			}),
-		).Show()
-	</div>
 }
 
 templ Alert(msg *models.UserMessage, attrs templ.Attributes) {
