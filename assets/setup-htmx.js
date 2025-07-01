@@ -5,7 +5,7 @@ import 'htmx.org'
 // Use idiomorph extension for better swaps
 //
 // https://htmx.org/extensions/idiomorph/
-import 'idiomorph'
+// import 'idiomorph'
 // Use response targets extension to display error messages in a dedicated div.
 //
 // https://htmx.org/extensions/response-targets/

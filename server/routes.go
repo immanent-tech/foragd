@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -182,15 +183,15 @@ func (s Server) MarkSubscriptions(res http.ResponseWriter, req *http.Request, ma
 }
 
 func (s Server) RemoveSubscriptions(res http.ResponseWriter, req *http.Request, params RemoveSubscriptionsParams) {
+	spew.Dump(params)
 	// Remove requests are only driven by htmx requests.
 	if !htmx.IsHTMX(req) {
 		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
 		return
 	}
-
 	alice.New(
 		handlers.RouteLogger,
-		handlers.RemoveSubscription(s.DataAPI(), params.Confirmation, *params.Subscriptions...),
+		handlers.RemoveSubscription(s.DataAPI(), *params.Confirmation, *params.Subscriptions...),
 	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 

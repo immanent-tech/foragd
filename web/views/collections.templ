@@ -49,7 +49,7 @@ func MarkAllSubscriptionsAction(ctx context.Context, view models.View) templ.Com
 		"hx-replace-url":  "false",
 		"hx-target":       partials.ContentID.Target(),
 		"hx-target-error": partials.ErrorID.Target(),
-		"hx-swap":         "morph:innerHTML swap:1s",
+		"hx-swap":         "innerHTML swap:1s",
 		"_":               "on htmx:afterOnLoad call history.back()",
 	}
 
@@ -71,7 +71,7 @@ func MarkAllArticlesAction(ctx context.Context, view models.View, subIDs ...mode
 	// Create htmx attributes.
 	attrs := templ.Attributes{
 		"hx-replace-url": "false",
-		"hx-swap":        "morph:innerHTML swap:1s",
+		"hx-swap":        "innerHTML swap:1s",
 		"_":              "on htmx:afterOnLoad call history.back()",
 	}
 	// Create url parameters.

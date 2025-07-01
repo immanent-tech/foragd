@@ -51,7 +51,7 @@ templ SignupForm(userDetails *models.UserSignupRequest) {
 			templ.Attributes{
 				"hx-post":   SignupPath,
 				"hx-target": SignupFormID.Target(),
-				"hx-swap":   "morph:outerHTML",
+				"hx-swap":   "outerHTML",
 			},
 		),
 		form.WithElements(

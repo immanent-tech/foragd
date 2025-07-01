@@ -133,7 +133,7 @@ type RemoveSubscriptionsParams struct {
 	Subscriptions *Subscriptions `form:"subscriptions,omitempty" json:"subscriptions,omitempty"`
 
 	// Confirmation indicates the confirmation state from the user for a destructive action.
-	Confirmation Confirmation `form:"confirmation" json:"confirmation"`
+	Confirmation *Confirmation `form:"confirmation,omitempty" json:"confirmation,omitempty"`
 }
 
 // ProcessSignUpFormdataRequestBody defines body for ProcessSignUp for application/x-www-form-urlencoded ContentType.
@@ -1124,16 +1124,9 @@ func (siw *ServerInterfaceWrapper) RemoveSubscriptions(w http.ResponseWriter, r 
 		return
 	}
 
-	// ------------- Required query parameter "confirmation" -------------
+	// ------------- Optional query parameter "confirmation" -------------
 
-	if paramValue := r.URL.Query().Get("confirmation"); paramValue != "" {
-
-	} else {
-		siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "confirmation"})
-		return
-	}
-
-	err = runtime.BindQueryParameter("form", true, true, "confirmation", r.URL.Query(), &params.Confirmation)
+	err = runtime.BindQueryParameter("form", true, false, "confirmation", r.URL.Query(), &params.Confirmation)
 	if err != nil {
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "confirmation", Err: err})
 		return

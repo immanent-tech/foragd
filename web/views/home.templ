@@ -256,7 +256,7 @@ templ (d *HomePageData) Show() {
 						"hx-get":      "/subscriptions",
 						"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
 						"hx-target":   partials.ContentID.Target(),
-						"hx-swap":     "morph:innerHTML",
+						"hx-swap":     "innerHTML",
 						"hx-push-url": "true",
 					}),
 				).Show() {
@@ -274,7 +274,7 @@ templ (d *HomePageData) Show() {
 						"hx-get":      "/articles",
 						"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
 						"hx-target":   partials.ContentID.Target(),
-						"hx-swap":     "morph:innerHTML",
+						"hx-swap":     "innerHTML",
 						"hx-push-url": "true",
 					}),
 				).Show() {

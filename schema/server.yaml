@@ -411,7 +411,6 @@ components:
         indicates the confirmation state from the user for a destructive action.
       name: confirmation
       in: query
-      required: true
       schema:
         $ref: 'api.yaml#/components/schemas/UserConfirmation'
     View:

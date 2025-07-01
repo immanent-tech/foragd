@@ -17,6 +17,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"net/url"
 	"strconv"
 )
 
@@ -75,13 +76,16 @@ templ (c *Subscription) Edit() {
 }
 
 // Unsubscribe is the action for unsubscribing from a subscription.
-templ (c *Subscription) Unsubscribe() {
-	@link.Build(
+func (c *Subscription) Unsubscribe() templ.Component {
+	parameters := make(url.Values)
+	parameters.Add(models.ParamSubscriptions, c.GetID())
+	parameters.Add("confirmation", "no")
+	return link.Build(
 		link.WithContent(
 			partials.IconText(tabler.Trash(i.Props{Size: i.SizeXS}), "Unsubscribe")),
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(templ.Attributes{
-			"hx-delete": "/subscription/remove/" + c.GetID() + "?confirmation=no",
+			"hx-post":   "/subscriptions/remove?" + parameters.Encode(),
 			"hx-target": partials.ModalContainerID.Target(),
 			"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
 		}),
@@ -191,7 +195,7 @@ func (c *Subscription) markAttributes() templ.Attributes {
 		"hx-replace-url":  "false",
 		"hx-target":       "#" + c.GetID(),
 		"hx-target-error": partials.ErrorID.Target(),
-		"hx-swap":         "morph:outerHTML",
+		"hx-swap":         "outerHTML",
 		"_":               "on htmx:afterRequest send UpdateState to #drawer-subscriptions-list",
 	}
 	if c.IsUnread() {
@@ -218,6 +222,6 @@ func (c *Subscription) viewAttributes() templ.Attributes {
 		"hx-vals":     partials.GenerateHXVals(overrides),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
-		"hx-swap":     "morph:innerHTML show:top",
+		"hx-swap":     "innerHTML show:top",
 	}
 }

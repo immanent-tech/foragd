@@ -60,7 +60,7 @@ templ LinkSubscriptionsIconOnly() {
 			"hx-get":      "/subscriptions",
 			"hx-vals":     GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
 			"hx-target":   ContentID.Target(),
-			"hx-swap":     "morph:innerHTML",
+			"hx-swap":     "innerHTML",
 			"hx-push-url": "true",
 		}),
 	).Show()

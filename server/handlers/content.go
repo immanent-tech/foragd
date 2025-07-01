@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 
@@ -601,7 +602,7 @@ func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirm
 				ctx = pushContentToCtx(ctx, partials.ShowNotification(msg))
 				// Trigger state updates.
 				htmxResp := htmx.NewResponse()
-				htmxResp = htmxResp.AddTrigger(htmx.Trigger("UpdateState"))
+				htmxResp = htmxResp.AddTrigger(htmx.Trigger("updateState"))
 				ctx = context.WithValue(ctx, htmxRespCtxKey, htmxResp)
 			case models.UserConfirmationCancel:
 				slogctx.FromCtx(ctx).Debug("Subscription removal cancelled.",
@@ -618,10 +619,13 @@ func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirm
 				slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
 					slog.String("subscription_id", strings.Join(subscriptionIDs, ",")),
 				)
+				parameters := make(url.Values)
+				parameters.Add(models.ParamSubscriptions, strings.Join(subscriptionIDs, ","))
+				parameters.Add("confirmation", "yes")
+
 				modal := partials.AskQuestion("Unsubscribe?", templ.Attributes{
-					"hx-delete": "/subscription/remove?subscriptions=" + strings.Join(subscriptionIDs, ","),
-					// "hx-target": "#" + subscriptionID,
-					"hx-swap": "morph:outerHTML",
+					"hx-post": "/subscriptions/remove?" + parameters.Encode(),
+					"hx-swap": "outerHTML",
 				})
 				ctx = pushContentToCtx(ctx, modal)
 			}

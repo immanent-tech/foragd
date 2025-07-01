@@ -11,7 +11,7 @@ var (
 	// ErrorID points to an element that can be used to display error messages to the user.
 	ErrorID = attributes.ID("error")
 	// ModalContainerID points to an element that holds a modal.
-	ModalContainerID = attributes.ID("modal-container")
+	ModalContainerID = attributes.ID("modals")
 	// ModalID points to an element that can be used to render a modal.
 	ModalID = attributes.ID("modal")
 	// NotificationsID points to an element that can be used for displaying notifications to the user.
