@@ -27,70 +27,21 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
-// GetArticles retrieves articles using the given filters and places them in the context for additional handling.
-func GetArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
+func ViewArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
+			// Insert the filters control div.
+			ctx = pushContentToCtx(ctx, content.Filters(filters))
+			// Get articles matching filters.
 			articles, pagination, resp := filterArticles(req.Context(), api, filters)
 			if resp != nil {
 				ProcessResponse(res, req, resp)
 				return
 			}
-			ctx := req.Context()
-			ctx = articlesToCtx(ctx, articles)
-			ctx = paginationToCtx(ctx, &pagination)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-func GenerateArticleCards(filters *models.ArticleFilters) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			// Get the list of articles from the context.
-			articles := articlesFromCtx(ctx)
-			if articles == nil {
-				return
-				// ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
-			}
-			if filters.Pagination == nil {
-				ctx = pushContentToCtx(ctx, content.Filters(filters))
-			}
-			// Generate cards for the articles.
-			cards := make([]templ.Component, 0, len(articles))
-			for article := range slices.Values(articles) {
-				cards = append(cards, content.NewArticleContent(article).Card())
-			}
-			var cardContent templ.Component
-			// Get the pagination from the context.
-			pagination := paginationFromCtx(ctx)
-			if pagination != nil && len(cards) == filters.GetCount() {
-				// Add pagination htmx props to last article.
-				cards = append(cards, content.PaginationControl(req.Context(), "/articles", *pagination))
-			}
-			if filters.Pagination == nil {
-				cardContent = content.CardGrid(cards...)
-			} else {
-				cardContent = templ.Join(cards...)
-			}
-			ctx = pushContentToCtx(ctx, cardContent)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-func GenerateArticleCardControls(filters *models.ArticleFilters) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			// Get the list of articles from the context.
-			articles := articlesFromCtx(ctx)
-			if articles == nil {
-				next.ServeHTTP(res, req.WithContext(ctx))
-			}
-			cardBreadCrumbs := content.CardBreadCrumbs(partials.LinkSubscriptionsIconOnly())
-			cardButtons := content.CardButtons(
+			// Generate controls and breadcrumbs.
+			breadcrumbs := content.CardBreadCrumbs(partials.LinkSubscriptionsIconOnly())
+			buttons := content.CardButtons(
 				views.RefreshAction("/articles"),
 				views.UpdateSorting("/articles", filters.GetSort()),
 				views.UpdateFilters(articles.GetCategoryCounts(), "/articles", filters.Categories, filters.View),
@@ -98,14 +49,49 @@ func GenerateArticleCardControls(filters *models.ArticleFilters) func(next http.
 					views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
 				),
 			)
-			ctx = shiftContentToCtx(ctx, content.CardControls(cardBreadCrumbs, cardButtons))
+			ctx = pushContentToCtx(ctx, content.CardControls(content.CardBreadCrumbs(breadcrumbs), buttons))
+			// Generate cards for the articles.
+			cards := make([]templ.Component, 0, len(articles))
+			for article := range slices.Values(articles) {
+				cards = append(cards, content.NewArticleContent(article).Card())
+			}
+			if pagination != "" && len(cards) == filters.GetCount() {
+				// Add pagination htmx props to last article.
+				cards = append(cards, content.PaginationControl(req.Context(), "/articles", pagination))
+			}
+			ctx = pushContentToCtx(ctx, content.CardGrid(cards...))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
 
-// GenerateArticle handles displaying an item as an article.
-func GenerateArticle(api models.DocumentsAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
+func PaginateArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
+			// Get articles matching filters.
+			articles, pagination, resp := filterArticles(req.Context(), api, filters)
+			if resp != nil {
+				ProcessResponse(res, req, resp)
+				return
+			}
+			// Generate cards for the articles.
+			cards := make([]templ.Component, 0, len(articles))
+			for article := range slices.Values(articles) {
+				cards = append(cards, content.NewArticleContent(article).Card())
+			}
+			if pagination != "" && len(cards) == filters.GetCount() {
+				// Add pagination htmx props to last article.
+				cards = append(cards, content.PaginationControl(req.Context(), "/articles", pagination))
+			}
+			ctx = pushContentToCtx(ctx, content.CardGrid(cards...))
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
+}
+
+// ViewArticle handles displaying an item as an article.
+func ViewArticle(api models.DocumentsAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			articles, resp := models.GetArticles(req.Context(), api, itemID)

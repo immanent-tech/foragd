@@ -204,20 +204,15 @@ func (s Server) ShowArticles(res http.ResponseWriter, req *http.Request, params 
 	chain := alice.New(
 		handlers.RouteLogger,
 		handlers.SavePageState(filters),
-		handlers.GetArticles(s.DataAPI(), filters),
-		handlers.GenerateArticleCards(filters),
 	)
 
 	if filters.Pagination == nil {
-		chain = chain.Append(handlers.GenerateArticleCardControls(filters))
+		chain = chain.Append(handlers.ViewArticles(s.DataAPI(), filters))
+	} else {
+		chain = chain.Append(handlers.PaginateArticles(s.DataAPI(), filters))
 	}
 
-	switch htmx.IsHTMX(req) {
-	case true:
-		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
-	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
-	}
+	chain.Then(handlers.RenderContent()).ServeHTTP(res, req)
 }
 
 func (s Server) MarkArticles(res http.ResponseWriter, req *http.Request, mark Mark, params MarkArticlesParams) {
@@ -236,7 +231,7 @@ func (s Server) ActionArticles(res http.ResponseWriter, req *http.Request, actio
 func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, itemID ItemID) {
 	chain := alice.New(
 		handlers.RouteLogger,
-		handlers.GenerateArticle(s.DataAPI(), itemID),
+		handlers.ViewArticle(s.DataAPI(), itemID),
 	)
 
 	switch htmx.IsHTMX(req) {
