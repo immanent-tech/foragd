@@ -5,7 +5,6 @@ package views
 
 import (
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/attributes"
@@ -20,25 +19,21 @@ var SignupDetailsID = attributes.ID("signup-details")
 var SignupFormID = attributes.ID("signup-form")
 
 templ SignUpPage(userDetails *models.UserSignupRequest) {
-	@templates.NewPage("Go Feed Me", nil,
-		templates.WithDescription("Welcome to Go Feed Me"),
-	).Show() {
-		<div class="hero bg-base-200 min-h-screen">
-			<div class="hero-content flex-col lg:flex-row-reverse">
-				<div class="text-center lg:text-left">
-					<h1 class="text-5xl font-bold">Sign-up now!</h1>
-					<p class="py-6">
-						Enter your details below to create an account.
-					</p>
-				</div>
-				<div id={ SignupDetailsID.String() } class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-					<div class="card-body">
-						@SignupForm(userDetails)
-					</div>
+	<div class="hero bg-base-200 min-h-screen">
+		<div class="hero-content flex-col lg:flex-row-reverse">
+			<div class="text-center lg:text-left">
+				<h1 class="text-5xl font-bold">Sign-up now!</h1>
+				<p class="py-6">
+					Enter your details below to create an account.
+				</p>
+			</div>
+			<div id={ SignupDetailsID.String() } class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
+				<div class="card-body">
+					@SignupForm(userDetails)
 				</div>
 			</div>
 		</div>
-	}
+	</div>
 }
 
 templ SignupForm(userDetails *models.UserSignupRequest) {

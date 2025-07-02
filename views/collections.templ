@@ -9,8 +9,10 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
 	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
@@ -20,6 +22,26 @@ import (
 	"slices"
 	"strings"
 )
+
+var CardsID = attributes.ID("cards")
+
+// CardGrid renders the given card components in a grid container.
+templ CardGrid(cards ...templ.Component) {
+	<div
+		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4"
+		id={ CardsID.String() }
+	>
+		for cards := range slices.Values(cards) {
+			@cards
+		}
+	</div>
+	<div id="content-loading" class="items-center justify-center">
+		@loading.Build(loading.Bars,
+			loading.AsHTMXIndicator(),
+			loading.WithThemeColor(color.Accent),
+		).Show()
+	</div>
+}
 
 var defaultCardOptions = []card.Option{
 	card.WithStyle(card.Border),

@@ -22,10 +22,10 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/views"
 	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/views"
 )
 
 func ViewArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
@@ -33,7 +33,7 @@ func ViewArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			// Insert the filters control div.
-			ctx = pushContentToCtx(ctx, content.Filters(filters))
+			ctx = pushTemplatesToCtx(ctx, content.Filters(filters))
 			// Get articles matching filters.
 			articles, pagination, resp := filterArticles(req.Context(), api, filters)
 			if resp != nil {
@@ -50,7 +50,7 @@ func ViewArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(
 					views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
 				),
 			)
-			ctx = pushContentToCtx(ctx, content.CardControls(breadcrumbs, buttons))
+			ctx = pushTemplatesToCtx(ctx, content.CardControls(breadcrumbs, buttons))
 			// Generate cards for the articles.
 			cards := make([]templ.Component, 0, len(articles))
 			for article := range slices.Values(articles) {
@@ -60,7 +60,7 @@ func ViewArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(
 				// Add pagination htmx props to last article.
 				cards = append(cards, content.PaginationControl(req.Context(), "/articles", pagination))
 			}
-			ctx = pushContentToCtx(ctx, content.CardGrid(cards...))
+			ctx = pushTemplatesToCtx(ctx, content.CardGrid(cards...))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -85,7 +85,7 @@ func PaginateArticles(api models.DocumentsAPI, filters *models.ArticleFilters) f
 				// Add pagination htmx props to last article.
 				cards = append(cards, content.PaginationControl(req.Context(), "/articles", pagination))
 			}
-			ctx = pushContentToCtx(ctx, cards...)
+			ctx = pushTemplatesToCtx(ctx, cards...)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -103,7 +103,7 @@ func ViewArticle(api models.DocumentsAPI, itemID models.ItemID) func(next http.H
 			articleLayout := content.NewArticleContent(articles[0]).View()
 
 			ctx := req.Context()
-			ctx = pushContentToCtx(ctx, articleLayout)
+			ctx = pushTemplatesToCtx(ctx, articleLayout)
 			ctx = context.WithValue(ctx, titleCtxKey, articles[0].GetTitle())
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -115,7 +115,7 @@ func ViewSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilt
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
 			// Insert the filters control div.
-			ctx = pushContentToCtx(ctx, content.Filters(filters))
+			ctx = pushTemplatesToCtx(ctx, content.Filters(filters))
 			// Get subscriptions matching filters.
 			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
 			if resp != nil {
@@ -131,7 +131,7 @@ func ViewSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilt
 					views.MarkAllSubscriptionsAction(req.Context(), filters.View),
 				),
 			)
-			ctx = pushContentToCtx(ctx, content.CardControls(content.CardBreadCrumbs(), buttons))
+			ctx = pushTemplatesToCtx(ctx, content.CardControls(content.CardBreadCrumbs(), buttons))
 			// Generate cards.
 			cards := make([]templ.Component, 0, len(subscriptions))
 			for subscription := range slices.Values(subscriptions) {
@@ -142,7 +142,7 @@ func ViewSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilt
 				// Add pagination htmx props to last article.
 				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
 			}
-			ctx = pushContentToCtx(ctx, content.CardGrid(cards...))
+			ctx = pushTemplatesToCtx(ctx, content.CardGrid(cards...))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -169,7 +169,7 @@ func PaginateSubscriptions(api models.DocumentsAPI, filters *models.Subscription
 				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
 			}
 			// Push to content templates.
-			ctx = pushContentToCtx(ctx, cards...)
+			ctx = pushTemplatesToCtx(ctx, cards...)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -178,7 +178,7 @@ func PaginateSubscriptions(api models.DocumentsAPI, filters *models.Subscription
 // NewSubscription generates a form for the user to enter details to add a new subscription.
 func NewSubscription(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := pushContentToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil))
+		ctx := pushTemplatesToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -216,7 +216,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 				Status:  models.UserMessageStatusError,
 				Summary: "A problem occurred while adding the subscription.",
 			}
-			ctx := pushContentToCtx(req.Context(), views.NewSubscriptionModal(request, msg))
+			ctx := pushTemplatesToCtx(req.Context(), views.NewSubscriptionModal(request, msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		}
 		// Extract the processed request from the context.
@@ -227,7 +227,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 		}
 		// Display the modal with the request results shown.
 		for _, result := range results {
-			ctx := pushContentToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, result))
+			ctx := pushTemplatesToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, result))
 			next.ServeHTTP(res, req.WithContext(ctx))
 			break
 		}
@@ -237,7 +237,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 // NewSubscriptionsImport handles setting up a new subscription import process for the user.
 func NewSubscriptionsImport(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := pushContentToCtx(req.Context(), views.ImportSubscriptionLayout())
+		ctx := pushTemplatesToCtx(req.Context(), views.ImportSubscriptionLayout())
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -252,7 +252,7 @@ func ProcessSubscriptionsImport(importMethod string) func(next http.Handler) htt
 			case http.MethodPut:
 				switch importMethod {
 				case "opml_file":
-					ctx = pushContentToCtx(ctx, views.ImportFromOPML())
+					ctx = pushTemplatesToCtx(ctx, views.ImportFromOPML())
 				}
 			case http.MethodPost:
 				switch importMethod {
@@ -300,7 +300,7 @@ func SubscriptionsImportResults(next http.Handler) http.Handler {
 				Status:  models.UserMessageStatusError,
 				Summary: "A problem occurred while importing subscriptions.",
 			}
-			ctx := pushContentToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, msg))
+			ctx := pushTemplatesToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		}
 
@@ -310,7 +310,7 @@ func SubscriptionsImportResults(next http.Handler) http.Handler {
 			next.ServeHTTP(res, req)
 			return
 		}
-		ctx := pushContentToCtx(req.Context(), views.ImportResults(results))
+		ctx := pushTemplatesToCtx(req.Context(), views.ImportResults(results))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -599,7 +599,7 @@ func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirm
 					Summary: "Unsubscribed.",
 					Status:  models.UserMessageStatusSuccess,
 				}
-				ctx = pushContentToCtx(ctx, partials.ShowNotification(msg))
+				ctx = pushTemplatesToCtx(ctx, partials.ShowNotification(msg))
 				// Trigger state updates.
 				htmxResp := htmx.NewResponse()
 				ctx = htmxRespToCtx(ctx, htmxResp.AddTrigger(htmx.Trigger("updateState")))
@@ -613,7 +613,7 @@ func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirm
 					Summary: "Request cancelled.",
 					Status:  models.UserMessageStatusInfo,
 				}
-				ctx = pushContentToCtx(ctx, partials.ShowNotification(msg))
+				ctx = pushTemplatesToCtx(ctx, partials.ShowNotification(msg))
 			default:
 				slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
 					slog.String("subscription_id", strings.Join(subscriptionIDs, ",")),
@@ -626,7 +626,7 @@ func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirm
 					"hx-post": "/subscriptions/remove?" + parameters.Encode(),
 					"hx-swap": "outerHTML",
 				})
-				ctx = pushContentToCtx(ctx, modal)
+				ctx = pushTemplatesToCtx(ctx, modal)
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -654,7 +654,7 @@ func EditSubscription(api models.DocumentsAPI, subID models.SubscriptionID) func
 			if resp == nil {
 				topItemCategories = categories
 			}
-			ctx := pushContentToCtx(req.Context(), views.EditSubscriptionModal(edit, topItemCategories, nil))
+			ctx := pushTemplatesToCtx(req.Context(), views.EditSubscriptionModal(edit, topItemCategories, nil))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -675,7 +675,7 @@ func SaveSubscription(api models.DocumentsAPI, edits *models.SubscriptionEdit) f
 				msg = models.SuccessUserMessage("Subscription updated.", nil)
 			}
 			// Display a notification acknowledging save.
-			ctx = pushContentToCtx(ctx, partials.ShowNotification(msg))
+			ctx = pushTemplatesToCtx(ctx, partials.ShowNotification(msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -717,7 +717,7 @@ func MarkArticles(api models.DocumentsAPI, mark models.Mark, items ...models.Ite
 func GenerateSettings(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		settingsLayout := settings.SettingsContent()
-		ctx := pushContentToCtx(req.Context(), settingsLayout)
+		ctx := pushTemplatesToCtx(req.Context(), settingsLayout)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -737,7 +737,7 @@ func GenerateDrawerContent(api models.DocumentsAPI) func(next http.Handler) http
 				for subscription := range slices.Values(subscriptions) {
 					states = append(states, content.NewSubscriptionContent(subscription).State())
 				}
-				ctx = pushContentToCtx(ctx, partials.DrawerSubscriptionList(states...))
+				ctx = pushTemplatesToCtx(ctx, partials.DrawerSubscriptionList(states...))
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
@@ -772,7 +772,7 @@ func GenerateSearchSuggestions(api models.DocumentsAPI, searchTerms string) func
 					}
 				}
 
-				ctx = pushContentToCtx(ctx, views.SearchSuggestions(suggestions...))
+				ctx = pushTemplatesToCtx(ctx, views.SearchSuggestions(suggestions...))
 			}
 
 			next.ServeHTTP(res, req.WithContext(ctx))
@@ -790,7 +790,7 @@ func GenerateSearchResults(api models.DocumentsAPI, searchTerms string) func(nex
 				slogctx.FromCtx(req.Context()).Warn("Failed to get search suggestions.", slog.Any("error", resp.Error()))
 				next.ServeHTTP(res, req)
 			} else if len(subscriptions) > 0 || len(articles) > 0 {
-				ctx = pushContentToCtx(ctx, views.SearchResultsPage(subscriptions, articles))
+				ctx = pushTemplatesToCtx(ctx, views.SearchResultsPage(subscriptions, articles))
 			}
 
 			next.ServeHTTP(res, req.WithContext(ctx))
@@ -827,7 +827,7 @@ func ProcessUserSignup(userBackendAPI models.UserBackendAPI, userFrontendAPI mod
 				Status:  models.UserMessageStatusSuccess,
 				Summary: "Account created!",
 			}
-			ctx = pushContentToCtx(ctx, views.SignupForm(signupRequest))
+			ctx = pushTemplatesToCtx(ctx, views.SignupForm(signupRequest))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

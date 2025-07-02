@@ -6,8 +6,10 @@ package server
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/a-h/templ"
@@ -20,9 +22,9 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/server/handlers"
-	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/views"
+	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/views"
 )
 
 var ErrInvalidParam = errors.New("invalid parameter")
@@ -64,8 +66,7 @@ func (s Server) Index(res http.ResponseWriter, req *http.Request) {
 	).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
 		indexLayout := &layouts.IndexLayout{}
 		ctx := templ.WithChildren(req.Context(), indexLayout.FullRender())
-		page := templates.NewPage("Go Feed Me").Show()
-		if err := page.Render(ctx, res); err != nil {
+		if err := views.NewPage("Go Feed Me").Render(ctx, res); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 			http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
 		}
@@ -154,24 +155,98 @@ func (s Server) Home(res http.ResponseWriter, req *http.Request) {
 	).Then(handlers.RenderContent()).ServeHTTP(res, req)
 }
 
+// func (s Server) ShowSubscriptions(res http.ResponseWriter, req *http.Request, params ShowSubscriptionsParams) {
+// 	filters, err := models.FiltersFromParams[*models.SubscriptionFilters](params)
+// 	if err != nil {
+// 		handlers.ProcessResponse(res, req, models.NewResponse(http.StatusBadRequest, fmt.Errorf("parameters are invalid: %w", err)))
+// 	}
+
+// 	chain := alice.New(
+// 		handlers.RouteLogger,
+// 		handlers.SavePageState(filters),
+// 	)
+
+// 	if filters.Pagination == nil {
+// 		chain = chain.Append(handlers.ViewSubscriptions(s.DataAPI(), filters))
+// 	} else {
+// 		chain = chain.Append(handlers.PaginateSubscriptions(s.DataAPI(), filters))
+// 	}
+
+// 	chain.Then(handlers.RenderContent()).ServeHTTP(res, req)
+// }
+
 func (s Server) ShowSubscriptions(res http.ResponseWriter, req *http.Request, params ShowSubscriptionsParams) {
 	filters, err := models.FiltersFromParams[*models.SubscriptionFilters](params)
 	if err != nil {
 		handlers.ProcessResponse(res, req, models.NewResponse(http.StatusBadRequest, fmt.Errorf("parameters are invalid: %w", err)))
 	}
 
-	chain := alice.New(
+	alice.New(
 		handlers.RouteLogger,
 		handlers.SavePageState(filters),
-	)
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get subscriptions matching filters.
+		subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), s.DataAPI(), filters)
+		if resp != nil {
+			handlers.ProcessResponse(res, req, resp)
+			return
+		}
+		data := views.NewSubscriptions(subscriptions, filters, pagination)
 
-	if filters.Pagination == nil {
-		chain = chain.Append(handlers.ViewSubscriptions(s.DataAPI(), filters))
-	} else {
-		chain = chain.Append(handlers.PaginateSubscriptions(s.DataAPI(), filters))
+		page := data.Page()
+
+		if !htmx.IsHTMX(req) {
+			if err := page.Render(req.Context(), res); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
+			}
+		} else {
+			resp := htmx.NewResponse()
+			req = req.WithContext(views.WithFragment(req.Context(), res, "content-header", "content", "content-footer"))
+			err := resp.Write(res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
+			}
+
+			err = page.Render(req.Context(), io.Discard)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
+			}
+		}
+	}).ServeHTTP(res, req)
+}
+
+func (s Server) PaginateSubscriptions(res http.ResponseWriter, req *http.Request, params PaginateSubscriptionsParams) {
+	filters, err := models.FiltersFromParams[*models.SubscriptionFilters](params)
+	if err != nil {
+		handlers.ProcessResponse(res, req, models.NewResponse(http.StatusBadRequest, fmt.Errorf("parameters are invalid: %w", err)))
 	}
 
-	chain.Then(handlers.RenderContent()).ServeHTTP(res, req)
+	alice.New(
+		handlers.RouteLogger,
+		handlers.SavePageState(filters),
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get subscriptions matching filters.
+		subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), s.DataAPI(), filters)
+		if resp != nil {
+			handlers.ProcessResponse(res, req, resp)
+			return
+		}
+		cards := make([]templ.Component, 0, len(subscriptions))
+		for subscription := range slices.Values(subscriptions) {
+			cards = append(cards, content.NewSubscriptionContent(subscription).Card())
+		}
+		// Add pagination element if pagination is required.
+		if pagination != "" && len(cards) == filters.GetCount() {
+			// Add pagination htmx props to last article.
+			cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
+		}
+		if err := htmx.NewResponse().RenderTempl(req.Context(), res, templ.Join(cards...)); err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
+		}
+	}).ServeHTTP(res, req)
 }
 
 func (s Server) MarkSubscriptions(res http.ResponseWriter, req *http.Request, mark Mark, params MarkSubscriptionsParams) {

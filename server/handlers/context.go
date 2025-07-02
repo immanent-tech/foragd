@@ -11,30 +11,30 @@ import (
 )
 
 const (
-	contentCtxKey  contextKey = "content"
-	htmxRespCtxKey contextKey = "htmxResp"
+	templatesCtxKey contextKey = "templates"
+	htmxRespCtxKey  contextKey = "htmxResp"
 )
 
-// pushContentToCtx pushes (appends) the given content templates to the existing content templates stored in the
+// pushTemplatesToCtx pushes (appends) the given content templates to the existing content templates stored in the
 // context. If no existing templates have been stored, a new slice of templates will be created.
-func pushContentToCtx(ctx context.Context, content ...templ.Component) context.Context {
-	templates := getContentFromCtx(ctx)
+func pushTemplatesToCtx(ctx context.Context, content ...templ.Component) context.Context {
+	templates := getTemplatesFromCtx(ctx)
 	templates = append(templates, content...)
-	return context.WithValue(ctx, contentCtxKey, templates)
+	return context.WithValue(ctx, templatesCtxKey, templates)
 }
 
-// shiftContentToCtx shifts (adds to the front) the given content templates to the existing content templates stored in
+// shiftTemplatesToCtx shifts (adds to the front) the given content templates to the existing content templates stored in
 // the context. If no existing templates have been stored, a new slice of templates will be created.
-func shiftContentToCtx(ctx context.Context, content ...templ.Component) context.Context {
-	templates := getContentFromCtx(ctx)
+func shiftTemplatesToCtx(ctx context.Context, content ...templ.Component) context.Context {
+	templates := getTemplatesFromCtx(ctx)
 	templates = append(content, templates...)
-	return context.WithValue(ctx, contentCtxKey, templates)
+	return context.WithValue(ctx, templatesCtxKey, templates)
 }
 
-// getContentFromCtx retrieves the existing content templates from the context. If no templates are stored, an empty
+// getTemplatesFromCtx retrieves the existing content templates from the context. If no templates are stored, an empty
 // slice is returned.
-func getContentFromCtx(ctx context.Context) []templ.Component {
-	if templates, ok := ctx.Value(contentCtxKey).([]templ.Component); ok {
+func getTemplatesFromCtx(ctx context.Context) []templ.Component {
+	if templates, ok := ctx.Value(templatesCtxKey).([]templ.Component); ok {
 		return templates
 	}
 	return make([]templ.Component, 0)
@@ -42,7 +42,7 @@ func getContentFromCtx(ctx context.Context) []templ.Component {
 
 // htmxRespToCtx adds the given htmx.Response object to the context.
 func htmxRespToCtx(ctx context.Context, resp htmx.Response) context.Context {
-	return context.WithValue(ctx, contentCtxKey, resp)
+	return context.WithValue(ctx, templatesCtxKey, resp)
 }
 
 // htmxRespFromCtx retrieves a htmx.Response object from the context. If none is found, it returns a new object.

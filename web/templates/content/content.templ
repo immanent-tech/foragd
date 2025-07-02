@@ -14,7 +14,7 @@ import (
 // PaginationControl generates an element that will cause a pagination request when scrolled into view.
 templ PaginationControl(ctx context.Context, route string, pagination models.Pagination) {
 	<div
-		hx-get={ route }
+		hx-post={ route }
 		hx-include="#content-filters"
 		hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
 		hx-trigger="intersect once"

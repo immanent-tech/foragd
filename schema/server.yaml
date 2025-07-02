@@ -190,8 +190,12 @@ paths:
         $ref: '#/components/responses/html'
     get:
       summary: >
-        Shows subscriptions, with optional filtering and pagination.
+        Shows subscriptions, with optional filtering.
       operationId: showSubscriptions
+    post:
+      summary: >
+        Paginates subscriptions, with optional filtering.
+      operationId: paginateSubscriptions
   /subscriptions/mark/{mark}:
     parameters:
       - $ref: '#/components/parameters/Subscriptions'
@@ -416,13 +420,11 @@ components:
     View:
       name: view
       in: query
-      required: true
       schema:
         $ref: 'api.yaml#/components/schemas/View'
     Count:
       name: count
       in: query
-      required: true
       schema:
         $ref: 'api.yaml#/components/schemas/Count'
     Subscriptions:
@@ -483,13 +485,11 @@ components:
     SortBy:
       name: sort_by
       in: query
-      required: true
       schema:
         $ref: 'api.yaml#/components/schemas/SortBy'
     SortOrder:
       name: sort_order
       in: query
-      required: true
       schema:
         $ref: 'api.yaml#/components/schemas/SortOrder'
     ImportSource:

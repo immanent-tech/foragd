@@ -1,0 +1,141 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package views
+
+import (
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"slices"
+	"strings"
+)
+
+// defaultKeywords are the default keywords to insert in a "keywords" <meta> tag.
+var defaultKeywords = []string{"feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"}
+
+// DefaultPageTitle is the default <title> tag value if none is set.
+var defaultPageTitle = "Go Feed Me"
+
+// Page represents a single HTML page.
+type Page struct {
+	Head Head
+}
+
+// NewPage creates a new page with the given title and options.
+func NewPage(title string, options ...PageOption) templ.Component {
+	page := &Page{}
+	page.Head.Title = title
+
+	for option := range slices.Values(options) {
+		option(page)
+	}
+
+	return page.build()
+}
+
+// PageOption is a functional option to apply to a page.
+type PageOption func(*Page)
+
+// WithDescription option sets the page description.
+func WithDescription(description string) PageOption {
+	return func(p *Page) {
+		p.Head.AddMetaTag("description", description)
+	}
+}
+
+// WithKeywords option sets the page keywords.
+func WithKeywords(keywords ...string) PageOption {
+	return func(p *Page) {
+		p.Head.AddMetaTag("keywords", strings.Join(keywords, ","))
+	}
+}
+
+// Show renders the page as a templ Component.
+templ (page *Page) build() {
+	<!DOCTYPE html>
+	<html
+		lang="en"
+		data-theme=""
+		_="
+		init
+			fetch /settings/theme then
+				put the result into @data-theme
+		on setTheme(theme)
+			log 'theme changed to ' + theme
+			set @data-theme to theme
+		end
+		"
+	>
+		@page.Head.build()
+		<body hx-ext="response-targets" hx-target-error={ partials.NotificationsID.String() }>
+			<div id={ partials.ModalContainerID.String() }></div>
+			<div id={ partials.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50"></div>
+			{ children... }
+		</body>
+	</html>
+}
+
+// hx-trigger="htmx:historyRestore"
+// hx-get=""
+// hx-target={ partials.ContentID.Target() }
+
+// Meta represents a custom <meta> tag.
+type Meta struct {
+	Name    string
+	Content string
+}
+
+templ (m *Meta) build() {
+	return templ.ComponentFunc() {  }
+	<meta name={ m.Name } content={ m.Content }/>
+}
+
+// Head represents a <head></head> tag.
+type Head struct {
+	Title          string
+	CustomMetaTags []Meta
+}
+
+func (h *Head) AddMetaTag(name, content string) {
+	h.CustomMetaTags = append(h.CustomMetaTags, Meta{Name: name, Content: content})
+}
+
+templ (h *Head) build() {
+	<head>
+		<meta charset="UTF-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+		<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+		if len(h.CustomMetaTags) > 0 {
+			for meta := range slices.Values(h.CustomMetaTags) {
+				@meta.build()
+			}
+		}
+		<link rel="dns-prefetch" href="//fonts.googleapis.com"/>
+		<link rel="dns-prefetch" href="//fonts.gstatic.com"/>
+		<link rel="preconnect" href="//fonts.googleapis.com" crossorigin/>
+		<link rel="preconnect" href="//fonts.gstatic.com" crossorigin/>
+		<link rel="manifest" href="/static/manifest.json"/>
+		<link rel="apple-touch-icon" href="/static/apple-touch-icon.png"/>
+		<link rel="shortcut icon" href="/static/favicon.ico" type="image/x-icon"/>
+		<link rel="icon" href="/static/favicon.svg" type="image/svg+xml"/>
+		<link rel="icon" href="/static/favicon.png" sizes="any"/>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Inter&display=swap"
+			rel="stylesheet"
+		/>
+		<link href="/static/styles.css" rel="stylesheet"/>
+		<script src="/static/scripts.js"></script>
+		<script src="/static/surreal-1.3.2.js"></script>
+		<meta name="htmx-config" content='{"historyRestoreAsHxRequest":"false","allowNestedOobSwaps":"false"}'/>
+		@SetPageTitle(h.Title)
+	</head>
+}
+
+// SetPageTitle sets (or updates) the page's <title></title> tag. If the title is an empty string, a default title will
+// be set instead.
+templ SetPageTitle(title string) {
+	if title != "" {
+		<title>{ title }</title>
+	} else {
+		<title>{ defaultPageTitle }</title>
+	}
+}

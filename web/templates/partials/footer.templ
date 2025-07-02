@@ -19,7 +19,6 @@ templ Footer(items ...templ.Component) {
 		dock.WithClasses("bg-base-200"),
 		dock.WithAttributes(templ.Attributes{
 			"hx-swap-oob": "true",
-			"hx-swap":     "outerHTML",
 		}),
 	).Show() {
 		for item := range slices.Values(items) {

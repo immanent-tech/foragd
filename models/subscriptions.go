@@ -13,8 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joshuar/go-feed-me/components/validation"
 	"github.com/joshuar/go-syndication/types"
+
+	"github.com/joshuar/go-feed-me/components/validation"
 )
 
 var ErrInvalidSubscriptionState = errors.New("invalid subscription state")
@@ -201,6 +202,23 @@ func (s Subscriptions) GetTotalUnreadCount() int {
 		unread += subscription.GetUnreadCount()
 	}
 	return unread
+}
+
+// GetCategoryCounts returns a count of the occurrence of a Category across all
+// the Subscriptions.
+func (s Subscriptions) GetCategoryCounts() CategoryCounts {
+	countsMap := make(map[Category]int)
+	for object := range slices.Values(s) {
+		for category := range slices.Values(object.GetCategories()) {
+			countsMap[category]++
+		}
+	}
+	var counts CategoryCounts
+	for category, count := range maps.All(countsMap) {
+		counts = append(counts, CategoryCount{Category: category, Count: count})
+	}
+
+	return counts
 }
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,

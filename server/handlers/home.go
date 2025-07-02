@@ -8,7 +8,7 @@ import (
 	"net/http"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/views"
+	"github.com/joshuar/go-feed-me/views"
 )
 
 // GenerateHomeContent handles generating the content for the home page.
@@ -20,7 +20,7 @@ func GenerateHomeContent(api models.DocumentsAPI) func(next http.Handler) http.H
 
 			data, resp := views.NewHomePageData(ctx, api)
 			if resp.IsNotFound() {
-				ctx = context.WithValue(ctx, contentCtxKey, views.EmptyContent())
+				ctx = context.WithValue(ctx, templatesCtxKey, views.EmptyContent())
 				next.ServeHTTP(res, req.WithContext(ctx))
 				return
 			}
@@ -28,7 +28,7 @@ func GenerateHomeContent(api models.DocumentsAPI) func(next http.Handler) http.H
 				ProcessResponse(res, req, resp)
 				return
 			}
-			ctx = pushContentToCtx(ctx, data.Show())
+			ctx = pushTemplatesToCtx(ctx, data.Show())
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

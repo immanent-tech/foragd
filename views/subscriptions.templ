@@ -1,0 +1,86 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+
+package views
+
+import (
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"slices"
+)
+
+templ (s *Subscriptions) Page() {
+	@NewPage("Subscriptions") {
+		<div class="drawer">
+			<input id="body-drawer" type="checkbox" class="drawer-toggle"/>
+			<div class="drawer-content">
+				// Fragment: content header
+				@Fragment("content-header") {
+					@Header()
+				}
+				<div id={ partials.ContentID.String() } class="m-2 h-full" hx-swap="innerHTML">
+					@Fragment("content") {
+						// Fragment: content filters
+						@Fragment("content-filters") {
+							<div id="content-filters" class="hidden">
+								for name, value := range s.filters.Parameters() {
+									@hiddeninput.Build(
+										hiddeninput.WithName(name),
+										hiddeninput.WithValue(attributes.Value(value)),
+									).Show()
+								}
+							</div>
+						}
+						<div id="card-controls" class="flex flex-row m-2">
+							<div class="flex flex-row justify-end gap-2">
+								@RefreshAction("/subscriptions")
+								@UpdateSorting("/subscriptions", s.filters.GetSort())
+								@UpdateFilters(s.subscriptions.GetCategoryCounts(), "/subscriptions", s.filters.GetCategories(), s.filters.GetView())
+								@CollectionActionsMenu(
+									MarkAllSubscriptionsAction(ctx, s.filters.GetView()),
+								)
+							</div>
+						</div>
+						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
+							// Fragment: cards
+							@Fragment("cards") {
+								for cards := range slices.Values(s.generateCards(ctx)) {
+									@cards
+								}
+							}
+						</div>
+						<div id="content-loading" class="items-center justify-center">
+							@loading.Build(loading.Bars,
+								loading.AsHTMXIndicator(),
+								loading.WithThemeColor(color.Accent),
+							).Show()
+						</div>
+					}
+				</div>
+				// Fragment: content footer
+				@Fragment("content-footer") {
+					@partials.Footer()
+				}
+			</div>
+			<div class="drawer-side">
+				<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
+				<ul class="menu bg-base-200 text-base-content text-xs min-h-full w-80 p-4">
+					@MenuItemTitle("Navigation")
+					@MenuItem(partials.LinkHome(), nil)
+					@MenuItem(nil, nil) {
+						<details
+							id={ DrawerSubscriptionListID.String() }
+							hx-get="/subscriptions/state"
+							hx-trigger="load, updateState from:body"
+							hx-target={ DrawerSubscriptionListID.Target() }
+						></details>
+					}
+				</ul>
+			</div>
+		</div>
+	}
+}

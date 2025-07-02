@@ -18,9 +18,8 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/views"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/views"
 )
 
 var (
@@ -92,10 +91,8 @@ func RenderContentPage() http.Handler {
 	return http.HandlerFunc(
 		func(res http.ResponseWriter, req *http.Request) {
 			var drawerContent templ.Component
-			// var drawerSide templ.Component
-			var page templ.Component
 			// Get drawer main content.
-			if content := getContentFromCtx(req.Context()); len(content) != 0 {
+			if content := getTemplatesFromCtx(req.Context()); len(content) != 0 {
 				// Wrap main content.
 				drawerContent = templ.Join(views.Header(), partials.Content(templ.Join(content...)), partials.Footer())
 			}
@@ -105,9 +102,8 @@ func RenderContentPage() http.Handler {
 				title = "Go Feed Me"
 			}
 			ctx := templ.WithChildren(req.Context(), partials.Drawer(drawerContent))
-			page = templates.NewPage(title).Show()
-			if err := page.Render(ctx, res); err != nil {
-				slogctx.FromCtx(ctx).Error("Failed to render page template.", slog.Any("error", err))
+			if err := views.NewPage(title).Render(ctx, res); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
 			}
 		})
@@ -119,7 +115,7 @@ func RenderContentPartials() http.Handler {
 		func(res http.ResponseWriter, req *http.Request) {
 			var partials []templ.Component
 			// Add any content updates.
-			content := getContentFromCtx(req.Context())
+			content := getTemplatesFromCtx(req.Context())
 			if len(content) > 0 {
 				partials = append(partials, content...)
 			} else {
@@ -128,7 +124,7 @@ func RenderContentPartials() http.Handler {
 			}
 			// Add any page title updates.
 			if title, ok := req.Context().Value(titleCtxKey).(string); ok {
-				partials = append(partials, templates.SetPageTitle(title))
+				partials = append(partials, views.SetPageTitle(title))
 			}
 			// Get any existing htmx response writer.
 			resp, ok := req.Context().Value(htmxRespCtxKey).(htmx.Response)
@@ -156,7 +152,7 @@ func RenderContent() http.Handler {
 		func(res http.ResponseWriter, req *http.Request) {
 			var template templ.Component
 			// Get content templates.
-			content := getContentFromCtx(req.Context())
+			content := getTemplatesFromCtx(req.Context())
 			if len(content) == 0 {
 				return
 			}
@@ -170,15 +166,14 @@ func RenderContent() http.Handler {
 			case false:
 				content = append([]templ.Component{views.Header()}, partials.Content(templ.Join(content...)))
 				content = append(content, partials.Footer())
-				ctx := templ.WithChildren(req.Context(), partials.Drawer(content...))
-				template = templates.NewPage(title).Show()
 				// Render page.
-				if err := template.Render(ctx, res); err != nil {
-					slogctx.FromCtx(ctx).Error("Failed to render page template.", slog.Any("error", err))
+				ctx := templ.WithChildren(req.Context(), partials.Drawer(content...))
+				if err := views.NewPage(title).Render(ctx, res); err != nil {
+					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 					http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
 				}
 			default:
-				content = append(content, templates.SetPageTitle(title))
+				content = append(content, views.SetPageTitle(title))
 				template = templ.Join(content...)
 				// Get any existing htmx response writer.
 				resp := htmxRespFromCtx(req.Context())

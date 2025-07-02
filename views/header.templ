@@ -19,6 +19,9 @@ var HeaderID = attributes.ID("header")
 templ Header() {
 	@navbar.Build(navbar.WithID(HeaderID.String()),
 		navbar.WithBaseColor(color.Base200),
+		navbar.WithExtraAttributes(templ.Attributes{
+			"hx-swap-oob": "true",
+		}),
 		navbar.NavBarStart(DefaultHeaderStart()),
 		navbar.NavBarCenter(DefaultHeaderCenter()),
 		navbar.NavBarEnd(DefaultHeaderEnd()),

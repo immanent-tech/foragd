@@ -90,6 +90,8 @@ type Filters interface {
 	Valid() (bool, error)
 	GetSort() Sort
 	GetCount() int
+	GetView() View
+	GetCategories() []Category
 	Parameters() map[string]string
 }
 
@@ -163,6 +165,14 @@ func (f SubscriptionFilters) GetCount() int {
 		return 10
 	}
 	return value
+}
+
+func (f SubscriptionFilters) GetView() View {
+	return f.View
+}
+
+func (f SubscriptionFilters) GetCategories() []Category {
+	return f.Categories
 }
 
 func (f SubscriptionFilters) Parameters() map[string]string {
@@ -243,6 +253,14 @@ func (f ArticleFilters) GetCount() int {
 		return 10
 	}
 	return value
+}
+
+func (f ArticleFilters) GetView() View {
+	return f.View
+}
+
+func (f ArticleFilters) GetCategories() []Category {
+	return f.Categories
 }
 
 func (f ArticleFilters) Parameters() map[string]string {
