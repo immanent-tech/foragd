@@ -171,7 +171,7 @@ func (c Article) image() any {
 			image.Build(
 				c.GetImage().URL(),
 				image.WithLazyLoading(),
-				image.WithExtraClasses("size-16", "object-scale-down", "rounded-box"),
+				image.WithExtraClasses("max-w-24", "h-full", "object-contain", "rounded-box"),
 			),
 			figure.WithFigureClasses("m-2"),
 		)

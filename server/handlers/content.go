@@ -85,7 +85,7 @@ func PaginateArticles(api models.DocumentsAPI, filters *models.ArticleFilters) f
 				// Add pagination htmx props to last article.
 				cards = append(cards, content.PaginationControl(req.Context(), "/articles", pagination))
 			}
-			ctx = pushContentToCtx(ctx, content.CardGrid(cards...))
+			ctx = pushContentToCtx(ctx, cards...)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
@@ -602,8 +602,7 @@ func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirm
 				ctx = pushContentToCtx(ctx, partials.ShowNotification(msg))
 				// Trigger state updates.
 				htmxResp := htmx.NewResponse()
-				htmxResp = htmxResp.AddTrigger(htmx.Trigger("updateState"))
-				ctx = context.WithValue(ctx, htmxRespCtxKey, htmxResp)
+				ctx = htmxRespToCtx(ctx, htmxResp.AddTrigger(htmx.Trigger("updateState")))
 			case models.UserConfirmationCancel:
 				slogctx.FromCtx(ctx).Debug("Subscription removal cancelled.",
 					slog.String("subscription_id", strings.Join(subscriptionIDs, ",")),
@@ -690,7 +689,10 @@ func MarkSubscriptions(api models.DocumentsAPI, mark models.Mark, subscriptions 
 				ProcessResponse(res, req, resp)
 				return
 			}
-			next.ServeHTTP(res, req)
+			// Trigger state updates.
+			htmxResp := htmx.NewResponse()
+			ctx := htmxRespToCtx(req.Context(), htmxResp.AddTrigger(htmx.Trigger("updateState")))
+			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }
@@ -703,7 +705,10 @@ func MarkArticles(api models.DocumentsAPI, mark models.Mark, items ...models.Ite
 				ProcessResponse(res, req, resp)
 				return
 			}
-			next.ServeHTTP(res, req)
+			// Trigger state updates.
+			htmxResp := htmx.NewResponse()
+			ctx := htmxRespToCtx(req.Context(), htmxResp.AddTrigger(htmx.Trigger("updateState")))
+			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
 }

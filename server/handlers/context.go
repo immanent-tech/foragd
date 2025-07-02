@@ -7,50 +7,13 @@ import (
 	"context"
 
 	"github.com/a-h/templ"
-
-	"github.com/joshuar/go-feed-me/models"
+	"github.com/angelofallars/htmx-go"
 )
 
 const (
-	subscriptionsCtxKey     contextKey = "subscriptions"
-	articlesCtxKey          contextKey = "articles"
-	paginationCtxKey        contextKey = "pagination"
-	contentCtxKey           contextKey = "content"
-	drawerSideContentCtxKey contextKey = "drawer_side_content"
+	contentCtxKey  contextKey = "content"
+	htmxRespCtxKey contextKey = "htmxResp"
 )
-
-func articlesToCtx(ctx context.Context, articles models.Articles) context.Context {
-	return context.WithValue(ctx, articlesCtxKey, articles)
-}
-
-func articlesFromCtx(ctx context.Context) models.Articles {
-	if articles, ok := ctx.Value(articlesCtxKey).(models.Articles); ok {
-		return articles
-	}
-	return nil
-}
-
-func subscriptionsToCtx(ctx context.Context, subscriptions models.Subscriptions) context.Context {
-	return context.WithValue(ctx, subscriptionsCtxKey, subscriptions)
-}
-
-func subscriptionsFromCtx(ctx context.Context) models.Subscriptions {
-	if subscriptions, ok := ctx.Value(subscriptionsCtxKey).(models.Subscriptions); ok {
-		return subscriptions
-	}
-	return nil
-}
-
-func paginationToCtx(ctx context.Context, pagination *models.Pagination) context.Context {
-	return context.WithValue(ctx, paginationCtxKey, pagination)
-}
-
-func paginationFromCtx(ctx context.Context) *models.Pagination {
-	if pagination, ok := ctx.Value(paginationCtxKey).(*models.Pagination); ok {
-		return pagination
-	}
-	return nil
-}
 
 // pushContentToCtx pushes (appends) the given content templates to the existing content templates stored in the
 // context. If no existing templates have been stored, a new slice of templates will be created.
@@ -77,19 +40,15 @@ func getContentFromCtx(ctx context.Context) []templ.Component {
 	return make([]templ.Component, 0)
 }
 
-// pushContentToCtx pushes (appends) the given content templates to the existing content templates stored in the
-// context. If no existing templates have been stored, a new slice of templates will be created.
-func pushDrawerSideContentToCtx(ctx context.Context, content ...templ.Component) context.Context {
-	templates := getDrawerSideContentFromCtx(ctx)
-	templates = append(templates, content...)
-	return context.WithValue(ctx, drawerSideContentCtxKey, templates)
+// htmxRespToCtx adds the given htmx.Response object to the context.
+func htmxRespToCtx(ctx context.Context, resp htmx.Response) context.Context {
+	return context.WithValue(ctx, contentCtxKey, resp)
 }
 
-// getContentFromCtx retrieves the existing content templates from the context. If no templates are stored, an empty
-// slice is returned.
-func getDrawerSideContentFromCtx(ctx context.Context) []templ.Component {
-	if templates, ok := ctx.Value(drawerSideContentCtxKey).([]templ.Component); ok {
-		return templates
+// htmxRespFromCtx retrieves a htmx.Response object from the context. If none is found, it returns a new object.
+func htmxRespFromCtx(ctx context.Context) htmx.Response {
+	if resp, ok := ctx.Value(htmxRespCtxKey).(htmx.Response); ok {
+		return resp
 	}
-	return make([]templ.Component, 0)
+	return htmx.NewResponse()
 }

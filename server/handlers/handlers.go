@@ -39,11 +39,11 @@ const (
 	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
 	subscriptionResultsCtxKey  contextKey = "subscriptionsResults"
 	feedsCtxKey                contextKey = "feeds"
+	subscriptionsCtxKey        contextKey = "subscriptions"
 
-	htmxRespCtxKey contextKey = "htmxResponse"
-	titleCtxKey    contextKey = "title"
-	drawerCtxKey   contextKey = "drawer"
-	pageCtxKey     contextKey = "page"
+	titleCtxKey  contextKey = "title"
+	drawerCtxKey contextKey = "drawer"
+	pageCtxKey   contextKey = "page"
 
 	respCtxKey contextKey = "response"
 )
@@ -184,10 +184,7 @@ func RenderContent() http.Handler {
 				content = append(content, templates.SetPageTitle(title))
 				template = templ.Join(content...)
 				// Get any existing htmx response writer.
-				resp, ok := req.Context().Value(htmxRespCtxKey).(htmx.Response)
-				if !ok {
-					resp = htmx.NewResponse()
-				}
+				resp := htmxRespFromCtx(req.Context())
 				// Render as a template.
 				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
