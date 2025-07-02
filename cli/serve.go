@@ -61,7 +61,7 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 
 	// Set up a new chi router.
 	router := chi.NewRouter()
-	router.Handle("/static/*", gowebly.StaticFileServerHandler(http.FS(opts.StaticContent)))
+	router.Handle("/static/*", middlewares.Etag(gowebly.StaticFileServerHandler(http.FS(opts.StaticContent))))
 
 	// Get an `http.Handler` that we can use from the router and server.
 	// handler := server.GenerateHandler(svr, router)
