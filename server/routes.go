@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/justinas/alice"
@@ -62,10 +63,9 @@ func (s Server) Index(res http.ResponseWriter, req *http.Request) {
 		handlers.RouteLogger,
 	).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
 		indexLayout := &layouts.IndexLayout{}
-		page := templates.NewPage("Go Feed Me",
-			indexLayout.FullRender(),
-		).Show()
-		if err := page.Render(req.Context(), res); err != nil {
+		ctx := templ.WithChildren(req.Context(), indexLayout.FullRender())
+		page := templates.NewPage("Go Feed Me").Show()
+		if err := page.Render(ctx, res); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 			http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
 		}

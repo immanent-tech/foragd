@@ -18,7 +18,6 @@ const DefaultPageTitle = "Go Feed Me"
 // Page represents a single HTML page.
 type Page struct {
 	Head Head
-	Body templ.Component
 }
 
 // PageOption is a functional option to apply to a page.
@@ -39,14 +38,9 @@ func WithKeywords(keywords ...string) PageOption {
 }
 
 // NewPage creates a new page with the given title and options.
-func NewPage(title string, body templ.Component, options ...PageOption) *Page {
+func NewPage(title string, options ...PageOption) *Page {
 	page := &Page{}
 	page.Head.Title = title
-
-	// Set the page body if specified.
-	if body != nil {
-		page.Body = body
-	}
 
 	for option := range slices.Values(options) {
 		option(page)
@@ -78,11 +72,7 @@ templ (page *Page) Show() {
 		>
 			<div id={ partials.ModalContainerID.String() }></div>
 			<div id={ partials.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50"></div>
-			if page.Body != nil {
-				@page.Body
-			} else {
-				{ children... }
-			}
+			{ children... }
 		</body>
 	</html>
 }

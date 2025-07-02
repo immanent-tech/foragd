@@ -104,12 +104,10 @@ func RenderContentPage() http.Handler {
 			if !ok {
 				title = "Go Feed Me"
 			}
-			// Render page.
-			page = templates.NewPage(title,
-				partials.Drawer(drawerContent),
-			).Show()
-			if err := page.Render(req.Context(), res); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+			ctx := templ.WithChildren(req.Context(), partials.Drawer(drawerContent))
+			page = templates.NewPage(title).Show()
+			if err := page.Render(ctx, res); err != nil {
+				slogctx.FromCtx(ctx).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
 			}
 		})
@@ -172,12 +170,11 @@ func RenderContent() http.Handler {
 			case false:
 				content = append([]templ.Component{views.Header()}, partials.Content(templ.Join(content...)))
 				content = append(content, partials.Footer())
-				template = templates.NewPage(title,
-					partials.Drawer(content...),
-				).Show()
+				ctx := templ.WithChildren(req.Context(), partials.Drawer(content...))
+				template = templates.NewPage(title).Show()
 				// Render page.
-				if err := template.Render(req.Context(), res); err != nil {
-					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				if err := template.Render(ctx, res); err != nil {
+					slogctx.FromCtx(ctx).Error("Failed to render page template.", slog.Any("error", err))
 					http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
 				}
 			default:
