@@ -11,7 +11,6 @@ templ Content(content templ.Component) {
 		id={ ContentID.String() }
 		class="m-2 h-full"
 		hx-swap="innerHTML"
-		hx-target={ ContentID.Target() }
 	>
 		@content
 	</div>

@@ -46,11 +46,10 @@ templ RefreshAction(route string) {
 func MarkAllSubscriptionsAction(ctx context.Context, view models.View) templ.Component {
 	// Create htmx attributes.
 	attrs := templ.Attributes{
-		"hx-replace-url":  "false",
-		"hx-target":       partials.ContentID.Target(),
-		"hx-target-error": partials.ErrorID.Target(),
-		"hx-swap":         "innerHTML swap:1s",
-		"_":               "on htmx:afterOnLoad call history.back()",
+		"hx-replace-url": "false",
+		"hx-target":      partials.ContentID.Target(),
+		"hx-swap":        "innerHTML swap:1s",
+		"_":              "on htmx:afterOnLoad call history.back()",
 	}
 
 	switch view {
