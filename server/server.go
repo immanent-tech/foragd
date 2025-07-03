@@ -118,10 +118,9 @@ func (s *Server) setupRoutes() {
 	// Set up a new chi router.
 	router := chi.NewRouter()
 	router.Use(
-		slogchi.NewWithConfig(slog.Default(), slogchi.Config{WithRequestID: true}),
-		middleware.Recoverer,
 		middleware.RequestID,
-		middleware.RealIP,
+		middleware.Recoverer,
+		slogchi.NewWithConfig(slog.Default(), slogchi.Config{WithRequestID: true}),
 		middlewares.SetupCORS(config.Environment()),
 		// middlewares.CSP(server.ServerConfig.CSP),
 		middlewares.Etag,
@@ -138,7 +137,6 @@ func (s *Server) setupRoutes() {
 	router.Get("/", handlers.Front())
 	// Access routes.
 	router.Group(func(r chi.Router) {
-		r.Use(router.Middlewares()...)
 		r.Use(
 			session.Manager.LoadAndSave,
 		)
@@ -149,7 +147,6 @@ func (s *Server) setupRoutes() {
 
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {
-		r.Use(router.Middlewares()...)
 		r.Use(
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
