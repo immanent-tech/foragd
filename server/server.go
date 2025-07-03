@@ -5,10 +5,17 @@ package server
 
 import (
 	"context"
+	"embed"
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
+	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	gowebly "github.com/gowebly/helpers"
+	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/components/auth"
@@ -16,6 +23,15 @@ import (
 	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/providers/auth0"
 	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/server/handlers"
+	"github.com/joshuar/go-feed-me/server/middlewares"
+)
+
+const (
+	// ServerReadTimeout is the default read timeout for the server.
+	ServerReadTimeout = 5 * time.Second
+	// ServerWriteTimeout is the default write timeout for the server.
+	ServerWriteTimeout = 10 * time.Second
 )
 
 const (
@@ -29,17 +45,20 @@ type API struct {
 }
 
 type Server struct {
-	API *API
-	Log *slog.Logger
+	API    *API
+	Log    *slog.Logger
+	server *http.Server
+	static embed.FS
 }
 
 // Ensures we statisfy the ServerInterface interface.
-var _ ServerInterface = (*Server)(nil)
+// var _ ServerInterface = (*Server)(nil)
 
 var ErrStartServer = errors.New("start server failed")
 
-func NewServer(ctx context.Context) (Server, error) {
+func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 	var svr Server
+	svr.static = static
 	// Load the server config.
 	if err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, ServerConfig); err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
@@ -70,7 +89,7 @@ func NewServer(ctx context.Context) (Server, error) {
 		return svr, errors.Join(ErrStartServer, err)
 	}
 	// Set up authentication manager.
-	authAPI, err := auth.NewAuthenticator(ctx, session.Manager)
+	authAPI, err := auth.NewAuthenticator(ctx)
 	if err != nil {
 		return svr, errors.Join(ErrStartServer, err)
 	}
@@ -82,5 +101,92 @@ func NewServer(ctx context.Context) (Server, error) {
 		auth:    authAPI,
 	}
 
+	svr.setupRoutes()
+
 	return svr, nil
+}
+
+func (s *Server) Shutdown(ctx context.Context) error {
+	return s.server.Shutdown(ctx)
+}
+
+func (s *Server) ListenAndServeTLS(cert, key string) error {
+	return s.server.ListenAndServeTLS(cert, key)
+}
+
+func (s *Server) setupRoutes() {
+	// Set up a new chi router.
+	router := chi.NewRouter()
+	router.Use(
+		slogchi.NewWithConfig(slog.Default(), slogchi.Config{WithRequestID: true}),
+		middleware.Recoverer,
+		middleware.RequestID,
+		middleware.RealIP,
+		middlewares.SetupCORS(config.Environment()),
+		// middlewares.CSP(server.ServerConfig.CSP),
+		middlewares.Etag,
+		middlewares.SetupHTMX(),
+	)
+
+	// Routes.
+	//
+	// Static content.
+	router.Group(func(r chi.Router) {
+		r.Handle("/static/*", gowebly.StaticFileServerHandler(http.FS(s.static)))
+	})
+	// Front page.
+	router.Get("/", handlers.Front())
+	// Access routes.
+	router.Group(func(r chi.Router) {
+		r.Use(router.Middlewares()...)
+		r.Use(
+			session.Manager.LoadAndSave,
+		)
+		r.Get("/login/{provider}", handlers.Login(s.AuthAPI()))
+		r.Get("/login/{provider}/callback", handlers.LoginCallback(s.AuthAPI()))
+		r.Get("/logout", handlers.Logout())
+	})
+
+	// Authenticated routes.
+	router.Group(func(r chi.Router) {
+		r.Use(router.Middlewares()...)
+		r.Use(
+			middlewares.SetupElastic(),
+			session.Manager.LoadAndSave,
+			handlers.RequireUserAuth(s.DataAPI(), s.AuthAPI()),
+		)
+		r.Get("/home", handlers.Home(s.DataAPI()))
+		r.Route("/settings", func(r chi.Router) {
+			r.Route("/theme", func(r chi.Router) {
+				r.Get("/", handlers.GetTheme())
+				r.Put("/", handlers.SetTheme(s.DataAPI()))
+			})
+		})
+		// Subscription routes.
+		r.Get("/subscriptions/state", handlers.GetSubscriptionStates(s.DataAPI()))
+		r.Get("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))
+		r.Post("/subscriptions", handlers.PaginateSubscriptions(s.DataAPI()))
+		r.Post("/subscriptions/mark/{mark}", handlers.MarkSubscriptions(s.DataAPI()))
+		r.Post("/subscriptions/remove", handlers.RemoveSubscriptions(s.DataAPI()))
+		// Article routes.
+		r.Get("/articles", handlers.GetArticles(s.DataAPI()))
+		r.Post("/articles", handlers.PaginateArticles(s.DataAPI()))
+		r.Post("/articles/mark/{mark}", handlers.MarkArticles(s.DataAPI()))
+		// Article route.
+		r.Get("/view/{subscription}/{item}", handlers.ViewArticle(s.DataAPI()))
+		// User routes.
+		r.Route("/user", func(r chi.Router) {
+			r.Route("/subscription", func(r chi.Router) {
+				r.Get("/new", handlers.NewSubscription())
+				r.Get("/edit/{subscription}", handlers.EditSubscription(s.DataAPI()))
+				r.Put("/edit/{subscription}", handlers.SaveSubscription(s.DataAPI()))
+			})
+		})
+	})
+
+	s.server = &http.Server{
+		Handler:           router,
+		Addr:              fmt.Sprintf(":%d", Port()),
+		ReadHeaderTimeout: ServerReadTimeout,
+	}
 }

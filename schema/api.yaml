@@ -102,7 +102,7 @@ components:
                 $ref: 'models.yaml#/components/schemas/SubscriptionID'
               x-oapi-codegen-extra-tags:
                 json: 'subscriptions'
-                form: 'subscriptions[]'
+                form: 'subscriptions'
                 validate: 'omitnil,unique,dive,startswith=sub_'
               x-go-type-skip-optional-pointer: true
             pagination:
@@ -143,6 +143,9 @@ components:
       enum: ['yes', 'no', 'cancel']
       default: 'no'
       x-go-type-skip-optional-pointer: true
+      x-oapi-codegen-extra-tags:
+        form: 'confirmation'
+        validate: 'required,oneof=yes no cancel'
     UserSignupRequest:
       description: >
         contains the details for a user signup request.
@@ -218,6 +221,68 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             form: 'user_categories[]'
+    MarkSubscriptionsRequest:
+      description: >
+        represents a user request for marking a subscription or collection of subscriptions as read or unread.
+      type: object
+      required:
+        - subscriptions
+      properties:
+        subscriptions:
+          description: >
+            is a list of subscription IDs.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/SubscriptionID'
+          x-oapi-codegen-extra-tags:
+            json: 'subscriptions'
+            form: 'subscriptions'
+            validate: 'omitnil,unique,dive,startswith=sub_'
+          x-go-type-skip-optional-pointer: true
+        redirect:
+          $ref: '#/components/schemas/Redirect'
+    RemoveSubscriptionsRequest:
+      description: >
+        represents a user request for unsubscribing from subscriptions.
+      type: object
+      required:
+        - subscriptions
+        - confirmation
+      properties:
+        subscriptions:
+          description: >
+            is a list of subscription IDs.
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/SubscriptionID'
+          x-oapi-codegen-extra-tags:
+            json: 'subscriptions'
+            form: 'subscriptions'
+            validate: 'omitnil,unique,dive,startswith=sub_'
+          x-go-type-skip-optional-pointer: true
+        confirmation:
+          $ref: '#/components/schemas/UserConfirmation'
+    MarkArticlesRequest:
+      description: >
+        represents a user request for marking a collection of articles as read or unread.
+      type: object
+      required:
+        - articles
+      properties:
+        articles:
+          description: >
+            is a list of articles by subscription.
+          type: array
+          items:
+            type: string
+          x-oapi-codegen-extra-tags:
+            json: 'articles'
+            form: 'articles'
+            validate: 'omitnil,unique'
+          x-go-type-skip-optional-pointer: true
+        redirect:
+          $ref: '#/components/schemas/Redirect'
+
     UserMessage:
       description: >
         represents a message that can be displayed to the user as the result of an action.
@@ -263,3 +328,10 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             json: '-'
+    Redirect:
+      description: >
+        specifies a location to which the client should be redirected on a successful request. Used to perform a
+        client-side redirection with htmx.
+      type: string
+      x-oapi-codegen-extra-tags:
+        form: 'redirect'

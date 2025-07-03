@@ -20,6 +20,7 @@ import (
 	"github.com/markbates/goth/providers/auth0"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
 )
 
@@ -76,14 +77,12 @@ type SessionAPI interface {
 }
 
 // Authenticator manages user authentication to a provider.
-type Authenticator struct {
-	session SessionAPI
-}
+type Authenticator struct{}
 
 // Get returns a cached user session from the store.
 func (a *Authenticator) Get(req *http.Request, name string) (*sessions.Session, error) {
 	slogctx.FromCtx(req.Context()).Debug("Fetching session.", slog.String("name", name))
-	currentSession, ok := a.session.Get(req.Context(), name).(*sessions.Session)
+	currentSession, ok := session.Manager.Get(req.Context(), name).(*sessions.Session)
 	if !ok {
 		var err error
 		currentSession, err = a.New(req, name)
@@ -100,13 +99,13 @@ func (a *Authenticator) Get(req *http.Request, name string) (*sessions.Session, 
 // Note that New should never return a nil session, even in the case of
 // an error if using the Registry infrastructure to cache the session.
 func (a *Authenticator) New(req *http.Request, name string) (*sessions.Session, error) {
-	if !a.session.Exists(req.Context(), name) {
+	if !session.Manager.Exists(req.Context(), name) {
 		newSession := &sessions.Session{
 			Values:  make(map[any]any),
 			Options: new(sessions.Options),
 			ID:      models.NewID(models.SessionPFX),
 		}
-		a.session.Put(req.Context(), name, newSession)
+		session.Manager.Put(req.Context(), name, newSession)
 		slogctx.FromCtx(req.Context()).Debug("Created new session.")
 		return newSession, nil
 	} else {
@@ -116,7 +115,7 @@ func (a *Authenticator) New(req *http.Request, name string) (*sessions.Session, 
 
 // Save should persist session to the underlying store implementation.
 func (a *Authenticator) Save(req *http.Request, _ http.ResponseWriter, s *sessions.Session) error {
-	a.session.Put(req.Context(), s.Name(), s)
+	session.Manager.Put(req.Context(), s.Name(), s)
 	slogctx.FromCtx(req.Context()).Debug("Saved session.")
 	return nil
 }
@@ -132,7 +131,7 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 		return fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
-	value := a.session.GetString(req.Context(), providerName)
+	value := session.Manager.GetString(req.Context(), providerName)
 	if value == "" {
 		return fmt.Errorf("%w: no session found", ErrAuth)
 	}
@@ -167,7 +166,7 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 		return fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
-	a.session.Put(req.Context(), providerName, sess.Marshal())
+	session.Manager.Put(req.Context(), providerName, sess.Marshal())
 
 	gu, err := provider.FetchUser(sess)
 	if err != nil {
@@ -201,18 +200,18 @@ func (a *Authenticator) GetAuthURL(req *http.Request) (string, error) {
 		return "", fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 	slogctx.FromCtx(req.Context()).Debug("Initialised provider", slog.String("provider", providerName))
-	a.session.Put(req.Context(), providerName, sess.Marshal())
+	session.Manager.Put(req.Context(), providerName, sess.Marshal())
 	return url, nil
 }
 
 // SetProviderName sets the provider to use for authentication.
 func (a *Authenticator) SetProviderName(ctx context.Context, provider string) {
-	a.session.Put(ctx, "provider", provider)
+	session.Manager.Put(ctx, "provider", provider)
 }
 
 // GetProviderName gets the provider to use for authentication.
 func (a *Authenticator) GetProviderName(req *http.Request) (string, error) {
-	provider := a.session.GetString(req.Context(), "provider")
+	provider := session.Manager.GetString(req.Context(), "provider")
 	if provider == "" {
 		return "", fmt.Errorf("%w: no auth provider found", ErrAuth)
 	}
@@ -221,7 +220,7 @@ func (a *Authenticator) GetProviderName(req *http.Request) (string, error) {
 
 // StoreUserAuth stores the user authentication session returned from a provider in the session store.
 func (a *Authenticator) StoreUserAuth(ctx context.Context, user UserAuth) {
-	a.session.Put(ctx, "user", user)
+	session.Manager.Put(ctx, "user", user)
 	slogctx.FromCtx(ctx).Debug("Stored user auth.")
 }
 
@@ -235,40 +234,38 @@ func (a *Authenticator) GetUserID(ctx context.Context) models.UserID {
 
 // GetUserAuth retrieves the user authentication session session store.
 func (a *Authenticator) GetUserAuth(ctx context.Context) (UserAuth, bool) {
-	user, found := a.session.Get(ctx, "user").(UserAuth)
+	user, found := session.Manager.Get(ctx, "user").(UserAuth)
 	if !found {
 		return UserAuth{}, false
 	}
 	return user, true
 }
 
-// Logout performs a logout operation for the user. This will invalidate any active session and redirect the user to the
-// home page.
-func (a *Authenticator) Logout() http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		slogctx.FromCtx(req.Context()).Info("logging out")
-		if err := gothic.Logout(res, req); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Logout failed.",
-				slog.Any("error", err))
-		}
-		slogctx.FromCtx(req.Context()).Debug("User logged out.")
-		res.Header().Set("Location", "/")
-		res.WriteHeader(http.StatusTemporaryRedirect)
-	})
-}
-
-// func (a *Authenticator) LoadAndSave() func(next http.Handler) http.Handler {
-// 	return a.session.LoadAndSave
+// // Logout performs a logout operation for the user. This will invalidate any active session and redirect the user to the
+// // home page.
+// func (a *Authenticator) Logout() http.Handler {
+// 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+// 		slogctx.FromCtx(req.Context()).Info("logging out")
+// 		if err := gothic.Logout(res, req); err != nil {
+// 			slogctx.FromCtx(req.Context()).Error("Logout failed.",
+// 				slog.Any("error", err))
+// 		}
+// 		slogctx.FromCtx(req.Context()).Debug("User logged out.")
+// 		res.Header().Set("Location", "/")
+// 		res.WriteHeader(http.StatusTemporaryRedirect)
+// 	})
 // }
 
-func NewAuthenticator(ctx context.Context, sessionAPI SessionAPI) (*Authenticator, error) {
+// func (a *Authenticator) LoadAndSave() func(next http.Handler) http.Handler {
+// 	return session.Manager.LoadAndSave
+// }
+
+func NewAuthenticator(ctx context.Context) (*Authenticator, error) {
 	if err := loadConfigOnce(); err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrAuth, err)
 	}
 
-	authenticator := &Authenticator{
-		session: sessionAPI,
-	}
+	authenticator := &Authenticator{}
 
 	goth.UseProviders(
 		auth0.New(auth0Config.ClientID, auth0Config.ClientSecret, auth0Config.domainURL(), auth0Config.Domain),

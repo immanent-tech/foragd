@@ -136,16 +136,20 @@ func SubscriptionFiltersValidation(sl validator.StructLevel) {
 	}
 }
 
-// Valid will return a boolean indicating whether the filters are valid and a
-// non-nil error with details if not.
-func (f *SubscriptionFilters) Valid() (bool, error) {
-	// Register custom struct-level validation function.
-	validation.AddStructValidationFunc(SubscriptionFiltersValidation, SubscriptionFilters{})
+func (f *SubscriptionFilters) Sanitise() error {
 	// Set required filters to valid values as necessary.
 	f.SortBy = setValidSortBy(f.SortBy)
 	f.SortOrder = setValidSortOrder(f.SortOrder)
 	f.Count = setValidCount(f.Count)
 	f.View = setValidView(f.View)
+	return nil
+}
+
+// Valid will return a boolean indicating whether the filters are valid and a
+// non-nil error with details if not.
+func (f *SubscriptionFilters) Valid() (bool, error) {
+	// Register custom struct-level validation function.
+	validation.AddStructValidationFunc(SubscriptionFiltersValidation, SubscriptionFilters{})
 	// Validate struct.
 	return validation.ValidateStruct(f)
 }
@@ -224,16 +228,20 @@ func ArticleFiltersValidation(sl validator.StructLevel) {
 	}
 }
 
-// Valid will return a boolean indicating whether the filters are valid and a
-// non-nil error with details if not.
-func (f *ArticleFilters) Valid() (bool, error) {
-	// Register custom struct-level validation function.
-	validation.AddStructValidationFunc(ArticleFiltersValidation, ArticleFilters{})
+func (f *ArticleFilters) Sanitise() error {
 	// Set required filters to valid values as necessary.
 	f.SortBy = setValidSortBy(f.SortBy)
 	f.SortOrder = setValidSortOrder(f.SortOrder)
 	f.Count = setValidCount(f.Count)
 	f.View = setValidView(f.View)
+	return nil
+}
+
+// Valid will return a boolean indicating whether the filters are valid and a
+// non-nil error with details if not.
+func (f *ArticleFilters) Valid() (bool, error) {
+	// Register custom struct-level validation function.
+	validation.AddStructValidationFunc(ArticleFiltersValidation, ArticleFilters{})
 	// Validate struct.
 	return validation.ValidateStruct(f)
 }

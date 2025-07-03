@@ -7,18 +7,20 @@ package handlers
 import (
 	"context"
 	"errors"
+	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
+	"time"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/views"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
@@ -49,13 +51,6 @@ const (
 
 type contextKey string
 
-// AuthAPI represents the API surface for interacting with the auth backend.
-type AuthAPI interface {
-	GetAuthURL(req *http.Request) (string, error)
-	CompleteUserAuth(res http.ResponseWriter, req *http.Request) error
-	GetUserID(ctx context.Context) models.UserID
-}
-
 // RouteLogger decorates the logger in the request context with routing information.
 func RouteLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -68,130 +63,139 @@ func RouteLogger(next http.Handler) http.Handler {
 	})
 }
 
-// RenderPage will render a full page (i.e. non-HTMX) response.
-func RenderPage() http.Handler {
-	return http.HandlerFunc(
-		func(res http.ResponseWriter, req *http.Request) {
-			// Get main content.
-			page, ok := req.Context().Value(pageCtxKey).(templ.Component)
-			if !ok {
-				slogctx.FromCtx(req.Context()).Warn("Invalid or missing page content.")
-				http.Error(res, "Invalid page content.", http.StatusInternalServerError)
-				return
+func RenderTemplate() http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Retrieve the template from the context.
+		template := templateFromCtx(req.Context())
+		if htmx.IsHTMX(req) {
+			// Get any existing htmx response writer.
+			resp := htmxRespFromCtx(req.Context())
+			if template != nil {
+				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
+					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+					http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+					return
+				}
+			} else {
+				if err := resp.Write(res); err != nil {
+					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+					http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+					return
+				}
+				res.WriteHeader(http.StatusOK)
 			}
-			if err := page.Render(req.Context(), res); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
-			}
-		})
-}
-
-// RenderContentPage will render a full page (i.e. non-HTMX) response.
-func RenderContentPage() http.Handler {
-	return http.HandlerFunc(
-		func(res http.ResponseWriter, req *http.Request) {
-			var drawerContent templ.Component
-			// Get drawer main content.
-			if content := getTemplatesFromCtx(req.Context()); len(content) != 0 {
-				// Wrap main content.
-				drawerContent = templ.Join(views.Header(), partials.Content(templ.Join(content...)), partials.Footer())
-			}
-			// Get page title.
-			title, ok := req.Context().Value(titleCtxKey).(string)
-			if !ok {
-				title = "Go Feed Me"
-			}
-			ctx := templ.WithChildren(req.Context(), partials.Drawer(drawerContent))
-			if err := views.NewPage(title).Render(ctx, res); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
-			}
-		})
-}
-
-// RenderContentPartials will render individual content updates (i.e., HTMX response).
-func RenderContentPartials() http.Handler {
-	return http.HandlerFunc(
-		func(res http.ResponseWriter, req *http.Request) {
-			var partials []templ.Component
-			// Add any content updates.
-			content := getTemplatesFromCtx(req.Context())
-			if len(content) > 0 {
-				partials = append(partials, content...)
+		} else {
+			if template != nil {
+				if err := template.Render(req.Context(), res); err != nil {
+					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+					http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+					return
+				}
 			} else {
 				res.WriteHeader(http.StatusOK)
-				return
 			}
-			// Add any page title updates.
-			if title, ok := req.Context().Value(titleCtxKey).(string); ok {
-				partials = append(partials, views.SetPageTitle(title))
-			}
-			// Get any existing htmx response writer.
-			resp, ok := req.Context().Value(htmxRespCtxKey).(htmx.Response)
-			if !ok {
-				resp = htmx.NewResponse()
-			}
-			// Render as a template.
-			if err := resp.RenderTempl(req.Context(), res, templ.Join(partials...)); err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
-			}
-
-			errResp, found := req.Context().Value(respCtxKey).(*models.Response)
-			if found {
-				slogctx.FromCtx(req.Context()).Error("Response error.",
-					slog.Any("error", errResp.Error),
-				)
-				res.WriteHeader(errResp.StatusCode)
-			}
-		})
+		}
+	})
 }
 
-// RenderContentPage will render a full page (i.e. non-HTMX) response.
-func RenderContent() http.Handler {
-	return http.HandlerFunc(
-		func(res http.ResponseWriter, req *http.Request) {
-			var template templ.Component
-			// Get content templates.
-			content := getTemplatesFromCtx(req.Context())
-			if len(content) == 0 {
+func RenderTemplateFragments(fragments ...string) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if !htmx.IsHTMX(req) {
+			slogctx.FromCtx(req.Context()).Error("Render template fragments called with non-htmx request.")
+			http.Error(res, "Render template fragments called with non-htmx request.", http.StatusInternalServerError)
+			return
+		}
+		// Get any existing htmx response writer.
+		resp := htmxRespFromCtx(req.Context())
+		// Set the fragments to be rendered.
+		req = req.WithContext(partials.WithFragment(req.Context(), res, fragments...))
+		err := resp.Write(res)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+			http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
+			return
+		}
+		// Retrieve the template from the context.
+		template := templateFromCtx(req.Context())
+		if template != nil {
+			err = template.Render(req.Context(), io.Discard)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
 				return
 			}
-			// Get page title.
-			title, ok := req.Context().Value(titleCtxKey).(string)
-			if !ok {
-				title = "Go Feed Me"
+		} else {
+			res.WriteHeader(http.StatusOK)
+		}
+	})
+}
+
+// TriggerStateUpdates adds a htmx trigger to the response to send the "updateState" event, which elements on a page may
+// listen to for updating their state.
+func TriggerStateUpdates(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		slogctx.FromCtx(req.Context()).Debug("Adding updateState event trigger.")
+		resp := htmxRespFromCtx(req.Context())
+		ctx := htmxRespToCtx(req.Context(), resp.AddTrigger(htmx.Trigger("updateState")))
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+// SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
+// been made through HTMX.
+func SetupRedirect(path *string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			ctx := req.Context()
+			if htmx.IsHTMX(req) && path != nil {
+				var route string
+				var values map[string]string
+				switch {
+				case path == nil:
+					route = "/home"
+				case *path == "/subscriptions":
+					route = *path
+					values = session.SubscriptionFiltersFromSession(ctx).Parameters()
+				case *path == "/articles":
+					route = *path
+					values = session.ArticleFiltersFromSession(ctx).Parameters()
+				}
+				// Set-up client-side redirect to view.
+				htmxResp := htmx.NewResponse().LocationWithContext(
+					route,
+					htmx.LocationContext{
+						Target: partials.ContentID.Target(),
+						Values: values,
+					})
+				ctx = context.WithValue(ctx, htmxRespCtxKey, htmxResp)
+				slogctx.FromCtx(ctx).Debug("Redirect in place.",
+					slog.String("redirect", route),
+				)
 			}
-
-			switch htmx.IsHTMX(req) {
-			case false:
-				content = append([]templ.Component{views.Header()}, partials.Content(templ.Join(content...)))
-				content = append(content, partials.Footer())
-				// Render page.
-				ctx := templ.WithChildren(req.Context(), partials.Drawer(content...))
-				if err := views.NewPage(title).Render(ctx, res); err != nil {
-					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-					http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
-				}
-			default:
-				content = append(content, views.SetPageTitle(title))
-				template = templ.Join(content...)
-				// Get any existing htmx response writer.
-				resp := htmxRespFromCtx(req.Context())
-				// Render as a template.
-				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
-				}
-
-				errResp, found := req.Context().Value(respCtxKey).(*models.Response)
-				if found {
-					slogctx.FromCtx(req.Context()).Error("Response error.",
-						slog.Any("error", errResp.Error),
-					)
-					res.WriteHeader(errResp.StatusCode)
-				}
-
-			}
+			next.ServeHTTP(res, req.WithContext(ctx))
 		})
+	}
+}
+
+// SavePageState saves the current page state in the session.
+func SavePageState(filters any) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			// Generate state.
+			session.FiltersToSession(req.Context(), filters)
+			next.ServeHTTP(res, req)
+		})
+	}
+}
+
+func RenderError(res http.ResponseWriter, req *http.Request, resp *models.Response) {
+	slogctx.FromCtx(req.Context()).Error("Backend returned an error.",
+		slog.String("error", resp.String()),
+	)
+	res.WriteHeader(resp.StatusCode)
+	res.Write([]byte(resp.String()))
+	// // Write the status code.
+	// res.WriteHeader(resp.StatusCode)
 }
 
 // ProcessResponse handles appropriate display and logging of a models.Response object.
@@ -199,6 +203,62 @@ func ProcessResponse(res http.ResponseWriter, req *http.Request, resp *models.Re
 	slogctx.FromCtx(req.Context()).Error("Backend returned an error.",
 		slog.String("error", resp.String()),
 	)
+	ctx := templateToCtx(req.Context(), partials.ShowNotification(
+		&models.UserMessage{
+			Status:  models.UserMessageStatusWarning,
+			Summary: "A backend error occurred processing the action.",
+		},
+	))
+	RenderTemplate().ServeHTTP(res, req.WithContext(ctx))
 	// Write the status code.
 	res.WriteHeader(resp.StatusCode)
+}
+
+func GetSettings(api models.DocumentsAPI) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		chain := alice.New(
+			RouteLogger,
+			GenerateSettings,
+		)
+
+		chain.Then(RenderTemplate()).ServeHTTP(res, req)
+	}
+}
+
+func GetTheme() http.HandlerFunc {
+	return alice.New(
+		RouteLogger,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			ProcessResponse(res, req, models.RespErrUnauthorized())
+			return
+		}
+		res.WriteHeader(http.StatusOK)
+		if _, err := res.Write([]byte(user.GetSettings().Theme)); err != nil {
+			ProcessResponse(res, req, models.RespErrBackend(err))
+		}
+	}).ServeHTTP
+}
+
+func SetTheme(api models.DocumentsAPI) http.HandlerFunc {
+	return alice.New(
+		RouteLogger,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		theme := req.FormValue("theme")
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			ProcessResponse(res, req, models.RespErrUnauthorized())
+			return
+		}
+		settings := user.GetSettings()
+		settings.Theme = theme
+		if err := api.UpdateUser(req.Context(), map[string]any{
+			"settings":   settings,
+			"updated_at": time.Now().UTC(),
+		}); err != nil {
+			ProcessResponse(res, req, models.NewResponse(http.StatusNoContent, fmt.Errorf("failed to update theme: %w", err)))
+		}
+		GetSettings(api)
+	}).ServeHTTP
 }

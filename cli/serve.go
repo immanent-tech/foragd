@@ -16,17 +16,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	gowebly "github.com/gowebly/helpers"
-	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/components/config"
-	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/server"
-	"github.com/joshuar/go-feed-me/server/handlers"
-	"github.com/joshuar/go-feed-me/server/middlewares"
 )
 
 // ErrServerCmd indicates an error occurred when running the server command.
@@ -54,38 +47,38 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 	ctx = slogctx.NewCtx(ctx, opts.Logger)
 
 	// Set up a new server interface.
-	svr, err := server.NewServer(ctx)
+	svr, err := server.NewServer(ctx, opts.StaticContent)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrServerCmd, err)
 	}
 
-	// Set up a new chi router.
-	router := chi.NewRouter()
-	router.Handle("/static/*", middlewares.Etag(gowebly.StaticFileServerHandler(http.FS(opts.StaticContent))))
+	// // Set up a new chi router.
+	// router := chi.NewRouter()
+	// router.Handle("/static/*", middlewares.Etag(gowebly.StaticFileServerHandler(http.FS(opts.StaticContent))))
 
-	// Get an `http.Handler` that we can use from the router and server.
-	// handler := server.GenerateHandler(svr, router)
-	handler := server.HandlerWithOptions(svr, server.ChiServerOptions{
-		BaseRouter: router,
-		Middlewares: []server.MiddlewareFunc{
-			slogchi.NewWithConfig(slog.Default(), slogchi.Config{WithRequestID: true}),
-			middleware.Recoverer,
-			middleware.RequestID,
-			middleware.RealIP,
-			middlewares.SetupCORS(config.Environment()),
-			// middlewares.CSP(server.ServerConfig.CSP),
-			middlewares.SetupElastic(),
-			handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),
-			middlewares.SetupHTMX(),
-			middlewares.Etag,
-			session.Manager.LoadAndSave,
-		},
-	})
-	serverObj := &http.Server{
-		Handler:           handler,
-		Addr:              fmt.Sprintf(":%d", server.Port()),
-		ReadHeaderTimeout: ServerReadTimeout,
-	}
+	// // Get an `http.Handler` that we can use from the router and server.
+	// // handler := server.GenerateHandler(svr, router)
+	// handler := server.HandlerWithOptions(svr, server.ChiServerOptions{
+	// 	BaseRouter: router,
+	// 	Middlewares: []server.MiddlewareFunc{
+	// 		slogchi.NewWithConfig(slog.Default(), slogchi.Config{WithRequestID: true}),
+	// 		middleware.Recoverer,
+	// 		middleware.RequestID,
+	// 		middleware.RealIP,
+	// 		middlewares.SetupCORS(config.Environment()),
+	// 		// middlewares.CSP(server.ServerConfig.CSP),
+	// 		middlewares.SetupElastic(),
+	// 		handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),
+	// 		middlewares.SetupHTMX(),
+	// 		middlewares.Etag,
+	// 		session.Manager.LoadAndSave,
+	// 	},
+	// })
+	// serverObj := &http.Server{
+	// 	Handler:           handler,
+	// 	Addr:              fmt.Sprintf(":%d", server.Port()),
+	// 	ReadHeaderTimeout: ServerReadTimeout,
+	// }
 
 	wg.Add(1)
 	// Listen for shutdown events and process them.
@@ -97,7 +90,7 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 		signal.Notify(stop, os.Interrupt)
 		<-stop
 
-		err = serverObj.Shutdown(context.Background())
+		err = svr.Shutdown(context.Background())
 		// can't do much here except for logging any errors
 		if err != nil {
 			log.Printf("error during shutdown: %v\n", err)
@@ -120,7 +113,7 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 		slog.String("environment", config.Environment()))
 
 	// And we serve HTTP until the world ends.
-	err = serverObj.ListenAndServeTLS("localhost.crt", "localhost.key")
+	err = svr.ListenAndServeTLS("localhost.crt", "localhost.key")
 	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
 		svr.Log.Info("commencing server shutdown...")
 		wg.Wait()

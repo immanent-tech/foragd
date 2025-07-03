@@ -478,3 +478,40 @@ func (s *SubscriptionEdit) Sanitise() error {
 	s.Categories = categories
 	return nil
 }
+
+// Valid returns a boolean indicating whether the object is valid.
+func (r *MarkSubscriptionsRequest) Valid() (bool, error) {
+	if r == nil {
+		return false, fmt.Errorf("request is invalid: %w", validation.ErrNilObject)
+	}
+	valid, err := validation.ValidateStruct(r)
+	if !valid || err != nil {
+		return false, fmt.Errorf("request is invalid: %w", err)
+	}
+	return true, nil
+}
+
+// Sanitise will sanitise the input values.
+func (r *MarkSubscriptionsRequest) Sanitise() error {
+	return nil
+}
+
+// Valid returns a boolean indicating whether the object is valid.
+func (r *RemoveSubscriptionsRequest) Valid() (bool, error) {
+	if r == nil {
+		return false, fmt.Errorf("request is invalid: %w", validation.ErrNilObject)
+	}
+	valid, err := validation.ValidateStruct(r)
+	if !valid || err != nil {
+		return false, fmt.Errorf("request is invalid: %w", err)
+	}
+	return true, nil
+}
+
+// Sanitise will sanitise the input values.
+func (r *RemoveSubscriptionsRequest) Sanitise() error {
+	if r.Confirmation == "" {
+		r.Confirmation = UserConfirmationNo
+	}
+	return nil
+}

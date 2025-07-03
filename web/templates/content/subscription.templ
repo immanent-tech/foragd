@@ -17,7 +17,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"net/url"
 	"strconv"
 )
 
@@ -67,7 +66,7 @@ templ (c *Subscription) Edit() {
 			partials.IconText(tabler.Edit(i.Props{Size: i.SizeXS}), "Edit Subcription")),
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(templ.Attributes{
-			"hx-get":    "/subscription/edit/" + c.GetID(),
+			"hx-get":    "/user/subscription/edit/" + c.GetID(),
 			"hx-target": partials.ModalContainerID.Target(),
 			"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
 		}),
@@ -77,15 +76,17 @@ templ (c *Subscription) Edit() {
 
 // Unsubscribe is the action for unsubscribing from a subscription.
 func (c *Subscription) Unsubscribe() templ.Component {
-	parameters := make(url.Values)
-	parameters.Add(models.ParamSubscriptions, c.GetID())
-	parameters.Add("confirmation", "no")
+	parameters := map[string]string{
+		"subscriptions": c.GetID(),
+		"confirmation":  "no",
+	}
 	return link.Build(
 		link.WithContent(
 			partials.IconText(tabler.Trash(i.Props{Size: i.SizeXS}), "Unsubscribe")),
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(templ.Attributes{
-			"hx-post":   "/subscriptions/remove?" + parameters.Encode(),
+			"hx-post":   "/subscriptions/remove",
+			"hx-vals":   partials.GenerateHXVals(parameters),
 			"hx-target": partials.ModalContainerID.Target(),
 			"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
 		}),
@@ -190,26 +191,29 @@ templ (c *Subscription) Card() {
 }
 
 func (c *Subscription) markAttributes() templ.Attributes {
+	parameters := map[string]string{
+		"subscriptions": c.GetID(),
+	}
 	// Create htmx attributes: don't replace URL, swap the subscription card only.
 	attrs := templ.Attributes{
 		"hx-replace-url":  "false",
 		"hx-target":       "#" + c.GetID(),
 		"hx-target-error": partials.ErrorID.Target(),
 		"hx-swap":         "outerHTML",
-		"_":               "on htmx:afterRequest send UpdateState to #drawer-subscriptions-list",
+		"hx-vals":         partials.GenerateHXVals(parameters),
 	}
 	if c.IsUnread() {
-		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead) + "?subscriptions=" + c.GetID()
+		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead)
 		return attrs
 	}
-	attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread) + "?subscriptions=" + c.GetID()
+	attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread)
 	return attrs
 }
 
 func (c *Subscription) viewAttributes() templ.Attributes {
 	overrides := map[string]string{
-		models.ParamSortBy:        string(models.SortByLastUpdated),
-		models.ParamSubscriptions: c.GetID(),
+		models.ParamSortBy: string(models.SortByLastUpdated),
+		"subscriptions":    c.GetID(),
 	}
 	if c.IsUnread() {
 		overrides[models.ParamView] = string(models.ViewUnread)

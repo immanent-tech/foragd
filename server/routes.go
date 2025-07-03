@@ -5,16 +5,10 @@ package server
 
 import (
 	"errors"
-	"fmt"
-	"io"
 	"log/slog"
 	"net/http"
-	"slices"
-	"time"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -23,8 +17,6 @@ import (
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/server/handlers"
 	"github.com/joshuar/go-feed-me/views"
-	"github.com/joshuar/go-feed-me/web/templates/content"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
 var ErrInvalidParam = errors.New("invalid parameter")
@@ -33,7 +25,7 @@ var ErrInvalidParam = errors.New("invalid parameter")
 func (s Server) SignUp(res http.ResponseWriter, req *http.Request) {
 	alice.New(
 		handlers.NewUserSignup,
-	).Then(handlers.RenderPage()).ServeHTTP(res, req)
+	).Then(handlers.RenderTemplate()).ServeHTTP(res, req)
 }
 
 // ProcessSignUp handles validating and processing a user sign-up request.
@@ -56,309 +48,11 @@ func (s Server) ProcessSignUp(res http.ResponseWriter, req *http.Request) {
 	alice.New(
 		handlers.RouteLogger,
 		handlers.ProcessUserSignup(s.UserAPI(), s.DataAPI(), userSignup),
-	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
-}
-
-// Index handler handles the index page.
-func (s Server) Index(res http.ResponseWriter, req *http.Request) {
-	alice.New(
-		handlers.RouteLogger,
-	).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
-		indexLayout := &layouts.IndexLayout{}
-		ctx := templ.WithChildren(req.Context(), indexLayout.FullRender())
-		if err := views.NewPage("Go Feed Me").Render(ctx, res); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-			http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
-		}
-	}).ServeHTTP(res, req)
-}
-
-// Login handler handles login requests.
-func (s Server) Login(res http.ResponseWriter, req *http.Request, provider string) {
-	s.AuthAPI().SetProviderName(req.Context(), provider)
-	chain := alice.New(
-		handlers.RouteLogger,
-	).Then(handlers.PerformAuth(s.AuthAPI()))
-	chain.ServeHTTP(res, req)
-}
-
-// LoginCallback handles the callback from login providers.
-func (s Server) LoginCallback(res http.ResponseWriter, req *http.Request, provider string) {
-	s.AuthAPI().SetProviderName(req.Context(), provider)
-	chain := alice.New(
-		handlers.RouteLogger,
-	).Then(handlers.AuthCallback(s.AuthAPI()))
-	chain.ServeHTTP(res, req)
-}
-
-// GetSettings handles opening the settings modal.
-func (s Server) GetSettings(res http.ResponseWriter, req *http.Request) {
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.GenerateSettings,
-	)
-
-	switch htmx.IsHTMX(req) {
-	case true:
-		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
-	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
-	}
-}
-
-// GetTheme retrieves the user's chosen theme.
-func (s Server) GetTheme(res http.ResponseWriter, req *http.Request) {
-	handler := handlers.BaseChain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			handlers.ProcessResponse(res, req, models.RespErrUnauthorized())
-			return
-		}
-		res.WriteHeader(http.StatusOK)
-		if _, err := res.Write([]byte(user.GetSettings().Theme)); err != nil {
-			handlers.ProcessResponse(res, req, models.RespErrBackend(err))
-		}
-	})
-	handler.ServeHTTP(res, req)
-}
-
-// SetTheme saves the user's chosen theme.
-func (s Server) SetTheme(res http.ResponseWriter, req *http.Request) {
-	theme := req.FormValue("theme")
-	user, found := models.UserFromCtx(req.Context())
-	if !found {
-		handlers.ProcessResponse(res, req, models.RespErrUnauthorized())
-		return
-	}
-	settings := user.GetSettings()
-	settings.Theme = theme
-	if err := s.DataAPI().UpdateUser(req.Context(), map[string]any{
-		"settings":   settings,
-		"updated_at": time.Now().UTC(),
-	}); err != nil {
-		handlers.ProcessResponse(res, req, models.NewResponse(http.StatusNoContent, fmt.Errorf("failed to update theme: %w", err)))
-	}
-	s.GetSettings(res, req)
-}
-
-// Logout handler handles user logout.
-func (s Server) Logout(res http.ResponseWriter, req *http.Request) {
-	s.AuthAPI().Logout().ServeHTTP(res, req)
-}
-
-// Home handles display of the home page.
-func (s Server) Home(res http.ResponseWriter, req *http.Request) {
-	alice.New(
-		handlers.RouteLogger,
-		handlers.SavePageState(nil),
-		handlers.GenerateHomeContent(s.DataAPI()),
-	).Then(handlers.RenderContent()).ServeHTTP(res, req)
-}
-
-// func (s Server) ShowSubscriptions(res http.ResponseWriter, req *http.Request, params ShowSubscriptionsParams) {
-// 	filters, err := models.FiltersFromParams[*models.SubscriptionFilters](params)
-// 	if err != nil {
-// 		handlers.ProcessResponse(res, req, models.NewResponse(http.StatusBadRequest, fmt.Errorf("parameters are invalid: %w", err)))
-// 	}
-
-// 	chain := alice.New(
-// 		handlers.RouteLogger,
-// 		handlers.SavePageState(filters),
-// 	)
-
-// 	if filters.Pagination == nil {
-// 		chain = chain.Append(handlers.ViewSubscriptions(s.DataAPI(), filters))
-// 	} else {
-// 		chain = chain.Append(handlers.PaginateSubscriptions(s.DataAPI(), filters))
-// 	}
-
-// 	chain.Then(handlers.RenderContent()).ServeHTTP(res, req)
-// }
-
-func (s Server) ShowSubscriptions(res http.ResponseWriter, req *http.Request, params ShowSubscriptionsParams) {
-	filters, err := models.FiltersFromParams[*models.SubscriptionFilters](params)
-	if err != nil {
-		handlers.ProcessResponse(res, req, models.NewResponse(http.StatusBadRequest, fmt.Errorf("parameters are invalid: %w", err)))
-	}
-
-	alice.New(
-		handlers.RouteLogger,
-		handlers.SavePageState(filters),
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Get subscriptions matching filters.
-		subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), s.DataAPI(), filters)
-		if resp != nil {
-			handlers.ProcessResponse(res, req, resp)
-			return
-		}
-		data := views.NewSubscriptions(subscriptions, filters, pagination)
-
-		page := data.Page()
-
-		if !htmx.IsHTMX(req) {
-			if err := page.Render(req.Context(), res); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
-			}
-		} else {
-			resp := htmx.NewResponse()
-			req = req.WithContext(views.WithFragment(req.Context(), res, "content-header", "content", "content-footer"))
-			err := resp.Write(res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
-			}
-
-			err = page.Render(req.Context(), io.Discard)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
-			}
-		}
-	}).ServeHTTP(res, req)
-}
-
-func (s Server) PaginateSubscriptions(res http.ResponseWriter, req *http.Request, params PaginateSubscriptionsParams) {
-	filters, err := models.FiltersFromParams[*models.SubscriptionFilters](params)
-	if err != nil {
-		handlers.ProcessResponse(res, req, models.NewResponse(http.StatusBadRequest, fmt.Errorf("parameters are invalid: %w", err)))
-	}
-
-	alice.New(
-		handlers.RouteLogger,
-		handlers.SavePageState(filters),
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Get subscriptions matching filters.
-		subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), s.DataAPI(), filters)
-		if resp != nil {
-			handlers.ProcessResponse(res, req, resp)
-			return
-		}
-		cards := make([]templ.Component, 0, len(subscriptions))
-		for subscription := range slices.Values(subscriptions) {
-			cards = append(cards, content.NewSubscriptionContent(subscription).Card())
-		}
-		// Add pagination element if pagination is required.
-		if pagination != "" && len(cards) == filters.GetCount() {
-			// Add pagination htmx props to last article.
-			cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
-		}
-		if err := htmx.NewResponse().RenderTempl(req.Context(), res, templ.Join(cards...)); err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Template failed to render.", slog.Any("error", err))
-		}
-	}).ServeHTTP(res, req)
-}
-
-func (s Server) MarkSubscriptions(res http.ResponseWriter, req *http.Request, mark Mark, params MarkSubscriptionsParams) {
-	alice.New(
-		handlers.RouteLogger,
-		handlers.SetupRedirect(params.Redirect),
-		handlers.MarkSubscriptions(s.DataAPI(), mark, *params.Subscriptions...),
-	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
-}
-
-func (s Server) RemoveSubscriptions(res http.ResponseWriter, req *http.Request, params RemoveSubscriptionsParams) {
-	spew.Dump(params)
-	// Remove requests are only driven by htmx requests.
-	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
-		return
-	}
-	alice.New(
-		handlers.RouteLogger,
-		handlers.RemoveSubscription(s.DataAPI(), *params.Confirmation, *params.Subscriptions...),
-	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
-}
-
-// ShowCollection handles displaying a collection of objects, with optional filtering.
-func (s Server) ShowArticles(res http.ResponseWriter, req *http.Request, params ShowArticlesParams) {
-	filters, err := models.FiltersFromParams[*models.ArticleFilters](params)
-	if err != nil {
-		handlers.ProcessResponse(res, req, models.NewResponse(http.StatusBadRequest, fmt.Errorf("parameters are invalid: %w", err)))
-	}
-
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.SavePageState(filters),
-	)
-
-	if filters.Pagination == nil {
-		chain = chain.Append(handlers.ViewArticles(s.DataAPI(), filters))
-	} else {
-		chain = chain.Append(handlers.PaginateArticles(s.DataAPI(), filters))
-	}
-
-	chain.Then(handlers.RenderContent()).ServeHTTP(res, req)
-}
-
-func (s Server) MarkArticles(res http.ResponseWriter, req *http.Request, mark Mark, params MarkArticlesParams) {
-	alice.New(
-		handlers.RouteLogger,
-		handlers.SetupRedirect(params.Redirect),
-		handlers.MarkArticles(s.DataAPI(), mark, *params.Articles...),
-	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderTemplate()).ServeHTTP(res, req)
 }
 
 func (s Server) ActionArticles(res http.ResponseWriter, req *http.Request, action Action, params ActionArticlesParams) {
 	res.WriteHeader(http.StatusNotImplemented)
-}
-
-// ShowArticle handles showing an article's content.
-func (s Server) ShowArticle(res http.ResponseWriter, req *http.Request, itemID ItemID) {
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.ViewArticle(s.DataAPI(), itemID),
-	)
-
-	switch htmx.IsHTMX(req) {
-	case true:
-		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
-	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
-	}
-}
-
-// EditSubscription handles a request to edit a user's subscription.
-func (s Server) EditSubscription(res http.ResponseWriter, req *http.Request, subscriptionID models.SubscriptionID) {
-	// Edit requests are only driven by htmx requests.
-	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
-		return
-	}
-
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.EditSubscription(s.DataAPI(), subscriptionID),
-	).Then(handlers.RenderContentPartials())
-	chain.ServeHTTP(res, req)
-}
-
-// SaveSubscription handles saving any edits to a user's subscription.
-func (s Server) SaveSubscription(res http.ResponseWriter, req *http.Request, _ models.SubscriptionID) {
-	edits, valid, err := forms.DecodeForm[*models.SubscriptionEdit](req)
-	if err != nil || !valid {
-		handlers.ProcessResponse(res, req, models.RespErrBackend(err))
-		return
-	}
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.SaveSubscription(s.DataAPI(), edits),
-	).Then(handlers.RenderContentPartials())
-	chain.ServeHTTP(res, req)
-}
-
-// NewSubscription handles presenting the user with a form to enter details about a new subscription.
-func (s Server) NewSubscription(res http.ResponseWriter, req *http.Request) {
-	// Add requests are only driven by htmx requests.
-	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
-		return
-	}
-
-	alice.New(
-		handlers.RouteLogger,
-		handlers.NewSubscription,
-	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
 // AddSubscription handles an add subscription request.
@@ -376,23 +70,23 @@ func (s Server) AddSubscription(res http.ResponseWriter, req *http.Request) {
 		handlers.AddFeedsForSubscriptionRequests(s.DataAPI()),
 		handlers.AddSubscriptions(s.DataAPI()),
 		handlers.NewSubscriptionRequestResult,
-	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderTemplate()).ServeHTTP(res, req)
 }
 
-// StartSubscriptionImport handles starting a subscriptions import process for the user.
-func (s Server) StartSubscriptionImport(res http.ResponseWriter, req *http.Request) {
-	chain := alice.New(
-		handlers.RouteLogger,
-		handlers.NewSubscriptionsImport,
-	)
+// // StartSubscriptionImport handles starting a subscriptions import process for the user.
+// func (s Server) StartSubscriptionImport(res http.ResponseWriter, req *http.Request) {
+// 	chain := alice.New(
+// 		handlers.RouteLogger,
+// 		handlers.NewSubscriptionsImport,
+// 	)
 
-	switch htmx.IsHTMX(req) {
-	case true:
-		chain.Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
-	case false:
-		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderContentPage()).ServeHTTP(res, req)
-	}
-}
+// 	switch htmx.IsHTMX(req) {
+// 	case true:
+// 		chain.Then(handlers.RenderTemplate()).ServeHTTP(res, req)
+// 	case false:
+// 		chain.Append(handlers.GenerateDrawerContent(s.DataAPI())).Then(handlers.RenderTemplate()).ServeHTTP(res, req)
+// 	}
+// }
 
 func (f *SetSubscriptionImportMethodFormdataBody) Valid() (bool, error) {
 	valid, err := validation.ValidateStruct(f)
@@ -418,7 +112,7 @@ func (s Server) SetSubscriptionImportMethod(res http.ResponseWriter, req *http.R
 	alice.New(
 		handlers.RouteLogger,
 		handlers.ProcessSubscriptionsImport(string(importMethod.From)),
-	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderTemplate()).ServeHTTP(res, req)
 }
 
 // ProcessSubscriptionImport handles using the user's chosen import method to import their subscriptions.
@@ -437,7 +131,7 @@ func (s Server) ProcessSubscriptionImport(res http.ResponseWriter, req *http.Req
 		handlers.AddFeedsForSubscriptionRequests(s.DataAPI()),
 		handlers.AddSubscriptions(s.DataAPI()),
 		handlers.SubscriptionsImportResults,
-	).Then(handlers.RenderContentPartials())
+	).Then(handlers.RenderTemplate())
 	chain.ServeHTTP(res, req)
 }
 
@@ -447,20 +141,6 @@ func (s Server) SetupSubscriptionsExport(res http.ResponseWriter, req *http.Requ
 
 func (s Server) PerformSubscriptionsExport(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusNotImplemented)
-}
-
-// GetAllSubscriptionsState handles fetching the current state of all user subscriptions.
-func (s Server) GetAllSubscriptionsState(res http.ResponseWriter, req *http.Request) {
-	// Add requests are only driven by htmx requests.
-	if !htmx.IsHTMX(req) {
-		handlers.ProcessResponse(res, req, models.RespForbidden(models.ErrHTMXRequired))
-		return
-	}
-
-	alice.New(
-		handlers.RouteLogger,
-		handlers.GenerateDrawerContent(s.DataAPI()),
-	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
 }
 
 // SearchSuggest handles processing and displaying a list of search suggestions.
@@ -473,7 +153,7 @@ func (s Server) SearchSuggest(res http.ResponseWriter, req *http.Request) {
 	alice.New(
 		handlers.RouteLogger,
 		handlers.GenerateSearchSuggestions(s.DataAPI(), searchTerms),
-	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderTemplate()).ServeHTTP(res, req)
 }
 
 // SearchResults handles processing and displaying a page of search results.
@@ -486,5 +166,5 @@ func (s Server) SearchResults(res http.ResponseWriter, req *http.Request) {
 	alice.New(
 		handlers.RouteLogger,
 		handlers.GenerateSearchResults(s.DataAPI(), searchTerms),
-	).Then(handlers.RenderContentPartials()).ServeHTTP(res, req)
+	).Then(handlers.RenderTemplate()).ServeHTTP(res, req)
 }

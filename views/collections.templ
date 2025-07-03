@@ -18,9 +18,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"net/url"
 	"slices"
-	"strings"
 )
 
 var CardsID = attributes.ID("cards")
@@ -49,13 +47,14 @@ var defaultCardOptions = []card.Option{
 	card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
 }
 
-templ RefreshAction(route string) {
+templ RefreshAction(route string, parameters map[string]string) {
 	@button.Build(
 		button.AsShape(button.Square),
 		button.WithContent(tabler.Refresh(i.Props{Size: i.SizeXS})),
 		button.WithExtraAttributes(templ.Attributes{
 			"hx-get":      route,
 			"hx-include":  "#content-filters",
+			"hx-vals":     partials.GenerateHXVals(parameters),
 			"hx-target":   partials.ContentID.Target(),
 			"hx-push-url": "false",
 			"tabindex":    "0",
@@ -83,32 +82,6 @@ func MarkAllSubscriptionsAction(ctx context.Context, view models.View) templ.Com
 	default:
 		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread)
 		return partials.LinkMarkUnread("Mark All Unread", attrs)
-	}
-}
-
-// MarkAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
-// depending on the current view.
-func MarkAllArticlesAction(ctx context.Context, view models.View, subIDs ...models.SubscriptionID) templ.Component {
-	// Create htmx attributes.
-	attrs := templ.Attributes{
-		"hx-replace-url": "false",
-		"hx-swap":        "innerHTML swap:1s",
-		"_":              "on htmx:afterOnLoad call history.back()",
-	}
-	// Create url parameters.
-	params := make(url.Values)
-	params.Add(models.ParamSubscriptions, strings.Join(subIDs, ","))
-	// params.Add(models.ParamRedirect, "/subscriptions")
-
-	switch view {
-	case models.ViewUnread:
-		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead) + "?" + params.Encode()
-		return partials.LinkMarkRead("Mark All Read", attrs)
-	case models.ViewRead:
-		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread) + "?" + params.Encode()
-		return partials.LinkMarkUnread("Mark All Unread", attrs)
-	default:
-		return nil
 	}
 }
 

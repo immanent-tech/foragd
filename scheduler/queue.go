@@ -11,7 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 	"github.com/reugn/go-quartz/quartz"
@@ -73,7 +72,6 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 
 	found, err := elastic.Exists(schedCtx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
-		spew.Dump("here")
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
 	if found {

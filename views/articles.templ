@@ -1,12 +1,13 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package content
+package views
 
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
 	"github.com/joshuar/go-templ-daisyui/display/article"
@@ -15,11 +16,80 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/figure"
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
+	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
+
+templ (s *ArticlesPage) Show() {
+	@NewPage("Articles") {
+		@partials.Drawer() {
+			@partials.DrawerContent() {
+				// Fragment: content header
+				@partials.Fragment("content-header") {
+					@Header()
+				}
+				@partials.Content() {
+					// Fragment: content filters
+					@partials.Fragment("content-filters") {
+						<div id="content-filters" class="hidden">
+							for name, value := range s.filters.Parameters() {
+								@hiddeninput.Build(
+									hiddeninput.WithName(name),
+									hiddeninput.WithValue(attributes.Value(value)),
+								).Show()
+							}
+						</div>
+					}
+					<div id="card-controls" class="flex flex-row m-2">
+						<div class="flex flex-row justify-end gap-2">
+							@RefreshAction("/articles", s.filters.Parameters())
+							@UpdateSorting("/articles", s.filters.GetSort())
+							@UpdateFilters(s.articles.GetCategoryCounts(), "/articles", s.filters.GetCategories(), s.filters.GetView())
+							@CollectionActionsMenu(
+								markAllArticles(ctx, s.filters.GetView(), s.articles.GetSubscriptionIDs()...),
+							)
+						</div>
+					</div>
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
+						// Fragment: cards
+						@partials.Fragment("cards") {
+							for cards := range slices.Values(s.generateCards(ctx)) {
+								@cards
+							}
+						}
+					</div>
+					<div id="content-loading" class="items-center justify-center">
+						@loading.Build(loading.Bars,
+							loading.AsHTMXIndicator(),
+							loading.WithThemeColor(color.Accent),
+						).Show()
+					</div>
+				}
+				// Fragment: content footer
+				@partials.Fragment("content-footer") {
+					@partials.Footer()
+				}
+			}
+			@partials.DrawerSide() {
+				@partials.MenuItemTitle("Navigation")
+				@partials.MenuItem(partials.LinkHome(), nil)
+				@partials.MenuItem(nil, nil) {
+					<details
+						id={ partials.DrawerSubscriptionListID.String() }
+						hx-get="/subscriptions/state"
+						hx-trigger="load, updateState from:body"
+						hx-target={ partials.DrawerSubscriptionListID.Target() }
+					></details>
+				}
+			}
+		}
+	}
+}
 
 type Article struct {
 	*models.Article
@@ -100,12 +170,12 @@ templ (c *Article) Card() {
 			// Card content.
 			card.WithContent(
 				templ.Join(
-					cardMeta(c.GetAuthors(), c.GetUpdatedDate()),
+					partials.ContentMetadata(c.GetAuthors(), c.GetUpdatedDate()),
 				),
 			),
 			// Card actions.
 			card.WithActions(
-				cardMenu(c.Share(), c.Visit(), c.Mark()),
+				partials.ContentMenu(c.Share(), c.Visit(), c.Mark()),
 			),
 		),
 		card.WithExtraClasses(c.classes...),
@@ -118,8 +188,11 @@ templ (c *Article) View() {
 		@article.Build(
 			article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2", "overflow-scroll", "max-w-prose"),
 			article.WithExtraAttributes(templ.Attributes{
-				"hx-post":     "/articles/mark/read?articles=" + c.GetID(),
-				"hx-swap":     "none",
+				"hx-post": "/articles/mark/read",
+				"hx-swap": "none",
+				"hx-vals": partials.GenerateHXVals(map[string]string{
+					"articles": c.GetSubscriptionID() + "__" + c.GetID(),
+				}),
 				"hx-push-url": "false",
 				"hx-trigger":  "load delay:2s",
 			}),
@@ -130,7 +203,7 @@ templ (c *Article) View() {
 					text.WithSize(text.LG),
 				).Show("flex-1")
 			</h2>
-			@cardMeta(c.GetAuthors(), c.GetUpdatedDate())
+			@partials.ContentMetadata(c.GetAuthors(), c.GetUpdatedDate())
 			// Display the categories associated with the article.
 			for category := range slices.Values(c.GetCategories()) {
 				@badge.Build(
@@ -181,23 +254,26 @@ func (c Article) image() any {
 
 func (c *Article) markAttributes() templ.Attributes {
 	attributes := templ.Attributes{
-		"hx-swap":        "outerHTML",
-		"hx-target":      "#" + c.GetID(),
+		"hx-swap":   "outerHTML",
+		"hx-target": "#" + c.GetID(),
+		"hx-vals": partials.GenerateHXVals(map[string]string{
+			"articles": c.GetSubscriptionID() + "__" + c.GetID(),
+		}),
 		"hx-replace-url": "false",
 		"_":              "on htmx:afterRequest send UpdateState to #drawer-subscriptions-list",
 	}
 
 	if c.IsUnread() {
-		attributes["hx-post"] = "/articles/mark/" + string(models.MarkRead) + "?articles=" + c.GetID()
+		attributes["hx-post"] = "/articles/mark/" + string(models.MarkRead)
 	} else {
-		attributes["hx-post"] = "/article/mark/" + string(models.MarkUnread) + "?articles=" + c.GetID()
+		attributes["hx-post"] = "/article/mark/" + string(models.MarkUnread)
 	}
 	return attributes
 }
 
 func (c *Article) viewAttributes() templ.Attributes {
 	return templ.Attributes{
-		"hx-get":      "/view/" + c.GetID(),
+		"hx-get":      "/view/" + c.GetSubscriptionID() + "/" + c.GetID(),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
 		"hx-swap":     "innerHTML scroll:top",

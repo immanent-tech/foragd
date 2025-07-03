@@ -20,44 +20,8 @@ import (
 // ProtectedRoutes are routes that require user authentication.
 var ProtectedRoutes = []string{"/home", "/subscription", "/article", "/settings", "/search", "/user", "/view"}
 
-// PerformAuth will perform authentication for a user with a provider.
-func PerformAuth(api AuthAPI) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		slogctx.FromCtx(req.Context()).Debug("Authenticating user.")
-		if err := api.CompleteUserAuth(res, req); err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Authentication required.", slog.Any("error", err))
-			url, err := api.GetAuthURL(req)
-			if err != nil {
-				ProcessResponse(res, req, models.NewResponse(http.StatusInternalServerError, err))
-				return
-			}
-			slogctx.FromCtx(req.Context()).Debug("Redirecting to provider.", slog.String("url", url))
-			http.Redirect(res, req, url, http.StatusTemporaryRedirect)
-			return
-		}
-		slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
-		req.Header.Add("Content-Type", "")
-		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
-	})
-}
-
-// AuthCallback handles a callback from an authentication provider.
-func AuthCallback(authAPI AuthAPI) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if err := authAPI.CompleteUserAuth(res, req); err != nil {
-			ProcessResponse(res, req, models.NewResponse(http.StatusInternalServerError, err))
-			return
-		}
-		slogctx.FromCtx(req.Context()).Debug("Authenticated.")
-		slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
-		req.Header.Add("Content-Type", "")
-
-		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
-	})
-}
-
 // RequireUserAuth will ensure that protected routes have valid user authentication before continuing.
-func RequireUserAuth(dataAPI models.DocumentsAPI, authAPI AuthAPI) func(next http.Handler) http.Handler {
+func RequireUserAuth(dataAPI models.DocumentsAPI, authAPI models.AuthAPI) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			routePattern := chi.RouteContext(req.Context()).RoutePattern()

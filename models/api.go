@@ -229,50 +229,6 @@ func Unsubscribe(ctx context.Context, api DocumentsAPI, ids ...SubscriptionID) *
 	})
 }
 
-func GetArticles(ctx context.Context, api DocumentsAPI, itemIDs ...ItemID) (Articles, *Response) {
-	user, found := UserFromCtx(ctx)
-	if !found {
-		return nil, RespErrUnauthorized()
-	}
-
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	query := query.Bool(
-		query.Filter(
-			// Must match any of the given item IDs,
-			query.Terms("item_id", itemIDs...),
-		),
-	)
-
-	items, _, err := api.SearchItems(ctx, query, len(itemIDs), nil, nil)
-	if err != nil {
-		return nil, RespErrBackend(err)
-	}
-
-	// Retrieve subscription customisations for feed subscriptions.
-	states := user.FilterSubscriptionStatesByFeed(items.GetFeedIDs()...)
-	customisations, err := api.GetSubscriptionCustomisations(ctx, GetIDsFromStates(states)...)
-	if err != nil {
-		return nil, RespErrBackend(err)
-	}
-	// Create articles from the items.
-	articles := make(Articles, 0, len(items))
-	for item := range slices.Values(items) {
-		state := states[item.GetFeedID()]
-		customisation := customisations.GetCustomisation(state.GetID())
-		article, err := GenerateArticle(item, state.GetItemState(item.GetID()), state.GetID(), customisation)
-		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
-				slog.Any("error", err),
-			)
-			continue
-		}
-		articles = append(articles, article)
-	}
-
-	return articles, nil
-}
-
 func GetSearchSuggestions(ctx context.Context, api DocumentsAPI, searchTerms string) (Subscriptions, Articles, *Response) {
 	// Retrieve user object.
 	user, found := UserFromCtx(ctx)

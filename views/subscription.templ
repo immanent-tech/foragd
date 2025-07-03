@@ -37,7 +37,7 @@ templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []mode
 			form.WithID("subscription-details"),
 			form.WithExtraAttributes(
 				templ.Attributes{
-					"hx-put":       "/subscription/edit/" + edits.SubscriptionID,
+					"hx-put":       "/user/subscription/edit/" + edits.SubscriptionID,
 					"hx-swap":      "none",
 					"hx-indicator": "#add-processing",
 				},

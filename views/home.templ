@@ -4,311 +4,109 @@
 package views
 
 import (
-	"context"
-	"log/slog"
-	"slices"
-
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-
 	"github.com/joshuar/go-feed-me/components/session"
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
-	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"github.com/veqryn/slog-context"
 	"strconv"
 )
 
-type HomePageData struct {
-	Subscriptions  models.Subscriptions
-	TopCategories  templ.Component
-	RareCategories templ.Component
-	RandomArticles []templ.Component
-}
-
-// getHomePageData retrieves the data required to construct the home page content.
-//
-//nolint:funlen
-func NewHomePageData(ctx context.Context, api models.DocumentsAPI) (*HomePageData, *models.Response) {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, models.RespErrUnauthorized()
-	}
-
-	data := &HomePageData{}
-
-	// Get subscriptions.
-	subscriptions, resp := models.GetSubscriptions(ctx, api)
-	if resp != nil && resp.IsNotFound() {
-		return data, resp
-	}
-	if resp != nil {
-		return nil, resp
-	}
-	data.Subscriptions = subscriptions
-
-	// Query definition for fetching unread items for all subscriptions.
-	query := query.Bool(
-		query.BoolQueryName("item_filters"),
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.Terms("feed_id", models.GetFeedIDs(slices.Values(subscriptions))...),
-			// And should match one feed clause.
-			query.Bool(
-				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread)...),
-			),
-		),
-	)
-
-	var aggs []aggregations.Aggregation
-	TermsField := "categories.raw"
-
-	// Aggregation definition for fetching the top 10 item categories across all subscriptions.
-	SampleField := "feed_id"
-	DefaultMaxDocsPerValue := 10
-	ShardSize := 1000
-	aggs = append(aggs,
-		aggregations.Aggregation{
-			Name: "top_categories_sample",
-			Definition: types.Aggregations{
-				DiversifiedSampler: &types.DiversifiedSamplerAggregation{
-					Field:           &SampleField,
-					MaxDocsPerValue: &DefaultMaxDocsPerValue,
-					ShardSize:       &ShardSize,
-				},
-				Aggregations: map[string]types.Aggregations{
-					"top_categories": {
-						Terms: &types.TermsAggregation{
-							Field: &TermsField,
-						},
-					},
-				},
-			},
-		},
-	)
-	// Aggregation definition for fetching the rare item categories across all subscriptions.
-	MaxDocCount := int64(5)
-	aggs = append(aggs,
-		aggregations.Aggregation{
-			Name: "rare_categories",
-			Definition: types.Aggregations{
-				RareTerms: &types.RareTermsAggregation{
-					Field:       &TermsField,
-					MaxDocCount: &MaxDocCount,
-				},
-			},
-		},
-	)
-
-	// Aggregation definition for fetching a set of random items from all subscriptions.
-	ItemIDField := "item_id"
-	aggs = append(aggs,
-		aggregations.Aggregation{
-			Name: "random_items",
-			Definition: types.Aggregations{
-				RandomSampler: &types.RandomSamplerAggregation{
-					Probability: 0.1,
-				},
-				Aggregations: map[string]types.Aggregations{
-					"items": {
-						Terms: &types.TermsAggregation{
-							Field: &ItemIDField,
-						},
-					},
-				},
-			},
-		},
-	)
-
-	// Perform the request.
-	aggsResult, resp := api.ItemsAggregation(ctx, query, aggs...)
-	if resp != nil {
-		return nil, resp
-	}
-	// Extract aggregations.
-	aggregations := aggsResult.Aggregations
-	// Use aggregations to generate data.
-	data.GenerateTopCategoriesLinks(ctx, aggregations)
-	data.GenerateRareCategoriesLinks(ctx, aggregations)
-	data.GetRandomArticles(ctx, api, aggregations)
-
-	return data, nil
-}
-
-func (d *HomePageData) GenerateTopCategoriesLinks(ctx context.Context, aggs aggregations.AggregationResults) {
-	if aggs == nil {
-		return
-	}
-	// Get the top categories.
-	topCategoriesSamplerAgg, err := aggregations.ExtractAggregation[*types.SamplerAggregate](aggs, "top_categories_sample")
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to show top categories.", slog.Any("error", err))
-	}
-	topCategoriesAgg, err := aggregations.ExtractAggregation[*types.StringTermsAggregate](topCategoriesSamplerAgg.Aggregations, "top_categories")
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to show top categories.", slog.Any("error", err))
-	}
-
-	// Generate categories from aggregation.
-	var topCategories content.Categories
-	for category := range slices.Values(topCategoriesAgg.Buckets.([]types.StringTermsBucket)) {
-		topCategories = append(topCategories, content.NewCategoryContent(ctx, category.Key.(string), int(category.DocCount), "/articles"))
-	}
-	topCategories.Sort()
-	// Display list of categories.
-	var categoryList []templ.Component
-	for category := range slices.Values(topCategories) {
-		categoryList = append(categoryList, category.Badge())
-	}
-
-	d.TopCategories = templ.Join(categoryList...)
-}
-
-func (d *HomePageData) GenerateRareCategoriesLinks(ctx context.Context, aggs aggregations.AggregationResults) {
-	if aggs == nil {
-		return
-	}
-	// Get the rare categories.
-	rareCategoriesAgg, err := aggregations.ExtractAggregation[*types.StringRareTermsAggregate](aggs, "rare_categories")
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Unable to show rare categories.", slog.Any("error", err))
-	}
-	// Generate category counts from buckets.
-	var rareCategoryCounts content.Categories
-	for category := range slices.Values(rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket)) {
-		rareCategoryCounts = append(rareCategoryCounts, content.NewCategoryContent(ctx, category.Key, int(category.DocCount), "/articles"))
-	}
-	rareCategoryCounts.Sort()
-
-	count := 10
-	if len(rareCategoryCounts) < 10 {
-		count = len(rareCategoryCounts)
-	}
-	var categoryList []templ.Component
-	for idx := range count {
-		categoryList = append(categoryList, rareCategoryCounts[idx].Badge())
-	}
-
-	d.RareCategories = templ.Join(categoryList...)
-}
-
-// getHomePageArticles retrieves a list of articles to display on the home page along with other content.
-func (d *HomePageData) GetRandomArticles(ctx context.Context, api models.DocumentsAPI, aggs aggregations.AggregationResults) {
-	if aggs == nil {
-		return
-	}
-	// Get the rare categories aggregation.
-	randomItemsAgg, err := aggregations.ExtractAggregation[map[string]any](aggs, "random_items")
-	if err != nil {
-		return
-	}
-	// itemsAgg, err := aggregations.ExtractAggregation[*types.StringTermsAggregate](randomItemsAgg, "sterms#items")
-	itemsAgg, ok := randomItemsAgg["sterms#items"].(map[string]any)
-	if !ok {
-		return
-	}
-	// if err != nil {
-	// 	return nil, fmt.Errorf("could not get random items: %w", err)
-	// }
-	buckets, ok := itemsAgg["buckets"].([]any)
-	if !ok {
-		return
-	}
-
-	itemIDs := make([]models.ItemID, 0, len(buckets))
-	for bucket := range slices.Values(buckets) {
-		value, ok := bucket.(map[string]any)
-		if !ok {
-			continue
-		}
-		key, ok := value["key"].(string)
-		if !ok {
-			continue
-		}
-		itemIDs = append(itemIDs, key)
-	}
-
-	articles, resp := models.GetArticles(ctx, api, itemIDs...)
-	if resp != nil {
-		return
-	}
-
-	for article := range slices.Values(articles) {
-		d.RandomArticles = append(d.RandomArticles, content.NewArticleContent(article).Card())
-	}
-}
-
-templ (d *HomePageData) Show() {
-	<div
-		hx-trigger="htmx:historyRestore from:body"
-		hx-get="/home"
-	>
-		<div class="grid justify-center">
-			<div class="stats shadow">
-				@link.Build(
-					link.WithUnderlineOnHover(),
-					link.WithExtraAttributes(templ.Attributes{
-						"hx-get":      "/subscriptions",
-						"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-						"hx-target":   partials.ContentID.Target(),
-						"hx-swap":     "innerHTML",
-						"hx-push-url": "true",
-					}),
-				).Show() {
-					<div class="stat bg-base-300">
-						<div class="stat-figure">
-							@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
+templ (d *HomePage) Show() {
+	@NewPage("Go Feed Me") {
+		// Page content.
+		@partials.Drawer() {
+			@partials.DrawerContent() {
+				// Content header.
+				@partials.Fragment("content-header") {
+					@Header()
+				}
+				// Main Content.
+				@partials.Content() {
+					<div hx-trigger="htmx:historyRestore from:body" hx-get="/home">
+						<div class="grid justify-center">
+							<div class="stats shadow">
+								@link.Build(
+									link.WithUnderlineOnHover(),
+									link.WithExtraAttributes(templ.Attributes{
+										"hx-get":      "/subscriptions",
+										"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
+										"hx-target":   partials.ContentID.Target(),
+										"hx-swap":     "innerHTML",
+										"hx-push-url": "true",
+									}),
+								).Show() {
+									<div class="stat bg-base-300">
+										<div class="stat-figure">
+											@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
+										</div>
+										<div class="stat-title">Subscriptions</div>
+										<div class="stat-value">{ strconv.Itoa(len(d.Subscriptions)) }</div>
+									</div>
+								}
+								@link.Build(
+									link.WithUnderlineOnHover(),
+									link.WithExtraAttributes(templ.Attributes{
+										"hx-get":      "/articles",
+										"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
+										"hx-target":   partials.ContentID.Target(),
+										"hx-swap":     "innerHTML",
+										"hx-push-url": "true",
+									}),
+								).Show() {
+									<div class="stat bg-base-300">
+										<div class="stat-figure">
+											@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
+										</div>
+										<div class="stat-title">Unread Articles</div>
+										<div class="stat-value">{ strconv.Itoa(d.Subscriptions.GetTotalUnreadCount()) }</div>
+									</div>
+								}
+							</div>
 						</div>
-						<div class="stat-title">Subscriptions</div>
-						<div class="stat-value">{ strconv.Itoa(len(d.Subscriptions)) }</div>
+						if d.TopCategories != nil {
+							<div class="flex justify-center gap-2 m-4">
+								<h1 class="content-center text-center">Top Categories:</h1>
+								<div id="top-categories" class="flex flex-row flex-wrap gap-2">
+									@d.TopCategories
+								</div>
+							</div>
+						}
+						if d.RareCategories != nil {
+							<div class="flex justify-center gap-2 m-4">
+								<h1 class="content-center text-center">Interesting Categories:</h1>
+								<div id="rare-categories" class="flex flex-row flex-wrap gap-2">
+									@d.RareCategories
+								</div>
+							</div>
+						}
+						if d.RandomArticles != nil {
+							<div class="flex flex-col gap-2">
+								<h1>Random Articles:</h1>
+								@content.CardGrid(d.RandomArticles...)
+							</div>
+						}
 					</div>
 				}
-				@link.Build(
-					link.WithUnderlineOnHover(),
-					link.WithExtraAttributes(templ.Attributes{
-						"hx-get":      "/articles",
-						"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
-						"hx-target":   partials.ContentID.Target(),
-						"hx-swap":     "innerHTML",
-						"hx-push-url": "true",
-					}),
-				).Show() {
-					<div class="stat bg-base-300">
-						<div class="stat-figure">
-							@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
-						</div>
-						<div class="stat-title">Unread Articles</div>
-						<div class="stat-value">{ strconv.Itoa(d.Subscriptions.GetTotalUnreadCount()) }</div>
-					</div>
+			}
+			// Content footer.
+			@partials.Fragment("content-footer") {
+				@partials.Footer()
+			}
+			// Drawer sidebar.
+			@partials.DrawerSide() {
+				@partials.MenuItemTitle("Navigation")
+				@partials.MenuItem(partials.LinkHome(), nil)
+				@partials.MenuItem(nil, nil) {
+					<details
+						id={ partials.DrawerSubscriptionListID.String() }
+						hx-get="/subscriptions/state"
+						hx-trigger="load, updateState from:body"
+						hx-target={ partials.DrawerSubscriptionListID.Target() }
+					></details>
 				}
-			</div>
-		</div>
-		if d.TopCategories != nil {
-			<div class="flex justify-center gap-2 m-4">
-				<h1 class="content-center text-center">Top Categories:</h1>
-				<div id="top-categories" class="flex flex-row flex-wrap gap-2">
-					@d.TopCategories
-				</div>
-			</div>
+			}
 		}
-		if d.RareCategories != nil {
-			<div class="flex justify-center gap-2 m-4">
-				<h1 class="content-center text-center">Interesting Categories:</h1>
-				<div id="rare-categories" class="flex flex-row flex-wrap gap-2">
-					@d.RareCategories
-				</div>
-			</div>
-		}
-		if d.RandomArticles != nil {
-			<div class="flex flex-col gap-2">
-				<h1>Random Articles:</h1>
-				@content.CardGrid(d.RandomArticles...)
-			</div>
-		}
-	</div>
+	}
 }

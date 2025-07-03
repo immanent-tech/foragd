@@ -135,3 +135,20 @@ func (a *Article) GetFeedTitle() string {
 func (a *Article) IsUnread() bool {
 	return !a.State.IsRead()
 }
+
+// Sanitise will sanitise the input values.
+func (r *MarkArticlesRequest) Sanitise() error {
+	return nil
+}
+
+// Valid returns a boolean indicating whether the object is valid.
+func (r *MarkArticlesRequest) Valid() (bool, error) {
+	if r == nil {
+		return false, fmt.Errorf("request is invalid: %w", validation.ErrNilObject)
+	}
+	valid, err := validation.ValidateStruct(r)
+	if !valid || err != nil {
+		return false, fmt.Errorf("request is invalid: %w", err)
+	}
+	return true, nil
+}

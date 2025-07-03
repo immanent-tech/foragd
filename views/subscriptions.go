@@ -13,21 +13,21 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/content"
 )
 
-type Subscriptions struct {
+type SubscriptionsPage struct {
 	filters       *models.SubscriptionFilters
 	subscriptions models.Subscriptions
 	pagination    models.Pagination
 }
 
-func NewSubscriptions(subscriptions models.Subscriptions, filters *models.SubscriptionFilters, pagination models.Pagination) *Subscriptions {
-	return &Subscriptions{
+func NewSubscriptionsPage(subscriptions models.Subscriptions, filters *models.SubscriptionFilters, pagination models.Pagination) *SubscriptionsPage {
+	return &SubscriptionsPage{
 		subscriptions: subscriptions,
 		filters:       filters,
 		pagination:    pagination,
 	}
 }
 
-func (s Subscriptions) generateCards(ctx context.Context) []templ.Component {
+func (s SubscriptionsPage) generateCards(ctx context.Context) []templ.Component {
 	cards := make([]templ.Component, 0, len(s.subscriptions))
 	for subscription := range slices.Values(s.subscriptions) {
 		cards = append(cards, content.NewSubscriptionContent(subscription).Card())

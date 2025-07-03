@@ -49,21 +49,22 @@ func WithKeywords(keywords ...string) PageOption {
 	}
 }
 
+// _="
+// init
+// 	fetch /settings/theme then
+// 		put the result into @data-theme
+// on setTheme(theme)
+// 	log 'theme changed to ' + theme
+// 	set @data-theme to theme
+// end
+// "
+
 // Show renders the page as a templ Component.
 templ (page *Page) build() {
 	<!DOCTYPE html>
 	<html
 		lang="en"
 		data-theme=""
-		_="
-		init
-			fetch /settings/theme then
-				put the result into @data-theme
-		on setTheme(theme)
-			log 'theme changed to ' + theme
-			set @data-theme to theme
-		end
-		"
 	>
 		@page.Head.build()
 		<body hx-ext="response-targets" hx-target-error={ partials.NotificationsID.String() }>

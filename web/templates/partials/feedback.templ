@@ -9,15 +9,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
 )
 
-// ShowNotification displays the given message as a notification in the UI.
-templ ShowNotification(msg *models.UserMessage) {
-	<div id={ NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50" hx-swap-oob="true" hx-swap="outerHTML swap:1s settle:1s">
-		@Alert(msg, templ.Attributes{
-			"_": "on load wait 5s then transition opacity to 0 then remove me",
-		})
-	</div>
-}
-
 templ AskQuestion(question string, attributes templ.Attributes) {
 	@modal.Build(
 		modal.WithID(ModalID.String()),

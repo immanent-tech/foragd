@@ -6,6 +6,7 @@ package models
 import (
 	"context"
 	"errors"
+	"net/http"
 
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 
@@ -59,4 +60,11 @@ type DocumentsAPI interface {
 // UserBackendAPI contains the methods for creating users on an auth backend.
 type UserBackendAPI interface {
 	Create(ctx context.Context, details *UserSignupRequest) (string, error)
+}
+
+type AuthAPI interface {
+	GetAuthURL(req *http.Request) (string, error)
+	CompleteUserAuth(res http.ResponseWriter, req *http.Request) error
+	GetUserID(ctx context.Context) UserID
+	SetProviderName(ctx context.Context, provider string)
 }

@@ -81,7 +81,7 @@ templ SearchSuggestionArticle(article *models.Article) {
 	<li class="list-row" _="on click call document.activeElement.blur()">
 		<div>
 			<div class="list-col-wrap text-xs">
-				@content.NewArticleContent(article).Summary()
+				@NewArticleContent(article).Summary()
 			</div>
 		</div>
 	</li>
@@ -108,7 +108,7 @@ templ SearchResultsPage(subscriptions models.Subscriptions, articles models.Arti
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4">
 					for article := range slices.Values(articles) {
 						<div class="rounded-box shadow-md bg-base-300 p-4">
-							@content.NewArticleContent(article).Summary()
+							@NewArticleContent(article).Summary()
 						</div>
 					}
 				</div>

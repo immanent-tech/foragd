@@ -9,12 +9,9 @@ import (
 	"log/slog"
 	"maps"
 	"net/http"
-	"net/url"
 	"slices"
-	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -23,165 +20,8 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/views"
-	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
-
-func ViewArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			// Insert the filters control div.
-			ctx = pushTemplatesToCtx(ctx, content.Filters(filters))
-			// Get articles matching filters.
-			articles, pagination, resp := filterArticles(req.Context(), api, filters)
-			if resp != nil {
-				ProcessResponse(res, req, resp)
-				return
-			}
-			// Generate controls and breadcrumbs.
-			breadcrumbs := content.CardBreadCrumbs(partials.LinkSubscriptionsIconOnly())
-			buttons := content.CardButtons(
-				views.RefreshAction("/articles"),
-				views.UpdateSorting("/articles", filters.GetSort()),
-				views.UpdateFilters(articles.GetCategoryCounts(), "/articles", filters.Categories, filters.View),
-				views.CollectionActionsMenu(
-					views.MarkAllArticlesAction(req.Context(), filters.View, articles.GetSubscriptionIDs()...),
-				),
-			)
-			ctx = pushTemplatesToCtx(ctx, content.CardControls(breadcrumbs, buttons))
-			// Generate cards for the articles.
-			cards := make([]templ.Component, 0, len(articles))
-			for article := range slices.Values(articles) {
-				cards = append(cards, content.NewArticleContent(article).Card())
-			}
-			if pagination != "" && len(cards) == filters.GetCount() {
-				// Add pagination htmx props to last article.
-				cards = append(cards, content.PaginationControl(req.Context(), "/articles", pagination))
-			}
-			ctx = pushTemplatesToCtx(ctx, content.CardGrid(cards...))
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-func PaginateArticles(api models.DocumentsAPI, filters *models.ArticleFilters) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			// Get articles matching filters.
-			articles, pagination, resp := filterArticles(req.Context(), api, filters)
-			if resp != nil {
-				ProcessResponse(res, req, resp)
-				return
-			}
-			// Generate cards for the articles.
-			cards := make([]templ.Component, 0, len(articles))
-			for article := range slices.Values(articles) {
-				cards = append(cards, content.NewArticleContent(article).Card())
-			}
-			if pagination != "" && len(cards) == filters.GetCount() {
-				// Add pagination htmx props to last article.
-				cards = append(cards, content.PaginationControl(req.Context(), "/articles", pagination))
-			}
-			ctx = pushTemplatesToCtx(ctx, cards...)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// ViewArticle handles displaying an item as an article.
-func ViewArticle(api models.DocumentsAPI, itemID models.ItemID) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			articles, resp := models.GetArticles(req.Context(), api, itemID)
-			if resp != nil || len(articles) == 0 {
-				ProcessResponse(res, req, resp)
-				return
-			}
-			articleLayout := content.NewArticleContent(articles[0]).View()
-
-			ctx := req.Context()
-			ctx = pushTemplatesToCtx(ctx, articleLayout)
-			ctx = context.WithValue(ctx, titleCtxKey, articles[0].GetTitle())
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-func ViewSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			// Insert the filters control div.
-			ctx = pushTemplatesToCtx(ctx, content.Filters(filters))
-			// Get subscriptions matching filters.
-			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
-			if resp != nil {
-				ProcessResponse(res, req, resp)
-				return
-			}
-			// Generate card controls and breadcrumbs.
-			buttons := content.CardButtons(
-				views.RefreshAction("/subscriptions"),
-				views.UpdateSorting("/subscriptions", filters.GetSort()),
-				views.UpdateFilters(models.GetCategoryCounts(slices.Values(subscriptions)), "/subscriptions", filters.Categories, filters.View),
-				views.CollectionActionsMenu(
-					views.MarkAllSubscriptionsAction(req.Context(), filters.View),
-				),
-			)
-			ctx = pushTemplatesToCtx(ctx, content.CardControls(content.CardBreadCrumbs(), buttons))
-			// Generate cards.
-			cards := make([]templ.Component, 0, len(subscriptions))
-			for subscription := range slices.Values(subscriptions) {
-				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
-			}
-			// Add pagination element if pagination is required.
-			if pagination != "" && len(cards) == filters.GetCount() {
-				// Add pagination htmx props to last article.
-				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
-			}
-			ctx = pushTemplatesToCtx(ctx, content.CardGrid(cards...))
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-func PaginateSubscriptions(api models.DocumentsAPI, filters *models.SubscriptionFilters) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			// Get subscriptions matching filters.
-			subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
-			if resp != nil {
-				ProcessResponse(res, req, resp)
-				return
-			}
-			// Generate cards for the articles.
-			cards := make([]templ.Component, 0, len(subscriptions))
-			for subscription := range slices.Values(subscriptions) {
-				cards = append(cards, content.NewSubscriptionContent(subscription).Card())
-			}
-			// Add pagination element if pagination is required.
-			if pagination != "" && len(cards) == filters.GetCount() {
-				// Add pagination htmx props to last article.
-				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
-			}
-			// Push to content templates.
-			ctx = pushTemplatesToCtx(ctx, cards...)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// NewSubscription generates a form for the user to enter details to add a new subscription.
-func NewSubscription(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := pushTemplatesToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil))
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
 
 // ParseNewSubscriptionRequest will extract the subscription request, validate it and then store it in the context for
 // further processing.
@@ -216,7 +56,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 				Status:  models.UserMessageStatusError,
 				Summary: "A problem occurred while adding the subscription.",
 			}
-			ctx := pushTemplatesToCtx(req.Context(), views.NewSubscriptionModal(request, msg))
+			ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(request, msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		}
 		// Extract the processed request from the context.
@@ -227,7 +67,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 		}
 		// Display the modal with the request results shown.
 		for _, result := range results {
-			ctx := pushTemplatesToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, result))
+			ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, result))
 			next.ServeHTTP(res, req.WithContext(ctx))
 			break
 		}
@@ -237,7 +77,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 // NewSubscriptionsImport handles setting up a new subscription import process for the user.
 func NewSubscriptionsImport(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := pushTemplatesToCtx(req.Context(), views.ImportSubscriptionLayout())
+		ctx := templateToCtx(req.Context(), views.ImportSubscriptionLayout())
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -252,7 +92,7 @@ func ProcessSubscriptionsImport(importMethod string) func(next http.Handler) htt
 			case http.MethodPut:
 				switch importMethod {
 				case "opml_file":
-					ctx = pushTemplatesToCtx(ctx, views.ImportFromOPML())
+					ctx = templateToCtx(ctx, views.ImportFromOPML())
 				}
 			case http.MethodPost:
 				switch importMethod {
@@ -300,7 +140,7 @@ func SubscriptionsImportResults(next http.Handler) http.Handler {
 				Status:  models.UserMessageStatusError,
 				Summary: "A problem occurred while importing subscriptions.",
 			}
-			ctx := pushTemplatesToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, msg))
+			ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		}
 
@@ -310,7 +150,7 @@ func SubscriptionsImportResults(next http.Handler) http.Handler {
 			next.ServeHTTP(res, req)
 			return
 		}
-		ctx := pushTemplatesToCtx(req.Context(), views.ImportResults(results))
+		ctx := templateToCtx(req.Context(), views.ImportResults(results))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -577,171 +417,13 @@ func AddSubscriptions(api models.DocumentsAPI) func(next http.Handler) http.Hand
 	}
 }
 
-// RemoveSubscription handles processing a subscription removal request.
-func RemoveSubscription(api models.DocumentsAPI, confirmation models.UserConfirmation, subscriptionIDs ...models.SubscriptionID) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Add a new HTMX response writer to the context.
-			ctx := req.Context()
-
-			// Act according to user confirmation.
-			switch confirmation {
-			case models.UserConfirmationYes:
-				slogctx.FromCtx(ctx).Debug("Subscription removal confirmed.",
-					slog.String("subscription_id", strings.Join(subscriptionIDs, ",")),
-				)
-				if resp := models.Unsubscribe(ctx, api, subscriptionIDs...); resp != nil {
-					ProcessResponse(res, req.WithContext(ctx), resp)
-					return
-				}
-				// Show success notification.
-				msg := &models.UserMessage{
-					Summary: "Unsubscribed.",
-					Status:  models.UserMessageStatusSuccess,
-				}
-				ctx = pushTemplatesToCtx(ctx, partials.ShowNotification(msg))
-				// Trigger state updates.
-				htmxResp := htmx.NewResponse()
-				ctx = htmxRespToCtx(ctx, htmxResp.AddTrigger(htmx.Trigger("updateState")))
-			case models.UserConfirmationCancel:
-				slogctx.FromCtx(ctx).Debug("Subscription removal cancelled.",
-					slog.String("subscription_id", strings.Join(subscriptionIDs, ",")),
-				)
-				// Don't swap any main content for user cancellation.
-				// Display a notification acknowledging cancellation of request.
-				msg := &models.UserMessage{
-					Summary: "Request cancelled.",
-					Status:  models.UserMessageStatusInfo,
-				}
-				ctx = pushTemplatesToCtx(ctx, partials.ShowNotification(msg))
-			default:
-				slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
-					slog.String("subscription_id", strings.Join(subscriptionIDs, ",")),
-				)
-				parameters := make(url.Values)
-				parameters.Add(models.ParamSubscriptions, strings.Join(subscriptionIDs, ","))
-				parameters.Add("confirmation", "yes")
-
-				modal := partials.AskQuestion("Unsubscribe?", templ.Attributes{
-					"hx-post": "/subscriptions/remove?" + parameters.Encode(),
-					"hx-swap": "outerHTML",
-				})
-				ctx = pushTemplatesToCtx(ctx, modal)
-			}
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// EditSubscription retrieves the subscription with the given ID and presents a form for the user to edit it.
-func EditSubscription(api models.DocumentsAPI, subID models.SubscriptionID) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Retrieve subscription customisation.
-			customisation, resp := models.GetSubscriptionCustomisation(req.Context(), api, subID)
-			if resp != nil {
-				ProcessResponse(res, req, resp)
-				return
-			}
-			edit := &models.SubscriptionEdit{
-				SubscriptionID: customisation.GetID(),
-				Title:          customisation.Title,
-				Categories:     customisation.Categories,
-			}
-			// Get top categories across items in subscription feed.
-			var topItemCategories []models.Category
-			categories, resp := getItemTopCategories(req.Context(), api, customisation.GetFeedID())
-			if resp == nil {
-				topItemCategories = categories
-			}
-			ctx := pushTemplatesToCtx(req.Context(), views.EditSubscriptionModal(edit, topItemCategories, nil))
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// SaveSubscription handles saving any user edits to an existing subscription.
-func SaveSubscription(api models.DocumentsAPI, edits *models.SubscriptionEdit) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Add a new HTMX response writer to the context.
-			var msg *models.UserMessage
-			ctx := req.Context()
-			if err := api.UpdateSubscriptionCustomisation(ctx, edits); err != nil {
-				ProcessResponse(res, req,
-					models.NewResponse(http.StatusInternalServerError, fmt.Errorf("failed to update user: %w", err)))
-				msg = models.FailedUserMessage("Failed to update the subscription.", nil)
-			} else {
-				msg = models.SuccessUserMessage("Subscription updated.", nil)
-			}
-			// Display a notification acknowledging save.
-			ctx = pushTemplatesToCtx(ctx, partials.ShowNotification(msg))
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// MarkSubscriptions handles marking subscriptions with the given IDs with the given mark.
-func MarkSubscriptions(api models.DocumentsAPI, mark models.Mark, subscriptions ...models.SubscriptionID) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			if resp := markSubscriptions(req.Context(), api, mark, subscriptions...); resp != nil {
-				ProcessResponse(res, req, resp)
-				return
-			}
-			// Trigger state updates.
-			htmxResp := htmx.NewResponse()
-			ctx := htmxRespToCtx(req.Context(), htmxResp.AddTrigger(htmx.Trigger("updateState")))
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// MarkArticles handles marking articles with the given mark.
-func MarkArticles(api models.DocumentsAPI, mark models.Mark, items ...models.ItemID) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			if resp := markArticles(req.Context(), api, mark, items...); resp != nil {
-				ProcessResponse(res, req, resp)
-				return
-			}
-			// Trigger state updates.
-			htmxResp := htmx.NewResponse()
-			ctx := htmxRespToCtx(req.Context(), htmxResp.AddTrigger(htmx.Trigger("updateState")))
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
 // GenerateSettings handles displaying the user settings page.
 func GenerateSettings(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		settingsLayout := settings.SettingsContent()
-		ctx := pushTemplatesToCtx(req.Context(), settingsLayout)
+		ctx := templateToCtx(req.Context(), settingsLayout)
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
-}
-
-// GenerateDrawerContent handles generating updated content for the drawer.
-func GenerateDrawerContent(api models.DocumentsAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-			slogctx.FromCtx(req.Context()).Debug("Getting subscription data for drawer.")
-			subscriptions, resp := models.GetSubscriptions(req.Context(), api)
-			if resp != nil {
-				slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.Error()))
-			} else {
-				subscriptions = subscriptions.Sort(nil)
-				states := make([]templ.Component, 0, len(subscriptions))
-				for subscription := range slices.Values(subscriptions) {
-					states = append(states, content.NewSubscriptionContent(subscription).State())
-				}
-				ctx = pushTemplatesToCtx(ctx, partials.DrawerSubscriptionList(states...))
-			}
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
 }
 
 // GenerateDrawerContent handles generating updated content for the drawer.
@@ -772,7 +454,7 @@ func GenerateSearchSuggestions(api models.DocumentsAPI, searchTerms string) func
 					}
 				}
 
-				ctx = pushTemplatesToCtx(ctx, views.SearchSuggestions(suggestions...))
+				ctx = templateToCtx(ctx, views.SearchSuggestions(suggestions...))
 			}
 
 			next.ServeHTTP(res, req.WithContext(ctx))
@@ -790,7 +472,7 @@ func GenerateSearchResults(api models.DocumentsAPI, searchTerms string) func(nex
 				slogctx.FromCtx(req.Context()).Warn("Failed to get search suggestions.", slog.Any("error", resp.Error()))
 				next.ServeHTTP(res, req)
 			} else if len(subscriptions) > 0 || len(articles) > 0 {
-				ctx = pushTemplatesToCtx(ctx, views.SearchResultsPage(subscriptions, articles))
+				ctx = templateToCtx(ctx, views.SearchResultsPage(subscriptions, articles))
 			}
 
 			next.ServeHTTP(res, req.WithContext(ctx))
@@ -800,7 +482,7 @@ func GenerateSearchResults(api models.DocumentsAPI, searchTerms string) func(nex
 
 func NewUserSignup(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := context.WithValue(req.Context(), pageCtxKey, views.SignUpPage(models.NewUserSignup()))
+		ctx := templateToCtx(req.Context(), views.SignUpPage(models.NewUserSignup()))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -827,7 +509,7 @@ func ProcessUserSignup(userBackendAPI models.UserBackendAPI, userFrontendAPI mod
 				Status:  models.UserMessageStatusSuccess,
 				Summary: "Account created!",
 			}
-			ctx = pushTemplatesToCtx(ctx, views.SignupForm(signupRequest))
+			ctx = templateToCtx(ctx, views.SignupForm(signupRequest))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

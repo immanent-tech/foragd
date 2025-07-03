@@ -77,7 +77,7 @@ type ArticleFilters struct {
 	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
 
 	// Subscriptions is a list of subscription IDs.
-	Subscriptions []SubscriptionID `form:"subscriptions[]" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`
@@ -104,8 +104,38 @@ type Count = string
 // ImportSource defines the source that will be used for an import.
 type ImportSource string
 
+// MarkArticlesRequest represents a user request for marking a collection of articles as read or unread.
+type MarkArticlesRequest struct {
+	// Articles is a list of articles by subscription.
+	Articles []string `form:"articles" json:"articles" validate:"omitnil,unique"`
+
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect" json:"redirect,omitempty"`
+}
+
+// MarkSubscriptionsRequest represents a user request for marking a subscription or collection of subscriptions as read or unread.
+type MarkSubscriptionsRequest struct {
+	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+	Redirect *Redirect `form:"redirect" json:"redirect,omitempty"`
+
+	// Subscriptions is a list of subscription IDs.
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
+}
+
 // Pagination contains data for paginating through results.
 type Pagination = string
+
+// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
+type Redirect = string
+
+// RemoveSubscriptionsRequest represents a user request for unsubscribing from subscriptions.
+type RemoveSubscriptionsRequest struct {
+	// Confirmation indicates the user's decision for a (usually) destructive action.
+	Confirmation UserConfirmation `form:"confirmation" json:"confirmation" validate:"required,oneof=yes no cancel"`
+
+	// Subscriptions is a list of subscription IDs.
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
+}
 
 // Response is a response from the backend or a component in the backend.
 type Response struct {
@@ -161,7 +191,7 @@ type SubscriptionFilters struct {
 	SortOrder SortOrder `form:"sort_order" json:"sort_order" validate:"oneof=asc desc"`
 
 	// Subscriptions is a list of subscription IDs.
-	Subscriptions []SubscriptionID `form:"subscriptions[]" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
+	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
 
 	// View The state of objects to view.
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`

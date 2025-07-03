@@ -436,7 +436,7 @@ components:
           $ref: 'models.yaml#/components/schemas/SubscriptionID'
         x-oapi-codegen-extra-tags:
           json: 'subscriptions'
-          form: 'subscriptions[]'
+          form: 'subscriptions'
           validate: 'omitnil,unique,dive,startswith=sub_'
     Feeds:
       name: feeds
