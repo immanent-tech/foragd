@@ -82,7 +82,7 @@ templ (s *ArticlesPage) Show() {
 					<details
 						id={ partials.DrawerSubscriptionListID.String() }
 						hx-get="/subscriptions/state"
-						hx-trigger="load, updateState from:body"
+						hx-trigger="updateState from:body"
 						hx-target={ partials.DrawerSubscriptionListID.Target() }
 					></details>
 				}

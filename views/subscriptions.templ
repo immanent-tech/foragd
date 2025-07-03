@@ -21,42 +21,44 @@ templ (s *SubscriptionsPage) Show() {
 				@partials.Fragment("content-header") {
 					@Header()
 				}
-				@partials.Content() {
-					// Fragment: content filters
-					@partials.Fragment("content-filters") {
-						<div id="content-filters" class="hidden">
-							for name, value := range s.filters.Parameters() {
-								@hiddeninput.Build(
-									hiddeninput.WithName(name),
-									hiddeninput.WithValue(attributes.Value(value)),
-								).Show()
+				@partials.Fragment("content") {
+					@partials.Content() {
+						// Fragment: content filters
+						@partials.Fragment("content-filters") {
+							<div id="content-filters" class="hidden">
+								for name, value := range s.filters.Parameters() {
+									@hiddeninput.Build(
+										hiddeninput.WithName(name),
+										hiddeninput.WithValue(attributes.Value(value)),
+									).Show()
+								}
+							</div>
+						}
+						<div id="card-controls" class="flex flex-row m-2">
+							<div class="flex flex-row justify-end gap-2">
+								@RefreshAction("/subscriptions", s.filters.Parameters())
+								@UpdateSorting("/subscriptions", s.filters.GetSort())
+								@UpdateFilters(s.subscriptions.GetCategoryCounts(), "/subscriptions", s.filters.GetCategories(), s.filters.GetView())
+								@CollectionActionsMenu(
+									MarkAllSubscriptionsAction(ctx, s.filters.GetView()),
+								)
+							</div>
+						</div>
+						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
+							// Fragment: cards
+							@partials.Fragment("cards") {
+								for cards := range slices.Values(s.generateCards(ctx)) {
+									@cards
+								}
 							}
+						</div>
+						<div id="content-loading" class="items-center justify-center">
+							@loading.Build(loading.Bars,
+								loading.AsHTMXIndicator(),
+								loading.WithThemeColor(color.Accent),
+							).Show()
 						</div>
 					}
-					<div id="card-controls" class="flex flex-row m-2">
-						<div class="flex flex-row justify-end gap-2">
-							@RefreshAction("/subscriptions", s.filters.Parameters())
-							@UpdateSorting("/subscriptions", s.filters.GetSort())
-							@UpdateFilters(s.subscriptions.GetCategoryCounts(), "/subscriptions", s.filters.GetCategories(), s.filters.GetView())
-							@CollectionActionsMenu(
-								MarkAllSubscriptionsAction(ctx, s.filters.GetView()),
-							)
-						</div>
-					</div>
-					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
-						// Fragment: cards
-						@partials.Fragment("cards") {
-							for cards := range slices.Values(s.generateCards(ctx)) {
-								@cards
-							}
-						}
-					</div>
-					<div id="content-loading" class="items-center justify-center">
-						@loading.Build(loading.Bars,
-							loading.AsHTMXIndicator(),
-							loading.WithThemeColor(color.Accent),
-						).Show()
-					</div>
 				}
 				// Fragment: content footer
 				@partials.Fragment("content-footer") {
@@ -70,7 +72,7 @@ templ (s *SubscriptionsPage) Show() {
 					<details
 						id={ partials.DrawerSubscriptionListID.String() }
 						hx-get="/subscriptions/state"
-						hx-trigger="load, updateState from:body"
+						hx-trigger="updateState from:body"
 						hx-target={ partials.DrawerSubscriptionListID.Target() }
 					></details>
 				}

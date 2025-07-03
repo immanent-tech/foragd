@@ -48,10 +48,10 @@ func GetSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 			SavePageState(filters),
 		)
 
-		switch htmx.IsHTMX(req) {
-		case true:
+		switch {
+		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 			chain.Then(RenderTemplateFragments("content-header", "content", "content-footer")).ServeHTTP(res, req.WithContext(ctx))
-		case false:
+		default:
 			chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
 		}
 	}

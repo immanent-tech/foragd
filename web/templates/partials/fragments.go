@@ -53,6 +53,8 @@ func GetFragmentWriter(ctx context.Context, name string) (w io.Writer, ok bool) 
 	return val.w, true
 }
 
+// Fragment creates a "fragment" template within a larger template. The fragment can then be selectively rendered,
+// instead of the larger template, by calling WithFragment with the fragment name.
 func Fragment(name string) templ.Component {
 	return fragmentComponent{name: name}
 }
