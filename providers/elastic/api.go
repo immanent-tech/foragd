@@ -51,7 +51,7 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 	if index == "" {
 		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
-
+	// Parse pagination to search after value.
 	var sortValues []types.FieldValue
 	if pagination != nil {
 		var err error
@@ -60,19 +60,14 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 			return nil, "", errors.Join(ErrSearchFailed, err)
 		}
 	}
-
-	var sortOptions []types.SortCombinations
-	if sort != nil {
-		sortOptions = append(sortOptions, sortByID("feed_id", sort.SortOrder))
-	} else {
-		sortOptions = append(sortOptions, sortByDoc())
-	}
-
+	// Parse sort filters into item sort options.
+	sortOptions := newFeedSortOptions(sort)
+	// Perform search.
 	feeds, searchAfter, err := Search[*models.Feed](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
 	if err != nil {
 		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
-
+	// Parse search after into pagination.
 	if pagination != nil {
 		*pagination, err = models.EncodePagination(searchAfter)
 		if err != nil {
@@ -115,7 +110,7 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 	if index == "" {
 		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
-
+	// Parse pagination into search after value.
 	var sortValues []types.FieldValue
 	if pagination != nil {
 		var err error
@@ -124,19 +119,14 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 			return nil, "", errors.Join(ErrSearchFailed, err)
 		}
 	}
-
-	var sortOptions []types.SortCombinations
-	if sort != nil {
-		sortOptions = append(sortOptions, sortByID("item_id", sort.SortOrder))
-	} else {
-		sortOptions = append(sortOptions, sortByDoc())
-	}
-
+	// Parse sort filters into item sort options.
+	sortOptions := newItemSortOptions(sort)
+	// Perform search.
 	items, searchAfter, err := Search[*models.Item](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
 	if err != nil {
 		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
-
+	// Parse last search after value into pagination.
 	newPagination, err := models.EncodePagination(searchAfter)
 	if err != nil {
 		return nil, "", errors.Join(ErrSearchFailed, err)
@@ -195,12 +185,7 @@ func (e *API) SearchSubscriptionCustomisations(ctx context.Context, query query.
 		}
 	}
 
-	var sortOptions []types.SortCombinations
-	if sort != nil {
-		sortOptions = append(sortOptions, sortByID("subscription_id", sort.SortOrder))
-	} else {
-		sortOptions = append(sortOptions, sortByDoc())
-	}
+	sortOptions := []types.SortCombinations{sortByScore()}
 
 	customisations, searchAfter, err := Search[*models.SubscriptionCustomisation](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
 	if err != nil {

@@ -12,7 +12,6 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/update"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
@@ -251,26 +250,58 @@ func NewFieldValue(value any) FieldValue {
 	return FieldValue{value: value}
 }
 
-func sortByID(idField string, sortOrder models.SortOrder) types.SortOptions {
-	var order *sortorder.SortOrder
-	switch sortOrder {
-	case models.SortOrderAsc:
-		order = &sortorder.Asc
-	case models.SortOrderDesc:
-		fallthrough
-	default:
-		order = &sortorder.Desc
-	}
+func sortByScore() types.SortOptions {
 	return types.SortOptions{
-		SortOptions: map[string]types.FieldSort{
-			"updated": {Order: order},
-			idField:   {Order: order},
-		},
+		Score_: types.NewScoreSort(),
 	}
 }
 
 func sortByDoc() types.SortOptions {
 	return types.SortOptions{
-		Doc_: &types.ScoreSort{Order: &sortorder.Asc},
+		Doc_: types.NewScoreSort(),
 	}
+}
+
+// ItemSorting contains the sort options for sorting item search results.
+type ItemSorting struct {
+	Updated   string `json:"updated"`
+	Published string `json:"published"`
+	ItemID    string `json:"item_id"`
+}
+
+func newItemSortOptions(sort *models.Sort) []types.SortCombinations {
+	var sortOptions []types.SortCombinations
+	switch {
+	case sort != nil:
+		sortOptions = append(sortOptions, &ItemSorting{
+			Updated:   string(sort.SortOrder),
+			Published: string(sort.SortOrder),
+			ItemID:    string(sort.SortOrder),
+		})
+	default:
+		sortOptions = append(sortOptions, sortByDoc())
+	}
+	return sortOptions
+}
+
+// FeedSorting contains the sort options for sorting item search results.
+type FeedSorting struct {
+	Updated   string `json:"updated"`
+	Published string `json:"published"`
+	FeedID    string `json:"feed_id"`
+}
+
+func newFeedSortOptions(sort *models.Sort) []types.SortCombinations {
+	var sortOptions []types.SortCombinations
+	switch {
+	case sort != nil:
+		sortOptions = append(sortOptions, &FeedSorting{
+			Updated:   string(sort.SortOrder),
+			Published: string(sort.SortOrder),
+			FeedID:    string(sort.SortOrder),
+		})
+	default:
+		sortOptions = append(sortOptions, sortByDoc())
+	}
+	return sortOptions
 }
