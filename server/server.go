@@ -124,7 +124,6 @@ func (s *Server) setupRoutes() {
 		middlewares.SetupCORS(config.Environment()),
 		// middlewares.CSP(server.ServerConfig.CSP),
 		middlewares.Etag,
-		middlewares.SetupHTMX(),
 	)
 
 	// Routes.
@@ -148,6 +147,7 @@ func (s *Server) setupRoutes() {
 	// Authenticated routes.
 	router.Group(func(r chi.Router) {
 		r.Use(
+			middlewares.SetupHTMX,
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
 			handlers.RequireUserAuth(s.DataAPI(), s.AuthAPI()),
@@ -160,15 +160,15 @@ func (s *Server) setupRoutes() {
 			})
 		})
 		// Subscription routes.
-		r.Get("/subscriptions/state", handlers.GetSubscriptionStates(s.DataAPI()))
+		r.With(middlewares.RequireHTMX).Get("/subscriptions/state", handlers.GetSubscriptionStates(s.DataAPI()))
 		r.Get("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))
-		r.Post("/subscriptions", handlers.PaginateSubscriptions(s.DataAPI()))
-		r.Post("/subscriptions/mark/{mark}", handlers.MarkSubscriptions(s.DataAPI()))
-		r.Post("/subscriptions/remove", handlers.RemoveSubscriptions(s.DataAPI()))
+		r.With(middlewares.RequireHTMX).Post("/subscriptions", handlers.PaginateSubscriptions(s.DataAPI()))
+		r.With(middlewares.RequireHTMX).Post("/subscriptions/mark/{mark}", handlers.MarkSubscriptions(s.DataAPI()))
+		r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handlers.RemoveSubscriptions(s.DataAPI()))
 		// Article routes.
 		r.Get("/articles", handlers.GetArticles(s.DataAPI()))
-		r.Post("/articles", handlers.PaginateArticles(s.DataAPI()))
-		r.Post("/articles/mark/{mark}", handlers.MarkArticles(s.DataAPI()))
+		r.With(middlewares.RequireHTMX).Post("/articles", handlers.PaginateArticles(s.DataAPI()))
+		r.With(middlewares.RequireHTMX).Post("/articles/mark/{mark}", handlers.MarkArticles(s.DataAPI()))
 		// Article route.
 		r.Get("/view/{subscription}/{item}", handlers.ViewArticle(s.DataAPI()))
 		// User routes.
