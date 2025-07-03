@@ -133,7 +133,7 @@ func (s *Server) setupRoutes() {
 		r.Handle("/static/*", gowebly.StaticFileServerHandler(http.FS(s.static)))
 	})
 	// Front page.
-	router.Get("/", handlers.Front())
+	router.Get("/", handlers.Index())
 	// Access routes.
 	router.Group(func(r chi.Router) {
 		r.Use(

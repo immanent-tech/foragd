@@ -15,8 +15,8 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
-// Front handles displaying the front page.
-func Front() http.HandlerFunc {
+// Index handles displaying the index or front page of the site.
+func Index() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {

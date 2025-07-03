@@ -21,6 +21,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/content"
 )
 
+// Home handles displaying the user's home page.
 func Home(api models.DocumentsAPI) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
