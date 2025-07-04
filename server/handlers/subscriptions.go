@@ -184,13 +184,12 @@ func RemoveSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 
 func GetSubscriptionStates(api models.DocumentsAPI) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Add requests are only driven by htmx requests.
-		if !htmx.IsHTMX(req) {
-			RenderError(res, req, models.RespForbidden(models.ErrHTMXRequired))
-			return
-		}
+		// // Add requests are only driven by htmx requests.
+		// if !htmx.IsHTMX(req) {
+		// 	RenderError(res, req, models.RespForbidden(models.ErrHTMXRequired))
+		// 	return
+		// }
 		ctx := req.Context()
-		slogctx.FromCtx(req.Context()).Debug("Getting subscription data for drawer.")
 		subscriptions, resp := models.GetSubscriptions(req.Context(), api)
 		if resp != nil {
 			slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.Error()))
