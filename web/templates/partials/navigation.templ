@@ -98,3 +98,12 @@ templ LinkMarkUnread(text string, attributes templ.Attributes) {
 		link.WithExtraClasses("text-xs"),
 	).Show()
 }
+
+templ SubscriptionList() {
+	<select class="select select-ghost">
+		<option disabled selected>Pick a font</option>
+		<option>Inter</option>
+		<option>Poppins</option>
+		<option>Raleway</option>
+	</select>
+}

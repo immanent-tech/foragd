@@ -33,6 +33,16 @@ templ DrawerSide() {
 	<div class="drawer-side">
 		<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
 		<ul class="menu bg-base-200 text-base-content text-xs min-h-full w-80 p-4">
+			@MenuItemTitle("Navigation")
+			@MenuItem(LinkHome(), nil)
+			@MenuItem(nil, nil) {
+				<details
+					id={ DrawerSubscriptionListID.String() }
+					hx-get="/subscriptions/state"
+					hx-trigger="updateState from:body"
+					hx-target={ DrawerSubscriptionListID.Target() }
+				></details>
+			}
 			{ children... }
 		</ul>
 	</div>

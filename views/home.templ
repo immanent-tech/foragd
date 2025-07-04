@@ -95,18 +95,7 @@ templ (d *HomePage) Show() {
 				@partials.Footer()
 			}
 			// Drawer sidebar.
-			@partials.DrawerSide() {
-				@partials.MenuItemTitle("Navigation")
-				@partials.MenuItem(partials.LinkHome(), nil)
-				@partials.MenuItem(nil, nil) {
-					<details
-						id={ partials.DrawerSubscriptionListID.String() }
-						hx-get="/subscriptions/state"
-						hx-trigger="updateState from:body"
-						hx-target={ partials.DrawerSubscriptionListID.Target() }
-					></details>
-				}
-			}
+			@partials.DrawerSide()
 		}
 	}
 }

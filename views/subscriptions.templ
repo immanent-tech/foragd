@@ -10,6 +10,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
+	"github.com/joshuar/go-templ-daisyui/navigation/breadcrumbs"
 )
 
 templ (s *SubscriptionsPage) Show() {
@@ -34,6 +35,10 @@ templ (s *SubscriptionsPage) Show() {
 							</div>
 						}
 						<div id="card-controls" class="flex flex-row justify-end m-2">
+							@breadcrumbs.Build(
+								breadcrumbs.WithClasses("text-sm", "flex-1"),
+								breadcrumbs.WithCrumbs(partials.LinkHomeIconOnly(), partials.SubscriptionList()),
+							).Show()
 							<div class="flex flex-row justify-end gap-2">
 								@RefreshAction("/subscriptions", s.filters.Parameters())
 								@UpdateSorting("/subscriptions", s.filters.GetSort())
@@ -62,17 +67,7 @@ templ (s *SubscriptionsPage) Show() {
 					@partials.Footer()
 				}
 			}
-			@partials.DrawerSide() {
-				@partials.MenuItemTitle("Navigation")
-				@partials.MenuItem(partials.LinkHome(), nil)
-				@partials.MenuItem(nil, nil) {
-					<details
-						id={ partials.DrawerSubscriptionListID.String() }
-						hx-get="/subscriptions/state"
-						hx-trigger="updateState from:body"
-						hx-target={ partials.DrawerSubscriptionListID.Target() }
-					></details>
-				}
+			@partials.DrawerSide()
 			}
 		}
 	}
