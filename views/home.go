@@ -14,4 +14,5 @@ type HomePage struct {
 	TopCategories  templ.Component
 	RareCategories templ.Component
 	RandomArticles []templ.Component
+	Theme          string
 }

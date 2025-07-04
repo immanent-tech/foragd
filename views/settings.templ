@@ -3,19 +3,38 @@
 
 package views
 
-templ (p SettingsPage) Show() {
-	@ContentPage("Settings") {
-		<!-- name of each tab group should be unique -->
-		<div class="tabs tabs-border">
-			<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 1"/>
-			<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 1</div>
-			<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 2" checked="checked"/>
-			<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 2</div>
-			<input type="radio" name="my_tabs_2" class="tab" aria-label="Display"/>
-			<div class="tab-content border-base-300 bg-base-100 p-10">
-				@themePreviews()
-			</div>
-		</div>
+import "github.com/joshuar/go-feed-me/web/templates/partials"
+
+templ (page SettingsPage) Show() {
+	@NewPage("Go Feed Me - Home", WithTheme(page.Theme)) {
+		@partials.Drawer() {
+			@partials.DrawerContent() {
+				// Fragment: content header
+				@partials.Fragment("content-header") {
+					@Header()
+				}
+				@partials.Fragment("content") {
+					@partials.Content() {
+						<!-- name of each tab group should be unique -->
+						<div class="tabs tabs-border">
+							<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 1"/>
+							<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 1</div>
+							<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 2" checked="checked"/>
+							<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 2</div>
+							<input type="radio" name="my_tabs_2" class="tab" aria-label="Display"/>
+							<div class="tab-content border-base-300 bg-base-100 p-10">
+								@themePreviews()
+							</div>
+						</div>
+					}
+				}
+				// Fragment: content footer
+				@partials.Fragment("content-footer") {
+					@partials.Footer()
+				}
+			}
+			@partials.DrawerSide()
+		}
 	}
 }
 

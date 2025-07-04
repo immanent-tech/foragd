@@ -14,68 +14,85 @@ import (
 )
 
 templ (d *HomePage) Show() {
-	@ContentPage("Home") {
-		<div class="grid justify-center">
-			<div class="stats shadow">
-				@link.Build(
-					link.WithUnderlineOnHover(),
-					link.WithExtraAttributes(templ.Attributes{
-						"hx-get":      "/subscriptions",
-						"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-						"hx-target":   partials.ContentID.Target(),
-						"hx-swap":     "innerHTML",
-						"hx-push-url": "true",
-					}),
-				).Show() {
-					<div class="stat bg-base-300">
-						<div class="stat-figure">
-							@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
-						</div>
-						<div class="stat-title">Subscriptions</div>
-						<div class="stat-value">{ strconv.Itoa(len(d.Subscriptions)) }</div>
-					</div>
+	@NewPage("Go Feed Me - Home", WithTheme(d.Theme)) {
+		@partials.Drawer() {
+			@partials.DrawerContent() {
+				// Fragment: content header
+				@partials.Fragment("content-header") {
+					@Header()
 				}
-				@link.Build(
-					link.WithUnderlineOnHover(),
-					link.WithExtraAttributes(templ.Attributes{
-						"hx-get":      "/articles",
-						"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
-						"hx-target":   partials.ContentID.Target(),
-						"hx-swap":     "innerHTML",
-						"hx-push-url": "true",
-					}),
-				).Show() {
-					<div class="stat bg-base-300">
-						<div class="stat-figure">
-							@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
+				@partials.Fragment("content") {
+					@partials.Content() {
+						<div class="grid justify-center">
+							<div class="stats shadow">
+								@link.Build(
+									link.WithUnderlineOnHover(),
+									link.WithExtraAttributes(templ.Attributes{
+										"hx-get":      "/subscriptions",
+										"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
+										"hx-target":   partials.ContentID.Target(),
+										"hx-swap":     "innerHTML",
+										"hx-push-url": "true",
+									}),
+								).Show() {
+									<div class="stat bg-base-300">
+										<div class="stat-figure">
+											@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
+										</div>
+										<div class="stat-title">Subscriptions</div>
+										<div class="stat-value">{ strconv.Itoa(len(d.Subscriptions)) }</div>
+									</div>
+								}
+								@link.Build(
+									link.WithUnderlineOnHover(),
+									link.WithExtraAttributes(templ.Attributes{
+										"hx-get":      "/articles",
+										"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
+										"hx-target":   partials.ContentID.Target(),
+										"hx-swap":     "innerHTML",
+										"hx-push-url": "true",
+									}),
+								).Show() {
+									<div class="stat bg-base-300">
+										<div class="stat-figure">
+											@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
+										</div>
+										<div class="stat-title">Unread Articles</div>
+										<div class="stat-value">{ strconv.Itoa(d.Subscriptions.GetTotalUnreadCount()) }</div>
+									</div>
+								}
+							</div>
 						</div>
-						<div class="stat-title">Unread Articles</div>
-						<div class="stat-value">{ strconv.Itoa(d.Subscriptions.GetTotalUnreadCount()) }</div>
-					</div>
+						if d.TopCategories != nil {
+							<div class="flex justify-center gap-2 m-4">
+								<h1 class="content-center text-center">Top Categories:</h1>
+								<div id="top-categories" class="flex flex-row flex-wrap gap-2">
+									@d.TopCategories
+								</div>
+							</div>
+						}
+						if d.RareCategories != nil {
+							<div class="flex justify-center gap-2 m-4">
+								<h1 class="content-center text-center">Interesting Categories:</h1>
+								<div id="rare-categories" class="flex flex-row flex-wrap gap-2">
+									@d.RareCategories
+								</div>
+							</div>
+						}
+						if d.RandomArticles != nil {
+							<div class="flex flex-col gap-2">
+								<h1>Random Articles:</h1>
+								@content.CardGrid(d.RandomArticles...)
+							</div>
+						}
+					}
+					// Fragment: content footer
+					@partials.Fragment("content-footer") {
+						@partials.Footer()
+					}
 				}
-			</div>
-		</div>
-		if d.TopCategories != nil {
-			<div class="flex justify-center gap-2 m-4">
-				<h1 class="content-center text-center">Top Categories:</h1>
-				<div id="top-categories" class="flex flex-row flex-wrap gap-2">
-					@d.TopCategories
-				</div>
-			</div>
-		}
-		if d.RareCategories != nil {
-			<div class="flex justify-center gap-2 m-4">
-				<h1 class="content-center text-center">Interesting Categories:</h1>
-				<div id="rare-categories" class="flex flex-row flex-wrap gap-2">
-					@d.RareCategories
-				</div>
-			</div>
-		}
-		if d.RandomArticles != nil {
-			<div class="flex flex-col gap-2">
-				<h1>Random Articles:</h1>
-				@content.CardGrid(d.RandomArticles...)
-			</div>
+				@partials.DrawerSide()
+			}
 		}
 	}
 }

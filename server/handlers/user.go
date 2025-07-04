@@ -18,8 +18,17 @@ import (
 
 func GetSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Retrieve user object.
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			RenderError(res, req, models.RespErrUnauthorized())
+			return
+		}
+
 		// Set layout.
-		page := views.SettingsPage{}
+		page := views.SettingsPage{
+			Theme: user.Settings.Theme,
+		}
 		ctx := templateToCtx(req.Context(), page.Show())
 
 		// Set up handler chain.

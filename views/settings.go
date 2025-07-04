@@ -3,4 +3,6 @@
 
 package views
 
-type SettingsPage struct{}
+type SettingsPage struct {
+	Theme string
+}
