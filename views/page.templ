@@ -13,7 +13,7 @@ import (
 var defaultKeywords = []string{"feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"}
 
 // DefaultPageTitle is the default <title> tag value if none is set.
-var defaultPageTitle = "Go Feed Me"
+var DefaultPageTitle = "Go Feed Me"
 
 // Page represents a single HTML page.
 type Page struct {
@@ -62,12 +62,10 @@ func WithKeywords(keywords ...string) PageOption {
 // Show renders the page as a templ Component.
 templ (page *Page) build() {
 	<!DOCTYPE html>
-	<html
-		lang="en"
-		data-theme=""
-	>
+	<html lang="en">
 		@page.Head.build()
 		<body hx-ext="response-targets" hx-target-error={ partials.NotificationsID.String() } hx-trigger="htmx:historyRestore from:body" hx-get="" hx-target="#content">
+			<input id="page-theme" type="checkbox" value="light" class="toggle theme-controller hidden" checked="checked"/>
 			<div id={ partials.ModalContainerID.String() }></div>
 			<div id={ partials.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50"></div>
 			{ children... }
@@ -137,6 +135,29 @@ templ SetPageTitle(title string) {
 	if title != "" {
 		<title>{ title }</title>
 	} else {
-		<title>{ defaultPageTitle }</title>
+		<title>{ DefaultPageTitle }</title>
+	}
+}
+
+templ ContentPage(title string) {
+	@NewPage(title) {
+		@partials.Drawer() {
+			@partials.DrawerContent() {
+				// Fragment: content header
+				@partials.Fragment("content-header") {
+					@Header()
+				}
+				@partials.Fragment("content") {
+					@partials.Content() {
+						{ children... }
+					}
+					// Fragment: content footer
+					@partials.Fragment("content-footer") {
+						@partials.Footer()
+					}
+				}
+				@partials.DrawerSide()
+			}
+		}
 	}
 }

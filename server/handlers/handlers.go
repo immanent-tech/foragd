@@ -7,11 +7,9 @@ package handlers
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
@@ -21,6 +19,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/views"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
@@ -83,6 +82,13 @@ func RenderTemplate() http.Handler {
 					return
 				}
 				res.WriteHeader(http.StatusOK)
+			}
+			// Update the page title.
+			title := pageTitleFromCtx(req.Context())
+			if err := resp.RenderTempl(req.Context(), res, views.SetPageTitle(title)); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
 			}
 		} else {
 			if template != nil {
@@ -212,53 +218,4 @@ func ProcessResponse(res http.ResponseWriter, req *http.Request, resp *models.Re
 	RenderTemplate().ServeHTTP(res, req.WithContext(ctx))
 	// Write the status code.
 	res.WriteHeader(resp.StatusCode)
-}
-
-func GetSettings(api models.DocumentsAPI) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		chain := alice.New(
-			RouteLogger,
-			GenerateSettings,
-		)
-
-		chain.Then(RenderTemplate()).ServeHTTP(res, req)
-	}
-}
-
-func GetTheme() http.HandlerFunc {
-	return alice.New(
-		RouteLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			ProcessResponse(res, req, models.RespErrUnauthorized())
-			return
-		}
-		res.WriteHeader(http.StatusOK)
-		if _, err := res.Write([]byte(user.GetSettings().Theme)); err != nil {
-			ProcessResponse(res, req, models.RespErrBackend(err))
-		}
-	}).ServeHTTP
-}
-
-func SetTheme(api models.DocumentsAPI) http.HandlerFunc {
-	return alice.New(
-		RouteLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		theme := req.FormValue("theme")
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			ProcessResponse(res, req, models.RespErrUnauthorized())
-			return
-		}
-		settings := user.GetSettings()
-		settings.Theme = theme
-		if err := api.UpdateUser(req.Context(), map[string]any{
-			"settings":   settings,
-			"updated_at": time.Now().UTC(),
-		}); err != nil {
-			ProcessResponse(res, req, models.NewResponse(http.StatusNoContent, fmt.Errorf("failed to update theme: %w", err)))
-		}
-		GetSettings(api)
-	}).ServeHTTP
 }

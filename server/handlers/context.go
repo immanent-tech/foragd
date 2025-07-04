@@ -8,6 +8,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+
+	"github.com/joshuar/go-feed-me/views"
 )
 
 const (
@@ -41,4 +43,17 @@ func htmxRespFromCtx(ctx context.Context) htmx.Response {
 		return resp
 	}
 	return htmx.NewResponse()
+}
+
+// pageTitleToCtx stores the page title in the context.
+func pageTitleToCtx(ctx context.Context, title string) context.Context {
+	return context.WithValue(ctx, titleCtxKey, title)
+}
+
+// pageTitleFromCtx retrieves the page title from the context.
+func pageTitleFromCtx(ctx context.Context) string {
+	if title, ok := ctx.Value(titleCtxKey).(string); ok {
+		return title
+	}
+	return views.DefaultPageTitle
 }
