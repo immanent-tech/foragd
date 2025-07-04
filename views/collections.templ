@@ -62,29 +62,6 @@ templ RefreshAction(route string, parameters map[string]string) {
 	).Show()
 }
 
-// MarkAllFeedsAction generates an action for the footer menu to mark all feeds as either read or unread, depending on
-// the current view.
-func MarkAllSubscriptionsAction(ctx context.Context, view models.View) templ.Component {
-	// Create htmx attributes.
-	attrs := templ.Attributes{
-		"hx-replace-url": "false",
-		"hx-target":      partials.ContentID.Target(),
-		"hx-swap":        "innerHTML swap:1s",
-		"_":              "on htmx:afterOnLoad call history.back()",
-	}
-
-	switch view {
-	case models.ViewUnread:
-		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead)
-		return partials.LinkMarkRead("Mark All Read", attrs)
-	case models.ViewRead:
-		fallthrough
-	default:
-		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread)
-		return partials.LinkMarkUnread("Mark All Unread", attrs)
-	}
-}
-
 templ CollectionActionsMenu(actions ...templ.Component) {
 	if len(actions) > 0 {
 		<div id="card-actions">

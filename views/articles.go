@@ -44,16 +44,16 @@ func (s ArticlesPage) generateCards(ctx context.Context) []templ.Component {
 
 // MarkAllItemsAction generates an action for the footer menu to mark all items of a feed as either read or unread,
 // depending on the current view.
-func markAllArticles(ctx context.Context, view models.View, subIDs ...models.SubscriptionID) templ.Component {
+func markAllArticles(view models.View, subIDs ...models.SubscriptionID) templ.Component {
 	// Create url parameters.
 	parameters := map[string]string{
 		models.ParamSubscriptions: strings.Join(subIDs, ","),
+		"redirect":                "/subscriptions",
 	}
 	// Create htmx attributes.
 	attrs := templ.Attributes{
 		"hx-replace-url": "false",
 		"hx-swap":        "innerHTML swap:1s",
-		"_":              "on htmx:afterOnLoad call history.back()",
 		"hx-vals":        partials.GenerateHXVals(parameters),
 	}
 	switch view {

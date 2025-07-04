@@ -51,7 +51,7 @@ templ (s *ArticlesPage) Show() {
 							@UpdateSorting("/articles", s.filters.GetSort())
 							@UpdateFilters(s.articles.GetCategoryCounts(), "/articles", s.filters.GetCategories(), s.filters.GetView())
 							@CollectionActionsMenu(
-								markAllArticles(ctx, s.filters.GetView(), s.articles.GetSubscriptionIDs()...),
+								markAllArticles(s.filters.GetView(), s.articles.GetSubscriptionIDs()...),
 							)
 						</div>
 					</div>

@@ -34,13 +34,13 @@ templ (s *SubscriptionsPage) Show() {
 								}
 							</div>
 						}
-						<div id="card-controls" class="flex flex-row m-2">
+						<div id="card-controls" class="flex flex-row justify-end m-2">
 							<div class="flex flex-row justify-end gap-2">
 								@RefreshAction("/subscriptions", s.filters.Parameters())
 								@UpdateSorting("/subscriptions", s.filters.GetSort())
 								@UpdateFilters(s.subscriptions.GetCategoryCounts(), "/subscriptions", s.filters.GetCategories(), s.filters.GetView())
 								@CollectionActionsMenu(
-									MarkAllSubscriptionsAction(ctx, s.filters.GetView()),
+									markAllSubscriptionsAction(s.filters.GetView()),
 								)
 							</div>
 						</div>
