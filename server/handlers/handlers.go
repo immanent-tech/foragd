@@ -84,11 +84,10 @@ func RenderTemplate() http.Handler {
 				res.WriteHeader(http.StatusOK)
 			}
 			// Update the page title.
-			title := pageTitleFromCtx(req.Context())
-			if err := resp.RenderTempl(req.Context(), res, views.SetPageTitle(title)); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-				return
+			if title := pageTitleFromCtx(req.Context()); title != "" {
+				if err := resp.RenderTempl(req.Context(), res, views.SetPageTitle(title)); err != nil {
+					slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
+				}
 			}
 		} else {
 			if template != nil {
@@ -132,6 +131,12 @@ func RenderTemplateFragments(fragments ...string) http.Handler {
 			}
 		} else {
 			res.WriteHeader(http.StatusOK)
+		}
+		// Update the page title.
+		if title := pageTitleFromCtx(req.Context()); title != "" {
+			if err := resp.RenderTempl(req.Context(), res, views.SetPageTitle(title)); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
+			}
 		}
 	})
 }

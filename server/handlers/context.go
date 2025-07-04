@@ -8,8 +8,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-
-	"github.com/joshuar/go-feed-me/views"
 )
 
 const (
@@ -55,5 +53,5 @@ func pageTitleFromCtx(ctx context.Context) string {
 	if title, ok := ctx.Value(titleCtxKey).(string); ok {
 		return title
 	}
-	return views.DefaultPageTitle
+	return ""
 }
