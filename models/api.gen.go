@@ -62,7 +62,7 @@ type ArticleFilters struct {
 	Articles []ItemID `form:"articles[]" json:"articles" validate:"omitnil,unique,dive,startswith=item_"`
 
 	// Categories is a list of categories.
-	Categories []Category `form:"categories[]" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
+	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
 
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`
@@ -176,7 +176,7 @@ type SubscriptionEdit struct {
 // SubscriptionFilters defines model for SubscriptionFilters.
 type SubscriptionFilters struct {
 	// Categories is a list of categories.
-	Categories []Category `form:"categories[]" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
+	Categories []Category `form:"categories" json:"categories" validate:"omitnil,unique,dive,url_encoded"`
 
 	// Count is the count of items to retrieve with a request.
 	Count Count `form:"count" json:"count" validate:"numeric,gt=0,lt=20"`

@@ -473,7 +473,7 @@ components:
           $ref: 'models.yaml#/components/schemas/Category'
         x-oapi-codegen-extra-tags:
           json: 'categories'
-          form: 'categories[]'
+          form: 'categories'
           validate: 'omitnil,unique'
         # x-go-type-skip-optional-pointer: true
       # x-go-type-skip-optional-pointer: true

@@ -50,7 +50,7 @@ func GetSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 			cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
 		}
 		// Generate page template.
-		subscriptionsPage := views.NewSubscriptionsPage(filters, cards...)
+		subscriptionsPage := views.NewSubscriptionsPage(filters, subscriptions.GetCategoryCounts(), cards...)
 		ctx := templateToCtx(req.Context(), subscriptionsPage.Show())
 		// Set up handler chain.
 		chain := alice.New(

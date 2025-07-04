@@ -16,10 +16,11 @@ type SubscriptionsPage struct {
 	categories models.CategoryCounts
 }
 
-func NewSubscriptionsPage(filters *models.SubscriptionFilters, cards ...templ.Component) *SubscriptionsPage {
+func NewSubscriptionsPage(filters *models.SubscriptionFilters, categories models.CategoryCounts, cards ...templ.Component) *SubscriptionsPage {
 	return &SubscriptionsPage{
-		cards:   cards,
-		filters: filters,
+		cards:      cards,
+		filters:    filters,
+		categories: categories,
 	}
 }
 
