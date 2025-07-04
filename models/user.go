@@ -13,7 +13,7 @@ import (
 	"github.com/joshuar/go-feed-me/components/validation"
 )
 
-const DefaultSettingTheme = "dracula"
+const DefaultUserTheme = "dracula"
 
 var (
 	ErrAddUser               = errors.New("add subscription failed")
@@ -137,6 +137,15 @@ func NewUserSignup() *UserSignupRequest {
 // NewUserSettings returns a new instance of the default user settings.
 func NewUserSettings() *UserSettings {
 	return &UserSettings{
-		Theme: DefaultSettingTheme,
+		Theme: DefaultUserTheme,
 	}
+}
+
+func GetUserTheme(ctx context.Context) string {
+	if user, found := UserFromCtx(ctx); found {
+		if theme := user.GetSettings().Theme; theme != "" {
+			return theme
+		}
+	}
+	return DefaultUserTheme
 }

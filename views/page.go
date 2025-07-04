@@ -16,19 +16,14 @@ var defaultKeywords = []string{"feeds", "atom", "jsonfeed", "rss", "feed reader"
 // DefaultPageTitle is the default <title> tag value if none is set.
 var DefaultPageTitle = "Go Feed Me"
 
-var DefaultTheme = "light"
-
 // Page represents a single HTML page.
 type Page struct {
-	Head  Head
-	theme string
+	Head Head
 }
 
 // NewPage creates a new page with the given title and options.
 func NewPage(title string, options ...PageOption) templ.Component {
-	page := &Page{
-		theme: DefaultTheme,
-	}
+	page := &Page{}
 	page.Head.Title = title
 
 	for option := range slices.Values(options) {
@@ -52,12 +47,5 @@ func WithDescription(description string) PageOption {
 func WithKeywords(keywords ...string) PageOption {
 	return func(p *Page) {
 		p.Head.AddMetaTag("keywords", strings.Join(keywords, ","))
-	}
-}
-
-// WithKeywords option sets the page keywords.
-func WithTheme(theme string) PageOption {
-	return func(p *Page) {
-		p.theme = theme
 	}
 }

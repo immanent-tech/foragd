@@ -176,7 +176,6 @@ func (s *Server) setupRoutes() {
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handlers.GetSettings())
 				r.Route("/theme", func(r chi.Router) {
-					r.Get("/", handlers.GetTheme())
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handlers.SetTheme(s.DataAPI()))
 				})
 			})

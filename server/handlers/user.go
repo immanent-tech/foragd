@@ -18,17 +18,8 @@ import (
 
 func GetSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Retrieve user object.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			RenderError(res, req, models.RespErrUnauthorized())
-			return
-		}
-
 		// Set layout.
-		page := views.SettingsPage{
-			Theme: user.Settings.Theme,
-		}
+		page := views.SettingsPage{}
 		ctx := templateToCtx(req.Context(), page.Show())
 
 		// Set up handler chain.
@@ -45,22 +36,6 @@ func GetSettings() http.HandlerFunc {
 			chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
 		}
 	}
-}
-
-func GetTheme() http.HandlerFunc {
-	return alice.New(
-		RouteLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			ProcessResponse(res, req, models.RespErrUnauthorized())
-			return
-		}
-		res.WriteHeader(http.StatusOK)
-		if _, err := res.Write([]byte(user.GetSettings().Theme)); err != nil {
-			ProcessResponse(res, req, models.RespErrBackend(err))
-		}
-	}).ServeHTTP
 }
 
 func SetTheme(api models.DocumentsAPI) http.HandlerFunc {

@@ -13,7 +13,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/navigation/breadcrumbs"
 )
 
-templ (s *SubscriptionsPage) Show() {
+templ (page *SubscriptionsPage) Show() {
 	@NewPage("Subscriptions") {
 		@partials.Drawer() {
 			@partials.DrawerContent() {
@@ -26,7 +26,7 @@ templ (s *SubscriptionsPage) Show() {
 						// Fragment: content filters
 						@partials.Fragment("content-filters") {
 							<div id="content-filters" class="hidden">
-								for name, value := range s.filters.Parameters() {
+								for name, value := range page.filters.Parameters() {
 									@hiddeninput.Build(
 										hiddeninput.WithName(name),
 										hiddeninput.WithValue(attributes.Value(value)),
@@ -40,18 +40,18 @@ templ (s *SubscriptionsPage) Show() {
 								breadcrumbs.WithCrumbs(partials.LinkHomeIconOnly(), partials.SubscriptionList()),
 							).Show()
 							<div class="flex flex-row justify-end gap-2">
-								@RefreshAction("/subscriptions", s.filters.Parameters())
-								@UpdateSorting("/subscriptions", s.filters.GetSort())
-								@UpdateFilters(s.categories, "/subscriptions", s.filters.GetCategories(), s.filters.GetView())
+								@RefreshAction("/subscriptions", page.filters.Parameters())
+								@UpdateSorting("/subscriptions", page.filters.GetSort())
+								@UpdateFilters(page.categories, "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
 								@CollectionActionsMenu(
-									markAllSubscriptionsAction(s.filters.GetView()),
+									markAllSubscriptionsAction(page.filters.GetView()),
 								)
 							</div>
 						</div>
 						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
 							// Fragment: cards
 							@partials.Fragment("cards") {
-								@templ.Join(s.cards...)
+								@templ.Join(page.cards...)
 							}
 						</div>
 						<div id="content-loading" class="items-center justify-center">
@@ -67,7 +67,9 @@ templ (s *SubscriptionsPage) Show() {
 					@partials.Footer()
 				}
 			}
-			@partials.DrawerSide()
+			@partials.DrawerSide() {
+				@partials.DrawerSubscriptionList(page.DrawerSideItems...)
+			}
 		}
 	}
 }

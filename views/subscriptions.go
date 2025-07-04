@@ -11,9 +11,10 @@ import (
 )
 
 type SubscriptionsPage struct {
-	filters    *models.SubscriptionFilters
-	cards      []templ.Component
-	categories models.CategoryCounts
+	filters         *models.SubscriptionFilters
+	cards           []templ.Component
+	categories      models.CategoryCounts
+	DrawerSideItems []templ.Component
 }
 
 func NewSubscriptionsPage(filters *models.SubscriptionFilters, categories models.CategoryCounts, cards ...templ.Component) *SubscriptionsPage {
@@ -30,9 +31,9 @@ func markAllSubscriptionsAction(view models.View) templ.Component {
 	}
 	// Create htmx attributes.
 	attrs := templ.Attributes{
-		"hx-target":      partials.ContentID.Target(),
-		"hx-swap":        "innerHTML swap:1s",
-		"hx-vals":        partials.GenerateHXVals(parameters),
+		"hx-target": partials.ContentID.Target(),
+		"hx-swap":   "innerHTML swap:1s",
+		"hx-vals":   partials.GenerateHXVals(parameters),
 	}
 
 	switch view {

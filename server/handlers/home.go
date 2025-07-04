@@ -65,9 +65,7 @@ func getHomePageData(ctx context.Context, api models.DocumentsAPI) (*views.HomeP
 		return nil, models.RespErrUnauthorized()
 	}
 
-	data := &views.HomePage{
-		Theme: user.GetSettings().Theme,
-	}
+	data := &views.HomePage{}
 
 	// Get subscriptions.
 	subscriptions, resp := models.GetSubscriptions(ctx, api)

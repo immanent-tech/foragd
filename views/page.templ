@@ -4,6 +4,7 @@
 package views
 
 import (
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"slices"
 )
@@ -23,7 +24,7 @@ templ (page *Page) build() {
 			<input
 				id="page-theme"
 				type="checkbox"
-				value={ page.theme }
+				value={ models.GetUserTheme(ctx) }
 				class="toggle theme-controller hidden"
 				checked="checked"
 			/>

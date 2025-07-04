@@ -14,7 +14,7 @@ import (
 )
 
 templ (d *HomePage) Show() {
-	@NewPage("Go Feed Me - Home", WithTheme(d.Theme)) {
+	@NewPage("Go Feed Me - Home") {
 		@partials.Drawer() {
 			@partials.DrawerContent() {
 				// Fragment: content header

@@ -35,14 +35,6 @@ templ DrawerSide() {
 		<ul class="menu bg-base-200 text-base-content text-xs min-h-full w-80 p-4">
 			@MenuItemTitle("Navigation")
 			@MenuItem(LinkHome(), nil)
-			@MenuItem(nil, nil) {
-				<details
-					id={ DrawerSubscriptionListID.String() }
-					hx-get="/subscriptions/state"
-					hx-trigger="updateState from:body"
-					hx-target={ DrawerSubscriptionListID.Target() }
-				></details>
-			}
 			{ children... }
 		</ul>
 	</div>
@@ -68,17 +60,26 @@ templ DrawerSubscriptionList(states ...templ.Component) {
 	if len(states) == 0 {
 		return
 	}
-	<summary>
-		<div class="flex gap-2">
-			@tabler.Rss()
-			Subscriptions
-		</div>
-	</summary>
-	<ul class="text-base-content text-xs">
-		for subscription := range slices.Values(states) {
-			<li>
-				@subscription
-			</li>
-		}
-	</ul>
+	@MenuItem(nil, nil) {
+		<details
+			id={ DrawerSubscriptionListID.String() }
+			hx-get="/subscriptions/state"
+			hx-trigger="updateState from:body"
+			hx-target={ DrawerSubscriptionListID.Target() }
+		>
+			<summary>
+				<div class="flex gap-2">
+					@tabler.Rss()
+					Subscriptions
+				</div>
+			</summary>
+			<ul class="text-base-content text-xs">
+				for subscription := range slices.Values(states) {
+					<li>
+						@subscription
+					</li>
+				}
+			</ul>
+		</details>
+	}
 }

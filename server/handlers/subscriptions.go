@@ -41,8 +41,10 @@ func GetSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 			return
 		}
 		cards := make([]templ.Component, 0, len(subscriptions))
+		states := make([]templ.Component, 0, len(subscriptions))
 		for subscription := range slices.Values(subscriptions) {
 			cards = append(cards, content.NewSubscriptionContent(subscription).Card())
+			states = append(states, content.NewSubscriptionContent(subscription).State())
 		}
 		// Add pagination element if pagination is required.
 		if pagination != "" && len(cards) == filters.GetCount() {
@@ -51,6 +53,7 @@ func GetSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 		}
 		// Generate page template.
 		subscriptionsPage := views.NewSubscriptionsPage(filters, subscriptions.GetCategoryCounts(), cards...)
+		subscriptionsPage.DrawerSideItems = states
 		ctx := templateToCtx(req.Context(), subscriptionsPage.Show())
 		// Set up handler chain.
 		chain := alice.New(
