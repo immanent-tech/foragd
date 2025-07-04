@@ -124,6 +124,7 @@ func (s *Server) setupRoutes() {
 		middlewares.SetupCORS(config.Environment()),
 		// middlewares.CSP(server.ServerConfig.CSP),
 		middlewares.Etag,
+		middleware.StripSlashes,
 	)
 
 	// Routes.
