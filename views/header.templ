@@ -50,7 +50,7 @@ templ DefaultHeaderEnd() {
 					partials.IconText(tabler.Settings(i.Props{Size: i.SizeXS}), "Settings")),
 				link.WithUnderlineOnHover(),
 				link.WithExtraAttributes(templ.Attributes{
-					"hx-get":         "/settings",
+					"hx-get":         "/user/settings",
 					"hx-target":      partials.ContentID.Target(),
 					"hx-replace-url": "true",
 				}),

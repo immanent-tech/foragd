@@ -153,12 +153,6 @@ func (s *Server) setupRoutes() {
 			handlers.RequireUserAuth(s.DataAPI(), s.AuthAPI()),
 		)
 		r.Get("/home", handlers.Home(s.DataAPI()))
-		r.Route("/settings", func(r chi.Router) {
-			r.Route("/theme", func(r chi.Router) {
-				r.Get("/", handlers.GetTheme())
-				r.Put("/", handlers.SetTheme(s.DataAPI()))
-			})
-		})
 		// Subscription routes.
 		r.With(middlewares.RequireHTMX).Get("/subscriptions/state", handlers.GetSubscriptionStates(s.DataAPI()))
 		r.Get("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))
@@ -177,6 +171,13 @@ func (s *Server) setupRoutes() {
 				r.Get("/new", handlers.NewSubscription())
 				r.Get("/edit/{subscription}", handlers.EditSubscription(s.DataAPI()))
 				r.Put("/edit/{subscription}", handlers.SaveSubscription(s.DataAPI()))
+			})
+			r.Route("/settings", func(r chi.Router) {
+				r.Get("/", handlers.GetSettings())
+				r.With(middlewares.RequireHTMX).Route("/theme", func(r chi.Router) {
+					r.Get("/", handlers.GetTheme())
+					r.Put("/{theme}", handlers.SetTheme(s.DataAPI()))
+				})
 			})
 		})
 	})

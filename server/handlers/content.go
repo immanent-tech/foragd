@@ -20,7 +20,6 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/views"
-	"github.com/joshuar/go-feed-me/web/templates/layouts/settings"
 )
 
 // ParseNewSubscriptionRequest will extract the subscription request, validate it and then store it in the context for
@@ -415,15 +414,6 @@ func AddSubscriptions(api models.DocumentsAPI) func(next http.Handler) http.Hand
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}
-}
-
-// GenerateSettings handles displaying the user settings page.
-func GenerateSettings(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		settingsLayout := settings.SettingsContent()
-		ctx := templateToCtx(req.Context(), settingsLayout)
-		next.ServeHTTP(res, req.WithContext(ctx))
-	})
 }
 
 // GenerateDrawerContent handles generating updated content for the drawer.
