@@ -248,8 +248,7 @@ func (c *Article) markAttributes() templ.Attributes {
 		"hx-vals": partials.GenerateHXVals(map[string]string{
 			"articles": c.GetSubscriptionID() + "__" + c.GetID(),
 		}),
-		"hx-replace-url": "false",
-		"_":              "on htmx:afterRequest send UpdateState to #drawer-subscriptions-list",
+		"_": "on htmx:afterRequest send UpdateState to #drawer-subscriptions-list",
 	}
 
 	if c.IsUnread() {

@@ -20,7 +20,6 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 		hx-trigger="intersect once"
 		hx-target={ CardsID.Target() }
 		hx-swap="beforeend"
-		hx-replace-url="false"
 		hx-indicator="#content-loading"
 		_="on htmx:afterRequest remove me"
 	></div>

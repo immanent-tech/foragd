@@ -101,12 +101,12 @@ templ (filter *Filter) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         filter.route,
-				"hx-include":     "#content-filters",
-				"hx-vals":        partials.GenerateHXVals(map[string]string{filter.name: filter.value}),
-				"hx-params":      "not " + models.ParamCategories,
-				"hx-replace-url": "true",
-				"hx-target":      partials.ContentID.Target(),
+				"hx-get":      filter.route,
+				"hx-include":  "#content-filters",
+				"hx-vals":     partials.GenerateHXVals(map[string]string{filter.name: filter.value}),
+				"hx-params":   "not " + models.ParamCategories,
+				"hx-push-url": "true",
+				"hx-target":   partials.ContentID.Target(),
 			}),
 		).Show()
 	} else {
@@ -115,11 +115,11 @@ templ (filter *Filter) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         filter.route,
-				"hx-include":     "#content-filters",
-				"hx-vals":        partials.GenerateHXVals(map[string]string{filter.name: filter.value}),
-				"hx-replace-url": "true",
-				"hx-target":      partials.ContentID.Target(),
+				"hx-get":      filter.route,
+				"hx-include":  "#content-filters",
+				"hx-vals":     partials.GenerateHXVals(map[string]string{filter.name: filter.value}),
+				"hx-push-url": "true",
+				"hx-target":   partials.ContentID.Target(),
 			}),
 		).Show()
 	}
@@ -274,11 +274,11 @@ templ (option *SortOption) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         option.route,
-				"hx-include":     "#content-filters",
-				"hx-vals":        option.HXVal(),
-				"hx-replace-url": "true",
-				"hx-target":      partials.ContentID.Target(),
+				"hx-get":      option.route,
+				"hx-include":  "#content-filters",
+				"hx-vals":     option.HXVal(),
+				"hx-push-url": "true",
+				"hx-target":   partials.ContentID.Target(),
 			}),
 		).Show()
 	} else {
@@ -287,11 +287,11 @@ templ (option *SortOption) AsLink() {
 			link.WithUnderlineOnHover(),
 			link.WithExtraClasses("capitalize", "text-xs"),
 			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":         option.route,
-				"hx-include":     "#content-filters",
-				"hx-vals":        option.HXVal(),
-				"hx-replace-url": "true",
-				"hx-target":      partials.ContentID.Target(),
+				"hx-get":      option.route,
+				"hx-include":  "#content-filters",
+				"hx-vals":     option.HXVal(),
+				"hx-push-url": "true",
+				"hx-target":   partials.ContentID.Target(),
 			}),
 		).Show()
 	}

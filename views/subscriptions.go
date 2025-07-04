@@ -30,7 +30,6 @@ func markAllSubscriptionsAction(view models.View) templ.Component {
 	}
 	// Create htmx attributes.
 	attrs := templ.Attributes{
-		"hx-replace-url": "false",
 		"hx-target":      partials.ContentID.Target(),
 		"hx-swap":        "innerHTML swap:1s",
 		"hx-vals":        partials.GenerateHXVals(parameters),

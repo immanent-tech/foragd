@@ -52,7 +52,6 @@ func markAllArticles(view models.View, subIDs ...models.SubscriptionID) templ.Co
 	}
 	// Create htmx attributes.
 	attrs := templ.Attributes{
-		"hx-replace-url": "false",
 		"hx-swap":        "innerHTML swap:1s",
 		"hx-vals":        partials.GenerateHXVals(parameters),
 	}

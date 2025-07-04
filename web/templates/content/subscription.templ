@@ -196,7 +196,6 @@ func (c *Subscription) markAttributes() templ.Attributes {
 	}
 	// Create htmx attributes: don't replace URL, swap the subscription card only.
 	attrs := templ.Attributes{
-		"hx-replace-url":  "false",
 		"hx-target":       "#" + c.GetID(),
 		"hx-target-error": partials.ErrorID.Target(),
 		"hx-swap":         "outerHTML",

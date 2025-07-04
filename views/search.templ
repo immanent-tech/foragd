@@ -19,9 +19,9 @@ templ SearchForm() {
 	<div class="dropdown">
 		@form.Build(
 			form.WithExtraAttributes(templ.Attributes{
-				"hx-post":        "/search/results",
-				"hx-target":      partials.ContentID.Target(),
-				"hx-replace-url": "true",
+				"hx-post":     "/search/results",
+				"hx-target":   partials.ContentID.Target(),
+				"hx-push-url": "true",
 			}),
 		).Show() {
 			@join.Horizontally() {
@@ -30,12 +30,11 @@ templ SearchForm() {
 					textinput.WithName("search_terms"),
 					textinput.WithPlaceholder("Search anything..."),
 					textinput.WithExtraAttributes(templ.Attributes{
-						"hx-post":        "/search/suggest",
-						"hx-trigger":     "input changed delay:500ms",
-						"hx-target":      "#search-suggestions",
-						"hx-indicator":   ".htmx-indicator",
-						"tabindex":       0,
-						"hx-replace-url": "false",
+						"hx-post":      "/search/suggest",
+						"hx-trigger":   "input changed delay:500ms",
+						"hx-target":    "#search-suggestions",
+						"hx-indicator": ".htmx-indicator",
+						"tabindex":     0,
 					}),
 					textinput.WithExtraClasses("join-item"),
 				).Show()
