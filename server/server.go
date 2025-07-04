@@ -162,7 +162,7 @@ func (s *Server) setupRoutes() {
 		// Subscription routes.
 		r.With(middlewares.RequireHTMX).Get("/subscriptions/state", handlers.GetSubscriptionStates(s.DataAPI()))
 		r.Get("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))
-		r.With(middlewares.RequireHTMX).Post("/subscriptions", handlers.PaginateSubscriptions(s.DataAPI()))
+		r.With(middlewares.RequireHTMX).Post("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))
 		r.With(middlewares.RequireHTMX).Post("/subscriptions/mark/{mark}", handlers.MarkSubscriptions(s.DataAPI()))
 		r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handlers.RemoveSubscriptions(s.DataAPI()))
 		// Article routes.

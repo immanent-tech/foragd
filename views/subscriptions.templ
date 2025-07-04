@@ -10,7 +10,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"slices"
 )
 
 templ (s *SubscriptionsPage) Show() {
@@ -38,7 +37,7 @@ templ (s *SubscriptionsPage) Show() {
 							<div class="flex flex-row justify-end gap-2">
 								@RefreshAction("/subscriptions", s.filters.Parameters())
 								@UpdateSorting("/subscriptions", s.filters.GetSort())
-								@UpdateFilters(s.subscriptions.GetCategoryCounts(), "/subscriptions", s.filters.GetCategories(), s.filters.GetView())
+								@UpdateFilters(s.categories, "/subscriptions", s.filters.GetCategories(), s.filters.GetView())
 								@CollectionActionsMenu(
 									markAllSubscriptionsAction(s.filters.GetView()),
 								)
@@ -47,9 +46,7 @@ templ (s *SubscriptionsPage) Show() {
 						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
 							// Fragment: cards
 							@partials.Fragment("cards") {
-								for cards := range slices.Values(s.generateCards(ctx)) {
-									@cards
-								}
+								@templ.Join(s.cards...)
 							}
 						</div>
 						<div id="content-loading" class="items-center justify-center">

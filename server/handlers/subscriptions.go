@@ -40,38 +40,6 @@ func GetSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 			RenderError(res, req, resp)
 			return
 		}
-		subscriptionsPage := views.NewSubscriptionsPage(subscriptions, filters, pagination)
-		ctx := templateToCtx(req.Context(), subscriptionsPage.Show())
-
-		chain := alice.New(
-			RouteLogger,
-			SavePageState(filters),
-		)
-
-		switch {
-		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			chain.Then(RenderTemplateFragments("content-header", "content", "content-footer")).ServeHTTP(res, req.WithContext(ctx))
-		default:
-			chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
-		}
-	}
-}
-
-// PaginateSubscriptions handles showing the next set of subscriptions in a filtered collection.
-func PaginateSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
-		if err != nil || !valid {
-			RenderError(res, req, models.NewResponse(http.StatusBadRequest, fmt.Errorf("parameters are invalid: %w", err)))
-			return
-		}
-		// Get subscriptions matching filters.
-		subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
-		if resp != nil {
-			RenderError(res, req, resp)
-			return
-		}
-
 		cards := make([]templ.Component, 0, len(subscriptions))
 		for subscription := range slices.Values(subscriptions) {
 			cards = append(cards, content.NewSubscriptionContent(subscription).Card())
@@ -81,12 +49,26 @@ func PaginateSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 			// Add pagination htmx props to last article.
 			cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
 		}
-		ctx := templateToCtx(req.Context(), templ.Join(cards...))
-
-		alice.New(
+		// Generate page template.
+		subscriptionsPage := views.NewSubscriptionsPage(filters, cards...)
+		ctx := templateToCtx(req.Context(), subscriptionsPage.Show())
+		// Set up handler chain.
+		chain := alice.New(
 			RouteLogger,
 			SavePageState(filters),
-		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+		)
+		// Display content based on request.
+		switch {
+		case req.Method == http.MethodPost:
+			// Pagination. Only render cards.
+			chain.Then(RenderTemplateFragments("cards")).ServeHTTP(res, req.WithContext(ctx))
+		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+			// Partial update. Only render fragments.
+			chain.Then(RenderTemplateFragments("content-header", "content", "content-footer")).ServeHTTP(res, req.WithContext(ctx))
+		default:
+			// Full page render.
+			chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+		}
 	}
 }
 

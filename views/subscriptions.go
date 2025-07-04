@@ -4,41 +4,23 @@
 package views
 
 import (
-	"context"
-	"slices"
-
 	"github.com/a-h/templ"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 type SubscriptionsPage struct {
-	filters       *models.SubscriptionFilters
-	subscriptions models.Subscriptions
-	pagination    models.Pagination
+	filters    *models.SubscriptionFilters
+	cards      []templ.Component
+	categories models.CategoryCounts
 }
 
-func NewSubscriptionsPage(subscriptions models.Subscriptions, filters *models.SubscriptionFilters, pagination models.Pagination) *SubscriptionsPage {
+func NewSubscriptionsPage(filters *models.SubscriptionFilters, cards ...templ.Component) *SubscriptionsPage {
 	return &SubscriptionsPage{
-		subscriptions: subscriptions,
-		filters:       filters,
-		pagination:    pagination,
+		cards:   cards,
+		filters: filters,
 	}
-}
-
-func (s SubscriptionsPage) generateCards(ctx context.Context) []templ.Component {
-	cards := make([]templ.Component, 0, len(s.subscriptions))
-	for subscription := range slices.Values(s.subscriptions) {
-		cards = append(cards, content.NewSubscriptionContent(subscription).Card())
-	}
-	// Add pagination element if pagination is required.
-	if s.pagination != "" && len(cards) == s.filters.GetCount() {
-		// Add pagination htmx props to last article.
-		cards = append(cards, content.PaginationControl(ctx, "/subscriptions", s.pagination))
-	}
-	return cards
 }
 
 func markAllSubscriptionsAction(view models.View) templ.Component {
