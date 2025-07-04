@@ -10,6 +10,7 @@ import (
 	"slices"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -31,16 +32,26 @@ func Home(api models.DocumentsAPI) http.HandlerFunc {
 		case resp.IsNotFound():
 			ctx = templateToCtx(ctx, data.Show())
 		case resp != nil:
-			ProcessResponse(res, req, resp)
+			RenderError(res, req, resp)
 			return
 		default:
 			ctx = templateToCtx(ctx, data.Show())
 		}
 
-		alice.New(
+		chain := alice.New(
 			RouteLogger,
 			SavePageState(nil),
-		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+		)
+
+		// Display content based on request.
+		switch {
+		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+			// Partial update. Only render fragments.
+			chain.Then(RenderTemplateFragments("content")).ServeHTTP(res, req.WithContext(ctx))
+		default:
+			// Full page render.
+			chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+		}
 	}
 }
 
