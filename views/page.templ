@@ -49,33 +49,32 @@ func WithKeywords(keywords ...string) PageOption {
 	}
 }
 
-// _="
-// init
-// 	fetch /settings/theme then
-// 		put the result into @data-theme
-// on setTheme(theme)
-// 	log 'theme changed to ' + theme
-// 	set @data-theme to theme
-// end
-// "
-
 // Show renders the page as a templ Component.
 templ (page *Page) build() {
 	<!DOCTYPE html>
 	<html lang="en">
 		@page.Head.build()
-		<body hx-ext="response-targets" hx-target-error={ partials.NotificationsID.String() } hx-trigger="htmx:historyRestore from:body" hx-get="" hx-target="#content">
-			<input id="page-theme" type="checkbox" value="light" class="toggle theme-controller hidden" checked="checked"/>
+		<body
+			hx-ext="response-targets"
+			hx-target-error={ partials.NotificationsID.String() }
+			hx-trigger="htmx:historyRestore from:body"
+			hx-get=""
+			hx-target="#content"
+		>
+			<input
+				id="page-theme"
+				type="checkbox"
+				value="light"
+				class="toggle theme-controller hidden"
+				checked="checked"
+				_="init fetch /user/settings/theme then put the result into my value"
+			/>
 			<div id={ partials.ModalContainerID.String() }></div>
 			<div id={ partials.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50"></div>
 			{ children... }
 		</body>
 	</html>
 }
-
-// hx-trigger="htmx:historyRestore"
-// hx-get=""
-// hx-target={ partials.ContentID.Target() }
 
 // Meta represents a custom <meta> tag.
 type Meta struct {
