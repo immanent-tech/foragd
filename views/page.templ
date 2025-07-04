@@ -67,7 +67,7 @@ templ (page *Page) build() {
 		data-theme=""
 	>
 		@page.Head.build()
-		<body hx-ext="response-targets" hx-target-error={ partials.NotificationsID.String() }>
+		<body hx-ext="response-targets" hx-target-error={ partials.NotificationsID.String() } hx-trigger="htmx:historyRestore from:body" hx-get="" hx-target="#content">
 			<div id={ partials.ModalContainerID.String() }></div>
 			<div id={ partials.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50"></div>
 			{ children... }
