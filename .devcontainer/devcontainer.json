@@ -33,7 +33,8 @@
         "a-h.templ",
         "bradlc.vscode-tailwindcss",
         "yzhang.markdown-all-in-one",
-        "DavidAnson.vscode-markdownlint"
+        "DavidAnson.vscode-markdownlint",
+        "dnut.rewrap-revived"
       ]
     }
   },
