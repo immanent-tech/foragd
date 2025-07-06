@@ -155,7 +155,6 @@ func (s *Server) setupRoutes() {
 		)
 		r.Get("/home", handlers.Home(s.DataAPI()))
 		// Subscription routes.
-		r.With(middlewares.RequireHTMX).Get("/subscriptions/state", handlers.GetSubscriptionStates(s.DataAPI()))
 		r.Get("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))
 		r.With(middlewares.RequireHTMX).Post("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))
 		r.With(middlewares.RequireHTMX).Post("/subscriptions/mark/{mark}", handlers.MarkSubscriptions(s.DataAPI()))

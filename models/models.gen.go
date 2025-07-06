@@ -9,6 +9,15 @@ import (
 	externalRef0 "github.com/joshuar/go-syndication/types"
 )
 
+// Defines values for FavouriteType.
+const (
+	FavouriteTypeArticle              FavouriteType = "article"
+	FavouriteTypeArticleCategory      FavouriteType = "article_category"
+	FavouriteTypeSearch               FavouriteType = "search"
+	FavouriteTypeSubscription         FavouriteType = "subscription"
+	FavouriteTypeSubscriptionCategory FavouriteType = "subscription_category"
+)
+
 // Defines values for FeedSourceType.
 const (
 	FeedSourceTypeAtom     FeedSourceType = "Atom"
@@ -73,6 +82,21 @@ type CreatedAt = time.Time
 
 // DeletedAt records when the object was deleted.
 type DeletedAt = time.Time
+
+// Favourite is an object that the user has marked as a favourite. Favourites  have higher visibility in the display and score higher in search results.
+type Favourite struct {
+	// Link is the internal link to the favourited object.
+	Link interface{} `json:"link"`
+
+	// Name is a friendly name for the link.
+	Name string `json:"name"`
+
+	// Type is the type of favourite.
+	Type FavouriteType `json:"type"`
+}
+
+// FavouriteType is the type of favourite.
+type FavouriteType string
 
 // Feed defines model for Feed.
 type Feed struct {
@@ -295,6 +319,9 @@ type SubscriptionID = string
 
 // SubscriptionState contains all details that define a user subscription.
 type SubscriptionState struct {
+	// Customisation contains object fields that can be customised (overridden) by a user
+	Customisation *ObjectCustomisation `json:"customisation,omitempty"`
+
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
@@ -330,6 +357,9 @@ type UpdatedAt = time.Time
 type User struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
+
+	// Favourites is a list of objects the user has marked as a favourite.
+	Favourites []Favourite `json:"favourites,omitempty"`
 
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
 	MaxHistory string `json:"max_history"`

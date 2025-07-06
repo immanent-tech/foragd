@@ -114,6 +114,7 @@ func userMappings() map[string]types.Property {
 		"max_history":   types.NewKeywordProperty(),
 		"settings":      types.NewFlattenedProperty(),
 		"subscriptions": types.NewFlattenedProperty(),
+		"favourites":    types.NewFlattenedProperty(),
 	}
 }
 

@@ -11,10 +11,9 @@ import (
 )
 
 type SubscriptionsPage struct {
-	filters         *models.SubscriptionFilters
-	cards           []templ.Component
-	categories      models.CategoryCounts
-	DrawerSideItems []templ.Component
+	filters    *models.SubscriptionFilters
+	cards      []templ.Component
+	categories models.CategoryCounts
 }
 
 func NewSubscriptionsPage(filters *models.SubscriptionFilters, categories models.CategoryCounts, cards ...templ.Component) *SubscriptionsPage {

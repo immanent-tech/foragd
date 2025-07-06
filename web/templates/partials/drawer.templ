@@ -4,16 +4,14 @@
 package partials
 
 import (
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
 )
 
-// DrawerSubscriptionListID is the ID of the element containing the subscription list in the drawer.
-var DrawerSubscriptionListID = attributes.ID("drawer-subscriptions-list")
-
-// TriggerSubscriptionListUpdateHS is a hyperscript snippet to trigger an update of the subscription list in the drawer.
-var TriggerSubscriptionListUpdateHS = "on htmx:afterRequest send UpdateState to " + DrawerSubscriptionListID.Target()
+var Favourites = attributes.ID("favourites")
 
 // Drawer is the container for a full-page drawer
 templ Drawer() {
@@ -56,28 +54,29 @@ templ MenuItem(content templ.Component, attributes templ.Attributes) {
 	</li>
 }
 
-templ DrawerSubscriptionList(states ...templ.Component) {
-	if len(states) == 0 {
-		return
-	}
+templ FavouritesList() {
 	@MenuItem(nil, nil) {
-		<details
-			id={ DrawerSubscriptionListID.String() }
-			hx-get="/subscriptions/state"
-			hx-trigger="updateState from:body"
-			hx-target={ DrawerSubscriptionListID.Target() }
-		>
+		<details id={ Favourites.String() }>
 			<summary>
 				<div class="flex gap-2">
-					@tabler.Rss()
-					Subscriptions
+					@tabler.Stars()
+					Favourites
 				</div>
 			</summary>
 			<ul class="text-base-content text-xs">
-				for subscription := range slices.Values(states) {
+				if favourites := models.GetUserFavourites(ctx); favourites != nil {
+				for favourite := range slices.Values(favourites) {
 					<li>
-						@subscription
+						@link.Build(
+							link.WithContent(favourite.Name),
+							link.WithExtraAttributes(templ.Attributes{
+							"href": favourite.Link,
+						}),
+						).Show()
 					</li>
+				}
+				} else {
+					No favourites found.
 				}
 			</ul>
 		</details>

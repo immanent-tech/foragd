@@ -53,7 +53,6 @@ func GetSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 		}
 		// Generate page template.
 		subscriptionsPage := views.NewSubscriptionsPage(filters, subscriptions.GetCategoryCounts(), cards...)
-		subscriptionsPage.DrawerSideItems = states
 		ctx := templateToCtx(req.Context(), subscriptionsPage.Show())
 		// Set up handler chain.
 		chain := alice.New(
@@ -182,32 +181,6 @@ func RemoveSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 			ctx = templateToCtx(ctx, modal)
 		}
 		chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
-	}
-}
-
-func GetSubscriptionStates(api models.DocumentsAPI) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// // Add requests are only driven by htmx requests.
-		// if !htmx.IsHTMX(req) {
-		// 	RenderError(res, req, models.RespForbidden(models.ErrHTMXRequired))
-		// 	return
-		// }
-		ctx := req.Context()
-		subscriptions, resp := models.GetSubscriptions(req.Context(), api)
-		if resp != nil {
-			slogctx.FromCtx(req.Context()).Warn("Failed to get subscriptions.", slog.Any("error", resp.Error()))
-		} else {
-			subscriptions = subscriptions.Sort(nil)
-			states := make([]templ.Component, 0, len(subscriptions))
-			for subscription := range slices.Values(subscriptions) {
-				states = append(states, content.NewSubscriptionContent(subscription).State())
-			}
-			ctx = templateToCtx(ctx, partials.DrawerSubscriptionList(states...))
-		}
-
-		alice.New(
-			RouteLogger,
-		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
 

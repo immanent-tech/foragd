@@ -151,6 +151,13 @@ components:
               items:
                 $ref: '#/components/schemas/SubscriptionState'
               x-go-type-skip-optional-pointer: true
+            favourites:
+              description: >
+                is a list of objects the user has marked as a favourite.
+              type: array
+              items:
+                $ref: '#/components/schemas/Favourite'
+              x-go-type-skip-optional-pointer: true
     UserSettings:
       description: >
         contains user-specific settings for the application.
@@ -162,6 +169,35 @@ components:
           type: string
           default: dracula
           x-go-type-skip-optional-pointer: true
+    Favourite:
+      description: >
+        is an object that the user has marked as a favourite. Favourites  have higher visibility in the display and
+        score higher in search results.
+      type: object
+      required:
+        - type
+        - link
+        - name
+      properties:
+        type:
+          description: >
+            is the type of favourite.
+          type: string
+          enum:
+            [
+              'subscription',
+              'article',
+              'subscription_category',
+              'article_category',
+              'search',
+            ]
+        name:
+          description: >
+            is a friendly name for the link.
+          type: string
+        link:
+          description: >
+            is the internal link to the favourited object.
     UserSession:
       description: tracks a user session.
       type: object
@@ -389,6 +425,8 @@ components:
           $ref: '#/components/schemas/FeedID'
         state:
           $ref: '#/components/schemas/ObjectState'
+        customisation:
+          $ref: '#/components/schemas/ObjectCustomisation'
         item_states:
           description: >
             contains the states of items marked explicitly as read/unread/saved by the user.

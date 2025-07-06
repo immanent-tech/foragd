@@ -141,6 +141,15 @@ func NewUserSettings() *UserSettings {
 	}
 }
 
+// GetUserFavourites returns the current user's favourites list or nil, if they have no favourites.
+func GetUserFavourites(ctx context.Context) []Favourite {
+	if user, found := UserFromCtx(ctx); found {
+		return user.Favourites
+	}
+	return nil
+}
+
+// GetUserTheme returns the current user's theme or the default theme if no user theme is set.
 func GetUserTheme(ctx context.Context) string {
 	if user, found := UserFromCtx(ctx); found {
 		if theme := user.GetSettings().Theme; theme != "" {
