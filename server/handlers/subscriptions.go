@@ -14,7 +14,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -200,7 +199,6 @@ func EditSubscription(api models.DocumentsAPI) http.HandlerFunc {
 		id := chi.URLParam(req, "subscription")
 		// Retrieve subscription customisation.
 		customisation, resp := models.GetSubscriptionCustomisation(req.Context(), api, id)
-		spew.Dump(customisation, resp)
 		if resp != nil && !resp.IsNotFound() {
 			RenderError(res, req, resp)
 			return

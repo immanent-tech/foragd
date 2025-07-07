@@ -58,11 +58,15 @@ templ (s *ArticlesPage) render() {
 						</div>
 					</div>
 					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
-						// Fragment: cards
-						@partials.Fragment("cards") {
-							for cards := range slices.Values(s.generateCards(ctx)) {
-								@cards
+						if len(s.articles) > 0 {
+							// Fragment: cards
+							@partials.Fragment("cards") {
+								for cards := range slices.Values(s.generateCards(ctx)) {
+									@cards
+								}
 							}
+						} else {
+							@EmptyContent()
 						}
 					</div>
 					<div id="content-loading" class="items-center justify-center">
@@ -191,7 +195,7 @@ templ (c *Article) ShowAsSearchSuggestion() {
 templ (c *Article) ShowContent() {
 	<div class="flex justify-center">
 		@article.Build(
-			article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2", "overflow-scroll", "max-w-prose"),
+			article.WithExtraClasses("shadow-sm", "bg-neutral", "rounded-box", "p-2", "overflow-scroll", "max-w-prose"),
 			article.WithExtraAttributes(templ.Attributes{
 				"hx-post": "/articles/mark/read",
 				"hx-swap": "none",

@@ -14,7 +14,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -22,8 +21,8 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/views"
 	"github.com/joshuar/go-feed-me/web/templates/content"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 // GetArticles handles showing a filtered collection of articles as cards.
@@ -111,7 +110,6 @@ func MarkArticles(api models.DocumentsAPI) http.HandlerFunc {
 		// Get mark.
 		mark := chi.URLParam(req, "mark")
 
-		spew.Dump(marks, mark)
 		// Retrieve user.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {

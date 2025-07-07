@@ -63,9 +63,13 @@ templ (page *SubscriptionsPage) Show() {
 							</div>
 						</div>
 						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
-							// Fragment: cards
-							@partials.Fragment("cards") {
-								@templ.Join(page.cards...)
+							if len(page.cards) > 0 {
+								// Fragment: cards
+								@partials.Fragment("cards") {
+									@templ.Join(page.cards...)
+								}
+							} else {
+								@EmptyContent()
 							}
 						</div>
 						<div id="content-loading" class="items-center justify-center">
