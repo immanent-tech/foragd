@@ -4,8 +4,6 @@
 package views
 
 import (
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/input/form"
@@ -66,28 +64,7 @@ templ SearchSuggestionHeader(text string) {
 	<li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{ text }</li>
 }
 
-templ SearchSuggestionSubscription(subscription *models.Subscription) {
-	<li class="list-row" _="on click call document.activeElement.blur()">
-		<div>
-			<div class="list-col-wrap text-xs">
-				@content.NewSubscriptionContent(subscription).Summary()
-			</div>
-			// <div class="text-xs uppercase font-semibold opacity-60">{ article.Item.FeedTitle }</div>
-		</div>
-	</li>
-}
-
-templ SearchSuggestionArticle(article *models.Article) {
-	<li class="list-row" _="on click call document.activeElement.blur()">
-		<div>
-			<div class="list-col-wrap text-xs">
-				@NewArticleContent(article).Summary()
-			</div>
-		</div>
-	</li>
-}
-
-templ SearchResultsPage(subscriptions models.Subscriptions, articles models.Articles) {
+templ SearchResultsPage(subscriptions []*Subscription, articles []*Article) {
 	// <script type="text/hyperscript">
 	// 	on load hide #search-suggestions
 	// </script>
@@ -97,7 +74,7 @@ templ SearchResultsPage(subscriptions models.Subscriptions, articles models.Arti
 				<div class="grid grid-cols-2 md:grid-cols-6 justify-center gap-4">
 					for subscription := range slices.Values(subscriptions) {
 						<div class="rounded-box shadow-md bg-base-300 p-4">
-							@content.NewSubscriptionContent(subscription).Summary()
+							@subscription.Summary()
 						</div>
 					}
 				</div>
@@ -108,7 +85,7 @@ templ SearchResultsPage(subscriptions models.Subscriptions, articles models.Arti
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4">
 					for article := range slices.Values(articles) {
 						<div class="rounded-box shadow-md bg-base-300 p-4">
-							@NewArticleContent(article).Summary()
+							@article.ShowAsSummary()
 						</div>
 					}
 				</div>

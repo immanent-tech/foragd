@@ -32,7 +32,7 @@ func NewArticlesPage(articles models.Articles, filters *models.ArticleFilters, p
 func (s ArticlesPage) generateCards(ctx context.Context) []templ.Component {
 	cards := make([]templ.Component, 0, len(s.articles))
 	for article := range slices.Values(s.articles) {
-		cards = append(cards, NewArticleContent(article).Card())
+		cards = append(cards, NewArticleContent(article).ShowAsCard())
 	}
 	// Add pagination element if pagination is required.
 	if s.pagination != "" && len(cards) == s.filters.GetCount() {
@@ -52,8 +52,8 @@ func markAllArticles(view models.View, subIDs ...models.SubscriptionID) templ.Co
 	}
 	// Create htmx attributes.
 	attrs := templ.Attributes{
-		"hx-swap":        "innerHTML swap:1s",
-		"hx-vals":        partials.GenerateHXVals(parameters),
+		"hx-swap": "innerHTML swap:1s",
+		"hx-vals": partials.GenerateHXVals(parameters),
 	}
 	switch view {
 	case models.ViewUnread:

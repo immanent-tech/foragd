@@ -40,14 +40,14 @@ func GetSearchSuggestions(api models.DocumentsAPI) http.HandlerFunc {
 				// Add subscription suggestions.
 				suggestions = append(suggestions, views.SearchSuggestionHeader("Subscriptions"))
 				for subscription := range slices.Values(subscriptions) {
-					suggestions = append(suggestions, views.SearchSuggestionSubscription(subscription))
+					suggestions = append(suggestions, subscription.ShowAsSearchSuggestion())
 				}
 			}
 			if len(articles) > 0 {
 				// Add article suggestions.
 				suggestions = append(suggestions, views.SearchSuggestionHeader("Articles"))
 				for article := range slices.Values(articles) {
-					suggestions = append(suggestions, views.SearchSuggestionArticle(article))
+					suggestions = append(suggestions, article.ShowAsSearchSuggestion())
 				}
 			}
 
@@ -84,7 +84,7 @@ func GetSearchResults(api models.DocumentsAPI) http.HandlerFunc {
 	}
 }
 
-func matchObjectsToSearchRequest(ctx context.Context, api models.DocumentsAPI, request *models.SearchRequest) (models.Subscriptions, models.Articles, *models.Response) {
+func matchObjectsToSearchRequest(ctx context.Context, api models.DocumentsAPI, request *models.SearchRequest) ([]*views.Subscription, []*views.Article, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -103,7 +103,7 @@ func matchObjectsToSearchRequest(ctx context.Context, api models.DocumentsAPI, r
 	feeds, _ := results.GetHits[*models.Feed]("feeds", msearchResults)
 	items, _ := results.GetHits[*models.Item]("items", msearchResults)
 	// Generate subscriptions from data sources.
-	subscriptions := make(models.Subscriptions, 0, len(feeds))
+	subscriptions := make([]*views.Subscription, 0, len(feeds))
 	maxSubscriptionResults := 10
 	for idx, customisation := range customisations {
 		var feed *models.Feed
@@ -136,7 +136,7 @@ func matchObjectsToSearchRequest(ctx context.Context, api models.DocumentsAPI, r
 		if idx == maxSubscriptionResults {
 			break
 		}
-		subscriptions = append(subscriptions, subscription)
+		subscriptions = append(subscriptions, views.NewSubscriptionContent(subscription))
 	}
 	// Make subscriptions from the feed results up to maxObjectResults - customisationResults.
 	for idx, feed := range feeds {
@@ -164,10 +164,10 @@ func matchObjectsToSearchRequest(ctx context.Context, api models.DocumentsAPI, r
 		if idx == (maxSubscriptionResults - len(customisations)) {
 			break
 		}
-		subscriptions = append(subscriptions, subscription)
+		subscriptions = append(subscriptions, views.NewSubscriptionContent(subscription))
 	}
 
-	articles := make(models.Articles, 0, len(items))
+	articles := make([]*views.Article, 0, len(items))
 	for item := range slices.Values(items) {
 		var state *models.SubscriptionState
 		var found bool
@@ -201,7 +201,7 @@ func matchObjectsToSearchRequest(ctx context.Context, api models.DocumentsAPI, r
 			)
 			continue
 		}
-		articles = append(articles, article)
+		articles = append(articles, views.NewArticleContent(article))
 	}
 
 	return subscriptions, articles, nil

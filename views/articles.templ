@@ -101,13 +101,13 @@ func NewArticleContent(article *models.Article) *Article {
 	return card
 }
 
-// Visit is the action for visiting the webpage for the article.
-templ (c *Article) Visit() {
+// visitLink is the link to the original article.
+templ (c *Article) visitLink() {
 	@partials.LinkExternal("Original Article", c.GetLink())
 }
 
-// Share is the action for sharing an article to an external service.
-templ (c *Article) Share() {
+// shareLink is the link for sharing the article to external services.
+templ (c *Article) shareLink() {
 	@link.Build(
 		link.WithContent(
 			partials.IconText(tabler.Share(i.Props{Size: i.SizeXS}), "Share")),
@@ -116,8 +116,8 @@ templ (c *Article) Share() {
 	).Show()
 }
 
-// Mark is the action for marking an article read/unread.
-templ (c *Article) Mark() {
+// markLink is the link for marking an article as read/unread
+templ (c *Article) markLink() {
 	if c.IsUnread() {
 		@partials.LinkMarkRead("Mark Read", c.markAttributes())
 	} else {
@@ -125,8 +125,8 @@ templ (c *Article) Mark() {
 	}
 }
 
-// Summary displays a summary of the article.
-templ (c *Article) Summary() {
+// ShowAsSummary shows a summarised version of the article.
+templ (c *Article) ShowAsSummary() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
 		link.WithExtraAttributes(c.viewAttributes()),
@@ -146,8 +146,8 @@ templ (c *Article) Summary() {
 	}
 }
 
-// Show will display the article as a card.
-templ (c *Article) Card() {
+// ShowAsCard shows the article as a card, for displaying in a collection of articles.
+templ (c *Article) ShowAsCard() {
 	@card.Build(
 		card.WithStyle(card.Border),
 		card.WithLayout(card.LayoutSide),
@@ -170,15 +170,25 @@ templ (c *Article) Card() {
 			),
 			// Card actions.
 			card.WithActions(
-				partials.ContentMenu(c.Share(), c.Visit(), c.Mark()),
+				partials.ContentMenu(c.shareLink(), c.visitLink(), c.markLink()),
 			),
 		),
 		card.WithExtraClasses(c.classes...),
 	).Show()
 }
 
-// Show will display the article content.
-templ (c *Article) View() {
+templ (c *Article) ShowAsSearchSuggestion() {
+	<li class="list-row" _="on click call document.activeElement.blur()">
+		<div>
+			<div class="list-col-wrap text-xs">
+				@c.ShowAsSummary()
+			</div>
+		</div>
+	</li>
+}
+
+// ShowContent shows the full article content.
+templ (c *Article) ShowContent() {
 	<div class="flex justify-center">
 		@article.Build(
 			article.WithExtraClasses("shadow-sm", "bg-base-300", "rounded-box", "p-2", "overflow-scroll", "max-w-prose"),
@@ -220,11 +230,11 @@ templ (c *Article) View() {
 			<div class="flex justify-center m-2 gap-2">
 				<div>
 					// Share article action.
-					@c.Share()
+					@c.shareLink()
 				</div>
 				<div>
 					// Visit external article link action.
-					@c.Visit()
+					@c.visitLink()
 				</div>
 			</div>
 		}

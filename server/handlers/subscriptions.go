@@ -43,8 +43,8 @@ func GetSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 		cards := make([]templ.Component, 0, len(subscriptions))
 		states := make([]templ.Component, 0, len(subscriptions))
 		for subscription := range slices.Values(subscriptions) {
-			cards = append(cards, content.NewSubscriptionContent(subscription).Card())
-			states = append(states, content.NewSubscriptionContent(subscription).State())
+			cards = append(cards, views.NewSubscriptionContent(subscription).Card())
+			states = append(states, views.NewSubscriptionContent(subscription).State())
 		}
 		// Add pagination element if pagination is required.
 		if pagination != "" && len(cards) == filters.GetCount() {

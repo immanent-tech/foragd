@@ -77,7 +77,7 @@ func PaginateArticles(api models.DocumentsAPI) http.HandlerFunc {
 		// Generate article cards.
 		cards := make([]templ.Component, 0, len(articles))
 		for article := range slices.Values(articles) {
-			cards = append(cards, views.NewArticleContent(article).Card())
+			cards = append(cards, views.NewArticleContent(article).ShowAsCard())
 		}
 		// Add pagination element if pagination is required.
 		if pagination != "" && len(cards) == filters.GetCount() {
@@ -154,7 +154,7 @@ func ViewArticle(api models.DocumentsAPI) http.HandlerFunc {
 			ProcessResponse(res, req, resp)
 			return
 		}
-		articleLayout := views.NewArticleContent(articles[0]).View()
+		articleLayout := views.NewArticleContent(articles[0]).ShowContent()
 
 		ctx := req.Context()
 		ctx = templateToCtx(ctx, articleLayout)
