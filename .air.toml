@@ -10,7 +10,7 @@ args_bin = [
   "--profile='heapprofile=deployments/heap.prof;cpuprofile=deployments/cpu.prof;webui=true'",
   "serve",
 ]
-cmd = "go tool github.com/a-h/templ/cmd/templ generate && go build -o ./tmp/gowebly_chi ."
+cmd = "go run github.com/a-h/templ/cmd/templ@latest generate && go build -o ./tmp/gowebly_chi ."
 delay = 1000
 exclude_dir = [
   ".parcel-cache",
