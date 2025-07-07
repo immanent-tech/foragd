@@ -120,7 +120,11 @@ func (s *Server) setupRoutes() {
 	router.Use(
 		middleware.RequestID,
 		middleware.Recoverer,
-		slogchi.NewWithConfig(slog.Default(), slogchi.Config{WithRequestID: true}),
+		slogchi.NewWithConfig(slog.Default(), slogchi.Config{
+			ClientErrorLevel: slog.LevelWarn,
+			ServerErrorLevel: slog.LevelError,
+			WithRequestID:    true,
+		}),
 		middlewares.SetupCORS(config.Environment()),
 		// middlewares.CSP(server.ServerConfig.CSP),
 		middlewares.Etag,
