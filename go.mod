@@ -35,37 +35,14 @@ require (
 )
 
 require (
-	github.com/atotto/clipboard v0.1.4 // indirect
-	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
-	github.com/catppuccin/go v0.2.0 // indirect
-	github.com/charmbracelet/bubbles v0.20.0 // indirect
-	github.com/charmbracelet/bubbletea v1.2.5-0.20241205214244-9306010a31ee // indirect
-	github.com/charmbracelet/huh v0.6.0 // indirect
-	github.com/charmbracelet/huh/spinner v0.0.0-20250203114958-f07ae1af69ae // indirect
-	github.com/charmbracelet/lipgloss v1.0.0 // indirect
-	github.com/charmbracelet/x/ansi v0.8.0 // indirect
-	github.com/charmbracelet/x/exp/strings v0.0.0-20250131172436-6251e772efa1 // indirect
-	github.com/charmbracelet/x/term v0.2.1 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
-	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-json-experiment/json v0.0.0-20250223041408-d3c622f1b874 // indirect
-	github.com/google/wire v0.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
-	github.com/gowebly/gowebly/v2 v2.7.2 // indirect
-	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/mattn/go-localereader v0.0.1 // indirect
-	github.com/mattn/go-runewidth v0.0.16 // indirect
-	github.com/mitchellh/hashstructure/v2 v2.0.2 // indirect
-	github.com/muesli/ansi v0.0.0-20230316100256-276c6243b2f6 // indirect
-	github.com/muesli/cancelreader v0.2.2 // indirect
-	github.com/muesli/termenv v0.15.3-0.20240618155329-98d742f6907a // indirect
 	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1 // indirect
-	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/tools v0.33.0 // indirect
@@ -73,12 +50,8 @@ require (
 
 require (
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
-	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
 	github.com/alecthomas/kong v1.12.0
-	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
-	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
-	github.com/cli/browser v1.3.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
 	github.com/elastic/elastic-transport-go/v8 v8.7.0
@@ -115,7 +88,6 @@ require (
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/reflectwalk v1.0.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
-	github.com/natefinch/atomic v1.0.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
 	github.com/reugn/go-quartz v0.14.0
@@ -140,8 +112,6 @@ require (
 )
 
 tool (
-	github.com/a-h/templ/cmd/templ
-	github.com/gowebly/gowebly/v2
 	github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen
 	golang.org/x/tools/cmd/stringer
 )
