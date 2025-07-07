@@ -16,7 +16,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/server/handlers"
-	"github.com/joshuar/go-feed-me/views"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 var ErrInvalidParam = errors.New("invalid parameter")

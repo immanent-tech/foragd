@@ -18,8 +18,8 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
-	"github.com/joshuar/go-feed-me/views"
 	"github.com/joshuar/go-feed-me/web/templates/content"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 // Home handles displaying the user's home page.

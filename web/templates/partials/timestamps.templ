@@ -15,6 +15,10 @@ templ generateRelativeTimestamp() {
 }
 
 templ ShowTimestamp(timestamp time.Time) {
+	// <relative-time
+	// prefix="" tense="past"
+	// datetime={ timestamp.Format("2006-01-02T15:04:05-0700") } data-tooltip-content={ timestamp.Format("Jan 2, 2006, 3:04 PM GMT-7") }
+	// data-tooltip-interactive="true" title="">{ timestamp.Format("2006-01-02 15:04:05 -0700") }</relative-time>
 	@text.Build(
 		generateRelativeTimestamp(),
 		text.WithSize(text.XS),

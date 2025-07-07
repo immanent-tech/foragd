@@ -18,7 +18,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/views"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 // ParseNewSubscriptionRequest will extract the subscription request, validate it and then store it in the context for

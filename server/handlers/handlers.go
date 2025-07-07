@@ -19,8 +19,8 @@ import (
 
 	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/views"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 var (

@@ -13,7 +13,7 @@ import (
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/views"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 func GetSettings() http.HandlerFunc {
