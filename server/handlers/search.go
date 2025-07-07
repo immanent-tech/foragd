@@ -19,7 +19,7 @@ import (
 	"github.com/joshuar/go-feed-me/views"
 )
 
-// GenerateDrawerContent handles generating updated content for the drawer.
+// GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func GetSearchSuggestions(api models.DocumentsAPI) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
@@ -56,6 +56,30 @@ func GetSearchSuggestions(api models.DocumentsAPI) http.HandlerFunc {
 				RouteLogger,
 			).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
 
+		}
+	}
+}
+
+// GetSearchResults performs a search with the user input and renders a page with the search results.
+func GetSearchResults(api models.DocumentsAPI) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
+		if err != nil || !valid {
+			RenderError(res, req, models.NewResponse(http.StatusBadRequest, err))
+			return
+		}
+
+		subscriptions, articles, resp := matchObjectsToSearchRequest(req.Context(), api, request)
+		if resp != nil {
+			slogctx.FromCtx(req.Context()).Warn("Search suggestions failed.", slog.Any("error", resp.Error()))
+			RenderError(res, req, models.RespErrBackend(err))
+			return
+		} else if len(subscriptions) > 0 || len(articles) > 0 {
+
+			ctx := templateToCtx(req.Context(), views.SearchResultsPage(subscriptions, articles))
+			alice.New(
+				RouteLogger,
+			).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
 		}
 	}
 }

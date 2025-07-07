@@ -415,24 +415,6 @@ func AddSubscriptions(api models.DocumentsAPI) func(next http.Handler) http.Hand
 	}
 }
 
-// func GenerateSearchResults(api models.DocumentsAPI, searchTerms string) func(next http.Handler) http.Handler {
-// 	return func(next http.Handler) http.Handler {
-// 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-// 			ctx := req.Context()
-
-// 			subscriptions, articles, resp := models.GetSearchSuggestions(ctx, api, searchTerms)
-// 			if resp != nil {
-// 				slogctx.FromCtx(req.Context()).Warn("Failed to get search suggestions.", slog.Any("error", resp.Error()))
-// 				next.ServeHTTP(res, req)
-// 			} else if len(subscriptions) > 0 || len(articles) > 0 {
-// 				ctx = templateToCtx(ctx, views.SearchResultsPage(subscriptions, articles))
-// 			}
-
-// 			next.ServeHTTP(res, req.WithContext(ctx))
-// 		})
-// 	}
-// }
-
 func NewUserSignup(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		ctx := templateToCtx(req.Context(), views.SignUpPage(models.NewUserSignup()))
