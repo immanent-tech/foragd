@@ -37,10 +37,5 @@
         "dnut.rewrap-revived"
       ]
     }
-  },
-  "portsAttributes": {
-    "7000": {
-      "label": "Server"
-    }
   }
 }
