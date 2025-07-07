@@ -20,7 +20,7 @@ import (
 )
 
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
-func GetSearchSuggestions(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) GetSearchSuggestions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -28,7 +28,7 @@ func GetSearchSuggestions(api models.DocumentsAPI) http.HandlerFunc {
 			return
 		}
 
-		subscriptions, articles, resp := matchObjectsToSearchRequest(req.Context(), api, request)
+		subscriptions, articles, resp := matchObjectsToSearchRequest(req.Context(), a.DataAPI(), request)
 		if resp != nil {
 			slogctx.FromCtx(req.Context()).Warn("Search suggestions failed.", slog.Any("error", resp.Error()))
 			RenderError(res, req, models.RespErrBackend(err))
@@ -61,7 +61,7 @@ func GetSearchSuggestions(api models.DocumentsAPI) http.HandlerFunc {
 }
 
 // GetSearchResults performs a search with the user input and renders a page with the search results.
-func GetSearchResults(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) GetSearchResults() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
@@ -69,7 +69,7 @@ func GetSearchResults(api models.DocumentsAPI) http.HandlerFunc {
 			return
 		}
 
-		subscriptions, articles, resp := matchObjectsToSearchRequest(req.Context(), api, request)
+		subscriptions, articles, resp := matchObjectsToSearchRequest(req.Context(), a.DataAPI(), request)
 		if resp != nil {
 			slogctx.FromCtx(req.Context()).Warn("Search suggestions failed.", slog.Any("error", resp.Error()))
 			RenderError(res, req, models.RespErrBackend(err))

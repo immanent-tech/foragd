@@ -23,11 +23,11 @@ import (
 )
 
 // Home handles displaying the user's home page.
-func Home(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) Home() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
-		data, resp := getHomePageData(ctx, api)
+		data, resp := getHomePageData(ctx, a.DataAPI())
 		switch {
 		case resp.IsNotFound():
 			ctx = templateToCtx(ctx, data.Show())

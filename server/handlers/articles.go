@@ -26,7 +26,7 @@ import (
 )
 
 // GetArticles handles showing a filtered collection of articles as cards.
-func GetArticles(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) GetArticles() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract filters from request.
 		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
@@ -35,7 +35,7 @@ func GetArticles(api models.DocumentsAPI) http.HandlerFunc {
 			return
 		}
 		// Get articles matching filters.
-		articles, pagination, resp := filterArticles(req.Context(), api, filters)
+		articles, pagination, resp := filterArticles(req.Context(), a.DataAPI(), filters)
 		if resp != nil {
 			ProcessResponse(res, req, resp)
 			return
@@ -59,7 +59,7 @@ func GetArticles(api models.DocumentsAPI) http.HandlerFunc {
 }
 
 // PaginateArticles handles showing the next set of articles in a filtered collection.
-func PaginateArticles(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) PaginateArticles() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Extract filters from request.
 		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
@@ -68,7 +68,7 @@ func PaginateArticles(api models.DocumentsAPI) http.HandlerFunc {
 			return
 		}
 		// Get articles matching filters.
-		articles, pagination, resp := filterArticles(req.Context(), api, filters)
+		articles, pagination, resp := filterArticles(req.Context(), a.DataAPI(), filters)
 		if resp != nil {
 			ProcessResponse(res, req, resp)
 			return
@@ -93,7 +93,7 @@ func PaginateArticles(api models.DocumentsAPI) http.HandlerFunc {
 }
 
 // MarkArticles handles marking a articles as read or unread.
-func MarkArticles(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) MarkArticles() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get request details.
 		request, valid, err := forms.DecodeForm[*models.MarkArticlesRequest](req)
@@ -127,7 +127,7 @@ func MarkArticles(api models.DocumentsAPI) http.HandlerFunc {
 			}
 		}
 		// Update the user object.
-		if err := api.UpdateUser(req.Context(), map[string]any{
+		if err := a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"subscriptions": slices.Collect(maps.Values(states)),
 		}); err != nil {
 			RenderError(res, req, models.NewResponse(http.StatusInternalServerError, fmt.Errorf("could not process mark request: %w", err)))
@@ -143,11 +143,11 @@ func MarkArticles(api models.DocumentsAPI) http.HandlerFunc {
 }
 
 // ViewArticle handles viewing the content of an article.
-func ViewArticle(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) ViewArticle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// subscriptionID := chi.URLParam(req, "subscription")
 		itemID := chi.URLParam(req, "item")
-		articles, resp := getArticles(req.Context(), api, itemID)
+		articles, resp := getArticles(req.Context(), a.DataAPI(), itemID)
 		if resp != nil || len(articles) == 0 {
 			ProcessResponse(res, req, resp)
 			return

@@ -108,14 +108,14 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 	// 	}
 	// }()
 
-	svr.Log.Info("Starting server...",
-		slog.Int("port", server.Port()),
+	slogctx.FromCtx(ctx).Info("Starting server...",
+		slog.Int("port", server.ServerConfig.Port),
 		slog.String("environment", config.Environment()))
 
 	// And we serve HTTP until the world ends.
 	err = svr.ListenAndServeTLS("localhost.crt", "localhost.key")
 	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
-		svr.Log.Info("commencing server shutdown...")
+		slogctx.FromCtx(ctx).Info("commencing server shutdown...")
 		wg.Wait()
 	} else if err != nil {
 		return fmt.Errorf("error shutting down server: %w", err)

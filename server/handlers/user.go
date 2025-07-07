@@ -38,7 +38,7 @@ func GetSettings() http.HandlerFunc {
 	}
 }
 
-func SetTheme(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) SetTheme() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -50,7 +50,7 @@ func SetTheme(api models.DocumentsAPI) http.HandlerFunc {
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
-		if err := api.UpdateUser(req.Context(), map[string]any{
+		if err := a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"settings":   settings,
 			"updated_at": time.Now().UTC(),
 		}); err != nil {

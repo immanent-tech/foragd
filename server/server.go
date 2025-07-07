@@ -16,12 +16,8 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	gowebly "github.com/gowebly/helpers"
 	slogchi "github.com/samber/slog-chi"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/config"
-	"github.com/joshuar/go-feed-me/providers/auth0"
-	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/server/auth"
 	"github.com/joshuar/go-feed-me/server/handlers"
 	"github.com/joshuar/go-feed-me/server/middlewares"
 	"github.com/joshuar/go-feed-me/server/session"
@@ -38,17 +34,10 @@ const (
 	RequestIDKey = "request_id"
 )
 
-type API struct {
-	user    *auth0.UserAPI
-	elastic *elastic.API
-	auth    *auth.Authenticator
-}
-
 type Server struct {
-	API    *API
-	Log    *slog.Logger
 	server *http.Server
 	static embed.FS
+	api    *handlers.API
 }
 
 // Ensures we statisfy the ServerInterface interface.
@@ -72,36 +61,13 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 
 		ServerConfig.Secret = secret
 	}
-	// Set up the logger
-	svr.Log = slogctx.FromCtx(ctx)
-	// Load the auth0UserAPI backend.
-	auth0UserAPI, err := auth0.NewUserAPI(ctx)
+
+	api, err := handlers.SetupAPI(ctx)
 	if err != nil {
-		return svr, errors.Join(ErrStartServer, err)
-	}
-	// Load the Elastic backend
-	elasticAPI, err := elastic.Connect(ctx)
-	if err != nil {
-		return svr, errors.Join(ErrStartServer, err)
-	}
-	// Set up the session manager.
-	if err := session.NewSessionManager(ctx, elasticAPI, auth.SessionName); err != nil {
-		return svr, errors.Join(ErrStartServer, err)
-	}
-	// Set up authentication manager.
-	authAPI, err := auth.NewAuthenticator(ctx)
-	if err != nil {
-		return svr, errors.Join(ErrStartServer, err)
+		return svr, fmt.Errorf("%w: %w", ErrStartServer, err)
 	}
 
-	// Add the API to the environment.
-	svr.API = &API{
-		user:    auth0UserAPI,
-		elastic: elasticAPI,
-		auth:    authAPI,
-	}
-
-	svr.setupRoutes()
+	svr.setupRoutes(api)
 
 	return svr, nil
 }
@@ -114,7 +80,7 @@ func (s *Server) ListenAndServeTLS(cert, key string) error {
 	return s.server.ListenAndServeTLS(cert, key)
 }
 
-func (s *Server) setupRoutes() {
+func (s *Server) setupRoutes(handler *handlers.API) {
 	// Set up a new chi router.
 	router := chi.NewRouter()
 	router.Use(
@@ -144,8 +110,8 @@ func (s *Server) setupRoutes() {
 		r.Use(
 			session.Manager.LoadAndSave,
 		)
-		r.Get("/login/{provider}", handlers.Login(s.AuthAPI()))
-		r.Get("/login/{provider}/callback", handlers.LoginCallback(s.AuthAPI()))
+		r.Get("/login/{provider}", handler.Login())
+		r.Get("/login/{provider}/callback", handler.LoginCallback())
 		r.Get("/logout", handlers.Logout())
 	})
 
@@ -155,33 +121,36 @@ func (s *Server) setupRoutes() {
 			middlewares.SetupHTMX,
 			middlewares.SetupElastic(),
 			session.Manager.LoadAndSave,
-			handlers.RequireUserAuth(s.DataAPI(), s.AuthAPI()),
+			middlewares.RequireUserAuth(handler.DataAPI(), handler.AuthAPI()),
 		)
-		r.Get("/home", handlers.Home(s.DataAPI()))
-		r.Post("/search", handlers.GetSearchSuggestions(s.DataAPI()))
-		r.Post("/search/results", handlers.GetSearchResults(s.DataAPI()))
+		r.Get("/home", handler.Home())
+		r.Post("/search", handler.GetSearchSuggestions())
+		r.Post("/search/results", handler.GetSearchResults())
 		// Subscription routes.
-		r.Get("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))
-		r.With(middlewares.RequireHTMX).Post("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))
-		r.With(middlewares.RequireHTMX).Post("/subscriptions/mark/{mark}", handlers.MarkSubscriptions(s.DataAPI()))
-		r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handlers.RemoveSubscriptions(s.DataAPI()))
+		r.Get("/subscriptions", handler.GetSubscriptions())
+		r.With(middlewares.RequireHTMX).Post("/subscriptions", handler.GetSubscriptions())
+		r.With(middlewares.RequireHTMX).Post("/subscriptions/mark/{mark}", handler.MarkSubscriptions())
+		r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handler.RemoveSubscriptions())
 		// Article routes.
-		r.Get("/articles", handlers.GetArticles(s.DataAPI()))
-		r.With(middlewares.RequireHTMX).Post("/articles", handlers.PaginateArticles(s.DataAPI()))
-		r.With(middlewares.RequireHTMX).Post("/articles/mark/{mark}", handlers.MarkArticles(s.DataAPI()))
+		r.Get("/articles", handler.GetArticles())
+		r.With(middlewares.RequireHTMX).Post("/articles", handler.PaginateArticles())
+		r.With(middlewares.RequireHTMX).Post("/articles/mark/{mark}", handler.MarkArticles())
 		// Article route.
-		r.Get("/view/{subscription}/{item}", handlers.ViewArticle(s.DataAPI()))
+		r.Get("/view/{subscription}/{item}", handler.ViewArticle())
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
 			r.Route("/subscription", func(r chi.Router) {
 				r.Get("/new", handlers.NewSubscription())
-				r.Get("/edit/{subscription}", handlers.EditSubscription(s.DataAPI()))
-				r.Put("/edit/{subscription}", handlers.SaveSubscription(s.DataAPI()))
+				r.Get("/edit/{subscription}", handler.EditSubscription())
+				r.Put("/edit/{subscription}", handler.SaveSubscription())
+			})
+			r.Route("/favourite", func(r chi.Router) {
+				// r.Put("/subscription/{subscription}", handlers.AddFavouriteSubscription(s.DataAPI()))
 			})
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handlers.GetSettings())
 				r.Route("/theme", func(r chi.Router) {
-					r.With(middlewares.RequireHTMX).Put("/{theme}", handlers.SetTheme(s.DataAPI()))
+					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())
 				})
 			})
 		})
@@ -189,7 +158,7 @@ func (s *Server) setupRoutes() {
 
 	s.server = &http.Server{
 		Handler:           router,
-		Addr:              fmt.Sprintf(":%d", Port()),
+		Addr:              fmt.Sprintf(":%d", ServerConfig.Port),
 		ReadHeaderTimeout: ServerReadTimeout,
 	}
 }

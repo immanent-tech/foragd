@@ -26,7 +26,7 @@ import (
 )
 
 // GetSubscriptions handles showing a filtered collection of subscriptions as cards.
-func GetSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) GetSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
 		if err != nil || !valid {
@@ -34,7 +34,7 @@ func GetSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 			return
 		}
 		// Get subscriptions matching filters.
-		subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), api, filters)
+		subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), a.DataAPI(), filters)
 		if resp != nil {
 			RenderError(res, req, resp)
 			return
@@ -74,7 +74,7 @@ func GetSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 }
 
 // MarkSubscriptions handles marking a collection of subscriptions as read or unread.
-func MarkSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) MarkSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get subscription details.
 		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
@@ -106,7 +106,7 @@ func MarkSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 			}
 		}
 		// Update the user object.
-		if err := api.UpdateUser(req.Context(), map[string]any{
+		if err := a.DataAPI().UpdateUser(req.Context(), map[string]any{
 			"subscriptions": slices.Collect(maps.Values(states)),
 		}); err != nil {
 			RenderError(res, req, models.NewResponse(http.StatusInternalServerError, fmt.Errorf("could not process mark request: %w", err)))
@@ -122,7 +122,7 @@ func MarkSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 }
 
 // RemoveSubscriptions handles removing (unsubscribing from) a collection of subscriptions.
-func RemoveSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) RemoveSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Get subscription details.
 		request, valid, err := forms.DecodeForm[*models.RemoveSubscriptionsRequest](req)
@@ -141,7 +141,7 @@ func RemoveSubscriptions(api models.DocumentsAPI) http.HandlerFunc {
 			slogctx.FromCtx(ctx).Debug("Subscription removal confirmed.",
 				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
 			)
-			if resp := models.Unsubscribe(ctx, api, request.Subscriptions...); resp != nil {
+			if resp := models.Unsubscribe(ctx, a.DataAPI(), request.Subscriptions...); resp != nil {
 				RenderError(res, req.WithContext(ctx), resp)
 				return
 			}
@@ -194,11 +194,11 @@ func NewSubscription() http.HandlerFunc {
 }
 
 // EditSubscription handles fetching and presenting the customisation data for a subscription, for the user to edit.
-func EditSubscription(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) EditSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "subscription")
 		// Retrieve subscription customisation.
-		customisation, resp := models.GetSubscriptionCustomisation(req.Context(), api, id)
+		customisation, resp := models.GetSubscriptionCustomisation(req.Context(), a.DataAPI(), id)
 		if resp != nil && !resp.IsNotFound() {
 			RenderError(res, req, resp)
 			return
@@ -210,7 +210,7 @@ func EditSubscription(api models.DocumentsAPI) http.HandlerFunc {
 		}
 		// Get top categories across items in subscription feed.
 		var topItemCategories []models.Category
-		categories, resp := getItemTopCategories(req.Context(), api, customisation.GetFeedID())
+		categories, resp := getItemTopCategories(req.Context(), a.DataAPI(), customisation.GetFeedID())
 		if resp == nil {
 			topItemCategories = categories
 		}
@@ -222,7 +222,7 @@ func EditSubscription(api models.DocumentsAPI) http.HandlerFunc {
 }
 
 // SaveSubscription handles saving edits made to a subscription by the user.
-func SaveSubscription(api models.DocumentsAPI) http.HandlerFunc {
+func (a *API) SaveSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		edits, valid, err := forms.DecodeForm[*models.SubscriptionEdit](req)
 		if err != nil || !valid {
@@ -231,7 +231,7 @@ func SaveSubscription(api models.DocumentsAPI) http.HandlerFunc {
 		}
 		var msg *models.UserMessage
 		ctx := req.Context()
-		if err := api.UpdateSubscriptionCustomisation(ctx, edits); err != nil {
+		if err := a.DataAPI().UpdateSubscriptionCustomisation(ctx, edits); err != nil {
 			RenderError(res, req,
 				models.NewResponse(http.StatusInternalServerError, fmt.Errorf("failed to update user: %w", err)))
 			// msg = models.FailedUserMessage("Failed to update the subscription.", nil)
@@ -247,3 +247,6 @@ func SaveSubscription(api models.DocumentsAPI) http.HandlerFunc {
 		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
+
+// func AddFavouriteSubscription(api models.DocumentsAPI) http.HandlerFunc {
+// 	return func(res http.ResponseWriter, req *http.Request) {

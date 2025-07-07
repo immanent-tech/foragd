@@ -15,49 +15,45 @@ import (
 )
 
 // Login handles login requests.
-func Login(api models.AuthAPI) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
+func (a *API) Login() http.HandlerFunc {
+	return alice.New(
+		RouteLogger,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		provider := chi.URLParam(req, "provider")
-		api.SetProviderName(req.Context(), provider)
-		alice.New(
-			RouteLogger,
-		).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
-			slogctx.FromCtx(req.Context()).Debug("Authenticating user.")
-			if err := api.CompleteUserAuth(res, req); err != nil {
-				slogctx.FromCtx(req.Context()).Warn("Authentication required.", slog.Any("error", err))
-				url, err := api.GetAuthURL(req)
-				if err != nil {
-					ProcessResponse(res, req, models.NewResponse(http.StatusInternalServerError, err))
-					return
-				}
-				slogctx.FromCtx(req.Context()).Debug("Redirecting to provider.", slog.String("url", url))
-				http.Redirect(res, req, url, http.StatusTemporaryRedirect)
-				return
-			}
-			slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
-			req.Header.Add("Content-Type", "")
-			http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
-		}).ServeHTTP(res, req)
-	}
-}
-
-// LoginCallback handles processing the response from a login provider.
-func LoginCallback(api models.AuthAPI) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		provider := chi.URLParam(req, "provider")
-		api.SetProviderName(req.Context(), provider)
-		alice.New(
-			RouteLogger,
-		).ThenFunc(func(w http.ResponseWriter, r *http.Request) {
-			if err := api.CompleteUserAuth(res, req); err != nil {
+		a.auth.SetProviderName(req.Context(), provider)
+		slogctx.FromCtx(req.Context()).Debug("Authenticating user.")
+		if err := a.auth.CompleteUserAuth(res, req); err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Authentication required.", slog.Any("error", err))
+			url, err := a.auth.GetAuthURL(req)
+			if err != nil {
 				ProcessResponse(res, req, models.NewResponse(http.StatusInternalServerError, err))
 				return
 			}
-			slogctx.FromCtx(req.Context()).Debug("Authenticated.")
-			slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
-			req.Header.Add("Content-Type", "")
+			slogctx.FromCtx(req.Context()).Debug("Redirecting to provider.", slog.String("url", url))
+			http.Redirect(res, req, url, http.StatusTemporaryRedirect)
+			return
+		}
+		slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
+		req.Header.Add("Content-Type", "")
+		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
+	}).ServeHTTP
+}
 
-			http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
-		}).ServeHTTP(res, req)
-	}
+// LoginCallback handles processing the response from a login provider.
+func (a *API) LoginCallback() http.HandlerFunc {
+	return alice.New(
+		RouteLogger,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		provider := chi.URLParam(req, "provider")
+		a.auth.SetProviderName(req.Context(), provider)
+		if err := a.auth.CompleteUserAuth(res, req); err != nil {
+			ProcessResponse(res, req, models.NewResponse(http.StatusInternalServerError, err))
+			return
+		}
+		slogctx.FromCtx(req.Context()).Debug("Authenticated.")
+		slogctx.FromCtx(req.Context()).Debug("Redirecting to home page.")
+		req.Header.Add("Content-Type", "")
+
+		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
+	}).ServeHTTP
 }
