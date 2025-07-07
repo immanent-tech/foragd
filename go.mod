@@ -7,15 +7,15 @@ replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
 replace github.com/joshuar/go-syndication v0.0.0 => ./models/feeds
 
 require (
-	github.com/a-h/templ v0.3.898
+	github.com/a-h/templ v0.3.906
 	github.com/alexedwards/scs/v2 v2.8.0
 	github.com/angelofallars/htmx-go v0.5.0
-	github.com/auth0/go-auth0 v1.23.0
+	github.com/auth0/go-auth0 v1.24.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/elastic/go-elasticsearch/v8 v8.18.1
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-playground/form/v4 v4.2.1
-	github.com/go-playground/validator/v10 v10.26.0
+	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gorilla/sessions v1.4.0
 	github.com/gowebly/helpers v0.4.0
 	github.com/joshuar/go-syndication v0.0.0
@@ -74,7 +74,7 @@ require (
 require (
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
 	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
-	github.com/alecthomas/kong v1.11.0
+	github.com/alecthomas/kong v1.12.0
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
