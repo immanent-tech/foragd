@@ -10,7 +10,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/joshuar/go-feed-me/components/validation"
+	"github.com/joshuar/go-feed-me/validation"
 )
 
 const DefaultUserTheme = "dracula"

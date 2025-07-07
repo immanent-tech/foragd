@@ -7,7 +7,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/joshuar/go-feed-me/components/config"
+	"github.com/joshuar/go-feed-me/config"
 )
 
 const (

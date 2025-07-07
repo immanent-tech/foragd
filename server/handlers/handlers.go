@@ -17,8 +17,8 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/components/session"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
 )

@@ -16,9 +16,9 @@
 package server
 
 import (
-	"github.com/joshuar/go-feed-me/components/auth"
 	"github.com/joshuar/go-feed-me/providers/auth0"
 	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/server/auth"
 )
 
 // Port returns the port on which the server is listening.

@@ -11,7 +11,7 @@ import (
 
 	"github.com/joshuar/go-syndication/types"
 
-	"github.com/joshuar/go-feed-me/components/validation"
+	"github.com/joshuar/go-feed-me/validation"
 )
 
 // Articles is a slices of individual articles.

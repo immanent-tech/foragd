@@ -18,13 +18,13 @@ import (
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/components/auth"
-	"github.com/joshuar/go-feed-me/components/config"
-	"github.com/joshuar/go-feed-me/components/session"
+	"github.com/joshuar/go-feed-me/config"
 	"github.com/joshuar/go-feed-me/providers/auth0"
 	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/server/auth"
 	"github.com/joshuar/go-feed-me/server/handlers"
 	"github.com/joshuar/go-feed-me/server/middlewares"
+	"github.com/joshuar/go-feed-me/server/session"
 )
 
 const (

@@ -16,7 +16,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/components/config"
+	"github.com/joshuar/go-feed-me/config"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/index"

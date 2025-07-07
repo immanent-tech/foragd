@@ -13,7 +13,7 @@ import (
 	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	"github.com/go-chi/chi/v5/middleware"
 
-	"github.com/joshuar/go-feed-me/components/logging"
+	"github.com/joshuar/go-feed-me/logging"
 )
 
 var _ elastictransport.Logger = (*Logger)(nil)

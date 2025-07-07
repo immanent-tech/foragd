@@ -12,10 +12,10 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/components/validation"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/server/handlers"
+	"github.com/joshuar/go-feed-me/validation"
 	"github.com/joshuar/go-feed-me/web/views"
 )
 

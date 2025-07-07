@@ -14,9 +14,9 @@ import (
 	"github.com/alexedwards/scs/v2"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/components/session/store"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/server/session/store"
 )
 
 const (

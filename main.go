@@ -11,8 +11,8 @@ import (
 	"github.com/alecthomas/kong"
 
 	"github.com/joshuar/go-feed-me/cli"
-	"github.com/joshuar/go-feed-me/components/config"
-	"github.com/joshuar/go-feed-me/components/logging"
+	"github.com/joshuar/go-feed-me/config"
+	"github.com/joshuar/go-feed-me/logging"
 )
 
 //go:embed all:static

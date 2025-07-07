@@ -8,7 +8,7 @@ import (
 
 	"github.com/joshuar/go-syndication/sanitization"
 
-	"github.com/joshuar/go-feed-me/components/validation"
+	"github.com/joshuar/go-feed-me/validation"
 )
 
 // Valid returns a boolean indicating whether the search request data is valid.

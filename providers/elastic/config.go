@@ -14,7 +14,7 @@ import (
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/components/config"
+	"github.com/joshuar/go-feed-me/config"
 )
 
 const (

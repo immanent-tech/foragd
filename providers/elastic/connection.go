@@ -13,7 +13,7 @@ import (
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v8"
 
-	"github.com/joshuar/go-feed-me/components/config"
+	"github.com/joshuar/go-feed-me/config"
 )
 
 const (

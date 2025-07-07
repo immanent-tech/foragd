@@ -15,7 +15,7 @@ import (
 
 	"github.com/joshuar/go-syndication/types"
 
-	"github.com/joshuar/go-feed-me/components/validation"
+	"github.com/joshuar/go-feed-me/validation"
 )
 
 var ErrInvalidSubscriptionState = errors.New("invalid subscription state")

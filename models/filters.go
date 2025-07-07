@@ -13,7 +13,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
-	"github.com/joshuar/go-feed-me/components/validation"
+	"github.com/joshuar/go-feed-me/validation"
 )
 
 var ErrParseFilters = errors.New("error parsing filters")
