@@ -132,6 +132,21 @@ templ (c *Subscription) Mark() {
 }
 
 // Edit is the action for editing a subscription.
+templ (c *Subscription) favouriteLink() {
+	@link.Build(
+		link.WithContent(
+			partials.IconText(tabler.Star(i.Props{Size: i.SizeXS}), "Favourite")),
+		link.WithUnderlineOnHover(),
+		link.WithExtraAttributes(templ.Attributes{
+			"hx-put":    "/user/favourite/subscription/" + c.GetID(),
+			"hx-target": partials.ContentID.Target(),
+			"hx-swap":   "none",
+		}),
+		link.WithExtraClasses("text-xs"),
+	).Show()
+}
+
+// Edit is the action for editing a subscription.
 templ (c *Subscription) Edit() {
 	@link.Build(
 		link.WithContent(
@@ -258,7 +273,7 @@ templ (c *Subscription) Card() {
 			),
 			// Card actions.
 			card.WithActions(
-				partials.ContentMenu(c.Share(), c.Visit(), c.Mark(), c.Edit(), c.Unsubscribe()),
+				partials.ContentMenu(c.Share(), c.Visit(), c.Mark(), c.Edit(), c.favouriteLink(), c.Unsubscribe()),
 			),
 		),
 		card.WithExtraClasses(c.classes...),

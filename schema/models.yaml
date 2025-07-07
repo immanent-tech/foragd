@@ -175,10 +175,16 @@ components:
         score higher in search results.
       type: object
       required:
+        - id
         - type
         - link
         - name
       properties:
+        id:
+          description: >
+            is a unique identifier that allows comparison of favourites.
+          type: string
+          x-go-name: ID
         type:
           description: >
             is the type of favourite.
@@ -198,6 +204,7 @@ components:
         link:
           description: >
             is the internal link to the favourited object.
+          x-go-type: 'json.RawMessage'
     UserSession:
       description: tracks a user session.
       type: object

@@ -113,6 +113,17 @@ func (u *User) HasSubscription(id SubscriptionID) bool {
 	return false
 }
 
+func (u *User) GetFavourites() UserFavourites {
+	if u.Favourites == nil {
+		return make(UserFavourites, 0)
+	}
+	favs := make([]*Favourite, 0, len(u.Favourites))
+	for f := range slices.Values(u.Favourites) {
+		favs = append(favs, &f)
+	}
+	return favs
+}
+
 // Valid will check to ensure the UserSignupRequest contains valid data.
 func (u *UserSignupRequest) Valid() (bool, error) {
 	_, problems := validation.ValidateStruct(u)
@@ -157,4 +168,16 @@ func GetUserTheme(ctx context.Context) string {
 		}
 	}
 	return DefaultUserTheme
+}
+
+type UserFavourites []*Favourite
+
+func (f UserFavourites) Add(fav *Favourite) error {
+	if slices.IndexFunc(f, func(e *Favourite) bool {
+		return e.ID == fav.ID
+	}) != -1 {
+		return errors.New("already a favourite")
+	}
+	f = append(f, fav)
+	return nil
 }

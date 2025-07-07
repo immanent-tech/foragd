@@ -4,6 +4,7 @@
 package models
 
 import (
+	"encoding/json"
 	"time"
 
 	externalRef0 "github.com/joshuar/go-syndication/types"
@@ -85,8 +86,11 @@ type DeletedAt = time.Time
 
 // Favourite is an object that the user has marked as a favourite. Favourites  have higher visibility in the display and score higher in search results.
 type Favourite struct {
+	// ID is a unique identifier that allows comparison of favourites.
+	ID string `json:"id"`
+
 	// Link is the internal link to the favourited object.
-	Link interface{} `json:"link"`
+	Link json.RawMessage `json:"link"`
 
 	// Name is a friendly name for the link.
 	Name string `json:"name"`

@@ -247,6 +247,3 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
-
-// func AddFavouriteSubscription(api models.DocumentsAPI) http.HandlerFunc {
-// 	return func(res http.ResponseWriter, req *http.Request) {
