@@ -11,7 +11,6 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/a-h/templ"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
@@ -416,59 +415,23 @@ func AddSubscriptions(api models.DocumentsAPI) func(next http.Handler) http.Hand
 	}
 }
 
-// GenerateDrawerContent handles generating updated content for the drawer.
-func GenerateSearchSuggestions(api models.DocumentsAPI, searchTerms string) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
+// func GenerateSearchResults(api models.DocumentsAPI, searchTerms string) func(next http.Handler) http.Handler {
+// 	return func(next http.Handler) http.Handler {
+// 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+// 			ctx := req.Context()
 
-			subscriptions, articles, resp := models.GetSearchSuggestions(ctx, api, searchTerms)
-			if resp != nil {
-				slogctx.FromCtx(req.Context()).Warn("Failed to get search suggestions.", slog.Any("error", resp.Error()))
-				next.ServeHTTP(res, req)
-			} else if len(subscriptions) > 0 || len(articles) > 0 {
-				suggestions := make([]templ.Component, 0, len(articles)+1)
+// 			subscriptions, articles, resp := models.GetSearchSuggestions(ctx, api, searchTerms)
+// 			if resp != nil {
+// 				slogctx.FromCtx(req.Context()).Warn("Failed to get search suggestions.", slog.Any("error", resp.Error()))
+// 				next.ServeHTTP(res, req)
+// 			} else if len(subscriptions) > 0 || len(articles) > 0 {
+// 				ctx = templateToCtx(ctx, views.SearchResultsPage(subscriptions, articles))
+// 			}
 
-				if len(subscriptions) > 0 {
-					// Add subscription suggestions.
-					suggestions = append(suggestions, views.SearchSuggestionHeader("Subscriptions"))
-					for subscription := range slices.Values(subscriptions) {
-						suggestions = append(suggestions, views.SearchSuggestionSubscription(subscription))
-					}
-				}
-				if len(articles) > 0 {
-					// Add article suggestions.
-					suggestions = append(suggestions, views.SearchSuggestionHeader("Articles"))
-					for article := range slices.Values(articles) {
-						suggestions = append(suggestions, views.SearchSuggestionArticle(article))
-					}
-				}
-
-				ctx = templateToCtx(ctx, views.SearchSuggestions(suggestions...))
-			}
-
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-func GenerateSearchResults(api models.DocumentsAPI, searchTerms string) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			ctx := req.Context()
-
-			subscriptions, articles, resp := models.GetSearchSuggestions(ctx, api, searchTerms)
-			if resp != nil {
-				slogctx.FromCtx(req.Context()).Warn("Failed to get search suggestions.", slog.Any("error", resp.Error()))
-				next.ServeHTTP(res, req)
-			} else if len(subscriptions) > 0 || len(articles) > 0 {
-				ctx = templateToCtx(ctx, views.SearchResultsPage(subscriptions, articles))
-			}
-
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
+// 			next.ServeHTTP(res, req.WithContext(ctx))
+// 		})
+// 	}
+// }
 
 func NewUserSignup(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {

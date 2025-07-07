@@ -4,6 +4,7 @@
 package views
 
 import (
+	"context"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
@@ -22,10 +23,11 @@ import (
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
+	"io"
 	"slices"
 )
 
-templ (s *ArticlesPage) Show() {
+templ (s *ArticlesPage) render() {
 	@NewPage("Articles") {
 		@partials.Drawer() {
 			@partials.DrawerContent() {
@@ -78,6 +80,10 @@ templ (s *ArticlesPage) Show() {
 			@partials.DrawerSide()
 		}
 	}
+}
+
+func (s *ArticlesPage) Render(ctx context.Context, w io.Writer) error {
+	return s.render().Render(ctx, w)
 }
 
 type Article struct {

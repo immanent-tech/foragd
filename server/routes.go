@@ -142,29 +142,3 @@ func (s Server) SetupSubscriptionsExport(res http.ResponseWriter, req *http.Requ
 func (s Server) PerformSubscriptionsExport(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusNotImplemented)
 }
-
-// SearchSuggest handles processing and displaying a list of search suggestions.
-func (s Server) SearchSuggest(res http.ResponseWriter, req *http.Request) {
-	searchTerms := req.FormValue("search_terms")
-	if searchTerms == "" {
-		res.WriteHeader(http.StatusOK)
-		return
-	}
-	alice.New(
-		handlers.RouteLogger,
-		handlers.GenerateSearchSuggestions(s.DataAPI(), searchTerms),
-	).Then(handlers.RenderTemplate()).ServeHTTP(res, req)
-}
-
-// SearchResults handles processing and displaying a page of search results.
-func (s Server) SearchResults(res http.ResponseWriter, req *http.Request) {
-	searchTerms := req.FormValue("search_terms")
-	if searchTerms == "" {
-		res.WriteHeader(http.StatusOK)
-		return
-	}
-	alice.New(
-		handlers.RouteLogger,
-		handlers.GenerateSearchResults(s.DataAPI(), searchTerms),
-	).Then(handlers.RenderTemplate()).ServeHTTP(res, req)
-}

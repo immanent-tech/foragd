@@ -27,14 +27,15 @@ templ SearchForm() {
 			@join.Horizontally() {
 				@textinput.Build(
 					textinput.WithID("search"),
-					textinput.WithName("search_terms"),
+					textinput.WithName("text"),
 					textinput.WithPlaceholder("Search anything..."),
 					textinput.WithExtraAttributes(templ.Attributes{
-						"hx-post":      "/search/suggest",
+						"hx-post":      "/search",
 						"hx-trigger":   "input changed delay:500ms",
 						"hx-target":    "#search-suggestions",
 						"hx-indicator": ".htmx-indicator",
 						"tabindex":     0,
+						"hx-push-url":  "false",
 					}),
 					textinput.WithExtraClasses("join-item"),
 				).Show()
@@ -54,7 +55,7 @@ templ SearchForm() {
 }
 
 templ SearchSuggestions(suggestions ...templ.Component) {
-	<ul class="list dropdown-content self-center bg-base-200 w-screen lg:w-full rounded-box shadow-md" tabindex="3">
+	<ul class="list dropdown-content self-start bg-base-200 w-screen lg:w-full rounded-box shadow-md" tabindex="3">
 		for suggestion := range slices.Values(suggestions) {
 			@suggestion
 		}

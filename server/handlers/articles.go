@@ -43,7 +43,7 @@ func GetArticles(api models.DocumentsAPI) http.HandlerFunc {
 		}
 		// Generate articles page.
 		articlesPage := views.NewArticlesPage(articles, filters, pagination)
-		ctx := templateToCtx(req.Context(), articlesPage.Show())
+		ctx := templateToCtx(req.Context(), articlesPage)
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,

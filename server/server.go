@@ -154,6 +154,7 @@ func (s *Server) setupRoutes() {
 			handlers.RequireUserAuth(s.DataAPI(), s.AuthAPI()),
 		)
 		r.Get("/home", handlers.Home(s.DataAPI()))
+		r.Post("/search", handlers.GetSearchSuggestions(s.DataAPI()))
 		// Subscription routes.
 		r.Get("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))
 		r.With(middlewares.RequireHTMX).Post("/subscriptions", handlers.GetSubscriptions(s.DataAPI()))

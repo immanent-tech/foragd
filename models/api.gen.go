@@ -146,6 +146,12 @@ type Response struct {
 	StatusCode int `json:"status_code"`
 }
 
+// SearchRequest represents a search request by the user.
+type SearchRequest struct {
+	// Text is the text to search.
+	Text string `form:"text" json:"text" validate:"required"`
+}
+
 // Sort contains information on sorting objects.
 type Sort struct {
 	// SortBy represents the selected field to sort on.

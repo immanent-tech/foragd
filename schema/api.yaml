@@ -282,7 +282,20 @@ components:
           x-go-type-skip-optional-pointer: true
         redirect:
           $ref: '#/components/schemas/Redirect'
-
+    SearchRequest:
+      description: >
+        represents a search request by the user.
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          description: >
+            is the text to search.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'text'
+            validate: 'required'
     UserMessage:
       description: >
         represents a message that can be displayed to the user as the result of an action.
