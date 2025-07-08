@@ -86,17 +86,22 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest, result *models.U
 		modal.WithID(partials.ModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
+		modal.WithExtraAttributes(templ.Attributes{
+			"hx-target-error": "#modal-errors",
+		}),
 	).Show() {
 		@text.Build("Add a new subscription", text.WithSize(text.LG)).Show()
-		if result != nil {
-			@partials.Alert(result, nil)
-		}
+		<div id="modal-errors">
+			if result != nil {
+				@partials.Alert(result, nil)
+			}
+		</div>
 		// Display the Subscription details.
 		@form.Build(
 			form.WithID("subscription_details"),
 			form.WithExtraAttributes(
 				templ.Attributes{
-					"hx-put":       "/subscription/add",
+					"hx-put":       "/user/subscription/new",
 					"hx-target":    partials.ModalID.Target(),
 					"hx-swap":      "outerHTML",
 					"hx-indicator": "#add-processing",

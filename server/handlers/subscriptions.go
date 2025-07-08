@@ -193,16 +193,6 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 	}
 }
 
-// NewSubscription handles presenting the user with a form to enter details for adding a new subscription.
-func NewSubscription() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil))
-		alice.New(
-			RouteLogger,
-		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
-	}
-}
-
 // EditSubscription handles fetching and presenting the customisation data for a subscription, for the user to edit.
 func (a *API) EditSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -270,6 +260,58 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 	}
 }
 
+// NewSubscription handles presenting the user with a form to enter details for adding a new subscription.
+func NewSubscription() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil))
+		alice.New(
+			RouteLogger,
+		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+	}
+}
+
+func (a *API) AddSubscription() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		chain := alice.New(
+			RouteLogger,
+		).Then(RenderTemplate())
+
+		request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
+		if err != nil || !valid {
+			msg := &models.UserMessage{Status: models.UserMessageStatusWarning, Summary: "There is a problem with the input. Please check and try again."}
+			ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, msg))
+			chain.ServeHTTP(res, req.WithContext(ctx))
+			RenderError(res, req, models.NewResponse(http.StatusNotAcceptable, err))
+			return
+		}
+		requests := newSubscriptionRequests{
+			request: &models.UserMessage{},
+		}
+		subscriptions, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Adding a subscription failed.",
+				slog.Any("error", err),
+			)
+			requests[request] = &models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "A problem occurred while adding the subscription.",
+			}
+		}
+		if err := requests.createNewSubscriptions(req.Context(), a, subscriptions); err != nil {
+			slogctx.FromCtx(req.Context()).Warn("Adding a subscription failed.",
+				slog.Any("error", err),
+			)
+			requests[request] = &models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "A problem occurred while adding the subscription.",
+			}
+		}
+		// Display the modal with the request results shown.
+		ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, requests[request]))
+		chain.ServeHTTP(res, req.WithContext(ctx))
+	}
+}
+
 func (a *API) getSubscriptionStates(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionStates, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
@@ -299,6 +341,21 @@ func (a *API) updateSubscriptionStates(ctx context.Context, states models.Subscr
 	}
 
 	resp, err := elastic.BulkUpdate(ctx, a.DataAPI(), index, states...)
+	if err != nil {
+		return fmt.Errorf("updateSubscriptionStates: %w", err)
+	}
+	spew.Dump(resp)
+
+	return nil
+}
+
+func (a *API) addSubscriptionStates(ctx context.Context, states models.SubscriptionStates) error {
+	index := elastic.SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return elastic.ErrFetchCtx
+	}
+
+	resp, err := elastic.BulkAdd(ctx, a.DataAPI(), index, states...)
 	if err != nil {
 		return fmt.Errorf("updateSubscriptionStates: %w", err)
 	}
@@ -434,4 +491,168 @@ func (a *API) removeSubscriptions(ctx context.Context, ids ...models.Subscriptio
 	return a.updateUser(ctx, map[string]any{
 		"subscriptions": slices.Collect(maps.Values(states)),
 	})
+}
+
+type (
+	newSubscriptionRequests map[*models.SubscriptionRequest]*models.UserMessage
+	newSubscriptions        map[*models.SubscriptionRequest]*models.Feed
+)
+
+// feedURLs retrieves the URLs from the subscription requests.
+func (r newSubscriptionRequests) feedURLs() []string {
+	urls := make([]string, 0, len(r))
+	for req := range maps.Keys(r) {
+		urls = append(urls, req.URL)
+	}
+	return urls
+}
+
+// MatchFeedsToSubscriptionRequests takes a list of subscription requests, extracts the URLs in each and attempt to
+// match them to existing feeds. Where there is no existing feed, it will attempt to generate new feed data. It then
+// stores the subscriptions that need new feeds and any with existing feeds in the context for the next handler.
+func (r newSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Context, api *API) (newSubscriptions, error) {
+	// Extract user data.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, fmt.Errorf("matchFeedsToSubscriptions: %w", models.ErrUserCtx)
+	}
+
+	slogctx.FromCtx(ctx).Debug("Matching existing feeds to subscription requests...")
+
+	// Paginate and gather all feeds matching the request URLs.
+	var (
+		feedPagination *models.Pagination
+		existingFeeds  models.Feeds
+	)
+	for {
+		count := 100
+		feeds, nextResults, err := api.DataAPI().SearchFeeds(ctx, query.Terms("source_url", r.feedURLs()...), count, nil, feedPagination)
+		if err != nil {
+			return nil, fmt.Errorf("matchFeedsToSubscriptions: %w", err)
+		}
+
+		existingFeeds = append(existingFeeds, feeds...)
+
+		if len(feeds) < count {
+			break
+		}
+		feedPagination = &nextResults
+	}
+
+	newFeedsNeeded := make(newSubscriptions)
+	newSubscriptions := make(newSubscriptions)
+	// Loop over existing feeds.
+	for request := range maps.Keys(r) { //nolint:contextcheck
+		feed := existingFeeds.FindByURL(request.GetURL())
+		switch {
+		case feed == nil: // no existing feed, create a new one.
+			newFeed, err := models.NewFeedFromURL(ctx, request.GetURL())
+			if err != nil {
+				r[request] = &models.UserMessage{
+					Status:  models.UserMessageStatusError,
+					Summary: "Unable to source feed details from request URL: " + request.GetURL(),
+				}
+				continue
+			}
+			newFeedsNeeded[request] = newFeed
+			slogctx.FromCtx(ctx).Debug("New feed needed for subscription.",
+				slog.String("subscription", request.String()),
+				slog.String("feed", newFeed.String()),
+			)
+		case user.IsSubscribedToFeed(feed.GetID()): // user already subscribed, ignore request.
+			r[request] = &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "Already subscribed to feed with URL: " + request.GetURL(),
+			}
+		default: // existing feed.
+			newSubscriptions[request] = feed
+			slogctx.FromCtx(ctx).Debug("Existing feed for subscription.",
+				slog.String("subscription", request.String()),
+				slog.String("feed", feed.String()),
+			)
+		}
+	}
+
+	// Add new feeds for requests without an existing feed.
+	if len(newFeedsNeeded) > 0 {
+		s, err := r.createNewFeeds(ctx, api, newFeedsNeeded)
+		if err != nil {
+			return nil, fmt.Errorf("matchFeedsToSubscriptions: %w", err)
+		}
+		maps.Copy(newSubscriptions, s)
+	}
+
+	return newSubscriptions, nil
+}
+
+func (r newSubscriptionRequests) createNewFeeds(ctx context.Context, api *API, feedsNeeded newSubscriptions) (newSubscriptions, error) {
+	slogctx.FromCtx(ctx).Debug("Adding new feeds for subscriptions.")
+
+	// Add the new feeds.
+	addFeedsResults, err := api.DataAPI().AddFeeds(ctx, slices.Collect(maps.Values(feedsNeeded))...)
+	if err != nil {
+		return nil, fmt.Errorf("createNewFeeds: %w", err)
+	}
+
+	newSubscriptions := make(newSubscriptions)
+	// Process the add feed results.
+	for request, feed := range feedsNeeded {
+		resp, found := addFeedsResults[feed.GetID()]
+		if found {
+			if resp.Created() {
+				// Success, add request to map of subscription needed.
+				newSubscriptions[request] = feed
+				continue
+			}
+		}
+		r[request] = &models.UserMessage{
+			Status:  models.UserMessageStatusError,
+			Summary: "Unable to create a subscription for request URL: " + request.GetURL(),
+		}
+	}
+	return newSubscriptions, nil
+}
+
+// AddSubscriptions handles adding new subscription via either the add or import user functionality. It
+// handles: matching and filtering out requests against existing subscriptions, matching requests to existing feeds,
+// creating new feeds as necessary and finally creating user subscriptions.
+func (r newSubscriptionRequests) createNewSubscriptions(ctx context.Context, api *API, newSubscriptions newSubscriptions) error {
+	// Extract user data.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return fmt.Errorf("createNewSubscriptions: %w", models.ErrUserCtx)
+	}
+
+	slogctx.FromCtx(ctx).Debug("Adding new subscriptions.")
+
+	// Loop through the subscriptions adding their state to the existing subscription states slice. For any
+	// subscriptions that have customisation data, collect the customisation data for adding later.
+	states := make(models.SubscriptionStates, 0, len(newSubscriptions))
+	for request, feed := range newSubscriptions {
+		// Create subscription state.
+		state := models.NewSubscriptionState(user.GetID(), feed.GetID())
+		states = append(states, state)
+		// Add subscription details to user object.
+		user.AddSubscription(state.SubscriptionID, state.FeedID)
+		details := request.String()
+		r[request] = &models.UserMessage{
+			Status:  models.UserMessageStatusSuccess,
+			Summary: "Subscription created!",
+			Details: &details,
+		}
+	}
+	spew.Dump(states, user)
+	return nil
+	// Add the subscription states.
+	if err := api.addSubscriptionStates(ctx, states); err != nil {
+		return fmt.Errorf("createNewSubscriptions: %w", err)
+	}
+	// Update the user object.
+	resp := api.updateUser(ctx, map[string]any{
+		"subscriptions": slices.Collect(maps.Values(newSubscriptions)),
+	})
+	if resp != nil {
+		return fmt.Errorf("createNewSubscriptions: %w", resp.InternalError)
+	}
+	return nil
 }

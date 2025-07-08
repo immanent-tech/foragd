@@ -329,6 +329,13 @@ components:
       required:
         - status_code
       properties:
+        template:
+          description: >
+            is a template to render in the response.
+          x-go-type: templ.Component
+          x-go-type-import:
+            path: 'github.com/a-h/templ'
+          x-go-type-skip-optional-pointer: true
         status_code:
           description: >
             is a status code, typically a HTTP response code.

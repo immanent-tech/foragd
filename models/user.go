@@ -50,6 +50,10 @@ func (u *User) GetSettings() *UserSettings {
 	return u.Settings
 }
 
+func (u *User) AddSubscription(subscriptionID SubscriptionID, feedID FeedID) {
+	u.Subscriptions = append(u.Subscriptions, SubscriptionFeedRelation{SubscriptionID: subscriptionID, FeedID: feedID})
+}
+
 func (u *User) GetSubscriptionsByID(ids ...SubscriptionID) map[SubscriptionID]FeedID {
 	s := SliceToMap(u.Subscriptions, func(s SubscriptionFeedRelation) (SubscriptionID, FeedID) {
 		return s.SubscriptionID, s.FeedID
