@@ -4,12 +4,10 @@
 package middlewares
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
 
-	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/handlers"
 )
 
@@ -27,7 +25,7 @@ func SetupHTMX(next http.Handler) http.Handler {
 func RequireHTMX(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if !htmx.IsHTMX(req) {
-			handlers.RenderError(res, req, models.RespForbidden(errors.New("htmx is required")))
+			handlers.RenderTemplate(handlers.RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		next.ServeHTTP(res, req)

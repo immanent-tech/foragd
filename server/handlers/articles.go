@@ -31,32 +31,34 @@ import (
 // GetArticles handles showing a filtered collection of articles as cards.
 func (a *API) GetArticles() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Extract filters from request.
-		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
-		if err != nil || !valid {
-			RenderError(res, req, models.NewResponse(http.StatusBadRequest, fmt.Errorf("parameters are invalid: %w", err)))
-			return
-		}
-		// Get articles matching filters.
-		articles, pagination, err := a.filterArticles(req.Context(), filters)
-		if err != nil {
-			RenderError(res, req, models.RespErrBackend(err))
-			return
-		}
-		// Generate articles page.
-		articlesPage := views.NewArticlesPage(articles, filters, pagination)
-		ctx := templateToCtx(req.Context(), articlesPage)
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,
-			SavePageState(filters),
+		)
+		// Extract filters from request.
+		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
+		if err != nil || !valid {
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			return
+		}
+		// Save the filters to the session.
+		chain = chain.Append(SavePageState(filters))
+		// Get articles matching filters.
+		articles, pagination, err := a.filterArticles(req.Context(), filters)
+		if err != nil {
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		// Generate articles page.
+		resp := models.NewResponse(
+			models.WithResponseTemplate(views.NewArticlesPage(articles, filters, pagination)),
 		)
 		// Render fragments/page.
 		switch htmx.IsHTMX(req) {
 		case true:
-			chain.Then(RenderTemplateFragments("content-header", "content", "content-footer")).ServeHTTP(res, req.WithContext(ctx))
+			chain.Then(RenderTemplateFragments(resp, "content-header", "content", "content-footer")).ServeHTTP(res, req)
 		case false:
-			chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+			chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
 		}
 	}
 }
@@ -64,16 +66,22 @@ func (a *API) GetArticles() http.HandlerFunc {
 // PaginateArticles handles showing the next set of articles in a filtered collection.
 func (a *API) PaginateArticles() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
 		// Extract filters from request.
 		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
 		if err != nil || !valid {
-			RenderError(res, req, models.NewResponse(http.StatusBadRequest, fmt.Errorf("parameters are invalid: %w", err)))
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
+		// Save the filters to the session.
+		chain = chain.Append(SavePageState(filters))
 		// Get articles matching filters.
-		articles, pagination, resp := a.filterArticles(req.Context(), filters)
-		if resp != nil {
-			RenderError(res, req, models.RespErrBackend(err))
+		articles, pagination, err := a.filterArticles(req.Context(), filters)
+		if err != nil {
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Generate article cards.
@@ -86,24 +94,34 @@ func (a *API) PaginateArticles() http.HandlerFunc {
 			// Add pagination htmx props to last article.
 			cards = append(cards, content.PaginationControl(req.Context(), "/articles", pagination))
 		}
-		ctx := templateToCtx(req.Context(), templ.Join(cards...))
+		resp := models.NewResponse(
+			models.WithResponseTemplate(templ.Join(cards...)),
+		)
 		// Set up handler chain and render cards.
 		alice.New(
 			RouteLogger,
 			SavePageState(filters),
-		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+		).Then(RenderTemplate(resp)).ServeHTTP(res, req)
 	}
 }
 
 // MarkArticles handles marking a articles as read or unread.
 func (a *API) MarkArticles() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+			TriggerStateUpdates,
+		)
 		// Get request details.
 		request, valid, err := forms.DecodeForm[*models.MarkArticlesRequest](req)
 		if err != nil || !valid {
-			RenderError(res, req, models.NewResponse(http.StatusBadRequest, err))
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
+		chain = chain.Append(
+			SetupRedirect(request.Redirect),
+		)
 		// Parse out items into respective subscriptions.
 		marks := make(map[models.SubscriptionID][]models.ItemID)
 		for a := range slices.Values(request.Articles) {
@@ -115,7 +133,7 @@ func (a *API) MarkArticles() http.HandlerFunc {
 		// Get subscription states containing items.
 		states, err := a.getSubscriptionStates(req.Context(), slices.Collect(maps.Keys(marks))...)
 		if err != nil {
-			RenderError(res, req, models.RespErrUnauthorized())
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Mark off items under subscription states.
@@ -135,36 +153,32 @@ func (a *API) MarkArticles() http.HandlerFunc {
 		}
 		// Update the states.
 		if err := a.updateSubscriptionStates(req.Context(), states); err != nil {
-			RenderError(res, req, models.RespErrBackend(err))
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 
-		alice.New(
-			RouteLogger,
-			SetupRedirect(request.Redirect),
-			TriggerStateUpdates,
-		).Then(RenderTemplate()).ServeHTTP(res, req)
+		chain.Then(RenderTemplate(nil)).ServeHTTP(res, req)
 	}
 }
 
 // ViewArticle handles viewing the content of an article.
 func (a *API) ViewArticle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		chain := alice.New(
+			RouteLogger,
+		)
 		// subscriptionID := chi.URLParam(req, "subscription")
 		itemID := chi.URLParam(req, "item")
 		articles, err := a.getArticles(req.Context(), itemID)
 		if err != nil {
-			ProcessResponse(res, req, models.RespErrBackend(err))
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		articleLayout := views.NewArticleContent(articles[0]).ShowContent()
-
-		ctx := req.Context()
-		ctx = templateToCtx(ctx, articleLayout)
-		ctx = context.WithValue(ctx, titleCtxKey, articles[0].GetTitle())
-		alice.New(
-			RouteLogger,
-		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+		resp := models.NewResponse(
+			models.WithResponseTemplate(views.NewArticleContent(articles[0]).ShowContent()),
+		)
+		ctx := context.WithValue(req.Context(), titleCtxKey, articles[0].GetTitle())
+		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
 
@@ -284,7 +298,7 @@ func (a *API) getItemTopCategories(ctx context.Context, feeds ...models.FeedID) 
 	)
 	topCategories.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggsResult.Aggregations, "TopCategories")
 	if err != nil {
-		return nil, models.NewResponse(http.StatusInternalServerError, fmt.Errorf("could not extract category counts: %w", err))
+		return nil, RespBackendError(fmt.Errorf("could not extract category counts: %w", err))
 	}
 
 	return topCategories.BucketNames(), nil

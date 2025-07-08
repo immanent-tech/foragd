@@ -4,9 +4,14 @@
 package models
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"slices"
+
+	"github.com/a-h/templ"
 )
 
 var (
@@ -15,13 +20,45 @@ var (
 	ErrInvalidInput = errors.New("invalid or unknown input")
 )
 
-func NewResponse(status int, err error) *Response {
-	resp := &Response{
-		StatusCode: status,
+// ResponseOption is a functional option to apply to a response.
+type ResponseOption func(*Response)
+
+// WithResponseStatusCode option applies the given HTTP status code to the response. If this option is not provided, a
+// default 200 status code is used.
+func WithResponseStatusCode(status int) ResponseOption {
+	return func(r *Response) {
+		r.StatusCode = status
 	}
-	if err != nil {
-		resp.InternalError = err
+}
+
+// WithResponseTemplate assigns the given template to the response. If this option is not provided, an empty body will
+// be written when the response is rendered.
+func WithResponseTemplate(template templ.Component) ResponseOption {
+	return func(r *Response) {
+		r.Template = template
 	}
+}
+
+// WithResponseError assigns an error message that will be written as a log message when the response is rendered.
+func WithResponseError(err error) ResponseOption {
+	return func(r *Response) {
+		r.InternalError = err
+	}
+}
+
+// NewResponse creates a new response with the given options.
+func NewResponse(options ...ResponseOption) *Response {
+	resp := &Response{}
+
+	for option := range slices.Values(options) {
+		option(resp)
+	}
+
+	// Set a default 200: OK status code if not set by option.
+	if resp.StatusCode == 0 {
+		resp.StatusCode = http.StatusOK
+	}
+
 	return resp
 }
 
@@ -46,6 +83,14 @@ func (r *Response) String() string {
 
 func (r *Response) Error() string {
 	return r.String()
+}
+
+// Render will render the template in the response. This satisfies the templ.Component interface.
+func (r *Response) Render(ctx context.Context, w io.Writer) error {
+	if r.Template != nil {
+		return r.Template.Render(ctx, w)
+	}
+	return nil
 }
 
 func RespErrUnauthorized() *Response {

@@ -30,7 +30,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 				Status:  models.UserMessageStatusError,
 				Summary: "A problem occurred while adding the subscription.",
 			}
-			ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(request, msg))
+			ctx := respToCtx(req.Context(), views.NewSubscriptionModal(request, msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		}
 		// Extract the processed request from the context.
@@ -41,7 +41,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 		}
 		// Display the modal with the request results shown.
 		for _, result := range results {
-			ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, result))
+			ctx := respToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, result))
 			next.ServeHTTP(res, req.WithContext(ctx))
 			break
 		}
@@ -51,7 +51,7 @@ func NewSubscriptionRequestResult(next http.Handler) http.Handler {
 // NewSubscriptionsImport handles setting up a new subscription import process for the user.
 func NewSubscriptionsImport(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := templateToCtx(req.Context(), views.ImportSubscriptionLayout())
+		ctx := respToCtx(req.Context(), views.ImportSubscriptionLayout())
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -66,7 +66,7 @@ func ProcessSubscriptionsImport(importMethod string) func(next http.Handler) htt
 			case http.MethodPut:
 				switch importMethod {
 				case "opml_file":
-					ctx = templateToCtx(ctx, views.ImportFromOPML())
+					ctx = respToCtx(ctx, views.ImportFromOPML())
 				}
 			case http.MethodPost:
 				switch importMethod {
@@ -114,7 +114,7 @@ func SubscriptionsImportResults(next http.Handler) http.Handler {
 				Status:  models.UserMessageStatusError,
 				Summary: "A problem occurred while importing subscriptions.",
 			}
-			ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, msg))
+			ctx := respToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, msg))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		}
 
@@ -124,14 +124,14 @@ func SubscriptionsImportResults(next http.Handler) http.Handler {
 			next.ServeHTTP(res, req)
 			return
 		}
-		ctx := templateToCtx(req.Context(), views.ImportResults(results))
+		ctx := respToCtx(req.Context(), views.ImportResults(results))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
 
 func NewUserSignup(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		ctx := templateToCtx(req.Context(), views.SignUpPage(models.NewUserSignup()))
+		ctx := respToCtx(req.Context(), views.SignUpPage(models.NewUserSignup()))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
 }
@@ -158,7 +158,7 @@ func ProcessUserSignup(userBackendAPI models.UserBackendAPI, userFrontendAPI mod
 				Status:  models.UserMessageStatusSuccess,
 				Summary: "Account created!",
 			}
-			ctx = templateToCtx(ctx, views.SignupForm(signupRequest))
+			ctx = respToCtx(ctx, views.SignupForm(signupRequest))
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

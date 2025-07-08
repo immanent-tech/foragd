@@ -10,8 +10,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
-
-	"github.com/joshuar/go-feed-me/models"
 )
 
 // Login handles login requests.
@@ -26,7 +24,7 @@ func (a *API) Login() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Warn("Authentication required.", slog.Any("error", err))
 			url, err := a.auth.GetAuthURL(req)
 			if err != nil {
-				ProcessResponse(res, req, models.NewResponse(http.StatusInternalServerError, err))
+				RenderTemplate(RespBackendError(err)).ServeHTTP(res, req)
 				return
 			}
 			slogctx.FromCtx(req.Context()).Debug("Redirecting to provider.", slog.String("url", url))
@@ -47,7 +45,7 @@ func (a *API) LoginCallback() http.HandlerFunc {
 		provider := chi.URLParam(req, "provider")
 		a.auth.SetProviderName(req.Context(), provider)
 		if err := a.auth.CompleteUserAuth(res, req); err != nil {
-			ProcessResponse(res, req, models.NewResponse(http.StatusInternalServerError, err))
+			RenderTemplate(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("Authenticated.")

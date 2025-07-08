@@ -34,21 +34,21 @@ import (
 // GetSubscriptions handles showing a filtered collection of subscriptions as cards.
 func (a *API) GetSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
-		if err != nil || !valid {
-			RenderError(res, req, models.NewResponse(http.StatusBadRequest, err))
-			return
-		}
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,
-			SavePageState(filters),
 		)
+		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
+		if err != nil || !valid {
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			return
+		}
+		chain = chain.Append(SavePageState(filters))
 		var template templ.Component
 		// Retrieve user object.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			RenderError(res, req, models.RespErrUnauthorized())
+			chain.Then(RenderTemplate(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
 		if len(user.GetSubscriptionsByID()) == 0 {
@@ -57,7 +57,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			// Get subscriptions matching filters.
 			subscriptions, pagination, resp := a.filterSubscriptions(req.Context(), filters)
 			if resp != nil {
-				RenderError(res, req, models.RespErrBackend(err))
+				chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
 			cards := make([]templ.Component, 0, len(subscriptions))
@@ -75,19 +75,21 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			template = views.NewSubscriptionsPage(filters, subscriptions.GetCategoryCounts(), cards...).Show()
 		}
 
-		ctx := templateToCtx(req.Context(), template)
+		resp := models.NewResponse(
+			models.WithResponseTemplate(template),
+		)
 
 		// Display content based on request.
 		switch {
 		case req.Method == http.MethodPost:
 			// Pagination. Only render cards.
-			chain.Then(RenderTemplateFragments("cards")).ServeHTTP(res, req.WithContext(ctx))
+			chain.Then(RenderTemplateFragments(resp, "cards")).ServeHTTP(res, req)
 		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 			// Partial update. Only render fragments.
-			chain.Then(RenderTemplateFragments("content-header", "content", "content-footer")).ServeHTTP(res, req.WithContext(ctx))
+			chain.Then(RenderTemplateFragments(resp, "content-header", "content", "content-footer")).ServeHTTP(res, req)
 		default:
 			// Full page render.
-			chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+			chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
 		}
 	}
 }
@@ -95,12 +97,17 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 // MarkSubscriptions handles marking a collection of subscriptions as read or unread.
 func (a *API) MarkSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		chain := alice.New(
+			RouteLogger,
+			TriggerStateUpdates,
+		)
 		// Get subscription details.
 		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
 		if err != nil || !valid {
-			RenderError(res, req, models.NewResponse(http.StatusBadRequest, err))
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
+		chain = chain.Append(SetupRedirect(request.Redirect))
 		// Get mark.
 		mark := chi.URLParam(req, "mark")
 		// Set marked at to current timestamp.
@@ -108,7 +115,7 @@ func (a *API) MarkSubscriptions() http.HandlerFunc {
 		// Get all user subscription states.
 		states, err := a.getSubscriptionStates(req.Context())
 		if err != nil {
-			RenderError(res, req, models.RespErrBackend(err))
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Loop through given subscription IDs and update states.
@@ -119,40 +126,36 @@ func (a *API) MarkSubscriptions() http.HandlerFunc {
 
 		// Index updates.
 		if err := a.updateSubscriptionStates(req.Context(), filteredStates); err != nil {
-			RenderError(res, req, models.NewResponse(http.StatusInternalServerError, fmt.Errorf("could not process mark request: %w", err)))
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 
-		alice.New(
-			RouteLogger,
-			SetupRedirect(request.Redirect),
-			TriggerStateUpdates,
-		).Then(RenderTemplate()).ServeHTTP(res, req)
+		chain.Then(RenderTemplate(nil)).ServeHTTP(res, req)
 	}
 }
 
 // RemoveSubscriptions handles removing (unsubscribing from) a collection of subscriptions.
 func (a *API) RemoveSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Get subscription details.
-		request, valid, err := forms.DecodeForm[*models.RemoveSubscriptionsRequest](req)
-		if err != nil || !valid {
-			RenderError(res, req, models.NewResponse(http.StatusBadRequest, err))
-			return
-		}
 		// Set up the handler chain.
 		chain := alice.New(
 			RouteLogger,
 		)
+		// Get subscription details.
+		request, valid, err := forms.DecodeForm[*models.RemoveSubscriptionsRequest](req)
+		if err != nil || !valid {
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			return
+		}
 		// Act according to user confirmation.
-		ctx := req.Context()
+		var resp *models.Response
 		switch request.Confirmation {
 		case models.UserConfirmationYes:
-			slogctx.FromCtx(ctx).Debug("Subscription removal confirmed.",
+			slogctx.FromCtx(req.Context()).Debug("Subscription removal confirmed.",
 				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
 			)
-			if resp := a.removeSubscriptions(ctx, request.Subscriptions...); resp != nil {
-				RenderError(res, req.WithContext(ctx), models.RespErrBackend(err))
+			if resp := a.removeSubscriptions(req.Context(), request.Subscriptions...); resp != nil {
+				chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
 			// Show success notification.
@@ -160,11 +163,13 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 				Summary: "Unsubscribed.",
 				Status:  models.UserMessageStatusSuccess,
 			}
-			ctx = templateToCtx(ctx, partials.ShowNotification(msg))
+			resp = models.NewResponse(
+				models.WithResponseTemplate(partials.ShowNotification(msg)),
+			)
 			// Trigger state updates.
 			chain = chain.Append(TriggerStateUpdates)
 		case models.UserConfirmationCancel:
-			slogctx.FromCtx(ctx).Debug("Subscription removal cancelled.",
+			slogctx.FromCtx(req.Context()).Debug("Subscription removal cancelled.",
 				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
 			)
 			// Don't swap any main content for user cancellation.
@@ -173,9 +178,11 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 				Summary: "Request cancelled.",
 				Status:  models.UserMessageStatusInfo,
 			}
-			ctx = templateToCtx(ctx, partials.ShowNotification(msg))
+			resp = models.NewResponse(
+				models.WithResponseTemplate(partials.ShowNotification(msg)),
+			)
 		default:
-			slogctx.FromCtx(ctx).Debug("Confirming subscription removal.",
+			slogctx.FromCtx(req.Context()).Debug("Confirming subscription removal.",
 				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
 			)
 			parameters := map[string]string{
@@ -187,24 +194,30 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 				"hx-vals": partials.GenerateHXVals(parameters),
 				"hx-swap": "outerHTML",
 			})
-			ctx = templateToCtx(ctx, modal)
+			resp = models.NewResponse(
+				models.WithResponseTemplate(modal),
+			)
 		}
-		chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
 	}
 }
 
 // EditSubscription handles fetching and presenting the customisation data for a subscription, for the user to edit.
 func (a *API) EditSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
 		id := chi.URLParam(req, "subscription")
 		// Retrieve subscription details.
 		states, err := a.getSubscriptionStates(req.Context(), id)
 		if err != nil {
-			RenderError(res, req, models.RespErrBackend(err))
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		if len(states) == 0 {
-			RenderError(res, req, models.RespInvalidInput())
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		edit := &models.SubscriptionEdit{
@@ -214,28 +227,33 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		}
 		// Get top categories across items in subscription feed.
 		var topItemCategories []models.Category
-		categories, resp := a.getItemTopCategories(req.Context(), states[0].GetFeedID())
-		if resp == nil {
+		categories, err := a.getItemTopCategories(req.Context(), states[0].GetFeedID())
+		if err == nil {
 			topItemCategories = categories
 		}
-		ctx := templateToCtx(req.Context(), views.EditSubscriptionModal(edit, topItemCategories, nil))
-		alice.New(
-			RouteLogger,
-		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+		resp := models.NewResponse(
+			models.WithResponseTemplate(views.EditSubscriptionModal(edit, topItemCategories, nil)),
+		)
+		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
 	}
 }
 
 // SaveSubscription handles saving edits made to a subscription by the user.
 func (a *API) SaveSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+			TriggerStateUpdates,
+		)
 		edits, valid, err := forms.DecodeForm[*models.SubscriptionEdit](req)
 		if err != nil || !valid {
-			RenderError(res, req, models.RespErrBackend(err))
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		index := elastic.SubscriptionsIndexFromCtx(req.Context())
 		if index == "" {
-			RenderError(res, req, models.RespErrBackend(elastic.ErrFetchCtx))
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 
@@ -245,28 +263,29 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		}
 
 		if err := elastic.UpdateDoc(req.Context(), a.DataAPI().GetAPI(), index, edits.SubscriptionID, updates); err != nil {
-			RenderError(res, req, models.RespErrBackend(err))
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 
 		msg := models.SuccessUserMessage("Subscription updated.", nil)
 		// TODO: get new subscription details and update subscription card.
 		// Display a notification acknowledging save.
-		ctx := templateToCtx(req.Context(), partials.ShowNotification(msg))
-		alice.New(
-			RouteLogger,
-			TriggerStateUpdates,
-		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+		resp := models.NewResponse(
+			models.WithResponseTemplate(partials.ShowNotification(msg)),
+		)
+		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
 	}
 }
 
 // NewSubscription handles presenting the user with a form to enter details for adding a new subscription.
 func NewSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil))
+		resp := models.NewResponse(
+			models.WithResponseTemplate(views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil)),
+		)
 		alice.New(
 			RouteLogger,
-		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+		).Then(RenderTemplate(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -274,14 +293,11 @@ func (a *API) AddSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
 			RouteLogger,
-		).Then(RenderTemplate())
+		)
 
 		request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 		if err != nil || !valid {
-			msg := &models.UserMessage{Status: models.UserMessageStatusWarning, Summary: "There is a problem with the input. Please check and try again."}
-			ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, msg))
-			chain.ServeHTTP(res, req.WithContext(ctx))
-			RenderError(res, req, models.NewResponse(http.StatusNotAcceptable, err))
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		requests := newSubscriptionRequests{
@@ -307,8 +323,10 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			}
 		}
 		// Display the modal with the request results shown.
-		ctx := templateToCtx(req.Context(), views.NewSubscriptionModal(&models.SubscriptionRequest{}, requests[request]))
-		chain.ServeHTTP(res, req.WithContext(ctx))
+		resp := models.NewResponse(
+			models.WithResponseTemplate(views.NewSubscriptionModal(&models.SubscriptionRequest{}, requests[request])),
+		)
+		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
 	}
 }
 

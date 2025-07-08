@@ -23,16 +23,20 @@ import (
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func (a *API) GetSearchSuggestions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			RenderError(res, req, models.NewResponse(http.StatusBadRequest, err))
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 
 		subscriptions, articles, resp := a.matchObjectsToSearchRequest(req.Context(), request)
 		if resp != nil {
 			slogctx.FromCtx(req.Context()).Warn("Search suggestions failed.", slog.Any("error", resp.Error()))
-			RenderError(res, req, models.RespErrBackend(err))
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
 			suggestions := make([]templ.Component, 0, len(articles)+1)
@@ -51,11 +55,12 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 					suggestions = append(suggestions, article.ShowAsSearchSuggestion())
 				}
 			}
-
-			ctx := templateToCtx(req.Context(), views.SearchSuggestions(suggestions...))
+			resp := models.NewResponse(
+				models.WithResponseTemplate(views.SearchSuggestions(suggestions...)),
+			)
 			alice.New(
 				RouteLogger,
-			).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+			).Then(RenderTemplate(resp)).ServeHTTP(res, req)
 
 		}
 	}
@@ -64,23 +69,26 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 // GetSearchResults performs a search with the user input and renders a page with the search results.
 func (a *API) GetSearchResults() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			RenderError(res, req, models.NewResponse(http.StatusBadRequest, err))
+			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
-
+		// Find subscriptions and articles that match search request.
 		subscriptions, articles, resp := a.matchObjectsToSearchRequest(req.Context(), request)
 		if resp != nil {
 			slogctx.FromCtx(req.Context()).Warn("Search suggestions failed.", slog.Any("error", resp.Error()))
-			RenderError(res, req, models.RespErrBackend(err))
+			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
-
-			ctx := templateToCtx(req.Context(), views.SearchResultsPage(subscriptions, articles))
-			alice.New(
-				RouteLogger,
-			).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+			resp := models.NewResponse(
+				models.WithResponseTemplate(views.SearchResultsPage(subscriptions, articles)),
+			)
+			chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
 		}
 	}
 }

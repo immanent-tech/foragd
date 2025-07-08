@@ -62,48 +62,41 @@ func RouteLogger(next http.Handler) http.Handler {
 	})
 }
 
-func RenderTemplate() http.Handler {
+func RenderTemplate(resp *models.Response) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Retrieve the template from the context.
-		template := templateFromCtx(req.Context())
+		// Get any existing htmx response writer.
+		htmxResp := htmxRespFromCtx(req.Context())
+		if resp == nil {
+			// If there is no response, return 200: OK.
+			res.WriteHeader(http.StatusOK)
+			htmxResp.Write(res)
+		}
+		// Write the response status code.
+		res.WriteHeader(resp.StatusCode)
+		// Write the response template.
 		if htmx.IsHTMX(req) {
-			// Get any existing htmx response writer.
-			resp := htmxRespFromCtx(req.Context())
-			if template != nil {
-				if err := resp.RenderTempl(req.Context(), res, template); err != nil {
-					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-					http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-					return
-				}
-			} else {
-				if err := resp.Write(res); err != nil {
-					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-					http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-					return
-				}
-				res.WriteHeader(http.StatusOK)
+			if err := htmxResp.RenderTempl(req.Context(), res, resp); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
 			}
 			// Update the page title.
 			if title := pageTitleFromCtx(req.Context()); title != "" {
-				if err := resp.RenderTempl(req.Context(), res, templates.SetPageTitle(title)); err != nil {
+				if err := htmxResp.RenderTempl(req.Context(), res, templates.SetPageTitle(title)); err != nil {
 					slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
 				}
 			}
 		} else {
-			if template != nil {
-				if err := template.Render(req.Context(), res); err != nil {
-					slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-					http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-					return
-				}
-			} else {
-				res.WriteHeader(http.StatusOK)
+			if err := resp.Render(req.Context(), res); err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
 			}
 		}
 	})
 }
 
-func RenderTemplateFragments(fragments ...string) http.Handler {
+func RenderTemplateFragments(resp *models.Response, fragments ...string) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if !htmx.IsHTMX(req) {
 			slogctx.FromCtx(req.Context()).Error("Render template fragments called with non-htmx request.")
@@ -111,19 +104,17 @@ func RenderTemplateFragments(fragments ...string) http.Handler {
 			return
 		}
 		// Get any existing htmx response writer.
-		resp := htmxRespFromCtx(req.Context())
+		htmxResp := htmxRespFromCtx(req.Context())
 		// Set the fragments to be rendered.
 		req = req.WithContext(partials.WithFragment(req.Context(), res, fragments...))
-		err := resp.Write(res)
+		err := htmxResp.Write(res)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 			http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
 			return
 		}
-		// Retrieve the template from the context.
-		template := templateFromCtx(req.Context())
-		if template != nil {
-			err = template.Render(req.Context(), io.Discard)
+		if resp != nil {
+			err = resp.Render(req.Context(), io.Discard)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
@@ -134,7 +125,7 @@ func RenderTemplateFragments(fragments ...string) http.Handler {
 		}
 		// Update the page title.
 		if title := pageTitleFromCtx(req.Context()); title != "" {
-			if err := resp.RenderTempl(req.Context(), res, templates.SetPageTitle(title)); err != nil {
+			if err := htmxResp.RenderTempl(req.Context(), res, templates.SetPageTitle(title)); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
 			}
 		}
@@ -199,28 +190,31 @@ func SavePageState(filters any) func(next http.Handler) http.Handler {
 	}
 }
 
-func RenderError(res http.ResponseWriter, req *http.Request, resp *models.Response) {
-	slogctx.FromCtx(req.Context()).Error("Backend returned an error.",
-		slog.String("error", resp.String()),
+func RespInvalidInput(err error) *models.Response {
+	return models.NewResponse(
+		models.WithResponseStatusCode(http.StatusBadRequest),
+		models.WithResponseError(err),
+		models.WithResponseTemplate(
+			partials.Alert(partials.MsgBadInput(), nil),
+		),
 	)
-	res.WriteHeader(resp.StatusCode)
-	res.Write([]byte(resp.String()))
-	// // Write the status code.
-	// res.WriteHeader(resp.StatusCode)
 }
 
-// ProcessResponse handles appropriate display and logging of a models.Response object.
-func ProcessResponse(res http.ResponseWriter, req *http.Request, resp *models.Response) {
-	slogctx.FromCtx(req.Context()).Error("Backend returned an error.",
-		slog.String("error", resp.String()),
+func RespBackendError(err error) *models.Response {
+	return models.NewResponse(
+		models.WithResponseStatusCode(http.StatusInternalServerError),
+		models.WithResponseError(err),
+		models.WithResponseTemplate(
+			partials.Alert(partials.MsgBadInput(), nil),
+		),
 	)
-	ctx := templateToCtx(req.Context(), partials.ShowNotification(
-		&models.UserMessage{
-			Status:  models.UserMessageStatusWarning,
-			Summary: "A backend error occurred processing the action.",
-		},
-	))
-	RenderTemplate().ServeHTTP(res, req.WithContext(ctx))
-	// Write the status code.
-	res.WriteHeader(resp.StatusCode)
+}
+
+func RespForbidden() *models.Response {
+	return models.NewResponse(
+		models.WithResponseStatusCode(http.StatusForbidden),
+		models.WithResponseTemplate(
+			partials.Alert(partials.MsgBadInput(), nil),
+		),
+	)
 }

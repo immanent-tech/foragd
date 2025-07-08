@@ -699,7 +699,13 @@ func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.Msea
 func parseError(err error) *models.Response {
 	var esErr *types.ElasticsearchError
 	if errors.As(err, &esErr) {
-		return models.NewResponse(esErr.Status, esErr)
+		return models.NewResponse(
+			models.WithResponseStatusCode(esErr.Status),
+			models.WithResponseError(esErr),
+		)
 	}
-	return models.NewResponse(http.StatusInternalServerError, err)
+	return models.NewResponse(
+		models.WithResponseStatusCode(http.StatusInternalServerError),
+		models.WithResponseError(errors.New("unknown elastic error")),
+	)
 }

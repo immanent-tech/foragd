@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -20,22 +19,23 @@ import (
 
 func GetSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Set layout.
-		page := views.SettingsPage{}
-		ctx := templateToCtx(req.Context(), page.Show())
-
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,
+		)
+		// Set layout.
+		page := views.SettingsPage{}
+		resp := models.NewResponse(
+			models.WithResponseTemplate(page.Show()),
 		)
 		// Display content based on request.
 		switch {
 		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 			// Partial update. Only render fragments.
-			chain.Then(RenderTemplateFragments("content")).ServeHTTP(res, req.WithContext(ctx))
+			chain.Then(RenderTemplateFragments(resp, "content")).ServeHTTP(res, req)
 		default:
 			// Full page render.
-			chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+			chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
 		}
 	}
 }
@@ -47,7 +47,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 		theme := chi.URLParam(req, "theme")
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			ProcessResponse(res, req, models.RespErrUnauthorized())
+			RenderTemplate(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		settings := user.GetSettings()
@@ -56,7 +56,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 			"settings":   settings,
 			"updated_at": time.Now().UTC(),
 		}); err != nil {
-			RenderError(res, req, models.RespErrBackend(fmt.Errorf("failed to update theme: %w", err)))
+			RenderTemplate(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		res.WriteHeader(http.StatusOK)

@@ -26,29 +26,34 @@ import (
 // Home handles displaying the user's home page.
 func (a *API) Home() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		ctx := req.Context()
-		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
-		data, resp := a.getHomePageData(ctx)
-		if resp != nil {
-			RenderError(res, req, resp)
-			return
-		}
-
 		chain := alice.New(
 			RouteLogger,
 			SavePageState(nil),
 		)
-
+		ctx := req.Context()
+		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
+		data, err := a.getHomePageData(ctx)
+		if err != nil {
+			chain.Then(RenderTemplate(err)).ServeHTTP(res, req)
+			return
+		}
 		// Display content based on request.
 		switch {
 		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			ctx := templateToCtx(req.Context(), data)
+			resp := models.NewResponse(
+				models.WithResponseTemplate(data),
+			)
 			// Partial update. Only render fragments.
-			chain.Then(RenderTemplateFragments("content")).ServeHTTP(res, req.WithContext(ctx))
+			chain.Then(RenderTemplateFragments(resp, "content")).ServeHTTP(res, req.WithContext(ctx))
 		default:
-			ctx := templateToCtx(req.Context(), templates.NewPage("Go Feed Me Home", templates.WithBodyContent(data)))
+			resp := models.NewResponse(
+				models.WithResponseTemplate(
+					templates.NewPage("Go Feed Me - Home",
+						templates.WithBodyContent(data),
+					)),
+			)
 			// Full page render.
-			chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
+			chain.Then(RenderTemplate(resp)).ServeHTTP(res, req.WithContext(ctx))
 		}
 	}
 }
