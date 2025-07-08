@@ -18,7 +18,8 @@ var DefaultPageTitle = "Go Feed Me"
 
 // Page represents a single HTML page.
 type Page struct {
-	Head Head
+	Head        Head
+	BodyContent templ.Component
 }
 
 // NewPage creates a new page with the given title and options.
@@ -47,5 +48,11 @@ func WithDescription(description string) PageOption {
 func WithKeywords(keywords ...string) PageOption {
 	return func(p *Page) {
 		p.Head.AddMetaTag("keywords", strings.Join(keywords, ","))
+	}
+}
+
+func WithBodyContent(content templ.Component) PageOption {
+	return func(p *Page) {
+		p.BodyContent = content
 	}
 }

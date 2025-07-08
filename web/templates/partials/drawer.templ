@@ -6,9 +6,9 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
 )
 
 var Favourites = attributes.ID("favourites")
@@ -65,16 +65,16 @@ templ FavouritesList() {
 			</summary>
 			<ul class="text-base-content text-xs">
 				if favourites := models.GetUserFavourites(ctx); favourites != nil {
-				for favourite := range slices.Values(favourites) {
-					<li>
-						@link.Build(
-							link.WithContent(favourite.Name),
-							link.WithExtraAttributes(templ.Attributes{
-							"href": favourite.Link,
-						}),
-						).Show()
-					</li>
-				}
+					for favourite := range slices.Values(favourites) {
+						<li>
+							@link.Build(
+								link.WithContent(favourite.Name),
+								link.WithExtraAttributes(templ.Attributes{
+									"href": favourite.Link,
+								}),
+							).Show()
+						</li>
+					}
 				} else {
 					No favourites found.
 				}

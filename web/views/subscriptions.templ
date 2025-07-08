@@ -7,6 +7,7 @@ package views
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/attributes"
@@ -30,64 +31,58 @@ import (
 
 templ (page *SubscriptionsPage) Show() {
 	@templates.NewPage("Subscriptions") {
-		@partials.Drawer() {
-			@partials.DrawerContent() {
-				// Fragment: content header
-				@partials.Fragment("content-header") {
-					@Header()
-				}
-				@partials.Fragment("content") {
-					@partials.Content() {
-						// Fragment: content filters
-						@partials.Fragment("content-filters") {
-							<div id="content-filters" class="hidden">
-								for name, value := range page.filters.Parameters() {
-									@hiddeninput.Build(
-										hiddeninput.WithName(name),
-										hiddeninput.WithValue(attributes.Value(value)),
-									).Show()
-								}
-							</div>
-						}
-						<div id="card-controls" class="flex flex-row justify-end m-2">
-							@breadcrumbs.Build(
-								breadcrumbs.WithClasses("text-sm", "flex-1"),
-								breadcrumbs.WithCrumbs(partials.LinkHomeIconOnly(), partials.SubscriptionList()),
-							).Show()
-							<div class="flex flex-row justify-end gap-2">
-								@RefreshAction("/subscriptions", page.filters.Parameters())
-								@UpdateSorting("/subscriptions", page.filters.GetSort())
-								@UpdateFilters(page.categories, "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
-								@CollectionActionsMenu(
-									markAllSubscriptionsAction(page.filters.GetView()),
-								)
-							</div>
-						</div>
-						<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
-							if len(page.cards) > 0 {
-								// Fragment: cards
-								@partials.Fragment("cards") {
-									@templ.Join(page.cards...)
-								}
-							} else {
-								@EmptyContent()
+		@layouts.Drawer() {
+			@partials.Fragment("content-header") {
+				@Header()
+			}
+			@partials.Fragment("content") {
+				@partials.Content() {
+					// Fragment: content filters
+					@partials.Fragment("content-filters") {
+						<div id="content-filters" class="hidden">
+							for name, value := range page.filters.Parameters() {
+								@hiddeninput.Build(
+									hiddeninput.WithName(name),
+									hiddeninput.WithValue(attributes.Value(value)),
+								).Show()
 							}
 						</div>
-						<div id="content-loading" class="items-center justify-center">
-							@loading.Build(loading.Bars,
-								loading.AsHTMXIndicator(),
-								loading.WithThemeColor(color.Accent),
-							).Show()
-						</div>
 					}
-				}
-				// Fragment: content footer
-				@partials.Fragment("content-footer") {
-					@partials.Footer()
+					<div id="card-controls" class="flex flex-row justify-end m-2">
+						@breadcrumbs.Build(
+							breadcrumbs.WithClasses("text-sm", "flex-1"),
+							breadcrumbs.WithCrumbs(partials.LinkHomeIconOnly(), partials.SubscriptionList()),
+						).Show()
+						<div class="flex flex-row justify-end gap-2">
+							@RefreshAction("/subscriptions", page.filters.Parameters())
+							@UpdateSorting("/subscriptions", page.filters.GetSort())
+							@UpdateFilters(page.categories, "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
+							@CollectionActionsMenu(
+								markAllSubscriptionsAction(page.filters.GetView()),
+							)
+						</div>
+					</div>
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
+						if len(page.cards) > 0 {
+							// Fragment: cards
+							@partials.Fragment("cards") {
+								@templ.Join(page.cards...)
+							}
+						} else {
+							@EmptyContent()
+						}
+					</div>
+					<div id="content-loading" class="items-center justify-center">
+						@loading.Build(loading.Bars,
+							loading.AsHTMXIndicator(),
+							loading.WithThemeColor(color.Accent),
+						).Show()
+					</div>
 				}
 			}
-			@partials.DrawerSide() {
-				@partials.FavouritesList()
+			// Fragment: content footer
+			@partials.Fragment("content-footer") {
+				@partials.Footer()
 			}
 		}
 	}

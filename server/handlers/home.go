@@ -18,6 +18,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/views"
 )
@@ -28,14 +29,9 @@ func (a *API) Home() http.HandlerFunc {
 		ctx := req.Context()
 		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
 		data, resp := a.getHomePageData(ctx)
-		switch {
-		case resp.IsNotFound():
-			ctx = templateToCtx(ctx, data.Show())
-		case resp != nil:
+		if resp != nil {
 			RenderError(res, req, resp)
 			return
-		default:
-			ctx = templateToCtx(ctx, data.Show())
 		}
 
 		chain := alice.New(
@@ -46,9 +42,11 @@ func (a *API) Home() http.HandlerFunc {
 		// Display content based on request.
 		switch {
 		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+			ctx := templateToCtx(req.Context(), data)
 			// Partial update. Only render fragments.
 			chain.Then(RenderTemplateFragments("content")).ServeHTTP(res, req.WithContext(ctx))
 		default:
+			ctx := templateToCtx(req.Context(), templates.NewPage("Go Feed Me Home", templates.WithBodyContent(data)))
 			// Full page render.
 			chain.Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
 		}
@@ -58,11 +56,15 @@ func (a *API) Home() http.HandlerFunc {
 // getHomePageData retrieves the data required to construct the home page content.
 //
 //nolint:funlen
-func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Response) {
+func (a *API) getHomePageData(ctx context.Context) (templ.Component, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, models.RespErrUnauthorized()
+	}
+	// User has no subscriptions, show empty page
+	if len(user.GetSubscriptionsByID()) == 0 {
+		return views.EmptyContent(), nil
 	}
 
 	data := &views.HomePage{}
