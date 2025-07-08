@@ -101,7 +101,7 @@ func pruneFeeds(ctx context.Context, api *elastic.API) error {
 	// Get all feeds from all users.
 	var activeFeedIDs []models.FeedID
 	for user := range slices.Values(users) {
-		feedIDs := slices.Collect(maps.Keys(user.GetAllSubscriptionStatesByFeed()))
+		feedIDs := slices.Collect(maps.Keys(user.GetSubscriptionsByFeedID()))
 		activeFeedIDs = append(activeFeedIDs, feedIDs...)
 	}
 

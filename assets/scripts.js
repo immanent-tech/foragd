@@ -5,3 +5,5 @@
 import './setup-htmx.js'
 // hyperscript
 import './setup-hyperscript.js'
+
+import './relative-time.js'

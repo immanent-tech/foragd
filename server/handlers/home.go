@@ -27,7 +27,7 @@ func (a *API) Home() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		ctx := req.Context()
 		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
-		data, resp := getHomePageData(ctx, a.DataAPI())
+		data, resp := a.getHomePageData(ctx)
 		switch {
 		case resp.IsNotFound():
 			ctx = templateToCtx(ctx, data.Show())
@@ -58,7 +58,7 @@ func (a *API) Home() http.HandlerFunc {
 // getHomePageData retrieves the data required to construct the home page content.
 //
 //nolint:funlen
-func getHomePageData(ctx context.Context, api models.DocumentsAPI) (*views.HomePage, *models.Response) {
+func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -68,12 +68,9 @@ func getHomePageData(ctx context.Context, api models.DocumentsAPI) (*views.HomeP
 	data := &views.HomePage{}
 
 	// Get subscriptions.
-	subscriptions, resp := models.GetSubscriptions(ctx, api)
-	if resp != nil && resp.IsNotFound() {
-		return data, resp
-	}
-	if resp != nil {
-		return nil, resp
+	subscriptions, err := a.getSubscriptions(ctx)
+	if err != nil {
+		return data, models.RespErrBackend(err)
 	}
 	data.Subscriptions = subscriptions
 
@@ -82,10 +79,10 @@ func getHomePageData(ctx context.Context, api models.DocumentsAPI) (*views.HomeP
 		query.BoolQueryName("item_filters"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", models.GetFeedIDs(slices.Values(subscriptions))...),
+			query.Terms("feed_id", subscriptions.GetStates().GetFeedIDs()...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(models.BuildSubscriptionQueries(user, models.ViewUnread)...),
+				query.Should(buildSubscriptionQueries(user, models.ViewUnread)...),
 			),
 		),
 	)
@@ -151,7 +148,7 @@ func getHomePageData(ctx context.Context, api models.DocumentsAPI) (*views.HomeP
 	)
 
 	// Perform the request.
-	aggsResult, resp := api.ItemsAggregation(ctx, query, aggs...)
+	aggsResult, resp := a.DataAPI().ItemsAggregation(ctx, query, aggs...)
 	if resp != nil {
 		return nil, resp
 	}
@@ -160,7 +157,7 @@ func getHomePageData(ctx context.Context, api models.DocumentsAPI) (*views.HomeP
 	// Use aggregations to generate data.
 	data.TopCategories = generateTopCategoriesLinks(ctx, aggregations)
 	data.RareCategories = generateRareCategoriesLinks(ctx, aggregations)
-	data.RandomArticles = getRandomArticles(ctx, api, aggregations)
+	data.RandomArticles = getRandomArticles(ctx, a, aggregations)
 
 	return data, nil
 }
@@ -223,7 +220,7 @@ func generateRareCategoriesLinks(ctx context.Context, aggs aggregations.Aggregat
 }
 
 // getHomePageArticles retrieves a list of articles to display on the home page along with other content.
-func getRandomArticles(ctx context.Context, api models.DocumentsAPI, aggs aggregations.AggregationResults) []templ.Component {
+func getRandomArticles(ctx context.Context, api *API, aggs aggregations.AggregationResults) []templ.Component {
 	if aggs == nil {
 		return nil
 	}
@@ -258,7 +255,7 @@ func getRandomArticles(ctx context.Context, api models.DocumentsAPI, aggs aggreg
 		itemIDs = append(itemIDs, key)
 	}
 
-	articles, resp := getArticles(ctx, api, itemIDs...)
+	articles, resp := api.getArticles(ctx, itemIDs...)
 	if resp != nil {
 		return nil
 	}

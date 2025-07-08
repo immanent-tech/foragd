@@ -11,9 +11,9 @@ var (
 	ErrConnectFailed = errors.New("elasticsearch connection failed")
 	ErrSetupFailed   = errors.New("elasticsearch setup failed")
 
-	ErrNoClient      = errors.New("no client")
-	ErrReqFailed     = errors.New("api request failed")
-	ErrNotFound      = errors.New("not found")
+	ErrNoClient  = errors.New("no client")
+	ErrReqFailed = errors.New("api request failed")
+	ErrNotFound  = errors.New("not found")
 
 	ErrPagination = errors.New("pagination error")
 	// Doc Errors.

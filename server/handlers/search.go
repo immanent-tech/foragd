@@ -6,6 +6,7 @@ package handlers
 import (
 	"context"
 	"log/slog"
+	"maps"
 	"net/http"
 	"slices"
 
@@ -28,7 +29,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 			return
 		}
 
-		subscriptions, articles, resp := matchObjectsToSearchRequest(req.Context(), a.DataAPI(), request)
+		subscriptions, articles, resp := a.matchObjectsToSearchRequest(req.Context(), request)
 		if resp != nil {
 			slogctx.FromCtx(req.Context()).Warn("Search suggestions failed.", slog.Any("error", resp.Error()))
 			RenderError(res, req, models.RespErrBackend(err))
@@ -69,7 +70,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			return
 		}
 
-		subscriptions, articles, resp := matchObjectsToSearchRequest(req.Context(), a.DataAPI(), request)
+		subscriptions, articles, resp := a.matchObjectsToSearchRequest(req.Context(), request)
 		if resp != nil {
 			slogctx.FromCtx(req.Context()).Warn("Search suggestions failed.", slog.Any("error", resp.Error()))
 			RenderError(res, req, models.RespErrBackend(err))
@@ -84,23 +85,24 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 	}
 }
 
-func matchObjectsToSearchRequest(ctx context.Context, api models.DocumentsAPI, request *models.SearchRequest) ([]*views.Subscription, []*views.Article, *models.Response) {
+func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.SearchRequest) ([]*views.Subscription, []*views.Article, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, nil, models.RespErrUnauthorized()
 	}
 
-	states := user.GetAllSubscriptionStatesByFeed()
-
 	// Perform search.
-	msearchResults, err := api.FindSuggestions(ctx, request.Text)
+	msearchResults, err := a.DataAPI().FindSuggestions(ctx, request.Text)
 	if err != nil {
 		return nil, nil, models.RespErrBackend(err)
 	}
 	// Extract the matches.
-	customisations, _ := results.GetHits[*models.SubscriptionCustomisation]("customisations", msearchResults)
-	feeds, _ := results.GetHits[*models.Feed]("feeds", msearchResults)
+	var (
+		feeds models.Feeds
+	)
+	customisations, _ := results.GetHits[*models.SubscriptionState]("customisations", msearchResults)
+	feeds, _ = results.GetHits[*models.Feed]("feeds", msearchResults)
 	items, _ := results.GetHits[*models.Item]("items", msearchResults)
 	// Generate subscriptions from data sources.
 	subscriptions := make([]*views.Subscription, 0, len(feeds))
@@ -114,17 +116,15 @@ func matchObjectsToSearchRequest(ctx context.Context, api models.DocumentsAPI, r
 			feed = feeds[fidx]
 		} else {
 			// Get feed details.
-			f, err := api.GetFeeds(ctx, customisation.GetFeedID())
+			f, err := a.DataAPI().GetFeeds(ctx, customisation.GetFeedID())
 			if err != nil {
 				continue
 			}
 			feed = f[0]
 		}
 		subscription, err := models.GenerateSubscription(
-			user.GetID(),
-			feed,
 			customisation,
-			states[customisation.GetFeedID()],
+			feed,
 			0,
 		)
 		if err != nil {
@@ -139,20 +139,21 @@ func matchObjectsToSearchRequest(ctx context.Context, api models.DocumentsAPI, r
 		subscriptions = append(subscriptions, views.NewSubscriptionContent(subscription))
 	}
 	// Make subscriptions from the feed results up to maxObjectResults - customisationResults.
+	states, err := a.getSubscriptionStates(ctx, slices.Collect(maps.Keys(user.GetSubscriptionsByFeedID(feeds.GetIDs()...)))...)
+	if err != nil {
+		return nil, nil, models.RespErrBackend(err)
+	}
 	for idx, feed := range feeds {
 		var state *models.SubscriptionState
-		var found bool
-		if state, found = states[feed.GetID()]; !found {
+		if state = states.GetByFeedID(feed.GetID()); state == nil {
 			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved feed.",
 				slog.String("feed_id", feed.GetID()),
 			)
 			continue
 		}
 		subscription, err := models.GenerateSubscription(
-			user.GetID(),
-			feed,
-			nil,
 			state,
+			feed,
 			0,
 		)
 		if err != nil {
@@ -170,31 +171,14 @@ func matchObjectsToSearchRequest(ctx context.Context, api models.DocumentsAPI, r
 	articles := make([]*views.Article, 0, len(items))
 	for item := range slices.Values(items) {
 		var state *models.SubscriptionState
-		var found bool
-		if state, found = states[item.GetFeedID()]; !found {
+		if state = states.GetByFeedID(item.GetFeedID()); state == nil {
 			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved item.",
 				slog.String("item_id", item.GetID()),
 			)
 			continue
 		}
-		var customisation *models.SubscriptionCustomisation
-		if cidx := slices.IndexFunc(customisations, func(c *models.SubscriptionCustomisation) bool {
-			// Feed already fetched in msearch results, use it.
-			return c.GetFeedID() == item.GetFeedID()
-		}); cidx != -1 {
-			customisation = customisations[cidx]
-		} else {
-			// Get customisation details.
-			c, err := api.GetSubscriptionCustomisations(ctx, state.GetID())
-			if err != nil {
-				continue
-			}
-			if len(c) > 0 {
-				customisation = c[0]
-			}
-		}
 
-		article, err := models.GenerateArticle(item, state.GetItemState(item.GetID()), state.GetID(), customisation)
+		article, err := models.GenerateArticle(item, state)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
 				slog.Any("error", err),

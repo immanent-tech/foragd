@@ -149,7 +149,7 @@ components:
                 is a list of the states of all subscriptions the user has.
               type: array
               items:
-                $ref: '#/components/schemas/SubscriptionState'
+                $ref: '#/components/schemas/SubscriptionFeedRelation'
               x-go-type-skip-optional-pointer: true
             favourites:
               description: >
@@ -228,15 +228,15 @@ components:
       type: object
       required:
         - read
-        - saved
+        - starred
       properties:
         read:
           description: >
             indicates whether the object has been read (true) or is unread (false).
           type: boolean
-        saved:
+        starred:
           description: >
-            indicates whether the object has been saved (true) or is not saved (false).
+            indicates whether the object has been starred (true) or not (false).
           type: boolean
         updated_at:
           $ref: '#/components/schemas/UpdatedAt'
@@ -400,27 +400,9 @@ components:
                 contains the item content.
               type: string
               x-go-type-skip-optional-pointer: true
-    SubscriptionCustomisation:
+    SubscriptionFeedRelation:
       description: >
-        represents the properties of a subscription a user can customize.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/ObjectCustomisation'
-        - type: object
-          required:
-            - user_id
-            - subscription_id
-            - feed_id
-          properties:
-            user_id:
-              $ref: '#/components/schemas/UserID'
-            subscription_id:
-              $ref: '#/components/schemas/SubscriptionID'
-            feed_id:
-              $ref: '#/components/schemas/FeedID'
-    SubscriptionState:
-      description: >
-        contains all details that define a user subscription.
+        links the IDs of a subscription and a feed.
       type: object
       required:
         - subscription_id
@@ -430,33 +412,45 @@ components:
           $ref: '#/components/schemas/SubscriptionID'
         feed_id:
           $ref: '#/components/schemas/FeedID'
-        state:
-          $ref: '#/components/schemas/ObjectState'
-        customisation:
-          $ref: '#/components/schemas/ObjectCustomisation'
-        item_states:
-          description: >
-            contains the states of items marked explicitly as read/unread/saved by the user.
-          x-go-type: 'map[ItemID]ObjectState'
-          x-go-type-skip-optional-pointer: true
+    UserSubscriptionFeedRelation:
+      description: >
+        links the IDs of a user to their subscriptions.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SubscriptionFeedRelation'
+        - type: object
+          required:
+            - user_id
+          properties:
+            user_id:
+              $ref: '#/components/schemas/UserID'
+    SubscriptionState:
+      description: >
+        contains the data that represents the state and customisation applied to a user subscription.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/UserSubscriptionFeedRelation'
+        - $ref: '#/components/schemas/ObjectState'
+        - type: object
+          required:
+            - state
+          properties:
+            customisation:
+              $ref: '#/components/schemas/ObjectCustomisation'
+            item_states:
+              description: >
+                contains the states of items marked explicitly as read/unread/saved by the user.
+              x-go-type: 'map[ItemID]ObjectState'
+              x-go-type-skip-optional-pointer: true
     Subscription:
       description: >
         represents a feed a user has subscribed to.
       type: object
-      required:
-        - user_id
-        - subscription_id
       properties:
-        user_id:
-          $ref: '#/components/schemas/UserID'
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
+        state:
+          $ref: '#/components/schemas/SubscriptionState'
         feed:
           $ref: '#/components/schemas/Feed'
-        customisation:
-          $ref: '#/components/schemas/ObjectCustomisation'
-        state:
-          $ref: '#/components/schemas/ObjectState'
         unread_count:
           description: >
             is the value of items that are not explicitly marked unread by the user for this subscription.

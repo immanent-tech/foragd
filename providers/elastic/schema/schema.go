@@ -108,13 +108,17 @@ func schedulerJobsComponentTemplate() types.IndexState {
 
 func userMappings() map[string]types.Property {
 	return map[string]types.Property{
-		"user_id":       types.NewKeywordProperty(),
-		"created_at":    types.NewDateNanosProperty(),
-		"updated_at":    types.NewDateNanosProperty(),
-		"max_history":   types.NewKeywordProperty(),
-		"settings":      types.NewFlattenedProperty(),
-		"subscriptions": types.NewFlattenedProperty(),
-		"favourites":    types.NewFlattenedProperty(),
+		"user_id":     types.NewKeywordProperty(),
+		"created_at":  types.NewDateNanosProperty(),
+		"updated_at":  types.NewDateNanosProperty(),
+		"max_history": types.NewKeywordProperty(),
+		"settings":    types.NewFlattenedProperty(),
+		"subscriptions": types.ObjectProperty{
+			Properties: map[string]types.Property{
+				"feed_id":         types.NewKeywordProperty(),
+				"subscription_id": types.NewKeywordProperty(),
+			},
+		},
 	}
 }
 
@@ -132,22 +136,29 @@ func userComponentTemplate() types.IndexState {
 // SUBSCRIPTIONS
 //
 
-func subscriptionCustomisationMappings() map[string]types.Property {
+func subscriptionsMappings() map[string]types.Property {
 	return map[string]types.Property{
-		"updated_at":      types.NewDateNanosProperty(),
 		"user_id":         types.NewKeywordProperty(),
 		"subscription_id": types.NewKeywordProperty(),
 		"feed_id":         types.NewKeywordProperty(),
-		"categories":      shortTextFieldProperty(),
-		"title":           shortTextFieldProperty(),
+		"updated_at":      types.NewDateNanosProperty(),
+		"read":            types.NewBooleanProperty(),
+		"starred":         types.NewBooleanProperty(),
+		"customisations": types.ObjectProperty{
+			Properties: map[string]types.Property{
+				"categories": shortTextFieldProperty(),
+				"title":      shortTextFieldProperty(),
+			},
+		},
+		"item_states": types.NewFlattenedProperty(),
 	}
 }
 
-func subscriptionsCustomisationTemplate() types.IndexState {
+func subscriptionsTemplate() types.IndexState {
 	return NewIndexState(
 		WithMappings(&types.TypeMapping{
 			Dynamic:    &dynamicmapping.False,
-			Properties: subscriptionCustomisationMappings(),
+			Properties: subscriptionsMappings(),
 		}),
 		WithAliases(SubscriptionsSchemaPrefix, types.Alias{}),
 		WithIndexSettings(

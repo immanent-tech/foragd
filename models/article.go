@@ -45,18 +45,12 @@ func (a Articles) GetSubscriptionIDs() []SubscriptionID {
 
 // GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
 // and state is required.
-func GenerateArticle(item *Item, state *ObjectState, subID SubscriptionID, customisation *SubscriptionCustomisation) (*Article, error) {
+func GenerateArticle(item *Item, state *SubscriptionState) (*Article, error) {
 	article := &Article{
 		Item:                      item,
-		SubscriptionID:            subID,
-		State:                     state,
-		SubscriptionCustomisation: &ObjectCustomisation{},
-	}
-	// Add the custom subscription title if set.
-	if customisation != nil {
-		if customisation.Title != "" {
-			article.SubscriptionCustomisation.Title = customisation.Title
-		}
+		SubscriptionID:            state.GetID(),
+		State:                     state.GetItemState(item.GetID()),
+		SubscriptionCustomisation: state.Customisation,
 	}
 	if item.GetPublishedDate().After(*article.State.UpdatedAt) {
 		article.State.MarkUnread(item.GetPublishedDate())

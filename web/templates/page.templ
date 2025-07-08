@@ -1,16 +1,18 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package views
+package templates
 
 import (
+	"context"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"io"
 	"slices"
 )
 
 // Show renders the page as a templ Component.
-templ (page *Page) build() {
+templ (page *Page) render() {
 	<!DOCTYPE html>
 	<html lang="en">
 		@page.Head.build()
@@ -33,6 +35,10 @@ templ (page *Page) build() {
 			{ children... }
 		</body>
 	</html>
+}
+
+func (p *Page) Render(ctx context.Context, w io.Writer) {
+	p.render()
 }
 
 // Meta represents a custom <meta> tag.

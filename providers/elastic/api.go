@@ -14,6 +14,7 @@ import (
 	"slices"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
@@ -42,6 +43,21 @@ type API struct {
 // GetAPI returns the raw API object.
 func (a *API) GetAPI() *typedapi.API {
 	return a.API
+}
+
+// GetFeeds retrieves the feeds with the given IDs.
+func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, ErrFetchCtx
+	}
+
+	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, ids...)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
+			slog.Any("warnings", err))
+	}
+	return feeds, nil
 }
 
 // SearchFeeds will search the feeds index for feed matching the given query. Count, sort and pagination values are
@@ -86,21 +102,6 @@ func (e *API) AddFeeds(ctx context.Context, feeds ...*models.Feed) (map[models.F
 		return nil, ErrFetchCtx
 	}
 	return BulkAdd[models.FeedID, *models.Feed](ctx, e, index, feeds...)
-}
-
-// GetFeeds retrieves the feeds with the given IDs.
-func (e *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds, error) {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrSearchFailed, ErrFetchCtx)
-	}
-
-	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, e.GetAPI(), index, ids...)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
-			slog.Any("warnings", err))
-	}
-	return feeds, nil
 }
 
 // SearchItems will search the items index for items matching the given query. Count, sort and pagination values are
@@ -168,149 +169,134 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 	return BulkAdd[models.ItemID, *models.Item](ctx, e, index, items...)
 }
 
-// SearchSubscriptionCustomisations will search the feeds index for feed matching the given query. Count, sort and
-// pagination values are optional.
-func (e *API) SearchSubscriptionCustomisations(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.SubscriptionCustomisations, models.Pagination, error) {
-	index := SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
-	}
+// // SearchSubscriptionCustomisations will search the feeds index for feed matching the given query. Count, sort and
+// // pagination values are optional.
+// func (e *API) SearchSubscriptionCustomisations(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.SubscriptionCustomisations, models.Pagination, error) {
+// 	index := SubscriptionsIndexFromCtx(ctx)
+// 	if index == "" {
+// 		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
+// 	}
 
-	var sortValues []types.FieldValue
-	if pagination != nil {
-		var err error
-		sortValues, err = models.DecodePagination(*pagination)
-		if err != nil {
-			return nil, "", errors.Join(ErrSearchFailed, err)
-		}
-	}
+// 	var sortValues []types.FieldValue
+// 	if pagination != nil {
+// 		var err error
+// 		sortValues, err = models.DecodePagination(*pagination)
+// 		if err != nil {
+// 			return nil, "", errors.Join(ErrSearchFailed, err)
+// 		}
+// 	}
 
-	sortOptions := []types.SortCombinations{sortByScore()}
+// 	sortOptions := []types.SortCombinations{sortByScore()}
 
-	customisations, searchAfter, err := Search[*models.SubscriptionCustomisation](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
-	if err != nil {
-		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
-	}
+// 	customisations, searchAfter, err := Search[*models.SubscriptionCustomisation](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
+// 	if err != nil {
+// 		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+// 	}
 
-	if pagination != nil {
-		*pagination, err = models.EncodePagination(searchAfter)
-		if err != nil {
-			return nil, "", errors.Join(ErrSearchFailed, err)
-		}
-		return customisations, *pagination, nil
-	}
+// 	if pagination != nil {
+// 		*pagination, err = models.EncodePagination(searchAfter)
+// 		if err != nil {
+// 			return nil, "", errors.Join(ErrSearchFailed, err)
+// 		}
+// 		return customisations, *pagination, nil
+// 	}
 
-	return customisations, "", nil
-}
+// 	return customisations, "", nil
+// }
 
-// AddSubscriptionCustomisations performs a bulk add operation to add the given subscription customisations.
-func (e *API) AddSubscriptionCustomisations(ctx context.Context, customisations ...*models.SubscriptionCustomisation) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
-	index := SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ErrFetchCtx
-	}
-	return BulkAdd[models.SubscriptionID, *models.SubscriptionCustomisation](ctx, e, index, customisations...)
-}
+// // AddSubscriptionCustomisations performs a bulk add operation to add the given subscription customisations.
+// func (e *API) AddSubscriptionCustomisations(ctx context.Context, customisations ...*models.SubscriptionCustomisation) (map[models.SubscriptionID]*bulk.OperationResponse, error) {
+// 	index := SubscriptionsIndexFromCtx(ctx)
+// 	if index == "" {
+// 		return nil, ErrFetchCtx
+// 	}
+// 	return BulkAdd[models.SubscriptionID, *models.SubscriptionCustomisation](ctx, e, index, customisations...)
+// }
 
-// GetSubscriptionCustomisations retrieves the subscription customisations with the given IDs.
-func (e *API) GetSubscriptionCustomisations(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionCustomisations, error) {
-	index := SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, ErrFetchCtx
-	}
+// // GetSubscriptionCustomisations retrieves the subscription customisations with the given IDs.
+// func (e *API) GetSubscriptionCustomisations(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionCustomisations, error) {
+// 	index := SubscriptionsIndexFromCtx(ctx)
+// 	if index == "" {
+// 		return nil, ErrFetchCtx
+// 	}
 
-	subscriptions, err := GetDocs[models.SubscriptionID, *models.SubscriptionCustomisation](ctx, e.GetAPI(), index, ids...)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
-			slog.Any("warnings", err))
-	}
-	return subscriptions, nil
-}
+// 	subscriptions, err := GetDocs[models.SubscriptionID, *models.SubscriptionCustomisation](ctx, e.GetAPI(), index, ids...)
+// 	if err != nil {
+// 		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
+// 			slog.Any("warnings", err))
+// 	}
+// 	return subscriptions, nil
+// }
 
-func (e *API) UpdateSubscriptionCustomisation(ctx context.Context, edits *models.SubscriptionEdit) error {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return models.ErrInvalidID
-	}
-	index := SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return ErrFetchCtx
-	}
+// func (e *API) UpdateSubscriptionCustomisation(ctx context.Context, edits *models.SubscriptionEdit) error {
+// 	// Retrieve user object.
+// 	user, found := models.UserFromCtx(ctx)
+// 	if !found {
+// 		return models.ErrInvalidID
+// 	}
+// 	index := SubscriptionsIndexFromCtx(ctx)
+// 	if index == "" {
+// 		return ErrFetchCtx
+// 	}
 
-	found, err := Exists(ctx, e.GetAPI(), index, edits.SubscriptionID)
-	if err != nil {
-		return fmt.Errorf("failed to update subscription: %w", err)
-	}
-	if !found {
-		state := user.GetSubscriptionState(edits.SubscriptionID)
-		customisation := &models.SubscriptionCustomisation{
-			SubscriptionID: edits.SubscriptionID,
-			FeedID:         state.GetFeedID(),
-			UserID:         user.GetID(),
-			Title:          edits.Title,
-			Categories:     edits.Categories,
-		}
-		err := CreateDoc(ctx, e.GetAPI(), index, edits.SubscriptionID, customisation)
-		if err != nil {
-			return fmt.Errorf("failed to update subscription: %w", err)
-		}
-		return nil
-	}
+// 	found, err := Exists(ctx, e.GetAPI(), index, edits.SubscriptionID)
+// 	if err != nil {
+// 		return fmt.Errorf("failed to update subscription: %w", err)
+// 	}
+// 	if !found {
+// 		state := user.GetSubscriptionState(edits.SubscriptionID)
+// 		customisation := &models.SubscriptionCustomisation{
+// 			SubscriptionID: edits.SubscriptionID,
+// 			FeedID:         state.GetFeedID(),
+// 			UserID:         user.GetID(),
+// 			Title:          edits.Title,
+// 			Categories:     edits.Categories,
+// 		}
+// 		err := CreateDoc(ctx, e.GetAPI(), index, edits.SubscriptionID, customisation)
+// 		if err != nil {
+// 			return fmt.Errorf("failed to update subscription: %w", err)
+// 		}
+// 		return nil
+// 	}
 
-	updates := map[string]any{
-		"title":      edits.Title,
-		"categories": edits.Categories,
-	}
+// 	updates := map[string]any{
+// 		"title":      edits.Title,
+// 		"categories": edits.Categories,
+// 	}
 
-	if err := UpdateDoc(ctx, e.GetAPI(), index, edits.SubscriptionID, updates); err != nil {
-		return &models.Response{StatusCode: http.StatusInternalServerError, InternalError: err}
-	}
+// 	if err := UpdateDoc(ctx, e.GetAPI(), index, edits.SubscriptionID, updates); err != nil {
+// 		return &models.Response{StatusCode: http.StatusInternalServerError, InternalError: err}
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
-func (e *API) DeleteSubscriptionCustomisations(ctx context.Context, ids ...models.SubscriptionID) error {
-	index := SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return ErrFetchCtx
-	}
+// func (a *API) CountAllUnread(ctx context.Context) (int64, error) {
+// 	user, found := models.UserFromCtx(ctx)
+// 	if !found {
+// 		return 0, ErrNoUserCtx
+// 	}
+// 	index := UserIndexFromCtx(ctx)
 
-	err := DeleteDocs(ctx, e.GetAPI(), index,
-		query.Terms("subscription_id", ids...),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to delete subscription customisations: %w", err)
-	}
-	return nil
-}
+// 	states := user.GetAllSubscriptionStatesByFeed()
+// 	subscriptionQueries := make([]query.Option, 0, len(states))
+// 	for _, state := range states {
+// 		subscriptionQueries = append(subscriptionQueries, models.QueryUnreadItems(user, state))
+// 	}
+// 	query := query.Bool(
+// 		query.Filter(
+// 			query.Bool(
+// 				query.Should(subscriptionQueries...),
+// 			),
+// 		),
+// 	)
 
-func (a *API) CountAllUnread(ctx context.Context) (int64, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return 0, ErrNoUserCtx
-	}
-	index := UserIndexFromCtx(ctx)
-
-	states := user.GetAllSubscriptionStatesByFeed()
-	subscriptionQueries := make([]query.Option, 0, len(states))
-	for _, state := range states {
-		subscriptionQueries = append(subscriptionQueries, models.QueryUnreadItems(user, state))
-	}
-	query := query.Bool(
-		query.Filter(
-			query.Bool(
-				query.Should(subscriptionQueries...),
-			),
-		),
-	)
-
-	count, err := Count(ctx, a.GetAPI(), index, query)
-	if err != nil {
-		return 0, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
-	}
-	return count, nil
-}
+// 	count, err := Count(ctx, a.GetAPI(), index, query)
+// 	if err != nil {
+// 		return 0, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
+// 	}
+// 	return count, nil
+// }
 
 // MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).
 func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
@@ -344,31 +330,14 @@ func (e *API) GetUser(ctx context.Context, userID models.UserID) (*models.User, 
 	return user, nil
 }
 
-// UpdateUser performs a partial update of the user object. On an error, a non-nil response is returned.
-func (a *API) UpdateUser(ctx context.Context, updates map[string]any) *models.Response {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return models.RespErrUnauthorized()
-	}
-	index := UserIndexFromCtx(ctx)
-
-	if err := UpdateDoc(ctx, a.GetAPI(), index, user.GetID(), updates); err != nil {
-		return &models.Response{StatusCode: http.StatusInternalServerError, InternalError: err}
-	}
-	return nil
-}
-
 func (e *API) FindSuggestions(ctx context.Context, searchTerms string) (results.MSearchResults, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrFetchCtx
 	}
 
-	feedIDs := slices.Collect(maps.Keys(user.GetAllSubscriptionStatesByFeed()))
-
 	subscriptionsQuery := &query.MsearchSearch{
-		Name:  "customisations",
+		Name:  "subscriptions",
 		Index: FeedsIndexFromCtx(ctx),
 		Query: query.Build(
 			query.Bool(
@@ -383,6 +352,7 @@ func (e *API) FindSuggestions(ctx context.Context, searchTerms string) (results.
 		),
 	}
 
+	feedIDs := slices.Collect(maps.Values(user.GetSubscriptionsByFeedID()))
 	feedsQuery := &query.MsearchSearch{
 		Name:  "feeds",
 		Index: FeedsIndexFromCtx(ctx),
@@ -473,6 +443,45 @@ func BulkAdd[T ~string, O Object[T]](ctx context.Context, api *API, index string
 	return responses, nil
 }
 
+// BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
+// If the request itself fails, a non-nil error is returned.
+func BulkUpdate[T ~string, O Object[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {
+	bulkOps, respCh := bulk.NewRequest(ctx, api)
+
+	go func() {
+		defer close(bulkOps)
+
+		for object := range slices.Values(objects) {
+			bulkOps <- bulk.NewOperation(object,
+				bulk.AsOperationType(bulk.BulkUpdate),
+				bulk.SetDocID(string(object.GetID())),
+				bulk.ToIndex(index),
+			)
+		}
+	}()
+
+	bulkOpResponse := <-respCh
+	// If the request failed, return an error.
+	if bulkOpResponse.Err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrAPIRequestFailed, bulkOpResponse.Err)
+	}
+	// Create  a map of responses by object id.
+	responses := make(map[T]*bulk.OperationResponse)
+	// Map responses to object id.
+	for opResp := range slices.Values(bulkOpResponse.Responses) {
+		if opResp.Id_ == nil {
+			continue
+		}
+		if idx := slices.IndexFunc(objects, func(o O) bool {
+			return string(o.GetID()) == *opResp.Id_
+		}); idx != -1 {
+			responses[objects[idx].GetID()] = opResp
+		}
+	}
+
+	return responses, nil
+}
+
 // Exists checks if the document with the given id exists in the given index.
 func Exists[T ~string](ctx context.Context, api *typedapi.API, index string, id T) (bool, error) {
 	found, err := api.Exists(index, string(id)).
@@ -511,8 +520,9 @@ func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index str
 		WithIndex[*mget.Mget, MgetRequest](index),
 		WithIDs[*mget.Mget, MgetRequest](docIDs...),
 	).Do(ctx)
+	spew.Dump(err)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrGetFailed, err)
+		return nil, fmt.Errorf("get docs failed: %w", err)
 	}
 	objects, warnings := results.ExtractSourceFromDocs[O](resp.Docs)
 	if warnings != nil {

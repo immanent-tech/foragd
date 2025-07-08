@@ -241,11 +241,11 @@ func (s *ObjectState) IsRead() bool {
 	return s.Read
 }
 
-func (s *ObjectState) IsSaved() bool {
+func (s *ObjectState) IsStarred() bool {
 	if s == nil {
 		return false
 	}
-	return s.Saved
+	return s.Starred
 }
 
 func (s *ObjectState) GetLastUpdate() time.Time {

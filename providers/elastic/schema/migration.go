@@ -105,7 +105,7 @@ func migrateUsers(ctx context.Context, api *typedapi.API, destructive bool) erro
 func migrateSubscriptions(ctx context.Context, api *typedapi.API, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating subscriptions...")
 
-	if err := elastic.PutComponentTemplate(ctx, api, SubscriptionsSchemaPrefix, NewComponentTemplateRequest(subscriptionsCustomisationTemplate())); err != nil {
+	if err := elastic.PutComponentTemplate(ctx, api, SubscriptionsSchemaPrefix, NewComponentTemplateRequest(subscriptionsTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 

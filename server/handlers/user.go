@@ -5,20 +5,16 @@ package handlers
 
 import (
 	"context"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/validation"
-	"github.com/joshuar/go-feed-me/web/link"
+	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
@@ -56,7 +52,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
-		if err := a.DataAPI().UpdateUser(req.Context(), map[string]any{
+		if err := a.updateUser(req.Context(), map[string]any{
 			"settings":   settings,
 			"updated_at": time.Now().UTC(),
 		}); err != nil {
@@ -67,65 +63,80 @@ func (a *API) SetTheme() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-func (a *API) AddFavouriteSubscription() http.HandlerFunc {
-	return alice.New(
-		RouteLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		id := chi.URLParam(req, "subscription")
-		if valid, err := validation.ValidateVariable(id, "required,startswith=sub_"); !valid || err != nil {
-			RenderError(res, req, models.NewResponse(http.StatusBadRequest, err))
-			return
-		}
-		fav, err := NewFavouriteSubscription(req.Context(), a.DataAPI(), id)
-		if err != nil {
-			RenderError(res, req, models.RespErrBackend(err))
-			return
-		}
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			RenderError(res, req, models.RespErrUnauthorized())
-			return
-		}
-		favourites := user.GetFavourites()
-		favourites.Add(fav)
-		spew.Dump(favourites)
-		if err := a.DataAPI().UpdateUser(req.Context(), map[string]any{
-			"favourites": favourites,
-			"updated_at": time.Now().UTC(),
-		}); err != nil {
-			RenderError(res, req, models.RespErrBackend(fmt.Errorf("failed to update favourites: %w", err)))
-			return
-		}
-		res.WriteHeader(http.StatusOK)
-	}).ServeHTTP
-}
+// func (a *API) AddFavouriteSubscription() http.HandlerFunc {
+// 	return alice.New(
+// 		RouteLogger,
+// 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+// 		id := chi.URLParam(req, "subscription")
+// 		if valid, err := validation.ValidateVariable(id, "required,startswith=sub_"); !valid || err != nil {
+// 			RenderError(res, req, models.NewResponse(http.StatusBadRequest, err))
+// 			return
+// 		}
+// 		fav, err := NewFavouriteSubscription(req.Context(), a.DataAPI(), id)
+// 		if err != nil {
+// 			RenderError(res, req, models.RespErrBackend(err))
+// 			return
+// 		}
+// 		user, found := models.UserFromCtx(req.Context())
+// 		if !found {
+// 			RenderError(res, req, models.RespErrUnauthorized())
+// 			return
+// 		}
+// 		favourites := user.GetFavourites()
+// 		favourites.Add(fav)
+// 		spew.Dump(favourites)
+// 		if err := a.updateUser(req.Context(), map[string]any{
+// 			"favourites": favourites,
+// 			"updated_at": time.Now().UTC(),
+// 		}); err != nil {
+// 			RenderError(res, req, models.RespErrBackend(fmt.Errorf("failed to update favourites: %w", err)))
+// 			return
+// 		}
+// 		res.WriteHeader(http.StatusOK)
+// 	}).ServeHTTP
+// }
 
-func NewFavouriteSubscription(ctx context.Context, api models.DocumentsAPI, id models.SubscriptionID) (*models.Favourite, error) {
-	s, resp := models.GetSubscriptions(ctx, api, id)
-	if resp != nil {
-		return nil, resp.InternalError
+// func NewFavouriteSubscription(ctx context.Context, api models.DocumentsAPI, id models.SubscriptionID) (*models.Favourite, error) {
+// 	s, resp := models.GetSubscriptions(ctx, api, id)
+// 	if resp != nil {
+// 		return nil, resp.InternalError
+// 	}
+// 	if len(s) == 0 {
+// 		return nil, errors.New("invalid subscription ID")
+// 	}
+
+// 	filters := models.NewArticleFilters()
+// 	filters.Subscriptions = append(filters.Subscriptions, id)
+
+// 	link := link.New("/articles",
+// 		link.WithPushURL(),
+// 		link.WithValues(filters.Parameters()),
+// 	)
+
+// 	data, err := json.Marshal(link)
+// 	if err != nil {
+// 		return nil, fmt.Errorf("could not marshal favourite data: %w", err)
+// 	}
+
+// 	return &models.Favourite{
+// 		Name: s[0].GetTitle(),
+// 		Type: models.FavouriteTypeSubscription,
+// 		Link: data,
+// 		ID:   id,
+// 	}, nil
+// }
+
+// UpdateUser performs a partial update of the user object. On an error, a non-nil response is returned.
+func (a *API) updateUser(ctx context.Context, updates map[string]any) *models.Response {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.RespErrUnauthorized()
 	}
-	if len(s) == 0 {
-		return nil, errors.New("invalid subscription ID")
+	index := elastic.UserIndexFromCtx(ctx)
+
+	if err := elastic.UpdateDoc(ctx, a.DataAPI().GetAPI(), index, user.GetID(), updates); err != nil {
+		return &models.Response{StatusCode: http.StatusInternalServerError, InternalError: err}
 	}
-
-	filters := models.NewArticleFilters()
-	filters.Subscriptions = append(filters.Subscriptions, id)
-
-	link := link.New("/articles",
-		link.WithPushURL(),
-		link.WithValues(filters.Parameters()),
-	)
-
-	data, err := json.Marshal(link)
-	if err != nil {
-		return nil, fmt.Errorf("could not marshal favourite data: %w", err)
-	}
-
-	return &models.Favourite{
-		Name: s[0].GetTitle(),
-		Type: models.FavouriteTypeSubscription,
-		Link: data,
-		ID:   id,
-	}, nil
+	return nil
 }

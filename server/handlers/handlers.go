@@ -19,8 +19,8 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/views"
 )
 
 var (
@@ -85,7 +85,7 @@ func RenderTemplate() http.Handler {
 			}
 			// Update the page title.
 			if title := pageTitleFromCtx(req.Context()); title != "" {
-				if err := resp.RenderTempl(req.Context(), res, views.SetPageTitle(title)); err != nil {
+				if err := resp.RenderTempl(req.Context(), res, templates.SetPageTitle(title)); err != nil {
 					slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
 				}
 			}
@@ -134,7 +134,7 @@ func RenderTemplateFragments(fragments ...string) http.Handler {
 		}
 		// Update the page title.
 		if title := pageTitleFromCtx(req.Context()); title != "" {
-			if err := resp.RenderTempl(req.Context(), res, views.SetPageTitle(title)); err != nil {
+			if err := resp.RenderTempl(req.Context(), res, templates.SetPageTitle(title)); err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
 			}
 		}

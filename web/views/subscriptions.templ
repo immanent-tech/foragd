@@ -6,6 +6,7 @@ package views
 
 import (
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/attributes"
@@ -28,7 +29,7 @@ import (
 )
 
 templ (page *SubscriptionsPage) Show() {
-	@NewPage("Subscriptions") {
+	@templates.NewPage("Subscriptions") {
 		@partials.Drawer() {
 			@partials.DrawerContent() {
 				// Fragment: content header

@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -14,11 +15,16 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
+	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -33,31 +39,44 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			RenderError(res, req, models.NewResponse(http.StatusBadRequest, err))
 			return
 		}
-		// Get subscriptions matching filters.
-		subscriptions, pagination, resp := models.FilterSubscriptions(req.Context(), a.DataAPI(), filters)
-		if resp != nil {
-			RenderError(res, req, resp)
-			return
-		}
-		cards := make([]templ.Component, 0, len(subscriptions))
-		states := make([]templ.Component, 0, len(subscriptions))
-		for subscription := range slices.Values(subscriptions) {
-			cards = append(cards, views.NewSubscriptionContent(subscription).Card())
-			states = append(states, views.NewSubscriptionContent(subscription).State())
-		}
-		// Add pagination element if pagination is required.
-		if pagination != "" && len(cards) == filters.GetCount() {
-			// Add pagination htmx props to last article.
-			cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
-		}
-		// Generate page template.
-		subscriptionsPage := views.NewSubscriptionsPage(filters, subscriptions.GetCategoryCounts(), cards...)
-		ctx := templateToCtx(req.Context(), subscriptionsPage.Show())
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,
 			SavePageState(filters),
 		)
+		var template templ.Component
+		// Retrieve user object.
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			RenderError(res, req, models.RespErrUnauthorized())
+			return
+		}
+		if len(user.GetSubscriptionsByID()) == 0 {
+			template = views.EmptyContent()
+		} else {
+			// Get subscriptions matching filters.
+			subscriptions, pagination, resp := a.filterSubscriptions(req.Context(), filters)
+			if resp != nil {
+				RenderError(res, req, models.RespErrBackend(err))
+				return
+			}
+			cards := make([]templ.Component, 0, len(subscriptions))
+			states := make([]templ.Component, 0, len(subscriptions))
+			for subscription := range slices.Values(subscriptions) {
+				cards = append(cards, views.NewSubscriptionContent(subscription).Card())
+				states = append(states, views.NewSubscriptionContent(subscription).State())
+			}
+			// Add pagination element if pagination is required.
+			if pagination != "" && len(cards) == filters.GetCount() {
+				// Add pagination htmx props to last article.
+				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
+			}
+			// Generate page template.
+			template = views.NewSubscriptionsPage(filters, subscriptions.GetCategoryCounts(), cards...).Show()
+		}
+
+		ctx := templateToCtx(req.Context(), template)
+
 		// Display content based on request.
 		switch {
 		case req.Method == http.MethodPost:
@@ -84,31 +103,22 @@ func (a *API) MarkSubscriptions() http.HandlerFunc {
 		}
 		// Get mark.
 		mark := chi.URLParam(req, "mark")
-		// Retrieve user.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			RenderError(res, req, models.RespErrUnauthorized())
-			return
-		}
 		// Set marked at to current timestamp.
 		markedAt := time.Now().UTC()
 		// Get all user subscription states.
-		states := user.GetAllSubscriptionStates()
-		// Loop through given subscription IDs and update states.
-		for id := range slices.Values(request.Subscriptions) {
-			if state, found := states[id]; !found {
-				slogctx.FromCtx(req.Context()).Warn("Trying to mark non-existent user subscription.",
-					slog.String("subscription_id", id),
-				)
-				continue
-			} else {
-				state.Mark(models.Mark(mark), markedAt)
-			}
+		states, err := a.getSubscriptionStates(req.Context())
+		if err != nil {
+			RenderError(res, req, models.RespErrBackend(err))
+			return
 		}
-		// Update the user object.
-		if err := a.DataAPI().UpdateUser(req.Context(), map[string]any{
-			"subscriptions": slices.Collect(maps.Values(states)),
-		}); err != nil {
+		// Loop through given subscription IDs and update states.
+		filteredStates := states.FilterByIDs(request.Subscriptions...)
+		for state := range slices.Values(filteredStates) {
+			state.Mark(models.Mark(mark), markedAt)
+		}
+
+		// Index updates.
+		if err := a.updateSubscriptionStates(req.Context(), filteredStates); err != nil {
 			RenderError(res, req, models.NewResponse(http.StatusInternalServerError, fmt.Errorf("could not process mark request: %w", err)))
 			return
 		}
@@ -141,8 +151,8 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 			slogctx.FromCtx(ctx).Debug("Subscription removal confirmed.",
 				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
 			)
-			if resp := models.Unsubscribe(ctx, a.DataAPI(), request.Subscriptions...); resp != nil {
-				RenderError(res, req.WithContext(ctx), resp)
+			if resp := a.removeSubscriptions(ctx, request.Subscriptions...); resp != nil {
+				RenderError(res, req.WithContext(ctx), models.RespErrBackend(err))
 				return
 			}
 			// Show success notification.
@@ -197,20 +207,24 @@ func NewSubscription() http.HandlerFunc {
 func (a *API) EditSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "subscription")
-		// Retrieve subscription customisation.
-		customisation, resp := models.GetSubscriptionCustomisation(req.Context(), a.DataAPI(), id)
-		if resp != nil && !resp.IsNotFound() {
-			RenderError(res, req, resp)
+		// Retrieve subscription details.
+		states, err := a.getSubscriptionStates(req.Context(), id)
+		if err != nil {
+			RenderError(res, req, models.RespErrBackend(err))
+			return
+		}
+		if len(states) == 0 {
+			RenderError(res, req, models.RespInvalidInput())
 			return
 		}
 		edit := &models.SubscriptionEdit{
-			SubscriptionID: customisation.GetID(),
-			Title:          customisation.Title,
-			Categories:     customisation.Categories,
+			SubscriptionID: states[0].GetID(),
+			Title:          states[0].Customisation.Title,
+			Categories:     states[0].Customisation.Categories,
 		}
 		// Get top categories across items in subscription feed.
 		var topItemCategories []models.Category
-		categories, resp := getItemTopCategories(req.Context(), a.DataAPI(), customisation.GetFeedID())
+		categories, resp := a.getItemTopCategories(req.Context(), states[0].GetFeedID())
 		if resp == nil {
 			topItemCategories = categories
 		}
@@ -229,21 +243,195 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			RenderError(res, req, models.RespErrBackend(err))
 			return
 		}
-		var msg *models.UserMessage
-		ctx := req.Context()
-		if err := a.DataAPI().UpdateSubscriptionCustomisation(ctx, edits); err != nil {
-			RenderError(res, req,
-				models.NewResponse(http.StatusInternalServerError, fmt.Errorf("failed to update user: %w", err)))
-			// msg = models.FailedUserMessage("Failed to update the subscription.", nil)
+		index := elastic.SubscriptionsIndexFromCtx(req.Context())
+		if index == "" {
+			RenderError(res, req, models.RespErrBackend(elastic.ErrFetchCtx))
 			return
 		}
-		msg = models.SuccessUserMessage("Subscription updated.", nil)
+
+		updates := map[string]any{
+			"title":      edits.Title,
+			"categories": edits.Categories,
+		}
+
+		if err := elastic.UpdateDoc(req.Context(), a.DataAPI().GetAPI(), index, edits.SubscriptionID, updates); err != nil {
+			RenderError(res, req, models.RespErrBackend(err))
+			return
+		}
+
+		msg := models.SuccessUserMessage("Subscription updated.", nil)
 		// TODO: get new subscription details and update subscription card.
 		// Display a notification acknowledging save.
-		ctx = templateToCtx(ctx, partials.ShowNotification(msg))
+		ctx := templateToCtx(req.Context(), partials.ShowNotification(msg))
 		alice.New(
 			RouteLogger,
 			TriggerStateUpdates,
 		).Then(RenderTemplate()).ServeHTTP(res, req.WithContext(ctx))
 	}
+}
+
+func (a *API) getSubscriptionStates(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionStates, error) {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, models.ErrNoUserCtx
+	}
+
+	s := user.GetSubscriptionsByID(ids...)
+	index := elastic.SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, elastic.ErrFetchCtx
+	}
+
+	states, err := elastic.GetDocs[models.SubscriptionID, *models.SubscriptionState](ctx, a.DataAPI().GetAPI(), index, slices.Collect(maps.Keys(s))...)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
+			slog.Any("warnings", err))
+	}
+
+	return states, nil
+}
+
+func (a *API) updateSubscriptionStates(ctx context.Context, states models.SubscriptionStates) error {
+	index := elastic.SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return elastic.ErrFetchCtx
+	}
+
+	resp, err := elastic.BulkUpdate(ctx, a.DataAPI(), index, states...)
+	if err != nil {
+		return fmt.Errorf("updateSubscriptionStates: %w", err)
+	}
+	spew.Dump(resp)
+
+	return nil
+}
+
+func (a *API) getSubscriptionUnreadCounts(ctx context.Context, states models.SubscriptionStates) (*aggregations.TermsAggregationResults, error) {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, models.ErrUserCtx
+	}
+
+	subscriptionQueries := make([]query.Option, 0, len(states))
+	for _, state := range states {
+		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, state))
+	}
+	query := query.Bool(
+		query.Filter(
+			query.Bool(
+				query.Should(subscriptionQueries...),
+			),
+		),
+	)
+	aggResults, resp := a.DataAPI().ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(states)))
+	if resp != nil {
+		return nil, resp
+	}
+	var (
+		categoryCounts aggregations.TermsAggregationResults
+		err            error
+	)
+	categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggResults.Aggregations, "UnreadCounts")
+	if err != nil {
+		return nil, fmt.Errorf("getSubscriptionUnreadCounts: %w", err)
+	}
+
+	return &categoryCounts, nil
+}
+
+func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.Subscriptions, error) {
+	// Get the subscription states.
+	states, err := a.getSubscriptionStates(ctx, ids...)
+	if err != nil {
+		return nil, fmt.Errorf("getSubscriptions: %w", err)
+	}
+
+	// Get unread counts.
+	unreadCounts, err := a.getSubscriptionUnreadCounts(ctx, states)
+	if err != nil {
+		return nil, fmt.Errorf("getSubscriptions: %w", err)
+	}
+	// Get feed data for subscriptions.
+	feeds, err := a.DataAPI().GetFeeds(ctx, states.GetFeedIDs()...)
+	if err != nil {
+		return nil, fmt.Errorf("getSubscriptions: %w", err)
+	}
+	// Generate subscriptions from data sources.
+	subscriptions := make(models.Subscriptions, 0, len(feeds))
+	for feed := range slices.Values(feeds) {
+		var state *models.SubscriptionState
+		var count int
+		if state := states.GetByFeedID(feed.GetID()); state == nil {
+			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved feed.",
+				slog.String("feed_id", feed.GetID()),
+			)
+			continue
+		}
+		if unreadCounts != nil {
+			count = unreadCounts.GetCount(feed.GetID())
+		}
+
+		subscription, err := models.GenerateSubscription(state, feed, count)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not generate subscription from data.",
+				slog.Any("error", err),
+			)
+			continue
+		}
+		subscriptions = append(subscriptions, subscription)
+	}
+	return subscriptions, nil
+}
+
+func (a *API) filterSubscriptions(ctx context.Context, filters *models.SubscriptionFilters) (models.Subscriptions, models.Pagination, error) {
+	subscriptions, err := a.getSubscriptions(ctx, filters.Subscriptions...)
+	if err != nil {
+		return nil, "", fmt.Errorf("filterSubscriptions: %w", err)
+	}
+	sort := filters.GetSort()
+
+	subscriptions = subscriptions.FilterByCategories(filters.Categories...).
+		FilterByView(filters.View).
+		Sort(&sort)
+
+	var pagination string
+	if filters.Pagination != nil {
+		pagination = *filters.Pagination
+	}
+	subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
+	return subscriptions, pagination, nil
+}
+
+func (a *API) removeSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return models.ErrUserCtx
+	}
+	// Remove the subscription states.
+	index := elastic.SubscriptionsIndexFromCtx(ctx)
+	if index == "" {
+		return elastic.ErrFetchCtx
+	}
+
+	err := elastic.DeleteDocs(ctx, a.DataAPI().GetAPI(), index,
+		query.Terms("subscription_id", ids...),
+	)
+	if err != nil {
+		return fmt.Errorf("failed to delete subscription customisations: %w", err)
+	}
+
+	// Remove states for given subscriptions from user.
+	states := user.GetSubscriptionsByID()
+	for id := range states {
+		if slices.Contains(ids, id) {
+			delete(states, id)
+		}
+	}
+	// Update the user.
+	return a.updateUser(ctx, map[string]any{
+		"subscriptions": slices.Collect(maps.Values(states)),
+	})
 }

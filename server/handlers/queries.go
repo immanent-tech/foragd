@@ -1,0 +1,135 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package handlers
+
+import (
+	"time"
+
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/query"
+)
+
+// BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
+func buildSubscriptionQueries(user *models.User, view models.View, states ...*models.SubscriptionState) []query.Option {
+	queries := make([]query.Option, 0, len(user.Subscriptions))
+	// Work out what query to use based on the state filter.
+	if len(states) == 0 {
+		return nil
+	}
+	switch view {
+	case models.ViewRead:
+		for _, state := range states {
+			queries = append(queries, queryReadItems(user, state))
+		}
+	case models.ViewAll:
+		for _, state := range states {
+			queries = append(queries, queryAllItems(user, state))
+		}
+	case models.ViewUnread:
+		fallthrough
+	default:
+		for _, state := range states {
+			queries = append(queries, queryUnreadItems(user, state))
+		}
+	}
+	return queries
+}
+
+// queryReadItems generates a query for finding read items for the given subscription.
+func queryReadItems(user *models.User, subscription *models.SubscriptionState) query.Option {
+	maxHistory := user.GetMaxHistory()
+
+	switch {
+	case !subscription.IsRead():
+		return query.Bool(
+			query.BoolQueryName(subscription.GetFeedID()+"_read_items"),
+			query.Filter(
+				// Must match this feed.
+				query.Term("feed_id", subscription.GetFeedID()),
+				// And be published/updated since the user max history.
+				query.Bool(
+					query.Should(
+						// query.Since("published", maxHistory),
+						// query.Since("updated", maxHistory),
+						query.Terms("item_id", subscription.GetReadItems()...),
+					),
+					// Must not match any unread items for the feed
+					query.MustNot(
+						query.Terms("item_id", subscription.GetUnreadItems()...),
+					),
+				),
+			),
+		)
+	default:
+		return query.Bool(
+			query.BoolQueryName(subscription.GetFeedID()+"_read_items"),
+			query.Filter(
+				// Must match this feed.
+				query.Term("feed_id", subscription.GetFeedID()),
+				// And should be between the user max history and last read time.
+				query.Bool(
+					query.Should(
+						query.Between("published", maxHistory, subscription.GetMarkedRead()),
+						query.Between("updated", maxHistory, subscription.GetMarkedRead()),
+						query.Terms("item_id", subscription.GetReadItems()...),
+					),
+					// Must not match any unread items for the feed
+					query.MustNot(
+						query.Terms("item_id", subscription.GetUnreadItems()...),
+					),
+				),
+			),
+		)
+	}
+}
+
+// QueryUnreadItems generates a query for finding unread items for the given subscription.
+func queryUnreadItems(user *models.User, subscription *models.SubscriptionState) query.Option {
+	var since time.Time
+	if subscription.IsRead() {
+		// Match the item if it is published/updated since last time subscription was marked read.
+		since = subscription.GetMarkedRead()
+	} else {
+		// Match the item if it is published/updated since the max user history window.
+		since = user.GetMaxHistory()
+	}
+
+	return query.Bool(
+		query.BoolQueryName(subscription.GetFeedID()+"_unread_items"),
+		query.Filter(
+			// Must match this feed.
+			query.Term("feed_id", subscription.GetFeedID()),
+			query.Bool(
+				query.Should(
+					query.Since("published", since),
+					query.Since("updated", since),
+					query.Terms("item_id", subscription.GetUnreadItems()...),
+				),
+				// Must not match any read items for the feed
+				query.MustNot(
+					query.Terms("item_id", subscription.GetReadItems()...),
+				),
+			),
+		),
+	)
+}
+
+// subscriptionQueryReadItems generates a query for finding all items for the given subscription.
+func queryAllItems(user *models.User, subscription *models.SubscriptionState) query.Option {
+	maxHistory := user.GetMaxHistory()
+	return query.Bool(
+		query.BoolQueryName(subscription.GetFeedID()+"_all_items"),
+		query.Filter(
+			// Must match this feed.
+			query.Term("feed_id", subscription.GetFeedID()),
+			// And be published/updated since the user max history.
+			query.Bool(
+				query.Should(
+					query.Since("published", maxHistory),
+					query.Since("updated", maxHistory),
+				),
+			),
+		),
+	)
+}

@@ -11,8 +11,8 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/views"
 )
 
 // Index handles displaying the index or front page of the site.
@@ -22,7 +22,7 @@ func Index() http.HandlerFunc {
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		indexLayout := &layouts.IndexLayout{}
 		ctx := templ.WithChildren(req.Context(), indexLayout.FullRender())
-		if err := views.NewPage("Go Feed Me").Render(ctx, res); err != nil {
+		if err := templates.NewPage("Go Feed Me").Render(ctx, res); err != nil {
 			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 			http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
 		}

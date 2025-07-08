@@ -145,7 +145,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 				r.Put("/edit/{subscription}", handler.SaveSubscription())
 			})
 			r.Route("/favourite", func(r chi.Router) {
-				r.Put("/subscription/{subscription}", handler.AddFavouriteSubscription())
+				// r.Put("/subscription/{subscription}", handler.AddFavouriteSubscription())
 			})
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handlers.GetSettings())

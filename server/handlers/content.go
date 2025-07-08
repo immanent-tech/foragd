@@ -320,100 +320,100 @@ func AddFeedsForSubscriptionRequests(api models.DocumentsAPI) func(next http.Han
 	}
 }
 
-// AddSubscriptions handles adding new subscription via either the add or import user functionality. It
-// handles: matching and filtering out requests against existing subscriptions, matching requests to existing feeds,
-// creating new feeds as necessary and finally creating user subscriptions.
-//
-//nolint:funlen,gocognit // breaking up this function would actually add debugging/development complexity.
-func AddSubscriptions(api models.DocumentsAPI) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Skip processing if there is already a response in the context.
-			if _, found := req.Context().Value(respCtxKey).(*models.Response); found {
-				next.ServeHTTP(res, req)
-				return
-			}
+// // AddSubscriptions handles adding new subscription via either the add or import user functionality. It
+// // handles: matching and filtering out requests against existing subscriptions, matching requests to existing feeds,
+// // creating new feeds as necessary and finally creating user subscriptions.
+// //
+// //nolint:funlen,gocognit // breaking up this function would actually add debugging/development complexity.
+// func AddSubscriptions(api models.DocumentsAPI) func(next http.Handler) http.Handler {
+// 	return func(next http.Handler) http.Handler {
+// 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+// 			// Skip processing if there is already a response in the context.
+// 			if _, found := req.Context().Value(respCtxKey).(*models.Response); found {
+// 				next.ServeHTTP(res, req)
+// 				return
+// 			}
 
-			// Extract user data.
-			user, found := models.UserFromCtx(req.Context())
-			if !found {
-				ctx := context.WithValue(req.Context(), respCtxKey, models.RespErrUnauthorized())
-				next.ServeHTTP(res, req.WithContext(ctx))
-				return
-			}
+// 			// Extract user data.
+// 			user, found := models.UserFromCtx(req.Context())
+// 			if !found {
+// 				ctx := context.WithValue(req.Context(), respCtxKey, models.RespErrUnauthorized())
+// 				next.ServeHTTP(res, req.WithContext(ctx))
+// 				return
+// 			}
 
-			// Extract any existing results map from the context
-			results := subscriptionResultsFromCtx(req.Context())
-			// Extract new subscriptions from the context.
-			subscriptions := subscriptionsNeededFromCtx(req.Context())
-			if len(subscriptions) == 0 {
-				next.ServeHTTP(res, req)
-				return
-			}
-			// Get the existing subscription states from the user.
-			newSubscriptions := make(map[models.SubscriptionID]*models.SubscriptionState)
+// 			// Extract any existing results map from the context
+// 			results := subscriptionResultsFromCtx(req.Context())
+// 			// Extract new subscriptions from the context.
+// 			subscriptions := subscriptionsNeededFromCtx(req.Context())
+// 			if len(subscriptions) == 0 {
+// 				next.ServeHTTP(res, req)
+// 				return
+// 			}
+// 			// Get the existing subscription states from the user.
+// 			newSubscriptions := make(map[models.SubscriptionID]*models.SubscriptionState)
 
-			slogctx.FromCtx(req.Context()).Debug("Adding new subscriptions.")
+// 			slogctx.FromCtx(req.Context()).Debug("Adding new subscriptions.")
 
-			// Loop through the subscriptions adding their state to the existing subscription states slice. For any
-			// subscriptions that have customisation data, collect the customisation data for adding later.
-			customisations := make(models.SubscriptionCustomisations, 0, len(subscriptions))
-			for request, feed := range subscriptions {
-				// Add subscription state and mark successful.
-				state := models.NewSubscriptionState(feed.GetID())
-				newSubscriptions[state.GetID()] = state
-				details := request.String()
-				results[request] = &models.UserMessage{
-					Status:  models.UserMessageStatusSuccess,
-					Summary: "Subscription created!",
-					Details: &details,
-				}
-				// Accrue any subscription customisations.
-				if customisation := request.GenerateCustomisation(state.GetID(), user.GetID(), state.GetFeedID()); customisation != nil {
-					customisations = append(customisations, customisation)
-				}
-			}
+// 			// Loop through the subscriptions adding their state to the existing subscription states slice. For any
+// 			// subscriptions that have customisation data, collect the customisation data for adding later.
+// 			customisations := make(models.SubscriptionCustomisations, 0, len(subscriptions))
+// 			for request, feed := range subscriptions {
+// 				// Add subscription state and mark successful.
+// 				state := models.NewSubscriptionState(feed.GetID())
+// 				newSubscriptions[state.GetID()] = state
+// 				details := request.String()
+// 				results[request] = &models.UserMessage{
+// 					Status:  models.UserMessageStatusSuccess,
+// 					Summary: "Subscription created!",
+// 					Details: &details,
+// 				}
+// 				// Accrue any subscription customisations.
+// 				if customisation := request.GenerateCustomisation(state.GetID(), user.GetID(), state.GetFeedID()); customisation != nil {
+// 					customisations = append(customisations, customisation)
+// 				}
+// 			}
 
-			if len(customisations) > 0 {
-				// Add any subscription customisations. It's not critical if subscription customisation data is not added.
-				customisationResults, err := api.AddSubscriptionCustomisations(req.Context(), customisations...)
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("Failed to add subscription customisations.",
-						slog.Any("error", err),
-					)
-				}
-				// Process the customisation results
-				for _, resp := range customisationResults {
-					if !resp.Created() {
-						slogctx.FromCtx(req.Context()).Warn("Unable to create customisation.", slog.Any("error", resp))
-						// for request := range subscriptions {
-						// 	if request.SubscriptionID == id {
-						// 		results[request] = &models.Response{
-						// 			UserMessage: &models.UserMessage{
-						// 				Status:  models.UserMessageStatusError,
-						// 				Summary: "Unable to create a subscription for request URL: " + request.GetURL(),
-						// 			},
-						// 		}
-						// 	}
-						// }
-					}
-				}
-			}
-			// Update the user object.
-			resp := api.UpdateUser(req.Context(), map[string]any{
-				"subscriptions": slices.Collect(maps.Values(newSubscriptions)),
-			})
-			if resp != nil {
-				ctx := context.WithValue(req.Context(), respCtxKey, resp)
-				next.ServeHTTP(res, req.WithContext(ctx))
-				return
-			}
-			// Store the results in the context for the next handler.
-			ctx := context.WithValue(req.Context(), subscriptionResultsCtxKey, results)
-			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
+// 			if len(customisations) > 0 {
+// 				// Add any subscription customisations. It's not critical if subscription customisation data is not added.
+// 				customisationResults, err := api.AddSubscriptionCustomisations(req.Context(), customisations...)
+// 				if err != nil {
+// 					slogctx.FromCtx(req.Context()).Warn("Failed to add subscription customisations.",
+// 						slog.Any("error", err),
+// 					)
+// 				}
+// 				// Process the customisation results
+// 				for _, resp := range customisationResults {
+// 					if !resp.Created() {
+// 						slogctx.FromCtx(req.Context()).Warn("Unable to create customisation.", slog.Any("error", resp))
+// 						// for request := range subscriptions {
+// 						// 	if request.SubscriptionID == id {
+// 						// 		results[request] = &models.Response{
+// 						// 			UserMessage: &models.UserMessage{
+// 						// 				Status:  models.UserMessageStatusError,
+// 						// 				Summary: "Unable to create a subscription for request URL: " + request.GetURL(),
+// 						// 			},
+// 						// 		}
+// 						// 	}
+// 						// }
+// 					}
+// 				}
+// 			}
+// 			// Update the user object.
+// 			resp := api.UpdateUser(req.Context(), map[string]any{
+// 				"subscriptions": slices.Collect(maps.Values(newSubscriptions)),
+// 			})
+// 			if resp != nil {
+// 				ctx := context.WithValue(req.Context(), respCtxKey, resp)
+// 				next.ServeHTTP(res, req.WithContext(ctx))
+// 				return
+// 			}
+// 			// Store the results in the context for the next handler.
+// 			ctx := context.WithValue(req.Context(), subscriptionResultsCtxKey, results)
+// 			next.ServeHTTP(res, req.WithContext(ctx))
+// 		})
+// 	}
+// }
 
 func NewUserSignup(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {

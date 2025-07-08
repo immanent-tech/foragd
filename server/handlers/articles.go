@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -14,11 +15,13 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/content"
@@ -35,9 +38,9 @@ func (a *API) GetArticles() http.HandlerFunc {
 			return
 		}
 		// Get articles matching filters.
-		articles, pagination, resp := filterArticles(req.Context(), a.DataAPI(), filters)
-		if resp != nil {
-			ProcessResponse(res, req, resp)
+		articles, pagination, err := a.filterArticles(req.Context(), filters)
+		if err != nil {
+			RenderError(res, req, models.RespErrBackend(err))
 			return
 		}
 		// Generate articles page.
@@ -68,9 +71,9 @@ func (a *API) PaginateArticles() http.HandlerFunc {
 			return
 		}
 		// Get articles matching filters.
-		articles, pagination, resp := filterArticles(req.Context(), a.DataAPI(), filters)
+		articles, pagination, resp := a.filterArticles(req.Context(), filters)
 		if resp != nil {
-			ProcessResponse(res, req, resp)
+			RenderError(res, req, models.RespErrBackend(err))
 			return
 		}
 		// Generate article cards.
@@ -109,28 +112,30 @@ func (a *API) MarkArticles() http.HandlerFunc {
 		}
 		// Get mark.
 		mark := chi.URLParam(req, "mark")
-
-		// Retrieve user.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
+		// Get subscription states containing items.
+		states, err := a.getSubscriptionStates(req.Context(), slices.Collect(maps.Keys(marks))...)
+		if err != nil {
 			RenderError(res, req, models.RespErrUnauthorized())
 			return
 		}
-		states := user.GetAllSubscriptionStates()
-		// Mark off items under subscription state in user data.
-		for subscription, items := range marks {
+		// Mark off items under subscription states.
+		for subscriptionID, items := range marks {
+			state := states.GetByID(subscriptionID)
+			if state == nil {
+				slogctx.FromCtx(req.Context()).Warn("No subscription matches given item.",
+					slog.Any("item_ids", items),
+				)
+			}
 			switch models.Mark(mark) {
 			case models.MarkRead:
-				states[subscription].MarkItemsRead(items...)
+				state.MarkItemsRead(items...)
 			case models.MarkUnread:
-				states[subscription].MarkItemsUnread(items...)
+				state.MarkItemsUnread(items...)
 			}
 		}
-		// Update the user object.
-		if err := a.DataAPI().UpdateUser(req.Context(), map[string]any{
-			"subscriptions": slices.Collect(maps.Values(states)),
-		}); err != nil {
-			RenderError(res, req, models.NewResponse(http.StatusInternalServerError, fmt.Errorf("could not process mark request: %w", err)))
+		// Update the states.
+		if err := a.updateSubscriptionStates(req.Context(), states); err != nil {
+			RenderError(res, req, models.RespErrBackend(err))
 			return
 		}
 
@@ -147,9 +152,9 @@ func (a *API) ViewArticle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// subscriptionID := chi.URLParam(req, "subscription")
 		itemID := chi.URLParam(req, "item")
-		articles, resp := getArticles(req.Context(), a.DataAPI(), itemID)
-		if resp != nil || len(articles) == 0 {
-			ProcessResponse(res, req, resp)
+		articles, err := a.getArticles(req.Context(), itemID)
+		if err != nil {
+			ProcessResponse(res, req, models.RespErrBackend(err))
 			return
 		}
 		articleLayout := views.NewArticleContent(articles[0]).ShowContent()
@@ -163,17 +168,16 @@ func (a *API) ViewArticle() http.HandlerFunc {
 	}
 }
 
-func filterArticles(ctx context.Context, api models.DocumentsAPI, filters *models.ArticleFilters) (models.Articles, models.Pagination, *models.Response) {
+func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters) (models.Articles, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, "", models.RespErrUnauthorized()
+		return nil, "", models.ErrUserCtx
 	}
-
-	subscriptionStates := user.FilterSubscriptionStatesByID(filters.Subscriptions...)
-	feedIDs := make([]models.FeedID, 0, len(subscriptionStates))
-	for _, state := range subscriptionStates {
-		feedIDs = append(feedIDs, state.GetFeedID())
+	subscriptionStates, err := a.getSubscriptionStates(ctx, filters.Subscriptions...)
+	if err != nil {
+		return nil, "", fmt.Errorf("filterArticles: %w", err)
 	}
+	feedIDs := subscriptionStates.GetFeedIDs()
 
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
@@ -186,29 +190,24 @@ func filterArticles(ctx context.Context, api models.DocumentsAPI, filters *model
 			query.Terms("categories.raw", filters.Categories...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(models.BuildSubscriptionQueries(user, filters.View, slices.Collect(maps.Values(subscriptionStates))...)...),
+				query.Should(buildSubscriptionQueries(user, filters.View, subscriptionStates...)...),
 			),
 		),
 	)
 	sort := filters.GetSort()
 
 	// Find items matching filters.
-	items, pagination, err := api.SearchItems(ctx, query, filters.GetCount(), &sort, filters.Pagination)
+	items, pagination, err := a.DataAPI().SearchItems(ctx, query, filters.GetCount(), &sort, filters.Pagination)
 	if err != nil {
 		return nil, "", models.RespErrBackend(err)
 	}
 	// Retrieve subscription customisations for feed subscriptions.
-	states := user.FilterSubscriptionStatesByFeed(items.GetFeedIDs()...)
-	customisations, err := api.GetSubscriptionCustomisations(ctx, models.GetIDsFromStates(states)...)
-	if err != nil {
-		return nil, "", models.RespErrBackend(err)
-	}
+	subscriptionStates = subscriptionStates.FilterByFeedIDs(items.GetFeedIDs()...)
 	// Create articles from the items.
 	articles := make(models.Articles, 0, len(items))
 	for item := range slices.Values(items) {
-		state := states[item.GetFeedID()]
-		customisation := customisations.GetCustomisation(state.GetID())
-		article, err := models.GenerateArticle(item, state.GetItemState(item.GetID()), state.GetID(), customisation)
+		state := subscriptionStates.GetByFeedID(item.GetFeedID())
+		article, err := models.GenerateArticle(item, state)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
 				slog.Any("error", err),
@@ -222,10 +221,10 @@ func filterArticles(ctx context.Context, api models.DocumentsAPI, filters *model
 	return articles, pagination, nil
 }
 
-func getArticles(ctx context.Context, api models.DocumentsAPI, itemIDs ...models.ItemID) (models.Articles, *models.Response) {
+func (a *API) getArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, models.RespErrUnauthorized()
+		return nil, models.ErrUserCtx
 	}
 
 	// Search through items matching any given feeds filters, excluding any read
@@ -237,23 +236,25 @@ func getArticles(ctx context.Context, api models.DocumentsAPI, itemIDs ...models
 		),
 	)
 
-	items, _, err := api.SearchItems(ctx, query, len(itemIDs), nil, nil)
+	items, _, err := a.DataAPI().SearchItems(ctx, query, len(itemIDs), nil, nil)
 	if err != nil {
-		return nil, models.RespErrBackend(err)
+		return nil, fmt.Errorf("getArticles: %w", err)
 	}
 
 	// Retrieve subscription customisations for feed subscriptions.
-	states := user.FilterSubscriptionStatesByFeed(items.GetFeedIDs()...)
-	customisations, err := api.GetSubscriptionCustomisations(ctx, models.GetIDsFromStates(states)...)
+	states, err := a.getSubscriptionStates(ctx, slices.Collect(maps.Values(user.GetSubscriptionsByFeedID(items.GetFeedIDs()...)))...)
 	if err != nil {
-		return nil, models.RespErrBackend(err)
+		return nil, fmt.Errorf("getArticles: %w", err)
 	}
+	if len(states) == 0 {
+		return nil, errors.New("no items")
+	}
+
 	// Create articles from the items.
 	articles := make(models.Articles, 0, len(items))
 	for item := range slices.Values(items) {
-		state := states[item.GetFeedID()]
-		customisation := customisations.GetCustomisation(state.GetID())
-		article, err := models.GenerateArticle(item, state.GetItemState(item.GetID()), state.GetID(), customisation)
+		state := states.GetByFeedID(item.GetFeedID())
+		article, err := models.GenerateArticle(item, state)
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
 				slog.Any("error", err),
@@ -264,4 +265,27 @@ func getArticles(ctx context.Context, api models.DocumentsAPI, itemIDs ...models
 	}
 
 	return articles, nil
+}
+
+func (a *API) getItemTopCategories(ctx context.Context, feeds ...models.FeedID) ([]models.Category, *models.Response) {
+	query := query.Bool(
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", feeds...),
+		),
+	)
+	aggsResult, resp := a.DataAPI().ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("TopCategories", "categories.raw", 10))
+	if resp != nil {
+		return nil, resp
+	}
+	var (
+		topCategories aggregations.TermsAggregationResults
+		err           error
+	)
+	topCategories.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggsResult.Aggregations, "TopCategories")
+	if err != nil {
+		return nil, models.NewResponse(http.StatusInternalServerError, fmt.Errorf("could not extract category counts: %w", err))
+	}
+
+	return topCategories.BucketNames(), nil
 }
