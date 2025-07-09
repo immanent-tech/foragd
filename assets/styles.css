@@ -1,12 +1,8 @@
 @import 'tailwindcss';
 @source "../web/**/*.{html,templ}";
 @source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
-@source "*.{js}";
 @plugin "@tailwindcss/typography";
-@plugin "daisyui" {
-  themes: all;
-}
-@plugin "./catppuccin.mocha.ts";
+@plugin "daisyui";
 
 /* Fade in notification messages */
 #notifications.htmx-added {

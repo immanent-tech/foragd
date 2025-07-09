@@ -2,8 +2,9 @@
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 // htmx
-import './setup-htmx.js'
+import 'htmx.org'
+import './htmx.js'
+import 'htmx-ext-response-targets'
 // hyperscript
-import './setup-hyperscript.js'
-
-import './relative-time.js'
+import hyperscript from 'hyperscript.org'
+hyperscript.browserInit()

@@ -1,2 +1,0 @@
-logLevel = "debug" # "debug" | "warn" | "error"
-telemetry = false
