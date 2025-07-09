@@ -23,6 +23,7 @@ templ (page *Page) render() {
 			hx-trigger="htmx:historyRestore from:body, updateState"
 			hx-get=""
 			hx-target="#content"
+			hx-target-error={ partials.NotificationsID.Target() }
 		>
 			<input
 				id="page-theme"
@@ -90,9 +91,6 @@ templ (h *Head) build() {
 			rel="stylesheet"
 		/>
 		<link href="/static/styles.css" rel="stylesheet"/>
-		// <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.6/dist/htmx.min.js" crossorigin="anonymous"></script>
-		// <script src="https://cdn.jsdelivr.net/npm/htmx-ext-response-targets@2.0.2" crossorigin="anonymous"></script>
-		// <script src="https://unpkg.com/hyperscript.org@0.9.14"></script>
 		<script src="/static/scripts.js"></script>
 		<script src="/static/surreal-1.3.2.js"></script>
 		<meta name="htmx-config" content='{"selfRequestsOnly":"true","allowNestedOobSwaps":"false"}'/>

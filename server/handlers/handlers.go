@@ -192,10 +192,10 @@ func SavePageState(filters any) func(next http.Handler) http.Handler {
 
 func RespInvalidInput(err error) *models.Response {
 	return models.NewResponse(
-		models.WithResponseStatusCode(http.StatusBadRequest),
+		models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 		models.WithResponseError(err),
 		models.WithResponseTemplate(
-			partials.Alert(partials.MsgBadInput(), nil),
+			partials.Alert(partials.MsgBadInput()),
 		),
 	)
 }
@@ -205,7 +205,7 @@ func RespBackendError(err error) *models.Response {
 		models.WithResponseStatusCode(http.StatusInternalServerError),
 		models.WithResponseError(err),
 		models.WithResponseTemplate(
-			partials.Alert(partials.MsgBadInput(), nil),
+			partials.Alert(partials.MsgBadInput()),
 		),
 	)
 }
@@ -214,7 +214,7 @@ func RespForbidden() *models.Response {
 	return models.NewResponse(
 		models.WithResponseStatusCode(http.StatusForbidden),
 		models.WithResponseTemplate(
-			partials.Alert(partials.MsgBadInput(), nil),
+			partials.Alert(partials.MsgBadInput()),
 		),
 	)
 }

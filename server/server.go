@@ -141,7 +141,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Route("/user", func(r chi.Router) {
 			r.Route("/subscription", func(r chi.Router) {
 				r.Get("/new", handlers.NewSubscription())
-				r.Put("/new", handler.AddSubscription())
+				r.Post("/new", handler.AddSubscription())
 				r.Get("/edit/{subscription}", handler.EditSubscription())
 				r.Put("/edit/{subscription}", handler.SaveSubscription())
 			})

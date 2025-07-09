@@ -281,7 +281,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 func NewSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewSubscriptionModal(&models.SubscriptionRequest{}, nil)),
+			models.WithResponseTemplate(views.NewSubscriptionModal(&models.SubscriptionRequest{})),
 		)
 		alice.New(
 			RouteLogger,
@@ -324,9 +324,9 @@ func (a *API) AddSubscription() http.HandlerFunc {
 		}
 		// Display the modal with the request results shown.
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewSubscriptionModal(&models.SubscriptionRequest{}, requests[request])),
+			models.WithResponseTemplate(views.SubscriptionAddedModal(requests[request])),
 		)
-		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		chain.Append(TriggerStateUpdates).Then(RenderTemplate(resp)).ServeHTTP(res, req)
 	}
 }
 

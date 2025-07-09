@@ -30,7 +30,7 @@ templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []mode
 	).Show() {
 		@text.Build("Edit Subscription", text.WithSize(text.LG)).Show()
 		if msg != nil {
-			@partials.Alert(msg, nil)
+			@partials.Alert(msg)
 		}
 		// Display the Subscription details.
 		@form.Build(
@@ -81,32 +81,17 @@ templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []mode
 }
 
 // NewSubscriptionModal will display a modal for the user to enter new Subscription details.
-templ NewSubscriptionModal(request *models.SubscriptionRequest, result *models.UserMessage) {
+templ NewSubscriptionModal(request *models.SubscriptionRequest) {
 	@modal.Build(
 		modal.WithID(partials.ModalID.String()),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
-		modal.WithExtraAttributes(templ.Attributes{
-			"hx-target-error": "#modal-errors",
-		}),
 	).Show() {
 		@text.Build("Add a new subscription", text.WithSize(text.LG)).Show()
-		<div id="modal-errors">
-			if result != nil {
-				@partials.Alert(result, nil)
-			}
-		</div>
+		<div id="modal-errors"></div>
 		// Display the Subscription details.
 		@form.Build(
 			form.WithID("subscription_details"),
-			form.WithExtraAttributes(
-				templ.Attributes{
-					"hx-put":       "/user/subscription/new",
-					"hx-target":    partials.ModalID.Target(),
-					"hx-swap":      "outerHTML",
-					"hx-indicator": "#add-processing",
-				},
-			),
 			form.WithElements(
 				fieldset.Build(
 					fieldset.WithLegend("Subscription details:"),
@@ -138,7 +123,11 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest, result *models.U
 				button.Build(
 					button.WithContent("Make it so!"),
 					button.WithExtraAttributes(templ.Attributes{
-						"form": "subscription_details",
+						"form":      "subscription_details",
+						"hx-post":   "/user/subscription/new",
+						"hx-target": partials.ModalID.Target(),
+						// "hx-swap":      "outerHTML",
+						"hx-indicator": "#add-processing",
 					})),
 			),
 		).Show()
@@ -146,6 +135,31 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest, result *models.U
 			Adding
 			@loading.Build(loading.Infinity).Show()
 		</center>
+	}
+}
+
+templ SubscriptionAddedModal(msg *models.UserMessage) {
+	@modal.Build(
+		modal.WithID(partials.ModalID.String()),
+		modal.WithCloseButton(),
+		modal.WithCloseOutside(),
+	).Show() {
+		<h3 class="text-lg font-bold">{ msg.Summary }</h3>
+		if msg.HasDetails() {
+			<p class="py-4">{ *msg.Details }</p>
+		}
+		<div class="modal-action">
+			<form method="dialog">
+				@partials.NewAction("/user/subscription/new",
+					partials.ActionAsButton(),
+					partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+					partials.ActionTarget(partials.ModalContainerID.Target()),
+				) {
+					Add another
+				}
+				<button class="btn" _="on click send removeModal">Close</button>
+			</form>
+		</div>
 	}
 }
 
