@@ -106,7 +106,7 @@ func migrateSubscriptions(ctx context.Context, api *typedapi.API, destructive bo
 	slogctx.FromCtx(ctx).Debug("Migrating subscriptions...")
 
 	if err := elastic.PutComponentTemplate(ctx, api, SubscriptionsSchemaPrefix, NewComponentTemplateRequest(subscriptionsTemplate())); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
+		return fmt.Errorf("unable to migrate subscriptions: %w", err)
 	}
 
 	if err := elastic.PutIndexTemplate(ctx, api, SubscriptionsSchemaPrefix,
@@ -115,7 +115,7 @@ func migrateSubscriptions(ctx context.Context, api *typedapi.API, destructive bo
 			WithComponentTemplates(SubscriptionsSchemaPrefix),
 		),
 	); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
+		return fmt.Errorf("unable to migrate subscriptions: %w", err)
 	}
 
 	index := SubscriptionsSchemaPrefix + "_" + config.Environment()
@@ -128,13 +128,13 @@ func migrateSubscriptions(ctx context.Context, api *typedapi.API, destructive bo
 	// Make sure the index doesn't exist before continuing.
 	found, err := api.Indices.Exists(index).Do(ctx)
 	if err != nil {
-		return errors.Join(ErrMigrationFailed, err)
+		return fmt.Errorf("unable to migrate subscriptions: %w", err)
 	}
 	// Create a job queue index if not found.
 	if !found {
 		_, err = elastic.NewIndexRequest(api, index).Do(ctx)
 		if err != nil {
-			return errors.Join(ErrMigrationFailed, err)
+			return fmt.Errorf("unable to migrate subscriptions: %w", err)
 		}
 	}
 

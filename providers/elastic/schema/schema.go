@@ -144,7 +144,7 @@ func subscriptionsMappings() map[string]types.Property {
 		"updated_at":      types.NewDateNanosProperty(),
 		"read":            types.NewBooleanProperty(),
 		"starred":         types.NewBooleanProperty(),
-		"customisations": types.ObjectProperty{
+		"customisation": types.ObjectProperty{
 			Properties: map[string]types.Property{
 				"categories": shortTextFieldProperty(),
 				"title":      shortTextFieldProperty(),
