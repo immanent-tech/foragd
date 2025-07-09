@@ -216,7 +216,7 @@ type SubscriptionRequest struct {
 	URL string `form:"url" json:"URL" validate:"required,url"`
 
 	// Categories a list  custom categories for the subscription. Combined with the feed's own categories.
-	Categories []Category `form:"user_categories[]" json:"categories,omitempty"`
+	Categories []Category `form:"user_categories" json:"categories,omitempty"`
 
 	// Nickname a custom name for the subscription. Overrides the feed name.
 	Nickname *string `form:"user_nickname" json:"nickname,omitempty"`

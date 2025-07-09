@@ -14,7 +14,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
@@ -520,7 +519,6 @@ func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index str
 		WithIndex[*mget.Mget, MgetRequest](index),
 		WithIDs[*mget.Mget, MgetRequest](docIDs...),
 	).Do(ctx)
-	spew.Dump(err)
 	if err != nil {
 		return nil, fmt.Errorf("get docs failed: %w", err)
 	}

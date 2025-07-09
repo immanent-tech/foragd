@@ -91,7 +91,7 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest) {
 		<div id="modal-errors"></div>
 		// Display the Subscription details.
 		@form.Build(
-			form.WithID("subscription_details"),
+			form.WithID("subscription-details"),
 			form.WithElements(
 				fieldset.Build(
 					fieldset.WithLegend("Subscription details:"),
@@ -121,14 +121,15 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest) {
 		@fieldset.Build(
 			fieldset.WithField("",
 				button.Build(
+					button.WithSize(button.SM),
 					button.WithContent("Make it so!"),
 					button.WithExtraAttributes(templ.Attributes{
-						"form":      "subscription_details",
-						"hx-post":   "/user/subscription/new",
-						"hx-target": partials.ModalID.Target(),
-						// "hx-swap":      "outerHTML",
+						"form":         "subscription-details",
+						"hx-post":      "/user/subscription/new",
+						"hx-target":    partials.ModalID.Target(),
 						"hx-indicator": "#add-processing",
-					})),
+					}),
+				),
 			),
 		).Show()
 		<center id="add-processing" class="htmx-indicator">
@@ -157,7 +158,7 @@ templ SubscriptionAddedModal(msg *models.UserMessage) {
 				) {
 					Add another
 				}
-				<button class="btn" _="on click send removeModal">Close</button>
+				<button class="btn btn-sm" _="on click send removeModal">Close</button>
 			</form>
 		</div>
 	}
@@ -203,7 +204,7 @@ templ editCategories(existing []models.Category, suggested []models.Category) {
 			on newCategory(category, formTarget)
 			  make a <input/>
 			  set its type to 'hidden'
-			  set its name to 'user_categories[]'
+			  set its name to 'user_categories'
 			  set its value to category
 			  set its id to category
 			  set its @form to formTarget

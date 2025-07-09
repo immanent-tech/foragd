@@ -648,7 +648,7 @@ func (r newSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 	states := make(models.SubscriptionStates, 0, len(newSubscriptions))
 	for request, feed := range newSubscriptions {
 		// Create subscription state.
-		state := models.NewSubscriptionState(user.GetID(), feed.GetID())
+		state := models.NewSubscriptionState(user.GetID(), feed, request)
 		states = append(states, state)
 		// Add subscription details to user object.
 		user.AddSubscription(state.SubscriptionID, state.FeedID)
@@ -659,8 +659,6 @@ func (r newSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 			Details: &details,
 		}
 	}
-	spew.Dump(states, user)
-	return nil
 	// Add the subscription states.
 	if err := api.addSubscriptionStates(ctx, states); err != nil {
 		return fmt.Errorf("createNewSubscriptions: %w", err)

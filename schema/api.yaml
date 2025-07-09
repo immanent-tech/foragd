@@ -220,7 +220,7 @@ components:
             $ref: 'models.yaml#/components/schemas/Category'
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
-            form: 'user_categories[]'
+            form: 'user_categories'
     MarkSubscriptionsRequest:
       description: >
         represents a user request for marking a subscription or collection of subscriptions as read or unread.
