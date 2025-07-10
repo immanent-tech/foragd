@@ -10,6 +10,12 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+)
+
+const (
+	DisplayActionAsLink DisplayType = iota
+	DisplayActionAsButton
 )
 
 const (
@@ -21,25 +27,26 @@ const (
 	AttrHXPost    = "hx-post"
 	AttrHXGet     = "hx-get"
 	AttrHXPut     = "hx-put"
-
-	DisplayAsButton DisplayType = iota
 )
 
 type DisplayType int
 
 type Action struct {
-	Path       string            `json:"path"`
-	Method     string            `json:"method"`
-	Vars       map[string]string `json:"vars"`
-	display    DisplayType
-	sync.Mutex `json:"-"`
+	Path          string            `json:"path"`
+	Method        string            `json:"method"`
+	Vars          map[string]string `json:"vars"`
+	display       DisplayType
+	buttonOptions []button.Option
+	linkOptions   []link.Option
+	sync.Mutex    `json:"-"`
 }
 
-func NewAction(path string, options ...ActionOption) *Action {
+func NewAction(path string, display DisplayType, options ...ActionOption) *Action {
 	link := &Action{
-		Path:   path,
-		Method: http.MethodGet,
-		Vars:   make(map[string]string),
+		Path:    path,
+		Method:  http.MethodGet,
+		Vars:    make(map[string]string),
+		display: display,
 	}
 	// Set default variables.
 	link.setVar(AttrHXTarget, ContentID.Target())
@@ -77,9 +84,15 @@ func ActionPushURL() ActionOption {
 	}
 }
 
-func ActionAsButton(options ...button.Option) ActionOption {
+func ActionButtonOptions(options ...button.Option) ActionOption {
 	return func(a *Action) {
-		a.display = DisplayAsButton
+		a.buttonOptions = options
+	}
+}
+
+func ActionLinkOptions(options ...link.Option) ActionOption {
+	return func(a *Action) {
+		a.linkOptions = options
 	}
 }
 

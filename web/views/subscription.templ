@@ -151,8 +151,7 @@ templ SubscriptionAddedModal(msg *models.UserMessage) {
 		}
 		<div class="modal-action">
 			<form method="dialog">
-				@partials.NewAction("/user/subscription/new",
-					partials.ActionAsButton(),
+				@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
 					partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 					partials.ActionTarget(partials.ModalContainerID.Target()),
 				) {

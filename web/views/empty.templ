@@ -32,21 +32,18 @@ templ EmptyContent() {
 				).Show() {
 					<p>Something else?</p>
 					<div class="flex gap-2">
-						@partials.NewAction("/home",
+						@partials.NewAction("/home", partials.DisplayActionAsButton,
 							partials.ActionPushURL(),
-							partials.ActionAsButton(),
 						) {
 							Home
 						}
-						@partials.NewAction("/user/subscription/new",
-							partials.ActionAsButton(),
+						@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
 							partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 							partials.ActionTarget(partials.ModalContainerID.Target()),
 						) {
 							New Subscription
 						}
-						@partials.NewAction("/user/subscription/new",
-							partials.ActionAsButton(),
+						@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
 							partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 						) {
 							Import Subscriptions

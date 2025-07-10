@@ -125,15 +125,13 @@ templ EmptyHome() {
 							<p class="py-6">
 								There does not seem to be anything to show you. Maybe you should try one of the following:
 							</p>
-							@partials.NewAction("/user/subscription/new",
-								partials.ActionAsButton(),
+							@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
 								partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 								partials.ActionTarget(partials.ModalContainerID.Target()),
 							) {
 								New Subscription
 							}
-							@partials.NewAction("/user/subscription/new",
-								partials.ActionAsButton(),
+							@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
 								partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 							) {
 								Import Subscriptions

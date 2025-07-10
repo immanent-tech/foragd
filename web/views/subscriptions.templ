@@ -70,11 +70,15 @@ templ (page *SubscriptionsPage) Content() {
 				<li>
 					switch page.filters.GetView() {
 						case models.ViewUnread:
-							@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead),
+							@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead), partials.DisplayActionAsLink,
 								partials.ActionMethod(http.MethodPost),
 								partials.ActionValues(map[string]string{
 									"redirect": "/home",
 								}),
+								partials.ActionLinkOptions(
+									link.WithUnderlineOnHover(),
+									link.WithClasses("text-xs"),
+								),
 							) {
 								<div class="flex gap-2">
 									@tabler.Bookmark(i.Props{Size: i.SizeXS})
@@ -84,11 +88,15 @@ templ (page *SubscriptionsPage) Content() {
 						case models.ViewRead:
 							fallthrough
 						default:
-							@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread),
+							@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
 								partials.ActionMethod(http.MethodPost),
 								partials.ActionValues(map[string]string{
 									"redirect": "/home",
 								}),
+								partials.ActionLinkOptions(
+									link.WithUnderlineOnHover(),
+									link.WithClasses("text-xs"),
+								),
 							) {
 								<div class="flex gap-2">
 									@tabler.Bookmark(i.Props{Size: i.SizeXS})
@@ -185,7 +193,7 @@ templ (c *Subscription) Mark() {
 
 // Edit is the action for editing a subscription.
 templ (c *Subscription) favouriteLink() {
-	@partials.NewAction("/user/favourite/subscription/"+c.GetID(),
+	@partials.NewAction("/user/favourite/subscription/"+c.GetID(), partials.DisplayActionAsLink,
 		partials.ActionMethod(http.MethodPut),
 		partials.ActionSwap("none"),
 	) {
@@ -198,7 +206,7 @@ templ (c *Subscription) favouriteLink() {
 
 // Edit is the action for editing a subscription.
 templ (c *Subscription) Edit() {
-	@partials.NewAction("/user/subscription/edit/"+c.GetID(),
+	@partials.NewAction("/user/subscription/edit/"+c.GetID(), partials.DisplayActionAsLink,
 		partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 		partials.ActionTarget(partials.ModalContainerID.Target()),
 	) {
@@ -211,7 +219,7 @@ templ (c *Subscription) Edit() {
 
 // Unsubscribe is the action for unsubscribing from a subscription.
 templ (c *Subscription) Unsubscribe() {
-	@partials.NewAction("/subscriptions/remove",
+	@partials.NewAction("/subscriptions/remove", partials.DisplayActionAsLink,
 		partials.ActionMethod(http.MethodPost),
 		partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 		partials.ActionTarget(partials.ModalContainerID.Target()),

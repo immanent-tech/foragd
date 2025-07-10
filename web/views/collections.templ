@@ -73,7 +73,7 @@ type Filter struct {
 
 templ (filter *Filter) AsLink() {
 	if filter.active {
-		@partials.NewAction(filter.route,
+		@partials.NewAction(filter.route, partials.DisplayActionAsLink,
 			partials.ActionPushURL(),
 			partials.ActionValues(map[string]string{filter.name: filter.value}),
 			partials.ActionParams("not "+models.ParamCategories),
@@ -95,7 +95,7 @@ templ (filter *Filter) AsLink() {
 		// 	}),
 		// ).Show()
 	} else {
-		@partials.NewAction(filter.route,
+		@partials.NewAction(filter.route, partials.DisplayActionAsLink,
 			partials.ActionPushURL(),
 			partials.ActionValues(map[string]string{filter.name: filter.value}),
 			partials.ActionParams("not "+models.ParamCategories),
@@ -260,7 +260,7 @@ templ (option *SortOption) Show() {
 
 templ (option *SortOption) AsLink() {
 	if option.active {
-		@partials.NewAction(option.route,
+		@partials.NewAction(option.route, partials.DisplayActionAsLink,
 			partials.ActionPushURL(),
 			partials.ActionValues(map[string]string{
 				models.ParamSortBy:    string(option.value.SortBy),
@@ -284,7 +284,7 @@ templ (option *SortOption) AsLink() {
 		// 	}),
 		// ).Show()
 	} else {
-		@partials.NewAction(option.route,
+		@partials.NewAction(option.route, partials.DisplayActionAsLink,
 			partials.ActionPushURL(),
 			partials.ActionValues(map[string]string{
 				models.ParamSortBy:    string(option.value.SortBy),

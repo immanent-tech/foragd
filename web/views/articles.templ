@@ -63,7 +63,7 @@ templ (page *ArticlesPage) Content() {
 				<li>
 					switch page.filters.GetView() {
 						case models.ViewUnread:
-							@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead),
+							@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead), partials.DisplayActionAsLink,
 								partials.ActionMethod(http.MethodPost),
 								partials.ActionValues(map[string]string{
 									models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),
@@ -78,7 +78,7 @@ templ (page *ArticlesPage) Content() {
 						case models.ViewRead:
 							fallthrough
 						default:
-							@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread),
+							@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
 								partials.ActionMethod(http.MethodPost),
 								partials.ActionValues(map[string]string{
 									models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),

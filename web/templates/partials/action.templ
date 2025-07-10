@@ -11,27 +11,22 @@ import (
 )
 
 templ (a *Action) link() {
-	@link.Build(
-		link.WithUnderlineOnHover(),
-		link.WithAttributes(a.generateAttrs()),
-		link.WithClasses("text-xs"),
-	) {
+	{{ a.linkOptions = append(a.linkOptions, link.WithAttributes(a.generateAttrs())) }}
+	@link.Build(a.linkOptions...) {
 		{ children... }
 	}
 }
 
 templ (a *Action) button() {
-	@button.Build(
-		button.WithSize(button.SM),
-		button.WithExtraAttributes(a.generateAttrs()),
-	).Show() {
+	{{ a.buttonOptions = append(a.buttonOptions, button.WithExtraAttributes(a.generateAttrs())) }}
+	@button.Build(a.buttonOptions...).Show() {
 		{ children... }
 	}
 }
 
 func (l *Action) Render(ctx context.Context, w io.Writer) error {
 	switch l.display {
-	case DisplayAsButton:
+	case DisplayActionAsButton:
 		return l.button().Render(ctx, w)
 	default:
 		return l.link().Render(ctx, w)
