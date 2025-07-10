@@ -60,7 +60,7 @@ func ExtractSourceFromDocs[T any](docs []types.MgetResponseItem) ([]T, error) {
 
 	for doc := range slices.Values(docs) {
 		switch obj := doc.(type) {
-		case types.MultiGetError:
+		case *types.MultiGetError:
 			warnings = errors.Join(warnings, formatError(obj.Error))
 		case *types.GetResult:
 			if !obj.Found {

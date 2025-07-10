@@ -438,7 +438,7 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	for feed := range slices.Values(feeds) {
 		var state *models.SubscriptionState
 		var count int
-		if state := states.GetByFeedID(feed.GetID()); state == nil {
+		if state = states.GetByFeedID(feed.GetID()); state == nil {
 			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved feed.",
 				slog.String("feed_id", feed.GetID()),
 			)
@@ -665,7 +665,7 @@ func (r newSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 	}
 	// Update the user object.
 	resp := api.updateUser(ctx, map[string]any{
-		"subscriptions": slices.Collect(maps.Values(newSubscriptions)),
+		"subscriptions": user.Subscriptions,
 	})
 	if resp != nil {
 		return fmt.Errorf("createNewSubscriptions: %w", resp.InternalError)

@@ -80,15 +80,15 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 			slog.String("body", buf.String()))
 	}
 
-	// // response body
-	// if (logging.Level == logging.LevelTrace || l.ResponseBodyEnabled()) && res != nil && res.Body != nil && res.Body != http.NoBody {
-	// 	defer res.Body.Close() //nolint:errcheck
-	// 	var buf bytes.Buffer
-	// 	buf.ReadFrom(res.Body) //nolint:errcheck
-	// 	responseAttributes = append(responseAttributes,
-	// 		slog.Int("length", int(res.ContentLength)),
-	// 		slog.String("body", buf.String()))
-	// }
+	// response body
+	if (logging.Level == logging.LevelTrace || l.ResponseBodyEnabled()) && res != nil && res.Body != nil && res.Body != http.NoBody {
+		defer res.Body.Close() //nolint:errcheck
+		var buf bytes.Buffer
+		buf.ReadFrom(res.Body) //nolint:errcheck
+		responseAttributes = append(responseAttributes,
+			slog.Int("length", int(res.ContentLength)),
+			slog.String("body", buf.String()))
+	}
 
 	attributes := append(
 		[]slog.Attr{

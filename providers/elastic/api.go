@@ -165,7 +165,7 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 	if index == "" {
 		return nil, ErrFetchCtx
 	}
-	return BulkAdd[models.ItemID, *models.Item](ctx, e, index, items...)
+	return BulkAdd(ctx, e, index, items...)
 }
 
 // // SearchSubscriptionCustomisations will search the feeds index for feed matching the given query. Count, sort and

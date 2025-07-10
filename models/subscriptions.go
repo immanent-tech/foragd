@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/joshuar/go-syndication/types"
 
 	"github.com/joshuar/go-feed-me/validation"
@@ -424,6 +425,7 @@ func (s SubscriptionStates) GetByFeedID(id FeedID) *SubscriptionState {
 	if idx := slices.IndexFunc(s, func(e *SubscriptionState) bool {
 		return e.GetFeedID() == id
 	}); idx != -1 {
+		spew.Dump(s[idx])
 		return s[idx]
 	}
 	return nil

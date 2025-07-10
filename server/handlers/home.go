@@ -69,7 +69,7 @@ func (a *API) getHomePageData(ctx context.Context) (templ.Component, *models.Res
 	}
 	// User has no subscriptions, show empty page
 	if len(user.GetSubscriptionsByID()) == 0 {
-		return views.EmptyContent(), nil
+		return views.EmptyHome(), nil
 	}
 
 	data := &views.HomePage{}
