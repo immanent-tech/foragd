@@ -218,3 +218,15 @@ func RespForbidden() *models.Response {
 		),
 	)
 }
+
+func NotFound() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		resp := models.NewResponse(
+			models.WithResponseTemplate(templates.NotFound()),
+			models.WithResponseStatusCode(http.StatusNotFound),
+		)
+		alice.New(
+			RouteLogger,
+		).Then(RenderTemplate(resp)).ServeHTTP(res, req)
+	}
+}

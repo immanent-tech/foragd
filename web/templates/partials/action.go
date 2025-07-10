@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/a-h/templ"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 )
 
 const (
@@ -74,7 +75,7 @@ func ActionPushURL() ActionOption {
 	}
 }
 
-func ActionAsButton() ActionOption {
+func ActionAsButton(options ...button.Option) ActionOption {
 	return func(a *Action) {
 		a.display = DisplayAsButton
 	}

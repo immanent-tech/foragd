@@ -103,6 +103,13 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 	router.Group(func(r chi.Router) {
 		r.Handle("/static/*", gowebly.StaticFileServerHandler(http.FS(s.static)))
 	})
+	// Error handling.
+	router.NotFound(handlers.NotFound())
+	router.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(405)
+		w.Write([]byte("method is not valid"))
+	})
+
 	// Front page.
 	router.Get("/", handlers.Index())
 	// Access routes.
