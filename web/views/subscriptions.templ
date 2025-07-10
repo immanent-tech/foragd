@@ -33,7 +33,7 @@ templ (page *SubscriptionsPage) Show() {
 	@templates.NewPage("Subscriptions") {
 		@layouts.Drawer() {
 			@partials.Fragment("content-header") {
-				@Header()
+				@layouts.Header()
 			}
 			@partials.Fragment("content") {
 				@partials.Content() {

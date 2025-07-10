@@ -3,54 +3,7 @@
 
 package views
 
-import (
-	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/input/form"
-	"github.com/joshuar/go-templ-daisyui/input/textinput"
-	"github.com/joshuar/go-templ-daisyui/layout/join"
-	"github.com/sebasvil20/templicons/tabler"
-	"slices"
-)
-
-templ SearchForm() {
-	<div class="dropdown">
-		@form.Build(
-			form.WithExtraAttributes(templ.Attributes{
-				"hx-post":     "/search/results",
-				"hx-target":   partials.ContentID.Target(),
-				"hx-push-url": "true",
-			}),
-		).Show() {
-			@join.Horizontally() {
-				@textinput.Build(
-					textinput.WithID("search"),
-					textinput.WithName("text"),
-					textinput.WithPlaceholder("Search anything..."),
-					textinput.WithExtraAttributes(templ.Attributes{
-						"hx-post":      "/search",
-						"hx-trigger":   "input changed delay:500ms",
-						"hx-target":    "#search-suggestions",
-						"hx-indicator": ".htmx-indicator",
-						"tabindex":     0,
-						"hx-push-url":  "false",
-					}),
-					textinput.WithExtraClasses("join-item"),
-				).Show()
-				@button.Build(
-					button.AsSubmit(),
-					button.WithContent(tabler.Search()),
-					button.WithExtraAttributes(templ.Attributes{
-						"tabindex":   1,
-						"hx-trigger": "keyup[key=='Enter']",
-					}),
-					button.WithExtraClasses("join-item"),
-				).Show()
-			}
-		}
-		<div id="search-suggestions"></div>
-	</div>
-}
+import "slices"
 
 templ SearchSuggestions(suggestions ...templ.Component) {
 	<ul class="list dropdown-content self-start bg-base-200 w-screen lg:w-full rounded-box shadow-md" tabindex="3">

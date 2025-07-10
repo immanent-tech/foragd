@@ -7,6 +7,7 @@ import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/attributes"
@@ -34,7 +35,7 @@ templ (s *ArticlesPage) render() {
 			@partials.DrawerContent() {
 				// Fragment: content header
 				@partials.Fragment("content-header") {
-					@Header()
+					@layouts.Header()
 				}
 				@partials.Content() {
 					// Fragment: content filters

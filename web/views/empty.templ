@@ -17,7 +17,7 @@ templ EmptyContent() {
 	@layouts.Drawer() {
 		// Fragment: content header
 		@partials.Fragment("content-header") {
-			@Header()
+			@layouts.Header()
 		}
 		@partials.Fragment("content") {
 			@partials.Content() {

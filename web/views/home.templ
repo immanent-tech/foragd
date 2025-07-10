@@ -20,11 +20,12 @@ templ (page *HomePage) template() {
 	@layouts.Drawer() {
 		// Fragment: content header
 		@partials.Fragment("content-header") {
-			@Header()
+			@layouts.Header()
 		}
 		@partials.Fragment("content") {
 			@partials.Content() {
 				<div class="grid justify-center">
+					// <relative-time prefix="" tense="past" datetime="2025-07-07T08:33:09+10:00" data-tooltip-content="Jul 7, 2025, 8:33 AM GMT+10" data-tooltip-interactive="true" title="">2025-07-07 08:33:09 +10:00</relative-time>
 					<div class="stats shadow">
 						@link.Build(
 							link.WithUnderlineOnHover(),
@@ -103,7 +104,7 @@ templ EmptyHome() {
 	@layouts.Drawer() {
 		// Fragment: content header
 		@partials.Fragment("content-header") {
-			@Header()
+			@layouts.Header()
 		}
 		@partials.Fragment("content") {
 			@partials.Content() {

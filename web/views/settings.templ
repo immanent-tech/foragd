@@ -5,6 +5,7 @@ package views
 
 import (
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
@@ -14,7 +15,7 @@ templ (page SettingsPage) Show() {
 			@partials.DrawerContent() {
 				// Fragment: content header
 				@partials.Fragment("content-header") {
-					@Header()
+					@layouts.Header()
 				}
 				@partials.Fragment("content") {
 					@partials.Content() {

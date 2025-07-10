@@ -1,0 +1,87 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package layouts
+
+import (
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/joshuar/go-templ-daisyui/navigation/navbar"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+)
+
+var HeaderID = attributes.ID("header")
+
+templ Header() {
+	@navbar.Build(navbar.WithID(HeaderID.String()),
+		navbar.WithAttributes(templ.Attributes{
+			"hx-swap-oob": "true",
+		}),
+		navbar.WithClasses("bg-base-200"),
+	) {
+		@navbar.Start() {
+			<label for="body-drawer" class="btn btn-square drawer-button">
+				@tabler.Menu()
+			</label>
+		}
+		@navbar.Center() {
+			@SearchForm()
+		}
+		@navbar.End() {
+			@dropdown.Build(
+				dropdown.WithButtonContent(tabler.User()),
+				dropdown.WithOpenAlignment(dropdown.AlignEnd),
+				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+			).Show() {
+				<li>
+					@partials.NewAction("/user/subscription/new",
+						partials.ActionTarget(partials.ContentID.Target()),
+						partials.ActionPushURL(),
+						partials.ActionHyperScript("on click call document.activeElement.blur()"),
+					) {
+						<div class="flex gap-2">
+							@tabler.Settings(i.Props{Size: i.SizeXS})
+							Settings
+						</div>
+					}
+				</li>
+				<li>
+					@partials.NewAction("/user/subscription/new",
+						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+						partials.ActionTarget(partials.ModalContainerID.Target()),
+					) {
+						<div class="flex gap-2">
+							@tabler.FilePlus(i.Props{Size: i.SizeXS})
+							Add Subscription
+						</div>
+					}
+				</li>
+				<li>
+					@partials.NewAction("/user/subscription/import",
+						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+					) {
+						<div class="flex gap-2">
+							@tabler.FileImport(i.Props{Size: i.SizeXS})
+							Import Subscriptions
+						</div>
+					}
+				</li>
+				<li>
+					@link.Build(
+						link.WithUnderlineOnHover(),
+						link.WithExtraAttributes(templ.Attributes{"href": "/logout"}),
+						link.WithExtraClasses("text-xs"),
+					).Show() {
+						<div class="flex gap-2">
+							@tabler.Logout(i.Props{Size: i.SizeXS})
+							Logout
+						</div>
+					}
+				</li>
+			}
+		}
+	}
+}
