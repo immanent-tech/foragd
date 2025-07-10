@@ -11,6 +11,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
@@ -61,9 +62,42 @@ templ (page *SubscriptionsPage) Content() {
 			@RefreshAction("/subscriptions", page.filters.Parameters())
 			@UpdateSorting("/subscriptions", page.filters.GetSort())
 			@UpdateFilters(page.categories, "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
-			@CollectionActionsMenu(
-				markAllSubscriptionsAction(page.filters.GetView()),
-			)
+			@dropdown.Build(
+				dropdown.WithButtonContent(tabler.DotsVertical()),
+				dropdown.WithOpenAlignment(dropdown.AlignEnd),
+				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+			).Show() {
+				<li>
+					switch page.filters.GetView() {
+						case models.ViewUnread:
+							@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead),
+								partials.ActionMethod(http.MethodPost),
+								partials.ActionValues(map[string]string{
+									"redirect": "/home",
+								}),
+							) {
+								<div class="flex gap-2">
+									@tabler.Bookmark(i.Props{Size: i.SizeXS})
+									Mark Read
+								</div>
+							}
+						case models.ViewRead:
+							fallthrough
+						default:
+							@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread),
+								partials.ActionMethod(http.MethodPost),
+								partials.ActionValues(map[string]string{
+									"redirect": "/home",
+								}),
+							) {
+								<div class="flex gap-2">
+									@tabler.Bookmark(i.Props{Size: i.SizeXS})
+									Mark Read
+								</div>
+							}
+					}
+				</li>
+			}
 		</div>
 	</div>
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
@@ -122,7 +156,7 @@ templ (c *Subscription) Visit() {
 		link.WithUnderlineOnHover(),
 		link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
 		link.WithClasses("text-xs"),
-	).Show() {
+	) {
 		<div class="flex gap-2">
 			@tabler.ExternalLink(i.Props{Size: i.SizeXS})
 			Feed Website
@@ -198,7 +232,7 @@ templ (c *Subscription) Summary() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
 		link.WithAttributes(c.viewAttributes()),
-	).Show() {
+	) {
 		<div class="flex flex-row gap-2">
 			// Generate a thumbnail to display next to the title.
 			if c.GetImage() != nil {
@@ -240,7 +274,7 @@ templ (s *Subscription) State() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
 		link.WithAttributes(s.viewAttributes()),
-	).Show() {
+	) {
 		<div class="flex gap-2 w-full">
 			<div class="flex-1 text-sm content-center">
 				{ s.GetTitle() }

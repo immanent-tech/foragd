@@ -49,7 +49,7 @@ templ (c *Category) Badge() {
 			"hx-push-url": "true",
 			"hx-target":   partials.ContentID.Target(),
 		}),
-	).Show() {
+	) {
 		<div class="flex gap-2 w-full">
 			<div class="flex-1 text-sm capitalize content-center">
 				{ c.Label }

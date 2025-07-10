@@ -24,7 +24,7 @@ templ LinkMarkRead(text string, attributes templ.Attributes) {
 		link.WithUnderlineOnHover(),
 		link.WithAttributes(attributes),
 		link.WithClasses("text-xs"),
-	).Show() {
+	) {
 		<div class="flex gap-2">
 			@tabler.Bookmark(i.Props{Size: i.SizeXS})
 			{ text }
@@ -38,7 +38,7 @@ templ LinkMarkUnread(text string, attributes templ.Attributes) {
 		link.WithUnderlineOnHover(),
 		link.WithAttributes(attributes),
 		link.WithClasses("text-xs"),
-	).Show() {
+	) {
 		<div class="flex gap-2">
 			@tabler.BookmarkFilled(i.Props{Size: i.SizeXS})
 			{ text }

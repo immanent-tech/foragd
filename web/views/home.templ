@@ -44,7 +44,7 @@ templ (page *HomePage) Content() {
 					"hx-swap":     "innerHTML",
 					"hx-push-url": "true",
 				}),
-			).Show() {
+			) {
 				<div class="stat bg-base-300">
 					<div class="stat-figure">
 						@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
@@ -62,7 +62,7 @@ templ (page *HomePage) Content() {
 					"hx-swap":     "innerHTML",
 					"hx-push-url": "true",
 				}),
-			).Show() {
+			) {
 				<div class="stat bg-base-300">
 					<div class="stat-figure">
 						@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})

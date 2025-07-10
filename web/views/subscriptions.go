@@ -7,7 +7,6 @@ import (
 	"github.com/a-h/templ"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 type SubscriptionsPage struct {
@@ -21,28 +20,5 @@ func NewSubscriptionsPage(filters *models.SubscriptionFilters, categories models
 		cards:      cards,
 		filters:    filters,
 		categories: categories,
-	}
-}
-
-func markAllSubscriptionsAction(view models.View) templ.Component {
-	parameters := map[string]string{
-		"redirect": "/home",
-	}
-	// Create htmx attributes.
-	attrs := templ.Attributes{
-		"hx-target": partials.ContentID.Target(),
-		"hx-swap":   "innerHTML swap:1s",
-		"hx-vals":   partials.GenerateHXVals(parameters),
-	}
-
-	switch view {
-	case models.ViewUnread:
-		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkRead)
-		return partials.LinkMarkRead("Mark All Read", attrs)
-	case models.ViewRead:
-		fallthrough
-	default:
-		attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread)
-		return partials.LinkMarkUnread("Mark All Unread", attrs)
 	}
 }

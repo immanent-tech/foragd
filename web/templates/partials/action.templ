@@ -15,7 +15,7 @@ templ (a *Action) link() {
 		link.WithUnderlineOnHover(),
 		link.WithAttributes(a.generateAttrs()),
 		link.WithClasses("text-xs"),
-	).Show() {
+	) {
 		{ children... }
 	}
 }
