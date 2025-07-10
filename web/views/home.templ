@@ -98,3 +98,43 @@ templ (page *HomePage) template() {
 func (page *HomePage) Render(ctx context.Context, w io.Writer) error {
 	return page.template().Render(ctx, w)
 }
+
+templ EmptyHome() {
+	@layouts.Drawer() {
+		// Fragment: content header
+		@partials.Fragment("content-header") {
+			@Header()
+		}
+		@partials.Fragment("content") {
+			@partials.Content() {
+				<div class="hero bg-base-200 min-h-screen">
+					<div class="hero-content text-center">
+						<div class="max-w-md">
+							<h1 class="text-5xl font-bold">Welcome Home</h1>
+							<p class="py-6">
+								There does not seem to be anything to show you. Maybe you should try one of the following:
+							</p>
+							@partials.NewAction("/user/subscription/new",
+								partials.ActionAsButton(),
+								partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+								partials.ActionTarget(partials.ModalContainerID.Target()),
+							) {
+								New Subscription
+							}
+							@partials.NewAction("/user/subscription/new",
+								partials.ActionAsButton(),
+								partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+							) {
+								Import Subscriptions
+							}
+						</div>
+					</div>
+				</div>
+			}
+		}
+		// Fragment: content footer
+		@partials.Fragment("content-footer") {
+			@partials.Footer()
+		}
+	}
+}
