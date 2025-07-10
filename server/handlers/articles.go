@@ -13,8 +13,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -24,7 +22,6 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
@@ -51,57 +48,10 @@ func (a *API) GetArticles() http.HandlerFunc {
 		}
 		// Generate articles page.
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewArticlesPage(articles, filters, pagination)),
+			models.WithResponseTemplate(views.NewArticlesPage(articles, filters, pagination).Template(req)),
 		)
-		// Render fragments/page.
-		switch htmx.IsHTMX(req) {
-		case true:
-			chain.Then(RenderTemplateFragments(resp, "content-header", "content", "content-footer")).ServeHTTP(res, req)
-		case false:
-			chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
-		}
-	}
-}
 
-// PaginateArticles handles showing the next set of articles in a filtered collection.
-func (a *API) PaginateArticles() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			RouteLogger,
-		)
-		// Extract filters from request.
-		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
-		if err != nil || !valid {
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
-		}
-		// Save the filters to the session.
-		chain = chain.Append(SavePageState(filters))
-		// Get articles matching filters.
-		articles, pagination, err := a.filterArticles(req.Context(), filters)
-		if err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
-			return
-		}
-		// Generate article cards.
-		cards := make([]templ.Component, 0, len(articles))
-		for article := range slices.Values(articles) {
-			cards = append(cards, views.NewArticleContent(article).ShowAsCard())
-		}
-		// Add pagination element if pagination is required.
-		if pagination != "" && len(cards) == filters.GetCount() {
-			// Add pagination htmx props to last article.
-			cards = append(cards, content.PaginationControl(req.Context(), "/articles", pagination))
-		}
-		resp := models.NewResponse(
-			models.WithResponseTemplate(templ.Join(cards...)),
-		)
-		// Set up handler chain and render cards.
-		alice.New(
-			RouteLogger,
-			SavePageState(filters),
-		).Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
 	}
 }
 

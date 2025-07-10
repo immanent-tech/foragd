@@ -17,9 +17,6 @@ var HeaderID = attributes.ID("header")
 
 templ Header() {
 	@navbar.Build(navbar.WithID(HeaderID.String()),
-		navbar.WithAttributes(templ.Attributes{
-			"hx-swap-oob": "true",
-		}),
 		navbar.WithClasses("bg-base-200"),
 	) {
 		@navbar.Start() {

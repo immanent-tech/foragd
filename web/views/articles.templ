@@ -4,7 +4,7 @@
 package views
 
 import (
-	"context"
+	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
@@ -25,71 +25,74 @@ import (
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
-	"io"
+	"net/http"
 	"slices"
 )
 
-templ (s *ArticlesPage) render() {
-	@templates.NewPage("Articles") {
-		@partials.Drawer() {
-			@partials.DrawerContent() {
-				// Fragment: content header
-				@partials.Fragment("content-header") {
-					@layouts.Header()
-				}
-				@partials.Content() {
-					// Fragment: content filters
-					@partials.Fragment("content-filters") {
-						<div id="content-filters" class="hidden">
-							for name, value := range s.filters.Parameters() {
-								@hiddeninput.Build(
-									hiddeninput.WithName(name),
-									hiddeninput.WithValue(attributes.Value(value)),
-								).Show()
-							}
-						</div>
-					}
-					<div id="card-controls" class="flex flex-row m-2">
-						<div class="flex flex-row justify-end gap-2">
-							@RefreshAction("/articles", s.filters.Parameters())
-							@UpdateSorting("/articles", s.filters.GetSort())
-							@UpdateFilters(s.articles.GetCategoryCounts(), "/articles", s.filters.GetCategories(), s.filters.GetView())
-							@CollectionActionsMenu(
-								markAllArticles(s.filters.GetView(), s.articles.GetSubscriptionIDs()...),
-							)
-						</div>
-					</div>
-					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
-						if len(s.articles) > 0 {
-							// Fragment: cards
-							@partials.Fragment("cards") {
-								for cards := range slices.Values(s.generateCards(ctx)) {
-									@cards
-								}
-							}
-						} else {
-							@EmptyContent()
-						}
-					</div>
-					<div id="content-loading" class="items-center justify-center">
-						@loading.Build(loading.Bars,
-							loading.AsHTMXIndicator(),
-							loading.WithThemeColor(color.Accent),
-						).Show()
-					</div>
-				}
-				// Fragment: content footer
-				@partials.Fragment("content-footer") {
-					@partials.Footer()
-				}
-			}
-			@partials.DrawerSide()
+// Layout is the complete page layout for the subscriptions page.
+templ (page *ArticlesPage) Layout() {
+	@layouts.Drawer() {
+		@layouts.Header()
+		@partials.Content() {
+			@page.Content()
 		}
 	}
 }
 
-func (s *ArticlesPage) Render(ctx context.Context, w io.Writer) error {
-	return s.render().Render(ctx, w)
+templ (page *ArticlesPage) Content() {
+	<div id="content-filters" class="hidden">
+		for name, value := range page.filters.Parameters() {
+			@hiddeninput.Build(
+				hiddeninput.WithName(name),
+				hiddeninput.WithValue(attributes.Value(value)),
+			).Show()
+		}
+	</div>
+	<div id="card-controls" class="flex flex-row m-2">
+		<div class="flex flex-row justify-end gap-2">
+			@RefreshAction("/articles", page.filters.Parameters())
+			@UpdateSorting("/articles", page.filters.GetSort())
+			@UpdateFilters(page.articles.GetCategoryCounts(), "/articles", page.filters.GetCategories(), page.filters.GetView())
+			@CollectionActionsMenu(
+				markAllArticles(page.filters.GetView(), page.articles.GetSubscriptionIDs()...),
+			)
+		</div>
+	</div>
+	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
+		if len(page.articles) > 0 {
+			@page.Cards()
+		} else {
+			@EmptyContent()
+		}
+	</div>
+	<div id="content-loading" class="items-center justify-center">
+		@loading.Build(loading.Bars,
+			loading.AsHTMXIndicator(),
+			loading.WithThemeColor(color.Accent),
+		).Show()
+	</div>
+	@partials.Footer()
+}
+
+templ (page *ArticlesPage) Cards() {
+	// Fragment: cards
+	for cards := range slices.Values(page.generateCards(ctx)) {
+		@cards
+	}
+}
+
+// Template will render the home page based on the request details.
+func (page *ArticlesPage) Template(req *http.Request) templ.Component {
+	switch {
+	case req.Method == http.MethodPost:
+		return page.Cards()
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.Content()
+	default:
+		return templates.NewPage("Go Feed Me - Articles",
+			templates.WithBodyContent(page.Layout()),
+		)
+	}
 }
 
 type Article struct {

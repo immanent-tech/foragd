@@ -17,9 +17,6 @@ templ Footer(items ...templ.Component) {
 		dock.WithID(FooterID.String()),
 		dock.WithSize(dock.SM),
 		dock.WithClasses("bg-base-200"),
-		dock.WithAttributes(templ.Attributes{
-			"hx-swap-oob": "true",
-		}),
 	).Show() {
 		for item := range slices.Values(items) {
 			@item

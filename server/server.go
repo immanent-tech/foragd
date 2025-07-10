@@ -140,7 +140,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handler.RemoveSubscriptions())
 		// Article routes.
 		r.Get("/articles", handler.GetArticles())
-		r.With(middlewares.RequireHTMX).Post("/articles", handler.PaginateArticles())
+		r.With(middlewares.RequireHTMX).Post("/articles", handler.GetArticles())
 		r.With(middlewares.RequireHTMX).Post("/articles/mark/{mark}", handler.MarkArticles())
 		// Article route.
 		r.Get("/view/{subscription}/{item}", handler.ViewArticle())

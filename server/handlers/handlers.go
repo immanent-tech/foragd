@@ -70,6 +70,7 @@ func RenderTemplate(resp *models.Response) http.Handler {
 			// If there is no response, return 200: OK.
 			res.WriteHeader(http.StatusOK)
 			htmxResp.Write(res)
+			return
 		}
 		// Write the response status code.
 		res.WriteHeader(resp.StatusCode)

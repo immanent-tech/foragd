@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
@@ -61,7 +60,6 @@ func FiltersToSession(ctx context.Context, filters any) {
 	case *models.ArticleFilters:
 		key = articleFiltersSessionKey
 	default:
-		slogctx.FromCtx(ctx).Debug("No filters or indeterminate filter type. Not saving.")
 		return
 	}
 	Manager.Put(ctx, key, filters)

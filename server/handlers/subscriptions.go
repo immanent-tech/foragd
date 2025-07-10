@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/go-chi/chi/v5"
@@ -72,25 +71,14 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
 			}
 			// Generate page template.
-			template = views.NewSubscriptionsPage(filters, subscriptions.GetCategoryCounts(), cards...).Show()
+			template = views.NewSubscriptionsPage(filters, subscriptions.GetCategoryCounts(), cards...).Template(req)
 		}
 
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
 
-		// Display content based on request.
-		switch {
-		case req.Method == http.MethodPost:
-			// Pagination. Only render cards.
-			chain.Then(RenderTemplateFragments(resp, "cards")).ServeHTTP(res, req)
-		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			// Partial update. Only render fragments.
-			chain.Then(RenderTemplateFragments(resp, "content-header", "content", "content-footer")).ServeHTTP(res, req)
-		default:
-			// Full page render.
-			chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
-		}
+		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
 	}
 }
 

@@ -10,7 +10,6 @@ import (
 	"slices"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -18,7 +17,6 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/views"
 )
@@ -37,42 +35,27 @@ func (a *API) Home() http.HandlerFunc {
 			chain.Then(RenderTemplate(err)).ServeHTTP(res, req)
 			return
 		}
-		// Display content based on request.
-		switch {
-		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			resp := models.NewResponse(
-				models.WithResponseTemplate(data),
-			)
-			// Partial update. Only render fragments.
-			chain.Then(RenderTemplateFragments(resp, "content")).ServeHTTP(res, req.WithContext(ctx))
-		default:
-			resp := models.NewResponse(
-				models.WithResponseTemplate(
-					templates.NewPage("Go Feed Me - Home",
-						templates.WithBodyContent(data),
-					)),
-			)
-			// Full page render.
-			chain.Then(RenderTemplate(resp)).ServeHTTP(res, req.WithContext(ctx))
-		}
+		resp := models.NewResponse(
+			models.WithResponseTemplate(data.Template(req)),
+		)
+		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
 
 // getHomePageData retrieves the data required to construct the home page content.
 //
 //nolint:funlen
-func (a *API) getHomePageData(ctx context.Context) (templ.Component, *models.Response) {
+func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Response) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, models.RespErrUnauthorized()
 	}
+	data := &views.HomePage{}
 	// User has no subscriptions, show empty page
 	if len(user.GetSubscriptionsByID()) == 0 {
-		return views.EmptyHome(), nil
+		return data, nil
 	}
-
-	data := &views.HomePage{}
 
 	// Get subscriptions.
 	subscriptions, err := a.getSubscriptions(ctx)
