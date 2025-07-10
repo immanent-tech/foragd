@@ -15,7 +15,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
@@ -95,33 +94,47 @@ type Filter struct {
 
 templ (filter *Filter) AsLink() {
 	if filter.active {
-		@link.Build(
-			link.WithThemeColor(color.Primary),
-			link.WithContent(filter.label),
-			link.WithUnderlineOnHover(),
-			link.WithExtraClasses("capitalize", "text-xs"),
-			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":      filter.route,
-				"hx-include":  "#content-filters",
-				"hx-vals":     partials.GenerateHXVals(map[string]string{filter.name: filter.value}),
-				"hx-params":   "not " + models.ParamCategories,
-				"hx-push-url": "true",
-				"hx-target":   partials.ContentID.Target(),
-			}),
-		).Show()
+		@partials.NewAction(filter.route,
+			partials.ActionPushURL(),
+			partials.ActionValues(map[string]string{filter.name: filter.value}),
+			partials.ActionParams("not "+models.ParamCategories),
+		) {
+			{ filter.label }
+		}
+		// @link.Build(
+		// 	link.WithThemeColor(color.Primary),
+		// 	link.WithContent(filter.label),
+		// 	link.WithUnderlineOnHover(),
+		// 	link.WithExtraClasses("capitalize", "text-xs"),
+		// 	link.WithExtraAttributes(templ.Attributes{
+		// 		"hx-get":      filter.route,
+		// 		"hx-include":  "#content-filters",
+		// 		"hx-vals":     partials.GenerateHXVals(),
+		// 		"hx-params":   ,
+		// 		"hx-push-url": "true",
+		// 		"hx-target":   partials.ContentID.Target(),
+		// 	}),
+		// ).Show()
 	} else {
-		@link.Build(
-			link.WithContent(filter.label),
-			link.WithUnderlineOnHover(),
-			link.WithExtraClasses("capitalize", "text-xs"),
-			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":      filter.route,
-				"hx-include":  "#content-filters",
-				"hx-vals":     partials.GenerateHXVals(map[string]string{filter.name: filter.value}),
-				"hx-push-url": "true",
-				"hx-target":   partials.ContentID.Target(),
-			}),
-		).Show()
+		@partials.NewAction(filter.route,
+			partials.ActionPushURL(),
+			partials.ActionValues(map[string]string{filter.name: filter.value}),
+			partials.ActionParams("not "+models.ParamCategories),
+		) {
+			{ filter.label }
+		}
+		// @link.Build(
+		// 	link.WithContent(filter.label),
+		// 	link.WithUnderlineOnHover(),
+		// 	link.WithExtraClasses("capitalize", "text-xs"),
+		// 	link.WithExtraAttributes(templ.Attributes{
+		// 		"hx-get":      filter.route,
+		// 		"hx-include":  "#content-filters",
+		// 		"hx-vals":     partials.GenerateHXVals(map[string]string{filter.name: filter.value}),
+		// 		"hx-push-url": "true",
+		// 		"hx-target":   partials.ContentID.Target(),
+		// 	}),
+		// ).Show()
 	}
 }
 
@@ -268,32 +281,52 @@ templ (option *SortOption) Show() {
 
 templ (option *SortOption) AsLink() {
 	if option.active {
-		@link.Build(
-			link.WithThemeColor(color.Primary),
-			link.WithContent(option.Show()),
-			link.WithUnderlineOnHover(),
-			link.WithExtraClasses("capitalize", "text-xs"),
-			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":      option.route,
-				"hx-include":  "#content-filters",
-				"hx-vals":     option.HXVal(),
-				"hx-push-url": "true",
-				"hx-target":   partials.ContentID.Target(),
+		@partials.NewAction(option.route,
+			partials.ActionPushURL(),
+			partials.ActionValues(map[string]string{
+				models.ParamSortBy:    string(option.value.SortBy),
+				models.ParamSortOrder: string(option.value.SortOrder),
 			}),
-		).Show()
+			partials.ActionParams("not "+models.ParamCategories),
+		) {
+			option.Show()
+		}
+		// @link.Build(
+		// 	link.WithThemeColor(color.Primary),
+		// 	link.WithContent(option.Show()),
+		// 	link.WithUnderlineOnHover(),
+		// 	link.WithExtraClasses("capitalize", "text-xs"),
+		// 	link.WithExtraAttributes(templ.Attributes{
+		// 		"hx-get":      option.route,
+		// 		"hx-include":  "#content-filters",
+		// 		"hx-vals":     option.HXVal(),
+		// 		"hx-push-url": "true",
+		// 		"hx-target":   partials.ContentID.Target(),
+		// 	}),
+		// ).Show()
 	} else {
-		@link.Build(
-			link.WithContent(option.Show()),
-			link.WithUnderlineOnHover(),
-			link.WithExtraClasses("capitalize", "text-xs"),
-			link.WithExtraAttributes(templ.Attributes{
-				"hx-get":      option.route,
-				"hx-include":  "#content-filters",
-				"hx-vals":     option.HXVal(),
-				"hx-push-url": "true",
-				"hx-target":   partials.ContentID.Target(),
+		@partials.NewAction(option.route,
+			partials.ActionPushURL(),
+			partials.ActionValues(map[string]string{
+				models.ParamSortBy:    string(option.value.SortBy),
+				models.ParamSortOrder: string(option.value.SortOrder),
 			}),
-		).Show()
+			partials.ActionParams("not "+models.ParamCategories),
+		) {
+			option.Show()
+		}
+		// @link.Build(
+		// 	link.WithContent(option.Show()),
+		// 	link.WithUnderlineOnHover(),
+		// 	link.WithExtraClasses("capitalize", "text-xs"),
+		// 	link.WithExtraAttributes(templ.Attributes{
+		// 		"hx-get":      option.route,
+		// 		"hx-include":  "#content-filters",
+		// 		"hx-vals":     option.HXVal(),
+		// 		"hx-push-url": "true",
+		// 		"hx-target":   partials.ContentID.Target(),
+		// 	}),
+		// ).Show()
 	}
 }
 

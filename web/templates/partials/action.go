@@ -16,9 +16,11 @@ const (
 	AttrHXTarget  = "hx-target"
 	AttrHXPushURL = "hx-push-url"
 	AttrHXVals    = "hx-vals"
-	AttrHXGet     = "hx-get"
 	AttrHXSwap    = "hx-swap"
+	AttrHXParams  = "hx-params"
 	AttrHXPost    = "hx-post"
+	AttrHXGet     = "hx-get"
+	AttrHXPut     = "hx-put"
 
 	DisplayAsButton DisplayType = iota
 )
@@ -87,6 +89,12 @@ func ActionValues(values map[string]string) ActionOption {
 	}
 }
 
+func ActionParams(value string) ActionOption {
+	return func(a *Action) {
+		a.setVar(AttrHXParams, value)
+	}
+}
+
 func ActionHyperScript(script string) ActionOption {
 	return func(a *Action) {
 		a.setVar("_", script)
@@ -109,6 +117,8 @@ func (l *Action) generateAttrs() templ.Attributes {
 		attrs[AttrHXGet] = l.Path
 	case http.MethodPost:
 		attrs[AttrHXGet] = l.Path
+	case http.MethodPut:
+		attrs[AttrHXPut] = l.Path
 	}
 	return attrs
 }

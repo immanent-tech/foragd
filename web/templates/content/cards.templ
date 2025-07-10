@@ -4,7 +4,6 @@
 package content
 
 import (
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
@@ -42,7 +41,7 @@ templ CardControls(controls ...templ.Component) {
 }
 
 templ CardBreadCrumbs(crumbs ...templ.Component) {
-	{{ crumbs := append([]templ.Component{partials.LinkHomeIconOnly()}, crumbs...) }}
+	// {{ crumbs := append([]templ.Component{partials.LinkHomeIconOnly()}, crumbs...) }}
 	@breadcrumbs.Build(
 		breadcrumbs.WithClasses("text-sm", "flex-1"),
 		breadcrumbs.WithCrumbs(crumbs...),

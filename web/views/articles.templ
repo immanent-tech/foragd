@@ -112,17 +112,26 @@ func NewArticleContent(article *models.Article) *Article {
 
 // visitLink is the link to the original article.
 templ (c *Article) visitLink() {
-	@partials.LinkExternal("Original Article", c.GetLink())
+	@link.Build(
+		link.WithUnderlineOnHover(),
+		link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
+		link.WithClasses("text-xs"),
+	).Show() {
+		<div class="flex gap-2">
+			@tabler.ExternalLink(i.Props{Size: i.SizeXS})
+			Original Article
+		</div>
+	}
 }
 
 // shareLink is the link for sharing the article to external services.
 templ (c *Article) shareLink() {
-	@link.Build(
-		link.WithContent(
-			partials.IconText(tabler.Share(i.Props{Size: i.SizeXS}), "Share")),
-		link.WithUnderlineOnHover(),
-		link.WithExtraClasses("text-xs"),
-	).Show()
+	// @link.Build(
+	// 	link.WithContent(
+	// 		partials.IconText(tabler.Share(i.Props{Size: i.SizeXS}), "Share")),
+	// 	link.WithUnderlineOnHover(),
+	// 	link.WithExtraClasses("text-xs"),
+	// ).Show()
 }
 
 // markLink is the link for marking an article as read/unread
@@ -138,7 +147,7 @@ templ (c *Article) markLink() {
 templ (c *Article) ShowAsSummary() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(c.viewAttributes()),
+		link.WithAttributes(c.viewAttributes()),
 	).Show() {
 		<div class="flex flex-row gap-2">
 			switch value := c.image().(type) {
@@ -167,9 +176,8 @@ templ (c *Article) ShowAsCard() {
 		card.WithBodyOptions(
 			// Card title.
 			card.WithTitle(link.Build(
-				link.WithContent(c.GetTitle()),
 				link.WithUnderlineOnHover(),
-				link.WithExtraAttributes(c.viewAttributes()),
+				link.WithAttributes(c.viewAttributes()),
 			).Show()),
 			// Card content.
 			card.WithContent(

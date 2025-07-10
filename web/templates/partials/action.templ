@@ -13,8 +13,8 @@ import (
 templ (a *Action) link() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(a.generateAttrs()),
-		link.WithExtraClasses("text-xs"),
+		link.WithAttributes(a.generateAttrs()),
+		link.WithClasses("text-xs"),
 	).Show() {
 		{ children... }
 	}

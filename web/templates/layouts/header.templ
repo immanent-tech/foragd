@@ -69,8 +69,8 @@ templ Header() {
 				<li>
 					@link.Build(
 						link.WithUnderlineOnHover(),
-						link.WithExtraAttributes(templ.Attributes{"href": "/logout"}),
-						link.WithExtraClasses("text-xs"),
+						link.WithAttributes(templ.Attributes{"href": "/logout"}),
+						link.WithClasses("text-xs"),
 					).Show() {
 						<div class="flex gap-2">
 							@tabler.Logout(i.Props{Size: i.SizeXS})

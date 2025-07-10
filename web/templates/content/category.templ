@@ -42,7 +42,7 @@ func NewCategoryContent(ctx context.Context, category models.Category, count int
 templ (c *Category) Badge() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(templ.Attributes{
+		link.WithAttributes(templ.Attributes{
 			"hx-get":      c.route,
 			"hx-include":  "#content-filters",
 			"hx-vals":     partials.GenerateHXVals(c.values),

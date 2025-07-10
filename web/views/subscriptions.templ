@@ -55,7 +55,7 @@ templ (page *SubscriptionsPage) Content() {
 	<div id="card-controls" class="flex flex-row justify-end m-2">
 		@breadcrumbs.Build(
 			breadcrumbs.WithClasses("text-sm", "flex-1"),
-			breadcrumbs.WithCrumbs(partials.LinkHomeIconOnly(), partials.SubscriptionList()),
+			breadcrumbs.WithCrumbs(partials.SubscriptionList()),
 		).Show()
 		<div class="flex flex-row justify-end gap-2">
 			@RefreshAction("/subscriptions", page.filters.Parameters())
@@ -118,17 +118,26 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 
 // Visit is the action for visiting the subscription's source webpage.
 templ (c *Subscription) Visit() {
-	@partials.LinkExternal("Feed Website", c.GetLink())
+	@link.Build(
+		link.WithUnderlineOnHover(),
+		link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
+		link.WithClasses("text-xs"),
+	).Show() {
+		<div class="flex gap-2">
+			@tabler.ExternalLink(i.Props{Size: i.SizeXS})
+			Feed Website
+		</div>
+	}
 }
 
 // Share is the action for sharing the subscription to an external service.
 templ (c *Subscription) Share() {
-	@link.Build(
-		link.WithContent(
-			partials.IconText(tabler.Share(i.Props{Size: i.SizeXS}), "Share")),
-		link.WithUnderlineOnHover(),
-		link.WithExtraClasses("text-xs"),
-	).Show()
+	// @link.Build(
+	// 	link.WithContent(
+	// 		partials.IconText(tabler.Share(i.Props{Size: i.SizeXS}), "Share")),
+	// 	link.WithUnderlineOnHover(),
+	// 	link.WithExtraClasses("text-xs"),
+	// ).Show()
 }
 
 // Mark is the action for marking a subscription read/unread.
@@ -142,59 +151,53 @@ templ (c *Subscription) Mark() {
 
 // Edit is the action for editing a subscription.
 templ (c *Subscription) favouriteLink() {
-	@link.Build(
-		link.WithContent(
-			partials.IconText(tabler.Star(i.Props{Size: i.SizeXS}), "Favourite")),
-		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(templ.Attributes{
-			"hx-put":    "/user/favourite/subscription/" + c.GetID(),
-			"hx-target": partials.ContentID.Target(),
-			"hx-swap":   "none",
-		}),
-		link.WithExtraClasses("text-xs"),
-	).Show()
+	@partials.NewAction("/user/favourite/subscription/"+c.GetID(),
+		partials.ActionMethod(http.MethodPut),
+		partials.ActionSwap("none"),
+	) {
+		<div class="flex gap-2">
+			@tabler.Star(i.Props{Size: i.SizeXS})
+			Favourite
+		</div>
+	}
 }
 
 // Edit is the action for editing a subscription.
 templ (c *Subscription) Edit() {
-	@link.Build(
-		link.WithContent(
-			partials.IconText(tabler.Edit(i.Props{Size: i.SizeXS}), "Edit Subcription")),
-		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(templ.Attributes{
-			"hx-get":    "/user/subscription/edit/" + c.GetID(),
-			"hx-target": partials.ModalContainerID.Target(),
-			"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
-		}),
-		link.WithExtraClasses("text-xs"),
-	).Show()
+	@partials.NewAction("/user/subscription/edit/"+c.GetID(),
+		partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+		partials.ActionTarget(partials.ModalContainerID.Target()),
+	) {
+		<div class="flex gap-2">
+			@tabler.Edit(i.Props{Size: i.SizeXS})
+			Edit Subscription
+		</div>
+	}
 }
 
 // Unsubscribe is the action for unsubscribing from a subscription.
-func (c *Subscription) Unsubscribe() templ.Component {
-	parameters := map[string]string{
-		"subscriptions": c.GetID(),
-		"confirmation":  "no",
-	}
-	return link.Build(
-		link.WithContent(
-			partials.IconText(tabler.Trash(i.Props{Size: i.SizeXS}), "Unsubscribe")),
-		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(templ.Attributes{
-			"hx-post":   "/subscriptions/remove",
-			"hx-vals":   partials.GenerateHXVals(parameters),
-			"hx-target": partials.ModalContainerID.Target(),
-			"_":         "on htmx:afterOnLoad wait 10ms then add @open to " + partials.ModalID.Target(),
+templ (c *Subscription) Unsubscribe() {
+	@partials.NewAction("/subscriptions/remove",
+		partials.ActionMethod(http.MethodPost),
+		partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+		partials.ActionTarget(partials.ModalContainerID.Target()),
+		partials.ActionValues(map[string]string{
+			"subscriptions": c.GetID(),
+			"confirmation":  "no",
 		}),
-		link.WithExtraClasses("text-xs"),
-	).Show()
+	) {
+		<div class="flex gap-2">
+			@tabler.Trash()
+			Remove Subscription
+		</div>
+	}
 }
 
 // Summary displays the subscription's image (or a avatar), title and unread count (if any).
 templ (c *Subscription) Summary() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(c.viewAttributes()),
+		link.WithAttributes(c.viewAttributes()),
 	).Show() {
 		<div class="flex flex-row gap-2">
 			// Generate a thumbnail to display next to the title.
@@ -236,7 +239,7 @@ templ (c *Subscription) Summary() {
 templ (s *Subscription) State() {
 	@link.Build(
 		link.WithUnderlineOnHover(),
-		link.WithExtraAttributes(s.viewAttributes()),
+		link.WithAttributes(s.viewAttributes()),
 	).Show() {
 		<div class="flex gap-2 w-full">
 			<div class="flex-1 text-sm content-center">

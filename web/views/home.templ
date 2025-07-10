@@ -37,7 +37,7 @@ templ (page *HomePage) Content() {
 		<div class="stats shadow">
 			@link.Build(
 				link.WithUnderlineOnHover(),
-				link.WithExtraAttributes(templ.Attributes{
+				link.WithAttributes(templ.Attributes{
 					"hx-get":      "/subscriptions",
 					"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
 					"hx-target":   partials.ContentID.Target(),
@@ -55,7 +55,7 @@ templ (page *HomePage) Content() {
 			}
 			@link.Build(
 				link.WithUnderlineOnHover(),
-				link.WithExtraAttributes(templ.Attributes{
+				link.WithAttributes(templ.Attributes{
 					"hx-get":      "/articles",
 					"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
 					"hx-target":   partials.ContentID.Target(),

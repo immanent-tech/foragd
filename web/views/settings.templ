@@ -11,33 +11,30 @@ import (
 
 templ (page SettingsPage) Show() {
 	@templates.NewPage("Go Feed Me - Home") {
-		@partials.Drawer() {
-			@partials.DrawerContent() {
-				// Fragment: content header
-				@partials.Fragment("content-header") {
-					@layouts.Header()
-				}
-				@partials.Fragment("content") {
-					@partials.Content() {
-						<!-- name of each tab group should be unique -->
-						<div class="tabs tabs-border">
-							<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 1"/>
-							<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 1</div>
-							<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 2" checked="checked"/>
-							<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 2</div>
-							<input type="radio" name="my_tabs_2" class="tab" aria-label="Display"/>
-							<div class="tab-content border-base-300 bg-base-100 p-10">
-								@themePreviews()
-							</div>
+		@layouts.Drawer() {
+			// Fragment: content header
+			@partials.Fragment("content-header") {
+				@layouts.Header()
+			}
+			@partials.Fragment("content") {
+				@partials.Content() {
+					<!-- name of each tab group should be unique -->
+					<div class="tabs tabs-border">
+						<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 1"/>
+						<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 1</div>
+						<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 2" checked="checked"/>
+						<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 2</div>
+						<input type="radio" name="my_tabs_2" class="tab" aria-label="Display"/>
+						<div class="tab-content border-base-300 bg-base-100 p-10">
+							@themePreviews()
 						</div>
-					}
-				}
-				// Fragment: content footer
-				@partials.Fragment("content-footer") {
-					@partials.Footer()
+					</div>
 				}
 			}
-			@partials.DrawerSide()
+			// Fragment: content footer
+			@partials.Fragment("content-footer") {
+				@partials.Footer()
+			}
 		}
 	}
 }
