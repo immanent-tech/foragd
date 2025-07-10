@@ -34,7 +34,8 @@
         "bradlc.vscode-tailwindcss",
         "yzhang.markdown-all-in-one",
         "DavidAnson.vscode-markdownlint",
-        "dnut.rewrap-revived"
+        "dnut.rewrap-revived",
+        "dz4k.vscode-hyperscript-org"
       ]
     }
   }

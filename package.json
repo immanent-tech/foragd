@@ -15,7 +15,6 @@
     "@tabler/icons": "^3.34.0",
     "daisyui": "^5.0.46",
     "date-fns": "^4.1.0",
-    "dayjs": "^1.11.13",
     "htmx-ext-response-targets": "^2.0.3",
     "htmx-ext-sse": "^2.2.3",
     "htmx.org": "^2.0.6",
