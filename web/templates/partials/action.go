@@ -31,6 +31,7 @@ const (
 
 type DisplayType int
 
+// Action represents a htmx-powered action component.
 type Action struct {
 	Path          string            `json:"path"`
 	Method        string            `json:"method"`
@@ -41,6 +42,7 @@ type Action struct {
 	sync.Mutex    `json:"-"`
 }
 
+// NewAction will create a new action that will be rendered as the given type, with the given options.
 func NewAction(path string, display DisplayType, options ...ActionOption) *Action {
 	link := &Action{
 		Path:    path,
@@ -58,69 +60,75 @@ func NewAction(path string, display DisplayType, options ...ActionOption) *Actio
 	return link
 }
 
+// ActionOption is a functional option to apply to an action.
 type ActionOption func(*Action)
 
+// ActionMethod option defines the HTTP method (hx-{get,post,put} etc.) to use for the action. If this option is not
+// specified, it will default to a 'hx-get'.
 func ActionMethod(method string) ActionOption {
 	return func(a *Action) {
 		a.Method = method
 	}
 }
 
+// ActionTarget option sets the 'hx-target' attribute to the given target.
 func ActionTarget(target string) ActionOption {
 	return func(a *Action) {
 		a.setVar(AttrHXTarget, target)
 	}
 }
 
+// ActionSwap option defines the 'hx-swap' behaviour.
 func ActionSwap(swap string) ActionOption {
 	return func(a *Action) {
 		a.setVar(AttrHXSwap, swap)
 	}
 }
 
+// ActionPushURL option sets 'hx-push-url' to true.
 func ActionPushURL() ActionOption {
 	return func(il *Action) {
 		il.setVar(AttrHXPushURL, "true")
 	}
 }
 
+// ActionButtonOptions defines the display options for the action as a button component.
 func ActionButtonOptions(options ...button.Option) ActionOption {
 	return func(a *Action) {
 		a.buttonOptions = options
 	}
 }
 
+// ActionLinkOptions defines the display options for the action as a link component.
 func ActionLinkOptions(options ...link.Option) ActionOption {
 	return func(a *Action) {
 		a.linkOptions = options
 	}
 }
 
+// ActionValues option sets the content of the 'hx-vals' attribute.
 func ActionValues(values map[string]string) ActionOption {
 	return func(a *Action) {
 		a.setVar(AttrHXVals, GenerateHXVals(values))
 	}
 }
 
+// ActionParams option sets the content of the 'hx-params' attribute.
 func ActionParams(value string) ActionOption {
 	return func(a *Action) {
 		a.setVar(AttrHXParams, value)
 	}
 }
 
+// ActionHyperScript option defines hyperscript code to be assigned to the component.
 func ActionHyperScript(script string) ActionOption {
 	return func(a *Action) {
 		a.setVar("_", script)
 	}
 }
 
-func (l *Action) setVar(key, value string) {
-	l.Lock()
-	defer l.Unlock()
-	l.Vars[key] = value
-}
-
-func (l *Action) generateAttrs() templ.Attributes {
+// Attributes will render all attributes of the action as a templ.Attributes map.
+func (l *Action) Attributes() templ.Attributes {
 	attrs := make(templ.Attributes)
 	for k, v := range l.Vars {
 		attrs[k] = v
@@ -134,4 +142,10 @@ func (l *Action) generateAttrs() templ.Attributes {
 		attrs[AttrHXPut] = l.Path
 	}
 	return attrs
+}
+
+func (l *Action) setVar(key, value string) {
+	l.Lock()
+	defer l.Unlock()
+	l.Vars[key] = value
 }

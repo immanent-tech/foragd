@@ -9,13 +9,6 @@ import (
 	"time"
 )
 
-// Content is the container for the main content of the page.
-templ Content() {
-	<div id={ ContentID.String() } class="m-2 h-full" hx-swap="innerHTML">
-		{ children... }
-	</div>
-}
-
 // GenerateHXVals generates a JSON-formatted object containing the given key-value pairs suitable for use as a hx-vals attribute.
 // See also: https://htmx.org/attributes/hx-vals/
 func GenerateHXVals(values map[string]string) string {

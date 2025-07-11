@@ -6,18 +6,18 @@ package layouts
 import (
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/sebasvil20/templicons/tabler"
 )
-
-var Favourites = attributes.ID("favourites")
 
 // Drawer layout will wrap its child template in a drawer layout with a left side bar.
 templ Drawer() {
 	<div class="drawer">
 		<input id="body-drawer" type="checkbox" class="drawer-toggle"/>
 		<div class="drawer-content">
-			{ children... }
+			@Header()
+			<div id={ partials.ContentID.String() } class="m-2 h-full" hx-swap="innerHTML">
+				{ children... }
+			</div>
 		</div>
 		<div class="drawer-side">
 			<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
@@ -58,44 +58,3 @@ templ Drawer() {
 		</div>
 	</div>
 }
-
-// // MenuItemTitle renders the text as a title element in the drawer side-bar menu.
-// templ MenuItemTitle(text string) {
-// 	<li class="menu-title">{ text }</li>
-// }
-
-// // MenuItem renders an item element in the drawer side-bar menu.
-// templ MenuItem() {
-// 	<li>
-// 		{ children... }
-// 	</li>
-// }
-
-// templ FavouritesList() {
-// 	@MenuItem(nil, nil) {
-// 		<details id={ Favourites.String() }>
-// 			<summary>
-// 				<div class="flex gap-2">
-// 					@tabler.Stars()
-// 					Favourites
-// 				</div>
-// 			</summary>
-// 			<ul class="text-base-content text-xs">
-// 				if favourites := models.GetUserFavourites(ctx); favourites != nil {
-// 					for favourite := range slices.Values(favourites) {
-// 						<li>
-// 							@link.Build(
-// 								link.WithContent(favourite.Name),
-// 								link.WithExtraAttributes(templ.Attributes{
-// 									"href": favourite.Link,
-// 								}),
-// 							).Show()
-// 						</li>
-// 					}
-// 				} else {
-// 					No favourites found.
-// 				}
-// 			</ul>
-// 		</details>
-// 	}
-// }

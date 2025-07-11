@@ -10,7 +10,7 @@ import (
 	"github.com/a-h/templ"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/content"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
 type ArticlesPage struct {
@@ -35,7 +35,7 @@ func (s ArticlesPage) generateCards(ctx context.Context) []templ.Component {
 	// Add pagination element if pagination is required.
 	if s.pagination != "" && len(cards) == s.filters.GetCount() {
 		// Add pagination htmx props to last article.
-		cards = append(cards, content.PaginationControl(ctx, "/articles", s.pagination))
+		cards = append(cards, layouts.PaginationControl(ctx, "/articles", s.pagination))
 	}
 	return cards
 }

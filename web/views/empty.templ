@@ -14,47 +14,35 @@ import (
 // returned no other content.
 templ EmptyContent() {
 	@layouts.Drawer() {
-		// Fragment: content header
-		@partials.Fragment("content-header") {
-			@layouts.Header()
-		}
-		@partials.Fragment("content") {
-			@partials.Content() {
-				@card.Build(
-					card.WithSize(card.LG),
-					card.WithShadow(shadow.XL),
-					// card.WithBaseColor(color.Base300),
-					// card.WithBodyOptions(
-					// 	card.WithCenteredContent(),
-					// 	card.WithTitle("Nothing here but 1s and 0s"),
-					// ),
+		@card.Build(
+			card.WithSize(card.LG),
+			card.WithShadow(shadow.XL),
+			// card.WithBaseColor(color.Base300),
+			// card.WithBodyOptions(
+			// 	card.WithCenteredContent(),
+			// 	card.WithTitle("Nothing here but 1s and 0s"),
+			// ),
+		) {
+			@card.Title("Nothing here but 1s and 0s")
+			<p>Something else?</p>
+			<div class="flex gap-2">
+				@partials.NewAction("/home", partials.DisplayActionAsButton,
+					partials.ActionPushURL(),
 				) {
-					@card.Title("Nothing here but 1s and 0s")
-					<p>Something else?</p>
-					<div class="flex gap-2">
-						@partials.NewAction("/home", partials.DisplayActionAsButton,
-							partials.ActionPushURL(),
-						) {
-							Home
-						}
-						@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
-							partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
-							partials.ActionTarget(partials.ModalContainerID.Target()),
-						) {
-							New Subscription
-						}
-						@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
-							partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
-						) {
-							Import Subscriptions
-						}
-					</div>
+					Home
 				}
-			}
-		}
-		// Fragment: content footer
-		@partials.Fragment("content-footer") {
-			@partials.Footer()
+				@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
+					partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+					partials.ActionTarget(partials.ModalContainerID.Target()),
+				) {
+					New Subscription
+				}
+				@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
+					partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+				) {
+					Import Subscriptions
+				}
+			</div>
 		}
 	}
 }

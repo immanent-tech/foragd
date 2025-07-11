@@ -6,6 +6,7 @@ package partials
 import "github.com/joshuar/go-templ-daisyui/attributes"
 
 var (
+	Favourites = attributes.ID("favourites")
 	// ContentID points to the element containing the main content of the page.
 	ContentID = attributes.ID("content")
 	// ErrorID points to an element that can be used to display error messages to the user.

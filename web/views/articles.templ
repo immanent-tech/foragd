@@ -36,10 +36,7 @@ import (
 // Layout is the complete page layout for the subscriptions page.
 templ (page *ArticlesPage) Layout() {
 	@layouts.Drawer() {
-		@layouts.Header()
-		@partials.Content() {
-			@page.Content()
-		}
+		@page.Content()
 	}
 }
 
@@ -118,7 +115,6 @@ templ (page *ArticlesPage) Content() {
 }
 
 templ (page *ArticlesPage) Cards() {
-	// Fragment: cards
 	for cards := range slices.Values(page.generateCards(ctx)) {
 		@cards
 	}

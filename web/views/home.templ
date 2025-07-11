@@ -7,7 +7,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
@@ -20,10 +19,7 @@ import (
 // Layout is the complete page layout for the home page.
 templ (page *HomePage) Layout() {
 	@layouts.Drawer() {
-		@layouts.Header()
-		@partials.Content() {
-			@page.Content()
-		}
+		@page.Content()
 	}
 }
 
@@ -92,7 +88,9 @@ templ (page *HomePage) Content() {
 	if page.RandomArticles != nil {
 		<div class="flex flex-col gap-2">
 			<h1>Random Articles:</h1>
-			@content.CardGrid(page.RandomArticles...)
+			@layouts.CardGrid() {
+				@templ.Join(page.RandomArticles...)
+			}
 		</div>
 	}
 	@partials.Footer()
@@ -112,38 +110,26 @@ func (page *HomePage) Template(req *http.Request) templ.Component {
 
 templ EmptyHome() {
 	@layouts.Drawer() {
-		// Fragment: content header
-		@partials.Fragment("content-header") {
-			@layouts.Header()
-		}
-		@partials.Fragment("content") {
-			@partials.Content() {
-				<div class="hero bg-base-200 min-h-screen">
-					<div class="hero-content text-center">
-						<div class="max-w-md">
-							<h1 class="text-5xl font-bold">Welcome Home</h1>
-							<p class="py-6">
-								There does not seem to be anything to show you. Maybe you should try one of the following:
-							</p>
-							@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
-								partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
-								partials.ActionTarget(partials.ModalContainerID.Target()),
-							) {
-								New Subscription
-							}
-							@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
-								partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
-							) {
-								Import Subscriptions
-							}
-						</div>
-					</div>
+		<div class="hero bg-base-200 min-h-screen">
+			<div class="hero-content text-center">
+				<div class="max-w-md">
+					<h1 class="text-5xl font-bold">Welcome Home</h1>
+					<p class="py-6">
+						There does not seem to be anything to show you. Maybe you should try one of the following:
+					</p>
+					@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
+						partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+						partials.ActionTarget(partials.ModalContainerID.Target()),
+					) {
+						New Subscription
+					}
+					@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
+						partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+					) {
+						Import Subscriptions
+					}
 				</div>
-			}
-		}
-		// Fragment: content footer
-		@partials.Fragment("content-footer") {
-			@partials.Footer()
-		}
+			</div>
+		</div>
 	}
 }

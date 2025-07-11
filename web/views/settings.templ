@@ -7,7 +7,6 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"net/http"
 )
 
@@ -19,10 +18,7 @@ func NewSettingsPage() *SettingsPage {
 
 templ (page *SettingsPage) layout() {
 	@layouts.Drawer() {
-		@layouts.Header()
-		@partials.Content() {
-			@page.content()
-		}
+		@page.content()
 	}
 }
 

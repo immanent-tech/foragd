@@ -11,19 +11,21 @@ import (
 )
 
 templ (a *Action) link() {
-	{{ a.linkOptions = append(a.linkOptions, link.WithAttributes(a.generateAttrs())) }}
+	{{ a.linkOptions = append(a.linkOptions, link.WithAttributes(a.Attributes())) }}
 	@link.Build(a.linkOptions...) {
 		{ children... }
 	}
 }
 
 templ (a *Action) button() {
-	{{ a.buttonOptions = append(a.buttonOptions, button.WithExtraAttributes(a.generateAttrs())) }}
+	{{ a.buttonOptions = append(a.buttonOptions, button.WithExtraAttributes(a.Attributes())) }}
 	@button.Build(a.buttonOptions...).Show() {
 		{ children... }
 	}
 }
 
+// Render will display the action with its set options as the defined display type. Satisfies the templ.Component
+// interface.
 func (l *Action) Render(ctx context.Context, w io.Writer) error {
 	switch l.display {
 	case DisplayActionAsButton:

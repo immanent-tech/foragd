@@ -25,7 +25,6 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
 )
@@ -59,19 +58,8 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 				chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
-			cards := make([]templ.Component, 0, len(subscriptions))
-			states := make([]templ.Component, 0, len(subscriptions))
-			for subscription := range slices.Values(subscriptions) {
-				cards = append(cards, views.NewSubscriptionContent(subscription).Card())
-				states = append(states, views.NewSubscriptionContent(subscription).State())
-			}
-			// Add pagination element if pagination is required.
-			if pagination != "" && len(cards) == filters.GetCount() {
-				// Add pagination htmx props to last article.
-				cards = append(cards, content.PaginationControl(req.Context(), "/subscriptions", pagination))
-			}
 			// Generate page template.
-			template = views.NewSubscriptionsPage(filters, subscriptions.GetCategoryCounts(), cards...).Template(req)
+			template = views.NewSubscriptionsPage(subscriptions, filters, pagination).Template(req)
 		}
 
 		resp := models.NewResponse(

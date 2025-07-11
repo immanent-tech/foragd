@@ -5,6 +5,7 @@
 package views
 
 import (
+	"context"
 	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -31,35 +32,33 @@ import (
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
+	"slices"
 	"strconv"
 )
 
 type SubscriptionsPage struct {
-	filters    *models.SubscriptionFilters
-	cards      []templ.Component
-	categories models.CategoryCounts
+	filters       *models.SubscriptionFilters
+	subscriptions models.Subscriptions
+	pagination    models.Pagination
 }
 
-func NewSubscriptionsPage(filters *models.SubscriptionFilters, categories models.CategoryCounts, cards ...templ.Component) *SubscriptionsPage {
+func NewSubscriptionsPage(subscriptions models.Subscriptions, filters *models.SubscriptionFilters, pagination models.Pagination) *SubscriptionsPage {
 	return &SubscriptionsPage{
-		cards:      cards,
-		filters:    filters,
-		categories: categories,
+		filters:       filters,
+		subscriptions: subscriptions,
+		pagination:    pagination,
 	}
 }
 
 // Layout is the complete page layout for the subscriptions page.
-templ (page *SubscriptionsPage) Layout() {
+templ (page *SubscriptionsPage) layout() {
 	@layouts.Drawer() {
-		@layouts.Header()
-		@partials.Content() {
-			@page.Content()
-		}
+		@page.content()
 	}
 }
 
 // Content is the content section of the subscriptions page.
-templ (page *SubscriptionsPage) Content() {
+templ (page *SubscriptionsPage) content() {
 	// Fragment: content filters
 	<div id="content-filters" class="hidden">
 		for name, value := range page.filters.Parameters() {
@@ -77,7 +76,7 @@ templ (page *SubscriptionsPage) Content() {
 		<div class="flex flex-row justify-end gap-2">
 			@RefreshAction("/subscriptions", page.filters.Parameters())
 			@UpdateSorting("/subscriptions", page.filters.GetSort())
-			@UpdateFilters(page.categories, "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
+			@UpdateFilters(page.subscriptions.GetCategoryCounts(), "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
 			@dropdown.Build(
 				dropdown.WithButtonContent(tabler.DotsVertical()),
 				dropdown.WithOpenAlignment(dropdown.AlignEnd),
@@ -125,8 +124,7 @@ templ (page *SubscriptionsPage) Content() {
 		</div>
 	</div>
 	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
-		if len(page.cards) > 0 {
-			// Fragment: cards
+		if len(page.subscriptions) > 0 {
 			@page.Cards()
 		} else {
 			@EmptyContent()
@@ -142,7 +140,9 @@ templ (page *SubscriptionsPage) Content() {
 
 // Cards is the list of subscriptions as cards within the subscriptions page.
 templ (page *SubscriptionsPage) Cards() {
-	@templ.Join(page.cards...)
+	for cards := range slices.Values(page.generateCards(ctx)) {
+		@cards
+	}
 }
 
 // Template will render the home page based on the request details.
@@ -151,12 +151,25 @@ func (page *SubscriptionsPage) Template(req *http.Request) templ.Component {
 	case req.Method == http.MethodPost:
 		return page.Cards()
 	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-		return page.Content()
+		return page.content()
 	default:
 		return templates.NewPage("Go Feed Me - Subscriptions",
-			templates.WithBodyContent(page.Layout()),
+			templates.WithBodyContent(page.layout()),
 		)
 	}
+}
+
+func (page *SubscriptionsPage) generateCards(ctx context.Context) []templ.Component {
+	cards := make([]templ.Component, 0, len(page.subscriptions))
+	for subscription := range slices.Values(page.subscriptions) {
+		cards = append(cards, NewSubscriptionContent(subscription).Card())
+	}
+	// Add pagination element if pagination is required.
+	if page.pagination != "" && len(cards) == page.filters.GetCount() {
+		// Add pagination htmx props to last article.
+		cards = append(cards, layouts.PaginationControl(ctx, "/subscriptions", page.pagination))
+	}
+	return cards
 }
 
 type Subscription struct {
