@@ -5,9 +5,9 @@
   "license": "AGPL-3.0-or-later",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
-    "build": "parcel build ./assets/scripts.js ./assets/styles.css --dist-dir ./static --no-scope-hoist",
-    "build:dev": "parcel build ./assets/scripts.js ./assets/styles.css --dist-dir ./static --no-optimize --log-level verbose --no-scope-hoist",
-    "dev:build:js": "bun build ./assets/scripts.js ./assets/surreal*.js --outdir=./static",
+    "build:parcel": "parcel build ./assets/scripts.js ./assets/styles.css --dist-dir ./static --no-scope-hoist",
+    "build:parcel:dev": "parcel build ./assets/scripts.js ./assets/styles.css --dist-dir ./static --no-optimize --log-level verbose --no-scope-hoist",
+    "build:js": "bun build ./assets/scripts.js --sourcemap=external --outdir=./static",
     "build:css": "postcss ./assets/styles.css -o ./static/styles.css"
   },
   "dependencies": {

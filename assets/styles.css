@@ -1,8 +1,9 @@
-@import 'tailwindcss';
-@source "../web/**/*.{html,templ}";
-@source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
+@import 'tailwindcss' source('../web/**/*.{html,templ}');
 @plugin "@tailwindcss/typography";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: all;
+}
+@source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
 
 /* Fade in notification messages */
 #notifications.htmx-added {

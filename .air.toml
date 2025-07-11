@@ -32,7 +32,7 @@ poll = false
 poll_interval = 500
 pre_cmd = [
   "step ca renew --ca-url https://stepca:9000 --password-file=.devcontainer/.step.password --force localhost.crt localhost.key",
-  "bun run build:dev",
+  "bun run build:parcel:dev",
 ]
 rerun = false
 rerun_delay = 500

@@ -4,5 +4,3 @@
 # Ignore static files.
 static/
 
-# Ignore templates.
-web/templates/
