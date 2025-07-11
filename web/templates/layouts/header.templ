@@ -34,7 +34,7 @@ templ Header() {
 				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 			).Show() {
 				<li>
-					@partials.NewAction("/user/subscription/new", partials.DisplayActionAsLink,
+					@partials.NewAction("/user/settings", partials.DisplayActionAsLink,
 						partials.ActionTarget(partials.ContentID.Target()),
 						partials.ActionPushURL(),
 						partials.ActionHyperScript("on click call document.activeElement.blur()"),

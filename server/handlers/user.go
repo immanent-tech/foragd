@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
@@ -19,24 +18,12 @@ import (
 
 func GetSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			RouteLogger,
-		)
-		// Set layout.
-		page := views.SettingsPage{}
 		resp := models.NewResponse(
-			models.WithResponseTemplate(page.Show()),
+			models.WithResponseTemplate(views.NewSettingsPage().Template(req)),
 		)
-		// Display content based on request.
-		switch {
-		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			// Partial update. Only render fragments.
-			chain.Then(RenderTemplateFragments(resp, "content")).ServeHTTP(res, req)
-		default:
-			// Full page render.
-			chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
-		}
+		alice.New(
+			RouteLogger,
+		).Then(RenderTemplate(resp)).ServeHTTP(res, req)
 	}
 }
 

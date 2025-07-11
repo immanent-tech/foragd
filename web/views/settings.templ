@@ -4,38 +4,50 @@
 package views
 
 import (
+	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"net/http"
 )
 
-templ (page SettingsPage) Show() {
-	@templates.NewPage("Go Feed Me - Home") {
-		@layouts.Drawer() {
-			// Fragment: content header
-			@partials.Fragment("content-header") {
-				@layouts.Header()
-			}
-			@partials.Fragment("content") {
-				@partials.Content() {
-					<!-- name of each tab group should be unique -->
-					<div class="tabs tabs-border">
-						<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 1"/>
-						<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 1</div>
-						<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 2" checked="checked"/>
-						<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 2</div>
-						<input type="radio" name="my_tabs_2" class="tab" aria-label="Display"/>
-						<div class="tab-content border-base-300 bg-base-100 p-10">
-							@themePreviews()
-						</div>
-					</div>
-				}
-			}
-			// Fragment: content footer
-			@partials.Fragment("content-footer") {
-				@partials.Footer()
-			}
+type SettingsPage struct{}
+
+func NewSettingsPage() *SettingsPage {
+	return &SettingsPage{}
+}
+
+templ (page *SettingsPage) layout() {
+	@layouts.Drawer() {
+		@layouts.Header()
+		@partials.Content() {
+			@page.content()
 		}
+	}
+}
+
+templ (page *SettingsPage) content() {
+	<div class="tabs tabs-border">
+		<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 1"/>
+		<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 1</div>
+		<input type="radio" name="my_tabs_2" class="tab" aria-label="Tab 2" checked="checked"/>
+		<div class="tab-content border-base-300 bg-base-100 p-10">Tab content 2</div>
+		<input type="radio" name="my_tabs_2" class="tab" aria-label="Display"/>
+		<div class="tab-content border-base-300 bg-base-100 p-10">
+			@themePreviews()
+		</div>
+	</div>
+}
+
+// Template will render the home page based on the request details.
+func (page *SettingsPage) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Settings",
+			templates.WithBodyContent(page.layout()),
+		)
 	}
 }
 
