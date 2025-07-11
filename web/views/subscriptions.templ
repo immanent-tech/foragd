@@ -34,6 +34,20 @@ import (
 	"strconv"
 )
 
+type SubscriptionsPage struct {
+	filters    *models.SubscriptionFilters
+	cards      []templ.Component
+	categories models.CategoryCounts
+}
+
+func NewSubscriptionsPage(filters *models.SubscriptionFilters, categories models.CategoryCounts, cards ...templ.Component) *SubscriptionsPage {
+	return &SubscriptionsPage{
+		cards:      cards,
+		filters:    filters,
+		categories: categories,
+	}
+}
+
 // Layout is the complete page layout for the subscriptions page.
 templ (page *SubscriptionsPage) Layout() {
 	@layouts.Drawer() {
@@ -232,11 +246,11 @@ templ (s *Subscription) State() {
 
 // Card displays the subscription as a card.
 templ (c *Subscription) Card() {
-	{{ classes := append([]components.Class{"card-sm", "lg:card-md", "bg-neutral"}, c.classes...) }}
 	@card.Build(
 		card.WithStyle(card.Border),
 		card.WithShadow(shadow.SM),
-		card.WithClasses(classes...),
+		card.WithClasses("card-sm", "lg:card-md", "bg-base-300"),
+		card.WithClasses(c.classes...),
 		card.WithAttributes(templ.Attributes{
 			"id": c.GetID(),
 		}),
@@ -259,7 +273,7 @@ templ (c *Subscription) Card() {
 				@tooltip.Build("Actions").Show() {
 					@dropdown.Build(
 						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-						dropdown.WithButtonClasses(button.Ghost, button.XS),
+						dropdown.WithButtonClasses(button.XS, button.Neutral),
 						dropdown.WithOpenFrom(dropdown.OpenTop),
 						dropdown.WithOpenAlignment(dropdown.AlignEnd),
 						dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
