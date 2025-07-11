@@ -123,13 +123,13 @@ templ (page *SubscriptionsPage) content() {
 			}
 		</div>
 	</div>
-	<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4" id={ CardsID.String() }>
+	@layouts.CardGrid() {
 		if len(page.subscriptions) > 0 {
 			@page.Cards()
 		} else {
 			@EmptyContent()
 		}
-	</div>
+	}
 	<div id="content-loading" class="items-center justify-center">
 		@loading.Build(loading.Bars,
 			loading.AsHTMXIndicator(),

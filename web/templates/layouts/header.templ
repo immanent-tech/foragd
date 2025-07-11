@@ -31,7 +31,7 @@ templ Header() {
 			@dropdown.Build(
 				dropdown.WithButtonContent(tabler.User()),
 				dropdown.WithOpenAlignment(dropdown.AlignEnd),
-				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52", "text-xs"),
 			).Show() {
 				<li>
 					@partials.NewAction("/user/settings", partials.DisplayActionAsLink,
@@ -40,7 +40,6 @@ templ Header() {
 						partials.ActionHyperScript("on click call document.activeElement.blur()"),
 						partials.ActionLinkOptions(
 							link.WithUnderlineOnHover(),
-							link.WithClasses("text-xs"),
 						),
 					) {
 						<div class="flex gap-2">
@@ -55,7 +54,6 @@ templ Header() {
 						partials.ActionTarget(partials.ModalContainerID.Target()),
 						partials.ActionLinkOptions(
 							link.WithUnderlineOnHover(),
-							link.WithClasses("text-xs"),
 						),
 					) {
 						<div class="flex gap-2">
@@ -69,7 +67,6 @@ templ Header() {
 						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 						partials.ActionLinkOptions(
 							link.WithUnderlineOnHover(),
-							link.WithClasses("text-xs"),
 						),
 					) {
 						<div class="flex gap-2">
@@ -81,8 +78,7 @@ templ Header() {
 				<li>
 					@link.Build(
 						link.WithUnderlineOnHover(),
-						link.WithAttributes(templ.Attributes{"href": "/logout"}),
-						link.WithClasses("text-xs"),
+						link.WithHref("/logout"),
 					) {
 						<div class="flex gap-2">
 							@tabler.Logout(i.Props{Size: i.SizeXS})
