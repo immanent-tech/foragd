@@ -5,12 +5,6 @@ package partials
 
 import (
 	"encoding/json"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
-	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
-	"slices"
 	"strings"
 	"time"
 )
@@ -18,9 +12,7 @@ import (
 // Content is the container for the main content of the page.
 templ Content() {
 	<div id={ ContentID.String() } class="m-2 h-full" hx-swap="innerHTML">
-		@Fragment("content") {
-			{ children... }
-		}
+		{ children... }
 	</div>
 }
 
@@ -40,27 +32,8 @@ templ ContentMetadata(authors []string, updated time.Time) {
 		if len(authors) > 0 {
 			<strong>{ strings.Join(authors, ",") }</strong>
 		}
-		<span>
+		<span class="text-xs">
 			@ShowTimestamp(updated)
 		</span>
 	</div>
-}
-
-// ContentMenu renders a menu with the given actions in the content.
-templ ContentMenu(actions ...templ.Component) {
-	@tooltip.Build("Actions").Show() {
-		@dropdown.Build(
-			dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-			dropdown.WithButtonClasses(button.Ghost, button.XS),
-			dropdown.WithOpenFrom(dropdown.OpenTop),
-			dropdown.WithOpenAlignment(dropdown.AlignEnd),
-			dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
-		).Show() {
-			for item := range slices.Values(actions) {
-				<li _="on click call document.activeElement.blur()">
-					@item
-				</li>
-			}
-		}
-	}
 }

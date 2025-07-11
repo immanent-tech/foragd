@@ -10,6 +10,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/classes/opacity"
@@ -21,6 +22,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
+	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
@@ -147,39 +149,6 @@ func NewArticleContent(article *models.Article) *Article {
 	return card
 }
 
-// visitLink is the link to the original article.
-templ (c *Article) visitLink() {
-	@link.Build(
-		link.WithUnderlineOnHover(),
-		link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
-		link.WithClasses("text-xs"),
-	) {
-		<div class="flex gap-2">
-			@tabler.ExternalLink(i.Props{Size: i.SizeXS})
-			Original Article
-		</div>
-	}
-}
-
-// shareLink is the link for sharing the article to external services.
-templ (c *Article) shareLink() {
-	// @link.Build(
-	// 	link.WithContent(
-	// 		partials.IconText(tabler.Share(i.Props{Size: i.SizeXS}), "Share")),
-	// 	link.WithUnderlineOnHover(),
-	// 	link.WithExtraClasses("text-xs"),
-	// ).Show()
-}
-
-// markLink is the link for marking an article as read/unread
-templ (c *Article) markLink() {
-	if c.IsUnread() {
-		@partials.LinkMarkRead("Mark Read", c.markAttributes())
-	} else {
-		@partials.LinkMarkUnread("Mark Unread", c.markAttributes())
-	}
-}
-
 // ShowAsSummary shows a summarised version of the article.
 templ (c *Article) ShowAsSummary() {
 	@link.Build(
@@ -187,12 +156,7 @@ templ (c *Article) ShowAsSummary() {
 		link.WithAttributes(c.viewAttributes()),
 	) {
 		<div class="flex flex-row gap-2">
-			switch value := c.image().(type) {
-				case *figure.Props:
-					@value.Show()
-				case templ.Component:
-					@value
-			}
+			@c.image()
 			<div class="text-sm flex-1 text-justify">{ c.GetTitle() }</div>
 		</div>
 		<div class="flex flex-row justify-end">
@@ -207,28 +171,54 @@ templ (c *Article) ShowAsCard() {
 		card.WithStyle(card.Border),
 		card.WithLayout(card.LayoutSide),
 		card.WithShadow(shadow.SM),
-		card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
-		card.WithID(c.GetID()),
-		card.WithImage(c.image()),
-		card.WithBodyOptions(
-			// Card title.
-			card.WithTitle(link.Build(
-				link.WithUnderlineOnHover(),
-				link.WithAttributes(c.viewAttributes()),
-			)),
-			// Card content.
-			card.WithContent(
-				templ.Join(
-					partials.ContentMetadata(c.GetAuthors(), c.GetUpdatedDate()),
-				),
-			),
-			// Card actions.
-			card.WithActions(
-				partials.ContentMenu(c.shareLink(), c.visitLink(), c.markLink()),
-			),
-		),
-		card.WithExtraClasses(c.classes...),
-	).Show()
+		card.WithClasses("card-sm", "lg:card-md", "bg-base-300"),
+		card.WithClasses(c.classes...),
+		card.WithAttributes(templ.Attributes{
+			"id": c.GetID(),
+		}),
+	) {
+		@c.image()
+		@card.BuildBody() {
+			// Title.
+			<h2 class="card-title">
+				@link.Build(
+					link.WithUnderlineOnHover(),
+					link.WithAttributes(c.viewAttributes()),
+				) {
+					{ c.GetTitle() }
+				}
+			</h2>
+			// Body content.
+			@templ.Join(
+				partials.ContentMetadata(c.GetAuthors(), c.GetUpdatedDate()),
+			)
+			// Actions menu.
+			@card.Actions() {
+				@tooltip.Build("Actions").Show() {
+					@dropdown.Build(
+						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
+						dropdown.WithButtonClasses(button.Ghost, button.XS),
+						dropdown.WithOpenFrom(dropdown.OpenTop),
+						dropdown.WithOpenAlignment(dropdown.AlignEnd),
+						dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
+					).Show() {
+						// Visit action.
+						<li _="on click call document.activeElement.blur()">
+							@c.visitAction()
+						</li>
+						// Mark action.
+						<li _="on click call document.activeElement.blur()">
+							if c.IsUnread() {
+								@partials.LinkMarkRead("Mark Read", c.markAttributes())
+							} else {
+								@partials.LinkMarkUnread("Mark Unread", c.markAttributes())
+							}
+						</li>
+					}
+				}
+			}
+		}
+	}
 }
 
 templ (c *Article) ShowAsSearchSuggestion() {
@@ -282,33 +272,51 @@ templ (c *Article) ShowContent() {
 				}
 			</div>
 			<div class="flex justify-center m-2 gap-2">
-				<div>
-					// Share article action.
-					@c.shareLink()
-				</div>
+				// <div>
+				// 	// Share article action.
+				// 	@c.shareLink()
+				// </div>
 				<div>
 					// Visit external article link action.
-					@c.visitLink()
+					@c.visitAction()
 				</div>
 			</div>
 		}
 	</div>
 }
 
+templ (a *Article) visitAction() {
+	@link.Build(
+		link.WithUnderlineOnHover(),
+		link.WithAttributes(templ.Attributes{"href": a.GetLink()}),
+		link.WithClasses("text-xs"),
+	) {
+		<div class="flex gap-2">
+			@tabler.ExternalLink(i.Props{Size: i.SizeXS})
+			Original Article
+		</div>
+	}
+}
+
 // image returns an appropriate image to use in the article card. It will either be the article's image or a
 // placeholder.
-func (c Article) image() any {
+templ (c Article) image() {
 	if c.GetImage() != nil {
-		return figure.Build(
+		@figure.Build(
 			image.Build(
 				c.GetImage().URL(),
 				image.WithLazyLoading(),
 				image.WithExtraClasses("max-w-24", "h-full", "object-contain", "rounded-box"),
 			),
 			figure.WithFigureClasses("m-2"),
-		)
+		).Show()
+	} else {
+		<div class="content-center">
+			@tabler.Article(i.Props{
+				Size: "64",
+			})
+		</div>
 	}
-	return articlePlaceholderImage()
 }
 
 func (c *Article) markAttributes() templ.Attributes {
@@ -336,12 +344,4 @@ func (c *Article) viewAttributes() templ.Attributes {
 		"hx-push-url": "true",
 		"hx-swap":     "innerHTML scroll:top",
 	}
-}
-
-templ articlePlaceholderImage() {
-	<div class="content-center">
-		@tabler.Article(i.Props{
-			Size: "64",
-		})
-	</div>
 }

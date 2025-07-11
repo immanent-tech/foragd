@@ -10,8 +10,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/classes/shadow"
-	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
@@ -38,12 +36,6 @@ templ CardGrid(cards ...templ.Component) {
 			loading.WithThemeColor(color.Accent),
 		).Show()
 	</div>
-}
-
-var defaultCardOptions = []card.Option{
-	card.WithStyle(card.Border),
-	card.WithShadow(shadow.SM),
-	card.WithExtraClasses("card-sm", "lg:card-md", "bg-base-300"),
 }
 
 templ RefreshAction(route string, parameters map[string]string) {

@@ -8,7 +8,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
 	"github.com/joshuar/go-templ-daisyui/display/card"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 )
 
 // EmptyContent renders a hero with options for the user when the request
@@ -24,12 +23,13 @@ templ EmptyContent() {
 				@card.Build(
 					card.WithSize(card.LG),
 					card.WithShadow(shadow.XL),
-					card.WithBaseColor(color.Base300),
-					card.WithBodyOptions(
-						card.WithCenteredContent(),
-						card.WithTitle("Nothing here but 1s and 0s"),
-					),
-				).Show() {
+					// card.WithBaseColor(color.Base300),
+					// card.WithBodyOptions(
+					// 	card.WithCenteredContent(),
+					// 	card.WithTitle("Nothing here but 1s and 0s"),
+					// ),
+				) {
+					@card.Title("Nothing here but 1s and 0s")
 					<p>Something else?</p>
 					<div class="flex gap-2">
 						@partials.NewAction("/home", partials.DisplayActionAsButton,
