@@ -53,5 +53,5 @@ watcher = "cyan"
 clean_on_exit = true
 
 [screen]
-clear_on_rebuild = true
+clear_on_rebuild = false
 keep_scroll = true
