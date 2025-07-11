@@ -129,7 +129,7 @@ func (l *Action) generateAttrs() templ.Attributes {
 	case http.MethodGet:
 		attrs[AttrHXGet] = l.Path
 	case http.MethodPost:
-		attrs[AttrHXGet] = l.Path
+		attrs[AttrHXPost] = l.Path
 	case http.MethodPut:
 		attrs[AttrHXPut] = l.Path
 	}

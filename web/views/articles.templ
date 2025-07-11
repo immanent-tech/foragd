@@ -58,9 +58,10 @@ templ (page *ArticlesPage) Content() {
 			@UpdateSorting("/articles", page.filters.GetSort())
 			@UpdateFilters(page.articles.GetCategoryCounts(), "/articles", page.filters.GetCategories(), page.filters.GetView())
 			@dropdown.Build(
+				dropdown.WithButtonClasses("btn-sm"),
 				dropdown.WithButtonContent(tabler.DotsVertical()),
 				dropdown.WithOpenAlignment(dropdown.AlignEnd),
-				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52", "text-xs"),
 			).Show() {
 				<li>
 					switch page.filters.GetView() {
@@ -69,8 +70,11 @@ templ (page *ArticlesPage) Content() {
 								partials.ActionMethod(http.MethodPost),
 								partials.ActionValues(map[string]string{
 									models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),
-									"redirect":                "/home",
+									"redirect":                "/subscriptions",
 								}),
+								partials.ActionLinkOptions(
+									link.WithUnderlineOnHover(),
+								),
 							) {
 								<div class="flex gap-2">
 									@tabler.Bookmark(i.Props{Size: i.SizeXS})
@@ -84,7 +88,7 @@ templ (page *ArticlesPage) Content() {
 								partials.ActionMethod(http.MethodPost),
 								partials.ActionValues(map[string]string{
 									models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),
-									"redirect":                "/home",
+									"redirect":                "/subscriptions",
 								}),
 							) {
 								<div class="flex gap-2">
