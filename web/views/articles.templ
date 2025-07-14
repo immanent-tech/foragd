@@ -34,13 +34,13 @@ import (
 )
 
 // Layout is the complete page layout for the subscriptions page.
-templ (page *ArticlesPage) Layout() {
+templ (page *ArticlesPage) layout() {
 	@layouts.Drawer() {
-		@page.Content()
+		@page.content()
 	}
 }
 
-templ (page *ArticlesPage) Content() {
+templ (page *ArticlesPage) content() {
 	<div id="content-filters" class="hidden">
 		for name, value := range page.filters.Parameters() {
 			@hiddeninput.Build(
@@ -100,9 +100,9 @@ templ (page *ArticlesPage) Content() {
 	</div>
 	@layouts.CardGrid() {
 		if len(page.articles) > 0 {
-			@page.Cards()
+			@page.cards()
 		} else {
-			@EmptyContent()
+			@page.emptyContent()
 		}
 	}
 	<div id="content-loading" class="items-center justify-center">
@@ -114,7 +114,27 @@ templ (page *ArticlesPage) Content() {
 	@partials.Footer()
 }
 
-templ (page *ArticlesPage) Cards() {
+templ (page *ArticlesPage) emptyContent() {
+	<div class="hero bg-base-200 min-h-screen">
+		<div class="hero-content text-center">
+			<div class="max-w-md">
+				<h1 class="text-5xl font-bold">No articles to show</h1>
+				<p class="py-6">
+					Try adjusting your filters, or maybe there is nothing left to read?
+				</p>
+				@partials.NewAction("/home", partials.DisplayActionAsButton,
+					partials.ActionButtonOptions(
+						button.WithColor(button.Primary),
+					),
+				) {
+					Take me home
+				}
+			</div>
+		</div>
+	</div>
+}
+
+templ (page *ArticlesPage) cards() {
 	for cards := range slices.Values(page.generateCards(ctx)) {
 		@cards
 	}
@@ -124,12 +144,12 @@ templ (page *ArticlesPage) Cards() {
 func (page *ArticlesPage) Template(req *http.Request) templ.Component {
 	switch {
 	case req.Method == http.MethodPost:
-		return page.Cards()
+		return page.cards()
 	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-		return page.Content()
+		return page.content()
 	default:
 		return templates.NewPage("Go Feed Me - Articles",
-			templates.WithBodyContent(page.Layout()),
+			templates.WithBodyContent(page.layout()),
 		)
 	}
 }
