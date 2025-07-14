@@ -6,7 +6,6 @@ package views
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/input/fieldset"
 	"github.com/joshuar/go-templ-daisyui/input/form"
@@ -49,44 +48,31 @@ templ SignupForm(userDetails *models.UserSignupRequest) {
 				"hx-swap":   "outerHTML",
 			},
 		),
-		form.WithElements(
-			fieldset.Build(
-				fieldset.WithField("Nickname",
-					textinput.Build(
-						textinput.WithName("nickname"),
-						textinput.WithValue(userDetails.Nickname),
-					),
-				),
-				fieldset.WithField("Email",
-					textinput.Build(
-						textinput.WithName("email"),
-						textinput.AsType(textinput.Email),
-						textinput.WithPlaceholder("you@yourdomain.com"),
-						textinput.Required(),
-						textinput.Validate(),
-						textinput.ValidateHint("Valid email address is required."),
-						textinput.WithValue(userDetails.Email),
-					),
-				),
-				fieldset.WithField("Password",
-					textinput.Build(
-						textinput.WithName("password"),
-						textinput.AsType(textinput.Password),
-						textinput.Required(),
-						textinput.Validate(),
-						textinput.ValidatePattern(`(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}`),
-						textinput.ValidateMinLength(10),
-						textinput.ValidateHint("Password needs to be minimum 10 characters and include at least one: lowercase letter, uppercase letter and number"),
-						textinput.WithValue(userDetails.Password),
-					),
-				),
-				fieldset.WithField("",
-					button.Build(
-						button.AsSubmit(),
-						button.WithContent("Sign-up"),
-					),
-				),
-			).Show(),
-		),
-	).Show()
+	).Show() {
+		@fieldset.Build() {
+			@textinput.Build(
+				textinput.WithName("nickname"),
+				textinput.WithValue(userDetails.Nickname),
+			).Show()
+			@textinput.Build(
+				textinput.WithName("email"),
+				textinput.AsType(textinput.Email),
+				textinput.WithPlaceholder("you@yourdomain.com"),
+				textinput.Required(),
+				textinput.Validate(),
+				textinput.ValidateHint("Valid email address is required."),
+				textinput.WithValue(userDetails.Email),
+			).Show()
+			@textinput.Build(
+				textinput.WithName("password"),
+				textinput.AsType(textinput.Password),
+				textinput.Required(),
+				textinput.Validate(),
+				textinput.ValidatePattern(`(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{ 8,  }`),
+				textinput.ValidateMinLength(10),
+				textinput.ValidateHint("Password needs to be minimum 10 characters and include at least one: lowercase letter, uppercase letter and number"),
+				textinput.WithValue(userDetails.Password),
+			).Show()
+		}
+	}
 }

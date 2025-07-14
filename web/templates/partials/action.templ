@@ -18,8 +18,8 @@ templ (a *Action) link() {
 }
 
 templ (a *Action) button() {
-	{{ a.buttonOptions = append(a.buttonOptions, button.WithExtraAttributes(a.Attributes())) }}
-	@button.Build(a.buttonOptions...).Show() {
+	{{ a.buttonOptions = append(a.buttonOptions, button.WithAttributes(a.Attributes())) }}
+	@button.Build(a.buttonOptions...) {
 		{ children... }
 	}
 }

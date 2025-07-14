@@ -38,13 +38,14 @@ templ SearchForm() {
 				).Show()
 				@button.Build(
 					button.AsSubmit(),
-					button.WithContent(tabler.Search()),
-					button.WithExtraAttributes(templ.Attributes{
+					button.WithClasses("join-item"),
+					button.WithAttributes(templ.Attributes{
 						"tabindex":   1,
 						"hx-trigger": "keyup[key=='Enter']",
 					}),
-					button.WithExtraClasses("join-item"),
-				).Show()
+				) {
+					@tabler.Search()
+				}
 			}
 		}
 		<div id="search-suggestions"></div>

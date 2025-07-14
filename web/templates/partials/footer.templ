@@ -15,8 +15,7 @@ var FooterID = attributes.ID("footer")
 templ Footer(items ...templ.Component) {
 	@dock.Build(
 		dock.WithID(FooterID.String()),
-		dock.WithSize(dock.SM),
-		dock.WithClasses("bg-base-200"),
+		dock.WithClasses(dock.SM, "bg-base-200"),
 	).Show() {
 		for item := range slices.Values(items) {
 			@item

@@ -164,7 +164,7 @@ templ (page *SubscriptionsPage) emptyContent() {
 				</p>
 				@partials.NewAction("/home", partials.DisplayActionAsButton,
 					partials.ActionButtonOptions(
-						button.WithColor(button.Primary),
+						button.WithClasses(button.Primary),
 					),
 				) {
 					Take me home
@@ -478,37 +478,35 @@ templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []mode
 					"hx-indicator": "#add-processing",
 				},
 			),
-			form.WithElements(
-				fieldset.Build(
-					fieldset.WithField("",
-						hiddeninput.Build(
-							hiddeninput.WithName("subscription_id"),
-							hiddeninput.WithValue(edits.SubscriptionID),
-						),
-					),
-					fieldset.WithField("Nickname (optional)",
-						textinput.Build(
-							textinput.WithName("user_nickname"),
-							textinput.WithValue(edits.Title),
-							textinput.WithPlaceholder("My memorable feed name"),
-							textinput.Required(),
-						),
-					),
-				).Show(),
-			),
-		).Show()
+		).Show() {
+			@fieldset.Build() {
+				@hiddeninput.Build(
+					hiddeninput.WithName("subscription_id"),
+					hiddeninput.WithValue(edits.SubscriptionID),
+				).Show()
+				<label class="fieldset-label">Nickname (optional)</label>
+				@textinput.Build(
+					textinput.WithName("user_nickname"),
+					textinput.WithValue(edits.Title),
+					textinput.WithPlaceholder("My memorable feed name"),
+					textinput.Required(),
+				).Show()
+			}
+		}
 		@editCategories(edits.Categories, topCategories)
 		// Add a button to submit the Subscription details when finished editing.
-		@fieldset.Build(
-			fieldset.WithField("",
-				button.Build(
-					button.WithContent("Make it so!"),
-					button.WithExtraAttributes(templ.Attributes{
+		@fieldset.Build() {
+			<div>
+				@button.Build(
+					button.WithAttributes(templ.Attributes{
 						"form": "subscription-details",
 						"_":    "on click remove @open from " + partials.ModalID.Target(),
-					})),
-			),
-		).Show()
+					}),
+				) {
+					Make it so!
+				}
+			</div>
+		}
 		<center id="add-processing" class="htmx-indicator">
 			Adding
 			@loading.Build(loading.Infinity).Show()
@@ -544,46 +542,43 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest) {
 		// Display the Subscription details.
 		@form.Build(
 			form.WithID("subscription-details"),
-			form.WithElements(
-				fieldset.Build(
-					fieldset.WithLegend("Subscription details:"),
-					fieldset.WithField("URL",
-						textinput.Build(
-							textinput.AsType(textinput.URL),
-							textinput.WithName("url"),
-							textinput.WithPlaceholder("https://awesomefeed.lol.rss"),
-							textinput.Required(),
-							textinput.Validate(),
-							textinput.ValidateHint("A valid URL to a feed is required."),
-							textinput.WithValue(request.GetURL()),
-						),
-					),
-					fieldset.WithField("Nickname (optional)",
-						textinput.Build(
-							textinput.WithName("user_nickname"),
-							textinput.WithValue(request.GetNickname()),
-							textinput.WithPlaceholder("My memorable feed name"),
-						),
-					),
-				).Show(),
-			),
-		).Show()
+		).Show() {
+			@fieldset.Build() {
+				<label class="label font-semibold">URL</label>
+				@textinput.Build(
+					textinput.AsType(textinput.URL),
+					textinput.WithName("url"),
+					textinput.WithPlaceholder("https://awesomefeed.lol.rss"),
+					textinput.Required(),
+					textinput.Validate(),
+					textinput.ValidateHint("A valid URL to a feed is required."),
+					textinput.WithValue(request.GetURL()),
+				).Show()
+				<label class="label italic">Required. The URL to the feed source.</label>
+				<label class="label font-semibold">Nickname</label>
+				@textinput.Build(
+					textinput.WithName("user_nickname"),
+					textinput.WithValue(request.GetNickname()),
+					textinput.WithPlaceholder("My memorable feed name"),
+				).Show()
+				<label class="label italic">(Optional) A friendly/memorable name for the feed.</label>
+			}
+		}
 		@editCategories(request.Categories, nil)
 		// Add a button to submit the Subscription details when finished editing.
-		@fieldset.Build(
-			fieldset.WithField("",
-				button.Build(
-					button.WithSize(button.SM),
-					button.WithContent("Make it so!"),
-					button.WithExtraAttributes(templ.Attributes{
-						"form":         "subscription-details",
-						"hx-post":      "/user/subscription/new",
-						"hx-target":    partials.ModalID.Target(),
-						"hx-indicator": "#add-processing",
-					}),
-				),
-			),
-		).Show()
+		@fieldset.Build() {
+			@button.Build(
+				button.WithClasses(button.SM),
+				button.WithAttributes(templ.Attributes{
+					"form":         "subscription-details",
+					"hx-post":      "/user/subscription/new",
+					"hx-target":    partials.ModalID.Target(),
+					"hx-indicator": "#add-processing",
+				}),
+			) {
+				Make it so!
+			}
+		}
 		<center id="add-processing" class="htmx-indicator">
 			Adding
 			@loading.Build(loading.Infinity).Show()
@@ -630,7 +625,7 @@ templ SubscriptionAddedModal(result *models.AddSubscriptionResult) {
 					partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 					partials.ActionTarget(partials.ModalContainerID.Target()),
 					partials.ActionButtonOptions(
-						button.WithSize(button.SM),
+						button.WithClasses(button.SM),
 					),
 				) {
 					Add another
@@ -653,7 +648,7 @@ templ editCategories(existing []models.Category, suggested []models.Category) {
       ` }
 	>
 		<fieldset class="fieldset">
-			<label class="label">Add Category (optional)</label>
+			<label class="label font-semibold">Add Category</label>
 			@join.Horizontally() {
 				@textinput.Build(
 					textinput.WithPlaceholder("CoolStuff"),
@@ -662,10 +657,12 @@ templ editCategories(existing []models.Category, suggested []models.Category) {
 					}),
 				).Show("join-item")
 				@button.Build(
-					button.AsShape(button.Square),
-					button.WithContent(tabler.CategoryPlus()),
-				).Show("join-item")
+					button.WithClasses(button.Square, "join-item"),
+				) {
+					@tabler.CategoryPlus()
+				}
 			}
+			<label class="label italic">(Optional) Custom categories to assign to the feed.</label>
 			<datalist id="categorySuggestions">
 				for category := range slices.Values(suggested) {
 					<option value={ category }></option>
@@ -701,7 +698,7 @@ templ editCategories(existing []models.Category, suggested []models.Category) {
        		end
 			"
 		>
-			<label class="label">Current Categories (click a category to remove):</label>
+			<label class="label text-semibold">Current Categories:</label>
 			<ul
 				id="shown-categories"
 				_="on click send delCategory(category: innerHTML of target) to #categories"
@@ -710,6 +707,7 @@ templ editCategories(existing []models.Category, suggested []models.Category) {
 					<li>{ category }</li>
 				}
 			</ul>
+			<label class="label italic">(click a category to remove)</label>
 			for category := range slices.Values(existing) {
 				@hiddeninput.Build(
 					hiddeninput.WithID(category),
@@ -776,25 +774,19 @@ templ ImportSubscriptionsModal() {
 // SetupOPMLImport is a partial template for setting up subscriptions import via an OPML file.
 templ SetupOPMLImport() {
 	<p>Select the OPML file to use:</p>
-	@fieldset.Build(
-		fieldset.WithField("",
-			hiddeninput.Build(
-				hiddeninput.WithName("source"),
-				hiddeninput.WithValue(string(models.ImportSourceOPMLFile)),
-			),
-		),
-		fieldset.WithField("",
-			fileinput.Build(
-				fileinput.WithName("data"),
-				fileinput.Required(),
-			),
-		),
-		fieldset.WithField("",
-			button.Build(
-				button.WithContent("Import"),
-			),
-		),
-	).Show()
+	@fieldset.Build() {
+		@hiddeninput.Build(
+			hiddeninput.WithName("source"),
+			hiddeninput.WithValue(string(models.ImportSourceOPMLFile)),
+		).Show()
+		@fileinput.Build(
+			fileinput.WithName("data"),
+			fileinput.Required(),
+		).Show()
+		@button.Build() {
+			Import
+		}
+	}
 	// <progress id="import-form-progress" class="progress" value="0" max="100"></progress>
 }
 
@@ -809,7 +801,7 @@ templ ImportResults(results AddSubscriptionResults) {
 			@partials.NewAction("/subscriptions", partials.DisplayActionAsButton,
 				partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
 				partials.ActionButtonOptions(
-					button.WithColor(button.Primary),
+					button.WithClasses(button.Primary),
 				),
 			) {
 				Go to your subscriptions
@@ -851,8 +843,4 @@ templ ImportResults(results AddSubscriptionResults) {
 			Back to top
 		}
 	</div>
-}
-
-templ RemoveSubscription(id models.SubscriptionID) {
-	<div id={ id }></div>
 }

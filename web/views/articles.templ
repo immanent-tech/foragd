@@ -125,7 +125,7 @@ templ (page *ArticlesPage) emptyContent() {
 				</p>
 				@partials.NewAction("/home", partials.DisplayActionAsButton,
 					partials.ActionButtonOptions(
-						button.WithColor(button.Primary),
+						button.WithClasses(button.Primary),
 					),
 				) {
 					Take me home
