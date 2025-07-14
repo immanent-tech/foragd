@@ -33,13 +33,14 @@ import (
 	"strings"
 )
 
-// Layout is the complete page layout for the subscriptions page.
+// layout is the complete page layout for the articles page.
 templ (page *ArticlesPage) layout() {
 	@layouts.Drawer() {
 		@page.content()
 	}
 }
 
+// content is the main content to show for a collection of articles.
 templ (page *ArticlesPage) content() {
 	<div id="content-filters" class="hidden">
 		for name, value := range page.filters.Parameters() {
@@ -114,6 +115,7 @@ templ (page *ArticlesPage) content() {
 	@partials.Footer()
 }
 
+// emptyContent will render a hero with some options when there are no articles to display.
 templ (page *ArticlesPage) emptyContent() {
 	<div class="hero bg-base-200 min-h-screen">
 		<div class="hero-content text-center">
@@ -134,6 +136,7 @@ templ (page *ArticlesPage) emptyContent() {
 	</div>
 }
 
+// cards will render just the article cards.
 templ (page *ArticlesPage) cards() {
 	for cards := range slices.Values(page.generateCards(ctx)) {
 		@cards

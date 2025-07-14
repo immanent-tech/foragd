@@ -105,13 +105,13 @@ type FavouriteType string
 // Feed defines model for Feed.
 type Feed struct {
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
-	Authors []string `json:"authors,omitempty" validate:"omitempty,unique"`
+	Authors []string `json:"authors,omitempty"`
 
 	// Categories is a list of categories that define a taxonomy for the feed or item.
 	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
-	Contributors []string `json:"contributors,omitempty" validate:"omitempty,unique"`
+	Contributors []string `json:"contributors,omitempty"`
 	Copyright    string   `json:"copyright,omitempty"`
 
 	// CreatedAt records when the object was created in the database.
@@ -161,7 +161,7 @@ type Item struct {
 	Timestamp Timestamp `json:"@timestamp" validate:"required"`
 
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
-	Authors []string `json:"authors,omitempty" validate:"omitempty,unique"`
+	Authors []string `json:"authors,omitempty"`
 
 	// Categories is a list of categories that define a taxonomy for the feed or item.
 	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
@@ -170,7 +170,7 @@ type Item struct {
 	Content string `json:"content,omitempty"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
-	Contributors []string `json:"contributors,omitempty" validate:"omitempty,unique"`
+	Contributors []string `json:"contributors,omitempty"`
 	Copyright    string   `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.
@@ -217,13 +217,13 @@ type Mark string
 // ObjectCommon contains common fields across objects.
 type ObjectCommon struct {
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
-	Authors []string `json:"authors,omitempty" validate:"omitempty,unique"`
+	Authors []string `json:"authors,omitempty"`
 
 	// Categories is a list of categories that define a taxonomy for the feed or item.
 	Categories []Category `json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
-	Contributors []string `json:"contributors,omitempty" validate:"omitempty,unique"`
+	Contributors []string `json:"contributors,omitempty"`
 	Copyright    string   `json:"copyright,omitempty"`
 
 	// Description is a short summary or description of the feed or item.

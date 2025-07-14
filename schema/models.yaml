@@ -303,8 +303,6 @@ components:
           type: array
           items:
             type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
         contributors:
           description: >
@@ -312,8 +310,6 @@ components:
           type: array
           items:
             type: string
-          x-oapi-codegen-extra-tags:
-            validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
         image:
           $ref: '../models/feeds/types.yaml#/components/schemas/Image'
