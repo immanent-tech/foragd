@@ -146,15 +146,22 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Get("/view/{subscription}/{item}", handler.ViewArticle())
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
+			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
 				r.Get("/new", handlers.NewSubscription())
 				r.Post("/new", handler.AddSubscription())
 				r.Get("/edit/{subscription}", handler.EditSubscription())
 				r.Put("/edit/{subscription}", handler.SaveSubscription())
 			})
+			// Import/export.
+			r.Get("/import", handler.ImportSubscriptions())
+			r.With(middlewares.RequireHTMX).Put("/import", handler.ImportSubscriptions())
+			r.With(middlewares.RequireHTMX).Post("/import", handler.ImportSubscriptions())
+			// Favourites.
 			r.Route("/favourite", func(r chi.Router) {
 				// r.Put("/subscription/{subscription}", handler.AddFavouriteSubscription())
 			})
+			// Settings.
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handlers.GetSettings())
 				r.Route("/theme", func(r chi.Router) {

@@ -247,10 +247,12 @@ templ (c *Article) ShowContent() {
 			}),
 		).Show() {
 			<h2>
-				@text.Build(c.GetTitle(),
+				@text.Build(
 					text.WithWeight(text.Semibold),
 					text.WithSize(text.LG),
-				).Show("flex-1")
+				) {
+					{ c.GetTitle() }
+				}
 			</h2>
 			@partials.ContentMetadata(c.GetAuthors(), c.GetUpdatedDate())
 			// Display the categories associated with the article.

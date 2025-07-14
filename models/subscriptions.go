@@ -498,3 +498,18 @@ func (r *RemoveSubscriptionsRequest) Sanitise() error {
 	}
 	return nil
 }
+
+// AddSubscriptionResult represents the result of creating a new subscription.
+type AddSubscriptionResult struct {
+	Subscription *Subscription
+	Message      *UserMessage
+}
+
+// NewSubscriptionResult creates an object that represents the result of creating a new subscription. The subscription
+// is optional as the result might be a failure to create. The message should always be non-nil.
+func NewSubscriptionResult(subscription *Subscription, msg *UserMessage) *AddSubscriptionResult {
+	return &AddSubscriptionResult{
+		Subscription: subscription,
+		Message:      msg,
+	}
+}

@@ -63,8 +63,9 @@ templ Header() {
 					}
 				</li>
 				<li>
-					@partials.NewAction("/user/subscription/import", partials.DisplayActionAsLink,
+					@partials.NewAction("/user/import", partials.DisplayActionAsLink,
 						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+						partials.ActionTarget(partials.ModalContainerID.Target()),
 						partials.ActionLinkOptions(
 							link.WithUnderlineOnHover(),
 						),
