@@ -5,6 +5,7 @@
 import 'htmx.org'
 import './htmx.js'
 import 'htmx-ext-response-targets'
+import 'htmx-ext-multi-swap'
 // hyperscript
 import _hyperscript from 'hyperscript.org/dist/_hyperscript.js'
 _hyperscript.browserInit()

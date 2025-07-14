@@ -279,7 +279,7 @@ templ (c *Subscription) Card() {
 	@card.Build(
 		card.WithStyle(card.Border),
 		card.WithShadow(shadow.SM),
-		card.WithClasses("card-sm", "lg:card-md", "bg-base-300"),
+		card.WithClasses("card-sm", "lg:card-md", "bg-neutral"),
 		card.WithClasses(c.classes...),
 		card.WithAttributes(templ.Attributes{
 			"id": c.GetID(),
@@ -830,4 +830,8 @@ templ ImportResults(results AddSubscriptionResults) {
 			Back to top
 		}
 	</div>
+}
+
+templ RemoveSubscription(id models.SubscriptionID) {
+	<div id={ id }></div>
 }

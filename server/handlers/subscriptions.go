@@ -143,7 +143,7 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 				models.WithResponseTemplate(partials.ShowNotification(msg)),
 			)
 			// Trigger state updates.
-			chain = chain.Append(TriggerStateUpdates)
+			// chain = chain.Append(TriggerStateUpdates)
 		case models.UserConfirmationCancel:
 			slogctx.FromCtx(req.Context()).Debug("Subscription removal cancelled.",
 				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
@@ -161,14 +161,19 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Debug("Confirming subscription removal.",
 				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
 			)
+			swapTargets := make([]string, 0, len(request.Subscriptions))
+			for sub := range slices.Values(request.Subscriptions) {
+				swapTargets = append(swapTargets, "#"+sub)
+			}
 			parameters := map[string]string{
 				"subscriptions": strings.Join(request.Subscriptions, ","),
 				"confirmation":  "yes",
 			}
 			modal := partials.AskQuestion("Unsubscribe?", templ.Attributes{
-				"hx-post": "/subscriptions/remove",
-				"hx-vals": partials.GenerateHXVals(parameters),
-				"hx-swap": "outerHTML",
+				"hx-post":   "/subscriptions/remove",
+				"hx-vals":   partials.GenerateHXVals(parameters),
+				"hx-target": "#" + request.Subscriptions[0],
+				"hx-swap":   "outerHTML",
 			})
 			resp = models.NewResponse(
 				models.WithResponseTemplate(modal),
@@ -563,15 +568,13 @@ func (a *API) removeSubscriptions(ctx context.Context, ids ...models.Subscriptio
 	}
 
 	// Remove states for given subscriptions from user.
-	states := user.GetSubscriptionsByID()
-	for id := range states {
-		if slices.Contains(ids, id) {
-			delete(states, id)
-		}
-	}
+	user.Subscriptions = slices.Collect(models.FilterSlice(user.Subscriptions, func(s models.SubscriptionFeedRelation) bool {
+		return !slices.Contains(ids, s.SubscriptionID)
+	}))
+	spew.Dump(user.Subscriptions)
 	// Update the user.
 	return a.updateUser(ctx, map[string]any{
-		"subscriptions": slices.Collect(maps.Values(states)),
+		"subscriptions": user.Subscriptions,
 	})
 }
 
@@ -753,11 +756,10 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		return nil, fmt.Errorf("createNewSubscriptions: %w", err)
 	}
 	// Update the user object.
-	resp := api.updateUser(ctx, map[string]any{
+	if err := api.updateUser(ctx, map[string]any{
 		"subscriptions": user.Subscriptions,
-	})
-	if resp != nil {
-		return nil, fmt.Errorf("createNewSubscriptions: %w", resp.InternalError)
+	}); err != nil {
+		return nil, fmt.Errorf("createNewSubscriptions: %w", err)
 	}
 	return results, nil
 }

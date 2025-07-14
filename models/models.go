@@ -53,7 +53,7 @@ func SliceToMap[K comparable, V any, S any](s []S, mapFn func(S) (K, V)) map[K]V
 	return m
 }
 
-// FilterSlice will filter a slice by the given function.
+// FilterSlice will filter a slice returning an iter with elements that return true for the given filter function.
 func FilterSlice[S any](s []S, fn func(S) bool) iter.Seq[S] {
 	return func(yield func(s S) bool) {
 		for _, v := range s {

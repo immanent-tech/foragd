@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -114,16 +115,16 @@ func (a *API) SetTheme() http.HandlerFunc {
 // }
 
 // UpdateUser performs a partial update of the user object. On an error, a non-nil response is returned.
-func (a *API) updateUser(ctx context.Context, updates map[string]any) *models.Response {
+func (a *API) updateUser(ctx context.Context, updates map[string]any) error {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return models.RespErrUnauthorized()
+		return models.ErrUserCtx
 	}
 	index := elastic.UserIndexFromCtx(ctx)
 
 	if err := elastic.UpdateDoc(ctx, a.DataAPI().GetAPI(), index, user.GetID(), updates); err != nil {
-		return &models.Response{StatusCode: http.StatusInternalServerError, InternalError: err}
+		return fmt.Errorf("could not update user: %w", err)
 	}
 	return nil
 }
