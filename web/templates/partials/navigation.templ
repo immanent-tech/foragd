@@ -4,6 +4,7 @@
 package partials
 
 import (
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -21,7 +22,6 @@ templ SubscriptionList() {
 // LinkMarkRead generates a link showing an icon and the given text that will trigger the action with the given attributes.
 templ LinkMarkRead(text string, attributes templ.Attributes) {
 	@link.Build(
-		link.WithUnderlineOnHover(),
 		link.WithAttributes(attributes),
 		link.WithClasses("text-xs"),
 	) {
@@ -35,7 +35,6 @@ templ LinkMarkRead(text string, attributes templ.Attributes) {
 // LinkMarkUnread generates a link showing an icon and the given text that will trigger the action with the given attributes.
 templ LinkMarkUnread(text string, attributes templ.Attributes) {
 	@link.Build(
-		link.WithUnderlineOnHover(),
 		link.WithAttributes(attributes),
 		link.WithClasses("text-xs"),
 	) {
@@ -43,5 +42,17 @@ templ LinkMarkUnread(text string, attributes templ.Attributes) {
 			@tabler.BookmarkFilled(i.Props{Size: i.SizeXS})
 			{ text }
 		</div>
+	}
+}
+
+templ RefreshButton(route string, parameters map[string]string) {
+	@NewAction(route, DisplayActionAsButton,
+		ActionInclude("#content-filters"),
+		ActionValues(parameters),
+		ActionButtonOptions(
+			button.WithExtraClasses(button.Square, button.SM),
+		),
+	) {
+		@tabler.Refresh(i.Props{Size: i.SizeXS})
 	}
 }

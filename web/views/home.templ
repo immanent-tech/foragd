@@ -32,7 +32,6 @@ templ (page *HomePage) Content() {
 	<div class="grid justify-center">
 		<div class="stats shadow">
 			@link.Build(
-				link.WithUnderlineOnHover(),
 				link.WithAttributes(templ.Attributes{
 					"hx-get":      "/subscriptions",
 					"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
@@ -50,7 +49,6 @@ templ (page *HomePage) Content() {
 				</div>
 			}
 			@link.Build(
-				link.WithUnderlineOnHover(),
 				link.WithAttributes(templ.Attributes{
 					"hx-get":      "/articles",
 					"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),

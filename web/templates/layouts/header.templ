@@ -38,9 +38,6 @@ templ Header() {
 						partials.ActionTarget(partials.ContentID.Target()),
 						partials.ActionPushURL(),
 						partials.ActionHyperScript("on click call document.activeElement.blur()"),
-						partials.ActionLinkOptions(
-							link.WithUnderlineOnHover(),
-						),
 					) {
 						<div class="flex gap-2">
 							@tabler.Settings(i.Props{Size: i.SizeXS})
@@ -52,9 +49,6 @@ templ Header() {
 					@partials.NewAction("/user/subscription/new", partials.DisplayActionAsLink,
 						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 						partials.ActionTarget(partials.ModalContainerID.Target()),
-						partials.ActionLinkOptions(
-							link.WithUnderlineOnHover(),
-						),
 					) {
 						<div class="flex gap-2">
 							@tabler.FilePlus(i.Props{Size: i.SizeXS})
@@ -66,9 +60,6 @@ templ Header() {
 					@partials.NewAction("/user/import", partials.DisplayActionAsLink,
 						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 						partials.ActionTarget(partials.ModalContainerID.Target()),
-						partials.ActionLinkOptions(
-							link.WithUnderlineOnHover(),
-						),
 					) {
 						<div class="flex gap-2">
 							@tabler.FileImport(i.Props{Size: i.SizeXS})
@@ -78,7 +69,6 @@ templ Header() {
 				</li>
 				<li>
 					@link.Build(
-						link.WithUnderlineOnHover(),
 						link.WithHref("/logout"),
 					) {
 						<div class="flex gap-2">

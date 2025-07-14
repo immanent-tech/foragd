@@ -76,17 +76,18 @@ templ (page *SubscriptionsPage) content() {
 			).Show()
 		}
 	</div>
-	<div id="card-controls" class="flex flex-row justify-end m-2">
+	<div id="card-controls" class="flex flex-row items-center justify-end m-2">
 		@breadcrumbs.Build(
 			breadcrumbs.WithClasses("text-sm", "flex-1"),
 			breadcrumbs.WithCrumbs(partials.SubscriptionList()),
 		).Show()
 		<div class="flex flex-row justify-end gap-2">
-			@RefreshAction("/subscriptions", page.filters.Parameters())
+			@partials.RefreshButton("/subscriptions", page.filters.Parameters())
 			@UpdateSorting("/subscriptions", page.filters.GetSort())
 			@UpdateFilters(page.subscriptions.GetCategoryCounts(), "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
 			@dropdown.Build(
-				dropdown.WithButtonContent(tabler.DotsVertical()),
+				dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
+				dropdown.WithButtonClasses(button.SM, button.Square),
 				dropdown.WithOpenAlignment(dropdown.AlignEnd),
 				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 			).Show() {
@@ -99,7 +100,6 @@ templ (page *SubscriptionsPage) content() {
 									"redirect": "/home",
 								}),
 								partials.ActionLinkOptions(
-									link.WithUnderlineOnHover(),
 									link.WithClasses("text-xs"),
 								),
 							) {
@@ -117,7 +117,6 @@ templ (page *SubscriptionsPage) content() {
 									"redirect": "/home",
 								}),
 								partials.ActionLinkOptions(
-									link.WithUnderlineOnHover(),
 									link.WithClasses("text-xs"),
 								),
 							) {
@@ -198,7 +197,6 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 // Summary displays the subscription's image (or a avatar), title and unread count (if any).
 templ (c *Subscription) Summary() {
 	@link.Build(
-		link.WithUnderlineOnHover(),
 		link.WithAttributes(c.viewAttributes()),
 	) {
 		<div class="flex flex-row gap-2">
@@ -240,7 +238,6 @@ templ (c *Subscription) Summary() {
 // State displays the subscription title and its unread count (if any).
 templ (s *Subscription) State() {
 	@link.Build(
-		link.WithUnderlineOnHover(),
 		link.WithAttributes(s.viewAttributes()),
 	) {
 		<div class="flex gap-2 w-full">
@@ -302,7 +299,6 @@ templ (c *Subscription) Card() {
 						// Visit action.
 						<li _="on click call document.activeElement.blur()">
 							@link.Build(
-								link.WithUnderlineOnHover(),
 								link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
 								link.WithClasses("text-xs"),
 							) {
@@ -326,7 +322,6 @@ templ (c *Subscription) Card() {
 								partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 								partials.ActionTarget(partials.ModalContainerID.Target()),
 								partials.ActionLinkOptions(
-									link.WithUnderlineOnHover(),
 									link.WithClasses("text-xs"),
 								),
 							) {
@@ -342,7 +337,6 @@ templ (c *Subscription) Card() {
 								partials.ActionMethod(http.MethodPut),
 								partials.ActionSwap("none"),
 								partials.ActionLinkOptions(
-									link.WithUnderlineOnHover(),
 									link.WithClasses("text-xs"),
 								),
 							) {
@@ -363,7 +357,6 @@ templ (c *Subscription) Card() {
 									"confirmation":  "no",
 								}),
 								partials.ActionLinkOptions(
-									link.WithUnderlineOnHover(),
 									link.WithClasses("text-xs"),
 								),
 							) {
@@ -821,7 +814,6 @@ templ ImportResults(results AddSubscriptionResults) {
 		@link.Build(
 			link.WithHref("#"),
 			link.WithClasses("btn", "btn-primary", "fixed", "right-0", "bottom-0", "m-4"),
-			link.WithUnderlineOnHover(),
 		) {
 			Back to top
 		}

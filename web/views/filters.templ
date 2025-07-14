@@ -1,0 +1,94 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package views
+
+import (
+	"context"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+	"slices"
+)
+
+// UpdateFilters will update the content filters for the current page.
+templ UpdateFilters(allCategories models.CategoryCounts, route string, categoryFilters []models.Category, viewFilter models.View) {
+	<div id="card-filters">
+		@dropdown.Build(
+			dropdown.WithButtonContent(tabler.Filter(i.Props{Size: i.SizeXS})),
+			dropdown.WithButtonClasses(button.Square, button.SM),
+			dropdown.WithOpenAlignment(dropdown.AlignEnd),
+			dropdown.WithMenuClasses("w-52"),
+		).Show() {
+			<li class="menu-title text-xs">View:</li>
+			for view := range slices.Values([]models.View{models.ViewUnread,models.ViewRead,models.ViewAll}) {
+				<li class="text-xs">
+					@newViewFilter(ctx, view, route, viewFilter)
+				</li>
+			}
+			if len(allCategories) > 0 {
+				<li class="menu-title text-xs">Category:</li>
+				for category := range slices.Values(allCategories.GetTopCategories(10)) {
+					<li class="text-xs">
+						@newCategoryFilter(ctx, category, route, categoryFilters)
+					</li>
+				}
+			}
+		}
+	</div>
+}
+
+// newCategoryFilter creates a category filter action.
+templ newCategoryFilter(ctx context.Context, category models.CategoryCount, route string, categoryFilters []models.Category) {
+	if slices.Contains(categoryFilters, category.Category) {
+		// Category filter is currently active, highlight it with colour.
+		@partials.NewAction(route, partials.DisplayActionAsLink,
+			partials.ActionPushURL(),
+			partials.ActionParams("not "+models.ParamCategories),
+			partials.ActionInclude("#content-filters"),
+			partials.ActionLinkOptions(
+				link.WithClasses("text-primary"),
+			),
+		) {
+			{ category.Category }
+		}
+	} else {
+		@partials.NewAction(route, partials.DisplayActionAsLink,
+			partials.ActionPushURL(),
+			partials.ActionInclude("#content-filters"),
+			partials.ActionValues(map[string]string{models.ParamCategories: category.Category}),
+		) {
+			{ category.Category }
+		}
+	}
+}
+
+// newViewFilter creates a view filter action.
+templ newViewFilter(ctx context.Context, view models.View, route string, current models.View) {
+	// If the current view filters indicate this view is active, mark as so.
+	if view == current {
+		@partials.NewAction(route, partials.DisplayActionAsLink,
+			partials.ActionPushURL(),
+			partials.ActionInclude("#content-filters"),
+			partials.ActionLinkOptions(
+				link.WithClasses("text-primary", "capitalize"),
+			),
+		) {
+			{ view }
+		}
+	} else {
+		@partials.NewAction(route, partials.DisplayActionAsLink,
+			partials.ActionPushURL(),
+			partials.ActionInclude("#content-filters"),
+			partials.ActionLinkOptions(
+				link.WithClasses("capitalize"),
+			),
+		) {
+			{ view }
+		}
+	}
+}

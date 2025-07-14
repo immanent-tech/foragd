@@ -52,7 +52,7 @@ templ (page *ArticlesPage) content() {
 	</div>
 	<div id="card-controls" class="flex flex-row m-2">
 		<div class="flex flex-row justify-end gap-2">
-			@RefreshAction("/articles", page.filters.Parameters())
+			@partials.RefreshButton("/articles", page.filters.Parameters())
 			@UpdateSorting("/articles", page.filters.GetSort())
 			@UpdateFilters(page.articles.GetCategoryCounts(), "/articles", page.filters.GetCategories(), page.filters.GetView())
 			@dropdown.Build(
@@ -70,9 +70,6 @@ templ (page *ArticlesPage) content() {
 									models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),
 									"redirect":                "/subscriptions",
 								}),
-								partials.ActionLinkOptions(
-									link.WithUnderlineOnHover(),
-								),
 							) {
 								<div class="flex gap-2">
 									@tabler.Bookmark(i.Props{Size: i.SizeXS})
@@ -175,7 +172,6 @@ func NewArticleContent(article *models.Article) *Article {
 // ShowAsSummary shows a summarised version of the article.
 templ (c *Article) ShowAsSummary() {
 	@link.Build(
-		link.WithUnderlineOnHover(),
 		link.WithAttributes(c.viewAttributes()),
 	) {
 		<div class="flex flex-row gap-2">
@@ -205,7 +201,6 @@ templ (c *Article) ShowAsCard() {
 			// Title.
 			<h2 class="card-title">
 				@link.Build(
-					link.WithUnderlineOnHover(),
 					link.WithAttributes(c.viewAttributes()),
 				) {
 					{ c.GetTitle() }
@@ -312,7 +307,6 @@ templ (c *Article) ShowContent() {
 
 templ (a *Article) visitAction() {
 	@link.Build(
-		link.WithUnderlineOnHover(),
 		link.WithAttributes(templ.Attributes{"href": a.GetLink()}),
 		link.WithClasses("text-xs"),
 	) {

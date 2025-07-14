@@ -1,0 +1,101 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package views
+
+import (
+	"context"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+)
+
+templ UpdateSorting(route string, current models.Sort) {
+	<div id="card-sorting">
+		@dropdown.Build(
+			dropdown.WithButtonContent(tabler.ArrowsSort(i.Props{Size: i.SizeXS})),
+			dropdown.WithButtonClasses(button.Square, button.SM),
+			dropdown.WithOpenAlignment(dropdown.AlignEnd),
+			dropdown.WithMenuClasses("w-52"),
+		).Show() {
+			<li class="menu-title text-xs">Sort:</li>
+			<li class="text-xs">
+				@sortFilter(ctx, models.SortLastUpdatedDesc, route, current)
+			</li>
+			<li class="text-xs">
+				@sortFilter(ctx, models.SortLastUpdatedAsc, route, current)
+			</li>
+			if route == "/subscriptions" {
+				<li class="text-xs">
+					@sortFilter(ctx, models.SortUnreadCountDesc, route, current)
+				</li>
+				<li class="text-xs">
+					@sortFilter(ctx, models.SortUnreadCountAsc, route, current)
+				</li>
+			}
+		}
+	</div>
+}
+
+templ sortFilter(ctx context.Context, sort models.Sort, route string, current models.Sort) {
+	// Set this sort as active if indicated in the current view filters.
+	if current.IsEqual(sort) {
+		@partials.NewAction(route, partials.DisplayActionAsLink,
+			partials.ActionPushURL(),
+			partials.ActionValues(map[string]string{
+				models.ParamSortBy:    string(sort.SortBy),
+				models.ParamSortOrder: string(sort.SortOrder),
+			}),
+			partials.ActionInclude("#content-filters"),
+			partials.ActionLinkOptions(
+				link.WithClasses("text-primary", "capitalize"),
+			),
+		) {
+			<div class="flex items-center gap-2">
+				@sortIcon(sort)
+				{ sort.String() }
+			</div>
+		}
+	} else {
+		@partials.NewAction(route, partials.DisplayActionAsLink,
+			partials.ActionPushURL(),
+			partials.ActionValues(map[string]string{
+				models.ParamSortBy:    string(sort.SortBy),
+				models.ParamSortOrder: string(sort.SortOrder),
+			}),
+			partials.ActionInclude("#content-filters"),
+			partials.ActionLinkOptions(
+				link.WithClasses("capitalize"),
+			),
+		) {
+			<div class="flex items-center gap-2">
+				@sortIcon(sort)
+				{ sort.String() }
+			</div>
+		}
+	}
+}
+
+templ sortIcon(sort models.Sort) {
+	// Set icons to represent sort option.
+	switch sort.SortBy {
+		case models.SortByLastUpdated:
+			switch sort.SortOrder {
+				case models.SortOrderDesc:
+					@tabler.SortDescending()
+				case models.SortOrderAsc:
+					@tabler.SortAscending()
+			}
+		case models.SortByUnreadCount:
+			switch sort.SortOrder {
+				case models.SortOrderDesc:
+					@tabler.SortDescendingNumbers()
+				case models.SortOrderAsc:
+					@tabler.SortAscendingNumbers()
+			}
+	}
+}

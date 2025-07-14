@@ -24,6 +24,7 @@ const (
 	AttrHXVals    = "hx-vals"
 	AttrHXSwap    = "hx-swap"
 	AttrHXParams  = "hx-params"
+	AttrHXInclude = "hx-include"
 	AttrHXPost    = "hx-post"
 	AttrHXGet     = "hx-get"
 	AttrHXPut     = "hx-put"
@@ -82,6 +83,13 @@ func ActionTarget(target string) ActionOption {
 func ActionSwap(swap string) ActionOption {
 	return func(a *Action) {
 		a.setVar(AttrHXSwap, swap)
+	}
+}
+
+// ActionInclude option defines the 'hx-include' option.
+func ActionInclude(include string) ActionOption {
+	return func(a *Action) {
+		a.setVar(AttrHXInclude, include)
 	}
 }
 
