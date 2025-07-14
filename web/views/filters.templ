@@ -77,6 +77,7 @@ templ newViewFilter(ctx context.Context, view models.View, route string, current
 			partials.ActionLinkOptions(
 				link.WithClasses("text-primary", "capitalize"),
 			),
+			partials.ActionValues(map[string]string{models.ParamView: string(view)}),
 		) {
 			{ view }
 		}
@@ -87,6 +88,7 @@ templ newViewFilter(ctx context.Context, view models.View, route string, current
 			partials.ActionLinkOptions(
 				link.WithClasses("capitalize"),
 			),
+			partials.ActionValues(map[string]string{models.ParamView: string(view)}),
 		) {
 			{ view }
 		}
