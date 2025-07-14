@@ -20,7 +20,7 @@ templ UpdateFilters(allCategories models.CategoryCounts, route string, categoryF
 	<div id="card-filters">
 		@dropdown.Build(
 			dropdown.WithButtonContent(tabler.Filter(i.Props{Size: i.SizeXS})),
-			dropdown.WithButtonClasses(button.Square, button.SM),
+			dropdown.WithButtonClasses(button.Square, button.SM, button.Primary),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
 			dropdown.WithMenuClasses("w-52"),
 		).Show() {

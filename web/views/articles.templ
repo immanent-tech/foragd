@@ -50,14 +50,16 @@ templ (page *ArticlesPage) content() {
 			).Show()
 		}
 	</div>
-	<div id="card-controls" class="flex flex-row m-2">
-		<div class="flex flex-row justify-end gap-2">
-			@partials.RefreshButton("/articles", page.filters.Parameters())
+	<div id="card-controls" class="m-2">
+		<div class="grid grid-flow-col auto-cols-max justify-end gap-2">
+			<div>
+				@partials.RefreshButton("/articles", page.filters.Parameters())
+			</div>
 			@UpdateSorting("/articles", page.filters.GetSort())
 			@UpdateFilters(page.articles.GetCategoryCounts(), "/articles", page.filters.GetCategories(), page.filters.GetView())
 			@dropdown.Build(
-				dropdown.WithButtonClasses("btn-sm"),
-				dropdown.WithButtonContent(tabler.DotsVertical()),
+				dropdown.WithButtonClasses(button.SM, button.Square, button.Primary),
+				dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
 				dropdown.WithOpenAlignment(dropdown.AlignEnd),
 				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52", "text-xs"),
 			).Show() {

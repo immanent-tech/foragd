@@ -50,7 +50,7 @@ templ RefreshButton(route string, parameters map[string]string) {
 		ActionInclude("#content-filters"),
 		ActionValues(parameters),
 		ActionButtonOptions(
-			button.WithExtraClasses(button.Square, button.SM),
+			button.WithExtraClasses(button.Square, button.SM, button.Primary),
 		),
 	) {
 		@tabler.Refresh(i.Props{Size: i.SizeXS})

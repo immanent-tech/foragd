@@ -18,7 +18,7 @@ templ UpdateSorting(route string, current models.Sort) {
 	<div id="card-sorting">
 		@dropdown.Build(
 			dropdown.WithButtonContent(tabler.ArrowsSort(i.Props{Size: i.SizeXS})),
-			dropdown.WithButtonClasses(button.Square, button.SM),
+			dropdown.WithButtonClasses(button.Square, button.SM, button.Primary),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
 			dropdown.WithMenuClasses("w-52"),
 		).Show() {

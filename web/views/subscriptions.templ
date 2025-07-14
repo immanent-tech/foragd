@@ -76,58 +76,66 @@ templ (page *SubscriptionsPage) content() {
 			).Show()
 		}
 	</div>
-	<div id="card-controls" class="flex flex-row items-center justify-end m-2">
-		@breadcrumbs.Build(
-			breadcrumbs.WithClasses("text-sm", "flex-1"),
-			breadcrumbs.WithCrumbs(partials.SubscriptionList()),
-		).Show()
-		<div class="flex flex-row justify-end gap-2">
-			@partials.RefreshButton("/subscriptions", page.filters.Parameters())
-			@UpdateSorting("/subscriptions", page.filters.GetSort())
-			@UpdateFilters(page.subscriptions.GetCategoryCounts(), "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
-			@dropdown.Build(
-				dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-				dropdown.WithButtonClasses(button.SM, button.Square),
-				dropdown.WithOpenAlignment(dropdown.AlignEnd),
-				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
-			).Show() {
-				<li>
-					switch page.filters.GetView() {
-						case models.ViewUnread:
-							@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead), partials.DisplayActionAsLink,
-								partials.ActionMethod(http.MethodPost),
-								partials.ActionValues(map[string]string{
-									"redirect": "/home",
-								}),
-								partials.ActionLinkOptions(
-									link.WithClasses("text-xs"),
-								),
-							) {
-								<div class="flex gap-2">
-									@tabler.Bookmark(i.Props{Size: i.SizeXS})
-									Mark Read
-								</div>
+	<div id="card-controls" class="m-2">
+		<div class="flex flex-row">
+			<div class="flex-1">
+				@breadcrumbs.Build(
+					breadcrumbs.WithClasses("text-sm", "flex-1"),
+					breadcrumbs.WithCrumbs(partials.SubscriptionList()),
+				).Show()
+			</div>
+			<div class="flex-none content-center">
+				<div class="grid grid-flow-col auto-cols-max gap-2">
+					<div>
+						@partials.RefreshButton("/subscriptions", page.filters.Parameters())
+					</div>
+					@UpdateSorting("/subscriptions", page.filters.GetSort())
+					@UpdateFilters(page.subscriptions.GetCategoryCounts(), "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
+					@dropdown.Build(
+						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
+						dropdown.WithButtonClasses(button.SM, button.Square, button.Primary),
+						dropdown.WithOpenAlignment(dropdown.AlignEnd),
+						dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+					).Show() {
+						<li>
+							switch page.filters.GetView() {
+								case models.ViewUnread:
+									@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead), partials.DisplayActionAsLink,
+										partials.ActionMethod(http.MethodPost),
+										partials.ActionValues(map[string]string{
+											"redirect": "/home",
+										}),
+										partials.ActionLinkOptions(
+											link.WithClasses("text-xs"),
+										),
+									) {
+										<div class="flex gap-2">
+											@tabler.Bookmark(i.Props{Size: i.SizeXS})
+											Mark Read
+										</div>
+									}
+								case models.ViewRead:
+									fallthrough
+								default:
+									@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
+										partials.ActionMethod(http.MethodPost),
+										partials.ActionValues(map[string]string{
+											"redirect": "/home",
+										}),
+										partials.ActionLinkOptions(
+											link.WithClasses("text-xs"),
+										),
+									) {
+										<div class="flex gap-2">
+											@tabler.Bookmark(i.Props{Size: i.SizeXS})
+											Mark Read
+										</div>
+									}
 							}
-						case models.ViewRead:
-							fallthrough
-						default:
-							@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
-								partials.ActionMethod(http.MethodPost),
-								partials.ActionValues(map[string]string{
-									"redirect": "/home",
-								}),
-								partials.ActionLinkOptions(
-									link.WithClasses("text-xs"),
-								),
-							) {
-								<div class="flex gap-2">
-									@tabler.Bookmark(i.Props{Size: i.SizeXS})
-									Mark Read
-								</div>
-							}
+						</li>
 					}
-				</li>
-			}
+				</div>
+			</div>
 		</div>
 	</div>
 	@layouts.CardGrid() {
@@ -200,36 +208,40 @@ templ (c *Subscription) Summary() {
 		link.WithAttributes(c.viewAttributes()),
 	) {
 		<div class="flex flex-row gap-2">
-			// Generate a thumbnail to display next to the title.
-			if c.GetImage() != nil {
-				// If the source has an image, use that as the avatar.
-				@avatar.Build(
-					c.GetImage().URL(),
-					avatar.WithWidth("w-12"),
-					avatar.WithImageOptions(image.WithLazyLoading()),
-					avatar.WithExtraClasses("rounded"),
-				).Show()
-			} else {
-				// Otherwise, take the first letter of the title and create a placeholder avatar.
-				@placeholder.Build(c.GetTitle()[0:1], placeholder.SM).Show()
-			}
-			// Title text is a link to the view action of the card.
-			<div class="text-sm grow content-center">
-				{ c.GetTitle() }
-			</div>
-			// Display unread count (if any).
-			<div class="content-center">
-				if c.IsUnread() {
-					@badge.Build(
-						badge.WithSize(badge.SM),
-						badge.WithColor(badge.Secondary),
-						badge.WithContent(strconv.Itoa(c.GetUnreadCount())+" Unread"),
-						badge.WithExtraAttributes(templ.Attributes{
-							"sse-swap": c.GetFeedID() + "_unread",
-						}),
-						badge.WithExtraClasses("grow", "text-nowrap"),
+			<div class="flex flex-1 gap-2">
+				// Generate a thumbnail to display next to the title.
+				if c.GetImage() != nil {
+					// If the source has an image, use that as the avatar.
+					@avatar.Build(
+						c.GetImage().URL(),
+						avatar.WithWidth("w-12"),
+						avatar.WithImageOptions(image.WithLazyLoading()),
+						avatar.WithExtraClasses("rounded"),
 					).Show()
+				} else {
+					// Otherwise, take the first letter of the title and create a placeholder avatar.
+					@placeholder.Build(c.GetTitle()[0:1], placeholder.SM).Show()
 				}
+				// Title text is a link to the view action of the card.
+				<div class="text-sm grow content-center">
+					{ c.GetTitle() }
+				</div>
+			</div>
+			<div class="flex flex-none justify-end">
+				// Display unread count (if any).
+				<div class="content-center">
+					if c.IsUnread() {
+						@badge.Build(
+							badge.WithSize(badge.SM),
+							badge.WithColor(badge.Accent),
+							badge.WithContent(strconv.Itoa(c.GetUnreadCount())+" Unread"),
+							badge.WithExtraAttributes(templ.Attributes{
+								"sse-swap": c.GetFeedID() + "_unread",
+							}),
+							badge.WithExtraClasses("grow", "text-nowrap"),
+						).Show()
+					}
+				</div>
 			</div>
 		</div>
 	}
