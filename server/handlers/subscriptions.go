@@ -94,14 +94,16 @@ func (a *API) MarkSubscriptions() http.HandlerFunc {
 			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
+		// If the request contains explicit subscription IDs to mark, filter for those.
+		if len(request.Subscriptions) > 0 {
+			states = states.FilterByIDs(request.Subscriptions...)
+		}
 		// Loop through given subscription IDs and update states.
-		filteredStates := states.FilterByIDs(request.Subscriptions...)
-		for state := range slices.Values(filteredStates) {
+		for state := range slices.Values(states) {
 			state.Mark(models.Mark(mark), markedAt)
 		}
-
 		// Index updates.
-		if err := a.updateSubscriptionStates(req.Context(), filteredStates); err != nil {
+		if err := a.updateSubscriptionStates(req.Context(), states); err != nil {
 			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
