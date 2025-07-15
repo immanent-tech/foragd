@@ -34,21 +34,26 @@ type Logger struct {
 //
 //nolint:funlen
 func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, start time.Time, dur time.Duration) error {
-	baseAttributes := []slog.Attr{}
-
+	// Extract some important values from the request and response.
+	status := res.StatusCode
 	path := req.URL.Path
 	method := req.Method
-
-	requestAttributes := []slog.Attr{
-		slog.String("method", method),
-		slog.String("path", path),
+	// Determine an appropriate log level based on the Elasticsearch response.
+	var level slog.Level
+	switch {
+	case status >= http.StatusInternalServerError:
+		level = slog.LevelError
+		l.EnableRequestBody = true
+		l.EnableResponseBody = true
+	case status >= http.StatusBadRequest && status < http.StatusInternalServerError:
+		level = slog.LevelWarn
+		l.EnableRequestBody = true
+		l.EnableResponseBody = true
+	default:
+		level = logging.LevelTrace
 	}
-
-	status := res.StatusCode
-	responseAttributes := []slog.Attr{
-		slog.Int("status", status),
-	}
-
+	// Set base/common attributes.
+	baseAttributes := []slog.Attr{}
 	baseAttributes = append(baseAttributes,
 		slog.Duration("took", dur),
 	)
@@ -62,8 +67,11 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 			slog.String("id", requestID),
 		)
 	}
-
-	// request body
+	// Set request attributes.
+	requestAttributes := []slog.Attr{
+		slog.String("method", method),
+		slog.String("path", path),
+	}
 	if (logging.Level == logging.LevelTrace || l.RequestBodyEnabled()) && req != nil && req.Body != nil && req.Body != http.NoBody {
 		var buf bytes.Buffer
 		if req.GetBody != nil {
@@ -76,8 +84,10 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 			slog.Int("length", int(res.ContentLength)),
 			slog.String("body", buf.String()))
 	}
-
-	// response body
+	// Set response attributes.
+	responseAttributes := []slog.Attr{
+		slog.Int("status", status),
+	}
 	if (logging.Level == logging.LevelTrace || l.ResponseBodyEnabled()) && res != nil && res.Body != nil && res.Body != http.NoBody {
 		defer res.Body.Close() //nolint:errcheck
 		var buf bytes.Buffer
@@ -86,7 +96,7 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 			slog.Int("length", int(res.ContentLength)),
 			slog.String("body", buf.String()))
 	}
-
+	// Define log attributes structure.
 	attributes := append(
 		[]slog.Attr{
 			{
@@ -100,17 +110,7 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		},
 		baseAttributes...,
 	)
-
-	var level slog.Level
-	switch {
-	case status >= http.StatusInternalServerError:
-		level = slog.LevelError
-	case status >= http.StatusBadRequest && status < http.StatusInternalServerError:
-		level = slog.LevelWarn
-	default:
-		level = logging.LevelTrace
-	}
-
+	// Write a log message.
 	l.logger.LogAttrs(req.Context(), level, strconv.Itoa(status)+": "+http.StatusText(status), attributes...)
 	return err
 }

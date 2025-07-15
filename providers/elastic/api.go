@@ -329,81 +329,6 @@ func (e *API) GetUser(ctx context.Context, userID models.UserID) (*models.User, 
 	return user, nil
 }
 
-func (e *API) FindSuggestions(ctx context.Context, searchTerms string) (results.MSearchResults, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, ErrFetchCtx
-	}
-
-	subscriptionsQuery := &query.MsearchSearch{
-		Name:  "subscriptions",
-		Index: FeedsIndexFromCtx(ctx),
-		Query: query.Build(
-			query.Bool(
-				query.Filter(
-					query.Term("user_id", user.GetID()),
-				),
-				query.Should(
-					query.SearchAsYouType(searchTerms, "title"),
-					query.SearchAsYouType(searchTerms, "categories"),
-				),
-			),
-		),
-	}
-
-	feedIDs := slices.Collect(maps.Values(user.GetSubscriptionsByFeedID()))
-	feedsQuery := &query.MsearchSearch{
-		Name:  "feeds",
-		Index: FeedsIndexFromCtx(ctx),
-		Query: query.Build(
-			query.Bool(
-				query.Filter(
-					query.Terms("feed_id", feedIDs...),
-				),
-				query.Must(
-					query.Bool(
-						query.Should(
-							query.SearchAsYouType(searchTerms, "title"),
-							query.SearchAsYouType(searchTerms, "description"),
-							query.SearchAsYouType(searchTerms, "content"),
-							query.SearchAsYouType(searchTerms, "categories"),
-						),
-					),
-				),
-			),
-		),
-	}
-
-	articlesQuery := &query.MsearchSearch{
-		Name:  "items",
-		Index: ItemsIndexFromCtx(ctx),
-		Query: query.Build(
-			query.Bool(
-				query.Filter(
-					query.Terms("feed_id", feedIDs...),
-				),
-				query.Must(
-					query.Bool(
-						query.Should(
-							query.SearchAsYouType(searchTerms, "title"),
-							query.SearchAsYouType(searchTerms, "description"),
-							query.SearchAsYouType(searchTerms, "content"),
-							query.SearchAsYouType(searchTerms, "categories"),
-						),
-					),
-				),
-			),
-		),
-	}
-
-	results, err := MultiSearch(ctx, e.GetAPI(), subscriptionsQuery, feedsQuery, articlesQuery)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
-	}
-
-	return results, nil
-}
-
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
 func BulkAdd[T ~string, O Object[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {
@@ -680,7 +605,9 @@ func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.Msea
 		options = append(options, WithSearch(search))
 	}
 
-	resp, err := NewMSearchRequest(api, options...).Do(ctx)
+	req := NewMSearchRequest(api, options...)
+	// spew.Dump(req.HttpRequest(ctx))
+	resp, err := req.Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)
 	}

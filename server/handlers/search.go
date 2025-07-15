@@ -5,16 +5,20 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"maps"
 	"net/http"
 	"slices"
 
 	"github.com/a-h/templ"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/results"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/views"
@@ -29,7 +33,13 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 		)
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
+			spew.Dump(err, valid)
 			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			return
+		}
+		spew.Dump(request)
+		if request.Text == "" {
+			res.WriteHeader(http.StatusNoContent)
 			return
 		}
 
@@ -101,17 +111,27 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 	}
 
 	// Perform search.
-	msearchResults, err := a.DataAPI().FindSuggestions(ctx, request.Text)
+	msearchResults, err := a.findSuggestions(ctx, request.Text)
 	if err != nil {
 		return nil, nil, models.RespErrBackend(err)
 	}
 	// Extract the matches.
 	var (
 		feeds models.Feeds
+		items models.Items
 	)
-	customisations, _ := results.GetHits[*models.SubscriptionState]("customisations", msearchResults)
-	feeds, _ = results.GetHits[*models.Feed]("feeds", msearchResults)
-	items, _ := results.GetHits[*models.Item]("items", msearchResults)
+	customisations, err := results.GetHits[*models.SubscriptionState]("subscriptions", msearchResults)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Error fetching subscription hits.", slog.Any("error", err))
+	}
+	feeds, err = results.GetHits[*models.Feed]("feeds", msearchResults)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Error fetching feed hits.", slog.Any("error", err))
+	}
+	items, err = results.GetHits[*models.Item]("items", msearchResults)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Error fetching item hits.", slog.Any("error", err))
+	}
 	// Generate subscriptions from data sources.
 	subscriptions := make([]*views.Subscription, 0, len(feeds))
 	maxSubscriptionResults := 10
@@ -147,7 +167,7 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 		subscriptions = append(subscriptions, views.NewSubscriptionContent(subscription))
 	}
 	// Make subscriptions from the feed results up to maxObjectResults - customisationResults.
-	states, err := a.getSubscriptionStates(ctx, slices.Collect(maps.Keys(user.GetSubscriptionsByFeedID(feeds.GetIDs()...)))...)
+	states, err := a.getSubscriptionStates(ctx, slices.Collect(maps.Values(user.GetSubscriptionsByFeedID(feeds.GetIDs()...)))...)
 	if err != nil {
 		return nil, nil, models.RespErrBackend(err)
 	}
@@ -177,6 +197,10 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 	}
 
 	articles := make([]*views.Article, 0, len(items))
+	states, err = a.getSubscriptionStates(ctx, slices.Collect(maps.Keys(user.GetSubscriptionsByFeedID(items.GetIDs()...)))...)
+	if err != nil {
+		return nil, nil, models.RespErrBackend(err)
+	}
 	for item := range slices.Values(items) {
 		var state *models.SubscriptionState
 		if state = states.GetByFeedID(item.GetFeedID()); state == nil {
@@ -197,4 +221,83 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 	}
 
 	return subscriptions, articles, nil
+}
+
+func (a *API) findSuggestions(ctx context.Context, searchTerms string) (results.MSearchResults, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, models.ErrNoUserCtx
+	}
+
+	subscriptionsQuery := &query.MsearchSearch{
+		Name:  "subscriptions",
+		Index: elastic.SubscriptionsIndexFromCtx(ctx),
+		Query: query.Build(
+			query.Bool(
+				query.Filter(
+					query.Term("user_id", user.GetID()),
+				),
+				query.Must(
+					query.Bool(
+						query.Should(
+							query.SearchAsYouType(searchTerms, "customisation.title"),
+							query.SearchAsYouType(searchTerms, "customisation.categories"),
+						),
+					),
+				),
+			),
+		),
+	}
+
+	feedIDs := slices.Collect(maps.Keys(user.GetSubscriptionsByFeedID()))
+	feedsQuery := &query.MsearchSearch{
+		Name:  "feeds",
+		Index: elastic.FeedsIndexFromCtx(ctx),
+		Query: query.Build(
+			query.Bool(
+				query.Filter(
+					query.Terms("feed_id", feedIDs...),
+				),
+				query.Must(
+					query.Bool(
+						query.Should(
+							query.SearchAsYouType(searchTerms, "title"),
+							query.SearchAsYouType(searchTerms, "description"),
+							query.SearchAsYouType(searchTerms, "content"),
+							query.SearchAsYouType(searchTerms, "categories"),
+						),
+					),
+				),
+			),
+		),
+	}
+
+	articlesQuery := &query.MsearchSearch{
+		Name:  "items",
+		Index: elastic.ItemsIndexFromCtx(ctx),
+		Query: query.Build(
+			query.Bool(
+				query.Filter(
+					query.Terms("feed_id", feedIDs...),
+				),
+				query.Must(
+					query.Bool(
+						query.Should(
+							query.SearchAsYouType(searchTerms, "title"),
+							query.SearchAsYouType(searchTerms, "description"),
+							query.SearchAsYouType(searchTerms, "content"),
+							query.SearchAsYouType(searchTerms, "categories"),
+						),
+					),
+				),
+			),
+		),
+	}
+
+	results, err := elastic.MultiSearch(ctx, a.DataAPI().GetAPI(), subscriptionsQuery, feedsQuery, articlesQuery)
+	if err != nil {
+		return nil, fmt.Errorf("findSuggestions: %w", err)
+	}
+
+	return results, nil
 }

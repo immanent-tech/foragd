@@ -295,7 +295,7 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'text'
-            validate: 'required'
+            validate: 'omitempty,required'
     UserMessage:
       description: >
         represents a message that can be displayed to the user as the result of an action.

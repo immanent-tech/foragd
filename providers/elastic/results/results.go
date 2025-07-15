@@ -140,6 +140,9 @@ type MSearchResults map[string]*types.MultiSearchItem
 func GetHits[O any](key string, results MSearchResults) ([]O, error) {
 	searchResults, found := results[key]
 	if !found {
+		return nil, fmt.Errorf("%w: results key %s not found", ErrExtractSource, key)
+	}
+	if searchResults.Hits.Total.Value == 0 {
 		return nil, fmt.Errorf("%w: no hits found", ErrExtractSource)
 	}
 	docs, _, err := ExtractSourceFromHits[O](searchResults.Hits.Hits)

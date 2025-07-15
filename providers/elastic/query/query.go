@@ -161,9 +161,9 @@ func SearchAsYouType(query string, field string) Option {
 		mmq.Query = query
 		mmq.Type = &textquerytype.Boolprefix
 		mmq.Fields = []string{
-			field,
-			field + "_2gram",
-			field + "_3gram",
+			field + ".search",
+			field + ".search._2gram",
+			field + ".search._3gram",
 		}
 		q.MultiMatch = mmq
 	}

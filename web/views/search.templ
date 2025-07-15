@@ -6,7 +6,7 @@ package views
 import "slices"
 
 templ SearchSuggestions(suggestions ...templ.Component) {
-	<ul class="list dropdown-content self-start bg-base-200 w-screen lg:w-full rounded-box shadow-md" tabindex="3">
+	<ul class="list dropdown-content bg-base-200/90 w-screen lg:w-full rounded-box shadow-md" tabindex="3">
 		for suggestion := range slices.Values(suggestions) {
 			@suggestion
 		}

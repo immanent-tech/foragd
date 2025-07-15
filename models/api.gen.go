@@ -156,7 +156,7 @@ type Response struct {
 // SearchRequest represents a search request by the user.
 type SearchRequest struct {
 	// Text is the text to search.
-	Text string `form:"text" json:"text" validate:"required"`
+	Text string `form:"text" json:"text" validate:"omitempty,required"`
 }
 
 // Sort contains information on sorting objects.

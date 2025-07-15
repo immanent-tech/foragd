@@ -13,7 +13,7 @@ import (
 )
 
 templ SearchForm() {
-	<div class="dropdown">
+	<div class="dropdown dropdown-center">
 		@form.Build(
 			form.WithExtraAttributes(templ.Attributes{
 				"hx-post":     "/search/results",

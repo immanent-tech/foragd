@@ -162,7 +162,6 @@ func WithSearch(search *query.MsearchSearch) Option[MsearchRequest] {
 
 		hdr := types.NewMultisearchHeader()
 		hdr.Index = append(hdr.Index, search.Index)
-
 		searchBody := types.NewSearchRequestBody()
 		searchBody.Query = search.Query
 		searchBody.Sort = search.Sort
@@ -185,7 +184,6 @@ func NewMSearchRequest(api *typedapi.API, options ...Option[MsearchRequest]) *ms
 	for _, option := range options {
 		option(req)
 	}
-
 	return req
 }
 
