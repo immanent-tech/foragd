@@ -5,81 +5,107 @@ package views
 
 import (
 	"github.com/angelofallars/htmx-go"
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
+	"slices"
 	"strconv"
 )
 
-// Layout is the complete page layout for the home page.
-templ (page *HomePage) Layout() {
-	@layouts.Drawer() {
-		@page.Content()
+type HomePage struct {
+	Subscriptions  models.Subscriptions
+	TopCategories  models.CategoryCounts
+	RareCategories models.CategoryCounts
+	RandomArticles []templ.Component
+}
+
+// Template will render the home page based on the request details.
+func (page *HomePage) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Home",
+			templates.WithBodyContent(page.layout()),
+		)
 	}
 }
 
-// Content is the content section of the home page
-templ (page *HomePage) Content() {
+// layout renders the full home page content and layout.
+templ (page *HomePage) layout() {
+	@layouts.Drawer() {
+		@page.content()
+	}
+}
+
+// content renders the home page content.
+templ (page *HomePage) content() {
 	if len(page.Subscriptions) == 0 {
 		@EmptyHome()
 		return
 	}
-	<div class="grid justify-center">
-		<div class="stats shadow">
-			@link.Build(
-				link.WithAttributes(templ.Attributes{
-					"hx-get":      "/subscriptions",
-					"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-					"hx-target":   partials.ContentID.Target(),
-					"hx-swap":     "innerHTML",
-					"hx-push-url": "true",
-				}),
-			) {
-				<div class="stat bg-base-300">
-					<div class="stat-figure">
-						@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
-					</div>
-					<div class="stat-title">Subscriptions</div>
-					<div class="stat-value">{ strconv.Itoa(len(page.Subscriptions)) }</div>
+	<div class="stats shadow bg-neutral">
+		@link.Build(
+			link.WithAttributes(templ.Attributes{
+				"hx-get":      "/subscriptions",
+				"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
+				"hx-target":   partials.ContentID.Target(),
+				"hx-swap":     "innerHTML",
+				"hx-push-url": "true",
+			}),
+		) {
+			<div class="stat">
+				<div class="stat-figure text-primary">
+					@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
 				</div>
-			}
-			@link.Build(
-				link.WithAttributes(templ.Attributes{
-					"hx-get":      "/articles",
-					"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
-					"hx-target":   partials.ContentID.Target(),
-					"hx-swap":     "innerHTML",
-					"hx-push-url": "true",
-				}),
-			) {
-				<div class="stat bg-base-300">
-					<div class="stat-figure">
-						@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: "48"})
-					</div>
-					<div class="stat-title">Unread Articles</div>
-					<div class="stat-value">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</div>
+				<div class="stat-value text-primary">{ strconv.Itoa(len(page.Subscriptions)) }</div>
+				<div class="stat-title font-semibold">Subscriptions</div>
+			</div>
+		}
+		@link.Build(
+			link.WithAttributes(templ.Attributes{
+				"hx-get":      "/articles",
+				"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
+				"hx-target":   partials.ContentID.Target(),
+				"hx-swap":     "innerHTML",
+				"hx-push-url": "true",
+			}),
+		) {
+			<div class="stat">
+				<div class="stat-figure text-primary">
+					@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
 				</div>
-			}
-		</div>
+				<div class="stat-value text-primary">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</div>
+				<div class="stat-title font-semibold">Unread Articles</div>
+			</div>
+		}
 	</div>
 	if page.TopCategories != nil {
-		<div class="flex justify-center gap-2 m-4">
-			<h1 class="content-center text-center">Top Categories:</h1>
-			<div id="top-categories" class="flex flex-row flex-wrap gap-2">
-				@page.TopCategories
+		// Display a list of top categories with item counts.
+		<div class="gap-2 p-4 m-4 rounded-box bg-neutral">
+			<h1 class="content-center text-center font-semibold">Top Categories:</h1>
+			<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+				for category := range slices.Values(page.TopCategories) {
+					@categoryBadge(category)
+				}
 			</div>
 		</div>
 	}
 	if page.RareCategories != nil {
-		<div class="flex justify-center gap-2 m-4">
-			<h1 class="content-center text-center">Interesting Categories:</h1>
-			<div id="rare-categories" class="flex flex-row flex-wrap gap-2">
-				@page.RareCategories
+		// Display a list of rare categories with item count.
+		<div class="gap-2 p-4 m-4 rounded-box bg-neutral">
+			<h1 class="content-center text-center font-semibold">Interesting Categories:</h1>
+			<div id="rare-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+				for category := range slices.Values(page.RareCategories) {
+					@categoryBadge(category)
+				}
 			</div>
 		</div>
 	}
@@ -94,15 +120,23 @@ templ (page *HomePage) Content() {
 	@partials.Footer()
 }
 
-// Template will render the home page based on the request details.
-func (page *HomePage) Template(req *http.Request) templ.Component {
-	switch {
-	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-		return page.Content()
-	default:
-		return templates.NewPage("Go Feed Me - Home",
-			templates.WithBodyContent(page.Layout()),
-		)
+templ categoryBadge(category models.CategoryCount) {
+	@partials.NewAction("/articles", partials.DisplayActionAsLink,
+		partials.ActionValues(session.ArticleFiltersFromSession(ctx).Parameters()),
+		partials.ActionPushURL(),
+	) {
+		<div class="flex gap-2 text-sm capitalize">
+			{ category.Category }
+			@badge.Build(
+				badge.WithSize(badge.SM),
+				badge.WithColor(badge.Primary),
+				badge.WithContent(strconv.Itoa(category.Count)),
+				// badge.WithExtraAttributes(templ.Attributes{
+				// 	"sse-swap": c.Label + "_count",
+				// }),
+				badge.WithExtraClasses("grow", "text-nowrap"),
+			).Show()
+		</div>
 	}
 }
 

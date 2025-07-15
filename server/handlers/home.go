@@ -17,7 +17,6 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
-	"github.com/joshuar/go-feed-me/web/templates/content"
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
@@ -62,17 +61,16 @@ func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Res
 	if err != nil {
 		return data, models.RespErrBackend(err)
 	}
-	data.Subscriptions = subscriptions
+	data.Subscriptions = subscriptions.FilterByView(models.ViewUnread)
 
 	// Query definition for fetching unread items for all subscriptions.
 	query := query.Bool(
 		query.BoolQueryName("item_filters"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", subscriptions.GetStates().GetFeedIDs()...),
-			// And should match one feed clause.
+			query.Terms("feed_id", data.Subscriptions.GetStates().GetFeedIDs()...),
 			query.Bool(
-				query.Should(buildSubscriptionQueries(user, models.ViewUnread)...),
+				query.Should(buildSubscriptionQueries(user, models.ViewUnread, data.Subscriptions.GetStates()...)...),
 			),
 		),
 	)
@@ -145,14 +143,14 @@ func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Res
 	// Extract aggregations.
 	aggregations := aggsResult.Aggregations
 	// Use aggregations to generate data.
-	data.TopCategories = generateTopCategoriesLinks(ctx, aggregations)
-	data.RareCategories = generateRareCategoriesLinks(ctx, aggregations)
+	data.TopCategories = generateTopCategories(ctx, aggregations)
+	data.RareCategories = generateRareCategories(ctx, aggregations)
 	data.RandomArticles = getRandomArticles(ctx, a, aggregations)
 
 	return data, nil
 }
 
-func generateTopCategoriesLinks(ctx context.Context, aggs aggregations.AggregationResults) templ.Component {
+func generateTopCategories(ctx context.Context, aggs aggregations.AggregationResults) models.CategoryCounts {
 	if aggs == nil {
 		return nil
 	}
@@ -167,21 +165,16 @@ func generateTopCategoriesLinks(ctx context.Context, aggs aggregations.Aggregati
 	}
 
 	// Generate categories from aggregation.
-	var topCategories content.Categories
+	topCategories := make(models.CategoryCounts, 0)
 	for category := range slices.Values(topCategoriesAgg.Buckets.([]types.StringTermsBucket)) {
-		topCategories = append(topCategories, content.NewCategoryContent(ctx, category.Key.(string), int(category.DocCount), "/articles"))
+		topCategories = append(topCategories, models.CategoryCount{Category: category.Key.(string), Count: int(category.DocCount)})
 	}
 	topCategories.Sort()
-	// Display list of categories.
-	var categoryList []templ.Component
-	for category := range slices.Values(topCategories) {
-		categoryList = append(categoryList, category.Badge())
-	}
 
-	return templ.Join(categoryList...)
+	return topCategories
 }
 
-func generateRareCategoriesLinks(ctx context.Context, aggs aggregations.AggregationResults) templ.Component {
+func generateRareCategories(ctx context.Context, aggs aggregations.AggregationResults) models.CategoryCounts {
 	if aggs == nil {
 		return nil
 	}
@@ -191,22 +184,17 @@ func generateRareCategoriesLinks(ctx context.Context, aggs aggregations.Aggregat
 		slogctx.FromCtx(ctx).Warn("Unable to show rare categories.", slog.Any("error", err))
 	}
 	// Generate category counts from buckets.
-	var rareCategoryCounts content.Categories
+	var rareCategoryCounts models.CategoryCounts
 	for category := range slices.Values(rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket)) {
-		rareCategoryCounts = append(rareCategoryCounts, content.NewCategoryContent(ctx, category.Key, int(category.DocCount), "/articles"))
+		rareCategoryCounts = append(rareCategoryCounts, models.CategoryCount{Category: category.Key, Count: int(category.DocCount)})
 	}
 	rareCategoryCounts.Sort()
 
-	count := 10
-	if len(rareCategoryCounts) < 10 {
-		count = len(rareCategoryCounts)
-	}
-	var categoryList []templ.Component
-	for idx := range count {
-		categoryList = append(categoryList, rareCategoryCounts[idx].Badge())
+	if len(rareCategoryCounts) > 10 {
+		rareCategoryCounts = rareCategoryCounts[:10]
 	}
 
-	return templ.Join(categoryList...)
+	return rareCategoryCounts
 }
 
 // getHomePageArticles retrieves a list of articles to display on the home page along with other content.
