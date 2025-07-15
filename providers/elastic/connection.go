@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"time"
 
-	elasticsearch "github.com/elastic/go-elasticsearch/v8"
+	elasticsearch "github.com/elastic/go-elasticsearch/v9"
 
 	"github.com/joshuar/go-feed-me/config"
 )

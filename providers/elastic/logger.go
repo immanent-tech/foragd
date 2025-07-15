@@ -10,13 +10,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/elastic/elastic-transport-go/v8/elastictransport"
 	"github.com/go-chi/chi/v5/middleware"
 
 	"github.com/joshuar/go-feed-me/logging"
 )
-
-var _ elastictransport.Logger = (*Logger)(nil)
 
 var (
 	// LogRequestBodyMaxSize is the maximum size of the request body to write to the log.

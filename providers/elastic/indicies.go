@@ -8,11 +8,11 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/cluster/putcomponenttemplate"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/create"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/putindextemplate"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/cluster/putcomponenttemplate"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/indices/create"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/indices/putindextemplate"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 )
 
 // CreateIndexOption is a functional option for a create index request.

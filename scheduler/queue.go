@@ -11,12 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/sortorder"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/logging"
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
@@ -165,18 +166,29 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 // ScheduledJobs returns the slice of all scheduled jobs in the queue.
 func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]) ([]quartz.ScheduledJob, error) {
 	searchSize := 1000
-	pagination := make([]types.FieldValue, 0)
+	searchPagination := make([]types.FieldValueVariant, 0)
 	allJobs := make([]ScheduledJob, 0)
 	jobs := make([]quartz.ScheduledJob, 0)
 
 	// Loop until we've paginated through all results.
 	for {
 		var (
-			jobs []ScheduledJob
-			err  error
+			jobs        []ScheduledJob
+			err         error
+			searchAfter []types.FieldValue
+			pagination  models.Pagination
 		)
 
-		jobs, pagination, err = elastic.Search[ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), searchSize, nil, pagination)
+		jobs, searchAfter, err = elastic.Search[ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), searchSize, nil, searchPagination)
+		if err != nil {
+			return nil, errors.Join(elastic.ErrSearchFailed, err)
+		}
+
+		pagination, err = models.EncodePagination(searchAfter)
+		if err != nil {
+			return nil, errors.Join(elastic.ErrSearchFailed, err)
+		}
+		searchPagination, err = models.DecodePagination(pagination)
 		if err != nil {
 			return nil, errors.Join(elastic.ErrSearchFailed, err)
 		}
@@ -213,14 +225,7 @@ func (jq *JobQueue) Clear() error {
 }
 
 func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
-	sort := []types.SortCombinations{
-		types.SortOptions{
-			SortOptions: map[string]types.FieldSort{
-				"job_next_run": {Order: &sortorder.Asc},
-			},
-		},
-	}
-	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1, sort, nil)
+	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1, []types.SortCombinationsVariant{&jobSorting{}}, nil)
 	if err != nil {
 		return nil, errors.Join(ErrNoJobFound, err)
 	}
@@ -256,4 +261,16 @@ func isMatch(job quartz.ScheduledJob, matchers []quartz.Matcher[quartz.Scheduled
 func jobKeyToDocID(jobkey string) string {
 	parts := strings.Split(jobkey, "::")
 	return parts[1]
+}
+
+type jobSorting types.SortOptions
+
+func (s *jobSorting) SortCombinationsCaster() *types.SortCombinations {
+	opts := &types.SortOptions{
+		SortOptions: map[string]types.FieldSort{
+			"job_next_run": {Order: &sortorder.Asc},
+		},
+	}
+	c := types.SortCombinations(opts)
+	return &c
 }

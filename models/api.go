@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 )
 
 var ErrNoSubscriptionCustomisation = errors.New("no subscription customisation found")
@@ -255,7 +255,7 @@ func EncodePagination(sortValues []types.FieldValue) (Pagination, error) {
 
 // DecodePagination will take a models.Pagination object, HTML-unescape the
 // string then unmarshal it back into sort values.
-func DecodePagination(pagination Pagination) ([]types.FieldValue, error) {
+func DecodePagination(pagination Pagination) ([]types.FieldValueVariant, error) {
 	if pagination == "" {
 		return nil, nil
 	}
@@ -265,7 +265,7 @@ func DecodePagination(pagination Pagination) ([]types.FieldValue, error) {
 		return nil, fmt.Errorf("could not decode pagination values: %w", err)
 	}
 	// Unmarshal sort values.
-	var sortValues []types.FieldValue
+	var sortValues []types.FieldValueVariant
 	err = json.Unmarshal([]byte(data), &sortValues)
 	if err != nil {
 		return nil, fmt.Errorf("could not decode pagination values: %w", err)

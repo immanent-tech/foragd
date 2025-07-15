@@ -6,12 +6,12 @@ package elastic
 import (
 	"log/slog"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/msearch"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/update"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/count"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/msearch"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
@@ -36,7 +36,7 @@ func WithRequestID[T any, V RequestCommon[T]](id string) Option[V] {
 }
 
 type RequestWithQuery[T any] interface {
-	Query(query *types.Query) T
+	Query(query types.QueryVariant) T
 }
 
 // WithQueryOptions option applies the given query options to the request.
@@ -100,7 +100,7 @@ func WithSize[T any, V RequestWithSize[T]](size int) Option[V] {
 }
 
 type RequestWithSearchAfter[T any] interface {
-	SearchAfter(values ...types.FieldValue) T
+	SearchAfter(values ...types.FieldValueVariant) T
 }
 
 // WithSearchAfter sets the sort value to fetch the next set of results. It can
@@ -108,7 +108,7 @@ type RequestWithSearchAfter[T any] interface {
 // []types.FieldValue).
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
-func WithSearchAfter[T any, V RequestWithSearchAfter[T]](value []types.FieldValue) Option[V] {
+func WithSearchAfter[T any, V RequestWithSearchAfter[T]](value []types.FieldValueVariant) Option[V] {
 	return func(req V) {
 		if value == nil {
 			return
@@ -118,11 +118,11 @@ func WithSearchAfter[T any, V RequestWithSearchAfter[T]](value []types.FieldValu
 }
 
 type RequestWithSort[T any] interface {
-	Sort(sort ...types.SortCombinations) T
+	Sort(sort ...types.SortCombinationsVariant) T
 }
 
 // WithSortOptions adds the given sorting options to the search.
-func WithSortOptions[T any, V RequestWithSort[T]](options ...types.SortCombinations) Option[V] {
+func WithSortOptions[T any, V RequestWithSort[T]](options ...types.SortCombinationsVariant) Option[V] {
 	return func(req V) {
 		req.Sort(options...)
 	}
@@ -163,7 +163,7 @@ func WithSearch(search *query.MsearchSearch) Option[MsearchRequest] {
 		hdr := types.NewMultisearchHeader()
 		hdr.Index = append(hdr.Index, search.Index)
 
-		searchBody := types.NewMultisearchBody()
+		searchBody := types.NewSearchRequestBody()
 		searchBody.Query = search.Query
 		searchBody.Sort = search.Sort
 
@@ -176,7 +176,7 @@ func WithSearch(search *query.MsearchSearch) Option[MsearchRequest] {
 
 type MsearchRequest interface {
 	RequestCommon[*msearch.Msearch]
-	AddSearch(header types.MultisearchHeader, body types.MultisearchBody) error
+	AddSearch(header types.MultisearchHeader, body types.SearchRequestBody) error
 }
 
 func NewMSearchRequest(api *typedapi.API, options ...Option[MsearchRequest]) *msearch.Msearch {
@@ -256,10 +256,14 @@ func sortByScore() types.SortOptions {
 	}
 }
 
-func sortByDoc() types.SortOptions {
-	return types.SortOptions{
+type DocSorting types.SortOptions
+
+func (s *DocSorting) SortCombinationsCaster() *types.SortCombinations {
+	opts := &types.SortOptions{
 		Doc_: types.NewScoreSort(),
 	}
+	c := types.SortCombinations(opts)
+	return &c
 }
 
 // ItemSorting contains the sort options for sorting item search results.
@@ -269,19 +273,24 @@ type ItemSorting struct {
 	ItemID    string `json:"item_id"`
 }
 
-func newItemSortOptions(sort *models.Sort) []types.SortCombinations {
-	var sortOptions []types.SortCombinations
+func (s *ItemSorting) SortCombinationsCaster() *types.SortCombinations {
+	c := types.SortCombinations(s)
+	return &c
+}
+
+func newItemSortOptions(sort *models.Sort) []types.SortCombinationsVariant {
+	var opts []types.SortCombinationsVariant
 	switch {
 	case sort != nil:
-		sortOptions = append(sortOptions, &ItemSorting{
+		opts = append(opts, &ItemSorting{
 			Updated:   string(sort.SortOrder),
 			Published: string(sort.SortOrder),
 			ItemID:    string(sort.SortOrder),
 		})
 	default:
-		sortOptions = append(sortOptions, sortByDoc())
+		opts = append(opts, &DocSorting{})
 	}
-	return sortOptions
+	return opts
 }
 
 // FeedSorting contains the sort options for sorting item search results.
@@ -291,17 +300,22 @@ type FeedSorting struct {
 	FeedID    string `json:"feed_id"`
 }
 
-func newFeedSortOptions(sort *models.Sort) []types.SortCombinations {
-	var sortOptions []types.SortCombinations
+func (s *FeedSorting) SortCombinationsCaster() *types.SortCombinations {
+	c := types.SortCombinations(s)
+	return &c
+}
+
+func newFeedSortOptions(sort *models.Sort) []types.SortCombinationsVariant {
+	var opts []types.SortCombinationsVariant
 	switch {
 	case sort != nil:
-		sortOptions = append(sortOptions, &FeedSorting{
+		opts = append(opts, &FeedSorting{
 			Updated:   string(sort.SortOrder),
 			Published: string(sort.SortOrder),
 			FeedID:    string(sort.SortOrder),
 		})
 	default:
-		sortOptions = append(sortOptions, sortByDoc())
+		opts = append(opts, &DocSorting{})
 	}
-	return sortOptions
+	return opts
 }

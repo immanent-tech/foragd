@@ -7,10 +7,10 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
+	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/deletebyquery"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/mget"
 )
 
 // NewDeleteByQueryRequest creates a new delete by query request that will operate on the given index with the given

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 )
 
 var (

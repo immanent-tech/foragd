@@ -14,15 +14,15 @@ import (
 	"slices"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v8/typedapi"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/count"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/deletebyquery"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/get"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/mget"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/msearch"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/core/search"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types/enums/refresh"
+	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/count"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/deletebyquery"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/mget"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/msearch"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"github.com/go-chi/chi/v5/middleware"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -67,7 +67,7 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 	// Parse pagination to search after value.
-	var sortValues []types.FieldValue
+	var sortValues []types.FieldValueVariant
 	if pagination != nil {
 		var err error
 		sortValues, err = models.DecodePagination(*pagination)
@@ -111,7 +111,7 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
 	// Parse pagination into search after value.
-	var sortValues []types.FieldValue
+	var sortValues []types.FieldValueVariant
 	if pagination != nil {
 		var err error
 		sortValues, err = models.DecodePagination(*pagination)
@@ -147,7 +147,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 		WithIndex[*search.Search, SearchRequest](index),
 		WithQueryOptions[*search.Search, SearchRequest](query),
 		WithSize[*search.Search, SearchRequest](0),
-		WithSortOptions[*search.Search, SearchRequest](sortByDoc()),
+		WithSortOptions[*search.Search, SearchRequest](&DocSorting{}),
 		WithAggregations[*search.Search, SearchRequest](aggregations...),
 	)
 
@@ -638,7 +638,7 @@ func DeleteDocs(ctx context.Context, api *typedapi.API, index string, queries ..
 //
 // pagination specifies the sort after values to use for getting a specific window of the total results. When set, the
 // count parameter can be thought of as specifying how many new results are retrieved.
-func Search[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, sort []types.SortCombinations, searchAfter []types.FieldValue) ([]O, []types.FieldValue, error) {
+func Search[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, sort []types.SortCombinationsVariant, searchAfter []types.FieldValueVariant) ([]O, []types.FieldValue, error) {
 	resp, err := NewSearchRequest(api,
 		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
 		WithIndex[*search.Search, SearchRequest](index),
@@ -653,14 +653,15 @@ func Search[O any](ctx context.Context, api *typedapi.API, index string, query q
 
 	var warnings error
 	var docs []O
+	var newSearchAfter []types.FieldValue
 
-	docs, searchAfter, warnings = results.ExtractSourceFromHits[O](resp.Hits.Hits)
+	docs, newSearchAfter, warnings = results.ExtractSourceFromHits[O](resp.Hits.Hits)
 	if warnings != nil {
 		slogctx.FromCtx(ctx).Warn("Some docs could not be extracted.",
 			slog.Any("warnings", warnings))
 	}
 
-	return docs, searchAfter, nil
+	return docs, newSearchAfter, nil
 }
 
 func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.MsearchSearch) (results.MSearchResults, error) {

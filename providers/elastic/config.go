@@ -10,8 +10,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/elastic/elastic-transport-go/v8/elastictransport"
-	elasticsearch "github.com/elastic/go-elasticsearch/v8"
+	elasticsearch "github.com/elastic/go-elasticsearch/v9"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/config"
@@ -100,7 +99,7 @@ func genConfig(ctx context.Context, environment string) (*elasticsearch.Config, 
 		}
 	case "production":
 		generated = &elasticsearch.Config{
-			Logger:    &elastictransport.ColorLogger{Output: os.Stderr},
+			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false, logger: logger},
 			CloudID:   elasticConfig.Production.CloudID,
 			APIKey:    elasticConfig.Production.APIKey,
 			Transport: defaultTransportConfig,

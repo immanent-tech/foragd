@@ -4,8 +4,8 @@
 package schema
 
 import (
-	"github.com/elastic/go-elasticsearch/v8/typedapi/ingest/putpipeline"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/ingest/putpipeline"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 )
 
 // RemoveDescription adds the given description to the remove processor.

@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
@@ -94,24 +94,35 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 // sessions exist this should return an empty (not nil) map.
 func (s *Store) All() (map[string][]byte, error) {
 	searchSize := 1000
-	pagination := make([]types.FieldValue, 0)
+	searchPagination := make([]types.FieldValueVariant, 0)
 	data := make(map[string][]byte)
 	query := query.Since("expiry", time.Now().UTC())
 
 	// Loop until we've paginated through all results.
 	for {
 		var (
-			sessions []models.UserSession
-			err      error
+			sessions    []models.UserSession
+			err         error
+			pagination  models.Pagination
+			searchAfter []types.FieldValue
 		)
 
-		sessions, pagination, err = elastic.Search[models.UserSession](sessionCtx, s.client.GetAPI(), s.index, query, searchSize, nil, pagination)
+		sessions, searchAfter, err = elastic.Search[models.UserSession](sessionCtx, s.client.GetAPI(), s.index, query, searchSize, nil, searchPagination)
 		if err != nil {
 			return nil, errors.Join(elastic.ErrSearchFailed, err)
 		}
 		// Stop if there are no hits
 		if len(sessions) == 0 {
 			break
+		}
+
+		pagination, err = models.EncodePagination(searchAfter)
+		if err != nil {
+			return nil, errors.Join(elastic.ErrSearchFailed, err)
+		}
+		searchPagination, err = models.DecodePagination(pagination)
+		if err != nil {
+			return nil, errors.Join(elastic.ErrSearchFailed, err)
 		}
 
 		for _, session := range sessions {

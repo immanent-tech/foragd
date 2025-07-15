@@ -4,9 +4,9 @@
 package schema
 
 import (
-	"github.com/elastic/go-elasticsearch/v8/typedapi/cluster/putcomponenttemplate"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/indices/putindextemplate"
-	"github.com/elastic/go-elasticsearch/v8/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/cluster/putcomponenttemplate"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/indices/putindextemplate"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 )
 
 // WithComponentTemplates assigns the given component templates to the index template.
