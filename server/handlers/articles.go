@@ -102,7 +102,8 @@ func (a *API) MarkArticles() http.HandlerFunc {
 			}
 		}
 		// Update the states.
-		if err := a.updateSubscriptionStates(req.Context(), states); err != nil {
+		err = a.updateSubscriptionStates(req.Context(), states)
+		if err != nil {
 			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
@@ -179,7 +180,6 @@ func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters
 			continue
 		}
 		articles = append(articles, article)
-
 	}
 
 	return articles, pagination, nil

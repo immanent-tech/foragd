@@ -37,15 +37,13 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
-		spew.Dump(request)
 		if request.Text == "" {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
 
-		subscriptions, articles, resp := a.matchObjectsToSearchRequest(req.Context(), request)
-		if resp != nil {
-			slogctx.FromCtx(req.Context()).Warn("Search suggestions failed.", slog.Any("error", resp.Error()))
+		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
+		if err != nil {
 			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
@@ -71,7 +69,6 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 			alice.New(
 				RouteLogger,
 			).Then(RenderTemplate(resp)).ServeHTTP(res, req)
-
 		}
 	}
 }
@@ -89,9 +86,8 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			return
 		}
 		// Find subscriptions and articles that match search request.
-		subscriptions, articles, resp := a.matchObjectsToSearchRequest(req.Context(), request)
-		if resp != nil {
-			slogctx.FromCtx(req.Context()).Warn("Search suggestions failed.", slog.Any("error", resp.Error()))
+		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
+		if err != nil {
 			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
@@ -103,17 +99,18 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 	}
 }
 
-func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.SearchRequest) ([]*views.Subscription, []*views.Article, *models.Response) {
+//nolint:gocyclo,funlen
+func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.SearchRequest) ([]*views.Subscription, []*views.Article, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, nil, models.RespErrUnauthorized()
+		return nil, nil, models.ErrNoUserCtx
 	}
 
 	// Perform search.
 	msearchResults, err := a.findSuggestions(ctx, request.Text)
 	if err != nil {
-		return nil, nil, models.RespErrBackend(err)
+		return nil, nil, fmt.Errorf("matchObjectsToSearchRequest: %w", err)
 	}
 	// Extract the matches.
 	var (
@@ -169,7 +166,7 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 	// Make subscriptions from the feed results up to maxObjectResults - customisationResults.
 	states, err := a.getSubscriptionStates(ctx, slices.Collect(maps.Values(user.GetSubscriptionsByFeedID(feeds.GetIDs()...)))...)
 	if err != nil {
-		return nil, nil, models.RespErrBackend(err)
+		return nil, nil, fmt.Errorf("matchObjectsToSearchRequest: %w", err)
 	}
 	for idx, feed := range feeds {
 		var state *models.SubscriptionState
@@ -199,7 +196,7 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 	articles := make([]*views.Article, 0, len(items))
 	states, err = a.getSubscriptionStates(ctx, slices.Collect(maps.Keys(user.GetSubscriptionsByFeedID(items.GetIDs()...)))...)
 	if err != nil {
-		return nil, nil, models.RespErrBackend(err)
+		return nil, nil, fmt.Errorf("matchObjectsToSearchRequest: %w", err)
 	}
 	for item := range slices.Values(items) {
 		var state *models.SubscriptionState
@@ -223,6 +220,7 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 	return subscriptions, articles, nil
 }
 
+//nolint:funlen
 func (a *API) findSuggestions(ctx context.Context, searchTerms string) (results.MSearchResults, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {

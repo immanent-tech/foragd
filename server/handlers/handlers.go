@@ -36,16 +36,8 @@ var BaseChain = alice.New(
 
 // Keys for objects stored within the context and passed between handlers.
 const (
-	subscriptionRequestsCtxKey contextKey = "subscriptionRequests"
-	subscriptionResultsCtxKey  contextKey = "subscriptionsResults"
-	feedsCtxKey                contextKey = "feeds"
-	subscriptionsCtxKey        contextKey = "subscriptions"
-
-	titleCtxKey  contextKey = "title"
-	drawerCtxKey contextKey = "drawer"
-	pageCtxKey   contextKey = "page"
-
-	respCtxKey contextKey = "response"
+	titleCtxKey contextKey = "title"
+	respCtxKey  contextKey = "response"
 )
 
 type contextKey string

@@ -13,12 +13,14 @@ import (
 	"github.com/joshuar/go-feed-me/server/session"
 )
 
+// API contains the various API backends used by handlers.
 type API struct {
 	user    *auth0.UserAPI
 	elastic *elastic.API
 	auth    *auth.Authenticator
 }
 
+// SetupAPI creates the object containing the various backend APIs needed by handlers.
 func SetupAPI(ctx context.Context) (*API, error) {
 	// Load the auth0UserAPI backend.
 	auth0UserAPI, err := auth0.NewUserAPI(ctx)
@@ -31,7 +33,8 @@ func SetupAPI(ctx context.Context) (*API, error) {
 		return nil, fmt.Errorf("unable to set up elastic api: %w", err)
 	}
 	// Set up the session manager.
-	if err := session.NewSessionManager(ctx, elasticAPI, auth.SessionName); err != nil {
+	err = session.NewSessionManager(ctx, elasticAPI, auth.SessionName)
+	if err != nil {
 		return nil, fmt.Errorf("unable to set up session api: %w", err)
 	}
 	// Set up authentication manager.
@@ -46,10 +49,12 @@ func SetupAPI(ctx context.Context) (*API, error) {
 	}, nil
 }
 
+// DataAPI returns the backend API for manipulating data.
 func (a *API) DataAPI() *elastic.API {
 	return a.elastic
 }
 
+// AuthAPI returns the backend API for performing authorisation actions.
 func (a *API) AuthAPI() *auth.Authenticator {
 	return a.auth
 }
