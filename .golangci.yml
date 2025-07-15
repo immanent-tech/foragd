@@ -16,6 +16,7 @@ linters:
     - nlreturn
     - tagalign
     - tagliatelle
+    - wsl_v5
     - wsl
   settings:
     gocyclo:
@@ -54,7 +55,7 @@ linters:
           - paralleltest
           - testpackage
           - varnamelen
-    paths-except:
+    paths:
       - '(.+)_templ\.go'
 formatters:
   enable:
