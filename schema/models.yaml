@@ -426,11 +426,12 @@ components:
       type: object
       allOf:
         - $ref: '#/components/schemas/UserSubscriptionFeedRelation'
-        - $ref: '#/components/schemas/ObjectState'
         - type: object
           required:
             - state
           properties:
+            state:
+              $ref: '#/components/schemas/ObjectState'
             customisation:
               $ref: '#/components/schemas/ObjectCustomisation'
             item_states:
@@ -438,6 +439,11 @@ components:
                 contains the states of items marked explicitly as read/unread/saved by the user.
               x-go-type: 'map[ItemID]ObjectState'
               x-go-type-skip-optional-pointer: true
+            created_at:
+              $ref: '#/components/schemas/CreatedAt'
+            updated_at:
+              $ref: '#/components/schemas/UpdatedAt'
+
     Subscription:
       description: >
         represents a feed a user has subscribed to.

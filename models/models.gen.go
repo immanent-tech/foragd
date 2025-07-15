@@ -305,6 +305,9 @@ type SubscriptionID = string
 
 // SubscriptionState defines model for SubscriptionState.
 type SubscriptionState struct {
+	// CreatedAt records when the object was created in the database.
+	CreatedAt *CreatedAt `json:"created_at" validate:"required"`
+
 	// Customisation contains object fields that can be customised (overridden) by a user
 	Customisation *ObjectCustomisation `json:"customisation,omitempty"`
 
@@ -314,11 +317,8 @@ type SubscriptionState struct {
 	// ItemStates contains the states of items marked explicitly as read/unread/saved by the user.
 	ItemStates map[ItemID]ObjectState `json:"item_states,omitempty"`
 
-	// Read indicates whether the object has been read (true) or is unread (false).
-	Read bool `json:"read"`
-
-	// Starred indicates whether the object has been starred (true) or not (false).
-	Starred bool `json:"starred"`
+	// State tracks the state of an object.
+	State ObjectState `json:"state"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`

@@ -227,7 +227,6 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,
-			TriggerStateUpdates,
 		)
 		edits, valid, err := forms.DecodeForm[*models.SubscriptionEdit](req)
 		if err != nil || !valid {
@@ -241,8 +240,10 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		}
 
 		updates := map[string]any{
-			"title":      edits.Title,
-			"categories": edits.Categories,
+			"customisation": map[string]any{
+				"title":      edits.Title,
+				"categories": edits.Categories,
+			},
 		}
 
 		if err := elastic.UpdateDoc(req.Context(), a.DataAPI().GetAPI(), index, edits.SubscriptionID, updates); err != nil {
@@ -596,6 +597,8 @@ func (r addSubscriptionRequests) feedURLs() []string {
 // MatchFeedsToSubscriptionRequests takes a list of subscription requests, extracts the URLs in each and attempt to
 // match them to existing feeds. Where there is no existing feed, it will attempt to generate new feed data. It then
 // stores the subscriptions that need new feeds and any with existing feeds in the context for the next handler.
+//
+//nolint:funlen
 func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Context, api *API) (views.AddSubscriptionResults, error) {
 	// Extract user data.
 	user, found := models.UserFromCtx(ctx)
@@ -700,7 +703,7 @@ func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (
 				continue
 			}
 		}
-		details := fmt.Sprintf("An internal, irrecoverable backend error occurred trying to add a subscription for the URL %s", request.GetURL())
+		details := "An internal, irrecoverable backend error occurred trying to add a subscription for the URL " + request.GetURL()
 		results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
 			Status:  models.UserMessageStatusError,
 			Summary: "Internal Error. ",

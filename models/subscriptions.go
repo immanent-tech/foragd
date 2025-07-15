@@ -265,18 +265,22 @@ type SubscriptionRequests []*SubscriptionRequest
 
 // NewSubscriptionState creates a new subscription state with the given subscription and feed ids.
 func NewSubscriptionState(userID UserID, feed *Feed, request *SubscriptionRequest) *SubscriptionState {
-	updatedAt := time.Now().UTC()
+	ts := time.Now().UTC()
 	// Create state based on feed and user data.
 	state := &SubscriptionState{
 		UserID:         userID,
 		SubscriptionID: NewID(SubscriptionPFX),
 		FeedID:         feed.GetID(),
-		ItemStates:     make(map[ItemID]ObjectState),
-		UpdatedAt:      &updatedAt,
+		UpdatedAt:      &ts,
+		CreatedAt:      &ts,
 		Customisation: &ObjectCustomisation{
 			Title:      feed.GetTitle(),
 			Categories: feed.GetCategories(),
 		},
+		State: ObjectState{
+			UpdatedAt: &ts,
+		},
+		ItemStates: make(map[ItemID]ObjectState),
 	}
 	// Add any user customisations.
 	if request != nil {
@@ -299,7 +303,7 @@ func (s *SubscriptionState) GetFeedID() FeedID {
 }
 
 func (s *SubscriptionState) IsRead() bool {
-	return s.Read
+	return s.State.IsRead()
 }
 
 // GetMarkedRead retrieves the timestamp when the user last marked the
@@ -313,9 +317,9 @@ func (s *SubscriptionState) GetMarkedRead() time.Time {
 func (s *SubscriptionState) Mark(mark Mark, markedAt time.Time) {
 	switch mark {
 	case MarkRead:
-		s.Read = true
+		s.State.MarkRead(markedAt)
 	case MarkUnread:
-		s.Read = false
+		s.State.MarkUnread(markedAt)
 	}
 	s.UpdatedAt = &markedAt
 	s.ItemStates = nil
@@ -355,7 +359,7 @@ func (s *SubscriptionState) GetItemState(id ItemID) *ObjectState {
 	}
 	// If an item doesn't have an explicit state, its state should reflect the subscription state.
 	return &ObjectState{
-		Read:      s.Read,
+		Read:      s.State.IsRead(),
 		UpdatedAt: s.UpdatedAt,
 	}
 }

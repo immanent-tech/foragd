@@ -108,11 +108,13 @@ func schedulerJobsComponentTemplate() types.IndexState {
 
 func userMappings() map[string]types.Property {
 	return map[string]types.Property{
-		"user_id":     types.NewKeywordProperty(),
-		"created_at":  types.NewDateNanosProperty(),
-		"updated_at":  types.NewDateNanosProperty(),
-		"max_history": types.NewKeywordProperty(),
-		"settings":    types.NewFlattenedProperty(),
+		"user_id":          types.NewKeywordProperty(),
+		"external_user_id": types.NewKeywordProperty(),
+		"provider":         types.NewKeywordProperty(),
+		"created_at":       types.NewDateNanosProperty(),
+		"updated_at":       types.NewDateNanosProperty(),
+		"max_history":      types.NewKeywordProperty(),
+		"settings":         types.NewFlattenedProperty(),
 		"subscriptions": types.ObjectProperty{
 			Properties: map[string]types.Property{
 				"feed_id":         types.NewKeywordProperty(),
@@ -142,12 +144,18 @@ func subscriptionsMappings() map[string]types.Property {
 		"subscription_id": types.NewKeywordProperty(),
 		"feed_id":         types.NewKeywordProperty(),
 		"updated_at":      types.NewDateNanosProperty(),
-		"read":            types.NewBooleanProperty(),
-		"starred":         types.NewBooleanProperty(),
+		"created_at":      types.NewDateNanosProperty(),
 		"customisation": types.ObjectProperty{
 			Properties: map[string]types.Property{
 				"categories": shortTextFieldProperty(),
 				"title":      shortTextFieldProperty(),
+			},
+		},
+		"state": types.ObjectProperty{
+			Properties: map[string]types.Property{
+				"read":       types.NewBooleanProperty(),
+				"starred":    types.NewBooleanProperty(),
+				"updated_at": types.NewDateNanosProperty(),
 			},
 		},
 		"item_states": types.NewFlattenedProperty(),
