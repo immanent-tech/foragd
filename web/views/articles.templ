@@ -13,7 +13,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
@@ -47,7 +46,7 @@ templ (page *ArticlesPage) content() {
 			@hiddeninput.Build(
 				hiddeninput.WithName(name),
 				hiddeninput.WithValue(attributes.Value(value)),
-			).Show()
+			)
 		}
 	</div>
 	<div id="card-controls" class="m-2">
@@ -166,7 +165,7 @@ func NewArticleContent(article *models.Article) *Article {
 		Article: article,
 	}
 	if !article.IsUnread() {
-		card.classes = append(card.classes, opacity.Apply(75))
+		card.classes = append(card.classes, "brightness-50")
 	}
 	return card
 }
@@ -181,7 +180,7 @@ templ (c *Article) ShowAsSummary() {
 			<div class="text-sm flex-1 text-justify">{ c.GetTitle() }</div>
 		</div>
 		<div class="flex flex-row justify-end">
-			<div class="text-xs uppercase font-semibold opacity-60">{ c.GetFeedTitle() }</div>
+			<div class="text-xs uppercase font-semibold">{ c.GetFeedTitle() }</div>
 		</div>
 	}
 }

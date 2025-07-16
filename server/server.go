@@ -30,10 +30,8 @@ const (
 	ServerWriteTimeout = 10 * time.Second
 )
 
-const (
-	RequestIDKey = "request_id"
-)
-
+// Server represents the application server. It contains the underlying server object, the handlers api and embedded FS
+// for static content.
 type Server struct {
 	server *http.Server
 	static embed.FS
@@ -45,6 +43,7 @@ type Server struct {
 
 var ErrStartServer = errors.New("start server failed")
 
+// NewServer sets up a new server.
 func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 	var svr Server
 	svr.static = static
@@ -80,6 +79,7 @@ func (s *Server) ListenAndServeTLS(cert, key string) error {
 	return s.server.ListenAndServeTLS(cert, key)
 }
 
+//nolint:funlen // it doesn't make sense to split up handler definitions.
 func (s *Server) setupRoutes(handler *handlers.API) {
 	// Set up a new chi router.
 	router := chi.NewRouter()
@@ -106,13 +106,14 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 	// Error handling.
 	router.NotFound(handlers.NotFound())
 	router.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(405)
+		w.WriteHeader(http.StatusMethodNotAllowed)
 		w.Write([]byte("method is not valid"))
 	})
 
 	// Front page.
 	router.Get("/", handlers.Index())
 	// Access routes.
+	router.Get("/login", handlers.LoginSelect())
 	router.Group(func(r chi.Router) {
 		r.Use(
 			session.Manager.LoadAndSave,
@@ -120,6 +121,14 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Get("/login/{provider}", handler.Login())
 		r.Get("/login/{provider}/callback", handler.LoginCallback())
 		r.Get("/logout", handlers.Logout())
+	})
+	// Signup routes.
+	router.Group(func(r chi.Router) {
+		r.Use(
+			middlewares.SetupElastic(),
+		)
+		r.Get("/signup", handlers.SignupSetup())
+		r.Post("/signup/{provider}", handler.Signup())
 	})
 
 	// Authenticated routes.

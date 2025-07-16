@@ -37,6 +37,8 @@ linters:
         - mu
         - fd
         - to
+        - ts
+        - r
     revive:
       enable-all-rules: false
       rules:

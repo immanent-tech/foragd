@@ -14,6 +14,7 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 )
 
@@ -39,11 +40,9 @@ func RequireUserAuth(dataAPI *elastic.API, authAPI models.AuthAPI) func(next htt
 				http.Redirect(res, req, "/", http.StatusSeeOther)
 				return
 			}
-			ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 			// Fetch the user from the user management API.
-			user, err := dataAPI.GetUser(ctx, userID)
-			//  If no user can be found, redirect back to the home page.
-			if err != nil {
+			user, _, err := elastic.Search[*models.User](ctx, dataAPI.GetAPI(), schema.UsersSchemaPrefix, query.Term("external_user_id", userID), 1, nil, nil)
+			if err != nil || len(user) == 0 {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.Any("error", err))
 				http.Redirect(res, req, "/", http.StatusSeeOther)
@@ -51,7 +50,7 @@ func RequireUserAuth(dataAPI *elastic.API, authAPI models.AuthAPI) func(next htt
 			}
 			// Else load the user into the context and pass the new context
 			// to the next request.
-			next.ServeHTTP(res, req.WithContext(models.UserToCtx(ctx, user)))
+			next.ServeHTTP(res, req.WithContext(models.UserToCtx(ctx, user[0])))
 		})
 	}
 }

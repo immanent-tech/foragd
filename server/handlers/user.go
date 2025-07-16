@@ -24,7 +24,7 @@ func GetSettings() http.HandlerFunc {
 		)
 		alice.New(
 			RouteLogger,
-		).Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		).Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -35,7 +35,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 		theme := chi.URLParam(req, "theme")
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			RenderTemplate(RespForbidden()).ServeHTTP(res, req)
+			RenderResponse(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		settings := user.GetSettings()
@@ -44,7 +44,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 			"settings":   settings,
 			"updated_at": time.Now().UTC(),
 		}); err != nil {
-			RenderTemplate(RespBackendError(err)).ServeHTTP(res, req)
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		res.WriteHeader(http.StatusOK)

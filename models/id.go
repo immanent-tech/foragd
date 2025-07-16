@@ -1,7 +1,7 @@
 // Copyright 2024 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//go:generate go tool golang.org/x/tools/cmd/stringer -type=IDPrefix -linecomment -output id.gen.go
+//go:generate go tool stringer -type=IDPrefix -linecomment -output id.gen.go
 package models
 
 import (
@@ -18,6 +18,7 @@ const (
 	ItemPFX         // item
 	SchedulerPFX    // scheduler
 	SessionPFX      // session
+	UserPFX         // user
 	Max
 )
 
@@ -41,6 +42,8 @@ func IdentifyID(id string) IDPrefix {
 		return ItemPFX
 	case SubscriptionPFX.String():
 		return SubscriptionPFX
+	case UserPFX.String():
+		return UserPFX
 	default:
 		return Invalid
 	}

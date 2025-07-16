@@ -272,7 +272,7 @@ func NewSubscriptionState(userID UserID, feed *Feed, request *SubscriptionReques
 		SubscriptionID: NewID(SubscriptionPFX),
 		FeedID:         feed.GetID(),
 		UpdatedAt:      &ts,
-		CreatedAt:      &ts,
+		CreatedAt:      ts,
 		Customisation: &ObjectCustomisation{
 			Title:      feed.GetTitle(),
 			Categories: feed.GetCategories(),

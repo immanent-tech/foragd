@@ -314,21 +314,6 @@ func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
 	return nil
 }
 
-// GetUser fetches the user record from Elasticsearch.
-func (e *API) GetUser(ctx context.Context, userID models.UserID) (*models.User, error) {
-	index := UserIndexFromCtx(ctx)
-	if index == "" {
-		return nil, errors.Join(ErrGetFailed, ErrFetchCtx)
-	}
-
-	user, err := GetDoc[models.UserID, *models.User](ctx, e.GetAPI(), index, userID)
-	if err != nil {
-		return nil, fmt.Errorf("get user failed: %w", err)
-	}
-
-	return user, nil
-}
-
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
 func BulkAdd[T ~string, O Object[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {

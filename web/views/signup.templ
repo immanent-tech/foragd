@@ -6,54 +6,32 @@ package views
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/input/fieldset"
 	"github.com/joshuar/go-templ-daisyui/input/form"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 )
 
-const SignupPath = "/signup"
-
-var SignupDetailsID = attributes.ID("signup-details")
-var SignupFormID = attributes.ID("signup-form")
-
-templ SignUpPage(userDetails *models.UserSignupRequest) {
-	<div class="hero bg-base-200 min-h-screen">
-		<div class="hero-content flex-col lg:flex-row-reverse">
-			<div class="text-center lg:text-left">
-				<h1 class="text-5xl font-bold">Sign-up now!</h1>
-				<p class="py-6">
-					Enter your details below to create an account.
-				</p>
-			</div>
-			<div id={ SignupDetailsID.String() } class="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
-				<div class="card-body">
-					@SignupForm(userDetails)
-				</div>
-			</div>
-		</div>
-	</div>
-}
-
-templ SignupForm(userDetails *models.UserSignupRequest) {
-	if userDetails.Msg != nil {
-		@partials.Alert(userDetails.Msg)
-	}
+// SignupForm is the form for the user to enter their details to create an account.
+templ SignupForm(details *models.UserSignupRequest) {
 	@form.Build(
-		form.WithID(SignupFormID.String()),
-		form.WithExtraAttributes(
+		form.WithID("signup"),
+		form.WithAttributes(
 			templ.Attributes{
-				"hx-post":   SignupPath,
-				"hx-target": SignupFormID.Target(),
-				"hx-swap":   "outerHTML",
+				"hx-post":   "/signup/auth0",
+				"hx-target": partials.ContentID.Target(),
 			},
 		),
-	).Show() {
-		@fieldset.Build() {
+	) {
+		@fieldset.Build(
+			fieldset.WithLegend("Account Details:"),
+		) {
+			<label class="label font-semibold">Nickname (optional)</label>
 			@textinput.Build(
 				textinput.WithName("nickname"),
-				textinput.WithValue(userDetails.Nickname),
+				textinput.WithValue(details.Nickname),
 			).Show()
+			<label class="label font-semibold">Email (required)</label>
 			@textinput.Build(
 				textinput.WithName("email"),
 				textinput.AsType(textinput.Email),
@@ -61,8 +39,9 @@ templ SignupForm(userDetails *models.UserSignupRequest) {
 				textinput.Required(),
 				textinput.Validate(),
 				textinput.ValidateHint("Valid email address is required."),
-				textinput.WithValue(userDetails.Email),
+				textinput.WithValue(details.Email),
 			).Show()
+			<label class="label font-semibold">Password (required).</label>
 			@textinput.Build(
 				textinput.WithName("password"),
 				textinput.AsType(textinput.Password),
@@ -71,8 +50,21 @@ templ SignupForm(userDetails *models.UserSignupRequest) {
 				textinput.ValidatePattern(`(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{ 8,  }`),
 				textinput.ValidateMinLength(10),
 				textinput.ValidateHint("Password needs to be minimum 10 characters and include at least one: lowercase letter, uppercase letter and number"),
-				textinput.WithValue(userDetails.Password),
+				textinput.WithValue(details.Password),
 			).Show()
+			@button.Build(
+				button.AsSubmit(),
+				button.WithClasses(button.Primary),
+			) {
+				Make it so!
+			}
 		}
 	}
+}
+
+templ SignupSuccess() {
+	<h2>Signup Success!</h2>
+	<div class="flex justify-center m-2">
+		@partials.LoginAuth0Button()
+	</div>
 }

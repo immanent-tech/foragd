@@ -27,6 +27,9 @@ templ AskQuestion(question string, attributes templ.Attributes) {
 templ Alert(msg *models.UserMessage) {
 	@alert.Build(
 		alert.AlertState(msgStatusToAlertState(msg.Status)),
+		alert.WithExtraAttributes(templ.Attributes{
+			"_": "on load wait 10s then transition opacity to 0 then remove me",
+		}),
 	).Show() {
 		if msg.HasDetails() {
 			<div>

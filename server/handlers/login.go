@@ -10,7 +10,19 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
+
+// LoginSelect handles showing options for logging in with different providers.
+func LoginSelect() http.HandlerFunc {
+	return alice.New(
+		RouteLogger,
+	).Then(RenderResponse(models.NewResponse(
+		models.WithResponseTemplate(partials.LoginSelect()),
+	))).ServeHTTP
+}
 
 // Login handles login requests.
 func (a *API) Login() http.HandlerFunc {
@@ -24,7 +36,7 @@ func (a *API) Login() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Warn("Authentication required.", slog.Any("error", err))
 			url, err := a.auth.GetAuthURL(req)
 			if err != nil {
-				RenderTemplate(RespBackendError(err)).ServeHTTP(res, req)
+				RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 				return
 			}
 			slogctx.FromCtx(req.Context()).Debug("Redirecting to provider.", slog.String("url", url))
@@ -45,7 +57,7 @@ func (a *API) LoginCallback() http.HandlerFunc {
 		provider := chi.URLParam(req, "provider")
 		a.auth.SetProviderName(req.Context(), provider)
 		if err := a.auth.CompleteUserAuth(res, req); err != nil {
-			RenderTemplate(RespBackendError(err)).ServeHTTP(res, req)
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("Authenticated.")

@@ -25,7 +25,7 @@ func SetupHTMX(next http.Handler) http.Handler {
 func RequireHTMX(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if !htmx.IsHTMX(req) {
-			handlers.RenderTemplate(handlers.RespForbidden()).ServeHTTP(res, req)
+			handlers.RenderResponse(handlers.RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		next.ServeHTTP(res, req)

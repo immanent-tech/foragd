@@ -7,7 +7,6 @@ package handlers
 import (
 	"context"
 	"errors"
-	"io"
 	"log/slog"
 	"net/http"
 
@@ -54,8 +53,20 @@ func RouteLogger(next http.Handler) http.Handler {
 	})
 }
 
-func RenderTemplate(resp *models.Response) http.Handler {
+// RenderResponse handles rendering a response. If the response contains a template, that will be rendered in the http
+// response. If the response contains an error, it will be logged.
+func RenderResponse(resp *models.Response) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if resp.InternalError != nil {
+			switch {
+			case resp.StatusCode < 400:
+				slogctx.FromCtx(req.Context()).Debug(resp.InternalError.Error())
+			case resp.StatusCode < 500:
+				slogctx.FromCtx(req.Context()).Warn(resp.InternalError.Error())
+			default:
+				slogctx.FromCtx(req.Context()).Error(resp.InternalError.Error())
+			}
+		}
 		// Get any existing htmx response writer.
 		htmxResp := htmxRespFromCtx(req.Context())
 		if resp == nil {
@@ -67,59 +78,26 @@ func RenderTemplate(resp *models.Response) http.Handler {
 		// Write the response status code.
 		res.WriteHeader(resp.StatusCode)
 		// Write the response template.
-		if htmx.IsHTMX(req) {
-			if err := htmxResp.RenderTempl(req.Context(), res, resp); err != nil {
+		if htmx.IsHTMX(req) { //nolint:nestif // TODO: can this logic be simplified?
+			err := htmxResp.RenderTempl(req.Context(), res, resp)
+			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
 				return
 			}
 			// Update the page title.
 			if title := pageTitleFromCtx(req.Context()); title != "" {
-				if err := htmxResp.RenderTempl(req.Context(), res, templates.SetPageTitle(title)); err != nil {
+				err := htmxResp.RenderTempl(req.Context(), res, templates.SetPageTitle(title))
+				if err != nil {
 					slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
 				}
 			}
 		} else {
-			if err := resp.Render(req.Context(), res); err != nil {
+			err := resp.Render(req.Context(), res)
+			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
 				return
-			}
-		}
-	})
-}
-
-func RenderTemplateFragments(resp *models.Response, fragments ...string) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		if !htmx.IsHTMX(req) {
-			slogctx.FromCtx(req.Context()).Error("Render template fragments called with non-htmx request.")
-			http.Error(res, "Render template fragments called with non-htmx request.", http.StatusInternalServerError)
-			return
-		}
-		// Get any existing htmx response writer.
-		htmxResp := htmxRespFromCtx(req.Context())
-		// Set the fragments to be rendered.
-		req = req.WithContext(partials.WithFragment(req.Context(), res, fragments...))
-		err := htmxResp.Write(res)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-			http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
-			return
-		}
-		if resp != nil {
-			err = resp.Render(req.Context(), io.Discard)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
-				return
-			}
-		} else {
-			res.WriteHeader(http.StatusOK)
-		}
-		// Update the page title.
-		if title := pageTitleFromCtx(req.Context()); title != "" {
-			if err := htmxResp.RenderTempl(req.Context(), res, templates.SetPageTitle(title)); err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
 			}
 		}
 	})
@@ -198,7 +176,7 @@ func RespBackendError(err error) *models.Response {
 		models.WithResponseStatusCode(http.StatusInternalServerError),
 		models.WithResponseError(err),
 		models.WithResponseTemplate(
-			partials.Alert(partials.MsgBadInput()),
+			partials.Alert(partials.MsgBackendErr()),
 		),
 	)
 }
@@ -220,6 +198,6 @@ func NotFound() http.HandlerFunc {
 		)
 		alice.New(
 			RouteLogger,
-		).Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		).Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }

@@ -34,7 +34,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			spew.Dump(err, valid)
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		if request.Text == "" {
@@ -44,7 +44,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 
 		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
 		if err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
 			suggestions := make([]templ.Component, 0, len(articles)+1)
@@ -68,7 +68,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 			)
 			alice.New(
 				RouteLogger,
-			).Then(RenderTemplate(resp)).ServeHTTP(res, req)
+			).Then(RenderResponse(resp)).ServeHTTP(res, req)
 		}
 	}
 }
@@ -82,19 +82,19 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		)
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		// Find subscriptions and articles that match search request.
 		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
 		if err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
 			resp := models.NewResponse(
 				models.WithResponseTemplate(views.SearchResultsPage(subscriptions, articles)),
 			)
-			chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
+			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		}
 	}
 }

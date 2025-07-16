@@ -306,7 +306,7 @@ type SubscriptionID = string
 // SubscriptionState defines model for SubscriptionState.
 type SubscriptionState struct {
 	// CreatedAt records when the object was created in the database.
-	CreatedAt *CreatedAt `json:"created_at" validate:"required"`
+	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Customisation contains object fields that can be customised (overridden) by a user
 	Customisation *ObjectCustomisation `json:"customisation,omitempty"`
@@ -353,11 +353,17 @@ type User struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
+	// ExternalUserId is the ID of the user on the external backend that was used to create the account.
+	ExternalUserId string `json:"external_user_id" validate:"required"`
+
 	// Favourites is a list of objects the user has marked as a favourite.
 	Favourites []Favourite `json:"favourites,omitempty"`
 
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
-	MaxHistory string `json:"max_history"`
+	MaxHistory string `json:"max_history" validate:"required"`
+
+	// Provider is the backend provider that was used to create the account.
+	Provider interface{} `json:"provider" validate:"required"`
 
 	// Settings contains user-specific settings for the application.
 	Settings *UserSettings `json:"settings,omitempty"`

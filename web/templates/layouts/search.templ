@@ -15,12 +15,12 @@ import (
 templ SearchForm() {
 	<div class="dropdown dropdown-center">
 		@form.Build(
-			form.WithExtraAttributes(templ.Attributes{
+			form.WithAttributes(templ.Attributes{
 				"hx-post":     "/search/results",
 				"hx-target":   partials.ContentID.Target(),
 				"hx-push-url": "true",
 			}),
-		).Show() {
+		) {
 			@join.Horizontally() {
 				@textinput.Build(
 					textinput.WithID("search"),

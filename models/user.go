@@ -24,6 +24,19 @@ var (
 	ErrNotSubscribed         = errors.New("user not subscribed to feed")
 )
 
+// NewUser creates a new user from the external provider details.
+func NewUser(externalID, provider string) *User {
+	ts := time.Now().UTC()
+	return &User{
+		CreatedAt:      ts,
+		UpdatedAt:      &ts,
+		MaxHistory:     DefaultMaxHistory.String(),
+		ExternalUserId: externalID,
+		Provider:       provider,
+		UserID:         NewID(UserPFX),
+	}
+}
+
 // Valid returns a boolean indicating whether the user data is valid. If not valid, it will also return a non-nil error
 // that contains the validation issues.
 func (u *User) Valid(_ context.Context) (bool, error) {

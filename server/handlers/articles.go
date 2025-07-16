@@ -35,7 +35,7 @@ func (a *API) GetArticles() http.HandlerFunc {
 		// Extract filters from request.
 		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
 		if err != nil || !valid {
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		// Save the filters to the session.
@@ -43,7 +43,7 @@ func (a *API) GetArticles() http.HandlerFunc {
 		// Get articles matching filters.
 		articles, pagination, err := a.filterArticles(req.Context(), filters)
 		if err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Generate articles page.
@@ -51,7 +51,7 @@ func (a *API) GetArticles() http.HandlerFunc {
 			models.WithResponseTemplate(views.NewArticlesPage(articles, filters, pagination).Template(req)),
 		)
 
-		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -66,7 +66,7 @@ func (a *API) MarkArticles() http.HandlerFunc {
 		// Get request details.
 		request, valid, err := forms.DecodeForm[*models.MarkArticlesRequest](req)
 		if err != nil || !valid {
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		chain = chain.Append(
@@ -83,7 +83,7 @@ func (a *API) MarkArticles() http.HandlerFunc {
 		// Get subscription states containing items.
 		states, err := a.getSubscriptionStates(req.Context(), slices.Collect(maps.Keys(marks))...)
 		if err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Mark off items under subscription states.
@@ -104,11 +104,11 @@ func (a *API) MarkArticles() http.HandlerFunc {
 		// Update the states.
 		err = a.updateSubscriptionStates(req.Context(), states)
 		if err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 
-		chain.Then(RenderTemplate(nil)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(nil)).ServeHTTP(res, req)
 	}
 }
 
@@ -122,14 +122,14 @@ func (a *API) ViewArticle() http.HandlerFunc {
 		itemID := chi.URLParam(req, "item")
 		articles, err := a.getArticles(req.Context(), itemID)
 		if err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		resp := models.NewResponse(
 			models.WithResponseTemplate(views.NewArticleContent(articles[0]).ShowContent()),
 		)
 		ctx := context.WithValue(req.Context(), titleCtxKey, articles[0].GetTitle())
-		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req.WithContext(ctx))
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
 

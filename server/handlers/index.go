@@ -4,27 +4,20 @@
 package handlers
 
 import (
-	"log/slog"
 	"net/http"
 
-	"github.com/a-h/templ"
 	"github.com/justinas/alice"
-	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/views"
 )
 
 // Index handles displaying the index or front page of the site.
 func Index() http.HandlerFunc {
+	page := &views.IndexPage{}
 	return alice.New(
 		RouteLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		indexLayout := &layouts.IndexLayout{}
-		ctx := templ.WithChildren(req.Context(), indexLayout.FullRender())
-		if err := templates.NewPage("Go Feed Me").Render(ctx, res); err != nil {
-			slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-			http.Error(res, "Failed to render page content.", http.StatusInternalServerError)
-		}
-	}).ServeHTTP
+	).Then(RenderResponse(models.NewResponse(
+		models.WithResponseTemplate(page.Template()),
+	))).ServeHTTP
 }

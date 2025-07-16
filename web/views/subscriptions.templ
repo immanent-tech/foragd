@@ -17,7 +17,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/actions/modal"
 	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/classes/opacity"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
 	"github.com/joshuar/go-templ-daisyui/display/avatar"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
@@ -73,7 +72,7 @@ templ (page *SubscriptionsPage) content() {
 			@hiddeninput.Build(
 				hiddeninput.WithName(name),
 				hiddeninput.WithValue(attributes.Value(value)),
-			).Show()
+			)
 		}
 	</div>
 	<div id="card-controls" class="m-2">
@@ -218,7 +217,7 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 		Subscription: subscription,
 	}
 	if !subscription.IsUnread() {
-		card.classes = append(card.classes, opacity.Apply(75))
+		card.classes = append(card.classes, "brightness-50")
 	}
 	return card
 }
@@ -471,19 +470,19 @@ templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []mode
 		// Display the Subscription details.
 		@form.Build(
 			form.WithID("subscription-details"),
-			form.WithExtraAttributes(
+			form.WithAttributes(
 				templ.Attributes{
 					"hx-put":       "/user/subscription/edit/" + edits.SubscriptionID,
 					"hx-swap":      "none",
 					"hx-indicator": "#add-processing",
 				},
 			),
-		).Show() {
+		) {
 			@fieldset.Build() {
 				@hiddeninput.Build(
 					hiddeninput.WithName("subscription_id"),
 					hiddeninput.WithValue(edits.SubscriptionID),
-				).Show()
+				)
 				<label class="fieldset-label">Nickname (optional)</label>
 				@textinput.Build(
 					textinput.WithName("user_nickname"),
@@ -542,7 +541,7 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest) {
 		// Display the Subscription details.
 		@form.Build(
 			form.WithID("subscription-details"),
-		).Show() {
+		) {
 			@fieldset.Build() {
 				<label class="label font-semibold">URL</label>
 				@textinput.Build(
@@ -599,7 +598,7 @@ templ SubscriptionAddedModal(result *models.AddSubscriptionResult) {
 						@tabler.CircleCheck(i.Props{Class: "size-10 text-success"})
 						<div>
 							<div>{ result.Message.Summary }</div>
-							<div class="text-xs uppercase font-semibold opacity-60">{ result.Subscription.GetTitle() }</div>
+							<div class="text-xs uppercase font-semibold">{ result.Subscription.GetTitle() }</div>
 						</div>
 					case models.UserMessageStatusError:
 						@tabler.CircleX(i.Props{Class: "size-10 text-error"})
@@ -713,10 +712,10 @@ templ editCategories(existing []models.Category, suggested []models.Category) {
 					hiddeninput.WithID(category),
 					hiddeninput.WithName("user_categories[]"),
 					hiddeninput.WithValue(category),
-					hiddeninput.WithExtraAttributes(templ.Attributes{
+					hiddeninput.WithAttributes(templ.Attributes{
 						"form": "subscription-details",
 					}),
-				).Show()
+				)
 			}
 		</fieldset>
 	</form>
@@ -751,7 +750,7 @@ templ ImportSubscriptionsModal() {
 			<div class="py-6">
 				@form.Build(
 					form.WithID("import-subscriptions"),
-					form.WithExtraAttributes(
+					form.WithAttributes(
 						templ.Attributes{
 							"hx-post":      "/user/import",
 							"hx-encoding":  "multipart/form-data",
@@ -760,7 +759,7 @@ templ ImportSubscriptionsModal() {
 							"_":            "on htmx:afterRequest wait 10ms then remove @open from " + partials.ModalID.Target(),
 						},
 					),
-				).Show()
+				)
 			</div>
 			<center id="import-processing" class="htmx-indicator">
 				Processing
@@ -778,7 +777,7 @@ templ SetupOPMLImport() {
 		@hiddeninput.Build(
 			hiddeninput.WithName("source"),
 			hiddeninput.WithValue(string(models.ImportSourceOPMLFile)),
-		).Show()
+		)
 		@fileinput.Build(
 			fileinput.WithName("data"),
 			fileinput.Required(),
@@ -815,7 +814,7 @@ templ ImportResults(results AddSubscriptionResults) {
 							@tabler.CircleCheck(i.Props{Class: "size-10 text-success"})
 							<div>
 								<div>{ response.Message.Summary }</div>
-								<div class="text-xs uppercase font-semibold opacity-60">{ response.Subscription.GetTitle() }</div>
+								<div class="text-xs uppercase font-semibold">{ response.Subscription.GetTitle() }</div>
 							</div>
 						case models.UserMessageStatusError:
 							@tabler.CircleX(i.Props{Class: "size-10 text-error"})

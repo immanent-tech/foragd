@@ -19,6 +19,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 
 	"github.com/joshuar/go-feed-me/models"
 
@@ -32,26 +33,6 @@ const UserDBConnection = "Username-Password-Authentication"
 
 type UserAPI struct {
 	api *authentication.Authentication
-}
-
-type UserSignup struct {
-	details *database.SignupResponse
-}
-
-func (u *UserSignup) UserID() string {
-	return "auth0|" + u.details.ID
-}
-
-func (u *UserSignup) Nickname() string {
-	return u.details.Nickname
-}
-
-func (u *UserSignup) Email() string {
-	return u.details.Email
-}
-
-func (u *UserSignup) Verified() bool {
-	return u.details.EmailVerified
 }
 
 func NewUserAPI(ctx context.Context) (*UserAPI, error) {
@@ -76,7 +57,7 @@ func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 	return api, nil
 }
 
-func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest) (string, error) {
+func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest) (string, *models.Response) {
 	userData := database.SignupRequest{
 		Connection: UserDBConnection,
 		Nickname:   details.Nickname,
@@ -86,7 +67,16 @@ func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest)
 
 	user, err := u.api.Database.Signup(ctx, userData)
 	if err != nil {
-		return "", fmt.Errorf("user creation failed: %w", err)
+		if authErr, ok := err.(*authentication.Error); ok {
+			return "", models.NewResponse(
+				models.WithResponseStatusCode(authErr.StatusCode),
+				models.WithResponseError(err),
+			)
+		}
+		return "", models.NewResponse(
+			models.WithResponseStatusCode(http.StatusServiceUnavailable),
+			models.WithResponseError(err),
+		)
 	}
 
 	return user.ID, nil

@@ -58,3 +58,8 @@ func (a *API) DataAPI() *elastic.API {
 func (a *API) AuthAPI() *auth.Authenticator {
 	return a.auth
 }
+
+// UserAPI returns the backend API for managing user accounts.
+func (a *API) UserAPI() *auth0.UserAPI {
+	return a.user
+}

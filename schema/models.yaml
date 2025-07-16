@@ -134,14 +134,29 @@ components:
         - type: object
           required:
             - user_id
+            - external_user_id
+            - provider
             - max_history
           properties:
             user_id:
               $ref: '#/components/schemas/UserID'
+            external_user_id:
+              description: >
+                is the ID of the user on the external backend that was used to create the account.
+              type: string
+              x-oapi-codegen-extra-tags:
+                validate: 'required'
+            provider:
+              description: >
+                is the backend provider that was used to create the account.
+              x-oapi-codegen-extra-tags:
+                validate: 'required'
             max_history:
               description: >
                 is a duration representing the maximum time-frame over which objects contained within are available.
               type: string
+              x-oapi-codegen-extra-tags:
+                validate: 'required'
             settings:
               $ref: '#/components/schemas/UserSettings'
             subscriptions:
@@ -425,6 +440,7 @@ components:
         contains the data that represents the state and customisation applied to a user subscription.
       type: object
       allOf:
+        - $ref: '#/components/schemas/Timestamps'
         - $ref: '#/components/schemas/UserSubscriptionFeedRelation'
         - type: object
           required:
@@ -439,11 +455,6 @@ components:
                 contains the states of items marked explicitly as read/unread/saved by the user.
               x-go-type: 'map[ItemID]ObjectState'
               x-go-type-skip-optional-pointer: true
-            created_at:
-              $ref: '#/components/schemas/CreatedAt'
-            updated_at:
-              $ref: '#/components/schemas/UpdatedAt'
-
     Subscription:
       description: >
         represents a feed a user has subscribed to.

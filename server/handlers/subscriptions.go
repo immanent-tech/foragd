@@ -38,7 +38,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		)
 		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
 		if err != nil || !valid {
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		chain = chain.Append(SavePageState(filters))
@@ -46,7 +46,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		// Retrieve user object.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			chain.Then(RenderTemplate(RespForbidden())).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
 		if len(user.GetSubscriptionsByID()) == 0 {
@@ -55,7 +55,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			// Get subscriptions matching filters.
 			subscriptions, pagination, resp := a.filterSubscriptions(req.Context(), filters)
 			if resp != nil {
-				chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
 			// Generate page template.
@@ -66,7 +66,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			models.WithResponseTemplate(template),
 		)
 
-		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -80,7 +80,7 @@ func (a *API) MarkSubscriptions() http.HandlerFunc {
 		// Get subscription details.
 		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
 		if err != nil || !valid {
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		chain = chain.Append(SetupRedirect(request.Redirect))
@@ -91,7 +91,7 @@ func (a *API) MarkSubscriptions() http.HandlerFunc {
 		// Get all user subscription states.
 		states, err := a.getSubscriptionStates(req.Context())
 		if err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// If the request contains explicit subscription IDs to mark, filter for those.
@@ -104,11 +104,11 @@ func (a *API) MarkSubscriptions() http.HandlerFunc {
 		}
 		// Index updates.
 		if err := a.updateSubscriptionStates(req.Context(), states); err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 
-		chain.Then(RenderTemplate(nil)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(nil)).ServeHTTP(res, req)
 	}
 }
 
@@ -122,7 +122,7 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 		// Get subscription details.
 		request, valid, err := forms.DecodeForm[*models.RemoveSubscriptionsRequest](req)
 		if err != nil || !valid {
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		// Act according to user confirmation.
@@ -133,7 +133,7 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
 			)
 			if resp := a.removeSubscriptions(req.Context(), request.Subscriptions...); resp != nil {
-				chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
 			// Show success notification.
@@ -181,7 +181,7 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 				models.WithResponseTemplate(modal),
 			)
 		}
-		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -196,11 +196,11 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		// Retrieve subscription details.
 		states, err := a.getSubscriptionStates(req.Context(), id)
 		if err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		if len(states) == 0 {
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		edit := &models.SubscriptionEdit{
@@ -217,7 +217,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(views.EditSubscriptionModal(edit, topItemCategories, nil)),
 		)
-		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -230,12 +230,12 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		)
 		edits, valid, err := forms.DecodeForm[*models.SubscriptionEdit](req)
 		if err != nil || !valid {
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		index := elastic.SubscriptionsIndexFromCtx(req.Context())
 		if index == "" {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 
@@ -247,7 +247,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		}
 
 		if err := elastic.UpdateDoc(req.Context(), a.DataAPI().GetAPI(), index, edits.SubscriptionID, updates); err != nil {
-			chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 
@@ -257,7 +257,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(partials.ShowNotification(msg)),
 		)
-		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -269,7 +269,7 @@ func NewSubscription() http.HandlerFunc {
 		)
 		alice.New(
 			RouteLogger,
-		).Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		).Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -280,7 +280,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 		)
 		request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 		if err != nil || !valid {
-			chain.Then(RenderTemplate(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		requests := addSubscriptionRequests{
@@ -300,7 +300,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					}),
 				)),
 			)
-			chain.Append(TriggerStateUpdates).Then(RenderTemplate(resp)).ServeHTTP(res, req)
+			chain.Append(TriggerStateUpdates).Then(RenderResponse(resp)).ServeHTTP(res, req)
 			return
 		}
 		// If results returned from matching is non-nil, something went wrong.
@@ -308,7 +308,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			resp := models.NewResponse(
 				models.WithResponseTemplate(views.SubscriptionAddedModal(result[request])),
 			)
-			chain.Append(TriggerStateUpdates).Then(RenderTemplate(resp)).ServeHTTP(res, req)
+			chain.Append(TriggerStateUpdates).Then(RenderResponse(resp)).ServeHTTP(res, req)
 			return
 		}
 		// Create the new subscription.
@@ -328,7 +328,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(views.SubscriptionAddedModal(result[request])),
 		)
-		chain.Append(TriggerStateUpdates).Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		chain.Append(TriggerStateUpdates).Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -363,12 +363,12 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				opmlFile := &models.OPMLFile{}
 				opmlFile, valid, err := forms.DecodeMultipartFile(req, "data", opmlFile)
 				if err != nil || !valid {
-					chain.Then(RenderTemplate(RespInvalidInput(fmt.Errorf("could not parse OPML file: %w", err)))).ServeHTTP(res, req)
+					chain.Then(RenderResponse(RespInvalidInput(fmt.Errorf("could not parse OPML file: %w", err)))).ServeHTTP(res, req)
 					return
 				}
 				opmlImport, err := opmlFile.Parse()
 				if err != nil {
-					chain.Then(RenderTemplate(RespInvalidInput(fmt.Errorf("could not parse OPML file: %w", err)))).ServeHTTP(res, req)
+					chain.Then(RenderResponse(RespInvalidInput(fmt.Errorf("could not parse OPML file: %w", err)))).ServeHTTP(res, req)
 					return
 				}
 				feeds := opmlImport.ExtractRSS()
@@ -381,7 +381,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("User import failed.",
 					slog.Any("error", err),
 				)
-				chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
 			createResults, err := requests.createNewSubscriptions(req.Context(), a)
@@ -389,7 +389,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				slogctx.FromCtx(req.Context()).Warn("User import failed.",
 					slog.Any("error", err),
 				)
-				chain.Then(RenderTemplate(RespBackendError(err))).ServeHTTP(res, req)
+				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
 			maps.Copy(createResults, matchResults)
@@ -398,7 +398,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				models.WithResponseTemplate(views.ImportResults(createResults)),
 			)
 		}
-		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 

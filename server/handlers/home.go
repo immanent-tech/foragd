@@ -31,13 +31,13 @@ func (a *API) Home() http.HandlerFunc {
 		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
 		data, err := a.getHomePageData(ctx)
 		if err != nil {
-			chain.Then(RenderTemplate(err)).ServeHTTP(res, req)
+			chain.Then(RenderResponse(err)).ServeHTTP(res, req)
 			return
 		}
 		resp := models.NewResponse(
 			models.WithResponseTemplate(data.Template(req)),
 		)
-		chain.Then(RenderTemplate(resp)).ServeHTTP(res, req.WithContext(ctx))
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
 
