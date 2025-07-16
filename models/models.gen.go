@@ -249,7 +249,7 @@ type ObjectCommonSourceType string
 // ObjectCustomisation contains object fields that can be customised (overridden) by a user
 type ObjectCustomisation struct {
 	// Categories is a custom list of categories for an object.
-	Categories []Category `form:"user_categories[]" json:"categories,omitempty" validate:"omitempty,unique"`
+	Categories []Category `form:"user_categories" json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// Title is a friendly name or nickname for an object.
 	Title string `form:"user_nickname" json:"title,omitempty" validate:"omitempty"`

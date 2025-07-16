@@ -177,7 +177,7 @@ type SortOrder string
 // SubscriptionEdit defines model for SubscriptionEdit.
 type SubscriptionEdit struct {
 	// Categories is a custom list of categories for an object.
-	Categories []Category `form:"user_categories[]" json:"categories,omitempty" validate:"omitempty,unique"`
+	Categories []Category `form:"user_categories" json:"categories,omitempty" validate:"omitempty,unique"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`

@@ -226,6 +226,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,
+			TriggerStateUpdates,
 		)
 		edits, valid, err := forms.DecodeForm[*models.SubscriptionEdit](req)
 		if err != nil || !valid {

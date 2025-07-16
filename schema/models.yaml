@@ -354,7 +354,7 @@ components:
           items:
             $ref: '#/components/schemas/Category'
           x-oapi-codegen-extra-tags:
-            form: 'user_categories[]'
+            form: 'user_categories'
             validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
     Feed:
