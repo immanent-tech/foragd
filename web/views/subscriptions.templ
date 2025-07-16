@@ -162,6 +162,7 @@ templ (page *SubscriptionsPage) emptyContent() {
 					Try adjusting your filters, or maybe there is nothing left to read?
 				</p>
 				@partials.NewAction("/home", partials.DisplayActionAsButton,
+					partials.ActionPushURL(),
 					partials.ActionButtonOptions(
 						button.WithClasses(button.Primary),
 					),
