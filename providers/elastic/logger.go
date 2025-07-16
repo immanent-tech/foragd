@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/logging"
 )
@@ -24,7 +25,6 @@ var (
 
 // Logger is a custom elastictransport.Logger.
 type Logger struct {
-	logger             *slog.Logger
 	EnableRequestBody  bool
 	EnableResponseBody bool
 }
@@ -111,7 +111,7 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		baseAttributes...,
 	)
 	// Write a log message.
-	l.logger.LogAttrs(req.Context(), level, strconv.Itoa(status)+": "+http.StatusText(status), attributes...)
+	slogctx.FromCtx(req.Context()).LogAttrs(req.Context(), level, strconv.Itoa(status)+": "+http.StatusText(status), attributes...)
 	return err
 }
 

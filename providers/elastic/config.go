@@ -6,12 +6,10 @@ package elastic
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"os"
 	"sync"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/config"
 )
@@ -79,8 +77,6 @@ func loadConfigOnce(ctx context.Context, environment string) (*elasticsearch.Con
 func genConfig(ctx context.Context, environment string) (*elasticsearch.Config, error) {
 	var generated *elasticsearch.Config
 
-	logger := slogctx.FromCtx(ctx).With(slog.String("platform", "elastic"))
-
 	switch environment {
 	case "development":
 		caFileData, err := os.ReadFile(elasticConfig.Development.CAFile)
@@ -90,7 +86,7 @@ func genConfig(ctx context.Context, environment string) (*elasticsearch.Config, 
 
 		generated = &elasticsearch.Config{
 			Addresses: elasticConfig.Development.URLs,
-			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false, logger: logger},
+			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
 			// Logger:    &Logger{EnableResponseBody: true, EnableRequestBody: true, logger: logger},
 			Username:  elasticConfig.Development.Username,
 			Password:  elasticConfig.Development.Password,
@@ -99,7 +95,7 @@ func genConfig(ctx context.Context, environment string) (*elasticsearch.Config, 
 		}
 	case "production":
 		generated = &elasticsearch.Config{
-			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false, logger: logger},
+			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
 			CloudID:   elasticConfig.Production.CloudID,
 			APIKey:    elasticConfig.Production.APIKey,
 			Transport: defaultTransportConfig,
