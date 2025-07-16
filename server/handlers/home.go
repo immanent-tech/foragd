@@ -29,12 +29,12 @@ func (a *API) Home() http.HandlerFunc {
 		)
 		ctx := req.Context()
 		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
-		data, err := a.getHomePageData(ctx)
-		if err != nil {
-			chain.Then(RenderResponse(err)).ServeHTTP(res, req)
+		data, resp := a.getHomePageData(ctx)
+		if resp != nil && !resp.IsNotFound() {
+			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 			return
 		}
-		resp := models.NewResponse(
+		resp = models.NewResponse(
 			models.WithResponseTemplate(data.Template(req)),
 		)
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(ctx))
@@ -45,12 +45,12 @@ func (a *API) Home() http.HandlerFunc {
 //
 //nolint:funlen
 func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Response) {
+	data := &views.HomePage{}
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, models.RespErrUnauthorized()
+		return data, models.RespErrUnauthorized()
 	}
-	data := &views.HomePage{}
 	// User has no subscriptions, show empty page
 	if len(user.GetSubscriptionsByID()) == 0 {
 		return data, nil

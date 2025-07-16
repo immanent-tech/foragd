@@ -56,6 +56,10 @@ type TermsAggregationResults struct {
 	*types.StringTermsAggregate
 }
 
+func (a *TermsAggregationResults) HasResults() bool {
+	return a.StringTermsAggregate != nil
+}
+
 // GetCount retrieves the document count for the bucket with the given key.
 func (a *TermsAggregationResults) GetCount(key string) int {
 	switch value := a.Buckets.(type) {

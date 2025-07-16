@@ -48,7 +48,7 @@ templ (page *HomePage) layout() {
 
 // content renders the home page content.
 templ (page *HomePage) content() {
-	if len(page.Subscriptions) == 0 {
+	if page == nil {
 		@EmptyHome()
 	} else {
 		<div class="stats shadow bg-neutral">

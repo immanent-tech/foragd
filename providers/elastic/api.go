@@ -150,7 +150,6 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 		WithSortOptions[*search.Search, SearchRequest](&DocSorting{}),
 		WithAggregations[*search.Search, SearchRequest](aggregations...),
 	)
-
 	resp, err := req.Do(ctx)
 	if err != nil {
 		return nil, parseError(err)
@@ -591,7 +590,6 @@ func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.Msea
 	}
 
 	req := NewMSearchRequest(api, options...)
-	// spew.Dump(req.HttpRequest(ctx))
 	resp, err := req.Do(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrReqFailed, err)

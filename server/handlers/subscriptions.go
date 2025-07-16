@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -430,11 +429,10 @@ func (a *API) updateSubscriptionStates(ctx context.Context, states models.Subscr
 		return elastic.ErrFetchCtx
 	}
 
-	resp, err := elastic.BulkUpdate(ctx, a.DataAPI(), index, states...)
+	_, err := elastic.BulkUpdate(ctx, a.DataAPI(), index, states...)
 	if err != nil {
 		return fmt.Errorf("updateSubscriptionStates: %w", err)
 	}
-	spew.Dump(resp)
 
 	return nil
 }
@@ -445,11 +443,10 @@ func (a *API) addSubscriptionStates(ctx context.Context, states models.Subscript
 		return elastic.ErrFetchCtx
 	}
 
-	resp, err := elastic.BulkAdd(ctx, a.DataAPI(), index, states...)
+	_, err := elastic.BulkAdd(ctx, a.DataAPI(), index, states...)
 	if err != nil {
 		return fmt.Errorf("updateSubscriptionStates: %w", err)
 	}
-	spew.Dump(resp)
 
 	return nil
 }
@@ -473,16 +470,18 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, states models.Sub
 		),
 	)
 	aggResults, resp := a.DataAPI().ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(states)))
-	if resp != nil {
+	if resp != nil && !resp.IsNotFound() {
 		return nil, resp
 	}
 	var (
 		categoryCounts aggregations.TermsAggregationResults
 		err            error
 	)
-	categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggResults.Aggregations, "UnreadCounts")
-	if err != nil {
-		return nil, fmt.Errorf("getSubscriptionUnreadCounts: %w", err)
+	if !resp.IsNotFound() {
+		categoryCounts.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggResults.Aggregations, "UnreadCounts")
+		if err != nil {
+			return nil, fmt.Errorf("getSubscriptionUnreadCounts: %w", err)
+		}
 	}
 
 	return &categoryCounts, nil
@@ -494,7 +493,6 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	if err != nil {
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
-
 	// Get unread counts.
 	unreadCounts, err := a.getSubscriptionUnreadCounts(ctx, states)
 	if err != nil {
@@ -516,7 +514,7 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 			)
 			continue
 		}
-		if unreadCounts != nil {
+		if unreadCounts.HasResults() {
 			count = unreadCounts.GetCount(feed.GetID())
 		}
 
@@ -529,20 +527,22 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 		}
 		subscriptions = append(subscriptions, subscription)
 	}
+
 	return subscriptions, nil
 }
 
 func (a *API) filterSubscriptions(ctx context.Context, filters *models.SubscriptionFilters) (models.Subscriptions, models.Pagination, error) {
+	// Get subscriptions by ID.
 	subscriptions, err := a.getSubscriptions(ctx, filters.Subscriptions...)
 	if err != nil {
 		return nil, "", fmt.Errorf("filterSubscriptions: %w", err)
 	}
+	// Filter subscriptions.
 	sort := filters.GetSort()
-
 	subscriptions = subscriptions.FilterByCategories(filters.Categories...).
 		FilterByView(filters.View).
 		Sort(&sort)
-
+	// Set up pagination.
 	var pagination string
 	if filters.Pagination != nil {
 		pagination = *filters.Pagination
@@ -574,7 +574,6 @@ func (a *API) removeSubscriptions(ctx context.Context, ids ...models.Subscriptio
 	user.Subscriptions = slices.Collect(models.FilterSlice(user.Subscriptions, func(s models.SubscriptionFeedRelation) bool {
 		return !slices.Contains(ids, s.SubscriptionID)
 	}))
-	spew.Dump(user.Subscriptions)
 	// Update the user.
 	return a.updateUser(ctx, map[string]any{
 		"subscriptions": user.Subscriptions,

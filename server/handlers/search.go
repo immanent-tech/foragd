@@ -12,7 +12,6 @@ import (
 	"slices"
 
 	"github.com/a-h/templ"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -33,7 +32,6 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 		)
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			spew.Dump(err, valid)
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
