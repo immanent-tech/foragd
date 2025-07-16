@@ -26,6 +26,7 @@ templ Drawer() {
 				<li>
 					@partials.NewAction("/home", partials.DisplayActionAsLink,
 						partials.ActionPushURL(),
+						partials.ActionHyperScript("on click toggle @checked on #body-drawer"),
 					) {
 						<div class="flex gap-2">
 							@tabler.Home()
@@ -36,7 +37,9 @@ templ Drawer() {
 				<li>
 					@partials.NewAction("/subscriptions", partials.DisplayActionAsLink,
 						partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-						partials.ActionPushURL()) {
+						partials.ActionPushURL(),
+						partials.ActionHyperScript("on click call document.activeElement.blur() end"),
+					) {
 						<div class="flex gap-2">
 							@tabler.Rss()
 							Subscriptions
@@ -46,7 +49,9 @@ templ Drawer() {
 				<li>
 					@partials.NewAction("/Articles", partials.DisplayActionAsLink,
 						partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-						partials.ActionPushURL()) {
+						partials.ActionPushURL(),
+						partials.ActionHyperScript("on click call document.activeElement.blur() end"),
+					) {
 						<div class="flex gap-2">
 							@tabler.Article()
 							Articles

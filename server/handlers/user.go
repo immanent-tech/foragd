@@ -17,14 +17,20 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
-func GetSettings() http.HandlerFunc {
+func (a *API) GetSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewSettingsPage().Template(req)),
-		)
-		alice.New(
+		chain := alice.New(
 			RouteLogger,
-		).Then(RenderResponse(resp)).ServeHTTP(res, req)
+		)
+		subscriptions, err := a.getSubscriptions(req.Context())
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		resp := models.NewResponse(
+			models.WithResponseTemplate(views.NewSettingsPage(subscriptions).Template(req)),
+		)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
