@@ -83,7 +83,7 @@ func sessionsComponentTemplate() types.IndexState {
 
 func schedulerJobsMappings() map[string]types.Property {
 	return map[string]types.Property{
-		"created_at":   types.NewDateNanosProperty(),
+		"updated_at":   types.NewDateNanosProperty(),
 		"job_options":  types.NewFlattenedProperty(),
 		"job_data":     types.NewFlattenedProperty(),
 		"job_type":     types.NewKeywordProperty(),

@@ -39,13 +39,13 @@ var (
 	ErrDeleteJobFailed      = errors.New("delete job failed")
 	ErrGetJobState          = errors.New("get job state failed")
 	ErrUpdateJobStateFailed = errors.New("update job state failed")
+	ErrClearJobs            = errors.New("clearing jobs failed")
 )
 
 // JobQueue implements the quartz.JobQueue interface, using Elasticsearch as the
 // persistence layer.
 type JobQueue struct {
 	client *elastic.API
-	logger *slog.Logger
 	index  string
 }
 
@@ -55,7 +55,6 @@ func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
 
 	return &JobQueue{
 		client: client,
-		logger: slogctx.FromCtx(ctx).WithGroup("job_queue"),
 		index:  schema.SchedulerSchemaPrefix,
 	}, nil
 }
@@ -71,17 +70,13 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 
 	id := jobKeyToDocID(job.JobDetail().JobKey().String())
 
-	found, err := elastic.Exists(schedCtx, jq.client.GetAPI(), jq.index, id)
+	err = elastic.UpdateDoc(schedCtx, jq.client.GetAPI(), jq.index, id, map[string]any{
+		"job_next_run": data.JobNextRun,
+		"job_data":     data.JobData,
+	},
+		elastic.UpdateDocAsUpsert(),
+	)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
-	}
-	if found {
-		if err := jq.delete(id); err != nil {
-			return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
-		}
-	}
-
-	if err := elastic.CreateDoc(schedCtx, jq.client.GetAPI(), jq.index, id, data); err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
 
@@ -96,9 +91,9 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 
 // Pop removes and returns the next scheduled job from the queue.
 func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
-	job, err := jq.findHead()
+	job, err := jq.Head()
 	if err != nil {
-		return nil, errors.Join(ErrPopJobFailed, err)
+		return nil, fmt.Errorf("%w: %w", ErrPopJobFailed, err)
 	}
 	id := jobKeyToDocID(job.JobDetail().JobKey().String())
 
@@ -117,20 +112,23 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 
 // Head returns the first scheduled job without removing it from the queue.
 func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
-	job, err := jq.findHead()
+	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1, []types.SortCombinationsVariant{&jobSorting{}}, nil)
 	if err != nil {
-		jq.logger.Error("Failed to find first scheduled job.",
-			slog.Any("error", err))
+		resp := elastic.ParseError(err)
+		if resp.IsNotFound() {
+			return nil, fmt.Errorf("%w: %w", quartz.ErrQueueEmpty, err)
+		}
+		return nil, resp.InternalError
 	}
-
+	head := jobs[0]
 	slog.Debug("Found next job.",
 		slog.Group("job",
-			slog.String("id", job.JobDetail().JobKey().String()),
-			slog.Time("next_run", time.Unix(0, job.NextRunTime())),
+			slog.String("id", head.JobDetail().JobKey().String()),
+			slog.Time("next_run", time.Unix(0, head.NextRunTime())),
 		),
 	)
 
-	return job, err
+	return head, nil
 }
 
 // Get returns the scheduled job with the specified key without removing it
@@ -139,6 +137,10 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	id := jobKeyToDocID(jobKey.String())
 	job, err := elastic.GetDoc[string, ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
+		resp := elastic.ParseError(err)
+		if resp.IsNotFound() {
+			return nil, fmt.Errorf("%w: %w", quartz.ErrJobNotFound, err)
+		}
 		return nil, fmt.Errorf("%w: %w", ErrGetJobFailed, err)
 	}
 
@@ -157,7 +159,7 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 		return nil, errors.Join(ErrRemoveJobFailed, err)
 	}
 
-	jq.logger.Debug("Job removed.",
+	slogctx.FromCtx(schedCtx).Debug("Job removed.",
 		slog.String("job", job.JobDetail().Job().Description()))
 
 	return job, nil
@@ -220,21 +222,12 @@ func (jq *JobQueue) Size() (int, error) {
 
 // Clear clears the job queue.
 func (jq *JobQueue) Clear() error {
-	jq.logger.Debug("Cleared job queue.")
-	return nil
-}
-
-func (jq *JobQueue) findHead() (quartz.ScheduledJob, error) {
-	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1, []types.SortCombinationsVariant{&jobSorting{}}, nil)
+	err := elastic.DeleteDocs(schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll())
 	if err != nil {
-		return nil, errors.Join(ErrNoJobFound, err)
+		return fmt.Errorf("%w: %w", ErrClearJobs, err)
 	}
-	if len(jobs) == 0 {
-		return nil, errors.Join(ErrNoJobFound, err)
-	}
-
-	nextJob := jobs[0]
-	return nextJob, nil
+	slogctx.FromCtx(schedCtx).Debug("Cleared job queue.")
+	return nil
 }
 
 // delete removes the job doc from Elasticsearch.

@@ -23,6 +23,10 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 )
 
+const (
+	defaultOutdatedThreshold = 50 * time.Second
+)
+
 // DataAPI is the interface that provides access to the data-store backend in use.
 type DataAPI interface {
 	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
@@ -62,9 +66,13 @@ func Run(ctx context.Context) error {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
 
+	logger := &logger{Logger: slogctx.FromCtx(ctx)}
+	misfiredCh := make(chan quartz.ScheduledJob)
 	scheduler, err := quartz.NewStdScheduler(
-		quartz.WithOutdatedThreshold(50*time.Second),
+		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
+		quartz.WithMisfiredChan(misfiredCh),
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
+		quartz.WithLogger(logger),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
@@ -89,8 +97,8 @@ func Run(ctx context.Context) error {
 		}
 	}
 
+	// Run goroutine to check for new feeds.
 	jobChecker()
-
 	go func() {
 		for {
 			select {
@@ -99,6 +107,16 @@ func Run(ctx context.Context) error {
 			case <-ticker.C:
 				jobChecker()
 			}
+		}
+	}()
+
+	// Run goroutine to log misfired jobs.
+	go func() {
+		for misfiredJob := range misfiredCh {
+			logger.Error("Job misfired.",
+				slog.String("job_id", misfiredJob.JobDetail().JobKey().String()),
+				slog.String("job_description", misfiredJob.JobDetail().Job().Description()),
+			)
 		}
 	}()
 

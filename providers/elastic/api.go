@@ -139,7 +139,7 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregations ...aggregations.Aggregation) (*search.Response, *models.Response) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
-		return nil, parseError(ErrFetchCtx)
+		return nil, ParseError(ErrFetchCtx)
 	}
 
 	req := NewSearchRequest(e.GetAPI(),
@@ -152,7 +152,7 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 	)
 	resp, err := req.Do(ctx)
 	if err != nil {
-		return nil, parseError(err)
+		return nil, ParseError(err)
 	}
 
 	return resp, nil
@@ -605,7 +605,7 @@ func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.Msea
 	return results, nil
 }
 
-func parseError(err error) *models.Response {
+func ParseError(err error) *models.Response {
 	var esErr *types.ElasticsearchError
 	if errors.As(err, &esErr) {
 		return models.NewResponse(
