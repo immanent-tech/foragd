@@ -324,7 +324,7 @@ templ (c *Subscription) Card() {
 				@tooltip.Build("Actions").Show() {
 					@dropdown.Build(
 						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-						dropdown.WithButtonClasses(button.XS, button.Neutral),
+						dropdown.WithButtonClasses(button.XS, button.Secondary),
 						dropdown.WithOpenFrom(dropdown.OpenTop),
 						dropdown.WithOpenAlignment(dropdown.AlignEnd),
 						dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
@@ -502,6 +502,7 @@ templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []mode
 						"form": "subscription-details",
 						"_":    "on click remove @open from " + partials.ModalID.Target(),
 					}),
+					button.WithClasses(button.Primary),
 				) {
 					Make it so!
 				}
@@ -636,92 +637,6 @@ templ SubscriptionAddedModal(result *models.AddSubscriptionResult) {
 	}
 }
 
-templ editCategories(existing []models.Category, suggested []models.Category) {
-	<form
-		id="editCategories"
-		_={ `on submit
-      halt the event
-      set categoryInput to (first <input/> in me).value
-      set formID to my id
-      send newCategory(category: categoryInput, formTarget: 'subscription-details') to #categories
-      set value of first <input/> in me to ''
-      ` }
-	>
-		<fieldset class="fieldset">
-			<label class="label font-semibold">Add Category</label>
-			@join.Horizontally() {
-				@textinput.Build(
-					textinput.WithPlaceholder("CoolStuff"),
-					textinput.WithExtraAttributes(templ.Attributes{
-						"list": "categorySuggestions",
-					}),
-				).Show("join-item")
-				@button.Build(
-					button.WithClasses(button.Square, "join-item"),
-				) {
-					@tabler.CategoryPlus()
-				}
-			}
-			<label class="label italic">(Optional) Custom categories to assign to the feed.</label>
-			<datalist id="categorySuggestions">
-				for category := range slices.Values(suggested) {
-					<option value={ category }></option>
-				}
-			</datalist>
-		</fieldset>
-	</form>
-	<form>
-		<fieldset
-			id="categories"
-			class="fieldset"
-			_="
-			on newCategory(category, formTarget)
-			  make a <input/>
-			  set its type to 'hidden'
-			  set its name to 'user_categories'
-			  set its value to category
-			  set its id to category
-			  set its @form to formTarget
-			  append it to me
-			  make a <li/> then put category into it
-       		  put it at the start of #shown-categories
-			end
-
-			on delCategory(category)
-			  tell <input[id=`${category}`]/>
-			  	remove yourself
-			  end
-			for el in #shown-categories.children
-         	  if innerHTML of el == category
-           	  	remove el
-         	  end
-       		end
-			"
-		>
-			<label class="label text-semibold">Current Categories:</label>
-			<ul
-				id="shown-categories"
-				_="on click send delCategory(category: innerHTML of target) to #categories"
-			>
-				for category := range slices.Values(existing) {
-					<li>{ category }</li>
-				}
-			</ul>
-			<label class="label italic">(click a category to remove)</label>
-			for category := range slices.Values(existing) {
-				@hiddeninput.Build(
-					hiddeninput.WithID(category),
-					hiddeninput.WithName("user_categories[]"),
-					hiddeninput.WithValue(category),
-					hiddeninput.WithAttributes(templ.Attributes{
-						"form": "subscription-details",
-					}),
-				)
-			}
-		</fieldset>
-	</form>
-}
-
 // ImportSubscriptionsModal is a modal to present the user with options for importing subscriptions from external
 //sources (e.g., OPML).
 templ ImportSubscriptionsModal() {
@@ -843,4 +758,90 @@ templ ImportResults(results AddSubscriptionResults) {
 			Back to top
 		}
 	</div>
+}
+
+templ editCategories(existing []models.Category, suggested []models.Category) {
+	<form
+		id="editCategories"
+		_={ `on submit
+      halt the event
+      set categoryInput to (first <input/> in me).value
+      set formID to my id
+      send newCategory(category: categoryInput, formTarget: 'subscription-details') to #categories
+      set value of first <input/> in me to ''
+      ` }
+	>
+		<fieldset class="fieldset">
+			<label class="label font-semibold">Add Category</label>
+			@join.Horizontally() {
+				@textinput.Build(
+					textinput.WithPlaceholder("CoolStuff"),
+					textinput.WithExtraAttributes(templ.Attributes{
+						"list": "categorySuggestions",
+					}),
+				).Show("join-item")
+				@button.Build(
+					button.WithClasses(button.Square, button.Secondary, "join-item"),
+				) {
+					@tabler.CategoryPlus()
+				}
+			}
+			<label class="label italic">(Optional) Custom categories to assign to the feed.</label>
+			<datalist id="categorySuggestions">
+				for category := range slices.Values(suggested) {
+					<option value={ category }></option>
+				}
+			</datalist>
+		</fieldset>
+	</form>
+	<form>
+		<fieldset
+			id="categories"
+			class="fieldset"
+			_="
+			on newCategory(category, formTarget)
+			  make a <input/>
+			  set its type to 'hidden'
+			  set its name to 'user_categories'
+			  set its value to category
+			  set its id to category
+			  set its @form to formTarget
+			  append it to me
+			  make a <li/> then put category into it
+       		  put it at the start of #shown-categories
+			end
+
+			on delCategory(category)
+			  tell <input[id=`${category}`]/>
+			  	remove yourself
+			  end
+			for el in #shown-categories.children
+         	  if innerHTML of el == category
+           	  	remove el
+         	  end
+       		end
+			"
+		>
+			<label class="label text-semibold">Current Categories:</label>
+			<ul
+				id="shown-categories"
+				_="on click send delCategory(category: innerHTML of target) to #categories"
+			>
+				for category := range slices.Values(existing) {
+					<li>{ category }</li>
+				}
+			</ul>
+			<label class="label italic">(click a category to remove)</label>
+			for category := range slices.Values(existing) {
+				@hiddeninput.Build(
+					hiddeninput.WithID(category),
+					hiddeninput.WithName("user_categories[]"),
+					hiddeninput.WithValue(category),
+					hiddeninput.WithAttributes(templ.Attributes{
+						"form": "subscription-details",
+					}),
+				)
+			}
+		</fieldset>
+	</form>
 }

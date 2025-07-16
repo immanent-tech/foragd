@@ -209,11 +209,11 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		}
 		// Get top categories across items in subscription feed.
 		var topItemCategories []models.Category
-		categories, err := a.getItemTopCategories(req.Context(), states[0].GetFeedID())
-		if err == nil {
+		categories, resp := a.getItemTopCategories(req.Context(), states[0].GetFeedID())
+		if resp == nil {
 			topItemCategories = categories
 		}
-		resp := models.NewResponse(
+		resp = models.NewResponse(
 			models.WithResponseTemplate(views.EditSubscriptionModal(edit, topItemCategories, nil)),
 		)
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
