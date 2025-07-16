@@ -10,7 +10,7 @@ require (
 	github.com/a-h/templ v0.3.906
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
-	github.com/auth0/go-auth0 v1.24.0
+	github.com/auth0/go-auth0 v1.25.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-playground/form/v4 v4.2.1
@@ -26,7 +26,7 @@ require (
 	github.com/lmittmann/tint v1.1.2
 	github.com/matoous/go-nanoid v1.5.1
 	github.com/mattn/go-isatty v0.0.20
-	github.com/oapi-codegen/runtime v1.1.1
+	github.com/oapi-codegen/runtime v1.1.2
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-chi v1.15.0
 	github.com/samber/slog-multi v1.4.1
@@ -42,8 +42,11 @@ require (
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
-	github.com/oapi-codegen/oapi-codegen/v2 v2.4.1 // indirect
+	github.com/oapi-codegen/oapi-codegen/v2 v2.5.0 // indirect
+	github.com/oasdiff/yaml v0.0.0-20250309154309-f31be36b4037 // indirect
+	github.com/oasdiff/yaml3 v0.0.0-20250309153720-d2182401db90 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect
+	github.com/speakeasy-api/jsonpath v0.6.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	golang.org/x/oauth2 v0.30.0 // indirect
 	golang.org/x/tools v0.33.0 // indirect
@@ -59,7 +62,7 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/fsnotify/fsnotify v1.9.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
-	github.com/getkin/kin-openapi v0.127.0 // indirect
+	github.com/getkin/kin-openapi v0.132.0 // indirect
 	github.com/go-http-utils/etag v0.0.0-20161124023236-513ea8f21eb1
 	github.com/go-logr/logr v1.4.2 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
@@ -94,7 +97,7 @@ require (
 	github.com/reugn/go-quartz v0.14.0
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
-	github.com/speakeasy-api/openapi-overlay v0.9.0 // indirect
+	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
 	github.com/veqryn/slog-context v0.8.0
 	github.com/veqryn/slog-json v0.4.0
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
