@@ -10,6 +10,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
@@ -49,75 +50,75 @@ templ (page *HomePage) layout() {
 templ (page *HomePage) content() {
 	if len(page.Subscriptions) == 0 {
 		@EmptyHome()
-		return
-	}
-	<div class="stats shadow bg-neutral">
-		@link.Build(
-			link.WithAttributes(templ.Attributes{
-				"hx-get":      "/subscriptions",
-				"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-				"hx-target":   partials.ContentID.Target(),
-				"hx-swap":     "innerHTML",
-				"hx-push-url": "true",
-			}),
-		) {
-			<div class="stat">
-				<div class="stat-figure text-primary">
-					@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
+	} else {
+		<div class="stats shadow bg-neutral">
+			@link.Build(
+				link.WithAttributes(templ.Attributes{
+					"hx-get":      "/subscriptions",
+					"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
+					"hx-target":   partials.ContentID.Target(),
+					"hx-swap":     "innerHTML",
+					"hx-push-url": "true",
+				}),
+			) {
+				<div class="stat">
+					<div class="stat-figure text-primary">
+						@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
+					</div>
+					<div class="stat-value text-primary">{ strconv.Itoa(len(page.Subscriptions)) }</div>
+					<div class="stat-title font-semibold">Subscriptions</div>
 				</div>
-				<div class="stat-value text-primary">{ strconv.Itoa(len(page.Subscriptions)) }</div>
-				<div class="stat-title font-semibold">Subscriptions</div>
-			</div>
-		}
-		@link.Build(
-			link.WithAttributes(templ.Attributes{
-				"hx-get":      "/articles",
-				"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
-				"hx-target":   partials.ContentID.Target(),
-				"hx-swap":     "innerHTML",
-				"hx-push-url": "true",
-			}),
-		) {
-			<div class="stat">
-				<div class="stat-figure text-primary">
-					@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
+			}
+			@link.Build(
+				link.WithAttributes(templ.Attributes{
+					"hx-get":      "/articles",
+					"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
+					"hx-target":   partials.ContentID.Target(),
+					"hx-swap":     "innerHTML",
+					"hx-push-url": "true",
+				}),
+			) {
+				<div class="stat">
+					<div class="stat-figure text-primary">
+						@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
+					</div>
+					<div class="stat-value text-primary">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</div>
+					<div class="stat-title font-semibold">Unread Articles</div>
 				</div>
-				<div class="stat-value text-primary">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</div>
-				<div class="stat-title font-semibold">Unread Articles</div>
-			</div>
-		}
-	</div>
-	if page.TopCategories != nil {
-		// Display a list of top categories with item counts.
-		<div class="gap-2 p-4 m-4 rounded-box bg-neutral">
-			<h1 class="content-center text-center font-semibold">Top Categories:</h1>
-			<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-				for category := range slices.Values(page.TopCategories) {
-					@categoryBadge(category)
-				}
-			</div>
-		</div>
-	}
-	if page.RareCategories != nil {
-		// Display a list of rare categories with item count.
-		<div class="gap-2 p-4 m-4 rounded-box bg-neutral">
-			<h1 class="content-center text-center font-semibold">Interesting Categories:</h1>
-			<div id="rare-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-				for category := range slices.Values(page.RareCategories) {
-					@categoryBadge(category)
-				}
-			</div>
-		</div>
-	}
-	if page.RandomArticles != nil {
-		<div class="flex flex-col gap-2">
-			<h1>Random Articles:</h1>
-			@layouts.CardGrid() {
-				@templ.Join(page.RandomArticles...)
 			}
 		</div>
+		if page.TopCategories != nil {
+			// Display a list of top categories with item counts.
+			<div class="gap-2 p-4 m-4 rounded-box bg-neutral">
+				<h1 class="content-center text-center font-semibold">Top Categories:</h1>
+				<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+					for category := range slices.Values(page.TopCategories) {
+						@categoryBadge(category)
+					}
+				</div>
+			</div>
+		}
+		if page.RareCategories != nil {
+			// Display a list of rare categories with item count.
+			<div class="gap-2 p-4 m-4 rounded-box bg-neutral">
+				<h1 class="content-center text-center font-semibold">Interesting Categories:</h1>
+				<div id="rare-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+					for category := range slices.Values(page.RareCategories) {
+						@categoryBadge(category)
+					}
+				</div>
+			</div>
+		}
+		if page.RandomArticles != nil {
+			<div class="flex flex-col gap-2">
+				<h1>Random Articles:</h1>
+				@layouts.CardGrid() {
+					@templ.Join(page.RandomArticles...)
+				}
+			</div>
+		}
+		@partials.Footer()
 	}
-	@partials.Footer()
 }
 
 templ categoryBadge(category models.CategoryCount) {
@@ -141,27 +142,30 @@ templ categoryBadge(category models.CategoryCount) {
 }
 
 templ EmptyHome() {
-	@layouts.Drawer() {
-		<div class="hero bg-base-200 min-h-screen">
-			<div class="hero-content text-center">
-				<div class="max-w-md">
-					<h1 class="text-5xl font-bold">Welcome Home</h1>
-					<p class="py-6">
-						There does not seem to be anything to show you. Maybe you should try one of the following:
-					</p>
+	<div class="hero bg-base-200 min-h-screen">
+		<div class="hero-content text-center">
+			<div class="max-w-md">
+				<h1 class="text-5xl font-bold">Welcome Home</h1>
+				<p class="py-6">
+					There does not seem to be anything to show you. Maybe you should try one of the following:
+				</p>
+				<div class="flex gap-2 justify-center">
 					@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
-						partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 						partials.ActionTarget(partials.ModalContainerID.Target()),
+						partials.ActionButtonOptions(button.WithClasses(button.Primary)),
 					) {
-						New Subscription
+						Add Subscription
 					}
-					@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
-						partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+					@partials.NewAction("/user/import", partials.DisplayActionAsButton,
+						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
+						partials.ActionTarget(partials.ModalContainerID.Target()),
+						partials.ActionButtonOptions(button.WithClasses(button.Primary)),
 					) {
 						Import Subscriptions
 					}
 				</div>
 			</div>
 		</div>
-	}
+	</div>
 }
