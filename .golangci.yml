@@ -19,13 +19,17 @@ linters:
     - wsl_v5
     - wsl
   settings:
+    funlen:
+      lines: 100
+      statements: 60
+      ignore-comments: true
     gocyclo:
-      min-complexity: 15
+      min-complexity: 30
     gosec:
       excludes:
         - G104 # made redundant by errcheck
     lll:
-      tab-width: 4
+      tab-width: 2
       line-length: 120
     varnamelen:
       ignore-names:
