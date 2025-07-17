@@ -108,12 +108,12 @@ type RequestWithSearchAfter[T any] interface {
 // []types.FieldValue).
 //
 // https://www.elastic.co/guide/en/elasticsearch/reference/current/paginate-search-results.html#search-after
-func WithSearchAfter[T any, V RequestWithSearchAfter[T]](value []types.FieldValueVariant) Option[V] {
+func WithSearchAfter[T any, V RequestWithSearchAfter[T]](values ...types.FieldValueVariant) Option[V] {
 	return func(req V) {
-		if value == nil {
+		if values == nil {
 			return
 		}
-		req.SearchAfter(value...)
+		req.SearchAfter(values...)
 	}
 }
 

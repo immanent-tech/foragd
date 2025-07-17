@@ -7,7 +7,6 @@ package views
 import (
 	"context"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -58,7 +57,6 @@ func (page *SubscriptionsPage) Template(req *http.Request) templ.Component {
 	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 		return page.content()
 	default:
-		spew.Dump(req)
 		return templates.NewPage("Go Feed Me - Subscriptions",
 			templates.WithBodyContent(page.layout()),
 		)

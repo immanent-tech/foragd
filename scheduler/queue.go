@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/sortorder"
 	"github.com/reugn/go-quartz/quartz"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/logging"
-	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
@@ -112,7 +112,9 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 
 // Head returns the first scheduled job without removing it from the queue.
 func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
-	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1, []types.SortCombinationsVariant{&jobSorting{}}, nil)
+	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1,
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&jobSorting{}),
+	)
 	if err != nil {
 		resp := elastic.ParseError(err)
 		if resp.IsNotFound() {
@@ -167,47 +169,17 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 
 // ScheduledJobs returns the slice of all scheduled jobs in the queue.
 func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]) ([]quartz.ScheduledJob, error) {
-	searchSize := 1000
-	searchPagination := make([]types.FieldValueVariant, 0)
-	allJobs := make([]ScheduledJob, 0)
 	jobs := make([]quartz.ScheduledJob, 0)
-
-	// Loop until we've paginated through all results.
-	for {
-		var (
-			jobs        []ScheduledJob
-			err         error
-			searchAfter []types.FieldValue
-			pagination  models.Pagination
-		)
-
-		jobs, searchAfter, err = elastic.Search[ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), searchSize, nil, searchPagination)
-		if err != nil {
-			return nil, errors.Join(elastic.ErrSearchFailed, err)
-		}
-
-		pagination, err = models.EncodePagination(searchAfter)
-		if err != nil {
-			return nil, errors.Join(elastic.ErrSearchFailed, err)
-		}
-		searchPagination, err = models.DecodePagination(pagination)
-		if err != nil {
-			return nil, errors.Join(elastic.ErrSearchFailed, err)
-		}
-
-		allJobs = append(allJobs, jobs...)
-		// Stop if the number of hits is less than the search size (i.e., last set of hits).
-		if len(jobs) < searchSize {
-			break
-		}
+	allJobs, err := elastic.SearchAll[ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1000)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get scheduled jobs: %w", err)
 	}
-
+	// Filter jobs that to those that match given matchers.
 	for _, job := range allJobs {
 		if isMatch(&job, matchers) {
 			jobs = append(jobs, &job)
 		}
 	}
-
 	return jobs, nil
 }
 

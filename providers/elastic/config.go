@@ -87,7 +87,7 @@ func genConfig(ctx context.Context, environment string) (*elasticsearch.Config, 
 		generated = &elasticsearch.Config{
 			Addresses: elasticConfig.Development.URLs,
 			Logger:    &Logger{EnableResponseBody: false, EnableRequestBody: false},
-			// Logger:    &Logger{EnableResponseBody: true, EnableRequestBody: true, logger: logger},
+			// Logger:    &Logger{EnableResponseBody: true, EnableRequestBody: true},
 			Username:  elasticConfig.Development.Username,
 			Password:  elasticConfig.Development.Password,
 			CACert:    caFileData,

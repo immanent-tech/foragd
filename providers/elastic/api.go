@@ -6,11 +6,13 @@ package elastic
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
 	"net/http"
+	"net/url"
 	"slices"
 	"time"
 
@@ -33,6 +35,8 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/results"
 )
+
+var _ types.FieldValueVariant = (*paginationValue[types.FieldValue])(nil)
 
 // API is an object that provides access to the Elasticsearch API.
 type API struct {
@@ -66,25 +70,23 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 	if index == "" {
 		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
-	// Parse pagination to search after value.
-	var sortValues []types.FieldValueVariant
-	if pagination != nil {
-		var err error
-		sortValues, err = models.DecodePagination(*pagination)
-		if err != nil {
-			return nil, "", errors.Join(ErrSearchFailed, err)
-		}
+
+	searchAfter, err := decodePagination(pagination)
+	if err != nil {
+		return nil, "", fmt.Errorf("%w: %w", ErrSearchFailed, err)
 	}
-	// Parse sort filters into item sort options.
-	sortOptions := newFeedSortOptions(sort)
+
 	// Perform search.
-	feeds, searchAfter, err := Search[*models.Feed](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
+	feeds, newSearchAfter, err := Search[*models.Feed](ctx, e.GetAPI(), index, query, count,
+		WithSortOptions[*search.Search, SearchRequest](newFeedSortOptions(sort)...),
+		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
+	)
 	if err != nil {
 		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
 	// Parse search after into pagination.
 	if pagination != nil {
-		*pagination, err = models.EncodePagination(searchAfter)
+		*pagination, err = encodePagination(newSearchAfter)
 		if err != nil {
 			return nil, "", errors.Join(ErrSearchFailed, err)
 		}
@@ -110,24 +112,21 @@ func (e *API) SearchItems(ctx context.Context, query query.Option, count int, so
 	if index == "" {
 		return nil, "", errors.Join(ErrSearchFailed, ErrFetchCtx)
 	}
-	// Parse pagination into search after value.
-	var sortValues []types.FieldValueVariant
-	if pagination != nil {
-		var err error
-		sortValues, err = models.DecodePagination(*pagination)
-		if err != nil {
-			return nil, "", errors.Join(ErrSearchFailed, err)
-		}
+
+	searchAfter, err := decodePagination(pagination)
+	if err != nil {
+		return nil, "", fmt.Errorf("%w: %w", ErrSearchFailed, err)
 	}
-	// Parse sort filters into item sort options.
-	sortOptions := newItemSortOptions(sort)
 	// Perform search.
-	items, searchAfter, err := Search[*models.Item](ctx, e.GetAPI(), index, query, count, sortOptions, sortValues)
+	items, newSearchAfter, err := Search[*models.Item](ctx, e.GetAPI(), index, query, count,
+		WithSortOptions[*search.Search, SearchRequest](newItemSortOptions(sort)...),
+		WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
+	)
 	if err != nil {
 		return nil, "", fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
 	// Parse last search after value into pagination.
-	newPagination, err := models.EncodePagination(searchAfter)
+	newPagination, err := encodePagination(newSearchAfter)
 	if err != nil {
 		return nil, "", errors.Join(ErrSearchFailed, err)
 	}
@@ -540,22 +539,17 @@ func DeleteDocs(ctx context.Context, api *typedapi.API, index string, queries ..
 }
 
 // Search performs a _search request to find documents matching the given query.
-//
-// count specifies the number of results. If not specified, up to 10 results will be returned.
-//
-// sort specifies how to sort the resuls. If not specified, doc value sorting is used.
-//
-// pagination specifies the sort after values to use for getting a specific window of the total results. When set, the
-// count parameter can be thought of as specifying how many new results are retrieved.
-func Search[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, sort []types.SortCombinationsVariant, searchAfter []types.FieldValueVariant) ([]O, []types.FieldValue, error) {
-	resp, err := NewSearchRequest(api,
+func Search[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, options ...Option[SearchRequest]) ([]O, []types.FieldValue, error) {
+	defaultOptions := []Option[SearchRequest]{
 		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
 		WithIndex[*search.Search, SearchRequest](index),
 		WithQueryOptions[*search.Search, SearchRequest](query),
 		WithSize[*search.Search, SearchRequest](count),
-		WithSearchAfter[*search.Search, SearchRequest](searchAfter),
-		WithSortOptions[*search.Search, SearchRequest](sort...),
-	).Do(ctx)
+	}
+	defaultOptions = append(defaultOptions, options...)
+	req := NewSearchRequest(api, defaultOptions...)
+	// spew.Dump(req.HttpRequest(ctx))
+	resp, err := req.Do(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("search request failed: %w", err)
 	}
@@ -571,6 +565,44 @@ func Search[O any](ctx context.Context, api *typedapi.API, index string, query q
 	}
 
 	return docs, newSearchAfter, nil
+}
+
+// SearchAll performs a paginated search request to retrieve *all* documents matching the given query. Unlike Search, it
+// does not stop when the request hits count is reached.
+func SearchAll[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, paginationSize int, options ...Option[SearchRequest]) ([]O, error) {
+	slogctx.FromCtx(ctx).Debug("Paginated search requested.")
+	if paginationSize == 0 {
+		paginationSize = 1000
+	}
+	allResults := make([]O, 0)
+	var searchAfter []types.FieldValueVariant
+
+	// Loop until we've paginated through all results.
+	for {
+		sortOptions := &DocSorting{}
+		resultsPage, nextSearchAfter, err := Search[O](ctx, api, index, query, paginationSize,
+			WithSortOptions[*search.Search, SearchRequest](sortOptions),
+			WithSearchAfter[*search.Search, SearchRequest](searchAfter...),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("search request failed: %w", err)
+		}
+		pagination, err := encodePagination(nextSearchAfter)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrSearchFailed, err)
+		}
+		searchAfter, err = decodePagination(&pagination)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrSearchFailed, err)
+		}
+
+		allResults = append(allResults, resultsPage...)
+		// Stop if the number of hits is less than the search size (i.e., last set of hits).
+		if len(resultsPage) < paginationSize {
+			break
+		}
+	}
+	return allResults, nil
 }
 
 func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.MsearchSearch) (results.MSearchResults, error) {
@@ -617,4 +649,76 @@ func ParseError(err error) *models.Response {
 		models.WithResponseStatusCode(http.StatusInternalServerError),
 		models.WithResponseError(errors.New("unknown elastic error")),
 	)
+}
+
+// paginationValue is a value that can be used as a sort value as a search after option.
+type paginationValue[T types.FieldValue] struct {
+	value T
+}
+
+func newPaginationValue[T any](value T) *paginationValue[T] {
+	return &paginationValue[T]{value: value}
+}
+
+func (v *paginationValue[T]) FieldValueCaster() *types.FieldValue {
+	casted := types.FieldValue(v)
+	return &casted
+}
+
+func (v *paginationValue[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.value)
+}
+
+// encodePagination will take sort values returned from a query, marshal them to
+// JSON, then HTML-escape the string into a models.Pagination object, which is
+// safe for use in API query parameters.
+func encodePagination(sortValues []types.FieldValue) (models.Pagination, error) {
+	if len(sortValues) == 0 {
+		return "", nil
+	}
+	// Marshal sort values into json.
+	data, err := json.Marshal(sortValues)
+	if err != nil {
+		return "", fmt.Errorf("could not encode pagination values: %w", err)
+	}
+	// Return as HTML encoded string.
+	return url.QueryEscape(string(data)), nil
+}
+
+// decodePagination will take a models.Pagination object, HTML-unescape the
+// string then unmarshal it back into sort values.
+func decodePagination(pagination *models.Pagination) ([]types.FieldValueVariant, error) {
+	if pagination == nil {
+		return nil, nil
+	}
+	if *pagination == "" {
+		return nil, nil
+	}
+	// Unescape HTML encoded data.
+	data, err := url.QueryUnescape(*pagination)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode pagination values: %w", err)
+	}
+	// Unmarshal sort values.
+	var values []any
+	err = json.Unmarshal([]byte(data), &values)
+	if err != nil {
+		return nil, fmt.Errorf("could not decode pagination values: %w", err)
+	}
+	casted := make([]types.FieldValueVariant, 0, len(values))
+	for v := range slices.Values(values) {
+		switch r := v.(type) {
+		case string:
+			casted = append(casted, newPaginationValue(r))
+		case int64:
+			casted = append(casted, newPaginationValue(r))
+		case float64:
+			casted = append(casted, newPaginationValue(r))
+		default:
+			casted = nil
+		}
+	}
+
+	// Return sort values.
+	return casted, nil
 }

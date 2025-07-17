@@ -69,7 +69,9 @@
     "components/breadcrumbs",
     "templates/views",
     "components/navbar",
-    "templates/partials"
+    "templates/partials",
+    "types",
+    "feeds"
   ],
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {

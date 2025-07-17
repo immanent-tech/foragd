@@ -13,7 +13,6 @@ import (
 	"slices"
 	"syscall"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/config"
@@ -75,31 +74,31 @@ func pruneFeeds(ctx context.Context, api *elastic.API) error {
 	ctx = elastic.ItemsIndexToCtx(ctx, items_index)
 
 	searchSize := 100
-	searchPagination := make([]types.FieldValueVariant, 0)
+	// searchPagination := make([]elastic.PaginationValue, 0)
 
 	// Get all users
 	var users []*models.User
 	for {
 		var (
-			data        []*models.User
-			err         error
-			pagination  models.Pagination
-			searchAfter []types.FieldValue
+			data []*models.User
+			err  error
+			// pagination  models.Pagination
+			// searchAfter []types.FieldValue
 		)
 
-		data, searchAfter, err = elastic.Search[*models.User](ctx, api.GetAPI(), users_index, query.MatchAll(), searchSize, nil, searchPagination)
+		data, _, err = elastic.Search[*models.User](ctx, api.GetAPI(), users_index, query.MatchAll(), searchSize)
 		if err != nil {
 			return fmt.Errorf("prune failed: %w", err)
 		}
 
-		pagination, err = models.EncodePagination(searchAfter)
-		if err != nil {
-			return fmt.Errorf("prune failed: %w", err)
-		}
-		searchPagination, err = models.DecodePagination(pagination)
-		if err != nil {
-			return fmt.Errorf("prune failed: %w", err)
-		}
+		// pagination, err = elastic.EncodePagination(searchAfter)
+		// if err != nil {
+		// 	return fmt.Errorf("prune failed: %w", err)
+		// }
+		// searchPagination, err = elastic.DecodePagination(pagination)
+		// if err != nil {
+		// 	return fmt.Errorf("prune failed: %w", err)
+		// }
 
 		users = append(users, data...)
 

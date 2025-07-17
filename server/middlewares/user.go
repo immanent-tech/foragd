@@ -41,7 +41,7 @@ func RequireUserAuth(dataAPI *elastic.API, authAPI models.AuthAPI) func(next htt
 				return
 			}
 			// Fetch the user from the user management API.
-			user, _, err := elastic.Search[*models.User](ctx, dataAPI.GetAPI(), schema.UsersSchemaPrefix, query.Term("external_user_id", userID), 1, nil, nil)
+			user, _, err := elastic.Search[*models.User](ctx, dataAPI.GetAPI(), schema.UsersSchemaPrefix, query.Term("external_user_id", userID), 1)
 			if err != nil || len(user) == 0 {
 				slogctx.FromCtx(ctx).Error("Authentication Error.",
 					slog.Any("error", err))
