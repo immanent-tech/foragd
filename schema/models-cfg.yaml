@@ -11,8 +11,11 @@ output-options:
   # to make sure that all types are generated
   skip-prune: true
   nullable-type: true
+  prefer-skip-optional-pointer: true
+  prefer-skip-optional-pointer-with-omitzero: true
 compatibility:
   allow-unexported-struct-field-names: true
   always-prefix-enum-values: true
 import-mapping:
+  api.yaml: '-'
   ../models/feeds/types.yaml: github.com/joshuar/go-syndication/types

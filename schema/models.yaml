@@ -35,12 +35,12 @@ components:
         json: 'deleted_at,omitempty'
         validate: 'omitnil'
       deprecated: true
-    URL: &URL
+    URL:
       description: is a URL.
       type: string
       x-go-name: URL
       x-oapi-codegen-extra-tags:
-        validate: 'url'
+        validate: 'omitempty,url'
         json: 'url'
     Mark:
       description: >
@@ -59,12 +59,6 @@ components:
       x-oapi-codegen-extra-tags:
         json: 'state'
         validate: 'oneof=read unread saved'
-    HTMLString:
-      description: is a string that can contain HTML.
-      type: string
-      x-go-type-skip-optional-pointer: true
-      x-oapi-codegen-extra-tags:
-        validate: 'url_encoded'
     FeedID:
       description: is the unique ID of a feed.
       type: string
@@ -97,6 +91,14 @@ components:
         json: 'user_id'
         validate: 'required'
         form: 'user_id'
+    FavouriteID:
+      description: is the unique ID of a favourite.
+      type: string
+      x-go-name: FavouriteID
+      x-oapi-codegen-extra-tags:
+        validate: 'required,startswith=fav_'
+        json: 'favourite_id'
+        form: 'favourite_id'
     Category:
       description: >
         represents a taxonomy applied to an object.
@@ -165,14 +167,6 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/SubscriptionFeedRelation'
-              x-go-type-skip-optional-pointer: true
-            favourites:
-              description: >
-                is a list of objects the user has marked as a favourite.
-              type: array
-              items:
-                $ref: '#/components/schemas/Favourite'
-              x-go-type-skip-optional-pointer: true
     UserSettings:
       description: >
         contains user-specific settings for the application.
@@ -183,43 +177,62 @@ components:
             the user interface theme chosen by the user.
           type: string
           default: dracula
-          x-go-type-skip-optional-pointer: true
     Favourite:
       description: >
         is an object that the user has marked as a favourite. Favourites  have higher visibility in the display and
         score higher in search results.
       type: object
       required:
+        - created_at
+        - user_id
         - id
         - type
-        - link
-        - name
+        - data
       properties:
+        created_at:
+          $ref: '#/components/schemas/CreatedAt'
+        user_id:
+          $ref: '#/components/schemas/UserID'
         id:
-          description: >
-            is a unique identifier that allows comparison of favourites.
-          type: string
-          x-go-name: ID
+          $ref: '#/components/schemas/FavouriteID'
         type:
           description: >
             is the type of favourite.
           type: string
-          enum:
-            [
-              'subscription',
-              'article',
-              'subscription_category',
-              'article_category',
-              'search',
-            ]
-        name:
+          enum: ['subscription', 'article', 'search']
+        data:
           description: >
-            is a friendly name for the link.
-          type: string
-        link:
-          description: >
-            is the internal link to the favourited object.
-          x-go-type: 'json.RawMessage'
+            contains the data pertaining to the type of favourite.
+          oneOf:
+            - $ref: '#/components/schemas/FavouriteSubscription'
+            - $ref: '#/components/schemas/FavouriteArticle'
+            - $ref: '#/components/schemas/FavouriteSearch'
+    FavouriteSubscription:
+      description: >
+        is a subscription that the user has marked as a favourite.
+      type: object
+      required:
+        - subscription_id
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+    FavouriteArticle:
+      description: >
+        is an article that the user has marked as a favourite.
+      type: object
+      properties:
+        item:
+          $ref: '#/components/schemas/Item'
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        subscription_customisation:
+          $ref: '#/components/schemas/ObjectCustomisation'
+    FavouriteSearch:
+      description: >
+        is a search that the user has marked as a favourite.
+      type: object
+      allOf:
+        - $ref: 'api.yaml#/components/schemas/SearchRequest'
     UserSession:
       description: tracks a user session.
       type: object
@@ -271,6 +284,19 @@ components:
             is the datetime at which the feed or item was updated.
           x-go-type: time.Time
           x-go-type-skip-optional-pointer: true
+    ObjectImage:
+      description: >
+        is a link to an image to represent the object.
+      type: object
+      required:
+        - url
+      properties:
+        URL:
+          $ref: '#/components/schemas/URL'
+        title:
+          description: >
+            is a description of the image that could be used as alt text.
+          type: string
     ObjectCommon:
       description: contains common fields across objects.
       type: object
@@ -327,7 +353,7 @@ components:
             type: string
           x-go-type-skip-optional-pointer: true
         image:
-          $ref: '../models/feeds/types.yaml#/components/schemas/Image'
+          $ref: '#/components/schemas/ObjectImage'
         language:
           type: string
           x-go-type-skip-optional-pointer: true
@@ -454,11 +480,15 @@ components:
               description: >
                 contains the states of items marked explicitly as read/unread/saved by the user.
               x-go-type: 'map[ItemID]ObjectState'
-              x-go-type-skip-optional-pointer: true
+      x-omitzero: false
     Subscription:
       description: >
         represents a feed a user has subscribed to.
       type: object
+      required:
+        - state
+        - feed
+        - unread_count
       properties:
         state:
           $ref: '#/components/schemas/SubscriptionState'
@@ -469,7 +499,6 @@ components:
             is the value of items that are not explicitly marked unread by the user for this subscription.
             Calculated dynamically at runtime.
           type: integer
-          x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             json: '-'
             validate: 'gte=0'

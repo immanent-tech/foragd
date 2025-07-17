@@ -9,8 +9,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/joshuar/go-syndication/types"
-
 	"github.com/joshuar/go-feed-me/validation"
 )
 
@@ -47,12 +45,12 @@ func (a Articles) GetSubscriptionIDs() []SubscriptionID {
 // and state is required.
 func GenerateArticle(item *Item, state *SubscriptionState) (*Article, error) {
 	article := &Article{
-		Item:                      item,
+		Item:                      *item,
 		SubscriptionID:            state.GetID(),
-		State:                     state.GetItemState(item.GetID()),
+		State:                     *state.GetItemState(item.GetID()),
 		SubscriptionCustomisation: state.Customisation,
 	}
-	if item.GetPublishedDate().After(*article.State.UpdatedAt) {
+	if item.GetPublishedDate().After(article.State.UpdatedAt) {
 		article.State.MarkUnread(item.GetPublishedDate())
 	}
 
@@ -97,7 +95,7 @@ func (a *Article) GetContent() string {
 	return a.Item.GetContent()
 }
 
-func (a *Article) GetImage() *types.Image {
+func (a *Article) GetImage() *ObjectImage {
 	return a.Item.GetImage()
 }
 
@@ -118,10 +116,8 @@ func (a *Article) GetCategories() []string {
 }
 
 func (a *Article) GetFeedTitle() string {
-	if a.SubscriptionCustomisation != nil {
-		if a.SubscriptionCustomisation.Title != "" {
-			return a.SubscriptionCustomisation.Title
-		}
+	if a.SubscriptionCustomisation.Title != "" {
+		return a.SubscriptionCustomisation.Title
 	}
 	return a.Item.FeedTitle
 }

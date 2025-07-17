@@ -16,7 +16,7 @@ import (
 
 // MigrateCmd defines the `migrate` command, which performs data-store migrations for schema changes.
 type MigrateCmd struct {
-	Migrations  []string `arg:"" default:"all" enum:"all,feeds,feeditems,subscriptions,users,ingest,scheduler,session" help:"Components to migrate."`
+	Migrations  []string `arg:"" default:"all" enum:"all,feeds,feeditems,subscriptions,users,favourites,ingest,scheduler,session" help:"Components to migrate."`
 	Destructive bool     `help:"Delete existing indicies and datastreams before migrating."`
 }
 

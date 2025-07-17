@@ -19,6 +19,7 @@ const (
 	SchedulerPFX    // scheduler
 	SessionPFX      // session
 	UserPFX         // user
+	FavouritePFX    // fav
 	Max
 )
 
@@ -43,6 +44,8 @@ func IdentifyID(id string) IDPrefix {
 	case SubscriptionPFX.String():
 		return SubscriptionPFX
 	case UserPFX.String():
+		return UserPFX
+	case FavouritePFX.String():
 		return UserPFX
 	default:
 		return Invalid

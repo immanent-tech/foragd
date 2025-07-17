@@ -29,7 +29,7 @@ func NewUser(externalID, provider string) *User {
 	ts := time.Now().UTC()
 	return &User{
 		CreatedAt:      ts,
-		UpdatedAt:      &ts,
+		UpdatedAt:      ts,
 		MaxHistory:     DefaultMaxHistory.String(),
 		ExternalUserId: externalID,
 		Provider:       provider,
@@ -57,10 +57,7 @@ func (u *User) GetMaxHistory() time.Time {
 // GetSettings returns the user's settings. If the user has no settings (i.e. new user), default settings will be
 // returned.
 func (u *User) GetSettings() *UserSettings {
-	if u.Settings == nil {
-		return NewUserSettings()
-	}
-	return u.Settings
+	return &u.Settings
 }
 
 func (u *User) AddSubscription(subscriptionID SubscriptionID, feedID FeedID) {
@@ -105,17 +102,6 @@ func (u *User) HasSubscription(id SubscriptionID) bool {
 	})
 }
 
-func (u *User) GetFavourites() UserFavourites {
-	if u.Favourites == nil {
-		return make(UserFavourites, 0)
-	}
-	favs := make([]*Favourite, 0, len(u.Favourites))
-	for f := range slices.Values(u.Favourites) {
-		favs = append(favs, &f)
-	}
-	return favs
-}
-
 // Valid will check to ensure the UserSignupRequest contains valid data.
 func (u *UserSignupRequest) Valid() (bool, error) {
 	_, problems := validation.ValidateStruct(u)
@@ -144,14 +130,6 @@ func NewUserSettings() *UserSettings {
 	}
 }
 
-// GetUserFavourites returns the current user's favourites list or nil, if they have no favourites.
-func GetUserFavourites(ctx context.Context) []Favourite {
-	if user, found := UserFromCtx(ctx); found {
-		return user.Favourites
-	}
-	return nil
-}
-
 // GetUserTheme returns the current user's theme or the default theme if no user theme is set.
 func GetUserTheme(ctx context.Context) string {
 	if user, found := UserFromCtx(ctx); found {
@@ -160,16 +138,4 @@ func GetUserTheme(ctx context.Context) string {
 		}
 	}
 	return DefaultUserTheme
-}
-
-type UserFavourites []*Favourite
-
-func (f UserFavourites) Add(fav *Favourite) error {
-	if slices.IndexFunc(f, func(e *Favourite) bool {
-		return e.ID == fav.ID
-	}) != -1 {
-		return errors.New("already a favourite")
-	}
-	f = append(f, fav)
-	return nil
 }

@@ -1,6 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
+//nolint:dupl
 package schema
 
 import (
@@ -10,14 +11,13 @@ import (
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi"
-	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/config"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 )
 
-var validMigrations = []string{"feeds", "feeditems", "subscription", "users", "ingest", "scheduler", "session"}
+var validMigrations = []string{"feeds", "feeditems", "subscription", "users", "favourites", "ingest", "scheduler", "session"}
 
 var ErrMigrationFailed = errors.New("schema migration failed")
 
@@ -35,6 +35,8 @@ func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrati
 		switch migration {
 		case "users":
 			err = migrateUsers(ctx, api, destructive)
+		case "favourites":
+			err = migrateFavourites(ctx, api, destructive)
 		case "feeds":
 			err = migrateFeeds(ctx, api, destructive)
 		case "feeditems":
@@ -78,7 +80,8 @@ func migrateUsers(ctx context.Context, api *typedapi.API, destructive bool) erro
 	userIndex := UsersSchemaPrefix + "_" + config.Environment()
 	// Delete index if destructive set.
 	if destructive {
-		if _, err := api.Indices.Delete(userIndex).Do(ctx); err != nil && !ignoreErr(err) {
+		_, err := api.Indices.Delete(userIndex).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
 			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
 		slogctx.FromCtx(ctx).Debug("Deleted existing users index...")
@@ -95,6 +98,50 @@ func migrateUsers(ctx context.Context, api *typedapi.API, destructive bool) erro
 			return errors.Join(ErrMigrationFailed, err)
 		}
 		slogctx.FromCtx(ctx).Debug("Created new users index...")
+	}
+
+	return nil
+}
+
+// migrateUsers contains migration actions for migrating users indices and
+// settings.
+func migrateFavourites(ctx context.Context, api *typedapi.API, destructive bool) error {
+	if err := elastic.PutComponentTemplate(ctx, api, FavouritesSchemaPrefix, NewComponentTemplateRequest(favouritesTemplate())); err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	slogctx.FromCtx(ctx).Debug("Added favourites component template...")
+
+	if err := elastic.PutIndexTemplate(ctx, api, FavouritesSchemaPrefix,
+		NewIndexTemplateRequest(
+			WithIndexPatterns(FavouritesSchemaPrefix+"_*"),
+			WithComponentTemplates(FavouritesSchemaPrefix),
+		),
+	); err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	slogctx.FromCtx(ctx).Debug("Added favourites index template...")
+
+	index := FavouritesSchemaPrefix + "_" + config.Environment()
+	// Delete index if destructive set.
+	if destructive {
+		_, err := api.Indices.Delete(index).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
+			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		}
+		slogctx.FromCtx(ctx).Debug("Deleted existing favourites index...")
+	}
+	// Make sure the index doesn't exist before continuing.
+	found, err := api.Indices.Exists(index).Do(ctx)
+	if err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	// Create a job queue index if not found.
+	if !found {
+		_, err = elastic.NewIndexRequest(api, index).Do(ctx)
+		if err != nil {
+			return errors.Join(ErrMigrationFailed, err)
+		}
+		slogctx.FromCtx(ctx).Debug("Created new favourites index...")
 	}
 
 	return nil
@@ -121,8 +168,9 @@ func migrateSubscriptions(ctx context.Context, api *typedapi.API, destructive bo
 	index := SubscriptionsSchemaPrefix + "_" + config.Environment()
 	// Delete index if destructive set.
 	if destructive {
-		if _, err := api.Indices.Delete(index).Do(ctx); err != nil && !ignoreErr(err) {
-			// return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		_, err := api.Indices.Delete(index).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
+			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
 	}
 	// Make sure the index doesn't exist before continuing.
@@ -162,7 +210,8 @@ func migrateFeeds(ctx context.Context, api *typedapi.API, destructive bool) erro
 	feedsIndex := FeedsSchemaPrefix + "_" + config.Environment()
 	// Delete index if destructive set.
 	if destructive {
-		if _, err := api.Indices.Delete(feedsIndex).Do(ctx); err != nil && !ignoreErr(err) {
+		_, err := api.Indices.Delete(feedsIndex).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
 			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
 	}
@@ -188,10 +237,12 @@ func migrateFeedItems(ctx context.Context, api *typedapi.API, destructive bool) 
 	slogctx.FromCtx(ctx).Debug("Migrating feed items...")
 
 	if destructive {
-		if _, err := api.Indices.DeleteDataStream(ItemsSchemaPrefix + "_" + config.Environment()).Do(ctx); err != nil && !ignoreErr(err) {
-			// return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		_, err := api.Indices.DeleteDataStream(ItemsSchemaPrefix + "_" + config.Environment()).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
+			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
-		if _, err := api.Ilm.DeleteLifecycle(ItemsSchemaPrefix).Do(ctx); err != nil && !ignoreErr(err) {
+		_, err = api.Ilm.DeleteLifecycle(ItemsSchemaPrefix).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
 			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
 	}
@@ -247,7 +298,8 @@ func migrateScheduler(ctx context.Context, api *typedapi.API, destructive bool) 
 	jobsStateIndex := SchedulerSchemaPrefix + "_" + config.Environment()
 	// Delete index if destructive set.
 	if destructive {
-		if _, err := api.Indices.Delete(jobsStateIndex).Do(ctx); err != nil && !ignoreErr(err) {
+		_, err := api.Indices.Delete(jobsStateIndex).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
 			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
 	}
@@ -289,7 +341,8 @@ func migrateSession(ctx context.Context, api *typedapi.API, destructive bool) er
 	sessionIndex := SessionsSchemaPrefix + "_" + config.Environment()
 	// Delete index if destructive set.
 	if destructive {
-		if _, err := api.Indices.Delete(sessionIndex).Do(ctx); err != nil && !ignoreErr(err) {
+		_, err := api.Indices.Delete(sessionIndex).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
 			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
 	}
@@ -313,7 +366,8 @@ func migrateSession(ctx context.Context, api *typedapi.API, destructive bool) er
 func migrateIngest(ctx context.Context, api *typedapi.API) error {
 	slogctx.FromCtx(ctx).Debug("Migrating ingest pipeline...")
 
-	if _, err := api.Ingest.DeletePipeline(ingestPipelineID).Do(ctx); err != nil && !ignoreErr(err) {
+	_, err := api.Ingest.DeletePipeline(ingestPipelineID).Do(ctx)
+	if err != nil && !elastic.ParseError(err).IsNotFound() {
 		return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 	}
 	slogctx.FromCtx(ctx).Debug("Deleted existing ingest pipeline.")
@@ -324,14 +378,4 @@ func migrateIngest(ctx context.Context, api *typedapi.API) error {
 	slogctx.FromCtx(ctx).Debug("Added ingest pipeline.")
 
 	return nil
-}
-
-func ignoreErr(err error) bool {
-	var esErr types.ElasticsearchError
-	if errors.Is(err, &esErr) {
-		if esErr.Status != 404 {
-			return true
-		}
-	}
-	return false
 }

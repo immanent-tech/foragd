@@ -230,7 +230,7 @@ func FilterByView[T IsFilterable](objects iter.Seq[T], view View) iter.Seq[T] {
 func NewObjectState() *ObjectState {
 	updated := time.Now().UTC()
 	return &ObjectState{
-		UpdatedAt: &updated,
+		UpdatedAt: updated,
 	}
 }
 
@@ -252,17 +252,17 @@ func (s *ObjectState) GetLastUpdate() time.Time {
 	if s == nil {
 		return time.Now().Add(-DefaultMaxHistory)
 	}
-	return *s.UpdatedAt
+	return s.UpdatedAt
 }
 
 func (s *ObjectState) MarkRead(markedAt time.Time) {
 	s.Read = true
-	s.UpdatedAt = &markedAt
+	s.UpdatedAt = markedAt
 }
 
 func (s *ObjectState) MarkUnread(markedAt time.Time) {
 	s.Read = false
-	s.UpdatedAt = &markedAt
+	s.UpdatedAt = markedAt
 }
 
 type HasID[T ~string] interface {

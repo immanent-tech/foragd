@@ -16,12 +16,13 @@ func _() {
 	_ = x[SchedulerPFX-5]
 	_ = x[SessionPFX-6]
 	_ = x[UserPFX-7]
-	_ = x[Max-8]
+	_ = x[FavouritePFX-8]
+	_ = x[Max-9]
 }
 
-const _IDPrefix_name = "InvalidMinsubfeeditemschedulersessionuserMax"
+const _IDPrefix_name = "InvalidMinsubfeeditemschedulersessionuserfavMax"
 
-var _IDPrefix_index = [...]uint8{0, 7, 10, 13, 17, 21, 30, 37, 41, 44}
+var _IDPrefix_index = [...]uint8{0, 7, 10, 13, 17, 21, 30, 37, 41, 44, 47}
 
 func (i IDPrefix) String() string {
 	if i < 0 || i >= IDPrefix(len(_IDPrefix_index)-1) {

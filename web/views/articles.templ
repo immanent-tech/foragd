@@ -321,10 +321,10 @@ templ (a *Article) visitAction() {
 // image returns an appropriate image to use in the article card. It will either be the article's image or a
 // placeholder.
 templ (c Article) image() {
-	if c.GetImage() != nil {
+	if c.GetImage().URL != "" {
 		@figure.Build(
 			image.Build(
-				c.GetImage().URL(),
+				c.GetImage().URL,
 				image.WithLazyLoading(),
 				image.WithExtraClasses("max-w-24", "h-full", "object-contain", "rounded-box"),
 			),

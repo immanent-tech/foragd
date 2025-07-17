@@ -9,13 +9,6 @@ info:
 paths: {}
 components:
   schemas:
-    Action:
-      description: >
-        defines an operation to change the state of objects.
-      type: string
-      enum: ['read', 'unread', 'save', 'remove', 'edit']
-      x-oapi-codegen-extra-tags:
-        validate: 'oneof=read unread save remove edit'
     Count:
       description: >
         is the count of items to retrieve with a request.

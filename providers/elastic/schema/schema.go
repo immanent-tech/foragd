@@ -17,13 +17,15 @@ const (
 	FeedsSchemaPrefix = "feeds"
 	// ItemsSchemaPrefix is a prefix used for item related index/mapping/settings.
 	ItemsSchemaPrefix = "feeditems"
-	// UsersSchemaPrefix is a prefix used for feed related index/mapping/settings.
+	// UsersSchemaPrefix is a prefix used for user related index/mapping/settings.
 	UsersSchemaPrefix = "users"
-	// SchedulerSchemaPrefix is a prefix used for feed related index/mapping/settings.
+	// FavouritesSchemaPrefix is a prefix used for favourite related index/mapping/settings.
+	FavouritesSchemaPrefix = "favourites"
+	// SchedulerSchemaPrefix is a prefix used for scheduler related index/mapping/settings.
 	SchedulerSchemaPrefix = "scheduler_jobs"
-	// SessionsSchemaPrefix is a prefix used for feed related index/mapping/settings.
+	// SessionsSchemaPrefix is a prefix used for sessions related index/mapping/settings.
 	SessionsSchemaPrefix = "sessions"
-	// SubscriptionsSchemaPrefix is a prefix used for feed related index/mapping/settings.
+	// SubscriptionsSchemaPrefix is a prefix used for subscriptions related index/mapping/settings.
 	SubscriptionsSchemaPrefix = "subscriptions"
 
 	ingestPipelineID = "gofeed"
@@ -131,6 +133,40 @@ func userComponentTemplate() types.IndexState {
 			Properties: userMappings(),
 		}),
 		WithAliases(UsersSchemaPrefix, types.Alias{}),
+	)
+}
+
+//
+// FAVOURITES
+//
+
+func favouritesMappings() map[string]types.Property {
+	return map[string]types.Property{
+		"created_at":   types.NewDateNanosProperty(),
+		"user_id":      types.NewKeywordProperty(),
+		"favourite_id": types.NewKeywordProperty(),
+		"type":         types.NewKeywordProperty(),
+		"data":         types.NewFlattenedProperty(),
+	}
+}
+
+func favouritesTemplate() types.IndexState {
+	return NewIndexState(
+		WithMappings(&types.TypeMapping{
+			Dynamic:    &dynamicmapping.False,
+			Properties: favouritesMappings(),
+		}),
+		WithAliases(FavouritesSchemaPrefix, types.Alias{}),
+		WithIndexSettings(
+			WithAnalysis(types.IndexSettingsAnalysis{
+				Analyzer: map[string]types.Analyzer{
+					EnglishExactAnalyzerName: types.CustomAnalyzer{
+						Tokenizer: "standard",
+						Filter:    []string{"lowercase"},
+					},
+				},
+			}),
+		),
 	)
 }
 

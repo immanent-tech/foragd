@@ -12,10 +12,9 @@ import (
 	"time"
 
 	feeds "github.com/joshuar/go-syndication"
-	"github.com/joshuar/go-syndication/types"
 )
 
-var _ types.ObjectCommon = (*Item)(nil)
+// var _ types.ObjectCommon = (*Item)(nil)
 
 var ErrGetItem = errors.New("could not retrieve item")
 
@@ -103,8 +102,8 @@ func (i *Item) GetCategories() []string {
 	return i.Categories
 }
 
-func (i *Item) GetImage() *types.Image {
-	return i.Image
+func (i *Item) GetImage() *ObjectImage {
+	return &i.Image
 }
 
 func (i *Item) GetLanguage() string {
@@ -178,9 +177,12 @@ func newItemFromSource(source *feeds.Item, feedID FeedID, sourceType string) *It
 		Copyright:    source.GetRights(),
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
-		Image:        source.GetImage(),
-		Content:      source.GetContent().String(),
-		FeedTitle:    source.FeedTitle,
+		Image: ObjectImage{
+			URL:   source.GetImage().Value,
+			Title: *source.GetImage().Title,
+		},
+		Content:   source.GetContent().String(),
+		FeedTitle: source.FeedTitle,
 	}
 
 	return item

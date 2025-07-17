@@ -14,10 +14,8 @@ import (
 	"github.com/joshuar/go-syndication/types"
 )
 
-var (
-	_ types.ObjectCommon = (*Feed)(nil)
-	_ types.Source       = (*Feed)(nil)
-)
+// _ types.ObjectCommon = (*Feed)(nil)
+var _ types.Source = (*Feed)(nil)
 
 // ErrNewFeed is returned when there was a problem creating a new Feed.
 var ErrNewFeed = errors.New("could not create new feed")
@@ -95,8 +93,8 @@ func (f *Feed) GetCategories() []string {
 	return f.Categories
 }
 
-func (f *Feed) GetImage() *types.Image {
-	return f.Image
+func (f *Feed) GetImage() *ObjectImage {
+	return &f.Image
 }
 
 func (f *Feed) GetItems() []types.ItemSource {
@@ -155,7 +153,10 @@ func NewFeedFromSource[T types.FeedSource](source T, sourceType string) *Feed {
 		Copyright:    source.GetRights(),
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
-		Image:        source.GetImage(),
+		Image: ObjectImage{
+			URL:   source.GetImage().Value,
+			Title: *source.GetImage().Title,
+		},
 	}
 
 	return feed

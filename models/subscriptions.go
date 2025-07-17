@@ -13,8 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joshuar/go-syndication/types"
-
 	"github.com/joshuar/go-feed-me/validation"
 )
 
@@ -28,13 +26,13 @@ func GenerateSubscription(state *SubscriptionState, feed *Feed, unread int) (*Su
 		return nil, fmt.Errorf("unable to generate subscription: %w", ErrInvalidSubscriptionState)
 	}
 	subscription := &Subscription{
-		State:       state,
-		Feed:        feed,
+		State:       *state,
+		Feed:        *feed,
 		UnreadCount: unread,
 	}
 	// Update state.
 	if unread > 0 {
-		subscription.State.Mark(MarkUnread, *state.UpdatedAt)
+		subscription.State.Mark(MarkUnread, state.UpdatedAt)
 	}
 	// Validate the subscription.
 	if valid, err := subscription.Valid(); !valid {
@@ -98,7 +96,7 @@ func (s *Subscription) GetUpdatedDate() time.Time {
 	return s.Feed.GetUpdatedDate()
 }
 
-func (s *Subscription) GetImage() *types.Image {
+func (s *Subscription) GetImage() *ObjectImage {
 	return s.Feed.GetImage()
 }
 
@@ -212,7 +210,7 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 func (s Subscriptions) GetStates() SubscriptionStates {
 	states := make(SubscriptionStates, 0, len(s))
 	for sub := range slices.Values(s) {
-		states = append(states, sub.State)
+		states = append(states, &sub.State)
 	}
 	return states
 }
@@ -271,14 +269,14 @@ func NewSubscriptionState(userID UserID, feed *Feed, request *SubscriptionReques
 		UserID:         userID,
 		SubscriptionID: NewID(SubscriptionPFX),
 		FeedID:         feed.GetID(),
-		UpdatedAt:      &ts,
+		UpdatedAt:      ts,
 		CreatedAt:      ts,
-		Customisation: &ObjectCustomisation{
+		Customisation: ObjectCustomisation{
 			Title:      feed.GetTitle(),
 			Categories: feed.GetCategories(),
 		},
 		State: ObjectState{
-			UpdatedAt: &ts,
+			UpdatedAt: ts,
 		},
 		ItemStates: make(map[ItemID]ObjectState),
 	}
@@ -309,7 +307,7 @@ func (s *SubscriptionState) IsRead() bool {
 // GetMarkedRead retrieves the timestamp when the user last marked the
 // subscription feed as read.
 func (s *SubscriptionState) GetMarkedRead() time.Time {
-	return *s.UpdatedAt
+	return s.UpdatedAt
 }
 
 // MarkRead will mark the subscription as read. This involves setting the MarkedRead field to the given value and
@@ -321,7 +319,7 @@ func (s *SubscriptionState) Mark(mark Mark, markedAt time.Time) {
 	case MarkUnread:
 		s.State.MarkUnread(markedAt)
 	}
-	s.UpdatedAt = &markedAt
+	s.UpdatedAt = markedAt
 	s.ItemStates = nil
 }
 
