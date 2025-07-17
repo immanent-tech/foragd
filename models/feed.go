@@ -154,8 +154,8 @@ func NewFeedFromSource[T types.FeedSource](source T, sourceType string) *Feed {
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
 		Image: ObjectImage{
-			URL:   source.GetImage().Value,
-			Title: *source.GetImage().Title,
+			URL:   source.GetImage().URL(),
+			Title: source.GetImage().String(),
 		},
 	}
 

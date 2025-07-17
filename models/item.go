@@ -178,8 +178,8 @@ func newItemFromSource(source *feeds.Item, feedID FeedID, sourceType string) *It
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
 		Image: ObjectImage{
-			URL:   source.GetImage().Value,
-			Title: *source.GetImage().Title,
+			URL:   source.GetImage().URL(),
+			Title: source.GetImage().String(),
 		},
 		Content:   source.GetContent().String(),
 		FeedTitle: source.FeedTitle,
