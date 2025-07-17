@@ -42,24 +42,14 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		}
 		chain = chain.Append(SavePageState(filters))
 		var template templ.Component
-		// Retrieve user object.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+		// Get subscriptions matching filters.
+		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), filters)
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		if len(user.GetSubscriptionsByID()) == 0 {
-			template = views.EmptyContent()
-		} else {
-			// Get subscriptions matching filters.
-			subscriptions, pagination, resp := a.filterSubscriptions(req.Context(), filters)
-			if resp != nil {
-				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-				return
-			}
-			// Generate page template.
-			template = views.NewSubscriptionsPage(subscriptions, filters, pagination).Template(req)
-		}
+		// Generate page template.
+		template = views.NewSubscriptionsPage(subscriptions, filters, pagination).Template(req)
 
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
@@ -459,6 +449,10 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, states models.Sub
 		return nil, models.ErrUserCtx
 	}
 
+	if len(states) == 0 {
+		return &aggregations.TermsAggregationResults{}, nil
+	}
+
 	subscriptionQueries := make([]query.Option, 0, len(states))
 	for _, state := range states {
 		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, state))
@@ -470,6 +464,7 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, states models.Sub
 			),
 		),
 	)
+
 	aggResults, resp := a.DataAPI().ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(states)))
 	if resp != nil && !resp.IsNotFound() {
 		return nil, resp

@@ -17,7 +17,7 @@ var HeaderID = attributes.ID("header")
 
 templ Header() {
 	@navbar.Build(navbar.WithID(HeaderID.String()),
-		navbar.WithClasses("bg-base-200"),
+		navbar.WithClasses("bg-base-200 max-w-screen"),
 	) {
 		@navbar.Start() {
 			<label for="body-drawer" class="btn btn-square drawer-button">

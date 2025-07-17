@@ -7,6 +7,7 @@ package views
 import (
 	"context"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -47,6 +48,21 @@ type SubscriptionsPage struct {
 	filters       *models.SubscriptionFilters
 	subscriptions models.Subscriptions
 	pagination    models.Pagination
+}
+
+// Template will render the home page based on the request details.
+func (page *SubscriptionsPage) Template(req *http.Request) templ.Component {
+	switch {
+	case req.Method == http.MethodPost:
+		return page.Cards()
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		spew.Dump(req)
+		return templates.NewPage("Go Feed Me - Subscriptions",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
 }
 
 func NewSubscriptionsPage(subscriptions models.Subscriptions, filters *models.SubscriptionFilters, pagination models.Pagination) *SubscriptionsPage {
@@ -178,20 +194,6 @@ templ (page *SubscriptionsPage) emptyContent() {
 templ (page *SubscriptionsPage) Cards() {
 	for cards := range slices.Values(page.generateCards(ctx)) {
 		@cards
-	}
-}
-
-// Template will render the home page based on the request details.
-func (page *SubscriptionsPage) Template(req *http.Request) templ.Component {
-	switch {
-	case req.Method == http.MethodPost:
-		return page.Cards()
-	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-		return page.content()
-	default:
-		return templates.NewPage("Go Feed Me - Subscriptions",
-			templates.WithBodyContent(page.layout()),
-		)
 	}
 }
 

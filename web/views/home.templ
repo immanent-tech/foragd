@@ -48,10 +48,10 @@ templ (page *HomePage) layout() {
 
 // content renders the home page content.
 templ (page *HomePage) content() {
-	if page == nil {
+	if page == nil || len(page.Subscriptions) == 0 {
 		@EmptyHome()
 	} else {
-		<div class="stats shadow bg-neutral">
+		<div class="stats shadow bg-neutral max-w-screen">
 			@link.Build(
 				link.WithAttributes(templ.Attributes{
 					"hx-get":      "/subscriptions",
