@@ -25,17 +25,16 @@
         "vivaxy.vscode-conventional-commits",
         "golang.go",
         "ymotongpoo.licenser",
-        "valentjn.vscode-ltex",
         "tamasfe.even-better-toml",
         "redhat.vscode-yaml",
-        "ms-azuretools.vscode-docker",
         "esbenp.prettier-vscode",
         "a-h.templ",
         "bradlc.vscode-tailwindcss",
         "yzhang.markdown-all-in-one",
         "DavidAnson.vscode-markdownlint",
         "dnut.rewrap-revived",
-        "dz4k.vscode-hyperscript-org"
+        "dz4k.vscode-hyperscript-org",
+        "elijah-potter.harper"
       ]
     }
   }
