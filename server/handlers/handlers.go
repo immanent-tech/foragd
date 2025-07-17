@@ -62,7 +62,12 @@ func RenderResponse(resp *models.Response) http.Handler {
 		if resp == nil {
 			// If there is no response, return 200: OK.
 			res.WriteHeader(http.StatusOK)
-			htmxResp.Write(res)
+			err := htmxResp.Write(res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Problem writing response.",
+					slog.Any("error", err),
+				)
+			}
 			return
 		}
 		// If the response contains an error, log it.
