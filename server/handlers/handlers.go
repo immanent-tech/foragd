@@ -57,6 +57,15 @@ func RouteLogger(next http.Handler) http.Handler {
 // response. If the response contains an error, it will be logged.
 func RenderResponse(resp *models.Response) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get any existing htmx response writer.
+		htmxResp := htmxRespFromCtx(req.Context())
+		if resp == nil {
+			// If there is no response, return 200: OK.
+			res.WriteHeader(http.StatusOK)
+			htmxResp.Write(res)
+			return
+		}
+		// If the response contains an error, log it.
 		if resp.InternalError != nil {
 			switch {
 			case resp.StatusCode < 400:
@@ -67,16 +76,12 @@ func RenderResponse(resp *models.Response) http.Handler {
 				slogctx.FromCtx(req.Context()).Error(resp.InternalError.Error())
 			}
 		}
-		// Get any existing htmx response writer.
-		htmxResp := htmxRespFromCtx(req.Context())
-		if resp == nil {
-			// If there is no response, return 200: OK.
-			res.WriteHeader(http.StatusOK)
-			htmxResp.Write(res)
-			return
-		}
 		// Write the response status code.
 		res.WriteHeader(resp.StatusCode)
+		// If there is no template to render, return.
+		if resp.Template == nil {
+			return
+		}
 		// Write the response template.
 		if htmx.IsHTMX(req) { //nolint:nestif // TODO: can this logic be simplified?
 			err := htmxResp.RenderTempl(req.Context(), res, resp)
