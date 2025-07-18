@@ -61,19 +61,15 @@ type Option[T any] func(T) T
 // SESSION
 //
 
-func sessionsMappings() map[string]types.Property {
-	return map[string]types.Property{
-		"expiry": types.NewDateNanosProperty(),
-		"token":  types.NewKeywordProperty(),
-		"data":   types.NewBinaryProperty(),
-	}
-}
-
 func sessionsComponentTemplate() types.IndexState {
 	return NewIndexState(
 		WithMappings(&types.TypeMapping{
-			Dynamic:    &dynamicmapping.False,
-			Properties: sessionsMappings(),
+			Dynamic: &dynamicmapping.False,
+			Properties: map[string]types.Property{
+				"expiry": types.NewDateNanosProperty(),
+				"token":  types.NewKeywordProperty(),
+				"data":   types.NewBinaryProperty(),
+			},
 		}),
 		WithAliases(SessionsSchemaPrefix, types.Alias{}),
 	)
@@ -83,22 +79,18 @@ func sessionsComponentTemplate() types.IndexState {
 // SCHEDULER
 //
 
-func schedulerJobsMappings() map[string]types.Property {
-	return map[string]types.Property{
-		"updated_at":   types.NewDateNanosProperty(),
-		"job_options":  types.NewFlattenedProperty(),
-		"job_data":     types.NewFlattenedProperty(),
-		"job_type":     types.NewKeywordProperty(),
-		"job_trigger":  types.NewFlattenedProperty(),
-		"job_next_run": types.NewDateNanosProperty(),
-	}
-}
-
 func schedulerJobsComponentTemplate() types.IndexState {
 	return NewIndexState(
 		WithMappings(&types.TypeMapping{
-			Dynamic:    &dynamicmapping.False,
-			Properties: schedulerJobsMappings(),
+			Dynamic: &dynamicmapping.False,
+			Properties: map[string]types.Property{
+				"updated_at":   types.NewDateNanosProperty(),
+				"job_options":  types.NewFlattenedProperty(),
+				"job_data":     types.NewFlattenedProperty(),
+				"job_type":     types.NewKeywordProperty(),
+				"job_trigger":  types.NewFlattenedProperty(),
+				"job_next_run": types.NewDateNanosProperty(),
+			},
 		}),
 		WithAliases(SchedulerSchemaPrefix, types.Alias{}),
 	)
@@ -108,29 +100,25 @@ func schedulerJobsComponentTemplate() types.IndexState {
 // USERS
 //
 
-func userMappings() map[string]types.Property {
-	return map[string]types.Property{
-		"user_id":          types.NewKeywordProperty(),
-		"external_user_id": types.NewKeywordProperty(),
-		"provider":         types.NewKeywordProperty(),
-		"created_at":       types.NewDateNanosProperty(),
-		"updated_at":       types.NewDateNanosProperty(),
-		"max_history":      types.NewKeywordProperty(),
-		"settings":         types.NewFlattenedProperty(),
-		"subscriptions": types.ObjectProperty{
-			Properties: map[string]types.Property{
-				"feed_id":         types.NewKeywordProperty(),
-				"subscription_id": types.NewKeywordProperty(),
-			},
-		},
-	}
-}
-
 func userComponentTemplate() types.IndexState {
 	return NewIndexState(
 		WithMappings(&types.TypeMapping{
-			Dynamic:    &dynamicmapping.False,
-			Properties: userMappings(),
+			Dynamic: &dynamicmapping.False,
+			Properties: map[string]types.Property{
+				"user_id":          types.NewKeywordProperty(),
+				"external_user_id": types.NewKeywordProperty(),
+				"provider":         types.NewKeywordProperty(),
+				"created_at":       types.NewDateNanosProperty(),
+				"updated_at":       types.NewDateNanosProperty(),
+				"max_history":      types.NewKeywordProperty(),
+				"settings":         types.NewFlattenedProperty(),
+				"subscriptions": types.ObjectProperty{
+					Properties: map[string]types.Property{
+						"feed_id":         types.NewKeywordProperty(),
+						"subscription_id": types.NewKeywordProperty(),
+					},
+				},
+			},
 		}),
 		WithAliases(UsersSchemaPrefix, types.Alias{}),
 	)
@@ -140,22 +128,18 @@ func userComponentTemplate() types.IndexState {
 // Favorites
 //
 
-func favoritesMappings() map[string]types.Property {
-	return map[string]types.Property{
-		"created_at":  types.NewDateNanosProperty(),
-		"user_id":     types.NewKeywordProperty(),
-		"favorite_id": types.NewKeywordProperty(),
-		"object_id":   types.NewKeywordProperty(),
-		"type":        types.NewKeywordProperty(),
-		"data":        types.NewFlattenedProperty(),
-	}
-}
-
 func favoritesTemplate() types.IndexState {
 	return NewIndexState(
 		WithMappings(&types.TypeMapping{
-			Dynamic:    &dynamicmapping.False,
-			Properties: favoritesMappings(),
+			Dynamic: &dynamicmapping.False,
+			Properties: map[string]types.Property{
+				"created_at":  types.NewDateNanosProperty(),
+				"user_id":     types.NewKeywordProperty(),
+				"favorite_id": types.NewKeywordProperty(),
+				"object_id":   types.NewKeywordProperty(),
+				"type":        types.NewKeywordProperty(),
+				"data":        types.NewFlattenedProperty(),
+			},
 		}),
 		WithAliases(FavoritesSchemaPrefix, types.Alias{}),
 		WithIndexSettings(
@@ -175,35 +159,31 @@ func favoritesTemplate() types.IndexState {
 // SUBSCRIPTIONS
 //
 
-func subscriptionsMappings() map[string]types.Property {
-	return map[string]types.Property{
-		"user_id":         types.NewKeywordProperty(),
-		"subscription_id": types.NewKeywordProperty(),
-		"feed_id":         types.NewKeywordProperty(),
-		"updated_at":      types.NewDateNanosProperty(),
-		"created_at":      types.NewDateNanosProperty(),
-		"customisation": types.ObjectProperty{
-			Properties: map[string]types.Property{
-				"categories": shortTextFieldProperty(),
-				"title":      shortTextFieldProperty(),
-			},
-		},
-		"state": types.ObjectProperty{
-			Properties: map[string]types.Property{
-				"read":       types.NewBooleanProperty(),
-				"starred":    types.NewBooleanProperty(),
-				"updated_at": types.NewDateNanosProperty(),
-			},
-		},
-		"item_states": types.NewFlattenedProperty(),
-	}
-}
-
 func subscriptionsTemplate() types.IndexState {
 	return NewIndexState(
 		WithMappings(&types.TypeMapping{
-			Dynamic:    &dynamicmapping.False,
-			Properties: subscriptionsMappings(),
+			Dynamic: &dynamicmapping.False,
+			Properties: map[string]types.Property{
+				"user_id":         types.NewKeywordProperty(),
+				"subscription_id": types.NewKeywordProperty(),
+				"feed_id":         types.NewKeywordProperty(),
+				"updated_at":      types.NewDateNanosProperty(),
+				"created_at":      types.NewDateNanosProperty(),
+				"customisation": types.ObjectProperty{
+					Properties: map[string]types.Property{
+						"categories": shortTextFieldProperty(),
+						"title":      shortTextFieldProperty(),
+					},
+				},
+				"state": types.ObjectProperty{
+					Properties: map[string]types.Property{
+						"read":       types.NewBooleanProperty(),
+						"starred":    types.NewBooleanProperty(),
+						"updated_at": types.NewDateNanosProperty(),
+					},
+				},
+				"item_states": types.NewFlattenedProperty(),
+			},
 		}),
 		WithAliases(SubscriptionsSchemaPrefix, types.Alias{}),
 		WithIndexSettings(
@@ -223,7 +203,7 @@ func subscriptionsTemplate() types.IndexState {
 // FEEDS
 //
 
-func feedsMappings() map[string]types.Property {
+func feedsComponentTemplate() types.IndexState {
 	mapping := map[string]types.Property{
 		"feed_id":    types.NewKeywordProperty(),
 		"created_at": types.NewDateNanosProperty(),
@@ -231,14 +211,10 @@ func feedsMappings() map[string]types.Property {
 		"source_url": types.NewKeywordProperty(),
 	}
 	maps.Copy(mapping, CommonObjectMappings)
-	return mapping
-}
-
-func feedsComponentTemplate() types.IndexState {
 	return NewIndexState(
 		WithMappings(&types.TypeMapping{
 			Dynamic:    &dynamicmapping.False,
-			Properties: feedsMappings(),
+			Properties: mapping,
 		}),
 		WithAliases(FeedsSchemaPrefix, types.Alias{}),
 		WithIndexSettings(
@@ -258,7 +234,7 @@ func feedsComponentTemplate() types.IndexState {
 // FEED ITEMS
 //
 
-func itemsMappings() map[string]types.Property {
+func itemsComponentTemplate() types.IndexState {
 	mapping := map[string]types.Property{
 		"@timestamp": types.NewDateNanosProperty(),
 		"feed_id":    types.NewKeywordProperty(),
@@ -266,14 +242,10 @@ func itemsMappings() map[string]types.Property {
 		"created":    types.NewDateNanosProperty(),
 	}
 	maps.Copy(mapping, CommonObjectMappings)
-	return mapping
-}
-
-func itemsComponentTemplate() types.IndexState {
 	return NewIndexState(
 		WithMappings(&types.TypeMapping{
 			Dynamic:    &dynamicmapping.False,
-			Properties: itemsMappings(),
+			Properties: mapping,
 		}),
 		WithAliases(ItemsSchemaPrefix, types.Alias{}),
 		WithIndexSettings(
