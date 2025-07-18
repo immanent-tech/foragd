@@ -335,7 +335,7 @@ templ (c *Subscription) Card() {
 								link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
 								link.WithClasses("text-xs"),
 							) {
-								<div class="flex gap-2">
+								<div class="icontext">
 									@tabler.ExternalLink(i.Props{Size: i.SizeXS})
 									Feed Website
 								</div>
@@ -358,7 +358,7 @@ templ (c *Subscription) Card() {
 									link.WithClasses("text-xs"),
 								),
 							) {
-								<div class="flex gap-2">
+								<div class="icontext">
 									@tabler.Edit(i.Props{Size: i.SizeXS})
 									Edit Subscription
 								</div>
@@ -366,17 +366,32 @@ templ (c *Subscription) Card() {
 						</li>
 						// Favourite action.
 						<li _="on click call document.activeElement.blur()">
-							@partials.NewAction("/user/favourite/subscription/"+c.GetID(), partials.DisplayActionAsLink,
-								partials.ActionMethod(http.MethodPut),
-								partials.ActionSwap("none"),
-								partials.ActionLinkOptions(
-									link.WithClasses("text-xs"),
-								),
-							) {
-								<div class="flex gap-2">
-									@tabler.Star(i.Props{Size: i.SizeXS})
-									Favourite
-								</div>
+							if c.Favourite {
+								@partials.NewAction("/user/favourite/subscription/"+c.GetID(), partials.DisplayActionAsLink,
+									partials.ActionMethod(http.MethodDelete),
+									partials.ActionSwap("none"),
+									partials.ActionLinkOptions(
+										link.WithClasses("text-xs"),
+									),
+								) {
+									<div class="icontext">
+										@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
+										Remove Favourite
+									</div>
+								}
+							} else {
+								@partials.NewAction("/user/favourite/subscription/"+c.GetID(), partials.DisplayActionAsLink,
+									partials.ActionMethod(http.MethodPut),
+									partials.ActionSwap("none"),
+									partials.ActionLinkOptions(
+										link.WithClasses("text-xs"),
+									),
+								) {
+									<div class="icontext">
+										@tabler.Bookmark(i.Props{Size: i.SizeXS})
+										Add Favourite
+									</div>
+								}
 							}
 						</li>
 						// Unsubscribe action.
@@ -393,7 +408,7 @@ templ (c *Subscription) Card() {
 									link.WithClasses("text-xs"),
 								),
 							) {
-								<div class="flex gap-2">
+								<div class="icontext">
 									@tabler.Trash()
 									Remove Subscription
 								</div>

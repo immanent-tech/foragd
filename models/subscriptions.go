@@ -405,6 +405,7 @@ func (s *SubscriptionState) Valid() (bool, error) {
 // SubscriptionStates is a map of subscription states by either subscription or feed id.
 type SubscriptionStates []*SubscriptionState
 
+// GetFeedIDs returns the FeedIDs for all subscription states in the slice.
 func (s SubscriptionStates) GetFeedIDs() []FeedID {
 	ids := make([]FeedID, 0, len(s))
 	for state := range slices.Values(s) {
@@ -413,6 +414,16 @@ func (s SubscriptionStates) GetFeedIDs() []FeedID {
 	return ids
 }
 
+// GetIDs returns the SubscriptionIDs for all subscription states in the slice.
+func (s SubscriptionStates) GetIDs() []SubscriptionID {
+	ids := make([]SubscriptionID, 0, len(s))
+	for state := range slices.Values(s) {
+		ids = append(ids, state.GetID())
+	}
+	return ids
+}
+
+// GetByID retrieves a state by the SubscriptionID from the slice.
 func (s SubscriptionStates) GetByID(id SubscriptionID) *SubscriptionState {
 	if idx := slices.IndexFunc(s, func(e *SubscriptionState) bool {
 		return e.GetID() == id
@@ -422,6 +433,7 @@ func (s SubscriptionStates) GetByID(id SubscriptionID) *SubscriptionState {
 	return nil
 }
 
+// GetByFeedID retrieves a state by the FeedID from the slice.
 func (s SubscriptionStates) GetByFeedID(id FeedID) *SubscriptionState {
 	if idx := slices.IndexFunc(s, func(e *SubscriptionState) bool {
 		return e.GetFeedID() == id

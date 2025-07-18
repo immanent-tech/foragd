@@ -30,16 +30,13 @@ const (
 	ServerWriteTimeout = 10 * time.Second
 )
 
-// Server represents the application server. It contains the underlying server object, the handlers api and embedded FS
+// Server represents the application server. It contains the underlying server object, the handlers, and embedded FS
 // for static content.
 type Server struct {
 	server *http.Server
 	static embed.FS
 	api    *handlers.API
 }
-
-// Ensures we statisfy the ServerInterface interface.
-// var _ ServerInterface = (*Server)(nil)
 
 var ErrStartServer = errors.New("start server failed")
 
@@ -168,7 +165,8 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			r.With(middlewares.RequireHTMX).Post("/import", handler.ImportSubscriptions())
 			// Favourites.
 			r.Route("/favourite", func(r chi.Router) {
-				// r.Put("/subscription/{subscription}", handler.AddFavouriteSubscription())
+				r.Put("/subscription/{subscription}", handler.AddFavouriteSubscription())
+				r.Delete("/subscription/{subscription}", handler.RemoveFavouriteSubscription())
 			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {

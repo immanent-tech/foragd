@@ -241,13 +241,6 @@ func (s *ObjectState) IsRead() bool {
 	return s.Read
 }
 
-func (s *ObjectState) IsStarred() bool {
-	if s == nil {
-		return false
-	}
-	return s.Starred
-}
-
 func (s *ObjectState) GetLastUpdate() time.Time {
 	if s == nil {
 		return time.Now().Add(-DefaultMaxHistory)

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -499,6 +500,11 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	if err != nil {
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
+	// Get any favourites.
+	favourites, err := a.getSubscriptionFavourites(ctx, states.GetIDs()...)
+	if err != nil {
+		return nil, fmt.Errorf("getSubscriptions: %w", err)
+	}
 	// Generate subscriptions from data sources.
 	subscriptions := make(models.Subscriptions, 0, len(feeds))
 	for feed := range slices.Values(feeds) {
@@ -521,10 +527,45 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 			)
 			continue
 		}
+		if fav := favourites.GetByID(subscription.GetID()); fav != nil {
+			subscription.Favourite = true
+		}
 		subscriptions = append(subscriptions, subscription)
 	}
 
 	return subscriptions, nil
+}
+
+func (a *API) getSubscriptionFavourites(ctx context.Context, ids ...models.SubscriptionID) (models.Favourites, error) {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, models.ErrUserCtx
+	}
+	// Retrieve favourites index.
+	index := elastic.FavouritesIndexFromCtx(ctx)
+	if index == "" {
+		return nil, models.ErrUserCtx
+	}
+	// Set up the query to retrieve favourite subscriptions for the user.
+	query := query.Bool(
+		query.Filter(
+			query.Terms("object_id", ids...),
+			query.Term("user_id", user.GetID()),
+			query.Term("type", models.FavouriteTypeSubscription),
+		),
+	)
+	// Run the query.
+	var favourites models.Favourites
+	var err error
+	favourites, _, err = elastic.Search[*models.Favourite](ctx, a.DataAPI().GetAPI(), index, query, len(ids),
+		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&elastic.DocSorting{}),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("could not retrieve subscription favourites: %w", err)
+	}
+
+	return favourites, nil
 }
 
 func (a *API) filterSubscriptions(ctx context.Context, filters *models.SubscriptionFilters) (models.Subscriptions, models.Pagination, error) {

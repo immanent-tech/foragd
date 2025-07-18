@@ -22,12 +22,8 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
-var (
-	// ErrInvalidUser indicates the user data is invalid. This might be the case if the retrieved session is corrupted.
-	ErrInvalidUser = errors.New("user data is invalid")
-	// ErrMissingRequestData indicates data was expected in the request (usually in the context) but was not found.
-	ErrMissingRequestData = errors.New("request data is missing")
-)
+// ErrNoCtxData indicates that required data could not be retrieved from context values.
+var ErrNoCtxData = errors.New("missing data in context")
 
 var BaseChain = alice.New(
 	RouteLogger,

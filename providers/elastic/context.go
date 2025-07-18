@@ -12,6 +12,7 @@ var ErrFetchCtx = errors.New("error fetching context value")
 
 const (
 	userIndexCtxKey     contextKey = "users"
+	favouritesCtxKey    contextKey = "favourites"
 	feedsIndexCtxKey    contextKey = "feeds"
 	itemsIndexCtxKey    contextKey = "items"
 	subscriptionsCtxKey contextKey = "subscriptions"
@@ -93,6 +94,18 @@ func SubscriptionsIndexToCtx(ctx context.Context, index string) context.Context 
 
 func SubscriptionsIndexFromCtx(ctx context.Context) string {
 	if value, ok := ctx.Value(subscriptionsCtxKey).(string); ok {
+		return value
+	}
+
+	return ""
+}
+
+func FavouritesIndexToCtx(ctx context.Context, index string) context.Context {
+	return context.WithValue(ctx, favouritesCtxKey, index)
+}
+
+func FavouritesIndexFromCtx(ctx context.Context) string {
+	if value, ok := ctx.Value(favouritesCtxKey).(string); ok {
 		return value
 	}
 

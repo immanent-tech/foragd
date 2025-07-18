@@ -195,6 +195,12 @@ components:
           $ref: '#/components/schemas/UserID'
         id:
           $ref: '#/components/schemas/FavouriteID'
+        object_id:
+          description: >
+            is the (optional) id of the object that has been favourited, where the favourite is an object type (e.g.,
+            subscription or article).
+          type: string
+          x-go-name: ObjectID
         type:
           description: >
             is the type of favourite.
@@ -202,20 +208,19 @@ components:
           enum: ['subscription', 'article', 'search']
         data:
           description: >
-            contains the data pertaining to the type of favourite.
+            contains the (optional) data pertaining to the type of favourite.
           oneOf:
-            - $ref: '#/components/schemas/FavouriteSubscription'
             - $ref: '#/components/schemas/FavouriteArticle'
             - $ref: '#/components/schemas/FavouriteSearch'
-    FavouriteSubscription:
-      description: >
-        is a subscription that the user has marked as a favourite.
-      type: object
-      required:
-        - subscription_id
-      properties:
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
+    # FavouriteSubscription:
+    #   description: >
+    #     is a subscription that the user has marked as a favourite.
+    #   type: object
+    #   required:
+    #     - subscription_id
+    #   properties:
+    #     subscription_id:
+    #       $ref: '#/components/schemas/SubscriptionID'
     FavouriteArticle:
       description: >
         is an article that the user has marked as a favourite.
@@ -261,10 +266,6 @@ components:
         read:
           description: >
             indicates whether the object has been read (true) or is unread (false).
-          type: boolean
-        starred:
-          description: >
-            indicates whether the object has been starred (true) or not (false).
           type: boolean
         updated_at:
           $ref: '#/components/schemas/UpdatedAt'
@@ -502,6 +503,10 @@ components:
           x-oapi-codegen-extra-tags:
             json: '-'
             validate: 'gte=0'
+        favourite:
+          description: >
+            indicates whether this subscription has been marked as a favourite by the user.
+          type: boolean
     Article:
       description: >
         is the representation of an item from the user's perspective. It holds the original item and additional fields
@@ -518,3 +523,7 @@ components:
           $ref: '#/components/schemas/ObjectCustomisation'
         state:
           $ref: '#/components/schemas/ObjectState'
+        favourite:
+          description: >
+            indicates whether this article has been marked as a favourite by the user.
+          type: boolean

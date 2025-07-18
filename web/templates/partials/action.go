@@ -28,6 +28,7 @@ const (
 	AttrHXPost    = "hx-post"
 	AttrHXGet     = "hx-get"
 	AttrHXPut     = "hx-put"
+	AttrHXDelete  = "hx-delete"
 )
 
 type DisplayType int
@@ -148,6 +149,8 @@ func (l *Action) Attributes() templ.Attributes {
 		attrs[AttrHXPost] = l.Path
 	case http.MethodPut:
 		attrs[AttrHXPut] = l.Path
+	case http.MethodDelete:
+		attrs[AttrHXDelete] = l.Path
 	}
 	return attrs
 }

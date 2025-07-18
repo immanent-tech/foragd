@@ -5,15 +5,20 @@
 }
 @source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
 
-/* Fade in notification messages */
-#notifications.htmx-added {
-  opacity: 0;
-}
-#notifications {
-  opacity: 1;
-  transition: opacity 1s ease-out;
-}
+@layer components {
+  .icontext {
+    @apply flex items-center gap-2;
+  }
+  /* Fade in notification messages */
+  #notifications.htmx-added {
+    opacity: 0;
+  }
+  #notifications {
+    opacity: 1;
+    transition: opacity 1s ease-out;
+  }
 
-#content {
-  transition: all ease-in 1s;
+  #content {
+    transition: all ease-in 1s;
+  }
 }

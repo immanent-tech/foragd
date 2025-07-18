@@ -145,6 +145,7 @@ func favouritesMappings() map[string]types.Property {
 		"created_at":   types.NewDateNanosProperty(),
 		"user_id":      types.NewKeywordProperty(),
 		"favourite_id": types.NewKeywordProperty(),
+		"object_id":    types.NewKeywordProperty(),
 		"type":         types.NewKeywordProperty(),
 		"data":         types.NewFlattenedProperty(),
 	}

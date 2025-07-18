@@ -53,6 +53,9 @@ const (
 
 // Article is the representation of an item from the user's perspective. It holds the original item and additional fields to track the state of the item from the perspective of the user.
 type Article struct {
+	// Favourite indicates whether this article has been marked as a favourite by the user.
+	Favourite bool `json:"favourite,omitempty,omitzero"`
+
 	// Item represents an individual item (e.g., an individual feed item).
 	Item Item `json:"item,omitempty,omitzero"`
 
@@ -87,11 +90,14 @@ type Favourite struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
-	// Data contains the data pertaining to the type of favourite.
+	// Data contains the (optional) data pertaining to the type of favourite.
 	Data Favourite_Data `json:"data"`
 
 	// FavouriteID is the unique ID of a favourite.
 	FavouriteID FavouriteID `form:"favourite_id" json:"favourite_id" validate:"required,startswith=fav_"`
+
+	// ObjectID is the (optional) id of the object that has been favourited, where the favourite is an object type (e.g., subscription or article).
+	ObjectID string `json:"object_id,omitempty,omitzero"`
 
 	// Type is the type of favourite.
 	Type FavouriteType `json:"type"`
@@ -100,7 +106,7 @@ type Favourite struct {
 	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
 }
 
-// Favourite_Data contains the data pertaining to the type of favourite.
+// Favourite_Data contains the (optional) data pertaining to the type of favourite.
 type Favourite_Data struct {
 	union json.RawMessage
 }
@@ -125,12 +131,6 @@ type FavouriteID = string
 
 // FavouriteSearch represents a search request by the user.
 type FavouriteSearch = SearchRequest
-
-// FavouriteSubscription is a subscription that the user has marked as a favourite.
-type FavouriteSubscription struct {
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-}
 
 // Feed defines model for Feed.
 type Feed struct {
@@ -296,9 +296,6 @@ type ObjectState struct {
 	// Read indicates whether the object has been read (true) or is unread (false).
 	Read bool `json:"read"`
 
-	// Starred indicates whether the object has been starred (true) or not (false).
-	Starred bool `json:"starred"`
-
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
@@ -317,6 +314,9 @@ type State string
 
 // Subscription represents a feed a user has subscribed to.
 type Subscription struct {
+	// Favourite indicates whether this subscription has been marked as a favourite by the user.
+	Favourite bool `json:"favourite,omitempty,omitzero"`
+
 	// Feed represents a feed object.
 	Feed Feed `json:"feed"`
 
@@ -442,32 +442,6 @@ type UserSubscriptionFeedRelation struct {
 
 	// UserID is the unique ID of a user.
 	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
-}
-
-// AsFavouriteSubscription returns the union data inside the Favourite_Data as a FavouriteSubscription
-func (t Favourite_Data) AsFavouriteSubscription() (FavouriteSubscription, error) {
-	var body FavouriteSubscription
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFavouriteSubscription overwrites any union data inside the Favourite_Data as the provided FavouriteSubscription
-func (t *Favourite_Data) FromFavouriteSubscription(v FavouriteSubscription) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeFavouriteSubscription performs a merge with any union data inside the Favourite_Data, using the provided FavouriteSubscription
-func (t *Favourite_Data) MergeFavouriteSubscription(v FavouriteSubscription) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
 }
 
 // AsFavouriteArticle returns the union data inside the Favourite_Data as a FavouriteArticle
