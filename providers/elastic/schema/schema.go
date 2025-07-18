@@ -19,8 +19,8 @@ const (
 	ItemsSchemaPrefix = "feeditems"
 	// UsersSchemaPrefix is a prefix used for user related index/mapping/settings.
 	UsersSchemaPrefix = "users"
-	// FavouritesSchemaPrefix is a prefix used for favourite related index/mapping/settings.
-	FavouritesSchemaPrefix = "favourites"
+	// FavoritesSchemaPrefix is a prefix used for favorite related index/mapping/settings.
+	FavoritesSchemaPrefix = "favorites"
 	// SchedulerSchemaPrefix is a prefix used for scheduler related index/mapping/settings.
 	SchedulerSchemaPrefix = "scheduler_jobs"
 	// SessionsSchemaPrefix is a prefix used for sessions related index/mapping/settings.
@@ -137,27 +137,27 @@ func userComponentTemplate() types.IndexState {
 }
 
 //
-// FAVOURITES
+// Favorites
 //
 
-func favouritesMappings() map[string]types.Property {
+func favoritesMappings() map[string]types.Property {
 	return map[string]types.Property{
-		"created_at":   types.NewDateNanosProperty(),
-		"user_id":      types.NewKeywordProperty(),
-		"favourite_id": types.NewKeywordProperty(),
-		"object_id":    types.NewKeywordProperty(),
-		"type":         types.NewKeywordProperty(),
-		"data":         types.NewFlattenedProperty(),
+		"created_at":  types.NewDateNanosProperty(),
+		"user_id":     types.NewKeywordProperty(),
+		"favorite_id": types.NewKeywordProperty(),
+		"object_id":   types.NewKeywordProperty(),
+		"type":        types.NewKeywordProperty(),
+		"data":        types.NewFlattenedProperty(),
 	}
 }
 
-func favouritesTemplate() types.IndexState {
+func favoritesTemplate() types.IndexState {
 	return NewIndexState(
 		WithMappings(&types.TypeMapping{
 			Dynamic:    &dynamicmapping.False,
-			Properties: favouritesMappings(),
+			Properties: favoritesMappings(),
 		}),
-		WithAliases(FavouritesSchemaPrefix, types.Alias{}),
+		WithAliases(FavoritesSchemaPrefix, types.Alias{}),
 		WithIndexSettings(
 			WithAnalysis(types.IndexSettingsAnalysis{
 				Analyzer: map[string]types.Analyzer{

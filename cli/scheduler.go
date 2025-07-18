@@ -5,7 +5,6 @@ package cli
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"os/signal"
@@ -16,22 +15,19 @@ import (
 	"github.com/joshuar/go-feed-me/scheduler"
 )
 
-// ErrSchedulerCmd indicates an error occurred when running the scheduler command.
-var ErrSchedulerCmd = errors.New("error running scheduler command")
-
 // SchedulerCmd defines the `scheduler` command, for running the job scheduler.
-type SchedulerCmd struct {
-	Migrations []string `help:"Run the scheduler."`
-}
+type SchedulerCmd struct{}
 
 // Run contains logic for setup and execution of the scheduler.
 func (r *SchedulerCmd) Run(opts *Arguments) error {
+	// Set up context.
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancelFunc()
 	ctx = slogctx.NewCtx(ctx, opts.Logger)
-
-	if err := scheduler.Run(ctx); err != nil {
-		return fmt.Errorf("%w: %w", ErrSchedulerCmd, err)
+	// Run scheduler.
+	err := scheduler.Run(ctx)
+	if err != nil {
+		return fmt.Errorf("could not run scheduler: %w", err)
 	}
 	return nil
 }

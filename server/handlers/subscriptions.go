@@ -500,8 +500,8 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	if err != nil {
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
-	// Get any favourites.
-	favourites, err := a.getSubscriptionFavourites(ctx, states.GetIDs()...)
+	// Get any Favorites.
+	Favorites, err := a.getSubscriptionFavorites(ctx, states.GetIDs()...)
 	if err != nil {
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
@@ -527,8 +527,8 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 			)
 			continue
 		}
-		if fav := favourites.GetByID(subscription.GetID()); fav != nil {
-			subscription.Favourite = true
+		if fav := Favorites.GetByID(subscription.GetID()); fav != nil {
+			subscription.Favorite = true
 		}
 		subscriptions = append(subscriptions, subscription)
 	}
@@ -536,36 +536,36 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	return subscriptions, nil
 }
 
-func (a *API) getSubscriptionFavourites(ctx context.Context, ids ...models.SubscriptionID) (models.Favourites, error) {
+func (a *API) getSubscriptionFavorites(ctx context.Context, ids ...models.SubscriptionID) (models.Favorites, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, models.ErrUserCtx
 	}
-	// Retrieve favourites index.
-	index := elastic.FavouritesIndexFromCtx(ctx)
+	// Retrieve Favorites index.
+	index := elastic.FavoritesIndexFromCtx(ctx)
 	if index == "" {
 		return nil, models.ErrUserCtx
 	}
-	// Set up the query to retrieve favourite subscriptions for the user.
+	// Set up the query to retrieve Favorite subscriptions for the user.
 	query := query.Bool(
 		query.Filter(
 			query.Terms("object_id", ids...),
 			query.Term("user_id", user.GetID()),
-			query.Term("type", models.FavouriteTypeSubscription),
+			query.Term("type", models.FavoriteTypeSubscription),
 		),
 	)
 	// Run the query.
-	var favourites models.Favourites
+	var Favorites models.Favorites
 	var err error
-	favourites, _, err = elastic.Search[*models.Favourite](ctx, a.DataAPI().GetAPI(), index, query, len(ids),
+	Favorites, _, err = elastic.Search[*models.Favorite](ctx, a.DataAPI().GetAPI(), index, query, len(ids),
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&elastic.DocSorting{}),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("could not retrieve subscription favourites: %w", err)
+		return nil, fmt.Errorf("could not retrieve subscription Favorites: %w", err)
 	}
 
-	return favourites, nil
+	return Favorites, nil
 }
 
 func (a *API) filterSubscriptions(ctx context.Context, filters *models.SubscriptionFilters) (models.Subscriptions, models.Pagination, error) {

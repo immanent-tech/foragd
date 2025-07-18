@@ -4,46 +4,77 @@
 package models
 
 import (
+	"fmt"
 	"slices"
 	"time"
 )
 
-// NewFavouriteSubscription creates a new favourite subscription for the user.
-func NewFavouriteSubscription(userID UserID, id SubscriptionID) (*Favourite, error) {
-	fav := newFavourite(userID, FavouriteTypeSubscription)
+// NewFavoriteSubscription creates a new favorite subscription for the user.
+func NewFavoriteSubscription(userID UserID, id SubscriptionID, customisation ObjectCustomisation) (*Favorite, error) {
+	fav := newFavorite(userID, FavoriteTypeSubscription)
 	fav.SetObjectID(id)
+	err := fav.Data.FromFavoriteSubscription(customisation)
+	if err != nil {
+		return nil, fmt.Errorf("could not create Favorite subscription: %w", err)
+	}
 	return fav, nil
 }
 
-func (f *Favourite) SetObjectID(id string) {
+func (f *Favorite) SetObjectID(id string) {
 	f.ObjectID = id
 }
 
-func (f *Favourite) GetObjectID() string {
+func (f *Favorite) GetObjectID() string {
 	return f.ObjectID
 }
 
-func (f *Favourite) GetID() string {
-	return f.FavouriteID
+func (f *Favorite) GetID() string {
+	return f.FavoriteID
 }
 
-func newFavourite(userID UserID, favType FavouriteType) *Favourite {
-	return &Favourite{
-		CreatedAt:   time.Now().UTC(),
-		FavouriteID: NewID(FavouritePFX),
-		Type:        favType,
-		UserID:      userID,
+func (f *Favorite) String() string {
+	switch f.Type {
+	case FavoriteTypeSubscription:
+		data, err := f.Data.AsFavoriteSubscription()
+		if err != nil {
+			return f.GetID()
+		}
+		return data.Title
+	case FavoriteTypeArticle:
+		data, err := f.Data.AsFavoriteArticle()
+		if err != nil {
+			return f.GetID()
+		}
+		return data.Item.GetTitle()
+	default:
+		return f.GetID()
 	}
 }
 
-type Favourites []*Favourite
+func newFavorite(userID UserID, favType FavoriteType) *Favorite {
+	return &Favorite{
+		CreatedAt:  time.Now().UTC(),
+		FavoriteID: NewID(FavoritePFX),
+		Type:       favType,
+		UserID:     userID,
+	}
+}
 
-func (f Favourites) GetByID(id string) *Favourite {
-	idx := slices.IndexFunc(f, func(f *Favourite) bool {
+type Favorites []*Favorite
+
+func (f Favorites) GetByID(id string) *Favorite {
+	idx := slices.IndexFunc(f, func(f *Favorite) bool {
 		return f.GetObjectID() == id
 	})
 	if idx != -1 {
 		return f[idx]
 	}
 	return nil
+}
+
+// FilterByType will return a new slice filtered to the given favorite type.
+func (f Favorites) FilterByType(favoriteType FavoriteType) Favorites {
+	return slices.Collect(FilterSlice(f, func(f *Favorite) bool {
+		return f.Type == favoriteType
+	}))
 }

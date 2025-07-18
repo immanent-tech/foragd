@@ -97,7 +97,7 @@ templ (page *SettingsPage) subscriptionList() {
 							}
 						</td>
 						<td>
-							@partials.NewAction("/user/favourite/subscription/"+subscription.GetID(), partials.DisplayActionAsLink,
+							@partials.NewAction("/user/favorite/subscription/"+subscription.GetID(), partials.DisplayActionAsLink,
 								partials.ActionMethod(http.MethodPut),
 								partials.ActionSwap("none"),
 								partials.ActionLinkOptions(

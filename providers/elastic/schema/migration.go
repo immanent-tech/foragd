@@ -17,7 +17,16 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 )
 
-var validMigrations = []string{"feeds", "feeditems", "subscription", "users", "favourites", "ingest", "scheduler", "session"}
+var validMigrations = []string{
+	UsersSchemaPrefix,
+	FavoritesSchemaPrefix,
+	FeedsSchemaPrefix,
+	ItemsSchemaPrefix,
+	SubscriptionsSchemaPrefix,
+	SchedulerSchemaPrefix,
+	SessionsSchemaPrefix,
+	"ingest",
+}
 
 var ErrMigrationFailed = errors.New("schema migration failed")
 
@@ -33,19 +42,19 @@ func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrati
 		var err error
 
 		switch migration {
-		case "users":
+		case UsersSchemaPrefix:
 			err = migrateUsers(ctx, api, destructive)
-		case "favourites":
-			err = migrateFavourites(ctx, api, destructive)
-		case "feeds":
+		case FavoritesSchemaPrefix:
+			err = migrateFavorites(ctx, api, destructive)
+		case FeedsSchemaPrefix:
 			err = migrateFeeds(ctx, api, destructive)
-		case "feeditems":
+		case ItemsSchemaPrefix:
 			err = migrateFeedItems(ctx, api, destructive)
-		case "subscriptions":
+		case SubscriptionsSchemaPrefix:
 			err = migrateSubscriptions(ctx, api, destructive)
-		case "scheduler":
+		case SchedulerSchemaPrefix:
 			err = migrateScheduler(ctx, api, destructive)
-		case "session":
+		case SessionsSchemaPrefix:
 			err = migrateSession(ctx, api, destructive)
 		case "ingest":
 			err = migrateIngest(ctx, api)
@@ -105,30 +114,30 @@ func migrateUsers(ctx context.Context, api *typedapi.API, destructive bool) erro
 
 // migrateUsers contains migration actions for migrating users indices and
 // settings.
-func migrateFavourites(ctx context.Context, api *typedapi.API, destructive bool) error {
-	if err := elastic.PutComponentTemplate(ctx, api, FavouritesSchemaPrefix, NewComponentTemplateRequest(favouritesTemplate())); err != nil {
+func migrateFavorites(ctx context.Context, api *typedapi.API, destructive bool) error {
+	if err := elastic.PutComponentTemplate(ctx, api, FavoritesSchemaPrefix, NewComponentTemplateRequest(favoritesTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
-	slogctx.FromCtx(ctx).Debug("Added favourites component template...")
+	slogctx.FromCtx(ctx).Debug("Added Favorites component template...")
 
-	if err := elastic.PutIndexTemplate(ctx, api, FavouritesSchemaPrefix,
+	if err := elastic.PutIndexTemplate(ctx, api, FavoritesSchemaPrefix,
 		NewIndexTemplateRequest(
-			WithIndexPatterns(FavouritesSchemaPrefix+"_*"),
-			WithComponentTemplates(FavouritesSchemaPrefix),
+			WithIndexPatterns(FavoritesSchemaPrefix+"_*"),
+			WithComponentTemplates(FavoritesSchemaPrefix),
 		),
 	); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
-	slogctx.FromCtx(ctx).Debug("Added favourites index template...")
+	slogctx.FromCtx(ctx).Debug("Added Favorites index template...")
 
-	index := FavouritesSchemaPrefix + "_" + config.Environment()
+	index := FavoritesSchemaPrefix + "_" + config.Environment()
 	// Delete index if destructive set.
 	if destructive {
 		_, err := api.Indices.Delete(index).Do(ctx)
 		if err != nil && !elastic.ParseError(err).IsNotFound() {
 			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
-		slogctx.FromCtx(ctx).Debug("Deleted existing favourites index...")
+		slogctx.FromCtx(ctx).Debug("Deleted existing Favorites index...")
 	}
 	// Make sure the index doesn't exist before continuing.
 	found, err := api.Indices.Exists(index).Do(ctx)
@@ -141,7 +150,7 @@ func migrateFavourites(ctx context.Context, api *typedapi.API, destructive bool)
 		if err != nil {
 			return errors.Join(ErrMigrationFailed, err)
 		}
-		slogctx.FromCtx(ctx).Debug("Created new favourites index...")
+		slogctx.FromCtx(ctx).Debug("Created new Favorites index...")
 	}
 
 	return nil

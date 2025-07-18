@@ -3,18 +3,38 @@
 
 package partials
 
-import "github.com/joshuar/go-templ-daisyui/attributes"
+import (
+	"fmt"
+)
+
+const (
+	// FavoritesID is the id of the element containing the favorites list.
+	FavoritesID ID = "favorites"
+)
 
 var (
-	Favourites = attributes.ID("favourites")
 	// ContentID points to the element containing the main content of the page.
-	ContentID = attributes.ID("content")
+	ContentID = ID("content")
 	// ErrorID points to an element that can be used to display error messages to the user.
-	ErrorID = attributes.ID("error")
+	ErrorID = ID("error")
 	// ModalContainerID points to an element that holds a modal.
-	ModalContainerID = attributes.ID("modals")
+	ModalContainerID = ID("modals")
 	// ModalID points to an element that can be used to render a modal.
-	ModalID = attributes.ID("modal")
+	ModalID = ID("modal")
 	// NotificationsID points to an element that can be used for displaying notifications to the user.
-	NotificationsID = attributes.ID("notifications")
+	NotificationsID = ID("notifications")
 )
+
+// ID represents an id attribute in a HTML element.
+type ID string
+
+// Target returns the id attribute as a target (i.e., for htmx requests). This
+// is the base id string with a "#" prefix.
+func (a ID) Target() string {
+	return fmt.Sprintf("#%s", a)
+}
+
+// String returns the id attribute as a string.
+func (a ID) String() string {
+	return string(a)
+}

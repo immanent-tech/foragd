@@ -1,0 +1,58 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+
+package partials
+
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/server/session"
+	"github.com/sebasvil20/templicons/tabler"
+)
+
+templ favoriteIcon(fav *models.Favorite) {
+	switch fav.Type {
+		case models.FavoriteTypeSubscription:
+			@tabler.Rss()
+		case models.FavoriteTypeArticle:
+			@tabler.Article()
+		case models.FavoriteTypeSearch:
+			@tabler.Search()
+		default:
+			@tabler.Bookmark()
+	}
+}
+
+// FavoriteLink generates a link to the given favorite.
+templ FavoriteLink(fav *models.Favorite) {
+	switch fav.Type {
+		case models.FavoriteTypeSubscription:
+			// FavouriteSubscription.
+			{{ values := session.SubscriptionFiltersFromSession(ctx).Parameters() }}
+			{{ values[models.ParamSubscriptions] = fav.GetObjectID() }}
+			@NewAction("/subscriptions", DisplayActionAsLink,
+				ActionValues(values),
+				ActionPushURL(),
+				ActionHyperScript("on click call document.activeElement.blur() end"),
+			) {
+				<div class="icontext">
+					@favoriteIcon(fav)
+					{ fav.String() }
+				</div>
+			}
+		case models.FavoriteTypeArticle:
+			// FavoriteArticle.
+			{{ values := session.ArticleFiltersFromSession(ctx).Parameters() }}
+			{{ values[models.ParamArticles] = fav.GetObjectID() }}
+			@NewAction("/articles", DisplayActionAsLink,
+				ActionValues(values),
+				ActionPushURL(),
+				ActionHyperScript("on click call document.activeElement.blur() end"),
+			) {
+				<div class="icontext">
+					@favoriteIcon(fav)
+					{ fav.String() }
+				</div>
+			}
+	}
+}

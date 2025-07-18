@@ -163,10 +163,11 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			r.Get("/import", handler.ImportSubscriptions())
 			r.With(middlewares.RequireHTMX).Put("/import", handler.ImportSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/import", handler.ImportSubscriptions())
-			// Favourites.
-			r.Route("/favourite", func(r chi.Router) {
-				r.Put("/subscription/{subscription}", handler.AddFavouriteSubscription())
-				r.Delete("/subscription/{subscription}", handler.RemoveFavouriteSubscription())
+			// Favorites.
+			r.Route("/favorite", func(r chi.Router) {
+				r.Get("/", handler.GetFavorites())
+				r.Put("/subscription/{subscription}", handler.AddFavoriteSubscription())
+				r.Delete("/subscription/{subscription}", handler.RemoveFavoriteSubscription())
 			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {

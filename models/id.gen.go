@@ -16,7 +16,7 @@ func _() {
 	_ = x[SchedulerPFX-5]
 	_ = x[SessionPFX-6]
 	_ = x[UserPFX-7]
-	_ = x[FavouritePFX-8]
+	_ = x[FavoritePFX-8]
 	_ = x[Max-9]
 }
 

@@ -364,10 +364,10 @@ templ (c *Subscription) Card() {
 								</div>
 							}
 						</li>
-						// Favourite action.
+						// Favorite action.
 						<li _="on click call document.activeElement.blur()">
-							if c.Favourite {
-								@partials.NewAction("/user/favourite/subscription/"+c.GetID(), partials.DisplayActionAsLink,
+							if c.Favorite {
+								@partials.NewAction("/user/favorite/subscription/"+c.GetID(), partials.DisplayActionAsLink,
 									partials.ActionMethod(http.MethodDelete),
 									partials.ActionSwap("none"),
 									partials.ActionLinkOptions(
@@ -376,11 +376,11 @@ templ (c *Subscription) Card() {
 								) {
 									<div class="icontext">
 										@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
-										Remove Favourite
+										Remove Favorite
 									</div>
 								}
 							} else {
-								@partials.NewAction("/user/favourite/subscription/"+c.GetID(), partials.DisplayActionAsLink,
+								@partials.NewAction("/user/favorite/subscription/"+c.GetID(), partials.DisplayActionAsLink,
 									partials.ActionMethod(http.MethodPut),
 									partials.ActionSwap("none"),
 									partials.ActionLinkOptions(
@@ -389,7 +389,7 @@ templ (c *Subscription) Card() {
 								) {
 									<div class="icontext">
 										@tabler.Bookmark(i.Props{Size: i.SizeXS})
-										Add Favourite
+										Add Favorite
 									</div>
 								}
 							}

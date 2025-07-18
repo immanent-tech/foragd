@@ -7,7 +7,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -22,9 +21,6 @@ import (
 	"github.com/joshuar/go-feed-me/server"
 )
 
-// ErrServerCmd indicates an error occurred when running the server command.
-var ErrServerCmd = errors.New("error running server command")
-
 const (
 	// ServerReadTimeout is the default read timeout for the server.
 	ServerReadTimeout = 5 * time.Second
@@ -36,8 +32,6 @@ const (
 type ServeCmd struct{}
 
 // Run performs setup and execution for the server command.
-//
-//nolint:funlen
 func (r *ServeCmd) Run(opts *Arguments) error {
 	// Creating a waiting group that waits until the graceful shutdown procedure is done
 	var wg sync.WaitGroup
@@ -49,36 +43,8 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 	// Set up a new server interface.
 	svr, err := server.NewServer(ctx, opts.StaticContent)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrServerCmd, err)
+		return fmt.Errorf("could not start server: %w", err)
 	}
-
-	// // Set up a new chi router.
-	// router := chi.NewRouter()
-	// router.Handle("/static/*", middlewares.Etag(gowebly.StaticFileServerHandler(http.FS(opts.StaticContent))))
-
-	// // Get an `http.Handler` that we can use from the router and server.
-	// // handler := server.GenerateHandler(svr, router)
-	// handler := server.HandlerWithOptions(svr, server.ChiServerOptions{
-	// 	BaseRouter: router,
-	// 	Middlewares: []server.MiddlewareFunc{
-	// 		slogchi.NewWithConfig(slog.Default(), slogchi.Config{WithRequestID: true}),
-	// 		middleware.Recoverer,
-	// 		middleware.RequestID,
-	// 		middleware.RealIP,
-	// 		middlewares.SetupCORS(config.Environment()),
-	// 		// middlewares.CSP(server.ServerConfig.CSP),
-	// 		middlewares.SetupElastic(),
-	// 		handlers.RequireUserAuth(svr.DataAPI(), svr.AuthAPI()),
-	// 		middlewares.SetupHTMX(),
-	// 		middlewares.Etag,
-	// 		session.Manager.LoadAndSave,
-	// 	},
-	// })
-	// serverObj := &http.Server{
-	// 	Handler:           handler,
-	// 	Addr:              fmt.Sprintf(":%d", server.Port()),
-	// 	ReadHeaderTimeout: ServerReadTimeout,
-	// }
 
 	wg.Add(1)
 	// Listen for shutdown events and process them.
@@ -91,22 +57,13 @@ func (r *ServeCmd) Run(opts *Arguments) error {
 		<-stop
 
 		err = svr.Shutdown(context.Background())
-		// can't do much here except for logging any errors
+		// Can't do much here except for logging any errors
 		if err != nil {
-			log.Printf("error during shutdown: %v\n", err)
+			slog.Error("Error occurred when trying to shut down server.",
+				slog.Any("error", err),
+			)
 		}
 	}()
-
-	// wg.Add(1)
-	// // Start the scheduler.
-	// go func() {
-	// 	defer wg.Done()
-	// 	if err := scheduler.Run(ctx); err != nil {
-	// 		svr.Log.Error("Error running scheduler.",
-	// 			slog.Any("error", err))
-	// 		cancelFunc()
-	// 	}
-	// }()
 
 	slogctx.FromCtx(ctx).Info("Starting server...",
 		slog.Int("port", server.ServerConfig.Port),

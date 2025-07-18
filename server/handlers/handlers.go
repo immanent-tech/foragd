@@ -9,6 +9,8 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"slices"
+	"strings"
 
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
@@ -118,6 +120,23 @@ func TriggerStateUpdates(next http.Handler) http.Handler {
 		ctx := htmxRespToCtx(req.Context(), resp.AddTrigger(htmx.Trigger("updateState")))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
+}
+
+// TriggerEvents will add event triggers for the list of given events to the response.
+func TriggerEvents(events ...string) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			slogctx.FromCtx(req.Context()).Debug("Triggering event listeners.",
+				slog.String("events", strings.Join(events, ",")),
+			)
+			resp := htmxRespFromCtx(req.Context())
+			for event := range slices.Values(events) {
+				resp = resp.AddTrigger(htmx.Trigger(event))
+			}
+			ctx := htmxRespToCtx(req.Context(), resp)
+			next.ServeHTTP(res, req.WithContext(ctx))
+		})
+	}
 }
 
 // SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has

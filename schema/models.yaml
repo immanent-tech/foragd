@@ -91,14 +91,14 @@ components:
         json: 'user_id'
         validate: 'required'
         form: 'user_id'
-    FavouriteID:
-      description: is the unique ID of a favourite.
+    FavoriteID:
+      description: is the unique ID of a Favorite.
       type: string
-      x-go-name: FavouriteID
+      x-go-name: FavoriteID
       x-oapi-codegen-extra-tags:
         validate: 'required,startswith=fav_'
-        json: 'favourite_id'
-        form: 'favourite_id'
+        json: 'favorite_id'
+        form: 'favorite_id'
     Category:
       description: >
         represents a taxonomy applied to an object.
@@ -177,9 +177,9 @@ components:
             the user interface theme chosen by the user.
           type: string
           default: dracula
-    Favourite:
+    Favorite:
       description: >
-        is an object that the user has marked as a favourite. Favourites  have higher visibility in the display and
+        is an object that the user has marked as a Favorite. Favorites  have higher visibility in the display and
         score higher in search results.
       type: object
       required:
@@ -194,36 +194,34 @@ components:
         user_id:
           $ref: '#/components/schemas/UserID'
         id:
-          $ref: '#/components/schemas/FavouriteID'
+          $ref: '#/components/schemas/FavoriteID'
         object_id:
           description: >
-            is the (optional) id of the object that has been favourited, where the favourite is an object type (e.g.,
+            is the (optional) id of the object that has been Favorited, where the Favorite is an object type (e.g.,
             subscription or article).
           type: string
           x-go-name: ObjectID
         type:
           description: >
-            is the type of favourite.
+            is the type of Favorite.
           type: string
           enum: ['subscription', 'article', 'search']
         data:
           description: >
-            contains the (optional) data pertaining to the type of favourite.
+            contains the (optional) data pertaining to the type of Favorite.
           oneOf:
-            - $ref: '#/components/schemas/FavouriteArticle'
-            - $ref: '#/components/schemas/FavouriteSearch'
-    # FavouriteSubscription:
-    #   description: >
-    #     is a subscription that the user has marked as a favourite.
-    #   type: object
-    #   required:
-    #     - subscription_id
-    #   properties:
-    #     subscription_id:
-    #       $ref: '#/components/schemas/SubscriptionID'
-    FavouriteArticle:
+            - $ref: '#/components/schemas/FavoriteSubscription'
+            - $ref: '#/components/schemas/FavoriteArticle'
+            - $ref: '#/components/schemas/FavoriteSearch'
+    FavoriteSubscription:
       description: >
-        is an article that the user has marked as a favourite.
+        is a subscription that the user has marked as a Favorite.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ObjectCustomisation'
+    FavoriteArticle:
+      description: >
+        is an article that the user has marked as a Favorite.
       type: object
       properties:
         item:
@@ -232,12 +230,20 @@ components:
           $ref: '#/components/schemas/SubscriptionID'
         subscription_customisation:
           $ref: '#/components/schemas/ObjectCustomisation'
-    FavouriteSearch:
+    FavoriteSearch:
       description: >
-        is a search that the user has marked as a favourite.
+        is a search that the user has marked as a Favorite.
       type: object
       allOf:
         - $ref: 'api.yaml#/components/schemas/SearchRequest'
+        - type: object
+          required:
+            - name
+          properties:
+            nickname:
+              description: >
+                a nickname for this search.
+              type: string
     UserSession:
       description: tracks a user session.
       type: object
@@ -503,9 +509,9 @@ components:
           x-oapi-codegen-extra-tags:
             json: '-'
             validate: 'gte=0'
-        favourite:
+        Favorite:
           description: >
-            indicates whether this subscription has been marked as a favourite by the user.
+            indicates whether this subscription has been marked as a Favorite by the user.
           type: boolean
     Article:
       description: >
@@ -523,7 +529,7 @@ components:
           $ref: '#/components/schemas/ObjectCustomisation'
         state:
           $ref: '#/components/schemas/ObjectState'
-        favourite:
+        Favorite:
           description: >
-            indicates whether this article has been marked as a favourite by the user.
+            indicates whether this article has been marked as a Favorite by the user.
           type: boolean

@@ -16,6 +16,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/validation"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
@@ -59,10 +60,48 @@ func (a *API) SetTheme() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// AddFavouriteSubscription handles adding a new favourite subscription for a user.
-func (a *API) AddFavouriteSubscription() http.HandlerFunc {
+func (a *API) GetFavorites() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			RenderResponse(RespForbidden()).ServeHTTP(res, req)
+			return
+		}
+		// Retrieve favorites index.
+		index := elastic.FavoritesIndexFromCtx(req.Context())
+		if index == "" {
+			RenderResponse(RespBackendError(ErrNoCtxData)).ServeHTTP(res, req)
+			return
+		}
+		// Set up the query to retrieve favorite subscriptions for the user.
+		query := query.Bool(
+			query.Filter(
+				query.Term("user_id", user.GetID()),
+			),
+		)
+		// Run the query.
+		var favorites models.Favorites
+		var err error
+		favorites, err = elastic.SearchAll[*models.Favorite](req.Context(), a.DataAPI().GetAPI(), index, query, 0)
+		if err != nil {
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			return
+		}
+		// Render the favorites list.
+		resp := models.NewResponse(
+			models.WithResponseTemplate(layouts.FavoritesList(favorites)),
+		)
+		RenderResponse(resp).ServeHTTP(res, req)
+	}).ServeHTTP
+}
+
+// AddFavoriteSubscription handles adding a new favorite subscription for a user.
+func (a *API) AddFavoriteSubscription() http.HandlerFunc {
+	return alice.New(
+		RouteLogger,
+		TriggerEvents("updateFavorites"),
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "subscription")
 		if valid, err := validation.ValidateVariable(id, "required,startswith=sub_"); !valid || err != nil {
@@ -74,13 +113,19 @@ func (a *API) AddFavouriteSubscription() http.HandlerFunc {
 			RenderResponse(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
-		// Create a new favourite subscription.
-		fav, err := models.NewFavouriteSubscription(user.GetID(), id)
+		// Get the subscription state.
+		states, err := a.getSubscriptionStates(req.Context(), id)
 		if err != nil {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
-		err = a.addFavourite(req.Context(), fav)
+		// Create a new Favorite subscription.
+		fav, err := models.NewFavoriteSubscription(user.GetID(), id, states[0].Customisation)
+		if err != nil {
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			return
+		}
+		err = a.addFavorite(req.Context(), fav)
 		if err != nil {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
@@ -89,8 +134,8 @@ func (a *API) AddFavouriteSubscription() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// RemoveFavouriteSubscription handles removing a favourite subscription for a user.
-func (a *API) RemoveFavouriteSubscription() http.HandlerFunc {
+// RemoveFavoriteSubscription handles removing a Favorite subscription for a user.
+func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -104,16 +149,16 @@ func (a *API) RemoveFavouriteSubscription() http.HandlerFunc {
 			RenderResponse(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
-		// Create the query to remove the favourite.
+		// Create the query to remove the Favorite.
 		query := query.Bool(
 			query.Filter(
 				query.Term("object_id", id),
 				query.Term("user_id", user.GetID()),
-				query.Term("type", models.FavouriteTypeSubscription),
+				query.Term("type", models.FavoriteTypeSubscription),
 			),
 		)
-		// Remove the favourite.
-		err := a.removeFavourite(req.Context(), query)
+		// Remove the Favorite.
+		err := a.removeFavorite(req.Context(), query)
 		if err != nil {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
@@ -136,26 +181,26 @@ func (a *API) updateUser(ctx context.Context, updates map[string]any) error {
 	return nil
 }
 
-func (a *API) addFavourite(ctx context.Context, fav *models.Favourite) error {
-	index := elastic.FavouritesIndexFromCtx(ctx)
+func (a *API) addFavorite(ctx context.Context, fav *models.Favorite) error {
+	index := elastic.FavoritesIndexFromCtx(ctx)
 	if index == "" {
 		return ErrNoCtxData
 	}
 	err := elastic.CreateDoc(ctx, a.DataAPI().GetAPI(), index, fav.GetID(), fav)
 	if err != nil {
-		return fmt.Errorf("could not add favourite: %w", err)
+		return fmt.Errorf("could not add Favorite: %w", err)
 	}
 	return nil
 }
 
-func (a *API) removeFavourite(ctx context.Context, query query.Option) error {
-	index := elastic.FavouritesIndexFromCtx(ctx)
+func (a *API) removeFavorite(ctx context.Context, query query.Option) error {
+	index := elastic.FavoritesIndexFromCtx(ctx)
 	if index == "" {
 		return ErrNoCtxData
 	}
 	err := elastic.DeleteDocs(ctx, a.DataAPI().GetAPI(), index, query)
 	if err != nil {
-		return fmt.Errorf("could not remove favourite: %w", err)
+		return fmt.Errorf("could not remove Favorite: %w", err)
 	}
 	return nil
 }

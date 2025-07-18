@@ -12,7 +12,7 @@ var ErrFetchCtx = errors.New("error fetching context value")
 
 const (
 	userIndexCtxKey     contextKey = "users"
-	favouritesCtxKey    contextKey = "favourites"
+	FavoritesCtxKey    contextKey = "Favorites"
 	feedsIndexCtxKey    contextKey = "feeds"
 	itemsIndexCtxKey    contextKey = "items"
 	subscriptionsCtxKey contextKey = "subscriptions"
@@ -100,12 +100,12 @@ func SubscriptionsIndexFromCtx(ctx context.Context) string {
 	return ""
 }
 
-func FavouritesIndexToCtx(ctx context.Context, index string) context.Context {
-	return context.WithValue(ctx, favouritesCtxKey, index)
+func FavoritesIndexToCtx(ctx context.Context, index string) context.Context {
+	return context.WithValue(ctx, FavoritesCtxKey, index)
 }
 
-func FavouritesIndexFromCtx(ctx context.Context) string {
-	if value, ok := ctx.Value(favouritesCtxKey).(string); ok {
+func FavoritesIndexFromCtx(ctx context.Context) string {
+	if value, ok := ctx.Value(FavoritesCtxKey).(string); ok {
 		return value
 	}
 
