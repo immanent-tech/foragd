@@ -1,21 +1,11 @@
-volumes:
-  certs:
-  es01-data:
-  es02-data:
-  es03-data:
-  kibana-data:
-  filebeat-registry:
-  stepca:
-networks:
-  go-feed-me:
-    enable_ipv6: false
 services:
   devcontainer:
-    image: mcr.microsoft.com/devcontainers/base:ubuntu-22.04
+    env_file:
+      - .env
+    image: mcr.microsoft.com/devcontainers/base:ubuntu-24.04
     volumes:
       - ..:/workspace:Z,cached
       - /etc/localtime:/etc/localtime:ro,cached
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
     command: sleep infinity
     user: vscode
     cap_add:
@@ -23,23 +13,21 @@ services:
     security_opt:
       - seccomp:unconfined
     hostname: devcontainer
-    networks:
-      - go-feed-me
     ports:
-      - 7000:7000
+      - $GOFEEDME_SERVER_PORT:$GOFEEDME_SERVER_PORT
   stepca:
+    env_file:
+      - .env
     hostname: stepca
     image: docker.io/smallstep/step-ca
-    networks:
-      - go-feed-me
     restart: always
     volumes:
-      - stepca:/home/step
+      - ../deployments/stepca:/home/step
     environment:
       - DOCKER_STEPCA_INIT_NAME=GOFEEDME
       - DOCKER_STEPCA_INIT_DNS_NAMES=localhost,stepca
       - DOCKER_STEPCA_INIT_REMOTE_MANAGEMENT=true
-      - DOCKER_STEPCA_INIT_REMOTE_MANAGEMENT=acme
+      - DOCKER_STEPCA_INIT_PASSWORD=$DOCKER_STEPCA_INIT_PASSWORD
     ports:
       - 9000:9000
   setup:
@@ -48,8 +36,6 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
-    networks:
-      - go-feed-me
     command: |
       bash -c '
               if [ x$${ELASTIC_PASSWORD:-gofeedme} == x ]; then
@@ -111,14 +97,12 @@ services:
       setup:
         condition: service_healthy
     hostname: es01
-    networks:
-      - go-feed-me
     env_file:
       - .env
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
-      - es01-data:/usr/share/elasticsearch/data
+      - ../deployments/elasticsearch/es01/data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
     environment:
@@ -148,6 +132,9 @@ services:
       memlock:
         soft: -1
         hard: -1
+      nofile:
+        soft: 65535
+        hard: 65535
     healthcheck:
       test:
         [
@@ -165,13 +152,11 @@ services:
       - es01
     hostname: es02
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
-    networks:
-      - go-feed-me
     env_file:
       - .env
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
-      - es02-data:/usr/share/elasticsearch/data
+      - ../deployments/elasticsearch/es02/data:/usr/share/elasticsearch/data
     environment:
       - node.name=es02
       - cluster.name=$CLUSTER_NAME
@@ -199,6 +184,9 @@ services:
       memlock:
         soft: -1
         hard: -1
+      nofile:
+        soft: 65535
+        hard: 65535
     healthcheck:
       test:
         [
@@ -215,12 +203,10 @@ services:
     depends_on:
       - es02
     hostname: es03
-    networks:
-      - go-feed-me
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
-      - es03-data:/usr/share/elasticsearch/data
+      - ../deployments/elasticsearch/es03/data:/usr/share/elasticsearch/data
     env_file:
       - .env
     environment:
@@ -250,6 +236,9 @@ services:
       memlock:
         soft: -1
         hard: -1
+      nofile:
+        soft: 65535
+        hard: 65535
     healthcheck:
       test:
         [
@@ -271,14 +260,12 @@ services:
       es03:
         condition: service_healthy
     hostname: kibana
-    networks:
-      - go-feed-me
     env_file:
       - .env
     image: docker.elastic.co/kibana/kibana:$STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/kibana/config/certs
-      - kibana-data:/usr/share/kibana/data
+      - ../deployments/kibana/data:/usr/share/kibana/data
     ports:
       - 5601:5601
     environment:
