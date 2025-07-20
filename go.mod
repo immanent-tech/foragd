@@ -1,17 +1,16 @@
 module github.com/joshuar/go-feed-me
 
-go 1.24.4
+go 1.24.5
 
 replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
 
 replace github.com/joshuar/go-syndication v0.0.0 => ./models/feeds
 
 require (
-	github.com/a-h/templ v0.3.906
+	github.com/a-h/templ v0.3.920
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.25.0
-	github.com/davecgh/go-spew v1.1.1
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.27.0
@@ -38,7 +37,7 @@ require (
 	github.com/elastic/elastic-transport-go/v8 v8.7.0 // indirect
 	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
-	github.com/go-json-experiment/json v0.0.0-20250223041408-d3c622f1b874 // indirect
+	github.com/go-json-experiment/json v0.0.0-20250714165856-be8212f5270d // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/securecookie v1.1.2 // indirect
@@ -74,7 +73,6 @@ require (
 	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	github.com/invopop/yaml v0.3.1 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/justinas/alice v1.2.0
 	github.com/knadh/koanf/maps v0.1.2 // indirect
@@ -99,7 +97,7 @@ require (
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
 	github.com/veqryn/slog-context v0.8.0
-	github.com/veqryn/slog-json v0.4.0
+	github.com/veqryn/slog-json v0.5.0
 	github.com/vmware-labs/yaml-jsonpath v0.3.2 // indirect
 	go.devnw.com/structs v1.0.0 // indirect
 	go.opentelemetry.io/otel v1.35.0 // indirect
