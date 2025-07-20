@@ -27,17 +27,18 @@ import (
 	"github.com/auth0/go-auth0/authentication/database"
 )
 
-var ErrConnectAPIFail = errors.New("could not connect to Auth0 API")
+var ErrAuth0Backend = errors.New("auth0 backend error")
 
-const UserDBConnection = "Username-Password-Authentication"
+const userDBConnection = "Username-Password-Authentication"
 
 type UserAPI struct {
 	api *authentication.Authentication
 }
 
+// NewUserAPI creates a new user API backend object for user account management.
 func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 	if err := loadConfigOnce(); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrConnectAPIFail, err)
+		return nil, fmt.Errorf("%w: %w", ErrAuth0Backend, err)
 	}
 
 	authAPI, err := authentication.New(
@@ -47,7 +48,7 @@ func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 		authentication.WithClientSecret(auth0Config.ClientSecret),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("could not connect to Auth0 API: %w", err)
+		return nil, fmt.Errorf("%w: %w", ErrAuth0Backend, err)
 	}
 
 	api := &UserAPI{
@@ -57,9 +58,10 @@ func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 	return api, nil
 }
 
+// Create will create a new user account with the given details on the backend.
 func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest) (string, *models.Response) {
 	userData := database.SignupRequest{
-		Connection: UserDBConnection,
+		Connection: userDBConnection,
 		Nickname:   details.Nickname,
 		Email:      details.Email,
 		Password:   details.Password,
@@ -70,12 +72,12 @@ func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest)
 		if authErr, ok := err.(*authentication.Error); ok {
 			return "", models.NewResponse(
 				models.WithResponseStatusCode(authErr.StatusCode),
-				models.WithResponseError(err),
+				models.WithResponseError(fmt.Errorf("%w: %w", ErrAuth0Backend, authErr)),
 			)
 		}
 		return "", models.NewResponse(
 			models.WithResponseStatusCode(http.StatusServiceUnavailable),
-			models.WithResponseError(err),
+			models.WithResponseError(fmt.Errorf("%w: %w", ErrAuth0Backend, err)),
 		)
 	}
 

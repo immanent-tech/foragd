@@ -16,7 +16,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/views"
 )
 
-// SignupSetup handles setting up a new user signup request.
+// SignupSetup handles setting up a new user sign up request.
 func SignupSetup() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
@@ -25,7 +25,7 @@ func SignupSetup() http.HandlerFunc {
 	))).ServeHTTP
 }
 
-// Signup handles processing a user signup request and showing the result.
+// Signup handles processing a user sign up request and showing the result.
 func (a *API) Signup() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
@@ -33,7 +33,7 @@ func (a *API) Signup() http.HandlerFunc {
 			RouteLogger,
 		)
 		var err error
-		// Extract the provider and signup request details.
+		// Extract the provider and sign up request details.
 		provider := chi.URLParam(req, "provider")
 		newUser, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
 		if err != nil || !valid {

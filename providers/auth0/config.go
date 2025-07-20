@@ -4,7 +4,7 @@
 package auth0
 
 import (
-	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/joshuar/go-feed-me/config"
@@ -15,11 +15,7 @@ const (
 	auth0ConfigPrefix    = "auth0"
 )
 
-// Default auth0Config values.
-var (
-	auth0Config   = &Config{}
-	ErrLoadConfig = errors.New("error loading config")
-)
+var auth0Config = &Config{}
 
 // Config structure.
 type Config struct {
@@ -33,8 +29,9 @@ type Config struct {
 var loadConfigOnce = sync.OnceValue(loadConfig)
 
 func loadConfig() error {
-	if err := config.Load(auth0ConfigPrefix, auth0ConfigEnvPrefix, auth0Config); err != nil {
-		return errors.Join(config.ErrLoadConfig, err)
+	err := config.Load(auth0ConfigPrefix, auth0ConfigEnvPrefix, auth0Config)
+	if err != nil {
+		return fmt.Errorf("%w: %w", config.ErrLoadConfig, err)
 	}
 
 	return nil

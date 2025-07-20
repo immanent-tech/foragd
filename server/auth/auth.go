@@ -67,15 +67,6 @@ func (u *UserAuth) GetEmail() string {
 	return u.Email
 }
 
-// SessionAPI is an interface representing a backend session store.
-type SessionAPI interface {
-	Exists(ctx context.Context, key string) bool
-	Get(ctx context.Context, key string) any
-	GetString(ctx context.Context, key string) string
-	Put(ctx context.Context, key string, val any)
-	LoadAndSave(next http.Handler) http.Handler
-}
-
 // Authenticator manages user authentication to a provider.
 type Authenticator struct{}
 
@@ -120,6 +111,7 @@ func (a *Authenticator) Save(req *http.Request, _ http.ResponseWriter, s *sessio
 	return nil
 }
 
+// CompleteUserAuth handles processing a callback from a login provider to verify the login request.
 func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Request) error {
 	providerName, err := gothic.GetProviderName(req)
 	if err != nil {

@@ -60,6 +60,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 	}).ServeHTTP
 }
 
+// GetFavorites handles getting the list of user favorites and displaying them in the side drawer.
 func (a *API) GetFavorites() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
