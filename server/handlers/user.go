@@ -120,15 +120,21 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
-		// Create a new Favorite subscription.
+		// Create a new favorite subscription.
 		fav, err := models.NewFavoriteSubscription(user.GetID(), id, states[0].Customisation)
 		if err != nil {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
-		err = a.addFavorite(req.Context(), fav)
+		// Add the favorite subscription.
+		index := elastic.FavoritesIndexFromCtx(req.Context())
+		if index == "" {
+			RenderResponse(RespBackendError(ErrNoCtxData)).ServeHTTP(res, req)
+			return
+		}
+		err = elastic.CreateDoc(req.Context(), a.DataAPI().GetAPI(), index, fav.GetID(), fav)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			RenderResponse(RespBackendError(fmt.Errorf("could not add favorite subscription: %w", err))).ServeHTTP(res, req)
 			return
 		}
 		res.WriteHeader(http.StatusOK)
@@ -158,10 +164,15 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 				query.Term("type", models.FavoriteTypeSubscription),
 			),
 		)
-		// Remove the Favorite.
-		err := a.removeFavorite(req.Context(), query)
+		// Remove the favorite.
+		index := elastic.FavoritesIndexFromCtx(req.Context())
+		if index == "" {
+			RenderResponse(RespBackendError(ErrNoCtxData)).ServeHTTP(res, req)
+			return
+		}
+		err := elastic.DeleteDocs(req.Context(), a.DataAPI().GetAPI(), index, query)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			RenderResponse(RespBackendError(fmt.Errorf("could not remove Favorite: %w", err))).ServeHTTP(res, req)
 			return
 		}
 		res.WriteHeader(http.StatusOK)
@@ -178,30 +189,6 @@ func (a *API) updateUser(ctx context.Context, updates map[string]any) error {
 
 	if err := elastic.UpdateDoc(ctx, a.DataAPI().GetAPI(), index, user.GetID(), updates); err != nil {
 		return fmt.Errorf("could not update user: %w", err)
-	}
-	return nil
-}
-
-func (a *API) addFavorite(ctx context.Context, fav *models.Favorite) error {
-	index := elastic.FavoritesIndexFromCtx(ctx)
-	if index == "" {
-		return ErrNoCtxData
-	}
-	err := elastic.CreateDoc(ctx, a.DataAPI().GetAPI(), index, fav.GetID(), fav)
-	if err != nil {
-		return fmt.Errorf("could not add Favorite: %w", err)
-	}
-	return nil
-}
-
-func (a *API) removeFavorite(ctx context.Context, query query.Option) error {
-	index := elastic.FavoritesIndexFromCtx(ctx)
-	if index == "" {
-		return ErrNoCtxData
-	}
-	err := elastic.DeleteDocs(ctx, a.DataAPI().GetAPI(), index, query)
-	if err != nil {
-		return fmt.Errorf("could not remove Favorite: %w", err)
 	}
 	return nil
 }

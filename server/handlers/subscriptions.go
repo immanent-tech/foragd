@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -23,6 +24,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
+	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -122,7 +124,8 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Debug("Subscription removal confirmed.",
 				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
 			)
-			if resp := a.removeSubscriptions(req.Context(), request.Subscriptions...); resp != nil {
+			err := a.removeSubscriptions(req.Context(), request.Subscriptions...)
+			if err != nil {
 				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
@@ -264,6 +267,7 @@ func NewSubscription() http.HandlerFunc {
 	}
 }
 
+// AddSubscription handles adding a new subscription requested by the user.
 func (a *API) AddSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
@@ -400,13 +404,13 @@ func (a *API) getSubscriptionStates(ctx context.Context, ids ...models.Subscript
 		return nil, models.ErrNoUserCtx
 	}
 
-	s := user.GetSubscriptionsByID(ids...)
+	subscriptions := user.GetSubscriptionsByID(ids...)
 	index := elastic.SubscriptionsIndexFromCtx(ctx)
 	if index == "" {
 		return nil, elastic.ErrFetchCtx
 	}
 
-	states, err := elastic.GetDocs[models.SubscriptionID, *models.SubscriptionState](ctx, a.DataAPI().GetAPI(), index, slices.Collect(maps.Keys(s))...)
+	states, err := elastic.GetDocs[models.SubscriptionID, *models.SubscriptionState](ctx, a.DataAPI().GetAPI(), index, slices.Collect(maps.Keys(subscriptions))...)
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
 			slog.Any("warnings", err))
@@ -630,11 +634,9 @@ func (r addSubscriptionRequests) feedURLs() []string {
 	return urls
 }
 
-// MatchFeedsToSubscriptionRequests takes a list of subscription requests, extracts the URLs in each and attempt to
+// matchFeedsToSubscriptionRequests takes a list of subscription requests, extracts the URLs in each and attempt to
 // match them to existing feeds. Where there is no existing feed, it will attempt to generate new feed data. It then
 // stores the subscriptions that need new feeds and any with existing feeds in the context for the next handler.
-//
-//nolint:funlen
 func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Context, api *API) (views.AddSubscriptionResults, error) {
 	// Extract user data.
 	user, found := models.UserFromCtx(ctx)
@@ -671,7 +673,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 	for request := range r {
 		feed := existingFeeds.FindByURL(request.GetURL())
 		switch {
-		case feed == nil: // no existing feed, create a new one.
+		case feed == nil: // No existing feed, create a new one.
 			newFeed, err := models.NewFeedFromURL(ctx, request.GetURL())
 			if err != nil {
 				details := fmt.Sprintf("The feed URL (%s) cannot be parsed as a feed source or is not a valid URL.", request.GetURL())
@@ -687,14 +689,14 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 				slog.String("subscription", request.String()),
 				slog.String("feed", newFeed.String()),
 			)
-		case user.IsSubscribedToFeed(feed.GetID()): // user already subscribed, ignore request.
+		case user.IsSubscribedToFeed(feed.GetID()): // User already subscribed, ignore request.
 			details := fmt.Sprintf("A subscription for the feed with URL %s already exists.", request.GetURL())
 			results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
 				Status:  models.UserMessageStatusWarning,
 				Summary: "Already subscribed.",
 				Details: &details,
 			})
-		default: // existing feed.
+		default: // Existing feed.
 			r[request] = feed
 			slogctx.FromCtx(ctx).Debug("Existing feed for subscription.",
 				slog.String("subscription", request.String()),
@@ -724,8 +726,12 @@ func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (
 	// return results, nil
 
 	// Add the new feeds.
-	addFeedsResults, err := api.DataAPI().AddFeeds(ctx, slices.Collect(maps.Values(r))...)
-	if err != nil {
+	index := elastic.FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, models.ErrNoUserCtx
+	}
+	addFeedsResults, err := elastic.BulkAdd(ctx, api.DataAPI(), index, slices.Collect(maps.Values(r))...)
+	if err != nil && !errors.Is(err, bulk.ErrBulkHasErrors) {
 		return nil, fmt.Errorf("createNewFeeds: %w", err)
 	}
 
@@ -736,15 +742,15 @@ func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (
 			if resp.Created() {
 				// Success, add request to map of subscription needed.
 				r[request] = feed
-				continue
+			} else {
+				details := "An internal, irrecoverable backend error occurred trying to add a subscription for the URL " + request.GetURL()
+				results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
+					Status:  models.UserMessageStatusError,
+					Summary: "Internal Error. ",
+					Details: &details,
+				})
 			}
 		}
-		details := "An internal, irrecoverable backend error occurred trying to add a subscription for the URL " + request.GetURL()
-		results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
-			Status:  models.UserMessageStatusError,
-			Summary: "Internal Error. ",
-			Details: &details,
-		})
 	}
 	return results, nil
 }
