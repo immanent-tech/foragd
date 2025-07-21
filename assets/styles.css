@@ -2,6 +2,7 @@
 @plugin "@tailwindcss/typography";
 @plugin "daisyui" {
   themes: all;
+  /* exclude: rootscrollgutter; */
 }
 @source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
 
@@ -10,15 +11,11 @@
     @apply flex items-center gap-2;
   }
   /* Fade in notification messages */
-  #notifications.htmx-added {
+  .alert.htmx-added {
     opacity: 0;
   }
-  #notifications {
+  .alert {
     opacity: 1;
     transition: opacity 1s ease-out;
-  }
-
-  #content {
-    transition: all ease-in 1s;
   }
 }
