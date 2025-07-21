@@ -48,7 +48,7 @@ var CommonObjectMappings = map[string]types.Property{
 	"url":          types.NewKeywordProperty(),
 	"image": types.ObjectProperty{
 		Properties: map[string]types.Property{
-			"value": types.NewKeywordProperty(),
+			"url":   types.NewKeywordProperty(),
 			"title": longTextFieldProperty(),
 		},
 	},
