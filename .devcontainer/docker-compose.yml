@@ -1,3 +1,8 @@
+volumes:
+  es01data:
+  es02data:
+  es03data:
+  kibanadata:
 services:
   devcontainer:
     env_file:
@@ -102,7 +107,8 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
-      - ../deployments/elasticsearch/es01/data:/usr/share/elasticsearch/data
+      - ../deployments/elasticsearch/es01/logs:/usr/share/elasticsearch/logs
+      - es01data:/usr/share/elasticsearch/data
     ports:
       - $ES_PORT:9200
     environment:
@@ -156,7 +162,8 @@ services:
       - .env
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
-      - ../deployments/elasticsearch/es02/data:/usr/share/elasticsearch/data
+      - ../deployments/elasticsearch/es02/logs:/usr/share/elasticsearch/logs
+      - es02data:/usr/share/elasticsearch/data
     environment:
       - node.name=es02
       - cluster.name=$CLUSTER_NAME
@@ -206,7 +213,8 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
-      - ../deployments/elasticsearch/es03/data:/usr/share/elasticsearch/data
+      - ../deployments/elasticsearch/es03/logs:/usr/share/elasticsearch/logs
+      - es03data:/usr/share/elasticsearch/data
     env_file:
       - .env
     environment:
@@ -265,7 +273,8 @@ services:
     image: docker.elastic.co/kibana/kibana:$STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/kibana/config/certs
-      - ../deployments/kibana/data:/usr/share/kibana/data
+      - ../deployments/kibana/logs:/usr/share/kibana/logs
+      - kibanadata:/usr/share/kibana/data
     ports:
       - $KIBANA_PORT:5601
     environment:
