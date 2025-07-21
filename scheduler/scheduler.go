@@ -6,6 +6,7 @@ package scheduler
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -18,7 +19,6 @@ import (
 	"github.com/joshuar/go-feed-me/config"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 )
@@ -27,13 +27,7 @@ const (
 	defaultOutdatedThreshold = 50 * time.Second
 )
 
-// DataAPI is the interface that provides access to the data-store backend in use.
-type DataAPI interface {
-	GetFeeds(ctx context.Context, feedIDs ...models.FeedID) (models.Feeds, error)
-	SearchFeeds(ctx context.Context, query query.Option, count int, sort *models.Sort, pagination *models.Pagination) (models.Feeds, models.Pagination, error)
-	AddItems(ctx context.Context, items ...*models.Item) (map[models.ItemID]*bulk.OperationResponse, error)
-	MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error
-}
+var ErrScheduler = errors.New("scheduler encountered an error")
 
 // Manager contains data for managing a scheduler instance.
 type Manager struct {
@@ -89,11 +83,11 @@ func Run(ctx context.Context) error {
 	ticker := time.NewTicker(time.Minute)
 
 	jobChecker := func() {
-		if err := manager.checkFeeds(ctx); err != nil {
-			slogctx.FromCtx(ctx).
-				WithGroup("scheduler").
-				Error("Checking for new feeds failed.",
-					slog.Any("error", err))
+		err := manager.checkFeeds(ctx)
+		if err != nil {
+			slogctx.FromCtx(ctx).WithGroup("scheduler").Error("Checking for new feeds failed.",
+				slog.Any("error", err),
+			)
 		}
 	}
 
@@ -129,40 +123,29 @@ func Run(ctx context.Context) error {
 }
 
 func (m *Manager) checkFeeds(ctx context.Context) error {
-	// Paginate to retrieve all feeds.
+	// Get all new feeds created since last checkpoint.
+	index := elastic.FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return fmt.Errorf("%w: no feed index found", ErrScheduler)
+	}
 	var feeds models.Feeds
-	var pagination *models.Pagination
-	for {
-		results, next, err := m.db.SearchFeeds(ctx, query.Since("created_at", m.checkpoint), 100, nil, pagination)
-		if err != nil {
-			return fmt.Errorf("checking for new feeds failed: %w", err)
-		}
-
-		feeds = append(feeds, results...)
-
-		if len(feeds) < 100 {
-			break
-		}
-		pagination = &next
+	feeds, err := elastic.SearchAll[*models.Feed](ctx, m.db.GetAPI(), index, query.Since("created_at", m.checkpoint), 1000)
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrScheduler, err)
 	}
-
-	if len(feeds) == 0 {
-		return nil
-	}
-
 	slogctx.FromCtx(ctx).Debug("Retrieved new feeds.",
 		slog.Int("count", len(feeds)),
 	)
-
+	// Update the checkpoint.
 	m.checkpoint = time.Now().UTC()
-
+	// Get all existing feed jobs.
 	existingJobs, err := m.scheduler.GetJobKeys()
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Could not get existing job keys from scheduler.",
 			slog.Any("error", err),
 		)
 	}
-
+	// Create new feed jobs where necessary.
 	for feed := range slices.Values(feeds) {
 		var (
 			job quartz.ScheduledJob
@@ -177,13 +160,15 @@ func (m *Manager) checkFeeds(ctx context.Context) error {
 			continue
 		}
 		if slices.Contains(existingJobs, job.JobDetail().JobKey()) {
-			if err := m.scheduler.ResumeJob(job.JobDetail().JobKey()); err != nil {
+			err := m.scheduler.ResumeJob(job.JobDetail().JobKey())
+			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Failed to resume job for feed.",
 					slog.String("feed_id", feed.GetID()),
 					slog.Any("error", err))
 			}
 		} else {
-			if err := m.scheduler.ScheduleJob(job.JobDetail(), job.Trigger()); err != nil {
+			err := m.scheduler.ScheduleJob(job.JobDetail(), job.Trigger())
+			if err != nil {
 				slogctx.FromCtx(ctx).Warn("Failed to schedule job for feed.",
 					slog.String("feed_id", feed.GetID()),
 					slog.Any("error", err))
@@ -201,7 +186,6 @@ func (m *Manager) checkFeeds(ctx context.Context) error {
 				),
 			)
 		}
-
 	}
 
 	return nil

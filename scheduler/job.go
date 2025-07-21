@@ -14,6 +14,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic"
 )
 
 var (
@@ -32,9 +33,10 @@ var (
 const (
 	// defaultJobTrigger is a cron schedule to run a job every 5 minutes.
 	defaultJobTrigger = "0 */5 * * * *"
-	// FeedJobGroup is a scheduler group key for jobs to fetch new items for
-	// feeds.
-	FeedJobGroup = "get_items"
+	// defaultJobTimeout is the maximum duration a job can run before timing out and being cancelled.
+	defaultJobTimeout = 60 * time.Second
+	// feedJobGroup is a scheduler group key for jobs to fetch new items for feeds.
+	feedJobGroup = "get_items"
 )
 
 // JobDetail defines additional job properties.
@@ -77,8 +79,8 @@ func (sj *ScheduledJob) NextRunTime() int64 {
 	return sj.JobNextRun.UnixNano()
 }
 
-// MarshalJob takes a quartz.ScheduledJob object and marshals it back into a
-// ScheduledJob, updating fields as appropriate.
+// MarshalJob takes a quartz.ScheduledJob object and marshals it back into a ScheduledJob, updating fields as
+// appropriate.
 func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
 	serialized := &ScheduledJob{
 		JobNextRun: time.Unix(0, job.NextRunTime()),
@@ -88,12 +90,14 @@ func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
 	// Parse and generate trigger.
 	switch trigger := ParseTrigger(job.Trigger()).(type) {
 	case *PollTrigger:
-		if err := serialized.JobTrigger.FromPollTrigger(*trigger); err != nil {
+		err := serialized.JobTrigger.FromPollTrigger(*trigger)
+		if err != nil {
 			return nil, errors.Join(ErrMarshalJobFailed, err)
 		}
 		serialized.JobType = Poll
 	case *CronTrigger:
-		if err := serialized.JobTrigger.FromCronTrigger(*trigger); err != nil {
+		err := serialized.JobTrigger.FromCronTrigger(*trigger)
+		if err != nil {
 			return nil, errors.Join(ErrMarshalJobFailed, err)
 		}
 		serialized.JobType = Cron
@@ -101,7 +105,8 @@ func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
 
 	switch job := job.JobDetail().Job().(type) {
 	case *FeedJob:
-		if err := serialized.JobData.FromFeedJob(*job); err != nil {
+		err := serialized.JobData.FromFeedJob(*job)
+		if err != nil {
 			return nil, errors.Join(ErrMarshalJobFailed, err)
 		}
 	default:
@@ -112,6 +117,8 @@ func MarshalJob(job quartz.ScheduledJob) (*ScheduledJob, error) {
 }
 
 // Execute is called by the scheduler when the job is scheduled to run.
+//
+//nolint:nestif
 func (job *FeedJob) Execute(ctx context.Context) error {
 	api := FeedManagementAPIFromCtx(ctx)
 	if api == nil {
@@ -131,7 +138,8 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 	}
 	if len(items) > 0 {
 		// Add any new items.
-		if results, err := api.AddItems(ctx, items...); err != nil {
+		results, err := api.AddItems(ctx, items...)
+		if err != nil {
 			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 		} else {
 			for _, result := range results {
@@ -143,7 +151,15 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 			}
 		}
 		// Update the feed timestamp.
-		if err := api.MarkFeedUpdated(ctx, job.FeedID); err != nil {
+		index := elastic.FeedsIndexFromCtx(ctx)
+		if index == "" {
+			return fmt.Errorf("%w: no feeds index found", ErrExecuteJobFailed)
+		}
+		updates := map[string]any{
+			"updated": time.Now().UTC(),
+		}
+		err = elastic.UpdateDoc(ctx, api.GetAPI(), index, job.FeedID, updates)
+		if err != nil {
 			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 		}
 		slogctx.FromCtx(ctx).Debug("Job execution finished.",
@@ -163,7 +179,9 @@ func (job *FeedJob) Description() string {
 
 // getItemsSince retrieves the feed items that are newer than the given time.
 func (job *FeedJob) getItemsSince(since time.Time) ([]*models.Item, error) {
-	items, err := models.GetFeedItems(schedCtx, job.FeedID, job.URL)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultJobTimeout)
+	defer cancel()
+	items, err := models.GetFeedItems(ctx, job.FeedID, job.URL)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 	}
@@ -178,16 +196,15 @@ func NewFeedJob(id models.FeedID, url models.URL, trigger *PollTrigger) (*Schedu
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
 	}
-
 	job := &ScheduledJob{
 		CreatedAt:  time.Now().UTC(),
 		JobTrigger: jobTrigger,
 	}
-
-	if err := job.JobData.FromFeedJob(FeedJob{
+	err = job.JobData.FromFeedJob(FeedJob{
 		FeedID: id,
 		URL:    url,
-	}); err != nil {
+	})
+	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
 	}
 
@@ -200,7 +217,7 @@ func NewFeedJob(id models.FeedID, url models.URL, trigger *PollTrigger) (*Schedu
 func GenerateJobKey(jobID string) *quartz.JobKey {
 	switch models.IdentifyID(jobID) {
 	case models.FeedPFX:
-		return quartz.NewJobKeyWithGroup(jobID, FeedJobGroup)
+		return quartz.NewJobKeyWithGroup(jobID, feedJobGroup)
 	}
 
 	return nil

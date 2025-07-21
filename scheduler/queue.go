@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
-	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -25,8 +24,6 @@ import (
 
 // Make sure out jobQueue implementation satisfies quartz.JobQueue.
 var _ quartz.JobQueue = (*JobQueue)(nil)
-
-var schedCtx context.Context
 
 var (
 	ErrInitQueueFailed      = errors.New("could not initialize job queue")
@@ -44,16 +41,18 @@ var (
 
 // JobQueue implements the quartz.JobQueue interface, using Elasticsearch as the
 // persistence layer.
+//
+//nolint:containedctx // Interface cannot be made context-aware due to underlying package limitations.
 type JobQueue struct {
 	client *elastic.API
 	index  string
+	ctx    context.Context
 }
 
 // NewJobQueue initializes and returns an empty jobQueue.
 func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
-	schedCtx = ctx
-
 	return &JobQueue{
+		ctx:    ctx,
 		client: client,
 		index:  schema.SchedulerSchemaPrefix,
 	}, nil
@@ -70,7 +69,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 
 	id := jobKeyToDocID(job.JobDetail().JobKey().String())
 
-	err = elastic.UpdateDoc(schedCtx, jq.client.GetAPI(), jq.index, id, map[string]any{
+	err = elastic.UpdateDoc(jq.ctx, jq.client.GetAPI(), jq.index, id, map[string]any{
 		"job_next_run": data.JobNextRun,
 		"job_data":     data.JobData,
 	},
@@ -80,7 +79,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
 	}
 
-	slogctx.FromCtx(schedCtx).Log(schedCtx, logging.LevelTrace, "Pushed job to queue.",
+	slogctx.FromCtx(jq.ctx).Log(jq.ctx, logging.LevelTrace, "Pushed job to queue.",
 		slog.Group("job",
 			slog.String("id", job.JobDetail().JobKey().String()),
 		),
@@ -96,23 +95,21 @@ func (jq *JobQueue) Pop() (quartz.ScheduledJob, error) {
 		return nil, fmt.Errorf("%w: %w", ErrPopJobFailed, err)
 	}
 	id := jobKeyToDocID(job.JobDetail().JobKey().String())
-
-	if err := jq.delete(id); err != nil {
+	err = jq.delete(id)
+	if err != nil {
 		return nil, errors.Join(ErrPopJobFailed, err)
 	}
-
-	slogctx.FromCtx(schedCtx).Log(schedCtx, logging.LevelTrace, "Popped job from queue.",
+	slogctx.FromCtx(jq.ctx).Log(jq.ctx, logging.LevelTrace, "Popped job from queue.",
 		slog.Group("job",
 			slog.String("id", job.JobDetail().JobKey().String()),
 		),
 	)
-
 	return job, nil
 }
 
 // Head returns the first scheduled job without removing it from the queue.
 func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
-	jobs, _, err := elastic.Search[*ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1,
+	jobs, _, err := elastic.Search[*ScheduledJob](jq.ctx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1,
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&jobSorting{}),
 	)
 	if err != nil {
@@ -123,13 +120,6 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 		return nil, resp.InternalError
 	}
 	head := jobs[0]
-	slog.Debug("Found next job.",
-		slog.Group("job",
-			slog.String("id", head.JobDetail().JobKey().String()),
-			slog.Time("next_run", time.Unix(0, head.NextRunTime())),
-		),
-	)
-
 	return head, nil
 }
 
@@ -137,7 +127,7 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 // from the queue.
 func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	id := jobKeyToDocID(jobKey.String())
-	job, err := elastic.GetDoc[string, ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, id)
+	job, err := elastic.GetDoc[string, ScheduledJob](jq.ctx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
 		resp := elastic.ParseError(err)
 		if resp.IsNotFound() {
@@ -156,12 +146,11 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 		return nil, errors.Join(ErrRemoveJobFailed, err)
 	}
 	id := jobKeyToDocID(jobKey.String())
-
-	if err := jq.delete(id); err != nil {
+	err = jq.delete(id)
+	if err != nil {
 		return nil, errors.Join(ErrRemoveJobFailed, err)
 	}
-
-	slogctx.FromCtx(schedCtx).Debug("Job removed.",
+	slogctx.FromCtx(jq.ctx).Debug("Job removed.",
 		slog.String("job", job.JobDetail().Job().Description()))
 
 	return job, nil
@@ -170,7 +159,7 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 // ScheduledJobs returns the slice of all scheduled jobs in the queue.
 func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]) ([]quartz.ScheduledJob, error) {
 	jobs := make([]quartz.ScheduledJob, 0)
-	allJobs, err := elastic.SearchAll[ScheduledJob](schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1000)
+	allJobs, err := elastic.SearchAll[ScheduledJob](jq.ctx, jq.client.GetAPI(), jq.index, query.MatchAll(), 1000)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get scheduled jobs: %w", err)
 	}
@@ -185,7 +174,7 @@ func (jq *JobQueue) ScheduledJobs(matchers []quartz.Matcher[quartz.ScheduledJob]
 
 // Size returns the size of the job queue.
 func (jq *JobQueue) Size() (int, error) {
-	count, err := elastic.Count(schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll())
+	count, err := elastic.Count(jq.ctx, jq.client.GetAPI(), jq.index, query.MatchAll())
 	if err != nil {
 		return 0, fmt.Errorf("could not get size of scheduled jobs queue: %w", err)
 	}
@@ -194,17 +183,17 @@ func (jq *JobQueue) Size() (int, error) {
 
 // Clear clears the job queue.
 func (jq *JobQueue) Clear() error {
-	err := elastic.DeleteDocs(schedCtx, jq.client.GetAPI(), jq.index, query.MatchAll())
+	err := elastic.DeleteDocs(jq.ctx, jq.client.GetAPI(), jq.index, query.MatchAll())
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrClearJobs, err)
 	}
-	slogctx.FromCtx(schedCtx).Debug("Cleared job queue.")
+	slogctx.FromCtx(jq.ctx).Debug("Cleared job queue.")
 	return nil
 }
 
 // delete removes the job doc from Elasticsearch.
 func (jq *JobQueue) delete(id string) error {
-	err := elastic.DeleteDoc(schedCtx, jq.client.GetAPI(), jq.index, id)
+	err := elastic.DeleteDoc(jq.ctx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
 		return errors.Join(ErrDeleteJobFailed, err)
 	}

@@ -145,9 +145,6 @@ func (i *Item) IsNewer(since time.Time) bool {
 func GetFeedItems(ctx context.Context, id FeedID, url string) (Items, error) {
 	var items Items
 
-	ctx, cancel := context.WithTimeout(ctx, 60*time.Second)
-	defer cancel()
-
 	results := feeds.NewItemsFromURLs(ctx, url)
 	for result := range slices.Values(results) {
 		if result.Err != nil {

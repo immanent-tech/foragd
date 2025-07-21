@@ -157,23 +157,6 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 	return BulkAdd(ctx, e, index, items...)
 }
 
-// MarkFeedUpdated updates the timestamp indicating when the feed was last updated (i.e., new items found and indexed).
-func (e *API) MarkFeedUpdated(ctx context.Context, feedID models.FeedID) error {
-	index := FeedsIndexFromCtx(ctx)
-	if index == "" {
-		return errors.Join(ErrUpdateFailed, ErrFetchCtx)
-	}
-
-	updates := map[string]any{
-		"updated": time.Now().UTC(),
-	}
-
-	if err := UpdateDoc(ctx, e.GetAPI(), index, feedID, updates); err != nil {
-		return fmt.Errorf("feed update failed: %w", err)
-	}
-	return nil
-}
-
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
 func BulkAdd[T ~string, O Object[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {
