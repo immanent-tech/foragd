@@ -213,7 +213,7 @@ templ (c *Article) ShowAsCard() {
 			)
 			// Actions menu.
 			@card.Actions() {
-				@tooltip.Build("Actions").Show() {
+				@tooltip.Build("Actions") {
 					@dropdown.Build(
 						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
 						dropdown.WithButtonClasses(button.Ghost, button.XS),

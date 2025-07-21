@@ -321,7 +321,7 @@ templ (c *Subscription) Card() {
 			}
 			// Actions menu.
 			@card.Actions() {
-				@tooltip.Build("Actions").Show() {
+				@tooltip.Build("Actions") {
 					@dropdown.Build(
 						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
 						dropdown.WithButtonClasses(button.XS, button.Secondary),
