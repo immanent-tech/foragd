@@ -44,7 +44,9 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 		if err != nil {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
-		} else if len(subscriptions) > 0 || len(articles) > 0 {
+		}
+		if len(subscriptions) > 0 || len(articles) > 0 {
+			// Show the suggestions.
 			suggestions := make([]templ.Component, 0, len(articles)+1)
 
 			if len(subscriptions) > 0 {
@@ -67,6 +69,9 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 			alice.New(
 				RouteLogger,
 			).Then(RenderResponse(resp)).ServeHTTP(res, req)
+		} else {
+			// No suggestions, indicate no change.
+			res.WriteHeader(http.StatusNoContent)
 		}
 	}
 }
@@ -97,7 +102,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 	}
 }
 
-//nolint:gocyclo,funlen
+//nolint:funlen
 func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.SearchRequest) ([]*views.Subscription, []*views.Article, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
@@ -218,7 +223,6 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 	return subscriptions, articles, nil
 }
 
-//nolint:funlen
 func (a *API) findSuggestions(ctx context.Context, searchTerms string) (results.MSearchResults, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {

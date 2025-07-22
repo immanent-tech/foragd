@@ -28,7 +28,7 @@ templ SearchForm() {
 					textinput.WithPlaceholder("Search anything..."),
 					textinput.WithExtraAttributes(templ.Attributes{
 						"hx-post":      "/search",
-						"hx-trigger":   "input changed delay:500ms",
+						"hx-trigger":   "keyup changed delay:500ms",
 						"hx-target":    "#search-suggestions",
 						"hx-indicator": ".htmx-indicator",
 						"tabindex":     0,
