@@ -1,4 +1,5 @@
 {
+  "name": "Go Feed Me Development",
   "dockerComposeFile": "docker-compose.yml",
   "service": "devcontainer",
   "postCreateCommand": "bash .devcontainer/postcreate.sh",
