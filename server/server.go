@@ -137,7 +137,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		)
 		r.Get("/home", handler.Home())
 		r.With(middlewares.RequireHTMX).Post("/search", handler.GetSearchSuggestions())
-		r.With(middlewares.RequireHTMX).Post("/search/results", handler.GetSearchResults())
+		r.Get("/search/results", handler.GetSearchResults())
 		// Subscription routes.
 		r.Get("/subscriptions", handler.GetSubscriptions())
 		r.With(middlewares.RequireHTMX).Post("/subscriptions/mark/{mark}", handler.MarkSubscriptions())

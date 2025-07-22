@@ -248,7 +248,7 @@ templ (c *Subscription) Summary() {
 					}
 				}
 				// Title text is a link to the view action of the card.
-				<div class="text-sm grow content-center">
+				<div class="grow content-center">
 					{ c.GetTitle() }
 				</div>
 			</div>
@@ -257,7 +257,7 @@ templ (c *Subscription) Summary() {
 				<div class="content-center">
 					if c.IsUnread() {
 						@badge.Build(
-							badge.WithSize(badge.SM),
+							// badge.WithSize(badge.SM),
 							badge.WithColor(badge.Accent),
 							badge.WithContent(strconv.Itoa(c.GetUnreadCount())+" Unread"),
 							badge.WithExtraAttributes(templ.Attributes{

@@ -74,3 +74,4 @@ localhost.key
 pkg/feeds/test
 deployments/
 .devcontainer/.step.password
+test/main.go

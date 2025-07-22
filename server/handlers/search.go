@@ -88,6 +88,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
+
 		// Find subscriptions and articles that match search request.
 		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
 		if err != nil {
@@ -95,7 +96,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
 			resp := models.NewResponse(
-				models.WithResponseTemplate(views.SearchResultsPage(subscriptions, articles)),
+				models.WithResponseTemplate(views.NewSearchResultsPage(request, subscriptions, articles).Template(req)),
 			)
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		}

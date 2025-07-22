@@ -3,7 +3,18 @@
 
 package views
 
-import "slices"
+import (
+	"github.com/angelofallars/htmx-go"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+	"net/http"
+	"slices"
+)
 
 templ SearchSuggestions(suggestions ...templ.Component) {
 	<ul
@@ -14,6 +25,9 @@ templ SearchSuggestions(suggestions ...templ.Component) {
 		for suggestion := range slices.Values(suggestions) {
 			@suggestion
 		}
+		<div class="flex items-center">
+			More results...
+		</div>
 	</ul>
 }
 
@@ -21,30 +35,101 @@ templ SearchSuggestionHeader(text string) {
 	<li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{ text }</li>
 }
 
-templ SearchResultsPage(subscriptions []*Subscription, articles []*Article) {
+type SearchResultsPage struct {
+	subscriptions []*Subscription
+	articles      []*Article
+	search        *models.SearchRequest
+	favoriteID    models.FavoriteID
+}
+
+func NewSearchResultsPage(search *models.SearchRequest, subscriptions []*Subscription, articles []*Article) *SearchResultsPage {
+	return &SearchResultsPage{
+		search:        search,
+		subscriptions: subscriptions,
+		articles:      articles,
+	}
+}
+
+// Template will render the home page based on the request details.
+func (page *SearchResultsPage) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Search Results",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+}
+
+// layout is the complete page layout for the articles page.
+templ (page *SearchResultsPage) layout() {
+	@layouts.Drawer() {
+		@page.content()
+	}
+}
+
+templ (page *SearchResultsPage) content() {
 	// <script type="text/hyperscript">
 	// 	on load hide #search-suggestions
 	// </script>
-	<div class="m-2">
-		if len(subscriptions) > 0 {
-			<div id="subscription-results">
-				<div class="grid grid-cols-2 md:grid-cols-6 justify-center gap-4">
-					for subscription := range slices.Values(subscriptions) {
-						<div class="rounded-box shadow-md bg-base-300 p-4">
-							@subscription.Summary()
-						</div>
-					}
+	<div class="grid grid-flow-col auto-cols-max justify-end gap-2">
+		if page.favoriteID != "" {
+			@partials.NewAction("/user/favorite/search/"+page.favoriteID, partials.DisplayActionAsLink,
+				partials.ActionMethod(http.MethodDelete),
+				partials.ActionSwap("none"),
+				partials.ActionLinkOptions(
+					link.WithClasses("text-xs"),
+				),
+			) {
+				<div class="icontext">
+					@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
+					Remove Favorite
+				</div>
+			}
+		} else {
+			@partials.NewAction("/user/favorite/search", partials.DisplayActionAsLink,
+				partials.ActionMethod(http.MethodPut),
+				partials.ActionSwap("none"),
+				partials.ActionLinkOptions(
+					link.WithClasses("text-xs"),
+				),
+			) {
+				<div class="icontext">
+					@tabler.Bookmark(i.Props{Size: i.SizeXS})
+					Add Favorite
+				</div>
+			}
+		}
+	</div>
+	<div class="flex flex-col m-2 gap-2 items-center">
+		if len(page.subscriptions) > 0 {
+			<div tabindex="0" id="subscription-results" class="collapse collapse-arrow bg-base-200 border-base-300 border">
+				<input type="checkbox"/>
+				<div class="collapse-title font-semibold">Subscriptions ({ len(page.subscriptions) } results)</div>
+				<div class="collapse-content text-xs">
+					<div class="grid grid-cols-2 md:grid-cols-6 items-center gap-4">
+						for subscription := range slices.Values(page.subscriptions) {
+							<div class="rounded-box shadow-md bg-neutral p-2">
+								@subscription.Summary()
+							</div>
+						}
+					</div>
 				</div>
 			</div>
 		}
-		if len(articles) > 0 {
-			<div id="article-results">
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4">
-					for article := range slices.Values(articles) {
-						<div class="rounded-box shadow-md bg-base-300 p-4">
-							@article.summary()
-						</div>
-					}
+		if len(page.articles) > 0 {
+			<div tabindex="0" id="article-results" class="collapse collapse-arrow bg-base-200 border-base-300 border">
+				<input type="checkbox"/>
+				<div class="collapse-title font-semibold">Articles ({ len(page.articles) } results)</div>
+				<div class="collapse-content text-sm">
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4">
+						for article := range slices.Values(page.articles) {
+							<div class="rounded-box shadow-md bg-neutral p-4">
+								@article.summary()
+							</div>
+						}
+					</div>
 				</div>
 			</div>
 		}

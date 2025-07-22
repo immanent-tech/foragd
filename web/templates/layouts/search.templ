@@ -14,16 +14,9 @@ import (
 
 templ SearchForm() {
 	<div class="dropdown dropdown-center">
-		@form.Build(
-			form.WithAttributes(templ.Attributes{
-				"hx-post":     "/search/results",
-				"hx-target":   partials.ContentID.Target(),
-				"hx-push-url": "true",
-			}),
-		) {
+		@form.Build() {
 			@join.Horizontally() {
 				@textinput.Build(
-					textinput.WithID("search"),
 					textinput.WithName("text"),
 					textinput.WithPlaceholder("Search anything..."),
 					textinput.WithExtraAttributes(templ.Attributes{
@@ -40,8 +33,12 @@ templ SearchForm() {
 					button.AsSubmit(),
 					button.WithClasses("join-item"),
 					button.WithAttributes(templ.Attributes{
-						"tabindex":   1,
-						"hx-trigger": "keyup[key=='Enter']",
+						"hx-get":      "/search/results",
+						"hx-target":   partials.ContentID.Target(),
+						"hx-push-url": "true",
+						"tabindex":    1,
+						"hx-trigger":  "click, keyup[key=='Enter']",
+						"hx-include":  "[name='text']",
 					}),
 				) {
 					@tabler.Search()
