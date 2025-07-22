@@ -49,6 +49,13 @@ linters:
         - name: exported
           arguments:
             - disable-checks-on-variables
+    sloglint:
+      kv-only: false
+      no-mixed-args: true
+      static-msg: false
+      attr-only: true
+      no-raw-keys: true
+      args-on-sep-lines: true
   exclusions:
     rules:
       - linters:
