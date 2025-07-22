@@ -22,7 +22,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/image"
-	"github.com/joshuar/go-templ-daisyui/display/placeholder"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
@@ -234,14 +233,21 @@ templ (c *Subscription) Summary() {
 				if c.GetImage().URL != "" {
 					// If the source has an image, use that as the avatar.
 					@avatar.Build(
-						c.GetImage().URL,
-						avatar.WithWidth("w-12"),
-						avatar.WithImageOptions(image.WithLazyLoading()),
-						avatar.WithExtraClasses("rounded"),
-					).Show()
+						avatar.WithClasses("w-12", "rounded"),
+					) {
+						@image.Build(
+							c.GetImage().URL,
+							image.WithLazyLoading(),
+						).Show()
+					}
 				} else {
 					// Otherwise, take the first letter of the title and create a placeholder avatar.
-					@placeholder.Build(c.GetTitle()[0:1], placeholder.SM).Show()
+					@avatar.Build(
+						avatar.WithClasses("w-12", "rounded", "bg-secondary/30"),
+						avatar.AsPlaceholder(),
+					) {
+						<span class="text-sm">{ c.GetTitle()[0:1] }</span>
+					}
 				}
 				// Title text is a link to the view action of the card.
 				<div class="text-sm grow content-center">
