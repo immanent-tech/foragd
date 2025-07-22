@@ -77,11 +77,26 @@ templ Drawer() {
 
 templ FavoritesList(favorites models.Favorites) {
 	{{ subscriptions := favorites.FilterByType(models.FavoriteTypeSubscription) }}
+	{{ articles := favorites.FilterByType(models.FavoriteTypeArticle) }}
 	if len(subscriptions) > 0 {
+		// Show favorite subscriptions.
 		<li>
 			<a>Subscriptions</a>
 			<ul>
 				for fav := range slices.Values(subscriptions) {
+					<li>
+						@partials.FavoriteLink(fav)
+					</li>
+				}
+			</ul>
+		</li>
+	}
+	if len(articles) > 0 {
+		// Show favorite articles.
+		<li>
+			<a>Articles</a>
+			<ul>
+				for fav := range slices.Values(articles) {
 					<li>
 						@partials.FavoriteLink(fav)
 					</li>

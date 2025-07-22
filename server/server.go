@@ -35,7 +35,6 @@ const (
 type Server struct {
 	server *http.Server
 	static embed.FS
-	api    *handlers.API
 }
 
 var ErrStartServer = errors.New("start server failed")
@@ -148,8 +147,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Get("/articles", handler.GetArticles())
 		r.With(middlewares.RequireHTMX).Post("/articles", handler.GetArticles())
 		r.With(middlewares.RequireHTMX).Post("/articles/mark/{mark}", handler.MarkArticles())
-		// Article route.
-		r.Get("/view/{subscription}/{item}", handler.ViewArticle())
+		r.Get("/article/{item}", handler.ViewArticle())
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
 			// Subscription.
@@ -168,6 +166,8 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 				r.Get("/", handler.GetFavorites())
 				r.Put("/subscription/{subscription}", handler.AddFavoriteSubscription())
 				r.Delete("/subscription/{subscription}", handler.RemoveFavoriteSubscription())
+				r.Put("/article/{item}", handler.AddFavoriteArticle())
+				r.Delete("/article/{item}", handler.RemoveFavoriteArticle())
 			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {

@@ -38,7 +38,7 @@ templ SearchResultsPage(subscriptions []*Subscription, articles []*Article) {
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4">
 					for article := range slices.Values(articles) {
 						<div class="rounded-box shadow-md bg-base-300 p-4">
-							@article.ShowAsSummary()
+							@article.summary()
 						</div>
 					}
 				</div>

@@ -71,8 +71,11 @@
     "components/navbar",
     "templates/partials",
     "types",
-    "feeds"
+    "feeds",
+    "rss",
+    "components/avatar"
   ],
+  "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
   "emmet.includeLanguages": {
     "templ": "html"
@@ -113,11 +116,12 @@
   "licenser.license": "AGPLv3",
   "licenser.useSPDXLicenseFormat": true,
   "ltex.language": "en-AU",
+  "prettier.bracketSameLine": true,
   "tailwindCSS.includeLanguages": {
     "templ": "html"
   },
   "templ.goplsRemote": "auto",
   "terminal.integrated.defaultProfile.linux": "fish",
   "terminal.integrated.scrollback": 10000,
-  "prettier.bracketSameLine": true
+  "conventionalCommits.promptBody": false
 }

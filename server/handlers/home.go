@@ -240,7 +240,7 @@ func getRandomArticles(ctx context.Context, api *API, aggs aggregations.Aggregat
 
 	cards := make([]templ.Component, 0, len(articles))
 	for article := range slices.Values(articles) {
-		cards = append(cards, views.NewArticleContent(article).ShowAsCard())
+		cards = append(cards, views.NewArticleContent(article).Card())
 	}
 	return cards
 }

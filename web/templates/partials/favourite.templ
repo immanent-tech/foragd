@@ -42,10 +42,7 @@ templ FavoriteLink(fav *models.Favorite) {
 			}
 		case models.FavoriteTypeArticle:
 			// FavoriteArticle.
-			{{ values := session.ArticleFiltersFromSession(ctx).Parameters() }}
-			{{ values[models.ParamArticles] = fav.GetObjectID() }}
-			@NewAction("/articles", DisplayActionAsLink,
-				ActionValues(values),
+			@NewAction("/article/"+fav.GetObjectID(), DisplayActionAsLink,
 				ActionPushURL(),
 				ActionHyperScript("on click call document.activeElement.blur() end"),
 			) {

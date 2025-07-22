@@ -4,6 +4,7 @@
 package views
 
 import (
+	"context"
 	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -31,6 +32,34 @@ import (
 	"slices"
 	"strings"
 )
+
+type ArticlesPage struct {
+	filters    *models.ArticleFilters
+	articles   models.Articles
+	pagination models.Pagination
+}
+
+func NewArticlesPage(articles models.Articles, filters *models.ArticleFilters, pagination models.Pagination) *ArticlesPage {
+	return &ArticlesPage{
+		articles:   articles,
+		filters:    filters,
+		pagination: pagination,
+	}
+}
+
+// Template will render the home page based on the request details.
+func (page *ArticlesPage) Template(req *http.Request) templ.Component {
+	switch {
+	case req.Method == http.MethodPost:
+		return page.cards()
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Articles",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+}
 
 // layout is the complete page layout for the articles page.
 templ (page *ArticlesPage) layout() {
@@ -132,24 +161,23 @@ templ (page *ArticlesPage) emptyContent() {
 	</div>
 }
 
+func (s ArticlesPage) generateCards(ctx context.Context) []templ.Component {
+	cards := make([]templ.Component, 0, len(s.articles))
+	for article := range slices.Values(s.articles) {
+		cards = append(cards, NewArticleContent(article).Card())
+	}
+	// Add pagination element if pagination is required.
+	if s.pagination != "" && len(cards) == s.filters.GetCount() {
+		// Add pagination htmx props to last article.
+		cards = append(cards, layouts.PaginationControl(ctx, "/articles", s.pagination))
+	}
+	return cards
+}
+
 // cards will render just the article cards.
 templ (page *ArticlesPage) cards() {
 	for cards := range slices.Values(page.generateCards(ctx)) {
 		@cards
-	}
-}
-
-// Template will render the home page based on the request details.
-func (page *ArticlesPage) Template(req *http.Request) templ.Component {
-	switch {
-	case req.Method == http.MethodPost:
-		return page.cards()
-	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-		return page.content()
-	default:
-		return templates.NewPage("Go Feed Me - Articles",
-			templates.WithBodyContent(page.layout()),
-		)
 	}
 }
 
@@ -169,7 +197,7 @@ func NewArticleContent(article *models.Article) *Article {
 }
 
 // ShowAsSummary shows a summarised version of the article.
-templ (c *Article) ShowAsSummary() {
+templ (c *Article) summary() {
 	@link.Build(
 		link.WithAttributes(c.viewAttributes()),
 	) {
@@ -183,8 +211,8 @@ templ (c *Article) ShowAsSummary() {
 	}
 }
 
-// ShowAsCard shows the article as a card, for displaying in a collection of articles.
-templ (c *Article) ShowAsCard() {
+// Card shows the article as a card, for displaying in a collection of articles.
+templ (c *Article) Card() {
 	@card.Build(
 		card.WithStyle(card.Border),
 		card.WithLayout(card.LayoutSide),
@@ -231,6 +259,36 @@ templ (c *Article) ShowAsCard() {
 								@partials.LinkMarkUnread("Mark Unread", c.markAttributes())
 							}
 						</li>
+						// Favorite action.
+						<li _="on click call document.activeElement.blur()">
+							if c.Favorite {
+								@partials.NewAction("/user/favorite/article/"+c.GetID(), partials.DisplayActionAsLink,
+									partials.ActionMethod(http.MethodDelete),
+									partials.ActionSwap("none"),
+									partials.ActionLinkOptions(
+										link.WithClasses("text-xs"),
+									),
+								) {
+									<div class="icontext">
+										@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
+										Remove Favorite
+									</div>
+								}
+							} else {
+								@partials.NewAction("/user/favorite/article/"+c.GetID(), partials.DisplayActionAsLink,
+									partials.ActionMethod(http.MethodPut),
+									partials.ActionSwap("none"),
+									partials.ActionLinkOptions(
+										link.WithClasses("text-xs"),
+									),
+								) {
+									<div class="icontext">
+										@tabler.Bookmark(i.Props{Size: i.SizeXS})
+										Add Favorite
+									</div>
+								}
+							}
+						</li>
 					}
 				}
 			}
@@ -242,14 +300,14 @@ templ (c *Article) ShowAsSearchSuggestion() {
 	<li class="list-row" _="on click call document.activeElement.blur()">
 		<div>
 			<div class="list-col-wrap text-xs">
-				@c.ShowAsSummary()
+				@c.summary()
 			</div>
 		</div>
 	</li>
 }
 
-// ShowContent shows the full article content.
-templ (c *Article) ShowContent() {
+// Content shows the full article content.
+templ (c *Article) Content() {
 	<div class="flex justify-center">
 		@article.Build(
 			article.WithExtraClasses("shadow-sm", "bg-neutral", "rounded-box", "p-2", "overflow-scroll", "max-w-prose"),
@@ -357,7 +415,7 @@ func (c *Article) markAttributes() templ.Attributes {
 
 func (c *Article) viewAttributes() templ.Attributes {
 	return templ.Attributes{
-		"hx-get":      "/view/" + c.GetSubscriptionID() + "/" + c.GetID(),
+		"hx-get":      "/article/" + c.GetID(),
 		"hx-target":   partials.ContentID.Target(),
 		"hx-push-url": "true",
 		"hx-swap":     "innerHTML scroll:top",

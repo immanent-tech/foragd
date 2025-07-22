@@ -20,6 +20,21 @@ func NewFavoriteSubscription(userID UserID, id SubscriptionID, customisation Obj
 	return fav, nil
 }
 
+// NewFavoriteArticle creates a new favorite article for the user.
+func NewFavoriteArticle(userID UserID, article *Article) (*Favorite, error) {
+	fav := newFavorite(userID, FavoriteTypeArticle)
+	fav.SetObjectID(article.GetID())
+	err := fav.Data.FromFavoriteArticle(FavoriteArticle{
+		Item:                      article.Item,
+		SubscriptionCustomisation: article.SubscriptionCustomisation,
+		SubscriptionID:            article.GetSubscriptionID(),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("could not create favorite article: %w", err)
+	}
+	return fav, nil
+}
+
 func (f *Favorite) SetObjectID(id string) {
 	f.ObjectID = id
 }
