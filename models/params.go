@@ -18,4 +18,6 @@ const (
 	ParamItemID        = "item_id"
 	ParamRedirect      = "redirect"
 	ParamArticles      = "articles"
+
+	RouteParamSubscription = "subscription"
 )

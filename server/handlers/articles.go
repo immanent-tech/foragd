@@ -61,7 +61,7 @@ func (a *API) MarkArticles() http.HandlerFunc {
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,
-			TriggerStateUpdates,
+			// TriggerStateUpdates,
 		)
 		// Get request details.
 		request, valid, err := forms.DecodeForm[*models.MarkArticlesRequest](req)

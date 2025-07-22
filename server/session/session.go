@@ -30,6 +30,7 @@ const (
 func init() {
 	gob.Register(models.SubscriptionFilters{})
 	gob.Register(models.ArticleFilters{})
+	gob.Register(models.CommonFilters{})
 }
 
 var Manager *scs.SessionManager

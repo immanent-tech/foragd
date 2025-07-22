@@ -27,6 +27,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/validation"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/views"
 )
@@ -56,6 +57,43 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
+		)
+
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+	}
+}
+
+// GetSubscriptionArticles shows the articles for a subscription.
+func (a *API) GetSubscriptionArticles() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
+		// Get the subscription ID.
+		id := chi.URLParam(req, models.RouteParamSubscription)
+		if valid, err := validation.ValidateVariable(id, "required,startswith=sub_"); !valid || err != nil {
+			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
+			return
+		}
+		// Get the filters.
+		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
+		if err != nil || !valid {
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+			return
+		}
+		filters.Subscriptions = append(filters.Subscriptions, id)
+		// // Save the filters to the session.
+		// chain = chain.Append(SavePageState(filters))
+		// Get articles matching filters.
+		articles, pagination, err := a.filterArticles(req.Context(), filters)
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		// Generate articles page.
+		resp := models.NewResponse(
+			models.WithResponseTemplate(views.NewArticlesPage(articles, filters, pagination).Template(req)),
 		)
 
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
