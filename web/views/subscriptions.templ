@@ -126,8 +126,6 @@ templ (page *SubscriptionsPage) content() {
 											Mark Read
 										</div>
 									}
-								case models.ViewRead:
-									fallthrough
 								default:
 									@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
 										partials.ActionMethod(http.MethodPost),
@@ -197,7 +195,7 @@ templ (page *SubscriptionsPage) Cards() {
 func (page *SubscriptionsPage) generateCards(ctx context.Context) []templ.Component {
 	cards := make([]templ.Component, 0, len(page.subscriptions))
 	for subscription := range slices.Values(page.subscriptions) {
-		cards = append(cards, NewSubscriptionContent(subscription).Card())
+		cards = append(cards, NewSubscriptionContent(subscription).card())
 	}
 	// Add pagination element if pagination is required.
 	if page.pagination != "" && len(cards) == page.filters.GetCount() {
@@ -302,7 +300,7 @@ templ (s *Subscription) State() {
 }
 
 // Card displays the subscription as a card.
-templ (c *Subscription) Card() {
+templ (c *Subscription) card() {
 	@card.Build(
 		card.WithStyle(card.Border),
 		card.WithShadow(shadow.SM),

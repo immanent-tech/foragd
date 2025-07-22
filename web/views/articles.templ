@@ -77,8 +77,6 @@ templ (page *ArticlesPage) content() {
 									Mark Read
 								</div>
 							}
-						case models.ViewRead:
-							fallthrough
 						default:
 							@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
 								partials.ActionMethod(http.MethodPost),
