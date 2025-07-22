@@ -33,7 +33,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/layout/join"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/joshuar/go-templ-daisyui/navigation/breadcrumbs"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -88,65 +87,54 @@ templ (page *SubscriptionsPage) content() {
 			)
 		}
 	</div>
-	<div id="card-controls" class="m-2">
-		<div class="flex flex-row">
-			<div class="flex-1">
-				@breadcrumbs.Build(
-					breadcrumbs.WithClasses("text-sm", "flex-1"),
-					breadcrumbs.WithCrumbs(partials.SubscriptionList()),
-				).Show()
-			</div>
-			<div class="flex-none content-center">
-				<div class="grid grid-flow-col auto-cols-max gap-2">
-					<div>
-						@partials.RefreshButton("/subscriptions", page.filters.Parameters())
-					</div>
-					@UpdateSorting("/subscriptions", page.filters.GetSort())
-					@UpdateFilters(page.subscriptions.GetCategoryCounts(), "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
-					@dropdown.Build(
-						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-						dropdown.WithButtonClasses(button.SM, button.Square, button.Primary),
-						dropdown.WithOpenAlignment(dropdown.AlignEnd),
-						dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
-					).Show() {
-						<li>
-							switch page.filters.GetView() {
-								case models.ViewUnread:
-									@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead), partials.DisplayActionAsLink,
-										partials.ActionMethod(http.MethodPost),
-										partials.ActionValues(map[string]string{
-											"redirect": "/home",
-										}),
-										partials.ActionLinkOptions(
-											link.WithClasses("text-xs"),
-										),
-									) {
-										<div class="flex gap-2">
-											@tabler.Bookmark(i.Props{Size: i.SizeXS})
-											Mark Read
-										</div>
-									}
-								default:
-									@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
-										partials.ActionMethod(http.MethodPost),
-										partials.ActionValues(map[string]string{
-											"redirect": "/home",
-										}),
-										partials.ActionLinkOptions(
-											link.WithClasses("text-xs"),
-										),
-									) {
-										<div class="flex gap-2">
-											@tabler.Bookmark(i.Props{Size: i.SizeXS})
-											Mark Read
-										</div>
-									}
-							}
-						</li>
-					}
-				</div>
-			</div>
-		</div>
+	<div id="card-controls" class="controls">
+		@partials.RefreshButton("/subscriptions", page.filters.Parameters())
+		@UpdateSorting("/subscriptions", page.filters.GetSort())
+		@UpdateFilters(page.subscriptions.GetCategoryCounts(), "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
+		@dropdown.Build(
+			dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
+			// dropdown.WithButtonClasses(button.SM, button.Square, button.Primary),
+			dropdown.WithOpenAlignment(dropdown.AlignEnd),
+			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
+		).Show() {
+			<li>
+				switch page.filters.GetView() {
+					case models.ViewUnread:
+						@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead), partials.DisplayActionAsLink,
+							partials.ActionMethod(http.MethodPost),
+							partials.ActionValues(map[string]string{
+								"redirect": "/home",
+							}),
+							partials.ActionLinkOptions(
+								link.WithClasses("text-xs"),
+							),
+						) {
+							<div class="flex gap-2">
+								@tabler.Bookmark(i.Props{Size: i.SizeXS})
+								Mark Read
+							</div>
+						}
+					default:
+						@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
+							partials.ActionMethod(http.MethodPost),
+							partials.ActionValues(map[string]string{
+								"redirect": "/home",
+							}),
+							partials.ActionLinkOptions(
+								link.WithClasses("text-xs"),
+							),
+						) {
+							<div class="flex gap-2">
+								@tabler.Bookmark(i.Props{Size: i.SizeXS})
+								Mark Read
+							</div>
+						}
+				}
+			</li>
+		}
+		// </div>
+		// 	</div>
+		// </div>
 	</div>
 	@layouts.CardGrid() {
 		if len(page.subscriptions) > 0 {

@@ -7,10 +7,8 @@ import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"slices"
 )
@@ -19,8 +17,8 @@ import (
 templ UpdateFilters(allCategories models.CategoryCounts, route string, categoryFilters []models.Category, viewFilter models.View) {
 	<div id="card-filters">
 		@dropdown.Build(
-			dropdown.WithButtonContent(tabler.Filter(i.Props{Size: i.SizeXS})),
-			dropdown.WithButtonClasses(button.Square, button.SM, button.Primary),
+			dropdown.WithButtonContent(tabler.Filter()),
+			// dropdown.WithButtonClasses(button.Square, button.SM, button.Primary),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
 			dropdown.WithMenuClasses("w-52"),
 		).Show() {

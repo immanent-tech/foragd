@@ -7,18 +7,16 @@ import (
 	"context"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
 
 templ UpdateSorting(route string, current models.Sort) {
 	<div id="card-sorting">
 		@dropdown.Build(
-			dropdown.WithButtonContent(tabler.ArrowsSort(i.Props{Size: i.SizeXS})),
-			dropdown.WithButtonClasses(button.Square, button.SM, button.Primary),
+			dropdown.WithButtonContent(tabler.ArrowsSort()),
+			// dropdown.WithButtonClasses(button.Square, button.SM, button.Primary),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
 			dropdown.WithMenuClasses("w-52"),
 		).Show() {

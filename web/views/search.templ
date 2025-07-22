@@ -9,8 +9,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 	"slices"
@@ -73,32 +71,20 @@ templ (page *SearchResultsPage) content() {
 	// <script type="text/hyperscript">
 	// 	on load hide #search-suggestions
 	// </script>
-	<div class="grid grid-flow-col auto-cols-max justify-end gap-2">
+	<div class="controls">
 		if page.favoriteID != "" {
-			@partials.NewAction("/user/favorite/search/"+page.favoriteID, partials.DisplayActionAsLink,
+			@partials.NewAction("/user/favorite/search/"+page.favoriteID, partials.DisplayActionAsButton,
 				partials.ActionMethod(http.MethodDelete),
 				partials.ActionSwap("none"),
-				partials.ActionLinkOptions(
-					link.WithClasses("text-xs"),
-				),
 			) {
-				<div class="icontext">
-					@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
-					Remove Favorite
-				</div>
+				@tabler.BookmarkOff()
 			}
 		} else {
-			@partials.NewAction("/user/favorite/search", partials.DisplayActionAsLink,
+			@partials.NewAction("/user/favorite/search", partials.DisplayActionAsButton,
 				partials.ActionMethod(http.MethodPut),
 				partials.ActionSwap("none"),
-				partials.ActionLinkOptions(
-					link.WithClasses("text-xs"),
-				),
 			) {
-				<div class="icontext">
-					@tabler.Bookmark(i.Props{Size: i.SizeXS})
-					Add Favorite
-				</div>
+				@tabler.Bookmark()
 			}
 		}
 	</div>

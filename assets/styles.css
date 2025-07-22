@@ -18,4 +18,15 @@
     opacity: 1;
     transition: opacity 1s ease-out;
   }
+  /* controls on content pages */
+  .controls {
+    @apply m-2 grid auto-cols-max grid-flow-col justify-end gap-2;
+    /* control buttons */
+    .btn {
+      @apply btn-xs btn-primary btn-square p-2;
+      .icon {
+        @apply size-4;
+      }
+    }
+  }
 }

@@ -4,7 +4,6 @@
 package partials
 
 import (
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -49,10 +48,7 @@ templ RefreshButton(route string, parameters map[string]string) {
 	@NewAction(route, DisplayActionAsButton,
 		ActionInclude("#content-filters"),
 		ActionValues(parameters),
-		ActionButtonOptions(
-			button.WithClasses(button.Square, button.SM, button.Primary),
-		),
 	) {
-		@tabler.Refresh(i.Props{Size: i.SizeXS})
+		@tabler.Refresh()
 	}
 }
