@@ -157,7 +157,7 @@ type Feed struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Description is a short summary or description of the feed or item.
-	Description string `json:"description"`
+	Description string `json:"description,omitempty,omitzero"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
@@ -210,7 +210,7 @@ type Item struct {
 	Copyright    string   `json:"copyright,omitempty,omitzero"`
 
 	// Description is a short summary or description of the feed or item.
-	Description string `json:"description"`
+	Description string `json:"description,omitempty,omitzero"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
@@ -263,7 +263,7 @@ type ObjectCommon struct {
 	Copyright    string   `json:"copyright,omitempty,omitzero"`
 
 	// Description is a short summary or description of the feed or item.
-	Description string `json:"description"`
+	Description string `json:"description,omitempty,omitzero"`
 
 	// Image is a link to an image to represent the object.
 	Image    ObjectImage `json:"image,omitempty,omitzero"`

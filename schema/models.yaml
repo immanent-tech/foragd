@@ -310,7 +310,6 @@ components:
       required:
         - source_type
         - title
-        - description
       properties:
         source_type:
           description: >
