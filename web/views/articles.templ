@@ -311,15 +311,6 @@ templ (c *Article) Content() {
 	<div class="flex justify-center">
 		@article.Build(
 			article.WithExtraClasses("shadow-sm", "bg-neutral", "rounded-box", "p-2", "overflow-scroll", "max-w-prose"),
-			article.WithExtraAttributes(templ.Attributes{
-				"hx-post": "/articles/mark/read",
-				"hx-swap": "none",
-				"hx-vals": partials.GenerateHXVals(map[string]string{
-					"articles": c.GetSubscriptionID() + "__" + c.GetID(),
-				}),
-				"hx-push-url": "false",
-				"hx-trigger":  "load delay:2s",
-			}),
 		).Show() {
 			<h2>
 				@text.Build(
@@ -360,6 +351,16 @@ templ (c *Article) Content() {
 			</div>
 		}
 	</div>
+	<div
+		hx-post="/articles/mark/read"
+		hx-swap="none"
+		hx-trigger="intersect once"
+		hx-vals={ partials.GenerateHXVals(map[string]string{
+					"articles": c.GetSubscriptionID() + "__" + c.GetID(),
+				}) }
+		hx-push-url="false"
+		_="on htmx:afterRequest remove me"
+	></div>
 }
 
 templ (a *Article) visitAction() {
