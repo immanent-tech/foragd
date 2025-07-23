@@ -1,7 +1,6 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//nolint:dupl
 package schema
 
 import (
@@ -19,7 +18,6 @@ import (
 
 var validMigrations = []string{
 	UsersSchemaPrefix,
-	FavoritesSchemaPrefix,
 	FeedsSchemaPrefix,
 	ItemsSchemaPrefix,
 	SubscriptionsSchemaPrefix,
@@ -44,8 +42,6 @@ func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrati
 		switch migration {
 		case UsersSchemaPrefix:
 			err = migrateUsers(ctx, api, destructive)
-		case FavoritesSchemaPrefix:
-			err = migrateFavorites(ctx, api, destructive)
 		case FeedsSchemaPrefix:
 			err = migrateFeeds(ctx, api, destructive)
 		case ItemsSchemaPrefix:
@@ -107,50 +103,6 @@ func migrateUsers(ctx context.Context, api *typedapi.API, destructive bool) erro
 			return errors.Join(ErrMigrationFailed, err)
 		}
 		slogctx.FromCtx(ctx).Debug("Created new users index...")
-	}
-
-	return nil
-}
-
-// migrateUsers contains migration actions for migrating users indices and
-// settings.
-func migrateFavorites(ctx context.Context, api *typedapi.API, destructive bool) error {
-	if err := elastic.PutComponentTemplate(ctx, api, FavoritesSchemaPrefix, NewComponentTemplateRequest(favoritesTemplate())); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-	slogctx.FromCtx(ctx).Debug("Added Favorites component template...")
-
-	if err := elastic.PutIndexTemplate(ctx, api, FavoritesSchemaPrefix,
-		NewIndexTemplateRequest(
-			WithIndexPatterns(FavoritesSchemaPrefix+"_*"),
-			WithComponentTemplates(FavoritesSchemaPrefix),
-		),
-	); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-	slogctx.FromCtx(ctx).Debug("Added Favorites index template...")
-
-	index := FavoritesSchemaPrefix + "_" + config.Environment()
-	// Delete index if destructive set.
-	if destructive {
-		_, err := api.Indices.Delete(index).Do(ctx)
-		if err != nil && !elastic.ParseError(err).IsNotFound() {
-			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
-		}
-		slogctx.FromCtx(ctx).Debug("Deleted existing Favorites index...")
-	}
-	// Make sure the index doesn't exist before continuing.
-	found, err := api.Indices.Exists(index).Do(ctx)
-	if err != nil {
-		return errors.Join(ErrMigrationFailed, err)
-	}
-	// Create a job queue index if not found.
-	if !found {
-		_, err = elastic.NewIndexRequest(api, index).Do(ctx)
-		if err != nil {
-			return errors.Join(ErrMigrationFailed, err)
-		}
-		slogctx.FromCtx(ctx).Debug("Created new Favorites index...")
 	}
 
 	return nil
@@ -240,30 +192,26 @@ func migrateFeeds(ctx context.Context, api *typedapi.API, destructive bool) erro
 	return nil
 }
 
-// migrateFeedItems contains migration actions for migrating feed items
-// index mappings & settings and ILM policy.
+// migrateFeedItems contains migration actions for migrating items (datastream and archive).
 func migrateFeedItems(ctx context.Context, api *typedapi.API, destructive bool) error {
-	slogctx.FromCtx(ctx).Debug("Migrating feed items...")
-
+	slogctx.FromCtx(ctx).Debug("Migrating items datastream...")
+	// Create the items datastream.
 	if destructive {
 		_, err := api.Indices.DeleteDataStream(ItemsSchemaPrefix + "_" + config.Environment()).Do(ctx)
 		if err != nil && !elastic.ParseError(err).IsNotFound() {
-			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+			return fmt.Errorf("unable to migrate items datastream: %w", err)
 		}
 		_, err = api.Ilm.DeleteLifecycle(ItemsSchemaPrefix).Do(ctx)
 		if err != nil && !elastic.ParseError(err).IsNotFound() {
-			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+			return fmt.Errorf("unable to migrate items datastream: %w", err)
 		}
 	}
-
 	if _, err := api.Ilm.PutLifecycle(ItemsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx); err != nil {
-		return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		return fmt.Errorf("unable to migrate items datastream: %w", err)
 	}
-
 	if err := elastic.PutComponentTemplate(ctx, api, ItemsSchemaPrefix, NewComponentTemplateRequest(itemsComponentTemplate())); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
+		return fmt.Errorf("unable to migrate items datastream: %w", err)
 	}
-
 	if err := elastic.PutIndexTemplate(ctx, api, ItemsSchemaPrefix,
 		NewIndexTemplateRequest(
 			WithIndexPatterns(ItemsSchemaPrefix+"_*"),
@@ -272,7 +220,41 @@ func migrateFeedItems(ctx context.Context, api *typedapi.API, destructive bool) 
 			AsDataStream(),
 		),
 	); err != nil {
-		return errors.Join(ErrMigrationFailed, err)
+		return fmt.Errorf("unable to migrate items datastream: %w", err)
+	}
+
+	slogctx.FromCtx(ctx).Debug("Migrating items archive...")
+	// Create the items archive.
+	if err := elastic.PutComponentTemplate(ctx, api, ArticleArchiveSchemaPrefix, NewComponentTemplateRequest(articleArchiveComponentTemplate())); err != nil {
+		return fmt.Errorf("unable to migrate items archive: %w", err)
+	}
+	if err := elastic.PutIndexTemplate(ctx, api, ArticleArchiveSchemaPrefix,
+		NewIndexTemplateRequest(
+			WithIndexPatterns(ArticleArchiveSchemaPrefix+"_*"),
+			WithComponentTemplates(ArticleArchiveSchemaPrefix),
+		),
+	); err != nil {
+		return fmt.Errorf("unable to migrate items archive: %w", err)
+	}
+	archiveIndex := ArticleArchiveSchemaPrefix + "_" + config.Environment()
+	// Delete index if destructive set.
+	if destructive {
+		_, err := api.Indices.Delete(archiveIndex).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
+			return fmt.Errorf("unable to migrate items archive: %w", err)
+		}
+	}
+	// Make sure the index doesn't exist before continuing.
+	found, err := api.Indices.Exists(archiveIndex).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("unable to migrate items archive: %w", err)
+	}
+	// Create a job queue index if not found.
+	if !found {
+		_, err = elastic.NewIndexRequest(api, archiveIndex).Do(ctx)
+		if err != nil {
+			return fmt.Errorf("unable to migrate items archive: %w", err)
+		}
 	}
 
 	return nil

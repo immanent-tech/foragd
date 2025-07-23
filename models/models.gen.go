@@ -10,6 +10,13 @@ import (
 	"github.com/oapi-codegen/runtime"
 )
 
+// Defines values for ArticleArchiveSourceType.
+const (
+	ArticleArchiveSourceTypeAtom     ArticleArchiveSourceType = "Atom"
+	ArticleArchiveSourceTypeJSONFeed ArticleArchiveSourceType = "JSONFeed"
+	ArticleArchiveSourceTypeRSS      ArticleArchiveSourceType = "RSS"
+)
+
 // Defines values for FavoriteType.
 const (
 	FavoriteTypeArticle      FavoriteType = "article"
@@ -69,6 +76,65 @@ type Article struct {
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
+// ArticleArchive defines model for ArticleArchive.
+type ArticleArchive struct {
+	// Timestamp is when the document was created.
+	Timestamp Timestamp `json:"@timestamp" validate:"required"`
+
+	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
+	Authors []string `json:"authors,omitempty,omitzero"`
+
+	// Categories is a list of categories that define a taxonomy for the feed or item.
+	Categories []Category `json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
+
+	// Content contains the item content.
+	Content string `json:"content,omitempty,omitzero"`
+
+	// Contributors is a list of people (names, nicknames and/or emails) who "contributed" the object content.
+	Contributors []string `json:"contributors,omitempty,omitzero"`
+	Copyright    string   `json:"copyright,omitempty,omitzero"`
+
+	// Description is a short summary or description of the feed or item.
+	Description string `json:"description,omitempty,omitzero"`
+
+	// FeedID is the unique ID of a feed.
+	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+
+	// FeedTitle is the title of the feed to which this item belongs.
+	FeedTitle string `json:"feed_title" validate:"required"`
+
+	// Image is a link to an image to represent the object.
+	Image ObjectImage `json:"image,omitempty,omitzero"`
+
+	// ItemID is the unique ID of an item.
+	ItemID   ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+	Language string `json:"language,omitempty,omitzero"`
+
+	// Published is the datetime at which the feed or item was published.
+	Published time.Time `json:"published"`
+
+	// SourceType indicates what type of source the object came from.
+	SourceType ArticleArchiveSourceType `json:"source_type"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// Title is the title of the feed or item.
+	Title string `json:"title" validate:"required"`
+
+	// Updated is the datetime at which the feed or item was updated.
+	Updated time.Time `json:"updated,omitempty,omitzero"`
+
+	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
+	URL string `json:"url,omitempty,omitzero" validate:"omitempty,url"`
+
+	// UserID is the unique ID of a user.
+	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
+}
+
+// ArticleArchiveSourceType indicates what type of source the object came from.
+type ArticleArchiveSourceType string
+
 // Category represents a taxonomy applied to an object.
 type Category = string
 
@@ -90,24 +156,21 @@ type Favorite struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
-	// Data contains the (optional) data pertaining to the type of Favorite.
-	Data Favorite_Data `json:"data"`
+	// Nickname is an optional friendly name.
+	Nickname Nickname `form:"nickname" json:"nickname,omitempty,omitzero"`
 
-	// FavoriteID is the unique ID of a Favorite.
-	FavoriteID FavoriteID `form:"favorite_id" json:"favorite_id" validate:"required,startswith=fav_"`
+	// ObjectData contains the (optional) data pertaining to the favorite object.
+	ObjectData Favorite_ObjectData `json:"object_data,omitempty,omitzero"`
 
-	// ObjectID is the (optional) id of the object that has been Favorited, where the Favorite is an object type (e.g., subscription or article).
-	ObjectID string `json:"object_id,omitempty,omitzero"`
+	// ObjectID an ID of the object that has been favorited.
+	ObjectID string `json:"object_id"`
 
 	// Type is the type of Favorite.
 	Type FavoriteType `json:"type"`
-
-	// UserID is the unique ID of a user.
-	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
 }
 
-// Favorite_Data contains the (optional) data pertaining to the type of Favorite.
-type Favorite_Data struct {
+// Favorite_ObjectData contains the (optional) data pertaining to the favorite object.
+type Favorite_ObjectData struct {
 	union json.RawMessage
 }
 
@@ -116,12 +179,6 @@ type FavoriteType string
 
 // FavoriteArticle is an article that the user has marked as a Favorite.
 type FavoriteArticle struct {
-	// Item represents an individual item (e.g., an individual feed item).
-	Item Item `json:"item,omitempty,omitzero"`
-
-	// SubscriptionCustomisation contains object fields that can be customised (overridden) by a user
-	SubscriptionCustomisation ObjectCustomisation `json:"subscription_customisation,omitempty,omitzero"`
-
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
@@ -129,14 +186,8 @@ type FavoriteArticle struct {
 // FavoriteID is the unique ID of a Favorite.
 type FavoriteID = string
 
-// FavoriteSearch defines model for FavoriteSearch.
-type FavoriteSearch struct {
-	// Nickname a nickname for this search.
-	Nickname string `json:"nickname,omitempty,omitzero"`
-
-	// Text is the text to search.
-	Text string `form:"text" json:"text" validate:"omitempty,required"`
-}
+// FavoriteSearch represents a search request by the user.
+type FavoriteSearch = SearchRequest
 
 // FavoriteSubscription contains object fields that can be customised (overridden) by a user
 type FavoriteSubscription = ObjectCustomisation
@@ -249,6 +300,9 @@ type ItemID = string
 
 // Mark applies the given mark action to objects.
 type Mark string
+
+// Nickname is an optional friendly name.
+type Nickname = string
 
 // ObjectCommon contains common fields across objects.
 type ObjectCommon struct {
@@ -401,6 +455,9 @@ type User struct {
 	// ExternalUserId is the ID of the user on the external backend that was used to create the account.
 	ExternalUserId string `json:"external_user_id" validate:"required"`
 
+	// Favorites contains the user favorites.
+	Favorites []Favorite `json:"favorites,omitempty,omitzero" validate:"omitempty,dive"`
+
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
 	MaxHistory string `json:"max_history" validate:"required"`
 
@@ -453,74 +510,22 @@ type UserSubscriptionFeedRelation struct {
 	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
 }
 
-// AsFavoriteSubscription returns the union data inside the Favorite_Data as a FavoriteSubscription
-func (t Favorite_Data) AsFavoriteSubscription() (FavoriteSubscription, error) {
-	var body FavoriteSubscription
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFavoriteSubscription overwrites any union data inside the Favorite_Data as the provided FavoriteSubscription
-func (t *Favorite_Data) FromFavoriteSubscription(v FavoriteSubscription) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeFavoriteSubscription performs a merge with any union data inside the Favorite_Data, using the provided FavoriteSubscription
-func (t *Favorite_Data) MergeFavoriteSubscription(v FavoriteSubscription) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsFavoriteArticle returns the union data inside the Favorite_Data as a FavoriteArticle
-func (t Favorite_Data) AsFavoriteArticle() (FavoriteArticle, error) {
-	var body FavoriteArticle
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromFavoriteArticle overwrites any union data inside the Favorite_Data as the provided FavoriteArticle
-func (t *Favorite_Data) FromFavoriteArticle(v FavoriteArticle) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeFavoriteArticle performs a merge with any union data inside the Favorite_Data, using the provided FavoriteArticle
-func (t *Favorite_Data) MergeFavoriteArticle(v FavoriteArticle) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsFavoriteSearch returns the union data inside the Favorite_Data as a FavoriteSearch
-func (t Favorite_Data) AsFavoriteSearch() (FavoriteSearch, error) {
+// AsFavoriteSearch returns the union data inside the Favorite_ObjectData as a FavoriteSearch
+func (t Favorite_ObjectData) AsFavoriteSearch() (FavoriteSearch, error) {
 	var body FavoriteSearch
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromFavoriteSearch overwrites any union data inside the Favorite_Data as the provided FavoriteSearch
-func (t *Favorite_Data) FromFavoriteSearch(v FavoriteSearch) error {
+// FromFavoriteSearch overwrites any union data inside the Favorite_ObjectData as the provided FavoriteSearch
+func (t *Favorite_ObjectData) FromFavoriteSearch(v FavoriteSearch) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeFavoriteSearch performs a merge with any union data inside the Favorite_Data, using the provided FavoriteSearch
-func (t *Favorite_Data) MergeFavoriteSearch(v FavoriteSearch) error {
+// MergeFavoriteSearch performs a merge with any union data inside the Favorite_ObjectData, using the provided FavoriteSearch
+func (t *Favorite_ObjectData) MergeFavoriteSearch(v FavoriteSearch) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -531,12 +536,38 @@ func (t *Favorite_Data) MergeFavoriteSearch(v FavoriteSearch) error {
 	return err
 }
 
-func (t Favorite_Data) MarshalJSON() ([]byte, error) {
+// AsFavoriteArticle returns the union data inside the Favorite_ObjectData as a FavoriteArticle
+func (t Favorite_ObjectData) AsFavoriteArticle() (FavoriteArticle, error) {
+	var body FavoriteArticle
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromFavoriteArticle overwrites any union data inside the Favorite_ObjectData as the provided FavoriteArticle
+func (t *Favorite_ObjectData) FromFavoriteArticle(v FavoriteArticle) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeFavoriteArticle performs a merge with any union data inside the Favorite_ObjectData, using the provided FavoriteArticle
+func (t *Favorite_ObjectData) MergeFavoriteArticle(v FavoriteArticle) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Favorite_ObjectData) MarshalJSON() ([]byte, error) {
 	b, err := t.union.MarshalJSON()
 	return b, err
 }
 
-func (t *Favorite_Data) UnmarshalJSON(b []byte) error {
+func (t *Favorite_ObjectData) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

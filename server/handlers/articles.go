@@ -19,6 +19,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
@@ -252,4 +253,49 @@ func (a *API) getItemTopCategories(ctx context.Context, feeds ...models.FeedID) 
 	}
 
 	return topCategories.BucketNames(), nil
+}
+
+// archiveArticle will index an article into the item archive to avoid deletion.
+func (a *API) archiveArticle(ctx context.Context, article *models.Article) error {
+	index := elastic.ArchiveIndexFromCtx(ctx)
+	if index == "" {
+		return fmt.Errorf("unable to archive article: %w", ErrNoCtxData)
+	}
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return fmt.Errorf("unable to archive article: %w", ErrNoCtxData)
+	}
+	archive, err := models.NewArchivedArticle(user.GetID(), article.GetSubscriptionID(), &article.Item)
+	if err != nil {
+		return fmt.Errorf("unable to archive article: %w", err)
+	}
+	err = elastic.CreateDoc(ctx, a.DataAPI().GetAPI(), index, archive.ItemID, archive)
+	if err != nil {
+		return fmt.Errorf("unable to archive article: %w", err)
+	}
+	return nil
+}
+
+// unarchiveArticle will delete an article from the archive.
+func (a *API) unarchiveArticle(ctx context.Context, id models.ItemID) error {
+	index := elastic.ArchiveIndexFromCtx(ctx)
+	if index == "" {
+		return fmt.Errorf("unable to removed archived article: %w", ErrNoCtxData)
+	}
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return fmt.Errorf("unable to remove archived article: %w", ErrNoCtxData)
+	}
+	// Set up the query to match the user's favorited article.
+	query := query.Bool(
+		query.Filter(
+			query.Term("user_id", user.GetID()),
+			query.Term("item_id", id),
+		),
+	)
+	err := elastic.DeleteDocs(ctx, a.DataAPI().GetAPI(), index, query)
+	if err != nil {
+		return fmt.Errorf("unable to remove archived article: %w", err)
+	}
+	return nil
 }

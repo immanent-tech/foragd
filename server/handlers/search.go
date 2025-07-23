@@ -30,6 +30,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
+		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
@@ -83,12 +84,24 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			RenderResponse(RespForbidden()).ServeHTTP(res, req)
+			return
+		}
+		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
-
+		id := request.ID()
+		if id == "" {
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			return
+		}
+		// Retrieve favorite data for this search
+		fav := user.GetFavorites().FilterByType(models.FavoriteTypeSearch).Get(id)
 		// Find subscriptions and articles that match search request.
 		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
 		if err != nil {
@@ -96,7 +109,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
 			resp := models.NewResponse(
-				models.WithResponseTemplate(views.NewSearchResultsPage(request, subscriptions, articles).Template(req)),
+				models.WithResponseTemplate(views.NewSearchResultsPage(fav, request, subscriptions, articles).Template(req)),
 			)
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		}

@@ -17,10 +17,10 @@ const (
 	FeedsSchemaPrefix = "feeds"
 	// ItemsSchemaPrefix is a prefix used for item related index/mapping/settings.
 	ItemsSchemaPrefix = "feeditems"
+	// ArticleArchiveSchemaPrefix is a prefix used for item archive related index/mapping/settings.
+	ArticleArchiveSchemaPrefix = "article_archive"
 	// UsersSchemaPrefix is a prefix used for user related index/mapping/settings.
 	UsersSchemaPrefix = "users"
-	// FavoritesSchemaPrefix is a prefix used for favorite related index/mapping/settings.
-	FavoritesSchemaPrefix = "favorites"
 	// SchedulerSchemaPrefix is a prefix used for scheduler related index/mapping/settings.
 	SchedulerSchemaPrefix = "scheduler_jobs"
 	// SessionsSchemaPrefix is a prefix used for sessions related index/mapping/settings.
@@ -118,40 +118,10 @@ func userComponentTemplate() types.IndexState {
 						"subscription_id": types.NewKeywordProperty(),
 					},
 				},
+				"favorites": types.NewFlattenedProperty(),
 			},
 		}),
 		WithAliases(UsersSchemaPrefix, types.Alias{}),
-	)
-}
-
-//
-// Favorites
-//
-
-func favoritesTemplate() types.IndexState {
-	return NewIndexState(
-		WithMappings(&types.TypeMapping{
-			Dynamic: &dynamicmapping.False,
-			Properties: map[string]types.Property{
-				"created_at":  types.NewDateNanosProperty(),
-				"user_id":     types.NewKeywordProperty(),
-				"favorite_id": types.NewKeywordProperty(),
-				"object_id":   types.NewKeywordProperty(),
-				"type":        types.NewKeywordProperty(),
-				"data":        types.NewFlattenedProperty(),
-			},
-		}),
-		WithAliases(FavoritesSchemaPrefix, types.Alias{}),
-		WithIndexSettings(
-			WithAnalysis(types.IndexSettingsAnalysis{
-				Analyzer: map[string]types.Analyzer{
-					EnglishExactAnalyzerName: types.CustomAnalyzer{
-						Tokenizer: "standard",
-						Filter:    []string{"lowercase"},
-					},
-				},
-			}),
-		),
 	)
 }
 
@@ -233,6 +203,35 @@ func feedsComponentTemplate() types.IndexState {
 //
 // FEED ITEMS
 //
+
+func articleArchiveComponentTemplate() types.IndexState {
+	mapping := map[string]types.Property{
+		"@timestamp":      types.NewDateNanosProperty(),
+		"feed_id":         types.NewKeywordProperty(),
+		"item_id":         types.NewKeywordProperty(),
+		"created":         types.NewDateNanosProperty(),
+		"user_id":         types.NewKeywordProperty(),
+		"subscription_id": types.NewKeywordProperty(),
+	}
+	maps.Copy(mapping, CommonObjectMappings)
+	return NewIndexState(
+		WithMappings(&types.TypeMapping{
+			Dynamic:    &dynamicmapping.False,
+			Properties: mapping,
+		}),
+		WithAliases(ArticleArchiveSchemaPrefix, types.Alias{}),
+		WithIndexSettings(
+			WithAnalysis(types.IndexSettingsAnalysis{
+				Analyzer: map[string]types.Analyzer{
+					EnglishExactAnalyzerName: types.CustomAnalyzer{
+						Tokenizer: "standard",
+						Filter:    []string{"lowercase"},
+					},
+				},
+			}),
+		),
+	)
+}
 
 func itemsComponentTemplate() types.IndexState {
 	mapping := map[string]types.Property{

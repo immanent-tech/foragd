@@ -9,6 +9,8 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/attributes"
+	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 	"slices"
@@ -40,12 +42,16 @@ type SearchResultsPage struct {
 	favoriteID    models.FavoriteID
 }
 
-func NewSearchResultsPage(search *models.SearchRequest, subscriptions []*Subscription, articles []*Article) *SearchResultsPage {
-	return &SearchResultsPage{
+func NewSearchResultsPage(fav *models.Favorite, search *models.SearchRequest, subscriptions []*Subscription, articles []*Article) *SearchResultsPage {
+	page := &SearchResultsPage{
 		search:        search,
 		subscriptions: subscriptions,
 		articles:      articles,
 	}
+	if fav != nil {
+		page.favoriteID = fav.GetID()
+	}
+	return page
 }
 
 // Template will render the home page based on the request details.
@@ -72,21 +78,19 @@ templ (page *SearchResultsPage) content() {
 	// 	on load hide #search-suggestions
 	// </script>
 	<div class="controls">
-		if page.favoriteID != "" {
-			@partials.NewAction("/user/favorite/search/"+page.favoriteID, partials.DisplayActionAsButton,
-				partials.ActionMethod(http.MethodDelete),
-				partials.ActionSwap("none"),
-			) {
-				@tabler.BookmarkOff()
+		<div id="favorite_button">
+			if page.favoriteID != "" {
+				@RemoveFavoriteSearchButton(page.favoriteID)
+			} else {
+				@AddFavoriteSearchButton()
 			}
-		} else {
-			@partials.NewAction("/user/favorite/search", partials.DisplayActionAsButton,
-				partials.ActionMethod(http.MethodPut),
-				partials.ActionSwap("none"),
-			) {
-				@tabler.Bookmark()
-			}
-		}
+		</div>
+	</div>
+	<div id="search_request" class="hidden">
+		@hiddeninput.Build(
+			hiddeninput.WithName("text"),
+			hiddeninput.WithValue(attributes.Value(page.search.Text)),
+		)
 	</div>
 	<div class="flex flex-col m-2 gap-2 items-center">
 		if len(page.subscriptions) > 0 {
@@ -120,4 +124,23 @@ templ (page *SearchResultsPage) content() {
 			</div>
 		}
 	</div>
+}
+
+templ AddFavoriteSearchButton() {
+	@partials.NewAction("/user/favorite/search", partials.DisplayActionAsButton,
+		partials.ActionMethod(http.MethodPut),
+		partials.ActionTarget("#favorite_button"),
+		partials.ActionInclude("#search_request"),
+	) {
+		@tabler.Bookmark()
+	}
+}
+
+templ RemoveFavoriteSearchButton(id models.FavoriteID) {
+	@partials.NewAction("/user/favorite/search/"+id, partials.DisplayActionAsButton,
+		partials.ActionMethod(http.MethodDelete),
+		partials.ActionTarget("#favorite_button"),
+	) {
+		@tabler.BookmarkOff()
+	}
 }

@@ -21,7 +21,7 @@ func SetupElastic() func(next http.Handler) http.Handler {
 			ctx = elastic.ItemsIndexToCtx(ctx, schema.ItemsSchemaPrefix+"_"+config.Environment())
 			ctx = elastic.UserIndexToCtx(ctx, schema.UsersSchemaPrefix)
 			ctx = elastic.SubscriptionsIndexToCtx(ctx, schema.SubscriptionsSchemaPrefix)
-			ctx = elastic.FavoritesIndexToCtx(ctx, schema.FavoritesSchemaPrefix)
+			ctx = elastic.ArchiveIndexToCtx(ctx, schema.ArticleArchiveSchemaPrefix)
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
 	}

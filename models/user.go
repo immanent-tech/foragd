@@ -21,6 +21,7 @@ var (
 	ErrUpdateUser            = errors.New("update user failed")
 	ErrUserAlreadyReadItem   = errors.New("user already read this item")
 	ErrUserAlreadyUnreadItem = errors.New("user already unread this item")
+	ErrAlreadyFavorite       = errors.New("already favorited")
 	ErrNotSubscribed         = errors.New("user not subscribed to feed")
 )
 
@@ -102,6 +103,70 @@ func (u *User) HasSubscription(id SubscriptionID) bool {
 	})
 }
 
+// GetFavorites returns the slice of user favorites.
+func (u *User) GetFavorites() Favorites {
+	return u.Favorites
+}
+
+// AddFavoriteSubscription creates a new favorite subscription for the user.
+func (u *User) AddFavoriteSubscription(id SubscriptionID, nickname string) error {
+	if u.GetFavorites().FilterByType(FavoriteTypeSubscription).HasFavorite(id) {
+		return ErrAlreadyFavorite
+	}
+	fav := newFavorite(FavoriteTypeSubscription, nickname)
+	fav.SetID(id)
+	u.Favorites = append(u.Favorites, *fav)
+	return nil
+}
+
+// AddFavoriteArticle creates a new favorite article for the user.
+func (u *User) AddFavoriteArticle(nickname string, article *Article) error {
+	if u.GetFavorites().FilterByType(FavoriteTypeArticle).HasFavorite(article.GetID()) {
+		return ErrAlreadyFavorite
+	}
+	fav := newFavorite(FavoriteTypeArticle, nickname)
+	fav.SetID(article.GetID())
+	err := fav.ObjectData.FromFavoriteArticle(FavoriteArticle{
+		SubscriptionID: article.GetSubscriptionID(),
+	})
+	if err != nil {
+		return fmt.Errorf("could not create favorite article: %w", err)
+	}
+	u.Favorites = append(u.Favorites, *fav)
+	return nil
+}
+
+// AddFavoriteSearch creates a new favorite search for the user.
+func (u *User) AddFavoriteSearch(nickname string, search *SearchRequest) error {
+	id := search.ID()
+	if id == "" {
+		return fmt.Errorf("%w: cannot generate search id", ErrUpdateUser)
+	}
+	if u.GetFavorites().FilterByType(FavoriteTypeSearch).HasFavorite(id) {
+		return ErrAlreadyFavorite
+	}
+	fav := newFavorite(FavoriteTypeSearch, nickname)
+	fav.SetID(id)
+	err := fav.ObjectData.FromFavoriteSearch(*search)
+	if err != nil {
+		return fmt.Errorf("could not create favorite search: %w", err)
+	}
+	u.Favorites = append(u.Favorites, *fav)
+	return nil
+}
+
+// RemoveFavorite removes the favorite with the given id from the user.
+func (u *User) RemoveFavorite(id string) {
+	favorites := slices.DeleteFunc(u.Favorites, func(f Favorite) bool {
+		return f.GetID() == id
+	})
+	u.Favorites = favorites
+}
+
+//
+// UserSignup.
+//
+
 // Valid will check to ensure the UserSignupRequest contains valid data.
 func (u *UserSignupRequest) Valid() (bool, error) {
 	_, problems := validation.ValidateStruct(u)
@@ -138,4 +203,55 @@ func GetUserTheme(ctx context.Context) string {
 		}
 	}
 	return DefaultUserTheme
+}
+
+//
+// Favorites.
+//
+
+func newFavorite(favType FavoriteType, nickname string) *Favorite {
+	return &Favorite{
+		CreatedAt: time.Now().UTC(),
+		Type:      favType,
+		Nickname:  nickname,
+	}
+}
+
+func (f *Favorite) String() string {
+	return f.Nickname
+}
+
+func (f *Favorite) GetID() string {
+	return f.ObjectID
+}
+
+func (f *Favorite) SetID(id string) {
+	f.ObjectID = id
+}
+
+type Favorites []Favorite
+
+// FilterByType will return a new slice filtered to the given favorite type.
+func (f Favorites) FilterByType(favoriteType FavoriteType) Favorites {
+	return slices.Collect(FilterSlice(f, func(f Favorite) bool {
+		return f.Type == favoriteType
+	}))
+}
+
+// HasFavorite returns a boolean indicating whether the user has a favorite with the given object id.
+func (f Favorites) HasFavorite(id string) bool {
+	return slices.ContainsFunc(f, func(f Favorite) bool {
+		return f.GetID() == id
+	})
+}
+
+// Get retrieves the favorite with the given id.
+func (f Favorites) Get(id string) *Favorite {
+	idx := slices.IndexFunc(f, func(f Favorite) bool {
+		return f.GetID() == id
+	})
+	if idx != -1 {
+		return &f[idx]
+	}
+	return nil
 }

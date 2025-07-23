@@ -5,7 +5,9 @@ package models
 
 import (
 	"fmt"
+	"strconv"
 
+	"github.com/gohugoio/hashstructure"
 	"github.com/joshuar/go-syndication/sanitization"
 
 	"github.com/joshuar/go-feed-me/validation"
@@ -24,4 +26,13 @@ func (r *SearchRequest) Valid() (bool, error) {
 func (r *SearchRequest) Sanitise() error {
 	r.Text = sanitization.SanitizeString(r.Text)
 	return nil
+}
+
+// ID generates an ID (hash) from the search data.
+func (r *SearchRequest) ID() string {
+	hash, err := hashstructure.Hash(r, nil)
+	if err != nil {
+		return ""
+	}
+	return strconv.FormatUint(hash, 10)
 }

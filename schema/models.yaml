@@ -99,6 +99,12 @@ components:
         validate: 'required,startswith=fav_'
         json: 'favorite_id'
         form: 'favorite_id'
+    Nickname:
+      description: >
+        is an optional friendly name.
+      type: string
+      x-oapi-codegen-extra-tags:
+        form: 'nickname'
     Category:
       description: >
         represents a taxonomy applied to an object.
@@ -167,6 +173,14 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/SubscriptionFeedRelation'
+            favorites:
+              description: >
+                contains the user favorites.
+              type: array
+              items:
+                $ref: '#/components/schemas/Favorite'
+              x-oapi-codegen-extra-tags:
+                validate: 'omitempty,dive'
     UserSettings:
       description: >
         contains user-specific settings for the application.
@@ -183,36 +197,31 @@ components:
         score higher in search results.
       type: object
       required:
-        - created_at
-        - user_id
-        - id
         - type
-        - data
+        - created_at
+        - object_id
       properties:
         created_at:
           $ref: '#/components/schemas/CreatedAt'
-        user_id:
-          $ref: '#/components/schemas/UserID'
-        id:
-          $ref: '#/components/schemas/FavoriteID'
-        object_id:
-          description: >
-            is the (optional) id of the object that has been Favorited, where the Favorite is an object type (e.g.,
-            subscription or article).
-          type: string
-          x-go-name: ObjectID
+        nickname:
+          $ref: '#/components/schemas/Nickname'
         type:
           description: >
             is the type of Favorite.
           type: string
           enum: ['subscription', 'article', 'search']
-        data:
+        object_id:
           description: >
-            contains the (optional) data pertaining to the type of Favorite.
+            an ID of the object that has been favorited.
+          type: string
+          x-go-name: ObjectID
+        object_data:
+          description: >
+            contains the (optional) data pertaining to the favorite object.
           oneOf:
-            - $ref: '#/components/schemas/FavoriteSubscription'
-            - $ref: '#/components/schemas/FavoriteArticle'
             - $ref: '#/components/schemas/FavoriteSearch'
+            # - $ref: '#/components/schemas/FavoriteSubscription'
+            - $ref: '#/components/schemas/FavoriteArticle'
     FavoriteSubscription:
       description: >
         is a subscription that the user has marked as a Favorite.
@@ -224,26 +233,14 @@ components:
         is an article that the user has marked as a Favorite.
       type: object
       properties:
-        item:
-          $ref: '#/components/schemas/Item'
         subscription_id:
           $ref: '#/components/schemas/SubscriptionID'
-        subscription_customisation:
-          $ref: '#/components/schemas/ObjectCustomisation'
     FavoriteSearch:
       description: >
         is a search that the user has marked as a Favorite.
       type: object
       allOf:
         - $ref: 'api.yaml#/components/schemas/SearchRequest'
-        - type: object
-          required:
-            - name
-          properties:
-            nickname:
-              description: >
-                a nickname for this search.
-              type: string
     UserSession:
       description: tracks a user session.
       type: object
@@ -532,3 +529,18 @@ components:
           description: >
             indicates whether this article has been marked as a Favorite by the user.
           type: boolean
+    ArticleArchive:
+      description: >
+        represents an item that has been archived to avoid deletion (i.e. favorited by a user).
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Item'
+        - type: object
+          required:
+            - user_id
+            - subscription_id
+          properties:
+            user_id:
+              $ref: '#/components/schemas/UserID'
+            subscription_id:
+              $ref: '#/components/schemas/SubscriptionID'

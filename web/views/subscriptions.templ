@@ -357,33 +357,11 @@ templ (c *Subscription) card() {
 							}
 						</li>
 						// Favorite action.
-						<li _="on click call document.activeElement.blur()">
+						<li id={ "favorite_" + c.GetID() } _="on click call document.activeElement.blur()">
 							if c.Favorite {
-								@partials.NewAction("/user/favorite/subscription/"+c.GetID(), partials.DisplayActionAsLink,
-									partials.ActionMethod(http.MethodDelete),
-									partials.ActionSwap("none"),
-									partials.ActionLinkOptions(
-										link.WithClasses("text-xs"),
-									),
-								) {
-									<div class="icontext">
-										@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
-										Remove Favorite
-									</div>
-								}
+								@RemoveFavoriteSubscriptionButton(c.GetID())
 							} else {
-								@partials.NewAction("/user/favorite/subscription/"+c.GetID(), partials.DisplayActionAsLink,
-									partials.ActionMethod(http.MethodPut),
-									partials.ActionSwap("none"),
-									partials.ActionLinkOptions(
-										link.WithClasses("text-xs"),
-									),
-								) {
-									<div class="icontext">
-										@tabler.Bookmark(i.Props{Size: i.SizeXS})
-										Add Favorite
-									</div>
-								}
+								@AddFavoriteSubscriptionButton(c.GetID())
 							}
 						</li>
 						// Unsubscribe action.
@@ -422,6 +400,36 @@ templ (c *Subscription) ShowAsSearchSuggestion() {
 			// <div class="text-xs uppercase font-semibold opacity-60">{ article.Item.FeedTitle }</div>
 		</div>
 	</li>
+}
+
+templ AddFavoriteSubscriptionButton(id models.SubscriptionID) {
+	@partials.NewAction("/user/favorite/subscription/"+id, partials.DisplayActionAsLink,
+		partials.ActionMethod(http.MethodPut),
+		partials.ActionTarget("#favorite_"+id),
+		partials.ActionLinkOptions(
+			link.WithClasses("text-xs"),
+		),
+	) {
+		<div class="icontext">
+			@tabler.Bookmark(i.Props{Size: i.SizeXS})
+			Add Favorite
+		</div>
+	}
+}
+
+templ RemoveFavoriteSubscriptionButton(id models.SubscriptionID) {
+	@partials.NewAction("/user/favorite/subscription/"+id, partials.DisplayActionAsLink,
+		partials.ActionMethod(http.MethodDelete),
+		partials.ActionTarget("#favorite_"+id),
+		partials.ActionLinkOptions(
+			link.WithClasses("text-xs"),
+		),
+	) {
+		<div class="icontext">
+			@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
+			Remove Favorite
+		</div>
+	}
 }
 
 func (c *Subscription) markAttributes() templ.Attributes {

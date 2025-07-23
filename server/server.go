@@ -173,6 +173,8 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 				r.Delete("/subscription/{subscription}", handler.RemoveFavoriteSubscription())
 				r.Put("/article/{item}", handler.AddFavoriteArticle())
 				r.Delete("/article/{item}", handler.RemoveFavoriteArticle())
+				r.Put("/search", handler.AddFavoriteSearch())
+				r.Delete("/search", handler.RemoveFavoriteSearch())
 			})
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {

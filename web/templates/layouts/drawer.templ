@@ -66,7 +66,7 @@ templ Drawer() {
 				<li class="menu-title">Favorites</li>
 				<div
 					id={ partials.FavoritesID.String() }
-					hx-trigger="load, updateFavorites"
+					hx-trigger="load, updateFavorites from:body"
 					hx-get="/user/favorite"
 					hx-target={ partials.FavoritesID.Target() }
 				></div>
@@ -78,6 +78,7 @@ templ Drawer() {
 templ FavoritesList(favorites models.Favorites) {
 	{{ subscriptions := favorites.FilterByType(models.FavoriteTypeSubscription) }}
 	{{ articles := favorites.FilterByType(models.FavoriteTypeArticle) }}
+	{{ searches := favorites.FilterByType(models.FavoriteTypeSearch) }}
 	if len(subscriptions) > 0 {
 		// Show favorite subscriptions.
 		<li>
@@ -97,6 +98,19 @@ templ FavoritesList(favorites models.Favorites) {
 			<a>Articles</a>
 			<ul>
 				for fav := range slices.Values(articles) {
+					<li>
+						@partials.FavoriteLink(fav)
+					</li>
+				}
+			</ul>
+		</li>
+	}
+	if len(searches) > 0 {
+		// Show favorite articles.
+		<li>
+			<a>Searches</a>
+			<ul>
+				for fav := range slices.Values(searches) {
 					<li>
 						@partials.FavoriteLink(fav)
 					</li>

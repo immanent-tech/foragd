@@ -4,6 +4,7 @@
 package models
 
 import (
+	"encoding/json"
 	"fmt"
 	"maps"
 	"slices"
@@ -141,4 +142,20 @@ func (r *MarkArticlesRequest) Valid() (bool, error) {
 		return false, fmt.Errorf("request is invalid: %w", err)
 	}
 	return true, nil
+}
+
+// NewArchivedArticle creates a new archived article for long-term storage.
+func NewArchivedArticle(userID UserID, subscriptionID SubscriptionID, item *Item) (*ArticleArchive, error) {
+	archive := &ArticleArchive{}
+	data, err := json.Marshal(item)
+	if err != nil {
+		return nil, fmt.Errorf("unable to archive article: %w", err)
+	}
+	err = json.Unmarshal(data, archive)
+	if err != nil {
+		return nil, fmt.Errorf("unable to archive article: %w", err)
+	}
+	archive.SubscriptionID = subscriptionID
+	archive.UserID = userID
+	return archive, nil
 }
