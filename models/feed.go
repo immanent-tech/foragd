@@ -10,12 +10,13 @@ import (
 	"slices"
 	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	feeds "github.com/joshuar/go-syndication"
 	"github.com/joshuar/go-syndication/types"
 )
 
 // _ types.ObjectCommon = (*Feed)(nil)
-var _ types.Source = (*Feed)(nil)
+// var _ feeds.Feed = (*Feed)(nil)
 
 // ErrNewFeed is returned when there was a problem creating a new Feed.
 var ErrNewFeed = errors.New("could not create new feed")
@@ -42,7 +43,8 @@ func (f Feeds) FindByID(id FeedID) *Feed {
 
 func (f Feeds) FindByURL(url string) *Feed {
 	idx := slices.IndexFunc(f, func(v *Feed) bool {
-		return v.GetSourceURL() == url
+		spew.Dump(v.SourceURLs)
+		return slices.Contains(v.SourceURLs, url)
 	})
 	if idx == -1 {
 		return nil
@@ -51,22 +53,15 @@ func (f Feeds) FindByURL(url string) *Feed {
 }
 
 func (f *Feed) String() string {
-	if f.GetTitle() != "" {
-		return fmt.Sprintf("%s (%s)", f.GetTitle(), f.GetSourceURL())
-	}
-	return f.GetSourceURL()
+	return f.GetTitle()
 }
 
 func (f *Feed) GetID() FeedID {
 	return f.FeedID
 }
 
-func (f *Feed) GetSourceURL() URL {
-	return f.SourceURL
-}
-
-func (f *Feed) SetSourceURL(url string) {
-	f.SourceURL = url
+func (f *Feed) GetSourceURLs() []URL {
+	return f.SourceURLs
 }
 
 func (f *Feed) GetLink() URL {
@@ -130,14 +125,14 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 		if result.Err != nil {
 			return nil, fmt.Errorf("could not create feed from URL %s: %w", url, result.Err)
 		}
-		feed = NewFeedFromSource(result.Feed.FeedSource, string(result.Feed.SourceType))
+		feed = NewFeedFromSource(result.Feed)
 	}
 
 	return feed, nil
 }
 
 // NewFeedFromSource converts the raw types.FeedSource into a Feed object.
-func NewFeedFromSource[T types.FeedSource](source T, sourceType string) *Feed {
+func NewFeedFromSource(source *feeds.Feed) *Feed {
 	feed := &Feed{
 		FeedID:       NewID(FeedPFX),
 		CreatedAt:    time.Now().UTC(),
@@ -145,8 +140,8 @@ func NewFeedFromSource[T types.FeedSource](source T, sourceType string) *Feed {
 		Updated:      source.GetUpdatedDate(),
 		Title:        source.GetTitle(),
 		Description:  source.GetDescription(),
-		SourceType:   FeedSourceType(sourceType),
-		SourceURL:    source.GetSourceURL(),
+		SourceType:   FeedSourceType(source.SourceType),
+		SourceURLs:   source.Links(),
 		URL:          source.GetLink(),
 		Authors:      source.GetAuthors(),
 		Contributors: source.GetContributors(),

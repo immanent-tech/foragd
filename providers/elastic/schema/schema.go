@@ -124,10 +124,10 @@ func userComponentTemplate() types.IndexState {
 
 func feedsComponentTemplate() types.IndexState {
 	mapping := map[string]types.Property{
-		"feed_id":    types.NewKeywordProperty(),
-		"created_at": types.NewDateNanosProperty(),
-		"updated_at": types.NewDateNanosProperty(),
-		"source_url": types.NewKeywordProperty(),
+		"feed_id":     types.NewKeywordProperty(),
+		"created_at":  types.NewDateNanosProperty(),
+		"updated_at":  types.NewDateNanosProperty(),
+		"source_urls": types.NewKeywordProperty(),
 	}
 	maps.Copy(mapping, CommonObjectMappings)
 	return NewIndexState(

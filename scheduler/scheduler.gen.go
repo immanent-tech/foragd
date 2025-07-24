@@ -26,10 +26,9 @@ type CronTrigger struct {
 // FeedJob represents a job that fetches new items for a feed.
 type FeedJob struct {
 	// FeedID is the unique ID of a feed.
-	FeedID externalRef0.FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-
-	// URL is a URL.
-	URL externalRef0.URL `json:"url" validate:"omitempty,url"`
+	FeedID                externalRef0.FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+	URLs                  []externalRef0.URL  `json:"URLs" validate:"required,dive,url"`
+	XOapiCodegenExtraTags interface{}         `json:"x-oapi-codegen-extra-tags,omitempty,omitzero"`
 }
 
 // PollTrigger represents a polling trigger for a job.

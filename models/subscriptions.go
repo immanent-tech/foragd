@@ -46,10 +46,7 @@ func (s *Subscription) Valid() (bool, error) {
 }
 
 func (s *Subscription) String() string {
-	if s.GetTitle() != "" {
-		return fmt.Sprintf("%s (%s)", s.GetTitle(), s.Feed.GetSourceURL())
-	}
-	return s.Feed.GetSourceURL()
+	return s.GetTitle()
 }
 
 func (s *Subscription) GetID() SubscriptionID {
@@ -68,7 +65,7 @@ func (s *Subscription) GetTitle() string {
 }
 
 func (s *Subscription) GetLink() string {
-	return s.Feed.GetSourceURL()
+	return s.Feed.SourceURLs[0]
 }
 
 func (s *Subscription) GetDescription() string {

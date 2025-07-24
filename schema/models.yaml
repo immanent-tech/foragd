@@ -410,19 +410,20 @@ components:
         - type: object
           required:
             - feed_id
-            - source_url
+            - source_urls
             - created_at
           properties:
             feed_id:
               $ref: '#/components/schemas/FeedID'
-            source_url:
+            source_urls:
               description: >
-                is a URL to the source Feed document.
-              allOf:
-                - $ref: '#/components/schemas/URL'
-              x-go-name: SourceURL
+                is a list of URLs that point to the feed source.
+              type: array
+              items:
+                $ref: '#/components/schemas/URL'
+              x-go-name: SourceURLs
               x-oapi-codegen-extra-tags:
-                validate: 'required,url'
+                validate: 'required,dive,url'
             created_at:
               $ref: '#/components/schemas/CreatedAt'
     Item:

@@ -56,12 +56,18 @@ components:
       type: object
       required:
         - ID
-        - URL
+        - URLs
       properties:
         ID:
           $ref: 'models.yaml#/components/schemas/FeedID'
-        URL:
-          $ref: 'models.yaml#/components/schemas/URL'
+        x-oapi-codegen-extra-tags:
+          validate: 'required,startswith=feed_'
+        URLs:
+          type: array
+          items:
+            $ref: 'models.yaml#/components/schemas/URL'
+          x-oapi-codegen-extra-tags:
+            validate: 'required,dive,url'
     PollTrigger:
       description: >
         represents a polling trigger for a job.

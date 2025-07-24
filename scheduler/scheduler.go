@@ -151,7 +151,7 @@ func (m *Manager) checkFeeds(ctx context.Context) error {
 			job quartz.ScheduledJob
 			err error
 		)
-		job, err = NewFeedJob(feed.GetID(), feed.GetSourceURL(), NewPollTrigger(defaultPollInterval, defaultPollJitter))
+		job, err = NewFeedJob(feed.GetID(), feed.SourceURLs, NewPollTrigger(defaultPollInterval, defaultPollJitter))
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Failed to schedule job for feed.",
 				slog.String("feed_id", feed.GetID()),

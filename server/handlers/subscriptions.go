@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -577,7 +578,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 	)
 	for {
 		count := 100
-		feeds, nextResults, err := api.DataAPI().SearchFeeds(ctx, query.Terms("source_url", r.feedURLs()...), count, nil, feedPagination)
+		feeds, nextResults, err := api.DataAPI().SearchFeeds(ctx, query.Terms("source_urls", r.feedURLs()...), count, nil, feedPagination)
 		if err != nil {
 			return nil, fmt.Errorf("matchFeedsToSubscriptions: %w", err)
 		}
@@ -593,6 +594,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 	results := make(views.AddSubscriptionResults)
 	feedsNeeded := make(addSubscriptionRequests)
 
+	spew.Dump(existingFeeds)
 	// Loop over existing feeds.
 	for request := range r {
 		existingFeed := existingFeeds.FindByURL(request.GetURL())

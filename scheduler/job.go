@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"slices"
 	"time"
 
 	"github.com/reugn/go-quartz/quartz"
@@ -174,23 +175,28 @@ func (job *FeedJob) Execute(ctx context.Context) error {
 
 // Description returns the description of the job.
 func (job *FeedJob) Description() string {
-	return fmt.Sprintf("Update feed %s (%s)", job.FeedID, job.URL)
+	return "Update feed " + job.FeedID
 }
 
 // getItemsSince retrieves the feed items that are newer than the given time.
 func (job *FeedJob) getItemsSince(since time.Time) ([]*models.Item, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultJobTimeout)
 	defer cancel()
-	items, err := models.GetFeedItems(ctx, job.FeedID, job.URL)
-	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
+	for url := range slices.Values(job.URLs) {
+		items, err := models.GetFeedItems(ctx, job.FeedID, url)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Failed to fetch items with current URL, trying another",
+				slog.String("current_url", url),
+			)
+			continue
+		}
+		return items.FilterSince(since), nil
 	}
-
-	return items.FilterSince(since), nil
+	return nil, fmt.Errorf("%w: no items could be fetch on any URL", ErrExecuteJobFailed)
 }
 
 // NewFeedJob creates a job that can be scheduled from the given feed data.
-func NewFeedJob(id models.FeedID, url models.URL, trigger *PollTrigger) (*ScheduledJob, error) {
+func NewFeedJob(id models.FeedID, urls []models.URL, trigger *PollTrigger) (*ScheduledJob, error) {
 	jobTrigger := ScheduledJob_JobTrigger{}
 	err := jobTrigger.FromPollTrigger(*trigger)
 	if err != nil {
@@ -202,7 +208,7 @@ func NewFeedJob(id models.FeedID, url models.URL, trigger *PollTrigger) (*Schedu
 	}
 	err = job.JobData.FromFeedJob(FeedJob{
 		FeedID: id,
-		URL:    url,
+		URLs:   urls,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
