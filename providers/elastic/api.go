@@ -415,7 +415,6 @@ func Search[O any](ctx context.Context, api *typedapi.API, index string, query q
 // SearchAll performs a paginated search request to retrieve *all* documents matching the given query. Unlike Search, it
 // does not stop when the request hits count is reached.
 func SearchAll[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, paginationSize int, options ...Option[SearchRequest]) ([]O, error) {
-	slogctx.FromCtx(ctx).Debug("Paginated search requested.")
 	if paginationSize == 0 {
 		paginationSize = 1000
 	}
@@ -423,6 +422,7 @@ func SearchAll[O any](ctx context.Context, api *typedapi.API, index string, quer
 	var searchAfter []types.FieldValueVariant
 
 	// Loop until we've paginated through all results.
+	var loops int
 	for {
 		sortOptions := &DocSorting{}
 		resultsPage, nextSearchAfter, err := Search[O](ctx, api, index, query, paginationSize,
@@ -446,7 +446,11 @@ func SearchAll[O any](ctx context.Context, api *typedapi.API, index string, quer
 		if len(resultsPage) < paginationSize {
 			break
 		}
+		loops++
 	}
+	slogctx.FromCtx(ctx).Log(ctx, logging.LevelTrace, "Paginated search finished.",
+		slog.Int("loops", loops),
+	)
 	return allResults, nil
 }
 
