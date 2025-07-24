@@ -92,8 +92,7 @@ templ (page *SubscriptionsPage) content() {
 		@UpdateSorting("/subscriptions", page.filters.GetSort())
 		@UpdateFilters(page.subscriptions.GetCategoryCounts(), "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
 		@dropdown.Build(
-			dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-			// dropdown.WithButtonClasses(button.SM, button.Square, button.Primary),
+			dropdown.WithButtonContent(tabler.DotsVertical()),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
 			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 		).Show() {
@@ -213,8 +212,8 @@ templ (c *Subscription) Summary() {
 	@link.Build(
 		link.WithAttributes(c.viewAttributes()),
 	) {
-		<div class="flex flex-row gap-2">
-			<div class="flex flex-1 gap-2">
+		<div class="flex flex-row gap-2 items-center">
+			<div class="flex-none">
 				// Generate a thumbnail to display next to the title.
 				if c.GetImage().URL != "" {
 					// If the source has an image, use that as the avatar.
@@ -235,23 +234,20 @@ templ (c *Subscription) Summary() {
 						<span class="text-sm">{ c.GetTitle()[0:1] }</span>
 					}
 				}
-				// Title text is a link to the view action of the card.
-				<div class="grow content-center">
-					{ c.GetTitle() }
-				</div>
 			</div>
-			<div class="flex flex-none justify-end">
+			<div class="grow-2 content-center">
+				// Title text is a link to the view action of the card.
+				{ c.GetTitle() }
+			</div>
+			<div class="flex-none justify-end">
 				// Display unread count (if any).
 				<div class="content-center">
 					if c.IsUnread() {
 						@badge.Build(
 							// badge.WithSize(badge.SM),
 							badge.WithColor(badge.Accent),
-							badge.WithContent(strconv.Itoa(c.GetUnreadCount())+" Unread"),
-							badge.WithExtraAttributes(templ.Attributes{
-								"sse-swap": c.GetFeedID() + "_unread",
-							}),
-							badge.WithExtraClasses("grow", "text-nowrap"),
+							badge.WithContent(strconv.Itoa(c.GetUnreadCount())),
+							badge.WithExtraClasses("badge-unread-count", "grow", "text-nowrap"),
 						).Show()
 					}
 				</div>
@@ -292,7 +288,7 @@ templ (c *Subscription) card() {
 	@card.Build(
 		card.WithStyle(card.Border),
 		card.WithShadow(shadow.SM),
-		card.WithClasses("card-sm", "lg:card-md", "bg-neutral"),
+		card.WithClasses("subscription-card", "card-xs", "lg:card-sm", "bg-neutral"),
 		card.WithClasses(c.classes...),
 		card.WithAttributes(templ.Attributes{
 			"id": c.GetID(),
@@ -300,11 +296,13 @@ templ (c *Subscription) card() {
 	) {
 		@card.BuildBody() {
 			// Card title.
-			<h2 class="card-title">
+			<div class="card-title">
 				@c.Summary()
-			</h2>
+			</div>
 			// Card body.
-			@partials.ContentMetadata(c.GetAuthors(), c.GetUpdatedDate())
+			<span class="text-xs italic absolute bottom-0 left-0 m-2">
+				@partials.ShowTimestamp(c.GetUpdatedDate())
+			</span>
 			@text.Build(
 				text.WithSize(text.XS),
 				text.WithOverflow(text.Truncate),
@@ -315,8 +313,7 @@ templ (c *Subscription) card() {
 			@card.Actions() {
 				@tooltip.Build("Actions") {
 					@dropdown.Build(
-						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-						dropdown.WithButtonClasses(button.XS, button.Secondary),
+						dropdown.WithButtonContent(tabler.DotsVertical()),
 						dropdown.WithOpenFrom(dropdown.OpenTop),
 						dropdown.WithOpenAlignment(dropdown.AlignEnd),
 						dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),

@@ -78,51 +78,46 @@ templ (page *ArticlesPage) content() {
 			)
 		}
 	</div>
-	<div id="card-controls" class="m-2">
-		<div class="grid grid-flow-col auto-cols-max justify-end gap-2">
-			<div>
-				@partials.RefreshButton("/articles", page.filters.Parameters())
-			</div>
-			@UpdateSorting("/articles", page.filters.GetSort())
-			@UpdateFilters(page.articles.GetCategoryCounts(), "/articles", page.filters.GetCategories(), page.filters.GetView())
-			@dropdown.Build(
-				dropdown.WithButtonClasses(button.SM, button.Square, button.Primary),
-				dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-				dropdown.WithOpenAlignment(dropdown.AlignEnd),
-				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52", "text-xs"),
-			).Show() {
-				<li>
-					switch page.filters.GetView() {
-						case models.ViewUnread:
-							@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead), partials.DisplayActionAsLink,
-								partials.ActionMethod(http.MethodPost),
-								partials.ActionValues(map[string]string{
-									models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),
-									"redirect":                "/subscriptions",
-								}),
-							) {
-								<div class="flex gap-2">
-									@tabler.Bookmark(i.Props{Size: i.SizeXS})
-									Mark Read
-								</div>
-							}
-						default:
-							@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
-								partials.ActionMethod(http.MethodPost),
-								partials.ActionValues(map[string]string{
-									models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),
-									"redirect":                "/subscriptions",
-								}),
-							) {
-								<div class="flex gap-2">
-									@tabler.Bookmark(i.Props{Size: i.SizeXS})
-									Mark Read
-								</div>
-							}
-					}
-				</li>
-			}
-		</div>
+	<div id="card-controls" class="controls">
+		@partials.RefreshButton("/articles", page.filters.Parameters())
+		@UpdateSorting("/articles", page.filters.GetSort())
+		@UpdateFilters(page.articles.GetCategoryCounts(), "/articles", page.filters.GetCategories(), page.filters.GetView())
+		@dropdown.Build(
+			dropdown.WithButtonContent(tabler.DotsVertical()),
+			dropdown.WithOpenAlignment(dropdown.AlignEnd),
+			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52", "text-xs"),
+		).Show() {
+			<li>
+				switch page.filters.GetView() {
+					case models.ViewUnread:
+						@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead), partials.DisplayActionAsLink,
+							partials.ActionMethod(http.MethodPost),
+							partials.ActionValues(map[string]string{
+								models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),
+								"redirect":                "/subscriptions",
+							}),
+						) {
+							<div class="flex gap-2">
+								@tabler.Bookmark(i.Props{Size: i.SizeXS})
+								Mark Read
+							</div>
+						}
+					default:
+						@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
+							partials.ActionMethod(http.MethodPost),
+							partials.ActionValues(map[string]string{
+								models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),
+								"redirect":                "/subscriptions",
+							}),
+						) {
+							<div class="flex gap-2">
+								@tabler.Bookmark(i.Props{Size: i.SizeXS})
+								Mark Read
+							</div>
+						}
+				}
+			</li>
+		}
 	</div>
 	@layouts.CardGrid() {
 		if len(page.articles) > 0 {
@@ -217,32 +212,42 @@ templ (c *Article) Card() {
 		card.WithStyle(card.Border),
 		card.WithLayout(card.LayoutSide),
 		card.WithShadow(shadow.SM),
-		card.WithClasses("card-sm", "lg:card-md", "bg-neutral"),
+		card.WithClasses("article-card", "card-xs", "lg:card-sm", "bg-neutral"),
 		card.WithClasses(c.classes...),
 		card.WithAttributes(templ.Attributes{
 			"id": c.GetID(),
 		}),
 	) {
+		//
+		// Card Image.
+		//
 		@c.image()
+		//
+		// Card Body.
+		//
 		@card.BuildBody() {
-			// Title.
-			<h2 class="card-title">
+			// Display title.
+			<div class="card-title">
 				@link.Build(
 					link.WithAttributes(c.viewAttributes()),
 				) {
 					{ c.GetTitle() }
 				}
-			</h2>
-			// Body content.
-			@templ.Join(
-				partials.ContentMetadata(c.GetAuthors(), c.GetUpdatedDate()),
-			)
-			// Actions menu.
+			</div>
+			// Display authors and updated date at bottom left.
+			// Display actions menu at bottom right.
 			@card.Actions() {
+				<div>
+					if len(c.GetAuthors()) > 0 {
+						<strong>{ strings.Join(c.GetAuthors(), ",") }</strong>
+					}
+					<span class="text-xs italic">
+						@partials.ShowTimestamp(c.GetUpdatedDate())
+					</span>
+				</div>
 				@tooltip.Build("Actions") {
 					@dropdown.Build(
-						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-						dropdown.WithButtonClasses(button.Ghost, button.XS),
+						dropdown.WithButtonContent(tabler.DotsVertical()),
 						dropdown.WithOpenFrom(dropdown.OpenTop),
 						dropdown.WithOpenAlignment(dropdown.AlignEnd),
 						dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
@@ -320,8 +325,14 @@ templ (c *Article) Content() {
 					{ c.GetTitle() }
 				}
 			</h2>
-			@partials.ContentMetadata(c.GetAuthors(), c.GetUpdatedDate())
-			// Display the categories associated with the article.
+			<div>
+				if len(c.GetAuthors()) > 0 {
+					<strong>{ strings.Join(c.GetAuthors(), ",") }</strong>
+				}
+				<span class="text-xs">
+					@partials.ShowTimestamp(c.GetUpdatedDate())
+				</span>
+			</div> // Display the categories associated with the article.
 			for category := range slices.Values(c.GetCategories()) {
 				@badge.Build(
 					badge.WithStyle(badge.Ghost),
@@ -383,16 +394,9 @@ templ (c Article) image() {
 			image.Build(
 				c.GetImage().URL,
 				image.WithLazyLoading(),
-				image.WithExtraClasses("size-48", "h-full", "object-contain", "rounded-box"),
 			),
-			figure.WithFigureClasses("m-2"),
+			figure.WithFigureClasses("h-full", "size-24"),
 		).Show()
-	} else {
-		<div class="content-center">
-			@tabler.Article(i.Props{
-				Size: "64",
-			})
-		</div>
 	}
 }
 

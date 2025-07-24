@@ -4,6 +4,7 @@
 package partials
 
 import (
+	"encoding/json"
 	"net/http"
 	"slices"
 	"sync"
@@ -159,4 +160,14 @@ func (l *Action) setVar(key, value string) {
 	l.Lock()
 	defer l.Unlock()
 	l.Vars[key] = value
+}
+
+// GenerateHXVals generates a JSON-formatted object containing the given key-value pairs suitable for use as a hx-vals attribute.
+// See also: https://htmx.org/attributes/hx-vals/
+func GenerateHXVals(values map[string]string) string {
+	data, err := json.Marshal(values)
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }
