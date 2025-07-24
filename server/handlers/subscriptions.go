@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -594,7 +593,6 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 	results := make(views.AddSubscriptionResults)
 	feedsNeeded := make(addSubscriptionRequests)
 
-	spew.Dump(existingFeeds)
 	// Loop over existing feeds.
 	for request := range r {
 		existingFeed := existingFeeds.FindByURL(request.GetURL())
@@ -695,8 +693,27 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 	results := make(views.AddSubscriptionResults)
 	allMetadata := make(models.SubscriptionMetadataSlice, 0, len(r))
 	for request, feed := range r {
+		// Ignore requests that have already got a message response, indicating some kind of failure or warning.
+		if results[request].Message != nil {
+			continue
+		}
 		// Generate metadata and add to metadata slice.
 		metadata := models.NewSubscriptionMetadata(user.GetID(), feed, request)
+		valid, err := metadata.Valid()
+		if err != nil || !valid {
+			slogctx.FromCtx(ctx).Debug("Invalid subscription metadata.",
+				slog.Any("error", err),
+				slog.String("feed_id", feed.GetID()),
+				slog.String("feed", feed.GetTitle()),
+				slog.String("url", request.GetURL()),
+			)
+			results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
+				Status:  models.UserMessageStatusError,
+				Summary: "Subscription creation failed",
+				Details: request.GetURL(),
+			})
+			continue
+		}
 		allMetadata = append(allMetadata, metadata)
 		// Generate subscription and add to results map.
 		subscription, err := models.GenerateSubscription(metadata, feed, 0, false)

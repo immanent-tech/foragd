@@ -10,7 +10,6 @@ import (
 	"slices"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	feeds "github.com/joshuar/go-syndication"
 	"github.com/joshuar/go-syndication/types"
 )
@@ -43,7 +42,6 @@ func (f Feeds) FindByID(id FeedID) *Feed {
 
 func (f Feeds) FindByURL(url string) *Feed {
 	idx := slices.IndexFunc(f, func(v *Feed) bool {
-		spew.Dump(v.SourceURLs)
 		return slices.Contains(v.SourceURLs, url)
 	})
 	if idx == -1 {
