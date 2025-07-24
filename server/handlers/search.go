@@ -19,7 +19,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/results"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/views"
+	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.

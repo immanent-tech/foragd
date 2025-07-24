@@ -9,7 +9,7 @@ import (
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/views"
+	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
 // Index handles displaying the index or front page of the site.

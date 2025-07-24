@@ -13,7 +13,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/views"
+	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
 // SignupSetup handles setting up a new user sign up request.

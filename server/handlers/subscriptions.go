@@ -27,7 +27,7 @@ import (
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/validation"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/views"
+	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
 // GetSubscriptions handles showing a filtered collection of subscriptions as cards.

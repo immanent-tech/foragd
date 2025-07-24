@@ -22,7 +22,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/views"
+	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
 // GetArticles handles showing a filtered collection of articles as cards.
