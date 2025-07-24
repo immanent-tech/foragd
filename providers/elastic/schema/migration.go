@@ -16,14 +16,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 )
 
-var validMigrations = []string{
-	UsersSchemaPrefix,
-	FeedsSchemaPrefix,
-	ItemsSchemaPrefix,
-	SchedulerSchemaPrefix,
-	SessionsSchemaPrefix,
-	"ingest",
-}
+var validMigrations = []string{"users", "feeds", "items", "scheduler", "sessions", "ingest"}
 
 var ErrMigrationFailed = errors.New("schema migration failed")
 
@@ -39,15 +32,15 @@ func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrati
 		var err error
 
 		switch migration {
-		case UsersSchemaPrefix:
+		case "users":
 			err = migrateUsers(ctx, api, destructive)
-		case FeedsSchemaPrefix:
+		case "feeds":
 			err = migrateFeeds(ctx, api, destructive)
-		case ItemsSchemaPrefix:
+		case "items":
 			err = migrateFeedItems(ctx, api, destructive)
-		case SchedulerSchemaPrefix:
+		case "scheduler":
 			err = migrateScheduler(ctx, api, destructive)
-		case SessionsSchemaPrefix:
+		case "sessions":
 			err = migrateSession(ctx, api, destructive)
 		case "ingest":
 			err = migrateIngest(ctx, api)
