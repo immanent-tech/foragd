@@ -11,25 +11,25 @@ import (
 )
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.
-func buildSubscriptionQueries(user *models.User, view models.View, states ...*models.SubscriptionState) []query.Option {
+func buildSubscriptionQueries(user *models.User, view models.View, subscriptions ...*models.SubscriptionMetadata) []query.Option {
 	queries := make([]query.Option, 0, len(user.Subscriptions))
 	// Work out what query to use based on the state filter.
-	if len(states) == 0 {
+	if len(subscriptions) == 0 {
 		return nil
 	}
 	switch view {
 	case models.ViewRead:
-		for _, state := range states {
+		for _, state := range subscriptions {
 			queries = append(queries, queryReadItems(user, state))
 		}
 	case models.ViewAll:
-		for _, state := range states {
+		for _, state := range subscriptions {
 			queries = append(queries, queryAllItems(user, state))
 		}
 	case models.ViewUnread:
 		fallthrough
 	default:
-		for _, state := range states {
+		for _, state := range subscriptions {
 			queries = append(queries, queryUnreadItems(user, state))
 		}
 	}
@@ -37,7 +37,7 @@ func buildSubscriptionQueries(user *models.User, view models.View, states ...*mo
 }
 
 // queryReadItems generates a query for finding read items for the given subscription.
-func queryReadItems(user *models.User, subscription *models.SubscriptionState) query.Option {
+func queryReadItems(user *models.User, subscription *models.SubscriptionMetadata) query.Option {
 	maxHistory := user.GetMaxHistory()
 
 	switch {
@@ -85,7 +85,7 @@ func queryReadItems(user *models.User, subscription *models.SubscriptionState) q
 }
 
 // QueryUnreadItems generates a query for finding unread items for the given subscription.
-func queryUnreadItems(user *models.User, subscription *models.SubscriptionState) query.Option {
+func queryUnreadItems(user *models.User, subscription *models.SubscriptionMetadata) query.Option {
 	var since time.Time
 	if subscription.IsRead() {
 		// Match the item if it is published/updated since last time subscription was marked read.
@@ -116,7 +116,7 @@ func queryUnreadItems(user *models.User, subscription *models.SubscriptionState)
 }
 
 // subscriptionQueryReadItems generates a query for finding all items for the given subscription.
-func queryAllItems(user *models.User, subscription *models.SubscriptionState) query.Option {
+func queryAllItems(user *models.User, subscription *models.SubscriptionMetadata) query.Option {
 	maxHistory := user.GetMaxHistory()
 	return query.Bool(
 		query.BoolQueryName(subscription.GetFeedID()+"_all_items"),

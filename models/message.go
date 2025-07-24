@@ -13,37 +13,31 @@ var ErrUnknown = errors.New("an unknown error occurred")
 
 // HasDetails returns a boolean indicating whether the message has additional details.
 func (msg *UserMessage) HasDetails() bool {
-	return msg.Details != nil
+	return msg.Details != ""
 }
 
 // String returns the message as a formatted string. This allows Message to satisfy the Stringer interface.
 func (msg *UserMessage) String() string {
 	var str strings.Builder
 	str.WriteString(fmt.Sprintf("%s: %s", strings.ToTitle(string(msg.Status)), msg.Summary))
-	if msg.Details != nil {
-		str.WriteString("\n" + *msg.Details)
+	if msg.Details != "" {
+		str.WriteString("\n" + msg.Details)
 	}
 	return str.String()
 }
 
-func SuccessUserMessage(summary string, details *string) *UserMessage {
-	msg := &UserMessage{
+func SuccessUserMessage(summary string, details string) *UserMessage {
+	return &UserMessage{
 		Status:  UserMessageStatusSuccess,
 		Summary: summary,
+		Details: details,
 	}
-	if details != nil {
-		msg.Details = details
-	}
-	return msg
 }
 
-func FailedUserMessage(summary string, details *string) *UserMessage {
-	msg := &UserMessage{
+func FailedUserMessage(summary string, details string) *UserMessage {
+	return &UserMessage{
 		Status:  UserMessageStatusError,
 		Summary: summary,
+		Details: details,
 	}
-	if details != nil {
-		msg.Details = details
-	}
-	return msg
 }

@@ -75,7 +75,7 @@ templ Drawer() {
 	</div>
 }
 
-templ FavoritesList(favorites models.Favorites) {
+templ FavoritesList(favorites models.FavoritesSlice) {
 	{{ subscriptions := favorites.FilterByType(models.FavoriteTypeSubscription) }}
 	{{ articles := favorites.FilterByType(models.FavoriteTypeArticle) }}
 	{{ searches := favorites.FilterByType(models.FavoriteTypeSearch) }}

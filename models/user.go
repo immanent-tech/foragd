@@ -7,8 +7,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"maps"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/joshuar/go-feed-me/validation"
@@ -23,6 +23,7 @@ var (
 	ErrUserAlreadyUnreadItem = errors.New("user already unread this item")
 	ErrAlreadyFavorite       = errors.New("already favorited")
 	ErrNotSubscribed         = errors.New("user not subscribed to feed")
+	ErrInvalidUser           = errors.New("user data is invalid")
 )
 
 // NewUser creates a new user from the external provider details.
@@ -41,7 +42,14 @@ func NewUser(externalID, provider string) *User {
 // Valid returns a boolean indicating whether the user data is valid. If not valid, it will also return a non-nil error
 // that contains the validation issues.
 func (u *User) Valid(_ context.Context) (bool, error) {
-	return validation.ValidateStruct(u)
+	valid, err := validation.ValidateStruct(u)
+	switch {
+	case err != nil:
+		return false, fmt.Errorf("%w: %w", ErrInvalidUser, err)
+	case !valid:
+		return valid, ErrInvalidUser
+	}
+	return true, nil
 }
 
 // GetID returns the ID for the user.
@@ -61,50 +69,73 @@ func (u *User) GetSettings() *UserSettings {
 	return &u.Settings
 }
 
-func (u *User) AddSubscription(subscriptionID SubscriptionID, feedID FeedID) {
-	u.Subscriptions = append(u.Subscriptions, SubscriptionFeedRelation{SubscriptionID: subscriptionID, FeedID: feedID})
+// GetSubscriptionMetadata retrieves a slice of the metadata for the user subscriptions.
+func (u *User) GetSubscriptionMetadata() SubscriptionMetadataSlice {
+	return u.Subscriptions
 }
 
-func (u *User) GetSubscriptionsByID(ids ...SubscriptionID) map[SubscriptionID]FeedID {
-	s := SliceToMap(u.Subscriptions, func(s SubscriptionFeedRelation) (SubscriptionID, FeedID) {
-		return s.SubscriptionID, s.FeedID
+// IsSubscribedToFeed returns a boolean indicating whether the user is subscribed to a feed with the given id.
+func (u *User) IsSubscribedToFeed(id FeedID) bool {
+	idx := slices.IndexFunc(u.Subscriptions, func(e *SubscriptionMetadata) bool {
+		return e.GetFeedID() == id
 	})
-	if len(ids) == 0 {
-		return s
+	return idx != -1
+}
+
+// MarkSubscriptions marks user subscriptions with the given ids with the given mark.
+func (u *User) MarkSubscriptions(mark Mark, ids ...SubscriptionID) {
+	markedAt := time.Now().UTC()
+	for subscription := range slices.Values(u.GetSubscriptionMetadata()) {
+		subscription.Mark(mark, markedAt)
 	}
-	return maps.Collect(FilterMap(s, func(subscriptionID SubscriptionID, _ FeedID) bool {
-		return slices.Contains(ids, subscriptionID)
-	}))
 }
 
-func (u *User) GetSubscriptionsByFeedID(ids ...FeedID) map[FeedID]SubscriptionID {
-	s := SliceToMap(u.Subscriptions, func(s SubscriptionFeedRelation) (FeedID, SubscriptionID) {
-		return s.FeedID, s.SubscriptionID
+// MarkItems marks the given items in a user subscription the given mark.
+func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...ItemID) {
+	idx := slices.IndexFunc(u.Subscriptions, func(e *SubscriptionMetadata) bool {
+		return e.GetID() == subscriptionID
 	})
-	if len(ids) == 0 {
-		return s
+	if idx != -1 {
+		switch mark {
+		case MarkRead:
+			u.Subscriptions[idx].MarkItemsRead(itemIDs...)
+		case MarkUnread:
+			u.Subscriptions[idx].MarkItemsRead(itemIDs...)
+		}
+		u.Subscriptions[idx].UpdatedAt = time.Now().UTC()
 	}
-	return maps.Collect(FilterMap(s, func(feedID FeedID, _ SubscriptionID) bool {
-		return slices.Contains(ids, feedID)
-	}))
 }
 
-// IsSubscribedToFeed returns a boolean indicating whether the user has a subscription to the feed with the given feed id.
-func (u *User) IsSubscribedToFeed(feedID FeedID) bool {
-	return slices.ContainsFunc(u.Subscriptions, func(s SubscriptionFeedRelation) bool {
-		return s.FeedID == feedID
-	})
+// AddSubscriptions adds to the user subscriptions the given metadata.
+func (u *User) AddSubscriptions(subscriptions ...*SubscriptionMetadata) {
+	for s := range slices.Values(subscriptions) {
+		u.Subscriptions = append(u.Subscriptions, s)
+	}
 }
 
-// HasSubscription returns a boolean indicating whether the user has a subscription with the given id.
-func (u *User) HasSubscription(id SubscriptionID) bool {
-	return slices.ContainsFunc(u.Subscriptions, func(s SubscriptionFeedRelation) bool {
-		return s.SubscriptionID == id
+// AddSubscriptions adds to the user subscriptions the given metadata.
+func (u *User) UpdateSubscription(update *SubscriptionMetadata) error {
+	idx := slices.IndexFunc(u.Subscriptions, func(e *SubscriptionMetadata) bool {
+		return e.GetID() == update.GetID()
 	})
+	if idx != -1 {
+		u.Subscriptions[idx] = update
+		return nil
+	}
+	return ErrNotSubscribed
+}
+
+// RemoveSubscriptions removes the user subscriptions with the matching id.
+func (u *User) RemoveSubscriptions(ids ...SubscriptionID) {
+	u.Subscriptions = slices.Collect(
+		FilterSlice(u.Subscriptions, func(e *SubscriptionMetadata) bool {
+			return !slices.Contains(ids, e.GetID())
+		}),
+	)
 }
 
 // GetFavorites returns the slice of user favorites.
-func (u *User) GetFavorites() Favorites {
+func (u *User) GetFavorites() FavoritesSlice {
 	return u.Favorites
 }
 
@@ -115,7 +146,7 @@ func (u *User) AddFavoriteSubscription(id SubscriptionID, nickname string) error
 	}
 	fav := newFavorite(FavoriteTypeSubscription, nickname)
 	fav.SetID(id)
-	u.Favorites = append(u.Favorites, *fav)
+	u.Favorites = append(u.Favorites, fav)
 	return nil
 }
 
@@ -132,7 +163,7 @@ func (u *User) AddFavoriteArticle(nickname string, article *Article) error {
 	if err != nil {
 		return fmt.Errorf("could not create favorite article: %w", err)
 	}
-	u.Favorites = append(u.Favorites, *fav)
+	u.Favorites = append(u.Favorites, fav)
 	return nil
 }
 
@@ -151,13 +182,13 @@ func (u *User) AddFavoriteSearch(nickname string, search *SearchRequest) error {
 	if err != nil {
 		return fmt.Errorf("could not create favorite search: %w", err)
 	}
-	u.Favorites = append(u.Favorites, *fav)
+	u.Favorites = append(u.Favorites, fav)
 	return nil
 }
 
 // RemoveFavorite removes the favorite with the given id from the user.
 func (u *User) RemoveFavorite(id string) {
-	favorites := slices.DeleteFunc(u.Favorites, func(f Favorite) bool {
+	favorites := slices.DeleteFunc(u.Favorites, func(f *Favorite) bool {
 		return f.GetID() == id
 	})
 	u.Favorites = favorites
@@ -184,6 +215,7 @@ func (u *UserSignupRequest) Sanitise() error {
 	return nil
 }
 
+// NewUserSignup creates a new user signup request object.
 func NewUserSignup() *UserSignupRequest {
 	return &UserSignupRequest{}
 }
@@ -229,29 +261,216 @@ func (f *Favorite) SetID(id string) {
 	f.ObjectID = id
 }
 
-type Favorites []Favorite
+type FavoritesSlice []*Favorite
 
 // FilterByType will return a new slice filtered to the given favorite type.
-func (f Favorites) FilterByType(favoriteType FavoriteType) Favorites {
-	return slices.Collect(FilterSlice(f, func(f Favorite) bool {
+func (f FavoritesSlice) FilterByType(favoriteType FavoriteType) FavoritesSlice {
+	return slices.Collect(FilterSlice(f, func(f *Favorite) bool {
 		return f.Type == favoriteType
 	}))
 }
 
 // HasFavorite returns a boolean indicating whether the user has a favorite with the given object id.
-func (f Favorites) HasFavorite(id string) bool {
-	return slices.ContainsFunc(f, func(f Favorite) bool {
+func (f FavoritesSlice) HasFavorite(id string) bool {
+	return slices.ContainsFunc(f, func(f *Favorite) bool {
 		return f.GetID() == id
 	})
 }
 
 // Get retrieves the favorite with the given id.
-func (f Favorites) Get(id string) *Favorite {
-	idx := slices.IndexFunc(f, func(f Favorite) bool {
+func (f FavoritesSlice) Get(id string) *Favorite {
+	idx := slices.IndexFunc(f, func(f *Favorite) bool {
 		return f.GetID() == id
 	})
 	if idx != -1 {
-		return &f[idx]
+		return f[idx]
+	}
+	return nil
+}
+
+//
+// SubscriptionMetadata
+//
+
+func (s *SubscriptionMetadata) GetID() SubscriptionID {
+	return s.SubscriptionID
+}
+
+func (s *SubscriptionMetadata) GetFeedID() FeedID {
+	return s.FeedID
+}
+
+func (s *SubscriptionMetadata) IsRead() bool {
+	return s.State.IsRead()
+}
+
+// GetMarkedRead retrieves the timestamp when the user last marked the
+// subscription feed as read.
+func (s *SubscriptionMetadata) GetMarkedRead() time.Time {
+	return s.UpdatedAt
+}
+
+// MarkRead will mark the subscription as read. This involves setting the MarkedRead field to the given value and
+// removing any individual unread/read items.
+func (s *SubscriptionMetadata) Mark(mark Mark, markedAt time.Time) {
+	switch mark {
+	case MarkRead:
+		s.State.MarkRead(markedAt)
+	case MarkUnread:
+		s.State.MarkUnread(markedAt)
+	}
+	s.UpdatedAt = markedAt
+	s.ItemStates = nil
+}
+
+// GetUnreadItems retrieves a list of ItemIDs for the subscription feed that
+// user has explicitly marked as unread.
+func (s *SubscriptionMetadata) GetUnreadItems() []ItemID {
+	var ids []ItemID
+	for id, state := range s.ItemStates {
+		if !state.IsRead() {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+// GetReadItems retrieves a list of ItemIDs for the subscription feed that
+// user has explicitly marked as read.
+func (s *SubscriptionMetadata) GetReadItems() []ItemID {
+	var ids []ItemID
+	for id, state := range s.ItemStates {
+		if state.IsRead() {
+			ids = append(ids, id)
+		}
+	}
+	return ids
+}
+
+// GetItemState retrieves the item state (read/unread/saved) from the
+// subscription. By default it will return unread unless the user has explicitly
+// marked or saved the item.
+func (s *SubscriptionMetadata) GetItemState(id ItemID) *ObjectState {
+	// Retrieve any explicitly set state of the item.
+	if state, found := s.ItemStates[id]; found {
+		return &state
+	}
+	// If an item doesn't have an explicit state, its state should reflect the subscription state.
+	return &ObjectState{
+		Read:      s.State.IsRead(),
+		UpdatedAt: s.UpdatedAt,
+	}
+}
+
+func (s *SubscriptionMetadata) SetItemState(id ItemID, state *ObjectState) {
+	if s.ItemStates == nil {
+		s.ItemStates = make(map[ItemID]ObjectState)
+	}
+	s.ItemStates[id] = *state
+}
+
+// MarkItemsRead will mark the given items as read for the subscription.
+func (s *SubscriptionMetadata) MarkItemsRead(ids ...ItemID) {
+	for id := range slices.Values(ids) {
+		state := s.GetItemState(id)
+		if state == nil {
+			state = NewObjectState()
+		}
+		state.MarkRead(time.Now().UTC())
+		s.SetItemState(id, state)
+	}
+}
+
+// MarkItemsUnread will mark the given items as unread for the subscription.
+func (s *SubscriptionMetadata) MarkItemsUnread(ids ...ItemID) {
+	for id := range slices.Values(ids) {
+		state := s.GetItemState(id)
+		if state == nil {
+			state = NewObjectState()
+		}
+		state.MarkUnread(time.Now().UTC())
+		s.SetItemState(id, state)
+	}
+}
+
+// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
+// (false) a non-nil error is also returned which contains validation issues.
+func (s *SubscriptionMetadata) Valid() (bool, error) {
+	valid, err := validation.ValidateStruct(s)
+	if err != nil || !valid {
+		return false, fmt.Errorf("subscription is invalid: %w", err)
+	}
+	return true, nil
+}
+
+// SubscriptionMetadataSlice is a slice of subscription metadata.
+type SubscriptionMetadataSlice []*SubscriptionMetadata
+
+// FilterByIDs returns a new slice containing the metadata for subscriptions with the given ids only.
+func (s SubscriptionMetadataSlice) FilterByIDs(ids ...SubscriptionID) SubscriptionMetadataSlice {
+	return slices.Collect(
+		FilterSlice(s, func(e *SubscriptionMetadata) bool {
+			return slices.Contains(ids, e.GetID())
+		}),
+	)
+}
+
+// FilterByFeedIDs returns a new slice containing the metadata for subscriptions with the given feed ids only.
+func (s SubscriptionMetadataSlice) FilterByFeedIDs(ids ...FeedID) SubscriptionMetadataSlice {
+	return slices.Collect(
+		FilterSlice(s, func(e *SubscriptionMetadata) bool {
+			return slices.Contains(ids, e.GetFeedID())
+		}),
+	)
+}
+
+// Search performs a basic substring search for the given text in the title and categories customisations for the
+// subscriptions, returning a slice of those subscriptions that match.
+func (s SubscriptionMetadataSlice) Search(text string) SubscriptionMetadataSlice {
+	return slices.Collect(
+		FilterSlice(s, func(e *SubscriptionMetadata) bool {
+			return strings.Contains(e.Customisation.Title, text) ||
+				slices.ContainsFunc(e.Customisation.Categories, func(e Category) bool {
+					return strings.Contains(e, text)
+				})
+		}),
+	)
+}
+
+// GetFeedIDs returns the feed ids for all subscription states in the slice.
+func (s SubscriptionMetadataSlice) GetFeedIDs() []FeedID {
+	ids := make([]FeedID, 0, len(s))
+	for state := range slices.Values(s) {
+		ids = append(ids, state.GetFeedID())
+	}
+	return ids
+}
+
+// GetIDs returns the subscription ids for all subscription states in the slice.
+func (s SubscriptionMetadataSlice) GetIDs() []SubscriptionID {
+	ids := make([]SubscriptionID, 0, len(s))
+	for state := range slices.Values(s) {
+		ids = append(ids, state.GetID())
+	}
+	return ids
+}
+
+// GetByID retrieves a state by the subscription id from the slice.
+func (s SubscriptionMetadataSlice) GetByID(id SubscriptionID) *SubscriptionMetadata {
+	if idx := slices.IndexFunc(s, func(e *SubscriptionMetadata) bool {
+		return e.GetID() == id
+	}); idx != -1 {
+		return s[idx]
+	}
+	return nil
+}
+
+// GetByFeedID retrieves a state by the FeedID from the slice.
+func (s SubscriptionMetadataSlice) GetByFeedID(id FeedID) *SubscriptionMetadata {
+	if idx := slices.IndexFunc(s, func(e *SubscriptionMetadata) bool {
+		return e.GetFeedID() == id
+	}); idx != -1 {
+		return s[idx]
 	}
 	return nil
 }

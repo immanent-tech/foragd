@@ -96,13 +96,9 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			return
 		}
 		// Get the subscription state.
-		states, err := a.getSubscriptionStates(req.Context(), id)
-		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
-			return
-		}
+		metadata := user.GetSubscriptionMetadata().GetByID(id)
 		// Create a new favorite subscription.
-		err = user.AddFavoriteSubscription(id, states.GetByID(id).Customisation.Title)
+		err := user.AddFavoriteSubscription(id, metadata.Customisation.Title)
 		if err != nil {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return

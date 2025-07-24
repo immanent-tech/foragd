@@ -5,6 +5,7 @@ package models
 
 import (
 	"encoding/json"
+	"image"
 	"time"
 
 	"github.com/oapi-codegen/runtime"
@@ -58,19 +59,16 @@ const (
 	StateUnread State = "unread"
 )
 
-// Article is the representation of an item from the user's perspective. It holds the original item and additional fields to track the state of the item from the perspective of the user.
+// Article defines model for Article.
 type Article struct {
-	// Favorite indicates whether this article has been marked as a Favorite by the user.
-	Favorite bool `json:"Favorite,omitempty,omitzero"`
+	// Favorite indicates whether this subscription has been marked as a Favorite by the user.
+	Favorite bool `json:"-"`
 
 	// Item represents an individual item (e.g., an individual feed item).
-	Item Item `json:"item,omitempty,omitzero"`
+	Item Item `json:"item"`
 
 	// State tracks the state of an object.
-	State ObjectState `json:"state,omitempty,omitzero"`
-
-	// SubscriptionCustomisation contains object fields that can be customised (overridden) by a user
-	SubscriptionCustomisation ObjectCustomisation `json:"subscription_customisation,omitempty,omitzero"`
+	State ObjectState `json:"state"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -104,7 +102,7 @@ type ArticleArchive struct {
 	FeedTitle string `json:"feed_title" validate:"required"`
 
 	// Image is a link to an image to represent the object.
-	Image ObjectImage `json:"image,omitempty,omitzero"`
+	Image RemoteImage `json:"image,omitempty,omitzero"`
 
 	// ItemID is the unique ID of an item.
 	ItemID   ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
@@ -134,6 +132,15 @@ type ArticleArchive struct {
 
 // ArticleArchiveSourceType indicates what type of source the object came from.
 type ArticleArchiveSourceType string
+
+// ArticleMetadata contains the stored data that represents an article.
+type ArticleMetadata struct {
+	// State tracks the state of an object.
+	State ObjectState `json:"state"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
 
 // Category represents a taxonomy applied to an object.
 type Category = string
@@ -189,9 +196,6 @@ type FavoriteID = string
 // FavoriteSearch represents a search request by the user.
 type FavoriteSearch = SearchRequest
 
-// FavoriteSubscription contains object fields that can be customised (overridden) by a user
-type FavoriteSubscription = ObjectCustomisation
-
 // Feed defines model for Feed.
 type Feed struct {
 	// Authors is a list of people (names, nicknames and/or emails) who "authored" the object content.
@@ -214,7 +218,7 @@ type Feed struct {
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// Image is a link to an image to represent the object.
-	Image    ObjectImage `json:"image,omitempty,omitzero"`
+	Image    RemoteImage `json:"image,omitempty,omitzero"`
 	Language string      `json:"language,omitempty,omitzero"`
 
 	// Published is the datetime at which the feed or item was published.
@@ -270,7 +274,7 @@ type Item struct {
 	FeedTitle string `json:"feed_title" validate:"required"`
 
 	// Image is a link to an image to represent the object.
-	Image ObjectImage `json:"image,omitempty,omitzero"`
+	Image RemoteImage `json:"image,omitempty,omitzero"`
 
 	// ItemID is the unique ID of an item.
 	ItemID   ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
@@ -320,7 +324,7 @@ type ObjectCommon struct {
 	Description string `json:"description,omitempty,omitzero"`
 
 	// Image is a link to an image to represent the object.
-	Image    ObjectImage `json:"image,omitempty,omitzero"`
+	Image    RemoteImage `json:"image,omitempty,omitzero"`
 	Language string      `json:"language,omitempty,omitzero"`
 
 	// SourceType indicates what type of source the object came from.
@@ -341,17 +345,16 @@ type ObjectCustomisation struct {
 	// Categories is a custom list of categories for an object.
 	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
 
+	// Image is a custom image to represent the object.
+	Image ObjectCustomisation_Image `json:"image,omitempty,omitzero"`
+
 	// Title is a friendly name or nickname for an object.
 	Title string `form:"user_nickname" json:"title,omitempty,omitzero" validate:"omitempty"`
 }
 
-// ObjectImage is a link to an image to represent the object.
-type ObjectImage struct {
-	// URL is a URL.
-	URL URL `json:"url" validate:"omitempty,url"`
-
-	// Title is a description of the image that could be used as alt text.
-	Title string `json:"title,omitempty,omitzero"`
+// ObjectCustomisation_Image is a custom image to represent the object.
+type ObjectCustomisation_Image struct {
+	union json.RawMessage
 }
 
 // ObjectState tracks the state of an object.
@@ -372,38 +375,43 @@ type ObjectTimestamps struct {
 	Updated time.Time `json:"updated,omitempty,omitzero"`
 }
 
+// RemoteImage is a link to an image to represent the object.
+type RemoteImage struct {
+	// URL is a URL.
+	URL URL `json:"url" validate:"omitempty,url"`
+
+	// Title is a description of the image that could be used as alt text.
+	Title string `json:"title,omitempty,omitzero"`
+}
+
 // State Tracks the state of an object.
 type State string
+
+// StoredImage is an image stored locally (i.e., the binary data to represent the image).
+type StoredImage struct {
+	Data image.Image `json:"data"`
+}
 
 // Subscription represents a feed a user has subscribed to.
 type Subscription struct {
 	// Favorite indicates whether this subscription has been marked as a Favorite by the user.
-	Favorite bool `json:"Favorite,omitempty,omitzero"`
+	Favorite bool `json:"-"`
 
 	// Feed represents a feed object.
 	Feed Feed `json:"feed"`
 
-	// State contains the data that represents the state and customisation applied to a user subscription.
-	State SubscriptionState `json:"state"`
+	// Metadata contains the stored data that represents a subscription
+	Metadata SubscriptionMetadata `json:"metadata"`
 
-	// UnreadCount is the value of items that are not explicitly marked unread by the user for this subscription. Calculated dynamically at runtime.
+	// UnreadCount is the value of items that are not explicitly marked unread by the user for this subscription.
 	UnreadCount int `json:"-" validate:"gte=0"`
-}
-
-// SubscriptionFeedRelation links the IDs of a subscription and a feed.
-type SubscriptionFeedRelation struct {
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
 
-// SubscriptionState defines model for SubscriptionState.
-type SubscriptionState struct {
+// SubscriptionMetadata defines model for SubscriptionMetadata.
+type SubscriptionMetadata struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
@@ -424,9 +432,6 @@ type SubscriptionState struct {
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
-
-	// UserID is the unique ID of a user.
-	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
 }
 
 // Timestamp is when the document was created.
@@ -456,19 +461,19 @@ type User struct {
 	ExternalUserId string `json:"external_user_id" validate:"required"`
 
 	// Favorites contains the user favorites.
-	Favorites []Favorite `json:"favorites,omitempty,omitzero" validate:"omitempty,dive"`
+	Favorites []*Favorite `json:"favorites,omitempty,omitzero" validate:"omitempty,dive"`
 
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
 	MaxHistory string `json:"max_history" validate:"required"`
 
 	// Provider is the backend provider that was used to create the account.
-	Provider interface{} `json:"provider" validate:"required"`
+	Provider string `json:"provider" validate:"required"`
 
 	// Settings contains user-specific settings for the application.
 	Settings UserSettings `json:"settings,omitempty,omitzero"`
 
 	// Subscriptions is a list of the states of all subscriptions the user has.
-	Subscriptions []SubscriptionFeedRelation `json:"subscriptions,omitempty,omitzero"`
+	Subscriptions []*SubscriptionMetadata `json:"subscriptions,omitempty,omitzero" validate:"omitempty,dive"`
 
 	// UpdatedAt records when the object was last updated in the database.
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
@@ -496,18 +501,6 @@ type UserSession struct {
 type UserSettings struct {
 	// Theme the user interface theme chosen by the user.
 	Theme string `json:"theme,omitempty,omitzero"`
-}
-
-// UserSubscriptionFeedRelation defines model for UserSubscriptionFeedRelation.
-type UserSubscriptionFeedRelation struct {
-	// FeedID is the unique ID of a feed.
-	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-
-	// UserID is the unique ID of a user.
-	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
 }
 
 // AsFavoriteSearch returns the union data inside the Favorite_ObjectData as a FavoriteSearch
@@ -568,6 +561,68 @@ func (t Favorite_ObjectData) MarshalJSON() ([]byte, error) {
 }
 
 func (t *Favorite_ObjectData) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsRemoteImage returns the union data inside the ObjectCustomisation_Image as a RemoteImage
+func (t ObjectCustomisation_Image) AsRemoteImage() (RemoteImage, error) {
+	var body RemoteImage
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRemoteImage overwrites any union data inside the ObjectCustomisation_Image as the provided RemoteImage
+func (t *ObjectCustomisation_Image) FromRemoteImage(v RemoteImage) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRemoteImage performs a merge with any union data inside the ObjectCustomisation_Image, using the provided RemoteImage
+func (t *ObjectCustomisation_Image) MergeRemoteImage(v RemoteImage) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsStoredImage returns the union data inside the ObjectCustomisation_Image as a StoredImage
+func (t ObjectCustomisation_Image) AsStoredImage() (StoredImage, error) {
+	var body StoredImage
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromStoredImage overwrites any union data inside the ObjectCustomisation_Image as the provided StoredImage
+func (t *ObjectCustomisation_Image) FromStoredImage(v StoredImage) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeStoredImage performs a merge with any union data inside the ObjectCustomisation_Image, using the provided StoredImage
+func (t *ObjectCustomisation_Image) MergeStoredImage(v StoredImage) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t ObjectCustomisation_Image) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *ObjectCustomisation_Image) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

@@ -52,7 +52,7 @@ func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Res
 		return data, models.RespErrUnauthorized()
 	}
 	// User has no subscriptions, show empty page
-	if len(user.GetSubscriptionsByID()) == 0 {
+	if len(user.GetSubscriptionMetadata()) == 0 {
 		return data, nil
 	}
 
@@ -68,9 +68,9 @@ func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Res
 		query.BoolQueryName("item_filters"),
 		query.Filter(
 			// Must match any of the given feed IDs.
-			query.Terms("feed_id", data.Subscriptions.GetStates().GetFeedIDs()...),
+			query.Terms("feed_id", data.Subscriptions.GetFeedIDs()...),
 			query.Bool(
-				query.Should(buildSubscriptionQueries(user, models.ViewUnread, data.Subscriptions.GetStates()...)...),
+				query.Should(buildSubscriptionQueries(user, models.ViewUnread, data.Subscriptions.GetSubscriptionMetadata()...)...),
 			),
 		),
 	)

@@ -190,8 +190,8 @@ func (f SubscriptionFilters) Parameters() map[string]string {
 		params[ParamCategories] = strings.Join(f.Categories, ",")
 	}
 
-	if f.Pagination != nil {
-		params[ParamPagination] = *f.Pagination
+	if f.Pagination != "" {
+		params[ParamPagination] = f.Pagination
 	}
 
 	params[ParamSortBy] = string(f.SortBy)
@@ -286,8 +286,8 @@ func (f ArticleFilters) Parameters() map[string]string {
 		params[ParamCategories] = strings.Join(f.Categories, ",")
 	}
 
-	if f.Pagination != nil {
-		params[ParamPagination] = *f.Pagination
+	if f.Pagination != "" {
+		params[ParamPagination] = f.Pagination
 	}
 
 	params[ParamSortBy] = string(f.SortBy)

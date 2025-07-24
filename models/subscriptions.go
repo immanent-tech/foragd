@@ -20,32 +20,26 @@ var ErrInvalidSubscriptionState = errors.New("invalid subscription state")
 
 // GenerateSubscription creates a subscription from the given data sources: a feed, any user customisation of feed
 // values, subscription state and an unread count. All data besides the feed is optional.
-func GenerateSubscription(state *SubscriptionState, feed *Feed, unread int) (*Subscription, error) {
-	// Create a new subscription object.
-	if state == nil || feed == nil {
-		return nil, fmt.Errorf("unable to generate subscription: %w", ErrInvalidSubscriptionState)
-	}
+func GenerateSubscription(metadata *SubscriptionMetadata, feed *Feed, count int, favorite bool) (*Subscription, error) {
 	subscription := &Subscription{
-		State:       *state,
+		Metadata:    *metadata,
 		Feed:        *feed,
-		UnreadCount: unread,
-	}
-	// Update state.
-	if unread > 0 {
-		subscription.State.Mark(MarkUnread, state.UpdatedAt)
+		Favorite:    favorite,
+		UnreadCount: count,
 	}
 	// Validate the subscription.
-	if valid, err := subscription.Valid(); !valid {
+	valid, err := subscription.Valid()
+	if err != nil || !valid {
 		return nil, fmt.Errorf("subscription data is invalid: %w", err)
 	}
-
 	return subscription, nil
 }
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *Subscription) Valid() (bool, error) {
-	if valid, err := validation.ValidateStruct(s); err != nil || !valid {
+	valid, err := validation.ValidateStruct(s)
+	if err != nil || !valid {
 		return false, fmt.Errorf("subscription is invalid: %w", err)
 	}
 	return true, nil
@@ -59,7 +53,7 @@ func (s *Subscription) String() string {
 }
 
 func (s *Subscription) GetID() SubscriptionID {
-	return s.State.GetID()
+	return s.Metadata.GetID()
 }
 
 func (s *Subscription) GetFeedID() FeedID {
@@ -67,8 +61,8 @@ func (s *Subscription) GetFeedID() FeedID {
 }
 
 func (s *Subscription) GetTitle() string {
-	if s.State.Customisation.Title != "" {
-		return s.State.Customisation.Title
+	if s.Metadata.Customisation.Title != "" {
+		return s.Metadata.Customisation.Title
 	}
 	return s.Feed.GetTitle()
 }
@@ -82,8 +76,8 @@ func (s *Subscription) GetDescription() string {
 }
 
 func (s *Subscription) GetCategories() []Category {
-	if s.State.Customisation.Categories != nil {
-		return slices.Compact(slices.Concat(s.State.Customisation.Categories, s.Feed.GetCategories()))
+	if s.Metadata.Customisation.Categories != nil {
+		return slices.Compact(slices.Concat(s.Metadata.Customisation.Categories, s.Feed.GetCategories()))
 	}
 	return s.Feed.GetCategories()
 }
@@ -96,7 +90,7 @@ func (s *Subscription) GetUpdatedDate() time.Time {
 	return s.Feed.GetUpdatedDate()
 }
 
-func (s *Subscription) GetImage() *ObjectImage {
+func (s *Subscription) GetImage() *RemoteImage {
 	return s.Feed.GetImage()
 }
 
@@ -113,9 +107,9 @@ func (s *Subscription) IsUnread() bool {
 	return s.UnreadCount > 0
 }
 
-type Subscriptions []*Subscription
+type SubscriptionsSlice []*Subscription
 
-func (s Subscriptions) FilterByCategories(categories ...Category) Subscriptions {
+func (s SubscriptionsSlice) FilterByCategories(categories ...Category) SubscriptionsSlice {
 	if len(categories) == 0 {
 		return s
 	}
@@ -127,7 +121,7 @@ func (s Subscriptions) FilterByCategories(categories ...Category) Subscriptions 
 	}))
 }
 
-func (s Subscriptions) FilterByView(view View) Subscriptions {
+func (s SubscriptionsSlice) FilterByView(view View) SubscriptionsSlice {
 	switch view {
 	case ViewRead:
 		return slices.Collect(FilterSlice(s, func(subscription *Subscription) bool {
@@ -142,7 +136,7 @@ func (s Subscriptions) FilterByView(view View) Subscriptions {
 	}
 }
 
-func (s Subscriptions) Sort(sort *Sort) Subscriptions {
+func (s SubscriptionsSlice) Sort(sort *Sort) SubscriptionsSlice {
 	if sort == nil {
 		sort = &Sort{
 			SortBy:    SortByUnreadCount,
@@ -169,10 +163,11 @@ func (s Subscriptions) Sort(sort *Sort) Subscriptions {
 	return s
 }
 
-func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions, Pagination) {
+func (s SubscriptionsSlice) Paginate(pagination Pagination, count int) (SubscriptionsSlice, Pagination) {
 	var from, to int
 	if pagination != "" {
-		if value, err := strconv.Atoi(pagination); err == nil {
+		value, err := strconv.Atoi(pagination)
+		if err == nil {
 			from = value
 		}
 	}
@@ -182,7 +177,7 @@ func (s Subscriptions) Paginate(pagination Pagination, count int) (Subscriptions
 }
 
 // GetTotalUnreadCount calculates the total unread articles across all subscriptions in the slice.
-func (s Subscriptions) GetTotalUnreadCount() int {
+func (s SubscriptionsSlice) GetTotalUnreadCount() int {
 	var unread int
 	for subscription := range slices.Values(s) {
 		unread += subscription.GetUnreadCount()
@@ -192,7 +187,7 @@ func (s Subscriptions) GetTotalUnreadCount() int {
 
 // GetCategoryCounts returns a count of the occurrence of a Category across all
 // the Subscriptions.
-func (s Subscriptions) GetCategoryCounts() CategoryCounts {
+func (s SubscriptionsSlice) GetCategoryCounts() CategoryCounts {
 	countsMap := make(map[Category]int)
 	for object := range slices.Values(s) {
 		for category := range slices.Values(object.GetCategories()) {
@@ -207,12 +202,22 @@ func (s Subscriptions) GetCategoryCounts() CategoryCounts {
 	return counts
 }
 
-func (s Subscriptions) GetStates() SubscriptionStates {
-	states := make(SubscriptionStates, 0, len(s))
-	for sub := range slices.Values(s) {
-		states = append(states, &sub.State)
+// GetFeedIDs returns the feed ids of all subscriptions in the slice.
+func (s SubscriptionsSlice) GetFeedIDs() []FeedID {
+	ids := make([]FeedID, 0, len(s))
+	for subscription := range slices.Values(s) {
+		ids = append(ids, subscription.GetFeedID())
 	}
-	return states
+	return ids
+}
+
+// GetSubscriptionMetadata returns the metadata for each subscription in the slice.
+func (s SubscriptionsSlice) GetSubscriptionMetadata() SubscriptionMetadataSlice {
+	metadata := make(SubscriptionMetadataSlice, 0, len(s))
+	for subscription := range slices.Values(s) {
+		metadata = append(metadata, &subscription.Metadata)
+	}
+	return metadata
 }
 
 // Valid returns a boolean indicating whether the SubscriptionRequest is valid,
@@ -228,9 +233,9 @@ func (r *SubscriptionRequest) Valid() (bool, error) {
 // Sanitise will sanitise the input values of the SubscriptionRequest.
 func (r *SubscriptionRequest) Sanitise() error {
 	r.URL = validation.SanitizeString(r.URL)
-	if r.Nickname != nil {
-		sanitizedNickname := validation.SanitizeString(*r.Nickname)
-		r.Nickname = &sanitizedNickname
+	if r.Nickname != "" {
+		sanitizedNickname := validation.SanitizeString(r.Nickname)
+		r.Nickname = sanitizedNickname
 	}
 	categories := make([]Category, 0, len(r.Categories))
 	for category := range slices.Values(r.Categories) {
@@ -253,24 +258,23 @@ func (r *SubscriptionRequest) GetURL() string {
 }
 
 func (r *SubscriptionRequest) GetNickname() string {
-	if r.Nickname != nil {
-		return *r.Nickname
+	if r.Nickname != "" {
+		return r.Nickname
 	}
 	return ""
 }
 
 type SubscriptionRequests []*SubscriptionRequest
 
-// NewSubscriptionState creates a new subscription state with the given subscription and feed ids.
-func NewSubscriptionState(userID UserID, feed *Feed, request *SubscriptionRequest) *SubscriptionState {
+// NewSubscriptionMetadata creates a new subscription state with the given subscription and feed ids.
+func NewSubscriptionMetadata(userID UserID, feed *Feed, request *SubscriptionRequest) *SubscriptionMetadata {
 	ts := time.Now().UTC()
 	// Create state based on feed and user data.
-	state := &SubscriptionState{
-		UserID:         userID,
+	state := &SubscriptionMetadata{
 		SubscriptionID: NewID(SubscriptionPFX),
-		FeedID:         feed.GetID(),
 		UpdatedAt:      ts,
 		CreatedAt:      ts,
+		FeedID:         feed.GetID(),
 		Customisation: ObjectCustomisation{
 			Title:      feed.GetTitle(),
 			Categories: feed.GetCategories(),
@@ -282,8 +286,8 @@ func NewSubscriptionState(userID UserID, feed *Feed, request *SubscriptionReques
 	}
 	// Add any user customisations.
 	if request != nil {
-		if request.Nickname != nil && *request.Nickname != "" {
-			state.Customisation.Title = *request.Nickname
+		if request.Nickname != "" {
+			state.Customisation.Title = request.Nickname
 		}
 		if len(request.Categories) > 0 {
 			state.Customisation.Categories = request.Categories
@@ -292,173 +296,11 @@ func NewSubscriptionState(userID UserID, feed *Feed, request *SubscriptionReques
 	return state
 }
 
-func (s *SubscriptionState) GetID() SubscriptionID {
-	return s.SubscriptionID
-}
-
-func (s *SubscriptionState) GetFeedID() FeedID {
-	return s.FeedID
-}
-
-func (s *SubscriptionState) IsRead() bool {
-	return s.State.IsRead()
-}
-
-// GetMarkedRead retrieves the timestamp when the user last marked the
-// subscription feed as read.
-func (s *SubscriptionState) GetMarkedRead() time.Time {
-	return s.UpdatedAt
-}
-
-// MarkRead will mark the subscription as read. This involves setting the MarkedRead field to the given value and
-// removing any individual unread/read items.
-func (s *SubscriptionState) Mark(mark Mark, markedAt time.Time) {
-	switch mark {
-	case MarkRead:
-		s.State.MarkRead(markedAt)
-	case MarkUnread:
-		s.State.MarkUnread(markedAt)
-	}
-	s.UpdatedAt = markedAt
-	s.ItemStates = nil
-}
-
-// GetUnreadItems retrieves a list of ItemIDs for the subscription feed that
-// user has explicitly marked as unread.
-func (s *SubscriptionState) GetUnreadItems() []ItemID {
-	var ids []ItemID
-	for id, state := range s.ItemStates {
-		if !state.IsRead() {
-			ids = append(ids, id)
-		}
-	}
-	return ids
-}
-
-// GetReadItems retrieves a list of ItemIDs for the subscription feed that
-// user has explicitly marked as read.
-func (s *SubscriptionState) GetReadItems() []ItemID {
-	var ids []ItemID
-	for id, state := range s.ItemStates {
-		if state.IsRead() {
-			ids = append(ids, id)
-		}
-	}
-	return ids
-}
-
-// GetItemState retrieves the item state (read/unread/saved) from the
-// subscription. By default it will return unread unless the user has explicitly
-// marked or saved the item.
-func (s *SubscriptionState) GetItemState(id ItemID) *ObjectState {
-	// Retrieve any explicitly set state of the item.
-	if state, found := s.ItemStates[id]; found {
-		return &state
-	}
-	// If an item doesn't have an explicit state, its state should reflect the subscription state.
-	return &ObjectState{
-		Read:      s.State.IsRead(),
-		UpdatedAt: s.UpdatedAt,
-	}
-}
-
-func (s *SubscriptionState) SetItemState(id ItemID, state *ObjectState) {
-	if s.ItemStates == nil {
-		s.ItemStates = make(map[ItemID]ObjectState)
-	}
-	s.ItemStates[id] = *state
-}
-
-// MarkItemsRead will mark the given items as read for the subscription.
-func (s *SubscriptionState) MarkItemsRead(ids ...ItemID) {
-	for id := range slices.Values(ids) {
-		state := s.GetItemState(id)
-		if state == nil {
-			state = NewObjectState()
-		}
-		state.MarkRead(time.Now().UTC())
-		s.SetItemState(id, state)
-	}
-}
-
-// MarkItemsUnread will mark the given items as unread for the subscription.
-func (s *SubscriptionState) MarkItemsUnread(ids ...ItemID) {
-	for id := range slices.Values(ids) {
-		state := s.GetItemState(id)
-		if state == nil {
-			state = NewObjectState()
-		}
-		state.MarkUnread(time.Now().UTC())
-		s.SetItemState(id, state)
-	}
-}
-
-// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
-// (false) a non-nil error is also returned which contains validation issues.
-func (s *SubscriptionState) Valid() (bool, error) {
-	if valid, err := validation.ValidateStruct(s); err != nil || !valid {
-		return false, fmt.Errorf("subscription is invalid: %w", err)
-	}
-	return true, nil
-}
-
-// SubscriptionStates is a map of subscription states by either subscription or feed id.
-type SubscriptionStates []*SubscriptionState
-
-// GetFeedIDs returns the FeedIDs for all subscription states in the slice.
-func (s SubscriptionStates) GetFeedIDs() []FeedID {
-	ids := make([]FeedID, 0, len(s))
-	for state := range slices.Values(s) {
-		ids = append(ids, state.GetFeedID())
-	}
-	return ids
-}
-
-// GetIDs returns the SubscriptionIDs for all subscription states in the slice.
-func (s SubscriptionStates) GetIDs() []SubscriptionID {
-	ids := make([]SubscriptionID, 0, len(s))
-	for state := range slices.Values(s) {
-		ids = append(ids, state.GetID())
-	}
-	return ids
-}
-
-// GetByID retrieves a state by the SubscriptionID from the slice.
-func (s SubscriptionStates) GetByID(id SubscriptionID) *SubscriptionState {
-	if idx := slices.IndexFunc(s, func(e *SubscriptionState) bool {
-		return e.GetID() == id
-	}); idx != -1 {
-		return s[idx]
-	}
-	return nil
-}
-
-// GetByFeedID retrieves a state by the FeedID from the slice.
-func (s SubscriptionStates) GetByFeedID(id FeedID) *SubscriptionState {
-	if idx := slices.IndexFunc(s, func(e *SubscriptionState) bool {
-		return e.GetFeedID() == id
-	}); idx != -1 {
-		return s[idx]
-	}
-	return nil
-}
-
-func (s SubscriptionStates) FilterByFeedIDs(ids ...FeedID) SubscriptionStates {
-	return slices.Collect(FilterSlice(s, func(state *SubscriptionState) bool {
-		return slices.Contains(ids, state.GetFeedID())
-	}))
-}
-
-func (s SubscriptionStates) FilterByIDs(ids ...SubscriptionID) SubscriptionStates {
-	return slices.Collect(FilterSlice(s, func(state *SubscriptionState) bool {
-		return slices.Contains(ids, state.GetID())
-	}))
-}
-
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (s *SubscriptionEdit) Valid() (bool, error) {
-	if valid, err := validation.ValidateStruct(s); err != nil || !valid {
+	valid, err := validation.ValidateStruct(s)
+	if err != nil || !valid {
 		return false, fmt.Errorf("subscription is invalid: %w", err)
 	}
 	return true, nil

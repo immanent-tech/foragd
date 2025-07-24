@@ -16,7 +16,7 @@ import (
 	"github.com/sebasvil20/templicons/tabler"
 )
 
-templ favoriteIcon(fav models.Favorite) {
+templ favoriteIcon(fav *models.Favorite) {
 	switch fav.Type {
 		case models.FavoriteTypeSubscription:
 			@tabler.Rss()
@@ -30,7 +30,7 @@ templ favoriteIcon(fav models.Favorite) {
 }
 
 // FavoriteLink generates a link to the given favorite.
-templ FavoriteLink(fav models.Favorite) {
+templ FavoriteLink(fav *models.Favorite) {
 	switch fav.Type {
 		case models.FavoriteTypeSubscription:
 			// FavouriteSubscription.

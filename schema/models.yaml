@@ -105,6 +105,28 @@ components:
       type: string
       x-oapi-codegen-extra-tags:
         form: 'nickname'
+    RemoteImage:
+      description: >
+        is a link to an image to represent the object.
+      type: object
+      required:
+        - url
+      properties:
+        URL:
+          $ref: '#/components/schemas/URL'
+        title:
+          description: >
+            is a description of the image that could be used as alt text.
+          type: string
+    StoredImage:
+      description: >
+        is an image stored locally (i.e., the binary data to represent the image).
+      type: object
+      required:
+        - data
+      properties:
+        data:
+          x-go-type: image.Image
     Category:
       description: >
         represents a taxonomy applied to an object.
@@ -157,6 +179,7 @@ components:
             provider:
               description: >
                 is the backend provider that was used to create the account.
+              type: string
               x-oapi-codegen-extra-tags:
                 validate: 'required'
             max_history:
@@ -170,15 +193,14 @@ components:
             subscriptions:
               description: >
                 is a list of the states of all subscriptions the user has.
-              type: array
-              items:
-                $ref: '#/components/schemas/SubscriptionFeedRelation'
+              x-go-type: '[]*SubscriptionMetadata'
+              x-oapi-codegen-extra-tags:
+                validate: 'omitempty,dive'
             favorites:
               description: >
                 contains the user favorites.
               type: array
-              items:
-                $ref: '#/components/schemas/Favorite'
+              x-go-type: '[]*Favorite'
               x-oapi-codegen-extra-tags:
                 validate: 'omitempty,dive'
     UserSettings:
@@ -222,12 +244,12 @@ components:
             - $ref: '#/components/schemas/FavoriteSearch'
             # - $ref: '#/components/schemas/FavoriteSubscription'
             - $ref: '#/components/schemas/FavoriteArticle'
-    FavoriteSubscription:
-      description: >
-        is a subscription that the user has marked as a Favorite.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/ObjectCustomisation'
+    # FavoriteSubscription:
+    #   description: >
+    #     is a subscription that the user has marked as a Favorite.
+    #   type: object
+    #   allOf:
+    #     - $ref: '#/components/schemas/ObjectCustomisation'
     FavoriteArticle:
       description: >
         is an article that the user has marked as a Favorite.
@@ -288,19 +310,6 @@ components:
             is the datetime at which the feed or item was updated.
           x-go-type: time.Time
           x-go-type-skip-optional-pointer: true
-    ObjectImage:
-      description: >
-        is a link to an image to represent the object.
-      type: object
-      required:
-        - url
-      properties:
-        URL:
-          $ref: '#/components/schemas/URL'
-        title:
-          description: >
-            is a description of the image that could be used as alt text.
-          type: string
     ObjectCommon:
       description: contains common fields across objects.
       type: object
@@ -355,14 +364,14 @@ components:
           items:
             type: string
           x-go-type-skip-optional-pointer: true
-        image:
-          $ref: '#/components/schemas/ObjectImage'
         language:
           type: string
           x-go-type-skip-optional-pointer: true
         copyright:
           type: string
           x-go-type-skip-optional-pointer: true
+        image:
+          $ref: '#/components/schemas/RemoteImage'
     ObjectCustomisation:
       description: >
         contains object fields that can be customised (overridden) by a user
@@ -386,6 +395,12 @@ components:
             form: 'user_categories'
             validate: 'omitempty,unique'
           x-go-type-skip-optional-pointer: true
+        image:
+          description: >
+            is a custom image to represent the object.
+          oneOf:
+            - $ref: '#/components/schemas/RemoteImage'
+            - $ref: '#/components/schemas/StoredImage'
     Feed:
       description: represents a feed object.
       type: object
@@ -440,41 +455,66 @@ components:
                 contains the item content.
               type: string
               x-go-type-skip-optional-pointer: true
-    SubscriptionFeedRelation:
+    # SubscriptionFeedRelation:
+    #   description: >
+    #     links the IDs of a subscription and a feed.
+    #   type: object
+    #   required:
+    #     - subscription_id
+    #     - feed_id
+    #   properties:
+    #     subscription_id:
+    #       $ref: '#/components/schemas/SubscriptionID'
+    #     feed_id:
+    #       $ref: '#/components/schemas/FeedID'
+    # UserSubscriptionFeedRelation:
+    #   description: >
+    #     links the IDs of a user to their subscriptions.
+    #   type: object
+    #   allOf:
+    #     - $ref: '#/components/schemas/SubscriptionFeedRelation'
+    #     - type: object
+    #       required:
+    #         - user_id
+    #       properties:
+    #         user_id:
+    #           $ref: '#/components/schemas/UserID'
+    # SubscriptionState:
+    #   description: >
+    #     contains the data that represents the state and customisation applied to a user subscription.
+    #   type: object
+    #   allOf:
+    #     - $ref: '#/components/schemas/Timestamps'
+    #     - $ref: '#/components/schemas/UserSubscriptionFeedRelation'
+    #     - type: object
+    #       required:
+    #         - state
+    #       properties:
+    #         state:
+    #           $ref: '#/components/schemas/ObjectState'
+    #         customisation:
+    #           $ref: '#/components/schemas/ObjectCustomisation'
+    #         item_states:
+    #           description: >
+    #             contains the states of items marked explicitly as read/unread/saved by the user.
+    #           x-go-type: 'map[ItemID]ObjectState'
+    #   x-omitzero: false
+    SubscriptionMetadata:
       description: >
-        links the IDs of a subscription and a feed.
-      type: object
-      required:
-        - subscription_id
-        - feed_id
-      properties:
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
-        feed_id:
-          $ref: '#/components/schemas/FeedID'
-    UserSubscriptionFeedRelation:
-      description: >
-        links the IDs of a user to their subscriptions.
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/SubscriptionFeedRelation'
-        - type: object
-          required:
-            - user_id
-          properties:
-            user_id:
-              $ref: '#/components/schemas/UserID'
-    SubscriptionState:
-      description: >
-        contains the data that represents the state and customisation applied to a user subscription.
+        contains the stored data that represents a subscription
       type: object
       allOf:
         - $ref: '#/components/schemas/Timestamps'
-        - $ref: '#/components/schemas/UserSubscriptionFeedRelation'
         - type: object
           required:
             - state
+            - subscription_id
+            - feed_id
           properties:
+            subscription_id:
+              $ref: '#/components/schemas/SubscriptionID'
+            feed_id:
+              $ref: '#/components/schemas/FeedID'
             state:
               $ref: '#/components/schemas/ObjectState'
             customisation:
@@ -483,52 +523,62 @@ components:
               description: >
                 contains the states of items marked explicitly as read/unread/saved by the user.
               x-go-type: 'map[ItemID]ObjectState'
-      x-omitzero: false
     Subscription:
       description: >
         represents a feed a user has subscribed to.
       type: object
       required:
-        - state
         - feed
-        - unread_count
+        - metadata
       properties:
-        state:
-          $ref: '#/components/schemas/SubscriptionState'
         feed:
           $ref: '#/components/schemas/Feed'
+        metadata:
+          $ref: '#/components/schemas/SubscriptionMetadata'
         unread_count:
           description: >
             is the value of items that are not explicitly marked unread by the user for this subscription.
-            Calculated dynamically at runtime.
           type: integer
           x-oapi-codegen-extra-tags:
             json: '-'
             validate: 'gte=0'
-        Favorite:
+        favorite:
           description: >
             indicates whether this subscription has been marked as a Favorite by the user.
           type: boolean
+          x-oapi-codegen-extra-tags:
+            json: '-'
+    ArticleMetadata:
+      description: >
+        contains the stored data that represents an article.
+      type: object
+      required:
+        - state
+        - subscription_id
+      properties:
+        subscription_id:
+          $ref: '#/components/schemas/SubscriptionID'
+        state:
+          $ref: '#/components/schemas/ObjectState'
     Article:
       description: >
         is the representation of an item from the user's perspective. It holds the original item and additional fields
         to track the state of the item from the perspective of the user.
       type: object
-      required:
-        - subscription_id
-      properties:
-        item:
-          $ref: '#/components/schemas/Item'
-        subscription_id:
-          $ref: '#/components/schemas/SubscriptionID'
-        subscription_customisation:
-          $ref: '#/components/schemas/ObjectCustomisation'
-        state:
-          $ref: '#/components/schemas/ObjectState'
-        Favorite:
-          description: >
-            indicates whether this article has been marked as a Favorite by the user.
-          type: boolean
+      allOf:
+        - $ref: '#/components/schemas/ArticleMetadata'
+        - type: object
+          required:
+            - item
+          properties:
+            item:
+              $ref: '#/components/schemas/Item'
+            favorite:
+              description: >
+                indicates whether this subscription has been marked as a Favorite by the user.
+              type: boolean
+              x-oapi-codegen-extra-tags:
+                json: '-'
     ArticleArchive:
       description: >
         represents an item that has been archived to avoid deletion (i.e. favorited by a user).

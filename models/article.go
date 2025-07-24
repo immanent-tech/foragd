@@ -44,12 +44,14 @@ func (a Articles) GetSubscriptionIDs() []SubscriptionID {
 
 // GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
 // and state is required.
-func GenerateArticle(item *Item, state *SubscriptionState) (*Article, error) {
+func GenerateArticle(item *Item, state *SubscriptionMetadata) (*Article, error) {
 	article := &Article{
-		Item:                      *item,
-		SubscriptionID:            state.GetID(),
-		State:                     *state.GetItemState(item.GetID()),
-		SubscriptionCustomisation: state.Customisation,
+		Item:           *item,
+		SubscriptionID: state.GetID(),
+		State:          *state.GetItemState(item.GetID()),
+	}
+	if state.Customisation.Title != "" {
+		item.FeedTitle = state.Customisation.Title
 	}
 	if item.GetPublishedDate().After(article.State.UpdatedAt) {
 		article.State.MarkUnread(item.GetPublishedDate())
@@ -96,7 +98,7 @@ func (a *Article) GetContent() string {
 	return a.Item.GetContent()
 }
 
-func (a *Article) GetImage() *ObjectImage {
+func (a *Article) GetImage() *RemoteImage {
 	return a.Item.GetImage()
 }
 
@@ -117,9 +119,6 @@ func (a *Article) GetCategories() []string {
 }
 
 func (a *Article) GetFeedTitle() string {
-	if a.SubscriptionCustomisation.Title != "" {
-		return a.SubscriptionCustomisation.Title
-	}
 	return a.Item.FeedTitle
 }
 

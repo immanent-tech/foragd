@@ -20,7 +20,6 @@ var validMigrations = []string{
 	UsersSchemaPrefix,
 	FeedsSchemaPrefix,
 	ItemsSchemaPrefix,
-	SubscriptionsSchemaPrefix,
 	SchedulerSchemaPrefix,
 	SessionsSchemaPrefix,
 	"ingest",
@@ -46,8 +45,6 @@ func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrati
 			err = migrateFeeds(ctx, api, destructive)
 		case ItemsSchemaPrefix:
 			err = migrateFeedItems(ctx, api, destructive)
-		case SubscriptionsSchemaPrefix:
-			err = migrateSubscriptions(ctx, api, destructive)
 		case SchedulerSchemaPrefix:
 			err = migrateScheduler(ctx, api, destructive)
 		case SessionsSchemaPrefix:
@@ -103,48 +100,6 @@ func migrateUsers(ctx context.Context, api *typedapi.API, destructive bool) erro
 			return errors.Join(ErrMigrationFailed, err)
 		}
 		slogctx.FromCtx(ctx).Debug("Created new users index...")
-	}
-
-	return nil
-}
-
-// migrateSubscriptions contains migration actions for migrating subscriptions indices and
-// settings.
-func migrateSubscriptions(ctx context.Context, api *typedapi.API, destructive bool) error {
-	slogctx.FromCtx(ctx).Debug("Migrating subscriptions...")
-
-	if err := elastic.PutComponentTemplate(ctx, api, SubscriptionsSchemaPrefix, NewComponentTemplateRequest(subscriptionsTemplate())); err != nil {
-		return fmt.Errorf("unable to migrate subscriptions: %w", err)
-	}
-
-	if err := elastic.PutIndexTemplate(ctx, api, SubscriptionsSchemaPrefix,
-		NewIndexTemplateRequest(
-			WithIndexPatterns(SubscriptionsSchemaPrefix+"_*"),
-			WithComponentTemplates(SubscriptionsSchemaPrefix),
-		),
-	); err != nil {
-		return fmt.Errorf("unable to migrate subscriptions: %w", err)
-	}
-
-	index := SubscriptionsSchemaPrefix + "_" + config.Environment()
-	// Delete index if destructive set.
-	if destructive {
-		_, err := api.Indices.Delete(index).Do(ctx)
-		if err != nil && !elastic.ParseError(err).IsNotFound() {
-			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
-		}
-	}
-	// Make sure the index doesn't exist before continuing.
-	found, err := api.Indices.Exists(index).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to migrate subscriptions: %w", err)
-	}
-	// Create a job queue index if not found.
-	if !found {
-		_, err = elastic.NewIndexRequest(api, index).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("unable to migrate subscriptions: %w", err)
-		}
 	}
 
 	return nil

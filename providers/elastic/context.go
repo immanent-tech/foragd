@@ -87,18 +87,6 @@ func FeedsIndexFromCtx(ctx context.Context) string {
 	return ""
 }
 
-func SubscriptionsIndexToCtx(ctx context.Context, index string) context.Context {
-	return context.WithValue(ctx, subscriptionsCtxKey, index)
-}
-
-func SubscriptionsIndexFromCtx(ctx context.Context) string {
-	if value, ok := ctx.Value(subscriptionsCtxKey).(string); ok {
-		return value
-	}
-
-	return ""
-}
-
 func ArchiveIndexToCtx(ctx context.Context, index string) context.Context {
 	return context.WithValue(ctx, archiveCtxKey, index)
 }

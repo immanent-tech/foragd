@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"maps"
 	"os"
 	"os/signal"
 	"slices"
@@ -111,9 +110,9 @@ func pruneFeeds(ctx context.Context, api *elastic.API) error {
 	// Get all feeds from all users.
 	var activeFeedIDs []models.FeedID
 	for user := range slices.Values(users) {
-		feedIDs := slices.Collect(maps.Keys(user.GetSubscriptionsByFeedID()))
-		activeFeedIDs = append(activeFeedIDs, feedIDs...)
+		activeFeedIDs = append(activeFeedIDs, user.GetSubscriptionMetadata().GetFeedIDs()...)
 	}
+	activeFeedIDs = slices.Compact(activeFeedIDs)
 
 	// Prune any feeds that are not subscribed to by any user.
 	resp, err := index.NewDeleteByQueryRequest(api.GetAPI(), feeds_index,

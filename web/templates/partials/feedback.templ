@@ -34,7 +34,7 @@ templ Alert(msg *models.UserMessage) {
 		if msg.HasDetails() {
 			<div>
 				<h3 class="font-bold">{ msg.Summary }</h3>
-				<p class="text-xs">{ *msg.Details }</p>
+				<p class="text-xs">{ msg.Details }</p>
 			</div>
 		} else {
 			<h3 class="font-bold">{ msg.Summary }</h3>

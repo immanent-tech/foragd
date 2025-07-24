@@ -17,7 +17,7 @@ import (
 )
 
 type SettingsPage struct {
-	subscriptions models.Subscriptions
+	subscriptions models.SubscriptionsSlice
 }
 
 // Template will render the home page based on the request details.
@@ -32,7 +32,7 @@ func (page *SettingsPage) Template(req *http.Request) templ.Component {
 	}
 }
 
-func NewSettingsPage(subscriptions models.Subscriptions) *SettingsPage {
+func NewSettingsPage(subscriptions models.SubscriptionsSlice) *SettingsPage {
 	return &SettingsPage{
 		subscriptions: subscriptions,
 	}

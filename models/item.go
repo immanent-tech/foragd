@@ -102,7 +102,7 @@ func (i *Item) GetCategories() []string {
 	return i.Categories
 }
 
-func (i *Item) GetImage() *ObjectImage {
+func (i *Item) GetImage() *RemoteImage {
 	return &i.Image
 }
 
@@ -174,7 +174,7 @@ func newItemFromSource(source *feeds.Item, feedID FeedID, sourceType string) *It
 		Copyright:    source.GetRights(),
 		Language:     source.GetLanguage(),
 		Categories:   source.GetCategories(),
-		Image: ObjectImage{
+		Image: RemoteImage{
 			URL:   source.GetImage().URL(),
 			Title: source.GetImage().String(),
 		},

@@ -261,3 +261,11 @@ func (s *ObjectState) MarkUnread(markedAt time.Time) {
 type HasID[T ~string] interface {
 	GetID() T
 }
+
+func (c ObjectCustomisation) GetNickname() string {
+	return c.Title
+}
+
+func (c ObjectCustomisation) GetCategories() []Category {
+	return c.Categories
+}

@@ -15,7 +15,6 @@ import (
 )
 
 var (
-	ErrInvalidUser  = errors.New("user is invalid")
 	ErrHTMXRequired = errors.New("htmx is required")
 	ErrInvalidInput = errors.New("invalid or unknown input")
 )

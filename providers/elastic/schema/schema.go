@@ -25,8 +25,6 @@ const (
 	SchedulerSchemaPrefix = "scheduler_jobs"
 	// SessionsSchemaPrefix is a prefix used for sessions related index/mapping/settings.
 	SessionsSchemaPrefix = "sessions"
-	// SubscriptionsSchemaPrefix is a prefix used for subscriptions related index/mapping/settings.
-	SubscriptionsSchemaPrefix = "subscriptions"
 
 	ingestPipelineID = "gofeed"
 )
@@ -112,60 +110,11 @@ func userComponentTemplate() types.IndexState {
 				"updated_at":       types.NewDateNanosProperty(),
 				"max_history":      types.NewKeywordProperty(),
 				"settings":         types.NewFlattenedProperty(),
-				"subscriptions": types.ObjectProperty{
-					Properties: map[string]types.Property{
-						"feed_id":         types.NewKeywordProperty(),
-						"subscription_id": types.NewKeywordProperty(),
-					},
-				},
-				"favorites": types.NewFlattenedProperty(),
+				"subscriptions":    types.NewFlattenedProperty(),
+				"favorites":        types.NewFlattenedProperty(),
 			},
 		}),
 		WithAliases(UsersSchemaPrefix, types.Alias{}),
-	)
-}
-
-//
-// SUBSCRIPTIONS
-//
-
-func subscriptionsTemplate() types.IndexState {
-	return NewIndexState(
-		WithMappings(&types.TypeMapping{
-			Dynamic: &dynamicmapping.False,
-			Properties: map[string]types.Property{
-				"user_id":         types.NewKeywordProperty(),
-				"subscription_id": types.NewKeywordProperty(),
-				"feed_id":         types.NewKeywordProperty(),
-				"updated_at":      types.NewDateNanosProperty(),
-				"created_at":      types.NewDateNanosProperty(),
-				"customisation": types.ObjectProperty{
-					Properties: map[string]types.Property{
-						"categories": shortTextFieldProperty(),
-						"title":      shortTextFieldProperty(),
-					},
-				},
-				"state": types.ObjectProperty{
-					Properties: map[string]types.Property{
-						"read":       types.NewBooleanProperty(),
-						"starred":    types.NewBooleanProperty(),
-						"updated_at": types.NewDateNanosProperty(),
-					},
-				},
-				"item_states": types.NewFlattenedProperty(),
-			},
-		}),
-		WithAliases(SubscriptionsSchemaPrefix, types.Alias{}),
-		WithIndexSettings(
-			WithAnalysis(types.IndexSettingsAnalysis{
-				Analyzer: map[string]types.Analyzer{
-					EnglishExactAnalyzerName: types.CustomAnalyzer{
-						Tokenizer: "standard",
-						Filter:    []string{"lowercase"},
-					},
-				},
-			}),
-		),
 	)
 }
 

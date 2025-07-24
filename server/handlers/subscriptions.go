@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"slices"
 	"strings"
-	"time"
 
 	"github.com/a-h/templ"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -106,33 +105,27 @@ func (a *API) MarkSubscriptions() http.HandlerFunc {
 			RouteLogger,
 			TriggerStateUpdates,
 		)
-		// Get subscription details.
+		// Retrieve user object.
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			return
+		} // Get subscription details.
 		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
 		if err != nil || !valid {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
-		chain = chain.Append(SetupRedirect(request.Redirect))
+		chain = chain.Append(SetupRedirect(&request.Redirect))
 		// Get mark.
 		mark := chi.URLParam(req, "mark")
-		// Set marked at to current timestamp.
-		markedAt := time.Now().UTC()
-		// Get all user subscription states.
-		states, err := a.getSubscriptionStates(req.Context())
+		// Mark user subscriptions.
+		user.MarkSubscriptions(models.Mark(mark), request.Subscriptions...)
+		// Update the user.
+		err = a.updateUser(req.Context(), map[string]any{
+			"subscriptions": user.GetSubscriptionMetadata(),
+		})
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-			return
-		}
-		// If the request contains explicit subscription IDs to mark, filter for those.
-		if len(request.Subscriptions) > 0 {
-			states = states.FilterByIDs(request.Subscriptions...)
-		}
-		// Loop through given subscription IDs and update states.
-		for state := range slices.Values(states) {
-			state.Mark(models.Mark(mark), markedAt)
-		}
-		// Index updates.
-		if err := a.updateSubscriptionStates(req.Context(), states); err != nil {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
@@ -148,7 +141,12 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
-		// Get subscription details.
+		// Retrieve user object.
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			return
+		} // Get subscription details.
 		request, valid, err := forms.DecodeForm[*models.RemoveSubscriptionsRequest](req)
 		if err != nil || !valid {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
@@ -161,7 +159,12 @@ func (a *API) RemoveSubscriptions() http.HandlerFunc {
 			slogctx.FromCtx(req.Context()).Debug("Subscription removal confirmed.",
 				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
 			)
-			err := a.removeSubscriptions(req.Context(), request.Subscriptions...)
+			// Remove metadata for given subscriptions from user.
+			user.RemoveSubscriptions(request.Subscriptions...)
+			// Update the user.
+			err := a.updateUser(req.Context(), map[string]any{
+				"subscriptions": user.GetSubscriptionMetadata(),
+			})
 			if err != nil {
 				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 				return
@@ -223,24 +226,21 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			RouteLogger,
 		)
 		id := chi.URLParam(req, "subscription")
-		// Retrieve subscription details.
-		states, err := a.getSubscriptionStates(req.Context(), id)
-		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+		// Retrieve user object.
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
-		if len(states) == 0 {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
-		}
+		metadata := user.GetSubscriptionMetadata().GetByID(id)
 		edit := &models.SubscriptionEdit{
-			SubscriptionID: states[0].GetID(),
-			Title:          states[0].Customisation.Title,
-			Categories:     states[0].Customisation.Categories,
+			SubscriptionID: id,
+			Title:          metadata.Customisation.Title,
+			Categories:     metadata.Customisation.Categories,
 		}
 		// Get top categories across items in subscription feed.
 		var topItemCategories []models.Category
-		categories, resp := a.getItemTopCategories(req.Context(), states[0].GetFeedID())
+		categories, resp := a.getItemTopCategories(req.Context(), metadata.GetFeedID())
 		if resp == nil {
 			topItemCategories = categories
 		}
@@ -259,30 +259,34 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			RouteLogger,
 			TriggerStateUpdates,
 		)
+		// Retrieve user object.
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			return
+		}
 		edits, valid, err := forms.DecodeForm[*models.SubscriptionEdit](req)
 		if err != nil || !valid {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
-		index := elastic.SubscriptionsIndexFromCtx(req.Context())
-		if index == "" {
+		metadata := user.GetSubscriptionMetadata().GetByID(edits.SubscriptionID)
+		metadata.Customisation.Title = edits.Title
+		metadata.Customisation.Categories = edits.Categories
+		err = user.UpdateSubscription(metadata)
+		if err != nil {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-
-		updates := map[string]any{
-			"customisation": map[string]any{
-				"title":      edits.Title,
-				"categories": edits.Categories,
-			},
-		}
-
-		if err := elastic.UpdateDoc(req.Context(), a.DataAPI().GetAPI(), index, edits.SubscriptionID, updates); err != nil {
+		// Update the user.
+		err = a.updateUser(req.Context(), map[string]any{
+			"subscriptions": user.GetSubscriptionMetadata(),
+		})
+		if err != nil {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-
-		msg := models.SuccessUserMessage("Subscription updated.", nil)
+		msg := models.SuccessUserMessage("Subscription updated.", "")
 		// TODO: get new subscription details and update subscription card.
 		// Display a notification acknowledging save.
 		resp := models.NewResponse(
@@ -434,70 +438,20 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 	}
 }
 
-func (a *API) getSubscriptionStates(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionStates, error) {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, models.ErrNoUserCtx
-	}
-
-	subscriptions := user.GetSubscriptionsByID(ids...)
-	index := elastic.SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return nil, elastic.ErrFetchCtx
-	}
-
-	states, err := elastic.GetDocs[models.SubscriptionID, *models.SubscriptionState](ctx, a.DataAPI().GetAPI(), index, slices.Collect(maps.Keys(subscriptions))...)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
-			slog.Any("warnings", err))
-	}
-
-	return states, nil
-}
-
-func (a *API) updateSubscriptionStates(ctx context.Context, states models.SubscriptionStates) error {
-	index := elastic.SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return elastic.ErrFetchCtx
-	}
-
-	_, err := elastic.BulkUpdate(ctx, a.DataAPI(), index, states...)
-	if err != nil {
-		return fmt.Errorf("updateSubscriptionStates: %w", err)
-	}
-
-	return nil
-}
-
-func (a *API) addSubscriptionStates(ctx context.Context, states models.SubscriptionStates) error {
-	index := elastic.SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return elastic.ErrFetchCtx
-	}
-
-	_, err := elastic.BulkAdd(ctx, a.DataAPI(), index, states...)
-	if err != nil {
-		return fmt.Errorf("updateSubscriptionStates: %w", err)
-	}
-
-	return nil
-}
-
-func (a *API) getSubscriptionUnreadCounts(ctx context.Context, states models.SubscriptionStates) (*aggregations.TermsAggregationResults, error) {
+func (a *API) getSubscriptionUnreadCounts(ctx context.Context, subscriptionMetadata models.SubscriptionMetadataSlice) (*aggregations.TermsAggregationResults, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, models.ErrUserCtx
 	}
 
-	if len(states) == 0 {
+	if len(subscriptionMetadata) == 0 {
 		return &aggregations.TermsAggregationResults{}, nil
 	}
 
-	subscriptionQueries := make([]query.Option, 0, len(states))
-	for _, state := range states {
-		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, state))
+	subscriptionQueries := make([]query.Option, 0, len(subscriptionMetadata))
+	for m := range slices.Values(subscriptionMetadata) {
+		subscriptionQueries = append(subscriptionQueries, queryUnreadItems(user, m))
 	}
 	query := query.Bool(
 		query.Filter(
@@ -507,7 +461,7 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, states models.Sub
 		),
 	)
 
-	aggResults, resp := a.DataAPI().ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(states)))
+	aggResults, resp := a.DataAPI().ItemsAggregation(ctx, query, aggregations.NewTermsAggregation("UnreadCounts", "feed_id", len(subscriptionMetadata)))
 	if resp != nil && !resp.IsNotFound() {
 		return nil, resp
 	}
@@ -525,33 +479,30 @@ func (a *API) getSubscriptionUnreadCounts(ctx context.Context, states models.Sub
 	return &categoryCounts, nil
 }
 
-func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.Subscriptions, error) {
+func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID) (models.SubscriptionsSlice, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, ErrNoCtxData
 	}
-	favoriteSubscriptions := user.GetFavorites().FilterByType(models.FavoriteTypeSubscription)
+	allFavorites := user.GetFavorites().FilterByType(models.FavoriteTypeSubscription)
 	// Get the subscription states.
-	states, err := a.getSubscriptionStates(ctx, ids...)
-	if err != nil {
-		return nil, fmt.Errorf("getSubscriptions: %w", err)
-	}
+	allMetadata := user.GetSubscriptionMetadata().FilterByIDs(ids...)
 	// Get unread counts.
-	unreadCounts, err := a.getSubscriptionUnreadCounts(ctx, states)
+	unreadCounts, err := a.getSubscriptionUnreadCounts(ctx, allMetadata)
 	if err != nil {
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
 	// Get feed data for subscriptions.
-	feeds, err := a.DataAPI().GetFeeds(ctx, states.GetFeedIDs()...)
+	feeds, err := a.DataAPI().GetFeeds(ctx, allMetadata.GetFeedIDs()...)
 	if err != nil {
 		return nil, fmt.Errorf("getSubscriptions: %w", err)
 	}
 	// Generate subscriptions from data sources.
-	subscriptions := make(models.Subscriptions, 0, len(feeds))
+	subscriptions := make(models.SubscriptionsSlice, 0, len(feeds))
 	for feed := range slices.Values(feeds) {
-		var state *models.SubscriptionState
+		var metadata *models.SubscriptionMetadata
 		var count int
-		if state = states.GetByFeedID(feed.GetID()); state == nil {
+		if metadata = allMetadata.GetByFeedID(feed.GetID()); metadata == nil {
 			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved feed.",
 				slog.String("feed_id", feed.GetID()),
 			)
@@ -561,15 +512,12 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 			count = unreadCounts.GetCount(feed.GetID())
 		}
 
-		subscription, err := models.GenerateSubscription(state, feed, count)
+		subscription, err := models.GenerateSubscription(metadata, feed, count, allFavorites.HasFavorite(metadata.GetID()))
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not generate subscription from data.",
 				slog.Any("error", err),
 			)
 			continue
-		}
-		if favoriteSubscriptions.HasFavorite(subscription.GetID()) {
-			subscription.Favorite = true
 		}
 		subscriptions = append(subscriptions, subscription)
 	}
@@ -577,7 +525,7 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	return subscriptions, nil
 }
 
-func (a *API) filterSubscriptions(ctx context.Context, filters *models.SubscriptionFilters) (models.Subscriptions, models.Pagination, error) {
+func (a *API) filterSubscriptions(ctx context.Context, filters *models.SubscriptionFilters) (models.SubscriptionsSlice, models.Pagination, error) {
 	// Get subscriptions by ID.
 	subscriptions, err := a.getSubscriptions(ctx, filters.Subscriptions...)
 	if err != nil {
@@ -590,40 +538,11 @@ func (a *API) filterSubscriptions(ctx context.Context, filters *models.Subscript
 		Sort(&sort)
 	// Set up pagination.
 	var pagination string
-	if filters.Pagination != nil {
-		pagination = *filters.Pagination
+	if filters.Pagination != "" {
+		pagination = filters.Pagination
 	}
 	subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
 	return subscriptions, pagination, nil
-}
-
-func (a *API) removeSubscriptions(ctx context.Context, ids ...models.SubscriptionID) error {
-	// Retrieve user object.
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return models.ErrUserCtx
-	}
-	// Remove the subscription states.
-	index := elastic.SubscriptionsIndexFromCtx(ctx)
-	if index == "" {
-		return elastic.ErrFetchCtx
-	}
-
-	err := elastic.DeleteDocs(ctx, a.DataAPI().GetAPI(), index,
-		query.Terms("subscription_id", ids...),
-	)
-	if err != nil {
-		return fmt.Errorf("failed to delete subscription customisations: %w", err)
-	}
-
-	// Remove states for given subscriptions from user.
-	user.Subscriptions = slices.Collect(models.FilterSlice(user.Subscriptions, func(s models.SubscriptionFeedRelation) bool {
-		return !slices.Contains(ids, s.SubscriptionID)
-	}))
-	// Update the user.
-	return a.updateUser(ctx, map[string]any{
-		"subscriptions": user.Subscriptions,
-	})
 }
 
 type (
@@ -676,16 +595,15 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 
 	// Loop over existing feeds.
 	for request := range r {
-		feed := existingFeeds.FindByURL(request.GetURL())
+		existingFeed := existingFeeds.FindByURL(request.GetURL())
 		switch {
-		case feed == nil: // No existing feed, create a new one.
+		case existingFeed == nil: // No existing feed, create a new one.
 			newFeed, err := models.NewFeedFromURL(ctx, request.GetURL())
 			if err != nil {
-				details := fmt.Sprintf("The feed URL (%s) cannot be parsed as a feed source or is not a valid URL.", request.GetURL())
 				results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
 					Status:  models.UserMessageStatusError,
-					Summary: "Invalid Source URL",
-					Details: &details,
+					Summary: "Unable to parse URL as a feed",
+					Details: fmt.Sprintf("The feed URL (%s) cannot be parsed as a feed source or is not a valid URL.", request.GetURL()),
 				})
 				continue
 			}
@@ -694,18 +612,17 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 				slog.String("subscription", request.String()),
 				slog.String("feed", newFeed.String()),
 			)
-		case user.IsSubscribedToFeed(feed.GetID()): // User already subscribed, ignore request.
-			details := fmt.Sprintf("A subscription for the feed with URL %s already exists.", request.GetURL())
+		case user.IsSubscribedToFeed(existingFeed.GetID()): // User already subscribed, ignore request.
 			results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
 				Status:  models.UserMessageStatusWarning,
 				Summary: "Already subscribed.",
-				Details: &details,
+				Details: fmt.Sprintf("A subscription for the feed with URL %s already exists.", request.GetURL()),
 			})
 		default: // Existing feed.
-			r[request] = feed
+			r[request] = existingFeed
 			slogctx.FromCtx(ctx).Debug("Existing feed for subscription.",
 				slog.String("subscription", request.String()),
-				slog.String("feed", feed.String()),
+				slog.String("feed", existingFeed.String()),
 			)
 		}
 	}
@@ -748,11 +665,10 @@ func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (
 				// Success, add request to map of subscription needed.
 				r[request] = feed
 			} else {
-				details := "An internal, irrecoverable backend error occurred trying to add a subscription for the URL " + request.GetURL()
 				results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
 					Status:  models.UserMessageStatusError,
 					Summary: "Internal Error. ",
-					Details: &details,
+					Details: "An internal, irrecoverable backend error occurred trying to add a subscription for the URL " + request.GetURL(),
 				})
 			}
 		}
@@ -775,28 +691,25 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 	// Loop through the subscriptions adding their state to the existing subscription states slice. For any
 	// subscriptions that have customisation data, collect the customisation data for adding later.
 	results := make(views.AddSubscriptionResults)
-	states := make(models.SubscriptionStates, 0, len(r))
+	allMetadata := make(models.SubscriptionMetadataSlice, 0, len(r))
 	for request, feed := range r {
-		// Create subscription state.
-		state := models.NewSubscriptionState(user.GetID(), feed, request)
-		subscription, err := models.GenerateSubscription(state, feed, 0)
+		// Generate metadata and add to metadata slice.
+		metadata := models.NewSubscriptionMetadata(user.GetID(), feed, request)
+		allMetadata = append(allMetadata, metadata)
+		// Generate subscription and add to results map.
+		subscription, err := models.GenerateSubscription(metadata, feed, 0, false)
 		if err != nil {
-			details := request.GetURL()
 			results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
 				Status:  models.UserMessageStatusError,
 				Summary: "Subscription creation failed",
-				Details: &details,
+				Details: request.GetURL(),
 			})
 			continue
 		}
-		states = append(states, state)
-		// Add subscription details to user object.
-		user.AddSubscription(state.SubscriptionID, state.FeedID)
-		details := fmt.Sprintf("Subscription for URL %s created.", request.GetURL())
 		results[request] = models.NewSubscriptionResult(subscription, &models.UserMessage{
 			Status:  models.UserMessageStatusSuccess,
 			Summary: "Subscription Created",
-			Details: &details,
+			Details: fmt.Sprintf("Subscription for URL %s created.", request.GetURL()),
 		})
 	}
 
@@ -804,13 +717,12 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 	// return results, nil
 
 	// Add the subscription states.
-	if err := api.addSubscriptionStates(ctx, states); err != nil {
-		return nil, fmt.Errorf("createNewSubscriptions: %w", err)
-	}
+	user.AddSubscriptions(allMetadata...)
 	// Update the user object.
-	if err := api.updateUser(ctx, map[string]any{
+	err := api.updateUser(ctx, map[string]any{
 		"subscriptions": user.Subscriptions,
-	}); err != nil {
+	})
+	if err != nil {
 		return nil, fmt.Errorf("createNewSubscriptions: %w", err)
 	}
 	return results, nil
