@@ -85,7 +85,7 @@ func (u *User) IsSubscribedToFeed(id FeedID) bool {
 // MarkSubscriptions marks user subscriptions with the given ids with the given mark.
 func (u *User) MarkSubscriptions(mark Mark, ids ...SubscriptionID) {
 	markedAt := time.Now().UTC()
-	for subscription := range slices.Values(u.GetSubscriptionMetadata()) {
+	for subscription := range slices.Values(u.GetSubscriptionMetadata().FilterByIDs(ids...)) {
 		subscription.Mark(mark, markedAt)
 	}
 }

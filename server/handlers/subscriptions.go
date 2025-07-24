@@ -98,29 +98,36 @@ func (a *API) GetSubscriptionArticles() http.HandlerFunc {
 	}
 }
 
-// MarkSubscriptions handles marking a collection of subscriptions as read or unread.
-func (a *API) MarkSubscriptions() http.HandlerFunc {
+// MarkSubscription handles marking a subscription as read or unread.
+func (a *API) MarkSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
 			RouteLogger,
-			TriggerStateUpdates,
+			// TriggerStateUpdates,
 		)
-		// Retrieve user object.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
 			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
 			return
-		} // Get subscription details.
-		request, valid, err := forms.DecodeForm[*models.MarkSubscriptionsRequest](req)
-		if err != nil || !valid {
+		}
+		// Construct the request from parameters.
+		request := &models.MarkSubscriptionsRequest{
+			Mark:          models.Mark(chi.URLParam(req, "mark")),
+			Subscriptions: []models.SubscriptionID{chi.URLParam(req, "subscription")},
+			View:          models.View(req.FormValue("view")),
+		}
+		// Validate parameters.
+		valid, err := request.Valid()
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		if !valid {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
-		chain = chain.Append(SetupRedirect(&request.Redirect))
-		// Get mark.
-		mark := chi.URLParam(req, "mark")
 		// Mark user subscriptions.
-		user.MarkSubscriptions(models.Mark(mark), request.Subscriptions...)
+		user.MarkSubscriptions(request.Mark, request.Subscriptions...)
 		// Update the user.
 		err = a.updateUser(req.Context(), map[string]any{
 			"subscriptions": user.GetSubscriptionMetadata(),
@@ -129,8 +136,21 @@ func (a *API) MarkSubscriptions() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
+		var resp *models.Response
+		// If the view is "all" send back the updated subscription card.
+		if request.View == models.ViewAll {
+			s, err := a.getSubscriptions(req.Context(), request.Subscriptions...)
+			if err != nil || len(s) == 0 || len(s) > 1 {
+				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				return
+			}
+			card := views.NewSubscriptionContent(s[0])
+			resp = models.NewResponse(
+				models.WithResponseTemplate(card.Card()),
+			)
+		}
 
-		chain.Then(RenderResponse(nil)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 

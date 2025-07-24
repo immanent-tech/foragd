@@ -232,6 +232,10 @@ components:
             form: 'subscriptions'
             validate: 'omitnil,unique,dive,startswith=sub_'
           x-go-type-skip-optional-pointer: true
+        mark:
+          $ref: 'models.yaml#/components/schemas/Mark'
+        view:
+          $ref: 'models.yaml#/components/schemas/View'
         redirect:
           $ref: '#/components/schemas/Redirect'
     RemoveSubscriptionsRequest:
