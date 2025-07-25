@@ -12,6 +12,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/update"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
@@ -187,10 +188,12 @@ func NewMSearchRequest(api *typedapi.API, options ...Option[MsearchRequest]) *ms
 	return req
 }
 
-// UpdateDocRequest wraps the doc update api.
+// UpdateDocRequest wraps the doc update api endpoint.
 type UpdateDocRequest interface {
 	RequestCommon[*update.Update]
 	DocAsUpsert(docasupsert bool) *update.Update
+	Refresh(refresh refresh.Refresh) *update.Update
+	RetryOnConflict(retryonconflict int) *update.Update
 }
 
 // NewUpdateDocRequest creates a new doc update request with the given options.
@@ -204,13 +207,34 @@ func NewUpdateDocRequest(api *typedapi.API, index, id string, doc any, options .
 	return req
 }
 
+// WithRefresh sets the refresh value for the request.
+//
+// https://www.elastic.co/docs/api/doc/elasticsearch/operation/operation-update#operation-update-refresh
+func WithRefresh(value string) Option[UpdateDocRequest] {
+	return func(req UpdateDocRequest) {
+		req.Refresh(refresh.Refresh{Name: value})
+	}
+}
+
+// WithRetryOnConflict sets the number of retries the request will make if a version conflict is detected.
+//
+// https://www.elastic.co/docs/api/doc/elasticsearch/operation/operation-update#operation-update-retry_on_conflict
+func WithRetryOnConflict(attempts int) Option[UpdateDocRequest] {
+	return func(req UpdateDocRequest) {
+		req.RetryOnConflict(attempts)
+	}
+}
+
 // UpdateDocAsUpsert ensures that a doc update will act as an upsert if there is no existing doc.
+//
+// https://www.elastic.co/docs/api/doc/elasticsearch/operation/operation-update#operation-update-body-application-json-doc_as_upsert
 func UpdateDocAsUpsert() Option[UpdateDocRequest] {
 	return func(req UpdateDocRequest) {
 		req.DocAsUpsert(true)
 	}
 }
 
+// CountRequest wraps the count API endpoint.
 type CountRequest interface {
 	RequestCommon[*count.Count]
 	RequestWithIndex[*count.Count]
