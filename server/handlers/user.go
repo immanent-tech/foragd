@@ -18,6 +18,7 @@ import (
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/validation"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
@@ -112,7 +113,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		}
 		// Update the favorite button.
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.RemoveFavoriteSubscriptionButton(id)),
+			models.WithResponseTemplate(partials.RemoveFavoriteSubscriptionButton(id)),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -144,7 +145,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 		}
 		// Update the favorite button.
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.AddFavoriteSubscriptionButton(id)),
+			models.WithResponseTemplate(partials.AddFavoriteSubscriptionButton(id)),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP

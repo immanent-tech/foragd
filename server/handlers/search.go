@@ -19,6 +19,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/results"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
@@ -116,7 +117,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 }
 
 //nolint:funlen
-func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.SearchRequest) ([]*views.Subscription, []*views.Article, error) {
+func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.SearchRequest) ([]*partials.Subscription, []*views.Article, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -163,9 +164,9 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 	if len(subscriptionMatches) > 3 {
 		subscriptionMatches = subscriptionMatches[:3]
 	}
-	subscriptions := make([]*views.Subscription, 0, len(subscriptionMatches))
+	subscriptions := make([]*partials.Subscription, 0, len(subscriptionMatches))
 	for s := range slices.Values(subscriptionMatches) {
-		subscriptions = append(subscriptions, views.NewSubscriptionContent(s))
+		subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
 	}
 	return subscriptions, articles, nil
 }

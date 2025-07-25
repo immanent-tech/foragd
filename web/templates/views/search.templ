@@ -36,13 +36,13 @@ templ SearchSuggestionHeader(text string) {
 }
 
 type SearchResultsPage struct {
-	subscriptions []*Subscription
+	subscriptions []*partials.Subscription
 	articles      []*Article
 	search        *models.SearchRequest
 	favoriteID    models.FavoriteID
 }
 
-func NewSearchResultsPage(fav *models.Favorite, search *models.SearchRequest, subscriptions []*Subscription, articles []*Article) *SearchResultsPage {
+func NewSearchResultsPage(fav *models.Favorite, search *models.SearchRequest, subscriptions []*partials.Subscription, articles []*Article) *SearchResultsPage {
 	page := &SearchResultsPage{
 		search:        search,
 		subscriptions: subscriptions,

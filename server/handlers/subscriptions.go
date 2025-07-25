@@ -144,7 +144,7 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
-			card := views.NewSubscriptionContent(s[0])
+			card := partials.NewSubscriptionContent(s[0])
 			resp = models.NewResponse(
 				models.WithResponseTemplate(card.Card()),
 			)
@@ -312,7 +312,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			return
 		}
 		// Display the updated subscription card.
-		card := views.NewSubscriptionContent(s[0])
+		card := partials.NewSubscriptionContent(s[0])
 		// Display a notification acknowledging save (OOB swap).
 		msg := models.SuccessUserMessage(fmt.Sprintf("Subscription %s updated.", s[0].GetTitle()), "")
 		resp := models.NewResponse(
