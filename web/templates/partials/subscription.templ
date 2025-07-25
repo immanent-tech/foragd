@@ -180,11 +180,7 @@ templ (c *Subscription) Card() {
 						</li>
 						// Favorite action.
 						<li id={ "favorite_" + c.GetID() } _="on click call document.activeElement.blur()">
-							if c.Favorite {
-								@RemoveFavoriteSubscriptionButton(c.GetID())
-							} else {
-								@AddFavoriteSubscriptionButton(c.GetID())
-							}
+							@ToggleFavoriteSubscriptionText(c.GetID(), c.Favorite, "#favorite_"+c.GetID(), "innerHTML")
 						</li>
 						// Unsubscribe action.
 						<li _="on click call document.activeElement.blur()">
@@ -211,6 +207,47 @@ templ (c *Subscription) Card() {
 			}
 		}
 	}
+}
+
+templ (c *Subscription) Settings() {
+	<tr id={ c.GetID() }>
+		<th>
+			<label>
+				<input type="checkbox" class="checkbox checkbox-xs"/>
+			</label>
+		</th>
+		<td>{ c.GetTitle() }</td>
+		<td>
+			@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
+				ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+				ActionTarget(ModalContainerID.Target()),
+				ActionLinkOptions(
+					link.WithClasses("text-xs"),
+				),
+			) {
+				@tabler.Edit(i.Props{Size: i.SizeXS})
+			}
+		</td>
+		<td>
+			@ToggleFavoriteSubscriptionIcon(c.GetID(), c.Favorite, "#"+c.GetID(), "outerHTML")
+		</td>
+		<td>
+			@NewAction("/subscriptions/remove", DisplayActionAsLink,
+				ActionMethod(http.MethodPost),
+				ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+				ActionTarget(ModalContainerID.Target()),
+				ActionValues(map[string]string{
+					"subscriptions": c.GetID(),
+					"confirmation":  "no",
+				}),
+				ActionLinkOptions(
+					link.WithClasses("text-xs"),
+				),
+			) {
+				@tabler.Trash(i.Props{Size: i.SizeXS})
+			}
+		</td>
+	</tr>
 }
 
 templ (c *Subscription) ShowAsSearchSuggestion() {
@@ -255,32 +292,48 @@ templ MarkSubscriptionLink(id models.SubscriptionID, unread bool) {
 	}
 }
 
-templ AddFavoriteSubscriptionButton(id models.SubscriptionID) {
+templ favoriteSubscriptionLink(id models.SubscriptionID, isFavorite bool, target string, swap string) {
+	{{ var method string }}
+	switch isFavorite {
+		case true:
+			{{ method = http.MethodDelete }}
+		case false:
+			{{ method = http.MethodPut }}
+	}
 	@NewAction("/user/favorite/subscription/"+id, DisplayActionAsLink,
-		ActionMethod(http.MethodPut),
-		ActionTarget("#favorite_"+id),
+		ActionMethod(method),
+		ActionTarget(target), //
+		ActionSwap(swap),
 		ActionLinkOptions(
 			link.WithClasses("text-xs"),
 		),
 	) {
-		<div class="icontext">
-			@tabler.Bookmark(i.Props{Size: i.SizeXS})
-			Add Favorite
-		</div>
+		{ children... }
 	}
 }
 
-templ RemoveFavoriteSubscriptionButton(id models.SubscriptionID) {
-	@NewAction("/user/favorite/subscription/"+id, DisplayActionAsLink,
-		ActionMethod(http.MethodDelete),
-		ActionTarget("#favorite_"+id),
-		ActionLinkOptions(
-			link.WithClasses("text-xs"),
-		),
-	) {
+templ ToggleFavoriteSubscriptionIcon(id models.SubscriptionID, isFavorite bool, target string, swap string) {
+	@favoriteSubscriptionLink(id, isFavorite, target, swap) {
+		switch isFavorite {
+			case true:
+				@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
+			case false:
+				@tabler.Bookmark(i.Props{Size: i.SizeXS})
+		}
+	}
+}
+
+templ ToggleFavoriteSubscriptionText(id models.SubscriptionID, isFavorite bool, target string, swap string) {
+	@favoriteSubscriptionLink(id, isFavorite, target, swap) {
 		<div class="icontext">
-			@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
-			Remove Favorite
+			switch isFavorite {
+				case true:
+					@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
+					Remove Favorite
+				case false:
+					@tabler.Bookmark(i.Props{Size: i.SizeXS})
+					Add Favorite
+			}
 		</div>
 	}
 }

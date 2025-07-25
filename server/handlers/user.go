@@ -8,8 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
@@ -112,8 +115,26 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			return
 		}
 		// Update the favorite button.
+		var template templ.Component
+		currentURL, found := htmx.GetCurrentURL(req)
+		if !found {
+			RenderResponse(RespBackendError(nil)).ServeHTTP(res, req)
+			return
+		}
+		switch {
+		case strings.HasSuffix(currentURL, "/user/settings"):
+			s, err := a.getSubscriptions(req.Context(), id)
+			if err != nil || len(s) == 0 || len(s) > 1 {
+				RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+				return
+			}
+			template = partials.NewSubscriptionContent(s[0]).Settings()
+		default:
+			template = partials.ToggleFavoriteSubscriptionText(id, true, "#favorite_"+id, "innerHTML")
+		}
+
 		resp := models.NewResponse(
-			models.WithResponseTemplate(partials.RemoveFavoriteSubscriptionButton(id)),
+			models.WithResponseTemplate(template),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -144,8 +165,26 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			return
 		}
 		// Update the favorite button.
+		var template templ.Component
+		currentURL, found := htmx.GetCurrentURL(req)
+		if !found {
+			RenderResponse(RespBackendError(nil)).ServeHTTP(res, req)
+			return
+		}
+		switch {
+		case strings.HasSuffix(currentURL, "/user/settings"):
+			s, err := a.getSubscriptions(req.Context(), id)
+			if err != nil || len(s) == 0 || len(s) > 1 {
+				RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+				return
+			}
+			template = partials.NewSubscriptionContent(s[0]).Settings()
+		default:
+			template = partials.ToggleFavoriteSubscriptionText(id, false, "#favorite_"+id, "innerHTML")
+		}
+
 		resp := models.NewResponse(
-			models.WithResponseTemplate(partials.AddFavoriteSubscriptionButton(id)),
+			models.WithResponseTemplate(template),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP

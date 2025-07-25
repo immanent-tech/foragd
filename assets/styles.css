@@ -53,3 +53,7 @@
     }
   }
 }
+
+@utility icontext {
+  @apply flex items-center;
+}

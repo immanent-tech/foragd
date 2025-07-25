@@ -9,9 +9,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 	"slices"
 )
@@ -78,52 +75,7 @@ templ (page *SettingsPage) subscriptionList() {
 			</thead>
 			<tbody>
 				for  subscription := range slices.Values(page.subscriptions) {
-					<tr>
-						<th>
-							<label>
-								<input type="checkbox" class="checkbox checkbox-xs"/>
-							</label>
-						</th>
-						<td>{ subscription.GetTitle() }</td>
-						<td>
-							@partials.NewAction("/user/subscription/edit/"+subscription.GetID(), partials.DisplayActionAsLink,
-								partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
-								partials.ActionTarget(partials.ModalContainerID.Target()),
-								partials.ActionLinkOptions(
-									link.WithClasses("text-xs"),
-								),
-							) {
-								@tabler.Edit(i.Props{Size: i.SizeXS})
-							}
-						</td>
-						<td>
-							@partials.NewAction("/user/favorite/subscription/"+subscription.GetID(), partials.DisplayActionAsLink,
-								partials.ActionMethod(http.MethodPut),
-								partials.ActionSwap("none"),
-								partials.ActionLinkOptions(
-									link.WithClasses("text-xs"),
-								),
-							) {
-								@tabler.Star(i.Props{Size: i.SizeXS})
-							}
-						</td>
-						<td>
-							@partials.NewAction("/subscriptions/remove", partials.DisplayActionAsLink,
-								partials.ActionMethod(http.MethodPost),
-								partials.ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
-								partials.ActionTarget(partials.ModalContainerID.Target()),
-								partials.ActionValues(map[string]string{
-									"subscriptions": subscription.GetID(),
-									"confirmation":  "no",
-								}),
-								partials.ActionLinkOptions(
-									link.WithClasses("text-xs"),
-								),
-							) {
-								@tabler.Trash(i.Props{Size: i.SizeXS})
-							}
-						</td>
-					</tr>
+					@partials.NewSubscriptionContent(subscription).Settings()
 				}
 			</tbody>
 		</table>

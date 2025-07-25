@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -311,12 +312,23 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		// Display the updated subscription card.
-		card := partials.NewSubscriptionContent(s[0])
+		// Display the updated subscription.
+		var template templ.Component
+		currentURL, found := htmx.GetCurrentURL(req)
+		if !found {
+			chain.Then(RenderResponse(RespBackendError(nil))).ServeHTTP(res, req)
+			return
+		}
+		switch {
+		case strings.HasSuffix(currentURL, "/user/settings"):
+			template = partials.NewSubscriptionContent(s[0]).Settings()
+		default:
+			template = partials.NewSubscriptionContent(s[0]).Card()
+		}
 		// Display a notification acknowledging save (OOB swap).
 		msg := models.SuccessUserMessage(fmt.Sprintf("Subscription %s updated.", s[0].GetTitle()), "")
 		resp := models.NewResponse(
-			models.WithResponseTemplate(templ.Join(card.Card(), partials.ShowNotification(msg))),
+			models.WithResponseTemplate(templ.Join(template, partials.ShowNotification(msg))),
 		)
 
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
