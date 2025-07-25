@@ -221,7 +221,6 @@ components:
       required:
         - subscriptions
         - mark
-        - view
       properties:
         subscriptions:
           description: >
@@ -236,10 +235,6 @@ components:
           x-go-type-skip-optional-pointer: true
         mark:
           $ref: 'models.yaml#/components/schemas/Mark'
-        view:
-          $ref: 'models.yaml#/components/schemas/View'
-        redirect:
-          $ref: '#/components/schemas/Redirect'
     RemoveSubscriptionsRequest:
       description: >
         represents a user request for unsubscribing from subscriptions.

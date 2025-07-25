@@ -85,33 +85,6 @@ templ (c *Subscription) Summary() {
 	}
 }
 
-// State displays the subscription title and its unread count (if any).
-templ (s *Subscription) State() {
-	@link.Build(
-		link.WithAttributes(s.viewAttributes()),
-	) {
-		<div class="flex gap-2 w-full">
-			<div class="flex-1 text-sm content-center">
-				{ s.GetTitle() }
-			</div>
-			// Display unread count (if any).
-			<div class="content-center">
-				if s.IsUnread() {
-					@badge.Build(
-						badge.WithSize(badge.SM),
-						badge.WithColor(badge.Secondary),
-						badge.WithContent(strconv.Itoa(s.GetUnreadCount())+" Unread"),
-						badge.WithExtraAttributes(templ.Attributes{
-							"sse-swap": s.GetFeedID() + "_unread",
-						}),
-						badge.WithExtraClasses("grow", "text-nowrap"),
-					).Show()
-				}
-			</div>
-		</div>
-	}
-}
-
 // Card displays the subscription as a card.
 templ (c *Subscription) Card() {
 	@card.Build(
@@ -161,7 +134,7 @@ templ (c *Subscription) Card() {
 						</li>
 						// Mark action.
 						<li _="on click call document.activeElement.blur()">
-							@MarkSubscriptionLink(c.GetID(), c.IsUnread())
+							@markSubscriptionLink(c.GetID(), c.IsUnread())
 						</li>
 						// Edit action.
 						<li _="on click call document.activeElement.blur()">
@@ -209,7 +182,8 @@ templ (c *Subscription) Card() {
 	}
 }
 
-templ (c *Subscription) Settings() {
+// ShowSettings renders subscription data in a table row suitable for the subscription settings page.
+templ (c *Subscription) ShowSettings() {
 	<tr id={ c.GetID() }>
 		<th>
 			<label>
@@ -261,9 +235,59 @@ templ (c *Subscription) ShowAsSearchSuggestion() {
 	</li>
 }
 
-// MarkSubscriptionLink generates a link/action that will mark the subscription read/unread depending on its current
+// ToggleFavoriteSubscriptionIcon renders an icon that when clicked will toggle the favorite status of the subscription.
+templ ToggleFavoriteSubscriptionIcon(id models.SubscriptionID, isFavorite bool, target string, swap string) {
+	@favoriteSubscriptionLink(id, isFavorite, target, swap) {
+		switch isFavorite {
+			case true:
+				@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
+			case false:
+				@tabler.Bookmark(i.Props{Size: i.SizeXS})
+		}
+	}
+}
+
+// ToggleFavoriteSubscriptionText renders an icon and text that when clicked will toggle the favorite status of the
+// subscription.
+templ ToggleFavoriteSubscriptionText(id models.SubscriptionID, isFavorite bool, target string, swap string) {
+	@favoriteSubscriptionLink(id, isFavorite, target, swap) {
+		<div class="icontext">
+			switch isFavorite {
+				case true:
+					@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
+					Remove Favorite
+				case false:
+					@tabler.Bookmark(i.Props{Size: i.SizeXS})
+					Add Favorite
+			}
+		</div>
+	}
+}
+
+// favoriteSubscription link will generate an appropriate link action to favorite a subscription.
+templ favoriteSubscriptionLink(id models.SubscriptionID, isFavorite bool, target string, swap string) {
+	{{ var method string }}
+	switch isFavorite {
+		case true:
+			{{ method = http.MethodDelete }}
+		case false:
+			{{ method = http.MethodPut }}
+	}
+	@NewAction("/user/favorite/subscription/"+id, DisplayActionAsLink,
+		ActionMethod(method),
+		ActionTarget(target),
+		ActionSwap(swap),
+		ActionLinkOptions(
+			link.WithClasses("text-xs"),
+		),
+	) {
+		{ children... }
+	}
+}
+
+// markSubscriptionLink generates a link/action that will mark the subscription read/unread depending on its current
 // read state.
-templ MarkSubscriptionLink(id models.SubscriptionID, unread bool) {
+templ markSubscriptionLink(id models.SubscriptionID, unread bool) {
 	{{ var mark string }}
 	if unread {
 		{{ mark = "read" }}
@@ -287,52 +311,6 @@ templ MarkSubscriptionLink(id models.SubscriptionID, unread bool) {
 				case "unread":
 					@tabler.BookmarkFilled()
 					Mark Unread
-			}
-		</div>
-	}
-}
-
-templ favoriteSubscriptionLink(id models.SubscriptionID, isFavorite bool, target string, swap string) {
-	{{ var method string }}
-	switch isFavorite {
-		case true:
-			{{ method = http.MethodDelete }}
-		case false:
-			{{ method = http.MethodPut }}
-	}
-	@NewAction("/user/favorite/subscription/"+id, DisplayActionAsLink,
-		ActionMethod(method),
-		ActionTarget(target), //
-		ActionSwap(swap),
-		ActionLinkOptions(
-			link.WithClasses("text-xs"),
-		),
-	) {
-		{ children... }
-	}
-}
-
-templ ToggleFavoriteSubscriptionIcon(id models.SubscriptionID, isFavorite bool, target string, swap string) {
-	@favoriteSubscriptionLink(id, isFavorite, target, swap) {
-		switch isFavorite {
-			case true:
-				@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
-			case false:
-				@tabler.Bookmark(i.Props{Size: i.SizeXS})
-		}
-	}
-}
-
-templ ToggleFavoriteSubscriptionText(id models.SubscriptionID, isFavorite bool, target string, swap string) {
-	@favoriteSubscriptionLink(id, isFavorite, target, swap) {
-		<div class="icontext">
-			switch isFavorite {
-				case true:
-					@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
-					Remove Favorite
-				case false:
-					@tabler.Bookmark(i.Props{Size: i.SizeXS})
-					Add Favorite
 			}
 		</div>
 	}

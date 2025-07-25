@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -93,6 +94,7 @@ type Filters interface {
 	GetView() View
 	GetCategories() []Category
 	Parameters() map[string]string
+	Query() string
 }
 
 func FiltersFromParams[F Filters](params any) (F, error) {
@@ -202,6 +204,25 @@ func (f SubscriptionFilters) Parameters() map[string]string {
 	return params
 }
 
+func (f SubscriptionFilters) Query() string {
+	params := make(url.Values)
+
+	if len(f.Subscriptions) > 0 {
+		params.Set(ParamSubscriptions, strings.Join(f.Subscriptions, ","))
+	}
+
+	if len(f.Categories) > 0 {
+		params.Set(ParamCategories, strings.Join(f.Categories, ","))
+	}
+
+	params.Set(ParamSortBy, string(f.SortBy))
+	params.Set(ParamSortOrder, string(f.SortOrder))
+	params.Set(ParamView, string(f.View))
+	params.Set(ParamCount, f.Count)
+
+	return params.Encode()
+}
+
 func NewArticleFilters() ArticleFilters {
 	return ArticleFilters{
 		SortBy:    SortByUnreadCount,
@@ -296,6 +317,29 @@ func (f ArticleFilters) Parameters() map[string]string {
 	params[ParamCount] = f.Count
 
 	return params
+}
+
+func (f ArticleFilters) Query() string {
+	params := make(url.Values)
+
+	if len(f.Subscriptions) > 0 {
+		params.Set(ParamSubscriptions, strings.Join(f.Subscriptions, ","))
+	}
+
+	if len(f.Articles) > 0 {
+		params.Set(ParamArticles, strings.Join(f.Articles, ","))
+	}
+
+	if len(f.Categories) > 0 {
+		params.Set(ParamCategories, strings.Join(f.Categories, ","))
+	}
+
+	params.Set(ParamSortBy, string(f.SortBy))
+	params.Set(ParamSortOrder, string(f.SortOrder))
+	params.Set(ParamView, string(f.View))
+	params.Set(ParamCount, f.Count)
+
+	return params.Encode()
 }
 
 // setValidSortBy takes a string value and returns the SortBy value it

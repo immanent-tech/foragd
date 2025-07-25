@@ -130,7 +130,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 				RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 				return
 			}
-			template = partials.NewSubscriptionContent(s[0]).Settings()
+			template = partials.NewSubscriptionContent(s[0]).ShowSettings()
 		default:
 			template = partials.ToggleFavoriteSubscriptionText(id, true, "#favorite_"+id, "innerHTML")
 		}
@@ -180,7 +180,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 				RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 				return
 			}
-			template = partials.NewSubscriptionContent(s[0]).Settings()
+			template = partials.NewSubscriptionContent(s[0]).ShowSettings()
 		default:
 			template = partials.ToggleFavoriteSubscriptionText(id, false, "#favorite_"+id, "innerHTML")
 		}

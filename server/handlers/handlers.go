@@ -141,22 +141,28 @@ func TriggerEvents(events ...string) func(next http.Handler) http.Handler {
 
 // SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
 // been made through HTMX.
-func SetupRedirect(path *string) func(next http.Handler) http.Handler {
+func SetupRedirect(path string) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			ctx := req.Context()
-			if htmx.IsHTMX(req) && path != nil {
+			if htmx.IsHTMX(req) {
 				var route string
 				var values map[string]string
-				switch {
-				case path == nil:
+				var pushURLPath string
+				switch path {
+				case "/subscriptions":
+					route = path
+					filters := session.SubscriptionFiltersFromSession(ctx)
+					values = filters.Parameters()
+					pushURLPath = route + "?" + filters.Query()
+				case "/articles":
+					route = path
+					filters := session.ArticleFiltersFromSession(ctx)
+					values = filters.Parameters()
+					pushURLPath = route + "?" + filters.Query()
+				default:
 					route = "/home"
-				case *path == "/subscriptions":
-					route = *path
-					values = session.SubscriptionFiltersFromSession(ctx).Parameters()
-				case *path == "/articles":
-					route = *path
-					values = session.ArticleFiltersFromSession(ctx).Parameters()
+					pushURLPath = route
 				}
 				// Set-up client-side redirect to view.
 				htmxResp := htmx.NewResponse().LocationWithContext(
@@ -165,6 +171,7 @@ func SetupRedirect(path *string) func(next http.Handler) http.Handler {
 						Target: partials.ContentID.Target(),
 						Values: values,
 					})
+				htmxResp = htmxResp.PushURL(pushURLPath)
 				ctx = context.WithValue(ctx, htmxRespCtxKey, htmxResp)
 				slogctx.FromCtx(ctx).Debug("Redirect in place.",
 					slog.String("redirect", route),

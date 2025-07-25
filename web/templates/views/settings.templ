@@ -75,7 +75,7 @@ templ (page *SettingsPage) subscriptionList() {
 			</thead>
 			<tbody>
 				for  subscription := range slices.Values(page.subscriptions) {
-					@partials.NewSubscriptionContent(subscription).Settings()
+					@partials.NewSubscriptionContent(subscription).ShowSettings()
 				}
 			</tbody>
 		</table>

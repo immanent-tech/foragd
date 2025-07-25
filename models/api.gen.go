@@ -122,14 +122,8 @@ type MarkSubscriptionsRequest struct {
 	// Mark applies the given mark action to objects.
 	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
 
-	// Redirect specifies a location to which the client should be redirected on a successful request. Used to perform a client-side redirection with htmx.
-	Redirect Redirect `form:"redirect" json:"redirect,omitempty,omitzero"`
-
 	// Subscriptions is a list of subscription IDs.
 	Subscriptions []SubscriptionID `form:"subscriptions" json:"subscriptions" validate:"omitnil,unique,dive,startswith=sub_"`
-
-	// View The state of objects to view.
-	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
 // Pagination contains data for paginating through results.

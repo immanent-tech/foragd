@@ -141,7 +141,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		// Subscription routes.
 		r.Get("/subscriptions", handler.GetSubscriptions())
 		r.Post("/subscriptions", handler.GetSubscriptions())
-		// r.With(middlewares.RequireHTMX).Post("/subscriptions/mark/{mark}", handler.MarkSubscriptions())
+		r.With(middlewares.RequireHTMX).Post("/subscriptions/mark/{mark}", handler.MarkAllSubscriptions())
 		r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handler.RemoveSubscriptions())
 		// Subscription route.
 		r.Route("/subscription/{subscription}", func(r chi.Router) {

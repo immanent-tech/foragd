@@ -104,42 +104,22 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
 			RouteLogger,
-			// TriggerStateUpdates,
 		)
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
-			return
-		}
 		// Construct the request from parameters.
 		request := &models.MarkSubscriptionsRequest{
 			Mark:          models.Mark(chi.URLParam(req, "mark")),
 			Subscriptions: []models.SubscriptionID{chi.URLParam(req, "subscription")},
-			View:          models.View(req.FormValue("view")),
 		}
-		// Validate parameters.
-		valid, err := request.Valid()
-		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-			return
-		}
-		if !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
-		}
-		// Mark user subscriptions.
-		user.MarkSubscriptions(request.Mark, request.Subscriptions...)
-		// Update the user.
-		err = a.updateUser(req.Context(), map[string]any{
-			"subscriptions": user.GetSubscriptionMetadata(),
-		})
+		view := models.View(req.FormValue("view"))
+		// Mark subscription.
+		err := a.markSubscriptions(req.Context(), request)
 		if err != nil {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		var resp *models.Response
 		// If the view is "all" send back the updated subscription card.
-		if request.View == models.ViewAll {
+		if view == models.ViewAll {
 			s, err := a.getSubscriptions(req.Context(), request.Subscriptions...)
 			if err != nil || len(s) == 0 || len(s) > 1 {
 				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
@@ -152,6 +132,40 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 		}
 
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+	}
+}
+
+// MarkAllSubscriptions handles marking all subscriptions as read or unread.
+func (a *API) MarkAllSubscriptions() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		chain := alice.New(
+			RouteLogger,
+		)
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			return
+		}
+		// Construct the request from parameters.
+		request := &models.MarkSubscriptionsRequest{
+			Mark:          models.Mark(chi.URLParam(req, "mark")),
+			Subscriptions: user.GetSubscriptionMetadata().GetIDs(),
+		}
+		view := models.View(req.FormValue("view"))
+		// Mark subscriptions.
+		err := a.markSubscriptions(req.Context(), request)
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		// Redirect depending on the current view.
+		switch view {
+		case models.ViewRead, models.ViewUnread:
+			chain = chain.Append(SetupRedirect("/home"))
+		case models.ViewAll:
+			chain = chain.Append(SetupRedirect("/subscriptions"))
+		}
+		chain.Then(RenderResponse(nil)).ServeHTTP(res, req)
 	}
 }
 
@@ -321,7 +335,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		}
 		switch {
 		case strings.HasSuffix(currentURL, "/user/settings"):
-			template = partials.NewSubscriptionContent(s[0]).Settings()
+			template = partials.NewSubscriptionContent(s[0]).ShowSettings()
 		default:
 			template = partials.NewSubscriptionContent(s[0]).Card()
 		}
@@ -582,6 +596,28 @@ func (a *API) filterSubscriptions(ctx context.Context, filters *models.Subscript
 	}
 	subscriptions, pagination = subscriptions.Paginate(pagination, filters.GetCount())
 	return subscriptions, pagination, nil
+}
+
+func (a *API) markSubscriptions(ctx context.Context, request *models.MarkSubscriptionsRequest) error {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return ErrNoCtxData
+	}
+	// Validate parameters.
+	valid, err := request.Valid()
+	if err != nil || !valid {
+		return fmt.Errorf("markSubscriptions: %w", err)
+	}
+	// Mark user subscriptions.
+	user.MarkSubscriptions(request.Mark, request.Subscriptions...)
+	// Update the user.
+	err = a.updateUser(ctx, map[string]any{
+		"subscriptions": user.GetSubscriptionMetadata(),
+	})
+	if err != nil {
+		return fmt.Errorf("markSubscriptions: %w", err)
+	}
+	return nil
 }
 
 type (

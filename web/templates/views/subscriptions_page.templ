@@ -97,39 +97,23 @@ templ (page *SubscriptionsPage) content() {
 			dropdown.WithButtonContent(tabler.Settings()),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
 		).Show() {
-			<li>
-				switch page.filters.GetView() {
-					case models.ViewUnread:
-						@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead), partials.DisplayActionAsLink,
-							partials.ActionMethod(http.MethodPost),
-							partials.ActionValues(map[string]string{
-								"redirect": "/home",
-							}),
-							partials.ActionInclude("[name='view']"),
-						) {
-							<div class="flex gap-2 items-center">
-								@tabler.Bookmark()
-								Mark Read
-							</div>
-						}
-					default:
-						@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
-							partials.ActionMethod(http.MethodPost),
-							partials.ActionValues(map[string]string{
-								"redirect": "/home",
-							}),
-							partials.ActionInclude("[name='view']"),
-							partials.ActionLinkOptions(
-								link.WithClasses("text-xs"),
-							),
-						) {
-							<div class="flex gap-2">
-								@tabler.Bookmark(i.Props{Size: i.SizeXS})
-								Mark Read
-							</div>
-						}
-				}
-			</li>
+			switch page.filters.GetView() {
+				case models.ViewUnread:
+					<li>
+						@markAllSubscriptionsLink(models.MarkRead)
+					</li>
+				case models.ViewRead:
+					<li>
+						@markAllSubscriptionsLink(models.MarkUnread)
+					</li>
+				case models.ViewAll:
+					<li>
+						@markAllSubscriptionsLink(models.MarkRead)
+					</li>
+					<li>
+						@markAllSubscriptionsLink(models.MarkUnread)
+					</li>
+			}
 		}
 	</div>
 	@layouts.CardGrid() {
@@ -187,6 +171,24 @@ func (page *SubscriptionsPage) generateCards(ctx context.Context) []templ.Compon
 		cards = append(cards, layouts.PaginationControl(ctx, "/subscriptions", page.pagination))
 	}
 	return cards
+}
+
+templ markAllSubscriptionsLink(mark models.Mark) {
+	@partials.NewAction("/subscriptions/mark/"+string(mark), partials.DisplayActionAsLink,
+		partials.ActionMethod(http.MethodPost),
+		partials.ActionInclude("[name='view']"),
+	) {
+		<div class="flex gap-2">
+			switch mark {
+				case models.MarkUnread:
+					@tabler.Bookmark(i.Props{Size: i.SizeXS})
+					Mark All Unread
+				case models.MarkRead:
+					@tabler.Bookmark()
+					Mark All Read
+			}
+		</div>
+	}
 }
 
 templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []models.Category, msg *models.UserMessage) {
