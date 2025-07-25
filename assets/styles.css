@@ -21,6 +21,9 @@
   }
   .menu {
     @apply text-xs;
+    .icon {
+      @apply size-4;
+    }
   }
 }
 /* Styles for subscription cards. */
@@ -36,7 +39,6 @@
 /* Styles common across all cards. */
 @utility card {
   .card-actions {
-    @apply items-center;
     .btn {
       @apply btn-xs btn-square btn-secondary;
     }
@@ -45,6 +47,9 @@
     }
     .menu {
       @apply text-xs;
+      .li {
+        @apply items-center;
+      }
     }
   }
 }

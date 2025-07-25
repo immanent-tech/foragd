@@ -94,7 +94,7 @@ templ (page *SubscriptionsPage) content() {
 		@UpdateFilters(page.subscriptions.GetCategoryCounts(), "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
 		// Actions menu.
 		@dropdown.Build(
-			dropdown.WithButtonContent(tabler.DotsVertical()),
+			dropdown.WithButtonContent(tabler.Settings()),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
 		).Show() {
 			<li>
