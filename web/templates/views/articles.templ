@@ -79,7 +79,12 @@ templ (page *ArticlesPage) content() {
 		}
 	</div>
 	<div id="card-controls" class="controls">
-		@partials.RefreshButton("/articles", page.filters.Parameters())
+		@partials.NewAction("/articles", partials.DisplayActionAsButton,
+			partials.ActionInclude("#content-filters"),
+			partials.ActionValues(page.filters.Parameters()),
+		) {
+			@tabler.Refresh()
+		}
 		@UpdateSorting("/articles", page.filters.GetSort())
 		@UpdateFilters(page.articles.GetCategoryCounts(), "/articles", page.filters.GetCategories(), page.filters.GetView())
 		@dropdown.Build(
@@ -258,11 +263,7 @@ templ (c *Article) Card() {
 						</li>
 						// Mark action.
 						<li _="on click call document.activeElement.blur()">
-							if c.IsUnread() {
-								@partials.LinkMarkRead("Mark Read", c.markAttributes())
-							} else {
-								@partials.LinkMarkUnread("Mark Unread", c.markAttributes())
-							}
+							@MarkArticleLink(c.GetSubscriptionID(), c.GetID(), c.IsUnread())
 						</li>
 						// Favorite action.
 						<li _="on click call document.activeElement.blur()">
@@ -372,6 +373,37 @@ templ (c *Article) Content() {
 		hx-push-url="false"
 		_="on htmx:afterRequest remove me"
 	></div>
+}
+
+// MarkArticleLink generates a link/action that will mark the article read/unread depending on its current
+// read state.
+templ MarkArticleLink(subscriptionID models.SubscriptionID, itemID models.ItemID, unread bool) {
+	{{ var mark string }}
+	if unread {
+		{{ mark = "read" }}
+	} else {
+		{{ mark = "unread" }}
+	}
+	@partials.NewAction("/subscription/"+subscriptionID+"/article/"+itemID+"/mark/"+mark, partials.DisplayActionAsLink,
+		partials.ActionMethod(http.MethodPost),
+		partials.ActionTarget("#"+itemID),
+		partials.ActionSwap("outerHTML"),
+		partials.ActionInclude("[name='view']"),
+		partials.ActionLinkOptions(
+			link.WithClasses("text-xs"),
+		),
+	) {
+		<div class="icontext">
+			switch mark {
+				case "read":
+					@tabler.Bookmark()
+					Mark Read
+				case "unread":
+					@tabler.BookmarkFilled()
+					Mark Unread
+			}
+		</div>
+	}
 }
 
 templ (a *Article) visitAction() {

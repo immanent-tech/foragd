@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"net/http"
 	"slices"
-	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
@@ -55,8 +54,8 @@ func (a *API) GetArticles() http.HandlerFunc {
 	}
 }
 
-// MarkArticles handles marking a articles as read or unread.
-func (a *API) MarkArticles() http.HandlerFunc {
+// MarkArticle handles marking a articles as read or unread.
+func (a *API) MarkArticle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
@@ -69,28 +68,25 @@ func (a *API) MarkArticles() http.HandlerFunc {
 			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
-
-		// Get request details.
-		request, valid, err := forms.DecodeForm[*models.MarkArticlesRequest](req)
-		if err != nil || !valid {
+		// Construct the request from parameters.
+		request := &models.MarkArticlesRequest{
+			SubscriptionID: chi.URLParam(req, "subscription"),
+			Mark:           models.Mark(chi.URLParam(req, "mark")),
+			Articles:       []models.ItemID{chi.URLParam(req, "item")},
+			View:           models.View(req.FormValue("view")),
+		}
+		// Validate parameters.
+		valid, err := request.Valid()
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		if !valid {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
-		chain = chain.Append(
-			SetupRedirect(&request.Redirect),
-		)
-		// Parse out items into respective subscriptions.
-		marks := make(map[models.SubscriptionID][]models.ItemID)
-		for a := range slices.Values(request.Articles) {
-			data := strings.Split(a, "__")
-			marks[data[0]] = append(marks[data[0]], data[1])
-		}
-		// Get mark.
-		mark := chi.URLParam(req, "mark")
 		// Mark off items under subscription states.
-		for subscriptionID, items := range marks {
-			user.MarkItems(models.Mark(mark), subscriptionID, items...)
-		}
+		user.MarkItems(request.Mark, request.SubscriptionID, request.Articles...)
 		// Update the user object.
 		err = a.updateUser(req.Context(), map[string]any{
 			"subscriptions": user.Subscriptions,
@@ -99,7 +95,22 @@ func (a *API) MarkArticles() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		chain.Then(RenderResponse(nil)).ServeHTTP(res, req)
+
+		var resp *models.Response
+		// If the view is "all" send back the updated subscription card.
+		if request.View == models.ViewAll {
+			s, err := a.getArticles(req.Context(), request.Articles...)
+			if err != nil || len(s) == 0 || len(s) > 1 {
+				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				return
+			}
+			card := views.NewArticleContent(s[0])
+			resp = models.NewResponse(
+				models.WithResponseTemplate(card.Card()),
+			)
+		}
+
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 

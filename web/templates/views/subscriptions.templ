@@ -89,7 +89,12 @@ templ (page *SubscriptionsPage) content() {
 	</div>
 	<div id="card-controls" class="controls">
 		// Refresh button.
-		@partials.RefreshButton("/subscriptions", page.filters.Parameters())
+		@partials.NewAction("/subscriptions", partials.DisplayActionAsButton,
+			partials.ActionInclude("#content-filters"),
+			partials.ActionValues(page.filters.Parameters()),
+		) {
+			@tabler.Refresh()
+		}
 		// Sorting menu.
 		@UpdateSorting("/subscriptions", page.filters.GetSort())
 		// Filters menu.

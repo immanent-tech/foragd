@@ -152,8 +152,11 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		// Article routes.
 		r.Get("/articles", handler.GetArticles())
 		r.With(middlewares.RequireHTMX).Post("/articles", handler.GetArticles())
-		r.With(middlewares.RequireHTMX).Post("/articles/mark/{mark}", handler.MarkArticles())
-		r.Get("/article/{item}", handler.ViewArticle())
+		// r.With(middlewares.RequireHTMX).Post("/articles/mark/{mark}", handler.MarkArticles())
+		r.Route("/subscription/{subscription}/article/{item}", func(r chi.Router) {
+			r.Get("/", handler.ViewArticle())
+			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkArticle())
+		})
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
 			// Subscription.

@@ -100,7 +100,7 @@ func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...It
 		case MarkRead:
 			u.Subscriptions[idx].MarkItemsRead(itemIDs...)
 		case MarkUnread:
-			u.Subscriptions[idx].MarkItemsRead(itemIDs...)
+			u.Subscriptions[idx].MarkItemsUnread(itemIDs...)
 		}
 		u.Subscriptions[idx].UpdatedAt = time.Now().UTC()
 	}

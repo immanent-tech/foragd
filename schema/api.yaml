@@ -220,6 +220,8 @@ components:
       type: object
       required:
         - subscriptions
+        - mark
+        - view
       properties:
         subscriptions:
           description: >
@@ -264,8 +266,15 @@ components:
         represents a user request for marking a collection of articles as read or unread.
       type: object
       required:
+        - subscription_id
+        - mark
         - articles
+        - view
       properties:
+        subscription_id:
+          $ref: 'models.yaml#/components/schemas/SubscriptionID'
+        mark:
+          $ref: 'models.yaml#/components/schemas/Mark'
         articles:
           description: >
             is a list of articles by subscription.
@@ -277,6 +286,8 @@ components:
             form: 'articles'
             validate: 'omitnil,unique'
           x-go-type-skip-optional-pointer: true
+        view:
+          $ref: 'models.yaml#/components/schemas/View'
         redirect:
           $ref: '#/components/schemas/Redirect'
     SearchRequest:
