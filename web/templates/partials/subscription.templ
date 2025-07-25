@@ -117,7 +117,7 @@ templ (c *Subscription) Card() {
 	@card.Build(
 		card.WithStyle(card.Border),
 		card.WithShadow(shadow.SM),
-		card.WithClasses("subscription-card", "card-xs", "lg:card-sm", "bg-neutral"),
+		card.WithClasses("subscription-card"),
 		card.WithClasses(c.classes...),
 		card.WithAttributes(templ.Attributes{
 			"id": c.GetID(),

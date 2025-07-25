@@ -16,22 +16,20 @@ templ UpdateSorting(route string, current models.Sort) {
 	<div id="card-sorting">
 		@dropdown.Build(
 			dropdown.WithButtonContent(tabler.ArrowsSort()),
-			// dropdown.WithButtonClasses(button.Square, button.SM, button.Primary),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
-			dropdown.WithMenuClasses("w-52"),
 		).Show() {
-			<li class="menu-title text-xs">Sort:</li>
-			<li class="text-xs">
+			<li class="menu-title">Sort:</li>
+			<li>
 				@sortFilter(ctx, models.SortLastUpdatedDesc, route, current)
 			</li>
-			<li class="text-xs">
+			<li>
 				@sortFilter(ctx, models.SortLastUpdatedAsc, route, current)
 			</li>
 			if route == "/subscriptions" {
-				<li class="text-xs">
+				<li>
 					@sortFilter(ctx, models.SortUnreadCountDesc, route, current)
 				</li>
-				<li class="text-xs">
+				<li>
 					@sortFilter(ctx, models.SortUnreadCountAsc, route, current)
 				</li>
 			}

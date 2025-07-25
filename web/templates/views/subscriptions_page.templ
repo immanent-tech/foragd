@@ -96,7 +96,6 @@ templ (page *SubscriptionsPage) content() {
 		@dropdown.Build(
 			dropdown.WithButtonContent(tabler.DotsVertical()),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
-			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52"),
 		).Show() {
 			<li>
 				switch page.filters.GetView() {
@@ -107,12 +106,9 @@ templ (page *SubscriptionsPage) content() {
 								"redirect": "/home",
 							}),
 							partials.ActionInclude("[name='view']"),
-							partials.ActionLinkOptions(
-								link.WithClasses("text-xs"),
-							),
 						) {
-							<div class="flex gap-2">
-								@tabler.Bookmark(i.Props{Size: i.SizeXS})
+							<div class="flex gap-2 items-center">
+								@tabler.Bookmark()
 								Mark Read
 							</div>
 						}

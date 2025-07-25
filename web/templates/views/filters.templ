@@ -18,20 +18,18 @@ templ UpdateFilters(allCategories models.CategoryCounts, route string, categoryF
 	<div id="card-filters">
 		@dropdown.Build(
 			dropdown.WithButtonContent(tabler.Filter()),
-			// dropdown.WithButtonClasses(button.Square, button.SM, button.Primary),
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
-			dropdown.WithMenuClasses("w-52"),
 		).Show() {
-			<li class="menu-title text-xs">View:</li>
+			<li class="menu-title">View:</li>
 			for view := range slices.Values([]models.View{models.ViewUnread,models.ViewRead,models.ViewAll}) {
-				<li class="text-xs">
+				<li>
 					@newViewFilter(ctx, view, route, viewFilter)
 				</li>
 			}
 			if len(allCategories) > 0 {
-				<li class="menu-title text-xs">Category:</li>
+				<li class="menu-title">Category:</li>
 				for category := range slices.Values(allCategories.GetTopCategories(10)) {
-					<li class="text-xs">
+					<li>
 						@newCategoryFilter(ctx, category, route, categoryFilters)
 					</li>
 				}

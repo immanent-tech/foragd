@@ -31,7 +31,7 @@ templ SearchForm() {
 				).Show()
 				@button.Build(
 					button.AsSubmit(),
-					button.WithClasses("join-item"),
+					button.WithClasses("join-item", button.Accent, button.Square),
 					button.WithAttributes(templ.Attributes{
 						"hx-get":      "/search/results",
 						"hx-target":   partials.ContentID.Target(),

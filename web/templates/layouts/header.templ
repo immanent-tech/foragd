@@ -5,6 +5,7 @@ package layouts
 
 import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
@@ -17,11 +18,11 @@ var HeaderID = attributes.ID("header")
 
 templ Header() {
 	@navbar.Build(navbar.WithID(HeaderID.String()),
-		navbar.WithClasses("bg-base-200 max-w-screen"),
+		navbar.WithClasses("bg-base-200", "w-screen", "gap-2"),
 	) {
 		@navbar.Start() {
-			<label for="body-drawer" class="btn btn-square drawer-button">
-				@tabler.Menu()
+			<label for="body-drawer" class="btn btn-square btn-accent drawer-button">
+				@tabler.Menu(i.Props{Size: i.SizeSM})
 			</label>
 		}
 		@navbar.Center() {
@@ -29,9 +30,10 @@ templ Header() {
 		}
 		@navbar.End() {
 			@dropdown.Build(
-				dropdown.WithButtonContent(tabler.User()),
+				dropdown.WithButtonContent(tabler.User(i.Props{Size: i.SizeSM})),
 				dropdown.WithOpenAlignment(dropdown.AlignEnd),
-				dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52", "text-xs"),
+				dropdown.WithButtonClasses(button.Square, button.Accent),
+				dropdown.WithMenuClasses("text-xs"),
 			).Show() {
 				<li>
 					@partials.NewAction("/user/settings", partials.DisplayActionAsLink,

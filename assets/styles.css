@@ -6,17 +6,11 @@
 }
 @source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
 
-@layer components {
-  .icontext {
-    @apply flex items-center gap-2;
-  }
-  /* Fade in notification messages */
-  .alert.htmx-added {
-    opacity: 0;
-  }
-  .alert {
-    opacity: 1;
-    transition: opacity 1s ease-out;
+/* Overwrite the default text wrapping for menu items in DaisyUI to not wrap text. */
+@layer utilities {
+  .menu :where(li:not(.menu-title) > :not(ul, details, .menu-title, .btn)),
+  .menu :where(li:not(.menu-title) > details > summary:not(.menu-title)) {
+    text-wrap: nowrap;
   }
 }
 
@@ -25,14 +19,22 @@
   .btn {
     @apply btn-sm btn-primary btn-square p-2;
   }
+  .menu {
+    @apply text-xs;
+  }
 }
-
-@utility card {
+/* Styles for subscription cards. */
+@utility subscription-card {
+  @apply card-xs lg:card-sm bg-neutral;
   .card-title {
     .badge-unread-count {
       @apply text-xs;
     }
   }
+}
+
+/* Styles common across all cards. */
+@utility card {
   .card-actions {
     @apply items-center;
     .btn {
@@ -40,6 +42,9 @@
     }
     .icon {
       @apply size-4;
+    }
+    .menu {
+      @apply text-xs;
     }
   }
 }
