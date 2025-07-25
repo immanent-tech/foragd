@@ -13,6 +13,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
@@ -79,6 +80,7 @@ func (a *API) GetFavorites() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(layouts.FavoritesList(user.GetFavorites())),
 		)
+		spew.Dump(user.GetFavorites())
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
 }
@@ -362,8 +364,11 @@ func (a *API) updateUser(ctx context.Context, updates map[string]any) error {
 		return models.ErrUserCtx
 	}
 	index := elastic.UserIndexFromCtx(ctx)
-
-	if err := elastic.UpdateDoc(ctx, a.DataAPI().GetAPI(), index, user.GetID(), updates); err != nil {
+	err := elastic.UpdateDoc(ctx, a.DataAPI().GetAPI(), index, user.GetID(), updates,
+		elastic.WithRefresh("true"),
+		elastic.WithRetryOnConflict(5),
+	)
+	if err != nil {
 		return fmt.Errorf("could not update user: %w", err)
 	}
 	return nil
