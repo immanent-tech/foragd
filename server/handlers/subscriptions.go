@@ -277,7 +277,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,
-			TriggerStateUpdates,
+			// TriggerStateUpdates,
 		)
 		// Retrieve user object.
 		user, found := models.UserFromCtx(req.Context())
@@ -306,12 +306,19 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		msg := models.SuccessUserMessage("Subscription updated.", "")
-		// TODO: get new subscription details and update subscription card.
-		// Display a notification acknowledging save.
+		s, err := a.getSubscriptions(req.Context(), edits.SubscriptionID)
+		if err != nil || len(s) == 0 || len(s) > 1 {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		// Display the updated subscription card.
+		card := views.NewSubscriptionContent(s[0])
+		// Display a notification acknowledging save (OOB swap).
+		msg := models.SuccessUserMessage(fmt.Sprintf("Subscription %s updated.", s[0].GetTitle()), "")
 		resp := models.NewResponse(
-			models.WithResponseTemplate(partials.ShowNotification(msg)),
+			models.WithResponseTemplate(templ.Join(card.Card(), partials.ShowNotification(msg))),
 		)
+
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }

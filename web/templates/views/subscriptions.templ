@@ -464,26 +464,6 @@ templ RemoveFavoriteSubscriptionButton(id models.SubscriptionID) {
 	}
 }
 
-func (c *Subscription) markAttributes() templ.Attributes {
-	parameters := map[string]string{
-		"subscriptions": c.GetID(),
-	}
-	// Create htmx attributes: don't replace URL, swap the subscription card only.
-	attrs := templ.Attributes{
-		"hx-target":       "#" + c.GetID(),
-		"hx-target-error": partials.ErrorID.Target(),
-		"hx-swap":         "outerHTML",
-		"hx-vals":         partials.GenerateHXVals(parameters),
-		"hx-include":      "[name='view']",
-	}
-	if c.IsUnread() {
-		attrs["hx-post"] = "/subscription/mark/" + string(models.MarkRead)
-		return attrs
-	}
-	attrs["hx-post"] = "/subscriptions/mark/" + string(models.MarkUnread)
-	return attrs
-}
-
 func (c *Subscription) viewAttributes() templ.Attributes {
 	overrides := map[string]string{
 		models.ParamSortBy: string(models.SortByLastUpdated),
@@ -522,7 +502,8 @@ templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []mode
 			form.WithAttributes(
 				templ.Attributes{
 					"hx-put":       "/user/subscription/edit/" + edits.SubscriptionID,
-					"hx-swap":      "none",
+					"hx-target":    "#" + edits.SubscriptionID,
+					"hx-swap":      "outerHTML",
 					"hx-indicator": "#add-processing",
 				},
 			),

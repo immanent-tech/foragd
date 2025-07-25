@@ -432,24 +432,6 @@ templ (c Article) image() {
 	}
 }
 
-func (c *Article) markAttributes() templ.Attributes {
-	attributes := templ.Attributes{
-		"hx-swap":   "outerHTML",
-		"hx-target": "#" + c.GetID(),
-		"hx-vals": partials.GenerateHXVals(map[string]string{
-			"articles": c.GetSubscriptionID() + "__" + c.GetID(),
-		}),
-		"_": "on htmx:afterRequest send UpdateState to #drawer-subscriptions-list",
-	}
-
-	if c.IsUnread() {
-		attributes["hx-post"] = "/articles/mark/" + string(models.MarkRead)
-	} else {
-		attributes["hx-post"] = "/article/mark/" + string(models.MarkUnread)
-	}
-	return attributes
-}
-
 func (c *Article) viewAttributes() templ.Attributes {
 	return templ.Attributes{
 		"hx-get":      "/article/" + c.GetID(),
