@@ -41,9 +41,7 @@ func (a *API) Home() http.HandlerFunc {
 	}
 }
 
-// getHomePageData retrieves the data required to construct the home page content.
-//
-//nolint:funlen
+// getHomePageData retrieves the data required to construct the homepage content.
 func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Response) {
 	data := &views.HomePage{}
 	// Retrieve user object.
@@ -55,14 +53,15 @@ func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Res
 	if len(user.GetSubscriptionMetadata()) == 0 {
 		return data, nil
 	}
-
 	// Get subscriptions.
 	subscriptions, err := a.getSubscriptions(ctx)
 	if err != nil {
 		return data, models.RespErrBackend(err)
 	}
 	data.Subscriptions = subscriptions.FilterByView(models.ViewUnread)
-
+	if len(data.Subscriptions) == 0 {
+		return data, nil
+	}
 	// Query definition for fetching unread items for all subscriptions.
 	query := query.Bool(
 		query.BoolQueryName("item_filters"),
@@ -140,6 +139,7 @@ func (a *API) getHomePageData(ctx context.Context) (*views.HomePage, *models.Res
 	if resp != nil {
 		return nil, resp
 	}
+
 	// Extract aggregations.
 	aggregations := aggsResult.Aggregations
 	// Use aggregations to generate data.
@@ -197,7 +197,7 @@ func generateRareCategories(ctx context.Context, aggs aggregations.AggregationRe
 	return rareCategoryCounts
 }
 
-// getHomePageArticles retrieves a list of articles to display on the home page along with other content.
+// getRandomArticles retrieves a list of articles to display on the homepage along with other content.
 func getRandomArticles(ctx context.Context, api *API, aggs aggregations.AggregationResults) []templ.Component {
 	if aggs == nil {
 		return nil
