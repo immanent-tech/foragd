@@ -37,12 +37,12 @@ templ SearchSuggestionHeader(text string) {
 
 type SearchResultsPage struct {
 	subscriptions []*partials.Subscription
-	articles      []*Article
+	articles      []*partials.Article
 	search        *models.SearchRequest
 	favoriteID    models.FavoriteID
 }
 
-func NewSearchResultsPage(fav *models.Favorite, search *models.SearchRequest, subscriptions []*partials.Subscription, articles []*Article) *SearchResultsPage {
+func NewSearchResultsPage(fav *models.Favorite, search *models.SearchRequest, subscriptions []*partials.Subscription, articles []*partials.Article) *SearchResultsPage {
 	page := &SearchResultsPage{
 		search:        search,
 		subscriptions: subscriptions,
@@ -116,7 +116,7 @@ templ (page *SearchResultsPage) content() {
 					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4">
 						for article := range slices.Values(page.articles) {
 							<div class="rounded-box shadow-md bg-neutral p-4">
-								@article.summary()
+								@article.ShowSummary()
 							</div>
 						}
 					</div>

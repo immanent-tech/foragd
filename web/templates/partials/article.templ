@@ -1,0 +1,296 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
+	"github.com/joshuar/go-templ-daisyui/classes/shadow"
+	"github.com/joshuar/go-templ-daisyui/display/article"
+	"github.com/joshuar/go-templ-daisyui/display/badge"
+	"github.com/joshuar/go-templ-daisyui/display/card"
+	"github.com/joshuar/go-templ-daisyui/display/figure"
+	"github.com/joshuar/go-templ-daisyui/display/image"
+	"github.com/joshuar/go-templ-daisyui/display/text"
+	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	"github.com/sebasvil20/templicons/i"
+	"github.com/sebasvil20/templicons/tabler"
+	"net/http"
+	"slices"
+	"strings"
+)
+
+type Article struct {
+	*models.Article
+	classes []components.Class
+}
+
+func NewArticleContent(article *models.Article) *Article {
+	card := &Article{
+		Article: article,
+	}
+	if !article.IsUnread() {
+		card.classes = append(card.classes, "brightness-50")
+	}
+	return card
+}
+
+// ShowAsSummary shows a summarised version of the article.
+templ (c *Article) ShowSummary() {
+	@link.Build(
+		link.WithAttributes(c.viewAttributes()),
+	) {
+		<div class="flex flex-row gap-2">
+			@c.image()
+			<div class="text-sm flex-1 text-justify">{ c.GetTitle() }</div>
+		</div>
+		<div class="flex flex-row justify-end">
+			<div class="text-xs uppercase font-semibold">{ c.GetFeedTitle() }</div>
+		</div>
+	}
+}
+
+// Card shows the article as a card, for displaying in a collection of articles.
+templ (c *Article) Card() {
+	@card.Build(
+		card.WithStyle(card.Border),
+		card.WithLayout(card.LayoutSide),
+		card.WithShadow(shadow.SM),
+		card.WithClasses("article-card", "card-xs", "lg:card-sm", "bg-neutral"),
+		card.WithClasses(c.classes...),
+		card.WithAttributes(templ.Attributes{
+			"id": c.GetID(),
+		}),
+	) {
+		//
+		// Card Image.
+		//
+		@c.image()
+		//
+		// Card Body.
+		//
+		@card.BuildBody() {
+			// Display title.
+			<div class="card-title">
+				@link.Build(
+					link.WithAttributes(c.viewAttributes()),
+				) {
+					{ c.GetTitle() }
+				}
+			</div>
+			// Display authors and updated date at bottom left.
+			// Display actions menu at bottom right.
+			@card.Actions() {
+				<div>
+					if len(c.GetAuthors()) > 0 {
+						<strong>{ strings.Join(c.GetAuthors(), ",") }</strong>
+					}
+					<span class="text-xs italic">
+						@ShowTimestamp(c.GetUpdatedDate())
+					</span>
+				</div>
+				@tooltip.Build("Actions") {
+					@dropdown.Build(
+						dropdown.WithButtonContent(tabler.DotsVertical()),
+						dropdown.WithOpenFrom(dropdown.OpenTop),
+						dropdown.WithOpenAlignment(dropdown.AlignEnd),
+						dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
+					).Show() {
+						// Visit action.
+						<li _="on click call document.activeElement.blur()">
+							@c.visitAction()
+						</li>
+						// Mark action.
+						<li _="on click call document.activeElement.blur()">
+							@MarkArticleLink(c.GetSubscriptionID(), c.GetID(), c.IsUnread())
+						</li>
+						// Favorite action.
+						<li id={ "favorite_" + c.GetID() } _="on click call document.activeElement.blur()">
+							@ToggleFavoriteArticleText(c.GetID(), c.Favorite, "#favorite_"+c.GetID(), "innerHTML")
+						</li>
+					}
+				}
+			}
+		}
+	}
+}
+
+templ (c *Article) ShowAsSearchSuggestion() {
+	<li class="list-row" _="on click call document.activeElement.blur()">
+		<div>
+			<div class="list-col-wrap text-xs">
+				@c.ShowSummary()
+			</div>
+		</div>
+	</li>
+}
+
+// Content shows the full article content.
+templ (c *Article) Content() {
+	<div class="flex justify-center">
+		@article.Build(
+			article.WithExtraClasses("shadow-sm", "bg-neutral", "rounded-box", "p-2", "overflow-scroll", "max-w-prose"),
+		).Show() {
+			<h2>
+				@text.Build(
+					text.WithWeight(text.Semibold),
+					text.WithSize(text.LG),
+				) {
+					{ c.GetTitle() }
+				}
+			</h2>
+			<div>
+				if len(c.GetAuthors()) > 0 {
+					<strong>{ strings.Join(c.GetAuthors(), ",") }</strong>
+				}
+				<span class="text-xs">
+					@ShowTimestamp(c.GetUpdatedDate())
+				</span>
+			</div> // Display the categories associated with the article.
+			for category := range slices.Values(c.GetCategories()) {
+				@badge.Build(
+					badge.WithStyle(badge.Ghost),
+					badge.WithSize(badge.XS),
+					badge.WithContent(category),
+					badge.WithExtraClasses("capitalize", "w-fit-content"),
+				).Show()
+			}
+			// Display the article content.
+			<div id="article_content" class="text-sm max-w-prose">
+				switch  {
+					case c.GetContent() != "":
+						@templ.Raw(c.GetContent())
+					case c.GetDescription() != "":
+						@templ.Raw(c.GetDescription())
+				}
+			</div>
+			<div class="flex justify-center m-2 gap-2">
+				// <div>
+				// 	// Share article action.
+				// 	@c.shareLink()
+				// </div>
+				<div>
+					// Visit external article link action.
+					@c.visitAction()
+				</div>
+			</div>
+		}
+	</div>
+	<div
+		hx-post="/articles/mark/read"
+		hx-swap="none"
+		hx-trigger="intersect once"
+		hx-vals={ GenerateHXVals(map[string]string{
+					"articles": c.GetSubscriptionID() + "__" + c.GetID(),
+				}) }
+		hx-push-url="false"
+		_="on htmx:afterRequest remove me"
+	></div>
+}
+
+// MarkArticleLink generates a link/action that will mark the article read/unread depending on its current
+// read state.
+templ MarkArticleLink(subscriptionID models.SubscriptionID, itemID models.ItemID, unread bool) {
+	{{ var mark string }}
+	if unread {
+		{{ mark = "read" }}
+	} else {
+		{{ mark = "unread" }}
+	}
+	@NewAction("/subscription/"+subscriptionID+"/article/"+itemID+"/mark/"+mark, DisplayActionAsLink,
+		ActionMethod(http.MethodPost),
+		ActionTarget("#"+itemID),
+		ActionSwap("outerHTML"),
+		ActionInclude("[name='view']"),
+		ActionLinkOptions(
+			link.WithClasses("text-xs"),
+		),
+	) {
+		<div class="icontext">
+			switch mark {
+				case "read":
+					@tabler.Bookmark()
+					Mark Read
+				case "unread":
+					@tabler.BookmarkFilled()
+					Mark Unread
+			}
+		</div>
+	}
+}
+
+templ (a *Article) visitAction() {
+	@link.Build(
+		link.WithAttributes(templ.Attributes{"href": a.GetLink()}),
+		link.WithClasses("text-xs"),
+	) {
+		<div class="flex gap-2">
+			@tabler.ExternalLink(i.Props{Size: i.SizeXS})
+			Original Article
+		</div>
+	}
+}
+
+// image returns an appropriate image to use in the article card. It will either be the article's image or a
+// placeholder.
+templ (c Article) image() {
+	if c.GetImage().URL != "" {
+		@figure.Build(
+			image.Build(
+				c.GetImage().URL,
+				image.WithLazyLoading(),
+			),
+			figure.WithFigureClasses("max-w-24"),
+		).Show()
+	}
+}
+
+func (c *Article) viewAttributes() templ.Attributes {
+	return templ.Attributes{
+		"hx-get":      "/article/" + c.GetID(),
+		"hx-target":   ContentID.Target(),
+		"hx-push-url": "true",
+		"hx-swap":     "innerHTML scroll:top",
+	}
+}
+
+// ToggleFavoriteArticleText renders an icon and text that when clicked will toggle the favorite status of the
+// article.
+templ ToggleFavoriteArticleText(id models.SubscriptionID, isFavorite bool, target string, swap string) {
+	@favoriteArticleLink(id, isFavorite, target, swap) {
+		<div class="icontext">
+			switch isFavorite {
+				case true:
+					@tabler.HeartFilled(i.Props{Size: i.SizeXS})
+					Remove Favorite
+				case false:
+					@tabler.Heart(i.Props{Size: i.SizeXS})
+					Add Favorite
+			}
+		</div>
+	}
+}
+
+// favoriteSubscription link will generate an appropriate link action to favorite a subscription.
+templ favoriteArticleLink(id models.ItemID, isFavorite bool, target string, swap string) {
+	{{ var method string }}
+	switch isFavorite {
+		case true:
+			{{ method = http.MethodDelete }}
+		case false:
+			{{ method = http.MethodPut }}
+	}
+	@NewAction("/user/favorite/article/"+id, DisplayActionAsLink,
+		ActionMethod(method),
+		ActionTarget(target),
+		ActionSwap(swap),
+		ActionLinkOptions(
+			link.WithClasses("text-xs"),
+		),
+	) {
+		{ children... }
+	}
+}

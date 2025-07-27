@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -21,6 +20,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
@@ -104,7 +104,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
-			card := views.NewArticleContent(s[0])
+			card := partials.NewArticleContent(s[0])
 			resp = models.NewResponse(
 				models.WithResponseTemplate(card.Card()),
 			)
@@ -128,7 +128,7 @@ func (a *API) ViewArticle() http.HandlerFunc {
 			return
 		}
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewArticleContent(articles[0]).Content()),
+			models.WithResponseTemplate(partials.NewArticleContent(articles[0]).Content()),
 		)
 		ctx := context.WithValue(req.Context(), titleCtxKey, articles[0].GetTitle())
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(ctx))
@@ -164,30 +164,16 @@ func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters
 	if err != nil {
 		return nil, "", models.RespErrBackend(err)
 	}
-	// Retrieve subscription customisations for feed subscriptions.
-	subscriptions = user.GetSubscriptionMetadata().FilterByFeedIDs(items.GetFeedIDs()...)
-	// Create articles from the items.
-	articles := make(models.Articles, 0, len(items))
-	for item := range slices.Values(items) {
-		article, err := models.GenerateArticle(item, subscriptions.GetByFeedID(item.GetFeedID()))
-		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
-				slog.Any("error", err),
-			)
-			continue
-		}
-		articles = append(articles, article)
+	// Generate articles.
+	articles, err := generateArticles(ctx, items)
+	if err != nil {
+		return nil, "", models.RespErrBackend(err)
 	}
 
 	return articles, pagination, nil
 }
 
 func (a *API) getArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, models.ErrUserCtx
-	}
-
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
 	query := query.Bool(
@@ -196,30 +182,13 @@ func (a *API) getArticles(ctx context.Context, itemIDs ...models.ItemID) (models
 			query.Terms("item_id", itemIDs...),
 		),
 	)
-
 	items, _, err := a.DataAPI().SearchItems(ctx, query, len(itemIDs), nil, nil)
 	if err != nil {
 		return nil, fmt.Errorf("getArticles: %w", err)
 	}
-
-	// Retrieve subscription customisations for feed subscriptions.
-	subscriptions := user.GetSubscriptionMetadata().FilterByFeedIDs(items.GetFeedIDs()...)
-	if len(subscriptions) == 0 {
-		return nil, errors.New("no items")
-	}
-
-	// Create articles from the items.
-	articles := make(models.Articles, 0, len(items))
-	for item := range slices.Values(items) {
-		state := subscriptions.GetByFeedID(item.GetFeedID())
-		article, err := models.GenerateArticle(item, state)
-		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
-				slog.Any("error", err),
-			)
-			continue
-		}
-		articles = append(articles, article)
+	articles, err := generateArticles(ctx, items)
+	if err != nil {
+		return nil, fmt.Errorf("getArticles: %w", err)
 	}
 
 	return articles, nil
@@ -291,4 +260,31 @@ func (a *API) unarchiveArticle(ctx context.Context, id models.ItemID) error {
 		return fmt.Errorf("unable to remove archived article: %w", err)
 	}
 	return nil
+}
+
+// generateArticles takes a slice of items and creates articles from them, grabbing the necessary data from the user
+// object.
+func generateArticles(ctx context.Context, items models.Items) (models.Articles, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, fmt.Errorf("unable to generate articles: %w", ErrNoCtxData)
+	}
+	// Retrieve subscription customisations for feed subscriptions.
+	subscriptions := user.GetSubscriptionMetadata().FilterByFeedIDs(items.GetFeedIDs()...)
+	// Retrieve article favorites.
+	articleFavorites := user.GetFavorites().FilterByType(models.FavoriteTypeArticle)
+	// Create articles from the items.
+	articles := make(models.Articles, 0, len(items))
+	for item := range slices.Values(items) {
+		fav := articleFavorites.Get(item.GetID())
+		article, err := models.GenerateArticle(item, subscriptions.GetByFeedID(item.GetFeedID()), fav)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
+				slog.Any("error", err),
+			)
+			continue
+		}
+		articles = append(articles, article)
+	}
+	return articles, nil
 }

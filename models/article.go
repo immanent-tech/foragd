@@ -44,22 +44,28 @@ func (a Articles) GetSubscriptionIDs() []SubscriptionID {
 
 // GenerateArticle creates an article from the given data: an item, subscription state and customisation. Only the item
 // and state is required.
-func GenerateArticle(item *Item, state *SubscriptionMetadata) (*Article, error) {
+func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite) (*Article, error) {
 	article := &Article{
 		Item:           *item,
 		SubscriptionID: state.GetID(),
 		State:          *state.GetItemState(item.GetID()),
 	}
+	// If there is favorite data, mark article as a favorite.
+	if favorite != nil {
+		article.Favorite = true
+	}
+	// Add any appropriate feed customisation data.
 	if state.Customisation.Title != "" {
 		item.FeedTitle = state.Customisation.Title
 	}
+	// Update read status.
 	if item.GetPublishedDate().After(article.State.UpdatedAt) {
 		article.State.MarkUnread(item.GetPublishedDate())
 	}
-
 	// Validate the article.
-	if valid, err := article.Valid(); !valid {
-		return nil, fmt.Errorf("article data is invalid: %w", err)
+	valid, err := article.Valid()
+	if err != nil || !valid {
+		return nil, fmt.Errorf("could not generate article: %w", err)
 	}
 
 	return article, nil
@@ -68,7 +74,8 @@ func GenerateArticle(item *Item, state *SubscriptionMetadata) (*Article, error) 
 // Valid returns a boolean indicating if the article contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
 func (a *Article) Valid() (bool, error) {
-	if valid, err := validation.ValidateStruct(a); err != nil || !valid {
+	valid, err := validation.ValidateStruct(a)
+	if err != nil || !valid {
 		return false, fmt.Errorf("article is invalid: %w", err)
 	}
 	return true, nil

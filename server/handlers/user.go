@@ -5,7 +5,6 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,7 +12,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
@@ -26,6 +24,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
+// GetSettings handles retrieving and rendering the user settings page.
 func (a *API) GetSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
@@ -43,6 +42,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 	}
 }
 
+// SetTheme handles setting a theme selected by the user.
 func (a *API) SetTheme() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
@@ -80,7 +80,6 @@ func (a *API) GetFavorites() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(layouts.FavoritesList(user.GetFavorites())),
 		)
-		spew.Dump(user.GetFavorites())
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
 }
@@ -210,7 +209,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			return
 		}
 		if len(articles) != 1 {
-			RenderResponse(RespBackendError(errors.New("invalid article data"))).ServeHTTP(res, req)
+			RenderResponse(RespBackendError(ErrInvalidContent)).ServeHTTP(res, req)
 			return
 		}
 		article := articles[0]
@@ -238,7 +237,12 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
-		res.WriteHeader(http.StatusOK)
+		// Update the content
+		template := partials.ToggleFavoriteArticleText(article.GetID(), true, "#favorite_"+article.GetID(), "innerHTML")
+		resp := models.NewResponse(
+			models.WithResponseTemplate(template),
+		)
+		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
@@ -246,6 +250,7 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
+		TriggerEvents("updateFavorites"),
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "item")
 		if valid, err := validation.ValidateVariable(id, "required,startswith=item_"); !valid || err != nil {
@@ -270,7 +275,12 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
-		res.WriteHeader(http.StatusOK)
+		// Update the content
+		template := partials.ToggleFavoriteArticleText(id, false, "#favorite_"+id, "innerHTML")
+		resp := models.NewResponse(
+			models.WithResponseTemplate(template),
+		)
+		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
@@ -318,7 +328,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// RemoveFavoriteArticle handles removing a favorite article for a user.
+// RemoveFavoriteSearch handles removing a favorite article for a user.
 func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,

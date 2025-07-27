@@ -17,6 +17,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
@@ -240,7 +241,7 @@ func getRandomArticles(ctx context.Context, api *API, aggs aggregations.Aggregat
 
 	cards := make([]templ.Component, 0, len(articles))
 	for article := range slices.Values(articles) {
-		cards = append(cards, views.NewArticleContent(article).Card())
+		cards = append(cards, partials.NewArticleContent(article).Card())
 	}
 	return cards
 }

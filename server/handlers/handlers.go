@@ -24,8 +24,12 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
-// ErrNoCtxData indicates that required data could not be retrieved from context values.
-var ErrNoCtxData = errors.New("missing data in context")
+var (
+	// ErrNoCtxData indicates that required data could not be retrieved from context values.
+	ErrNoCtxData = errors.New("missing data in context")
+	// ErrInvalidContent indicates that the content for rendering is invalid.
+	ErrInvalidContent = errors.New("invalid content")
+)
 
 var BaseChain = alice.New(
 	RouteLogger,

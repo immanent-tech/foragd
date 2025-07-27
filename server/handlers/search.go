@@ -117,7 +117,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 }
 
 //nolint:funlen
-func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.SearchRequest) ([]*partials.Subscription, []*views.Article, error) {
+func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.SearchRequest) ([]*partials.Subscription, []*partials.Article, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -137,29 +137,21 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Error fetching item hits.", slog.Any("error", err))
 	}
-	articles := make([]*views.Article, 0, len(items))
-	allMetadata := user.GetSubscriptionMetadata().FilterByFeedIDs(items.GetFeedIDs()...)
-	for item := range slices.Values(items) {
-		var state *models.SubscriptionMetadata
-		if state = allMetadata.GetByFeedID(item.GetFeedID()); state == nil {
-			slogctx.FromCtx(ctx).Warn("No subscription state for retrieved item.",
-				slog.String("item_id", item.GetID()),
-			)
-			continue
-		}
-		article, err := models.GenerateArticle(item, state)
-		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
-				slog.Any("error", err),
-			)
-			continue
-		}
-		articles = append(articles, views.NewArticleContent(article))
+	// Generate articles.
+	details, err := generateArticles(ctx, items)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Error generating articles from items.", slog.Any("error", err))
 	}
-
+	articles := make([]*partials.Article, 0, len(items))
+	for article := range slices.Values(details) {
+		articles = append(articles, partials.NewArticleContent(article))
+	}
 	// Generate subscriptions from data sources.
 	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
 	subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
+	}
 	// Truncate subscription matches to 3 results.
 	if len(subscriptionMatches) > 3 {
 		subscriptionMatches = subscriptionMatches[:3]

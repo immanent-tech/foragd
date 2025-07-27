@@ -20,9 +20,6 @@ templ (page *Page) render() {
 		@page.Head.build()
 		<body
 			hx-ext="response-targets"
-			hx-trigger="htmx:historyRestore from:body, updateState"
-			hx-get=""
-			hx-target="#content"
 			hx-target-error={ partials.NotificationsID.Target() }
 		>
 			<input
