@@ -54,7 +54,7 @@ linters:
       no-mixed-args: true
       static-msg: false
       attr-only: true
-      no-raw-keys: true
+      no-raw-keys: false
       args-on-sep-lines: true
   exclusions:
     rules:
