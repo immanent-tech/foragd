@@ -6,14 +6,6 @@
 }
 @source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
 
-/* Overwrite the default text wrapping for menu items in DaisyUI to not wrap text. */
-@layer utilities {
-  .menu :where(li:not(.menu-title) > :not(ul, details, .menu-title, .btn)),
-  .menu :where(li:not(.menu-title) > details > summary:not(.menu-title)) {
-    text-wrap: nowrap;
-  }
-}
-
 @utility controls {
   @apply m-2 grid auto-cols-max grid-flow-col items-center justify-end gap-2;
   .btn {
@@ -28,7 +20,6 @@
 }
 /* Styles for subscription cards. */
 @utility subscription-card {
-  @apply card-xs lg:card-sm bg-neutral;
   .card-title {
     .badge-unread-count {
       @apply text-xs;
@@ -38,6 +29,7 @@
 
 /* Styles common across all cards. */
 @utility card {
+  @apply card-sm lg:card-sm bg-neutral h-40;
   .card-actions {
     .btn {
       @apply btn-xs btn-square btn-secondary;
@@ -56,4 +48,12 @@
 
 @utility icontext {
   @apply flex items-center;
+}
+
+@layer utilities {
+  /* Overwrite the default text wrapping for menu items in DaisyUI to not wrap text. */
+  .menu :where(li:not(.menu-title) > :not(ul, details, .menu-title, .btn)),
+  .menu :where(li:not(.menu-title) > details > summary:not(.menu-title)) {
+    text-wrap: nowrap;
+  }
 }
