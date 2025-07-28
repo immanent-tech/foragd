@@ -9,6 +9,7 @@ import (
 	"github.com/joshuar/go-templ-daisyui/input/form"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/layout/join"
+	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 )
 
@@ -27,11 +28,11 @@ templ SearchForm() {
 						"tabindex":     0,
 						"hx-push-url":  "false",
 					}),
-					textinput.WithExtraClasses("join-item"),
+					textinput.WithExtraClasses("join-item", textinput.SM),
 				).Show()
 				@button.Build(
 					button.AsSubmit(),
-					button.WithClasses("join-item", button.Accent, button.Square),
+					button.WithClasses("join-item", button.Accent, button.Square, button.SM),
 					button.WithAttributes(templ.Attributes{
 						"hx-get":      "/search/results",
 						"hx-target":   partials.ContentID.Target(),
@@ -41,7 +42,7 @@ templ SearchForm() {
 						"hx-include":  "[name='text']",
 					}),
 				) {
-					@tabler.Search()
+					@tabler.Search(i.Props{Size: i.SizeSM})
 				}
 			}
 		}
