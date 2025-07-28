@@ -170,3 +170,37 @@ templ (page *ArticlesPage) cards() {
 		@cards
 	}
 }
+
+type ArticlePage struct {
+	article *models.Article
+}
+
+func NewArticlePage(article *models.Article) *ArticlePage {
+	return &ArticlePage{
+		article: article,
+	}
+}
+
+// Template will render the home page based on the request details.
+func (page *ArticlePage) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - "+page.article.GetTitle(),
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+}
+
+// layout is the complete page layout for the articles page.
+templ (page *ArticlePage) layout() {
+	@layouts.Drawer() {
+		@page.content()
+	}
+}
+
+// content is the main content to show for a collection of articles.
+templ (page *ArticlePage) content() {
+	@partials.NewArticleContent(page.article).Content()
+}

@@ -125,10 +125,9 @@ func (a *API) ViewArticle() http.HandlerFunc {
 			return
 		}
 		resp := models.NewResponse(
-			models.WithResponseTemplate(partials.NewArticleContent(articles[0]).Content()),
+			models.WithResponseTemplate(views.NewArticlePage(articles[0]).Template(req)),
 		)
-		ctx := context.WithValue(req.Context(), titleCtxKey, articles[0].GetTitle())
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(ctx))
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
