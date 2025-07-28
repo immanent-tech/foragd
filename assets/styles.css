@@ -20,10 +20,8 @@
 }
 /* Styles for subscription cards. */
 @utility subscription-card {
-  .card-title {
-    .badge-unread-count {
-      @apply text-xs;
-    }
+  .badge-unread-count {
+    @apply badge-xs badge-accent text-xs;
   }
 }
 

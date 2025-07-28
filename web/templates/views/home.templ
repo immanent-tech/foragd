@@ -129,14 +129,10 @@ templ categoryBadge(category models.CategoryCount) {
 		<div class="flex gap-2 text-sm capitalize">
 			{ category.Category }
 			@badge.Build(
-				badge.WithSize(badge.SM),
-				badge.WithColor(badge.Primary),
-				badge.WithContent(strconv.Itoa(category.Count)),
-				// badge.WithExtraAttributes(templ.Attributes{
-				// 	"sse-swap": c.Label + "_count",
-				// }),
-				badge.WithExtraClasses("grow", "text-nowrap"),
-			).Show()
+				badge.WithClasses(badge.SM, badge.Primary, "grow", "text-no-wrap"),
+			) {
+				strconv.Itoa(category.Count)
+			}
 		</div>
 	}
 }

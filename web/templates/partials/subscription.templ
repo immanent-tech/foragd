@@ -6,6 +6,7 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/classes/shadow"
 	"github.com/joshuar/go-templ-daisyui/display/avatar"
@@ -18,7 +19,6 @@ import (
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
-	"strconv"
 )
 
 type Subscription struct {
@@ -51,7 +51,6 @@ templ (c *Subscription) Summary() {
 					) {
 						@image.Build(
 							c.GetImage().URL,
-							image.WithLazyLoading(),
 						).Show()
 					}
 				} else {
@@ -70,16 +69,13 @@ templ (c *Subscription) Summary() {
 			</div>
 			<div class="flex-none justify-end">
 				// Display unread count (if any).
-				<div class="content-center">
-					if c.IsUnread() {
-						@badge.Build(
-							// badge.WithSize(badge.SM),
-							badge.WithColor(badge.Accent),
-							badge.WithContent(strconv.Itoa(c.GetUnreadCount())),
-							badge.WithExtraClasses("badge-unread-count", "grow", "text-nowrap"),
-						).Show()
+				if c.IsUnread() {
+					@badge.Build(
+						badge.WithClasses("badge-unread-count"),
+					) {
+						{ c.GetUnreadCount() }
 					}
-				</div>
+				}
 			</div>
 		</div>
 	}
@@ -98,27 +94,27 @@ templ (c *Subscription) Card() {
 	) {
 		@card.BuildBody() {
 			// Card title.
-			<div class="card-title">
+			<div class="text-sm font-semibold">
 				@c.Summary()
 			</div>
 			// Card body.
-			<span class="text-xs italic absolute bottom-0 left-0 m-2">
-				@ShowTimestamp(c.GetUpdatedDate())
-			</span>
 			@text.Build(
 				text.WithSize(text.XS),
 				text.WithOverflow(text.Truncate),
 			) {
 				{ c.GetDescription() }
 			}
-			// Actions menu.
-			@card.Actions() {
+			<div class="flex flex-row gap-2 items-center">
+				<span class="text-xs italic flex-1">
+					@ShowTimestamp(c.GetUpdatedDate())
+				</span>
 				@tooltip.Build("Actions") {
 					@dropdown.Build(
-						dropdown.WithButtonContent(tabler.DotsVertical()),
+						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
 						dropdown.WithOpenFrom(dropdown.OpenTop),
 						dropdown.WithOpenAlignment(dropdown.AlignEnd),
-						dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
+						dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow", "text-xs"),
+						dropdown.WithButtonClasses(button.Square, button.XS, button.Secondary),
 					).Show() {
 						// Visit action.
 						<li _="on click call document.activeElement.blur()">
@@ -170,14 +166,14 @@ templ (c *Subscription) Card() {
 								),
 							) {
 								<div class="icontext">
-									@tabler.Trash()
+									@tabler.Trash(i.Props{Size: i.SizeXS})
 									Remove Subscription
 								</div>
 							}
 						</li>
 					}
 				}
-			}
+			</div>
 		}
 	}
 }
@@ -307,10 +303,10 @@ templ markSubscriptionLink(id models.SubscriptionID, unread bool) {
 		<div class="icontext">
 			switch mark {
 				case "read":
-					@tabler.Bookmark()
+					@tabler.Bookmark(i.Props{Size: i.SizeXS})
 					Mark Read
 				case "unread":
-					@tabler.BookmarkFilled()
+					@tabler.BookmarkFilled(i.Props{Size: i.SizeXS})
 					Mark Unread
 			}
 		</div>

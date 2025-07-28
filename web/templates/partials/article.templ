@@ -152,11 +152,10 @@ templ (c *Article) Content() {
 			</div> // Display the categories associated with the article.
 			for category := range slices.Values(c.GetCategories()) {
 				@badge.Build(
-					badge.WithStyle(badge.Ghost),
-					badge.WithSize(badge.XS),
-					badge.WithContent(category),
-					badge.WithExtraClasses("capitalize", "w-fit-content"),
-				).Show()
+					badge.WithClasses(badge.Ghost, badge.XS, "capitalize", "w-fit-content"),
+				) {
+					{ category }
+				}
 			}
 			// Display the article content.
 			<div id="article_content" class="text-sm max-w-prose">
