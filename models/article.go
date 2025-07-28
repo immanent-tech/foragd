@@ -4,11 +4,15 @@
 package models
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"maps"
 	"slices"
 	"time"
+
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/validation"
 )
@@ -69,6 +73,33 @@ func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite
 	}
 
 	return article, nil
+}
+
+// GenerateArticles takes a slice of items and creates articles from them, grabbing the necessary data from the user
+// object.
+func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
+	user, found := UserFromCtx(ctx)
+	if !found {
+		return nil, fmt.Errorf("unable to generate articles: %w", ErrNoUserCtx)
+	}
+	// Retrieve subscription customisations for feed subscriptions.
+	subscriptions := user.GetSubscriptionMetadata().FilterByFeedIDs(items.GetFeedIDs()...)
+	// Retrieve article favorites.
+	articleFavorites := user.GetFavorites().FilterByType(FavoriteTypeArticle)
+	// Create articles from the items.
+	articles := make(Articles, 0, len(items))
+	for item := range slices.Values(items) {
+		fav := articleFavorites.Get(item.GetID())
+		article, err := GenerateArticle(item, subscriptions.GetByFeedID(item.GetFeedID()), fav)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
+				slog.Any("error", err),
+			)
+			continue
+		}
+		articles = append(articles, article)
+	}
+	return articles, nil
 }
 
 // Valid returns a boolean indicating if the article contains valid data (true). If it contains invalid data

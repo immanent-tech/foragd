@@ -116,7 +116,6 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 	}
 }
 
-//nolint:funlen
 func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.SearchRequest) ([]*partials.Subscription, []*partials.Article, error) {
 	// Retrieve user object.
 	user, found := models.UserFromCtx(ctx)
@@ -138,7 +137,7 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 		slogctx.FromCtx(ctx).Warn("Error fetching item hits.", slog.Any("error", err))
 	}
 	// Generate articles.
-	details, err := generateArticles(ctx, items)
+	details, err := models.GenerateArticles(ctx, items)
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Error generating articles from items.", slog.Any("error", err))
 	}
