@@ -320,9 +320,10 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
+		fav := user.GetFavorites().Get(id)
 		// Update the favorite button.
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.RemoveFavoriteSearchButton(id)),
+			models.WithResponseTemplate(views.RemoveFavoriteSearchButton(fav.GetID())),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -332,6 +333,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
+		TriggerEvents("updateFavorites"),
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the search details.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)

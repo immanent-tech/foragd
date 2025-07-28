@@ -132,15 +132,16 @@ templ AddFavoriteSearchButton() {
 		partials.ActionTarget("#favorite_button"),
 		partials.ActionInclude("#search_request"),
 	) {
-		@tabler.Bookmark()
+		@tabler.Heart()
 	}
 }
 
 templ RemoveFavoriteSearchButton(id models.FavoriteID) {
-	@partials.NewAction("/user/favorite/search/"+id, partials.DisplayActionAsButton,
+	@partials.NewAction("/user/favorite/search", partials.DisplayActionAsButton,
 		partials.ActionMethod(http.MethodDelete),
 		partials.ActionTarget("#favorite_button"),
+		partials.ActionInclude("#search_request"),
 	) {
-		@tabler.BookmarkOff()
+		@tabler.HeartFilled()
 	}
 }
