@@ -241,3 +241,18 @@ func (a *API) findSuggestions(ctx context.Context, searchTerms string) (results.
 
 	return results, nil
 }
+
+func (a *API) findSubscriptions(ctx context.Context, request *models.SearchRequest) (models.SubscriptionsSlice, error) {
+	// Retrieve user object.
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, models.ErrNoUserCtx
+	}
+	// Find subscriptions matching the search request.
+	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
+	subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
+	if err != nil {
+		return nil, fmt.Errorf("findSubscriptions: %w", err)
+	}
+	return subscriptionMatches, nil
+}

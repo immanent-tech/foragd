@@ -185,11 +185,12 @@ templ (c *Subscription) Card() {
 // ShowSettings renders subscription data in a table row suitable for the subscription settings page.
 templ (c *Subscription) ShowSettings() {
 	<tr id={ c.GetID() }>
-		<th>
-			<label>
-				<input type="checkbox" class="checkbox checkbox-xs"/>
-			</label>
-		</th>
+		// TODO: subscription multi-select/bulk action.
+		// <th>
+		// 	<label>
+		// 		<input type="checkbox" class="checkbox checkbox-xs"/>
+		// 	</label>
+		// </th>
 		<td>{ c.GetTitle() }</td>
 		<td>
 			@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
@@ -240,9 +241,9 @@ templ ToggleFavoriteSubscriptionIcon(id models.SubscriptionID, isFavorite bool, 
 	@favoriteSubscriptionLink(id, isFavorite, target, swap) {
 		switch isFavorite {
 			case true:
-				@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
+				@tabler.HeartFilled(i.Props{Size: i.SizeXS})
 			case false:
-				@tabler.Bookmark(i.Props{Size: i.SizeXS})
+				@tabler.Heart(i.Props{Size: i.SizeXS})
 		}
 	}
 }
@@ -254,10 +255,10 @@ templ ToggleFavoriteSubscriptionText(id models.SubscriptionID, isFavorite bool, 
 		<div class="icontext">
 			switch isFavorite {
 				case true:
-					@tabler.BookmarkOff(i.Props{Size: i.SizeXS})
+					@tabler.HeartFilled(i.Props{Size: i.SizeXS})
 					Remove Favorite
 				case false:
-					@tabler.Bookmark(i.Props{Size: i.SizeXS})
+					@tabler.Heart(i.Props{Size: i.SizeXS})
 					Add Favorite
 			}
 		</div>

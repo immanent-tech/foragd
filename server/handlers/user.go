@@ -7,11 +7,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"slices"
 	"strings"
 	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
@@ -30,15 +32,49 @@ func (a *API) GetSettings() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
-		subscriptions, err := a.getSubscriptions(req.Context())
-		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-			return
-		}
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewSettingsPage(subscriptions).Template(req)),
+			models.WithResponseTemplate(views.NewSettingsPage().Template(req)),
 		)
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+	}
+}
+
+// SubscriptionsSettings shows a table of subscriptions, optionally filtered, with settings controls.
+func (a *API) SubscriptionsSettings() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		chain := alice.New(
+			RouteLogger,
+		)
+		// Extract the search request.
+		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
+		if err != nil || !valid {
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+			return
+		}
+		spew.Dump(request)
+		// Find matching subscriptions.
+		var subscriptions models.SubscriptionsSlice
+		if request.Text != "" {
+			subscriptions, err = a.findSubscriptions(req.Context(), request)
+			if err != nil {
+				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				return
+			}
+		} else {
+			subscriptions, err = a.getSubscriptions(req.Context())
+			if err != nil {
+				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				return
+			}
+		}
+		settings := make([]templ.Component, 0, len(subscriptions))
+		for subscription := range slices.Values(subscriptions) {
+			settings = append(settings, partials.NewSubscriptionContent(subscription).ShowSettings())
+		}
+		resp := models.NewResponse(
+			models.WithResponseTemplate(templ.Join(settings...)),
+		)
+		RenderResponse(resp).ServeHTTP(res, req)
 	}
 }
 
