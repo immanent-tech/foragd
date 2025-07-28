@@ -10,17 +10,14 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 	"slices"
-	"strings"
 )
 
 type ArticlesPage struct {
@@ -82,43 +79,30 @@ templ (page *ArticlesPage) content() {
 			dropdown.WithOpenAlignment(dropdown.AlignEnd),
 			dropdown.WithMenuClasses("flex-nowrap", "grow", "min-w-52", "text-xs"),
 		).Show() {
-			<li>
-				switch page.filters.GetView() {
-					case models.ViewUnread:
-						@partials.NewAction("/subscriptions/mark/"+string(models.MarkRead), partials.DisplayActionAsLink,
-							partials.ActionMethod(http.MethodPost),
-							partials.ActionValues(map[string]string{
-								models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),
-								"redirect":                "/subscriptions",
-							}),
-						) {
-							<div class="flex gap-2">
-								@tabler.Bookmark(i.Props{Size: i.SizeXS})
-								Mark Read
-							</div>
-						}
-					default:
-						@partials.NewAction("/subscriptions/mark/"+string(models.MarkUnread), partials.DisplayActionAsLink,
-							partials.ActionMethod(http.MethodPost),
-							partials.ActionValues(map[string]string{
-								models.ParamSubscriptions: strings.Join(page.articles.GetSubscriptionIDs(), ","),
-								"redirect":                "/subscriptions",
-							}),
-						) {
-							<div class="flex gap-2">
-								@tabler.Bookmark(i.Props{Size: i.SizeXS})
-								Mark Read
-							</div>
-						}
-				}
-			</li>
+			switch page.filters.GetView() {
+				case models.ViewUnread:
+					<li>
+						@markAllSubscriptionsLink(models.MarkRead)
+					</li>
+				case models.ViewRead:
+					<li>
+						@markAllSubscriptionsLink(models.MarkUnread)
+					</li>
+				case models.ViewAll:
+					<li>
+						@markAllSubscriptionsLink(models.MarkRead)
+					</li>
+					<li>
+						@markAllSubscriptionsLink(models.MarkUnread)
+					</li>
+			}
 		}
 	</div>
 	@layouts.CardGrid() {
 		if len(page.articles) > 0 {
 			@page.cards()
 		} else {
-			@page.emptyContent()
+			@layouts.EmptyContent()
 		}
 	}
 	<div id="content-loading" class="items-center justify-center">
@@ -128,27 +112,6 @@ templ (page *ArticlesPage) content() {
 		).Show()
 	</div>
 	@partials.Footer()
-}
-
-// emptyContent will render a hero with some options when there are no articles to display.
-templ (page *ArticlesPage) emptyContent() {
-	<div class="hero bg-base-200 min-h-screen rounded-box">
-		<div class="hero-content text-center">
-			<div class="max-w-md">
-				<h1 class="text-5xl font-bold">No content to show</h1>
-				<p class="py-6">
-					Try adjusting your filters, or maybe there is nothing left to read?
-				</p>
-				@partials.NewAction("/home", partials.DisplayActionAsButton,
-					partials.ActionButtonOptions(
-						button.WithClasses(button.Primary),
-					),
-				) {
-					Take me home
-				}
-			</div>
-		</div>
-	</div>
 }
 
 func (s ArticlesPage) generateCards(ctx context.Context) []templ.Component {

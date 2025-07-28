@@ -128,7 +128,7 @@ templ (c *Subscription) Card() {
 						</li>
 						// Mark action.
 						<li _="on click call document.activeElement.blur()">
-							@markSubscriptionLink(c.GetID(), c.IsUnread())
+							@MarkSubscriptionLink(c.GetID(), c.IsUnread())
 						</li>
 						// Edit action.
 						<li _="on click call document.activeElement.blur()">
@@ -282,7 +282,7 @@ templ favoriteSubscriptionLink(id models.SubscriptionID, isFavorite bool, target
 
 // markSubscriptionLink generates a link/action that will mark the subscription read/unread depending on its current
 // read state.
-templ markSubscriptionLink(id models.SubscriptionID, unread bool) {
+templ MarkSubscriptionLink(id models.SubscriptionID, unread bool) {
 	{{ var mark string }}
 	if unread {
 		{{ mark = "read" }}

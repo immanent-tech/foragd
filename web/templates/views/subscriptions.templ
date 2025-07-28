@@ -120,7 +120,7 @@ templ (page *SubscriptionsPage) content() {
 		if len(page.subscriptions) > 0 {
 			@page.Cards()
 		} else {
-			@page.emptyContent()
+			@layouts.EmptyContent()
 		}
 	}
 	<div id="content-loading" class="items-center justify-center">
@@ -128,28 +128,6 @@ templ (page *SubscriptionsPage) content() {
 			loading.AsHTMXIndicator(),
 			loading.WithThemeColor(color.Accent),
 		).Show()
-	</div>
-}
-
-// emptyContent will render a hero with some options when there are no articles to display.
-templ (page *SubscriptionsPage) emptyContent() {
-	<div class="hero bg-base-200 min-h-screen rounded-box">
-		<div class="hero-content text-center">
-			<div class="max-w-md">
-				<h1 class="text-5xl font-bold">No content to show</h1>
-				<p class="py-6">
-					Try adjusting your filters, or maybe there is nothing left to read?
-				</p>
-				@partials.NewAction("/home", partials.DisplayActionAsButton,
-					partials.ActionPushURL(),
-					partials.ActionButtonOptions(
-						button.WithClasses(button.Primary),
-					),
-				) {
-					Take me home
-				}
-			</div>
-		</div>
 	</div>
 }
 

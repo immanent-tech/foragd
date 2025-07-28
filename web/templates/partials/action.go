@@ -97,8 +97,8 @@ func ActionInclude(include string) ActionOption {
 
 // ActionPushURL option sets 'hx-push-url' to true.
 func ActionPushURL() ActionOption {
-	return func(il *Action) {
-		il.setVar(AttrHXPushURL, "true")
+	return func(a *Action) {
+		a.setVar(AttrHXPushURL, "true")
 	}
 }
 
