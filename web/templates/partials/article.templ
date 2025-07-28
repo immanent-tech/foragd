@@ -73,31 +73,31 @@ templ (c *Article) Card() {
 		// Card Body.
 		//
 		@card.BuildBody() {
-			// Display title.
-			<div class="card-title">
+			// Title.
+			<h2 class="card-title">
 				@link.Build(
 					link.WithAttributes(c.viewAttributes()),
 				) {
 					{ c.GetTitle() }
 				}
-			</div>
-			// Display authors and updated date at bottom left.
-			// Display actions menu at bottom right.
-			@card.Actions() {
-				<div>
-					if len(c.GetAuthors()) > 0 {
-						<strong>{ strings.Join(c.GetAuthors(), ",") }</strong>
-					}
-					<span class="text-xs italic">
-						@ShowTimestamp(c.GetUpdatedDate())
-					</span>
+			</h2>
+			// Details.
+			<div class="card-details flex">
+				<div class="flex italic flex-1 justify-start">
+					@ShowTimestamp(c.GetUpdatedDate())
 				</div>
+				if len(c.GetAuthors()) > 0 {
+					<div class="flex font-semibold flex-1 justify-end">
+						{ strings.Join(c.GetAuthors(), ",") }
+					</div>
+				}
+			</div>
+			// Actions.
+			<div class="card-actions">
 				@tooltip.Build("Actions") {
 					@dropdown.Build(
-						dropdown.WithButtonContent(tabler.DotsVertical()),
-						dropdown.WithOpenFrom(dropdown.OpenTop),
-						dropdown.WithOpenAlignment(dropdown.AlignEnd),
-						dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow"),
+						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
+						dropdown.WithClasses(dropdown.OpenTop, dropdown.AlignEnd, "actions-menu"),
 					).Show() {
 						// Visit action.
 						<li _="on click call document.activeElement.blur()">
@@ -113,7 +113,7 @@ templ (c *Article) Card() {
 						</li>
 					}
 				}
-			}
+			</div>
 		}
 	}
 }
@@ -159,12 +159,7 @@ templ (c *Article) Content() {
 			}
 			// Display the article content.
 			<div id="article_content" class="text-sm max-w-prose">
-				switch  {
-					case c.GetContent() != "":
-						@templ.Raw(c.GetContent())
-					case c.GetDescription() != "":
-						@templ.Raw(c.GetDescription())
-				}
+				@c.content()
 			</div>
 			<div class="flex justify-center m-2 gap-2">
 				// <div>
@@ -244,6 +239,15 @@ templ (c Article) image() {
 			),
 			figure.WithFigureClasses("max-w-24"),
 		).Show()
+	}
+}
+
+templ (c Article) content() {
+	switch  {
+		case c.GetContent() != "":
+			@templ.Raw(c.GetContent())
+		case c.GetDescription() != "":
+			@templ.Raw(c.GetDescription())
 	}
 }
 

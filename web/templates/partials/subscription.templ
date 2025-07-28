@@ -13,7 +13,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/image"
-	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
@@ -63,11 +62,11 @@ templ (c *Subscription) Summary() {
 					}
 				}
 			</div>
-			<div class="grow-2 content-center">
+			<h2 class="card-title">
 				// Title text is a link to the view action of the card.
 				{ c.GetTitle() }
-			</div>
-			<div class="flex-none justify-end">
+			</h2>
+			<div class="flex justify-end">
 				// Display unread count (if any).
 				if c.IsUnread() {
 					@badge.Build(
@@ -93,21 +92,20 @@ templ (c *Subscription) Card() {
 		}),
 	) {
 		@card.BuildBody() {
-			// Card title.
-			<div class="text-sm font-semibold">
-				@c.Summary()
-			</div>
-			// Card body.
-			@text.Build(
-				text.WithSize(text.XS),
-				text.WithOverflow(text.Truncate),
-			) {
-				{ c.GetDescription() }
-			}
-			<div class="flex flex-row gap-2 items-center">
-				<span class="text-xs italic flex-1">
+			// Title.
+			@c.Summary()
+			// Details.
+			<div class="card-details flex">
+				<div class="flex italic flex-1 justify-start">
 					@ShowTimestamp(c.GetUpdatedDate())
-				</span>
+				</div>
+			</div>
+			// Description.
+			<div class="card-description">
+				{ c.GetDescription() }
+			</div>
+			// Actions.
+			<div class="card-actions">
 				@tooltip.Build("Actions") {
 					@dropdown.Build(
 						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),

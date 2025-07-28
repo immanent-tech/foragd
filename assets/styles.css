@@ -28,17 +28,26 @@
 /* Styles common across all cards. */
 @utility card {
   @apply card-sm lg:card-sm bg-neutral h-40;
+  .card-details {
+    @apply text-xs;
+  }
+  .card-description {
+    @apply truncate text-xs;
+  }
   .card-actions {
-    .btn {
-      @apply btn-xs btn-square btn-secondary;
-    }
-    .icon {
-      @apply size-4;
-    }
-    .menu {
-      @apply text-xs;
-      .li {
-        @apply items-center;
+    @apply absolute right-0 bottom-0 m-2 items-center justify-end;
+    .actions-menu {
+      .btn {
+        @apply btn-xs btn-square btn-secondary;
+      }
+      .icon {
+        @apply size-4;
+      }
+      .menu {
+        @apply text-xs;
+        .li {
+          @apply items-center;
+        }
       }
     }
   }
