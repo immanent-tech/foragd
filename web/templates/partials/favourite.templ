@@ -7,7 +7,6 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
-	"github.com/joshuar/go-templ-daisyui/actions/modal"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/input/fieldset"
 	"github.com/joshuar/go-templ-daisyui/input/form"
@@ -76,11 +75,7 @@ templ FavoriteLink(fav *models.Favorite) {
 }
 
 templ AddFavoriteSearchModal(action *Action, search string) {
-	@modal.Build(
-		modal.WithID(ModalID.String()),
-		modal.WithCloseButton(),
-		modal.WithCloseOutside(),
-	).Show() {
+	@Modal() {
 		@text.Build(text.WithSize(text.LG)) {
 			Add Favorite
 		}

@@ -192,11 +192,10 @@ templ markAllSubscriptionsLink(mark models.Mark) {
 }
 
 templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []models.Category, msg *models.UserMessage) {
-	@modal.Build(
-		modal.WithID(partials.ModalID.String()),
+	@modal.Build(partials.ModalID.String(),
 		modal.WithCloseButton(),
 		modal.WithCloseOutside(),
-	).Show() {
+	) {
 		@text.Build(text.WithSize(text.LG)) {
 			Edit Subscription
 		}
@@ -267,11 +266,7 @@ func (r AddSubscriptionResults) GetFailed() []*models.AddSubscriptionResult {
 
 // NewSubscriptionModal will display a modal for the user to enter new Subscription details.
 templ NewSubscriptionModal(request *models.SubscriptionRequest) {
-	@modal.Build(
-		modal.WithID(partials.ModalID.String()),
-		modal.WithCloseButton(),
-		modal.WithCloseOutside(),
-	).Show() {
+	@partials.Modal() {
 		@text.Build(text.WithSize(text.LG)) {
 			Add a new subscription
 		}
@@ -324,11 +319,7 @@ templ NewSubscriptionModal(request *models.SubscriptionRequest) {
 }
 
 templ SubscriptionAddedModal(result *models.AddSubscriptionResult) {
-	@modal.Build(
-		modal.WithID(partials.ModalID.String()),
-		modal.WithCloseButton(),
-		modal.WithCloseOutside(),
-	).Show() {
+	@partials.Modal() {
 		<ul class="list">
 			<li class="list-row">
 				switch result.Message.Status {
@@ -376,11 +367,7 @@ templ SubscriptionAddedModal(result *models.AddSubscriptionResult) {
 // ImportSubscriptionsModal is a modal to present the user with options for importing subscriptions from external
 //sources (e.g., OPML).
 templ ImportSubscriptionsModal() {
-	@modal.Build(
-		modal.WithID(partials.ModalID.String()),
-		modal.WithCloseButton(),
-		modal.WithCloseOutside(),
-	).Show() {
+	@partials.Modal() {
 		<div class="max-w-md text-center">
 			<h1 class="font-bold">Import Subscriptions</h1>
 			<div class="py-6">
