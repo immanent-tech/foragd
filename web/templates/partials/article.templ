@@ -19,6 +19,7 @@ import (
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
+	"net/url"
 	"slices"
 	"strings"
 )
@@ -102,6 +103,22 @@ templ (c *Article) Card() {
 						// Visit action.
 						<li _="on click call document.activeElement.blur()">
 							@c.visitAction()
+						</li>
+						// Share action.
+						<li>
+							@NewAction("/subscription/"+c.GetSubscriptionID()+"/article/"+c.GetID()+"/share",
+								DisplayActionAsLink,
+								ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+								ActionTarget(ModalContainerID.Target()),
+								ActionLinkOptions(
+									link.WithClasses("text-xs"),
+								),
+							) {
+								<div class="icontext">
+									@tabler.Share(i.Props{Size: i.SizeXS})
+									Share...
+								</div>
+							}
 						</li>
 						// Mark action.
 						<li _="on click call document.activeElement.blur()">
@@ -253,7 +270,7 @@ templ (c Article) content() {
 
 func (c *Article) viewAttributes() templ.Attributes {
 	return templ.Attributes{
-		"hx-get":      "/article/" + c.GetID(),
+		"hx-get":      "/subscription/" + c.GetSubscriptionID() + "/article/" + c.GetID(),
 		"hx-target":   ContentID.Target(),
 		"hx-push-url": "true",
 		"hx-swap":     "innerHTML scroll:top",
@@ -295,5 +312,33 @@ templ favoriteArticleLink(id models.ItemID, isFavorite bool, target string, swap
 		),
 	) {
 		{ children... }
+	}
+}
+
+// AskQuestion displays a modal that asks the given question, with the given actions as options.
+templ ShareArticleModal(article *models.Article) {
+	@Modal() {
+		<h3 class="font-bold">Share via...</h3>
+		<div class="modal-action">
+			<div class="grid grid-cols-4 justify-center gap-4">
+				@link.Build(
+					link.WithAttributes(mailToAttrs(article)),
+				) {
+					@tabler.Mail()
+				}
+			</div>
+		</div>
+	}
+}
+
+func mailToAttrs(article *models.Article) templ.Attributes {
+	var href strings.Builder
+	href.WriteString("mailto:?subject=")
+	href.WriteString(url.QueryEscape(article.GetTitle()))
+	href.WriteString("&body=")
+	href.WriteString(url.QueryEscape(article.GetLink()))
+	return templ.Attributes{
+		"href":   href.String(),
+		"target": "_blank",
 	}
 }

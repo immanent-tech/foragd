@@ -132,6 +132,32 @@ func (a *API) ViewArticle() http.HandlerFunc {
 	}
 }
 
+// ShareArticle handles sharing an article to external sources.
+func (a *API) ShareArticle() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
+		itemID := chi.URLParam(req, "item")
+		articles, err := a.getArticles(req.Context(), itemID)
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		var resp *models.Response
+		switch req.Method {
+		case http.MethodGet:
+			// Generate articles page.
+			resp = models.NewResponse(
+				models.WithResponseTemplate(partials.ShareArticleModal(articles[0])),
+			)
+		}
+
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+	}
+}
+
 func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters) (models.Articles, models.Pagination, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {

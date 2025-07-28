@@ -6,7 +6,35 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui/feedback/alert"
+	"time"
 )
+
+// ShowTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time
+// passes.
+templ ShowTimestamp(timestamp time.Time) {
+	<human-time datetime={ timestamp.Format("2006-01-02T15:04:05-0700") }>{ timestamp.Format("2006-01-02 15:04:05 -0700") }</human-time>
+}
+
+// ShowNotification displays the given message as a notification in the UI.
+templ ShowNotification(msg *models.UserMessage) {
+	<div id={ NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50" hx-swap-oob="true" hx-swap="outerHTML">
+		@alert.Build(
+			alert.AlertState(msgStatusToAlertState(msg.Status)),
+			alert.WithExtraAttributes(templ.Attributes{
+				"_": "on load wait 10s then transition opacity to 0 then remove me",
+			}),
+		).Show() {
+			if msg.HasDetails() {
+				<div>
+					<h3 class="font-bold">{ msg.Summary }</h3>
+					<p class="text-xs">{ msg.Details }</p>
+				</div>
+			} else {
+				<h3 class="font-bold">{ msg.Summary }</h3>
+			}
+		}
+	</div>
+}
 
 templ Alert(msg *models.UserMessage) {
 	@alert.Build(
