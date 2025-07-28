@@ -21,7 +21,7 @@ templ Header() {
 		navbar.WithClasses("bg-base-200", "w-screen", "gap-2"),
 	) {
 		@navbar.Start() {
-			<label for="body-drawer" class="btn btn-square btn-sm btn-accent drawer-button">
+			<label for="body-drawer" class="btn btn-square btn-sm btn-outline drawer-button">
 				@tabler.Menu(i.Props{Size: i.SizeSM})
 			</label>
 		}
@@ -32,7 +32,7 @@ templ Header() {
 			@dropdown.Build(
 				dropdown.WithButtonContent(tabler.User(i.Props{Size: i.SizeSM})),
 				dropdown.WithOpenAlignment(dropdown.AlignEnd),
-				dropdown.WithButtonClasses(button.Square, button.Accent, button.SM),
+				dropdown.WithButtonClasses(button.Square, button.SM, button.Outline),
 				dropdown.WithMenuClasses("text-xs"),
 			).Show() {
 				<li>

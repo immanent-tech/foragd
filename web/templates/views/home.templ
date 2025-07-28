@@ -131,7 +131,7 @@ templ categoryBadge(category models.CategoryCount) {
 			@badge.Build(
 				badge.WithClasses(badge.SM, badge.Primary, "grow", "text-no-wrap"),
 			) {
-				strconv.Itoa(category.Count)
+				{ strconv.Itoa(category.Count) }
 			}
 		</div>
 	}

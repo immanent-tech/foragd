@@ -13,7 +13,6 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
@@ -51,7 +50,6 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
-		spew.Dump(request)
 		// Find matching subscriptions.
 		var subscriptions models.SubscriptionsSlice
 		if request.Text != "" {
