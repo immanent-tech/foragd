@@ -19,7 +19,7 @@ templ (page *Page) render() {
 	<html lang="en">
 		@page.Head.build()
 		<body
-			hx-ext="response-targets"
+			hx-ext="response-targets,ajax-header"
 			hx-target-error={ partials.NotificationsID.Target() }
 		>
 			<input
