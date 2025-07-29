@@ -25,6 +25,9 @@
 
 @utility article {
   @apply bg-base-300 rounded-box m-4 max-w-prose p-4 shadow-md;
+  .article-actions {
+    @apply m-2 flex flex-row justify-center gap-2;
+  }
 }
 
 @utility icontext {

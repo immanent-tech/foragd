@@ -226,7 +226,7 @@ templ (c *Subscription) actionsMenu() {
 			}
 		</li>
 		// Favorite action.
-		<li id={ "favorite_" + c.GetID() } _="on click call document.activeElement.blur()">
+		<li id={ "favorite-" + c.GetID() } _="on click call document.activeElement.blur()">
 			@ToggleFavoriteSubscriptionText(c.GetID(), c.Favorite, "#favorite_"+c.GetID(), "innerHTML")
 		</li>
 		// Unsubscribe action.

@@ -144,7 +144,7 @@ templ (page *SubscriptionsPage) list() {
 templ markAllSubscriptionsLink(mark models.Mark) {
 	@partials.NewAction("/subscriptions/mark/"+string(mark), partials.DisplayActionAsLink,
 		partials.ActionMethod(http.MethodPost),
-		partials.ActionInclude("[name='view']"),
+		partials.ActionInclude("#content-filters"),
 	) {
 		<div class="flex gap-2">
 			switch mark {

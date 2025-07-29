@@ -6,6 +6,7 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui"
+	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/figure"
@@ -103,16 +104,25 @@ templ (c *Article) Content() {
 			}
 			// Display the article content.
 			<div id="article-content">
-				@c.content()
+				switch  {
+					case c.GetContent() != "":
+						@templ.Raw(c.GetContent())
+					case c.GetDescription() != "":
+						@templ.Raw(c.GetDescription())
+				}
 			</div>
-			<div class="flex justify-center m-2 gap-2">
-				// <div>
-				// 	// Share article action.
-				// 	@c.shareLink()
-				// </div>
-				<div>
-					// Visit external article link action.
-					@c.visitAction()
+			<div class="article-actions">
+				// Visit external link.
+				<div class="flex">
+					@c.visitActionLink()
+				</div>
+				// Toggle favorite.
+				<div class="flex" id={ "favorite_" + c.GetID() }>
+					@ToggleFavoriteArticleText(c.GetID(), c.Favorite, "#favorite_"+c.GetID(), "innerHTML")
+				</div>
+				// Share.
+				<div class="flex">
+					@shareArticleLink(c.GetSubscriptionID(), c.GetID())
 				</div>
 			</div>
 		}
@@ -158,18 +168,6 @@ templ MarkArticleLink(subscriptionID models.SubscriptionID, itemID models.ItemID
 	}
 }
 
-templ (a *Article) visitAction() {
-	@link.Build(
-		link.WithAttributes(templ.Attributes{"href": a.GetLink()}),
-		link.WithClasses("text-xs"),
-	) {
-		<div class="flex gap-2">
-			@tabler.ExternalLink(i.Props{Size: i.SizeXS})
-			Original Article
-		</div>
-	}
-}
-
 // ShowAsSummary shows a summarised version of the article.
 templ (c *Article) link() {
 	@link.Build(
@@ -197,15 +195,6 @@ templ (c Article) image() {
 			),
 			figure.WithFigureClasses("max-w-24"),
 		).Show()
-	}
-}
-
-templ (c Article) content() {
-	switch  {
-		case c.GetContent() != "":
-			@templ.Raw(c.GetContent())
-		case c.GetDescription() != "":
-			@templ.Raw(c.GetDescription())
 	}
 }
 
@@ -256,16 +245,59 @@ templ favoriteArticleLink(id models.ItemID, isFavorite bool, target string, swap
 	}
 }
 
+// visitActionLink generates a link that redirects to the original article.
+templ (a *Article) visitActionLink() {
+	@link.Build(
+		link.WithAttributes(templ.Attributes{"href": a.GetLink()}),
+		link.WithClasses("text-xs"),
+	) {
+		<div class="flex gap-2">
+			@tabler.ExternalLink(i.Props{Size: i.SizeXS})
+			Original Article
+		</div>
+	}
+}
+
+// shareArticleLink generates a link that triggers a modal with options for sharing the article externally.
+templ shareArticleLink(subscriptionID models.SubscriptionID, itemID models.ItemID) {
+	@NewAction("/subscription/"+subscriptionID+"/article/"+itemID+"/share", DisplayActionAsLink,
+		ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+		ActionTarget(ModalContainerID.Target()),
+		ActionLinkOptions(
+			link.WithClasses("text-xs"),
+		),
+	) {
+		<div class="icontext">
+			@tabler.Share(i.Props{Size: i.SizeXS})
+			Share article
+		</div>
+	}
+}
+
 // AskQuestion displays a modal that asks the given question, with the given actions as options.
 templ ShareArticleModal(article *models.Article) {
 	@Modal() {
 		<h3 class="font-bold">Share via...</h3>
-		<div class="modal-action">
-			<div class="grid grid-cols-4 justify-center gap-4">
+		<div class="flex justify-center">
+			<div class="grid grid-cols-4 gap-4">
 				@link.Build(
 					link.WithAttributes(mailToAttrs(article)),
+					link.WithClasses("btn"),
 				) {
-					@tabler.Mail()
+					<div class="icontext text-sm">
+						@tabler.Mail()
+						Send Email
+					</div>
+				}
+				@button.Build(
+					button.WithAttributes(templ.Attributes{
+						"_": "on click call navigator.clipboard.writeText('" + article.GetLink() + "')",
+					}),
+				) {
+					<div class="icontext text-sm">
+						@tabler.Copy()
+						Copy Link
+					</div>
 				}
 			</div>
 		</div>

@@ -148,8 +148,13 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 		}
 		// Construct the request from parameters.
 		request := &models.MarkSubscriptionsRequest{
-			Mark:          models.Mark(chi.URLParam(req, "mark")),
-			Subscriptions: user.GetSubscriptionMetadata().GetIDs(),
+			Mark: models.Mark(chi.URLParam(req, "mark")),
+		}
+		subscriptions := strings.Split(req.FormValue("subscriptions"), ",")
+		if len(subscriptions) == 0 {
+			request.Subscriptions = user.GetSubscriptionMetadata().GetIDs()
+		} else {
+			request.Subscriptions = subscriptions
 		}
 		view := models.View(req.FormValue("view"))
 		// Mark subscriptions.
