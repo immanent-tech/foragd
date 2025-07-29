@@ -18,15 +18,16 @@
     }
   }
 }
+
 /* Styles for subscription cards. */
-@utility subscription-card {
+/* @utility subscription-card {
   .badge-unread-count {
     @apply badge-xs badge-accent text-xs;
   }
-}
+} */
 
 /* Styles common across all cards. */
-@utility card {
+/* @utility card {
   @apply card-sm lg:card-sm bg-neutral h-40;
   .card-details {
     @apply text-xs;
@@ -51,7 +52,7 @@
       }
     }
   }
-}
+} */
 
 @utility icontext {
   @apply flex items-center;

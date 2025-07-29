@@ -38,21 +38,6 @@ func NewArticleContent(article *models.Article) *Article {
 	return card
 }
 
-// ShowAsSummary shows a summarised version of the article.
-templ (c *Article) ShowSummary() {
-	@link.Build(
-		link.WithAttributes(c.viewAttributes()),
-	) {
-		<div class="flex flex-row gap-2">
-			@c.image()
-			<div class="text-sm flex-1 text-justify">{ c.GetTitle() }</div>
-		</div>
-		<div class="flex flex-row justify-end">
-			<div class="text-xs uppercase font-semibold">{ c.GetFeedTitle() }</div>
-		</div>
-	}
-}
-
 // Card shows the article as a card, for displaying in a collection of articles.
 templ (c *Article) Card() {
 	@card.Build(
@@ -132,6 +117,46 @@ templ (c *Article) Card() {
 			</div>
 		}
 	}
+}
+
+// ShowAsSummary shows a summarised version of the article.
+templ (c *Article) ShowSummary() {
+	@link.Build(
+		link.WithAttributes(c.viewAttributes()),
+	) {
+		<div class="flex flex-row gap-2">
+			@c.image()
+			<div class="text-sm flex-1 text-justify">{ c.GetTitle() }</div>
+		</div>
+		<div class="flex flex-row justify-end">
+			<div class="text-xs uppercase font-semibold">{ c.GetFeedTitle() }</div>
+		</div>
+	}
+}
+
+templ (c *Article) ListItem() {
+	<li class="list-row">
+		@link.Build(
+			link.WithAttributes(c.viewAttributes()),
+		) {
+			<div>
+				<div class="list-col-wrap text-xs">
+					<div class="flex flex-row gap-2 m-2">
+						@c.image()
+						<div class="text-sm font-semibold flex-1">{ c.GetTitle() }</div>
+					</div>
+					<div class="flex flex-row m-4 justify-end gap-2">
+						<div class="flex flex-1 italic">
+							{ strings.Join(c.GetAuthors(),",") }
+						</div>
+						<div class="flex text-xs uppercase font-semibold">
+							@ShowTimestamp(c.GetUpdatedDate())
+						</div>
+					</div>
+				</div>
+			</div>
+		}
+	</li>
 }
 
 templ (c *Article) ShowAsSearchSuggestion() {

@@ -98,13 +98,20 @@ templ (page *ArticlesPage) content() {
 			}
 		}
 	</div>
-	@layouts.CardGrid() {
-		if len(page.articles) > 0 {
+	if len(page.articles) > 0 {
+		<ul class="list bg-base-100 rounded-box shadow-md max-w-prose" id={ layouts.CardsID.String() }>
 			@page.cards()
-		} else {
-			@layouts.EmptyContent()
-		}
+		</ul>
+	} else {
+		@layouts.EmptyContent()
 	}
+	// @layouts.CardGrid() {
+	// 	if len(page.articles) > 0 {
+	// 		@page.cards()
+	// 	} else {
+	// 		@layouts.EmptyContent()
+	// 	}
+	// }
 	<div id="content-loading" class="items-center justify-center">
 		@loading.Build(loading.Bars,
 			loading.AsHTMXIndicator(),
@@ -117,7 +124,7 @@ templ (page *ArticlesPage) content() {
 func (s ArticlesPage) generateCards(ctx context.Context) []templ.Component {
 	cards := make([]templ.Component, 0, len(s.articles))
 	for article := range slices.Values(s.articles) {
-		cards = append(cards, partials.NewArticleContent(article).Card())
+		cards = append(cards, partials.NewArticleContent(article).ListItem())
 	}
 	// Add pagination element if pagination is required.
 	if s.pagination != "" && len(cards) == s.filters.GetCount() {

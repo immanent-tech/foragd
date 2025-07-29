@@ -176,6 +176,108 @@ templ (c *Subscription) Card() {
 	}
 }
 
+templ (c *Subscription) ListItem() {
+	// {{ var viewParam string }}
+	// if c.IsUnread() {
+	// 	{{ viewParam = string(models.ViewUnread) }}
+	// } else {
+	// 	{{ viewParam = string(models.ViewRead) }}
+	// }
+	<li class="list-row">
+		// <div>
+		<div class="col-span-2">
+			<div class="flex flex-row gap-2 m-2 items-center">
+				@link.Build(
+					link.WithAttributes(c.viewAttributes()),
+					link.WithClasses("flex flex-1 flex-row items-center gap-2"),
+				) {
+					// 	<div>
+					@c.image()
+					<div class="text-sm font-semibold flex-1">{ c.GetTitle() }</div>
+					if c.IsUnread() {
+						@badge.Build(
+							badge.WithClasses("badge-unread-count"),
+						) {
+							{ c.GetUnreadCount() }
+						}
+					}
+					// 	</div>
+				}
+				<div class="flex justify-end">
+					@c.actionsMenu()
+				</div>
+			</div>
+			<div class="col-span-2">
+				if c.GetDescription() != "" {
+					<p class="text-xs italic">
+						{ c.GetDescription() }
+					</p>
+				}
+			</div>
+			<div class="flex flex-row m-4 justify-end gap-2">
+				<div class="flex text-xs uppercase font-semibold">
+					@ShowTimestamp(c.GetUpdatedDate())
+				</div>
+			</div>
+		</div>
+		// </div>
+	</li>
+}
+
+// 	<li
+// 		class="list-row items-center"
+// 		id={ c.GetID() }
+// 	>
+// 		<div>
+// 			@c.image()
+// 		</div>
+// 		<div
+// 			class="list-col-grow"
+// 		>
+// 			// 		<a
+// 			// 			hx-get="/articles"
+// 			// 			hx-include="#content-filters"
+// 			// 			hx-vals={ GenerateHXVals(map[string]string{
+// 			// 	models.ParamSortBy: string(models.SortByLastUpdated),
+// 			// 	models.ParamView:   viewParam,
+// 			// 	"subscriptions":    c.GetID(),
+// 			// }) }
+// 			// 			hx-target={ ContentID.Target() }
+// 			// 			hx-push-url="true"
+// 			// 		>
+// 			@NewAction("/articles", DisplayActionAsLink,
+// 				ActionInclude("#content-filters"),
+// 				ActionTarget(ContentID.Target()),
+// 				ActionPushURL(),
+// 				ActionValues(map[string]string{
+// 					models.ParamSortBy: string(models.SortByLastUpdated),
+// 					models.ParamView:   viewParam,
+// 					"subscriptions":    c.GetID(),
+// 				}),
+// 			) {
+// 				<div class="">{ c.GetTitle() }</div>
+// 			}
+// 			// </a>
+// 			<div class="text-xs uppercase font-semibold opacity-60">
+// 				@ShowTimestamp(c.GetUpdatedDate())
+// 			</div>
+// 		</div>
+// 		if c.GetDescription() != "" {
+// 			<p class="list-col-wrap text-xs italic">
+// 				{ c.GetDescription() }
+// 			</p>
+// 		}
+// 		if c.IsUnread() {
+// 			@badge.Build(
+// 				badge.WithClasses("badge-unread-count"),
+// 			) {
+// 				{ c.GetUnreadCount() }
+// 			}
+// 		}
+// 		@c.actionsMenu()
+// 	</li>
+// }
+
 // ShowSettings renders subscription data in a table row suitable for the subscription settings page.
 templ (c *Subscription) ShowSettings() {
 	<tr id={ c.GetID() }>
@@ -228,6 +330,98 @@ templ (c *Subscription) ShowAsSearchSuggestion() {
 			// <div class="text-xs uppercase font-semibold opacity-60">{ article.Item.FeedTitle }</div>
 		</div>
 	</li>
+}
+
+templ (c *Subscription) image() {
+	// Generate a thumbnail to display next to the title.
+	if c.GetImage().URL != "" {
+		// If the source has an image, use that as the avatar.
+		@avatar.Build(
+			avatar.WithClasses("w-12", "rounded"),
+		) {
+			@image.Build(
+				c.GetImage().URL,
+			).Show()
+		}
+	} else {
+		// Otherwise, take the first letter of the title and create a placeholder avatar.
+		@avatar.Build(
+			avatar.WithClasses("w-12", "rounded", "bg-secondary/30"),
+			avatar.AsPlaceholder(),
+		) {
+			<span class="text-sm">{ c.GetTitle()[0:1] }</span>
+		}
+	}
+}
+
+templ (c *Subscription) actionsMenu() {
+	@dropdown.Build(
+		dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
+		dropdown.WithOpenFrom(dropdown.OpenTop),
+		dropdown.WithOpenAlignment(dropdown.AlignEnd),
+		dropdown.WithMenuClasses("text-xs"),
+		dropdown.WithButtonClasses(button.Square, button.XS, button.Secondary),
+		// dropdown.WithAttributes(templ.Attributes{
+		// 	"id":         c.GetID() + "-actions",
+		// 	"hx-trigger": "click target:#" + c.GetID() + "-actions",
+		// }),
+	).Show() {
+		// Visit action.
+		<li _="on click call document.activeElement.blur()">
+			@link.Build(
+				link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
+				link.WithClasses("text-xs"),
+			) {
+				<div class="icontext">
+					@tabler.ExternalLink(i.Props{Size: i.SizeXS})
+					Feed Website
+				</div>
+			}
+		</li>
+		// Mark action.
+		<li _="on click call document.activeElement.blur()">
+			@MarkSubscriptionLink(c.GetID(), c.IsUnread())
+		</li>
+		// Edit action.
+		<li _="on click call document.activeElement.blur()">
+			@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
+				ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+				ActionTarget(ModalContainerID.Target()),
+				ActionLinkOptions(
+					link.WithClasses("text-xs"),
+				),
+			) {
+				<div class="icontext">
+					@tabler.Edit(i.Props{Size: i.SizeXS})
+					Edit Subscription
+				</div>
+			}
+		</li>
+		// Favorite action.
+		<li id={ "favorite_" + c.GetID() } _="on click call document.activeElement.blur()">
+			@ToggleFavoriteSubscriptionText(c.GetID(), c.Favorite, "#favorite_"+c.GetID(), "innerHTML")
+		</li>
+		// Unsubscribe action.
+		<li _="on click call document.activeElement.blur()">
+			@NewAction("/subscriptions/remove", DisplayActionAsLink,
+				ActionMethod(http.MethodPost),
+				ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+				ActionTarget(ModalContainerID.Target()),
+				ActionValues(map[string]string{
+					"subscriptions": c.GetID(),
+					"confirmation":  "no",
+				}),
+				ActionLinkOptions(
+					link.WithClasses("text-xs"),
+				),
+			) {
+				<div class="icontext">
+					@tabler.Trash(i.Props{Size: i.SizeXS})
+					Remove Subscription
+				</div>
+			}
+		</li>
+	}
 }
 
 // ToggleFavoriteSubscriptionIcon renders an icon that when clicked will toggle the favorite status of the subscription.
