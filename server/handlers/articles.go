@@ -103,7 +103,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			}
 			card := partials.NewArticleContent(s[0])
 			resp = models.NewResponse(
-				models.WithResponseTemplate(card.Card()),
+				models.WithResponseTemplate(card.ShowAsItem()),
 			)
 		}
 

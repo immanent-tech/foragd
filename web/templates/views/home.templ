@@ -112,7 +112,7 @@ templ (page *HomePage) content() {
 		if page.RandomArticles != nil {
 			<div class="flex flex-col gap-2">
 				<h1>Random Articles:</h1>
-				@layouts.CardGrid() {
+				@layouts.Grid() {
 					@templ.Join(page.RandomArticles...)
 				}
 			</div>

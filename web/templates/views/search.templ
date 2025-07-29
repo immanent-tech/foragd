@@ -98,10 +98,10 @@ templ (page *SearchResultsPage) content() {
 				<input type="checkbox"/>
 				<div class="collapse-title font-semibold">Subscriptions ({ len(page.subscriptions) } results)</div>
 				<div class="collapse-content text-xs">
-					<div class="grid grid-cols-2 md:grid-cols-6 items-center gap-4">
+					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols3 justify-center gap-4">
 						for subscription := range slices.Values(page.subscriptions) {
-							<div class="rounded-box shadow-md bg-neutral p-2">
-								@subscription.Summary()
+							<div class="grid-item">
+								@subscription.ShowAsSearchResult()
 							</div>
 						}
 					</div>
@@ -115,8 +115,8 @@ templ (page *SearchResultsPage) content() {
 				<div class="collapse-content text-sm">
 					<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4">
 						for article := range slices.Values(page.articles) {
-							<div class="rounded-box shadow-md bg-neutral p-4">
-								@article.ShowSummary()
+							<div class="grid-item">
+								@article.ShowAsSearchResult()
 							</div>
 						}
 					</div>

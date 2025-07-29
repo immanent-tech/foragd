@@ -4,7 +4,6 @@
 package views
 
 import (
-	"context"
 	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -38,7 +37,7 @@ func NewArticlesPage(articles models.Articles, filters *models.ArticleFilters, p
 func (page *ArticlesPage) Template(req *http.Request) templ.Component {
 	switch {
 	case req.Method == http.MethodPost:
-		return page.cards()
+		return page.list()
 	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 		return page.content()
 	default:
@@ -99,19 +98,12 @@ templ (page *ArticlesPage) content() {
 		}
 	</div>
 	if len(page.articles) > 0 {
-		<ul class="list bg-base-100 rounded-box shadow-md max-w-prose" id={ layouts.CardsID.String() }>
-			@page.cards()
-		</ul>
+		@layouts.Grid() {
+			@page.list()
+		}
 	} else {
 		@layouts.EmptyContent()
 	}
-	// @layouts.CardGrid() {
-	// 	if len(page.articles) > 0 {
-	// 		@page.cards()
-	// 	} else {
-	// 		@layouts.EmptyContent()
-	// 	}
-	// }
 	<div id="content-loading" class="items-center justify-center">
 		@loading.Build(loading.Bars,
 			loading.AsHTMXIndicator(),
@@ -121,23 +113,15 @@ templ (page *ArticlesPage) content() {
 	@partials.Footer()
 }
 
-func (s ArticlesPage) generateCards(ctx context.Context) []templ.Component {
-	cards := make([]templ.Component, 0, len(s.articles))
-	for article := range slices.Values(s.articles) {
-		cards = append(cards, partials.NewArticleContent(article).ListItem())
+// list will render the articles as items.
+templ (page *ArticlesPage) list() {
+	for article := range slices.Values(page.articles) {
+		@partials.NewArticleContent(article).ShowAsItem()
 	}
 	// Add pagination element if pagination is required.
-	if s.pagination != "" && len(cards) == s.filters.GetCount() {
+	if page.pagination != "" && len(page.articles) == page.filters.GetCount() {
 		// Add pagination htmx props to last article.
-		cards = append(cards, layouts.PaginationControl(ctx, "/articles", s.pagination))
-	}
-	return cards
-}
-
-// cards will render just the article cards.
-templ (page *ArticlesPage) cards() {
-	for cards := range slices.Values(page.generateCards(ctx)) {
-		@cards
+		@layouts.PaginationControl(ctx, "/articles", page.pagination)
 	}
 }
 

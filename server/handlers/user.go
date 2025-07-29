@@ -67,7 +67,7 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 		}
 		settings := make([]templ.Component, 0, len(subscriptions))
 		for subscription := range slices.Values(subscriptions) {
-			settings = append(settings, partials.NewSubscriptionContent(subscription).ShowSettings())
+			settings = append(settings, partials.NewSubscriptionContent(subscription).ShowAsSetting())
 		}
 		resp := models.NewResponse(
 			models.WithResponseTemplate(templ.Join(settings...)),
@@ -163,7 +163,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 				RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 				return
 			}
-			template = partials.NewSubscriptionContent(s[0]).ShowSettings()
+			template = partials.NewSubscriptionContent(s[0]).ShowAsSetting()
 		default:
 			template = partials.ToggleFavoriteSubscriptionText(id, true, "#favorite_"+id, "innerHTML")
 		}
@@ -213,7 +213,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 				RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 				return
 			}
-			template = partials.NewSubscriptionContent(s[0]).ShowSettings()
+			template = partials.NewSubscriptionContent(s[0]).ShowAsSetting()
 		default:
 			template = partials.ToggleFavoriteSubscriptionText(id, false, "#favorite_"+id, "innerHTML")
 		}

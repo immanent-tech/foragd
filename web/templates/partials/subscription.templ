@@ -8,12 +8,9 @@ import (
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
-	"github.com/joshuar/go-templ-daisyui/classes/shadow"
 	"github.com/joshuar/go-templ-daisyui/display/avatar"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
-	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/image"
-	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -35,174 +32,18 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 	return card
 }
 
-// Summary displays the subscription's image (or a avatar), title and unread count (if any).
-templ (c *Subscription) Summary() {
-	@link.Build(
-		link.WithAttributes(c.viewAttributes()),
-	) {
-		<div class="flex flex-row gap-2 items-center">
-			<div class="flex-none">
-				// Generate a thumbnail to display next to the title.
-				if c.GetImage().URL != "" {
-					// If the source has an image, use that as the avatar.
-					@avatar.Build(
-						avatar.WithClasses("w-12", "rounded"),
-					) {
-						@image.Build(
-							c.GetImage().URL,
-						).Show()
-					}
-				} else {
-					// Otherwise, take the first letter of the title and create a placeholder avatar.
-					@avatar.Build(
-						avatar.WithClasses("w-12", "rounded", "bg-secondary/30"),
-						avatar.AsPlaceholder(),
-					) {
-						<span class="text-sm">{ c.GetTitle()[0:1] }</span>
-					}
-				}
-			</div>
-			<h2 class="card-title">
-				// Title text is a link to the view action of the card.
-				{ c.GetTitle() }
-			</h2>
-			<div class="flex justify-end">
-				// Display unread count (if any).
-				if c.IsUnread() {
-					@badge.Build(
-						badge.WithClasses("badge-unread-count"),
-					) {
-						{ c.GetUnreadCount() }
-					}
-				}
-			</div>
-		</div>
-	}
-}
-
-// Card displays the subscription as a card.
-templ (c *Subscription) Card() {
-	@card.Build(
-		card.WithStyle(card.Border),
-		card.WithShadow(shadow.SM),
-		card.WithClasses("subscription-card"),
-		card.WithClasses(c.classes...),
-		card.WithAttributes(templ.Attributes{
-			"id": c.GetID(),
-		}),
-	) {
-		@card.BuildBody() {
-			// Title.
-			@c.Summary()
-			// Details.
-			<div class="card-details flex">
-				<div class="flex italic flex-1 justify-start">
-					@ShowTimestamp(c.GetUpdatedDate())
-				</div>
-			</div>
-			// Description.
-			<div class="card-description">
-				{ c.GetDescription() }
-			</div>
-			// Actions.
-			<div class="card-actions">
-				@tooltip.Build("Actions") {
-					@dropdown.Build(
-						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-						dropdown.WithOpenFrom(dropdown.OpenTop),
-						dropdown.WithOpenAlignment(dropdown.AlignEnd),
-						dropdown.WithMenuClasses("justify-end", "flex-nowrap", "grow", "text-xs"),
-						dropdown.WithButtonClasses(button.Square, button.XS, button.Secondary),
-					).Show() {
-						// Visit action.
-						<li _="on click call document.activeElement.blur()">
-							@link.Build(
-								link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
-								link.WithClasses("text-xs"),
-							) {
-								<div class="icontext">
-									@tabler.ExternalLink(i.Props{Size: i.SizeXS})
-									Feed Website
-								</div>
-							}
-						</li>
-						// Mark action.
-						<li _="on click call document.activeElement.blur()">
-							@MarkSubscriptionLink(c.GetID(), c.IsUnread())
-						</li>
-						// Edit action.
-						<li _="on click call document.activeElement.blur()">
-							@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
-								ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-								ActionTarget(ModalContainerID.Target()),
-								ActionLinkOptions(
-									link.WithClasses("text-xs"),
-								),
-							) {
-								<div class="icontext">
-									@tabler.Edit(i.Props{Size: i.SizeXS})
-									Edit Subscription
-								</div>
-							}
-						</li>
-						// Favorite action.
-						<li id={ "favorite_" + c.GetID() } _="on click call document.activeElement.blur()">
-							@ToggleFavoriteSubscriptionText(c.GetID(), c.Favorite, "#favorite_"+c.GetID(), "innerHTML")
-						</li>
-						// Unsubscribe action.
-						<li _="on click call document.activeElement.blur()">
-							@NewAction("/subscriptions/remove", DisplayActionAsLink,
-								ActionMethod(http.MethodPost),
-								ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-								ActionTarget(ModalContainerID.Target()),
-								ActionValues(map[string]string{
-									"subscriptions": c.GetID(),
-									"confirmation":  "no",
-								}),
-								ActionLinkOptions(
-									link.WithClasses("text-xs"),
-								),
-							) {
-								<div class="icontext">
-									@tabler.Trash(i.Props{Size: i.SizeXS})
-									Remove Subscription
-								</div>
-							}
-						</li>
-					}
-				}
-			</div>
-		}
-	}
-}
-
-templ (c *Subscription) ListItem() {
+templ (c *Subscription) ShowAsItem() {
 	// {{ var viewParam string }}
 	// if c.IsUnread() {
 	// 	{{ viewParam = string(models.ViewUnread) }}
 	// } else {
 	// 	{{ viewParam = string(models.ViewRead) }}
 	// }
-	<li class="list-row">
+	<div class="grid-item" id={ c.GetID() }>
 		// <div>
 		<div class="col-span-2">
 			<div class="flex flex-row gap-2 m-2 items-center">
-				@link.Build(
-					link.WithAttributes(c.viewAttributes()),
-					link.WithClasses("flex flex-1 flex-row items-center gap-2"),
-				) {
-					// 	<div>
-					@c.image()
-					<div class="text-sm font-semibold flex-1">{ c.GetTitle() }</div>
-					if c.IsUnread() {
-						@badge.Build(
-							badge.WithClasses("badge-unread-count"),
-						) {
-							{ c.GetUnreadCount() }
-						}
-					}
-					// 	</div>
-				}
+				@c.link()
 				<div class="flex justify-end">
 					@c.actionsMenu()
 				</div>
@@ -221,65 +62,11 @@ templ (c *Subscription) ListItem() {
 			</div>
 		</div>
 		// </div>
-	</li>
+	</div>
 }
 
-// 	<li
-// 		class="list-row items-center"
-// 		id={ c.GetID() }
-// 	>
-// 		<div>
-// 			@c.image()
-// 		</div>
-// 		<div
-// 			class="list-col-grow"
-// 		>
-// 			// 		<a
-// 			// 			hx-get="/articles"
-// 			// 			hx-include="#content-filters"
-// 			// 			hx-vals={ GenerateHXVals(map[string]string{
-// 			// 	models.ParamSortBy: string(models.SortByLastUpdated),
-// 			// 	models.ParamView:   viewParam,
-// 			// 	"subscriptions":    c.GetID(),
-// 			// }) }
-// 			// 			hx-target={ ContentID.Target() }
-// 			// 			hx-push-url="true"
-// 			// 		>
-// 			@NewAction("/articles", DisplayActionAsLink,
-// 				ActionInclude("#content-filters"),
-// 				ActionTarget(ContentID.Target()),
-// 				ActionPushURL(),
-// 				ActionValues(map[string]string{
-// 					models.ParamSortBy: string(models.SortByLastUpdated),
-// 					models.ParamView:   viewParam,
-// 					"subscriptions":    c.GetID(),
-// 				}),
-// 			) {
-// 				<div class="">{ c.GetTitle() }</div>
-// 			}
-// 			// </a>
-// 			<div class="text-xs uppercase font-semibold opacity-60">
-// 				@ShowTimestamp(c.GetUpdatedDate())
-// 			</div>
-// 		</div>
-// 		if c.GetDescription() != "" {
-// 			<p class="list-col-wrap text-xs italic">
-// 				{ c.GetDescription() }
-// 			</p>
-// 		}
-// 		if c.IsUnread() {
-// 			@badge.Build(
-// 				badge.WithClasses("badge-unread-count"),
-// 			) {
-// 				{ c.GetUnreadCount() }
-// 			}
-// 		}
-// 		@c.actionsMenu()
-// 	</li>
-// }
-
 // ShowSettings renders subscription data in a table row suitable for the subscription settings page.
-templ (c *Subscription) ShowSettings() {
+templ (c *Subscription) ShowAsSetting() {
 	<tr id={ c.GetID() }>
 		// TODO: subscription multi-select/bulk action.
 		// <th>
@@ -325,11 +112,42 @@ templ (c *Subscription) ShowAsSearchSuggestion() {
 	<li class="list-row" _="on click call document.activeElement.blur()">
 		<div>
 			<div class="list-col-wrap text-xs">
-				@c.Summary()
+				@c.link()
 			</div>
 			// <div class="text-xs uppercase font-semibold opacity-60">{ article.Item.FeedTitle }</div>
 		</div>
 	</li>
+}
+
+templ (c *Subscription) ShowAsSearchResult() {
+	<div class="col-span-2">
+		<div class="flex flex-row gap-2 m-2 items-center">
+			@c.link()
+		</div>
+		<div class="col-span-2">
+			if c.GetDescription() != "" {
+				<p class="text-xs italic">
+					{ c.GetDescription() }
+				</p>
+			}
+		</div>
+		<div class="flex flex-row m-4 justify-end gap-2">
+			<div class="flex text-xs uppercase font-semibold">
+				@ShowTimestamp(c.GetUpdatedDate())
+			</div>
+		</div>
+	</div>
+}
+
+templ (c *Subscription) link() {
+	@link.Build(
+		link.WithAttributes(c.viewAttributes()),
+		link.WithClasses("flex flex-1 flex-row items-center gap-2"),
+	) {
+		@c.image()
+		<div class="text-sm font-semibold flex-1">{ c.GetTitle() }</div>
+		@c.unreadBadge()
+	}
 }
 
 templ (c *Subscription) image() {
@@ -350,6 +168,16 @@ templ (c *Subscription) image() {
 			avatar.AsPlaceholder(),
 		) {
 			<span class="text-sm">{ c.GetTitle()[0:1] }</span>
+		}
+	}
+}
+
+templ (c *Subscription) unreadBadge() {
+	if c.IsUnread() {
+		@badge.Build(
+			badge.WithClasses("badge-unread-count"),
+		) {
+			{ c.GetUnreadCount() }
 		}
 	}
 }

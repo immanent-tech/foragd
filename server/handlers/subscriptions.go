@@ -127,7 +127,7 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 			}
 			card := partials.NewSubscriptionContent(s[0])
 			resp = models.NewResponse(
-				models.WithResponseTemplate(card.Card()),
+				models.WithResponseTemplate(card.ShowAsItem()),
 			)
 		}
 
@@ -335,9 +335,9 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		}
 		switch {
 		case strings.HasSuffix(currentURL, "/user/settings"):
-			template = partials.NewSubscriptionContent(s[0]).ShowSettings()
+			template = partials.NewSubscriptionContent(s[0]).ShowAsSetting()
 		default:
-			template = partials.NewSubscriptionContent(s[0]).Card()
+			template = partials.NewSubscriptionContent(s[0]).ShowAsItem()
 		}
 		// Display a notification acknowledging save (OOB swap).
 		msg := models.SuccessUserMessage(fmt.Sprintf("Subscription %s updated.", s[0].GetTitle()), "")

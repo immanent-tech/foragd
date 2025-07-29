@@ -19,40 +19,13 @@
   }
 }
 
-/* Styles for subscription cards. */
-/* @utility subscription-card {
-  .badge-unread-count {
-    @apply badge-xs badge-accent text-xs;
-  }
-} */
+@utility grid-item {
+  @apply bg-base-300 rounded-box max-w-prose p-4 shadow-md;
+}
 
-/* Styles common across all cards. */
-/* @utility card {
-  @apply card-sm lg:card-sm bg-neutral h-40;
-  .card-details {
-    @apply text-xs;
-  }
-  .card-description {
-    @apply truncate text-xs;
-  }
-  .card-actions {
-    @apply absolute right-0 bottom-0 m-2 items-center justify-end;
-    .actions-menu {
-      .btn {
-        @apply btn-xs btn-square btn-secondary;
-      }
-      .icon {
-        @apply size-4;
-      }
-      .menu {
-        @apply text-xs;
-        .li {
-          @apply items-center;
-        }
-      }
-    }
-  }
-} */
+@utility article {
+  @apply bg-base-300 rounded-box m-4 max-w-prose p-4 shadow-md;
+}
 
 @utility icontext {
   @apply flex items-center;

@@ -6,14 +6,10 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui"
-	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
-	"github.com/joshuar/go-templ-daisyui/classes/shadow"
 	"github.com/joshuar/go-templ-daisyui/display/article"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
-	"github.com/joshuar/go-templ-daisyui/display/card"
 	"github.com/joshuar/go-templ-daisyui/display/figure"
 	"github.com/joshuar/go-templ-daisyui/display/image"
-	"github.com/joshuar/go-templ-daisyui/feedback/tooltip"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
 	"github.com/sebasvil20/templicons/tabler"
@@ -38,104 +34,8 @@ func NewArticleContent(article *models.Article) *Article {
 	return card
 }
 
-// Card shows the article as a card, for displaying in a collection of articles.
-templ (c *Article) Card() {
-	@card.Build(
-		card.WithStyle(card.Border),
-		card.WithLayout(card.LayoutSide),
-		card.WithShadow(shadow.SM),
-		card.WithClasses("article-card", "card-xs", "lg:card-sm", "bg-neutral"),
-		card.WithClasses(c.classes...),
-		card.WithAttributes(templ.Attributes{
-			"id": c.GetID(),
-		}),
-	) {
-		//
-		// Card Image.
-		//
-		@c.image()
-		//
-		// Card Body.
-		//
-		@card.BuildBody() {
-			// Title.
-			<h2 class="card-title">
-				@link.Build(
-					link.WithAttributes(c.viewAttributes()),
-				) {
-					{ c.GetTitle() }
-				}
-			</h2>
-			// Details.
-			<div class="card-details flex">
-				<div class="flex italic flex-1 justify-start">
-					@ShowTimestamp(c.GetUpdatedDate())
-				</div>
-				if len(c.GetAuthors()) > 0 {
-					<div class="flex font-semibold flex-1 justify-end">
-						{ strings.Join(c.GetAuthors(), ",") }
-					</div>
-				}
-			</div>
-			// Actions.
-			<div class="card-actions">
-				@tooltip.Build("Actions") {
-					@dropdown.Build(
-						dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-						dropdown.WithClasses(dropdown.OpenTop, dropdown.AlignEnd, "actions-menu"),
-					).Show() {
-						// Visit action.
-						<li _="on click call document.activeElement.blur()">
-							@c.visitAction()
-						</li>
-						// Share action.
-						<li>
-							@NewAction("/subscription/"+c.GetSubscriptionID()+"/article/"+c.GetID()+"/share",
-								DisplayActionAsLink,
-								ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-								ActionTarget(ModalContainerID.Target()),
-								ActionLinkOptions(
-									link.WithClasses("text-xs"),
-								),
-							) {
-								<div class="icontext">
-									@tabler.Share(i.Props{Size: i.SizeXS})
-									Share...
-								</div>
-							}
-						</li>
-						// Mark action.
-						<li _="on click call document.activeElement.blur()">
-							@MarkArticleLink(c.GetSubscriptionID(), c.GetID(), c.IsUnread())
-						</li>
-						// Favorite action.
-						<li id={ "favorite_" + c.GetID() } _="on click call document.activeElement.blur()">
-							@ToggleFavoriteArticleText(c.GetID(), c.Favorite, "#favorite_"+c.GetID(), "innerHTML")
-						</li>
-					}
-				}
-			</div>
-		}
-	}
-}
-
-// ShowAsSummary shows a summarised version of the article.
-templ (c *Article) ShowSummary() {
-	@link.Build(
-		link.WithAttributes(c.viewAttributes()),
-	) {
-		<div class="flex flex-row gap-2">
-			@c.image()
-			<div class="text-sm flex-1 text-justify">{ c.GetTitle() }</div>
-		</div>
-		<div class="flex flex-row justify-end">
-			<div class="text-xs uppercase font-semibold">{ c.GetFeedTitle() }</div>
-		</div>
-	}
-}
-
-templ (c *Article) ListItem() {
-	<li class="list-row">
+templ (c *Article) ShowAsItem() {
+	<div class="grid-item" id={ c.GetID() }>
 		@link.Build(
 			link.WithAttributes(c.viewAttributes()),
 		) {
@@ -156,24 +56,32 @@ templ (c *Article) ListItem() {
 				</div>
 			</div>
 		}
-	</li>
+	</div>
 }
 
 templ (c *Article) ShowAsSearchSuggestion() {
 	<li class="list-row" _="on click call document.activeElement.blur()">
 		<div>
 			<div class="list-col-wrap text-xs">
-				@c.ShowSummary()
+				@c.link()
 			</div>
 		</div>
 	</li>
+}
+
+templ (c *Article) ShowAsSearchResult() {
+	<div class="col-span-2">
+		<div class="flex flex-row gap-2 m-2 items-center">
+			@c.link()
+		</div>
+	</div>
 }
 
 // Content shows the full article content.
 templ (c *Article) Content() {
 	<div class="flex justify-center">
 		@article.Build(
-			article.WithClasses("shadow-sm", "bg-neutral", "rounded-box", "m-4", "p-4", "overflow-scroll", "max-w-prose"),
+			article.WithClasses("article"),
 		) {
 			<h2>
 				{ c.GetTitle() }
@@ -262,6 +170,21 @@ templ (a *Article) visitAction() {
 	}
 }
 
+// ShowAsSummary shows a summarised version of the article.
+templ (c *Article) link() {
+	@link.Build(
+		link.WithAttributes(c.viewAttributes()),
+	) {
+		<div class="flex flex-row gap-2">
+			@c.image()
+			<div class="text-sm flex-1 font-semibold">{ c.GetTitle() }</div>
+		</div>
+		<div class="flex flex-row justify-end">
+			<div class="text-xs uppercase font-semibold">{ c.GetFeedTitle() }</div>
+		</div>
+	}
+}
+
 // image returns an appropriate image to use in the article card. It will either be the article's image or a
 // placeholder.
 templ (c Article) image() {
@@ -270,6 +193,7 @@ templ (c Article) image() {
 			image.Build(
 				c.GetImage().URL,
 				image.WithLazyLoading(),
+				image.WithExtraClasses("rounded"),
 			),
 			figure.WithFigureClasses("max-w-24"),
 		).Show()

@@ -39,25 +39,25 @@ type SubscriptionsPage struct {
 	pagination    models.Pagination
 }
 
+func NewSubscriptionsPage(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination) *SubscriptionsPage {
+	return &SubscriptionsPage{
+		filters:       filters,
+		subscriptions: subscriptions,
+		pagination:    pagination,
+	}
+}
+
 // Template will render the home page based on the request details.
 func (page *SubscriptionsPage) Template(req *http.Request) templ.Component {
 	switch {
 	case req.Method == http.MethodPost:
-		return page.Cards()
+		return page.list()
 	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 		return page.content()
 	default:
 		return templates.NewPage("Go Feed Me - Subscriptions",
 			templates.WithBodyContent(page.layout()),
 		)
-	}
-}
-
-func NewSubscriptionsPage(subscriptions models.SubscriptionsSlice, filters *models.SubscriptionFilters, pagination models.Pagination) *SubscriptionsPage {
-	return &SubscriptionsPage{
-		filters:       filters,
-		subscriptions: subscriptions,
-		pagination:    pagination,
 	}
 }
 
@@ -115,17 +115,10 @@ templ (page *SubscriptionsPage) content() {
 			}
 		}
 	</div>
-	// @layouts.CardGrid() {
-	// 	if len(page.subscriptions) > 0 {
-	// 		@page.Cards()
-	// 	} else {
-	// 		@layouts.EmptyContent()
-	// 	}
-	// }
 	if len(page.subscriptions) > 0 {
-		<ul class="list bg-base-100 rounded-box shadow-md max-w-prose" id={ layouts.CardsID.String() }>
-			@page.Cards()
-		</ul>
+		@layouts.Grid() {
+			@page.list()
+		}
 	} else {
 		@layouts.EmptyContent()
 	}
@@ -138,31 +131,16 @@ templ (page *SubscriptionsPage) content() {
 }
 
 // Cards is the list of subscriptions as cards within the subscriptions page.
-templ (page *SubscriptionsPage) Cards() {
+templ (page *SubscriptionsPage) list() {
 	for subscription := range slices.Values(page.subscriptions) {
-		@partials.NewSubscriptionContent(subscription).ListItem()
+		@partials.NewSubscriptionContent(subscription).ShowAsItem()
 	}
 	if page.pagination != "" && len(page.subscriptions) == page.filters.GetCount() {
 		// Add pagination htmx props to last article.
 		@layouts.PaginationControl(ctx, "/subscriptions", page.pagination)
 	}
-	// for cards := range slices.Values(page.generateCards(ctx)) {
-	// 	@cards
-	// }
 }
 
-// func (page *SubscriptionsPage) generateCards(ctx context.Context) []templ.Component {
-// 	cards := make([]templ.Component, 0, len(page.subscriptions))
-// 	for subscription := range slices.Values(page.subscriptions) {
-// 		cards = append(cards, partials.NewSubscriptionContent(subscription).ListItem())
-// 	}
-// 	// Add pagination element if pagination is required.
-// 	if page.pagination != "" && len(cards) == page.filters.GetCount() {
-// 		// Add pagination htmx props to last article.
-// 		cards = append(cards, layouts.PaginationControl(ctx, "/subscriptions", page.pagination))
-// 	}
-// 	return cards
-// }
 templ markAllSubscriptionsLink(mark models.Mark) {
 	@partials.NewAction("/subscriptions/mark/"+string(mark), partials.DisplayActionAsLink,
 		partials.ActionMethod(http.MethodPost),

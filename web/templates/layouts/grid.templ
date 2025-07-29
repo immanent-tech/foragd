@@ -12,13 +12,13 @@ import (
 	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 )
 
-var CardsID = attributes.ID("cards")
+var GridID = attributes.ID("objects")
 
-// CardGrid renders the given card components in a grid container.
-templ CardGrid() {
+// ObjectGrid renders the given card components in a grid container.
+templ Grid() {
 	<div
 		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4 m-2"
-		id={ CardsID.String() }
+		id={ GridID.String() }
 	>
 		{ children... }
 	</div>
@@ -37,7 +37,7 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 		hx-include="#content-filters"
 		hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
 		hx-trigger="intersect once"
-		hx-target={ CardsID.Target() }
+		hx-target={ GridID.Target() }
 		hx-swap="beforeend"
 		hx-indicator="#content-loading"
 		_="on htmx:afterRequest remove me"
