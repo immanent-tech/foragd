@@ -61,13 +61,11 @@ templ (c *Article) ShowAsItem() {
 }
 
 templ (c *Article) ShowAsSearchSuggestion() {
-	<li class="list-row" _="on click call document.activeElement.blur()">
-		<div>
-			<div class="list-col-wrap text-xs">
-				@c.link()
-			</div>
+	<div class="col-span-2">
+		<div class="flex flex-row gap-2 m-2 items-center">
+			@c.link()
 		</div>
-	</li>
+	</div>
 }
 
 templ (c *Article) ShowAsSearchResult() {

@@ -17,22 +17,18 @@ import (
 )
 
 templ SearchSuggestions(suggestions ...templ.Component) {
-	<ul
-		class="list dropdown-content bg-base-200/90 w-screen lg:w-full rounded-box shadow-md"
-		tabindex="3"
-		_="on click remove me"
+	<nav
+		class="search-suggestions"
+		_="on click remove me then set #global-search.value to ''"
 	>
 		for suggestion := range slices.Values(suggestions) {
 			@suggestion
 		}
-		<div class="flex items-center">
-			More results...
-		</div>
-	</ul>
+	</nav>
 }
 
 templ SearchSuggestionHeader(text string) {
-	<li class="p-4 pb-2 text-xs opacity-60 tracking-wide">{ text }</li>
+	<h2 class="tracking-wide">{ text }</h2>
 }
 
 type SearchResultsPage struct {

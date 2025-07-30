@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@catppuccin/daisyui": "^2.1.1",
+    "@oddbird/css-anchor-positioning": "^0.6.1",
     "@tabler/icons": "^3.34.1",
     "daisyui": "^5.0.46",
     "date-fns": "^4.1.0",

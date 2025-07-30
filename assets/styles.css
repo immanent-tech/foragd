@@ -6,6 +6,28 @@
 }
 @source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
 
+@utility search-suggestions-anchor {
+  anchor-name: --search-suggestions-anchor;
+}
+
+@utility search-suggestions-target {
+  @apply bg-base-200/90 absolute z-999 flex place-items-center;
+  .search-suggestions {
+    @apply flex flex-col gap-2.5 rounded-2xl p-2.5 shadow-lg;
+  }
+}
+
+@utility content-header {
+  @apply bg-base-200 w-screen;
+  .btn {
+    @apply btn-square btn-sm btn-outline;
+  }
+}
+
+@utility search-suggestions {
+  @apply w-screen lg:w-1/2;
+}
+
 @utility controls {
   @apply m-2 grid auto-cols-max grid-flow-col items-center justify-end gap-2;
   .btn {

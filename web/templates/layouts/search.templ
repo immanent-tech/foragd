@@ -6,7 +6,6 @@ package layouts
 import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/input/form"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
 	"github.com/joshuar/go-templ-daisyui/layout/join"
 	"github.com/sebasvil20/templicons/i"
@@ -14,38 +13,37 @@ import (
 )
 
 templ SearchForm() {
-	<div class="dropdown dropdown-center">
-		@form.Build() {
-			@join.Horizontally() {
-				@textinput.Build(
-					textinput.WithName("text"),
-					textinput.WithPlaceholder("Search anything..."),
-					textinput.WithExtraAttributes(templ.Attributes{
-						"hx-post":      "/search",
-						"hx-trigger":   "keyup changed delay:500ms",
-						"hx-target":    "#search-suggestions",
-						"hx-indicator": ".htmx-indicator",
-						"tabindex":     0,
-						"hx-push-url":  "false",
-					}),
-					textinput.WithExtraClasses("join-item", textinput.SM),
-				).Show()
-				@button.Build(
-					button.AsSubmit(),
-					button.WithClasses("join-item", button.Square, button.SM),
-					button.WithAttributes(templ.Attributes{
-						"hx-get":      "/search/results",
-						"hx-target":   partials.ContentID.Target(),
-						"hx-push-url": "true",
-						"tabindex":    1,
-						"hx-trigger":  "click, keyup[key=='Enter']",
-						"hx-include":  "[name='text']",
-					}),
-				) {
-					@tabler.Search(i.Props{Size: i.SizeSM})
-				}
-			}
+	// @form.Build() {
+	@join.Horizontally() {
+		@textinput.Build(
+			textinput.WithID("global-search"),
+			textinput.WithName("text"),
+			textinput.WithPlaceholder("Search anything..."),
+			textinput.WithExtraAttributes(templ.Attributes{
+				"hx-post":      "/search",
+				"hx-trigger":   "input changed delay:500ms",
+				"hx-target":    "#search-suggestions",
+				"hx-indicator": ".htmx-indicator",
+				"tabindex":     0,
+				"hx-push-url":  "false",
+			}),
+			textinput.WithExtraClasses("join-item", textinput.SM),
+		).Show()
+		@button.Build(
+			button.AsSubmit(),
+			button.WithClasses("join-item", button.Square, button.SM),
+			button.WithAttributes(templ.Attributes{
+				"hx-get":      "/search/results",
+				"hx-target":   partials.ContentID.Target(),
+				"hx-push-url": "true",
+				"tabindex":    1,
+				"hx-trigger":  "click, keyup[key=='Enter']",
+				"hx-include":  "[name='text']",
+				"_":           "on htmx:afterRequest remove #search-suggestions",
+			}),
+		) {
+			@tabler.Search(i.Props{Size: i.SizeSM})
 		}
-		<div id="search-suggestions"></div>
-	</div>
+	}
+	// }
 }

@@ -51,46 +51,50 @@ templ (page *HomePage) content() {
 	if page == nil || len(page.Subscriptions) == 0 {
 		@emptyHome()
 	} else {
-		<div class="stats shadow bg-neutral max-w-screen">
-			@link.Build(
-				link.WithAttributes(templ.Attributes{
-					"hx-get":      "/subscriptions",
-					"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-					"hx-target":   partials.ContentID.Target(),
-					"hx-swap":     "innerHTML",
-					"hx-push-url": "true",
-				}),
-			) {
-				<div class="stat">
-					<div class="stat-figure text-primary">
-						@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
+		// Unread stats.
+		<div class="flex justify-center m-4">
+			<div class="stats shadow bg-base-300 max-w-screen">
+				@link.Build(
+					link.WithAttributes(templ.Attributes{
+						"hx-get":      "/subscriptions",
+						"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
+						"hx-target":   partials.ContentID.Target(),
+						"hx-swap":     "innerHTML",
+						"hx-push-url": "true",
+					}),
+				) {
+					<div class="stat">
+						<div class="stat-figure text-primary">
+							@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
+						</div>
+						<div class="stat-value text-primary">{ strconv.Itoa(len(page.Subscriptions)) }</div>
+						<div class="stat-title font-semibold">Subscriptions</div>
 					</div>
-					<div class="stat-value text-primary">{ strconv.Itoa(len(page.Subscriptions)) }</div>
-					<div class="stat-title font-semibold">Subscriptions</div>
-				</div>
-			}
-			@link.Build(
-				link.WithAttributes(templ.Attributes{
-					"hx-get":      "/articles",
-					"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
-					"hx-target":   partials.ContentID.Target(),
-					"hx-swap":     "innerHTML",
-					"hx-push-url": "true",
-				}),
-			) {
-				<div class="stat">
-					<div class="stat-figure text-primary">
-						@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
+				}
+				@link.Build(
+					link.WithAttributes(templ.Attributes{
+						"hx-get":      "/articles",
+						"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
+						"hx-target":   partials.ContentID.Target(),
+						"hx-swap":     "innerHTML",
+						"hx-push-url": "true",
+					}),
+				) {
+					<div class="stat">
+						<div class="stat-figure text-primary">
+							@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
+						</div>
+						<div class="stat-value text-primary">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</div>
+						<div class="stat-title font-semibold">Unread Articles</div>
 					</div>
-					<div class="stat-value text-primary">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</div>
-					<div class="stat-title font-semibold">Unread Articles</div>
-				</div>
-			}
+				}
+			</div>
 		</div>
+		// Top categories
 		if page.TopCategories != nil {
 			// Display a list of top categories with item counts.
-			<div class="gap-2 p-4 m-4 rounded-box bg-neutral">
-				<h1 class="content-center text-center font-semibold">Top Categories:</h1>
+			<h1 class="content-center text-center font-semibold">Top Categories:</h1>
+			<div class="flex justify-center gap-2 p-4 m-4 rounded-box bg-base-300">
 				<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
 					for category := range slices.Values(page.TopCategories) {
 						@categoryBadge(category)
@@ -100,8 +104,8 @@ templ (page *HomePage) content() {
 		}
 		if page.RareCategories != nil {
 			// Display a list of rare categories with item count.
-			<div class="gap-2 p-4 m-4 rounded-box bg-neutral">
-				<h1 class="content-center text-center font-semibold">Interesting Categories:</h1>
+			<h1 class="content-center text-center font-semibold">Interesting Categories:</h1>
+			<div class="flex justify-center gap-2 p-4 m-4 rounded-box bg-base-300">
 				<div id="rare-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
 					for category := range slices.Values(page.RareCategories) {
 						@categoryBadge(category)
@@ -110,10 +114,24 @@ templ (page *HomePage) content() {
 			</div>
 		}
 		if page.RandomArticles != nil {
-			<div class="flex flex-col gap-2">
-				<h1>Random Articles:</h1>
-				@layouts.Grid() {
-					@templ.Join(page.RandomArticles...)
+			<h1 class="content-center text-center font-semibold">Random Articles:</h1>
+			<div class="carousel w-full">
+				for idx, article := range page.RandomArticles {
+					<div id={ "slide" + strconv.Itoa(idx) } class="carousel-item relative w-full content-center">
+						@article
+						<div class="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+							if idx == 0 {
+								<a href={ "#slide" + strconv.Itoa(len(page.RandomArticles)-1) } class="btn btn-circle">❮</a>
+							} else {
+								<a href={ "#slide" + strconv.Itoa(idx-1) } class="btn btn-circle">❮</a>
+							}
+							if idx == len(page.RandomArticles)-1 {
+								<a href={ "#slide0" } class="btn btn-circle">❯</a>
+							} else {
+								<a href={ "#slide" + strconv.Itoa(idx+1) } class="btn btn-circle">❯</a>
+							}
+						</div>
+					</div>
 				}
 			</div>
 		}
