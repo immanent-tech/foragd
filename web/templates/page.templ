@@ -89,7 +89,8 @@ templ (h *Head) build() {
 		/>
 		<link href="/static/styles.css" rel="stylesheet"/>
 		<script src="/static/scripts.js"></script>
-		<meta name="htmx-config" content='{"selfRequestsOnly":"true","allowNestedOobSwaps":"false"}'/>
+		// Site-wide htmx config.
+		<meta name="htmx-config" content='{"selfRequestsOnly":"true","allowNestedOobSwaps":"false","historyCacheSize":0}'/>
 		@SetPageTitle(h.Title)
 	</head>
 }

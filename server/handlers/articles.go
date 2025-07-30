@@ -6,11 +6,15 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"strings"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
@@ -57,7 +61,6 @@ func (a *API) MarkArticle() http.HandlerFunc {
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,
-			// TriggerStateUpdates,
 		)
 		// Extract user data.
 		user, found := models.UserFromCtx(req.Context())
@@ -82,6 +85,9 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
+		slogctx.FromCtx(req.Context()).Debug("Marking articles.",
+			slog.String("item_ids", strings.Join(request.Articles, ",")),
+		)
 		// Mark off items under subscription states.
 		user.MarkItems(request.Mark, request.SubscriptionID, request.Articles...)
 		// Update the user object.
@@ -92,6 +98,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
+		spew.Dump(user.GetSubscriptionMetadata().GetByID(request.SubscriptionID))
 
 		var resp *models.Response
 		// If the view is "all" send back the updated subscription card.

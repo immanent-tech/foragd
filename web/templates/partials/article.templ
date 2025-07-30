@@ -128,7 +128,7 @@ templ (c *Article) Content() {
 	<div
 		hx-post={ "/subscription/" + c.GetSubscriptionID() + "/article/" + c.GetID() + "/mark/read" }
 		hx-swap="none"
-		hx-trigger="load delay:1m"
+		hx-trigger="intersect once,load delay:20s"
 		hx-vals='{"view": "unread"}'
 		hx-push-url="false"
 		_="on htmx:afterRequest remove me"
