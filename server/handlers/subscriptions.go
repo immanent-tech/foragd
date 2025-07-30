@@ -460,14 +460,16 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					chain.Then(RenderResponse(RespInvalidInput(fmt.Errorf("could not parse OPML file: %w", err)))).ServeHTTP(res, req)
 					return
 				}
-				opmlImport, err := opmlFile.Parse()
+				r, err := opmlFile.GenerateRequests()
 				if err != nil {
-					chain.Then(RenderResponse(RespInvalidInput(fmt.Errorf("could not parse OPML file: %w", err)))).ServeHTTP(res, req)
+					slogctx.FromCtx(req.Context()).Warn("User import failed.",
+						slog.Any("error", err),
+					)
+					chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 					return
 				}
-				feeds := opmlImport.ExtractRSS()
-				for _, feed := range feeds {
-					requests[&models.SubscriptionRequest{URL: feed.XMLURL}] = &models.Feed{}
+				for newRequest := range slices.Values(r) {
+					requests[newRequest] = &models.Feed{}
 				}
 			}
 			matchResults, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
