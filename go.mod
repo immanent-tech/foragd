@@ -7,7 +7,7 @@ replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
 replace github.com/joshuar/go-syndication v0.0.0 => ./models/feeds
 
 require (
-	github.com/a-h/templ v0.3.920
+	github.com/a-h/templ v0.3.924
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.25.0
@@ -54,7 +54,7 @@ require (
 
 require (
 	github.com/PuerkitoBio/rehttp v1.4.0 // indirect
-	github.com/alecthomas/kong v1.12.0
+	github.com/alecthomas/kong v1.12.1
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
 	github.com/dprotaso/go-yit v0.0.0-20220510233725-9ba8df137936 // indirect
@@ -94,7 +94,7 @@ require (
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/perimeterx/marshmallow v1.1.5 // indirect
-	github.com/reugn/go-quartz v0.14.0
+	github.com/reugn/go-quartz v0.15.1
 	github.com/samber/lo v1.51.0 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/speakeasy-api/openapi-overlay v0.10.2 // indirect
