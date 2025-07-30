@@ -24,11 +24,6 @@ import (
 	"github.com/joshuar/go-feed-me/server/session"
 )
 
-const (
-	// SessionName is the name of the cookie that will contain session data.
-	SessionName = gothic.SessionName
-)
-
 func init() {
 	gob.Register(UserAuth{})
 	gob.Register(sessions.Session{})
@@ -232,25 +227,6 @@ func (a *Authenticator) GetUserAuth(ctx context.Context) (UserAuth, bool) {
 	}
 	return user, true
 }
-
-// // Logout performs a logout operation for the user. This will invalidate any active session and redirect the user to the
-// // home page.
-// func (a *Authenticator) Logout() http.Handler {
-// 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-// 		slogctx.FromCtx(req.Context()).Info("logging out")
-// 		if err := gothic.Logout(res, req); err != nil {
-// 			slogctx.FromCtx(req.Context()).Error("Logout failed.",
-// 				slog.Any("error", err))
-// 		}
-// 		slogctx.FromCtx(req.Context()).Debug("User logged out.")
-// 		res.Header().Set("Location", "/")
-// 		res.WriteHeader(http.StatusTemporaryRedirect)
-// 	})
-// }
-
-// func (a *Authenticator) LoadAndSave() func(next http.Handler) http.Handler {
-// 	return session.Manager.LoadAndSave
-// }
 
 func NewAuthenticator(ctx context.Context) (*Authenticator, error) {
 	if err := loadConfigOnce(); err != nil {

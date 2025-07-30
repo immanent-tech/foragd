@@ -5,7 +5,6 @@ package store
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -25,25 +24,27 @@ var (
 	_ scs.Store         = (*Store)(nil)
 )
 
-var (
-	ErrInitStoreFailed     = errors.New("could not initialize session store")
-	ErrDeleteSessionFailed = errors.New("delete session failed")
-	ErrFindSessionFailed   = errors.New("could not find session")
-	ErrCommitSessionFailed = errors.New("could not commit session")
-)
-
 type Store struct {
 	client *elastic.API
 	index  string
 }
 
-// DeleteCtx should remove the session token and corresponding data from the
+// NewSessionStore sets up a new session store for use by the server.
+func NewSessionStore(ctx context.Context, client *elastic.API) (*Store, error) {
+	sessionCtx = ctx
+	return &Store{
+		client: client,
+		index:  schema.SessionsSchemaPrefix,
+	}, nil
+}
+
+// Delete should remove the session token and corresponding data from the
 // session store. If the token does not exist then Delete should be a no-op
 // and return nil (not an error).
 func (s *Store) Delete(token string) error {
 	err := elastic.DeleteDoc(sessionCtx, s.client.GetAPI(), s.index, token)
 	if err != nil {
-		return errors.Join(ErrDeleteSessionFailed, err)
+		return fmt.Errorf("delete session failed: %w", err)
 	}
 
 	return nil
@@ -81,7 +82,7 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 		elastic.UpdateDocAsUpsert(),
 	)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrCommitSessionFailed, err)
+		return fmt.Errorf("could not commit session: %w", err)
 	}
 
 	return nil
@@ -96,7 +97,7 @@ func (s *Store) All() (map[string][]byte, error) {
 
 	sessions, err := elastic.SearchAll[models.UserSession](sessionCtx, s.client.GetAPI(), s.index, query.Since("expiry", time.Now().UTC()), 1000)
 	if err != nil {
-		return nil, errors.Join(elastic.ErrSearchFailed, err)
+		return nil, fmt.Errorf("could not retrieve active sessions: %w", err)
 	}
 
 	for _, session := range sessions {
@@ -104,12 +105,4 @@ func (s *Store) All() (map[string][]byte, error) {
 	}
 
 	return data, nil
-}
-
-func NewSessionStore(ctx context.Context, client *elastic.API) (*Store, error) {
-	sessionCtx = ctx
-	return &Store{
-		client: client,
-		index:  schema.SessionsSchemaPrefix,
-	}, nil
 }

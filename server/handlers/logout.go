@@ -7,15 +7,17 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/markbates/goth/gothic"
 	slogctx "github.com/veqryn/slog-context"
+
+	"github.com/joshuar/go-feed-me/server/session"
 )
 
 // Logout handles logout requests.
 func Logout() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		slogctx.FromCtx(req.Context()).Info("logging out")
-		if err := gothic.Logout(res, req); err != nil {
+		err := session.Manager.Destroy(req.Context())
+		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Logout failed.",
 				slog.Any("error", err))
 		}

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/markbates/goth/gothic"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
@@ -20,6 +21,7 @@ import (
 
 const (
 	sessionLifetime = 24 * time.Hour
+	sessionName     = gothic.SessionName
 )
 
 const (
@@ -36,7 +38,7 @@ func init() {
 var Manager *scs.SessionManager
 
 // NewSessionManager creates a new session manager.
-func NewSessionManager(ctx context.Context, api *elastic.API, name string) error {
+func NewSessionManager(ctx context.Context, api *elastic.API) error {
 	// Load the session store.
 	sessionStore, err := store.NewSessionStore(ctx, api)
 	if err != nil {
@@ -46,7 +48,7 @@ func NewSessionManager(ctx context.Context, api *elastic.API, name string) error
 	Manager = scs.New()
 	Manager.Store = sessionStore
 	Manager.Lifetime = sessionLifetime
-	Manager.Cookie.Name = name
+	Manager.Cookie.Name = sessionName
 	Manager.Cookie.Secure = true
 	Manager.Cookie.HttpOnly = true
 	Manager.Cookie.SameSite = http.SameSiteLaxMode
