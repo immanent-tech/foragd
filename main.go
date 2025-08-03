@@ -4,15 +4,19 @@
 package main
 
 import (
+	"context"
 	"embed"
 	"log/slog"
 	"os"
 
 	"github.com/alecthomas/kong"
+	slogelasticsearch "github.com/immanent-tech/slog-elasticsearch"
 
 	"github.com/joshuar/go-feed-me/cli"
 	"github.com/joshuar/go-feed-me/config"
 	"github.com/joshuar/go-feed-me/logging"
+	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/joshuar/go-feed-me/providers/elastic/schema"
 )
 
 //go:embed all:static
@@ -20,12 +24,13 @@ var static embed.FS
 
 // CLI contains all of the commands and common options.
 var CLI struct {
+	logging.Options
+
 	Serve        cli.ServeCmd         `cmd:"" help:"Run server."`
 	Migrate      cli.MigrateCmd       `cmd:"" help:"Run backend migrations."`
 	Scheduler    cli.SchedulerCmd     `cmd:"" help:"Run scheduler."`
 	Prune        cli.PruneCmd         `cmd:"" help:"Run pruning."`
 	ProfileFlags logging.ProfileFlags `name:"profile" help:"Set profiling flags."`
-	logging.Options
 }
 
 func main() {
@@ -34,13 +39,22 @@ func main() {
 
 	ctx := kong.Parse(&CLI, kong.Bind())
 
-	logger := logging.New(logging.Options{LogLevel: CLI.LogLevel, NoLogFile: CLI.NoLogFile})
-
 	if err := config.Init(); err != nil {
-		logger.Error("Could not initialize config.",
+		slog.Error("Could not initialize config.",
 			slog.Any("error", err))
 		os.Exit(-1)
 	}
+
+	// Load the Elastic backend
+	esapi, err := elastic.RawConnection(context.Background())
+	if err != nil {
+		slog.Error("Could not initialize config.",
+			slog.Any("error", err))
+		os.Exit(-1)
+	}
+	esLogHandler := slogelasticsearch.Option{Level: slog.LevelDebug, Conn: esapi, Index: schema.LogsSchemaPrefix}.NewElasticsearchHandler(context.Background())
+
+	logger := logging.New(logging.Options{LogLevel: CLI.LogLevel, NoLogFile: CLI.NoLogFile, Handlers: []slog.Handler{esLogHandler}})
 
 	// Enable profiling if requested.
 	if CLI.ProfileFlags != nil {
