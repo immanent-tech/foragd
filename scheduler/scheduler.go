@@ -48,7 +48,7 @@ func Run(ctx context.Context) error {
 	}
 
 	db := &elastic.API{
-		API: esClient.GetAPI(),
+		TypedClient: esClient.GetAPI(),
 	}
 
 	ctx = FeedManagementAPIToCtx(ctx, db)
