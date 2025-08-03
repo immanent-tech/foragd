@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/mget"
@@ -15,7 +15,7 @@ import (
 
 // NewDeleteByQueryRequest creates a new delete by query request that will operate on the given index with the given
 // options.
-func NewDeleteByQueryRequest(api *typedapi.API, index string, options ...any) *deletebyquery.DeleteByQuery {
+func NewDeleteByQueryRequest(api *elasticsearch.TypedClient, index string, options ...any) *deletebyquery.DeleteByQuery {
 	req := api.DeleteByQuery(index)
 
 	for option := range slices.Values(options) {
@@ -34,7 +34,7 @@ func NewDeleteByQueryRequest(api *typedapi.API, index string, options ...any) *d
 	return req
 }
 
-func NewGetRequest(api *typedapi.API, index, id string, options ...any) *get.Get {
+func NewGetRequest(api *elasticsearch.TypedClient, index, id string, options ...any) *get.Get {
 	req := api.Get(index, id)
 	for option := range slices.Values(options) {
 		switch value := option.(type) {
@@ -57,7 +57,7 @@ type MgetRequest interface {
 }
 
 // NewMGetRequest creates a new mget object with the given options.
-func NewMGetRequest(api *typedapi.API, options ...Option[MgetRequest]) *mget.Mget {
+func NewMGetRequest(api *elasticsearch.TypedClient, options ...Option[MgetRequest]) *mget.Mget {
 	req := api.Mget()
 	for option := range slices.Values(options) {
 		option(req)

@@ -42,7 +42,7 @@ func (e *API) AddUser(ctx context.Context, userID models.UserID) error {
 		MaxHistory: models.DefaultMaxHistory.String(),
 	}
 
-	err := CreateDoc(ctx, e.GetAPI(), index, userID, user)
+	err := CreateDoc(ctx, e.TypedClient, index, userID, user)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}

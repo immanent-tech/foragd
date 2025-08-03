@@ -4,7 +4,7 @@
 package index
 
 import (
-	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/deletebyquery"
 
 	"github.com/joshuar/go-feed-me/providers/elastic"
@@ -14,7 +14,7 @@ import (
 type DeleteByQueryOption elastic.Option[*deletebyquery.DeleteByQuery]
 
 // NewSearchRequest creates a new search request with the given options.
-func NewDeleteByQueryRequest(api *typedapi.API, index string, options ...DeleteByQueryOption) *deletebyquery.DeleteByQuery {
+func NewDeleteByQueryRequest(api *elasticsearch.TypedClient, index string, options ...DeleteByQueryOption) *deletebyquery.DeleteByQuery {
 	req := api.DeleteByQuery(index)
 
 	for _, option := range options {

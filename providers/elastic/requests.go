@@ -6,7 +6,7 @@ package elastic
 import (
 	"log/slog"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/msearch"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
@@ -144,7 +144,7 @@ type SearchRequest interface {
 }
 
 // NewSearchRequest creates a new search request with the given options.
-func NewSearchRequest(api *typedapi.API, options ...Option[SearchRequest]) *search.Search {
+func NewSearchRequest(api *elasticsearch.TypedClient, options ...Option[SearchRequest]) *search.Search {
 	req := api.Search()
 
 	for _, option := range options {
@@ -179,7 +179,7 @@ type MsearchRequest interface {
 	AddSearch(header types.MultisearchHeader, body types.SearchRequestBody) error
 }
 
-func NewMSearchRequest(api *typedapi.API, options ...Option[MsearchRequest]) *msearch.Msearch {
+func NewMSearchRequest(api *elasticsearch.TypedClient, options ...Option[MsearchRequest]) *msearch.Msearch {
 	req := api.Msearch()
 
 	for _, option := range options {
@@ -197,7 +197,7 @@ type UpdateDocRequest interface {
 }
 
 // NewUpdateDocRequest creates a new doc update request with the given options.
-func NewUpdateDocRequest(api *typedapi.API, index, id string, doc any, options ...Option[UpdateDocRequest]) *update.Update {
+func NewUpdateDocRequest(api *elasticsearch.TypedClient, index, id string, doc any, options ...Option[UpdateDocRequest]) *update.Update {
 	req := api.Update(index, id).Doc(doc)
 
 	for _, option := range options {
@@ -242,7 +242,7 @@ type CountRequest interface {
 }
 
 // NewCountRequest creates a new count request with the given options.
-func NewCountRequest(api *typedapi.API, options ...Option[CountRequest]) *count.Count {
+func NewCountRequest(api *elasticsearch.TypedClient, options ...Option[CountRequest]) *count.Count {
 	req := api.Count()
 
 	for _, option := range options {

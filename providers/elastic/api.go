@@ -16,7 +16,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/count"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/deletebyquery"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/get"
@@ -40,12 +40,12 @@ var _ types.FieldValueVariant = (*paginationValue[types.FieldValue])(nil)
 
 // API is an object that provides access to the Elasticsearch API.
 type API struct {
-	*typedapi.API
+	*elasticsearch.TypedClient
 }
 
-// GetAPI returns the raw API object.
-func (a *API) GetAPI() *typedapi.API {
-	return a.API
+// // GetAPI returns the raw API object.
+func (a *API) GetAPI() *elasticsearch.TypedClient {
+	return a.TypedClient
 }
 
 // GetFeeds retrieves the feeds with the given IDs.
@@ -235,7 +235,7 @@ func BulkUpdate[T ~string, O Object[T]](ctx context.Context, api *API, index str
 }
 
 // Exists checks if the document with the given id exists in the given index.
-func Exists[T ~string](ctx context.Context, api *typedapi.API, index string, id T) (bool, error) {
+func Exists[T ~string](ctx context.Context, api *elasticsearch.TypedClient, index string, id T) (bool, error) {
 	found, err := api.Exists(index, string(id)).
 		Header(ReqIDHeader, middleware.GetReqID(ctx)).
 		Do(ctx)
@@ -246,7 +246,7 @@ func Exists[T ~string](ctx context.Context, api *typedapi.API, index string, id 
 }
 
 // Count will return the number of docs matching the given queries in the given index.
-func Count(ctx context.Context, api *typedapi.API, index string, queries ...query.Option) (int64, error) {
+func Count(ctx context.Context, api *elasticsearch.TypedClient, index string, queries ...query.Option) (int64, error) {
 	resp, err := NewCountRequest(api,
 		WithRequestID[*count.Count, CountRequest](middleware.GetReqID(ctx)),
 		WithIndex[*count.Count, CountRequest](index),
@@ -261,7 +261,7 @@ func Count(ctx context.Context, api *typedapi.API, index string, queries ...quer
 
 // GetDocs performs an `_mget` request to fetch the documents from the given index with the given ids. A non-nil error
 // is returned on a failure.
-func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index string, ids ...T) ([]O, error) {
+func GetDocs[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClient, index string, ids ...T) ([]O, error) {
 	docIDs := make([]string, 0, len(ids))
 	for id := range slices.Values(ids) {
 		docIDs = append(docIDs, string(id))
@@ -284,7 +284,7 @@ func GetDocs[T ~string, O any](ctx context.Context, api *typedapi.API, index str
 }
 
 // GetDoc retrieves the doc with the given id from the given index. A non-nil error is returned on a failure.
-func GetDoc[T ~string, O any](ctx context.Context, api *typedapi.API, index string, id T) (O, error) {
+func GetDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClient, index string, id T) (O, error) {
 	var doc O
 	resp, err := NewGetRequest(api, index, string(id),
 		WithRequestID[*get.Get, RequestCommon[*get.Get]](middleware.GetReqID(ctx)),
@@ -301,7 +301,7 @@ func GetDoc[T ~string, O any](ctx context.Context, api *typedapi.API, index stri
 }
 
 // CreateDoc will create the given document, with given id, in the given index.
-func CreateDoc[T ~string, O any](ctx context.Context, api *typedapi.API, index string, id T, doc O) error {
+func CreateDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClient, index string, id T, doc O) error {
 	resp, err := api.Create(index, string(id)).
 		Document(doc).
 		Header(ReqIDHeader, middleware.GetReqID(ctx)).
@@ -321,7 +321,7 @@ func CreateDoc[T ~string, O any](ctx context.Context, api *typedapi.API, index s
 
 // UpdateDoc performs a partial doc update on the document with the given id in the given index. A non-nil error is
 // returned on a failure.
-func UpdateDoc[T ~string](ctx context.Context, api *typedapi.API, index string, id T, updates map[string]any, options ...Option[UpdateDocRequest]) error {
+func UpdateDoc[T ~string](ctx context.Context, api *elasticsearch.TypedClient, index string, id T, updates map[string]any, options ...Option[UpdateDocRequest]) error {
 	baseUpdates := map[string]any{
 		"updated_at": time.Now().UTC(),
 	}
@@ -349,7 +349,7 @@ func UpdateDoc[T ~string](ctx context.Context, api *typedapi.API, index string, 
 }
 
 // DeleteDoc deletes the document with the given id from the given index.
-func DeleteDoc[T ~string](ctx context.Context, api *typedapi.API, index string, id T) error {
+func DeleteDoc[T ~string](ctx context.Context, api *elasticsearch.TypedClient, index string, id T) error {
 	resp, err := api.Delete(index, string(id)).
 		Header(ReqIDHeader, middleware.GetReqID(ctx)).
 		Refresh(refresh.True).
@@ -367,7 +367,7 @@ func DeleteDoc[T ~string](ctx context.Context, api *typedapi.API, index string, 
 }
 
 // DeleteDocs performs a delete by query request on the given index to delete documents matching the given queries.
-func DeleteDocs(ctx context.Context, api *typedapi.API, index string, queries ...query.Option) error {
+func DeleteDocs(ctx context.Context, api *elasticsearch.TypedClient, index string, queries ...query.Option) error {
 	resp, err := NewDeleteByQueryRequest(api, index,
 		WithRequestID[*deletebyquery.DeleteByQuery, RequestCommon[*deletebyquery.DeleteByQuery]](middleware.GetReqID(ctx)),
 		WithQueryOptions[*deletebyquery.DeleteByQuery, RequestWithQuery[*deletebyquery.DeleteByQuery]](queries...),
@@ -384,7 +384,7 @@ func DeleteDocs(ctx context.Context, api *typedapi.API, index string, queries ..
 }
 
 // Search performs a _search request to find documents matching the given query.
-func Search[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, count int, options ...Option[SearchRequest]) ([]O, []types.FieldValue, error) {
+func Search[O any](ctx context.Context, api *elasticsearch.TypedClient, index string, query query.Option, count int, options ...Option[SearchRequest]) ([]O, []types.FieldValue, error) {
 	defaultOptions := []Option[SearchRequest]{
 		WithRequestID[*search.Search, SearchRequest](middleware.GetReqID(ctx)),
 		WithIndex[*search.Search, SearchRequest](index),
@@ -414,7 +414,7 @@ func Search[O any](ctx context.Context, api *typedapi.API, index string, query q
 
 // SearchAll performs a paginated search request to retrieve *all* documents matching the given query. Unlike Search, it
 // does not stop when the request hits count is reached.
-func SearchAll[O any](ctx context.Context, api *typedapi.API, index string, query query.Option, paginationSize int, options ...Option[SearchRequest]) ([]O, error) {
+func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index string, query query.Option, paginationSize int, options ...Option[SearchRequest]) ([]O, error) {
 	if paginationSize == 0 {
 		paginationSize = 1000
 	}
@@ -454,7 +454,7 @@ func SearchAll[O any](ctx context.Context, api *typedapi.API, index string, quer
 	return allResults, nil
 }
 
-func MultiSearch(ctx context.Context, api *typedapi.API, searches ...*query.MsearchSearch) (results.MSearchResults, error) {
+func MultiSearch(ctx context.Context, api *elasticsearch.TypedClient, searches ...*query.MsearchSearch) (results.MSearchResults, error) {
 	subscriptionsIndex := FeedsIndexFromCtx(ctx)
 	if subscriptionsIndex == "" {
 		return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)

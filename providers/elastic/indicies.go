@@ -8,7 +8,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/cluster/putcomponenttemplate"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/indices/create"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/indices/putindextemplate"
@@ -18,7 +18,7 @@ import (
 // CreateIndexOption is a functional option for a create index request.
 type CreateIndexOption Option[*CreateIndexRequest]
 
-func PutComponentTemplate(ctx context.Context, api *typedapi.API, name string, template *putcomponenttemplate.Request) error {
+func PutComponentTemplate(ctx context.Context, api *elasticsearch.TypedClient, name string, template *putcomponenttemplate.Request) error {
 	_, err := api.Cluster.PutComponentTemplate(name).Request(template).Do(ctx)
 	if err != nil {
 		return errors.Join(ErrPutILMPolicyFailed, err)
@@ -27,7 +27,7 @@ func PutComponentTemplate(ctx context.Context, api *typedapi.API, name string, t
 	return nil
 }
 
-func PutIndexTemplate(ctx context.Context, api *typedapi.API, name string, template *putindextemplate.Request) error {
+func PutIndexTemplate(ctx context.Context, api *elasticsearch.TypedClient, name string, template *putindextemplate.Request) error {
 	_, err := api.Indices.PutIndexTemplate(name).Request(template).Do(ctx)
 	if err != nil {
 		return errors.Join(ErrPutILMPolicyFailed, err)
@@ -66,7 +66,7 @@ func WithIndexAlias(name string, details types.Alias) CreateIndexOption {
 }
 
 // NewIndexRequest creates a new index request for the given index name and options.
-func NewIndexRequest(api *typedapi.API, name string, options ...CreateIndexOption) *create.Create {
+func NewIndexRequest(api *elasticsearch.TypedClient, name string, options ...CreateIndexOption) *create.Create {
 	req := &CreateIndexRequest{
 		aliases: make(map[string]types.Alias),
 		Create:  api.Indices.Create(name),

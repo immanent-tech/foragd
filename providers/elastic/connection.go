@@ -43,5 +43,17 @@ func Connect(ctx context.Context) (*API, error) {
 		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
 	}
 
-	return &API{API: esclient.API}, nil
+	return &API{TypedClient: esclient}, nil
+}
+
+func RawConnection(ctx context.Context) (*elasticsearch.Client, error) {
+	clientConfig, err := loadConfigOnce(ctx, config.Environment())
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
+	}
+	es, err := elasticsearch.NewClient(*clientConfig)
+	if err != nil {
+		return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
+	}
+	return es, nil
 }

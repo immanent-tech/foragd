@@ -11,7 +11,7 @@ import (
 	"log/slog"
 	"strconv"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/bulk"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/operationtype"
@@ -41,7 +41,7 @@ const (
 
 // Client represents an elasticsearch client connection.
 type Client interface {
-	GetAPI() *typedapi.API
+	GetAPI() *elasticsearch.TypedClient
 }
 
 // OpType represents the type of bulk operation to perform.
