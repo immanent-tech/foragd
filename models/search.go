@@ -8,7 +8,7 @@ import (
 	"strconv"
 
 	"github.com/gohugoio/hashstructure"
-	"github.com/joshuar/go-syndication/sanitization"
+	"github.com/immanent-tech/go-syndication/sanitization"
 
 	"github.com/joshuar/go-feed-me/validation"
 )

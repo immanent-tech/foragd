@@ -11,7 +11,7 @@ import (
 	"slices"
 	"time"
 
-	feeds "github.com/joshuar/go-syndication"
+	feeds "github.com/immanent-tech/go-syndication"
 )
 
 // var _ types.ObjectCommon = (*Item)(nil)
@@ -178,7 +178,7 @@ func newItemFromSource(source *feeds.Item, feedID FeedID, sourceType string) *It
 			URL:   source.GetImage().URL(),
 			Title: source.GetImage().String(),
 		},
-		Content:   source.GetContent().String(),
+		Content:   source.GetContent(),
 		FeedTitle: source.FeedTitle,
 	}
 

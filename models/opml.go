@@ -11,7 +11,7 @@ import (
 	"mime/multipart"
 	"slices"
 
-	"github.com/joshuar/go-syndication/opml"
+	"github.com/immanent-tech/go-syndication/opml"
 )
 
 type OPMLFile struct {
@@ -52,7 +52,7 @@ func (f *OPMLFile) parse() (*opml.OPML, error) {
 		return nil, fmt.Errorf("decode OPML file data failed: %w", err)
 	}
 	// Parse and create an OPML object from the byte array.
-	opmlImport, err := opml.New(data)
+	opmlImport, err := opml.NewOPMLFromBytes(data)
 	if err != nil {
 		return nil, fmt.Errorf("decode OPML file data failed: %w", err)
 	}

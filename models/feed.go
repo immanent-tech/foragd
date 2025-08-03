@@ -10,8 +10,8 @@ import (
 	"slices"
 	"time"
 
-	feeds "github.com/joshuar/go-syndication"
-	"github.com/joshuar/go-syndication/types"
+	feeds "github.com/immanent-tech/go-syndication"
+	"github.com/immanent-tech/go-syndication/types"
 )
 
 // _ types.ObjectCommon = (*Feed)(nil)

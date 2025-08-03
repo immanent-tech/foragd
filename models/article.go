@@ -94,6 +94,7 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 		if err != nil {
 			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
 				slog.Any("error", err),
+				slog.String("item_id", item.GetID()),
 			)
 			continue
 		}
