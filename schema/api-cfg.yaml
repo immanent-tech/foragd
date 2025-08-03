@@ -15,7 +15,7 @@ output-options:
   prefer-skip-optional-pointer-with-omitzero: true
 import-mapping:
   models.yaml: '-'
-  ../models/feeds/types.yaml: github.com/joshuar/go-syndication/types
+  ../models/feeds/types.yaml: github.com/immanent-tech/go-syndication/types
 compatibility:
   allow-unexported-struct-field-names: true
   always-prefix-enum-values: true
