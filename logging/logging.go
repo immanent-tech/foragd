@@ -36,6 +36,7 @@ var LevelNames = map[slog.Leveler]string{
 type Options struct {
 	LogLevel  string `env:"GOFEEDME_LOGLEVEL" name:"log-level" enum:"info,debug,trace" default:"info" help:"Set logging level."`
 	NoLogFile bool   `env:"GOFEEDME_NOLOGFILE" name:"no-log-file" help:"Don't write to a log file." default:"false"`
+	Handlers  []slog.Handler
 }
 
 // DefaultLogFile is the default log file location.
@@ -83,6 +84,9 @@ func New(options Options) *slog.Logger {
 				slogjson.NewHandler(logFH, generateFileOpts(Level)),
 			)
 		}
+	}
+	if len(options.Handlers) > 0 {
+		handlers = append(handlers, options.Handlers...)
 	}
 
 	logger := slog.New(slogctx.NewHandler(slogmulti.Fanout(handlers...), nil))
