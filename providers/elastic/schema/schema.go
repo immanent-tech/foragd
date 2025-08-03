@@ -25,6 +25,8 @@ const (
 	SchedulerSchemaPrefix = "scheduler_jobs"
 	// SessionsSchemaPrefix is a prefix used for sessions related index/mapping/settings.
 	SessionsSchemaPrefix = "sessions"
+	// LogsSchemaPrefix is a prefix used for application logs related index/mapping/settings.
+	LogsSchemaPrefix = "application_logs"
 
 	ingestPipelineID = "gofeed"
 )
@@ -236,6 +238,15 @@ func defaultILMPolicy() *putlifecycle.Request {
 			WithMinAge("735d"),
 			WithActions(WithDelete()),
 		),
+	)
+}
+
+func logsComponentTemplate() types.IndexState {
+	return NewIndexState(
+		WithIndexSettings(
+			WithMode("logsdb"),
+		),
+		WithAliases(LogsSchemaPrefix, types.Alias{}),
 	)
 }
 

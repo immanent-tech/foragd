@@ -9,19 +9,19 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/elastic/go-elasticsearch/v9/typedapi"
+	"github.com/elastic/go-elasticsearch/v9"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/config"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 )
 
-var validMigrations = []string{"users", "feeds", "items", "scheduler", "sessions", "ingest"}
+var validMigrations = []string{"users", "feeds", "items", "scheduler", "sessions", "logs", "ingest"}
 
 var ErrMigrationFailed = errors.New("schema migration failed")
 
 // Migration will create all necessary index templates settings and policies.
-func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrations ...string) error {
+func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive bool, migrations ...string) error {
 	// If no migrations are specified, perform migrations for all items.
 	if slices.Contains(migrations, "all") {
 		migrations = validMigrations
@@ -42,6 +42,8 @@ func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrati
 			err = migrateScheduler(ctx, api, destructive)
 		case "sessions":
 			err = migrateSession(ctx, api, destructive)
+		case "logs":
+			err = migrateLogs(ctx, api, destructive)
 		case "ingest":
 			err = migrateIngest(ctx, api)
 		}
@@ -56,7 +58,7 @@ func Migration(ctx context.Context, api *typedapi.API, destructive bool, migrati
 
 // migrateUsers contains migration actions for migrating users indices and
 // settings.
-func migrateUsers(ctx context.Context, api *typedapi.API, destructive bool) error {
+func migrateUsers(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
 	if err := elastic.PutComponentTemplate(ctx, api, UsersSchemaPrefix, NewComponentTemplateRequest(userComponentTemplate())); err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
@@ -100,7 +102,7 @@ func migrateUsers(ctx context.Context, api *typedapi.API, destructive bool) erro
 
 // migrateFeeds contains migration actions for migrating feeds indices and
 // settings.
-func migrateFeeds(ctx context.Context, api *typedapi.API, destructive bool) error {
+func migrateFeeds(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
 
 	if err := elastic.PutComponentTemplate(ctx, api, FeedsSchemaPrefix, NewComponentTemplateRequest(feedsComponentTemplate())); err != nil {
@@ -141,7 +143,7 @@ func migrateFeeds(ctx context.Context, api *typedapi.API, destructive bool) erro
 }
 
 // migrateFeedItems contains migration actions for migrating items (datastream and archive).
-func migrateFeedItems(ctx context.Context, api *typedapi.API, destructive bool) error {
+func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating items datastream...")
 	// Create the items datastream.
 	if destructive {
@@ -210,7 +212,7 @@ func migrateFeedItems(ctx context.Context, api *typedapi.API, destructive bool) 
 
 // migrateScheduler contains migration actions for migrating scheduler
 // index mappings & settings and ILM policy.
-func migrateScheduler(ctx context.Context, api *typedapi.API, destructive bool) error {
+func migrateScheduler(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating feed items...")
 
 	var (
@@ -260,7 +262,7 @@ func migrateScheduler(ctx context.Context, api *typedapi.API, destructive bool) 
 
 // migrateSession contains migration actions for migrating session indices and
 // settings.
-func migrateSession(ctx context.Context, api *typedapi.API, destructive bool) error {
+func migrateSession(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
 
 	if err := elastic.PutComponentTemplate(ctx, api, SessionsSchemaPrefix, NewComponentTemplateRequest(sessionsComponentTemplate())); err != nil {
@@ -302,7 +304,7 @@ func migrateSession(ctx context.Context, api *typedapi.API, destructive bool) er
 }
 
 // migrateIngest will migrate the ingest pipelines.
-func migrateIngest(ctx context.Context, api *typedapi.API) error {
+func migrateIngest(ctx context.Context, api *elasticsearch.TypedClient) error {
 	slogctx.FromCtx(ctx).Debug("Migrating ingest pipeline...")
 
 	_, err := api.Ingest.DeletePipeline(ingestPipelineID).Do(ctx)
@@ -315,6 +317,40 @@ func migrateIngest(ctx context.Context, api *typedapi.API) error {
 		return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 	}
 	slogctx.FromCtx(ctx).Debug("Added ingest pipeline.")
+
+	return nil
+}
+
+// migrateLogs contains migration actions for migrating logs (datastream).
+func migrateLogs(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
+	slogctx.FromCtx(ctx).Debug("Migrating logs datastream...")
+	// Create the logs datastream.
+	if destructive {
+		_, err := api.Indices.DeleteDataStream(LogsSchemaPrefix + "_" + config.Environment()).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
+			return fmt.Errorf("unable to migrate items datastream: %w", err)
+		}
+		_, err = api.Ilm.DeleteLifecycle(LogsSchemaPrefix).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
+			return fmt.Errorf("unable to migrate items datastream: %w", err)
+		}
+	}
+	if _, err := api.Ilm.PutLifecycle(LogsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx); err != nil {
+		return fmt.Errorf("unable to migrate items datastream: %w", err)
+	}
+	if err := elastic.PutComponentTemplate(ctx, api, LogsSchemaPrefix, NewComponentTemplateRequest(logsComponentTemplate())); err != nil {
+		return fmt.Errorf("unable to migrate items datastream: %w", err)
+	}
+	if err := elastic.PutIndexTemplate(ctx, api, LogsSchemaPrefix,
+		NewIndexTemplateRequest(
+			WithIndexPatterns(LogsSchemaPrefix+"_*"),
+			WithComponentTemplates(LogsSchemaPrefix),
+			WithPriority(500),
+			AsDataStream(),
+		),
+	); err != nil {
+		return fmt.Errorf("unable to migrate logs datastream: %w", err)
+	}
 
 	return nil
 }
