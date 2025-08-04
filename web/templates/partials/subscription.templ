@@ -6,8 +6,6 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/display/avatar"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/image"
@@ -22,6 +20,8 @@ type Subscription struct {
 	classes []components.Class
 }
 
+// NewSubscriptionContent converts a subscription into an object that can be rendered in different ways within the app
+// UI.
 func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 	card := &Subscription{
 		Subscription: subscription,
@@ -32,37 +32,90 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 	return card
 }
 
-templ (c *Subscription) ShowAsItem() {
-	// {{ var viewParam string }}
-	// if c.IsUnread() {
-	// 	{{ viewParam = string(models.ViewUnread) }}
-	// } else {
-	// 	{{ viewParam = string(models.ViewRead) }}
-	// }
-	<div class="grid-item" id={ c.GetID() }>
-		// <div>
-		<div class="col-span-2">
-			<div class="flex flex-row gap-2 m-2 items-center">
-				@c.link()
-				<div class="flex justify-end">
-					@c.actionsMenu()
+// Card renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
+templ (c *Subscription) Card() {
+	<li class="overflow-hidden rounded-xl border border-gray-200">
+		<div class="flex items-center gap-x-4 border-b border-gray-900/5 bg-gray-50 p-6">
+			// Image/Title. Clicking on these will view the subscription articles.
+			@c.viewLink("flex", "items-center", "gap-x-4") {
+				<div class="size-12 flex-none">
+					@c.image()
 				</div>
+				<div class="text-sm/6 font-medium text-gray-900">{ c.GetTitle() }</div>
+			}
+			// Actions menu.
+			<el-dropdown class="relative ml-auto">
+				<button class="relative block text-gray-400 hover:text-gray-500">
+					<span class="absolute -inset-2.5"></span>
+					<span class="sr-only">Open options</span>
+					@HeroIconContextMenu("size-5")
+				</button>
+				<el-menu anchor="bottom end" popover class="w-52 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-gray-900/5 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+					// View action.
+					@link.Build(
+						link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
+						link.WithClasses(components.Class(CardActionClasses)),
+					) {
+						@HeroIconExternalLink("size-4")
+						Feed Website
+					}
+					// Mark action.
+					@c.markLink(components.Class(CardActionClasses)) {
+						switch c.IsUnread() {
+							case true:
+								@HeroIconMarkRead("size-4")
+								Mark Read
+							case false:
+								@HeroIconMarkUnread("size-4")
+								Mark Unread
+						}
+					}
+					// Edit action.
+					@c.editLink(components.Class(CardActionClasses)) {
+						@HeroIconEdit("size-4")
+						Edit Subscription
+					}
+					// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+					<div id={ "favorite_" + c.GetID() }>
+						@c.favoriteLink(components.Class(CardActionClasses)) {
+							switch c.Favorite {
+								case true:
+									@HeroIconHeartFilled("size-4")
+									Remove Favorite
+								case false:
+									@HeroIconHeart("size-4")
+									Add Favorite
+							}
+						}
+					</div>
+					// Unsubscribe action.
+					@c.unsubscribeLink(components.Class(CardActionClasses)) {
+						@HeroIconTrash("size-4")
+						Remove Subscription
+					}
+				</el-menu>
+			</el-dropdown>
+		</div>
+		// Description (if available).
+		if c.GetDescription() != "" {
+			<div class="text-xs italic p-4">
+				{ c.GetDescription() }
 			</div>
-			<div class="col-span-2">
-				if c.GetDescription() != "" {
-					<p class="text-xs italic">
-						{ c.GetDescription() }
-					</p>
+		}
+		// Stats. Last updated timestamp and unread count (if appropriate).
+		<dl class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm/6">
+			<div class="flex justify-between gap-x-4 py-3">
+				<dt class="text-gray-500 text-xs">Updated</dt>
+				<dd class="text-gray-700 text-xs">
+					@ShowTimestamp(c.GetUpdatedDate())
+				</dd>
+				if c.IsUnread() {
+					<dt class="text-gray-500 text-xs">Unread</dt>
+					<dd class="text-gray-700 text-xs">{ c.GetUnreadCount() }</dd>
 				}
 			</div>
-			<div class="flex flex-row m-4 justify-end gap-2">
-				<div class="flex text-xs uppercase font-semibold">
-					@ShowTimestamp(c.GetUpdatedDate())
-				</div>
-			</div>
-		</div>
-		// </div>
-	</div>
+		</dl>
+	</li>
 }
 
 // ShowSettings renders subscription data in a table row suitable for the subscription settings page.
@@ -87,7 +140,7 @@ templ (c *Subscription) ShowAsSetting() {
 			}
 		</td>
 		<td>
-			@ToggleFavoriteSubscriptionIcon(c.GetID(), c.Favorite, "#"+c.GetID(), "outerHTML")
+			@c.ToggleFavoriteSubscription()
 		</td>
 		<td>
 			@NewAction("/subscriptions/remove", DisplayActionAsLink,
@@ -111,7 +164,11 @@ templ (c *Subscription) ShowAsSetting() {
 templ (c *Subscription) ShowAsSearchSuggestion() {
 	<div class="col-span-2">
 		<div class="flex flex-row gap-2 m-2 items-center">
-			@c.link()
+			@c.viewLink() {
+				@c.image()
+				<div class="text-sm font-semibold flex-1">{ c.GetTitle() }</div>
+				@c.unreadBadge()
+			}
 		</div>
 	</div>
 }
@@ -119,7 +176,11 @@ templ (c *Subscription) ShowAsSearchSuggestion() {
 templ (c *Subscription) ShowAsSearchResult() {
 	<div class="col-span-2">
 		<div class="flex flex-row gap-2 m-2 items-center">
-			@c.link()
+			@c.viewLink() {
+				@c.image()
+				<div class="text-sm font-semibold flex-1">{ c.GetTitle() }</div>
+				@c.unreadBadge()
+			}
 		</div>
 		<div class="col-span-2">
 			if c.GetDescription() != "" {
@@ -134,17 +195,6 @@ templ (c *Subscription) ShowAsSearchResult() {
 			</div>
 		</div>
 	</div>
-}
-
-templ (c *Subscription) link() {
-	@link.Build(
-		link.WithAttributes(c.viewAttributes()),
-		link.WithClasses("flex flex-1 flex-row items-center gap-2"),
-	) {
-		@c.image()
-		<div class="text-sm font-semibold flex-1">{ c.GetTitle() }</div>
-		@c.unreadBadge()
-	}
 }
 
 templ (c *Subscription) image() {
@@ -179,102 +229,17 @@ templ (c *Subscription) unreadBadge() {
 	}
 }
 
-templ (c *Subscription) actionsMenu() {
-	@dropdown.Build(
-		dropdown.WithButtonContent(tabler.DotsVertical(i.Props{Size: i.SizeXS})),
-		dropdown.WithOpenFrom(dropdown.OpenTop),
-		dropdown.WithOpenAlignment(dropdown.AlignEnd),
-		dropdown.WithMenuClasses("text-xs"),
-		dropdown.WithButtonClasses(button.Square, button.XS, button.Secondary),
-		// dropdown.WithAttributes(templ.Attributes{
-		// 	"id":         c.GetID() + "-actions",
-		// 	"hx-trigger": "click target:#" + c.GetID() + "-actions",
-		// }),
-	).Show() {
-		// Visit action.
-		<li _="on click call document.activeElement.blur()">
-			@link.Build(
-				link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
-				link.WithClasses("text-xs"),
-			) {
-				<div class="icontext">
-					@tabler.ExternalLink(i.Props{Size: i.SizeXS})
-					Feed Website
-				</div>
-			}
-		</li>
-		// Mark action.
-		<li _="on click call document.activeElement.blur()">
-			@MarkSubscriptionLink(c.GetID(), c.IsUnread())
-		</li>
-		// Edit action.
-		<li _="on click call document.activeElement.blur()">
-			@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
-				ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-				ActionTarget(ModalContainerID.Target()),
-				ActionLinkOptions(
-					link.WithClasses("text-xs"),
-				),
-			) {
-				<div class="icontext">
-					@tabler.Edit(i.Props{Size: i.SizeXS})
-					Edit Subscription
-				</div>
-			}
-		</li>
-		// Favorite action.
-		<li id={ "favorite-" + c.GetID() } _="on click call document.activeElement.blur()">
-			@ToggleFavoriteSubscriptionText(c.GetID(), c.Favorite, "#favorite_"+c.GetID(), "innerHTML")
-		</li>
-		// Unsubscribe action.
-		<li _="on click call document.activeElement.blur()">
-			@NewAction("/subscriptions/remove", DisplayActionAsLink,
-				ActionMethod(http.MethodPost),
-				ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-				ActionTarget(ModalContainerID.Target()),
-				ActionValues(map[string]string{
-					"subscriptions": c.GetID(),
-					"confirmation":  "no",
-				}),
-				ActionLinkOptions(
-					link.WithClasses("text-xs"),
-				),
-			) {
-				<div class="icontext">
-					@tabler.Trash(i.Props{Size: i.SizeXS})
-					Remove Subscription
-				</div>
-			}
-		</li>
-	}
-}
-
-// ToggleFavoriteSubscriptionIcon renders an icon that when clicked will toggle the favorite status of the subscription.
-templ ToggleFavoriteSubscriptionIcon(id models.SubscriptionID, isFavorite bool, target string, swap string) {
-	@favoriteSubscriptionLink(id, isFavorite, target, swap) {
-		switch isFavorite {
+// ToggleFavoriteSubscription renders an updated favorite link based on the subscriptions favorite status.
+templ (s *Subscription) ToggleFavoriteSubscription(classes ...components.Class) {
+	@s.favoriteLink(classes...) {
+		switch s.Favorite {
 			case true:
-				@tabler.HeartFilled(i.Props{Size: i.SizeXS})
+				@HeroIconHeartFilled("size-4")
+				Remove Favorite
 			case false:
-				@tabler.Heart(i.Props{Size: i.SizeXS})
+				@HeroIconHeart("size-4")
+				Add Favorite
 		}
-	}
-}
-
-// ToggleFavoriteSubscriptionText renders an icon and text that when clicked will toggle the favorite status of the
-// subscription.
-templ ToggleFavoriteSubscriptionText(id models.SubscriptionID, isFavorite bool, target string, swap string) {
-	@favoriteSubscriptionLink(id, isFavorite, target, swap) {
-		<div class="icontext">
-			switch isFavorite {
-				case true:
-					@tabler.HeartFilled(i.Props{Size: i.SizeXS})
-					Remove Favorite
-				case false:
-					@tabler.Heart(i.Props{Size: i.SizeXS})
-					Add Favorite
-			}
-		</div>
 	}
 }
 
@@ -299,53 +264,97 @@ templ favoriteSubscriptionLink(id models.SubscriptionID, isFavorite bool, target
 	}
 }
 
-// markSubscriptionLink generates a link/action that will mark the subscription read/unread depending on its current
-// read state.
-templ MarkSubscriptionLink(id models.SubscriptionID, unread bool) {
+// markLink generates a link that will toggle the mark status (read/unread) of the subscription.
+templ (c *Subscription) markLink(classes ...components.Class) {
 	{{ var mark string }}
-	if unread {
+	if c.IsUnread() {
 		{{ mark = "read" }}
 	} else {
 		{{ mark = "unread" }}
 	}
-	@NewAction("/subscription/"+id+"/mark/"+mark, DisplayActionAsLink,
+	@NewAction("/subscription/"+c.GetID()+"/mark/"+mark, DisplayActionAsLink,
 		ActionMethod(http.MethodPost),
-		ActionTarget("#"+id),
+		ActionTarget("#"+c.GetID()),
 		ActionSwap("outerHTML"),
 		ActionInclude("[name='view']"),
 		ActionLinkOptions(
-			link.WithClasses("text-xs"),
+			link.WithClasses(classes...),
 		),
 	) {
-		<div class="icontext">
-			switch mark {
-				case "read":
-					@tabler.Bookmark(i.Props{Size: i.SizeXS})
-					Mark Read
-				case "unread":
-					@tabler.BookmarkFilled(i.Props{Size: i.SizeXS})
-					Mark Unread
-			}
-		</div>
+		{ children... }
 	}
 }
 
-func (c *Subscription) viewAttributes() templ.Attributes {
-	overrides := map[string]string{
-		models.ParamSortBy: string(models.SortByLastUpdated),
-		"subscriptions":    c.GetID(),
+// editLink generates a link that will open a modal for editing the subscription.
+templ (c *Subscription) editLink(classes ...components.Class) {
+	@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
+		ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+		ActionTarget(ModalContainerID.Target()),
+		ActionLinkOptions(
+			link.WithClasses(classes...),
+		),
+	) {
+		{ children... }
 	}
+}
+
+// favoriteLink generates a link that will toggle the favorite status of the subscription.
+templ (c *Subscription) favoriteLink(classes ...components.Class) {
+	{{ var method string }}
+	switch c.Favorite {
+		case true:
+			{{ method = http.MethodDelete }}
+		case false:
+			{{ method = http.MethodPut }}
+	}
+	@NewAction("/user/favorite/subscription/"+c.GetID(), DisplayActionAsLink,
+		ActionMethod(method),
+		ActionTarget("#favorite_"+c.GetID()),
+		ActionLinkOptions(
+			link.WithClasses(classes...),
+		),
+	) {
+		{ children... }
+	}
+}
+
+// unsubscribeLink generates a link for unsubscribing from the subscription.
+templ (c *Subscription) unsubscribeLink(classes ...components.Class) {
+	@NewAction("/subscriptions/remove", DisplayActionAsLink,
+		ActionMethod(http.MethodPost),
+		ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+		ActionTarget(ModalContainerID.Target()),
+		ActionValues(map[string]string{
+			"subscriptions": c.GetID(),
+			"confirmation":  "no",
+		}),
+		ActionLinkOptions(
+			link.WithClasses(classes...),
+		),
+	) {
+		{ children... }
+	}
+}
+
+// viewLink generates a link for viewing the subscription articles.
+templ (c *Subscription) viewLink(classes ...components.Class) {
+	{{ overrides := map[string]string{models.ParamSortBy: string(models.SortByLastUpdated), "subscriptions": c.GetID()} }}
 	if c.IsUnread() {
-		overrides[models.ParamView] = string(models.ViewUnread)
+		{{ overrides[models.ParamView] = string(models.ViewUnread) }}
 	} else {
-		overrides[models.ParamView] = string(models.ViewRead)
+		{{ overrides[models.ParamView] = string(models.ViewRead) }}
 	}
-	return templ.Attributes{
-		"hx-get":      "/articles",
-		"hx-include":  "#content-filters",
-		"hx-vals":     GenerateHXVals(overrides),
-		"hx-target":   ContentID.Target(),
-		"hx-push-url": "true",
-		"hx-swap":     "innerHTML show:top",
+	@link.Build(
+		link.WithAttributes(templ.Attributes{
+			"hx-get":      "/articles",
+			"hx-include":  "#content-filters",
+			"hx-vals":     GenerateHXVals(overrides),
+			"hx-target":   ContentID.Target(),
+			"hx-push-url": "true",
+			"hx-swap":     "innerHTML show:top",
+		}),
+		link.WithClasses(classes...),
+	) {
+		{ children... }
 	}
 }

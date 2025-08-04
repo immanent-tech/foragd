@@ -16,12 +16,13 @@ var GridID = attributes.ID("objects")
 
 // ObjectGrid renders the given card components in a grid container.
 templ Grid() {
-	<div
+	<ul
+		role="list"
 		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 justify-center gap-4 m-2"
 		id={ GridID.String() }
 	>
 		{ children... }
-	</div>
+	</ul>
 	<div id="content-loading" class="items-center">
 		@loading.Build(loading.Bars,
 			loading.AsHTMXIndicator(),

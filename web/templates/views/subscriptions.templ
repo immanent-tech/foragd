@@ -133,7 +133,7 @@ templ (page *SubscriptionsPage) content() {
 // Cards is the list of subscriptions as cards within the subscriptions page.
 templ (page *SubscriptionsPage) list() {
 	for subscription := range slices.Values(page.subscriptions) {
-		@partials.NewSubscriptionContent(subscription).ShowAsItem()
+		@partials.NewSubscriptionContent(subscription).Card()
 	}
 	if page.pagination != "" && len(page.subscriptions) == page.filters.GetCount() {
 		// Add pagination htmx props to last article.

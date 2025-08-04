@@ -127,7 +127,7 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 			}
 			card := partials.NewSubscriptionContent(s[0])
 			resp = models.NewResponse(
-				models.WithResponseTemplate(card.ShowAsItem()),
+				models.WithResponseTemplate(card.Card()),
 			)
 		}
 
@@ -326,8 +326,8 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		s, err := a.getSubscriptions(req.Context(), edits.SubscriptionID)
-		if err != nil || len(s) == 0 || len(s) > 1 {
+		subscriptions, err := a.getSubscriptions(req.Context(), edits.SubscriptionID)
+		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
@@ -340,12 +340,12 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		}
 		switch {
 		case strings.HasSuffix(currentURL, "/user/settings"):
-			template = partials.NewSubscriptionContent(s[0]).ShowAsSetting()
+			template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
 		default:
-			template = partials.NewSubscriptionContent(s[0]).ShowAsItem()
+			template = partials.NewSubscriptionContent(subscriptions[0]).Card()
 		}
 		// Display a notification acknowledging save (OOB swap).
-		msg := models.SuccessUserMessage(fmt.Sprintf("Subscription %s updated.", s[0].GetTitle()), "")
+		msg := models.SuccessUserMessage(fmt.Sprintf("Subscription %s updated.", subscriptions[0].GetTitle()), "")
 		resp := models.NewResponse(
 			models.WithResponseTemplate(templ.Join(template, partials.ShowNotification(msg))),
 		)

@@ -156,16 +156,16 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			RenderResponse(RespBackendError(nil)).ServeHTTP(res, req)
 			return
 		}
+		subscriptions, err := a.getSubscriptions(req.Context(), id)
+		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			return
+		}
 		switch {
 		case strings.HasSuffix(currentURL, "/user/settings"):
-			s, err := a.getSubscriptions(req.Context(), id)
-			if err != nil || len(s) == 0 || len(s) > 1 {
-				RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
-				return
-			}
-			template = partials.NewSubscriptionContent(s[0]).ShowAsSetting()
+			template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
 		default:
-			template = partials.ToggleFavoriteSubscriptionText(id, true, "#favorite_"+id, "innerHTML")
+			template = partials.NewSubscriptionContent(subscriptions[0]).ToggleFavoriteSubscription(partials.CardActionClasses)
 		}
 
 		resp := models.NewResponse(
@@ -206,16 +206,16 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			RenderResponse(RespBackendError(nil)).ServeHTTP(res, req)
 			return
 		}
+		subscriptions, err := a.getSubscriptions(req.Context(), id)
+		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			return
+		}
 		switch {
 		case strings.HasSuffix(currentURL, "/user/settings"):
-			s, err := a.getSubscriptions(req.Context(), id)
-			if err != nil || len(s) == 0 || len(s) > 1 {
-				RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
-				return
-			}
-			template = partials.NewSubscriptionContent(s[0]).ShowAsSetting()
+			template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
 		default:
-			template = partials.ToggleFavoriteSubscriptionText(id, false, "#favorite_"+id, "innerHTML")
+			template = partials.NewSubscriptionContent(subscriptions[0]).ToggleFavoriteSubscription(partials.CardActionClasses)
 		}
 
 		resp := models.NewResponse(
