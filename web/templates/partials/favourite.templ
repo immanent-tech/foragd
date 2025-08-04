@@ -12,21 +12,8 @@ import (
 	"github.com/joshuar/go-templ-daisyui/input/form"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"github.com/joshuar/go-templ-daisyui/input/textinput"
-	"github.com/sebasvil20/templicons/tabler"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
 )
-
-templ favoriteIcon(fav *models.Favorite) {
-	switch fav.Type {
-		case models.FavoriteTypeSubscription:
-			@tabler.Rss()
-		case models.FavoriteTypeArticle:
-			@tabler.Article()
-		case models.FavoriteTypeSearch:
-			@tabler.Search()
-		default:
-			@tabler.Bookmark()
-	}
-}
 
 // FavoriteLink generates a link to the given favorite.
 templ FavoriteLink(fav *models.Favorite) {
@@ -39,22 +26,28 @@ templ FavoriteLink(fav *models.Favorite) {
 				ActionValues(values),
 				ActionPushURL(),
 				ActionHyperScript("on click call document.activeElement.blur() end"),
+				ActionLinkOptions(
+					link.WithClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
+				),
 			) {
-				<div class="icontext">
-					@favoriteIcon(fav)
-					{ fav.String() }
-				</div>
+				<span class="flex size-6 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-[0.625rem] font-medium text-gray-400 group-hover:border-accent group-hover:text-accent">
+					@HeroIconSubscription("size-4")
+				</span>
+				{ fav.String() }
 			}
 		case models.FavoriteTypeArticle:
 			// FavoriteArticle.
 			@NewAction("/article/"+fav.GetID(), DisplayActionAsLink,
 				ActionPushURL(),
 				ActionHyperScript("on click call document.activeElement.blur() end"),
+				ActionLinkOptions(
+					link.WithClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
+				),
 			) {
-				<div class="icontext">
-					@favoriteIcon(fav)
-					{ fav.String() }
-				</div>
+				<span class="flex size-6 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-[0.625rem] font-medium text-gray-400 group-hover:border-accent group-hover:text-accent">
+					@HeroIconArticle("size-4")
+				</span>
+				{ fav.String() }
 			}
 		case models.FavoriteTypeSearch:
 			// FavoriteArticle.
@@ -64,11 +57,14 @@ templ FavoriteLink(fav *models.Favorite) {
 					ActionPushURL(),
 					ActionHyperScript("on click call document.activeElement.blur() end"),
 					ActionValues(map[string]string{"text": search.Text}),
+					ActionLinkOptions(
+						link.WithClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
+					),
 				) {
-					<div class="icontext">
-						@favoriteIcon(fav)
-						{ fav.String() }
-					</div>
+					<span class="flex size-6 shrink-0 items-center justify-center rounded-lg border border-gray-200 bg-white text-[0.625rem] font-medium text-gray-400 group-hover:border-accent group-hover:text-accent">
+						@HeroIconSearch("size-4")
+					</span>
+					{ fav.String() }
 				}
 			}
 	}

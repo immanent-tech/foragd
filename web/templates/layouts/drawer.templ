@@ -7,79 +7,164 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/navigation/menu"
-	"github.com/sebasvil20/templicons/tabler"
+	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"slices"
 )
 
-// Drawer layout will wrap its child template in a drawer layout with a left side bar.
 templ Drawer() {
-	<div class="drawer">
-		<input id="body-drawer" type="checkbox" class="drawer-toggle"/>
-		<div class="drawer-content">
-			@Header()
-			<div class="search-suggestions-anchor"></div>
-			<div id="search-suggestions" class="search-suggestions-target"></div>
-			<div id={ partials.ContentID.String() } class="h-full w-screen" hx-swap="innerHTML">
-				{ children... }
+	<el-dialog>
+		<dialog id="sidebar" class="backdrop:bg-transparent lg:hidden">
+			<el-dialog-backdrop class="fixed inset-0 bg-gray-900/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"></el-dialog-backdrop>
+			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
+				<el-dialog-panel class="group/dialog-panel relative mr-16 flex w-full max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full">
+					<div class="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out group-data-closed/dialog-panel:opacity-0">
+						<button type="button" command="close" commandfor="sidebar" class="-m-2.5 p-2.5">
+							<span class="sr-only">Close sidebar</span>
+							@partials.HeroIconClose("", "text-white")
+						</button>
+					</div>
+					<!-- Sidebar component, swap this element with another sidebar if you like -->
+					<div class="flex grow flex-col gap-y-5 overflow-y-auto bg-base-200 px-6 pb-4">
+						@DrawerSidebar()
+					</div>
+				</el-dialog-panel>
+			</div>
+		</dialog>
+	</el-dialog>
+	<!-- Static sidebar for desktop -->
+	<div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+		<!-- Sidebar component, swap this element with another sidebar if you like -->
+		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-gray-200 bg-base-200 px-6 pb-4">
+			@DrawerSidebar()
+		</div>
+	</div>
+	<div class="lg:pl-72">
+		<div class="sticky top-0 z-40 lg:mx-auto lg:max-w-7xl lg:px-8">
+			<div class="flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-0 lg:shadow-none">
+				<button type="button" command="show-modal" commandfor="sidebar" class="-m-2.5 p-2.5 text-gray-700 lg:hidden">
+					<span class="sr-only">Open sidebar</span>
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
+						<path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round" stroke-linejoin="round"></path>
+					</svg>
+				</button>
+				<!-- Separator -->
+				<div aria-hidden="true" class="h-6 w-px bg-gray-200 lg:hidden"></div>
+				<div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+					<form action="#" method="GET" class="grid flex-1 grid-cols-1">
+						<input type="search" name="search" placeholder="Search" aria-label="Search" class="col-start-1 row-start-1 block size-full bg-white pl-8 text-base text-gray-900 outline-hidden placeholder:text-gray-400 sm:text-sm/6"/>
+						@partials.HeroIconSearch("size-5", "pointer-events-none col-start-1 row-start-1 self-center text-gray-400")
+					</form>
+					<div class="flex items-center gap-x-4 lg:gap-x-6">
+						<button type="button" class="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
+							<span class="sr-only">View notifications</span>
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
+								<path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg>
+						</button>
+						<!-- Separator -->
+						<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"></div>
+						<!-- Profile dropdown -->
+						<el-dropdown class="relative">
+							<button class="relative flex items-center">
+								<span class="absolute -inset-1.5"></span>
+								<span class="sr-only">Open user menu</span>
+								<img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" class="size-8 rounded-full bg-gray-50"/>
+								<span class="hidden lg:flex lg:items-center">
+									<span aria-hidden="true" class="ml-4 text-sm/6 font-semibold text-gray-900">Tom Cook</span>
+									<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="ml-2 size-5 text-gray-400">
+										<path d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+									</svg>
+								</span>
+							</button>
+							<el-menu anchor="bottom end" popover class="w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 transition transition-discrete [--anchor-gap:--spacing(2.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+								@partials.NewAction("/user/settings", partials.DisplayActionAsLink,
+									partials.ActionTarget(partials.ContentID.Target()),
+									partials.ActionPushURL(),
+									partials.ActionLinkOptions(
+										link.WithClasses("block px-3 py-1 text-sm/6 text-gray-900 focus:bg-gray-50 focus:outline-hidden"),
+									),
+								) {
+									Settings
+								}
+								<a href="/logout" class="block px-3 py-1 text-sm/6 text-gray-900 focus:bg-gray-50 focus:outline-hidden">Log out</a>
+							</el-menu>
+						</el-dropdown>
+					</div>
+				</div>
 			</div>
 		</div>
-		<div class="drawer-side">
-			<label for="body-drawer" aria-label="close sidebar" class="drawer-overlay"></label>
-			@menu.Build(
-				menu.WithClasses("bg-base-200", "text-base-content", "text-xs", "min-h-full", "w-80"),
-			) {
-				<li class="menu-title">Navigation</li>
-				<li>
-					<label for="body-drawer" aria-label="Home" class="drawer-overlay">
-						@partials.NewAction("/home", partials.DisplayActionAsLink,
-							partials.ActionPushURL(),
-						) {
-							<div class="icontext">
-								@tabler.Home()
-								Home
-							</div>
-						}
-					</label>
-				</li>
-				<li>
-					<label for="body-drawer" aria-label="Subscriptions" class="drawer-overlay">
+		<main class="py-10">
+			<div id={ partials.ContentID.String() } class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+				{ children... }
+			</div>
+		</main>
+	</div>
+}
+
+templ DrawerSidebar() {
+	<div class="flex h-16 shrink-0 items-center">
+		@partials.NewAction("/home", partials.DisplayActionAsLink,
+			partials.ActionPushURL(),
+		) {
+			@partials.Logo("h-8 w-auto")
+		}
+	</div>
+	<nav class="flex flex-1 flex-col">
+		<ul role="list" class="flex flex-1 flex-col gap-y-7">
+			<li>
+				<ul role="list" class="-mx-2 space-y-1">
+					<li>
+						<!-- Current: "bg-gray-50 text-indigo-600", Default: "text-gray-700 hover:text-indigo-600 hover:bg-gray-50" -->
 						@partials.NewAction("/subscriptions", partials.DisplayActionAsLink,
 							partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
 							partials.ActionPushURL(),
-							partials.ActionHyperScript("on click call document.activeElement.blur() end"),
+							partials.ActionLinkOptions(
+								link.WithClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
+							),
 						) {
-							<div class="icontext">
-								@tabler.Rss()
-								Subscriptions
-							</div>
+							@partials.HeroIconSubscription("")
+							Subscriptions
 						}
-					</label>
-				</li>
-				<li>
-					<label for="body-drawer" aria-label="Articles" class="drawer-overlay">
+					</li>
+					<li>
 						@partials.NewAction("/articles", partials.DisplayActionAsLink,
-							partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
+							partials.ActionValues(session.ArticleFiltersFromSession(ctx).Parameters()),
 							partials.ActionPushURL(),
-							partials.ActionHyperScript("on click call document.activeElement.blur() end"),
+							partials.ActionLinkOptions(
+								link.WithClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
+							),
 						) {
-							<div class="icontext">
-								@tabler.Article()
-								Articles
-							</div>
+							@partials.HeroIconArticle("")
+							Articles
 						}
-					</label>
-				</li>
-				<li class="menu-title">Favorites</li>
-				<div
-					id={ partials.FavoritesID.String() }
-					hx-trigger="load, updateFavorites from:body"
-					hx-get="/user/favorite"
-					hx-target={ partials.FavoritesID.Target() }
-				></div>
-			}
-		</div>
-	</div>
+					</li>
+				</ul>
+			</li>
+			<li>
+				<div class="text-xs/6 font-semibold text-gray-400">Your Favorites</div>
+				<ul role="list" class="-mx-2 mt-2 space-y-1">
+					<div
+						id={ partials.FavoritesID.String() }
+						hx-trigger="load, updateFavorites from:body"
+						hx-get="/user/favorite"
+						hx-target={ partials.FavoritesID.Target() }
+					></div>
+				</ul>
+			</li>
+			<li class="mt-auto">
+				@partials.NewAction("/user/settings", partials.DisplayActionAsLink,
+					partials.ActionTarget(partials.ContentID.Target()),
+					partials.ActionPushURL(),
+					partials.ActionLinkOptions(
+						link.WithClasses("group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
+					),
+				) {
+					@partials.HeroIconSettings("")
+					Settings
+				}
+			</li>
+		</ul>
+	</nav>
 }
 
 templ FavoritesList(favorites models.FavoritesSlice) {
@@ -89,7 +174,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 	if len(subscriptions) > 0 {
 		// Show favorite subscriptions.
 		<li>
-			<a>Subscriptions</a>
+			// <div class="text-xs/8 font-semibold text-gray-400">Subscriptions</div>
 			<ul>
 				for fav := range slices.Values(subscriptions) {
 					<li>
@@ -102,7 +187,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 	if len(articles) > 0 {
 		// Show favorite articles.
 		<li>
-			<a>Articles</a>
+			// <div class="text-xs/8 font-semibold text-gray-400">Articles</div>
 			<ul>
 				for fav := range slices.Values(articles) {
 					<li>
@@ -115,7 +200,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 	if len(searches) > 0 {
 		// Show favorite articles.
 		<li>
-			<a>Searches</a>
+			// <div class="text-xs/8 font-semibold text-gray-400">Searches</div>
 			<ul>
 				for fav := range slices.Values(searches) {
 					<li>
