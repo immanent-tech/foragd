@@ -66,7 +66,7 @@ func RenderResponse(resp *models.Response) http.Handler {
 			res.WriteHeader(http.StatusOK)
 			err := htmxResp.Write(res)
 			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Problem writing response.",
+				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), "Problem writing response.",
 					slog.Any("error", err),
 				)
 			}
@@ -76,11 +76,11 @@ func RenderResponse(resp *models.Response) http.Handler {
 		if resp.InternalError != nil {
 			switch {
 			case resp.StatusCode < 400:
-				slogctx.FromCtx(req.Context()).Debug(resp.InternalError.Error())
+				slogctx.FromCtx(req.Context()).DebugContext(req.Context(), resp.InternalError.Error())
 			case resp.StatusCode < 500:
-				slogctx.FromCtx(req.Context()).Warn(resp.InternalError.Error())
+				slogctx.FromCtx(req.Context()).WarnContext(req.Context(), resp.InternalError.Error())
 			default:
-				slogctx.FromCtx(req.Context()).Error(resp.InternalError.Error())
+				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), resp.InternalError.Error())
 			}
 		}
 		// Write the response status code.

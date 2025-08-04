@@ -16,9 +16,10 @@ import (
 // Show renders the page as a templ Component.
 templ (page *Page) render() {
 	<!DOCTYPE html>
-	<html lang="en">
+	<html lang="en" class="h-full">
 		@page.Head.build()
 		<body
+			class="h-full"
 			hx-ext="response-targets,ajax-header"
 			hx-target-error={ partials.NotificationsID.Target() }
 		>
@@ -88,6 +89,7 @@ templ (h *Head) build() {
 			rel="stylesheet"
 		/>
 		<link href="/static/styles.css" rel="stylesheet"/>
+		<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 		<script src="/static/scripts.js"></script>
 		// Site-wide htmx config.
 		<meta name="htmx-config" content='{"selfRequestsOnly":"true","allowNestedOobSwaps":"false","historyCacheSize":0}'/>

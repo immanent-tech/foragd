@@ -12,16 +12,20 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates/pages"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
 // SignupSetup handles setting up a new user sign up request.
 func SignupSetup() http.HandlerFunc {
+	page := &pages.Signup{
+		Request: &models.UserSignupRequest{},
+	}
 	return alice.New(
 		RouteLogger,
 	).Then(RenderResponse(models.NewResponse(
-		models.WithResponseTemplate(views.SignupForm(&models.UserSignupRequest{})),
+		models.WithResponseTemplate(page.Template()),
 	))).ServeHTTP
 }
 

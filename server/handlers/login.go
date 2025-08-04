@@ -12,15 +12,16 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-feed-me/web/templates/pages"
 )
 
 // LoginSelect handles showing options for logging in with different providers.
 func LoginSelect() http.HandlerFunc {
+	page := &pages.Login{}
 	return alice.New(
 		RouteLogger,
 	).Then(RenderResponse(models.NewResponse(
-		models.WithResponseTemplate(partials.LoginSelect()),
+		models.WithResponseTemplate(page.Template()),
 	))).ServeHTTP
 }
 

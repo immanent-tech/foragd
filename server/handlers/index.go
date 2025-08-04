@@ -9,12 +9,12 @@ import (
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates/views"
+	"github.com/joshuar/go-feed-me/web/templates/pages"
 )
 
 // Index handles displaying the index or front page of the site.
 func Index() http.HandlerFunc {
-	page := &views.IndexPage{}
+	page := &pages.Index{}
 	return alice.New(
 		RouteLogger,
 	).Then(RenderResponse(models.NewResponse(

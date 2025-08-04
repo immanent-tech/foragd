@@ -68,3 +68,8 @@ func msgStatusToAlertState(status models.UserMessageStatus) alert.AlertState {
 		return alert.Success
 	}
 }
+
+// Logo displays the app logo with the given class styling.
+templ Logo(classes string) {
+	<img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" alt="Go Feed Me" class={ classes }/>
+}

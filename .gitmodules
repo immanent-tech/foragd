@@ -3,7 +3,7 @@
 	url = git@github.com:joshuar/go-templ-daisyui.git
 [submodule "models/feeds"]
 	path = models/feeds
-	url = git@github.com:joshuar/go-syndication.git
+	url = git@github.com:immanent-tech/go-syndication.git
 [submodule "logging/slog-elasticsearch"]
 	path = logging/slog-elasticsearch
 	url = git@github.com:immanent-tech/slog-elasticsearch.git

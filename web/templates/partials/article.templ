@@ -79,9 +79,7 @@ templ (c *Article) ShowAsSearchResult() {
 // Content shows the full article content.
 templ (c *Article) Content() {
 	<div class="flex justify-center">
-		@article.Build(
-			article.WithClasses("article"),
-		) {
+		@article.Build() {
 			<h2>
 				{ c.GetTitle() }
 			</h2>
@@ -193,7 +191,7 @@ templ (c Article) image() {
 				image.WithExtraClasses("rounded"),
 			),
 			figure.WithFigureClasses("max-w-24"),
-		).Show()
+		)
 	}
 }
 

@@ -73,7 +73,9 @@
     "types",
     "feeds",
     "rss",
-    "components/avatar"
+    "components/avatar",
+    "feeds/opml",
+    "web"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
