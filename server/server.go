@@ -142,7 +142,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Get("/subscriptions", handler.GetSubscriptions())
 		r.Post("/subscriptions", handler.GetSubscriptions())
 		r.With(middlewares.RequireHTMX).Post("/subscriptions/mark/{mark}", handler.MarkAllSubscriptions())
-		r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handler.RemoveSubscriptions())
+		// r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handler.RemoveSubscriptions())
 		// Subscription route.
 		r.Route("/subscription/{subscription}", func(r chi.Router) {
 			// r.Get("/", handler.GetSubscriptionArticles())
@@ -166,9 +166,11 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 				r.Get("/new", handlers.NewSubscription())
 				r.Post("/new", handler.AddSubscription())
 				r.Get("/edit/{subscription}", handler.EditSubscription())
+				r.Put("/edit/{subscription}", handler.SaveSubscription())
 				r.Post("/edit/{subscription}/category", handler.EditSubscriptionCategories())
 				r.Delete("/edit/{subscription}/category", handler.EditSubscriptionCategories())
-				r.Put("/edit/{subscription}", handler.SaveSubscription())
+				r.Get("/remove/{subscription}", handler.RemoveSubscription())
+				r.Post("/remove/{subscription}", handler.RemoveSubscription())
 			})
 			// Import/export.
 			r.Get("/import", handler.ImportSubscriptions())

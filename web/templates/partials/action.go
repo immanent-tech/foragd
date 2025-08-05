@@ -130,6 +130,13 @@ func ActionParams(value string) ActionOption {
 	}
 }
 
+// ActionAttribute sets an attribute on the action element.
+func ActionAttribute(key, value string) ActionOption {
+	return func(a *Action) {
+		a.setVar(key, value)
+	}
+}
+
 // ActionHyperScript option defines hyperscript code to be assigned to the component.
 func ActionHyperScript(script string) ActionOption {
 	return func(a *Action) {

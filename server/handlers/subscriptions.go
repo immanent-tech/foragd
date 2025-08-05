@@ -176,90 +176,6 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 	}
 }
 
-// RemoveSubscriptions handles removing (unsubscribing from) a collection of subscriptions.
-func (a *API) RemoveSubscriptions() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up the handler chain.
-		chain := alice.New(
-			RouteLogger,
-		)
-		// Retrieve user object.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
-			return
-		} // Get subscription details.
-		request, valid, err := forms.DecodeForm[*models.RemoveSubscriptionsRequest](req)
-		if err != nil || !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
-		}
-		// Act according to user confirmation.
-		var resp *models.Response
-		switch request.Confirmation {
-		case models.UserConfirmationYes:
-			slogctx.FromCtx(req.Context()).Debug("Subscription removal confirmed.",
-				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
-			)
-			// Remove metadata for given subscriptions from user.
-			user.RemoveSubscriptions(request.Subscriptions...)
-			// Update the user.
-			err := a.updateUser(req.Context(), map[string]any{
-				"subscriptions": user.GetSubscriptionMetadata(),
-			})
-			if err != nil {
-				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-				return
-			}
-			// Show success notification.
-			msg := &models.UserMessage{
-				Summary: "Unsubscribed.",
-				Status:  models.UserMessageStatusSuccess,
-			}
-			resp = models.NewResponse(
-				models.WithResponseTemplate(partials.ShowNotification(msg)),
-			)
-			// Trigger state updates.
-			// chain = chain.Append(TriggerStateUpdates)
-		case models.UserConfirmationCancel:
-			slogctx.FromCtx(req.Context()).Debug("Subscription removal cancelled.",
-				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
-			)
-			// Don't swap any main content for user cancellation.
-			// Display a notification acknowledging cancellation of request.
-			msg := &models.UserMessage{
-				Summary: "Request cancelled.",
-				Status:  models.UserMessageStatusInfo,
-			}
-			resp = models.NewResponse(
-				models.WithResponseTemplate(partials.ShowNotification(msg)),
-			)
-		default:
-			slogctx.FromCtx(req.Context()).Debug("Confirming subscription removal.",
-				slog.String("subscription_id", strings.Join(request.Subscriptions, ",")),
-			)
-			swapTargets := make([]string, 0, len(request.Subscriptions))
-			for sub := range slices.Values(request.Subscriptions) {
-				swapTargets = append(swapTargets, "#"+sub)
-			}
-			parameters := map[string]string{
-				"subscriptions": strings.Join(request.Subscriptions, ","),
-				"confirmation":  "yes",
-			}
-			modal := partials.AskQuestion("Unsubscribe?", templ.Attributes{
-				"hx-post":   "/subscriptions/remove",
-				"hx-vals":   partials.GenerateHXVals(parameters),
-				"hx-target": "#" + request.Subscriptions[0],
-				"hx-swap":   "outerHTML",
-			})
-			resp = models.NewResponse(
-				models.WithResponseTemplate(modal),
-			)
-		}
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
-	}
-}
-
 // EditSubscription handles fetching and presenting the customisation data for a subscription, for the user to edit.
 func (a *API) EditSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -395,6 +311,57 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		)
 
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+	}
+}
+
+// RemoveSubscription handles presenting the user with confirmation and then actioning a subscription removal
+// (unsubscribe) request.
+func (a *API) RemoveSubscription() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up the handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
+		switch req.Method {
+		case http.MethodGet:
+			id := chi.URLParam(req, "subscription")
+			subscriptions, err := a.getSubscriptions(req.Context(), id)
+			if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
+				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				return
+			}
+			resp := models.NewResponse(
+				models.WithResponseTemplate(partials.NewSubscriptionContent(subscriptions[0]).UnsubscribeModal()),
+			)
+			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		case http.MethodPost:
+			// Retrieve user object.
+			user, found := models.UserFromCtx(req.Context())
+			if !found {
+				chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+				return
+			}
+			id := chi.URLParam(req, "subscription")
+			// Remove metadata for given subscriptions from user.
+			user.RemoveSubscriptions(id)
+			// Update the user.
+			err := a.updateUser(req.Context(), map[string]any{
+				"subscriptions": user.GetSubscriptionMetadata(),
+			})
+			if err != nil {
+				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				return
+			}
+			// Show success notification.
+			msg := &models.UserMessage{
+				Summary: "Unsubscribed.",
+				Status:  models.UserMessageStatusSuccess,
+			}
+			resp := models.NewResponse(
+				models.WithResponseTemplate(partials.ShowNotification(msg)),
+			)
+			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		}
 	}
 }
 
