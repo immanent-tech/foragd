@@ -27,6 +27,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/validation"
+	"github.com/joshuar/go-feed-me/web/templates/pages"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/views"
 )
@@ -71,7 +72,8 @@ func (a *API) GetSubscriptionArticles() http.HandlerFunc {
 		)
 		// Get the subscription ID.
 		id := chi.URLParam(req, models.RouteParamSubscription)
-		if valid, err := validation.ValidateVariable(id, "required,startswith=sub_"); !valid || err != nil {
+		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
+		if !valid || err != nil {
 			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
@@ -284,10 +286,52 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		if resp == nil {
 			topItemCategories = categories
 		}
+		subscriptions, err := a.getSubscriptions(req.Context(), id)
+		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			return
+		}
 		resp = models.NewResponse(
-			models.WithResponseTemplate(views.EditSubscriptionModal(edit, topItemCategories, nil)),
+			models.WithResponseTemplate(pages.NewEditSubscriptionPage(edit, subscriptions[0], topItemCategories).Template(req)),
 		)
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+	}
+}
+
+// EditSubscriptionCategories handles adding and removing categories from a subscription.
+func (a *API) EditSubscriptionCategories() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
+		switch req.Method {
+		case http.MethodPost:
+			// Add a category.
+			currentCategories, _, _ := forms.DecodeForm[*partials.AddSubscriptionCategories](req)
+			category := req.FormValue("category")
+			id := chi.URLParam(req, "subscription")
+			if category == "" || (currentCategories != nil && slices.Contains(currentCategories.Categories, category)) {
+				chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+					res.WriteHeader(http.StatusNoContent)
+				}).ServeHTTP(res, req)
+			} else {
+				resp := models.NewResponse(
+					models.WithResponseTemplate(partials.AddCategory(id, category)),
+				)
+				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+			}
+		case http.MethodDelete:
+			// Remove a category.
+			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+				res.WriteHeader(http.StatusOK)
+			}).ServeHTTP(res, req)
+		default:
+			// Unsupported, do nothing.
+			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+				res.WriteHeader(http.StatusNoContent)
+			}).ServeHTTP(res, req)
+		}
 	}
 }
 

@@ -288,8 +288,10 @@ templ (c *Subscription) markLink(classes ...components.Class) {
 // editLink generates a link that will open a modal for editing the subscription.
 templ (c *Subscription) editLink(classes ...components.Class) {
 	@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
-		ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-		ActionTarget(ModalContainerID.Target()),
+		// ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+		// ActionTarget(ModalContainerID.Target()),
+		ActionSwap("innerHTML show:top"),
+		ActionPushURL(),
 		ActionLinkOptions(
 			link.WithClasses(classes...),
 		),

@@ -166,6 +166,8 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 				r.Get("/new", handlers.NewSubscription())
 				r.Post("/new", handler.AddSubscription())
 				r.Get("/edit/{subscription}", handler.EditSubscription())
+				r.Post("/edit/{subscription}/category", handler.EditSubscriptionCategories())
+				r.Delete("/edit/{subscription}/category", handler.EditSubscriptionCategories())
 				r.Put("/edit/{subscription}", handler.SaveSubscription())
 			})
 			// Import/export.

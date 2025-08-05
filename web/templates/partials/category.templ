@@ -1,0 +1,87 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"encoding/base64"
+	"github.com/joshuar/go-feed-me/models"
+	"slices"
+)
+
+// AddCategoryForm renders a form that can be used to add categories to a subscription.
+templ AddCategoryForm(categories []models.Category, attributes templ.Attributes) {
+	<div class="flex justify-between">
+		<label for="add-category" class="block text-sm/6 font-medium text-gray-900">Add category</label>
+		<span id="add-category-optional" class="text-sm/6 text-gray-500">Optional</span>
+	</div>
+	<div class="mt-2 ">
+		<form
+			{ attributes... }
+			hx-on::after-request="if(event.detail.successful) this.reset()"
+		>
+			<el-autocomplete>
+				<div class="flex">
+					<input
+						id="add-category"
+						type="text"
+						name="category"
+						placeholder="Cool Stuff"
+						class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+					/>
+					<button type="submit" class="flex shrink-0 items-center gap-x-1.5 rounded-r-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 outline-1 -outline-offset-1 outline-gray-300 hover:bg-gray-50 focus:relative focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600">
+						@HeroIconAdd("size-6")
+					</button>
+				</div>
+				<el-options popover anchor="bottom start">
+					<div class="mt-2 grid grid-cols-1 bg-base-200 rounded p-4 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6 capitalize">
+						for category := range slices.Values(categories) {
+							<el-option value={ category }>{ category }</el-option>
+						}
+					</div>
+				</el-options>
+			</el-autocomplete>
+		</form>
+	</div>
+}
+
+type AddSubscriptionCategories struct {
+	Categories []models.Category `form:"user_categories"`
+}
+
+func (c *AddSubscriptionCategories) Valid() (bool, error) {
+	return true, nil
+}
+
+func (c *AddSubscriptionCategories) Sanitise() error {
+	return nil
+}
+
+// ManageCategories renders a list containing existing categories of a subscription.
+templ ManageCategories(id models.SubscriptionID, categories []models.Category) {
+	<ul id="current-categories" class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm/6">
+		for category := range slices.Values(categories) {
+			@AddCategory(id, category)
+		}
+	</ul>
+}
+
+// AddCategory renders a new category item to the list of categories of a subscription.
+templ AddCategory(id models.SubscriptionID, category models.Category) {
+	@categoryListItem(category, templ.Attributes{
+		"hx-delete":   "/user/subscription/edit/" + id + "/category",
+		"hx-push-url": "false",
+		"hx-target":   "#" + base64.StdEncoding.EncodeToString([]byte(category)),
+		"hx-swap":     "delete",
+	})
+}
+
+templ categoryListItem(category models.Category, attributes templ.Attributes) {
+	<li id={ base64.StdEncoding.EncodeToString([]byte(category)) } class="flex flex-row items-center py-4 gap-x-4">
+		<input type="hidden" id="categories" name="user_categories" value={ category }/>
+		{ category }
+		<button { attributes... }>
+			@HeroIconTrash("size-4")
+		</button>
+	</li>
+}

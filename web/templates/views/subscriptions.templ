@@ -13,7 +13,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
-	"github.com/joshuar/go-templ-daisyui/actions/modal"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
@@ -156,65 +155,6 @@ templ markAllSubscriptionsLink(mark models.Mark) {
 					Mark All Read
 			}
 		</div>
-	}
-}
-
-templ EditSubscriptionModal(edits *models.SubscriptionEdit, topCategories []models.Category, msg *models.UserMessage) {
-	@modal.Build(partials.ModalID.String(),
-		modal.WithCloseButton(),
-		modal.WithCloseOutside(),
-	) {
-		@text.Build(text.WithSize(text.LG)) {
-			Edit Subscription
-		}
-		if msg != nil {
-			@partials.Alert(msg)
-		}
-		// Display the Subscription details.
-		@form.Build(
-			form.WithID("subscription-details"),
-			form.WithAttributes(
-				templ.Attributes{
-					"hx-put":       "/user/subscription/edit/" + edits.SubscriptionID,
-					"hx-target":    "#" + edits.SubscriptionID,
-					"hx-swap":      "outerHTML",
-					"hx-indicator": "#add-processing",
-				},
-			),
-		) {
-			@fieldset.Build() {
-				@hiddeninput.Build(
-					hiddeninput.WithName("subscription_id"),
-					hiddeninput.WithValue(edits.SubscriptionID),
-				)
-				<label class="fieldset-label">Nickname (optional)</label>
-				@textinput.Build(
-					textinput.WithName("user_nickname"),
-					textinput.WithValue(edits.Title),
-					textinput.WithPlaceholder("My memorable feed name"),
-					textinput.Required(),
-				).Show()
-			}
-		}
-		@editCategories(edits.Categories, topCategories)
-		// Add a button to submit the Subscription details when finished editing.
-		@fieldset.Build() {
-			<div>
-				@button.Build(
-					button.WithAttributes(templ.Attributes{
-						"form": "subscription-details",
-						"_":    "on click remove @open from " + partials.ModalID.Target(),
-					}),
-					button.WithClasses(button.Primary),
-				) {
-					Make it so!
-				}
-			</div>
-		}
-		<center id="add-processing" class="htmx-indicator">
-			Adding
-			@loading.Build(loading.Infinity).Show()
-		</center>
 	}
 }
 

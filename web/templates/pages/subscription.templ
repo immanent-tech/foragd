@@ -1,0 +1,112 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package pages
+
+import (
+	"github.com/angelofallars/htmx-go"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"net/http"
+)
+
+type EditSubscriptionPage struct {
+	request       *models.SubscriptionEdit
+	subscription  *models.Subscription
+	topCategories []models.Category
+}
+
+func NewEditSubscriptionPage(edits *models.SubscriptionEdit, subscription *models.Subscription, topCategories []models.Category) *EditSubscriptionPage {
+	return &EditSubscriptionPage{
+		request:       edits,
+		subscription:  subscription,
+		topCategories: topCategories,
+	}
+}
+
+// Template renders the edit subscription page.
+func (page *EditSubscriptionPage) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Subscriptions",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+}
+
+// Layout is the complete page layout for the edit subscription page.
+templ (page *EditSubscriptionPage) layout() {
+	@layouts.Drawer() {
+		@page.content()
+	}
+}
+
+// Content is the main content of the edit subscription page.
+templ (page *EditSubscriptionPage) content() {
+	<div class="space-y-12">
+		<div class="border-b border-gray-900/10 pb-12">
+			<h2 class="text-base/7 font-semibold text-gray-900">Editing { page.subscription.GetTitle() }</h2>
+			// Show the fields that can be edited.
+			<div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+				<div class="sm:col-span-4">
+					<div class="flex justify-between">
+						<label for="user-nickname" class="block text-sm/6 font-medium text-gray-900">Nickname</label>
+						<span id="nickname-optional" class="text-sm/6 text-gray-500">Required</span>
+					</div>
+					<div class="mt-2">
+						<form
+							id="edit-subscription"
+							hx-put={ "/user/subscription/edit/" + page.request.SubscriptionID }
+							hx-include="[name='user_categories']"
+							hx-swap="none"
+							hx-on::after-request="if(event.detail.successful) history.back()"
+						>
+							<input type="hidden" id="subscription-id" name="subscription_id" value={ page.request.SubscriptionID }/>
+							<input
+								id="user-nickname"
+								name="user_nickname"
+								type="text"
+								value={ page.request.Title }
+								required
+								placeholder="A friendly name"
+								aria-describedby="nickname-optional"
+								class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+							/>
+						</form>
+					</div>
+					// <p id="nickname-error" class="mt-2 text-sm text-red-600">A nickname is required.</p>
+				</div>
+			</div>
+			// Show the manage categories form.
+			<div class="mt-4 max-w-prose">
+				@partials.AddCategoryForm(page.topCategories, templ.Attributes{
+					"hx-post":     "/user/subscription/edit/" + page.request.SubscriptionID + "/category",
+					"hx-push-url": "false",
+					"hx-target":   "#current-categories",
+					"hx-swap":     "beforeend",
+					"hx-trigger":  "change,submit",
+					"hx-include":  "[name='user_categories']",
+				})
+			</div>
+			// Show current categories.
+			<div class="mt-2">
+				<label class="block text-sm/6 font-medium text-gray-900">Current Categories</label>
+				<div class="col-span-full">
+					@partials.ManageCategories(page.request.SubscriptionID, page.request.Categories)
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="mt-6 flex items-center justify-end gap-x-6">
+		<button type="button" onclick="history.back()" class="text-sm/6 font-semibold text-gray-900">Cancel</button>
+		<button
+			type="submit"
+			class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+			form="edit-subscription"
+		>Save</button>
+	</div>
+}
