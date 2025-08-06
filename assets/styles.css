@@ -23,49 +23,6 @@
   }
 }
 
-@utility content-header {
-  @apply bg-base-200 w-screen;
-  .btn {
-    @apply btn-square btn-sm btn-outline;
-  }
-}
-
 @utility search-suggestions {
   @apply w-screen lg:w-1/2;
-}
-
-@utility controls {
-  @apply m-2 grid auto-cols-max grid-flow-col items-center justify-end gap-2;
-  .btn {
-    @apply btn-sm btn-primary btn-square p-2;
-  }
-  .menu {
-    @apply text-xs;
-    .icon {
-      @apply size-4;
-    }
-  }
-}
-
-@utility grid-item {
-  @apply bg-base-300 rounded-box max-w-prose p-4 shadow-md;
-}
-
-@utility article {
-  @apply bg-base-300 rounded-box m-4 max-w-prose p-4 shadow-md;
-  .article-actions {
-    @apply m-2 flex flex-row justify-center gap-2;
-  }
-}
-
-@utility icontext {
-  @apply flex items-center;
-}
-
-@layer utilities {
-  /* Overwrite the default text wrapping for menu items in DaisyUI to not wrap text. */
-  .menu :where(li:not(.menu-title) > :not(ul, details, .menu-title, .btn)),
-  .menu :where(li:not(.menu-title) > details > summary:not(.menu-title)) {
-    text-wrap: nowrap;
-  }
 }

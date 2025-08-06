@@ -73,6 +73,11 @@ func (s *Sort) String() string {
 	return s.SortBy.String() + ": " + s.SortOrder.String()
 }
 
+// ID returns a string that can be used as an id for the sort.
+func (s *Sort) ID() string {
+	return "sort-" + string(s.SortBy) + "-" + string(s.SortOrder)
+}
+
 func (s Sort) IsEqual(value Sort) bool {
 	return s.SortBy == value.SortBy && s.SortOrder == value.SortOrder
 }

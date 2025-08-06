@@ -358,6 +358,7 @@ templ (c *Subscription) viewLink(classes ...components.Class) {
 	}
 }
 
+// UnsubscribeModal renders a modal that will action an unsubscribe request when the user has confirmed.
 templ (c *Subscription) UnsubscribeModal() {
 	<el-dialog id="unsubscribe-modal">
 		<dialog id="unsubscribe" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">

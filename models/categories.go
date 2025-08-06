@@ -4,8 +4,18 @@
 package models
 
 import (
+	"encoding/base64"
+	"slices"
 	"sort"
 )
+
+// Categories is a slice of categories.
+type Categories []Category
+
+// HasCategory is a convienience function to check if the given category is in the slice of categories.
+func (c Categories) HasCategory(category Category) bool {
+	return slices.Contains(c, category)
+}
 
 // CategoryCounts is a slice of Categories and their counts.
 type CategoryCounts []CategoryCount
@@ -30,16 +40,8 @@ func (c CategoryCounts) GetTopCategories(count int) []CategoryCount {
 	return c[:count]
 }
 
-// // CleanCategories takes an array of Categories and "cleans" them, removing any
-// // HTML escape strings for better display.
-// func CleanCategory(category Category) Category {
-// 	return html.UnescapeString(category.String())
-// }
-
-// func CleanCategories(categories ...Category) []Category {
-// 	cleaned := make([]Category, 0, len(categories))
-// 	for category := range slices.Values(categories) {
-// 		cleaned = append(cleaned, html.UnescapeString(safePrinter.Sanitize(category)))
-// 	}
-// 	return cleaned
-// }
+// CategoryID turns a category into a string suitable to use as an ID for the category. This is done by encoding the
+// category as a base64 string, which is safe to use in HTML.
+func CategoryID(category Category) string {
+	return base64.StdEncoding.EncodeToString([]byte(category))
+}

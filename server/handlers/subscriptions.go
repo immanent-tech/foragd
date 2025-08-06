@@ -324,6 +324,7 @@ func (a *API) RemoveSubscription() http.HandlerFunc {
 		)
 		switch req.Method {
 		case http.MethodGet:
+			// Show a modal to confirm unsubscribe request.
 			id := chi.URLParam(req, "subscription")
 			subscriptions, err := a.getSubscriptions(req.Context(), id)
 			if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
@@ -335,13 +336,14 @@ func (a *API) RemoveSubscription() http.HandlerFunc {
 			)
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		case http.MethodPost:
+			// Perform unsubscribe action.
+			id := chi.URLParam(req, "subscription")
 			// Retrieve user object.
 			user, found := models.UserFromCtx(req.Context())
 			if !found {
 				chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
 				return
 			}
-			id := chi.URLParam(req, "subscription")
 			// Remove metadata for given subscriptions from user.
 			user.RemoveSubscriptions(id)
 			// Update the user.

@@ -12,7 +12,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/actions/dropdown"
 	"github.com/joshuar/go-templ-daisyui/attributes"
 	"github.com/joshuar/go-templ-daisyui/display/text"
 	"github.com/joshuar/go-templ-daisyui/feedback/loading"
@@ -78,42 +77,11 @@ templ (page *SubscriptionsPage) content() {
 			)
 		}
 	</div>
-	<div id="card-controls" class="controls">
-		// Refresh button.
-		@partials.NewAction("/subscriptions", partials.DisplayActionAsButton,
-			partials.ActionInclude("#content-filters"),
-			partials.ActionValues(page.filters.Parameters()),
-		) {
-			@tabler.Refresh()
-		}
-		// Sorting menu.
-		@UpdateSorting("/subscriptions", page.filters.GetSort())
-		// Filters menu.
-		@UpdateFilters(page.subscriptions.GetCategoryCounts(), "/subscriptions", page.filters.GetCategories(), page.filters.GetView())
-		// Actions menu.
-		@dropdown.Build(
-			dropdown.WithButtonContent(tabler.Settings()),
-			dropdown.WithOpenAlignment(dropdown.AlignEnd),
-		).Show() {
-			switch page.filters.GetView() {
-				case models.ViewUnread:
-					<li>
-						@markAllSubscriptionsLink(models.MarkRead)
-					</li>
-				case models.ViewRead:
-					<li>
-						@markAllSubscriptionsLink(models.MarkUnread)
-					</li>
-				case models.ViewAll:
-					<li>
-						@markAllSubscriptionsLink(models.MarkRead)
-					</li>
-					<li>
-						@markAllSubscriptionsLink(models.MarkUnread)
-					</li>
-			}
-		}
-	</div>
+	@partials.ListControls{
+		Path:       "/subscriptions",
+		Filters:    page.filters,
+		Categories: page.subscriptions.GetCategoryCounts(),
+	}.Template()
 	if len(page.subscriptions) > 0 {
 		@layouts.Grid() {
 			@page.list()

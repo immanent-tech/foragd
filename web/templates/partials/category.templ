@@ -4,7 +4,6 @@
 package partials
 
 import (
-	"encoding/base64"
 	"github.com/joshuar/go-feed-me/models"
 	"slices"
 )
@@ -71,13 +70,13 @@ templ AddCategory(id models.SubscriptionID, category models.Category) {
 	@categoryListItem(category, templ.Attributes{
 		"hx-delete":   "/user/subscription/edit/" + id + "/category",
 		"hx-push-url": "false",
-		"hx-target":   "#" + base64.StdEncoding.EncodeToString([]byte(category)),
+		"hx-target":   "#" + models.CategoryID(category),
 		"hx-swap":     "delete",
 	})
 }
 
 templ categoryListItem(category models.Category, attributes templ.Attributes) {
-	<li id={ base64.StdEncoding.EncodeToString([]byte(category)) } class="flex flex-row items-center py-4 gap-x-4">
+	<li id={ models.CategoryID(category) } class="flex flex-row items-center py-4 gap-x-4">
 		<input type="hidden" id="categories" name="user_categories" value={ category }/>
 		{ category }
 		<button { attributes... }>
