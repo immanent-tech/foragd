@@ -68,7 +68,7 @@ templ (page *ArticlesPage) content() {
 		Categories: page.articles.GetCategoryCounts(),
 	}.Template()
 	if len(page.articles) > 0 {
-		@layouts.Grid() {
+		@layouts.CardGrid() {
 			@page.list()
 		}
 	} else {
@@ -86,7 +86,7 @@ templ (page *ArticlesPage) content() {
 // list will render the articles as items.
 templ (page *ArticlesPage) list() {
 	for article := range slices.Values(page.articles) {
-		@partials.NewArticleContent(article).ShowAsItem()
+		@partials.NewArticleContent(article).Card()
 	}
 	// Add pagination element if pagination is required.
 	if page.pagination != "" && len(page.articles) == page.filters.GetCount() {

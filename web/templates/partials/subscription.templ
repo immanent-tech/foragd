@@ -140,7 +140,7 @@ templ (c *Subscription) ShowAsSetting() {
 			}
 		</td>
 		<td>
-			@c.ToggleFavoriteSubscription()
+			@c.ToggleFavorite()
 		</td>
 		<td>
 			@NewAction("/subscriptions/remove", DisplayActionAsLink,
@@ -229,9 +229,9 @@ templ (c *Subscription) unreadBadge() {
 	}
 }
 
-// ToggleFavoriteSubscription renders an updated favorite link based on the subscriptions favorite status.
-templ (s *Subscription) ToggleFavoriteSubscription(classes ...components.Class) {
-	@s.favoriteLink(classes...) {
+// ToggleFavorite renders an updated favorite link based on the subscriptions favorite status.
+templ (s *Subscription) ToggleFavorite() {
+	@s.favoriteLink(CardActionClasses) {
 		switch s.Favorite {
 			case true:
 				@HeroIconHeartFilled("size-4")
@@ -240,27 +240,6 @@ templ (s *Subscription) ToggleFavoriteSubscription(classes ...components.Class) 
 				@HeroIconHeart("size-4")
 				Add Favorite
 		}
-	}
-}
-
-// favoriteSubscription link will generate an appropriate link action to favorite a subscription.
-templ favoriteSubscriptionLink(id models.SubscriptionID, isFavorite bool, target string, swap string) {
-	{{ var method string }}
-	switch isFavorite {
-		case true:
-			{{ method = http.MethodDelete }}
-		case false:
-			{{ method = http.MethodPut }}
-	}
-	@NewAction("/user/favorite/subscription/"+id, DisplayActionAsLink,
-		ActionMethod(method),
-		ActionTarget(target),
-		ActionSwap(swap),
-		ActionLinkOptions(
-			link.WithClasses("text-xs"),
-		),
-	) {
-		{ children... }
 	}
 }
 

@@ -165,7 +165,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		case strings.HasSuffix(currentURL, "/user/settings"):
 			template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
 		default:
-			template = partials.NewSubscriptionContent(subscriptions[0]).ToggleFavoriteSubscription(partials.CardActionClasses)
+			template = partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite()
 		}
 
 		resp := models.NewResponse(
@@ -215,7 +215,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 		case strings.HasSuffix(currentURL, "/user/settings"):
 			template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
 		default:
-			template = partials.NewSubscriptionContent(subscriptions[0]).ToggleFavoriteSubscription(partials.CardActionClasses)
+			template = partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite()
 		}
 
 		resp := models.NewResponse(
@@ -271,10 +271,10 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
+		article.Favorite = true
 		// Update the content
-		template := partials.ToggleFavoriteArticleText(article.GetID(), true, "#favorite_"+article.GetID(), "innerHTML")
 		resp := models.NewResponse(
-			models.WithResponseTemplate(template),
+			models.WithResponseTemplate(partials.NewArticleContent(article).ToggleFavorite()),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -309,10 +309,19 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
+		articles, err := a.getArticles(req.Context(), id)
+		if err != nil {
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			return
+		}
+		if len(articles) != 1 {
+			RenderResponse(RespBackendError(ErrInvalidContent)).ServeHTTP(res, req)
+			return
+		}
+		article := articles[0]
 		// Update the content
-		template := partials.ToggleFavoriteArticleText(id, false, "#favorite_"+id, "innerHTML")
 		resp := models.NewResponse(
-			models.WithResponseTemplate(template),
+			models.WithResponseTemplate(partials.NewArticleContent(article).ToggleFavorite()),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP

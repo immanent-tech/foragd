@@ -83,7 +83,7 @@ templ (page *SubscriptionsPage) content() {
 		Categories: page.subscriptions.GetCategoryCounts(),
 	}.Template()
 	if len(page.subscriptions) > 0 {
-		@layouts.Grid() {
+		@layouts.CardGrid() {
 			@page.list()
 		}
 	} else {

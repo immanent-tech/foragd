@@ -75,6 +75,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			Articles:       []models.ItemID{chi.URLParam(req, "item")},
 			View:           models.View(req.FormValue("view")),
 		}
+		spew.Dump(request)
 		// Validate parameters.
 		valid, err := request.Valid()
 		if err != nil {
@@ -110,7 +111,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			}
 			card := partials.NewArticleContent(s[0])
 			resp = models.NewResponse(
-				models.WithResponseTemplate(card.ShowAsItem()),
+				models.WithResponseTemplate(card.Card()),
 			)
 		}
 
