@@ -26,3 +26,27 @@
 @utility search-suggestions {
   @apply w-screen lg:w-1/2;
 }
+
+@utility custom-textinput {
+  @apply focus:outline-primary outline-primary/30 block w-full rounded-md bg-white/5 px-3 py-1.5 text-base outline-1 -outline-offset-1 *:bg-gray-800 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6;
+}
+
+@utility custom-textinputlabel {
+  @apply block text-sm/6 font-medium;
+}
+
+@utility custom-textinputhint {
+  @apply text-xs text-gray-500;
+}
+
+@utility custom-button {
+  @apply bg-primary hover:bg-primary/50 focus-visible:outline-primary block rounded-md px-3 py-2 text-center text-sm font-semibold text-white shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2;
+}
+
+@utility custom-close-button {
+  @apply focus:ring-primary rounded-md bg-white text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-offset-2 focus:outline-hidden;
+}
+
+@utility custom-select {
+  @apply outline-primary/30 focus:outline-primary col-start-1 row-start-1 w-full appearance-none rounded-md bg-white/5 py-1.5 pr-8 pl-3 text-base outline-1 -outline-offset-1 *:bg-gray-800 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6;
+}
