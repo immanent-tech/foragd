@@ -10,8 +10,6 @@ import (
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 )
 
@@ -36,65 +34,7 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 templ (c *Subscription) Card() {
 	<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-gray-200">
 		<div class="flex items-center gap-x-4 border-b border-gray-900/5 bg-gray-50 p-6">
-			// Image/Title. Clicking on these will view the subscription articles.
-			@c.viewLink("flex", "items-center", "gap-x-4") {
-				<div class="size-12 flex-none">
-					@c.image()
-				</div>
-				<div class="text-sm/6 font-medium text-gray-900">{ c.GetTitle() }</div>
-			}
-			// Actions menu.
-			<el-dropdown class="relative ml-auto">
-				<button class="relative block text-gray-400 hover:text-gray-500">
-					<span class="absolute -inset-2.5"></span>
-					<span class="sr-only">Open options</span>
-					@HeroIconContextMenu("size-5")
-				</button>
-				<el-menu anchor="bottom end" popover class="w-52 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-gray-900/5 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
-					// View action.
-					@link.Build(
-						link.WithAttributes(templ.Attributes{"href": c.GetLink()}),
-						link.WithClasses(components.Class(CardActionClasses)),
-					) {
-						@HeroIconExternalLink("size-4")
-						Feed Website
-					}
-					// Mark action.
-					@c.markLink(components.Class(CardActionClasses)) {
-						switch c.IsUnread() {
-							case true:
-								@HeroIconMarkRead("size-4")
-								Mark Read
-							case false:
-								@HeroIconMarkUnread("size-4")
-								Mark Unread
-						}
-					}
-					// Edit action.
-					@c.editLink(components.Class(CardActionClasses)) {
-						@HeroIconEdit("size-4")
-						Edit Subscription
-					}
-					// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-					<div id={ "favorite_" + c.GetID() }>
-						@c.favoriteLink(components.Class(CardActionClasses)) {
-							switch c.Favorite {
-								case true:
-									@HeroIconHeartFilled("size-4")
-									Remove Favorite
-								case false:
-									@HeroIconHeart("size-4")
-									Add Favorite
-							}
-						}
-					</div>
-					// Unsubscribe action.
-					@c.unsubscribeLink(components.Class(CardActionClasses)) {
-						@HeroIconTrash("size-4")
-						Remove Subscription
-					}
-				</el-menu>
-			</el-dropdown>
+			@c.Title()
 		</div>
 		// Description (if available).
 		if c.GetDescription() != "" {
@@ -118,47 +58,124 @@ templ (c *Subscription) Card() {
 	</li>
 }
 
+templ (s *Subscription) Title() {
+	@s.viewLink("flex", "items-center", "gap-x-4") {
+		<div class="size-12 flex-none">
+			@s.image()
+		</div>
+		<div class="text-sm/6 font-medium">{ s.GetTitle() }</div>
+	}
+	// Actions menu.
+	<el-dropdown class="relative ml-auto">
+		<button class="relative block text-gray-400 hover:text-gray-500">
+			<span class="absolute -inset-2.5"></span>
+			<span class="sr-only">Open options</span>
+			@HeroIconContextMenu("size-5")
+		</button>
+		<el-menu anchor="bottom end" popover class="w-52 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-gray-900/5 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+			// View action.
+			@link.Build(
+				link.WithAttributes(templ.Attributes{"href": s.GetLink()}),
+				link.WithClasses(components.Class(CardActionClasses)),
+			) {
+				@HeroIconExternalLink("size-4")
+				Feed Website
+			}
+			// Mark action.
+			@s.markLink(components.Class(CardActionClasses)) {
+				switch s.IsUnread() {
+					case true:
+						@HeroIconMarkRead("size-4")
+						Mark Read
+					case false:
+						@HeroIconMarkUnread("size-4")
+						Mark Unread
+				}
+			}
+			// Edit action.
+			@s.editLink(components.Class(CardActionClasses)) {
+				@HeroIconEdit("size-4")
+				Edit Subscription
+			}
+			// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+			<div id={ "favorite_" + s.GetID() }>
+				@s.favoriteLink(components.Class(CardActionClasses)) {
+					switch s.Favorite {
+						case true:
+							@HeroIconHeartFilled("size-4")
+							Remove Favorite
+						case false:
+							@HeroIconHeart("size-4")
+							Add Favorite
+					}
+				}
+			</div>
+			// Unsubscribe action.
+			@s.unsubscribeLink(components.Class(CardActionClasses)) {
+				@HeroIconTrash("size-4")
+				Remove Subscription
+			}
+		</el-menu>
+	</el-dropdown>
+}
+
 // ShowSettings renders subscription data in a table row suitable for the subscription settings page.
 templ (c *Subscription) ShowAsSetting() {
-	<tr id={ c.GetID() }>
-		// TODO: subscription multi-select/bulk action.
-		// <th>
-		// 	<label>
-		// 		<input type="checkbox" class="checkbox checkbox-xs"/>
-		// 	</label>
-		// </th>
-		<td>{ c.GetTitle() }</td>
-		<td>
-			@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
-				ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-				ActionTarget(ModalContainerID.Target()),
-				ActionLinkOptions(
-					link.WithClasses("text-xs"),
-				),
-			) {
-				@tabler.Edit(i.Props{Size: i.SizeXS})
-			}
+	<tr class="text-xs group has-checked:bg-gray-50">
+		<td class="relative px-7 sm:w-12 sm:px-6">
+			<div class="absolute inset-y-0 left-0 hidden w-0.5 bg-indigo-600 group-has-checked:block"></div>
+			<div class="group absolute top-1/2 left-4 -mt-2 grid size-4 grid-cols-1">
+				<input type="checkbox" class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"/>
+				<svg viewBox="0 0 14 14" fill="none" class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25">
+					<path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-0 group-has-checked:opacity-100"></path>
+					<path d="M3 7H11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-0 group-has-indeterminate:opacity-100"></path>
+				</svg>
+			</div>
 		</td>
-		<td>
-			@c.ToggleFavorite()
-		</td>
-		<td>
-			@NewAction("/subscriptions/remove", DisplayActionAsLink,
-				ActionMethod(http.MethodPost),
-				ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-				ActionTarget(ModalContainerID.Target()),
-				ActionValues(map[string]string{
-					"subscriptions": c.GetID(),
-					"confirmation":  "no",
-				}),
-				ActionLinkOptions(
-					link.WithClasses("text-xs"),
-				),
-			) {
-				@tabler.Trash(i.Props{Size: i.SizeXS})
-			}
-		</td>
+		<td class="py-4 pr-3 text-sm font-medium whitespace-nowrap text-gray-900 group-has-checked:text-indigo-600">{ c.GetTitle() }</td>
+		<td class="px-3 py-4 text-sm whitespace-nowrap text-gray-500">Edit</td>
+		<td class="px-3 py-4 text-sm whitespace-nowrap text-gray-500">Favorite</td>
+		<td class="px-3 py-4 text-sm whitespace-nowrap text-gray-500">Unsubscribe</td>
 	</tr>
+	// <tr id={ c.GetID() }>
+	// 	// TODO: subscription multi-select/bulk action.
+	// 	// <th>
+	// 	// 	<label>
+	// 	// 		<input type="checkbox" class="checkbox checkbox-xs"/>
+	// 	// 	</label>
+	// 	// </th>
+	// 	<td>{ c.GetTitle() }</td>
+	// 	<td>
+	// 		@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
+	// 			ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+	// 			ActionTarget(ModalContainerID.Target()),
+	// 			ActionLinkOptions(
+	// 				link.WithClasses("text-xs"),
+	// 			),
+	// 		) {
+	// 			@tabler.Edit(i.Props{Size: i.SizeXS})
+	// 		}
+	// 	</td>
+	// 	<td>
+	// 		@c.ToggleFavorite()
+	// 	</td>
+	// 	<td>
+	// 		@NewAction("/subscriptions/remove", DisplayActionAsLink,
+	// 			ActionMethod(http.MethodPost),
+	// 			ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
+	// 			ActionTarget(ModalContainerID.Target()),
+	// 			ActionValues(map[string]string{
+	// 				"subscriptions": c.GetID(),
+	// 				"confirmation":  "no",
+	// 			}),
+	// 			ActionLinkOptions(
+	// 				link.WithClasses("text-xs"),
+	// 			),
+	// 		) {
+	// 			@tabler.Trash(i.Props{Size: i.SizeXS})
+	// 		}
+	// 	</td>
+	// </tr>
 }
 
 templ (c *Subscription) ShowAsSearchSuggestion() {
@@ -303,8 +320,8 @@ templ (c *Subscription) favoriteLink(classes ...components.Class) {
 templ (c *Subscription) unsubscribeLink(classes ...components.Class) {
 	@NewAction("/user/subscription/remove/"+c.GetID(), DisplayActionAsLink,
 		ActionHyperScript(`on htmx:afterOnLoad wait 10ms then call document.getElementById("unsubscribe").show()`),
-		ActionAttribute("command", "show-modal"),
-		ActionAttribute("commandfor", "unsubscribe"),
+		// ActionAttribute("command", "show-modal"),
+		// ActionAttribute("commandfor", "unsubscribe"),
 		ActionTarget(ModalContainerID.Target()),
 		ActionLinkOptions(
 			link.WithClasses(classes...),
@@ -385,6 +402,30 @@ templ (c *Subscription) UnsubscribeModal() {
 							_="on click remove #unsubscribe-modal"
 							class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
 						>Cancel</button>
+					</div>
+				</el-dialog-panel>
+			</div>
+		</dialog>
+	</el-dialog>
+}
+
+templ AddSubscriptionModal() {
+	<el-dialog id="add-subscription-modal">
+		<dialog id="add-subscription" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
+			<el-dialog-backdrop class="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
+			<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
+				<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
+					<div class="absolute top-0 right-0 hidden pt-4 pr-4 sm:block">
+						<button
+							type="button"
+							command="close"
+							commandfor="add-subscription"
+							_="on click remove #add-subscription-modal"
+							class="custom-close-button"
+						>
+							<span class="sr-only">Close</span>
+							@HeroIconClose("size-6")
+						</button>
 					</div>
 				</el-dialog-panel>
 			</div>

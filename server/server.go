@@ -163,12 +163,12 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Route("/user", func(r chi.Router) {
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
-				r.Get("/new", handlers.NewSubscription())
-				r.Post("/new", handler.AddSubscription())
+				r.Get("/add", handler.AddSubscription())
+				r.Post("/add", handler.AddSubscription())
+				r.Post("/category", handler.EditSubscriptionCategories())
+				r.Delete("/category", handler.EditSubscriptionCategories())
 				r.Get("/edit/{subscription}", handler.EditSubscription())
 				r.Put("/edit/{subscription}", handler.SaveSubscription())
-				r.Post("/edit/{subscription}/category", handler.EditSubscriptionCategories())
-				r.Delete("/edit/{subscription}/category", handler.EditSubscriptionCategories())
 				r.Get("/remove/{subscription}", handler.RemoveSubscription())
 				r.Post("/remove/{subscription}", handler.RemoveSubscription())
 			})
@@ -189,10 +189,13 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handler.GetSettings())
+				r.Get("/subscriptions", handler.SubscriptionsSettings())
+				r.With(middlewares.RequireHTMX).Post("/subscriptions", handler.SubscriptionsSettings())
+				r.Get("/account", handler.AccountSettings())
+				r.Get("/app", handler.AppSettings())
 				r.Route("/theme", func(r chi.Router) {
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())
 				})
-				r.With(middlewares.RequireHTMX).Post("/subscriptions", handler.SubscriptionsSettings())
 			})
 		})
 	})

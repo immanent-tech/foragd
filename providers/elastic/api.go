@@ -393,7 +393,6 @@ func Search[O any](ctx context.Context, api *elasticsearch.TypedClient, index st
 	}
 	defaultOptions = append(defaultOptions, options...)
 	req := NewSearchRequest(api, defaultOptions...)
-	// spew.Dump(req.HttpRequest(ctx))
 	resp, err := req.Do(ctx)
 	if err != nil {
 		return nil, nil, fmt.Errorf("search request failed: %w", err)

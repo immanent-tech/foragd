@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -75,7 +74,6 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			Articles:       []models.ItemID{chi.URLParam(req, "item")},
 			View:           models.View(req.FormValue("view")),
 		}
-		spew.Dump(request)
 		// Validate parameters.
 		valid, err := request.Valid()
 		if err != nil {
@@ -99,7 +97,6 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		spew.Dump(user.GetSubscriptionMetadata().GetByID(request.SubscriptionID))
 
 		var resp *models.Response
 		// If the view is "all" send back the updated subscription card.
@@ -146,19 +143,19 @@ func (a *API) ShareArticle() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
-		itemID := chi.URLParam(req, "item")
-		articles, err := a.getArticles(req.Context(), itemID)
-		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-			return
-		}
+		// itemID := chi.URLParam(req, "item")
+		// // articles, err := a.getArticles(req.Context(), itemID)
+		// if err != nil {
+		// 	chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+		// 	return
+		// }
 		var resp *models.Response
 		switch req.Method {
 		case http.MethodGet:
 			// Generate articles page.
-			resp = models.NewResponse(
-				models.WithResponseTemplate(partials.ShareArticleModal(articles[0])),
-			)
+			// resp = models.NewResponse(
+			// 	models.WithResponseTemplate(partials.ShareArticleModal(articles[0])),
+			// )
 		}
 
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)

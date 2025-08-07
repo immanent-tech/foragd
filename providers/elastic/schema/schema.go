@@ -106,6 +106,7 @@ func userComponentTemplate() types.IndexState {
 			Dynamic: &dynamicmapping.False,
 			Properties: map[string]types.Property{
 				"user_id":          types.NewKeywordProperty(),
+				"nickname":         types.NewKeywordProperty(),
 				"external_user_id": types.NewKeywordProperty(),
 				"provider":         types.NewKeywordProperty(),
 				"created_at":       types.NewDateNanosProperty(),

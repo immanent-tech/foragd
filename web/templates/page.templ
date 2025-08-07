@@ -22,6 +22,7 @@ templ (page *Page) render() {
 			class="h-full"
 			hx-ext="response-targets,ajax-header"
 			hx-target-error={ partials.NotificationsID.Target() }
+			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
 		>
 			<input
 				id="page-theme"
@@ -30,8 +31,8 @@ templ (page *Page) render() {
 				class="toggle theme-controller hidden"
 				checked="checked"
 			/>
+			<div id={ partials.NotificationsID.String() } class="fixed top-0 items-center mt-4 p-2 z-999 max-w-prose"></div>
 			<div id={ partials.ModalContainerID.String() } hx-target-error="#modal-errors"></div>
-			<div id={ partials.NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50"></div>
 			if page.BodyContent != nil {
 				@page.BodyContent
 			}
@@ -89,7 +90,7 @@ templ (h *Head) build() {
 		<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 		<script src="/static/scripts.js"></script>
 		// Site-wide htmx config.
-		<meta name="htmx-config" content='{"selfRequestsOnly":"true","allowNestedOobSwaps":"false","historyCacheSize":0}'/>
+		<meta name="htmx-config" content='{"selfRequestsOnly":"true","allowNestedOobSwaps":"true","historyCacheSize":0}'/>
 		@SetPageTitle(h.Title)
 	</head>
 }

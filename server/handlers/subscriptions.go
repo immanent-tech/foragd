@@ -226,14 +226,13 @@ func (a *API) EditSubscriptionCategories() http.HandlerFunc {
 			// Add a category.
 			currentCategories, _, _ := forms.DecodeForm[*partials.AddSubscriptionCategories](req)
 			category := req.FormValue("category")
-			id := chi.URLParam(req, "subscription")
 			if category == "" || (currentCategories != nil && slices.Contains(currentCategories.Categories, category)) {
 				chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 					res.WriteHeader(http.StatusNoContent)
 				}).ServeHTTP(res, req)
 			} else {
 				resp := models.NewResponse(
-					models.WithResponseTemplate(partials.AddCategory(id, category)),
+					models.WithResponseTemplate(partials.AddCategory(category)),
 				)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 			}
@@ -367,75 +366,80 @@ func (a *API) RemoveSubscription() http.HandlerFunc {
 	}
 }
 
-// NewSubscription handles presenting the user with a form to enter details for adding a new subscription.
-func NewSubscription() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewSubscriptionModal(&models.SubscriptionRequest{})),
-		)
-		alice.New(
-			RouteLogger,
-		).Then(RenderResponse(resp)).ServeHTTP(res, req)
-	}
-}
-
 // AddSubscription handles adding a new subscription requested by the user.
 func (a *API) AddSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
 			RouteLogger,
 		)
-		request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
-		if err != nil || !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
-		}
-		requests := addSubscriptionRequests{
-			request: &models.Feed{},
-		}
-		// Match the request to either and existing or new feed.
-		result, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Adding a subscription failed.",
-				slog.Any("error", err),
-			)
+		switch req.Method {
+		case http.MethodGet:
 			resp := models.NewResponse(
-				models.WithResponseTemplate(views.SubscriptionAddedModal(
-					models.NewSubscriptionResult(nil, &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "A problem occurred while adding the subscription.",
-					}),
-				)),
+				models.WithResponseTemplate(pages.NewAddSubscriptionPage().Template(req)),
 			)
-			chain.Append(TriggerStateUpdates).Then(RenderResponse(resp)).ServeHTTP(res, req)
-			return
+			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		case http.MethodPost:
+			request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
+			if err != nil || !valid {
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.AlertWarn(
+						&models.UserMessage{
+							Summary: "Invalid data.",
+							Details: "There is invalid or missing values.",
+						},
+					))))).ServeHTTP(res, req)
+				return
+			}
+			requests := addSubscriptionRequests{
+				request: &models.Feed{},
+			}
+			// Match the request to either and existing or new feed.
+			result, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
+			if err != nil {
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.AlertError(
+						&models.UserMessage{
+							Summary: "Backend error.",
+							Details: "The backend had problems trying to add the subscription, please try again.",
+						},
+					))))).ServeHTTP(res, req)
+				return
+			}
+			// If results returned from matching is non-nil, something went wrong.
+			if result[request] != nil {
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+					models.WithResponseTemplate(partials.AlertError(result[request].Message)),
+				))).ServeHTTP(res, req)
+				return
+			}
+			// Create the new subscription.
+			createResult, err := requests.createNewSubscriptions(req.Context(), a)
+			if err != nil {
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.AlertError(
+						&models.UserMessage{
+							Summary: "Backend error.",
+							Details: "The backend had problems trying to add the subscription, please try again.",
+						},
+					))))).ServeHTTP(res, req)
+			} else {
+				result = createResult
+			}
+			chain.Then(RenderResponse(models.NewResponse(
+				models.WithResponseTemplate(partials.AlertSuccess(
+					&models.UserMessage{
+						Summary: fmt.Sprintf("Subscription %q created!", result[request].Subscription.GetTitle()),
+						Details: "New subscription: " + result[request].Subscription.String(),
+					},
+				))))).ServeHTTP(res, req)
 		}
-		// If results returned from matching is non-nil, something went wrong.
-		if result[request] != nil {
-			resp := models.NewResponse(
-				models.WithResponseTemplate(views.SubscriptionAddedModal(result[request])),
-			)
-			chain.Append(TriggerStateUpdates).Then(RenderResponse(resp)).ServeHTTP(res, req)
-			return
-		}
-		// Create the new subscription.
-		createResult, err := requests.createNewSubscriptions(req.Context(), a)
-		if err != nil {
-			slogctx.FromCtx(req.Context()).Warn("Adding a subscription failed.",
-				slog.Any("error", err),
-			)
-			result[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
-				Status:  models.UserMessageStatusError,
-				Summary: "A problem occurred while adding the subscription.",
-			})
-		} else {
-			result = createResult
-		}
-		// Display the modal with the request results shown.
-		resp := models.NewResponse(
-			models.WithResponseTemplate(views.SubscriptionAddedModal(result[request])),
-		)
-		chain.Append(TriggerStateUpdates).Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -698,7 +702,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 				results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
 					Status:  models.UserMessageStatusError,
 					Summary: "Unable to parse URL as a feed",
-					Details: fmt.Sprintf("The feed URL (%s) cannot be parsed as a feed source or is not a valid URL.", request.GetURL()),
+					Details: fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL()),
 				})
 				continue
 			}
@@ -711,7 +715,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 			results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
 				Status:  models.UserMessageStatusWarning,
 				Summary: "Already subscribed.",
-				Details: fmt.Sprintf("A subscription for the feed with URL %s already exists.", request.GetURL()),
+				Details: fmt.Sprintf("A subscription for the feed with URL %q already exists.", request.GetURL()),
 			})
 		default: // Existing feed.
 			r[request] = existingFeed
@@ -788,10 +792,10 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 	results := make(views.AddSubscriptionResults)
 	allMetadata := make(models.SubscriptionMetadataSlice, 0, len(r))
 	for request, feed := range r {
-		// Ignore requests that have already got a message response, indicating some kind of failure or warning.
-		if results[request].Message != nil {
-			continue
-		}
+		// // Ignore requests that have already got a message response, indicating some kind of failure or warning.
+		// if r[request] != nil {
+		// 	continue
+		// }
 		// Generate metadata and add to metadata slice.
 		metadata := models.NewSubscriptionMetadata(user.GetID(), feed, request)
 		valid, err := metadata.Valid()
@@ -823,7 +827,7 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		results[request] = models.NewSubscriptionResult(subscription, &models.UserMessage{
 			Status:  models.UserMessageStatusSuccess,
 			Summary: "Subscription Created",
-			Details: fmt.Sprintf("Subscription for URL %s created.", request.GetURL()),
+			Details: "Articles will be fetched shortly...",
 		})
 	}
 

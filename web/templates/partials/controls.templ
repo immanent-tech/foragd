@@ -5,7 +5,7 @@ package partials
 
 import (
 	"github.com/joshuar/go-feed-me/models"
-	"slices"
+	"strconv"
 )
 
 const (
@@ -58,8 +58,8 @@ templ (c ListControls) Template() {
 								<el-disclosure id="filter-section-category" hidden class="block pt-6">
 									<div class="space-y-6">
 										// Top 10 categories only.
-										for category := range slices.Values(c.Categories.GetTopCategories(10)) {
-											@categoryFilter("filter-mobile-category-"+models.CategoryID(category.Category), category, c.Filters.GetCategories())
+										for idx, category := range c.Categories.GetTopCategories(10) {
+											@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, c.Filters.GetCategories())
 										}
 										<a
 											class={ controlItemTextClasses }
@@ -131,8 +131,8 @@ templ (c ListControls) Template() {
 								@c.controlForm("space-y-4") {
 									<input type="hidden" name={ models.ParamView } value={ string(c.Filters.GetView()) }/>
 									// Top 10 categories only.
-									for category := range slices.Values(c.Categories.GetTopCategories(10)) {
-										@categoryFilter("filter-mobile-category-"+models.CategoryID(category.Category), category, c.Filters.GetCategories())
+									for idx, category := range c.Categories.GetTopCategories(10) {
+										@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, c.Filters.GetCategories())
 									}
 								}
 								<a

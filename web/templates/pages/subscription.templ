@@ -95,8 +95,8 @@ templ (page *EditSubscriptionPage) content() {
 			// Show current categories.
 			<div class="mt-2">
 				<label class="block text-sm/6 font-medium text-gray-900">Current Categories</label>
-				<div class="col-span-full">
-					@partials.ManageCategories(page.request.SubscriptionID, page.request.Categories)
+				<div class="col-span-2">
+					@partials.ManageCategories(page.request.Categories)
 				</div>
 			</div>
 		</div>
@@ -108,5 +108,89 @@ templ (page *EditSubscriptionPage) content() {
 			class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
 			form="edit-subscription"
 		>Save</button>
+	</div>
+}
+
+type AddSubscriptionPage struct {
+	request *models.SubscriptionRequest
+}
+
+func NewAddSubscriptionPage() *AddSubscriptionPage {
+	return &AddSubscriptionPage{
+		request: &models.SubscriptionRequest{},
+	}
+}
+
+// Template renders the edit subscription page.
+func (page *AddSubscriptionPage) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Subscriptions",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+}
+
+// Layout is the complete page layout for the edit subscription page.
+templ (page *AddSubscriptionPage) layout() {
+	@layouts.Drawer() {
+		@page.content()
+	}
+}
+
+templ (page *AddSubscriptionPage) content() {
+	<div class="mt-8 max-w-prose">
+		<div class="space-y-12 sm:space-y-16">
+			<div>
+				<h2 class="text-base/7 font-semibold">Add a new subscription</h2>
+				<div class="mt-10 space-y-8 border-b border-gray-900/10 pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
+					<form id="add-subscription">
+						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+							<label for="url" class="custom-textinputlabel">Feed URL</label>
+							<div class="mt-2 sm:col-span-2 sm:mt-0">
+								<input id="url" type="url" required name="url" placeholder="https://feed.lol/rss" class="custom-textinput validator"/>
+								<span class="validator-hint hidden">Enter a valid URL</span>
+								<span id="url-hint" class="custom-textinputhint">Required. The feed's URL or website.</span>
+							</div>
+						</div>
+						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+							<label for="nickname" class="custom-textinputlabel">Nickname</label>
+							<div class="mt-2 sm:col-span-2 sm:mt-0">
+								<input id="nickname" type="text" name="user_nickname" placeholder="My cool subscription" class="custom-textinput"/>
+								<span id="nickname-hint" class="custom-textinputhint">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</span>
+							</div>
+						</div>
+					</form>
+					@partials.AddCategoryForm(nil, templ.Attributes{
+						"hx-post":     "/user/subscription/category",
+						"hx-push-url": "false",
+						"hx-target":   "#current-categories",
+						"hx-swap":     "beforeend",
+						"hx-trigger":  "change,submit",
+						"hx-include":  "[name='user_categories']",
+					})
+					// Show current categories.
+					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+						<label class="custom-textinputlabel">Current Categories</label>
+						<div class="col-span-full">
+							@partials.ManageCategories(page.request.Categories)
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="mt-6 flex items-center justify-end gap-x-6">
+			<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
+			<button
+				type="submit"
+				form="add-subscription"
+				hx-post="/user/subscription/add"
+				hx-swap="#notifications"
+				hx-on::after-request="if(event.detail.successful) this.reset()"
+				class="custom-button"
+			>Add</button>
+		</div>
 	</div>
 }

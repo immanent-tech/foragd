@@ -1,0 +1,290 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package pages
+
+import (
+	"github.com/angelofallars/htmx-go"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"net/http"
+)
+
+type Settings struct {
+	CurrentPage string
+}
+
+func NewSettingsPage(page string) *Settings {
+	return &Settings{
+		CurrentPage: page,
+	}
+}
+
+// Template will render the home page based on the request details.
+func (page *Settings) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Settings",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+}
+
+templ (page *Settings) layout() {
+	@layouts.Drawer() {
+		@page.content()
+	}
+}
+
+templ (page *Settings) content() {
+	// @settingsSelect(page.CurrentPage)
+	<div id="current-settings">
+		switch page.CurrentPage {
+			case "account":
+				@AccountSettings()
+			case "subscriptions":
+				@SubscriptionSettings()
+			case "app":
+				@AppSettings()
+		}
+	</div>
+}
+
+templ settingsSelect(current string) {
+	<div id="settings-select" class="mt-8">
+		<div class="grid grid-cols-1 sm:hidden">
+			<select
+				aria-label="Select a settings tab"
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+				class="custom-select"
+			>
+				<option
+					hx-get="/user/settings/account"
+					value="account"
+					if current == "account" {
+						selected
+					}
+				>My Account</option>
+				<option
+					value="billing"
+					if current == "billing" {
+						selected
+					}
+				>Billing</option>
+				<option
+					hx-get="/user/settings/subscriptions"
+					value="subscriptions"
+					if current == "subscriptions" {
+						selected
+					}
+				>Subscriptions</option>
+				<option
+					hx-get="/user/settings/app"
+					value="app"
+					if current == "app" {
+						selected
+					}
+				>App</option>
+			</select>
+			<svg viewBox="0 0 16 16" fill="currentColor" data-slot="icon" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end fill-gray-500">
+				<path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+			</svg>
+		</div>
+		<div class="hidden sm:block">
+			<nav aria-label="Tabs" class="flex space-x-4" hx-target="#current-settings">
+				<a
+					hx-get="/user/settings/account"
+					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
+				templ.KV("bg-primary/50 text-white",current == "account"),
+				templ.KV("text-gray-500 hover:text-gray-700", current != "account") }
+				>My Account</a>
+				<a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Billing</a>
+				<a
+					hx-get="/user/settings/subscriptions"
+					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
+				templ.KV("bg-primary/50 text-white",current == "subscriptions"),
+				templ.KV("text-gray-500 hover:text-gray-700", current != "subscriptions") }
+				>Subscriptions</a>
+				<a
+					hx-get="/user/settings/app"
+					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
+				templ.KV("bg-primary/50 text-white",current == "app"),
+				templ.KV("text-gray-500 hover:text-gray-700", current != "app") }
+				>App</a>
+			</nav>
+		</div>
+	</div>
+}
+
+// SubscriptionSettings shows settings for managing user subscriptions.
+templ SubscriptionSettings() {
+	@settingsSelect("subscriptions")
+	<div class="flex flex-col mt-2 gap-y-4 max-w-prose">
+		<div class="flex flex-row gap-x-4">
+			<button
+				type="button"
+				class="custom-button"
+				hx-get="/user/subscription/add"
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+			>Add</button>
+			<button type="button" class="custom-button">Import</button>
+			<button type="button" class="custom-button">Export</button>
+		</div>
+		<form
+			hx-post="/user/settings/subscriptions"
+			hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
+			hx-target="#subscriptions-list"
+			hx-indicator=".htmx-indicator"
+			hx-push-url="false"
+		>
+			// <label for="search" class="block text-sm/6 font-medium text-gray-900">Filter subscriptions</label>
+			<div class="flex rounded-md bg-white outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-primary">
+				<input id="filter-subscriptions" type="text" name="text" placeholder="Filter..." class="custom-textinput"/>
+				// <div class="flex py-1.5 pr-1.5">
+				// 	<kbd class="inline-flex items-center rounded-sm border border-gray-200 px-1 font-sans text-xs text-gray-400">⌘K</kbd>
+				// </div>
+			</div>
+		</form>
+	</div>
+	<ul id="subscriptions-list" role="list" class="divide-y divide-gray-100 max-w-prose"></ul>
+}
+
+templ ShowSubscriptionSettings(subscription *models.Subscription) {
+	<li class="flex items-center justify-between gap-x-2 py-5">
+		@partials.NewSubscriptionContent(subscription).Title()
+	</li>
+}
+
+// AccountSettings shows settings for managing the user account.
+templ AccountSettings() {
+	@settingsSelect("account")
+	<div class="divide-y divide-white/5">
+		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+			<div>
+				<h2 class="text-base/7 font-semibold">Personal Information</h2>
+				<p class="mt-1 text-sm/6 text-gray-400">Use a permanent address where you can receive mail.</p>
+			</div>
+			<form
+				class="md:col-span-2"
+				hx-post="/user/settings/account"
+				hx-target="#current-settings"
+			>
+				<div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
+					<div class="col-span-full flex items-center gap-x-8">
+						<img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" class="size-24 flex-none rounded-lg bg-gray-800 object-cover"/>
+						<div>
+							<label for="avatar" class="custom-textinputlabel">Avatar</label>
+							// <button type="button" class="rounded-md custom-button">Change avatar</button>
+							<p class="mt-2 text-xs/5 text-gray-400">JPG, GIF or PNG. 1MB max.</p>
+						</div>
+					</div>
+					<div class="col-span-full">
+						<input id="avatar" type="file" class="custom-button text-xs"/>
+					</div>
+					<div class="col-span-full">
+						<label for="username" class="custom-textinputlabel">Username</label>
+						<div class="mt-2">
+							<input id="username" type="text" name="username" placeholder="janesmith" class="custom-textinput"/>
+						</div>
+					</div>
+					<div class="col-span-full">
+						<label for="email" class="custom-textinputlabel">Email address</label>
+						<div class="mt-2">
+							<input id="email" type="email" name="email" autocomplete="email" class="custom-textinput"/>
+						</div>
+					</div>
+					<div class="col-span-full">
+						<label for="timezone" class="custom-textinputlabel">Timezone</label>
+						<div class="mt-2 grid grid-cols-1">
+							<select id="timezone" name="timezone" class="custom-select">
+								<option>Pacific Standard Time</option>
+								<option>Eastern Standard Time</option>
+								<option>Greenwich Mean Time</option>
+							</select>
+							<svg viewBox="0 0 16 16" fill="currentColor" data-slot="icon" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-400 sm:size-4">
+								<path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+							</svg>
+						</div>
+					</div>
+				</div>
+				<div class="mt-8 flex">
+					<button
+						type="submit"
+						class="custom-button"
+					>Save</button>
+				</div>
+			</form>
+		</div>
+	</div>
+}
+
+// AppSettings shows settings for the application.
+templ AppSettings() {
+	@settingsSelect("app")
+	<div class="divide-y divide-white/5">
+		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+			<div class="col-span-full">
+				<h2 class="text-base/7 font-semibold">Theme</h2>
+			</div>
+			@themePreview("light")
+			@themePreview("dark")
+			@themePreview("synthwave")
+			@themePreview("retro")
+			@themePreview("valentine")
+			@themePreview("aqua")
+			@themePreview("lofi")
+			@themePreview("black")
+			@themePreview("dracula")
+			@themePreview("business")
+			@themePreview("night")
+			@themePreview("coffee")
+			@themePreview("dim")
+			@themePreview("nord")
+			@themePreview("sunset")
+			@themePreview("caramellatte")
+			@themePreview("mocha")
+		</div>
+	</div>
+}
+
+templ themePreview(theme string) {
+	<div
+		class="border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border outline-2 outline-offset-2 outline-transparent"
+		data-act-class="outline-base-content!"
+		data-set-theme={ theme }
+		_="on click set #page-theme.value to @data-set-theme"
+		hx-trigger="click"
+		hx-put={ "/user/settings/theme/" + theme }
+		hx-swap="none"
+	>
+		<div class="bg-base-100 text-base-content w-full cursor-pointer font-sans" data-theme={ theme }>
+			<div class="grid grid-cols-5 grid-rows-3">
+				<div class="bg-base-200 col-start-1 row-span-2 row-start-1"></div>
+				<div class="bg-base-300 col-start-1 row-start-3"></div>
+				<div class="bg-base-100 col-span-4 col-start-2 row-span-3 row-start-1 flex flex-col gap-1 p-2">
+					<div class="font-bold capitalize">{ theme }</div>
+					<div class="flex flex-wrap gap-1">
+						<div class="bg-primary flex aspect-square w-5 items-center justify-center rounded lg:w-6">
+							<div class="text-primary-content text-sm font-bold">A</div>
+						</div>
+						<div class="bg-secondary flex aspect-square w-5 items-center justify-center rounded lg:w-6">
+							<div class="text-secondary-content text-sm font-bold">A</div>
+						</div>
+						<div class="bg-accent flex aspect-square w-5 items-center justify-center rounded lg:w-6">
+							<div class="text-accent-content text-sm font-bold">A</div>
+						</div>
+						<div class="bg-neutral flex aspect-square w-5 items-center justify-center rounded lg:w-6">
+							<div class="text-neutral-content text-sm font-bold">A</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+}

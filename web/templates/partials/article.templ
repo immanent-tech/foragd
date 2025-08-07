@@ -6,14 +6,10 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/figure"
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
-	"net/url"
 	"strings"
 )
 
@@ -32,6 +28,7 @@ func NewArticleContent(article *models.Article) *Article {
 	return card
 }
 
+// Card renders an article as a card, for displaying in a list.
 templ (c *Article) Card() {
 	if c.GetImage().URL == "" {
 		<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-gray-200 bg-base-200 row-span-1">
@@ -217,37 +214,6 @@ templ (c *Article) ShowAsSearchResult() {
 	</div>
 }
 
-// MarkArticleLink generates a link/action that will mark the article read/unread depending on its current
-// read state.
-templ MarkArticleLink(subscriptionID models.SubscriptionID, itemID models.ItemID, unread bool) {
-	{{ var mark string }}
-	if unread {
-		{{ mark = "read" }}
-	} else {
-		{{ mark = "unread" }}
-	}
-	@NewAction("/subscription/"+subscriptionID+"/article/"+itemID+"/mark/"+mark, DisplayActionAsLink,
-		ActionMethod(http.MethodPost),
-		ActionTarget("#"+itemID),
-		ActionSwap("outerHTML"),
-		ActionInclude("[name='view']"),
-		ActionLinkOptions(
-			link.WithClasses("text-xs"),
-		),
-	) {
-		<div class="icontext">
-			switch mark {
-				case "read":
-					@tabler.Bookmark()
-					Mark Read
-				case "unread":
-					@tabler.BookmarkFilled()
-					Mark Unread
-			}
-		</div>
-	}
-}
-
 // ShowAsSummary shows a summarised version of the article.
 templ (c *Article) link() {
 	@link.Build(
@@ -287,23 +253,6 @@ func (c *Article) viewAttributes() templ.Attributes {
 	}
 }
 
-// ToggleFavoriteArticleText renders an icon and text that when clicked will toggle the favorite status of the
-// article.
-templ ToggleFavoriteArticleText(id models.SubscriptionID, isFavorite bool, target string, swap string) {
-	@favoriteArticleLink(id, isFavorite, target, swap) {
-		<div class="icontext">
-			switch isFavorite {
-				case true:
-					@tabler.HeartFilled(i.Props{Size: i.SizeXS})
-					Remove Favorite
-				case false:
-					@tabler.Heart(i.Props{Size: i.SizeXS})
-					Add Favorite
-			}
-		</div>
-	}
-}
-
 // ToggleFavorite renders an updated favorite link based on the article favorite status.
 templ (a *Article) ToggleFavorite() {
 	@a.favoriteLink(CardActionClasses) {
@@ -315,85 +264,6 @@ templ (a *Article) ToggleFavorite() {
 				@HeroIconHeart("size-4")
 				Add Favorite
 		}
-	}
-}
-
-// favoriteSubscription link will generate an appropriate link action to favorite a subscription.
-templ favoriteArticleLink(id models.ItemID, isFavorite bool, target string, swap string) {
-	{{ var method string }}
-	switch isFavorite {
-		case true:
-			{{ method = http.MethodDelete }}
-		case false:
-			{{ method = http.MethodPut }}
-	}
-	@NewAction("/user/favorite/article/"+id, DisplayActionAsLink,
-		ActionMethod(method),
-		ActionTarget(target),
-		ActionSwap(swap),
-		ActionLinkOptions(
-			link.WithClasses("text-xs"),
-		),
-	) {
-		{ children... }
-	}
-}
-
-// shareArticleLink generates a link that triggers a modal with options for sharing the article externally.
-templ shareArticleLink(subscriptionID models.SubscriptionID, itemID models.ItemID) {
-	@NewAction("/subscription/"+subscriptionID+"/article/"+itemID+"/share", DisplayActionAsLink,
-		ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-		ActionTarget(ModalContainerID.Target()),
-		ActionLinkOptions(
-			link.WithClasses("text-xs"),
-		),
-	) {
-		<div class="icontext">
-			@tabler.Share(i.Props{Size: i.SizeXS})
-			Share article
-		</div>
-	}
-}
-
-// AskQuestion displays a modal that asks the given question, with the given actions as options.
-templ ShareArticleModal(article *models.Article) {
-	@Modal() {
-		<h3 class="font-bold">Share via...</h3>
-		<div class="flex justify-center">
-			<div class="grid grid-cols-4 gap-4">
-				@link.Build(
-					link.WithAttributes(mailToAttrs(article)),
-					link.WithClasses("btn"),
-				) {
-					<div class="icontext text-sm">
-						@tabler.Mail()
-						Send Email
-					</div>
-				}
-				@button.Build(
-					button.WithAttributes(templ.Attributes{
-						"_": "on click call navigator.clipboard.writeText('" + article.GetLink() + "')",
-					}),
-				) {
-					<div class="icontext text-sm">
-						@tabler.Copy()
-						Copy Link
-					</div>
-				}
-			</div>
-		</div>
-	}
-}
-
-func mailToAttrs(article *models.Article) templ.Attributes {
-	var href strings.Builder
-	href.WriteString("mailto:?subject=")
-	href.WriteString(url.QueryEscape(article.GetTitle()))
-	href.WriteString("&body=")
-	href.WriteString(url.QueryEscape(article.GetLink()))
-	return templ.Attributes{
-		"href":   href.String(),
-		"target": "_blank",
 	}
 }
 

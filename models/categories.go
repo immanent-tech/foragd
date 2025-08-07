@@ -4,7 +4,6 @@
 package models
 
 import (
-	"encoding/base64"
 	"slices"
 	"sort"
 )
@@ -38,10 +37,4 @@ func (c CategoryCounts) GetTopCategories(count int) []CategoryCount {
 		count = len(c)
 	}
 	return c[:count]
-}
-
-// CategoryID turns a category into a string suitable to use as an ID for the category. This is done by encoding the
-// category as a base64 string, which is safe to use in HTML.
-func CategoryID(category Category) string {
-	return base64.StdEncoding.EncodeToString([]byte(category))
 }

@@ -21,6 +21,7 @@ import (
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/validation"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/pages"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/views"
 )
@@ -32,7 +33,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 			RouteLogger,
 		)
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewSettingsPage().Template(req)),
+			models.WithResponseTemplate(pages.NewSettingsPage("account").Template(req)),
 		)
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
@@ -44,35 +45,81 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
+		var template templ.Component
 		// Extract the search request.
-		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
-		if err != nil || !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
-		}
-		// Find matching subscriptions.
-		var subscriptions models.SubscriptionsSlice
-		if request.Text != "" {
-			subscriptions, err = a.findSubscriptions(req.Context(), request)
-			if err != nil {
-				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+		switch req.Method {
+		case http.MethodPost:
+			request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
+			if err != nil || !valid {
+				chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 				return
 			}
-		} else {
-			subscriptions, err = a.getSubscriptions(req.Context())
-			if err != nil {
-				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-				return
+			// Find matching subscriptions.
+			var subscriptions models.SubscriptionsSlice
+			if request.Text != "" {
+				subscriptions, err = a.findSubscriptions(req.Context(), request)
+				if err != nil {
+					chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+					return
+				}
+			} else {
+				subscriptions, err = a.getSubscriptions(req.Context())
+				if err != nil {
+					chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+					return
+				}
 			}
-		}
-		settings := make([]templ.Component, 0, len(subscriptions))
-		for subscription := range slices.Values(subscriptions) {
-			settings = append(settings, partials.NewSubscriptionContent(subscription).ShowAsSetting())
+			settings := make([]templ.Component, 0, len(subscriptions))
+			for subscription := range slices.Values(subscriptions) {
+				settings = append(settings, pages.ShowSubscriptionSettings(subscription))
+			}
+			template = templ.Join(settings...)
+		case http.MethodGet:
+			template = pages.NewSettingsPage("subscriptions").Template(req)
 		}
 		resp := models.NewResponse(
-			models.WithResponseTemplate(templ.Join(settings...)),
+			models.WithResponseTemplate(template),
 		)
-		RenderResponse(resp).ServeHTTP(res, req)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+	}
+}
+
+// AccountSettings handles managing user account settings.
+func (a *API) AccountSettings() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		chain := alice.New(
+			RouteLogger,
+		)
+		var template templ.Component
+		// Extract the search request.
+		switch req.Method {
+		case http.MethodGet:
+			template = pages.NewSettingsPage("account").Template(req)
+		}
+		resp := models.NewResponse(
+			models.WithResponseTemplate(template),
+		)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+	}
+}
+
+// AppSettings handles managing app settings.
+func (a *API) AppSettings() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		chain := alice.New(
+			RouteLogger,
+		)
+
+		var template templ.Component
+		// Extract the search request.
+		switch req.Method {
+		case http.MethodGet:
+			template = pages.NewSettingsPage("app").Template(req)
+		}
+		resp := models.NewResponse(
+			models.WithResponseTemplate(template),
+		)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 

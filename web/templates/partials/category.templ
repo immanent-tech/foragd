@@ -10,37 +10,37 @@ import (
 
 // AddCategoryForm renders a form that can be used to add categories to a subscription.
 templ AddCategoryForm(categories []models.Category, attributes templ.Attributes) {
-	<div class="flex justify-between">
-		<label for="add-category" class="block text-sm/6 font-medium text-gray-900">Add category</label>
-		<span id="add-category-optional" class="text-sm/6 text-gray-500">Optional</span>
-	</div>
-	<div class="mt-2 ">
-		<form
-			{ attributes... }
-			hx-on::after-request="if(event.detail.successful) this.reset()"
-		>
-			<el-autocomplete>
-				<div class="flex">
-					<input
-						id="add-category"
-						type="text"
-						name="category"
-						placeholder="Cool Stuff"
-						class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-					/>
-					<button type="submit" class="flex shrink-0 items-center gap-x-1.5 rounded-r-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 outline-1 -outline-offset-1 outline-gray-300 hover:bg-gray-50 focus:relative focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600">
-						@HeroIconAdd("size-6")
-					</button>
-				</div>
-				<el-options popover anchor="bottom start">
-					<div class="mt-2 grid grid-cols-1 bg-base-200 rounded p-4 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6 capitalize">
-						for category := range slices.Values(categories) {
-							<el-option value={ category }>{ category }</el-option>
-						}
+	<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+		<label for="category" class="custom-textinputlabel">Add category</label>
+		<div class="mt-2 sm:col-span-2 sm:mt-0">
+			<form
+				{ attributes... }
+				hx-on::after-request="if(event.detail.successful) this.reset()"
+			>
+				<el-autocomplete>
+					<div class="flex">
+						<input
+							id="add-category"
+							type="text"
+							name="category"
+							placeholder="Cool Stuff"
+							class="custom-textinput"
+						/>
+						<button type="submit" class="custom-button">
+							@HeroIconAdd("size-6")
+						</button>
 					</div>
-				</el-options>
-			</el-autocomplete>
-		</form>
+					<el-options popover anchor="bottom start">
+						<div class="mt-2 grid grid-cols-1 bg-base-200 rounded p-4 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6 capitalize">
+							for category := range slices.Values(categories) {
+								<el-option value={ category }>{ category }</el-option>
+							}
+						</div>
+					</el-options>
+				</el-autocomplete>
+			</form>
+			<span id="category-hint" class="custom-textinputhint">Optional. Add a category to the subscription.</span>
+		</div>
 	</div>
 }
 
@@ -57,26 +57,26 @@ func (c *AddSubscriptionCategories) Sanitise() error {
 }
 
 // ManageCategories renders a list containing existing categories of a subscription.
-templ ManageCategories(id models.SubscriptionID, categories []models.Category) {
+templ ManageCategories(categories []models.Category) {
 	<ul id="current-categories" class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm/6">
 		for category := range slices.Values(categories) {
-			@AddCategory(id, category)
+			@AddCategory(category)
 		}
 	</ul>
 }
 
 // AddCategory renders a new category item to the list of categories of a subscription.
-templ AddCategory(id models.SubscriptionID, category models.Category) {
+templ AddCategory(category models.Category) {
 	@categoryListItem(category, templ.Attributes{
-		"hx-delete":   "/user/subscription/edit/" + id + "/category",
+		"hx-delete":   "/user/subscription/category",
 		"hx-push-url": "false",
-		"hx-target":   "#" + models.CategoryID(category),
+		"hx-target":   "closest li",
 		"hx-swap":     "delete",
 	})
 }
 
 templ categoryListItem(category models.Category, attributes templ.Attributes) {
-	<li id={ models.CategoryID(category) } class="flex flex-row items-center py-4 gap-x-4">
+	<li class="flex flex-row items-center py-4 gap-x-4">
 		<input type="hidden" id="categories" name="user_categories" value={ category }/>
 		{ category }
 		<button { attributes... }>
