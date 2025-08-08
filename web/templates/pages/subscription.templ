@@ -47,67 +47,59 @@ templ (page *EditSubscriptionPage) layout() {
 
 // Content is the main content of the edit subscription page.
 templ (page *EditSubscriptionPage) content() {
-	<div class="space-y-12">
-		<div class="border-b border-gray-900/10 pb-12">
-			<h2 class="text-base/7 font-semibold text-gray-900">Editing { page.subscription.GetTitle() }</h2>
-			// Show the fields that can be edited.
-			<div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-				<div class="sm:col-span-4">
-					<div class="flex justify-between">
-						<label for="user-nickname" class="block text-sm/6 font-medium text-gray-900">Nickname</label>
-						<span id="nickname-optional" class="text-sm/6 text-gray-500">Required</span>
-					</div>
-					<div class="mt-2">
-						<form
-							id="edit-subscription"
-							hx-put={ "/user/subscription/edit/" + page.request.SubscriptionID }
-							hx-include="[name='user_categories']"
-							hx-swap="none"
-							hx-on::after-request="if(event.detail.successful) history.back()"
-						>
+	<div class="mt-8 max-w-prose">
+		<div class="space-y-12 sm:space-y-16">
+			<div>
+				<h2 class="text-base/7 font-semibold">Editing { page.subscription.GetTitle() }</h2>
+				<div class="mt-10 space-y-8 border-b border-neutral pb-12 sm:space-y-0 sm:divide-y sm:divide-neutral sm:border-t sm:pb-0">
+					<form id="edit-subscription">
+						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+							<label for="nickname" class="custom-textinputlabel">Nickname</label>
 							<input type="hidden" id="subscription-id" name="subscription_id" value={ page.request.SubscriptionID }/>
-							<input
-								id="user-nickname"
-								name="user_nickname"
-								type="text"
-								value={ page.request.Title }
-								required
-								placeholder="A friendly name"
-								aria-describedby="nickname-optional"
-								class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
-							/>
-						</form>
+							<div class="mt-2 sm:col-span-2 sm:mt-0">
+								<input
+									id="nickname"
+									type="text"
+									required
+									name="user_nickname"
+									value={ page.subscription.GetTitle() }
+									placeholder="My favorite feed"
+									class="custom-textinput validator"
+								/>
+								<span class="validator-hint hidden">Nickname is required</span>
+								<span id="url-hint" class="custom-textinputhint">Required. A friendly name for the subscription.</span>
+							</div>
+						</div>
+					</form>
+					@partials.AddCategoryForm(page.topCategories, templ.Attributes{
+						"hx-post":     "/user/subscription/category",
+						"hx-push-url": "false",
+						"hx-target":   "#current-categories",
+						"hx-swap":     "beforeend",
+						"hx-trigger":  "change,submit",
+						"hx-include":  "[name='user_categories']",
+					})
+					// Show current categories.
+					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+						<label class="custom-textinputlabel">Current Categories</label>
+						<div class="col-span-full">
+							@partials.ManageCategories(page.subscription.GetCategories())
+						</div>
 					</div>
-					// <p id="nickname-error" class="mt-2 text-sm text-red-600">A nickname is required.</p>
-				</div>
-			</div>
-			// Show the manage categories form.
-			<div class="mt-4 max-w-prose">
-				@partials.AddCategoryForm(page.topCategories, templ.Attributes{
-					"hx-post":     "/user/subscription/edit/" + page.request.SubscriptionID + "/category",
-					"hx-push-url": "false",
-					"hx-target":   "#current-categories",
-					"hx-swap":     "beforeend",
-					"hx-trigger":  "change,submit",
-					"hx-include":  "[name='user_categories']",
-				})
-			</div>
-			// Show current categories.
-			<div class="mt-2">
-				<label class="block text-sm/6 font-medium text-gray-900">Current Categories</label>
-				<div class="col-span-2">
-					@partials.ManageCategories(page.request.Categories)
 				</div>
 			</div>
 		</div>
-	</div>
-	<div class="mt-6 flex items-center justify-end gap-x-6">
-		<button type="button" onclick="history.back()" class="text-sm/6 font-semibold text-gray-900">Cancel</button>
-		<button
-			type="submit"
-			class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-			form="edit-subscription"
-		>Save</button>
+		<div class="mt-6 flex items-center justify-end gap-x-6">
+			<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
+			<button
+				type="submit"
+				form="edit-subscription"
+				hx-put={ "/user/subscription/edit/" + page.request.SubscriptionID }
+				hx-include="[name='user_categories']"
+				hx-target="#notifications"
+				class="custom-button"
+			>Save</button>
+		</div>
 	</div>
 }
 
@@ -187,7 +179,7 @@ templ (page *AddSubscriptionPage) content() {
 				type="submit"
 				form="add-subscription"
 				hx-post="/user/subscription/add"
-				hx-swap="#notifications"
+				hx-target="#notifications"
 				hx-on::after-request="if(event.detail.successful) this.reset()"
 				class="custom-button"
 			>Add</button>

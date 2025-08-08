@@ -265,7 +265,15 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		}
 		edits, valid, err := forms.DecodeForm[*models.SubscriptionEdit](req)
 		if err != nil || !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(models.NewResponse(
+				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+				models.WithResponseError(err),
+				models.WithResponseTemplate(partials.AlertWarn(
+					&models.UserMessage{
+						Summary: "Invalid data.",
+						Details: "There is invalid or missing values.",
+					},
+				))))).ServeHTTP(res, req)
 			return
 		}
 		metadata := user.GetSubscriptionMetadata().GetByID(edits.SubscriptionID)
@@ -273,7 +281,15 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		metadata.Customisation.Categories = edits.Categories
 		err = user.UpdateSubscription(metadata)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(models.NewResponse(
+				models.WithResponseStatusCode(http.StatusInternalServerError),
+				models.WithResponseError(err),
+				models.WithResponseTemplate(partials.AlertError(
+					&models.UserMessage{
+						Summary: "Backend error.",
+						Details: "The backend had problems trying to save the subscription edits, please try again.",
+					},
+				))))).ServeHTTP(res, req)
 			return
 		}
 		// Update the user.
@@ -281,34 +297,42 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			"subscriptions": user.GetSubscriptionMetadata(),
 		})
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(RenderResponse(models.NewResponse(
+				models.WithResponseStatusCode(http.StatusInternalServerError),
+				models.WithResponseError(err),
+				models.WithResponseTemplate(partials.AlertError(
+					&models.UserMessage{
+						Summary: "Backend error.",
+						Details: "The backend had problems trying to save the subscription edits, please try again.",
+					},
+				))))).ServeHTTP(res, req)
 			return
 		}
-		subscriptions, err := a.getSubscriptions(req.Context(), edits.SubscriptionID)
-		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-			return
-		}
-		// Display the updated subscription.
-		var template templ.Component
-		// currentURL, found := htmx.GetCurrentURL(req)
-		if !found {
-			chain.Then(RenderResponse(RespBackendError(nil))).ServeHTTP(res, req)
-			return
-		}
-		switch {
-		// case strings.HasSuffix(currentURL, "/user/settings"):
-		// 	template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
-		default:
-			template = partials.NewSubscriptionContent(subscriptions[0]).Card()
-		}
+		// subscriptions, err := a.getSubscriptions(req.Context(), edits.SubscriptionID)
+		// if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
+		// 	chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+		// 	return
+		// }
+		// // Display the updated subscription.
+		// var template templ.Component
+		// // currentURL, found := htmx.GetCurrentURL(req)
+		// if !found {
+		// 	chain.Then(RenderResponse(RespBackendError(nil))).ServeHTTP(res, req)
+		// 	return
+		// }
+		// switch {
+		// // case strings.HasSuffix(currentURL, "/user/settings"):
+		// // 	template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
+		// default:
+		// 	template = partials.NewSubscriptionContent(subscriptions[0]).Card()
+		// }
 		// Display a notification acknowledging save (OOB swap).
-		msg := models.SuccessUserMessage(fmt.Sprintf("Subscription %s updated.", subscriptions[0].GetTitle()), "")
-		resp := models.NewResponse(
-			models.WithResponseTemplate(templ.Join(template, partials.ShowNotification(msg))),
-		)
-
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(models.NewResponse(
+			models.WithResponseTemplate(partials.AlertSuccess(
+				&models.UserMessage{
+					Summary: "Subscription edits saved!",
+				},
+			))))).ServeHTTP(res, req)
 	}
 }
 

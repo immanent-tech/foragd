@@ -6,7 +6,7 @@ package partials
 import "github.com/joshuar/go-feed-me/models"
 
 templ AlertError(msg *models.UserMessage) {
-	<div id="alert-error" class="rounded-md bg-error/50 p-4">
+	<div id="alert-error" class="rounded-md bg-error/70 p-4">
 		<div class="flex">
 			<div class="shrink-0">
 				@HeroIconError("size-5")
@@ -27,7 +27,7 @@ templ AlertError(msg *models.UserMessage) {
 						_="on click remove #alert-error"
 					>
 						<span class="sr-only">Dismiss</span>
-						@HeroIconClose("size-5")
+						@HeroIconClose("size-4")
 					</button>
 				</div>
 			</div>
@@ -36,7 +36,7 @@ templ AlertError(msg *models.UserMessage) {
 }
 
 templ AlertWarn(msg *models.UserMessage) {
-	<div id="alert-warning" class="rounded-md bg-warning/50 p-4">
+	<div id="alert-warning" class="rounded-md bg-warning/70 p-4">
 		<div class="flex">
 			<div class="shrink-0">
 				@HeroIconWarn("size-5")
@@ -57,7 +57,7 @@ templ AlertWarn(msg *models.UserMessage) {
 						_="on click remove #alert-warning"
 					>
 						<span class="sr-only">Dismiss</span>
-						@HeroIconClose("size-5")
+						@HeroIconClose("size-4")
 					</button>
 				</div>
 			</div>
@@ -66,8 +66,8 @@ templ AlertWarn(msg *models.UserMessage) {
 }
 
 templ AlertSuccess(msg *models.UserMessage) {
-	<div id="alert-success" class="rounded-md bg-success/50 p-4">
-		<div class="flex">
+	<div id="alert-success" role="alert" class="rounded-md bg-success/70 p-4">
+		<div class="flex items-center">
 			<div class="shrink-0">
 				@HeroIconSuccess("size-5")
 			</div>
@@ -83,11 +83,11 @@ templ AlertSuccess(msg *models.UserMessage) {
 				<div class="-mx-1.5 -my-1.5">
 					<button
 						type="button"
-						class="inline-flex rounded-md bg-success p-1.5 text-success-content focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 focus-visible:ring-offset-success focus-visible:outline-hidden"
+						class="inline-flex rounded bg-success p-1 text-success-content focus-visible:ring-2 focus-visible:ring-success focus-visible:ring-offset-2 focus-visible:ring-offset-success focus-visible:outline-hidden"
 						_="on click remove #alert-success"
 					>
 						<span class="sr-only">Dismiss</span>
-						@HeroIconClose("size-5")
+						@HeroIconClose("size-4")
 					</button>
 				</div>
 			</div>

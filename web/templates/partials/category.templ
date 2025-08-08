@@ -31,7 +31,7 @@ templ AddCategoryForm(categories []models.Category, attributes templ.Attributes)
 						</button>
 					</div>
 					<el-options popover anchor="bottom start">
-						<div class="mt-2 grid grid-cols-1 bg-base-200 rounded p-4 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6 capitalize">
+						<div class="mt-2 grid grid-cols-1 bg-base-200 rounded p-4 pr-8 pl-3 text-base outline-1 -outline-offset-1 outline-neutral focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:text-sm/6 capitalize">
 							for category := range slices.Values(categories) {
 								<el-option value={ category }>{ category }</el-option>
 							}
@@ -76,7 +76,7 @@ templ AddCategory(category models.Category) {
 }
 
 templ categoryListItem(category models.Category, attributes templ.Attributes) {
-	<li class="flex flex-row items-center py-4 gap-x-4">
+	<li class="flex flex-row items-center py-4 gap-x-4 group-hover:text-accent">
 		<input type="hidden" id="categories" name="user_categories" value={ category }/>
 		{ category }
 		<button { attributes... }>

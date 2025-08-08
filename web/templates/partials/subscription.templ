@@ -7,7 +7,6 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
-	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"net/http"
 )
@@ -159,10 +158,13 @@ templ (c *Subscription) image() {
 	if c.GetImage().URL != "" {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar">
-			<div class="mask mask-squircle w-12">
-				@image.Build(
-					c.GetImage().URL,
-				)
+			<div class="rounded-box bg-neutral/30 size-12 p-1">
+				<img
+					src={ c.GetImage().URL }
+					if c.GetImage().Title != "" {
+						alt={ c.GetImage().Title }
+					}
+				/>
 			</div>
 		</div>
 	} else {
