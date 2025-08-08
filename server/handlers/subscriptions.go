@@ -4,7 +4,9 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -12,11 +14,13 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -559,6 +563,70 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 			)
 		}
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+	}
+}
+
+// ExportSubscriptions handles configuring and performing an export of user subscriptions.
+func (a *API) ExportSubscriptions() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		chain := alice.New(
+			RouteLogger,
+		)
+		switch {
+		// GET: show import modal.
+		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export":
+			resp := models.NewResponse(
+				models.WithResponseTemplate(pages.NewExportPage().Template(req)),
+			)
+			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":
+			// Get all subscriptions.
+			subscriptions, err := a.getSubscriptions(req.Context())
+			if err != nil {
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.AlertError(
+						&models.UserMessage{
+							Summary: "Backend error.",
+							Details: "The backend had problems trying to add the subscription, please try again.",
+						},
+					))))).ServeHTTP(res, req)
+				return
+			}
+			// Create outlines for all subscriptions.
+			outlines := make([]opml.Outline, 0, len(subscriptions))
+			for subscription := range slices.Values(subscriptions) {
+				outlines = append(outlines, *opml.NewSubscriptionOutline(subscription.GetTitle(), subscription.Feed.GetSourceURLs()[0],
+					opml.WithHTMLURL(subscription.GetLink()),
+					opml.WithOutlineTitle(subscription.GetTitle()),
+					opml.WithDescription(subscription.GetDescription()),
+				))
+			}
+			// Generate the opml file from the outlines.
+			opmlExport := opml.NewOPML(
+				opml.WithTitle("Go Feed Me Export"),
+				opml.WithOutlines(outlines...),
+			)
+			// Marshal the opml file and convert to a byte reader.
+			data, err := xml.Marshal(opmlExport)
+			data = []byte(xml.Header + string(data))
+			if err != nil {
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.AlertError(
+						&models.UserMessage{
+							Summary: "Backend error.",
+							Details: "The backend had problems trying to add the subscription, please try again.",
+						},
+					))))).ServeHTTP(res, req)
+				return
+			}
+			// Serve the opml content via http.ServeContent.
+			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
+			http.ServeContent(res, req, "export.opml", time.Now(), bytes.NewReader(data))
+		}
 	}
 }
 

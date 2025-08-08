@@ -175,6 +175,8 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			// Import/export.
 			r.Get("/import", handler.ImportSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/import", handler.ImportSubscriptions())
+			r.Get("/export", handler.ExportSubscriptions())
+			r.Get("/export/opml", handler.ExportSubscriptions())
 			// Favorites.
 			r.Route("/favorite", func(r chi.Router) {
 				r.Get("/", handler.GetFavorites())

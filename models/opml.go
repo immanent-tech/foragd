@@ -4,7 +4,6 @@
 package models
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"mime"
@@ -28,10 +27,10 @@ func (f *OPMLFile) Load(data multipart.File, hdr *multipart.FileHeader) error {
 func (f *OPMLFile) Valid() (bool, error) {
 	mediaType, _, err := mime.ParseMediaType(f.hdr.Header.Get("Content-Type"))
 	if err != nil {
-		return false, errors.New("invalid media type")
+		return false, fmt.Errorf("invalid media type: %w", err)
 	}
 	if mediaType != "text/x-opml+xml" {
-		return false, errors.New("invalid media type")
+		return false, fmt.Errorf("invalid media type: got %s, want text/x-opml+xml", mediaType)
 	}
 	return true, nil
 }

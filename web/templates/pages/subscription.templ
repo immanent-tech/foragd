@@ -320,3 +320,56 @@ templ ImportResults(results AddSubscriptionResults) {
 	</div>
 	<button class="custom-button fixed right-0 bottom-0 m-4" href="#">Back to top</button>
 }
+
+// ExportPage is a page for exporting subscriptions via an OPML file.
+type ExportPage struct{}
+
+func NewExportPage() *ExportPage {
+	return &ExportPage{}
+}
+
+// Template renders the add subscription page.
+func (page *ExportPage) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Export",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+}
+
+templ (page *ExportPage) layout() {
+	@layouts.Drawer() {
+		@page.content()
+	}
+}
+
+templ (page *ExportPage) content() {
+	<div class="mt-8 max-w-prose">
+		<div class="space-y-12 sm:space-y-16">
+			<div>
+				<h2 class="text-base/7 font-semibold">Export subscriptions</h2>
+				<p class="mt-1 text-sm/6">You can export your current subscription to an OPML file, which all good feed readers can import.</p>
+				<div class="mt-10 space-y-8">
+					<div class="mt-6 flex items-center justify-end gap-x-6">
+						<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
+						<a
+							role="button"
+							class="custom-button"
+							href="/user/export/opml"
+							download
+						>
+							Export
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<center id="processing" class="htmx-indicator">
+			Processing, this could take a few minutes...
+			@loading.Build(loading.Infinity).Show()
+		</center>
+	</div>
+}

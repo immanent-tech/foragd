@@ -140,7 +140,13 @@ templ SubscriptionSettings() {
 				hx-target={ partials.ContentID.Target() }
 				hx-push-url="true"
 			>Import</button>
-			<button type="button" class="custom-button">Export</button>
+			<button
+				type="button"
+				class="custom-button"
+				hx-get="/user/export"
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+			>Export</button>
 		</div>
 		<form
 			hx-post="/user/settings/subscriptions"
