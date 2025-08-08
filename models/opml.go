@@ -11,30 +11,36 @@ import (
 	"slices"
 
 	"github.com/immanent-tech/go-syndication/opml"
+	"github.com/immanent-tech/go-syndication/types"
 )
 
+// OPMLFile represents an OPML file.
 type OPMLFile struct {
 	data multipart.File
 	hdr  *multipart.FileHeader
 }
 
+// Load will load the OPMLFile object with the data representing an OPML file contained in the given multipart form values.
 func (f *OPMLFile) Load(data multipart.File, hdr *multipart.FileHeader) error {
 	f.data = data
 	f.hdr = hdr
 	return nil
 }
 
+// Valid returns a boolean indicating if the OPML file is valid. If not valid, a non-nil error is also returned which
+// will contain details about validation failures.
 func (f *OPMLFile) Valid() (bool, error) {
 	mediaType, _, err := mime.ParseMediaType(f.hdr.Header.Get("Content-Type"))
 	if err != nil {
-		return false, fmt.Errorf("invalid media type: %w", err)
+		return false, fmt.Errorf("%w: %w", ErrInvalidMimeType, err)
 	}
-	if mediaType != "text/x-opml+xml" {
-		return false, fmt.Errorf("invalid media type: got %s, want text/x-opml+xml", mediaType)
+	if mediaType != types.MimeTypeOPML {
+		return false, fmt.Errorf("%w: got %s, want "+types.MimeTypeOPML, ErrInvalidMimeType, mediaType)
 	}
 	return true, nil
 }
 
+// GenerateRequests extracts the feed outlines from the OPML file and returns a slice of subscription requests.
 func (f *OPMLFile) GenerateRequests() (SubscriptionRequests, error) {
 	importfile, err := f.parse()
 	if err != nil {

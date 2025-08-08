@@ -625,7 +625,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			}
 			// Serve the opml content via http.ServeContent.
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
-			http.ServeContent(res, req, "export.opml", time.Now(), bytes.NewReader(data))
+			http.ServeContent(res, req, "go-feed-me-export.opml", time.Now(), bytes.NewReader(data))
 		}
 	}
 }

@@ -5,4 +5,9 @@ package models
 
 import "errors"
 
-var ErrNoUserCtx = errors.New("no valid user in context")
+var (
+	// ErrNoUserCtx indicates the user object was not found in the context.
+	ErrNoUserCtx = errors.New("no valid user in context")
+	// ErrInvalidMimeType indicates that the mime type is not valid.
+	ErrInvalidMimeType = errors.New("invalid mime type")
+)
