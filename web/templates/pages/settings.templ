@@ -133,7 +133,13 @@ templ SubscriptionSettings() {
 				hx-target={ partials.ContentID.Target() }
 				hx-push-url="true"
 			>Add</button>
-			<button type="button" class="custom-button">Import</button>
+			<button
+				type="button"
+				class="custom-button"
+				hx-get="/user/import"
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+			>Import</button>
 			<button type="button" class="custom-button">Export</button>
 		</div>
 		<form
@@ -143,16 +149,10 @@ templ SubscriptionSettings() {
 			hx-indicator=".htmx-indicator"
 			hx-push-url="false"
 		>
-			// <label for="search" class="block text-sm/6 font-medium text-gray-900">Filter subscriptions</label>
-			<div class="flex rounded-md bg-white outline-1 -outline-offset-1 outline-gray-300 focus-within:outline-2 focus-within:-outline-offset-2 focus-within:outline-primary">
-				<input id="filter-subscriptions" type="text" name="text" placeholder="Filter..." class="custom-textinput"/>
-				// <div class="flex py-1.5 pr-1.5">
-				// 	<kbd class="inline-flex items-center rounded-sm border border-gray-200 px-1 font-sans text-xs text-gray-400">⌘K</kbd>
-				// </div>
-			</div>
+			<input id="filter-subscriptions" type="text" name="text" placeholder="Filter..." class="custom-textinput"/>
 		</form>
 	</div>
-	<ul id="subscriptions-list" role="list" class="divide-y divide-gray-100 max-w-prose"></ul>
+	<ul id="subscriptions-list" role="list" class="divide-y divide-neutral max-w-prose"></ul>
 }
 
 templ ShowSubscriptionSettings(subscription *models.Subscription) {
@@ -168,7 +168,7 @@ templ AccountSettings() {
 		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div>
 				<h2 class="text-base/7 font-semibold">Personal Information</h2>
-				<p class="mt-1 text-sm/6 text-gray-400">Use a permanent address where you can receive mail.</p>
+				// <p class="mt-1 text-sm/6 text-gray-400">Use a permanent address where you can receive mail.</p>
 			</div>
 			<form
 				class="md:col-span-2"

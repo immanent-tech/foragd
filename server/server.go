@@ -164,17 +164,16 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
 				r.Get("/add", handler.AddSubscription())
-				r.Post("/add", handler.AddSubscription())
-				r.Post("/category", handler.EditSubscriptionCategories())
-				r.Delete("/category", handler.EditSubscriptionCategories())
+				r.With(middlewares.RequireHTMX).Post("/add", handler.AddSubscription())
+				r.With(middlewares.RequireHTMX).Post("/category", handler.EditSubscriptionCategories())
+				r.With(middlewares.RequireHTMX).Delete("/category", handler.EditSubscriptionCategories())
 				r.Get("/edit/{subscription}", handler.EditSubscription())
-				r.Put("/edit/{subscription}", handler.SaveSubscription())
+				r.With(middlewares.RequireHTMX).Put("/edit/{subscription}", handler.SaveSubscription())
 				r.Get("/remove/{subscription}", handler.RemoveSubscription())
-				r.Post("/remove/{subscription}", handler.RemoveSubscription())
+				r.With(middlewares.RequireHTMX).Post("/remove/{subscription}", handler.RemoveSubscription())
 			})
 			// Import/export.
 			r.Get("/import", handler.ImportSubscriptions())
-			r.With(middlewares.RequireHTMX).Put("/import", handler.ImportSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/import", handler.ImportSubscriptions())
 			// Favorites.
 			r.Route("/favorite", func(r chi.Router) {

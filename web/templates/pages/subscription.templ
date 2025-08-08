@@ -6,12 +6,17 @@ package pages
 import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"net/http"
+	"slices"
+	"strconv"
 )
 
+// EditSubscriptionPage is a page for editing a subscription.
 type EditSubscriptionPage struct {
 	request       *models.SubscriptionEdit
 	subscription  *models.Subscription
@@ -32,20 +37,18 @@ func (page *EditSubscriptionPage) Template(req *http.Request) templ.Component {
 	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 		return page.content()
 	default:
-		return templates.NewPage("Go Feed Me - Subscriptions",
+		return templates.NewPage("Go Feed Me - Edit "+page.subscription.GetTitle(),
 			templates.WithBodyContent(page.layout()),
 		)
 	}
 }
 
-// Layout is the complete page layout for the edit subscription page.
 templ (page *EditSubscriptionPage) layout() {
 	@layouts.Drawer() {
 		@page.content()
 	}
 }
 
-// Content is the main content of the edit subscription page.
 templ (page *EditSubscriptionPage) content() {
 	<div class="mt-8 max-w-prose">
 		<div class="space-y-12 sm:space-y-16">
@@ -103,6 +106,7 @@ templ (page *EditSubscriptionPage) content() {
 	</div>
 }
 
+// AddSubscriptionPage is a page for adding a new subscription.
 type AddSubscriptionPage struct {
 	request *models.SubscriptionRequest
 }
@@ -113,19 +117,18 @@ func NewAddSubscriptionPage() *AddSubscriptionPage {
 	}
 }
 
-// Template renders the edit subscription page.
+// Template renders the add subscription page.
 func (page *AddSubscriptionPage) Template(req *http.Request) templ.Component {
 	switch {
 	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 		return page.content()
 	default:
-		return templates.NewPage("Go Feed Me - Subscriptions",
+		return templates.NewPage("Go Feed Me - Add Subscription",
 			templates.WithBodyContent(page.layout()),
 		)
 	}
 }
 
-// Layout is the complete page layout for the edit subscription page.
 templ (page *AddSubscriptionPage) layout() {
 	@layouts.Drawer() {
 		@page.content()
@@ -185,4 +188,135 @@ templ (page *AddSubscriptionPage) content() {
 			>Add</button>
 		</div>
 	</div>
+}
+
+// ImportPage is a page for importing subscriptions from an external source (e.g., an OPML file).
+type ImportPage struct{}
+
+func NewImportPage() *ImportPage {
+	return &ImportPage{}
+}
+
+// Template renders the add subscription page.
+func (page *ImportPage) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Import",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+}
+
+templ (page *ImportPage) layout() {
+	@layouts.Drawer() {
+		@page.content()
+	}
+}
+
+templ (page *ImportPage) content() {
+	<div class="mt-8 max-w-prose">
+		<div class="space-y-12 sm:space-y-16">
+			<div>
+				<h2 class="text-base/7 font-semibold">Import subscriptions</h2>
+				<div class="mt-10 space-y-8">
+					<form
+						id="import"
+						hx-encoding="multipart/form-data"
+						hx-post="/user/import"
+						hx-target="#import-results"
+						hx-indicator="#import-processing"
+					>
+						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+							<label for="source" class="custom-textinputlabel">OPML file</label>
+							<div class="mt-2 sm:col-span-2 sm:mt-0">
+								<input id="source" type="file" required name="source" class="custom-textinput validator"/>
+								<span class="validator-hint hidden">Make sure the file is a valid OPML file.</span>
+								<span id="source-hint" class="custom-textinputhint">Required.</span>
+							</div>
+						</div>
+						<div class="mt-6 flex items-center justify-end gap-x-6">
+							<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
+							<button
+								type="submit"
+								class="custom-button"
+							>Import</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<center id="import-processing" class="htmx-indicator">
+			Processing, this could take a few minutes...
+			@loading.Build(loading.Infinity).Show()
+		</center>
+		<div id="import-results" class="space-y-4"></div>
+	</div>
+}
+
+type AddSubscriptionResults map[*models.SubscriptionRequest]*models.AddSubscriptionResult
+
+func (r AddSubscriptionResults) GetSuccessful() []*models.AddSubscriptionResult {
+	return slices.Collect(models.FilterMapValues(r, func(result *models.AddSubscriptionResult) bool {
+		return result.Message.Status == models.UserMessageStatusSuccess
+	}))
+}
+
+func (r AddSubscriptionResults) GetFailed() []*models.AddSubscriptionResult {
+	return slices.Collect(models.FilterMapValues(r, func(result *models.AddSubscriptionResult) bool {
+		return result.Message.Status != models.UserMessageStatusSuccess
+	}))
+}
+
+// ImportResults is a partial template that displays the results of an import.
+templ ImportResults(results AddSubscriptionResults) {
+	{{ successfulResults := results.GetSuccessful() }}
+	{{ failedResults := results.GetFailed() }}
+	<h2 class="text-base/7 font-semibold">Import Results</h2>
+	<p class="text-sm italic">Imported: { strconv.Itoa(len(successfulResults)) } Failed: { strconv.Itoa(len(failedResults)) }</p>
+	<button
+		class="custom-button"
+		hx-get="/subscriptions"
+		hx-target={ partials.ContentID.Target() }
+		hx-vals={ partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+	>
+		Go to your subscriptions
+	</button>
+	<div class="mt-10 space-y-8 border-t border-neutral">
+		<ul class="list">
+			for response := range slices.Values(slices.Concat(successfulResults,failedResults)) {
+				<li class="list-row items-center">
+					switch response.Message.Status {
+						case models.UserMessageStatusSuccess:
+							@partials.HeroIconSuccess("size-10")
+							<div>
+								<div>{ response.Message.Summary }</div>
+							</div>
+						case models.UserMessageStatusError:
+							@partials.HeroIconError("size-10")
+							<div>
+								<div>{ response.Message.Summary }</div>
+								if response.Message.HasDetails() {
+									<p class="list-col-wrap text-xs">
+										{ response.Message.Details }
+									</p>
+								}
+							</div>
+						case models.UserMessageStatusWarning:
+							@partials.HeroIconWarn("size-10")
+							<div>
+								<div>{ response.Message.Summary }</div>
+								if response.Message.HasDetails() {
+									<p class="list-col-wrap text-xs">
+										{ response.Message.Details }
+									</p>
+								}
+							</div>
+					}
+				</li>
+			}
+		</ul>
+	</div>
+	<button class="custom-button fixed right-0 bottom-0 m-4" href="#">Back to top</button>
 }

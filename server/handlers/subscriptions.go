@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -477,61 +478,84 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 		// GET: show import modal.
 		case http.MethodGet:
 			resp = models.NewResponse(
-				models.WithResponseTemplate(views.ImportSubscriptionsModal()),
-			)
-		// PUT: set-up chosen import method.
-		case http.MethodPut:
-			resp = models.NewResponse(
-				models.WithResponseTemplate(views.SetupOPMLImport()),
+				models.WithResponseTemplate(pages.NewImportPage().Template(req)),
 			)
 		// POST: process import.
 		case http.MethodPost:
-			source := req.FormValue("source")
-			slogctx.FromCtx(req.Context()).Debug("Starting import for user.",
-				slog.String("source", source),
-			)
 			requests := make(addSubscriptionRequests)
-			switch source {
-			// Import via OPML file.
-			case "opml_file":
-				opmlFile := &models.OPMLFile{}
-				opmlFile, valid, err := forms.DecodeMultipartFile(req, "data", opmlFile)
-				if err != nil || !valid {
-					chain.Then(RenderResponse(RespInvalidInput(fmt.Errorf("could not parse OPML file: %w", err)))).ServeHTTP(res, req)
-					return
-				}
-				r, err := opmlFile.GenerateRequests()
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Warn("User import failed.",
-						slog.Any("error", err),
-					)
-					chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-					return
-				}
-				for newRequest := range slices.Values(r) {
-					requests[newRequest] = &models.Feed{}
-				}
+			opmlFile := &models.OPMLFile{}
+			opmlFile, valid, err := forms.DecodeMultipartFile(req, "source", opmlFile)
+			if err != nil || !valid {
+				htmxResp := htmxRespFromCtx(req.Context())
+				htmxResp = htmxResp.Retarget("#notifications")
+				ctx := htmxRespToCtx(req.Context(), htmxResp)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusBadRequest),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.AlertWarn(
+						&models.UserMessage{
+							Summary: "Failed to read OPML file.",
+							Details: "Could not parse the OPML file, please check and try again.",
+						},
+					))))).ServeHTTP(res, req.WithContext(ctx))
+				return
+			}
+			spew.Dump(opmlFile, valid, err)
+			r, err := opmlFile.GenerateRequests()
+			if err != nil {
+				htmxResp := htmxRespFromCtx(req.Context())
+				htmxResp = htmxResp.Retarget("#notifications")
+				ctx := htmxRespToCtx(req.Context(), htmxResp)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.AlertWarn(
+						&models.UserMessage{
+							Summary: "Failed to extract subscriptions from OPML file.",
+							Details: "Could not extract subscriptions from the OPML file, please check the contents and try again.",
+						},
+					))))).ServeHTTP(res, req.WithContext(ctx))
+				return
+			}
+			for newRequest := range slices.Values(r) {
+				requests[newRequest] = &models.Feed{}
 			}
 			matchResults, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
 			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("User import failed.",
-					slog.Any("error", err),
-				)
-				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				htmxResp := htmxRespFromCtx(req.Context())
+				htmxResp = htmxResp.Retarget("#notifications")
+				ctx := htmxRespToCtx(req.Context(), htmxResp)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.AlertError(
+						&models.UserMessage{
+							Summary: "Backend error.",
+							Details: "The backend had problems trying to add the subscription, please try again.",
+						},
+					))))).ServeHTTP(res, req.WithContext(ctx))
 				return
 			}
 			createResults, err := requests.createNewSubscriptions(req.Context(), a)
 			if err != nil {
-				slogctx.FromCtx(req.Context()).Warn("User import failed.",
-					slog.Any("error", err),
-				)
-				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				htmxResp := htmxRespFromCtx(req.Context())
+				htmxResp = htmxResp.Retarget("#notifications")
+				ctx := htmxRespToCtx(req.Context(), htmxResp)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.AlertError(
+						&models.UserMessage{
+							Summary: "Backend error.",
+							Details: "The backend had problems trying to add the subscription, please try again.",
+						},
+					))))).ServeHTTP(res, req.WithContext(ctx))
 				return
 			}
 			maps.Copy(createResults, matchResults)
 
 			resp = models.NewResponse(
-				models.WithResponseTemplate(views.ImportResults(createResults)),
+				models.WithResponseTemplate(pages.ImportResults(createResults)),
 			)
 		}
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
@@ -683,7 +707,7 @@ func (r addSubscriptionRequests) feedURLs() []string {
 // matchFeedsToSubscriptionRequests takes a list of subscription requests, extracts the URLs in each and attempt to
 // match them to existing feeds. Where there is no existing feed, it will attempt to generate new feed data. It then
 // stores the subscriptions that need new feeds and any with existing feeds in the context for the next handler.
-func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Context, api *API) (views.AddSubscriptionResults, error) {
+func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Context, api *API) (pages.AddSubscriptionResults, error) {
 	// Extract user data.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -712,7 +736,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 		feedPagination = &nextResults
 	}
 
-	results := make(views.AddSubscriptionResults)
+	results := make(pages.AddSubscriptionResults)
 	feedsNeeded := make(addSubscriptionRequests)
 
 	// Loop over existing feeds.
@@ -737,8 +761,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 		case user.IsSubscribedToFeed(existingFeed.GetID()): // User already subscribed, ignore request.
 			results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
 				Status:  models.UserMessageStatusWarning,
-				Summary: "Already subscribed.",
-				Details: fmt.Sprintf("A subscription for the feed with URL %q already exists.", request.GetURL()),
+				Summary: "Already subscribed to " + existingFeed.GetTitle(),
 			})
 		default: // Existing feed.
 			r[request] = existingFeed
@@ -762,9 +785,9 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 	return results, nil
 }
 
-func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (views.AddSubscriptionResults, error) {
+func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (pages.AddSubscriptionResults, error) {
 	slogctx.FromCtx(ctx).Debug("Adding new feeds for subscriptions.")
-	results := make(views.AddSubscriptionResults)
+	results := make(pages.AddSubscriptionResults)
 
 	// Testing no-op.
 	// return results, nil
@@ -801,7 +824,7 @@ func (r addSubscriptionRequests) createNewFeeds(ctx context.Context, api *API) (
 // AddSubscriptions handles adding new subscription via either the add or import user functionality. It
 // handles: matching and filtering out requests against existing subscriptions, matching requests to existing feeds,
 // creating new feeds as necessary and finally creating user subscriptions.
-func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api *API) (views.AddSubscriptionResults, error) {
+func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api *API) (pages.AddSubscriptionResults, error) {
 	// Extract user data.
 	user, found := models.UserFromCtx(ctx)
 	if !found {
@@ -812,7 +835,7 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 
 	// Loop through the subscriptions adding their state to the existing subscription states slice. For any
 	// subscriptions that have customisation data, collect the customisation data for adding later.
-	results := make(views.AddSubscriptionResults)
+	results := make(pages.AddSubscriptionResults)
 	allMetadata := make(models.SubscriptionMetadataSlice, 0, len(r))
 	for request, feed := range r {
 		// // Ignore requests that have already got a message response, indicating some kind of failure or warning.
@@ -849,7 +872,7 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		}
 		results[request] = models.NewSubscriptionResult(subscription, &models.UserMessage{
 			Status:  models.UserMessageStatusSuccess,
-			Summary: "Subscription Created",
+			Summary: "Subscription Created: " + results[request].Subscription.GetTitle(),
 			Details: "Articles will be fetched shortly...",
 		})
 	}

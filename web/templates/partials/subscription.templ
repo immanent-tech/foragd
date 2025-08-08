@@ -171,7 +171,7 @@ templ (c *Subscription) image() {
 		// Otherwise, take the first letter of the title and create a placeholder avatar.
 		<div class="avatar avatar-placeholder">
 			<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
-				<span class="text-3xl">{ c.GetTitle()[0:1] }</span>
+				<span class="text-3xl capitalize">{ c.GetTitle()[0:1] }</span>
 			</div>
 		</div>
 	}
