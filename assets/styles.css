@@ -50,3 +50,7 @@
 @utility custom-select {
   @apply outline-primary/30 focus:outline-primary col-start-1 row-start-1 w-full appearance-none rounded-md bg-white/5 py-1.5 pr-8 pl-3 text-base outline-1 -outline-offset-1 *:bg-gray-800 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6;
 }
+
+@utility custom-checkbox {
+  @apply border-neutral checked:border-secondary checked:bg-primary focus-visible:outline-primary relative size-4 appearance-none rounded-full border bg-white/5 before:absolute before:inset-1 before:rounded-full before:bg-white not-checked:before:hidden focus-visible:outline-2 focus-visible:outline-offset-2 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden;
+}

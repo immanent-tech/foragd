@@ -14,7 +14,6 @@ import (
 	"strings"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -292,14 +291,14 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		}
 		// Display the updated subscription.
 		var template templ.Component
-		currentURL, found := htmx.GetCurrentURL(req)
+		// currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
 			chain.Then(RenderResponse(RespBackendError(nil))).ServeHTTP(res, req)
 			return
 		}
 		switch {
-		case strings.HasSuffix(currentURL, "/user/settings"):
-			template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
+		// case strings.HasSuffix(currentURL, "/user/settings"):
+		// 	template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
 		default:
 			template = partials.NewSubscriptionContent(subscriptions[0]).Card()
 		}

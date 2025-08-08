@@ -6,7 +6,6 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-templ-daisyui"
-	"github.com/joshuar/go-templ-daisyui/display/avatar"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/display/image"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
@@ -32,8 +31,8 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 
 // Card renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
 templ (c *Subscription) Card() {
-	<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-gray-200">
-		<div class="flex items-center gap-x-4 border-b border-gray-900/5 bg-gray-50 p-6">
+	<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-neutral bg-base-200">
+		<div class="flex items-center gap-x-4 p-6">
 			@c.Title()
 		</div>
 		// Description (if available).
@@ -43,15 +42,15 @@ templ (c *Subscription) Card() {
 			</div>
 		}
 		// Stats. Last updated timestamp and unread count (if appropriate).
-		<dl class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm/6">
+		<dl class="-my-3 divide-y divide-neutral px-6 py-4 text-sm/6">
 			<div class="flex justify-between gap-x-4 py-3">
-				<dt class="text-gray-500 text-xs">Updated</dt>
-				<dd class="text-gray-700 text-xs">
+				<dt class="text-primary text-xs">Updated</dt>
+				<dd class="text-secondary text-xs">
 					@ShowTimestamp(c.GetUpdatedDate())
 				</dd>
 				if c.IsUnread() {
-					<dt class="text-gray-500 text-xs">Unread</dt>
-					<dd class="text-gray-700 text-xs">{ c.GetUnreadCount() }</dd>
+					<dt class="text-primary text-xs">Unread</dt>
+					<dd class="text-secondary text-xs">{ c.GetUnreadCount() }</dd>
 				}
 			</div>
 		</dl>
@@ -67,12 +66,12 @@ templ (s *Subscription) Title() {
 	}
 	// Actions menu.
 	<el-dropdown class="relative ml-auto">
-		<button class="relative block text-gray-400 hover:text-gray-500">
+		<button class="relative block text-neutral hover:text-accent">
 			<span class="absolute -inset-2.5"></span>
 			<span class="sr-only">Open options</span>
 			@HeroIconContextMenu("size-5")
 		</button>
-		<el-menu anchor="bottom end" popover class="w-52 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-gray-900/5 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+		<el-menu anchor="bottom end" popover class="w-52 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-neutral transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 			// View action.
 			@link.Build(
 				link.WithAttributes(templ.Attributes{"href": s.GetLink()}),
@@ -119,65 +118,6 @@ templ (s *Subscription) Title() {
 	</el-dropdown>
 }
 
-// ShowSettings renders subscription data in a table row suitable for the subscription settings page.
-templ (c *Subscription) ShowAsSetting() {
-	<tr class="text-xs group has-checked:bg-gray-50">
-		<td class="relative px-7 sm:w-12 sm:px-6">
-			<div class="absolute inset-y-0 left-0 hidden w-0.5 bg-indigo-600 group-has-checked:block"></div>
-			<div class="group absolute top-1/2 left-4 -mt-2 grid size-4 grid-cols-1">
-				<input type="checkbox" class="col-start-1 row-start-1 appearance-none rounded-sm border border-gray-300 bg-white checked:border-indigo-600 checked:bg-indigo-600 indeterminate:border-indigo-600 indeterminate:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:checked:bg-gray-100 forced-colors:appearance-auto"/>
-				<svg viewBox="0 0 14 14" fill="none" class="pointer-events-none col-start-1 row-start-1 size-3.5 self-center justify-self-center stroke-white group-has-disabled:stroke-gray-950/25">
-					<path d="M3 8L6 11L11 3.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-0 group-has-checked:opacity-100"></path>
-					<path d="M3 7H11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-0 group-has-indeterminate:opacity-100"></path>
-				</svg>
-			</div>
-		</td>
-		<td class="py-4 pr-3 text-sm font-medium whitespace-nowrap text-gray-900 group-has-checked:text-indigo-600">{ c.GetTitle() }</td>
-		<td class="px-3 py-4 text-sm whitespace-nowrap text-gray-500">Edit</td>
-		<td class="px-3 py-4 text-sm whitespace-nowrap text-gray-500">Favorite</td>
-		<td class="px-3 py-4 text-sm whitespace-nowrap text-gray-500">Unsubscribe</td>
-	</tr>
-	// <tr id={ c.GetID() }>
-	// 	// TODO: subscription multi-select/bulk action.
-	// 	// <th>
-	// 	// 	<label>
-	// 	// 		<input type="checkbox" class="checkbox checkbox-xs"/>
-	// 	// 	</label>
-	// 	// </th>
-	// 	<td>{ c.GetTitle() }</td>
-	// 	<td>
-	// 		@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
-	// 			ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-	// 			ActionTarget(ModalContainerID.Target()),
-	// 			ActionLinkOptions(
-	// 				link.WithClasses("text-xs"),
-	// 			),
-	// 		) {
-	// 			@tabler.Edit(i.Props{Size: i.SizeXS})
-	// 		}
-	// 	</td>
-	// 	<td>
-	// 		@c.ToggleFavorite()
-	// 	</td>
-	// 	<td>
-	// 		@NewAction("/subscriptions/remove", DisplayActionAsLink,
-	// 			ActionMethod(http.MethodPost),
-	// 			ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-	// 			ActionTarget(ModalContainerID.Target()),
-	// 			ActionValues(map[string]string{
-	// 				"subscriptions": c.GetID(),
-	// 				"confirmation":  "no",
-	// 			}),
-	// 			ActionLinkOptions(
-	// 				link.WithClasses("text-xs"),
-	// 			),
-	// 		) {
-	// 			@tabler.Trash(i.Props{Size: i.SizeXS})
-	// 		}
-	// 	</td>
-	// </tr>
-}
-
 templ (c *Subscription) ShowAsSearchSuggestion() {
 	<div class="col-span-2">
 		<div class="flex flex-row gap-2 m-2 items-center">
@@ -218,21 +158,20 @@ templ (c *Subscription) image() {
 	// Generate a thumbnail to display next to the title.
 	if c.GetImage().URL != "" {
 		// If the source has an image, use that as the avatar.
-		@avatar.Build(
-			avatar.WithClasses("w-12", "rounded"),
-		) {
-			@image.Build(
-				c.GetImage().URL,
-			)
-		}
+		<div class="avatar">
+			<div class="mask mask-squircle w-12">
+				@image.Build(
+					c.GetImage().URL,
+				)
+			</div>
+		</div>
 	} else {
 		// Otherwise, take the first letter of the title and create a placeholder avatar.
-		@avatar.Build(
-			avatar.WithClasses("w-12", "rounded", "bg-secondary/30"),
-			avatar.AsPlaceholder(),
-		) {
-			<span class="text-sm">{ c.GetTitle()[0:1] }</span>
-		}
+		<div class="avatar avatar-placeholder">
+			<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
+				<span class="text-3xl">{ c.GetTitle()[0:1] }</span>
+			</div>
+		</div>
 	}
 }
 

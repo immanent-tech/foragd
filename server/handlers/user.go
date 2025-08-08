@@ -8,11 +8,9 @@ import (
 	"fmt"
 	"net/http"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
@@ -198,7 +196,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		}
 		// Update the favorite button.
 		var template templ.Component
-		currentURL, found := htmx.GetCurrentURL(req)
+		// currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
 			RenderResponse(RespBackendError(nil)).ServeHTTP(res, req)
 			return
@@ -209,8 +207,8 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			return
 		}
 		switch {
-		case strings.HasSuffix(currentURL, "/user/settings"):
-			template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
+		// case strings.HasSuffix(currentURL, "/user/settings"):
+		// 	template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
 		default:
 			template = partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite()
 		}
@@ -248,7 +246,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 		}
 		// Update the favorite button.
 		var template templ.Component
-		currentURL, found := htmx.GetCurrentURL(req)
+		// currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
 			RenderResponse(RespBackendError(nil)).ServeHTTP(res, req)
 			return
@@ -259,8 +257,8 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			return
 		}
 		switch {
-		case strings.HasSuffix(currentURL, "/user/settings"):
-			template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
+		// case strings.HasSuffix(currentURL, "/user/settings"):
+		// 	template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
 		default:
 			template = partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite()
 		}

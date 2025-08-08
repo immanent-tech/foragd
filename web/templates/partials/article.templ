@@ -31,11 +31,11 @@ func NewArticleContent(article *models.Article) *Article {
 // Card renders an article as a card, for displaying in a list.
 templ (c *Article) Card() {
 	if c.GetImage().URL == "" {
-		<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-gray-200 bg-base-200 row-span-1">
+		<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-neutral bg-base-200 row-span-1">
 			@c.cardWithoutImage()
 		</li>
 	} else {
-		<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-gray-200 bg-base-200 md:row-span-2 md:col-span-2">
+		<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-neutral bg-base-200 md:row-span-2 md:col-span-2">
 			@c.cardWithImage()
 		</li>
 	}
@@ -50,11 +50,11 @@ templ (a *Article) cardWithImage() {
 					image.WithLazyLoading(),
 					image.WithExtraClasses("aspect-video w-full rounded-2xl bg-gray-100 object-cover sm:aspect-2/1 lg:aspect-3/2"),
 				)
-				<div class="absolute inset-0 rounded-2xl inset-ring inset-ring-gray-900/10"></div>
+				<div class="absolute inset-0 rounded-2xl inset-ring inset-ring-neutral"></div>
 			</div>
 			<div class="flex max-w-xl grow flex-col justify-between">
 				<div class="group relative grow">
-					<h3 class="mt-3 text-lg/6 font-semibold text-gray-900 group-hover:text-gray-600">
+					<h3 class="mt-3 text-lg/6 font-semibold group-hover:text-accent">
 						{ a.GetTitle() }
 					</h3>
 				</div>
@@ -73,7 +73,7 @@ templ (a *Article) cardWithoutImage() {
 	<article id={ a.GetID() } class="flex max-w-xl flex-col items-start justify-between p-4">
 		@a.viewLink() {
 			<div class="group relative grow">
-				<h3 class="mt-3 text-lg/6 font-semibold text-gray-900 group-hover:text-gray-600">
+				<h3 class="mt-3 text-lg/6 font-semibold group-hover:text-accent">
 					{ a.GetTitle() }
 				</h3>
 			</div>
@@ -90,9 +90,9 @@ templ (a *Article) cardWithoutImage() {
 // Content shows the full article content.
 templ (a *Article) Content() {
 	<div class="grid grid-cols-1 justify-items-center">
-		<div class="max-w-prose rounded-xl border border-gray-200 bg-base-200 p-4 mt-8">
+		<div class="max-w-prose rounded-xl border border-neutral bg-base-200 p-4 mt-8">
 			<article class="prose dark:prose-invert prose-img:rounded-xl prose-figure:rounded-xl">
-				<a href={ a.GetLink() } class="link link-hover">
+				<a href={ a.GetLink() } class="link link-hover group-hover:text-accent">
 					<h2>
 						{ a.GetTitle() }
 					</h2>
@@ -141,10 +141,10 @@ templ (a *Article) Content() {
 // articleInfo renders additional information about the article, ideal to put under the title.
 templ (a *Article) articleInfo() {
 	<div class="flex flex-none text-xs gap-x-4 items-center">
-		<div class="text-gray-500">
+		<div class="text-secondary">
 			@ShowTimestamp(a.GetUpdatedDate())
 		</div>
-		<p class="italic text-gray-900">
+		<p class="italic text-secondary">
 			{ strings.Join(a.GetAuthors(),",") }
 		</p>
 	</div>
@@ -154,12 +154,12 @@ templ (a *Article) articleInfo() {
 templ (a *Article) articleActions() {
 	// Actions menu.
 	<el-dropdown class="relative ml-auto">
-		<button class="relative block text-gray-400 hover:text-gray-500">
+		<button class="relative block text-neutral hover:text-accent">
 			// <span class="absolute -inset-2.5"></span>
 			<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
 			@HeroIconContextMenu("size-5")
 		</button>
-		<el-menu anchor="bottom end" popover class="w-52 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-gray-900/5 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+		<el-menu anchor="bottom end" popover class="w-52 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-neutral transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 			// View action.
 			@link.Build(
 				link.WithAttributes(templ.Attributes{"href": a.GetLink()}),

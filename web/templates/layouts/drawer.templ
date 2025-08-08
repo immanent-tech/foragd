@@ -14,7 +14,7 @@ import (
 templ Drawer() {
 	<el-dialog>
 		<dialog id="sidebar" class="backdrop:bg-transparent lg:hidden">
-			<el-dialog-backdrop class="fixed inset-0 bg-gray-900/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"></el-dialog-backdrop>
+			<el-dialog-backdrop class="fixed inset-0 bg-base-100/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"></el-dialog-backdrop>
 			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
 				<el-dialog-panel class="group/dialog-panel relative mr-16 flex w-full max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full">
 					<div class="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out group-data-closed/dialog-panel:opacity-0">
@@ -39,20 +39,18 @@ templ Drawer() {
 		</div>
 	</div>
 	<div class="lg:pl-72">
-		<div class="sticky top-0 z-40 lg:mx-auto lg:max-w-7xl lg:px-8">
-			<div class="flex h-16 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-0 lg:shadow-none">
+		<div class="sticky top-0 z-40 lg:mx-auto lg:w-full">
+			<div class="flex h-16 items-center gap-x-4 border-b border-neutral bg-base-200 px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-0 lg:shadow-none">
 				<button type="button" command="show-modal" commandfor="sidebar" class="-m-2.5 p-2.5 text-gray-700 lg:hidden">
 					<span class="sr-only">Open sidebar</span>
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
-						<path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round" stroke-linejoin="round"></path>
-					</svg>
+					@partials.HeroIconMenu("size-6")
 				</button>
 				<!-- Separator -->
-				<div aria-hidden="true" class="h-6 w-px bg-gray-200 lg:hidden"></div>
-				<div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
+				<div aria-hidden="true" class="h-6 w-px bg-neutral lg:hidden"></div>
+				<div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 lg:mx-4">
 					<form action="#" method="GET" class="grid flex-1 grid-cols-1">
-						<input type="search" name="search" placeholder="Search" aria-label="Search" class="col-start-1 row-start-1 block size-full bg-white pl-8 text-base text-gray-900 outline-hidden placeholder:text-gray-400 sm:text-sm/6"/>
-						@partials.HeroIconSearch("size-5", "pointer-events-none col-start-1 row-start-1 self-center text-gray-400")
+						<input type="search" name="search" placeholder="Search" aria-label="Search" class="col-start-1 row-start-1 block size-full bg-base-200 pl-8 text-base outline-hidden placeholder:text-neutral sm:text-sm/6"/>
+						@partials.HeroIconSearch("size-5 pointer-events-none col-start-1 row-start-1 self-center text-neutral")
 					</form>
 					<div class="flex items-center gap-x-4 lg:gap-x-6">
 						<button type="button" class="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500">
@@ -62,7 +60,7 @@ templ Drawer() {
 							</svg>
 						</button>
 						<!-- Separator -->
-						<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-gray-200"></div>
+						<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-neutral"></div>
 						<!-- Profile dropdown -->
 						<el-dropdown class="relative">
 							<button class="relative flex items-center">
@@ -70,23 +68,23 @@ templ Drawer() {
 								<span class="sr-only">Open user menu</span>
 								<img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" class="size-8 rounded-full bg-gray-50"/>
 								<span class="hidden lg:flex lg:items-center">
-									<span aria-hidden="true" class="ml-4 text-sm/6 font-semibold text-gray-900">Tom Cook</span>
+									<span aria-hidden="true" class="ml-4 text-sm/6 font-semibold">Tom Cook</span>
 									<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="ml-2 size-5 text-gray-400">
 										<path d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
 									</svg>
 								</span>
 							</button>
-							<el-menu anchor="bottom end" popover class="w-32 origin-top-right rounded-md bg-white py-2 shadow-lg ring-1 ring-gray-900/5 transition transition-discrete [--anchor-gap:--spacing(2.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+							<el-menu anchor="bottom end" popover class="w-32 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-neutral transition transition-discrete [--anchor-gap:--spacing(2.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 								@partials.NewAction("/user/settings", partials.DisplayActionAsLink,
 									partials.ActionTarget(partials.ContentID.Target()),
 									partials.ActionPushURL(),
 									partials.ActionLinkOptions(
-										link.WithClasses("block px-3 py-1 text-sm/6 text-gray-900 focus:bg-gray-50 focus:outline-hidden"),
+										link.WithClasses("block px-3 py-1 text-sm/6  focus:bg-accent focus:outline-hidden"),
 									),
 								) {
 									Settings
 								}
-								<a href="/logout" class="block px-3 py-1 text-sm/6 text-gray-900 focus:bg-gray-50 focus:outline-hidden">Log out</a>
+								<a href="/logout" class="block px-3 py-1 text-sm/6 focus:bg-accent focus:outline-hidden">Log out</a>
 							</el-menu>
 						</el-dropdown>
 					</div>

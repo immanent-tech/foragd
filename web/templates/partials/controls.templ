@@ -8,10 +8,6 @@ import (
 	"strconv"
 )
 
-const (
-	controlItemTextClasses = "text-sm text-gray-500"
-)
-
 // ListControls represents the controls (filtering/sorting options) for lists of objects.
 type ListControls struct {
 	Path       string
@@ -27,28 +23,23 @@ templ (c ListControls) Template() {
 		// Mobile filter dialog.
 		<el-dialog>
 			<dialog id="mobile-filters" class="overflow-hidden backdrop:bg-transparent sm:hidden">
-				<el-dialog-backdrop class="fixed inset-0 bg-black/25 transition-opacity duration-300 ease-linear data-closed:opacity-0"></el-dialog-backdrop>
+				<el-dialog-backdrop class="fixed inset-0 bg-base-100/20 transition-opacity duration-300 ease-linear data-closed:opacity-0"></el-dialog-backdrop>
 				<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
-					<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-200 pt-4 pb-6 shadow-xl transition duration-300 ease-in-out data-closed:translate-x-full">
+					<el-dialog-panel class="relative ml-auto flex size-full max-w-xs transform flex-col overflow-y-auto bg-base-300 pt-4 pb-6 shadow-xl transition duration-300 ease-in-out data-closed:translate-x-full">
 						<div class="flex items-center justify-between px-4">
-							<h2 class="text-lg font-medium text-gray-900">Filters</h2>
-							<button
-								type="button"
-								command="close"
-								commandfor="mobile-filters"
-								class="relative -mr-2 flex size-10 items-center justify-center rounded-md bg-base-200 p-2 text-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:outline-hidden"
-							>
+							<h2 class="text-lg font-medium">Filters</h2>
+							<button type="button" command="close" commandfor="mobile-filters" class="relative -mr-2 flex size-10 items-center justify-center rounded-md bg-neutral p-2 text-gray-400 hover:bg-gray-50 focus:ring-2 focus:ring-accent focus:outline-hidden">
 								<span class="absolute -inset-0.5"></span>
 								<span class="sr-only">Close menu</span>
-								@HeroIconClose("size-6")
+								@HeroIconClose("size-4")
 							</button>
 						</div>
-						// Mobile Filters.
+						<!-- Filters -->
 						@c.controlForm("mt-4") {
-							<div class="border-t border-gray-200 px-4 py-6">
+							<div class="border-t border-neutral px-4 py-6">
 								<h3 class="-mx-2 -my-3 flow-root">
-									<button type="button" command="--toggle" commandfor="filter-section-category" class="flex w-full items-center justify-between bg-base-200 px-2 py-3 text-sm text-gray-400">
-										<span class="font-medium text-gray-900">Category</span>
+									<button type="button" command="--toggle" commandfor="filter-section-category" class="flex w-full items-center justify-between px-2 py-3 text-sm">
+										<span class="font-medium">Category</span>
 										<span class="ml-6 flex items-center">
 											@HeroIconChevronDown("size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180")
 										</span>
@@ -62,7 +53,7 @@ templ (c ListControls) Template() {
 											@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, c.Filters.GetCategories())
 										}
 										<a
-											class={ controlItemTextClasses }
+											class="text-xs capitalize"
 											hx-get={ c.Path }
 											hx-push-url="true"
 											hx-target={ ContentID.Target() }
@@ -73,10 +64,10 @@ templ (c ListControls) Template() {
 								</el-disclosure>
 							</div>
 							// Mobile View Filters.
-							<div class="border-t border-gray-200 px-4 py-6">
+							<div class="border-t border-neutral px-4 py-6">
 								<h3 class="-mx-2 -my-3 flow-root">
-									<button type="button" command="--toggle" commandfor="filter-section-view" class="flex w-full items-center justify-between bg-base-200 px-2 py-3 text-sm text-gray-400">
-										<span class="font-medium text-gray-900">View</span>
+									<button type="button" command="--toggle" commandfor="filter-section-view" class="flex w-full items-center justify-between px-2 py-3 text-sm">
+										<span class="font-medium">View</span>
 										<span class="ml-6 flex items-center">
 											@HeroIconChevronDown("size-5 transform not-in-aria-expanded:rotate-0 in-aria-expanded:-rotate-180")
 										</span>
@@ -101,11 +92,11 @@ templ (c ListControls) Template() {
 				<div class="flex items-center justify-between">
 					// Sort Options.
 					<el-dropdown class="relative inline-block text-left">
-						<button class="group inline-flex justify-center text-sm font-medium text-gray-700 hover:text-gray-900">
+						<button class="group inline-flex justify-center text-sm font-medium hover:text-accent">
 							Sort
-							@HeroIconChevronDown("-mr-1 ml-1 size-5 shrink-0 text-gray-400 group-hover:text-gray-500")
+							@HeroIconChevronDown("-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent")
 						</button>
-						<el-menu anchor="bottom start" popover class="w-52 origin-top-left rounded-md bg-base-200 shadow-2xl ring-1 ring-black/5 transition transition-discrete [--anchor-gap:--spacing(2)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+						<el-menu anchor="bottom start" popover class="w-52 origin-top-left rounded-md bg-base-300 shadow-2xl ring-1 ring-neutral transition transition-discrete [--anchor-gap:--spacing(2)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 							<div class="space-y-4 p-2">
 								@sortOption(c.Path, models.SortLastUpdatedDesc, c.Filters.GetSort())
 								@sortOption(c.Path, models.SortLastUpdatedAsc, c.Filters.GetSort())
@@ -117,17 +108,17 @@ templ (c ListControls) Template() {
 						</el-menu>
 					</el-dropdown>
 					// Desktop Filters.
-					<button type="button" command="show-modal" commandfor="mobile-filters" class="inline-block text-sm font-medium text-gray-700 hover:text-gray-900 sm:hidden">Filters</button>
+					<button type="button" command="show-modal" commandfor="mobile-filters" class="inline-block text-sm font-medium hover:text-accent sm:hidden">Filters</button>
 					<el-popover-group class="hidden sm:flex sm:items-baseline sm:space-x-8">
 						<div class="relative inline-block text-left">
 							<div>
-								<button popovertarget="desktop-menu-category" class="group inline-flex items-center justify-center text-sm font-medium text-gray-700 hover:text-gray-900">
+								<button popovertarget="desktop-menu-category" class="group inline-flex items-center justify-center text-sm font-medium hover:text-accent">
 									<span>Category</span>
-									<span class="ml-1.5 rounded-sm bg-gray-200 px-1.5 py-0.5 text-xs font-semibold text-gray-700 tabular-nums">{ len(c.Filters.GetCategories()) }</span>
-									@HeroIconChevronDown("-mr-1 ml-1 size-5 shrink-0 text-gray-400 group-hover:text-gray-500")
+									// <span class="ml-1.5 rounded-sm bg-gray-200 px-1.5 py-0.5 text-xs font-semibold text-neutral tabular-nums">{ len(c.Filters.GetCategories()) }</span>
+									@HeroIconChevronDown("-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent")
 								</button>
 							</div>
-							<el-popover id="desktop-menu-category" anchor="bottom end" popover class="origin-top-right overflow-visible rounded-md bg-base-200 p-4 shadow-2xl ring-1 ring-black/5 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+							<el-popover id="desktop-menu-category" anchor="bottom end" popover class="origin-top-right overflow-visible rounded-md bg-base-300 p-4 shadow-2xl ring-1 ring-neutral transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 								@c.controlForm("space-y-4") {
 									<input type="hidden" name={ models.ParamView } value={ string(c.Filters.GetView()) }/>
 									// Top 10 categories only.
@@ -136,7 +127,7 @@ templ (c ListControls) Template() {
 									}
 								}
 								<a
-									class={ controlItemTextClasses, "flex", "gap-3", "mt-4", "self-center" }
+									class="text-xs capitalize flex gap-3 mt-4 self-center"
 									hx-get={ c.Path }
 									hx-push-url="true"
 									hx-target={ ContentID.Target() }
@@ -148,12 +139,12 @@ templ (c ListControls) Template() {
 						// Desktop View Filters.
 						<div class="relative inline-block text-left">
 							<div>
-								<button popovertarget="desktop-menu-view" class="group inline-flex items-center justify-center text-sm font-medium text-gray-700 hover:text-gray-900">
+								<button popovertarget="desktop-menu-view" class="group inline-flex items-center justify-center text-sm font-medium hover:text-accent">
 									<span>View</span>
-									@HeroIconChevronDown("-mr-1 ml-1 size-5 shrink-0 text-gray-400 group-hover:text-gray-500")
+									@HeroIconChevronDown("-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent")
 								</button>
 							</div>
-							<el-popover id="desktop-menu-view" anchor="bottom end" popover class="origin-top-right overflow-visible rounded-md bg-base-200 p-4 shadow-2xl ring-1 ring-black/5 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+							<el-popover id="desktop-menu-view" anchor="bottom end" popover class="origin-top-right overflow-visible rounded-md bg-base-200 p-4 shadow-2xl ring-1 ring-neutral transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 								@c.controlForm("space-y-4") {
 									@viewFilter("filter-view-unread", models.ViewUnread, c.Filters.GetView())
 									@viewFilter("filter-view-read", models.ViewRead, c.Filters.GetView())
@@ -187,29 +178,29 @@ templ (c *ListControls) controlForm(classes ...string) {
 
 // viewFilter renders a checkbox for a view filter.
 templ viewFilter(id string, view models.View, current models.View) {
-	<div class="flex gap-3">
-		<div class="flex h-5 shrink-0 items-center">
+	<div class="flex">
+		<div class="flex h-5 shrink-0 items-center gap-3">
 			<div class="group grid size-4 grid-cols-1">
 				<input
 					id={ id }
 					type="radio"
 					name={ models.ParamView }
 					value={ string(view) }
-					class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white not-checked:before:hidden checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden"
+					class="custom-checkbox"
 					if current == view {
 						checked
 					}
 					hx-vals={ GenerateHXVals(map[string]string{models.ParamView: string(view)}) }
 				/>
 			</div>
+			<label for={ id } class="text-xs capitalize">{ string(view) }</label>
 		</div>
-		<label for={ id } class={ controlItemTextClasses, "capitalize" }>{ string(view) }</label>
 	</div>
 }
 
 templ categoryFilter(id string, category models.CategoryCount, current models.Categories) {
-	<div class="flex gap-3">
-		<div class="flex h-5 shrink-0 items-center">
+	<div class="flex items-center">
+		<div class="flex h-5 shrink-0 items-center gap-3">
 			<div class="group grid size-4 grid-cols-1">
 				<input
 					id={ id }
@@ -222,24 +213,24 @@ templ categoryFilter(id string, category models.CategoryCount, current models.Ca
 					} else {
 						hx-vals={ GenerateHXVals(map[string]string{models.ParamCategories: category.Category}) }
 					}
-					class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white not-checked:before:hidden checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden"
+					class="custom-checkbox"
 				/>
 			</div>
+			<label for={ id } class="text-xs capitalize">{ category.Category }</label>
 		</div>
-		<label for={ id } class={ controlItemTextClasses }>{ category.Category }</label>
 	</div>
 }
 
 // sortOption renders a checkbox for a sort option.
 templ sortOption(path string, sort models.Sort, current models.Sort) {
 	// Set this sort as active if indicated in the current view filters.
-	<div class="flex gap-3">
-		<div class="flex h-5 shrink-0 items-center">
+	<div class="flex">
+		<div class="flex h-5 shrink-0 items-center gap-3">
 			<div class="group grid size-4 grid-cols-1">
 				<input
 					id={ sort.ID() }
 					type="radio"
-					class="relative size-4 appearance-none rounded-full border border-gray-300 bg-white before:absolute before:inset-1 before:rounded-full before:bg-white not-checked:before:hidden checked:border-indigo-600 checked:bg-indigo-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden"
+					class="custom-checkbox"
 					if current.IsEqual(sort) {
 						checked
 					}
@@ -250,7 +241,7 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 					hx-vals={ GenerateHXVals(map[string]string{models.ParamSortBy: string(sort.SortBy), models.ParamSortOrder: string(sort.SortOrder)}) }
 				/>
 			</div>
+			<label for={ sort.ID() } class="text-xs capitalize">{ sort.String() }</label>
 		</div>
-		<label for={ sort.ID() } class={ controlItemTextClasses, "capitalize" }>{ sort.String() }</label>
 	</div>
 }

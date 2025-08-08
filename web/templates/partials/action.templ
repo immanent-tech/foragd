@@ -12,9 +12,12 @@ import (
 
 templ (a *Action) link() {
 	{{ a.linkOptions = append(a.linkOptions, link.WithAttributes(a.Attributes())) }}
-	@link.Build(a.linkOptions...) {
+	<a class="link link-hover flex gap-x-2 items-center px-3 py-1 text-xs focus:link-accent focus:outline-hidden" { a.Attributes()... }>
 		{ children... }
-	}
+	</a>
+	// @link.Build(a.linkOptions...) {
+	// 	{ children... }
+	// }
 }
 
 templ (a *Action) button() {
