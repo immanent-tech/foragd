@@ -11,7 +11,7 @@ import (
 // AddCategoryForm renders a form that can be used to add categories to a subscription.
 templ AddCategoryForm(categories []models.Category, attributes templ.Attributes) {
 	<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-		<label for="category" class="custom-textinputlabel">Add category</label>
+		<label for="category" class="app-textinput-label">Add category</label>
 		<div class="mt-2 sm:col-span-2 sm:mt-0">
 			<form
 				{ attributes... }
@@ -26,7 +26,7 @@ templ AddCategoryForm(categories []models.Category, attributes templ.Attributes)
 							placeholder="Cool Stuff"
 							class="custom-textinput"
 						/>
-						<button type="submit" class="custom-button">
+						<button type="submit" class="app-button">
 							@HeroIconAdd("size-6")
 						</button>
 					</div>
@@ -39,7 +39,7 @@ templ AddCategoryForm(categories []models.Category, attributes templ.Attributes)
 					</el-options>
 				</el-autocomplete>
 			</form>
-			<span id="category-hint" class="custom-textinputhint">Optional. Add a category to the subscription.</span>
+			<span id="category-hint" class="app-textinput-hint">Optional. Add a category to the subscription.</span>
 		</div>
 	</div>
 }

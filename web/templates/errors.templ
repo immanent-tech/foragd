@@ -3,11 +3,6 @@
 
 package templates
 
-import (
-	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-)
-
 templ NotFound() {
 	@NewPage("Go Feed Me - Not Found") {
 		<div class="hero bg-base-200 min-h-screen">
@@ -17,13 +12,13 @@ templ NotFound() {
 					<p class="py-6">
 						There does not seem to be anything to show you.
 					</p>
-					@partials.NewAction("/home", partials.DisplayActionAsButton,
-						partials.ActionButtonOptions(
-							button.WithClasses(button.Primary),
-						),
-					) {
-						Take me home
-					}
+					// @partials.NewAction("/home", partials.DisplayActionAsButton,
+					// 	partials.ActionButtonOptions(
+					// 		button.WithClasses(button.Primary),
+					// 	),
+					// ) {
+					// 	Take me home
+					// }
 				</div>
 			</div>
 		</div>

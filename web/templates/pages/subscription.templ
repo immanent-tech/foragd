@@ -57,7 +57,7 @@ templ (page *EditSubscriptionPage) content() {
 				<div class="mt-10 space-y-8 border-b border-neutral pb-12 sm:space-y-0 sm:divide-y sm:divide-neutral sm:border-t sm:pb-0">
 					<form id="edit-subscription">
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-							<label for="nickname" class="custom-textinputlabel">Nickname</label>
+							<label for="nickname" class="app-textinput-label">Nickname</label>
 							<input type="hidden" id="subscription-id" name="subscription_id" value={ page.request.SubscriptionID }/>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
 								<input
@@ -67,10 +67,10 @@ templ (page *EditSubscriptionPage) content() {
 									name="user_nickname"
 									value={ page.subscription.GetTitle() }
 									placeholder="My favorite feed"
-									class="custom-textinput validator"
+									class="app-textinputvalidator"
 								/>
 								<span class="validator-hint hidden">Nickname is required</span>
-								<span id="url-hint" class="custom-textinputhint">Required. A friendly name for the subscription.</span>
+								<span id="url-hint" class="app-textinput-hint">Required. A friendly name for the subscription.</span>
 							</div>
 						</div>
 					</form>
@@ -84,7 +84,7 @@ templ (page *EditSubscriptionPage) content() {
 					})
 					// Show current categories.
 					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-						<label class="custom-textinputlabel">Current Categories</label>
+						<label class="app-textinput-label">Current Categories</label>
 						<div class="col-span-full">
 							@partials.ManageCategories(page.subscription.GetCategories())
 						</div>
@@ -100,7 +100,7 @@ templ (page *EditSubscriptionPage) content() {
 				hx-put={ "/user/subscription/edit/" + page.request.SubscriptionID }
 				hx-include="[name='user_categories']"
 				hx-target="#notifications"
-				class="custom-button"
+				class="app-button"
 			>Save</button>
 		</div>
 	</div>
@@ -143,18 +143,18 @@ templ (page *AddSubscriptionPage) content() {
 				<div class="mt-10 space-y-8 border-b border-gray-900/10 pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
 					<form id="add-subscription">
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-							<label for="url" class="custom-textinputlabel">Feed URL</label>
+							<label for="url" class="app-textinput-label">Feed URL</label>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input id="url" type="url" required name="url" placeholder="https://feed.lol/rss" class="custom-textinput validator"/>
+								<input id="url" type="url" required name="url" placeholder="https://feed.lol/rss" class="app-textinputvalidator"/>
 								<span class="validator-hint hidden">Enter a valid URL</span>
-								<span id="url-hint" class="custom-textinputhint">Required. The feed's URL or website.</span>
+								<span id="url-hint" class="app-textinput-hint">Required. The feed's URL or website.</span>
 							</div>
 						</div>
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-							<label for="nickname" class="custom-textinputlabel">Nickname</label>
+							<label for="nickname" class="app-textinput-label">Nickname</label>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
 								<input id="nickname" type="text" name="user_nickname" placeholder="My cool subscription" class="custom-textinput"/>
-								<span id="nickname-hint" class="custom-textinputhint">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</span>
+								<span id="nickname-hint" class="app-textinput-hint">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</span>
 							</div>
 						</div>
 					</form>
@@ -168,7 +168,7 @@ templ (page *AddSubscriptionPage) content() {
 					})
 					// Show current categories.
 					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-						<label class="custom-textinputlabel">Current Categories</label>
+						<label class="app-textinput-label">Current Categories</label>
 						<div class="col-span-full">
 							@partials.ManageCategories(page.request.Categories)
 						</div>
@@ -184,7 +184,7 @@ templ (page *AddSubscriptionPage) content() {
 				hx-post="/user/subscription/add"
 				hx-target="#notifications"
 				hx-on::after-request="if(event.detail.successful) this.reset()"
-				class="custom-button"
+				class="app-button"
 			>Add</button>
 		</div>
 	</div>
@@ -229,18 +229,18 @@ templ (page *ImportPage) content() {
 						hx-indicator="#import-processing"
 					>
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-							<label for="source" class="custom-textinputlabel">OPML file</label>
+							<label for="source" class="app-textinput-label">OPML file</label>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input id="source" type="file" required name="source" class="custom-textinput validator"/>
+								<input id="source" type="file" required name="source" class="app-textinputvalidator"/>
 								<span class="validator-hint hidden">Make sure the file is a valid OPML file.</span>
-								<span id="source-hint" class="custom-textinputhint">Required.</span>
+								<span id="source-hint" class="app-textinput-hint">Required.</span>
 							</div>
 						</div>
 						<div class="mt-6 flex items-center justify-end gap-x-6">
 							<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
 							<button
 								type="submit"
-								class="custom-button"
+								class="app-button"
 							>Import</button>
 						</div>
 					</form>
@@ -276,7 +276,7 @@ templ ImportResults(results AddSubscriptionResults) {
 	<h2 class="text-base/7 font-semibold">Import Results</h2>
 	<p class="text-sm italic">Imported: { strconv.Itoa(len(successfulResults)) } Failed: { strconv.Itoa(len(failedResults)) }</p>
 	<button
-		class="custom-button"
+		class="app-button"
 		hx-get="/subscriptions"
 		hx-target={ partials.ContentID.Target() }
 		hx-vals={ partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
@@ -318,7 +318,7 @@ templ ImportResults(results AddSubscriptionResults) {
 			}
 		</ul>
 	</div>
-	<button class="custom-button fixed right-0 bottom-0 m-4" href="#">Back to top</button>
+	<button class="app-button fixed right-0 bottom-0 m-4" href="#">Back to top</button>
 }
 
 // ExportPage is a page for exporting subscriptions via an OPML file.
@@ -357,7 +357,7 @@ templ (page *ExportPage) content() {
 						<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
 						<a
 							role="button"
-							class="custom-button"
+							class="app-button"
 							href="/user/export/opml"
 							download
 						>

@@ -7,7 +7,6 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"slices"
 )
 
@@ -74,16 +73,13 @@ templ Drawer() {
 									</svg>
 								</span>
 							</button>
-							<el-menu anchor="bottom end" popover class="w-32 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-neutral transition transition-discrete [--anchor-gap:--spacing(2.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
-								@partials.NewAction("/user/settings", partials.DisplayActionAsLink,
-									partials.ActionTarget(partials.ContentID.Target()),
-									partials.ActionPushURL(),
-									partials.ActionLinkOptions(
-										link.WithClasses("block px-3 py-1 text-sm/6  focus:bg-accent focus:outline-hidden"),
-									),
-								) {
-									Settings
-								}
+							<el-menu anchor="bottom end" popover class="w-32 app-context-menu">
+								<a
+									class="block px-3 py-1 text-sm/6 focus:bg-accent focus:outline-hidden"
+									hx-get="/user/settings"
+									hx-target={ partials.ContentID.Target() }
+									hx-push-url="true"
+								>Settings</a>
 								<a href="/logout" class="block px-3 py-1 text-sm/6 focus:bg-accent focus:outline-hidden">Log out</a>
 							</el-menu>
 						</el-dropdown>
@@ -116,9 +112,7 @@ templ DrawerSidebar() {
 						@partials.NewAction("/subscriptions", partials.DisplayActionAsLink,
 							partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
 							partials.ActionPushURL(),
-							partials.ActionLinkOptions(
-								link.WithClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
-							),
+							partials.ActionClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
 						) {
 							@partials.HeroIconSubscription("")
 							Subscriptions
@@ -128,9 +122,7 @@ templ DrawerSidebar() {
 						@partials.NewAction("/articles", partials.DisplayActionAsLink,
 							partials.ActionValues(session.ArticleFiltersFromSession(ctx).Parameters()),
 							partials.ActionPushURL(),
-							partials.ActionLinkOptions(
-								link.WithClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
-							),
+							partials.ActionClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
 						) {
 							@partials.HeroIconArticle("")
 							Articles
@@ -153,9 +145,7 @@ templ DrawerSidebar() {
 				@partials.NewAction("/user/settings", partials.DisplayActionAsLink,
 					partials.ActionTarget(partials.ContentID.Target()),
 					partials.ActionPushURL(),
-					partials.ActionLinkOptions(
-						link.WithClasses("group -mx-2 flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
-					),
+					partials.ActionClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold text-gray-700 hover:bg-gray-50 hover:text-accent"),
 				) {
 					@partials.HeroIconSettings("")
 					Settings

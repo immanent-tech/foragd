@@ -30,26 +30,27 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 
 // Card renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
 templ (c *Subscription) Card() {
-	<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-neutral bg-base-200">
+	<li id={ c.GetID() } class="app-card-base">
+		// Title (includes image/placeholder).
 		<div class="flex items-center gap-x-4 p-6">
 			@c.Title()
 		</div>
 		// Description (if available).
 		if c.GetDescription() != "" {
-			<div class="text-xs italic p-4">
+			<div class="app-card-description px-6">
 				{ c.GetDescription() }
 			</div>
 		}
 		// Stats. Last updated timestamp and unread count (if appropriate).
-		<dl class="-my-3 divide-y divide-neutral px-6 py-4 text-sm/6">
+		<dl class="-my-3 divide-y divide-neutral px-6 py-4 text-xs/4">
 			<div class="flex justify-between gap-x-4 py-3">
-				<dt class="text-primary text-xs">Updated</dt>
-				<dd class="text-secondary text-xs">
+				<dt class="text-neutral-content/60">Updated</dt>
+				<dd class="text-neutral-content">
 					@ShowTimestamp(c.GetUpdatedDate())
 				</dd>
 				if c.IsUnread() {
-					<dt class="text-primary text-xs">Unread</dt>
-					<dd class="text-secondary text-xs">{ c.GetUnreadCount() }</dd>
+					<dt class="text-neutral-content/60">Unread</dt>
+					<dd class="text-neutral-content">{ c.GetUnreadCount() }</dd>
 				}
 			</div>
 		</dl>
@@ -57,30 +58,27 @@ templ (c *Subscription) Card() {
 }
 
 templ (s *Subscription) Title() {
-	@s.viewLink("flex", "items-center", "gap-x-4") {
+	@s.viewLink("flex", "items-center", "gap-x-4", "hover:text-accent") {
 		<div class="size-12 flex-none">
 			@s.image()
 		</div>
-		<div class="text-sm/6 font-medium">{ s.GetTitle() }</div>
+		<div class="app-card-title">{ s.GetTitle() }</div>
 	}
 	// Actions menu.
 	<el-dropdown class="relative ml-auto">
 		<button class="relative block text-neutral hover:text-accent">
 			<span class="absolute -inset-2.5"></span>
-			<span class="sr-only">Open options</span>
+			<span class="sr-only">Open actions</span>
 			@HeroIconContextMenu("size-5")
 		</button>
-		<el-menu anchor="bottom end" popover class="w-52 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-neutral transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+		<el-menu anchor="bottom end" popover class="w-52 app-context-menu">
 			// View action.
-			@link.Build(
-				link.WithAttributes(templ.Attributes{"href": s.GetLink()}),
-				link.WithClasses(components.Class(CardActionClasses)),
-			) {
+			<a href={ s.GetLink() } class="link link-hover app-context-menu-action">
 				@HeroIconExternalLink("size-4")
 				Feed Website
-			}
+			</a>
 			// Mark action.
-			@s.markLink(components.Class(CardActionClasses)) {
+			@s.markLink(components.Class("app-context-menu-action")) {
 				switch s.IsUnread() {
 					case true:
 						@HeroIconMarkRead("size-4")
@@ -91,13 +89,13 @@ templ (s *Subscription) Title() {
 				}
 			}
 			// Edit action.
-			@s.editLink(components.Class(CardActionClasses)) {
+			@s.editLink(components.Class("app-context-menu-action")) {
 				@HeroIconEdit("size-4")
 				Edit Subscription
 			}
 			// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 			<div id={ "favorite_" + s.GetID() }>
-				@s.favoriteLink(components.Class(CardActionClasses)) {
+				@s.favoriteLink(components.Class("app-context-menu-action")) {
 					switch s.Favorite {
 						case true:
 							@HeroIconHeartFilled("size-4")
@@ -109,7 +107,7 @@ templ (s *Subscription) Title() {
 				}
 			</div>
 			// Unsubscribe action.
-			@s.unsubscribeLink(components.Class(CardActionClasses)) {
+			@s.unsubscribeLink(components.Class("app-context-menu-action")) {
 				@HeroIconTrash("size-4")
 				Remove Subscription
 			}
@@ -158,7 +156,7 @@ templ (c *Subscription) image() {
 	if c.GetImage().URL != "" {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar">
-			<div class="rounded-box bg-neutral/30 size-12 p-1">
+			<div class="rounded-box bg-base-content/10 size-12 p-1">
 				<img
 					src={ c.GetImage().URL }
 					if c.GetImage().Title != "" {
@@ -189,7 +187,7 @@ templ (c *Subscription) unreadBadge() {
 
 // ToggleFavorite renders an updated favorite link based on the subscriptions favorite status.
 templ (s *Subscription) ToggleFavorite() {
-	@s.favoriteLink(CardActionClasses) {
+	@s.favoriteLink("app-context-menu-action") {
 		switch s.Favorite {
 			case true:
 				@HeroIconHeartFilled("size-4")
@@ -214,9 +212,7 @@ templ (c *Subscription) markLink(classes ...components.Class) {
 		ActionTarget("#"+c.GetID()),
 		ActionSwap("outerHTML"),
 		ActionInclude("[name='view']"),
-		ActionLinkOptions(
-			link.WithClasses(classes...),
-		),
+		ActionClasses(classes...),
 	) {
 		{ children... }
 	}
@@ -229,9 +225,7 @@ templ (c *Subscription) editLink(classes ...components.Class) {
 		// ActionTarget(ModalContainerID.Target()),
 		ActionSwap("innerHTML show:top"),
 		ActionPushURL(),
-		ActionLinkOptions(
-			link.WithClasses(classes...),
-		),
+		ActionClasses(classes...),
 	) {
 		{ children... }
 	}
@@ -249,9 +243,7 @@ templ (c *Subscription) favoriteLink(classes ...components.Class) {
 	@NewAction("/user/favorite/subscription/"+c.GetID(), DisplayActionAsLink,
 		ActionMethod(method),
 		ActionTarget("#favorite_"+c.GetID()),
-		ActionLinkOptions(
-			link.WithClasses(classes...),
-		),
+		ActionClasses(classes...),
 	) {
 		{ children... }
 	}
@@ -264,9 +256,7 @@ templ (c *Subscription) unsubscribeLink(classes ...components.Class) {
 		// ActionAttribute("command", "show-modal"),
 		// ActionAttribute("commandfor", "unsubscribe"),
 		ActionTarget(ModalContainerID.Target()),
-		ActionLinkOptions(
-			link.WithClasses(classes...),
-		),
+		ActionClasses(classes...),
 	) {
 		{ children... }
 	}
@@ -362,7 +352,7 @@ templ AddSubscriptionModal() {
 							command="close"
 							commandfor="add-subscription"
 							_="on click remove #add-subscription-modal"
-							class="custom-close-button"
+							class="app-button-close"
 						>
 							<span class="sr-only">Close</span>
 							@HeroIconClose("size-6")

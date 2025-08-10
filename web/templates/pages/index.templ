@@ -7,7 +7,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
 )
 
 type Index struct{}
@@ -108,20 +107,16 @@ templ (page *Index) layout() {
 }
 
 // indexActions displays the links for logging in or signing up.
-templ indexActions(classes components.Class) {
+templ indexActions(classes ...components.Class) {
 	@partials.NewAction("/login", partials.DisplayActionAsLink,
-		partials.ActionLinkOptions(
-			link.WithClasses(classes),
-		),
+		partials.ActionClasses(classes...),
 		partials.ActionPushURL(),
 		partials.ActionTarget(partials.ContentID.Target()),
 	) {
 		Log In  <span aria-hidden="true">&rarr;</span>
 	}
 	@partials.NewAction("/signup", partials.DisplayActionAsLink,
-		partials.ActionLinkOptions(
-			link.WithClasses(classes),
-		),
+		partials.ActionClasses(classes...),
 		partials.ActionPushURL(),
 		partials.ActionTarget(partials.ContentID.Target()),
 	) {

@@ -10,7 +10,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"github.com/joshuar/go-templ-daisyui/display/badge"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"github.com/sebasvil20/templicons/i"
@@ -167,14 +166,14 @@ templ emptyHome() {
 					@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
 						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 						partials.ActionTarget(partials.ModalContainerID.Target()),
-						partials.ActionButtonOptions(button.WithClasses(button.Primary)),
+						// partials.ActionButtonOptions(button.WithClasses(button.Primary)),
 					) {
 						Add Subscription
 					}
 					@partials.NewAction("/user/import", partials.DisplayActionAsButton,
 						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
 						partials.ActionTarget(partials.ModalContainerID.Target()),
-						partials.ActionButtonOptions(button.WithClasses(button.Primary)),
+						// partials.ActionButtonOptions(button.WithClasses(button.Primary)),
 					) {
 						Import Subscriptions
 					}

@@ -43,9 +43,7 @@ templ (page *Login) layout() {
 				<p class="mt-10 text-center text-sm/6">
 					Don't have an account?&Tab;
 					@partials.NewAction("/signup", partials.DisplayActionAsLink,
-						partials.ActionLinkOptions(
-							link.WithClasses("font-semibold hover:text-accent"),
-						),
+						partials.ActionClasses("font-semibold hover:text-accent"),
 						partials.ActionPushURL(),
 						partials.ActionTarget(partials.ContentID.Target()),
 					) {

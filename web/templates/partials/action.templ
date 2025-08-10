@@ -6,13 +6,11 @@ package partials
 import (
 	"context"
 	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"io"
 )
 
 templ (a *Action) link() {
-	{{ a.linkOptions = append(a.linkOptions, link.WithAttributes(a.Attributes())) }}
-	<a class="link link-hover flex gap-x-2 items-center px-3 py-1 text-xs focus:link-accent focus:outline-hidden" { a.Attributes()... }>
+	<a class={ "link", "link-hover", a.classes.Show() } { a.Attributes()... }>
 		{ children... }
 	</a>
 	// @link.Build(a.linkOptions...) {
@@ -21,8 +19,7 @@ templ (a *Action) link() {
 }
 
 templ (a *Action) button() {
-	{{ a.buttonOptions = append(a.buttonOptions, button.WithAttributes(a.Attributes())) }}
-	@button.Build(a.buttonOptions...) {
+	@button.Build() {
 		{ children... }
 	}
 }

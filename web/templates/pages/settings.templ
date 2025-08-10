@@ -61,7 +61,7 @@ templ settingsSelect(current string) {
 				aria-label="Select a settings tab"
 				hx-target={ partials.ContentID.Target() }
 				hx-push-url="true"
-				class="custom-select"
+				class="app-select"
 			>
 				<option
 					hx-get="/user/settings/account"
@@ -96,25 +96,30 @@ templ settingsSelect(current string) {
 			</svg>
 		</div>
 		<div class="hidden sm:block">
-			<nav aria-label="Tabs" class="flex space-x-4" hx-target="#current-settings">
+			<nav aria-label="Tabs" class="flex space-x-4" hx-target="#current-settings" hx-push-url="true">
 				<a
 					hx-get="/user/settings/account"
 					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-primary/50 text-white",current == "account"),
-				templ.KV("text-gray-500 hover:text-gray-700", current != "account") }
+				templ.KV("bg-accent text-white",current == "account"),
+				templ.KV("hover:link-accent", current != "account") }
 				>My Account</a>
-				<a href="#" class="rounded-md px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">Billing</a>
+				<a
+					href="#"
+					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
+				templ.KV("bg-accent text-white",current == "billing"),
+				templ.KV(" hover:link-accent", current != "billing") }
+				>Billing</a>
 				<a
 					hx-get="/user/settings/subscriptions"
 					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-primary/50 text-white",current == "subscriptions"),
-				templ.KV("text-gray-500 hover:text-gray-700", current != "subscriptions") }
+				templ.KV("bg-accent text-white",current == "subscriptions"),
+				templ.KV(" hover:link-accent", current != "subscriptions") }
 				>Subscriptions</a>
 				<a
 					hx-get="/user/settings/app"
 					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-primary/50 text-white",current == "app"),
-				templ.KV("text-gray-500 hover:text-gray-700", current != "app") }
+				templ.KV("bg-accent text-white",current == "app"),
+				templ.KV(" hover:link-accent", current != "app") }
 				>App</a>
 			</nav>
 		</div>
@@ -128,21 +133,21 @@ templ SubscriptionSettings() {
 		<div class="flex flex-row gap-x-4">
 			<button
 				type="button"
-				class="custom-button"
+				class="app-button"
 				hx-get="/user/subscription/add"
 				hx-target={ partials.ContentID.Target() }
 				hx-push-url="true"
 			>Add</button>
 			<button
 				type="button"
-				class="custom-button"
+				class="app-button"
 				hx-get="/user/import"
 				hx-target={ partials.ContentID.Target() }
 				hx-push-url="true"
 			>Import</button>
 			<button
 				type="button"
-				class="custom-button"
+				class="app-button"
 				hx-get="/user/export"
 				hx-target={ partials.ContentID.Target() }
 				hx-push-url="true"
@@ -185,30 +190,30 @@ templ AccountSettings() {
 					<div class="col-span-full flex items-center gap-x-8">
 						<img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" class="size-24 flex-none rounded-lg bg-gray-800 object-cover"/>
 						<div>
-							<label for="avatar" class="custom-textinputlabel">Avatar</label>
-							// <button type="button" class="rounded-md custom-button">Change avatar</button>
+							<label for="avatar" class="app-textinput-label">Avatar</label>
+							// <button type="button" class="rounded-md app-button">Change avatar</button>
 							<p class="mt-2 text-xs/5 text-gray-400">JPG, GIF or PNG. 1MB max.</p>
 						</div>
 					</div>
 					<div class="col-span-full">
-						<input id="avatar" type="file" class="custom-button text-xs"/>
+						<input id="avatar" type="file" class="app-button text-xs"/>
 					</div>
 					<div class="col-span-full">
-						<label for="username" class="custom-textinputlabel">Username</label>
+						<label for="username" class="app-textinput-label">Username</label>
 						<div class="mt-2">
 							<input id="username" type="text" name="username" placeholder="janesmith" class="custom-textinput"/>
 						</div>
 					</div>
 					<div class="col-span-full">
-						<label for="email" class="custom-textinputlabel">Email address</label>
+						<label for="email" class="app-textinput-label">Email address</label>
 						<div class="mt-2">
 							<input id="email" type="email" name="email" autocomplete="email" class="custom-textinput"/>
 						</div>
 					</div>
 					<div class="col-span-full">
-						<label for="timezone" class="custom-textinputlabel">Timezone</label>
+						<label for="timezone" class="app-textinput-label">Timezone</label>
 						<div class="mt-2 grid grid-cols-1">
-							<select id="timezone" name="timezone" class="custom-select">
+							<select id="timezone" name="timezone" class="app-select">
 								<option>Pacific Standard Time</option>
 								<option>Eastern Standard Time</option>
 								<option>Greenwich Mean Time</option>
@@ -222,7 +227,7 @@ templ AccountSettings() {
 				<div class="mt-8 flex">
 					<button
 						type="submit"
-						class="custom-button"
+						class="app-button"
 					>Save</button>
 				</div>
 			</form>

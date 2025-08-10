@@ -10,8 +10,7 @@ import (
 	"sync"
 
 	"github.com/a-h/templ"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
+	components "github.com/joshuar/go-templ-daisyui"
 )
 
 const (
@@ -36,13 +35,12 @@ type DisplayType int
 
 // Action represents a htmx-powered action component.
 type Action struct {
-	Path          string            `json:"path"`
-	Method        string            `json:"method"`
-	Vars          map[string]string `json:"vars"`
-	display       DisplayType
-	buttonOptions []button.Option
-	linkOptions   []link.Option
-	sync.Mutex    `json:"-"`
+	Path       string            `json:"path"`
+	Method     string            `json:"method"`
+	Vars       map[string]string `json:"vars"`
+	display    DisplayType
+	classes    *components.Classes
+	sync.Mutex `json:"-"`
 }
 
 // NewAction will create a new action that will be rendered as the given type, with the given options.
@@ -52,6 +50,7 @@ func NewAction(path string, display DisplayType, options ...ActionOption) *Actio
 		Method:  http.MethodGet,
 		Vars:    make(map[string]string),
 		display: display,
+		classes: components.NewClasses(),
 	}
 	// Set default variables.
 	link.setVar(AttrHXTarget, ContentID.Target())
@@ -102,20 +101,6 @@ func ActionPushURL() ActionOption {
 	}
 }
 
-// ActionButtonOptions defines the display options for the action as a button component.
-func ActionButtonOptions(options ...button.Option) ActionOption {
-	return func(a *Action) {
-		a.buttonOptions = options
-	}
-}
-
-// ActionLinkOptions defines the display options for the action as a link component.
-func ActionLinkOptions(options ...link.Option) ActionOption {
-	return func(a *Action) {
-		a.linkOptions = options
-	}
-}
-
 // ActionValues option sets the content of the 'hx-vals' attribute.
 func ActionValues(values map[string]string) ActionOption {
 	return func(a *Action) {
@@ -134,6 +119,13 @@ func ActionParams(value string) ActionOption {
 func ActionAttribute(key, value string) ActionOption {
 	return func(a *Action) {
 		a.setVar(key, value)
+	}
+}
+
+// ActionClasses option sets the given classes on the action.
+func ActionClasses(classes ...components.Class) ActionOption {
+	return func(a *Action) {
+		a.classes.Add(classes...)
 	}
 }
 

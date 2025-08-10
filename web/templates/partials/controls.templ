@@ -186,7 +186,7 @@ templ viewFilter(id string, view models.View, current models.View) {
 					type="radio"
 					name={ models.ParamView }
 					value={ string(view) }
-					class="custom-checkbox"
+					class="app-checkbox"
 					if current == view {
 						checked
 					}
@@ -213,7 +213,7 @@ templ categoryFilter(id string, category models.CategoryCount, current models.Ca
 					} else {
 						hx-vals={ GenerateHXVals(map[string]string{models.ParamCategories: category.Category}) }
 					}
-					class="custom-checkbox"
+					class="app-checkbox"
 				/>
 			</div>
 			<label for={ id } class="text-xs capitalize">{ category.Category }</label>
@@ -230,7 +230,7 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 				<input
 					id={ sort.ID() }
 					type="radio"
-					class="custom-checkbox"
+					class="app-checkbox"
 					if current.IsEqual(sort) {
 						checked
 					}

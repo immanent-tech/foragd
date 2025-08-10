@@ -31,11 +31,11 @@ func NewArticleContent(article *models.Article) *Article {
 // Card renders an article as a card, for displaying in a list.
 templ (c *Article) Card() {
 	if c.GetImage().URL == "" {
-		<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-neutral bg-base-200 row-span-1">
+		<li id={ c.GetID() } class="app-card-base row-span-1">
 			@c.cardWithoutImage()
 		</li>
 	} else {
-		<li id={ c.GetID() } class="overflow-hidden rounded-xl border border-neutral bg-base-200 md:row-span-2 md:col-span-2">
+		<li id={ c.GetID() } class="app-card-base md:row-span-2 md:col-span-1">
 			@c.cardWithImage()
 		</li>
 	}
@@ -48,9 +48,9 @@ templ (a *Article) cardWithImage() {
 				@image.Build(
 					a.GetImage().URL,
 					image.WithLazyLoading(),
-					image.WithExtraClasses("aspect-video w-full rounded-2xl bg-gray-100 object-cover sm:aspect-2/1 lg:aspect-3/2"),
+					image.WithExtraClasses("aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"),
 				)
-				<div class="absolute inset-0 rounded-2xl inset-ring inset-ring-neutral"></div>
+				<div class="absolute inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
 			</div>
 			<div class="flex max-w-xl grow flex-col justify-between">
 				<div class="group relative grow">
@@ -159,17 +159,17 @@ templ (a *Article) articleActions() {
 			<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
 			@HeroIconContextMenu("size-5")
 		</button>
-		<el-menu anchor="bottom end" popover class="w-52 origin-top-right rounded-md bg-base-300 py-2 shadow-lg ring-1 ring-neutral transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+		<el-menu anchor="bottom end" popover class="w-52 app-context-menu">
 			// View action.
 			@link.Build(
 				link.WithAttributes(templ.Attributes{"href": a.GetLink()}),
-				link.WithClasses(components.Class(CardActionClasses)),
+				link.WithClasses(components.Class("app-context-menu-action")),
 			) {
 				@HeroIconExternalLink("size-4")
 				Original Article
 			}
 			// Mark action.
-			@a.markLink(components.Class(CardActionClasses)) {
+			@a.markLink(components.Class("app-context-menu-action")) {
 				switch a.IsUnread() {
 					case true:
 						@HeroIconMarkRead("size-4")
@@ -181,7 +181,7 @@ templ (a *Article) articleActions() {
 			}
 			// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 			<div id={ "favorite_" + a.GetID() }>
-				@a.favoriteLink(components.Class(CardActionClasses)) {
+				@a.favoriteLink(components.Class("app-context-menu-action")) {
 					switch a.Favorite {
 						case true:
 							@HeroIconHeartFilled("size-4")
@@ -193,7 +193,7 @@ templ (a *Article) articleActions() {
 				}
 			</div>
 			// Share action.
-			@a.shareLink(components.Class(CardActionClasses))
+			@a.shareLink(components.Class("app-context-menu-action"))
 		</el-menu>
 	</el-dropdown>
 }
@@ -255,7 +255,7 @@ func (c *Article) viewAttributes() templ.Attributes {
 
 // ToggleFavorite renders an updated favorite link based on the article favorite status.
 templ (a *Article) ToggleFavorite() {
-	@a.favoriteLink(CardActionClasses) {
+	@a.favoriteLink("app-context-menu-action") {
 		switch a.Favorite {
 			case true:
 				@HeroIconHeartFilled("size-4")
@@ -295,9 +295,7 @@ templ (a *Article) markLink(classes ...components.Class) {
 		ActionTarget("#"+a.GetID()),
 		ActionSwap("outerHTML"),
 		ActionInclude("[name='view']"),
-		ActionLinkOptions(
-			link.WithClasses(classes...),
-		),
+		ActionClasses(classes...),
 	) {
 		{ children... }
 	}
@@ -315,9 +313,7 @@ templ (a *Article) favoriteLink(classes ...components.Class) {
 	@NewAction("/user/favorite/article/"+a.GetID(), DisplayActionAsLink,
 		ActionMethod(method),
 		ActionTarget("#favorite_"+a.GetID()),
-		ActionLinkOptions(
-			link.WithClasses(classes...),
-		),
+		ActionClasses(classes...),
 	) {
 		{ children... }
 	}
@@ -327,9 +323,7 @@ templ (a *Article) favoriteLink(classes ...components.Class) {
 templ (a *Article) shareLink(classes ...components.Class) {
 	@NewAction("/subscription/"+a.GetSubscriptionID()+"/article/"+a.GetID()+"/share", DisplayActionAsLink,
 		ActionTarget("#favorite_"+a.GetID()),
-		ActionLinkOptions(
-			link.WithClasses(classes...),
-		),
+		ActionClasses(classes...),
 	) {
 		@HeroIconShare("size-4")
 		Share

@@ -27,30 +27,54 @@
   @apply w-screen lg:w-1/2;
 }
 
-@utility custom-textinput {
-  @apply focus:outline-primary outline-primary/30 block w-full rounded-md bg-white/5 px-3 py-1.5 text-base outline-1 -outline-offset-1 *:bg-gray-800 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6;
-}
+/* Checkbox Styles */
 
-@utility custom-textinputlabel {
-  @apply block text-sm/6 font-medium;
-}
+@layer components {
+  /* Card Styles */
+  .app-card-base {
+    @apply border-base-content/20 hover:border-base-content/40 bg-base-200 overflow-hidden rounded-xl border;
+  }
+  .app-card-title {
+    @apply text-base font-bold;
+  }
+  .app-card-description {
+    @apply text-xs/6 font-semibold italic;
+  }
 
-@utility custom-textinputhint {
-  @apply text-xs text-gray-500;
-}
+  /* Context Menus */
+  .app-context-menu {
+    @apply bg-base-300 ring-base-content/20 origin-top-right rounded-md py-2 shadow-lg ring-1 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
+  }
+  .app-context-menu-action {
+    @apply hover:text-accent flex items-center gap-x-2 px-3 py-1 text-xs;
+  }
 
-@utility custom-button {
-  @apply bg-primary hover:bg-primary/50 focus-visible:outline-primary block rounded-md px-3 py-2 text-center text-sm font-semibold text-white shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2;
-}
+  /* Text Input Styles */
+  .app-textinput {
+    @apply focus:outline-primary outline-primary/30 *:bg-neutral placeholder:text-neutral/50 block w-full rounded-md bg-white/5 px-3 py-1.5 text-base outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6;
+  }
+  .app-textinput-label {
+    @apply block text-sm/6 font-medium;
+  }
+  .app-textinput-hint {
+    @apply text-xs/4 text-gray-500;
+  }
 
-@utility custom-close-button {
-  @apply focus:ring-primary rounded-md bg-white text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-offset-2 focus:outline-hidden;
-}
+  /*  Button Styles */
+  .app-button {
+    @apply bg-primary hover:bg-primary/50 focus-visible:outline-primary text-primary-content block rounded-md px-3 py-2 text-center text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2;
+  }
+  .app-button-close {
+    @apply focus:ring-primary rounded-md bg-white text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-offset-2 focus:outline-hidden;
+  }
 
-@utility custom-select {
-  @apply outline-primary/30 focus:outline-primary col-start-1 row-start-1 w-full appearance-none rounded-md bg-white/5 py-1.5 pr-8 pl-3 text-base outline-1 -outline-offset-1 *:bg-gray-800 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6;
-}
+  /* Checkbox Styles */
+  .app-checkbox {
+    @apply border-base-content/20 hover:border-base-content/40 checked:border-primary checked:bg-primary focus-visible:outline-primary disabled:border-neutral disabled:bg-neutral disabled:before:bg-neutral relative size-4 appearance-none rounded-full border before:absolute before:inset-1 before:rounded-full before:bg-white not-checked:before:hidden focus-visible:outline-2 focus-visible:outline-offset-2 forced-colors:appearance-auto forced-colors:before:hidden;
+  }
 
-@utility custom-checkbox {
-  @apply border-neutral checked:border-secondary checked:bg-primary focus-visible:outline-primary relative size-4 appearance-none rounded-full border bg-white/5 before:absolute before:inset-1 before:rounded-full before:bg-white not-checked:before:hidden focus-visible:outline-2 focus-visible:outline-offset-2 disabled:border-gray-300 disabled:bg-gray-100 disabled:before:bg-gray-400 forced-colors:appearance-auto forced-colors:before:hidden;
+  /* Selection Styles */
+  .app-select {
+    @apply outline-primary/30 focus:outline-primary col-start-1 row-start-1 w-full appearance-none rounded-md bg-white/5 py-1.5 pr-8 pl-3 text-base outline-1 -outline-offset-1 *:bg-gray-800 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6;
+  }
 }
