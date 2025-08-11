@@ -155,30 +155,54 @@ templ categoryBadge(category models.CategoryCount) {
 }
 
 templ emptyHome() {
-	<div class="hero bg-base-200 min-h-screen rounded-box">
-		<div class="hero-content text-center">
-			<div class="max-w-md">
-				<h1 class="text-5xl font-bold">Welcome Home</h1>
-				<p class="py-6">
-					There does not seem to be anything to show you. Maybe you should try one of the following:
-				</p>
-				<div class="flex gap-2 justify-center">
-					@partials.NewAction("/user/subscription/new", partials.DisplayActionAsButton,
-						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
-						partials.ActionTarget(partials.ModalContainerID.Target()),
-						// partials.ActionButtonOptions(button.WithClasses(button.Primary)),
-					) {
-						Add Subscription
-					}
-					@partials.NewAction("/user/import", partials.DisplayActionAsButton,
-						partials.ActionHyperScript("on click call document.activeElement.blur() end on htmx:afterOnLoad wait 10ms then add @open to "+partials.ModalID.Target()),
-						partials.ActionTarget(partials.ModalContainerID.Target()),
-						// partials.ActionButtonOptions(button.WithClasses(button.Primary)),
-					) {
-						Import Subscriptions
-					}
+	<div class="mt-16">
+		<h2 class="text-base font-semibold">Welcome home</h2>
+		<p class="mt-1 text-sm text-base-content">It looks like you don't have any feeds to read. Try one of the following to get started.</p>
+		<ul role="list" class="mt-6 grid grid-cols-1 gap-6 border-y border-base-content py-6 sm:grid-cols-2">
+			<li class="flow-root">
+				<div class="relative -m-2 flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-accent/50 hover:text-accent-content">
+					<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
+						@partials.HeroIconAdd("size-6", "text-primary-content")
+					</div>
+					<div>
+						<h3 class="text-sm font-medium ">
+							<a
+								hx-get="/user/subscription/add"
+								hx-target={ partials.ContentID.Target() }
+								hx-push-url="true"
+								class="focus:outline-hidden"
+							>
+								<span aria-hidden="true" class="absolute inset-0"></span>
+								<span>Add a subscription</span>
+								<span aria-hidden="true">&rarr;</span>
+							</a>
+						</h3>
+						<p class="mt-1 text-sm text-base-content">Add a single subscription from a URL or webpage.</p>
+					</div>
 				</div>
-			</div>
-		</div>
+			</li>
+			<li class="flow-root">
+				<div class="relative -m-2 flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-accent/50 hover:text-accent-content">
+					<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary">
+						@partials.HeroIconImport("size-6", "text-secondary-content")
+					</div>
+					<div>
+						<h3 class="text-sm font-medium">
+							<a
+								hx-get="/user/import"
+								hx-target={ partials.ContentID.Target() }
+								hx-push-url="true"
+								class="focus:outline-hidden"
+							>
+								<span aria-hidden="true" class="absolute inset-0"></span>
+								<span>Import subscriptions</span>
+								<span aria-hidden="true">&rarr;</span>
+							</a>
+						</h3>
+						<p class="mt-1 text-sm text-base-content">Import multiple subscriptions using an OPML file.</p>
+					</div>
+				</div>
+			</li>
+		</ul>
 	</div>
 }
