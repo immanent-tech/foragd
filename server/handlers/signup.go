@@ -49,14 +49,12 @@ func (a *API) Signup() http.HandlerFunc {
 			var externalUserID string
 			externalUserID, err = a.UserAPI().Create(req.Context(), newUser)
 			if err != nil {
-				resp := models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(pages.NewSignup(newUser, &models.UserMessage{
+				resp := models.RespInternalServerError(err,
+					pages.NewSignup(newUser, &models.UserMessage{
 						Status:  models.UserMessageStatusError,
 						Summary: "Failed to create new user.",
 						Details: "The backend had an issue trying to complete the request. Please try again.",
-					}).Template(req)),
+					}).Template(req),
 				)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
@@ -65,28 +63,24 @@ func (a *API) Signup() http.HandlerFunc {
 			user := models.NewUser(externalUserID, "auth0")
 			valid, err = user.Valid(req.Context())
 			if err != nil || !valid {
-				resp := models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(pages.NewSignup(newUser, &models.UserMessage{
+				resp := models.RespInternalServerError(err,
+					pages.NewSignup(newUser, &models.UserMessage{
 						Status:  models.UserMessageStatusError,
 						Summary: "Failed to create new user.",
 						Details: "The backend had an issue trying to complete the request. Please try again.",
-					}).Template(req)),
+					}).Template(req),
 				)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
 			}
 			index := elastic.UserIndexFromCtx(req.Context())
 			if index == "" {
-				resp := models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(pages.NewSignup(newUser, &models.UserMessage{
+				resp := models.RespInternalServerError(err,
+					pages.NewSignup(newUser, &models.UserMessage{
 						Status:  models.UserMessageStatusError,
 						Summary: "Failed to create new user.",
 						Details: "The backend had an issue trying to complete the request. Please try again.",
-					}).Template(req)),
+					}).Template(req),
 				)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return

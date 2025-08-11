@@ -126,3 +126,13 @@ func RespNotFound(err error) *Response {
 		InternalError: err,
 	}
 }
+
+// RespInternalServerError will create a new response indicating a 503 server error with the given template for display
+// to the user.
+func RespInternalServerError(err error, template templ.Component) *Response {
+	return NewResponse(
+		WithResponseStatusCode(http.StatusInternalServerError),
+		WithResponseError(err),
+		WithResponseTemplate(template),
+	)
+}

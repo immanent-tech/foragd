@@ -42,7 +42,7 @@ func (page *Signup) Template(req *http.Request) templ.Component {
 templ (page *Signup) layout() {
 	<div id={ partials.ContentID.String() }>
 		<div id="signup-hero" class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
-			<div class="sm:mx-auto sm:w-full sm:max-w-md">
+			<div class="sm:mx-auto sm:w-full sm:max-w-md mb-4">
 				<img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company" class="mx-auto h-10 w-auto"/>
 				<h2 class="mt-6 text-center text-2xl/9 font-bold tracking-tight text-base-content">Create an account</h2>
 			</div>
@@ -52,15 +52,15 @@ templ (page *Signup) layout() {
 						if page.Message != nil {
 							switch page.Message.Status {
 								case models.UserMessageStatusSuccess:
-									<div class="rounded-md bg-success p-4">
+									<div class="rounded-md bg-success/10 p-4 outline outline-success/20">
 										<div class="flex">
 											<div class="shrink-0">
-												@partials.HeroIconSuccess()
+												@partials.HeroIconSuccess("size-5", "text-success")
 											</div>
 											<div class="ml-3 flex-1 md:flex md:justify-between">
-												<p class="text-base text-bold text-success-content">Account Created!</p>
+												<p class="text-sm text-success">Account created!</p>
 												<p class="mt-3 text-sm md:mt-0 md:ml-6">
-													<a href="/login" class="text-sm text-success-content">
+													<a href="/login" class="text-sm text-success">
 														Log In  <span aria-hidden="true">&rarr;</span>
 													</a>
 												</p>
@@ -68,12 +68,40 @@ templ (page *Signup) layout() {
 										</div>
 									</div>
 								case models.UserMessageStatusWarning:
-									@partials.AlertWarn(page.Message)
+									<div class="rounded-md bg-warning/10 p-4 outline outline-warning/15">
+										<div class="flex">
+											<div class="shrink-0">
+												@partials.HeroIconWarn("size-5", "text-warning")
+											</div>
+											<div class="ml-3">
+												<h3 class="text-sm font-medium text-warning">{ page.Message.Summary }</h3>
+												if page.Message.HasDetails() {
+													<div class="mt-2 text-sm text-warning/80">
+														<p>{ page.Message.Details }</p>
+													</div>
+												}
+											</div>
+										</div>
+									</div>
 								case models.UserMessageStatusError:
-									@partials.AlertError(page.Message)
+									<div class="rounded-md bg-error/10 p-4 outline outline-error/15">
+										<div class="flex">
+											<div class="shrink-0">
+												@partials.HeroIconError("size-5", "text-error")
+											</div>
+											<div class="ml-3">
+												<h3 class="text-sm font-medium text-error">{ page.Message.Summary }</h3>
+												if page.Message.HasDetails() {
+													<div class="mt-2 text-sm text-error/80">
+														<p>{ page.Message.Details }</p>
+													</div>
+												}
+											</div>
+										</div>
+									</div>
 							}
 						}
-						<form hx-post="/signup" hx-target="#signup-hero" class="mt-10 space-y-6">
+						<form hx-post="/signup" hx-target={ partials.ContentID.Target() } hx-target-error={ partials.ContentID.Target() } class="mt-10 space-y-6">
 							<div>
 								<label for="nickname" class="app-textinput-label font-medium text-sm/6">Nickname</label>
 								<div class="mt-2">
