@@ -141,10 +141,10 @@ templ (a *Article) Content() {
 // articleInfo renders additional information about the article, ideal to put under the title.
 templ (a *Article) articleInfo() {
 	<div class="flex flex-none text-xs gap-x-4 items-center">
-		<div class="text-secondary">
+		<div class="text-neutral-content">
 			@ShowTimestamp(a.GetUpdatedDate())
 		</div>
-		<p class="italic text-secondary">
+		<p class="italic text-neutral-content">
 			{ strings.Join(a.GetAuthors(),",") }
 		</p>
 	</div>
@@ -154,7 +154,7 @@ templ (a *Article) articleInfo() {
 templ (a *Article) articleActions() {
 	// Actions menu.
 	<el-dropdown class="relative ml-auto">
-		<button class="relative block text-neutral hover:text-accent">
+		<button class="relative block text-base-content/80 hover:text-accent">
 			// <span class="absolute -inset-2.5"></span>
 			<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
 			@HeroIconContextMenu("size-5")
