@@ -163,8 +163,6 @@ components:
           x-oapi-codegen-extra-tags:
             validate: 'required,min=10'
             form: 'password'
-        msg:
-          $ref: '#/components/schemas/UserMessage'
     ImportSource:
       description: >
         defines the source that will be used for an import.

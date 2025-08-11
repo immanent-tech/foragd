@@ -454,6 +454,9 @@ type UpdatedAt = time.Time
 
 // User defines model for User.
 type User struct {
+	// AvatarURL is a link to an image file to user as an avatar for the user.
+	AvatarURL string `json:"avatar_url,omitempty,omitzero" validate:"omitempty,url"`
+
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
@@ -465,6 +468,9 @@ type User struct {
 
 	// MaxHistory is a duration representing the maximum time-frame over which objects contained within are available.
 	MaxHistory string `json:"max_history" validate:"required"`
+
+	// Nickname is an alias or label the user has given themselves.
+	Nickname string `json:"nickname,omitempty,omitzero" validate:"omitempty,alphanumunicode"`
 
 	// Provider is the backend provider that was used to create the account.
 	Provider string `json:"provider" validate:"required"`

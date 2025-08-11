@@ -19,7 +19,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/joshuar/go-feed-me/models"
 
@@ -59,7 +58,7 @@ func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 }
 
 // Create will create a new user account with the given details on the backend.
-func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest) (string, *models.Response) {
+func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest) (string, error) {
 	userData := database.SignupRequest{
 		Connection: userDBConnection,
 		Nickname:   details.Nickname,
@@ -70,15 +69,9 @@ func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest)
 	user, err := u.api.Database.Signup(ctx, userData)
 	if err != nil {
 		if authErr, ok := err.(*authentication.Error); ok {
-			return "", models.NewResponse(
-				models.WithResponseStatusCode(authErr.StatusCode),
-				models.WithResponseError(fmt.Errorf("%w: %w", ErrAuth0Backend, authErr)),
-			)
+			return "", fmt.Errorf("auth0 backend error: %w", authErr)
 		}
-		return "", models.NewResponse(
-			models.WithResponseStatusCode(http.StatusServiceUnavailable),
-			models.WithResponseError(fmt.Errorf("%w: %w", ErrAuth0Backend, err)),
-		)
+		return "", fmt.Errorf("auth0 backend error: %w", err)
 	}
 
 	return user.ID, nil

@@ -107,6 +107,7 @@ func userComponentTemplate() types.IndexState {
 			Properties: map[string]types.Property{
 				"user_id":          types.NewKeywordProperty(),
 				"nickname":         types.NewKeywordProperty(),
+				"avatar_url":       types.NewKeywordProperty(),
 				"external_user_id": types.NewKeywordProperty(),
 				"provider":         types.NewKeywordProperty(),
 				"created_at":       types.NewDateNanosProperty(),

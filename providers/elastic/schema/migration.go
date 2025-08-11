@@ -59,17 +59,19 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 // migrateUsers contains migration actions for migrating users indices and
 // settings.
 func migrateUsers(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
-	if err := elastic.PutComponentTemplate(ctx, api, UsersSchemaPrefix, NewComponentTemplateRequest(userComponentTemplate())); err != nil {
+	err := elastic.PutComponentTemplate(ctx, api, UsersSchemaPrefix, NewComponentTemplateRequest(userComponentTemplate()))
+	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 	slogctx.FromCtx(ctx).Debug("Added users component template...")
 
-	if err := elastic.PutIndexTemplate(ctx, api, UsersSchemaPrefix,
+	err = elastic.PutIndexTemplate(ctx, api, UsersSchemaPrefix,
 		NewIndexTemplateRequest(
 			WithIndexPatterns(UsersSchemaPrefix+"_*"),
 			WithComponentTemplates(UsersSchemaPrefix),
 		),
-	); err != nil {
+	)
+	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 	slogctx.FromCtx(ctx).Debug("Added users index template...")
@@ -88,7 +90,7 @@ func migrateUsers(ctx context.Context, api *elasticsearch.TypedClient, destructi
 	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
-	// Create a job queue index if not found.
+	// Create index if not found.
 	if !found {
 		_, err = elastic.NewIndexRequest(api, userIndex).Do(ctx)
 		if err != nil {
@@ -105,16 +107,18 @@ func migrateUsers(ctx context.Context, api *elasticsearch.TypedClient, destructi
 func migrateFeeds(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
 
-	if err := elastic.PutComponentTemplate(ctx, api, FeedsSchemaPrefix, NewComponentTemplateRequest(feedsComponentTemplate())); err != nil {
+	err := elastic.PutComponentTemplate(ctx, api, FeedsSchemaPrefix, NewComponentTemplateRequest(feedsComponentTemplate()))
+	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := elastic.PutIndexTemplate(ctx, api, FeedsSchemaPrefix,
+	err = elastic.PutIndexTemplate(ctx, api, FeedsSchemaPrefix,
 		NewIndexTemplateRequest(
 			WithIndexPatterns(FeedsSchemaPrefix+"_*"),
 			WithComponentTemplates(FeedsSchemaPrefix),
 		),
-	); err != nil {
+	)
+	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
@@ -156,34 +160,39 @@ func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient, destr
 			return fmt.Errorf("unable to migrate items datastream: %w", err)
 		}
 	}
-	if _, err := api.Ilm.PutLifecycle(ItemsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx); err != nil {
+	_, err := api.Ilm.PutLifecycle(ItemsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx)
+	if err != nil {
 		return fmt.Errorf("unable to migrate items datastream: %w", err)
 	}
-	if err := elastic.PutComponentTemplate(ctx, api, ItemsSchemaPrefix, NewComponentTemplateRequest(itemsComponentTemplate())); err != nil {
+	err = elastic.PutComponentTemplate(ctx, api, ItemsSchemaPrefix, NewComponentTemplateRequest(itemsComponentTemplate()))
+	if err != nil {
 		return fmt.Errorf("unable to migrate items datastream: %w", err)
 	}
-	if err := elastic.PutIndexTemplate(ctx, api, ItemsSchemaPrefix,
+	err = elastic.PutIndexTemplate(ctx, api, ItemsSchemaPrefix,
 		NewIndexTemplateRequest(
 			WithIndexPatterns(ItemsSchemaPrefix+"_*"),
 			WithComponentTemplates(ItemsSchemaPrefix),
 			WithPriority(500),
 			AsDataStream(),
 		),
-	); err != nil {
+	)
+	if err != nil {
 		return fmt.Errorf("unable to migrate items datastream: %w", err)
 	}
 
 	slogctx.FromCtx(ctx).Debug("Migrating items archive...")
 	// Create the items archive.
-	if err := elastic.PutComponentTemplate(ctx, api, ArticleArchiveSchemaPrefix, NewComponentTemplateRequest(articleArchiveComponentTemplate())); err != nil {
+	err = elastic.PutComponentTemplate(ctx, api, ArticleArchiveSchemaPrefix, NewComponentTemplateRequest(articleArchiveComponentTemplate()))
+	if err != nil {
 		return fmt.Errorf("unable to migrate items archive: %w", err)
 	}
-	if err := elastic.PutIndexTemplate(ctx, api, ArticleArchiveSchemaPrefix,
+	err = elastic.PutIndexTemplate(ctx, api, ArticleArchiveSchemaPrefix,
 		NewIndexTemplateRequest(
 			WithIndexPatterns(ArticleArchiveSchemaPrefix+"_*"),
 			WithComponentTemplates(ArticleArchiveSchemaPrefix),
 		),
-	); err != nil {
+	)
+	if err != nil {
 		return fmt.Errorf("unable to migrate items archive: %w", err)
 	}
 	archiveIndex := ArticleArchiveSchemaPrefix + "_" + config.Environment()
@@ -222,17 +231,19 @@ func migrateScheduler(ctx context.Context, api *elasticsearch.TypedClient, destr
 
 	// scheduler jobs indicies
 
-	if err = elastic.PutComponentTemplate(ctx, api, SchedulerSchemaPrefix, NewComponentTemplateRequest(schedulerJobsComponentTemplate())); err != nil {
+	err = elastic.PutComponentTemplate(ctx, api, SchedulerSchemaPrefix, NewComponentTemplateRequest(schedulerJobsComponentTemplate()))
+	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err = elastic.PutIndexTemplate(ctx, api, SchedulerSchemaPrefix,
+	err = elastic.PutIndexTemplate(ctx, api, SchedulerSchemaPrefix,
 		NewIndexTemplateRequest(
 			WithIndexPatterns(SchedulerSchemaPrefix+"_*"),
 			WithComponentTemplates(SchedulerSchemaPrefix),
 			WithPriority(500),
 		),
-	); err != nil {
+	)
+	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
@@ -265,17 +276,19 @@ func migrateScheduler(ctx context.Context, api *elasticsearch.TypedClient, destr
 func migrateSession(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
 
-	if err := elastic.PutComponentTemplate(ctx, api, SessionsSchemaPrefix, NewComponentTemplateRequest(sessionsComponentTemplate())); err != nil {
+	err := elastic.PutComponentTemplate(ctx, api, SessionsSchemaPrefix, NewComponentTemplateRequest(sessionsComponentTemplate()))
+	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
-	if err := elastic.PutIndexTemplate(ctx, api, SessionsSchemaPrefix,
+	err = elastic.PutIndexTemplate(ctx, api, SessionsSchemaPrefix,
 		NewIndexTemplateRequest(
 			WithIndexPatterns(SessionsSchemaPrefix+"_*"),
 			WithComponentTemplates(SessionsSchemaPrefix),
 			WithPriority(500),
 		),
-	); err != nil {
+	)
+	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 
@@ -313,7 +326,8 @@ func migrateIngest(ctx context.Context, api *elasticsearch.TypedClient) error {
 	}
 	slogctx.FromCtx(ctx).Debug("Deleted existing ingest pipeline.")
 
-	if _, err := api.Ingest.PutPipeline(ingestPipelineID).Request(ingestPipelineFeeds()).Do(ctx); err != nil {
+	_, err = api.Ingest.PutPipeline(ingestPipelineID).Request(ingestPipelineFeeds()).Do(ctx)
+	if err != nil {
 		return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 	}
 	slogctx.FromCtx(ctx).Debug("Added ingest pipeline.")
@@ -335,20 +349,23 @@ func migrateLogs(ctx context.Context, api *elasticsearch.TypedClient, destructiv
 			return fmt.Errorf("unable to migrate items datastream: %w", err)
 		}
 	}
-	if _, err := api.Ilm.PutLifecycle(LogsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx); err != nil {
+	_, err := api.Ilm.PutLifecycle(LogsSchemaPrefix).Request(itemsILMPolicy()).Do(ctx)
+	if err != nil {
 		return fmt.Errorf("unable to migrate items datastream: %w", err)
 	}
-	if err := elastic.PutComponentTemplate(ctx, api, LogsSchemaPrefix, NewComponentTemplateRequest(logsComponentTemplate())); err != nil {
+	err = elastic.PutComponentTemplate(ctx, api, LogsSchemaPrefix, NewComponentTemplateRequest(logsComponentTemplate()))
+	if err != nil {
 		return fmt.Errorf("unable to migrate items datastream: %w", err)
 	}
-	if err := elastic.PutIndexTemplate(ctx, api, LogsSchemaPrefix,
+	err = elastic.PutIndexTemplate(ctx, api, LogsSchemaPrefix,
 		NewIndexTemplateRequest(
 			WithIndexPatterns(LogsSchemaPrefix+"_*"),
 			WithComponentTemplates(LogsSchemaPrefix),
 			WithPriority(500),
 			AsDataStream(),
 		),
-	); err != nil {
+	)
+	if err != nil {
 		return fmt.Errorf("unable to migrate logs datastream: %w", err)
 	}
 

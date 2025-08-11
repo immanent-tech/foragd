@@ -4,114 +4,103 @@
 package pages
 
 import (
+	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/input/fieldset"
-	"github.com/joshuar/go-templ-daisyui/input/form"
-	"github.com/joshuar/go-templ-daisyui/input/textinput"
+	"net/http"
 )
 
 type Signup struct {
 	Request *models.UserSignupRequest
+	Message *models.UserMessage
 }
 
-func (page *Signup) Template() templ.Component {
-	return templates.NewPage("Go Feed Me - Sign up",
-		templates.WithBodyContent(page.layout()),
-	)
+func NewSignup(request *models.UserSignupRequest, msg *models.UserMessage) *Signup {
+	signup := &Signup{
+		Message: msg,
+		Request: &models.UserSignupRequest{},
+	}
+	if request != nil {
+		signup.Request = request
+	}
+	return signup
+}
+
+func (page *Signup) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.layout()
+	default:
+		return templates.NewPage("Go Feed Me - Sign up",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+
 }
 
 templ (page *Signup) layout() {
-	<div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
-		<div class="sm:mx-auto sm:w-full sm:max-w-md">
-			<img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company" class="mx-auto h-10 w-auto"/>
-			<h2 class="mt-6 text-center text-2xl/9 font-bold tracking-tight text-gray-900">Create an account</h2>
-		</div>
-		<div class="mt-10 sm:mx-auto sm:w-full sm:max-w-[480px]">
-			<div class="bg-white px-6 py-12 shadow-sm sm:rounded-lg sm:px-12">
-				<form action="#" method="POST" class="space-y-6">
-					<div>
-						<label for="nickname" class="block text-sm/6 font-medium text-gray-900">Nickname</label>
-						<div class="mt-2">
-							<input id="nickname" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"/>
-						</div>
-					</div>
-					<div>
-						<label for="email" class="block text-sm/6 font-medium text-gray-900">Email address</label>
-						<div class="mt-2">
-							<input id="email" type="email" name="email" required autocomplete="email" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"/>
-						</div>
-					</div>
-					<div>
-						<label for="password" class="block text-sm/6 font-medium text-gray-900">Password</label>
-						<div class="mt-2">
-							<input id="password" type="password" name="password" required autocomplete="current-password" class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"/>
-						</div>
-					</div>
-					<div>
-						<button type="submit" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">Sign in</button>
-					</div>
-				</form>
+	<div id={ partials.ContentID.String() }>
+		<div id="signup-hero" class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
+			<div class="sm:mx-auto sm:w-full sm:max-w-md">
+				<img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company" class="mx-auto h-10 w-auto"/>
+				<h2 class="mt-6 text-center text-2xl/9 font-bold tracking-tight text-base-content">Create an account</h2>
+			</div>
+			<div class="sm:mx-auto sm:w-full sm:max-w-[480px]">
+				<div class="bg-base-200 border-base-content/20 px-6 py-12 shadow-sm sm:rounded-lg sm:px-12">
+					@templ.Fragment(templates.ContentFragment) {
+						if page.Message != nil {
+							switch page.Message.Status {
+								case models.UserMessageStatusSuccess:
+									<div class="rounded-md bg-success p-4">
+										<div class="flex">
+											<div class="shrink-0">
+												@partials.HeroIconSuccess()
+											</div>
+											<div class="ml-3 flex-1 md:flex md:justify-between">
+												<p class="text-base text-bold text-success-content">Account Created!</p>
+												<p class="mt-3 text-sm md:mt-0 md:ml-6">
+													<a href="/login" class="text-sm text-success-content">
+														Log In  <span aria-hidden="true">&rarr;</span>
+													</a>
+												</p>
+											</div>
+										</div>
+									</div>
+								case models.UserMessageStatusWarning:
+									@partials.AlertWarn(page.Message)
+								case models.UserMessageStatusError:
+									@partials.AlertError(page.Message)
+							}
+						}
+						<form hx-post="/signup" hx-target="#signup-hero" class="mt-10 space-y-6">
+							<div>
+								<label for="nickname" class="app-textinput-label font-medium text-sm/6">Nickname</label>
+								<div class="mt-2">
+									<input id="nickname" name="nickname" value={ page.Request.Nickname } class="app-textinput sm:text-sm/6"/>
+								</div>
+							</div>
+							<div>
+								<label for="email" class="app-textinput-label font-medium text-sm/6">Email address</label>
+								<div class="mt-2">
+									<input id="email" type="email" name="email" value={ page.Request.Email } required autocomplete="email" class="app-textinput validator sm:text-sm/6"/>
+									<span class="validator-hint hidden">Email address is required</span>
+								</div>
+							</div>
+							<div>
+								<label for="password" class="app-textinput-label font-medium text-sm/6">Password</label>
+								<div class="mt-2">
+									<input id="password" type="password" name="password" value={ page.Request.Password } required minlength="10" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{ 8,  }" autocomplete="current-password" class="app-textinput sm:text-sm/6"/>
+									<span class="validator-hint hidden">Password needs to be minimum 10 characters and include at least one: lowercase letter, uppercase letter and number</span>
+								</div>
+							</div>
+							<div>
+								<button type="submit" class="app-button text-sm/6">Sign in</button>
+							</div>
+						</form>
+					}
+				</div>
 			</div>
 		</div>
-	</div>
-}
-
-// SignupForm is the form for the user to enter their details to create an account.
-templ SignupForm(details *models.UserSignupRequest) {
-	@form.Build(
-		form.WithID("signup"),
-		form.WithAttributes(
-			templ.Attributes{
-				"hx-post":   "/signup/auth0",
-				"hx-target": partials.ContentID.Target(),
-			},
-		),
-	) {
-		@fieldset.Build(
-			fieldset.WithLegend("Account Details:"),
-		) {
-			<label class="label font-semibold">Nickname (optional)</label>
-			@textinput.Build(
-				textinput.WithName("nickname"),
-				textinput.WithValue(details.Nickname),
-			).Show()
-			<label class="label font-semibold">Email (required)</label>
-			@textinput.Build(
-				textinput.WithName("email"),
-				textinput.AsType(textinput.Email),
-				textinput.WithPlaceholder("you@yourdomain.com"),
-				textinput.Required(),
-				textinput.Validate(),
-				textinput.ValidateHint("Valid email address is required."),
-				textinput.WithValue(details.Email),
-			).Show()
-			<label class="label font-semibold">Password (required).</label>
-			@textinput.Build(
-				textinput.WithName("password"),
-				textinput.AsType(textinput.Password),
-				textinput.Required(),
-				textinput.Validate(),
-				textinput.ValidatePattern(`(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{ 8,  }`),
-				textinput.ValidateMinLength(10),
-				textinput.ValidateHint("Password needs to be minimum 10 characters and include at least one: lowercase letter, uppercase letter and number"),
-				textinput.WithValue(details.Password),
-			).Show()
-			@button.Build(
-				button.AsSubmit(),
-				button.WithClasses(button.Primary),
-			) {
-				Make it so!
-			}
-		}
-	}
-}
-
-templ SignupSuccess() {
-	<h2>Signup Success!</h2>
-	<div class="flex justify-center m-2">
-		// @pages.LoginAuth0Button()
 	</div>
 }

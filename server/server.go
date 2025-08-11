@@ -123,8 +123,8 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Use(
 			middlewares.SetupElastic(),
 		)
-		r.Get("/signup", handlers.SignupSetup())
-		r.Post("/signup/{provider}", handler.Signup())
+		r.Get("/signup", handler.Signup())
+		r.Post("/signup", handler.Signup())
 	})
 
 	// Authenticated routes.

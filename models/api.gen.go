@@ -250,12 +250,9 @@ type UserMessageStatus string
 
 // UserSignupRequest contains the details for a user signup request.
 type UserSignupRequest struct {
-	Email string `form:"email" json:"email" validate:"required,email"`
-
-	// Msg represents a message that can be displayed to the user as the result of an action.
-	Msg      UserMessage `json:"msg,omitempty,omitzero"`
-	Nickname string      `form:"nickname,omitempty" json:"nickname,omitempty,omitzero" validate:"omitempty"`
-	Password string      `form:"password" json:"password" validate:"required,min=10"`
+	Email    string `form:"email" json:"email" validate:"required,email"`
+	Nickname string `form:"nickname,omitempty" json:"nickname,omitempty,omitzero" validate:"omitempty"`
+	Password string `form:"password" json:"password" validate:"required,min=10"`
 }
 
 // View The state of objects to view.

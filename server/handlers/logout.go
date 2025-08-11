@@ -15,7 +15,6 @@ import (
 // Logout handles logout requests.
 func Logout() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		slogctx.FromCtx(req.Context()).Info("logging out")
 		err := session.Manager.Destroy(req.Context())
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Logout failed.",

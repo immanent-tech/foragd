@@ -10,8 +10,9 @@ import (
 	"github.com/a-h/templ"
 )
 
-// defaultKeywords are the default keywords to insert in a "keywords" <meta> tag.
-var defaultKeywords = []string{"feeds", "atom", "jsonfeed", "rss", "feed reader", "news", "current affairs"}
+var ContentFragment = FragmentKey{}
+
+type FragmentKey struct{}
 
 // DefaultPageTitle is the default <title> tag value if none is set.
 var DefaultPageTitle = "Go Feed Me"

@@ -63,6 +63,8 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			models.WithResponseTemplate(template),
 		)
 
+		a.syncUser(req.Context())
+
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
