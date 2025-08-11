@@ -100,25 +100,25 @@ templ settingsSelect(current string) {
 				<a
 					hx-get="/user/settings/account"
 					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-accent text-white",current == "account"),
+				templ.KV("bg-accent text-accent-content",current == "account"),
 				templ.KV("hover:link-accent", current != "account") }
 				>My Account</a>
 				<a
 					href="#"
 					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-accent text-white",current == "billing"),
+				templ.KV("bg-accent text-accent-content",current == "billing"),
 				templ.KV(" hover:link-accent", current != "billing") }
 				>Billing</a>
 				<a
 					hx-get="/user/settings/subscriptions"
 					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-accent text-white",current == "subscriptions"),
+				templ.KV("bg-accent text-accent-content",current == "subscriptions"),
 				templ.KV(" hover:link-accent", current != "subscriptions") }
 				>Subscriptions</a>
 				<a
 					hx-get="/user/settings/app"
 					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-accent text-white",current == "app"),
+				templ.KV("bg-accent text-accent-content",current == "app"),
 				templ.KV(" hover:link-accent", current != "app") }
 				>App</a>
 			</nav>
@@ -160,7 +160,7 @@ templ SubscriptionSettings() {
 			hx-indicator=".htmx-indicator"
 			hx-push-url="false"
 		>
-			<input id="filter-subscriptions" type="text" name="text" placeholder="Filter..." class="custom-textinput"/>
+			<input id="filter-subscriptions" type="text" name="text" placeholder="Filter..." class="app-textinput text-xs/4"/>
 		</form>
 	</div>
 	<ul id="subscriptions-list" role="list" class="divide-y divide-neutral max-w-prose"></ul>
@@ -196,24 +196,24 @@ templ AccountSettings() {
 						</div>
 					</div>
 					<div class="col-span-full">
-						<input id="avatar" type="file" class="app-button text-xs"/>
+						<input id="avatar" type="file" class="app-button text-sm/6"/>
 					</div>
 					<div class="col-span-full">
-						<label for="username" class="app-textinput-label">Username</label>
+						<label for="username" class="app-textinput-label text-sm/6">Username</label>
 						<div class="mt-2">
-							<input id="username" type="text" name="username" placeholder="janesmith" class="custom-textinput"/>
+							<input id="username" type="text" name="username" placeholder="janesmith" class="app-textinput text-sm/6"/>
 						</div>
 					</div>
 					<div class="col-span-full">
-						<label for="email" class="app-textinput-label">Email address</label>
+						<label for="email" class="app-textinput-label text-sm/6">Email address</label>
 						<div class="mt-2">
-							<input id="email" type="email" name="email" autocomplete="email" class="custom-textinput"/>
+							<input id="email" type="email" name="email" autocomplete="email" class="app-textinput text-sm/6"/>
 						</div>
 					</div>
 					<div class="col-span-full">
-						<label for="timezone" class="app-textinput-label">Timezone</label>
+						<label for="timezone" class="app-textinput-label text-sm/6">Timezone</label>
 						<div class="mt-2 grid grid-cols-1">
-							<select id="timezone" name="timezone" class="app-select">
+							<select id="timezone" name="timezone" class="app-select text-sm/6">
 								<option>Pacific Standard Time</option>
 								<option>Eastern Standard Time</option>
 								<option>Greenwich Mean Time</option>
