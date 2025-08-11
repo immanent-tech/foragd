@@ -3,6 +3,8 @@
 
 package layouts
 
+import "github.com/joshuar/go-feed-me/web/templates/partials"
+
 templ EmptyLayout() {
 	@Drawer() {
 		@EmptyContent()
@@ -10,22 +12,14 @@ templ EmptyLayout() {
 }
 
 templ EmptyContent() {
-	<div class="hero bg-base-200 min-h-screen rounded-box">
-		<div class="hero-content text-center">
-			<div class="max-w-md">
-				<h1 class="text-5xl font-bold">No content to show</h1>
-				<p class="py-6">
-					Try adjusting your filters, or maybe there is nothing left to read?
-				</p>
-				// @partials.NewAction("/home", partials.DisplayActionAsButton,
-				// 	partials.ActionPushURL(),
-				// 	partials.ActionButtonOptions(
-				// 		button.WithClasses(button.Primary),
-				// 	),
-				// ) {
-				// 	Take me home
-				// }
-			</div>
+	<div class="text-center">
+		@partials.HeroIconQuestionMark("mx-auto size-12 text-base-content")
+		<h3 class="mt-2 text-base font-semibold">No content to show</h3>
+		<p class="mt-1 text-sm text-base-content">Try adjusting your filters, or maybe you are all caught up?</p>
+		<div class="mt-6">
+			<button type="button" hx-get="/home" hx-push-url="true" hx-target={ partials.ContentID.Target() } class="app-button inline-flex items-center">
+				Home
+			</button>
 		</div>
 	</div>
 }
