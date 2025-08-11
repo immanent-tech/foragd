@@ -37,7 +37,7 @@ templ Drawer() {
 	<div class="lg:pl-72">
 		<div class="sticky top-0 z-40 lg:mx-auto lg:w-full">
 			<div class="flex h-16 items-center gap-x-4 border-b border-neutral bg-base-200 px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-0 lg:shadow-none">
-				<button type="button" command="show-modal" commandfor="sidebar" class="-m-2.5 p-2.5 lg:hidden">
+				<button type="button" command="show-modal" commandfor="sidebar" class="-m-2.5 p-2.5 lg:hidden hover:text-accent">
 					<span class="sr-only">Open sidebar</span>
 					@partials.HeroIconMenu("size-6")
 				</button>
@@ -97,7 +97,7 @@ templ DrawerSidebar() {
 	// 		@partials.Logo("h-8 w-auto")
 	// 	}
 	// </div>
-	<nav class="flex flex-1 flex-col mt-16">
+	<nav class="flex flex-1 flex-col mt-16 mb-8">
 		<ul role="list" class="flex flex-1 flex-col gap-y-7">
 			<li>
 				<ul role="list" class="-mx-2 space-y-1">
@@ -159,7 +159,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 			<ul>
 				for fav := range slices.Values(subscriptions) {
 					<li>
-						@partials.FavoriteLink(fav)
+						@partials.FavoriteLink(fav, "group flex items-center gap-x-3 rounded-md p-2 text-sm/6 font-semibold hover:bg-accent hover:text-accent-content")
 					</li>
 				}
 			</ul>
@@ -172,7 +172,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 			<ul>
 				for fav := range slices.Values(articles) {
 					<li>
-						@partials.FavoriteLink(fav)
+						@partials.FavoriteLink(fav, "group flex items-center gap-x-3 rounded-md p-2 text-sm/6 font-semibold hover:bg-accent hover:text-accent-content")
 					</li>
 				}
 			</ul>
@@ -185,7 +185,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 			<ul>
 				for fav := range slices.Values(searches) {
 					<li>
-						@partials.FavoriteLink(fav)
+						@partials.FavoriteLink(fav, "group flex items-center gap-x-3 rounded-md p-2 text-sm/6 font-semibold hover:bg-accent hover:text-accent-content")
 					</li>
 				}
 			</ul>

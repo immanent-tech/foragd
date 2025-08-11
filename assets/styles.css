@@ -65,7 +65,7 @@
     @apply bg-primary hover:bg-primary/50 focus-visible:outline-primary text-primary-content block rounded-md px-3 py-2 text-center text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2;
   }
   .app-button-close {
-    @apply focus:ring-primary rounded-md bg-white text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-offset-2 focus:outline-hidden;
+    @apply focus:ring-primary bg-base-content text-base-content hover:text-base-content/50 rounded-md focus:ring-2 focus:ring-offset-2 focus:outline-hidden;
   }
 
   /* Checkbox Styles */
