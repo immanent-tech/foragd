@@ -107,7 +107,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 	})
 
 	// Front page.
-	router.Get("/", handlers.Index())
+	router.Get("/", handlers.Landing())
 	// Access routes.
 	router.Get("/login", handlers.LoginSelect())
 	router.Group(func(r chi.Router) {

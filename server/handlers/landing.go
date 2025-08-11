@@ -12,9 +12,9 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/pages"
 )
 
-// Index handles displaying the index or front page of the site.
-func Index() http.HandlerFunc {
-	page := &pages.Index{}
+// Landing handles displaying the landing page of the site.
+func Landing() http.HandlerFunc {
+	page := &pages.Landing{}
 	return alice.New(
 		RouteLogger,
 	).Then(RenderResponse(models.NewResponse(

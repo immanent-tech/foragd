@@ -71,7 +71,8 @@
     "components/avatar",
     "feeds/opml",
     "web",
-    "signup"
+    "signup",
+    "landing"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
