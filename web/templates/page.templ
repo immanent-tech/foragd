@@ -31,12 +31,14 @@ templ (page *Page) render() {
 				class="toggle theme-controller hidden"
 				checked="checked"
 			/>
-			<div id={ partials.NotificationsID.String() } class="fixed top-0 items-center mt-4 p-2 z-999 max-w-prose"></div>
 			<div id={ partials.ModalContainerID.String() } hx-target-error="#modal-errors"></div>
 			if page.BodyContent != nil {
 				@page.BodyContent
 			}
 			{ children... }
+			<div aria-live="assertive" class="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6">
+				<div id={ partials.NotificationsID.String() } class="flex w-full flex-col items-center space-y-4 sm:items-end"></div>
+			</div>
 		</body>
 	</html>
 }
