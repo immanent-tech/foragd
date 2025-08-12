@@ -6,7 +6,6 @@ info:
   version: 1.0.0
   title: Common API
   description: Common API objects and fields.
-paths: {}
 components:
   schemas:
     Count:
@@ -173,18 +172,6 @@ components:
         json: 'source'
         form: 'source'
         validate: 'oneof=opml_file opml_url url_list'
-    SubscriptionEdit:
-      description: >
-        represents subscription details for editing by the user.
-      type: object
-      allOf:
-        - $ref: 'models.yaml#/components/schemas/ObjectCustomisation'
-        - type: object
-          required:
-            - subscription_id
-          properties:
-            subscription_id:
-              $ref: 'models.yaml#/components/schemas/SubscriptionID'
     MarkSubscriptionsRequest:
       description: >
         represents a user request for marking a subscription or collection of subscriptions as read or unread.

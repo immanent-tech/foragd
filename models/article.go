@@ -59,8 +59,8 @@ func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite
 		article.Favorite = true
 	}
 	// Add any appropriate feed customisation data.
-	if state.Customisation.Title != "" {
-		item.FeedTitle = state.Customisation.Title
+	if state.Customisation.Nickname != "" {
+		item.FeedTitle = state.Customisation.Nickname
 	}
 	// Update read status.
 	if item.GetPublishedDate().After(article.State.UpdatedAt) {
@@ -92,7 +92,7 @@ func GenerateArticles(ctx context.Context, items Items) (Articles, error) {
 		fav := articleFavorites.Get(item.GetID())
 		article, err := GenerateArticle(item, subscriptions.GetByFeedID(item.GetFeedID()), fav)
 		if err != nil {
-			slogctx.FromCtx(ctx).Warn("Could not generate article from data.",
+			slogctx.FromCtx(ctx).WarnContext(ctx, "Could not generate article from data.",
 				slog.Any("error", err),
 				slog.String("item_id", item.GetID()),
 			)

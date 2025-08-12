@@ -18,16 +18,15 @@ import (
 
 // EditSubscriptionPage is a page for editing a subscription.
 type EditSubscriptionPage struct {
-	request       *models.SubscriptionEdit
-	subscription  *models.Subscription
-	topCategories []models.Category
+	request *models.EditSubscriptionRequest
+	message *models.UserMessage
 }
 
-func NewEditSubscriptionPage(edits *models.SubscriptionEdit, subscription *models.Subscription, topCategories []models.Category) *EditSubscriptionPage {
+// NewEditSubscriptionPage creates a new edit subscription page with the given data.
+func NewEditSubscriptionPage(edits *models.EditSubscriptionRequest, msg *models.UserMessage) *EditSubscriptionPage {
 	return &EditSubscriptionPage{
-		request:       edits,
-		subscription:  subscription,
-		topCategories: topCategories,
+		request: edits,
+		message: msg,
 	}
 }
 
@@ -37,7 +36,7 @@ func (page *EditSubscriptionPage) Template(req *http.Request) templ.Component {
 	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 		return page.content()
 	default:
-		return templates.NewPage("Go Feed Me - Edit "+page.subscription.GetTitle(),
+		return templates.NewPage("Go Feed Me - Edit "+page.request.Nickname,
 			templates.WithBodyContent(page.layout()),
 		)
 	}
@@ -53,9 +52,40 @@ templ (page *EditSubscriptionPage) content() {
 	<div class="mt-8 max-w-prose">
 		<div class="space-y-12 sm:space-y-16">
 			<div>
-				<h2 class="text-base/7 font-semibold">Editing { page.subscription.GetTitle() }</h2>
-				<div class="mt-10 space-y-8 border-b border-neutral pb-12 sm:space-y-0 sm:divide-y sm:divide-neutral sm:border-t sm:pb-0">
-					<form id="edit-subscription">
+				<h2 class="text-base/7 font-semibold">Editing { page.request.Nickname }</h2>
+				<div class="mt-10 space-y-8 pb-12 sm:space-y-0 sm:pb-0">
+					if page.message != nil {
+						switch page.message.Status {
+							case models.UserMessageStatusSuccess:
+								@partials.FormSuccess() {
+									@partials.SuccessMessage(page.message) {
+										@partials.NewAction("/subscriptions", partials.DisplayActionAsLink,
+											partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
+											partials.ActionPushURL(),
+											partials.ActionClasses("text-sm/6 text-success font-semibold"),
+										) {
+											<p class="mt-4">Go to subscriptions <span aria-hidden="true">&rarr;</span></p>
+										}
+									}
+								}
+							case models.UserMessageStatusWarning:
+								@partials.FormWarning() {
+									@partials.WarningMessage(page.message)
+								}
+							case models.UserMessageStatusError:
+								@partials.FormError() {
+									@partials.ErrorMessage(page.message)
+								}
+						}
+					}
+					<form
+						id="edit-subscription"
+						hx-put={ "/user/subscription/edit/" + page.request.SubscriptionID }
+						hx-include="[name='user_categories']"
+						hx-target={ partials.ContentID.Target() }
+						hx-target-error={ partials.ContentID.Target() }
+						hx-indicator="#processing"
+					>
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 							<label for="nickname" class="app-textinput-label">Nickname</label>
 							<input type="hidden" id="subscription-id" name="subscription_id" value={ page.request.SubscriptionID }/>
@@ -65,7 +95,7 @@ templ (page *EditSubscriptionPage) content() {
 									type="text"
 									required
 									name="user_nickname"
-									value={ page.subscription.GetTitle() }
+									value={ page.request.Nickname }
 									placeholder="My favorite feed"
 									class="app-textinput validator"
 								/>
@@ -74,7 +104,7 @@ templ (page *EditSubscriptionPage) content() {
 							</div>
 						</div>
 					</form>
-					@partials.AddCategoryForm(page.topCategories, templ.Attributes{
+					@partials.AddCategoryForm(page.request.SuggestedCategories, templ.Attributes{
 						"hx-post":     "/user/subscription/category",
 						"hx-push-url": "false",
 						"hx-target":   "#current-categories",
@@ -86,20 +116,21 @@ templ (page *EditSubscriptionPage) content() {
 					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 						<label class="app-textinput-label">Current Categories</label>
 						<div class="col-span-full">
-							@partials.ManageCategories(page.subscription.GetCategories())
+							@partials.ManageCategories(page.request.Categories)
 						</div>
 					</div>
 				</div>
 			</div>
 		</div>
 		<div class="mt-6 flex items-center justify-end gap-x-6">
+			<div id="processing" class="htmx-indicator">
+				Processing...
+				@loading.Build(loading.Infinity).Show()
+			</div>
 			<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
 			<button
 				type="submit"
 				form="edit-subscription"
-				hx-put={ "/user/subscription/edit/" + page.request.SubscriptionID }
-				hx-include="[name='user_categories']"
-				hx-target="#notifications"
 				class="app-button"
 			>Save</button>
 		</div>

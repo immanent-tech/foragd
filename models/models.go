@@ -263,7 +263,7 @@ type HasID[T ~string] interface {
 }
 
 func (c ObjectCustomisation) GetNickname() string {
-	return c.Title
+	return c.Nickname
 }
 
 func (c ObjectCustomisation) GetCategories() []Category {

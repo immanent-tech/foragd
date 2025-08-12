@@ -77,7 +77,7 @@ func (a *API) GetSubscriptionArticles() http.HandlerFunc {
 			RouteLogger,
 		)
 		// Get the subscription ID.
-		id := chi.URLParam(req, models.RouteParamSubscription)
+		id := chi.URLParam(req, models.URLParamSubscription)
 		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
 		if !valid || err != nil {
 			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
@@ -189,157 +189,84 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
-		id := chi.URLParam(req, "subscription")
+		// Retrieve the subscription ID from the URL parameter.
+		id := chi.URLParam(req, models.URLParamSubscription)
 		// Retrieve user object.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
 			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
-		metadata := user.GetSubscriptionMetadata().GetByID(id)
-		edit := &models.SubscriptionEdit{
-			SubscriptionID: id,
-			Title:          metadata.Customisation.Title,
-			Categories:     metadata.Customisation.Categories,
-		}
-		// Get top categories across items in subscription feed.
-		var topItemCategories []models.Category
-		categories, resp := a.getItemTopCategories(req.Context(), metadata.GetFeedID())
-		if resp == nil {
-			topItemCategories = categories
-		}
-		subscriptions, err := a.getSubscriptions(req.Context(), id)
-		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
-			return
-		}
-		resp = models.NewResponse(
-			models.WithResponseTemplate(pages.NewEditSubscriptionPage(edit, subscriptions[0], topItemCategories).Template(req)),
-		)
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
-	}
-}
-
-// EditSubscriptionCategories handles adding and removing categories from a subscription.
-func (a *API) EditSubscriptionCategories() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			RouteLogger,
-		)
+		var template templ.Component
 		switch req.Method {
-		case http.MethodPost:
-			// Add a category.
-			currentCategories, _, _ := forms.DecodeForm[*partials.AddSubscriptionCategories](req)
-			category := req.FormValue("category")
-			if category == "" || (currentCategories != nil && slices.Contains(currentCategories.Categories, category)) {
-				chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-					res.WriteHeader(http.StatusNoContent)
-				}).ServeHTTP(res, req)
-			} else {
-				resp := models.NewResponse(
-					models.WithResponseTemplate(partials.AddCategory(category)),
+		case http.MethodGet: // GET: display edit subscription form.
+			metadata := user.GetSubscriptionMetadata().GetByID(id)
+			request := &models.EditSubscriptionRequest{
+				SubscriptionID: id,
+				Nickname:       metadata.Customisation.Nickname,
+				Categories:     metadata.Customisation.Categories,
+			}
+			// Get top categories across items in subscription feed and add as suggested categories for the
+			// subscription.
+			categories, resp := a.getItemTopCategories(req.Context(), metadata.GetFeedID())
+			if resp == nil {
+				request.SuggestedCategories = categories
+			}
+			// Generate page template.
+			template = pages.NewEditSubscriptionPage(request, nil).Template(req)
+		case http.MethodPut: // PUT: save subscription request.
+			request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
+			if err != nil || !valid {
+				resp := models.RespInternalServerError(err,
+					pages.NewEditSubscriptionPage(request, &models.UserMessage{
+						Status:  models.UserMessageStatusError,
+						Summary: "Invalid or missing inputs.",
+						Details: "There are problems with the input. Please check and try again.",
+					}).Template(req),
 				)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				return
 			}
-		case http.MethodDelete:
-			// Remove a category.
-			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-				res.WriteHeader(http.StatusOK)
-			}).ServeHTTP(res, req)
-		default:
-			// Unsupported, do nothing.
-			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-				res.WriteHeader(http.StatusNoContent)
-			}).ServeHTTP(res, req)
+			// Update the subscription metadata.
+			metadata := user.GetSubscriptionMetadata().GetByID(request.SubscriptionID)
+			metadata.Customisation.Nickname = request.Nickname
+			metadata.Customisation.Categories = request.Categories
+			err = user.UpdateSubscription(metadata)
+			if err != nil {
+				resp := models.RespInternalServerError(err,
+					pages.NewEditSubscriptionPage(request, &models.UserMessage{
+						Status:  models.UserMessageStatusError,
+						Summary: "Could not edit subscription.",
+						Details: "The backend reported an issue while trying to save your edits. Please try again.",
+					}).Template(req),
+				)
+				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				return
+			}
+			// Update the user.
+			err = a.updateUser(req.Context(), map[string]any{
+				"subscriptions": user.GetSubscriptionMetadata(),
+			})
+			if err != nil {
+				resp := models.RespInternalServerError(err,
+					pages.NewEditSubscriptionPage(request, &models.UserMessage{
+						Status:  models.UserMessageStatusError,
+						Summary: "Could not edit subscription.",
+						Details: "The backend reported an issue while trying to save your edits. Please try again.",
+					}).Template(req),
+				)
+				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				return
+			}
+			template = pages.NewEditSubscriptionPage(request, &models.UserMessage{
+				Status:  models.UserMessageStatusSuccess,
+				Summary: "Subscription edits saved!",
+			}).Template(req)
 		}
-	}
-}
-
-// SaveSubscription handles saving edits made to a subscription by the user.
-func (a *API) SaveSubscription() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			RouteLogger,
-			// TriggerStateUpdates,
+		resp := models.NewResponse(
+			models.WithResponseTemplate(template),
 		)
-		// Retrieve user object.
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
-			return
-		}
-		edits, valid, err := forms.DecodeForm[*models.SubscriptionEdit](req)
-		if err != nil || !valid {
-			chain.Then(RenderResponse(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(partials.AlertWarn(
-					&models.UserMessage{
-						Summary: "Invalid data.",
-						Details: "There is invalid or missing values.",
-					},
-				))))).ServeHTTP(res, req)
-			return
-		}
-		metadata := user.GetSubscriptionMetadata().GetByID(edits.SubscriptionID)
-		metadata.Customisation.Title = edits.Title
-		metadata.Customisation.Categories = edits.Categories
-		err = user.UpdateSubscription(metadata)
-		if err != nil {
-			chain.Then(RenderResponse(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusInternalServerError),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(partials.AlertError(
-					&models.UserMessage{
-						Summary: "Backend error.",
-						Details: "The backend had problems trying to save the subscription edits, please try again.",
-					},
-				))))).ServeHTTP(res, req)
-			return
-		}
-		// Update the user.
-		err = a.updateUser(req.Context(), map[string]any{
-			"subscriptions": user.GetSubscriptionMetadata(),
-		})
-		if err != nil {
-			chain.Then(RenderResponse(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusInternalServerError),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(partials.AlertError(
-					&models.UserMessage{
-						Summary: "Backend error.",
-						Details: "The backend had problems trying to save the subscription edits, please try again.",
-					},
-				))))).ServeHTTP(res, req)
-			return
-		}
-		// subscriptions, err := a.getSubscriptions(req.Context(), edits.SubscriptionID)
-		// if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-		// 	chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-		// 	return
-		// }
-		// // Display the updated subscription.
-		// var template templ.Component
-		// // currentURL, found := htmx.GetCurrentURL(req)
-		// if !found {
-		// 	chain.Then(RenderResponse(RespBackendError(nil))).ServeHTTP(res, req)
-		// 	return
-		// }
-		// switch {
-		// // case strings.HasSuffix(currentURL, "/user/settings"):
-		// // 	template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
-		// default:
-		// 	template = partials.NewSubscriptionContent(subscriptions[0]).Card()
-		// }
-		// Display a notification acknowledging save (OOB swap).
-		chain.Then(RenderResponse(models.NewResponse(
-			models.WithResponseTemplate(partials.AlertSuccess(
-				&models.UserMessage{
-					Summary: "Subscription edits saved!",
-				},
-			))))).ServeHTTP(res, req)
+		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -623,6 +550,43 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			// Serve the opml content via http.ServeContent.
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
 			http.ServeContent(res, req, "go-feed-me-export.opml", time.Now(), bytes.NewReader(data))
+		}
+	}
+}
+
+// AdjustSubscriptionCategories handles adding and removing categories from a subscription, either when editing or
+// adding.
+func (a *API) AdjustSubscriptionCategories() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
+		switch req.Method {
+		case http.MethodPost:
+			// Add a category.
+			currentCategories, _, _ := forms.DecodeForm[*partials.AddSubscriptionCategories](req)
+			category := req.FormValue("category")
+			if category == "" || (currentCategories != nil && slices.Contains(currentCategories.Categories, category)) {
+				chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+					res.WriteHeader(http.StatusNoContent)
+				}).ServeHTTP(res, req)
+			} else {
+				resp := models.NewResponse(
+					models.WithResponseTemplate(partials.AddCategory(category)),
+				)
+				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+			}
+		case http.MethodDelete:
+			// Remove a category.
+			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+				res.WriteHeader(http.StatusOK)
+			}).ServeHTTP(res, req)
+		default:
+			// Unsupported, do nothing.
+			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+				res.WriteHeader(http.StatusNoContent)
+			}).ServeHTTP(res, req)
 		}
 	}
 }

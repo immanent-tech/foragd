@@ -223,7 +223,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		// Get the subscription state.
 		metadata := user.GetSubscriptionMetadata().GetByID(id)
 		// Create a new favorite subscription.
-		err := user.AddFavoriteSubscription(id, metadata.Customisation.Title)
+		err := user.AddFavoriteSubscription(id, metadata.Customisation.Nickname)
 		if err != nil {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return

@@ -453,7 +453,7 @@ func (s SubscriptionMetadataSlice) FilterByFeedIDs(ids ...FeedID) SubscriptionMe
 func (s SubscriptionMetadataSlice) Search(text string) SubscriptionMetadataSlice {
 	return slices.Collect(
 		FilterSlice(s, func(e *SubscriptionMetadata) bool {
-			return strings.Contains(strings.ToLower(e.Customisation.Title), strings.ToLower(text)) ||
+			return strings.Contains(strings.ToLower(e.Customisation.Nickname), strings.ToLower(text)) ||
 				slices.ContainsFunc(e.Customisation.Categories, func(e Category) bool {
 					return strings.Contains(strings.ToLower(e), strings.ToLower(text))
 				})

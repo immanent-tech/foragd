@@ -158,6 +158,38 @@ type CreatedAt = time.Time
 // DeletedAt records when the object was deleted.
 type DeletedAt = time.Time
 
+// EditSubscriptionRequest defines model for EditSubscriptionRequest.
+type EditSubscriptionRequest struct {
+	// Categories is a custom list of categories for an object.
+	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
+
+	// CategoriesErr is an error associated with the categories field.
+	CategoriesErr error `form:"-" json:"-"`
+
+	// Image is a custom image to represent the object.
+	Image EditSubscriptionRequest_Image `json:"image,omitempty,omitzero"`
+
+	// ImageErr is an error associated with the image field.
+	ImageErr error `form:"-" json:"-"`
+
+	// Nickname is an optional alias or label for an object.
+	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero"`
+
+	// NicknameErr is an error associated with the nickname field.
+	NicknameErr error `form:"-" json:"-"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+
+	// SuggestedCategories is a list of suggested categories for the subscription.
+	SuggestedCategories []Category `form:"-" json:"-"`
+}
+
+// EditSubscriptionRequest_Image is a custom image to represent the object.
+type EditSubscriptionRequest_Image struct {
+	union json.RawMessage
+}
+
 // EditUserRequest contains details for editing a user account.
 type EditUserRequest struct {
 	// Nickname is an alias or label the user has given themselves.
@@ -357,8 +389,8 @@ type ObjectCustomisation struct {
 	// Image is a custom image to represent the object.
 	Image ObjectCustomisation_Image `json:"image,omitempty,omitzero"`
 
-	// Title is a friendly name or nickname for an object.
-	Title string `form:"user_nickname" json:"title,omitempty,omitzero" validate:"omitempty"`
+	// Nickname is an optional alias or label for an object.
+	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero"`
 }
 
 // ObjectCustomisation_Image is a custom image to represent the object.
@@ -452,13 +484,13 @@ type SubscriptionRequest struct {
 	URLErr error `form:"-" json:"-"`
 
 	// Categories a list  custom categories for the subscription. Combined with the feed's own categories.
-	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,dive,unique,alphanumunicode"`
+	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,dive,unique"`
 
 	// CategoriesErr is an error associated with the categories field.
 	CategoriesErr error `form:"-" json:"-"`
 
 	// Nickname a custom name for the subscription. Overrides the feed name.
-	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero" validate:"omitempty,alphanumunicode"`
+	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero"`
 
 	// NicknameErr is an error associated with the nickname field.
 	NicknameErr error `form:"-" json:"-"`
@@ -540,6 +572,68 @@ type UserSession struct {
 type UserSettings struct {
 	// Theme the user interface theme chosen by the user.
 	Theme string `json:"theme,omitempty,omitzero"`
+}
+
+// AsRemoteImage returns the union data inside the EditSubscriptionRequest_Image as a RemoteImage
+func (t EditSubscriptionRequest_Image) AsRemoteImage() (RemoteImage, error) {
+	var body RemoteImage
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromRemoteImage overwrites any union data inside the EditSubscriptionRequest_Image as the provided RemoteImage
+func (t *EditSubscriptionRequest_Image) FromRemoteImage(v RemoteImage) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeRemoteImage performs a merge with any union data inside the EditSubscriptionRequest_Image, using the provided RemoteImage
+func (t *EditSubscriptionRequest_Image) MergeRemoteImage(v RemoteImage) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsStoredImage returns the union data inside the EditSubscriptionRequest_Image as a StoredImage
+func (t EditSubscriptionRequest_Image) AsStoredImage() (StoredImage, error) {
+	var body StoredImage
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromStoredImage overwrites any union data inside the EditSubscriptionRequest_Image as the provided StoredImage
+func (t *EditSubscriptionRequest_Image) FromStoredImage(v StoredImage) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeStoredImage performs a merge with any union data inside the EditSubscriptionRequest_Image, using the provided StoredImage
+func (t *EditSubscriptionRequest_Image) MergeStoredImage(v StoredImage) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t EditSubscriptionRequest_Image) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *EditSubscriptionRequest_Image) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
 }
 
 // AsFavoriteSearch returns the union data inside the Favorite_ObjectData as a FavoriteSearch

@@ -405,13 +405,12 @@ components:
         contains object fields that can be customised (overridden) by a user
       type: object
       properties:
-        title:
+        nickname:
           description: >
-            is a friendly name or nickname for an object.
+            is an optional alias or label for an object.
           type: string
           x-oapi-codegen-extra-tags:
             form: 'user_nickname'
-            validate: 'omitempty'
           x-go-type-skip-optional-pointer: true
         categories:
           description: >
@@ -484,50 +483,6 @@ components:
                 contains the item content.
               type: string
               x-go-type-skip-optional-pointer: true
-    # SubscriptionFeedRelation:
-    #   description: >
-    #     links the IDs of a subscription and a feed.
-    #   type: object
-    #   required:
-    #     - subscription_id
-    #     - feed_id
-    #   properties:
-    #     subscription_id:
-    #       $ref: '#/components/schemas/SubscriptionID'
-    #     feed_id:
-    #       $ref: '#/components/schemas/FeedID'
-    # UserSubscriptionFeedRelation:
-    #   description: >
-    #     links the IDs of a user to their subscriptions.
-    #   type: object
-    #   allOf:
-    #     - $ref: '#/components/schemas/SubscriptionFeedRelation'
-    #     - type: object
-    #       required:
-    #         - user_id
-    #       properties:
-    #         user_id:
-    #           $ref: '#/components/schemas/UserID'
-    # SubscriptionState:
-    #   description: >
-    #     contains the data that represents the state and customisation applied to a user subscription.
-    #   type: object
-    #   allOf:
-    #     - $ref: '#/components/schemas/Timestamps'
-    #     - $ref: '#/components/schemas/UserSubscriptionFeedRelation'
-    #     - type: object
-    #       required:
-    #         - state
-    #       properties:
-    #         state:
-    #           $ref: '#/components/schemas/ObjectState'
-    #         customisation:
-    #           $ref: '#/components/schemas/ObjectCustomisation'
-    #         item_states:
-    #           description: >
-    #             contains the states of items marked explicitly as read/unread/saved by the user.
-    #           x-go-type: 'map[ItemID]ObjectState'
-    #   x-omitzero: false
     SubscriptionMetadata:
       description: >
         contains the stored data that represents a subscription
@@ -604,7 +559,6 @@ components:
           type: string
           x-oapi-codegen-extra-tags:
             form: 'user_nickname'
-            validate: 'omitempty,alphanumunicode'
         nicknameErr:
           description: >
             is an error associated with the nickname field.
@@ -620,7 +574,7 @@ components:
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             form: 'user_categories'
-            validate: 'omitempty,dive,unique,alphanumunicode'
+            validate: 'omitempty,dive,unique'
         categoriesErr:
           description: >
             is an error associated with the categories field.
@@ -628,6 +582,49 @@ components:
           x-oapi-codegen-extra-tags:
             form: '-'
             json: '-'
+    EditSubscriptionRequest:
+      description: >
+        is the request details for editing a subscription.
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ObjectCustomisation'
+        - type: object
+          required:
+            - subscription_id
+          properties:
+            subscription_id:
+              $ref: '#/components/schemas/SubscriptionID'
+            nicknameErr:
+              description: >
+                is an error associated with the nickname field.
+              x-go-type: error
+              x-oapi-codegen-extra-tags:
+                form: '-'
+                json: '-'
+            categoriesErr:
+              description: >
+                is an error associated with the categories field.
+              x-go-type: error
+              x-oapi-codegen-extra-tags:
+                form: '-'
+                json: '-'
+            imageErr:
+              description: >
+                is an error associated with the image field.
+              x-go-type: error
+              x-oapi-codegen-extra-tags:
+                form: '-'
+                json: '-'
+            suggestedCategories:
+              description: >
+                is a list of suggested categories for the subscription.
+              type: array
+              items:
+                $ref: '#/components/schemas/Category'
+              x-oapi-codegen-extra-tags:
+                form: '-'
+                json: '-'
+              x-go-type-skip-optional-pointer: true
     ArticleMetadata:
       description: >
         contains the stored data that represents an article.

@@ -5,6 +5,7 @@ package models
 
 // Defines values for Param.
 const (
+	// Request Parameters.
 	ParamCategories    = "categories"
 	ParamCount         = "count"
 	ParamFeeds         = "feeds"
@@ -18,6 +19,6 @@ const (
 	ParamItemID        = "item_id"
 	ParamRedirect      = "redirect"
 	ParamArticles      = "articles"
-
-	RouteParamSubscription = "subscription"
+	// URLParamSubscription represents a subscription ID.
+	URLParamSubscription = "subscription"
 )

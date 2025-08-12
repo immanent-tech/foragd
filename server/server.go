@@ -163,14 +163,18 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Route("/user", func(r chi.Router) {
 			// Subscription.
 			r.Route("/subscription", func(r chi.Router) {
+				// Add subscription.
 				r.Get("/add", handler.AddSubscription())
 				r.With(middlewares.RequireHTMX).Post("/add", handler.AddSubscription())
-				r.With(middlewares.RequireHTMX).Post("/category", handler.EditSubscriptionCategories())
-				r.With(middlewares.RequireHTMX).Delete("/category", handler.EditSubscriptionCategories())
+				// Edit subscription.
 				r.Get("/edit/{subscription}", handler.EditSubscription())
-				r.With(middlewares.RequireHTMX).Put("/edit/{subscription}", handler.SaveSubscription())
+				r.With(middlewares.RequireHTMX).Put("/edit/{subscription}", handler.EditSubscription())
+				// Remove subscription (unsubscribe).
 				r.Get("/remove/{subscription}", handler.RemoveSubscription())
 				r.With(middlewares.RequireHTMX).Post("/remove/{subscription}", handler.RemoveSubscription())
+				// Category management for add/edit subscription.
+				r.With(middlewares.RequireHTMX).Post("/category", handler.AdjustSubscriptionCategories())
+				r.With(middlewares.RequireHTMX).Delete("/category", handler.AdjustSubscriptionCategories())
 			})
 			// Import/export.
 			r.Get("/import", handler.ImportSubscriptions())

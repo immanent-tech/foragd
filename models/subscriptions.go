@@ -58,8 +58,8 @@ func (s *Subscription) GetFeedID() FeedID {
 }
 
 func (s *Subscription) GetTitle() string {
-	if s.Metadata.Customisation.Title != "" {
-		return s.Metadata.Customisation.Title
+	if s.Metadata.Customisation.Nickname != "" {
+		return s.Metadata.Customisation.Nickname
 	}
 	return s.Feed.GetTitle()
 }
@@ -276,7 +276,7 @@ func NewSubscriptionMetadata(userID UserID, feed *Feed, request *SubscriptionReq
 		CreatedAt:      ts,
 		FeedID:         feed.GetID(),
 		Customisation: ObjectCustomisation{
-			Title:      feed.GetTitle(),
+			Nickname:   feed.GetTitle(),
 			Categories: feed.GetCategories(),
 		},
 		State: ObjectState{
@@ -287,7 +287,7 @@ func NewSubscriptionMetadata(userID UserID, feed *Feed, request *SubscriptionReq
 	// Add any user customisations.
 	if request != nil {
 		if request.Nickname != "" {
-			state.Customisation.Title = request.Nickname
+			state.Customisation.Nickname = request.Nickname
 		}
 		if len(request.Categories) > 0 {
 			state.Customisation.Categories = request.Categories
@@ -298,7 +298,7 @@ func NewSubscriptionMetadata(userID UserID, feed *Feed, request *SubscriptionReq
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
 // (false) a non-nil error is also returned which contains validation issues.
-func (s *SubscriptionEdit) Valid() (bool, error) {
+func (s *EditSubscriptionRequest) Valid() (bool, error) {
 	valid, err := validation.ValidateStruct(s)
 	if err != nil || !valid {
 		return false, fmt.Errorf("subscription is invalid: %w", err)
@@ -307,9 +307,9 @@ func (s *SubscriptionEdit) Valid() (bool, error) {
 }
 
 // Sanitise will sanitise the user input for a SubscriptionCustomisation.
-func (s *SubscriptionEdit) Sanitise() error {
-	s.Title = validation.SanitizeString(s.Title)
-	categories := make([]Category, 0, len(s.Title))
+func (s *EditSubscriptionRequest) Sanitise() error {
+	s.Nickname = validation.SanitizeString(s.Nickname)
+	categories := make([]Category, 0, len(s.Nickname))
 	for category := range slices.Values(s.Categories) {
 		category = validation.SanitizeString(category)
 		categories = append(categories, category)

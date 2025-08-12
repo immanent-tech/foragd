@@ -4,10 +4,7 @@
 package models
 
 import (
-	"encoding/json"
-
 	"github.com/a-h/templ"
-	"github.com/oapi-codegen/runtime"
 )
 
 // Defines values for ImportSource.
@@ -174,26 +171,6 @@ type SortBy string
 // SortOrder represents the order for sorting the selected field.
 type SortOrder string
 
-// SubscriptionEdit defines model for SubscriptionEdit.
-type SubscriptionEdit struct {
-	// Categories is a custom list of categories for an object.
-	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
-
-	// Image is a custom image to represent the object.
-	Image SubscriptionEdit_Image `json:"image,omitempty,omitzero"`
-
-	// SubscriptionID is the unique ID of a subscription.
-	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
-
-	// Title is a friendly name or nickname for an object.
-	Title string `form:"user_nickname" json:"title,omitempty,omitzero" validate:"omitempty"`
-}
-
-// SubscriptionEdit_Image is a custom image to represent the object.
-type SubscriptionEdit_Image struct {
-	union json.RawMessage
-}
-
 // SubscriptionFilters defines model for SubscriptionFilters.
 type SubscriptionFilters struct {
 	// Categories is a list of categories.
@@ -245,65 +222,3 @@ type UserSignupRequest struct {
 
 // View The state of objects to view.
 type View string
-
-// AsRemoteImage returns the union data inside the SubscriptionEdit_Image as a RemoteImage
-func (t SubscriptionEdit_Image) AsRemoteImage() (RemoteImage, error) {
-	var body RemoteImage
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromRemoteImage overwrites any union data inside the SubscriptionEdit_Image as the provided RemoteImage
-func (t *SubscriptionEdit_Image) FromRemoteImage(v RemoteImage) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeRemoteImage performs a merge with any union data inside the SubscriptionEdit_Image, using the provided RemoteImage
-func (t *SubscriptionEdit_Image) MergeRemoteImage(v RemoteImage) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsStoredImage returns the union data inside the SubscriptionEdit_Image as a StoredImage
-func (t SubscriptionEdit_Image) AsStoredImage() (StoredImage, error) {
-	var body StoredImage
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromStoredImage overwrites any union data inside the SubscriptionEdit_Image as the provided StoredImage
-func (t *SubscriptionEdit_Image) FromStoredImage(v StoredImage) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeStoredImage performs a merge with any union data inside the SubscriptionEdit_Image, using the provided StoredImage
-func (t *SubscriptionEdit_Image) MergeStoredImage(v StoredImage) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t SubscriptionEdit_Image) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *SubscriptionEdit_Image) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
