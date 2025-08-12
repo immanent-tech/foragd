@@ -67,10 +67,12 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 	return svr, nil
 }
 
+// Shutdown will ensure a graceful shutdown of the server.
 func (s *Server) Shutdown(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
 }
 
+// ListenAndServeTLS starts the server listening on https with the given cert and key.
 func (s *Server) ListenAndServeTLS(cert, key string) error {
 	return s.server.ListenAndServeTLS(cert, key)
 }
@@ -101,10 +103,6 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 	})
 	// Error handling.
 	router.NotFound(handlers.NotFound())
-	router.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		w.Write([]byte("method is not valid"))
-	})
 
 	// Front page.
 	router.Get("/", handlers.Landing())

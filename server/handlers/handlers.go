@@ -21,6 +21,7 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/pages"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
@@ -229,7 +230,7 @@ func RespForbidden() *models.Response {
 func NotFound() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		resp := models.NewResponse(
-			models.WithResponseTemplate(templates.NotFound()),
+			models.WithResponseTemplate(pages.NotFound()),
 			models.WithResponseStatusCode(http.StatusNotFound),
 		)
 		alice.New(
