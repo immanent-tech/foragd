@@ -448,14 +448,14 @@ func (s SubscriptionMetadataSlice) FilterByFeedIDs(ids ...FeedID) SubscriptionMe
 	)
 }
 
-// Search performs a basic substring search for the given text in the title and categories customisations for the
-// subscriptions, returning a slice of those subscriptions that match.
+// Search performs a case-insensitive substring search for the given text in the title and categories customisations for
+// the subscriptions, returning a slice of those subscriptions that match.
 func (s SubscriptionMetadataSlice) Search(text string) SubscriptionMetadataSlice {
 	return slices.Collect(
 		FilterSlice(s, func(e *SubscriptionMetadata) bool {
-			return strings.Contains(e.Customisation.Title, text) ||
+			return strings.Contains(strings.ToLower(e.Customisation.Title), strings.ToLower(text)) ||
 				slices.ContainsFunc(e.Customisation.Categories, func(e Category) bool {
-					return strings.Contains(e, text)
+					return strings.Contains(strings.ToLower(e), strings.ToLower(text))
 				})
 		}),
 	)
