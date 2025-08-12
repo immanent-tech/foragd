@@ -141,10 +141,10 @@ templ (a *Article) Content() {
 // articleInfo renders additional information about the article, ideal to put under the title.
 templ (a *Article) articleInfo() {
 	<div class="flex flex-none text-xs gap-x-4 items-center">
-		<div class="text-neutral-content">
+		<div class="text-base-content">
 			@ShowTimestamp(a.GetUpdatedDate())
 		</div>
-		<p class="italic text-neutral-content">
+		<p class="italic text-base-content">
 			{ strings.Join(a.GetAuthors(),",") }
 		</p>
 	</div>

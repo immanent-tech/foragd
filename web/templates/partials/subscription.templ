@@ -44,13 +44,13 @@ templ (c *Subscription) Card() {
 		// Stats. Last updated timestamp and unread count (if appropriate).
 		<dl class="-my-3 divide-y divide-neutral px-6 py-4 text-xs/4">
 			<div class="flex justify-between gap-x-4 py-3">
-				<dt class="text-neutral-content/60">Updated</dt>
-				<dd class="text-neutral-content">
+				<dt class="text-base-content/60">Updated</dt>
+				<dd class="text-base-content">
 					@ShowTimestamp(c.GetUpdatedDate())
 				</dd>
 				if c.IsUnread() {
-					<dt class="text-neutral-content/60">Unread</dt>
-					<dd class="text-neutral-content">{ c.GetUnreadCount() }</dd>
+					<dt class="text-base-content/60">Unread</dt>
+					<dd class="text-base-content">{ c.GetUnreadCount() }</dd>
 				}
 			</div>
 		</dl>
