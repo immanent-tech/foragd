@@ -127,7 +127,7 @@ type ArticleArchive struct {
 	URL string `json:"url,omitempty,omitzero" validate:"omitempty,url"`
 
 	// UserID is the unique ID of a user.
-	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
+	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
 }
 
 // ArticleArchiveSourceType indicates what type of source the object came from.
@@ -157,6 +157,15 @@ type CreatedAt = time.Time
 
 // DeletedAt records when the object was deleted.
 type DeletedAt = time.Time
+
+// EditUserRequest contains details for editing a user account.
+type EditUserRequest struct {
+	// Nickname is an alias or label the user has given themselves.
+	Nickname UserNickname `form:"nickname" json:"nickname,omitempty,omitzero"`
+
+	// NicknameErr represents an error in the nickname field.
+	NicknameErr error `form:"-" json:"-"`
+}
 
 // Favorite is an object that the user has marked as a Favorite. Favorites  have higher visibility in the display and score higher in search results.
 type Favorite struct {
@@ -491,7 +500,7 @@ type User struct {
 	MaxHistory string `json:"max_history" validate:"required"`
 
 	// Nickname is an alias or label the user has given themselves.
-	Nickname string `json:"nickname,omitempty,omitzero" validate:"omitempty,alphanumunicode"`
+	Nickname UserNickname `form:"nickname" json:"nickname,omitempty,omitzero"`
 
 	// Provider is the backend provider that was used to create the account.
 	Provider string `json:"provider" validate:"required"`
@@ -506,11 +515,14 @@ type User struct {
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 
 	// UserID is the unique ID of a user.
-	UserID UserID `form:"user_id" json:"user_id" validate:"required"`
+	UserID UserID `form:"user_id" json:"user_id" validate:"required,startswith=user_"`
 }
 
 // UserID is the unique ID of a user.
 type UserID = string
+
+// UserNickname is an alias or label the user has given themselves.
+type UserNickname = string
 
 // UserSession tracks a user session.
 type UserSession struct {

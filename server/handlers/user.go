@@ -30,8 +30,13 @@ func (a *API) GetSettings() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			return
+		}
 		resp := models.NewResponse(
-			models.WithResponseTemplate(pages.NewSettingsPage("account").Template(req)),
+			models.WithResponseTemplate(pages.NewSettingsPage("account", nil, user, &models.EditUserRequest{}).Template(req)),
 		)
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
@@ -73,7 +78,7 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 			}
 			template = templ.Join(settings...)
 		case http.MethodGet:
-			template = pages.NewSettingsPage("subscriptions").Template(req)
+			template = pages.NewSettingsPage("subscriptions", nil, nil, nil).Template(req)
 		}
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
@@ -88,12 +93,49 @@ func (a *API) AccountSettings() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			return
+		}
 		var template templ.Component
 		// Extract the search request.
 		switch req.Method {
 		case http.MethodGet:
-			template = pages.NewSettingsPage("account").Template(req)
+			template = pages.NewSettingsPage("account", nil, user, &models.EditUserRequest{}).Template(req)
+		case http.MethodPost:
+			request, valid, err := forms.DecodeForm[*models.EditUserRequest](req)
+			if err != nil || !valid {
+				template := pages.NewSettingsPage("account", &models.UserMessage{
+					Status:  models.UserMessageStatusError,
+					Summary: "Could not edit account.",
+					Details: "There are problems with the input. Please check and try again.",
+				}, user, request).Template(req)
+				resp := models.RespInternalServerError(err, template)
+				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				return
+			}
+			// Apply updates.
+			err = a.updateUser(req.Context(), map[string]any{
+				"nickname": request.Nickname,
+			})
+			if err != nil {
+				template := pages.NewSettingsPage("account", &models.UserMessage{
+					Status:  models.UserMessageStatusError,
+					Summary: "Could not update account settings.",
+					Details: "There was a problem editing account settings. Please try again.",
+				}, user, request).Template(req)
+				resp := models.RespInternalServerError(err, template)
+				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				return
+			}
+			// Report success.
+			template = pages.NewSettingsPage("account", &models.UserMessage{
+				Status:  models.UserMessageStatusSuccess,
+				Summary: "Account edits saved.",
+			}, user, request).Template(req)
 		}
+		// Render the response.
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
@@ -107,12 +149,11 @@ func (a *API) AppSettings() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
-
 		var template templ.Component
 		// Extract the search request.
 		switch req.Method {
 		case http.MethodGet:
-			template = pages.NewSettingsPage("app").Template(req)
+			template = pages.NewSettingsPage("app", nil, nil, nil).Template(req)
 		}
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),

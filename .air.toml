@@ -20,6 +20,7 @@ exclude_dir = [
   "static",
   "tmp",
   "tests",
+  "test",
   "vendor",
 ]
 exclude_regex = ["_test\\.go", "_templ\\.go"]

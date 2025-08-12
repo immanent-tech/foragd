@@ -237,6 +237,22 @@ func GetUserTheme(ctx context.Context) string {
 	return DefaultUserTheme
 }
 
+// Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data
+// (false) a non-nil error is also returned which contains validation issues.
+func (s *EditUserRequest) Valid() (bool, error) {
+	valid, err := validation.ValidateStruct(s)
+	if err != nil || !valid {
+		return false, fmt.Errorf("request is invalid: %w", err)
+	}
+	return true, nil
+}
+
+// Sanitise will sanitise the user input for a SubscriptionCustomisation.
+func (s *EditUserRequest) Sanitise() error {
+	s.Nickname = validation.SanitizeString(s.Nickname)
+	return nil
+}
+
 //
 // Favorites.
 //

@@ -6,7 +6,6 @@ info:
   version: 1.0.0
   title: Common Models
   description: Common objects and fields.
-paths: {}
 components:
   schemas:
     # Common Fields.
@@ -89,8 +88,14 @@ components:
       x-go-name: UserID
       x-oapi-codegen-extra-tags:
         json: 'user_id'
-        validate: 'required'
+        validate: 'required,startswith=user_'
         form: 'user_id'
+    UserNickname:
+      description: >
+        is an alias or label the user has given themselves.
+      type: string
+      x-oapi-codegen-extra-tags:
+        form: 'nickname'
     FavoriteID:
       description: is the unique ID of a Favorite.
       type: string
@@ -183,11 +188,7 @@ components:
               x-oapi-codegen-extra-tags:
                 validate: 'required'
             nickname:
-              description: >
-                is an alias or label the user has given themselves.
-              type: string
-              x-oapi-codegen-extra-tags:
-                validate: 'omitempty,alphanumunicode'
+              $ref: '#/components/schemas/UserNickname'
             avatar_url:
               description: >
                 is a link to an image file to user as an avatar for the user.
@@ -216,6 +217,20 @@ components:
               x-go-type: '[]*Favorite'
               x-oapi-codegen-extra-tags:
                 validate: 'omitempty,dive'
+    EditUserRequest:
+      description: >
+        contains details for editing a user account.
+      type: object
+      properties:
+        nickname:
+          $ref: '#/components/schemas/UserNickname'
+        nicknameErr:
+          description: >
+            represents an error in the nickname field.
+          x-go-type: error
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
     UserSettings:
       description: >
         contains user-specific settings for the application.

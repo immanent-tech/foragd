@@ -13,12 +13,18 @@ import (
 )
 
 type Settings struct {
-	CurrentPage string
+	CurrentPage     string
+	message         *models.UserMessage
+	user            *models.User
+	editUserRequest *models.EditUserRequest
 }
 
-func NewSettingsPage(page string) *Settings {
+func NewSettingsPage(page string, msg *models.UserMessage, user *models.User, editUser *models.EditUserRequest) *Settings {
 	return &Settings{
-		CurrentPage: page,
+		CurrentPage:     page,
+		message:         msg,
+		user:            user,
+		editUserRequest: editUser,
 	}
 }
 
@@ -45,7 +51,7 @@ templ (page *Settings) content() {
 	<div id="current-settings">
 		switch page.CurrentPage {
 			case "account":
-				@AccountSettings()
+				@AccountSettings(page.user, page.editUserRequest, page.message)
 			case "subscriptions":
 				@SubscriptionSettings()
 			case "app":
@@ -173,10 +179,28 @@ templ ShowSubscriptionSettings(subscription *models.Subscription) {
 }
 
 // AccountSettings shows settings for managing the user account.
-templ AccountSettings() {
+templ AccountSettings(user *models.User, request *models.EditUserRequest, msg *models.UserMessage) {
 	@settingsSelect("account")
-	<div class="divide-y divide-white/5">
+	<div class="divide-y divide-base-content/5">
 		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
+			<div class="col-span-full">
+				if msg != nil {
+					switch msg.Status {
+						case models.UserMessageStatusSuccess:
+							@partials.FormSuccess() {
+								@partials.SuccessMessage(msg)
+							}
+						case models.UserMessageStatusWarning:
+							@partials.FormWarning() {
+								@partials.WarningMessage(msg)
+							}
+						case models.UserMessageStatusError:
+							@partials.FormError() {
+								@partials.ErrorMessage(msg)
+							}
+					}
+				}
+			</div>
 			<div>
 				<h2 class="text-base/7 font-semibold">Personal Information</h2>
 				// <p class="mt-1 text-sm/6 text-gray-400">Use a permanent address where you can receive mail.</p>
@@ -184,45 +208,48 @@ templ AccountSettings() {
 			<form
 				class="md:col-span-2"
 				hx-post="/user/settings/account"
-				hx-target="#current-settings"
+				hx-target={ partials.ContentID.Target() }
+				hx-target-error={ partials.ContentID.Target() }
 			>
 				<div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
 					<div class="col-span-full flex items-center gap-x-8">
-						<img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" alt="" class="size-24 flex-none rounded-lg bg-gray-800 object-cover"/>
+						if user.AvatarURL != "" {
+							<img src={ user.AvatarURL } alt={ user.Nickname } class="size-24 flex-none rounded-lg bg-base-content object-cover"/>
+						}
 						<div>
 							<label for="avatar" class="app-textinput-label">Avatar</label>
 							// <button type="button" class="rounded-md app-button">Change avatar</button>
-							<p class="mt-2 text-xs/5 text-gray-400">JPG, GIF or PNG. 1MB max.</p>
+							// <p class="mt-2 text-xs/5 text-gray-400">JPG, GIF or PNG. 1MB max.</p>
 						</div>
 					</div>
+					// <div class="col-span-full">
+					// 	<input id="avatar" type="file" class="app-button text-sm/6"/>
+					// </div>
 					<div class="col-span-full">
-						<input id="avatar" type="file" class="app-button text-sm/6"/>
-					</div>
-					<div class="col-span-full">
-						<label for="username" class="app-textinput-label text-sm/6">Username</label>
+						<label for="username" class="app-textinput-label">Username</label>
 						<div class="mt-2">
-							<input id="username" type="text" name="username" placeholder="janesmith" class="app-textinput text-sm/6"/>
+							<input id="username" type="text" name="nickname" value={ user.Nickname } placeholder="janesmith" class="app-textinput"/>
 						</div>
 					</div>
-					<div class="col-span-full">
-						<label for="email" class="app-textinput-label text-sm/6">Email address</label>
-						<div class="mt-2">
-							<input id="email" type="email" name="email" autocomplete="email" class="app-textinput text-sm/6"/>
-						</div>
-					</div>
-					<div class="col-span-full">
-						<label for="timezone" class="app-textinput-label text-sm/6">Timezone</label>
-						<div class="mt-2 grid grid-cols-1">
-							<select id="timezone" name="timezone" class="app-select text-sm/6">
-								<option>Pacific Standard Time</option>
-								<option>Eastern Standard Time</option>
-								<option>Greenwich Mean Time</option>
-							</select>
-							<svg viewBox="0 0 16 16" fill="currentColor" data-slot="icon" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-400 sm:size-4">
-								<path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
-							</svg>
-						</div>
-					</div>
+					// <div class="col-span-full">
+					// 	<label for="email" class="app-textinput-label">Email address</label>
+					// 	<div class="mt-2">
+					// 		<input id="email" type="email" name="email" autocomplete="email" class="app-textinput"/>
+					// 	</div>
+					// </div>
+					// <div class="col-span-full">
+					// 	<label for="timezone" class="app-textinput-label text-sm/6">Timezone</label>
+					// 	<div class="mt-2 grid grid-cols-1">
+					// 		<select id="timezone" name="timezone" class="app-select text-sm/6">
+					// 			<option>Pacific Standard Time</option>
+					// 			<option>Eastern Standard Time</option>
+					// 			<option>Greenwich Mean Time</option>
+					// 		</select>
+					// 		<svg viewBox="0 0 16 16" fill="currentColor" data-slot="icon" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-400 sm:size-4">
+					// 			<path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+					// 		</svg>
+					// 	</div>
+					// </div>
 				</div>
 				<div class="mt-8 flex">
 					<button
