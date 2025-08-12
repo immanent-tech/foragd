@@ -562,6 +562,57 @@ components:
           type: boolean
           x-oapi-codegen-extra-tags:
             json: '-'
+    SubscriptionRequest:
+      description: >
+        represents a request to create a subscription.
+      type: object
+      required:
+        - URL
+      properties:
+        URL:
+          description: is the URL of the feed data.
+          type: string
+          x-go-name: URL
+          x-oapi-codegen-extra-tags:
+            form: 'url'
+            validate: 'required,url'
+        URLErr:
+          description: >
+            is an error associated with the URL field.
+          x-go-name: URLErr
+          x-go-type: error
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+        nickname:
+          description: a custom name for the subscription. Overrides the feed name.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'user_nickname'
+            validate: 'omitempty,alphanumunicode'
+        nicknameErr:
+          description: >
+            is an error associated with the nickname field.
+          x-go-type: error
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
+        categories:
+          description: a list  custom categories for the subscription. Combined with the feed's own categories.
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-go-type-skip-optional-pointer: true
+          x-oapi-codegen-extra-tags:
+            form: 'user_categories'
+            validate: 'omitempty,dive,unique,alphanumunicode'
+        categoriesErr:
+          description: >
+            is an error associated with the categories field.
+          x-go-type: error
+          x-oapi-codegen-extra-tags:
+            form: '-'
+            json: '-'
     ArticleMetadata:
       description: >
         contains the stored data that represents an article.

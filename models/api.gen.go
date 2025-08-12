@@ -218,18 +218,6 @@ type SubscriptionFilters struct {
 	View View `form:"view" json:"view" validate:"oneof=read unread all"`
 }
 
-// SubscriptionRequest represents a request to create a subscription.
-type SubscriptionRequest struct {
-	// URL is the URL of the feed data.
-	URL string `form:"url" json:"URL" validate:"required,url"`
-
-	// Categories a list  custom categories for the subscription. Combined with the feed's own categories.
-	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero"`
-
-	// Nickname a custom name for the subscription. Overrides the feed name.
-	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero"`
-}
-
 // UserConfirmation indicates the user's decision for a (usually) destructive action.
 type UserConfirmation string
 

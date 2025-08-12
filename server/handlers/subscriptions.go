@@ -405,21 +405,20 @@ func (a *API) AddSubscription() http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			resp := models.NewResponse(
-				models.WithResponseTemplate(pages.NewAddSubscriptionPage().Template(req)),
+				models.WithResponseTemplate(pages.NewAddSubscription(nil, nil).Template(req)),
 			)
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 			if err != nil || !valid {
-				chain.Then(RenderResponse(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.AlertWarn(
-						&models.UserMessage{
-							Summary: "Invalid data.",
-							Details: "There is invalid or missing values.",
-						},
-					))))).ServeHTTP(res, req)
+				resp := models.RespInternalServerError(err,
+					pages.NewAddSubscription(request, &models.UserMessage{
+						Status:  models.UserMessageStatusError,
+						Summary: "Could not add subscription.",
+						Details: "There are problems with the input. Please check and try again.",
+					}).Template(req),
+				)
+				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
 			}
 			requests := addSubscriptionRequests{
@@ -428,47 +427,43 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			// Match the request to either and existing or new feed.
 			result, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
 			if err != nil {
-				chain.Then(RenderResponse(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.AlertError(
-						&models.UserMessage{
-							Summary: "Backend error.",
-							Details: "The backend had problems trying to add the subscription, please try again.",
-						},
-					))))).ServeHTTP(res, req)
+				resp := models.RespInternalServerError(err,
+					pages.NewAddSubscription(request, &models.UserMessage{
+						Status:  models.UserMessageStatusError,
+						Summary: "Could not add subscription.",
+						Details: "There are problems with the input. Please check and try again.",
+					}).Template(req),
+				)
+				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
 			}
 			// If results returned from matching is non-nil, something went wrong.
 			if result[request] != nil {
-				chain.Then(RenderResponse(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseTemplate(partials.AlertError(result[request].Message)),
-				))).ServeHTTP(res, req)
+				resp := models.RespInternalServerError(err,
+					pages.NewAddSubscription(request, result[request].Message).Template(req),
+				)
+				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
 			}
 			// Create the new subscription.
 			createResult, err := requests.createNewSubscriptions(req.Context(), a)
 			if err != nil {
-				chain.Then(RenderResponse(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.AlertError(
-						&models.UserMessage{
-							Summary: "Backend error.",
-							Details: "The backend had problems trying to add the subscription, please try again.",
-						},
-					))))).ServeHTTP(res, req)
+				resp := models.RespInternalServerError(err,
+					pages.NewAddSubscription(request, &models.UserMessage{
+						Status:  models.UserMessageStatusError,
+						Summary: "Could not add subscription.",
+						Details: "There are problems with the input. Please check and try again.",
+					}).Template(req),
+				)
+				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				return
 			} else {
 				result = createResult
 			}
-			chain.Then(RenderResponse(models.NewResponse(
-				models.WithResponseTemplate(partials.AlertSuccess(
-					&models.UserMessage{
-						Summary: fmt.Sprintf("Subscription %q created!", result[request].Subscription.GetTitle()),
-						Details: "New subscription: " + result[request].Subscription.String(),
-					},
-				))))).ServeHTTP(res, req)
+			resp := models.NewResponse(
+				models.WithResponseTemplate(pages.NewAddSubscription(request, result[request].Message).Template(req)),
+			)
+			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		}
 	}
 }
@@ -942,7 +937,7 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		}
 		results[request] = models.NewSubscriptionResult(subscription, &models.UserMessage{
 			Status:  models.UserMessageStatusSuccess,
-			Summary: "Subscription Created: " + results[request].Subscription.GetTitle(),
+			Summary: "Subscription Created: " + feed.GetTitle(),
 			Details: "Articles will be fetched shortly...",
 		})
 	}

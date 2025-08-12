@@ -434,6 +434,27 @@ type SubscriptionMetadata struct {
 	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
+// SubscriptionRequest represents a request to create a subscription.
+type SubscriptionRequest struct {
+	// URL is the URL of the feed data.
+	URL string `form:"url" json:"URL" validate:"required,url"`
+
+	// URLErr is an error associated with the URL field.
+	URLErr error `form:"-" json:"-"`
+
+	// Categories a list  custom categories for the subscription. Combined with the feed's own categories.
+	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,dive,unique,alphanumunicode"`
+
+	// CategoriesErr is an error associated with the categories field.
+	CategoriesErr error `form:"-" json:"-"`
+
+	// Nickname a custom name for the subscription. Overrides the feed name.
+	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero" validate:"omitempty,alphanumunicode"`
+
+	// NicknameErr is an error associated with the nickname field.
+	NicknameErr error `form:"-" json:"-"`
+}
+
 // Timestamp is when the document was created.
 type Timestamp = time.Time
 

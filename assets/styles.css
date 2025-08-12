@@ -27,8 +27,8 @@
   @apply w-screen lg:w-1/2;
 }
 
-/* Checkbox Styles */
-
+/* Custom Component Classes */
+/* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
   /* Card Styles */
   .app-card-base {
@@ -46,18 +46,21 @@
     @apply bg-base-300 ring-base-content/20 origin-top-right rounded-md py-2 shadow-lg ring-1 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
   }
   .app-context-menu-action {
-    @apply hover:text-accent flex items-center gap-x-2 px-3 py-1 text-xs;
+    @apply hover:text-accent flex items-center gap-x-2 px-3 py-1 text-xs/4;
   }
 
   /* Text Input Styles */
   .app-textinput {
-    @apply focus:outline-primary outline-primary/30 *:bg-neutral placeholder:text-base-content/50 bg-base-content/5 block w-full rounded-md px-3 py-1.5 outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2;
+    @apply focus:outline-primary outline-primary/30 *:bg-neutral placeholder:text-base-content/50 bg-base-content/5 block w-full rounded-md px-3 py-1.5 text-sm/6 outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2;
+  }
+  .app-textinput-error {
+    @apply outline-error *:bg-neutral placeholder:text-base-content/50 bg-base-content/5 block w-full rounded-md px-3 py-1.5 text-sm/6 outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2;
   }
   .app-textinput-label {
     @apply block font-medium;
   }
   .app-textinput-hint {
-    @apply text-base-content/50;
+    @apply text-base-content/50 text-xs/4;
   }
 
   /*  Button Styles */

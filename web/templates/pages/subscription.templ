@@ -106,19 +106,25 @@ templ (page *EditSubscriptionPage) content() {
 	</div>
 }
 
-// AddSubscriptionPage is a page for adding a new subscription.
-type AddSubscriptionPage struct {
+// AddSubscription is a page for adding a new subscription.
+type AddSubscription struct {
 	request *models.SubscriptionRequest
+	message *models.UserMessage
 }
 
-func NewAddSubscriptionPage() *AddSubscriptionPage {
-	return &AddSubscriptionPage{
+func NewAddSubscription(request *models.SubscriptionRequest, msg *models.UserMessage) *AddSubscription {
+	page := &AddSubscription{
+		message: msg,
 		request: &models.SubscriptionRequest{},
 	}
+	if request != nil {
+		page.request = request
+	}
+	return page
 }
 
 // Template renders the add subscription page.
-func (page *AddSubscriptionPage) Template(req *http.Request) templ.Component {
+func (page *AddSubscription) Template(req *http.Request) templ.Component {
 	switch {
 	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 		return page.content()
@@ -129,32 +135,85 @@ func (page *AddSubscriptionPage) Template(req *http.Request) templ.Component {
 	}
 }
 
-templ (page *AddSubscriptionPage) layout() {
+templ (page *AddSubscription) layout() {
 	@layouts.Drawer() {
 		@page.content()
 	}
 }
 
-templ (page *AddSubscriptionPage) content() {
+templ (page *AddSubscription) content() {
 	<div class="mt-8 max-w-prose">
 		<div class="space-y-12 sm:space-y-16">
 			<div>
 				<h2 class="text-base/7 font-semibold">Add a new subscription</h2>
-				<div class="mt-10 space-y-8 border-b border-gray-900/10 pb-12 sm:space-y-0 sm:divide-y sm:divide-gray-900/10 sm:border-t sm:pb-0">
-					<form id="add-subscription">
+				<div class="mt-10 space-y-8 pb-12 sm:space-y-0 sm:pb-0">
+					if page.message != nil {
+						switch page.message.Status {
+							case models.UserMessageStatusSuccess:
+								@partials.FormSuccess() {
+									@partials.SuccessMessage(page.message) {
+										@partials.NewAction("/subscriptions", partials.DisplayActionAsLink,
+											partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
+											partials.ActionPushURL(),
+											partials.ActionClasses("text-sm/6 text-success font-semibold hover:bg-accent hover:text-accent-content"),
+										) {
+											<p class="mt-4">Go to subscriptions <span aria-hidden="true">&rarr;</span></p>
+										}
+									}
+								}
+							case models.UserMessageStatusWarning:
+								@partials.FormWarning() {
+									@partials.WarningMessage(page.message)
+								}
+							case models.UserMessageStatusError:
+								@partials.FormError() {
+									@partials.ErrorMessage(page.message)
+								}
+						}
+					}
+					<form
+						id="add-subscription"
+						hx-post="/user/subscription/add"
+						hx-target={ partials.ContentID.Target() }
+						hx-target-error={ partials.ContentID.Target() }
+						hx-indicator="#processing"
+						hx-on::after-request="if(event.detail.successful) this.reset()"
+					>
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 							<label for="url" class="app-textinput-label">Feed URL</label>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input id="url" type="url" required name="url" placeholder="https://feed.lol/rss" class="app-textinputvalidator"/>
-								<span class="validator-hint hidden">Enter a valid URL</span>
-								<span id="url-hint" class="app-textinput-hint">Required. The feed's URL or website.</span>
+								<input
+									id="url"
+									type="url"
+									required
+									name="url"
+									value={ page.request.URL }
+									placeholder="https://feed.lol/rss"
+									class={ templ.KV("app-textinput",page.request.URLErr == nil), templ.KV("app-textinput-error",page.request.URLErr !=nil) }
+								/>
+								if page.request.URLErr != nil {
+									<span class="app-textinput-hint text-error">Error: { page.request.URLErr.Error() }</span>
+								} else {
+									<span id="url-hint" class="app-textinput-hint">Required. The feed's URL or website.</span>
+								}
 							</div>
 						</div>
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 							<label for="nickname" class="app-textinput-label">Nickname</label>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input id="nickname" type="text" name="user_nickname" placeholder="My cool subscription" class="custom-textinput"/>
-								<span id="nickname-hint" class="app-textinput-hint">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</span>
+								<input
+									id="nickname"
+									type="text"
+									name="user_nickname"
+									value={ page.request.Nickname }
+									placeholder="My cool subscription"
+									class={ templ.KV("app-textinput",page.request.NicknameErr == nil), templ.KV("app-textinput-error",page.request.NicknameErr !=nil) }
+								/>
+								if page.request.NicknameErr != nil {
+									<span class="app-textinput-hint text-error">{ page.request.NicknameErr.Error() }</span>
+								} else {
+									<span id="nickname-hint" class="app-textinput-hint">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</span>
+								}
 							</div>
 						</div>
 					</form>
@@ -177,13 +236,14 @@ templ (page *AddSubscriptionPage) content() {
 			</div>
 		</div>
 		<div class="mt-6 flex items-center justify-end gap-x-6">
+			<div id="processing" class="htmx-indicator">
+				Processing...
+				@loading.Build(loading.Infinity).Show()
+			</div>
 			<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
 			<button
 				type="submit"
 				form="add-subscription"
-				hx-post="/user/subscription/add"
-				hx-target="#notifications"
-				hx-on::after-request="if(event.detail.successful) this.reset()"
 				class="app-button"
 			>Add</button>
 		</div>

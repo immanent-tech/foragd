@@ -45,9 +45,9 @@ func (s *Subscription) Valid() (bool, error) {
 	return true, nil
 }
 
-func (s *Subscription) String() string {
-	return s.GetTitle()
-}
+// func (s *Subscription) String() string {
+// 	return s.GetTitle()
+// }
 
 func (s *Subscription) GetID() SubscriptionID {
 	return s.Metadata.GetID()
@@ -221,8 +221,11 @@ func (s SubscriptionsSlice) GetSubscriptionMetadata() SubscriptionMetadataSlice 
 // and any validation errors if applicable.
 func (r *SubscriptionRequest) Valid() (bool, error) {
 	valid, err := validation.ValidateStruct(r)
-	if !valid || err != nil {
-		return false, fmt.Errorf("subscription is invalid: %w", err)
+	if err != nil {
+		return false, fmt.Errorf("subscription validation error: %w", err)
+	}
+	if !valid {
+		return false, nil
 	}
 	return true, nil
 }

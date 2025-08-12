@@ -72,7 +72,8 @@
     "feeds/opml",
     "web",
     "signup",
-    "landing"
+    "landing",
+    "subscriptions"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

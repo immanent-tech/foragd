@@ -113,13 +113,6 @@ func RespForbidden(err error) *Response {
 	}
 }
 
-func RespInvalidInput() *Response {
-	return &Response{
-		StatusCode:    http.StatusNoContent,
-		InternalError: ErrInvalidInput,
-	}
-}
-
 func RespNotFound(err error) *Response {
 	return &Response{
 		StatusCode:    http.StatusNotFound,
@@ -133,6 +126,13 @@ func RespInternalServerError(err error, template templ.Component) *Response {
 	return NewResponse(
 		WithResponseStatusCode(http.StatusInternalServerError),
 		WithResponseError(err),
+		WithResponseTemplate(template),
+	)
+}
+
+func RespInvalidInput(template templ.Component) *Response {
+	return NewResponse(
+		WithResponseStatusCode(http.StatusUnprocessableEntity),
 		WithResponseTemplate(template),
 	)
 }

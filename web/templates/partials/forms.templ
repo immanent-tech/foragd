@@ -1,0 +1,40 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+// FormSuccess renders a div that can be used to highlight successful form submission details.
+templ FormSuccess() {
+	<div class="rounded-md bg-success/10 p-4 outline outline-success/20">
+		<div class="flex">
+			<div class="shrink-0">
+				@HeroIconSuccess("size-5", "text-success")
+			</div>
+			{ children... }
+		</div>
+	</div>
+}
+
+// FormWarning renders a div that can be used to highlight a warning about form submission.
+templ FormWarning() {
+	<div class="rounded-md bg-warning/10 p-4 outline outline-warning/15">
+		<div class="flex">
+			<div class="shrink-0">
+				@HeroIconWarn("size-5", "text-warning")
+			</div>
+			{ children... }
+		</div>
+	</div>
+}
+
+// FormError renders a div that can be used to highlight an error about form submission.
+templ FormError() {
+	<div class="rounded-md bg-error/10 p-4 outline outline-error/15">
+		<div class="flex">
+			<div class="shrink-0">
+				@HeroIconError("size-5", "text-error")
+			</div>
+			{ children... }
+		</div>
+	</div>
+}

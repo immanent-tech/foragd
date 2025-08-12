@@ -11,14 +11,7 @@ templ AlertError(msg *models.UserMessage) {
 			<div class="shrink-0">
 				@HeroIconError("size-5")
 			</div>
-			<div class="ml-3">
-				<h3 class="text-sm font-medium text-error-content">{ msg.Summary }</h3>
-				if msg.HasDetails() {
-					<div class="mt-2 text-sm text-error-content">
-						<p>{ msg.Details }</p>
-					</div>
-				}
-			</div>
+			@ErrorMessage(msg)
 			<div class="ml-auto pl-3">
 				<div class="-mx-1.5 -my-1.5">
 					<button
@@ -41,14 +34,7 @@ templ AlertWarn(msg *models.UserMessage) {
 			<div class="shrink-0">
 				@HeroIconWarn("size-5")
 			</div>
-			<div class="ml-3">
-				<h3 class="text-sm font-medium text-warning-content">{ msg.Summary }</h3>
-				if msg.HasDetails() {
-					<div class="mt-2 text-sm text-warning-content">
-						<p>{ msg.Details }</p>
-					</div>
-				}
-			</div>
+			@WarningMessage(msg)
 			<div class="ml-auto pl-3">
 				<div class="-mx-1.5 -my-1.5">
 					<button
@@ -71,14 +57,7 @@ templ AlertSuccess(msg *models.UserMessage) {
 			<div class="shrink-0">
 				@HeroIconSuccess("size-5")
 			</div>
-			<div class="ml-3">
-				<h3 class="text-sm font-medium text-success-content">{ msg.Summary }</h3>
-				if msg.HasDetails() {
-					<div class="mt-2 text-sm text-success-content">
-						<p>{ msg.Details }</p>
-					</div>
-				}
-			</div>
+			@SuccessMessage(msg)
 			<div class="ml-auto pl-3">
 				<div class="-mx-1.5 -my-1.5">
 					<button
@@ -92,5 +71,41 @@ templ AlertSuccess(msg *models.UserMessage) {
 				</div>
 			</div>
 		</div>
+	</div>
+}
+
+templ WarningMessage(msg *models.UserMessage) {
+	<div class="ml-3">
+		<h3 class="text-sm font-medium text-warning">{ msg.Summary }</h3>
+		if msg.HasDetails() {
+			<div class="mt-2 text-sm text-warning/80">
+				<p>{ msg.Details }</p>
+			</div>
+		}
+		{ children... }
+	</div>
+}
+
+templ ErrorMessage(msg *models.UserMessage) {
+	<div class="ml-3">
+		<h3 class="text-sm font-medium text-error">{ msg.Summary }</h3>
+		if msg.HasDetails() {
+			<div class="mt-2 text-sm text-error/80">
+				<p>{ msg.Details }</p>
+			</div>
+		}
+		{ children... }
+	</div>
+}
+
+templ SuccessMessage(msg *models.UserMessage) {
+	<div class="ml-3">
+		<h3 class="text-sm font-medium text-success">{ msg.Summary }</h3>
+		if msg.HasDetails() {
+			<div class="mt-2 text-sm text-success/80">
+				<p>{ msg.Details }</p>
+			</div>
+		}
+		{ children... }
 	</div>
 }

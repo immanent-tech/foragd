@@ -185,33 +185,6 @@ components:
           properties:
             subscription_id:
               $ref: 'models.yaml#/components/schemas/SubscriptionID'
-    SubscriptionRequest:
-      description: >
-        represents a request to create a subscription.
-      type: object
-      required:
-        - URL
-      properties:
-        URL:
-          description: is the URL of the feed data.
-          type: string
-          x-go-name: URL
-          x-oapi-codegen-extra-tags:
-            form: 'url'
-            validate: 'required,url'
-        nickname:
-          description: a custom name for the subscription. Overrides the feed name.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'user_nickname'
-        categories:
-          description: a list  custom categories for the subscription. Combined with the feed's own categories.
-          type: array
-          items:
-            $ref: 'models.yaml#/components/schemas/Category'
-          x-go-type-skip-optional-pointer: true
-          x-oapi-codegen-extra-tags:
-            form: 'user_categories'
     MarkSubscriptionsRequest:
       description: >
         represents a user request for marking a subscription or collection of subscriptions as read or unread.

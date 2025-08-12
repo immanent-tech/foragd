@@ -52,53 +52,24 @@ templ (page *Signup) layout() {
 						if page.Message != nil {
 							switch page.Message.Status {
 								case models.UserMessageStatusSuccess:
-									<div class="rounded-md bg-success/10 p-4 outline outline-success/20">
-										<div class="flex">
-											<div class="shrink-0">
-												@partials.HeroIconSuccess("size-5", "text-success")
-											</div>
-											<div class="ml-3 flex-1 md:flex md:justify-between">
-												<p class="text-sm text-success">Account created!</p>
-												<p class="mt-3 text-sm md:mt-0 md:ml-6">
-													<a href="/login" class="text-sm text-success">
-														Log In  <span aria-hidden="true">&rarr;</span>
-													</a>
-												</p>
-											</div>
+									@partials.FormSuccess() {
+										<div class="ml-3 flex-1 md:flex md:justify-between">
+											<p class="text-sm text-success">Account created!</p>
+											<p class="mt-3 text-sm md:mt-0 md:ml-6">
+												<a href="/login" class="text-sm text-success">
+													Log In  <span aria-hidden="true">&rarr;</span>
+												</a>
+											</p>
 										</div>
-									</div>
+									}
 								case models.UserMessageStatusWarning:
-									<div class="rounded-md bg-warning/10 p-4 outline outline-warning/15">
-										<div class="flex">
-											<div class="shrink-0">
-												@partials.HeroIconWarn("size-5", "text-warning")
-											</div>
-											<div class="ml-3">
-												<h3 class="text-sm font-medium text-warning">{ page.Message.Summary }</h3>
-												if page.Message.HasDetails() {
-													<div class="mt-2 text-sm text-warning/80">
-														<p>{ page.Message.Details }</p>
-													</div>
-												}
-											</div>
-										</div>
-									</div>
+									@partials.FormWarning() {
+										@partials.WarningMessage(page.Message)
+									}
 								case models.UserMessageStatusError:
-									<div class="rounded-md bg-error/10 p-4 outline outline-error/15">
-										<div class="flex">
-											<div class="shrink-0">
-												@partials.HeroIconError("size-5", "text-error")
-											</div>
-											<div class="ml-3">
-												<h3 class="text-sm font-medium text-error">{ page.Message.Summary }</h3>
-												if page.Message.HasDetails() {
-													<div class="mt-2 text-sm text-error/80">
-														<p>{ page.Message.Details }</p>
-													</div>
-												}
-											</div>
-										</div>
-									</div>
+									@partials.FormError() {
+										@partials.ErrorMessage(page.Message)
+									}
 							}
 						}
 						<form hx-post="/signup" hx-target={ partials.ContentID.Target() } hx-target-error={ partials.ContentID.Target() } class="mt-10 space-y-6">
