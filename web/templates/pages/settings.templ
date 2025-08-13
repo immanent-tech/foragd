@@ -173,9 +173,7 @@ templ SubscriptionSettings() {
 }
 
 templ ShowSubscriptionSettings(subscription *models.Subscription) {
-	<li class="flex items-center justify-between gap-x-2 py-5">
-		@partials.NewSubscriptionContent(subscription).Title()
-	</li>
+	@partials.NewSubscriptionContent(subscription).Settings()
 }
 
 // AccountSettings shows settings for managing the user account.

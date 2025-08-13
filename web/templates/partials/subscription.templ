@@ -29,41 +29,70 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 }
 
 // Card renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
-templ (c *Subscription) Card() {
-	<li id={ c.GetID() } class="app-card-base">
-		// Title (includes image/placeholder).
-		<div class="flex items-center gap-x-4 p-6">
-			@c.Title()
+//
+// Base layout: https://tailwindcss.com/plus/ui-blocks/application-ui/layout/cards#component-30bb794fd4050766db6928c723ddf5ce
+templ (s *Subscription) Card() {
+	// <li id={ s.GetID() } class={ "app-card-base", templ.KV("md:row-span-2",s.GetDescription() != "") }>
+	<li id={ s.GetID() } class={ "app-card-base" }>
+		<div class="flex items-center px-4 py-5 sm:px-6">
+			@s.title()
+			@s.actionsMenu()
 		</div>
-		// Description (if available).
-		if c.GetDescription() != "" {
-			<div class="app-card-description px-6">
-				{ c.GetDescription() }
+		if s.GetDescription() != "" {
+			<div class="px-4 py-5 sm:p-6">
+				<div class="app-card-description px-6">
+					{ s.GetDescription() }
+				</div>
 			</div>
 		}
-		// Stats. Last updated timestamp and unread count (if appropriate).
-		<dl class="-my-3 divide-y divide-neutral px-6 py-4 text-xs/4">
-			<div class="flex justify-between gap-x-4 py-3">
-				<dt class="text-base-content/60">Updated</dt>
-				<dd class="text-base-content">
-					@ShowTimestamp(c.GetUpdatedDate())
-				</dd>
-				if c.IsUnread() {
-					<dt class="text-base-content/60">Unread</dt>
-					<dd class="text-base-content">{ c.GetUnreadCount() }</dd>
-				}
-			</div>
-		</dl>
+		<div class="px-2 py-4 sm:px-4">
+			<dl class="-my-3 divide-y divide-neutral px-6 py-4 text-xs/4">
+				<div class="flex justify-between gap-x-4 py-3">
+					<dt class="text-base-content/60">Updated</dt>
+					<dd class="text-base-content">
+						@ShowTimestamp(s.GetUpdatedDate())
+					</dd>
+					if s.IsUnread() {
+						<dt class="text-base-content/60">Unread</dt>
+						<dd class="text-base-content">{ s.GetUnreadCount() }</dd>
+					}
+				</div>
+			</dl>
+		</div>
 	</li>
 }
 
-templ (s *Subscription) Title() {
+// SearchSuggestion renders the subscription in a format suitable for showing as a search suggestion for the global app
+// search.
+templ (s *Subscription) SearchSuggestion() {
+	<div class="overflow-hidden">
+		<div class="px-4 py-5 sm:p-6">
+			@s.title()
+		</div>
+	</div>
+}
+
+// Settings renders the subscription in a format suitable for showing on the subscription settings page.
+templ (s *Subscription) Settings() {
+	<li class="flex items-center justify-between px-4 py-5 sm:px-6">
+		@s.title()
+		@s.actionsMenu()
+	</li>
+}
+
+// title renders the subscription title, which is its favicon (or a placeholder) and the title text, all as a link to
+// the subscription articles.
+templ (s *Subscription) title() {
 	@s.viewLink("flex", "items-center", "gap-x-4", "hover:text-accent") {
 		<div class="size-12 flex-none">
 			@s.image()
 		</div>
 		<div class="app-card-title">{ s.GetTitle() }</div>
 	}
+}
+
+// actionsMenu renders a dropdown menu containing actions specific to the subscription (e.g. mark, share, favorite).
+templ (s *Subscription) actionsMenu() {
 	// Actions menu.
 	<el-dropdown class="relative ml-auto">
 		<button class="relative block text-base-content/80 hover:text-accent">
@@ -113,18 +142,6 @@ templ (s *Subscription) Title() {
 			}
 		</el-menu>
 	</el-dropdown>
-}
-
-templ (c *Subscription) ShowAsSearchSuggestion() {
-	<div class="col-span-2">
-		<div class="flex flex-row gap-2 m-2 items-center">
-			@c.viewLink() {
-				@c.image()
-				<div class="text-sm font-semibold flex-1">{ c.GetTitle() }</div>
-				@c.unreadBadge()
-			}
-		</div>
-	</div>
 }
 
 templ (c *Subscription) ShowAsSearchResult() {

@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/a-h/templ"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -19,6 +18,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/results"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/views"
 )
@@ -40,32 +40,16 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 			res.WriteHeader(http.StatusNoContent)
 			return
 		}
-
+		// Get results.
 		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
 		if err != nil {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		if len(subscriptions) > 0 || len(articles) > 0 {
-			// Show the suggestions.
-			suggestions := make([]templ.Component, 0, len(articles)+1)
-
-			if len(subscriptions) > 0 {
-				// Add subscription suggestions.
-				suggestions = append(suggestions, views.SearchSuggestionHeader("Subscriptions"))
-				for subscription := range slices.Values(subscriptions) {
-					suggestions = append(suggestions, subscription.ShowAsSearchSuggestion())
-				}
-			}
-			if len(articles) > 0 {
-				// Add article suggestions.
-				suggestions = append(suggestions, views.SearchSuggestionHeader("Articles"))
-				for article := range slices.Values(articles) {
-					suggestions = append(suggestions, article.ShowAsSearchSuggestion())
-				}
-			}
+			// Render suggestions.
 			resp := models.NewResponse(
-				models.WithResponseTemplate(views.SearchSuggestions(suggestions...)),
+				models.WithResponseTemplate(layouts.SearchSuggestions(subscriptions, articles)),
 			)
 			alice.New(
 				RouteLogger,

@@ -5,45 +5,59 @@ package layouts
 
 import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
-	"github.com/joshuar/go-templ-daisyui/input/textinput"
-	"github.com/joshuar/go-templ-daisyui/layout/join"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
+	"slices"
 )
 
-templ SearchForm() {
-	// @form.Build() {
-	@join.Horizontally() {
-		@textinput.Build(
-			textinput.WithID("global-search"),
-			textinput.WithName("text"),
-			textinput.WithPlaceholder("Search anything..."),
-			textinput.WithExtraAttributes(templ.Attributes{
-				"hx-post":      "/search",
-				"hx-trigger":   "input changed delay:500ms",
-				"hx-target":    "#search-suggestions",
-				"hx-indicator": ".htmx-indicator",
-				"tabindex":     0,
-				"hx-push-url":  "false",
-			}),
-			textinput.WithExtraClasses("join-item", textinput.SM),
-		).Show()
-		@button.Build(
-			button.AsSubmit(),
-			button.WithClasses("join-item", button.Square, button.SM),
-			button.WithAttributes(templ.Attributes{
-				"hx-get":      "/search/results",
-				"hx-target":   partials.ContentID.Target(),
-				"hx-push-url": "true",
-				"tabindex":    1,
-				"hx-trigger":  "click, keyup[key=='Enter']",
-				"hx-include":  "[name='text']",
-				"_":           "on htmx:afterRequest remove #search-suggestions",
-			}),
-		) {
-			@tabler.Search(i.Props{Size: i.SizeSM})
+// templ SearchForm() {
+// 	// @form.Build() {
+// 	@join.Horizontally() {
+// 		@textinput.Build(
+// 			textinput.WithID("global-search"),
+// 			textinput.WithName("text"),
+// 			textinput.WithPlaceholder("Search anything..."),
+// 			textinput.WithExtraAttributes(templ.Attributes{
+// 				"hx-post":      "/search",
+// 				"hx-trigger":   "input changed delay:500ms",
+// 				"hx-target":    "#search-suggestions",
+// 				"hx-indicator": ".htmx-indicator",
+// 				"tabindex":     0,
+// 				"hx-push-url":  "false",
+// 			}),
+// 			textinput.WithExtraClasses("join-item", textinput.SM),
+// 		).Show()
+// 		@button.Build(
+// 			button.AsSubmit(),
+// 			button.WithClasses("join-item", button.Square, button.SM),
+// 			button.WithAttributes(templ.Attributes{
+// 				"hx-get":      "/search/results",
+// 				"hx-target":   partials.ContentID.Target(),
+// 				"hx-push-url": "true",
+// 				"tabindex":    1,
+// 				"hx-trigger":  "click, keyup[key=='Enter']",
+// 				"hx-include":  "[name='text']",
+// 				"_":           "on htmx:afterRequest remove #search-suggestions",
+// 			}),
+// 		) {
+// 			@tabler.Search(i.Props{Size: i.SizeSM})
+// 		}
+// 	}
+// 	// }
+// }
+templ SearchSuggestions(subscriptions []*partials.Subscription, articles []*partials.Article) {
+	<ul
+		role="list"
+		class="grid grid-flow-dense grid-cols-1 md:grid-cols-2 justify-center gap-4 m-2"
+	>
+		for subscription := range slices.Values(subscriptions) {
+			<li>
+				@subscription.SearchSuggestion()
+			</li>
 		}
-	}
-	// }
+		for article := range slices.Values(articles) {
+			<li>
+				@article.SearchSuggestion()
+			</li>
+		}
+	</ul>
+	// <div class="text-center">All results...</div>
 }

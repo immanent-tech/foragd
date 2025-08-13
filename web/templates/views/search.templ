@@ -16,21 +16,6 @@ import (
 	"slices"
 )
 
-templ SearchSuggestions(suggestions ...templ.Component) {
-	<nav
-		class="search-suggestions"
-		_="on click remove me then set #global-search.value to ''"
-	>
-		for suggestion := range slices.Values(suggestions) {
-			@suggestion
-		}
-	</nav>
-}
-
-templ SearchSuggestionHeader(text string) {
-	<h2 class="tracking-wide">{ text }</h2>
-}
-
 type SearchResultsPage struct {
 	subscriptions []*partials.Subscription
 	articles      []*partials.Article

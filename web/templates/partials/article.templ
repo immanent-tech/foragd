@@ -29,62 +29,58 @@ func NewArticleContent(article *models.Article) *Article {
 }
 
 // Card renders an article as a card, for displaying in a list.
-templ (c *Article) Card() {
-	if c.GetImage().URL == "" {
-		<li id={ c.GetID() } class="app-card-base row-span-1">
-			@c.cardWithoutImage()
-		</li>
-	} else {
-		<li id={ c.GetID() } class="app-card-base md:row-span-2 md:col-span-1">
-			@c.cardWithImage()
-		</li>
-	}
-}
-
-templ (a *Article) cardWithImage() {
-	<article class="flex flex-col items-start justify-between p-4">
-		@a.viewLink() {
-			<div class="relative w-full">
-				@image.Build(
-					a.GetImage().URL,
-					image.WithLazyLoading(),
-					image.WithExtraClasses("aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"),
-				)
-				<div class="absolute inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
-			</div>
-			<div class="flex max-w-xl grow flex-col justify-between">
-				<div class="group relative grow">
-					<h3 class="mt-3 text-lg/6 font-semibold group-hover:text-accent">
-						{ a.GetTitle() }
-					</h3>
+templ (a *Article) Card() {
+	<li
+		id={ a.GetID() }
+		class={ "app-card-base",
+		templ.KV("row-span-1",a.GetImage().URL == ""), templ.KV("md:row-span-2 md:col-span-1",a.GetImage().URL != "") }
+	>
+		<article class="flex flex-col items-start justify-between p-4">
+			if a.GetImage().URL != "" {
+				@a.viewLink() {
+					<div class="relative w-full">
+						@image.Build(
+							a.GetImage().URL,
+							image.WithLazyLoading(),
+							image.WithExtraClasses("aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"),
+						)
+						<div class="absolute inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
+					</div>
+					<div class="flex max-w-xl grow flex-col justify-between">
+						<div class="group relative grow">
+							<h3 class="mt-3 text-lg/6 font-semibold group-hover:text-accent">
+								{ a.GetTitle() }
+							</h3>
+						</div>
+					</div>
+				}
+			} else {
+				@a.viewLink() {
+					<div class="group relative grow">
+						<h3 class="mt-3 text-lg/6 font-semibold group-hover:text-accent">
+							{ a.GetTitle() }
+						</h3>
+					</div>
+				}
+			}
+			<div class="mt-8 w-full">
+				<div class="flex items-center justify-between">
+					@a.articleInfo()
+					@a.articleActions()
 				</div>
 			</div>
-		}
-		<div class="mt-8 w-full">
-			<div class="flex items-center justify-between">
-				@a.articleInfo()
-				@a.articleActions()
-			</div>
-		</div>
-	</article>
+		</article>
+	</li>
 }
 
-templ (a *Article) cardWithoutImage() {
-	<article id={ a.GetID() } class="flex max-w-xl flex-col items-start justify-between p-4">
-		@a.viewLink() {
-			<div class="group relative grow">
-				<h3 class="mt-3 text-lg/6 font-semibold group-hover:text-accent">
-					{ a.GetTitle() }
-				</h3>
-			</div>
-		}
-		<div class="mt-8 w-full">
-			<div class="flex items-center justify-between">
-				@a.articleInfo()
-				@a.articleActions()
-			</div>
+// SearchSuggestion renders the article in a format suitable for showing as a search suggestion for the global app
+// search.
+templ (a *Article) SearchSuggestion() {
+	<div class="overflow-hidden">
+		<div class="px-4 py-5 sm:p-6">
+			@a.link()
 		</div>
-	</article>
+	</div>
 }
 
 // Content shows the full article content.
@@ -196,14 +192,6 @@ templ (a *Article) articleActions() {
 			@a.shareLink(components.Class("app-context-menu-action"))
 		</el-menu>
 	</el-dropdown>
-}
-
-templ (c *Article) ShowAsSearchSuggestion() {
-	<div class="col-span-2">
-		<div class="flex flex-row gap-2 m-2 items-center">
-			@c.link()
-		</div>
-	</div>
 }
 
 templ (c *Article) ShowAsSearchResult() {
