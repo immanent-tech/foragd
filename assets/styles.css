@@ -49,19 +49,6 @@
     @apply hover:text-accent flex items-center gap-x-2 px-3 py-1 text-xs/4;
   }
 
-  /* Search Suggestions */
-  /* https://anchor-positioning.oddbird.net/ */
-  /* https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/popover */
-  .search-suggestions-anchor {
-    anchor-name: --search-suggestions-anchor;
-  }
-  .app-search-suggestions {
-    position: absolute;
-    top: anchor(--search-suggestions-anchor bottom);
-    /* right: anchor(--search-suggestions-anchor right, 50px); */
-    @apply bg-base-300 ring-base-content/20 w-full transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in md:max-w-3xl;
-  }
-
   /* Text Input Styles */
   .app-textinput {
     @apply focus:outline-primary outline-primary/30 *:bg-neutral placeholder:text-base-content/50 bg-base-content/5 block w-full rounded-md px-3 py-1.5 text-sm/6 outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2;

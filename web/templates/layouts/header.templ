@@ -1,0 +1,116 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package layouts
+
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+)
+
+// <form
+// 		hx-post="/search"
+// 		hx-trigger="input changed delay:500ms"
+// 		hx-target="#search-suggestions"
+// 		hx-push-url="false"
+// 		_="on htmx:afterRequest call document.getElementById('search-suggestions').showPopover()"
+// 		class="grid flex-1 grid-cols-1"
+// 	>
+// 		<input type="search" name="text" placeholder="Search" aria-label="Search" class="col-start-1 row-start-1 block size-full bg-base-200 pl-8 text-base outline-hidden placeholder:text-base-content/50 sm:text-sm/6"/>
+// 		<button type="button" hidden>Options</button>
+// 		@partials.HeroIconSearch("size-5 pointer-events-none col-start-1 row-start-1 self-center")
+// 	</form>
+templ Header() {
+	{{ user, _ := models.UserFromCtx(ctx) }}
+	<header class="sticky z-999 top-0 bg-base-200 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-base-content/10 lg:overflow-y-visible">
+		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+			<div class="relative flex justify-between lg:gap-8 xl:grid xl:grid-cols-12">
+				//  Sidebar button for small screens.
+				<div class="flex md:absolute md:inset-y-0 md:left-0 lg:static xl:col-span-2">
+					<div class="flex shrink-0 items-center">
+						<button type="button" command="show-modal" commandfor="sidebar" class="-m-2.5 p-2.5 lg:hidden hover:text-accent">
+							<span class="sr-only">Open sidebar</span>
+							@partials.HeroIconMenu("size-6")
+						</button>
+					</div>
+				</div>
+				// Search Box/Command Palette.
+				<div class="min-w-0 flex-1 md:px-8 lg:px-0 xl:col-span-6">
+					<div class="flex items-center px-6 py-3.5 md:mx-auto md:max-w-3xl lg:mx-0 lg:max-w-none xl:px-0">
+						<div class="grid w-full grid-cols-1">
+							@CommandPalette()
+						</div>
+					</div>
+				</div>
+				// Menus.
+				<div class="flex items-center md:absolute md:inset-y-0 md:right-0 lg:hidden">
+					// Mobile: menu button.
+					<button popovertarget="mobile-menu-popover" class="relative -mx-2 inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-white/5 hover:text-white focus:outline-2 focus:-outline-offset-1 focus:outline-indigo-500">
+						<span class="absolute -inset-0.5"></span>
+						<span class="sr-only">Open menu</span>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 in-aria-expanded:hidden">
+							<path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round" stroke-linejoin="round"></path>
+						</svg>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 not-in-aria-expanded:hidden">
+							<path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+						</svg>
+					</button>
+				</div>
+				<div class="hidden lg:flex lg:items-center lg:justify-end xl:col-span-4">
+					<button type="button" class="relative ml-5 shrink-0 rounded-full p-1 text-primary-content hover:text-primary focus:outline-2 focus:outline-offset-2 focus:outline-primary">
+						<span class="absolute -inset-1.5"></span>
+						<span class="sr-only">View notifications</span>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
+							<path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
+						</svg>
+					</button>
+					<el-dropdown class="relative ml-5 shrink-0">
+						<button class="relative flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+							<span class="absolute -inset-1.5"></span>
+							<span class="sr-only">Open user menu</span>
+							<img src={ user.AvatarURL } alt={ user.Nickname } class="size-8 rounded-full bg-base-300 outline -outline-offset-1 outline-base-content/10"/>
+						</button>
+						<el-menu anchor="bottom end" popover class="w-48 origin-top-right rounded-md bg-base-300 py-1 outline-1 -outline-offset-1 outline-base-content/10 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+							<a
+								class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent"
+								hx-get="/user/settings"
+								hx-target={ partials.ContentID.Target() }
+								hx-push-url="true"
+							>Settings</a>
+							<a href="/logout" class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent">Log out</a>
+						</el-menu>
+					</el-dropdown>
+					// <a href="#" class="ml-6 inline-flex items-center rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">New Project</a>
+				</div>
+			</div>
+		</div>
+		<el-popover id="mobile-menu-popover" anchor="bottom" popover aria-label="Global" class="relative w-full overflow-visible bg-base-300 [--anchor-gap:--spacing(2)] backdrop:bg-transparent before:pointer-events-none before:absolute before:inset-0 before:bg-base-300/50 open:block lg:hidden">
+			<div class="relative border-t border-base-content/10 pt-4 pb-3">
+				<div class="mx-auto flex max-w-3xl items-center px-4 sm:px-6">
+					<div class="shrink-0">
+						<img src={ user.AvatarURL } alt={ user.Nickname } class="size-10 rounded-full bg-base-300 outline -outline-offset-1 outline-base-content/10"/>
+					</div>
+					<div class="ml-3">
+						<div class="text-base font-medium">{ user.Nickname }</div>
+					</div>
+					<button type="button" class="relative ml-auto shrink-0 rounded-full p-1 text-base-content hover:text-accent focus:outline-2 focus:outline-offset-2 focus:outline-primary">
+						<span class="absolute -inset-1.5"></span>
+						<span class="sr-only">View notifications</span>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
+							<path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
+						</svg>
+					</button>
+				</div>
+				<div class="mx-auto mt-3 max-w-3xl space-y-1 px-2 sm:px-4">
+					<a
+						class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent"
+						hx-get="/user/settings"
+						hx-target={ partials.ContentID.Target() }
+						hx-push-url="true"
+					>Settings</a>
+					<a href="/logout" class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent">Log out</a>
+				</div>
+			</div>
+		</el-popover>
+	</header>
+}

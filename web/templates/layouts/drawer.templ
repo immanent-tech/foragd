@@ -36,73 +36,7 @@ templ Drawer() {
 		</div>
 	</div>
 	<div class="lg:pl-72">
-		<div class="sticky top-0 z-40 lg:mx-auto lg:w-full">
-			<div class="flex h-16 items-center gap-x-4 border-b border-neutral bg-base-200 px-4 shadow-xs sm:gap-x-6 sm:px-6 lg:px-0 lg:shadow-none">
-				<button type="button" command="show-modal" commandfor="sidebar" class="-m-2.5 p-2.5 lg:hidden hover:text-accent">
-					<span class="sr-only">Open sidebar</span>
-					@partials.HeroIconMenu("size-6")
-				</button>
-				<div aria-hidden="true" class="h-6 w-px bg-neutral lg:hidden"></div>
-				<div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6 lg:mx-4">
-					<div class="flex flex-1">
-						// Search Box.
-						<form
-							hx-post="/search"
-							hx-trigger="input changed delay:500ms"
-							hx-target="#search-suggestions"
-							hx-push-url="false"
-							_="on htmx:afterRequest call document.getElementById('search-suggestions').showPopover()"
-							class="grid flex-1 grid-cols-1"
-						>
-							<input type="search" name="text" placeholder="Search" aria-label="Search" class="col-start-1 row-start-1 block size-full bg-base-200 pl-8 text-base outline-hidden placeholder:text-base-content/50 sm:text-sm/6"/>
-							<button type="button" hidden>Options</button>
-							@partials.HeroIconSearch("size-5 pointer-events-none col-start-1 row-start-1 self-center")
-						</form>
-						// Search Suggestions.
-						//
-						// See also:
-						// https://anchor-positioning.oddbird.net/
-						// https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/popover
-						<div class="search-suggestions-anchor anchor"></div>
-						<el-popover id="search-suggestions" popover class="app-search-suggestions"></el-popover>
-					</div>
-					<div class="flex items-center gap-x-4 lg:gap-x-6">
-						// Notifications Menu.
-						<button type="button" class="-m-2.5 p-2.5 hover:text-accent">
-							<span class="sr-only">View notifications</span>
-							@partials.HeroIconNotification("size-6")
-						</button>
-						<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-neutral"></div>
-						// Settings Menu.
-						{{ user, found := models.UserFromCtx(ctx) }}
-						if found {
-							<el-dropdown class="relative">
-								<button class="relative flex items-center">
-									<span class="absolute -inset-1.5"></span>
-									<span class="sr-only">Open user menu</span>
-									<img src={ user.AvatarURL } alt="" class="size-8 rounded-full"/>
-									<span class="hidden lg:flex lg:items-center">
-										<span aria-hidden="true" class="ml-4 text-sm/6 font-semibold">{ user.Nickname }</span>
-										<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="ml-2 size-5 text-gray-400">
-											<path d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
-										</svg>
-									</span>
-								</button>
-								<el-menu anchor="bottom end" popover class="w-32 app-context-menu">
-									<a
-										class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent"
-										hx-get="/user/settings"
-										hx-target={ partials.ContentID.Target() }
-										hx-push-url="true"
-									>Settings</a>
-									<a href="/logout" class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent">Log out</a>
-								</el-menu>
-							</el-dropdown>
-						}
-					</div>
-				</div>
-			</div>
-		</div>
+		@Header()
 		<main>
 			<div id={ partials.ContentID.String() } class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				@templ.Fragment(templates.ContentFragment) {
