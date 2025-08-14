@@ -2,15 +2,40 @@
 /* @import '@tailwindplus/elements'; */
 @plugin "@tailwindcss/typography";
 @plugin "daisyui" {
-  themes: all;
-  /* exclude: rootscrollgutter; */
+  themes:
+    light,
+    dark,
+    synthwave,
+    lofi,
+    black,
+    dracula --prefersdark,
+    business,
+    night,
+    dim,
+    nord --default;
 }
 @source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
 
-@theme {
+:root {
+  font-family: Inter, sans-serif;
+  font-feature-settings:
+    'liga' 1,
+    'calt' 1,
+    'cv02' 1,
+    'cv03' 1,
+    'cv04' 1,
+    'cv11' 1;
+}
+@supports (font-variation-settings: normal) {
+  :root {
+    font-family: InterVariable, sans-serif;
+  }
+}
+
+/* @theme {
   --font-sans: InterVariable, sans-serif;
   --font-sans--font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
-}
+} */
 /*
 @utility search-suggestions-anchor {
   anchor-name: --search-suggestions-anchor;
