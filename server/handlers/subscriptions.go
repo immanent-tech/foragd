@@ -45,7 +45,17 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		)
 		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
 		if err != nil || !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+			msg := &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "There was a problem with the inputs. Please check and try again.",
+			}
+			chain.Then(RenderResponse(
+				models.NewResponse(
+					models.WithResponseError(err),
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+					models.WithResponseTemplate(pages.Error(msg)),
+				),
+			)).ServeHTTP(res, req)
 			return
 		}
 		chain = chain.Append(SavePageState(filters))

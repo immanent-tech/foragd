@@ -144,6 +144,9 @@ func SubscriptionFiltersValidation(sl validator.StructLevel) {
 }
 
 func (f *SubscriptionFilters) Sanitise() error {
+	if f == nil {
+		return nil
+	}
 	// Set required filters to valid values as necessary.
 	f.SortBy = setValidSortBy(f.SortBy)
 	f.SortOrder = setValidSortOrder(f.SortOrder)
@@ -255,6 +258,9 @@ func ArticleFiltersValidation(sl validator.StructLevel) {
 }
 
 func (f *ArticleFilters) Sanitise() error {
+	if f == nil {
+		return nil
+	}
 	// Set required filters to valid values as necessary.
 	f.SortBy = setValidSortBy(f.SortBy)
 	f.SortOrder = setValidSortOrder(f.SortOrder)

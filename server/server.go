@@ -137,9 +137,12 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.With(middlewares.RequireHTMX).Post("/search", handler.GetSearchSuggestions())
 		r.Get("/search/results", handler.GetSearchResults())
 		// Subscription routes.
-		r.Get("/subscriptions", handler.GetSubscriptions())
-		r.Post("/subscriptions", handler.GetSubscriptions())
-		r.With(middlewares.RequireHTMX).Post("/subscriptions/mark/{mark}", handler.MarkAllSubscriptions())
+		r.Route("/subscriptions", func(r chi.Router) {
+			r.Use(middlewares.AddFilters())
+			r.Get("/", handler.GetSubscriptions())
+			r.Post("/", handler.GetSubscriptions())
+			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkAllSubscriptions())
+		})
 		// r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handler.RemoveSubscriptions())
 		// Subscription route.
 		r.Route("/subscription/{subscription}", func(r chi.Router) {
@@ -148,8 +151,11 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			// r.With(middlewares.RequireHTMX).Post("/remove", handler.RemoveSubscription())
 		})
 		// Article routes.
-		r.Get("/articles", handler.GetArticles())
-		r.With(middlewares.RequireHTMX).Post("/articles", handler.GetArticles())
+		r.Route("/articles", func(r chi.Router) {
+			r.Use(middlewares.AddFilters())
+			r.Get("/", handler.GetArticles())
+			r.With(middlewares.RequireHTMX).Post("/", handler.GetArticles())
+		})
 		// r.With(middlewares.RequireHTMX).Post("/articles/mark/{mark}", handler.MarkArticles())
 		r.Route("/subscription/{subscription}/article/{item}", func(r chi.Router) {
 			r.Get("/", handler.ViewArticle())
