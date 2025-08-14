@@ -75,7 +75,9 @@
     "landing",
     "subscriptions",
     "settings",
-    "controls"
+    "controls",
+    "pages",
+    "middlewares"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
