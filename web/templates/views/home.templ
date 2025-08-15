@@ -10,10 +10,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/display/badge"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
 	"net/http"
 	"slices"
 	"strconv"
@@ -50,91 +46,93 @@ templ (page *HomePage) content() {
 	if page == nil || len(page.Subscriptions) == 0 {
 		@emptyHome()
 	} else {
-		// Unread stats.
-		<div class="flex justify-center m-4">
-			<div class="stats shadow bg-base-300 max-w-screen">
-				@link.Build(
-					link.WithAttributes(templ.Attributes{
-						"hx-get":      "/subscriptions",
-						"hx-vals":     partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-						"hx-target":   partials.ContentID.Target(),
-						"hx-swap":     "innerHTML",
-						"hx-push-url": "true",
-					}),
-				) {
-					<div class="stat">
-						<div class="stat-figure text-primary">
-							@tabler.Rss(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
+		<div class="mt-8">
+			<h3 class="text-base font-semibold">Stats</h3>
+			<dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+				<div class="relative overflow-hidden rounded-lg bg-base-200/75 px-4 pt-5 pb-12 shadow-sm inset-ring inset-ring-base-content/10 sm:px-6 sm:pt-6">
+					<dt>
+						<div class="absolute rounded-md bg-primary p-3">
+							@partials.HeroIconSubscription("size-6 text-primary-content")
 						</div>
-						<div class="stat-value text-primary">{ strconv.Itoa(len(page.Subscriptions)) }</div>
-						<div class="stat-title font-semibold">Subscriptions</div>
-					</div>
-				}
-				@link.Build(
-					link.WithAttributes(templ.Attributes{
-						"hx-get":      "/articles",
-						"hx-vals":     partials.GenerateHXVals(session.ArticleFiltersFromSession(ctx).Parameters()),
-						"hx-target":   partials.ContentID.Target(),
-						"hx-swap":     "innerHTML",
-						"hx-push-url": "true",
-					}),
-				) {
-					<div class="stat">
-						<div class="stat-figure text-primary">
-							@tabler.Article(i.Props{StrokeWidth: i.StrokeBold, Size: i.SizeLG})
+						<p class="ml-16 truncate text-sm font-medium ">Unread Subscriptions</p>
+					</dt>
+					<dd class="ml-16 flex items-baseline pb-6 sm:pb-7">
+						<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.Subscriptions)) }</p>
+						<div class="absolute inset-x-0 bottom-0 bg-base-200/20 px-4 py-4 sm:px-6">
+							<div class="text-sm">
+								<a
+									hx-get="/subscriptions"
+									hx-target={ partials.ContentID.Target() }
+									hx-push-url="true"
+									hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+									class="link link-hover font-medium text-primary hover:text-accent"
+								>
+									View all<span class="sr-only">Total unread subscriptions</span>
+								</a>
+							</div>
 						</div>
-						<div class="stat-value text-primary">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</div>
-						<div class="stat-title font-semibold">Unread Articles</div>
-					</div>
-				}
-			</div>
+					</dd>
+				</div>
+				<div class="relative overflow-hidden rounded-lg bg-base-200/75 px-4 pt-5 pb-12 shadow-sm inset-ring inset-ring-base-content/10 sm:px-6 sm:pt-6">
+					<dt>
+						<div class="absolute rounded-md bg-primary p-3">
+							@partials.HeroIconArticle("size-6 text-primary-content")
+						</div>
+						<p class="ml-16 truncate text-sm font-medium ">Unread Articles</p>
+					</dt>
+					<dd class="ml-16 flex items-baseline pb-6 sm:pb-7">
+						<p class="text-2xl font-semibold">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</p>
+						<div class="absolute inset-x-0 bottom-0 bg-base-200/20 px-4 py-4 sm:px-6">
+							<div class="text-sm">
+								<a
+									hx-get="/articles"
+									hx-target={ partials.ContentID.Target() }
+									hx-push-url="true"
+									hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
+									class="link link-hover font-medium text-primary hover:text-accent"
+								>
+									View all<span class="sr-only">Total unread articles</span>
+								</a>
+							</div>
+						</div>
+					</dd>
+				</div>
+			</dl>
 		</div>
-		// Top categories
 		if page.TopCategories != nil {
-			// Display a list of top categories with item counts.
-			<h1 class="content-center text-center font-semibold">Top Categories:</h1>
-			<div class="flex justify-center gap-2 p-4 m-4 rounded-box bg-base-300">
-				<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-					for category := range slices.Values(page.TopCategories) {
-						@categoryBadge(category)
-					}
+			<div class="mt-8">
+				<h3 class="text-base font-semibold">Top Categories</h3>
+				<div class="flex justify-center gap-2 p-4 m-4">
+					<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+						for category := range slices.Values(page.TopCategories) {
+							@categoryBadge(category)
+						}
+					</div>
 				</div>
 			</div>
 		}
 		if page.RareCategories != nil {
-			// Display a list of rare categories with item count.
-			<h1 class="content-center text-center font-semibold">Interesting Categories:</h1>
-			<div class="flex justify-center gap-2 p-4 m-4 rounded-box bg-base-300">
-				<div id="rare-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-					for category := range slices.Values(page.RareCategories) {
-						@categoryBadge(category)
-					}
+			<div class="mt-8">
+				<h3 class="text-base font-semibold">Interesting Categories</h3>
+				<div class="flex justify-center gap-2 p-4 m-4">
+					<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+						for category := range slices.Values(page.RareCategories) {
+							@categoryBadge(category)
+						}
+					</div>
 				</div>
 			</div>
 		}
 		if page.RandomArticles != nil {
-			<h1 class="content-center text-center font-semibold">Random Articles:</h1>
-			<div class="carousel w-full">
-				for idx, article := range page.RandomArticles {
-					<div id={ "slide" + strconv.Itoa(idx) } class="carousel-item relative w-full content-center">
+			<div class="mt-8">
+				<h3 class="text-base font-semibold">Random Articles</h3>
+				@layouts.CardGrid() {
+					for article := range slices.Values(page.RandomArticles) {
 						@article
-						<div class="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-							if idx == 0 {
-								<a href={ "#slide" + strconv.Itoa(len(page.RandomArticles)-1) } class="btn btn-circle">❮</a>
-							} else {
-								<a href={ "#slide" + strconv.Itoa(idx-1) } class="btn btn-circle">❮</a>
-							}
-							if idx == len(page.RandomArticles)-1 {
-								<a href={ "#slide0" } class="btn btn-circle">❯</a>
-							} else {
-								<a href={ "#slide" + strconv.Itoa(idx+1) } class="btn btn-circle">❯</a>
-							}
-						</div>
-					</div>
+					}
 				}
 			</div>
 		}
-		@partials.Footer()
 	}
 }
 
@@ -144,12 +142,7 @@ templ categoryBadge(category models.CategoryCount) {
 		partials.ActionPushURL(),
 	) {
 		<div class="flex gap-2 text-sm capitalize">
-			{ category.Category }
-			@badge.Build(
-				badge.WithClasses(badge.SM, badge.Primary, "grow", "text-no-wrap"),
-			) {
-				{ strconv.Itoa(category.Count) }
-			}
+			<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{ category.Category+ " "+ strconv.Itoa(category.Count) } </span>
 		</div>
 	}
 }
