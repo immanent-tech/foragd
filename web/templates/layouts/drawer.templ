@@ -12,7 +12,7 @@ import (
 )
 
 templ Drawer() {
-	<el-dialog id="drawer-sidebar">
+	<el-dialog id="drawer-sidebar" _="on open call document.getElementById('navigation-menu-mobile').show()">
 		<dialog id="sidebar" class="backdrop:bg-transparent lg:hidden">
 			<el-dialog-backdrop class="fixed inset-0 bg-base-100/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"></el-dialog-backdrop>
 			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
@@ -31,7 +31,10 @@ templ Drawer() {
 		</dialog>
 	</el-dialog>
 	<div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 bg-base-200 px-6 pb-4">
+		<div
+			class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 bg-base-200 px-6 pb-4"
+			_="on intersection(intersecting) call document.getElementById('navigation-menu-desktop').show()"
+		>
 			@DrawerSidebar("flex flex-1 flex-col mt-20 mb-8", "desktop")
 		</div>
 	</div>
