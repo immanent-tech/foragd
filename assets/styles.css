@@ -36,6 +36,14 @@
   @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
 }
 
+@utility active-link {
+  @apply bg-accent/5 text-accent-content flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
+}
+
+@utility inactive-link {
+  @apply hover:bg-accent/5 hover:text-accent-content flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
+}
+
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {

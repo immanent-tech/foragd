@@ -77,7 +77,8 @@
     "settings",
     "controls",
     "pages",
-    "middlewares"
+    "middlewares",
+    "sidebar"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

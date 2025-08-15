@@ -21,8 +21,8 @@ templ (page *Page) render() {
 		<body
 			class="h-full"
 			hx-ext="response-targets,ajax-header"
-			hx-target-error={ partials.NotificationsID.Target() }
 			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
+			hx-target-404={ partials.ContentID.Target() }
 		>
 			<input
 				id="page-theme"

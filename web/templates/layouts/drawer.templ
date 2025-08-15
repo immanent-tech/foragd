@@ -4,7 +4,6 @@
 package layouts
 
 import (
-	"github.com/goforj/godump"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -13,7 +12,7 @@ import (
 )
 
 templ Drawer() {
-	<el-dialog>
+	<el-dialog id="drawer-sidebar">
 		<dialog id="sidebar" class="backdrop:bg-transparent lg:hidden">
 			<el-dialog-backdrop class="fixed inset-0 bg-base-100/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"></el-dialog-backdrop>
 			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
@@ -25,7 +24,7 @@ templ Drawer() {
 						</button>
 					</div>
 					<div class="relative flex grow flex-col gap-y-5 overflow-y-auto bg-base-200 px-6 ring ring-base-content/10 before:pointer-events-none before:absolute before:inset-0 before:bg-base-200/10">
-						@DrawerSidebar()
+						@DrawerSidebar("relative flex flex-1 flex-col mt-20 mb-8", "mobile")
 					</div>
 				</el-dialog-panel>
 			</div>
@@ -33,7 +32,7 @@ templ Drawer() {
 	</el-dialog>
 	<div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
 		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 bg-base-200 px-6 pb-4">
-			@DrawerSidebar()
+			@DrawerSidebar("flex flex-1 flex-col mt-20 mb-8", "desktop")
 		</div>
 	</div>
 	<div class="lg:pl-72">
@@ -48,60 +47,97 @@ templ Drawer() {
 	</div>
 }
 
-templ DrawerSidebar() {
+templ DrawerSidebar(classes, layout string) {
 	// <div class="flex h-16 shrink-0 items-center">
-	// 	@partials.NewAction("/home", partials.DisplayActionAsLink,
+	// 	@partials.partials.NewAction("/home", partials.DisplayActionAsLink,
 	// 		partials.ActionPushURL(),
 	// 	) {
 	// 		@partials.Logo("h-8 w-auto")
 	// 	}
 	// </div>
-	<nav class="flex flex-1 flex-col mt-16 mb-8">
+	<nav class={ classes }>
 		<ul role="list" class="flex flex-1 flex-col gap-y-7">
 			<li>
 				<ul role="list" class="-mx-2 space-y-1">
 					<li>
-						@partials.NewAction("/subscriptions", partials.DisplayActionAsLink,
-							partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-							partials.ActionPushURL(),
-							partials.ActionClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold hover:bg-accent hover:text-accent-content"),
-						) {
-							@partials.HeroIconSubscription("")
-							Subscriptions
-						}
+						<button
+							type="button"
+							command="--toggle"
+							commandfor={ "navigation-menu-" + layout }
+							aria-expanded="true"
+							aria-controls={ "navigation-menu-" + layout }
+							class="flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold hover:bg-accent/5 hover:text-accent-content"
+						>
+							Navigation
+							<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="ml-auto size-5 shrink-0 not-in-aria-expanded:text-base-content in-aria-expanded:rotate-90 in-aria-expanded:text-base-content">
+								<path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+							</svg>
+						</button>
+						<el-disclosure id={ "navigation-menu-" + layout } hidden class="contents transition transition-discrete duration-1000 data-closed:opacity-0">
+							<ul class="mt-1 px-2">
+								<li>
+									<a
+										href="/home"
+										class="group inactive-link"
+									>
+										@partials.HeroIconHome("size-6 shrink-0 text-current")
+										Home
+									</a>
+								</li>
+								<li>
+									<a
+										hx-get="/subscriptions"
+										hx-target={ partials.ContentID.Target() }
+										hx-push-url="true"
+										hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+										hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+										class="group inactive-link"
+									>
+										@partials.HeroIconSubscription("size-6 shrink-0 text-current")
+										Subscriptions
+									</a>
+								</li>
+								<li>
+									<a
+										hx-get="/articles"
+										hx-target={ partials.ContentID.Target() }
+										hx-push-url="true"
+										hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
+										hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+										class="group inactive-link"
+									>
+										@partials.HeroIconArticle("size-6 shrink-0 text-current")
+										Articles
+									</a>
+								</li>
+							</ul>
+						</el-disclosure>
 					</li>
 					<li>
-						@partials.NewAction("/articles", partials.DisplayActionAsLink,
-							partials.ActionValues(session.ArticleFiltersFromSession(ctx).Parameters()),
-							partials.ActionPushURL(),
-							partials.ActionClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold hover:bg-accent hover:text-accent-content"),
-						) {
-							@partials.HeroIconArticle("")
-							Articles
-						}
+						<button
+							type="button"
+							command="--toggle"
+							commandfor={ "favorites-menu-" + layout }
+							aria-expanded="false"
+							aria-controls={ "favorites-menu-" + layout }
+							class="flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold  hover:bg-accent/5 hover:text-accent-content"
+						>
+							Favorites
+							<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="ml-auto size-5 shrink-0 not-in-aria-expanded:text-base-content in-aria-expanded:rotate-90 in-aria-expanded:text-base-content">
+								<path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+							</svg>
+						</button>
+						<el-disclosure id={ "favorites-menu-" + layout } hidden class="contents transition transition-discrete duration-1000 data-closed:opacity-0">
+							<ul
+								class="mt-1 px-2"
+								id={ "favorites-" + layout }
+								hx-trigger="load, updateFavorites from:body"
+								hx-get="/user/favorite"
+								hx-target={ "#favorites-" + layout }
+							></ul>
+						</el-disclosure>
 					</li>
 				</ul>
-			</li>
-			<li>
-				<div class="text-sm/6 font-semibold text-base-content/40">Your Favorites</div>
-				<ul
-					role="list"
-					class="-mx-2 mt-2 space-y-1"
-					id={ partials.FavoritesID.String() }
-					hx-trigger="load, updateFavorites from:body"
-					hx-get="/user/favorite"
-					hx-target={ partials.FavoritesID.Target() }
-				></ul>
-			</li>
-			<li class="mt-auto">
-				@partials.NewAction("/user/settings", partials.DisplayActionAsLink,
-					partials.ActionTarget(partials.ContentID.Target()),
-					partials.ActionPushURL(),
-					partials.ActionClasses("group flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold hover:bg-accent hover:text-accent-content"),
-				) {
-					@partials.HeroIconSettings("")
-					Settings
-				}
 			</li>
 		</ul>
 	</nav>
@@ -111,44 +147,79 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 	{{ subscriptions := favorites.FilterByType(models.FavoriteTypeSubscription) }}
 	{{ articles := favorites.FilterByType(models.FavoriteTypeArticle) }}
 	{{ searches := favorites.FilterByType(models.FavoriteTypeSearch) }}
-	{{ godump.Dump(favorites) }}
 	if len(subscriptions) > 0 {
 		// Show favorite subscriptions.
-		<li>
-			// <div class="text-xs/8 font-semibold text-gray-400">Subscriptions</div>
-			<ul>
-				for fav := range slices.Values(subscriptions) {
-					<li>
-						@partials.FavoriteLink(fav, "group flex items-center gap-x-3 rounded-md p-2 text-sm/6 font-semibold hover:bg-accent hover:text-accent-content")
-					</li>
-				}
-			</ul>
-		</li>
+		<li class="text-xs/4 font-semibold text-base-content/80">Subscriptions</li>
+		for fav := range slices.Values(subscriptions) {
+			<li>
+				@favoriteLink(fav, "group inactive-link")
+			</li>
+		}
 	}
 	if len(articles) > 0 {
 		// Show favorite articles.
-		<li>
-			// <div class="text-xs/8 font-semibold text-gray-400">Articles</div>
-			<ul>
-				for fav := range slices.Values(articles) {
-					<li>
-						@partials.FavoriteLink(fav, "group flex items-center gap-x-3 rounded-md p-2 text-sm/6 font-semibold hover:bg-accent hover:text-accent-content")
-					</li>
-				}
-			</ul>
-		</li>
+		<li class="text-xs/4 font-semibold text-base-content/80">Articles</li>
+		for fav := range slices.Values(articles) {
+			<li>
+				@favoriteLink(fav, "group inactive-link")
+			</li>
+		}
 	}
 	if len(searches) > 0 {
-		// Show favorite articles.
-		<li>
-			<li class="text-xs/4 font-semibold text-base-content/80">Searches</li>
-			<ul>
-				for fav := range slices.Values(searches) {
-					<li>
-						@partials.FavoriteLink(fav, "group flex items-center gap-x-3 rounded-md p-2 text-sm/6 font-semibold hover:bg-accent hover:text-accent-content")
-					</li>
-				}
-			</ul>
-		</li>
+		// Show favorite searches.
+		<li class="text-xs/4 font-semibold text-base-content/80">Searches</li>
+		for fav := range slices.Values(searches) {
+			<li>
+				@favoriteLink(fav, "group inactive-link")
+			</li>
+		}
+	}
+}
+
+templ favoriteLink(fav *models.Favorite, classes string) {
+	switch fav.Type {
+		case models.FavoriteTypeSubscription:
+			// FavouriteSubscription.
+			{{ values := session.SubscriptionFiltersFromSession(ctx).Parameters() }}
+			{{ values[models.ParamSubscriptions] = fav.GetID() }}
+			<a
+				hx-get="/subscripions"
+				hx-target={ partials.ContentID.Target() }
+				hx-vals={ partials.GenerateHXVals(values) }
+				hx-push-url="true"
+				hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+				class={ classes }
+			>
+				@partials.HeroIconSubscription("size-4")
+				{ fav.String() }
+			</a>
+		case models.FavoriteTypeArticle:
+			// FavoriteArticle.
+			<a
+				hx-get={ "/article/" + fav.GetID() }
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+				hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+				class={ classes }
+			>
+				@partials.HeroIconArticle("size-4")
+				{ fav.String() }
+			</a>
+		case models.FavoriteTypeSearch:
+			// FavoriteArticle.
+			{{ search, err := fav.ObjectData.AsFavoriteSearch() }}
+			if err == nil {
+				<a
+					hx-get="/search"
+					hx-target={ partials.ContentID.Target() }
+					hx-vals={ partials.GenerateHXVals(map[string]string{"text": search.Text}) }
+					hx-push-url="true"
+					hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+					class={ classes }
+				>
+					@partials.HeroIconSearch("size-4")
+					{ fav.String() }
+				</a>
+			}
 	}
 }

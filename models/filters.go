@@ -212,6 +212,14 @@ func (f SubscriptionFilters) Parameters() map[string]string {
 	return params
 }
 
+func (f SubscriptionFilters) HXVals() string {
+	data, err := json.Marshal(f.Parameters())
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
 func (f SubscriptionFilters) Query() string {
 	params := make(url.Values)
 
@@ -328,6 +336,14 @@ func (f ArticleFilters) Parameters() map[string]string {
 	params[ParamCount] = f.Count
 
 	return params
+}
+
+func (f ArticleFilters) HXVals() string {
+	data, err := json.Marshal(f.Parameters())
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }
 
 func (f ArticleFilters) Query() string {

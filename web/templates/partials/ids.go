@@ -7,11 +7,6 @@ import (
 	"fmt"
 )
 
-const (
-	// FavoritesID is the id of the element containing the favorites list.
-	FavoritesID ID = "favorites"
-)
-
 var (
 	// ContentID points to the element containing the main content of the page.
 	ContentID = ID("content")

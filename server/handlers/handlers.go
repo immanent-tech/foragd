@@ -15,6 +15,7 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -79,6 +80,7 @@ func RenderResponse(resp *models.Response) http.Handler {
 			case resp.StatusCode < 400:
 				slogctx.FromCtx(req.Context()).DebugContext(req.Context(), resp.InternalError.Error())
 			case resp.StatusCode < 500:
+				godump.Dump(resp)
 				slogctx.FromCtx(req.Context()).WarnContext(req.Context(), resp.InternalError.Error())
 			default:
 				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), resp.InternalError.Error())
