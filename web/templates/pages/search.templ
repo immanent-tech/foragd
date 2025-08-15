@@ -1,0 +1,153 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package pages
+
+import (
+	"github.com/angelofallars/htmx-go"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"net/http"
+	"slices"
+)
+
+type SearchResultsPage struct {
+	subscriptions []*partials.Subscription
+	articles      []*partials.Article
+	search        *models.SearchRequest
+	favoriteID    models.FavoriteID
+}
+
+func NewSearchResultsPage(fav *models.Favorite, search *models.SearchRequest, subscriptions []*partials.Subscription, articles []*partials.Article) *SearchResultsPage {
+	page := &SearchResultsPage{
+		search:        search,
+		subscriptions: subscriptions,
+		articles:      articles,
+	}
+	if fav != nil {
+		page.favoriteID = fav.GetID()
+	}
+	return page
+}
+
+// Template will render the home page based on the request details.
+func (page *SearchResultsPage) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Search Results",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+}
+
+// layout is the complete page layout for the articles page.
+templ (page *SearchResultsPage) layout() {
+	@layouts.Drawer() {
+		@page.content()
+	}
+}
+
+templ (page *SearchResultsPage) content() {
+	<nav class="relative flex mt-8 items-center">
+		// Show jump links if both subscription and article results are available.
+		<div class="flex flex-1">
+			if len(page.subscriptions) > 0 && len(page.articles) > 0 {
+				<div class="text-sm font-medium px-1 py-2">Jump to:</div>
+				<a href="#subscription-results" class="link link-hover rounded-md px-1 py-2 text-sm font-medium hover:bg-accent/5 hover:text-accent-content">Subscriptions</a>
+				<a href="#article-results" class="link link-hover rounded-md px-1 py-2 text-sm font-medium hover:bg-accent/5 hover:text-accent-content">Articles</a>
+			}
+		</div>
+		// Show button to toggle favorite status of search.
+		<div id="search-request" class="hidden">
+			<input type="hidden" name="text" value={ page.search.Text }/>
+		</div>
+		<div id="favorite-button" class="flex justify-end">
+			if page.favoriteID != "" {
+				@RemoveFavoriteSearchButton(page.favoriteID)
+			} else {
+				@AddFavoriteSearchButton()
+			}
+		</div>
+	</nav>
+	<ul role="list">
+		// Subscription results.
+		if len(page.subscriptions) > 0 {
+			<div class="border-b border-base-content/10 pb-5 mt-4">
+				<h2 id="subscription-results" class="text-base font-semibold">Subscriptions</h2>
+			</div>
+			<ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+				for subscription := range slices.Values(page.subscriptions) {
+					@subscriptionSearchResult(subscription)
+				}
+			</ul>
+		}
+		// Article results.
+		if len(page.articles) > 0 {
+			<div class="border-b border-base-content/10 pb-5 mt-4">
+				<h2 id="article-results" class="text-base font-semibold">Articles</h2>
+			</div>
+			for article := range slices.Values(page.articles) {
+				@articleSearchResult(article)
+			}
+		}
+	</ul>
+	<button class="app-button fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
+}
+
+templ AddFavoriteSearchButton() {
+	<button
+		class="app-button"
+		hx-put="/user/favorite/search"
+		hx-target="#favorite-button"
+		hx-include="#search-request"
+	>
+		@partials.HeroIconHeart("size-4")
+	</button>
+}
+
+templ RemoveFavoriteSearchButton(id models.FavoriteID) {
+	<button
+		class="app-button"
+		hx-delete="/user/favorite/search"
+		hx-target="#favorite-button"
+		hx-include="#search-request"
+	>
+		@partials.HeroIconHeartFilled("size-4")
+	</button>
+}
+
+templ subscriptionSearchResult(subscription *partials.Subscription) {
+	<li class="col-span-1">
+		<div class="flex items-center">
+			<div class="flex flex-1">
+				@subscription.ViewLink() {
+					<h3 id={ subscription.GetID() } class="text-sm/6 font-semibold py-2">{ subscription.GetTitle() }</h3>
+				}
+			</div>
+			<div class="flex text-xs/4">
+				{ subscription.GetUnreadCount() } Unread
+			</div>
+		</div>
+		<p class="text-xs/4">
+			@partials.ShowTimestamp(subscription.GetUpdatedDate())
+		</p>
+	</li>
+}
+
+templ articleSearchResult(article *partials.Article) {
+	<li class="py-5">
+		@article.ViewLink() {
+			<h3 id={ article.GetID() } class="text-sm/6 font-semibold py-2">{ article.GetTitle() }</h3>
+		}
+		<p class="text-xs/4">
+			{ article.GetFeedTitle() }
+		</p>
+		<p class="text-xs/4">
+			@partials.ShowTimestamp(article.GetUpdatedDate())
+		</p>
+	</li>
+}

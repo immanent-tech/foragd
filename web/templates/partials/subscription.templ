@@ -83,7 +83,7 @@ templ (s *Subscription) Settings() {
 // title renders the subscription title, which is its favicon (or a placeholder) and the title text, all as a link to
 // the subscription articles.
 templ (s *Subscription) title() {
-	@s.viewLink("flex", "items-center", "gap-x-4", "hover:text-accent") {
+	@s.ViewLink("flex", "items-center", "gap-x-4", "hover:text-accent") {
 		<div class="size-12 flex-none">
 			@s.image()
 		</div>
@@ -142,30 +142,6 @@ templ (s *Subscription) actionsMenu() {
 			}
 		</el-menu>
 	</el-dropdown>
-}
-
-templ (c *Subscription) ShowAsSearchResult() {
-	<div class="col-span-2">
-		<div class="flex flex-row gap-2 m-2 items-center">
-			@c.viewLink() {
-				@c.image()
-				<div class="text-sm font-semibold flex-1">{ c.GetTitle() }</div>
-				@c.unreadBadge()
-			}
-		</div>
-		<div class="col-span-2">
-			if c.GetDescription() != "" {
-				<p class="text-xs italic">
-					{ c.GetDescription() }
-				</p>
-			}
-		</div>
-		<div class="flex flex-row m-4 justify-end gap-2">
-			<div class="flex text-xs uppercase font-semibold">
-				@ShowTimestamp(c.GetUpdatedDate())
-			</div>
-		</div>
-	</div>
 }
 
 templ (c *Subscription) image() {
@@ -280,7 +256,7 @@ templ (c *Subscription) unsubscribeLink(classes ...components.Class) {
 }
 
 // viewLink generates a link for viewing the subscription articles.
-templ (c *Subscription) viewLink(classes ...components.Class) {
+templ (c *Subscription) ViewLink(classes ...components.Class) {
 	{{ overrides := map[string]string{models.ParamSortBy: string(models.SortByLastUpdated), "subscriptions": c.GetID()} }}
 	if c.IsUnread() {
 		{{ overrides[models.ParamView] = string(models.ViewUnread) }}

@@ -5,6 +5,7 @@ package models
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 
 	"github.com/gohugoio/hashstructure"
@@ -35,4 +36,11 @@ func (r *SearchRequest) ID() string {
 		return ""
 	}
 	return strconv.FormatUint(hash, 10)
+}
+
+// Query returns a string that represents the search as query parameters.
+func (r *SearchRequest) Query() string {
+	params := make(url.Values)
+	params.Set("text", r.Text)
+	return params.Encode()
 }

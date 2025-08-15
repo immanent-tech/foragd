@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"slices"
 
+	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -19,8 +20,8 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/results"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/pages"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
@@ -93,9 +94,9 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
 			resp := models.NewResponse(
-				models.WithResponseTemplate(views.NewSearchResultsPage(fav, request, subscriptions, articles).Template(req)),
+				models.WithResponseTemplate(pages.NewSearchResultsPage(fav, request, subscriptions, articles).Template(req)),
 			)
-			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+			chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(htmxRespToCtx(req.Context(), htmx.NewResponse().ReplaceURL("/search?"+request.Query()))))
 		}
 	}
 }

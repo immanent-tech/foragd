@@ -23,7 +23,7 @@ import (
 templ Header() {
 	{{ user, _ := models.UserFromCtx(ctx) }}
 	<header class="sticky z-999 top-0 bg-base-200 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-base-content/10 lg:overflow-y-visible">
-		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+		<div class="content-width">
 			<div class="relative flex justify-between lg:gap-8 xl:grid xl:grid-cols-12">
 				//  Sidebar button for small screens.
 				<div class="flex md:absolute md:inset-y-0 md:left-0 lg:static xl:col-span-2">

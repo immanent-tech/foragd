@@ -74,22 +74,33 @@ templ SearchSuggestions(subscriptions []*partials.Subscription, articles []*part
 
 // GlobalSearch renders a command palette element for powering global search within the app.
 templ GlobalSearch() {
-	<el-command-palette id="global-search">
+	<el-command-palette>
 		<div class="grid grid-cols-1 border-b border-base-content/10">
 			@partials.HeroIconSearch("pointer-events-none col-start-1 row-start-1 ml-4 self-center text-base-content size-5")
 			<input
+				id="global-search"
 				type="text"
 				name="text"
-				hx-post="/search"
-				hx-trigger="input changed delay:500ms"
-				hx-target="#global-search-suggestions"
 				hx-push-url="false"
 				autofocus
 				placeholder="Search, Command..."
 				class="col-start-1 row-start-1 h-12 w-full pr-4 pl-11 app-textinput text-base sm:text-sm"
 			/>
+			<div
+				hx-trigger="input changed from:#global-search delay:500ms"
+				hx-get="/search/suggestions"
+				hx-target="#global-search-suggestions"
+				hx-include="[name='text']"
+			></div>
+			<div
+				hx-trigger="keyup[key=='Enter'] from:#global-search delay:500ms"
+				hx-get="/search"
+				hx-target={ partials.ContentID.Target() }
+				hx-include="[name='text']"
+				hx-push-url="true"
+				_="on htmx:afterRequest add @hidden to #global-search-suggestions"
+			></div>
 		</div>
-		// <el-command-list class="absolute w-full md:w-[anchor(width)] left-[anchor(left)] top-[anchor(bottom)] [justify-self:_anchor-center] block max-h-80 scroll-py-2 overflow-y-auto" style="position-anchor: --command-palette">
 		<el-command-list
 			id="global-search-suggestions"
 			class="absolute w-(--input-width) block max-h-80 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300"

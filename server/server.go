@@ -134,8 +134,8 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			middlewares.RequireUserAuth(handler.DataAPI(), handler.AuthAPI()),
 		)
 		r.Get("/home", handler.Home())
-		r.With(middlewares.RequireHTMX).Post("/search", handler.GetSearchSuggestions())
-		r.Get("/search/results", handler.GetSearchResults())
+		r.With(middlewares.RequireHTMX).Get("/search/suggestions", handler.GetSearchSuggestions())
+		r.Get("/search", handler.GetSearchResults())
 		// Subscription routes.
 		r.Route("/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.AddFilters())

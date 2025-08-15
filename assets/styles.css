@@ -14,7 +14,6 @@
     dim,
     nord --default;
 }
-@source "/go/pkg/mod/github.com/sebasvil20/templicons@*/i/*.{go,templ}";
 
 :root {
   font-family: Inter, sans-serif;
@@ -32,25 +31,10 @@
   }
 }
 
-/* @theme {
-  --font-sans: InterVariable, sans-serif;
-  --font-sans--font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
-} */
-/*
-@utility search-suggestions-anchor {
-  anchor-name: --search-suggestions-anchor;
+/* content-width defines the base styles and layout constraints for content */
+@utility content-width {
+  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
 }
-
-@utility search-suggestions-target {
-  @apply bg-base-200/90 absolute z-999 flex place-items-center;
-  .search-suggestions {
-    @apply flex flex-col gap-2.5 rounded-2xl p-2.5 shadow-lg;
-  }
-}
-
-@utility search-suggestions {
-  @apply w-screen lg:w-1/2;
-} */
 
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */

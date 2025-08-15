@@ -21,7 +21,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/pages"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/templates/views"
 )
 
 // GetSettings handles retrieving and rendering the user settings page.
@@ -452,7 +451,7 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 		fav := user.GetFavorites().Get(id)
 		// Update the favorite button.
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.RemoveFavoriteSearchButton(fav.GetID())),
+			models.WithResponseTemplate(pages.RemoveFavoriteSearchButton(fav.GetID())),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -492,7 +491,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 		}
 		// Update the favorite button.
 		resp := models.NewResponse(
-			models.WithResponseTemplate(views.AddFavoriteSearchButton()),
+			models.WithResponseTemplate(pages.AddFavoriteSearchButton()),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP

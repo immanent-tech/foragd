@@ -4,6 +4,7 @@
 package layouts
 
 import (
+	"github.com/goforj/godump"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
@@ -37,8 +38,8 @@ templ Drawer() {
 	</div>
 	<div class="lg:pl-72">
 		@Header()
-		<main>
-			<div id={ partials.ContentID.String() } class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+		<main class="content-width">
+			<div id={ partials.ContentID.String() }>
 				@templ.Fragment(templates.ContentFragment) {
 					{ children... }
 				}
@@ -83,14 +84,14 @@ templ DrawerSidebar() {
 			</li>
 			<li>
 				<div class="text-sm/6 font-semibold text-base-content/40">Your Favorites</div>
-				<ul role="list" class="-mx-2 mt-2 space-y-1">
-					<div
-						id={ partials.FavoritesID.String() }
-						hx-trigger="load, updateFavorites from:body"
-						hx-get="/user/favorite"
-						hx-target={ partials.FavoritesID.Target() }
-					></div>
-				</ul>
+				<ul
+					role="list"
+					class="-mx-2 mt-2 space-y-1"
+					id={ partials.FavoritesID.String() }
+					hx-trigger="load, updateFavorites from:body"
+					hx-get="/user/favorite"
+					hx-target={ partials.FavoritesID.Target() }
+				></ul>
 			</li>
 			<li class="mt-auto">
 				@partials.NewAction("/user/settings", partials.DisplayActionAsLink,
@@ -110,6 +111,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 	{{ subscriptions := favorites.FilterByType(models.FavoriteTypeSubscription) }}
 	{{ articles := favorites.FilterByType(models.FavoriteTypeArticle) }}
 	{{ searches := favorites.FilterByType(models.FavoriteTypeSearch) }}
+	{{ godump.Dump(favorites) }}
 	if len(subscriptions) > 0 {
 		// Show favorite subscriptions.
 		<li>
@@ -139,7 +141,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 	if len(searches) > 0 {
 		// Show favorite articles.
 		<li>
-			// <div class="text-xs/8 font-semibold text-gray-400">Searches</div>
+			<li class="text-xs/4 font-semibold text-base-content/80">Searches</li>
 			<ul>
 				for fav := range slices.Values(searches) {
 					<li>
