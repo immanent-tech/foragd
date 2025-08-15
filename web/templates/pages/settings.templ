@@ -105,27 +105,35 @@ templ settingsSelect(current string) {
 			<nav aria-label="Tabs" class="flex space-x-4" hx-target="#current-settings" hx-push-url="true">
 				<a
 					hx-get="/user/settings/account"
-					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-accent text-accent-content",current == "account"),
-				templ.KV("hover:link-accent", current != "account") }
+					class={
+						templ.KV("active-link", current == "account"),
+						templ.KV("inactive-link", current != "account"),
+						"text-sm font-medium",
+					}
 				>My Account</a>
 				<a
 					href="#"
-					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-accent text-accent-content",current == "billing"),
-				templ.KV(" hover:link-accent", current != "billing") }
+					class={
+						templ.KV("active-link", current == "billing"),
+						templ.KV("inactive-link", current != "billing"),
+						"text-sm font-medium",
+					}
 				>Billing</a>
 				<a
 					hx-get="/user/settings/subscriptions"
-					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-accent text-accent-content",current == "subscriptions"),
-				templ.KV(" hover:link-accent", current != "subscriptions") }
+					class={
+						templ.KV("active-link", current == "subscriptions"),
+						templ.KV("inactive-link", current != "subscriptions"),
+						"text-sm font-medium",
+					}
 				>Subscriptions</a>
 				<a
 					hx-get="/user/settings/app"
-					class={ "link link-hover rounded-md px-3 py-2 text-sm font-medium",
-				templ.KV("bg-accent text-accent-content",current == "app"),
-				templ.KV(" hover:link-accent", current != "app") }
+					class={
+						templ.KV("active-link", current == "app"),
+						templ.KV("inactive-link", current != "app"),
+						"text-sm font-medium",
+					}
 				>App</a>
 			</nav>
 		</div>

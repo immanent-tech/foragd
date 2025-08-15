@@ -37,11 +37,11 @@
 }
 
 @utility active-link {
-  @apply bg-accent/5 text-accent-content flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
+  @apply link link-hover bg-accent/20 text-accent-content flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
 }
 
 @utility inactive-link {
-  @apply hover:bg-accent/5 hover:text-accent-content flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
+  @apply link link-hover hover:bg-accent/20 hover:text-accent-content flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
 }
 
 /* Custom Component Classes */
@@ -82,7 +82,7 @@
 
   /*  Button Styles */
   .app-button {
-    @apply bg-primary hover:bg-primary/50 focus-visible:outline-primary text-primary-content block rounded-md px-3 py-2 text-center text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2;
+    @apply bg-neutral hover:bg-primary hover:text-primary-content focus-visible:outline-primary text-neutral-content block rounded-md px-3 py-2 text-center text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2;
   }
   .app-button-close {
     @apply focus:ring-primary bg-base-content text-base-content hover:text-base-content/50 rounded-md focus:ring-2 focus:ring-offset-2 focus:outline-hidden;

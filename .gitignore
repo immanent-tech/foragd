@@ -77,3 +77,4 @@ deployments/
 test/main.go
 test/*.opml
 test/*.xml
+test/goth/main.go

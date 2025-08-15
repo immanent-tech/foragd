@@ -69,7 +69,7 @@ templ DrawerSidebar(classes, layout string) {
 							commandfor={ "navigation-menu-" + layout }
 							aria-expanded="true"
 							aria-controls={ "navigation-menu-" + layout }
-							class="flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold hover:bg-accent/5 hover:text-accent-content"
+							class="flex w-full items-center inactive-link"
 						>
 							Navigation
 							<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="ml-auto size-5 shrink-0 not-in-aria-expanded:text-base-content in-aria-expanded:rotate-90 in-aria-expanded:text-base-content">
@@ -123,7 +123,7 @@ templ DrawerSidebar(classes, layout string) {
 							commandfor={ "favorites-menu-" + layout }
 							aria-expanded="false"
 							aria-controls={ "favorites-menu-" + layout }
-							class="flex w-full items-center gap-x-3 rounded-md p-2 text-left text-sm/6 font-semibold  hover:bg-accent/5 hover:text-accent-content"
+							class="flex w-full items-center inactive-link"
 						>
 							Favorites
 							<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="ml-auto size-5 shrink-0 not-in-aria-expanded:text-base-content in-aria-expanded:rotate-90 in-aria-expanded:text-base-content">

@@ -78,7 +78,9 @@
     "controls",
     "pages",
     "middlewares",
-    "sidebar"
+    "sidebar",
+    "home",
+    "drawer"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
