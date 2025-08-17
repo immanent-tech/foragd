@@ -49,53 +49,43 @@ templ (page *HomePage) content() {
 		<div class="mt-8">
 			<h3 class="text-base font-semibold">Stats</h3>
 			<dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-				<div class="relative overflow-hidden rounded-lg bg-base-200/75 px-4 pt-5 pb-12 shadow-sm inset-ring inset-ring-base-content/10 sm:px-6 sm:pt-6">
-					<dt>
-						<div class="absolute rounded-md bg-primary p-3">
-							@partials.HeroIconSubscription("size-6 text-primary-content")
-						</div>
-						<p class="ml-16 truncate text-sm font-medium ">Unread Subscriptions</p>
-					</dt>
-					<dd class="ml-16 flex items-baseline pb-6 sm:pb-7">
-						<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.Subscriptions)) }</p>
-						<div class="absolute inset-x-0 bottom-0 bg-base-200/20 px-4 py-4 sm:px-6">
-							<div class="text-sm">
-								<a
-									hx-get="/subscriptions"
-									hx-target={ partials.ContentID.Target() }
-									hx-push-url="true"
-									hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
-									class="link link-hover font-medium text-primary hover:text-accent"
-								>
-									View all<span class="sr-only">Total unread subscriptions</span>
-								</a>
+				<div class="relative overflow-hidden rounded-lg bg-base-200/75 px-4 py-5 shadow-sm inset-ring inset-ring-base-content/10 sm:px-6 sm:pt-6">
+					<a
+						hx-get="/subscriptions"
+						hx-target={ partials.ContentID.Target() }
+						hx-push-url="true"
+						hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+						class="link link-hover font-medium"
+					>
+						<dt>
+							<div class="absolute rounded-md bg-primary p-3">
+								@partials.HeroIconSubscription("size-6 text-primary-content")
 							</div>
-						</div>
-					</dd>
+							<p class="ml-16 truncate text-sm font-medium ">Unread Subscriptions</p>
+						</dt>
+						<dd class="ml-16 flex items-baseline">
+							<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.Subscriptions)) }</p>
+						</dd>
+					</a>
 				</div>
-				<div class="relative overflow-hidden rounded-lg bg-base-200/75 px-4 pt-5 pb-12 shadow-sm inset-ring inset-ring-base-content/10 sm:px-6 sm:pt-6">
-					<dt>
-						<div class="absolute rounded-md bg-primary p-3">
-							@partials.HeroIconArticle("size-6 text-primary-content")
-						</div>
-						<p class="ml-16 truncate text-sm font-medium ">Unread Articles</p>
-					</dt>
-					<dd class="ml-16 flex items-baseline pb-6 sm:pb-7">
-						<p class="text-2xl font-semibold">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</p>
-						<div class="absolute inset-x-0 bottom-0 bg-base-200/20 px-4 py-4 sm:px-6">
-							<div class="text-sm">
-								<a
-									hx-get="/articles"
-									hx-target={ partials.ContentID.Target() }
-									hx-push-url="true"
-									hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
-									class="link link-hover font-medium text-primary hover:text-accent"
-								>
-									View all<span class="sr-only">Total unread articles</span>
-								</a>
+				<div class="relative overflow-hidden rounded-lg bg-base-200/75 px-4 py-5 shadow-sm inset-ring inset-ring-base-content/10 sm:px-6 sm:pt-6">
+					<a
+						hx-get="/articles"
+						hx-target={ partials.ContentID.Target() }
+						hx-push-url="true"
+						hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
+						class="link link-hover font-medium "
+					>
+						<dt>
+							<div class="absolute rounded-md bg-primary p-3">
+								@partials.HeroIconArticle("size-6 text-primary-content")
 							</div>
-						</div>
-					</dd>
+							<p class="ml-16 truncate text-sm font-medium ">Unread Articles</p>
+						</dt>
+						<dd class="ml-16 flex items-baseline">
+							<p class="text-2xl font-semibold">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</p>
+						</dd>
+					</a>
 				</div>
 			</dl>
 		</div>
