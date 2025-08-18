@@ -324,27 +324,3 @@ templ (c *Subscription) UnsubscribeModal() {
 		</dialog>
 	</el-dialog>
 }
-
-templ AddSubscriptionModal() {
-	<el-dialog id="add-subscription-modal">
-		<dialog id="add-subscription" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
-			<el-dialog-backdrop class="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
-			<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
-				<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
-					<div class="absolute top-0 right-0 hidden pt-4 pr-4 sm:block">
-						<button
-							type="button"
-							command="close"
-							commandfor="add-subscription"
-							_="on click remove #add-subscription-modal"
-							class="app-button-close"
-						>
-							<span class="sr-only">Close</span>
-							@HeroIconClose("size-6")
-						</button>
-					</div>
-				</el-dialog-panel>
-			</div>
-		</dialog>
-	</el-dialog>
-}

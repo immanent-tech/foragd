@@ -161,7 +161,6 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			r.Get("/", handler.ViewArticle())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkArticle())
 			r.With(middlewares.RequireHTMX).Get("/share", handler.ShareArticle())
-			r.With(middlewares.RequireHTMX).Get("/share/{method}", handler.ShareArticle())
 		})
 		// User routes.
 		r.Route("/user", func(r chi.Router) {

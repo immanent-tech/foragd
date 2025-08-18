@@ -143,19 +143,19 @@ func (a *API) ShareArticle() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
-		// itemID := chi.URLParam(req, "item")
-		// // articles, err := a.getArticles(req.Context(), itemID)
-		// if err != nil {
-		// 	chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-		// 	return
-		// }
+		itemID := chi.URLParam(req, "item")
+		articles, err := a.getArticles(req.Context(), itemID)
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
 		var resp *models.Response
 		switch req.Method {
 		case http.MethodGet:
 			// Generate articles page.
-			// resp = models.NewResponse(
-			// 	models.WithResponseTemplate(partials.ShareArticleModal(articles[0])),
-			// )
+			resp = models.NewResponse(
+				models.WithResponseTemplate(partials.NewArticleContent(articles[0]).ShareModal()),
+			)
 		}
 
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
