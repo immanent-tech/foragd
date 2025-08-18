@@ -239,18 +239,13 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrScheduler, err)
 	}
-	slogctx.FromCtx(ctx).DebugContext(ctx, "Retrieved new feeds.",
-		slog.Int("count", len(feeds)),
-	)
-	// Update the checkpoint.
-	manager.checkpoint = time.Now().UTC()
-	// Get all existing feed jobs.
-	existingJobs, err := manager.scheduler.GetJobKeys()
-	if err != nil {
-		slogctx.FromCtx(ctx).WarnContext(ctx, "Could not get existing job keys from scheduler.",
-			slog.Any("error", err),
+	if len(feeds) > 0 {
+		slogctx.FromCtx(ctx).DebugContext(ctx, "Retrieved new feeds.",
+			slog.Int("count", len(feeds)),
 		)
 	}
+	// Update the checkpoint.
+	manager.checkpoint = time.Now().UTC()
 	// Create new feed jobs where necessary.
 	for feed := range slices.Values(feeds) {
 		var (
@@ -265,13 +260,22 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 
 			continue
 		}
-		if !slices.Contains(existingJobs, job.JobDetail().JobKey()) {
-			err := manager.scheduler.ScheduleJob(job.JobDetail(), job.Trigger())
+		// Check for existing job and schedule new job if needed.
+		_, err = manager.scheduler.GetScheduledJob(job.JobDetail().JobKey())
+		if err != nil && errors.Is(err, quartz.ErrJobNotFound) {
+			err = manager.scheduler.ScheduleJob(job.JobDetail(), job.Trigger())
 			if err != nil {
-				slogctx.FromCtx(ctx).WarnContext(ctx, "Failed to schedule job for feed.",
-					slog.String("feed_id", feed.GetID()),
-					slog.Any("error", err))
-
+				slog.ErrorContext(ctx, "Failed to schedule new job for feed.",
+					slog.Group("feed",
+						slog.String("id", feed.GetID()),
+						slog.String("title", feed.GetTitle()),
+					),
+					slog.Group("job",
+						slog.String("id", job.JobDetail().JobKey().String()),
+						slog.String("schedule", job.Trigger().Description()),
+					),
+					slog.Any("error", err),
+				)
 				continue
 			}
 			slogctx.FromCtx(ctx).DebugContext(ctx, "Added job for feed.",
@@ -284,9 +288,25 @@ func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
 					slog.String("schedule", job.Trigger().Description()),
 				),
 			)
+			// Do an initial run of the job.
+			go func() {
+				err = job.JobDetail().Job().Execute(ctx)
+				if err != nil {
+					slog.ErrorContext(ctx, "Failed initial run of update feed job.",
+						slog.Group("feed",
+							slog.String("id", feed.GetID()),
+							slog.String("title", feed.GetTitle()),
+						),
+						slog.Group("job",
+							slog.String("id", job.JobDetail().JobKey().String()),
+							slog.String("schedule", job.Trigger().Description()),
+						),
+						slog.Any("error", err),
+					)
+				}
+			}()
 		}
 	}
-
 	return nil
 }
 
