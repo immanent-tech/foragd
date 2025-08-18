@@ -20,7 +20,7 @@ templ (page *Page) render() {
 		@page.Head.build()
 		<body
 			class="h-full"
-			hx-ext="response-targets,ajax-header"
+			hx-ext="response-targets,preload,ajax-header"
 			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
 			hx-target-404={ partials.ContentID.Target() }
 		>
@@ -89,9 +89,9 @@ templ (h *Head) build() {
 		<link rel="icon" href="/static/favicon.png" sizes="any"/>
 		<link rel="preconnect" href="https://rsms.me/"/>
 		<link rel="stylesheet" href="https://rsms.me/inter/inter.css"/>
-		<link href="/static/styles.css" rel="stylesheet"/>
 		<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 		<script src="/static/scripts.js"></script>
+		<link href="/static/styles.css" rel="stylesheet"/>
 		// Site-wide htmx config.
 		<meta name="htmx-config" content='{"selfRequestsOnly":"true","allowNestedOobSwaps":"true","historyCacheSize":0}'/>
 		@SetPageTitle(h.Title)

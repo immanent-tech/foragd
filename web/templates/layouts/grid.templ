@@ -41,6 +41,6 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 		hx-target={ GridID.Target() }
 		hx-swap="beforeend"
 		hx-indicator="#content-loading"
-		_="on htmx:afterRequest remove me"
+		preload
 	></div>
 }
