@@ -70,10 +70,14 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 	id := jobKeyToDocID(job.JobDetail().JobKey().String())
 
 	err = elastic.UpdateDoc(jq.ctx, jq.client.GetAPI(), jq.index, id, map[string]any{
-		"job_next_run": data.JobNextRun,
-		"job_data":     data.JobData,
+		"job_next_run":     data.JobNextRun,
+		"job_data":         data.JobData,
+		"job_trigger_type": data.JobTriggerType,
+		"job_trigger":      data.JobTrigger,
+		"job_type":         data.JobType,
 	},
 		elastic.UpdateDocAsUpsert(),
+		elastic.WithRefresh("true"),
 	)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrPushJobFailed, err)
@@ -150,7 +154,7 @@ func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	if err != nil {
 		return nil, errors.Join(ErrRemoveJobFailed, err)
 	}
-	slogctx.FromCtx(jq.ctx).Debug("Job removed.",
+	slogctx.FromCtx(jq.ctx).DebugContext(jq.ctx, "Job removed.",
 		slog.String("job", job.JobDetail().Job().Description()))
 
 	return job, nil
@@ -187,7 +191,7 @@ func (jq *JobQueue) Clear() error {
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrClearJobs, err)
 	}
-	slogctx.FromCtx(jq.ctx).Debug("Cleared job queue.")
+	slogctx.FromCtx(jq.ctx).DebugContext(jq.ctx, "Cleared job queue.")
 	return nil
 }
 

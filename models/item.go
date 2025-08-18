@@ -4,9 +4,7 @@
 package models
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"maps"
 	"slices"
 	"time"
@@ -142,23 +140,8 @@ func (i *Item) IsNewer(since time.Time) bool {
 	return i.GetTimestamp().After(since)
 }
 
-func GetFeedItems(ctx context.Context, id FeedID, url string) (Items, error) {
-	var items Items
-
-	results := feeds.NewItemsFromURLs(ctx, url)
-	for result := range slices.Values(results) {
-		if result.Err != nil {
-			return nil, fmt.Errorf("unable to fetch feed items: %w", result.Err)
-		}
-		for item := range slices.Values(result.Items) {
-			items = append(items, newItemFromSource(&item, id, string(item.SourceType)))
-		}
-	}
-	return items, nil
-}
-
 // newFeedFromSource converts the raw types.FeedSource into a Feed object.
-func newItemFromSource(source *feeds.Item, feedID FeedID, sourceType string) *Item {
+func NewItemFromSource(source *feeds.Item, feedID FeedID, sourceType string) *Item {
 	item := &Item{
 		ItemID:       NewID(ItemPFX),
 		FeedID:       feedID,

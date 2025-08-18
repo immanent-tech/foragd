@@ -26,6 +26,7 @@ import (
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types/enums/refresh"
 	"github.com/go-chi/chi/v5/middleware"
+	feeds "github.com/immanent-tech/go-syndication"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/logging"
@@ -43,9 +44,24 @@ type API struct {
 	*elasticsearch.TypedClient
 }
 
-// // GetAPI returns the raw API object.
+// GetAPI returns the raw API object.
 func (a *API) GetAPI() *elasticsearch.TypedClient {
 	return a.TypedClient
+}
+
+// GetFeed retrieves a single feed with the given ID.
+func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, ErrFetchCtx
+	}
+	feed, err := GetDoc[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, id)
+	if err != nil {
+		slogctx.FromCtx(ctx).WarnContext(ctx, "Failed to get document.",
+			slog.String("id", id),
+			slog.Any("warnings", err))
+	}
+	return feed, nil
 }
 
 // GetFeeds retrieves the feeds with the given IDs.
@@ -94,6 +110,38 @@ func (e *API) SearchFeeds(ctx context.Context, query query.Option, count int, so
 	}
 
 	return feeds, "", nil
+}
+
+// GetNewFeedsSince will return a slice of all feeds that have been created since the given timestamp.
+func (e *API) GetNewFeedsSince(ctx context.Context, since time.Time) (models.Feeds, error) {
+	// Get all new feeds created since last checkpoint.
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return nil, fmt.Errorf("GetNewFeedsSince: %w", ErrFetchCtx)
+	}
+	var feeds models.Feeds
+	feeds, err := SearchAll[*models.Feed](ctx, e.GetAPI(), index, query.Since("created_at", since), 1000)
+	if err != nil {
+		return nil, fmt.Errorf("GetNewFeedsSince: %w", err)
+	}
+	return feeds, nil
+}
+
+// UpdateFeed will update the feed with the given id, using the new feed information provided.
+func (e *API) UpdateFeed(ctx context.Context, id models.FeedID, updated *feeds.Feed) error {
+	// Update the feed timestamp.
+	index := FeedsIndexFromCtx(ctx)
+	if index == "" {
+		return fmt.Errorf("UpdateFeed: %w", ErrFetchCtx)
+	}
+	updates := map[string]any{
+		"updated": time.Now().UTC(),
+	}
+	err := UpdateDoc(ctx, e.GetAPI(), index, id, updates)
+	if err != nil {
+		return fmt.Errorf("UpdateFeed: %w", err)
+	}
+	return nil
 }
 
 // SearchItems will search the items index for items matching the given query. Count, sort and pagination values are

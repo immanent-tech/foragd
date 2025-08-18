@@ -13,17 +13,18 @@ components:
       description: represents a job that has been scheduled by the job scheduler.
       type: object
       required:
-        - job_type
+        - job_trigger_type
         - job_trigger
         - job_next_run
+        - job_type
         - job_data
         - created_at
       properties:
         created_at:
           $ref: 'models.yaml#/components/schemas/CreatedAt'
-        job_type:
+        job_trigger_type:
           description: >
-            is the type  job.
+            is the type of trigger the job is using.
           type: string
           enum: ['cron', 'poll']
         job_trigger:
@@ -45,13 +46,19 @@ components:
           x-go-type-import:
             path: 'github.com/reugn/go-quartz/quartz'
           x-go-type-skip-optional-pointer: true
+        job_type:
+          description: >
+            is the type of job.
+          type: string
+          enum: ['update_feed', 'get_new_feeds']
         job_data:
           description: >
             contains job-specific data.
           type: object
           oneOf:
-            - $ref: '#/components/schemas/FeedJob'
-    FeedJob:
+            - $ref: '#/components/schemas/UpdateFeedJob'
+            - $ref: '#/components/schemas/GetNewFeedsJob'
+    UpdateFeedJob:
       description: represents a job that fetches new items for a feed.
       type: object
       required:
@@ -60,14 +67,21 @@ components:
       properties:
         ID:
           $ref: 'models.yaml#/components/schemas/FeedID'
-        x-oapi-codegen-extra-tags:
-          validate: 'required,startswith=feed_'
         URLs:
           type: array
           items:
             $ref: 'models.yaml#/components/schemas/URL'
           x-oapi-codegen-extra-tags:
             validate: 'required,dive,url'
+      x-oapi-codegen-extra-tags:
+        validate: 'required,startswith=feed_'
+    GetNewFeedsJob:
+      description: >
+        represents a job that finds new feeds to be scheduled for updates.
+      type: object
+      properties:
+        scheduler_id:
+          type: string
     PollTrigger:
       description: >
         represents a polling trigger for a job.

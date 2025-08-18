@@ -3,12 +3,18 @@
 
 package scheduler
 
-import "log/slog"
+import (
+	"log/slog"
+
+	"github.com/joshuar/go-feed-me/logging"
+)
 
 type logger struct {
 	*slog.Logger
 }
 
 func (l *logger) Trace(msg string, args ...any) {
-	l.Debug(msg, args...)
+	if logging.Level == logging.LevelTrace {
+		l.Debug(msg, args...)
+	}
 }

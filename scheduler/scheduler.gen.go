@@ -12,10 +12,16 @@ import (
 	"github.com/reugn/go-quartz/quartz"
 )
 
+// Defines values for ScheduledJobJobTriggerType.
+const (
+	ScheduledJobJobTriggerTypeCron ScheduledJobJobTriggerType = "cron"
+	ScheduledJobJobTriggerTypePoll ScheduledJobJobTriggerType = "poll"
+)
+
 // Defines values for ScheduledJobJobType.
 const (
-	Cron ScheduledJobJobType = "cron"
-	Poll ScheduledJobJobType = "poll"
+	ScheduledJobJobTypeGetNewFeeds ScheduledJobJobType = "get_new_feeds"
+	ScheduledJobJobTypeUpdateFeed  ScheduledJobJobType = "update_feed"
 )
 
 // CronTrigger represents a trigger that runs on a Cron schedule.
@@ -23,12 +29,9 @@ type CronTrigger struct {
 	Schedule string `json:"schedule" validate:"required,cron"`
 }
 
-// FeedJob represents a job that fetches new items for a feed.
-type FeedJob struct {
-	// FeedID is the unique ID of a feed.
-	FeedID                externalRef0.FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
-	URLs                  []externalRef0.URL  `json:"URLs" validate:"required,dive,url"`
-	XOapiCodegenExtraTags interface{}         `json:"x-oapi-codegen-extra-tags,omitempty,omitzero"`
+// GetNewFeedsJob represents a job that finds new feeds to be scheduled for updates.
+type GetNewFeedsJob struct {
+	SchedulerId string `json:"scheduler_id,omitempty,omitzero"`
 }
 
 // PollTrigger represents a polling trigger for a job.
@@ -54,7 +57,10 @@ type ScheduledJob struct {
 	// JobTrigger is the trigger for the job.
 	JobTrigger ScheduledJob_JobTrigger `json:"job_trigger" validate:"required"`
 
-	// JobType is the type  job.
+	// JobTriggerType is the type of trigger the job is using.
+	JobTriggerType ScheduledJobJobTriggerType `json:"job_trigger_type"`
+
+	// JobType is the type of job.
 	JobType ScheduledJobJobType `json:"job_type"`
 }
 
@@ -68,25 +74,61 @@ type ScheduledJob_JobTrigger struct {
 	union json.RawMessage
 }
 
-// ScheduledJobJobType is the type  job.
+// ScheduledJobJobTriggerType is the type of trigger the job is using.
+type ScheduledJobJobTriggerType string
+
+// ScheduledJobJobType is the type of job.
 type ScheduledJobJobType string
 
-// AsFeedJob returns the union data inside the ScheduledJob_JobData as a FeedJob
-func (t ScheduledJob_JobData) AsFeedJob() (FeedJob, error) {
-	var body FeedJob
+// UpdateFeedJob represents a job that fetches new items for a feed.
+type UpdateFeedJob struct {
+	// FeedID is the unique ID of a feed.
+	FeedID externalRef0.FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
+	URLs   []externalRef0.URL  `json:"URLs" validate:"required,dive,url"`
+}
+
+// AsUpdateFeedJob returns the union data inside the ScheduledJob_JobData as a UpdateFeedJob
+func (t ScheduledJob_JobData) AsUpdateFeedJob() (UpdateFeedJob, error) {
+	var body UpdateFeedJob
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromFeedJob overwrites any union data inside the ScheduledJob_JobData as the provided FeedJob
-func (t *ScheduledJob_JobData) FromFeedJob(v FeedJob) error {
+// FromUpdateFeedJob overwrites any union data inside the ScheduledJob_JobData as the provided UpdateFeedJob
+func (t *ScheduledJob_JobData) FromUpdateFeedJob(v UpdateFeedJob) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeFeedJob performs a merge with any union data inside the ScheduledJob_JobData, using the provided FeedJob
-func (t *ScheduledJob_JobData) MergeFeedJob(v FeedJob) error {
+// MergeUpdateFeedJob performs a merge with any union data inside the ScheduledJob_JobData, using the provided UpdateFeedJob
+func (t *ScheduledJob_JobData) MergeUpdateFeedJob(v UpdateFeedJob) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsGetNewFeedsJob returns the union data inside the ScheduledJob_JobData as a GetNewFeedsJob
+func (t ScheduledJob_JobData) AsGetNewFeedsJob() (GetNewFeedsJob, error) {
+	var body GetNewFeedsJob
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromGetNewFeedsJob overwrites any union data inside the ScheduledJob_JobData as the provided GetNewFeedsJob
+func (t *ScheduledJob_JobData) FromGetNewFeedsJob(v GetNewFeedsJob) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeGetNewFeedsJob performs a merge with any union data inside the ScheduledJob_JobData, using the provided GetNewFeedsJob
+func (t *ScheduledJob_JobData) MergeGetNewFeedsJob(v GetNewFeedsJob) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err

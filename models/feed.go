@@ -50,9 +50,9 @@ func (f Feeds) FindByURL(url string) *Feed {
 	return f[idx]
 }
 
-func (f *Feed) String() string {
-	return f.GetTitle()
-}
+// func (f *Feed) String() string {
+// 	return f.GetTitle()
+// }
 
 func (f *Feed) GetID() FeedID {
 	return f.FeedID

@@ -795,7 +795,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 			feedsNeeded[request] = newFeed
 			slogctx.FromCtx(ctx).Debug("New feed needed for subscription.",
 				slog.String("subscription", request.String()),
-				slog.String("feed", newFeed.String()),
+				slog.String("feed", newFeed.GetTitle()),
 			)
 		case user.IsSubscribedToFeed(existingFeed.GetID()): // User already subscribed, ignore request.
 			results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
@@ -806,7 +806,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 			r[request] = existingFeed
 			slogctx.FromCtx(ctx).Debug("Existing feed for subscription.",
 				slog.String("subscription", request.String()),
-				slog.String("feed", existingFeed.String()),
+				slog.String("feed", existingFeed.GetTitle()),
 			)
 		}
 	}
