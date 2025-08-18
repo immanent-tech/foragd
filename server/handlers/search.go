@@ -50,7 +50,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 		if len(subscriptions) > 0 || len(articles) > 0 {
 			// Render suggestions.
 			resp := models.NewResponse(
-				models.WithResponseTemplate(layouts.SearchSuggestions(subscriptions, articles)),
+				models.WithResponseTemplate(layouts.SearchSuggestions(request, subscriptions, articles)),
 			)
 			alice.New(
 				RouteLogger,

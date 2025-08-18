@@ -28,9 +28,16 @@ templ Header() {
 				//  Sidebar button for small screens.
 				<div class="flex md:absolute md:inset-y-0 md:left-0 lg:static xl:col-span-2">
 					<div class="flex shrink-0 items-center">
-						<button type="button" command="show-modal" commandfor="sidebar" class="-m-2.5 p-2.5 lg:hidden hover:text-accent">
+						<button
+							type="button"
+							command="show-modal"
+							commandfor="sidebar"
+							class="-m-2.5 p-2.5 lg:hidden hover:bg-primary hover:text-primary-content focus-visible:outline-primary block rounded-md shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2"
+						>
 							<span class="sr-only">Open sidebar</span>
-							@partials.HeroIconMenu("size-6")
+							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+								<path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path>
+							</svg>
 						</button>
 					</div>
 				</div>
@@ -45,7 +52,7 @@ templ Header() {
 				// Menus.
 				<div class="flex items-center md:absolute md:inset-y-0 md:right-0 lg:hidden">
 					// Mobile: menu button.
-					<button popovertarget="mobile-menu-popover" class="relative -mx-2 inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-white/5 hover:text-white focus:outline-2 focus:-outline-offset-1 focus:outline-indigo-500">
+					<button popovertarget="mobile-menu-popover" class="relative -mx-2 inline-flex p-2 items-center justify-center hover:bg-primary hover:text-primary-content focus-visible:outline-primary rounded-md shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2">
 						<span class="absolute -inset-0.5"></span>
 						<span class="sr-only">Open menu</span>
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 in-aria-expanded:hidden">
@@ -57,7 +64,7 @@ templ Header() {
 					</button>
 				</div>
 				<div class="hidden lg:flex lg:items-center lg:justify-end xl:col-span-4">
-					<button type="button" class="relative ml-5 shrink-0 rounded-full p-1 text-primary-content hover:text-primary focus:outline-2 focus:outline-offset-2 focus:outline-primary">
+					<button type="button" class="relative ml-5 shrink-0 rounded-full p-1 hover:bg-primary hover:text-primary-content focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2">
 						<span class="absolute -inset-1.5"></span>
 						<span class="sr-only">View notifications</span>
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">

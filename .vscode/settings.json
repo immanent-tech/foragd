@@ -80,7 +80,8 @@
     "middlewares",
     "sidebar",
     "home",
-    "drawer"
+    "drawer",
+    "header"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
