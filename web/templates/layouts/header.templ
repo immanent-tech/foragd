@@ -8,18 +8,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
-// <form
-// 		hx-post="/search"
-// 		hx-trigger="input changed delay:500ms"
-// 		hx-target="#search-suggestions"
-// 		hx-push-url="false"
-// 		_="on htmx:afterRequest call document.getElementById('search-suggestions').showPopover()"
-// 		class="grid flex-1 grid-cols-1"
-// 	>
-// 		<input type="search" name="text" placeholder="Search" aria-label="Search" class="col-start-1 row-start-1 block size-full bg-base-200 pl-8 text-base outline-hidden placeholder:text-base-content/50 sm:text-sm/6"/>
-// 		<button type="button" hidden>Options</button>
-// 		@partials.HeroIconSearch("size-5 pointer-events-none col-start-1 row-start-1 self-center")
-// 	</form>
 templ Header() {
 	{{ user, _ := models.UserFromCtx(ctx) }}
 	<header class="sticky z-999 top-0 bg-base-200 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-base-content/10 lg:overflow-y-visible">

@@ -81,7 +81,8 @@
     "sidebar",
     "home",
     "drawer",
-    "header"
+    "header",
+    "articles"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
