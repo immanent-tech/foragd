@@ -117,14 +117,12 @@ func (jq *JobQueue) Head() (quartz.ScheduledJob, error) {
 		elastic.WithSortOptions[*search.Search, elastic.SearchRequest](&jobSorting{}),
 	)
 	if err != nil {
-		resp := elastic.ParseError(err)
-		if resp.IsNotFound() {
-			return nil, fmt.Errorf("%w: %w", quartz.ErrQueueEmpty, err)
-		}
-		return nil, resp.InternalError
+		return nil, fmt.Errorf("%w: %w", ErrGetJobFailed, err)
 	}
-	head := jobs[0]
-	return head, nil
+	if len(jobs) == 0 {
+		return nil, quartz.ErrQueueEmpty
+	}
+	return jobs[0], nil
 }
 
 // Get returns the scheduled job with the specified key without removing it
@@ -133,13 +131,11 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	id := jobKeyToDocID(jobKey.String())
 	job, err := elastic.GetDoc[string, ScheduledJob](jq.ctx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
-		resp := elastic.ParseError(err)
-		if resp.IsNotFound() {
-			return nil, fmt.Errorf("%w: %w", quartz.ErrJobNotFound, err)
+		if errors.Is(err, elastic.ErrNotFound) {
+			return nil, quartz.ErrJobNotFound
 		}
 		return nil, fmt.Errorf("%w: %w", ErrGetJobFailed, err)
 	}
-
 	return &job, nil
 }
 
@@ -147,12 +143,12 @@ func (jq *JobQueue) Get(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 func (jq *JobQueue) Remove(jobKey *quartz.JobKey) (quartz.ScheduledJob, error) {
 	job, err := jq.Get(jobKey)
 	if err != nil {
-		return nil, errors.Join(ErrRemoveJobFailed, err)
+		return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, err)
 	}
 	id := jobKeyToDocID(jobKey.String())
 	err = jq.delete(id)
 	if err != nil {
-		return nil, errors.Join(ErrRemoveJobFailed, err)
+		return nil, fmt.Errorf("%w: %w", ErrRemoveJobFailed, err)
 	}
 	slogctx.FromCtx(jq.ctx).DebugContext(jq.ctx, "Job removed.",
 		slog.String("job", job.JobDetail().Job().Description()))
@@ -199,7 +195,7 @@ func (jq *JobQueue) Clear() error {
 func (jq *JobQueue) delete(id string) error {
 	err := elastic.DeleteDoc(jq.ctx, jq.client.GetAPI(), jq.index, id)
 	if err != nil {
-		return errors.Join(ErrDeleteJobFailed, err)
+		return fmt.Errorf("%w: %w", ErrDeleteJobFailed, err)
 	}
 
 	return nil

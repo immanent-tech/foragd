@@ -31,8 +31,6 @@ type Logger struct {
 
 // LogRoundTrip should not modify the request or response, except for consuming and closing the body.
 // Implementations have to check for nil values in request and response.
-//
-//nolint:funlen
 func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, start time.Time, dur time.Duration) error {
 	// Extract some important values from the request and response.
 	status := res.StatusCode

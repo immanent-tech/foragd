@@ -37,6 +37,8 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/results"
 )
 
+var ErrNotFound = errors.New("not found")
+
 var _ types.FieldValueVariant = (*paginationValue[types.FieldValue])(nil)
 
 // API is an object that provides access to the Elasticsearch API.
@@ -73,7 +75,7 @@ func (a *API) GetFeeds(ctx context.Context, ids ...models.FeedID) (models.Feeds,
 
 	feeds, err := GetDocs[models.FeedID, *models.Feed](ctx, a.GetAPI(), index, ids...)
 	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Some subscriptions could not be extracted from docs.",
+		slogctx.FromCtx(ctx).WarnContext(ctx, "Some subscriptions could not be extracted from docs.",
 			slog.Any("warnings", err))
 	}
 	return feeds, nil
@@ -243,7 +245,7 @@ func BulkAdd[T ~string, O Object[T]](ctx context.Context, api *API, index string
 	return responses, nil
 }
 
-// BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
+// BulkUpdate will update documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
 func BulkUpdate[T ~string, O Object[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {
 	bulkOps, respCh := bulk.NewRequest(ctx, api)
@@ -325,7 +327,7 @@ func GetDocs[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClie
 	}
 	objects, warnings := results.ExtractSourceFromDocs[O](resp.Docs)
 	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Some docs could not be extracted.",
+		slogctx.FromCtx(ctx).WarnContext(ctx, "Some docs could not be extracted.",
 			slog.Any("warnings", warnings))
 	}
 	return objects, nil
@@ -340,11 +342,13 @@ func GetDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClien
 	if err != nil {
 		return doc, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
+	if !resp.Found {
+		return doc, ErrNotFound
+	}
 	doc, err = results.ExtractSource[O](resp.Source_)
 	if err != nil {
 		return doc, fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)
 	}
-
 	return doc, nil
 }
 
@@ -452,7 +456,7 @@ func Search[O any](ctx context.Context, api *elasticsearch.TypedClient, index st
 
 	docs, newSearchAfter, warnings = results.ExtractSourceFromHits[O](resp.Hits.Hits)
 	if warnings != nil {
-		slogctx.FromCtx(ctx).Warn("Some docs could not be extracted.",
+		slogctx.FromCtx(ctx).WarnContext(ctx, "Some docs could not be extracted.",
 			slog.Any("warnings", warnings))
 	}
 
@@ -501,6 +505,7 @@ func SearchAll[O any](ctx context.Context, api *elasticsearch.TypedClient, index
 	return allResults, nil
 }
 
+// MultiSearch performs an msearch request.
 func MultiSearch(ctx context.Context, api *elasticsearch.TypedClient, searches ...*query.MsearchSearch) (results.MSearchResults, error) {
 	subscriptionsIndex := FeedsIndexFromCtx(ctx)
 	if subscriptionsIndex == "" {
@@ -562,7 +567,11 @@ func (v *paginationValue[T]) FieldValueCaster() *types.FieldValue {
 }
 
 func (v *paginationValue[T]) MarshalJSON() ([]byte, error) {
-	return json.Marshal(v.value)
+	data, err := json.Marshal(v.value)
+	if err != nil {
+		return data, fmt.Errorf("failed to marshal pagination value: %w", err)
+	}
+	return data, nil
 }
 
 // encodePagination will take sort values returned from a query, marshal them to

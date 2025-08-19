@@ -13,7 +13,6 @@ var (
 
 	ErrNoClient  = errors.New("no client")
 	ErrReqFailed = errors.New("api request failed")
-	ErrNotFound  = errors.New("not found")
 
 	ErrPagination = errors.New("pagination error")
 	// Doc Errors.
