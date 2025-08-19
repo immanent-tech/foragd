@@ -9,7 +9,7 @@ replace github.com/immanent-tech/go-syndication v0.0.0 => ./models/feeds
 replace github.com/immanent-tech/slog-elasticsearch v0.0.0 => ./logging/slog-elasticsearch
 
 require (
-	github.com/a-h/templ v0.3.937
+	github.com/a-h/templ v0.3.943
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.26.0
@@ -139,7 +139,7 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.1.6 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
-	github.com/markbates/goth v1.81.0
+	github.com/markbates/goth v1.82.0
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.27
 	github.com/mitchellh/copystructure v1.2.0 // indirect

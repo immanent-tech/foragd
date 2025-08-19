@@ -1,7 +1,6 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-//nolint:dupl
 package elastic
 
 import (
@@ -316,7 +315,6 @@ func GetDocs[T ~string, O any](ctx context.Context, api *elasticsearch.TypedClie
 	for id := range slices.Values(ids) {
 		docIDs = append(docIDs, string(id))
 	}
-
 	resp, err := NewMGetRequest(api,
 		WithRequestID[*mget.Mget, MgetRequest](middleware.GetReqID(ctx)),
 		WithIndex[*mget.Mget, MgetRequest](index),
@@ -516,7 +514,7 @@ func MultiSearch(ctx context.Context, api *elasticsearch.TypedClient, searches .
 		return nil, errors.Join(ErrUpdateFailed, ErrFetchCtx)
 	}
 
-	var options []Option[MsearchRequest]
+	options := make([]Option[MsearchRequest], 0, len(searches)+1)
 	options = append(options, WithRequestID[*msearch.Msearch, MsearchRequest](middleware.GetReqID(ctx)))
 	for search := range slices.Values(searches) {
 		options = append(options, WithSearch(search))
