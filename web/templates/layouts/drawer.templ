@@ -12,7 +12,8 @@ import (
 )
 
 templ Drawer() {
-	<el-dialog id="drawer-sidebar" _="on open call document.getElementById('navigation-menu-mobile').show()">
+	// Mobile: drawer sidebar.
+	<el-dialog>
 		<dialog id="sidebar" class="backdrop:bg-transparent lg:hidden">
 			<el-dialog-backdrop class="fixed inset-0 bg-base-100/80 transition-opacity duration-300 ease-linear data-closed:opacity-0"></el-dialog-backdrop>
 			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
@@ -20,22 +21,34 @@ templ Drawer() {
 					<div class="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out group-data-closed/dialog-panel:opacity-0">
 						<button type="button" command="close" commandfor="sidebar" class="-m-2.5 p-2.5">
 							<span class="sr-only">Close sidebar</span>
-							@partials.HeroIconClose("size-6")
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 text-base-content">
+								<path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
+							</svg>
 						</button>
 					</div>
-					<div class="relative flex grow flex-col gap-y-5 overflow-y-auto bg-base-200 px-6 ring ring-base-content/10 before:pointer-events-none before:absolute before:inset-0 before:bg-base-200/10">
-						@DrawerSidebar("relative flex flex-1 flex-col mt-20 mb-8", "mobile")
+					// Sidebar
+					<div class="relative flex grow flex-col gap-y-5 overflow-y-auto bg-base-200 px-6 pb-4 ring ring-base-content/10 before:pointer-events-none before:absolute before:inset-0 before:bg-base-200/10">
+						// TODO: replace me!
+						<div class="relative flex h-16 shrink-0 items-center">
+							<img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500" alt="Your Company" class="h-8 w-auto"/>
+						</div>
+						@DrawerSidebar("relative flex flex-1 flex-col", "mobile")
 					</div>
 				</el-dialog-panel>
 			</div>
 		</dialog>
 	</el-dialog>
-	<div class="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
+	// Desktop: static sidebar.
+	<div class="hidden bg-base-200 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
 		<div
-			class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 bg-base-200 px-6 pb-4"
+			class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 bg-base-200/10 px-6 pb-4"
 			_="on intersection(intersecting) call document.getElementById('navigation-menu-desktop').show()"
 		>
-			@DrawerSidebar("flex flex-1 flex-col mt-20 mb-8", "desktop")
+			// TODO: replace me!
+			<div class="flex h-16 shrink-0 items-center">
+				<img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500" alt="Your Company" class="h-8 w-auto"/>
+			</div>
+			@DrawerSidebar("flex flex-1 flex-col", "desktop")
 		</div>
 	</div>
 	<div class="lg:pl-72">

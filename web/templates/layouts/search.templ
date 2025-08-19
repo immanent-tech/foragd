@@ -80,18 +80,19 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 }
 
 // GlobalSearch renders a command palette element for powering global search within the app.
+// col-start-1 row-start-1 block size-full bg-base-200 pl-8 text-base text-white outline-hidden placeholder:text-gray-500 sm:text-sm/6
 templ GlobalSearch() {
 	<el-command-palette>
-		<div class="grid grid-cols-1 border-b border-base-content/10">
-			@partials.HeroIconSearch("pointer-events-none col-start-1 row-start-1 ml-4 self-center text-base-content size-5")
+		<div class="grid grid-cols-1">
+			@partials.HeroIconSearch("pointer-events-none col-start-1 row-start-1 self-center text-base-content size-5")
 			<input
 				id="global-search"
 				type="text"
 				name="text"
 				hx-push-url="false"
 				autofocus
-				placeholder="Search, Command..."
-				class="col-start-1 row-start-1 h-12 w-full pr-4 pl-11 app-textinput text-base sm:text-sm"
+				placeholder="Search..."
+				class="col-start-1 row-start-1 block size-full outline-hidden pr-4 pl-6 text-base sm:text-sm/6 placeholder:text-base-content/50"
 			/>
 			<button
 				type="button"
@@ -109,7 +110,7 @@ templ GlobalSearch() {
 		</div>
 		<el-command-list
 			id="global-search-suggestions"
-			class="absolute w-(--input-width) block max-h-80 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300"
+			class="absolute w-full left-0 sm:left-21 lg:left-5 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6"
 		></el-command-list>
 		<el-no-results
 			hidden

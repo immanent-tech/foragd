@@ -9,103 +9,65 @@ import (
 )
 
 templ Header() {
-	{{ user, _ := models.UserFromCtx(ctx) }}
-	<header class="sticky z-999 top-0 bg-base-200 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-base-content/10 lg:overflow-y-visible">
-		<div class="content-width">
-			<div class="relative flex justify-between lg:gap-8 xl:grid xl:grid-cols-12">
-				//  Sidebar button for small screens.
-				<div class="flex md:absolute md:inset-y-0 md:left-0 lg:static xl:col-span-2">
-					<div class="flex shrink-0 items-center">
-						<button
-							type="button"
-							command="show-modal"
-							commandfor="sidebar"
-							class="-m-2.5 p-2.5 lg:hidden hover:bg-primary hover:text-primary-content focus-visible:outline-primary block rounded-md shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2"
-						>
-							<span class="sr-only">Open sidebar</span>
-							<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-								<path fill-rule="evenodd" d="M7.5 3.75A1.5 1.5 0 0 0 6 5.25v13.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V15a.75.75 0 0 1 1.5 0v3.75a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3V5.25a3 3 0 0 1 3-3h6a3 3 0 0 1 3 3V9A.75.75 0 0 1 15 9V5.25a1.5 1.5 0 0 0-1.5-1.5h-6Zm10.72 4.72a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1 0 1.06l-3 3a.75.75 0 1 1-1.06-1.06l1.72-1.72H9a.75.75 0 0 1 0-1.5h10.94l-1.72-1.72a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path>
-							</svg>
-						</button>
-					</div>
-				</div>
-				// Search Box/Command Palette.
-				<div class="min-w-0 flex-1 md:px-8 lg:px-0 xl:col-span-6">
-					<div class="flex items-center px-6 py-3.5 md:mx-auto md:max-w-3xl lg:mx-0 lg:max-w-none xl:px-0">
-						<div class="grid w-full grid-cols-1">
-							@GlobalSearch()
-						</div>
-					</div>
-				</div>
-				// Menus.
-				<div class="flex items-center md:absolute md:inset-y-0 md:right-0 lg:hidden">
-					// Mobile: menu button.
-					<button popovertarget="mobile-menu-popover" class="relative -mx-2 inline-flex p-2 items-center justify-center hover:bg-primary hover:text-primary-content focus-visible:outline-primary rounded-md shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2">
-						<span class="absolute -inset-0.5"></span>
-						<span class="sr-only">Open menu</span>
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 in-aria-expanded:hidden">
-							<path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round" stroke-linejoin="round"></path>
-						</svg>
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 not-in-aria-expanded:hidden">
-							<path d="M6 18 18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"></path>
-						</svg>
-					</button>
-				</div>
-				<div class="hidden lg:flex lg:items-center lg:justify-end xl:col-span-4">
-					<button type="button" class="relative ml-5 shrink-0 rounded-full p-1 hover:bg-primary hover:text-primary-content focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2">
+	<div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-base-content/10 bg-base-200 px-4 sm:gap-x-6 sm:px-6 lg:px-8">
+		<button type="button" command="show-modal" commandfor="sidebar" class="-m-2.5 p-2.5 hover:text-primary lg:hidden">
+			<span class="sr-only">Open sidebar</span>
+			<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
+				<path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" stroke-linecap="round" stroke-linejoin="round"></path>
+			</svg>
+		</button>
+		<div aria-hidden="true" class="h-6 w-px bg-base-content/10 lg:hidden"></div>
+		<div class="flex flex-1 gap-x-4 self-stretch items-center lg:gap-x-6">
+			<div class="grid flex-1 grid-cols-1">
+				@GlobalSearch()
+			</div>
+			<div class="flex items-center gap-x-4 lg:gap-x-6">
+				<button type="button" class="-m-2.5 p-2.5 hover:text-primary">
+					<span class="sr-only">View notifications</span>
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
+						<path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
+					</svg>
+				</button>
+				<div aria-hidden="true" class="hidden lg:block lg:h-6 lg:w-px lg:bg-base-content/10"></div>
+				<el-dropdown class="relative">
+					{{ user, _ := models.UserFromCtx(ctx) }}
+					<button class="relative flex items-center">
 						<span class="absolute -inset-1.5"></span>
-						<span class="sr-only">View notifications</span>
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
-							<path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
-						</svg>
+						<span class="sr-only">Open user menu</span>
+						<img src={ user.AvatarURL } alt={ user.Nickname } class="size-10 rounded-full bg-base-300 outline -outline-offset-1 outline-base-content/10"/>
+						<span class="hidden lg:flex lg:items-center">
+							<span aria-hidden="true" class="ml-4 text-sm/6 font-semibold">{ user.Nickname }</span>
+							<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="ml-2 size-5 text-base-content">
+								<path d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+							</svg>
+						</span>
 					</button>
-					<el-dropdown class="relative ml-5 shrink-0">
-						<button class="relative flex rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
-							<span class="absolute -inset-1.5"></span>
-							<span class="sr-only">Open user menu</span>
-							<img src={ user.AvatarURL } alt={ user.Nickname } class="size-8 rounded-full bg-base-300 outline -outline-offset-1 outline-base-content/10"/>
-						</button>
-						<el-menu anchor="bottom end" popover class="w-48 origin-top-right rounded-md bg-base-300 py-1 outline-1 -outline-offset-1 outline-base-content/10 transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
-							<a
-								class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent"
-								hx-get="/user/settings"
-								hx-target={ partials.ContentID.Target() }
-								hx-push-url="true"
-							>Settings</a>
-							<a href="/logout" class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent">Log out</a>
-						</el-menu>
-					</el-dropdown>
-					// <a href="#" class="ml-6 inline-flex items-center rounded-md bg-indigo-500 px-3 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">New Project</a>
-				</div>
+					<el-menu anchor="bottom end" popover class="w-32 origin-top-right rounded-md bg-base-300 py-2 outline-1 -outline-offset-1 outline-base-content/10 transition transition-discrete [--anchor-gap:--spacing(2.5)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
+						<a
+							class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent"
+							hx-get="/user/settings"
+							hx-target={ partials.ContentID.Target() }
+							hx-push-url="true"
+						>
+							<div class="flex flex-1 items-center gap-x-2">
+								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z"></path>
+									<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
+								</svg>
+								Settings
+							</div>
+						</a>
+						<a href="/logout" class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent">
+							<div class="flex flex-1 items-center gap-x-2">
+								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+									<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"></path>
+								</svg>
+								Log out
+							</div>
+						</a>
+					</el-menu>
+				</el-dropdown>
 			</div>
 		</div>
-		<el-popover id="mobile-menu-popover" anchor="bottom" popover aria-label="Global" class="relative w-full overflow-visible bg-base-300 [--anchor-gap:--spacing(2)] backdrop:bg-transparent before:pointer-events-none before:absolute before:inset-0 before:bg-base-300/50 open:block lg:hidden">
-			<div class="relative border-t border-base-content/10 pt-4 pb-3">
-				<div class="mx-auto flex max-w-3xl items-center px-4 sm:px-6">
-					<div class="shrink-0">
-						<img src={ user.AvatarURL } alt={ user.Nickname } class="size-10 rounded-full bg-base-300 outline -outline-offset-1 outline-base-content/10"/>
-					</div>
-					<div class="ml-3">
-						<div class="text-base font-medium">{ user.Nickname }</div>
-					</div>
-					<button type="button" class="relative ml-auto shrink-0 rounded-full p-1 text-base-content hover:text-accent focus:outline-2 focus:outline-offset-2 focus:outline-primary">
-						<span class="absolute -inset-1.5"></span>
-						<span class="sr-only">View notifications</span>
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6">
-							<path d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" stroke-linecap="round" stroke-linejoin="round"></path>
-						</svg>
-					</button>
-				</div>
-				<div class="mx-auto mt-3 max-w-3xl space-y-1 px-2 sm:px-4">
-					<a
-						class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent"
-						hx-get="/user/settings"
-						hx-target={ partials.ContentID.Target() }
-						hx-push-url="true"
-					>Settings</a>
-					<a href="/logout" class="link link-hover block px-3 py-1 text-sm/6 hover:text-accent">Log out</a>
-				</div>
-			</div>
-		</el-popover>
-	</header>
+	</div>
 }
