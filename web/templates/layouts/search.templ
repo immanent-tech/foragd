@@ -111,6 +111,7 @@ templ GlobalSearch() {
 		<el-command-list
 			id="global-search-suggestions"
 			class="absolute w-full left-0 sm:left-21 lg:left-5 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6"
+			_="on keyup['Escape'] set #global-search.value to '' then add @hidden to #global-search-suggestions"
 		></el-command-list>
 		<el-no-results
 			hidden
