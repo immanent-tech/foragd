@@ -7,7 +7,7 @@ package models
 import (
 	"strings"
 
-	nanoid "github.com/matoous/go-nanoid"
+	nanoid "github.com/matoous/go-nanoid/v2"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 	SchedulerPFX    // scheduler
 	SessionPFX      // session
 	UserPFX         // user
-	FavoritePFX    // fav
+	FavoritePFX     // fav
 	Max
 )
 
@@ -29,7 +29,7 @@ type IDPrefix int
 // NewID generates a new unique ID for the given type option. If an ID cannot be
 // generated, a non-nil error is returned.
 func NewID(option IDPrefix) string {
-	id, _ := nanoid.Nanoid()
+	id, _ := nanoid.New()
 	return option.String() + "_" + id
 }
 

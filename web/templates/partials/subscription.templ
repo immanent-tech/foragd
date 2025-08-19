@@ -5,6 +5,7 @@ package partials
 
 import (
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-templ-daisyui"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
 	"net/http"
@@ -274,31 +275,33 @@ templ (c *Subscription) ViewLink(classes ...components.Class) {
 templ (c *Subscription) UnsubscribeModal() {
 	<el-dialog id="unsubscribe-modal">
 		<dialog id="unsubscribe" aria-labelledby="dialog-title" class="fixed inset-0 size-auto max-h-none max-w-none overflow-y-auto bg-transparent backdrop:bg-transparent">
-			<el-dialog-backdrop class="fixed inset-0 bg-gray-500/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
+			<el-dialog-backdrop class="fixed inset-0 bg-base-content/75 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"></el-dialog-backdrop>
 			<div tabindex="0" class="flex min-h-full items-end justify-center p-4 text-center focus:outline-none sm:items-center sm:p-0">
-				<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
+				<el-dialog-panel class="relative transform overflow-hidden rounded-lg bg-base-300 px-4 pt-5 pb-4 text-left shadow-xl transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg sm:p-6 data-closed:sm:translate-y-0 data-closed:sm:scale-95">
 					<div class="absolute top-0 right-0 hidden pt-4 pr-4 sm:block">
 						<button
 							type="button"
 							command="close"
 							commandfor="unsubscribe"
 							_="on click remove #unsubscribe-modal"
-							class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-hidden"
+							class="rounded-md text-base-content hover:text-primary focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-hidden"
 						>
 							<span class="sr-only">Close</span>
-							@HeroIconClose("size-6")
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+							</svg>
 						</button>
 					</div>
 					<div class="sm:flex sm:items-start">
-						<div class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:size-10">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 text-red-600">
+						<div class="mx-auto flex size-12 shrink-0 items-center justify-center rounded-full bg-warning sm:mx-0 sm:size-10">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 text-warning-content">
 								<path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" stroke-linecap="round" stroke-linejoin="round"></path>
 							</svg>
 						</div>
 						<div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-							<h3 id="dialog-title" class="text-base font-semibold text-gray-900">Unsubscribe confirmation</h3>
+							<h3 id="dialog-title" class="text-base font-semibold">Unsubscribe confirmation</h3>
 							<div class="mt-2">
-								<p class="text-sm text-gray-500">Are you sure you want to unsubscribe from { c.GetTitle() }?</p>
+								<p class="text-sm">Are you sure you want to unsubscribe from { c.GetTitle() }?</p>
 							</div>
 						</div>
 					</div>
@@ -309,18 +312,36 @@ templ (c *Subscription) UnsubscribeModal() {
 							hx-target={ "#" + c.GetID() }
 							hx-swap="outerHTML"
 							_="on htmx:afterRequest(successful) if successful remove #unsubscribe-modal"
-							class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-red-500 sm:ml-3 sm:w-auto"
+							class="inline-flex w-full justify-center rounded-md bg-error/80 px-3 py-2 text-sm font-semibold text-error-content shadow-xs hover:bg-error sm:ml-3 sm:w-auto"
 						>Unsubscribe</button>
 						<button
 							type="button"
 							command="close"
 							commandfor="unsubscribe"
 							_="on click remove #unsubscribe-modal"
-							class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-gray-300 ring-inset hover:bg-gray-50 sm:mt-0 sm:w-auto"
+							class="mt-3 inline-flex w-full justify-center rounded-md bg-primary/80 px-3 py-2 text-sm font-semibold text-primary-content shadow-xs ring-1 ring-base-content/10 ring-inset hover:bg-primary sm:mt-0 sm:w-auto"
 						>Cancel</button>
 					</div>
 				</el-dialog-panel>
 			</div>
 		</dialog>
 	</el-dialog>
+}
+
+templ EditSubscriptionSuccessNotification(metadata *models.SubscriptionMetadata) {
+	@Notification(&models.UserMessage{
+		Status:  models.UserMessageStatusSuccess,
+		Summary: metadata.Customisation.Nickname + " updated",
+	}) {
+		<div class="mt-3 flex space-x-7">
+			<button
+				type="button"
+				class="rounded-md text-sm font-medium hover:bg-accent/20 hover:text-accent-content focus:outline-2 focus:outline-offset-2 focus:outline-primary"
+				hx-get="/subscriptions"
+				hx-target={ ContentID.Target() }
+				hx-vals={ GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+				hx-push-url="true"
+			>Go to subscriptions <span aria-hidden="true">&rarr;</span></button>
+		</div>
+	}
 }

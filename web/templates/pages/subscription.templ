@@ -19,14 +19,12 @@ import (
 // EditSubscriptionPage is a page for editing a subscription.
 type EditSubscriptionPage struct {
 	request *models.EditSubscriptionRequest
-	message *models.UserMessage
 }
 
 // NewEditSubscriptionPage creates a new edit subscription page with the given data.
-func NewEditSubscriptionPage(edits *models.EditSubscriptionRequest, msg *models.UserMessage) *EditSubscriptionPage {
+func NewEditSubscriptionPage(edits *models.EditSubscriptionRequest) *EditSubscriptionPage {
 	return &EditSubscriptionPage{
 		request: edits,
-		message: msg,
 	}
 }
 
@@ -54,30 +52,6 @@ templ (page *EditSubscriptionPage) content() {
 			<div>
 				<h2 class="text-base/7 font-semibold">Editing { page.request.Nickname }</h2>
 				<div class="mt-10 space-y-8 pb-12 sm:space-y-0 sm:pb-0">
-					if page.message != nil {
-						switch page.message.Status {
-							case models.UserMessageStatusSuccess:
-								@partials.FormSuccess() {
-									@partials.SuccessMessage(page.message) {
-										@partials.NewAction("/subscriptions", partials.DisplayActionAsLink,
-											partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-											partials.ActionPushURL(),
-											partials.ActionClasses("text-sm/6 text-success font-semibold"),
-										) {
-											<p class="mt-4">Go to subscriptions <span aria-hidden="true">&rarr;</span></p>
-										}
-									}
-								}
-							case models.UserMessageStatusWarning:
-								@partials.FormWarning() {
-									@partials.WarningMessage(page.message)
-								}
-							case models.UserMessageStatusError:
-								@partials.FormError() {
-									@partials.ErrorMessage(page.message)
-								}
-						}
-					}
 					<form
 						id="edit-subscription"
 						hx-put={ "/user/subscription/edit/" + page.request.SubscriptionID }

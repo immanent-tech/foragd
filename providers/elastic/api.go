@@ -50,6 +50,21 @@ func (a *API) GetAPI() *elasticsearch.TypedClient {
 	return a.TypedClient
 }
 
+// GetUser retrieves the user with the given id.
+func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, error) {
+	index := UserIndexFromCtx(ctx)
+	if index == "" {
+		return nil, ErrFetchCtx
+	}
+	user, err := GetDoc[models.UserID, *models.User](ctx, a.GetAPI(), index, id)
+	if err != nil {
+		slogctx.FromCtx(ctx).WarnContext(ctx, "Failed to get user.",
+			slog.String("id", id),
+			slog.Any("error", err))
+	}
+	return user, nil
+}
+
 // GetFeed retrieves a single feed with the given ID.
 func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 	index := FeedsIndexFromCtx(ctx)

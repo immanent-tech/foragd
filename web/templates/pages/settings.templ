@@ -14,15 +14,13 @@ import (
 
 type Settings struct {
 	CurrentPage     string
-	message         *models.UserMessage
 	user            *models.User
 	editUserRequest *models.EditUserRequest
 }
 
-func NewSettingsPage(page string, msg *models.UserMessage, user *models.User, editUser *models.EditUserRequest) *Settings {
+func NewSettingsPage(page string, user *models.User, editUser *models.EditUserRequest) *Settings {
 	return &Settings{
 		CurrentPage:     page,
-		message:         msg,
 		user:            user,
 		editUserRequest: editUser,
 	}
@@ -51,7 +49,7 @@ templ (page *Settings) content() {
 	<div id="current-settings">
 		switch page.CurrentPage {
 			case "account":
-				@AccountSettings(page.user, page.editUserRequest, page.message)
+				@AccountSettings(page.user, page.editUserRequest)
 			case "subscriptions":
 				@SubscriptionSettings()
 			case "app":
@@ -185,28 +183,10 @@ templ ShowSubscriptionSettings(subscription *models.Subscription) {
 }
 
 // AccountSettings shows settings for managing the user account.
-templ AccountSettings(user *models.User, request *models.EditUserRequest, msg *models.UserMessage) {
+templ AccountSettings(user *models.User, request *models.EditUserRequest) {
 	@settingsSelect("account")
 	<div class="divide-y divide-base-content/5">
 		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-			<div class="col-span-full">
-				if msg != nil {
-					switch msg.Status {
-						case models.UserMessageStatusSuccess:
-							@partials.FormSuccess() {
-								@partials.SuccessMessage(msg)
-							}
-						case models.UserMessageStatusWarning:
-							@partials.FormWarning() {
-								@partials.WarningMessage(msg)
-							}
-						case models.UserMessageStatusError:
-							@partials.FormError() {
-								@partials.ErrorMessage(msg)
-							}
-					}
-				}
-			</div>
 			<div>
 				<h2 class="text-base/7 font-semibold">Personal Information</h2>
 				// <p class="mt-1 text-sm/6 text-gray-400">Use a permanent address where you can receive mail.</p>
@@ -223,7 +203,7 @@ templ AccountSettings(user *models.User, request *models.EditUserRequest, msg *m
 							<img src={ user.AvatarURL } alt={ user.Nickname } class="size-24 flex-none rounded-lg bg-base-content object-cover"/>
 						}
 						<div>
-							<label for="avatar" class="app-textinput-label">Avatar</label>
+							<label for="avatar" class="block font-medium">Avatar</label>
 							// <button type="button" class="rounded-md app-button">Change avatar</button>
 							// <p class="mt-2 text-xs/5 text-gray-400">JPG, GIF or PNG. 1MB max.</p>
 						</div>
@@ -232,9 +212,13 @@ templ AccountSettings(user *models.User, request *models.EditUserRequest, msg *m
 					// 	<input id="avatar" type="file" class="app-button text-sm/6"/>
 					// </div>
 					<div class="col-span-full">
-						<label for="username" class="app-textinput-label">Username</label>
+						<label for="username" class="block font-medium">Username</label>
 						<div class="mt-2">
-							<input id="username" type="text" name="nickname" value={ user.Nickname } placeholder="janesmith" class="app-textinput"/>
+							if request.Nickname != "" {
+								<input id="username" type="text" name="nickname" value={ request.Nickname } placeholder="janesmith" class="app-textinput"/>
+							} else {
+								<input id="username" type="text" name="nickname" value={ user.Nickname } placeholder="janesmith" class="app-textinput"/>
+							}
 						</div>
 					</div>
 					// <div class="col-span-full">
