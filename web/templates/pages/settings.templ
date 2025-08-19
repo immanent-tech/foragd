@@ -45,11 +45,8 @@ templ (page *Settings) layout() {
 }
 
 templ (page *Settings) content() {
-	// @settingsSelect(page.CurrentPage)
 	<div id="current-settings">
 		switch page.CurrentPage {
-			case "account":
-				@AccountSettings(page.user, page.editUserRequest)
 			case "subscriptions":
 				@SubscriptionSettings()
 			case "app":
@@ -67,13 +64,6 @@ templ settingsSelect(current string) {
 				hx-push-url="true"
 				class="app-select"
 			>
-				<option
-					hx-get="/user/settings/account"
-					value="account"
-					if current == "account" {
-						selected
-					}
-				>My Account</option>
 				<option
 					value="billing"
 					if current == "billing" {
@@ -101,14 +91,6 @@ templ settingsSelect(current string) {
 		</div>
 		<div class="hidden sm:block">
 			<nav aria-label="Tabs" class="flex space-x-4" hx-target="#current-settings" hx-push-url="true">
-				<a
-					hx-get="/user/settings/account"
-					class={
-						templ.KV("active-link", current == "account"),
-						templ.KV("inactive-link", current != "account"),
-						"text-sm font-medium",
-					}
-				>My Account</a>
 				<a
 					href="#"
 					class={

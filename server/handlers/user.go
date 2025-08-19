@@ -35,7 +35,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 			return
 		}
 		resp := models.NewResponse(
-			models.WithResponseTemplate(pages.NewSettingsPage("account", user, &models.EditUserRequest{}).Template(req)),
+			models.WithResponseTemplate(pages.NewSettingsPage("subscriptions", user, &models.EditUserRequest{}).Template(req)),
 		)
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
