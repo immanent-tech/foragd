@@ -9,25 +9,34 @@ import nanoid "github.com/matoous/go-nanoid/v2"
 templ Notification(msg *models.UserMessage) {
 	{{ id, _ := nanoid.New() }}
 	<div hx-swap-oob={ "beforeend:" + NotificationsID.Target() }>
-		<div id={ id } class="pointer-events-auto w-full max-w-sm translate-y-0 transform rounded-lg bg-base-300 opacity-100 shadow-lg outline-1 -outline-offset-1 outline-base-content/10 transition duration-300 ease-out sm:translate-x-0 starting:translate-y-2 starting:opacity-0 starting:sm:translate-x-2 starting:sm:translate-y-0">
+		<div
+			id={ id }
+			class={
+				"pointer-events-auto w-full max-w-sm translate-y-0 transform rounded-lg opacity-100 shadow-lg outline-1 -outline-offset-1 transition duration-300 ease-out sm:translate-x-0 starting:translate-y-2 starting:opacity-0 starting:sm:translate-x-2 starting:sm:translate-y-0",
+				templ.KV("bg-success/80 outline-success/10 text-success-content", msg.IsSuccess()),
+				templ.KV("bg-error/80 outline-error/10 text-error-content", msg.IsError()),
+				templ.KV("bg-warning/80 outline-warning/10 text-warning-content", msg.IsWarning()),
+				templ.KV("bg-info/80 outline-info/10 text-info-content", msg.IsInfo()),
+			}
+		>
 			<div class="p-4">
 				<div class="flex items-start">
 					<div class="shrink-0">
 						switch msg.Status {
 							case models.UserMessageStatusSuccess:
-								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 text-success">
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" data-slot="icon" aria-hidden="true" class="size-6 text-success-content">
 									<path d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke-linecap="round" stroke-linejoin="round"></path>
 								</svg>
 							case models.UserMessageStatusError:
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-error">
+								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-error-content">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"></path>
 								</svg>
 							case models.UserMessageStatusWarning:
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-warning">
+								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-warning-content">
 									<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"></path>
 								</svg>
 							default:
-								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-info">
+								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-info-content">
 									<path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"></path>
 								</svg>
 						}
@@ -35,14 +44,22 @@ templ Notification(msg *models.UserMessage) {
 					<div class="ml-3 w-0 flex-1 pt-0.5">
 						<p class="text-sm font-medium">{ msg.Summary }</p>
 						if msg.HasDetails() {
-							<p class="mt-1 text-sm text-base-content/50">{ msg.Details }</p>
+							<p
+								class={
+									"mt-1 text-xs",
+									templ.KV("text-success-content/80", msg.IsSuccess()),
+									templ.KV("text-error-content/80", msg.IsError()),
+									templ.KV("text-warning-content/80", msg.IsWarning()),
+									templ.KV("text-info-content/80", msg.IsInfo()),
+								}
+							>{ msg.Details }</p>
 						}
 						{ children... }
 					</div>
 					<div class="ml-4 flex shrink-0">
 						<button
 							type="button"
-							class="inline-flex rounded-md text-base-content hover:text-primary focus:outline-2 focus:outline-offset-2 focus:outline-primary"
+							class="inline-flex rounded-md"
 							_={ "on click remove #" + id }
 						>
 							<span class="sr-only">Close</span>
