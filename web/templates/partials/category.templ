@@ -58,7 +58,7 @@ func (c *AddSubscriptionCategories) Sanitise() error {
 
 // ManageCategories renders a list containing existing categories of a subscription.
 templ ManageCategories(categories []models.Category) {
-	<ul id="current-categories" class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm/6">
+	<ul id="current-categories" class="-my-3 divide-y divide-base-content/10 px-6 py-4 text-sm/6">
 		for category := range slices.Values(categories) {
 			@AddCategory(category)
 		}
@@ -77,7 +77,7 @@ templ AddCategory(category models.Category) {
 
 templ categoryListItem(category models.Category, attributes templ.Attributes) {
 	<li class="flex flex-row items-center py-4 gap-x-4 group-hover:text-accent">
-		<input type="hidden" id="categories" name="user_categories" value={ category }/>
+		<input type="hidden" name="user_categories" value={ category }/>
 		{ category }
 		<button { attributes... }>
 			@HeroIconTrash("size-4")

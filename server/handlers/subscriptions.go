@@ -351,10 +351,11 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"Invalid subscription details.",
 					"There are problems with the details. Please check and try again.",
 				)
+				template := templ.Join(pages.NewAddSubscription(request).Template(req), partials.Notification(msg))
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.Notification(msg))))).ServeHTTP(res, req)
+					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 				return
 			}
 			requests := addSubscriptionRequests{
@@ -367,18 +368,20 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"Error processing request.",
 					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
+				template := templ.Join(pages.NewAddSubscription(request).Template(req), partials.Notification(msg))
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
+					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 				return
 			}
 			// If results returned from matching is non-nil, something went wrong.
 			if result[request] != nil {
+				template := templ.Join(pages.NewAddSubscription(request).Template(req), partials.ServerErrorNotification(result[request].Message))
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.ServerErrorNotification(result[request].Message))))).ServeHTTP(res, req)
+					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 				return
 			}
 			// Create the new subscription.
@@ -388,10 +391,11 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"Error processing request.",
 					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
+				template := templ.Join(pages.NewAddSubscription(request).Template(req), partials.ServerErrorNotification(msg))
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
+					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 				return
 			} else {
 				result = createResult
@@ -779,7 +783,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 			}
 			feedsNeeded[request] = newFeed
 			slogctx.FromCtx(ctx).Debug("New feed needed for subscription.",
-				slog.String("subscription", request.String()),
+				slog.String("url", request.GetURL()),
 				slog.String("feed", newFeed.GetTitle()),
 			)
 		case user.IsSubscribedToFeed(existingFeed.GetID()): // User already subscribed, ignore request.
@@ -790,7 +794,7 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 		default: // Existing feed.
 			r[request] = existingFeed
 			slogctx.FromCtx(ctx).Debug("Existing feed for subscription.",
-				slog.String("subscription", request.String()),
+				slog.String("url", request.GetURL()),
 				slog.String("feed", existingFeed.GetTitle()),
 			)
 		}

@@ -83,7 +83,6 @@ templ (page *EditSubscriptionPage) content() {
 						"hx-target":   "#current-categories",
 						"hx-swap":     "beforeend",
 						"hx-trigger":  "change,submit",
-						"hx-include":  "[name='user_categories']",
 					})
 					// Show current categories.
 					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
@@ -100,7 +99,7 @@ templ (page *EditSubscriptionPage) content() {
 				Processing...
 				<span class="loading loading-spinner loading-md"></span>
 			</div>
-			<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
+			<button type="button" onclick="history.back()" class="app-button">Back</button>
 			<button
 				type="submit"
 				form="edit-subscription"
@@ -153,9 +152,8 @@ templ (page *AddSubscription) content() {
 						id="add-subscription"
 						hx-post="/user/subscription/add"
 						hx-target={ partials.ContentID.Target() }
-						hx-target-error={ partials.ContentID.Target() }
+						hx-include="[name='user_categories']"
 						hx-indicator="#processing"
-						hx-on::after-request="if(event.detail.successful) this.reset()"
 					>
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 							<label for="url" class="block font-medium">Feed URL</label>
@@ -201,7 +199,6 @@ templ (page *AddSubscription) content() {
 						"hx-target":   "#current-categories",
 						"hx-swap":     "beforeend",
 						"hx-trigger":  "change,submit",
-						"hx-include":  "[name='user_categories']",
 					})
 					// Show current categories.
 					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
@@ -213,7 +210,7 @@ templ (page *AddSubscription) content() {
 				</div>
 			</div>
 		</div>
-		<div class="mt-6 flex items-center justify-end gap-x-6">
+		<div class="flex items-center justify-end gap-x-6">
 			<div id="processing" class="htmx-indicator">
 				Processing...
 				<span class="loading loading-spinner loading-md"></span>
@@ -221,12 +218,12 @@ templ (page *AddSubscription) content() {
 			<button
 				type="button"
 				onclick="history.back()"
-				class="bg-primary/80 hover:bg-primary hover:text-primary-content focus-visible:outline-primary text-primary-content block rounded-md px-3 py-2 text-center text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2"
+				class="app-button"
 			>Back</button>
 			<button
 				type="submit"
 				form="add-subscription"
-				class="bg-primary/80 hover:bg-primary hover:text-primary-content focus-visible:outline-primary text-primary-content block rounded-md px-3 py-2 text-center text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2"
+				class="app-button"
 			>Add</button>
 		</div>
 	</div>

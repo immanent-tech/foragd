@@ -567,14 +567,13 @@ components:
             form: '-'
             json: '-'
         categories:
-          description: a list  custom categories for the subscription. Combined with the feed's own categories.
+          description: a list custom categories for the subscription. Combined with the feed's own categories.
           type: array
           items:
             $ref: '#/components/schemas/Category'
           x-go-type-skip-optional-pointer: true
           x-oapi-codegen-extra-tags:
             form: 'user_categories'
-            validate: 'omitempty,dive,unique'
         categoriesErr:
           description: >
             is an error associated with the categories field.

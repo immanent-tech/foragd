@@ -246,13 +246,6 @@ func (r *SubscriptionRequest) Sanitise() error {
 	return nil
 }
 
-func (r *SubscriptionRequest) String() string {
-	if r.GetNickname() != "" {
-		return fmt.Sprintf("%s (%s)", r.GetNickname(), r.GetURL())
-	}
-	return fmt.Sprintf("(%s)", r.GetURL())
-}
-
 func (r *SubscriptionRequest) GetURL() string {
 	return strings.TrimSpace(r.URL)
 }

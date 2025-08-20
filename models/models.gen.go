@@ -483,8 +483,8 @@ type SubscriptionRequest struct {
 	// URLErr is an error associated with the URL field.
 	URLErr error `form:"-" json:"-"`
 
-	// Categories a list  custom categories for the subscription. Combined with the feed's own categories.
-	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,dive,unique"`
+	// Categories a list custom categories for the subscription. Combined with the feed's own categories.
+	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero"`
 
 	// CategoriesErr is an error associated with the categories field.
 	CategoriesErr error `form:"-" json:"-"`
