@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
@@ -424,35 +423,26 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 			opmlFile := &models.OPMLFile{}
 			opmlFile, valid, err := forms.DecodeMultipartFile(req, "source", opmlFile)
 			if err != nil || !valid {
-				htmxResp := htmxRespFromCtx(req.Context())
-				htmxResp = htmxResp.Retarget("#notifications")
-				ctx := htmxRespToCtx(req.Context(), htmxResp)
-				chain.Then(RenderResponse(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusBadRequest),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.AlertWarn(
-						&models.UserMessage{
-							Summary: "Failed to read OPML file.",
-							Details: "Could not parse the OPML file, please check and try again.",
-						},
-					))))).ServeHTTP(res, req.WithContext(ctx))
-				return
-			}
-			spew.Dump(opmlFile, valid, err)
-			r, err := opmlFile.GenerateRequests()
-			if err != nil {
-				htmxResp := htmxRespFromCtx(req.Context())
-				htmxResp = htmxResp.Retarget("#notifications")
-				ctx := htmxRespToCtx(req.Context(), htmxResp)
+				msg := models.NewWarningMessage(
+					"Failed to read OPML file.",
+					"The OPML could not be read. Is it a valid OPML file? Please check the contents, correct any issues and try again.",
+				)
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.AlertWarn(
-						&models.UserMessage{
-							Summary: "Failed to extract subscriptions from OPML file.",
-							Details: "Could not extract subscriptions from the OPML file, please check the contents and try again.",
-						},
-					))))).ServeHTTP(res, req.WithContext(ctx))
+					models.WithResponseTemplate(partials.Notification(msg))))).ServeHTTP(res, req)
+				return
+			}
+			r, err := opmlFile.GenerateRequests()
+			if err != nil {
+				msg := models.NewWarningMessage(
+					"Failed to extract subscriptions from OPML file.",
+					"There was a problem reading the individual feed entries in the OPML file. Please check the contents, correct any issues and try again.",
+				)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.Notification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			for newRequest := range slices.Values(r) {
@@ -460,40 +450,36 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 			}
 			matchResults, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
 			if err != nil {
-				htmxResp := htmxRespFromCtx(req.Context())
-				htmxResp = htmxResp.Retarget("#notifications")
-				ctx := htmxRespToCtx(req.Context(), htmxResp)
+				msg := models.NewErrorMessage(
+					"Error processing OPML file.",
+					"The backend had issues processing the OPML file and adding subscriptions, please try again.",
+				)
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.AlertError(
-						&models.UserMessage{
-							Summary: "Backend error.",
-							Details: "The backend had problems trying to add the subscription, please try again.",
-						},
-					))))).ServeHTTP(res, req.WithContext(ctx))
+					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			createResults, err := requests.createNewSubscriptions(req.Context(), a)
 			if err != nil {
-				htmxResp := htmxRespFromCtx(req.Context())
-				htmxResp = htmxResp.Retarget("#notifications")
-				ctx := htmxRespToCtx(req.Context(), htmxResp)
+				msg := models.NewErrorMessage(
+					"Error processing OPML file.",
+					"The backend had issues processing the OPML file and adding subscriptions, please try again.",
+				)
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.AlertError(
-						&models.UserMessage{
-							Summary: "Backend error.",
-							Details: "The backend had problems trying to add the subscription, please try again.",
-						},
-					))))).ServeHTTP(res, req.WithContext(ctx))
+					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			maps.Copy(createResults, matchResults)
-
+			msg := models.NewInfoMessage(
+				"OPML import complete.",
+				"Please consult the results and check for any issues.",
+			)
+			template := templ.Join(pages.ImportResults(createResults), partials.Notification(msg))
 			resp = models.NewResponse(
-				models.WithResponseTemplate(pages.ImportResults(createResults)),
+				models.WithResponseTemplate(template),
 			)
 		}
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
@@ -517,15 +503,14 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			// Get all subscriptions.
 			subscriptions, err := a.getSubscriptions(req.Context())
 			if err != nil {
+				msg := models.NewErrorMessage(
+					"Error exporting OPML file.",
+					"The backend had issues generating the OPML file, please try again.",
+				)
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.AlertError(
-						&models.UserMessage{
-							Summary: "Backend error.",
-							Details: "The backend had problems trying to add the subscription, please try again.",
-						},
-					))))).ServeHTTP(res, req)
+					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			// Create outlines for all subscriptions.
@@ -546,15 +531,14 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			data, err := xml.Marshal(opmlExport)
 			data = []byte(xml.Header + string(data))
 			if err != nil {
+				msg := models.NewErrorMessage(
+					"Error exporting OPML file.",
+					"The backend had issues generating the OPML file, please try again.",
+				)
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.AlertError(
-						&models.UserMessage{
-							Summary: "Backend error.",
-							Details: "The backend had problems trying to add the subscription, please try again.",
-						},
-					))))).ServeHTTP(res, req)
+					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			// Serve the opml content via http.ServeContent.

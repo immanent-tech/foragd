@@ -10,7 +10,6 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"net/http"
 	"slices"
 	"strconv"
@@ -99,7 +98,7 @@ templ (page *EditSubscriptionPage) content() {
 		<div class="mt-6 flex items-center justify-end gap-x-6">
 			<div id="processing" class="htmx-indicator">
 				Processing...
-				@loading.Build(loading.Infinity).Show()
+				<span class="loading loading-spinner loading-md"></span>
 			</div>
 			<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
 			<button
@@ -243,7 +242,7 @@ templ (page *AddSubscription) content() {
 		<div class="mt-6 flex items-center justify-end gap-x-6">
 			<div id="processing" class="htmx-indicator">
 				Processing...
-				@loading.Build(loading.Infinity).Show()
+				<span class="loading loading-spinner loading-md"></span>
 			</div>
 			<button
 				type="button"
@@ -298,19 +297,23 @@ templ (page *ImportPage) content() {
 						hx-indicator="#import-processing"
 					>
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-							<label for="source" class="app-textinput-label">OPML file</label>
+							<label for="source" class="block font-medium">OPML file</label>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input id="source" type="file" required name="source" class="app-textinputvalidator"/>
+								<input id="source" type="file" required name="source" class="app-textinput"/>
 								<span class="validator-hint hidden">Make sure the file is a valid OPML file.</span>
 								<span id="source-hint" class="app-textinput-hint">Required.</span>
 							</div>
 						</div>
 						<div class="mt-6 flex items-center justify-end gap-x-6">
-							<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
+							<button type="button" onclick="history.back()" class="app-button">
+								Back
+							</button>
 							<button
 								type="submit"
 								class="app-button"
-							>Import</button>
+							>
+								Import
+							</button>
 						</div>
 					</form>
 				</div>
@@ -318,7 +321,7 @@ templ (page *ImportPage) content() {
 		</div>
 		<center id="import-processing" class="htmx-indicator">
 			Processing, this could take a few minutes...
-			@loading.Build(loading.Infinity).Show()
+			<span class="loading loading-spinner loading-md"></span>
 		</center>
 		<div id="import-results" class="space-y-4"></div>
 	</div>
@@ -438,7 +441,7 @@ templ (page *ExportPage) content() {
 		</div>
 		<center id="processing" class="htmx-indicator">
 			Processing, this could take a few minutes...
-			@loading.Build(loading.Infinity).Show()
+			<span class="loading loading-spinner loading-md"></span>
 		</center>
 	</div>
 }

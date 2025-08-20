@@ -11,6 +11,42 @@ import (
 
 var ErrUnknown = errors.New("an unknown error occurred")
 
+// NewSuccessMessage creates a new UserMessage indicating success with the given summary and (optional) details.
+func NewSuccessMessage(summary string, details string) *UserMessage {
+	return &UserMessage{
+		Status:  UserMessageStatusSuccess,
+		Summary: summary,
+		Details: details,
+	}
+}
+
+// NewErrorMessage creates a new UserMessage indicating an error with the given summary and (optional) details.
+func NewErrorMessage(summary string, details string) *UserMessage {
+	return &UserMessage{
+		Status:  UserMessageStatusError,
+		Summary: summary,
+		Details: details,
+	}
+}
+
+// NewWarningMessage creates a new UserMessage indicating a warning with the given summary and (optional) details.
+func NewWarningMessage(summary string, details string) *UserMessage {
+	return &UserMessage{
+		Status:  UserMessageStatusWarning,
+		Summary: summary,
+		Details: details,
+	}
+}
+
+// NewInfoMessage creates a new UserMessage indicating informational details with the given summary and (optional) details.
+func NewInfoMessage(summary string, details string) *UserMessage {
+	return &UserMessage{
+		Status:  UserMessageStatusInfo,
+		Summary: summary,
+		Details: details,
+	}
+}
+
 // HasDetails returns a boolean indicating whether the message has additional details.
 func (msg *UserMessage) HasDetails() bool {
 	return msg.Details != ""
@@ -26,18 +62,22 @@ func (msg *UserMessage) String() string {
 	return str.String()
 }
 
-func SuccessUserMessage(summary string, details string) *UserMessage {
-	return &UserMessage{
-		Status:  UserMessageStatusSuccess,
-		Summary: summary,
-		Details: details,
-	}
+// IsSuccess returns true when the message indicates success.
+func (msg *UserMessage) IsSuccess() bool {
+	return msg.Status == UserMessageStatusSuccess
 }
 
-func FailedUserMessage(summary string, details string) *UserMessage {
-	return &UserMessage{
-		Status:  UserMessageStatusError,
-		Summary: summary,
-		Details: details,
-	}
+// IsError returns true when the message indicates an error.
+func (msg *UserMessage) IsError() bool {
+	return msg.Status == UserMessageStatusError
+}
+
+// IsWarning returns true when the message indicates a warning.
+func (msg *UserMessage) IsWarning() bool {
+	return msg.Status == UserMessageStatusWarning
+}
+
+// IsInfo returns true when the message indicates informational status.
+func (msg *UserMessage) IsInfo() bool {
+	return msg.Status == UserMessageStatusInfo
 }
