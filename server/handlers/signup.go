@@ -6,12 +6,14 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/web/templates/pages"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
 // Signup handles processing a user sign up request and showing the result.
@@ -25,7 +27,7 @@ func (a *API) Signup() http.HandlerFunc {
 		case http.MethodGet:
 			// Show form for user signup.
 			resp := models.NewResponse(
-				models.WithResponseTemplate(pages.NewSignup(nil, nil).Template(req)),
+				models.WithResponseTemplate(pages.NewSignup(nil).Template(req)),
 			)
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		case http.MethodPost:
@@ -33,77 +35,75 @@ func (a *API) Signup() http.HandlerFunc {
 			// Extract the provider and request details.
 			newUser, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
 			if err != nil || !valid {
-				resp := models.NewResponse(
+				msg := models.NewWarningMessage(
+					"Invalid signup details.",
+					"Could not validate the values. Please check and try again.",
+				)
+				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(pages.NewSignup(newUser, &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "Signup request is invalid.",
-						Details: "Could not validate the values, please check and try again.",
-					}).Template(req)),
-				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+					models.WithResponseTemplate(partials.Notification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			// Create the new account on the provider backend.
 			var externalUserID string
 			externalUserID, err = a.UserAPI().Create(req.Context(), newUser)
 			if err != nil {
-				resp := models.RespInternalServerError(err,
-					pages.NewSignup(newUser, &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "Failed to create new user.",
-						Details: "The backend had an issue trying to complete the request. Please try again.",
-					}).Template(req),
+				msg := models.NewErrorMessage(
+					"User creation failed.",
+					"The backend had issues trying to create a new user, please try again.",
 				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			// Create the local user account.
 			user := models.NewUser(externalUserID, "auth0")
 			valid, err = user.Valid(req.Context())
 			if err != nil || !valid {
-				resp := models.RespInternalServerError(err,
-					pages.NewSignup(newUser, &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "Failed to create new user.",
-						Details: "The backend had an issue trying to complete the request. Please try again.",
-					}).Template(req),
+				msg := models.NewErrorMessage(
+					"User creation failed.",
+					"The backend had issues trying to create a new user, please try again.",
 				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			index := elastic.UserIndexFromCtx(req.Context())
 			if index == "" {
-				resp := models.RespInternalServerError(err,
-					pages.NewSignup(newUser, &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "Failed to create new user.",
-						Details: "The backend had an issue trying to complete the request. Please try again.",
-					}).Template(req),
+				msg := models.NewErrorMessage(
+					"User creation failed.",
+					"The backend had issues trying to create a new user, please try again.",
 				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			err = elastic.CreateDoc(req.Context(), a.DataAPI().GetAPI(), index, user.GetID(), user)
 			if err != nil {
-				resp := models.NewResponse(
+				msg := models.NewErrorMessage(
+					"User creation failed.",
+					"The backend had issues trying to create a new user, please try again.",
+				)
+				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(pages.NewSignup(newUser, &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "Failed to create new user.",
-						Details: "The backend had an issue trying to complete the request. Please try again.",
-					}).Template(req)),
-				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
 				return
 			}
+			msg := models.NewSuccessMessage(
+				"Account created!",
+				"",
+			)
+			template := templ.Join(pages.NewSignup(newUser).Template(req), partials.Notification(msg))
 			resp := models.NewResponse(
-				models.WithResponseTemplate(pages.NewSignup(newUser, &models.UserMessage{
-					Status:  models.UserMessageStatusSuccess,
-					Summary: "Account created!",
-				}).Template(req)),
+				models.WithResponseTemplate(template),
 			)
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		}

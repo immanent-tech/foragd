@@ -113,12 +113,10 @@ templ (page *EditSubscriptionPage) content() {
 // AddSubscription is a page for adding a new subscription.
 type AddSubscription struct {
 	request *models.SubscriptionRequest
-	message *models.UserMessage
 }
 
-func NewAddSubscription(request *models.SubscriptionRequest, msg *models.UserMessage) *AddSubscription {
+func NewAddSubscription(request *models.SubscriptionRequest) *AddSubscription {
 	page := &AddSubscription{
-		message: msg,
 		request: &models.SubscriptionRequest{},
 	}
 	if request != nil {
@@ -151,30 +149,6 @@ templ (page *AddSubscription) content() {
 			<div>
 				<h2 class="text-base/7 font-semibold">Add a new subscription</h2>
 				<div class="mt-10 space-y-8 pb-12 sm:space-y-0 sm:pb-0">
-					if page.message != nil {
-						switch page.message.Status {
-							case models.UserMessageStatusSuccess:
-								@partials.FormSuccess() {
-									@partials.SuccessMessage(page.message) {
-										@partials.NewAction("/subscriptions", partials.DisplayActionAsLink,
-											partials.ActionValues(session.SubscriptionFiltersFromSession(ctx).Parameters()),
-											partials.ActionPushURL(),
-											partials.ActionClasses("text-sm/6 text-success font-semibold hover:bg-accent hover:text-accent-content"),
-										) {
-											<p class="mt-4">Go to subscriptions <span aria-hidden="true">&rarr;</span></p>
-										}
-									}
-								}
-							case models.UserMessageStatusWarning:
-								@partials.FormWarning() {
-									@partials.WarningMessage(page.message)
-								}
-							case models.UserMessageStatusError:
-								@partials.FormError() {
-									@partials.ErrorMessage(page.message)
-								}
-						}
-					}
 					<form
 						id="add-subscription"
 						hx-post="/user/subscription/add"

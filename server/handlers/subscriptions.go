@@ -341,20 +341,20 @@ func (a *API) AddSubscription() http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			resp := models.NewResponse(
-				models.WithResponseTemplate(pages.NewAddSubscription(nil, nil).Template(req)),
+				models.WithResponseTemplate(pages.NewAddSubscription(nil).Template(req)),
 			)
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 			if err != nil || !valid {
-				resp := models.RespInternalServerError(err,
-					pages.NewAddSubscription(request, &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "Could not add subscription.",
-						Details: "There are problems with the input. Please check and try again.",
-					}).Template(req),
+				msg := models.NewWarningMessage(
+					"Invalid subscription details.",
+					"There are problems with the details. Please check and try again.",
 				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.Notification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			requests := addSubscriptionRequests{
@@ -363,41 +363,42 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			// Match the request to either and existing or new feed.
 			result, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
 			if err != nil {
-				resp := models.RespInternalServerError(err,
-					pages.NewAddSubscription(request, &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "Could not add subscription.",
-						Details: "There are problems with the input. Please check and try again.",
-					}).Template(req),
+				msg := models.NewErrorMessage(
+					"Error processing request.",
+					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
 				return
 			}
 			// If results returned from matching is non-nil, something went wrong.
 			if result[request] != nil {
-				resp := models.RespInternalServerError(err,
-					pages.NewAddSubscription(request, result[request].Message).Template(req),
-				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.ServerErrorNotification(result[request].Message))))).ServeHTTP(res, req)
 				return
 			}
 			// Create the new subscription.
 			createResult, err := requests.createNewSubscriptions(req.Context(), a)
 			if err != nil {
-				resp := models.RespInternalServerError(err,
-					pages.NewAddSubscription(request, &models.UserMessage{
-						Status:  models.UserMessageStatusError,
-						Summary: "Could not add subscription.",
-						Details: "There are problems with the input. Please check and try again.",
-					}).Template(req),
+				msg := models.NewErrorMessage(
+					"Error processing request.",
+					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(RenderResponse(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
 				return
 			} else {
 				result = createResult
 			}
+			template := templ.Join(pages.NewAddSubscription(request).Template(req), partials.Notification(result[request].Message))
 			resp := models.NewResponse(
-				models.WithResponseTemplate(pages.NewAddSubscription(request, result[request].Message).Template(req)),
+				models.WithResponseTemplate(template),
 			)
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		}
