@@ -45,202 +45,86 @@ templ (page *Settings) layout() {
 }
 
 templ (page *Settings) content() {
-	<div id="current-settings">
-		switch page.CurrentPage {
-			case "subscriptions":
-				@SubscriptionSettings()
-			case "app":
-				@AppSettings()
-		}
-	</div>
-}
-
-templ settingsSelect(current string) {
-	<div id="settings-select" class="mt-8">
-		<div class="grid grid-cols-1 sm:hidden">
-			<select
-				aria-label="Select a settings tab"
-				hx-target={ partials.ContentID.Target() }
-				hx-push-url="true"
-				class="app-select"
-			>
-				<option
-					value="billing"
-					if current == "billing" {
-						selected
-					}
-				>Billing</option>
-				<option
-					hx-get="/user/settings/subscriptions"
-					value="subscriptions"
-					if current == "subscriptions" {
-						selected
-					}
-				>Subscriptions</option>
-				<option
-					hx-get="/user/settings/app"
-					value="app"
-					if current == "app" {
-						selected
-					}
-				>App</option>
-			</select>
-			<svg viewBox="0 0 16 16" fill="currentColor" data-slot="icon" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end fill-gray-500">
-				<path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
-			</svg>
-		</div>
-		<div class="hidden sm:block">
-			<nav aria-label="Tabs" class="flex space-x-4" hx-target="#current-settings" hx-push-url="true">
-				<a
-					href="#"
-					class={
-						templ.KV("active-link", current == "billing"),
-						templ.KV("inactive-link", current != "billing"),
-						"text-sm font-medium",
-					}
-				>Billing</a>
-				<a
-					hx-get="/user/settings/subscriptions"
-					class={
-						templ.KV("active-link", current == "subscriptions"),
-						templ.KV("inactive-link", current != "subscriptions"),
-						"text-sm font-medium",
-					}
-				>Subscriptions</a>
-				<a
-					hx-get="/user/settings/app"
-					class={
-						templ.KV("active-link", current == "app"),
-						templ.KV("inactive-link", current != "app"),
-						"text-sm font-medium",
-					}
-				>App</a>
-			</nav>
-		</div>
+	<div class="mt-8">
+		<el-tab-group>
+			<el-tab-list>
+				<div class="-mb-px flex">
+					<button id="btn-settings-subscriptions" type="button" class="w-1/3 border-b-2 border-transparent px-1 py-4 text-center text-sm font-medium text-base-content hover:border-accent/20 hover:text-accent">Subscriptions</button>
+					<button id="btn-settings-app" type="button" class="w-1/3 border-b-2 border-transparent px-1 py-4 text-center text-sm font-medium text-base-content hover:border-accent/20 hover:text-accent">App</button>
+					<button id="btn-settings-billing" type="button" class="w-1/3 border-b-2 border-transparent px-1 py-4 text-center text-sm font-medium text-base-content hover:border-accent/20 hover:text-accent">Billing</button>
+				</div>
+			</el-tab-list>
+			<el-tab-panels>
+				<div id="settings-subscriptions">
+					@SubscriptionSettings()
+				</div>
+				<div id="settings-app" hidden>
+					@AppSettings()
+				</div>
+				<div id="settings-billing" hidden>Billing</div>
+			</el-tab-panels>
+		</el-tab-group>
 	</div>
 }
 
 // SubscriptionSettings shows settings for managing user subscriptions.
 templ SubscriptionSettings() {
-	@settingsSelect("subscriptions")
 	<div class="flex flex-col mt-2 gap-y-4 max-w-prose">
-		<div class="flex flex-row gap-x-4">
-			<button
-				type="button"
-				class="app-button"
-				hx-get="/user/subscription/add"
-				hx-target={ partials.ContentID.Target() }
-				hx-push-url="true"
-			>Add</button>
-			<button
-				type="button"
-				class="app-button"
-				hx-get="/user/import"
-				hx-target={ partials.ContentID.Target() }
-				hx-push-url="true"
-			>Import</button>
-			<button
-				type="button"
-				class="app-button"
-				hx-get="/user/export"
-				hx-target={ partials.ContentID.Target() }
-				hx-push-url="true"
-			>Export</button>
+		<div class="border-b border-base-content/10 pb-12">
+			<h2 class="text-sm/7 font-semibold pb-4">Actions</h2>
+			<div class="flex flex-row gap-x-4">
+				<button
+					type="button"
+					class="app-button text-xs"
+					hx-get="/user/subscription/add"
+					hx-target={ partials.ContentID.Target() }
+					hx-push-url="true"
+				>Add</button>
+				<button
+					type="button"
+					class="app-button text-xs"
+					hx-get="/user/import"
+					hx-target={ partials.ContentID.Target() }
+					hx-push-url="true"
+				>Import</button>
+				<button
+					type="button"
+					class="app-button text-xs"
+					hx-get="/user/export"
+					hx-target={ partials.ContentID.Target() }
+					hx-push-url="true"
+				>Export</button>
+			</div>
 		</div>
-		<form
-			hx-post="/user/settings/subscriptions"
-			hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
-			hx-target="#subscriptions-list"
-			hx-indicator=".htmx-indicator"
-			hx-push-url="false"
-		>
-			<input id="filter-subscriptions" type="text" name="text" placeholder="Filter..." class="app-textinput text-xs/4"/>
-		</form>
+		<div>
+			<h2 class="text-sm/7 font-semibold pb-4">Manage</h2>
+			<form
+				hx-post="/user/settings/subscriptions"
+				hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
+				hx-target="#subscriptions-list"
+				hx-indicator=".htmx-indicator"
+				hx-push-url="false"
+			>
+				<div class="grid grid-cols-1">
+					<input id="filter-subscriptions" type="text" name="text" placeholder="Filter..." class="app-textinput text-xs"/>
+					<span class="htmx-indicator loading loading-spinner loading-sm"></span>
+				</div>
+			</form>
+		</div>
 	</div>
-	<ul id="subscriptions-list" role="list" class="divide-y divide-neutral max-w-prose"></ul>
+	<ul id="subscriptions-list" role="list" class="divide-y divide-base-content/5 max-w-prose"></ul>
 }
 
 templ ShowSubscriptionSettings(subscription *models.Subscription) {
 	@partials.NewSubscriptionContent(subscription).Settings()
 }
 
-// AccountSettings shows settings for managing the user account.
-templ AccountSettings(user *models.User, request *models.EditUserRequest) {
-	@settingsSelect("account")
-	<div class="divide-y divide-base-content/5">
-		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
-			<div>
-				<h2 class="text-base/7 font-semibold">Personal Information</h2>
-				// <p class="mt-1 text-sm/6 text-gray-400">Use a permanent address where you can receive mail.</p>
-			</div>
-			<form
-				class="md:col-span-2"
-				hx-post="/user/settings/account"
-				hx-target={ partials.ContentID.Target() }
-				hx-target-error={ partials.ContentID.Target() }
-			>
-				<div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:max-w-xl sm:grid-cols-6">
-					<div class="col-span-full flex items-center gap-x-8">
-						if user.AvatarURL != "" {
-							<img src={ user.AvatarURL } alt={ user.Nickname } class="size-24 flex-none rounded-lg bg-base-content object-cover"/>
-						}
-						<div>
-							<label for="avatar" class="block font-medium">Avatar</label>
-							// <button type="button" class="rounded-md app-button">Change avatar</button>
-							// <p class="mt-2 text-xs/5 text-gray-400">JPG, GIF or PNG. 1MB max.</p>
-						</div>
-					</div>
-					// <div class="col-span-full">
-					// 	<input id="avatar" type="file" class="app-button text-sm/6"/>
-					// </div>
-					<div class="col-span-full">
-						<label for="username" class="block font-medium">Username</label>
-						<div class="mt-2">
-							if request.Nickname != "" {
-								<input id="username" type="text" name="nickname" value={ request.Nickname } placeholder="janesmith" class="app-textinput"/>
-							} else {
-								<input id="username" type="text" name="nickname" value={ user.Nickname } placeholder="janesmith" class="app-textinput"/>
-							}
-						</div>
-					</div>
-					// <div class="col-span-full">
-					// 	<label for="email" class="app-textinput-label">Email address</label>
-					// 	<div class="mt-2">
-					// 		<input id="email" type="email" name="email" autocomplete="email" class="app-textinput"/>
-					// 	</div>
-					// </div>
-					// <div class="col-span-full">
-					// 	<label for="timezone" class="app-textinput-label text-sm/6">Timezone</label>
-					// 	<div class="mt-2 grid grid-cols-1">
-					// 		<select id="timezone" name="timezone" class="app-select text-sm/6">
-					// 			<option>Pacific Standard Time</option>
-					// 			<option>Eastern Standard Time</option>
-					// 			<option>Greenwich Mean Time</option>
-					// 		</select>
-					// 		<svg viewBox="0 0 16 16" fill="currentColor" data-slot="icon" aria-hidden="true" class="pointer-events-none col-start-1 row-start-1 mr-2 size-5 self-center justify-self-end text-gray-400 sm:size-4">
-					// 			<path d="M4.22 6.22a.75.75 0 0 1 1.06 0L8 8.94l2.72-2.72a.75.75 0 1 1 1.06 1.06l-3.25 3.25a.75.75 0 0 1-1.06 0L4.22 7.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
-					// 		</svg>
-					// 	</div>
-					// </div>
-				</div>
-				<div class="mt-8 flex">
-					<button
-						type="submit"
-						class="app-button"
-					>Save</button>
-				</div>
-			</form>
-		</div>
-	</div>
-}
-
 // AppSettings shows settings for the application.
 templ AppSettings() {
-	@settingsSelect("app")
 	<div class="divide-y divide-base-content/5">
 		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div class="col-span-full">
-				<h2 class="text-base/7 font-semibold">Theme</h2>
+				<h2 class="text-sm/7 font-semibold">Theme</h2>
 			</div>
 			@themePreview("light")
 			@themePreview("dark")

@@ -197,10 +197,10 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			// Settings.
 			r.Route("/settings", func(r chi.Router) {
 				r.Get("/", handler.GetSettings())
-				r.Get("/subscriptions", handler.SubscriptionsSettings())
+				// r.Get("/subscriptions", handler.SubscriptionsSettings())
 				r.With(middlewares.RequireHTMX).Post("/subscriptions", handler.SubscriptionsSettings())
-				r.Get("/account", handler.AccountSettings())
-				r.With(middlewares.RequireHTMX).Post("/account", handler.AccountSettings())
+				// r.Get("/account", handler.AccountSettings())
+				// r.With(middlewares.RequireHTMX).Post("/account", handler.AccountSettings())
 				r.Get("/app", handler.AppSettings())
 				r.Route("/theme", func(r chi.Router) {
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())

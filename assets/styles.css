@@ -47,12 +47,16 @@
   @apply link link-hover hover:bg-accent/20 hover:text-accent-content flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
 }
 
+@utility app-default-transitions {
+  @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
+}
+
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
   /* Context Menus */
   .app-context-menu {
-    @apply bg-base-300 ring-base-content/20 origin-top-right rounded-md py-2 shadow-lg ring-1 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
+    @apply bg-base-300 ring-base-content/20 app-default-transitions origin-top-right rounded-md py-2 shadow-lg ring-1;
   }
   .app-context-menu-action {
     @apply hover:text-accent flex items-center gap-x-2 px-3 py-1 text-xs/4;
@@ -80,6 +84,6 @@
   }
   /* Selection Styles */
   .app-select {
-    @apply outline-primary/30 focus:outline-primary bg-base-content/5 *:bg-base-content col-start-1 row-start-1 w-full appearance-none rounded-md py-1.5 pr-8 pl-3 outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2;
+    @apply outline-primary/30 focus:outline-primary bg-base-content/5 *:bg-base-content col-start-1 row-start-1 w-full appearance-none rounded-md py-1.5 pr-8 pl-3 text-sm outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2;
   }
 }
