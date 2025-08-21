@@ -54,6 +54,9 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
+  .dialog-backdrop {
+    @apply bg-base-100/80 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0;
+  }
   /* Context Menus */
   .app-context-menu {
     @apply bg-base-300 ring-base-content/20 app-default-transitions origin-top-right rounded-md py-2 shadow-lg ring-1;
@@ -78,12 +81,13 @@
   .app-button {
     @apply bg-primary/80 hover:bg-primary focus-visible:outline-primary text-primary-content block rounded-md px-3 py-2 text-center text-sm shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2;
   }
-  /* Checkbox Styles */
-  .app-checkbox {
-    @apply border-base-content/20 hover:border-base-content/40 checked:border-primary checked:bg-primary focus-visible:outline-primary disabled:border-neutral disabled:bg-neutral disabled:before:bg-neutral relative size-4 appearance-none rounded-full border before:absolute before:inset-1 before:rounded-full before:bg-white not-checked:before:hidden focus-visible:outline-2 focus-visible:outline-offset-2 forced-colors:appearance-auto forced-colors:before:hidden;
-  }
   /* Selection Styles */
   .app-select {
     @apply outline-primary/30 focus:outline-primary bg-base-content/5 *:bg-base-content col-start-1 row-start-1 w-full appearance-none rounded-md py-1.5 pr-8 pl-3 text-sm outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2;
+  }
+
+  /* Controls/Filters */
+  .controls-popover {
+    @apply bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
   }
 }
