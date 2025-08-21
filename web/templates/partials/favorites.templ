@@ -49,7 +49,7 @@ templ FavoriteLink(fav *models.Favorite, classes string) {
 			{{ values := session.SubscriptionFiltersFromSession(ctx).Parameters() }}
 			{{ values[models.ParamSubscriptions] = fav.GetID() }}
 			<a
-				hx-get="/subscripions"
+				hx-get="/articles"
 				hx-target={ ContentID.Target() }
 				hx-vals={ GenerateHXVals(values) }
 				hx-push-url="true"
