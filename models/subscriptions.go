@@ -65,7 +65,7 @@ func (s *Subscription) GetTitle() string {
 }
 
 func (s *Subscription) GetLink() string {
-	return s.Feed.SourceURLs[0]
+	return s.Feed.URL
 }
 
 func (s *Subscription) GetDescription() string {
