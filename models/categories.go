@@ -8,6 +8,8 @@ import (
 	"sort"
 )
 
+var CommonCategoryFilters = []string{"Post"}
+
 // Categories is a slice of categories.
 type Categories []Category
 

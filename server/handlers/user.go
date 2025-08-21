@@ -180,10 +180,11 @@ func (a *API) SetTheme() http.HandlerFunc {
 		}
 		settings := user.GetSettings()
 		settings.Theme = theme
-		if err := a.updateUser(req.Context(), map[string]any{
+		err := a.updateUser(req.Context(), map[string]any{
 			"settings":   settings,
 			"updated_at": time.Now().UTC(),
-		}); err != nil {
+		})
+		if err != nil {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
@@ -203,7 +204,7 @@ func (a *API) GetFavorites() http.HandlerFunc {
 		}
 		// Render the favorites list.
 		resp := models.NewResponse(
-			models.WithResponseTemplate(layouts.FavoritesList(user.GetFavorites())),
+			models.WithResponseTemplate(partials.FavoritesList(user.GetFavorites())),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP

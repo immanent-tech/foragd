@@ -5,9 +5,12 @@
   "postCreateCommand": "bash .devcontainer/postcreate.sh",
   "containerUser": "vscode",
   "containerEnv": {
-    "TZ": "${localEnv:TZ:Australia/Brisbane}",
     "HOME": "/home/vscode",
     "GOFEEDME_LOGLEVEL": "debug"
+  },
+  "remoteEnv": {
+    "PODMAN_COMPOSE_WARNING_LOGS": "false",
+    "TZ": "${localEnv:TZ:Australia/Brisbane}"
   },
   "updateRemoteUserUID": true,
   "workspaceFolder": "/workspace",

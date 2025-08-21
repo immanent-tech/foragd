@@ -4,11 +4,9 @@
 package layouts
 
 import (
-	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"slices"
 )
 
 templ Drawer() {
@@ -160,85 +158,4 @@ templ DrawerSidebar(classes, layout string) {
 			</li>
 		</ul>
 	</nav>
-}
-
-templ FavoritesList(favorites models.FavoritesSlice) {
-	{{ subscriptions := favorites.FilterByType(models.FavoriteTypeSubscription) }}
-	{{ articles := favorites.FilterByType(models.FavoriteTypeArticle) }}
-	{{ searches := favorites.FilterByType(models.FavoriteTypeSearch) }}
-	if len(subscriptions) > 0 {
-		// Show favorite subscriptions.
-		<li class="text-xs/4 font-semibold text-base-content/80">Subscriptions</li>
-		for fav := range slices.Values(subscriptions) {
-			<li>
-				@favoriteLink(fav, "group inactive-link")
-			</li>
-		}
-	}
-	if len(articles) > 0 {
-		// Show favorite articles.
-		<li class="text-xs/4 font-semibold text-base-content/80">Articles</li>
-		for fav := range slices.Values(articles) {
-			<li>
-				@favoriteLink(fav, "group inactive-link")
-			</li>
-		}
-	}
-	if len(searches) > 0 {
-		// Show favorite searches.
-		<li class="text-xs/4 font-semibold text-base-content/80">Searches</li>
-		for fav := range slices.Values(searches) {
-			<li>
-				@favoriteLink(fav, "group inactive-link")
-			</li>
-		}
-	}
-}
-
-templ favoriteLink(fav *models.Favorite, classes string) {
-	switch fav.Type {
-		case models.FavoriteTypeSubscription:
-			// FavouriteSubscription.
-			{{ values := session.SubscriptionFiltersFromSession(ctx).Parameters() }}
-			{{ values[models.ParamSubscriptions] = fav.GetID() }}
-			<a
-				hx-get="/subscripions"
-				hx-target={ partials.ContentID.Target() }
-				hx-vals={ partials.GenerateHXVals(values) }
-				hx-push-url="true"
-				hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
-				class={ classes }
-			>
-				@partials.HeroIconSubscription("size-4")
-				{ fav.String() }
-			</a>
-		case models.FavoriteTypeArticle:
-			// FavoriteArticle.
-			<a
-				hx-get={ "/article/" + fav.GetID() }
-				hx-target={ partials.ContentID.Target() }
-				hx-push-url="true"
-				hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
-				class={ classes }
-			>
-				@partials.HeroIconArticle("size-4")
-				{ fav.String() }
-			</a>
-		case models.FavoriteTypeSearch:
-			// FavoriteArticle.
-			{{ search, err := fav.ObjectData.AsFavoriteSearch() }}
-			if err == nil {
-				<a
-					hx-get="/search"
-					hx-target={ partials.ContentID.Target() }
-					hx-vals={ partials.GenerateHXVals(map[string]string{"text": search.Text}) }
-					hx-push-url="true"
-					hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
-					class={ classes }
-				>
-					@partials.HeroIconSearch("size-4")
-					{ fav.String() }
-				</a>
-			}
-	}
 }

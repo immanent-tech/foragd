@@ -1,0 +1,241 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package pages
+
+import (
+	"github.com/angelofallars/htmx-go"
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/server/session"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"net/http"
+	"slices"
+	"strconv"
+)
+
+type Home struct {
+	Subscriptions  models.SubscriptionsSlice
+	TopCategories  models.CategoryCounts
+	TopArticles    models.Articles
+	RareCategories models.CategoryCounts
+	Favorites      models.FavoritesSlice
+}
+
+// Template will render the home page based on the request details.
+func (page *Home) Template(req *http.Request) templ.Component {
+	switch {
+	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+		return page.content()
+	default:
+		return templates.NewPage("Go Feed Me - Home",
+			templates.WithBodyContent(page.layout()),
+		)
+	}
+}
+
+// layout renders the full home page content and layout.
+templ (page *Home) layout() {
+	@layouts.Drawer() {
+		@page.content()
+	}
+}
+
+// content renders the home page content.
+templ (page *Home) content() {
+	if page == nil || len(page.Subscriptions) == 0 {
+		@emptyHome()
+	} else {
+		// Favorites section: links to user favorites.
+		<div class="flex items-center">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base text-nowrap font-semibold">Favorites</span>
+			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+		</div>
+		if len(page.Favorites.FilterByType(models.FavoriteTypeSearch)) > 0 {
+			<h2 class="text-xs font-medium text-base-content/80 italic my-4">Searches</h2>
+			<ul role="list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+				for search := range slices.Values(page.Favorites.FilterByType(models.FavoriteTypeSearch)) {
+					<li class="col-span-1 flex rounded-md">
+						@partials.FavoriteLink(search, "group inactive-link")
+					</li>
+				}
+			</ul>
+		}
+		if len(page.Favorites.FilterByType(models.FavoriteTypeSubscription)) > 0 {
+			<h2 class="text-xs font-medium text-base-content/80 italic my-4">Subscriptions</h2>
+			<ul role="list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+				for search := range slices.Values(page.Favorites.FilterByType(models.FavoriteTypeSubscription)) {
+					<li class="col-span-1 flex rounded-md">
+						@partials.FavoriteLink(search, "group inactive-link")
+					</li>
+				}
+			</ul>
+		}
+		// Dive In section: top categories and sample articles from them.
+		<div class="flex items-center mt-8">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base text-nowrap font-semibold">Dive In</span>
+			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+		</div>
+		// Show any top category hits.
+		if page.TopCategories != nil {
+			<div class="flex justify-center gap-2 p-2 m-2">
+				<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+					for category := range slices.Values(page.TopCategories) {
+						@categoryBadge(category)
+					}
+				</div>
+			</div>
+		}
+		// Show any top article hits.
+		if len(page.TopArticles) != 0 {
+			@layouts.CardGrid() {
+				for article := range slices.Values(page.TopArticles) {
+					@partials.NewArticleContent(article).Card()
+				}
+			}
+		}
+		// Interesting Picks section: rare/semantic categories and articles.
+		<div class="flex items-center mt-8">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base text-nowrap font-semibold">Interesting Picks</span>
+			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+		</div>
+		if page.RareCategories != nil {
+			<div class="mt-8">
+				<div class="flex justify-center gap-2 p-4 m-4">
+					<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+						for category := range slices.Values(page.RareCategories) {
+							@categoryBadge(category)
+						}
+					</div>
+				</div>
+			</div>
+		}
+		// Stats section: overall user stats.
+		<div class="flex items-center mt-8">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base text-nowrap font-semibold">Stats</span>
+			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+		</div>
+		<dl class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-5 justify-center">
+			<div class="px-4 py-6 sm:px-6 lg:px-8">
+				<a
+					hx-get="/subscriptions"
+					hx-target={ partials.ContentID.Target() }
+					hx-push-url="true"
+					hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+					class="link link-hover font-medium hover:text-accent"
+				>
+					<dt>
+						<div class="absolute rounded-md bg-primary p-3">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-primary-content">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path>
+							</svg>
+						</div>
+						<p class="ml-16 truncate text-sm font-medium ">Unread Subscriptions</p>
+					</dt>
+					<dd class="ml-16 flex items-baseline">
+						<p class="text-2xl font-semibold">{ strconv.Itoa(len(page.Subscriptions)) }</p>
+					</dd>
+				</a>
+			</div>
+			<div class="px-4 py-6 sm:px-6 lg:px-8">
+				<a
+					hx-get="/articles"
+					hx-target={ partials.ContentID.Target() }
+					hx-push-url="true"
+					hx-vals={ session.ArticleFiltersFromSession(ctx).HXVals() }
+					class="link link-hover font-medium hover:text-accent"
+				>
+					<dt>
+						<div class="absolute rounded-md bg-primary p-3">
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-primary-content">
+								<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"></path>
+							</svg>
+						</div>
+						<p class="ml-16 truncate text-sm font-medium ">Unread Articles</p>
+					</dt>
+					<dd class="ml-16 flex items-baseline">
+						<p class="text-2xl font-semibold">{ strconv.Itoa(page.Subscriptions.GetTotalUnreadCount()) }</p>
+					</dd>
+				</a>
+			</div>
+		</dl>
+	}
+}
+
+templ categoryBadge(category models.CategoryCount) {
+	{{ params := session.ArticleFiltersFromSession(ctx).Parameters() }}
+	{{ params[models.ParamCategories] = category.Category }}
+	<a
+		hx-get="/articles"
+		hx-push-url="true"
+		hx-target={ partials.ContentID.Target() }
+		hx-vals={ partials.GenerateHXVals(params) }
+		class="link link-hover"
+	>
+		<div class="flex gap-2 text-sm capitalize">
+			<span class="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium text-primary">{ category.Category+ " "+ strconv.Itoa(category.Count) } </span>
+		</div>
+	</a>
+}
+
+templ emptyHome() {
+	<div class="mt-16">
+		<h2 class="text-base font-semibold">Welcome home</h2>
+		<p class="mt-1 text-sm text-base-content">It looks like you don't have any feeds to read. Try one of the following to get started.</p>
+		<ul role="list" class="mt-6 grid grid-cols-1 gap-6 border-y border-base-content py-6 sm:grid-cols-2">
+			<li class="flow-root">
+				<div class="relative -m-2 flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-primary hover:bg-accent/50 hover:text-accent-content">
+					<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-primary">
+						@partials.HeroIconAdd("size-6", "text-primary-content")
+					</div>
+					<div>
+						<h3 class="text-sm font-medium ">
+							<a
+								hx-get="/user/subscription/add"
+								hx-target={ partials.ContentID.Target() }
+								hx-push-url="true"
+								class="focus:outline-hidden"
+							>
+								<span aria-hidden="true" class="absolute inset-0"></span>
+								<span>Add a subscription</span>
+								<span aria-hidden="true">&rarr;</span>
+							</a>
+						</h3>
+						<p class="mt-1 text-sm text-base-content">Add a single subscription from a URL or webpage.</p>
+					</div>
+				</div>
+			</li>
+			<li class="flow-root">
+				<div class="relative -m-2 flex items-center space-x-4 rounded-xl p-2 focus-within:outline-2 focus-within:outline-secondary hover:bg-accent/50 hover:text-accent-content">
+					<div class="flex size-16 shrink-0 items-center justify-center rounded-lg bg-secondary">
+						@partials.HeroIconImport("size-6", "text-secondary-content")
+					</div>
+					<div>
+						<h3 class="text-sm font-medium">
+							<a
+								hx-get="/user/import"
+								hx-target={ partials.ContentID.Target() }
+								hx-push-url="true"
+								class="focus:outline-hidden"
+							>
+								<span aria-hidden="true" class="absolute inset-0"></span>
+								<span>Import subscriptions</span>
+								<span aria-hidden="true">&rarr;</span>
+							</a>
+						</h3>
+						<p class="mt-1 text-sm text-base-content">Import multiple subscriptions using an OPML file.</p>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+}

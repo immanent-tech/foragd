@@ -4,10 +4,14 @@
 package elastic
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5/middleware"
@@ -78,21 +82,25 @@ func (l *Logger) LogRoundTrip(req *http.Request, res *http.Response, err error, 
 		} else {
 			buf.ReadFrom(req.Body) //nolint:errcheck
 		}
+		var body strings.Builder
+		logBodyAsText(&body, &buf)
 		requestAttributes = append(requestAttributes,
 			slog.Int("length", int(res.ContentLength)),
-			slog.String("body", buf.String()))
+			slog.String("body", body.String()))
 	}
 	// Set response attributes.
 	responseAttributes := []slog.Attr{
 		slog.Int("status", status),
 	}
 	// if (logging.Level == logging.LevelTrace || l.ResponseBodyEnabled()) && res != nil && res.Body != nil && res.Body != http.NoBody {
-	// 	defer res.Body.Close() //nolint:errcheck
+	// 	defer res.Body.Close()
 	// 	var buf bytes.Buffer
-	// 	buf.ReadFrom(res.Body) //nolint:errcheck
+	// 	buf.ReadFrom(res.Body)
+	// 	var body strings.Builder
+	// 	logBodyAsText(&body, &buf)
 	// 	responseAttributes = append(responseAttributes,
 	// 		slog.Int("length", int(res.ContentLength)),
-	// 		slog.String("body", buf.String()))
+	// 		slog.String("body", body.String()))
 	// }
 	// Define log attributes structure.
 	attributes := append(
@@ -121,6 +129,16 @@ func (l *Logger) RequestBodyEnabled() bool {
 // ResponseBodyEnabled makes the client pass a copy of response body to the logger.
 func (l *Logger) ResponseBodyEnabled() bool {
 	return l.EnableResponseBody
+}
+
+func logBodyAsText(dst io.Writer, body io.Reader) {
+	scanner := bufio.NewScanner(body)
+	for scanner.Scan() {
+		s := scanner.Text()
+		if s != "" {
+			fmt.Fprintf(dst, "%s\n", s)
+		}
+	}
 }
 
 // func logBodyAsText(body *bytes.Buffer) string {

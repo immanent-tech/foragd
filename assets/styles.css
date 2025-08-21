@@ -44,7 +44,7 @@
 }
 
 @utility inactive-link {
-  @apply link link-hover hover:bg-accent/20 hover:text-accent-content flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
+  @apply link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
 }
 
 @utility app-default-transitions {

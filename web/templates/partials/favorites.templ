@@ -1,0 +1,97 @@
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
+
+package partials
+
+import (
+	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/server/session"
+	"slices"
+)
+
+templ FavoritesList(favorites models.FavoritesSlice) {
+	{{ subscriptions := favorites.FilterByType(models.FavoriteTypeSubscription) }}
+	{{ articles := favorites.FilterByType(models.FavoriteTypeArticle) }}
+	{{ searches := favorites.FilterByType(models.FavoriteTypeSearch) }}
+	if len(subscriptions) > 0 {
+		// Show favorite subscriptions.
+		<li class="text-xs/4 font-semibold text-base-content/80">Subscriptions</li>
+		for fav := range slices.Values(subscriptions) {
+			<li>
+				@FavoriteLink(fav, "group inactive-link")
+			</li>
+		}
+	}
+	if len(articles) > 0 {
+		// Show favorite articles.
+		<li class="text-xs/4 font-semibold text-base-content/80">Articles</li>
+		for fav := range slices.Values(articles) {
+			<li>
+				@FavoriteLink(fav, "group inactive-link")
+			</li>
+		}
+	}
+	if len(searches) > 0 {
+		// Show favorite searches.
+		<li class="text-xs/4 font-semibold text-base-content/80">Searches</li>
+		for fav := range slices.Values(searches) {
+			<li>
+				@FavoriteLink(fav, "group inactive-link")
+			</li>
+		}
+	}
+}
+
+templ FavoriteLink(fav *models.Favorite, classes string) {
+	switch fav.Type {
+		case models.FavoriteTypeSubscription:
+			// FavouriteSubscription.
+			{{ values := session.SubscriptionFiltersFromSession(ctx).Parameters() }}
+			{{ values[models.ParamSubscriptions] = fav.GetID() }}
+			<a
+				hx-get="/subscripions"
+				hx-target={ ContentID.Target() }
+				hx-vals={ GenerateHXVals(values) }
+				hx-push-url="true"
+				hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+				class={ classes }
+			>
+				<div class="flex items-center gap-x-2">
+					@HeroIconSubscription("size-4")
+					{ fav.String() }
+				</div>
+			</a>
+		case models.FavoriteTypeArticle:
+			// FavoriteArticle.
+			<a
+				hx-get={ "/article/" + fav.GetID() }
+				hx-target={ ContentID.Target() }
+				hx-push-url="true"
+				hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+				class={ classes }
+			>
+				<div class="flex items-center gap-x-2">
+					@HeroIconArticle("size-4")
+					{ fav.String() }
+				</div>
+			</a>
+		case models.FavoriteTypeSearch:
+			// FavoriteArticle.
+			{{ search, err := fav.ObjectData.AsFavoriteSearch() }}
+			if err == nil {
+				<a
+					hx-get="/search"
+					hx-target={ ContentID.Target() }
+					hx-vals={ GenerateHXVals(map[string]string{"text": search.Text}) }
+					hx-push-url="true"
+					hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+					class={ classes }
+				>
+					<div class="flex items-center gap-x-2">
+						@HeroIconSearch("size-4")
+						{ fav.String() }
+					</div>
+				</a>
+			}
+	}
+}
