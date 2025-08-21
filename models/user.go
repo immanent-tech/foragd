@@ -342,7 +342,7 @@ func (s *SubscriptionMetadata) Mark(mark Mark, markedAt time.Time) {
 // GetUnreadItems retrieves a list of ItemIDs for the subscription feed that
 // user has explicitly marked as unread.
 func (s *SubscriptionMetadata) GetUnreadItems() []ItemID {
-	var ids []ItemID
+	ids := make([]ItemID, 0, len(s.ItemStates))
 	for id, state := range s.ItemStates {
 		if !state.IsRead() {
 			ids = append(ids, id)
@@ -354,7 +354,7 @@ func (s *SubscriptionMetadata) GetUnreadItems() []ItemID {
 // GetReadItems retrieves a list of ItemIDs for the subscription feed that
 // user has explicitly marked as read.
 func (s *SubscriptionMetadata) GetReadItems() []ItemID {
-	var ids []ItemID
+	ids := make([]ItemID, 0, len(s.ItemStates))
 	for id, state := range s.ItemStates {
 		if state.IsRead() {
 			ids = append(ids, id)
