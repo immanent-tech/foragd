@@ -6,14 +6,11 @@ package handlers
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net/http"
-	"strings"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
-	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
@@ -84,9 +81,6 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
-		slogctx.FromCtx(req.Context()).Debug("Marking articles.",
-			slog.String("item_ids", strings.Join(request.Articles, ",")),
-		)
 		// Mark off items under subscription states.
 		user.MarkItems(request.Mark, request.SubscriptionID, request.Articles...)
 		// Update the user object.
@@ -132,32 +126,6 @@ func (a *API) ViewArticle() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(views.NewArticlePage(articles[0]).Template(req)),
 		)
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
-	}
-}
-
-// ShareArticle handles sharing an article to external sources.
-func (a *API) ShareArticle() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			RouteLogger,
-		)
-		itemID := chi.URLParam(req, "item")
-		articles, err := a.getArticles(req.Context(), itemID)
-		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-			return
-		}
-		var resp *models.Response
-		switch req.Method {
-		case http.MethodGet:
-			// Generate articles page.
-			resp = models.NewResponse(
-				models.WithResponseTemplate(partials.NewArticleContent(articles[0]).ShareModal()),
-			)
-		}
-
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
