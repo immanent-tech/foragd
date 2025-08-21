@@ -100,13 +100,13 @@ templ (page *Home) content() {
 			}
 		}
 		// Interesting Picks section: rare/semantic categories and articles.
-		<div class="flex items-center mt-8">
-			<div class="relative flex justify-start">
-				<span class="pr-3 text-base text-nowrap font-semibold">Interesting Picks</span>
-			</div>
-			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
-		</div>
 		if page.RareCategories != nil {
+			<div class="flex items-center mt-8">
+				<div class="relative flex justify-start">
+					<span class="pr-3 text-base text-nowrap font-semibold">Interesting Picks</span>
+				</div>
+				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+			</div>
 			<div class="mt-8">
 				<div class="flex justify-center gap-2 p-4 m-4">
 					<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">

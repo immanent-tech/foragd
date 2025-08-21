@@ -189,11 +189,11 @@ func (a *API) getHomePageData(ctx context.Context) (*pages.Home, *models.Respons
 			slog.Any("error", err))
 	}
 	// Generate category counts from buckets.
-	rareCategoryBuckets, ok := rareCategoriesAgg.Buckets.([]types.StringTermsBucket)
+	rareCategoryBuckets, ok := rareCategoriesAgg.Buckets.([]types.StringRareTermsBucket)
 	if ok {
 		data.RareCategories = make(models.CategoryCounts, 0)
 		for category := range slices.Values(rareCategoryBuckets) {
-			data.RareCategories = append(data.RareCategories, models.CategoryCount{Category: category.Key.(string), Count: int(category.DocCount)})
+			data.RareCategories = append(data.RareCategories, models.CategoryCount{Category: category.Key, Count: int(category.DocCount)})
 		}
 		data.RareCategories.Sort()
 		if len(data.RareCategories) > 10 {
