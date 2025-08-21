@@ -343,6 +343,14 @@ type ItemSourceType string
 // ItemID is the unique ID of an item.
 type ItemID = string
 
+// JobState represents the stored state of a scheduled job.
+type JobState struct {
+	JobData json.RawMessage `json:"job_data,omitempty,omitzero"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
+}
+
 // Mark applies the given mark action to objects.
 type Mark string
 

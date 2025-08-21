@@ -230,39 +230,72 @@ func migrateScheduler(ctx context.Context, api *elasticsearch.TypedClient, destr
 	)
 
 	// scheduler jobs indicies
-
-	err = elastic.PutComponentTemplate(ctx, api, SchedulerSchemaPrefix, NewComponentTemplateRequest(schedulerJobsComponentTemplate()))
+	err = elastic.PutComponentTemplate(ctx, api, SchedulerJobsPrefix, NewComponentTemplateRequest(schedulerJobsComponentTemplate()))
 	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
-
-	err = elastic.PutIndexTemplate(ctx, api, SchedulerSchemaPrefix,
+	err = elastic.PutIndexTemplate(ctx, api, SchedulerJobsPrefix,
 		NewIndexTemplateRequest(
-			WithIndexPatterns(SchedulerSchemaPrefix+"_*"),
-			WithComponentTemplates(SchedulerSchemaPrefix),
+			WithIndexPatterns(SchedulerJobsPrefix+"_*"),
+			WithComponentTemplates(SchedulerJobsPrefix),
 			WithPriority(500),
 		),
 	)
 	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
-
-	jobsStateIndex := SchedulerSchemaPrefix + "_" + config.Environment()
+	jobQueueIndex := SchedulerJobsPrefix + "_" + config.Environment()
 	// Delete index if destructive set.
 	if destructive {
-		_, err := api.Indices.Delete(jobsStateIndex).Do(ctx)
+		_, err := api.Indices.Delete(jobQueueIndex).Do(ctx)
 		if err != nil && !elastic.ParseError(err).IsNotFound() {
 			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
 		}
 	}
 	// Make sure the index doesn't exist before continuing.
-	found, err = api.Indices.Exists(jobsStateIndex).Do(ctx)
+	found, err = api.Indices.Exists(jobQueueIndex).Do(ctx)
 	if err != nil {
 		return errors.Join(ErrMigrationFailed, err)
 	}
 	// Create a job queue index if not found.
 	if !found {
-		_, err = elastic.NewIndexRequest(api, jobsStateIndex).Do(ctx)
+		_, err = elastic.NewIndexRequest(api, jobQueueIndex).Do(ctx)
+		if err != nil {
+			return errors.Join(ErrMigrationFailed, err)
+		}
+	}
+
+	// scheduler jobs indicies
+	err = elastic.PutComponentTemplate(ctx, api, SchedulerStatePrefix, NewComponentTemplateRequest(schedulerStateComponentTemplate()))
+	if err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	err = elastic.PutIndexTemplate(ctx, api, SchedulerStatePrefix,
+		NewIndexTemplateRequest(
+			WithIndexPatterns(SchedulerStatePrefix+"_*"),
+			WithComponentTemplates(SchedulerStatePrefix),
+			WithPriority(500),
+		),
+	)
+	if err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	jobStateIndex := SchedulerStatePrefix + "_" + config.Environment()
+	// Delete index if destructive set.
+	if destructive {
+		_, err := api.Indices.Delete(jobStateIndex).Do(ctx)
+		if err != nil && !elastic.ParseError(err).IsNotFound() {
+			return fmt.Errorf("%w: %w", ErrMigrationFailed, err)
+		}
+	}
+	// Make sure the index doesn't exist before continuing.
+	found, err = api.Indices.Exists(jobStateIndex).Do(ctx)
+	if err != nil {
+		return errors.Join(ErrMigrationFailed, err)
+	}
+	// Create a job queue index if not found.
+	if !found {
+		_, err = elastic.NewIndexRequest(api, jobStateIndex).Do(ctx)
 		if err != nil {
 			return errors.Join(ErrMigrationFailed, err)
 		}

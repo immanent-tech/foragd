@@ -21,8 +21,10 @@ const (
 	ArticleArchiveSchemaPrefix = "article_archive"
 	// UsersSchemaPrefix is a prefix used for user related index/mapping/settings.
 	UsersSchemaPrefix = "users"
-	// SchedulerSchemaPrefix is a prefix used for scheduler related index/mapping/settings.
-	SchedulerSchemaPrefix = "scheduler_jobs"
+	// SchedulerJobsPrefix is a prefix used for scheduler related index/mapping/settings.
+	SchedulerJobsPrefix = "scheduler_jobs"
+	// SchedulerStatePrefix is a prefix used for scheduler state related index/mapping/settings.
+	SchedulerStatePrefix = "scheduler_state"
 	// SessionsSchemaPrefix is a prefix used for sessions related index/mapping/settings.
 	SessionsSchemaPrefix = "sessions"
 	// LogsSchemaPrefix is a prefix used for application logs related index/mapping/settings.
@@ -93,7 +95,20 @@ func schedulerJobsComponentTemplate() types.IndexState {
 				"job_next_run":     types.NewDateNanosProperty(),
 			},
 		}),
-		WithAliases(SchedulerSchemaPrefix, types.Alias{}),
+		WithAliases(SchedulerJobsPrefix, types.Alias{}),
+	)
+}
+
+func schedulerStateComponentTemplate() types.IndexState {
+	return NewIndexState(
+		WithMappings(&types.TypeMapping{
+			Dynamic: &dynamicmapping.False,
+			Properties: map[string]types.Property{
+				"updated_at": types.NewDateNanosProperty(),
+				"job_data":   types.NewFlattenedProperty(),
+			},
+		}),
+		WithAliases(SchedulerStatePrefix, types.Alias{}),
 	)
 }
 

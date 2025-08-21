@@ -31,7 +31,14 @@ type CronTrigger struct {
 
 // GetNewFeedsJob represents a job that finds new feeds to be scheduled for updates.
 type GetNewFeedsJob struct {
-	SchedulerId string `json:"scheduler_id,omitempty,omitzero"`
+	// Interval is the interval on which to check for new feeds.
+	Interval string `json:"interval"`
+}
+
+// GetNewFeedsJobState represents the state required by this job type.
+type GetNewFeedsJobState struct {
+	// Checkpoint is the timestamp when the job last checked for new feeds.
+	Checkpoint time.Time `json:"checkpoint"`
 }
 
 // PollTrigger represents a polling trigger for a job.

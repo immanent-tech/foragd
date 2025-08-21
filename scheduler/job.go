@@ -5,6 +5,7 @@ package scheduler
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -16,6 +17,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/elastic"
 )
 
 var (
@@ -225,7 +227,9 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 		JobTriggerType: ScheduledJobJobTriggerTypePoll,
 		JobType:        ScheduledJobJobTypeGetNewFeeds,
 	}
-	err = job.JobData.FromGetNewFeedsJob(GetNewFeedsJob{})
+	err = job.JobData.FromGetNewFeedsJob(GetNewFeedsJob{
+		Interval: time.Minute.String(),
+	})
 	if err != nil {
 		return nil, fmt.Errorf("%w: %w", ErrCreateJobFailed, err)
 	}
@@ -235,17 +239,40 @@ func NewGetNewFeedsJob() (*ScheduledJob, error) {
 
 // Execute is called by the scheduler when the job is scheduled to run.
 func (job *GetNewFeedsJob) Execute(ctx context.Context) error {
-	feeds, err := manager.db.GetNewFeedsSince(ctx, manager.checkpoint)
+	state := &GetNewFeedsJobState{}
+	lastState, err := manager.db.GetJobState(ctx, "get_new_feeds")
+	if err != nil {
+		if !errors.Is(err, elastic.ErrNotFound) {
+			return fmt.Errorf("%w: %w", ErrScheduler, err)
+		}
+		state.Checkpoint = time.Time{}
+	} else {
+		err = json.Unmarshal(lastState.JobData, state)
+		if err != nil {
+			return fmt.Errorf("%w: %w", ErrScheduler, err)
+		}
+	}
+	slogctx.FromCtx(ctx).DebugContext(ctx, "Looking for new feeds.",
+		slog.Time("since", state.Checkpoint),
+	)
+	feeds, err := manager.db.GetNewFeedsSince(ctx, state.Checkpoint)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrScheduler, err)
 	}
 	if len(feeds) > 0 {
-		slogctx.FromCtx(ctx).DebugContext(ctx, "Retrieved new feeds.",
+		slogctx.FromCtx(ctx).DebugContext(ctx, "Found new feeds.",
 			slog.Int("count", len(feeds)),
 		)
 	}
 	// Update the checkpoint.
-	manager.checkpoint = time.Now().UTC()
+	state.Checkpoint = time.Now().UTC()
+	err = manager.db.UpdateJobState(ctx, "get_new_feeds", map[string]any{
+		"job_data": state,
+	})
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrScheduler, err)
+	}
+
 	// Create new feed jobs where necessary.
 	for feed := range slices.Values(feeds) {
 		var (

@@ -54,7 +54,7 @@ func NewJobQueue(ctx context.Context, client *elastic.API) (*JobQueue, error) {
 	return &JobQueue{
 		ctx:    ctx,
 		client: client,
-		index:  schema.SchedulerSchemaPrefix,
+		index:  schema.SchedulerJobsPrefix,
 	}, nil
 }
 

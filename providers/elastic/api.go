@@ -221,6 +221,29 @@ func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.I
 	return BulkAdd(ctx, e, index, items...)
 }
 
+func (a *API) GetJobState(ctx context.Context, id string) (*models.JobState, error) {
+	index := JobStateIndexFromCtx(ctx)
+	if index == "" {
+		return nil, ErrFetchCtx
+	}
+	state, err := GetDoc[string, *models.JobState](ctx, a.GetAPI(), index, id)
+	if err != nil {
+		return nil, err
+	}
+	return state, nil
+}
+
+func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]any) error {
+	index := JobStateIndexFromCtx(ctx)
+	if index == "" {
+		return ErrFetchCtx
+	}
+	return UpdateDoc(ctx, a.GetAPI(), index, id, updates,
+		UpdateDocAsUpsert(),
+		WithRefresh("true"),
+	)
+}
+
 // BulkAdd will create documents for the given list of objects. Responses are returned as a map of doc id to response.
 // If the request itself fails, a non-nil error is returned.
 func BulkAdd[T ~string, O Object[T]](ctx context.Context, api *API, index string, objects ...O) (map[T]*bulk.OperationResponse, error) {

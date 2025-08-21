@@ -79,9 +79,24 @@ components:
       description: >
         represents a job that finds new feeds to be scheduled for updates.
       type: object
+      required:
+        - interval
       properties:
-        scheduler_id:
+        interval:
+          description: >
+            is the interval on which to check for new feeds.
           type: string
+    GetNewFeedsJobState:
+      description: >
+        represents the state required by this job type.
+      type: object
+      required:
+        - checkpoint
+      properties:
+        checkpoint:
+          description: >
+            is the timestamp when the job last checked for new feeds.
+          x-go-type: time.Time
     PollTrigger:
       description: >
         represents a polling trigger for a job.

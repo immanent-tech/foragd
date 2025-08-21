@@ -670,3 +670,14 @@ components:
               $ref: '#/components/schemas/UserID'
             subscription_id:
               $ref: '#/components/schemas/SubscriptionID'
+    JobState:
+      description: >
+        represents the stored state of a scheduled job.
+      type: object
+      required:
+        - updated_at
+      properties:
+        updated_at:
+          $ref: '#/components/schemas/UpdatedAt'
+        job_data:
+          x-go-type: json.RawMessage

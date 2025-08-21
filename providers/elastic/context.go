@@ -17,6 +17,7 @@ const (
 	subscriptionsCtxKey contextKey = "subscriptions"
 	archiveCtxKey       contextKey = "archive"
 	jobsIndexCtxKey     contextKey = "jobs"
+	jobStateIndexCtxKey contextKey = "job_state"
 	sessionIndexCtxKey  contextKey = "session"
 	pipelineIndexCtxKey contextKey = "pipeline"
 )
@@ -52,6 +53,17 @@ func JobsIndexFromCtx(ctx context.Context) string {
 		return value
 	}
 
+	return ""
+}
+
+func JobStateIndexToCtx(ctx context.Context, index string) context.Context {
+	return context.WithValue(ctx, jobStateIndexCtxKey, index)
+}
+
+func JobStateIndexFromCtx(ctx context.Context) string {
+	if value, ok := ctx.Value(jobStateIndexCtxKey).(string); ok {
+		return value
+	}
 	return ""
 }
 

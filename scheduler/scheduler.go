@@ -28,11 +28,10 @@ var ErrScheduler = errors.New("scheduler encountered an error")
 
 // Manager contains data for managing a scheduler instance.
 type Manager struct {
-	id         string
-	db         *elastic.API
-	queue      quartz.JobQueue
-	scheduler  quartz.Scheduler
-	checkpoint time.Time
+	id        string
+	db        *elastic.API
+	queue     quartz.JobQueue
+	scheduler quartz.Scheduler
 }
 
 var manager *Manager
@@ -46,6 +45,7 @@ func Run(ctx context.Context) error {
 
 	ctx = elastic.FeedsIndexToCtx(ctx, schema.FeedsSchemaPrefix)
 	ctx = elastic.ItemsIndexToCtx(ctx, schema.ItemsSchemaPrefix+"_"+config.Environment())
+	ctx = elastic.JobStateIndexToCtx(ctx, schema.SchedulerStatePrefix+"_"+config.Environment())
 
 	jobQueue, err := NewJobQueue(ctx, esClient)
 	if err != nil {
@@ -63,11 +63,10 @@ func Run(ctx context.Context) error {
 	}
 
 	manager = &Manager{
-		id:         models.NewID(models.SchedulerPFX),
-		db:         esClient,
-		queue:      jobQueue,
-		scheduler:  scheduler,
-		checkpoint: time.Time{},
+		id:        models.NewID(models.SchedulerPFX),
+		db:        esClient,
+		queue:     jobQueue,
+		scheduler: scheduler,
 	}
 
 	// Setup get new feeds job.
