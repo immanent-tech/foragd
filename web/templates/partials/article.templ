@@ -310,17 +310,8 @@ templ (a *Article) favoriteLink(classes ...components.Class) {
 
 // shareLink generates a link that can be used for sharing the article externally
 templ (a *Article) shareLink(classes string) {
-	// @NewAction("/subscription/"+a.GetSubscriptionID()+"/article/"+a.GetID()+"/share", DisplayActionAsLink,
-	// 	ActionTarget("#favorite_"+a.GetID()),
-	// 	ActionClasses(classes...),
-	// ) {
-	// 	@HeroIconShare("size-4")
-	// 	Share
-	// }
 	<a
-		hx-get={ "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID() + "/share" }
-		hx-target={ ModalContainerID.Target() }
-		_={ "on htmx:afterOnLoad wait 10ms then toggle @open on #share_" + a.GetID() + "_dialog" }
+		_={ "on click set currentValue to (my innerHTML) then writeText('" + a.GetLink() + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
 		class={ classes }
 	>
 		{ children... }

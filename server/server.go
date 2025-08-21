@@ -160,7 +160,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Route("/subscription/{subscription}/article/{item}", func(r chi.Router) {
 			r.Get("/", handler.ViewArticle())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkArticle())
-			r.With(middlewares.RequireHTMX).Get("/share", handler.ShareArticle())
+			// r.With(middlewares.RequireHTMX).Get("/share", handler.ShareArticle())
 		})
 		// User routes.
 		r.Route("/user", func(r chi.Router) {
