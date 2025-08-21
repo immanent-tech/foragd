@@ -46,50 +46,43 @@ templ (page *Settings) layout() {
 
 templ (page *Settings) content() {
 	<div class="mt-8">
-		<el-tab-group>
-			<el-tab-list>
-				<div class="-mb-px flex">
-					<button id="btn-settings-subscriptions" type="button" class="w-1/3 border-b-2 border-transparent px-1 py-4 text-center text-sm font-medium text-base-content hover:border-accent/20 hover:text-accent">Subscriptions</button>
-					<button id="btn-settings-app" type="button" class="w-1/3 border-b-2 border-transparent px-1 py-4 text-center text-sm font-medium text-base-content hover:border-accent/20 hover:text-accent">App</button>
-					<button id="btn-settings-billing" type="button" class="w-1/3 border-b-2 border-transparent px-1 py-4 text-center text-sm font-medium text-base-content hover:border-accent/20 hover:text-accent">Billing</button>
-				</div>
-			</el-tab-list>
-			<el-tab-panels>
-				<div id="settings-subscriptions">
-					@SubscriptionSettings()
-				</div>
-				<div id="settings-app" hidden>
-					@AppSettings()
-				</div>
-				<div id="settings-billing" hidden>Billing</div>
-			</el-tab-panels>
-		</el-tab-group>
+		<div class="tabs tabs-lift">
+			<input type="radio" name="settings" class="tab" aria-label="Subscriptions"/>
+			<div class="tab-content bg-base-100 border-base-300 p-6">
+				@SubscriptionSettings()
+			</div>
+			<input type="radio" name="settings" class="tab" aria-label="App"/>
+			<div class="tab-content bg-base-100 border-base-300 p-6">
+				@AppSettings()
+			</div>
+			<input type="radio" name="settings" class="tab" aria-label="Billing"/>
+			<div class="tab-content bg-base-100 border-base-300 p-6">Tab content 3</div>
+		</div>
 	</div>
 }
 
 // SubscriptionSettings shows settings for managing user subscriptions.
 templ SubscriptionSettings() {
-	<div class="flex flex-col mt-2 gap-y-4 max-w-prose">
-		<div class="border-b border-base-content/10 pb-12">
-			<h2 class="text-sm/7 font-semibold pb-4">Actions</h2>
+	<div class="flex flex-col mt-2 gap-y-4">
+		<div class="pb-12">
 			<div class="flex flex-row gap-x-4">
 				<button
 					type="button"
-					class="app-button text-xs"
+					class="btn btn-primary btn-sm"
 					hx-get="/user/subscription/add"
 					hx-target={ partials.ContentID.Target() }
 					hx-push-url="true"
 				>Add</button>
 				<button
 					type="button"
-					class="app-button text-xs"
+					class="btn btn-primary btn-sm"
 					hx-get="/user/import"
 					hx-target={ partials.ContentID.Target() }
 					hx-push-url="true"
 				>Import</button>
 				<button
 					type="button"
-					class="app-button text-xs"
+					class="btn btn-primary btn-sm"
 					hx-get="/user/export"
 					hx-target={ partials.ContentID.Target() }
 					hx-push-url="true"
@@ -97,7 +90,6 @@ templ SubscriptionSettings() {
 			</div>
 		</div>
 		<div>
-			<h2 class="text-sm/7 font-semibold pb-4">Manage</h2>
 			<form
 				hx-post="/user/settings/subscriptions"
 				hx-trigger="input changed delay:500ms, keyup[key=='Enter'], load"
@@ -106,13 +98,15 @@ templ SubscriptionSettings() {
 				hx-push-url="false"
 			>
 				<div class="grid grid-cols-1">
-					<input id="filter-subscriptions" type="text" name="text" placeholder="Filter..." class="app-textinput text-xs"/>
+					<input id="filter-subscriptions" type="text" name="text" placeholder="Filter..." class="input input-primary input-xs"/>
 					<span class="htmx-indicator loading loading-spinner loading-sm"></span>
 				</div>
 			</form>
 		</div>
 	</div>
-	<ul id="subscriptions-list" role="list" class="divide-y divide-base-content/5 max-w-prose"></ul>
+	//
+	// class="divide-y divide-base-content/5 max-w-prose"
+	<ul id="subscriptions-list" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"></ul>
 }
 
 templ ShowSubscriptionSettings(subscription *models.Subscription) {
