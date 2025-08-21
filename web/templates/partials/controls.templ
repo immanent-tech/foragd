@@ -192,6 +192,7 @@ templ (c *ListControls) controlForm(classes ...string) {
 		hx-target={ ContentID.Target() }
 		class={ classes }
 		hx-trigger="change,selectionchange"
+		hx-include="[name='subscriptions']"
 	>
 		// Add other filters.
 		<input type="hidden" name={ models.ParamSortBy } value={ string(c.Filters.GetSort().SortBy) }/>
