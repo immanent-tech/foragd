@@ -7,11 +7,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"slices"
 	"time"
 
 	feeds "github.com/immanent-tech/go-syndication"
 	"github.com/immanent-tech/go-syndication/types"
+	slogctx "github.com/veqryn/slog-context"
 )
 
 // _ types.ObjectCommon = (*Feed)(nil)
@@ -32,6 +34,7 @@ func (f Feeds) GetIDs() []FeedID {
 	return feedIDs
 }
 
+// FindByID will return the feed with the given ID.
 func (f Feeds) FindByID(id FeedID) *Feed {
 	idx := slices.IndexFunc(f, func(v *Feed) bool { return v.GetID() == id })
 	if idx == -1 {
@@ -40,6 +43,7 @@ func (f Feeds) FindByID(id FeedID) *Feed {
 	return f[idx]
 }
 
+// FindByID will return the feed with the given URL.
 func (f Feeds) FindByURL(url string) *Feed {
 	idx := slices.IndexFunc(f, func(v *Feed) bool {
 		return slices.Contains(v.SourceURLs, url)
@@ -49,10 +53,6 @@ func (f Feeds) FindByURL(url string) *Feed {
 	}
 	return f[idx]
 }
-
-// func (f *Feed) String() string {
-// 	return f.GetTitle()
-// }
 
 func (f *Feed) GetID() FeedID {
 	return f.FeedID
@@ -123,6 +123,15 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 		if result.Err != nil {
 			return nil, fmt.Errorf("could not create feed from URL %s: %w", url, result.Err)
 		}
+		if result.Feed.GetImage() == nil {
+			err := feeds.FindFeedImage(ctx, result.Feed)
+			if err != nil {
+				slogctx.FromCtx(ctx).WarnContext(ctx, "No image for feed.",
+					slog.String("feed", result.Feed.GetTitle()),
+					slog.String("url", result.Feed.GetSourceURL()),
+				)
+			}
+		}
 		feed = NewFeedFromSource(result.Feed)
 	}
 
@@ -131,7 +140,7 @@ func NewFeedFromURL(ctx context.Context, url string) (*Feed, error) {
 
 // NewFeedFromSource converts the raw types.FeedSource into a Feed object.
 func NewFeedFromSource(source *feeds.Feed) *Feed {
-	feed := &Feed{
+	return &Feed{
 		FeedID:       NewID(FeedPFX),
 		CreatedAt:    time.Now().UTC(),
 		Published:    source.GetPublishedDate(),
@@ -151,6 +160,4 @@ func NewFeedFromSource(source *feeds.Feed) *Feed {
 			Title: source.GetImage().String(),
 		},
 	}
-
-	return feed
 }
