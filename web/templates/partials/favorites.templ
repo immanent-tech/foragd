@@ -46,7 +46,7 @@ templ FavoriteLink(fav *models.Favorite, classes string) {
 	switch fav.Type {
 		case models.FavoriteTypeSubscription:
 			// FavouriteSubscription.
-			{{ values := session.SubscriptionFiltersFromSession(ctx).Parameters() }}
+			{{ values := session.ArticleFiltersFromSession(ctx).Parameters() }}
 			{{ values[models.ParamSubscriptions] = fav.GetID() }}
 			<a
 				hx-get="/articles"
