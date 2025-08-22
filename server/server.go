@@ -186,7 +186,6 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			r.Get("/export/opml", handler.ExportSubscriptions())
 			// Favorites.
 			r.Route("/favorite", func(r chi.Router) {
-				r.Get("/", handler.GetFavorites())
 				r.Put("/subscription/{subscription}", handler.AddFavoriteSubscription())
 				r.Delete("/subscription/{subscription}", handler.RemoveFavoriteSubscription())
 				r.Put("/article/{item}", handler.AddFavoriteArticle())

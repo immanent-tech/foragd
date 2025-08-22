@@ -4,6 +4,7 @@
 package layouts
 
 import (
+	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -150,18 +151,20 @@ templ DrawerSidebar(classes, layout string) {
 								<path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
 							</svg>
 						</button>
-						<el-disclosure id={ "favorites-menu-" + layout } hidden class="contents transition transition-discrete duration-1000 data-closed:opacity-0">
-							<ul
-								class="mt-1 px-2"
-								id={ "favorites-" + layout }
-								hx-trigger="load, updateFavorites from:body"
-								hx-get="/user/favorite"
-								hx-target={ "#favorites-" + layout }
-							></ul>
-						</el-disclosure>
+						{{ user, found := models.UserFromCtx(ctx) }}
+						if found {
+							<el-disclosure id={ "favorites-menu-" + layout } hidden class="contents transition transition-discrete duration-1000 data-closed:opacity-0">
+								@partials.FavoritesList(user.GetFavorites())
+							</el-disclosure>
+						}
 					</li>
 				</ul>
 			</li>
 		</ul>
 	</nav>
 }
+
+// id={ "favorites-" + layout }
+// hx-trigger="load, updateFavorites from:body"
+// hx-get="/user/favorite"
+// hx-target={ "#favorites-" + layout }

@@ -192,32 +192,14 @@ func (a *API) SetTheme() http.HandlerFunc {
 	}).ServeHTTP
 }
 
-// GetFavorites handles getting the list of user favorites and displaying them in the side drawer.
-func (a *API) GetFavorites() http.HandlerFunc {
-	return alice.New(
-		RouteLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		user, found := models.UserFromCtx(req.Context())
-		if !found {
-			RenderResponse(RespForbidden()).ServeHTTP(res, req)
-			return
-		}
-		// Render the favorites list.
-		resp := models.NewResponse(
-			models.WithResponseTemplate(partials.FavoritesList(user.GetFavorites())),
-		)
-		RenderResponse(resp).ServeHTTP(res, req)
-	}).ServeHTTP
-}
-
 // AddFavoriteSubscription handles adding a new favorite subscription for a user.
 func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
-		TriggerEvents("updateFavorites"),
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "subscription")
-		if valid, err := validation.ValidateVariable(id, "required,startswith=sub_"); !valid || err != nil {
+		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
+		if !valid || err != nil {
 			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
@@ -229,7 +211,7 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		// Get the subscription state.
 		metadata := user.GetSubscriptionMetadata().GetByID(id)
 		// Create a new favorite subscription.
-		err := user.AddFavoriteSubscription(id, metadata.Customisation.Nickname)
+		err = user.AddFavoriteSubscription(id, metadata.Customisation.Nickname)
 		if err != nil {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
@@ -253,13 +235,10 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
-		switch {
-		// case strings.HasSuffix(currentURL, "/user/settings"):
-		// 	template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
-		default:
-			template = partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite()
-		}
-
+		template = templ.Join(
+			partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite(),
+			partials.FavoritesList(user.GetFavorites()),
+		)
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
@@ -271,10 +250,10 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
-		TriggerEvents("updateFavorites"),
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "subscription")
-		if valid, err := validation.ValidateVariable(id, "required,startswith=sub_"); !valid || err != nil {
+		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
+		if !valid || err != nil {
 			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
@@ -284,7 +263,7 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			return
 		}
 		user.RemoveFavorite(id)
-		err := a.updateUser(req.Context(), map[string]any{
+		err = a.updateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -303,13 +282,10 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
-		switch {
-		// case strings.HasSuffix(currentURL, "/user/settings"):
-		// 	template = partials.NewSubscriptionContent(subscriptions[0]).ShowAsSetting()
-		default:
-			template = partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite()
-		}
-
+		template = templ.Join(
+			partials.NewSubscriptionContent(subscriptions[0]).ToggleFavorite(),
+			partials.FavoritesList(user.GetFavorites()),
+		)
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
@@ -321,10 +297,10 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 func (a *API) AddFavoriteArticle() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
-		TriggerEvents("updateFavorites"),
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "item")
-		if valid, err := validation.ValidateVariable(id, "required,startswith=item_"); !valid || err != nil {
+		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
+		if !valid || err != nil {
 			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
@@ -365,8 +341,12 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 		}
 		article.Favorite = true
 		// Update the content
+		template := templ.Join(
+			partials.NewArticleContent(article).ToggleFavorite(),
+			partials.FavoritesList(user.GetFavorites()),
+		)
 		resp := models.NewResponse(
-			models.WithResponseTemplate(partials.NewArticleContent(article).ToggleFavorite()),
+			models.WithResponseTemplate(template),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -376,10 +356,10 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
-		TriggerEvents("updateFavorites"),
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "item")
-		if valid, err := validation.ValidateVariable(id, "required,startswith=item_"); !valid || err != nil {
+		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
+		if !valid || err != nil {
 			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
@@ -389,7 +369,7 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			return
 		}
 		user.RemoveFavorite(id)
-		err := a.updateUser(req.Context(), map[string]any{
+		err = a.updateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
@@ -412,8 +392,12 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 		}
 		article := articles[0]
 		// Update the content
+		template := templ.Join(
+			partials.NewArticleContent(article).ToggleFavorite(),
+			partials.FavoritesList(user.GetFavorites()),
+		)
 		resp := models.NewResponse(
-			models.WithResponseTemplate(partials.NewArticleContent(article).ToggleFavorite()),
+			models.WithResponseTemplate(template),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -423,7 +407,6 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 func (a *API) AddFavoriteSearch() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
-		TriggerEvents("updateFavorites"),
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the search details.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
@@ -456,9 +439,13 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 			return
 		}
 		fav := user.GetFavorites().Get(id)
-		// Update the favorite button.
+		// Update the favorite button and list of favorites.
+		template := templ.Join(
+			pages.RemoveFavoriteSearchButton(fav.GetID()),
+			partials.FavoritesList(user.GetFavorites()),
+		)
 		resp := models.NewResponse(
-			models.WithResponseTemplate(pages.RemoveFavoriteSearchButton(fav.GetID())),
+			models.WithResponseTemplate(template),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -468,7 +455,6 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 	return alice.New(
 		RouteLogger,
-		TriggerEvents("updateFavorites"),
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the search details.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
@@ -496,9 +482,13 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
-		// Update the favorite button.
+		// Update the favorite button and list of favorites.
+		template := templ.Join(
+			pages.AddFavoriteSearchButton(),
+			partials.FavoritesList(user.GetFavorites()),
+		)
 		resp := models.NewResponse(
-			models.WithResponseTemplate(pages.AddFavoriteSearchButton()),
+			models.WithResponseTemplate(template),
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
