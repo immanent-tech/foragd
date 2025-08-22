@@ -4,12 +4,8 @@
 package pages
 
 import (
-	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"net/http"
 	"slices"
 )
 
@@ -32,26 +28,7 @@ func NewSearchResultsPage(fav *models.Favorite, search *models.SearchRequest, su
 	return page
 }
 
-// Template will render the home page based on the request details.
-func (page *SearchResultsPage) Template(req *http.Request) templ.Component {
-	switch {
-	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-		return page.content()
-	default:
-		return templates.NewPage("Go Feed Me - Search Results",
-			templates.WithBodyContent(page.layout()),
-		)
-	}
-}
-
-// layout is the complete page layout for the articles page.
-templ (page *SearchResultsPage) layout() {
-	@layouts.Drawer() {
-		@page.content()
-	}
-}
-
-templ (page *SearchResultsPage) content() {
+templ (page *SearchResultsPage) Content() {
 	<nav class="relative flex mt-8 items-center">
 		// Show jump links if both subscription and article results are available.
 		<div class="flex flex-1">

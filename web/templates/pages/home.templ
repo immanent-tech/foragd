@@ -4,13 +4,10 @@
 package pages
 
 import (
-	"github.com/angelofallars/htmx-go"
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"net/http"
 	"slices"
 	"strconv"
 )
@@ -23,27 +20,32 @@ type Home struct {
 	Favorites      models.FavoritesSlice
 }
 
-// Template will render the home page based on the request details.
-func (page *Home) Template(req *http.Request) templ.Component {
-	switch {
-	case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-		return page.content()
-	default:
-		return templates.NewPage("Go Feed Me - Home",
-			templates.WithBodyContent(page.layout()),
-		)
-	}
-}
+// // Template will render the home page based on the request details.
+// templ (page *Home) Template() {
+// 	// switch {
+// 	// case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+// 	// 	return page.content()
+// 	// default:
+// 	// 	return templates.NewPage("Go Feed Me - Home",
+// 	// 		templates.WithBodyContent(page.layout()),
+// 	// 	)
+// 	// }
+// 	@templates.RenderPage() {
+// 		@layouts.Drawer() {
+// 			@page.content()
+// 		}
+// 	}
+// }
 
-// layout renders the full home page content and layout.
-templ (page *Home) layout() {
-	@layouts.Drawer() {
-		@page.content()
-	}
-}
+// // layout renders the full home page content and layout.
+// templ (page *Home) layout() {
+// 	@layouts.Drawer() {
+// 		@page.content()
+// 	}
+// }
 
 // content renders the home page content.
-templ (page *Home) content() {
+templ (page *Home) Template() {
 	if page == nil || len(page.Subscriptions) == 0 {
 		@emptyHome()
 	} else {

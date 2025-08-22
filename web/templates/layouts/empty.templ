@@ -6,9 +6,7 @@ package layouts
 import "github.com/joshuar/go-feed-me/web/templates/partials"
 
 templ EmptyLayout() {
-	@Drawer() {
-		@EmptyContent()
-	}
+	@Drawer(EmptyContent())
 }
 
 templ EmptyContent() {

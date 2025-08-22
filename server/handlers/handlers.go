@@ -5,6 +5,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"log/slog"
@@ -12,6 +13,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -112,6 +114,98 @@ func RenderResponse(resp *models.Response) http.Handler {
 				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
 				return
 			}
+		}
+	})
+}
+
+func Render(resp *models.Response, fragments ...templates.FragmentKey) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get any existing htmx response writer.
+		htmxResp := htmxRespFromCtx(req.Context())
+		if resp == nil {
+			// If there is no response, return 200: OK.
+			res.WriteHeader(http.StatusOK)
+			err := htmxResp.Write(res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), "Problem writing response.",
+					slog.Any("error", err),
+				)
+			}
+			return
+		}
+		// If the response contains an error, log it.
+		if resp.InternalError != nil {
+			switch {
+			case resp.StatusCode < 400:
+				slogctx.FromCtx(req.Context()).DebugContext(req.Context(), resp.InternalError.Error())
+			case resp.StatusCode < 500:
+				slogctx.FromCtx(req.Context()).WarnContext(req.Context(), resp.InternalError.Error())
+			default:
+				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), resp.InternalError.Error())
+			}
+		}
+		// Write the response status code.
+		res.WriteHeader(resp.StatusCode)
+		// If there is no template to render, return.
+		if resp.Template == nil {
+			return
+		}
+		// Write the response template.
+		if htmx.IsHTMX(req) { //nolint:nestif // TODO: can this logic be simplified?
+			slog.Debug("partial render")
+			// Write headers.
+			err := htmxResp.Write(res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
+			// Write template.
+			w := new(bytes.Buffer)
+			if len(fragments) > 0 {
+				err = templ.RenderFragments(req.Context(), w, resp, fragments)
+			} else {
+				err = templ.RenderFragments(req.Context(), w, resp, templates.Content)
+			}
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
+			_, err = res.Write(w.Bytes())
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
+			// Update the page title.
+			if title := pageTitleFromCtx(req.Context()); title != "" {
+				err := htmxResp.RenderTempl(req.Context(), res, templates.SetPageTitle(title))
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
+				}
+			}
+		} else {
+			slog.Debug("full render")
+			w := new(bytes.Buffer)
+			err := templ.RenderFragments(req.Context(), w, resp, templates.FullPage)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
+			_, err = res.Write(w.Bytes())
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
+			// err := resp.Render(req.Context(), res)
+			// if err != nil {
+			// 	slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+			// 	http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+			// 	return
+			// }
 		}
 	})
 }

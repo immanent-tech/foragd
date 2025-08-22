@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"slices"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -19,6 +20,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/results"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/pages"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -93,10 +95,23 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
-			resp := models.NewResponse(
-				models.WithResponseTemplate(pages.NewSearchResultsPage(fav, request, subscriptions, articles).Template(req)),
-			)
-			chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(htmxRespToCtx(req.Context(), htmx.NewResponse().ReplaceURL("/search?"+request.Query()))))
+			var template templ.Component
+			// Render appropriate content.
+			page := pages.NewSearchResultsPage(fav, request, subscriptions, articles)
+			switch {
+			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+				// Just show content.
+				template = page.Content()
+			default:
+				// Show full page.
+				template = templates.RenderPage(
+					"Search Results - Go Feed Me",
+					layouts.Drawer(page.Content()),
+				)
+			}
+			chain.Then(RenderResponse(
+				models.NewResponse(models.WithResponseTemplate(template)),
+			)).ServeHTTP(res, req.WithContext(htmxRespToCtx(req.Context(), htmx.NewResponse().ReplaceURL("/search?"+request.Query()))))
 		}
 	}
 }

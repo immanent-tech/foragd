@@ -68,7 +68,19 @@ func (r *Response) IsNotFound() bool {
 	return false
 }
 
-func (r *Response) String() string {
+// func (r *Response) String() string {
+// 	if r == nil {
+// 		return "unknown error"
+// 	}
+// 	switch {
+// 	case r.InternalError != nil:
+// 		return fmt.Sprintf("%d: %s", r.StatusCode, r.InternalError.Error())
+// 	default:
+// 		return http.StatusText(r.StatusCode)
+// 	}
+// }
+
+func (r *Response) Error() string {
 	if r == nil {
 		return "unknown error"
 	}
@@ -78,10 +90,6 @@ func (r *Response) String() string {
 	default:
 		return http.StatusText(r.StatusCode)
 	}
-}
-
-func (r *Response) Error() string {
-	return r.String()
 }
 
 // Render will render the template in the response. This satisfies the templ.Component interface.

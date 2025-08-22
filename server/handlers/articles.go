@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
@@ -17,6 +19,8 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/views"
 )
@@ -42,12 +46,23 @@ func (a *API) GetArticles() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		// Generate articles page.
-		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewArticlesPage(articles, filters, pagination).Template(req)),
-		)
-
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		// Render appropriate content.
+		var template templ.Component
+		page := views.NewArticlesPage(articles, filters, pagination)
+		switch {
+		case req.Method == http.MethodPost:
+			template = page.List()
+		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+			template = page.Content()
+		default:
+			template = templates.RenderPage(
+				"Go Feed Me - Articles",
+				layouts.Drawer(page.Content()),
+			)
+		}
+		chain.Then(RenderResponse(
+			models.NewResponse(models.WithResponseTemplate(template)),
+		)).ServeHTTP(res, req)
 	}
 }
 
@@ -123,10 +138,21 @@ func (a *API) ViewArticle() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewArticlePage(articles[0]).Template(req)),
-		)
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		// Render appropriate content.
+		var template templ.Component
+		page := views.NewArticlePage(articles[0])
+		switch {
+		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+			template = page.Content()
+		default:
+			template = templates.RenderPage(
+				articles[0].GetTitle()+" - Go Feed Me",
+				layouts.Drawer(page.Content()),
+			)
+		}
+		chain.Then(RenderResponse(
+			models.NewResponse(models.WithResponseTemplate(template)),
+		)).ServeHTTP(res, req)
 	}
 }
 

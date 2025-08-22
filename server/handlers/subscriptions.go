@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
@@ -30,6 +31,8 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/validation"
+	"github.com/joshuar/go-feed-me/web/templates"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/pages"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-feed-me/web/templates/views"
@@ -65,16 +68,25 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		// Generate page template.
-		template = views.NewSubscriptionsPage(subscriptions, filters, pagination).Template(req)
-
-		resp := models.NewResponse(
-			models.WithResponseTemplate(template),
-		)
-
-		a.syncUser(req.Context())
-
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		// Render appropriate content.
+		page := views.NewSubscriptionsPage(subscriptions, filters, pagination)
+		switch {
+		case req.Method == http.MethodPost:
+			// Just show new cards.
+			template = page.List()
+		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+			// Just show content.
+			template = page.Content()
+		default:
+			// Show full page.
+			template = templates.RenderPage(
+				"Go Feed Me - Subscriptions",
+				layouts.Drawer(page.Content()),
+			)
+		}
+		chain.Then(RenderResponse(
+			models.NewResponse(models.WithResponseTemplate(template)),
+		)).ServeHTTP(res, req)
 	}
 }
 
@@ -107,12 +119,23 @@ func (a *API) GetSubscriptionArticles() http.HandlerFunc {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		// Generate articles page.
-		resp := models.NewResponse(
-			models.WithResponseTemplate(views.NewArticlesPage(articles, filters, pagination).Template(req)),
-		)
-
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		// Render appropriate content.
+		var template templ.Component
+		page := views.NewArticlesPage(articles, filters, pagination)
+		switch {
+		case req.Method == http.MethodPost:
+			template = page.List()
+		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+			template = page.Content()
+		default:
+			template = templates.RenderPage(
+				"Articles - Go Feed Me",
+				layouts.Drawer(page.Content()),
+			)
+		}
+		chain.Then(RenderResponse(
+			models.NewResponse(models.WithResponseTemplate(template)),
+		)).ServeHTTP(res, req)
 	}
 }
 
@@ -198,6 +221,19 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
+		// Function to generate appropriate layout.
+		buildTemplate := func(template templ.Component) templ.Component {
+			switch {
+			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+				return template
+			default:
+				// Show full page.
+				return templates.RenderPage(
+					"Edit Subscription - Go Feed Me",
+					layouts.Drawer(template),
+				)
+			}
+		}
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.URLParamSubscription)
 		// Retrieve user object.
@@ -222,7 +258,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 				request.SuggestedCategories = categories
 			}
 			// Generate page template.
-			template = pages.NewEditSubscriptionPage(request).Template(req)
+			template = buildTemplate(pages.NewEditSubscriptionPage(request).Content())
 		case http.MethodPut: // PUT: save subscription request.
 			request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
 			if err != nil || !valid {
@@ -232,7 +268,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 					Details: "There are problems with the input. Please check and try again.",
 				}
 				resp := models.RespInternalServerError(err,
-					templ.Join(pages.NewEditSubscriptionPage(request).Template(req), partials.Notification(msg)),
+					buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.Notification(msg))),
 				)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
@@ -249,7 +285,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 					Details: "The backend reported an issue while trying to save your edits. Please try again.",
 				}
 				resp := models.RespInternalServerError(err,
-					templ.Join(pages.NewEditSubscriptionPage(request).Template(req), partials.Notification(msg)),
+					buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.Notification(msg))),
 				)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
@@ -265,17 +301,16 @@ func (a *API) EditSubscription() http.HandlerFunc {
 					Details: "The backend reported an issue while trying to save your edits. Please try again.",
 				}
 				resp := models.RespInternalServerError(err,
-					templ.Join(pages.NewEditSubscriptionPage(request).Template(req), partials.Notification(msg)),
+					buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.Notification(msg))),
 				)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
 			}
-			template = templ.Join(pages.NewEditSubscriptionPage(request).Template(req), partials.EditSubscriptionSuccessNotification(metadata))
+			template = buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.EditSubscriptionSuccessNotification(metadata)))
 		}
-		resp := models.NewResponse(
-			models.WithResponseTemplate(template),
-		)
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		chain.Then(RenderResponse(
+			models.NewResponse(models.WithResponseTemplate(template)),
+		)).ServeHTTP(res, req)
 	}
 }
 
@@ -338,10 +373,23 @@ func (a *API) AddSubscription() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
+		// Function to generate appropriate layout.
+		buildTemplate := func(template templ.Component) templ.Component {
+			switch {
+			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+				return template
+			default:
+				// Show full page.
+				return templates.RenderPage(
+					"Add Subscription - Go Feed Me",
+					layouts.Drawer(template),
+				)
+			}
+		}
 		switch req.Method {
 		case http.MethodGet:
 			resp := models.NewResponse(
-				models.WithResponseTemplate(pages.NewAddSubscription(nil).Template(req)),
+				models.WithResponseTemplate(buildTemplate(pages.NewAddSubscription(nil).Content())),
 			)
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		case http.MethodPost:
@@ -351,7 +399,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"Invalid subscription details.",
 					"There are problems with the details. Please check and try again.",
 				)
-				template := templ.Join(pages.NewAddSubscription(request).Template(req), partials.Notification(msg))
+				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(err),
@@ -368,7 +416,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"Error processing request.",
 					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
-				template := templ.Join(pages.NewAddSubscription(request).Template(req), partials.Notification(msg))
+				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
@@ -377,7 +425,11 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			}
 			// If results returned from matching is non-nil, something went wrong.
 			if result[request] != nil {
-				template := templ.Join(pages.NewAddSubscription(request).Template(req), partials.ServerErrorNotification(result[request].Message))
+				msg := models.NewErrorMessage(
+					"Error processing request.",
+					"The backend had issues processing the request and adding a subscription, please try again.",
+				)
+				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
@@ -391,7 +443,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"Error processing request.",
 					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
-				template := templ.Join(pages.NewAddSubscription(request).Template(req), partials.ServerErrorNotification(msg))
+				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
 				chain.Then(RenderResponse(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
@@ -400,7 +452,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			} else {
 				result = createResult
 			}
-			template := templ.Join(pages.NewAddSubscription(request).Template(req), partials.Notification(result[request].Message))
+			template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(result[request].Message)))
 			resp := models.NewResponse(
 				models.WithResponseTemplate(template),
 			)
@@ -415,12 +467,25 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
+		// Function to generate appropriate layout.
+		buildTemplate := func(template templ.Component) templ.Component {
+			switch {
+			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+				return template
+			default:
+				// Show full page.
+				return templates.RenderPage(
+					"Import Subscriptions - Go Feed Me",
+					layouts.Drawer(template),
+				)
+			}
+		}
 		var resp *models.Response
 		switch req.Method {
 		// GET: show import modal.
 		case http.MethodGet:
 			resp = models.NewResponse(
-				models.WithResponseTemplate(pages.NewImportPage().Template(req)),
+				models.WithResponseTemplate(buildTemplate(pages.NewImportPage().Content())),
 			)
 		// POST: process import.
 		case http.MethodPost:
@@ -497,11 +562,24 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 		chain := alice.New(
 			RouteLogger,
 		)
+		// Function to generate appropriate layout.
+		buildTemplate := func(template templ.Component) templ.Component {
+			switch {
+			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+				return template
+			default:
+				// Show full page.
+				return templates.RenderPage(
+					"Import Subscriptions - Go Feed Me",
+					layouts.Drawer(template),
+				)
+			}
+		}
 		switch {
 		// GET: show import modal.
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export":
 			resp := models.NewResponse(
-				models.WithResponseTemplate(pages.NewExportPage().Template(req)),
+				models.WithResponseTemplate(buildTemplate(pages.NewExportPage().Content())),
 			)
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":

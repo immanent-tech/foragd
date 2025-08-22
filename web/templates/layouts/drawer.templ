@@ -10,7 +10,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
-templ Drawer() {
+templ Drawer(content templ.Component) {
 	// Mobile: drawer sidebar.
 	<el-dialog>
 		<dialog id="sidebar" class="backdrop:bg-transparent lg:hidden">
@@ -54,7 +54,8 @@ templ Drawer() {
 		@Header()
 		<main class="content-width">
 			<div id={ partials.ContentID.String() }>
-				@templ.Fragment(templates.ContentFragment) {
+				@templ.Fragment(templates.Content) {
+					@content
 					{ children... }
 				}
 			</div>

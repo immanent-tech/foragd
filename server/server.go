@@ -200,7 +200,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 				r.With(middlewares.RequireHTMX).Post("/subscriptions", handler.SubscriptionsSettings())
 				// r.Get("/account", handler.AccountSettings())
 				// r.With(middlewares.RequireHTMX).Post("/account", handler.AccountSettings())
-				r.Get("/app", handler.AppSettings())
+				// r.Get("/app", handler.AppSettings())
 				r.Route("/theme", func(r chi.Router) {
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())
 				})

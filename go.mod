@@ -13,7 +13,6 @@ require (
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.26.0
-	github.com/davecgh/go-spew v1.1.1
 	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.27.0
@@ -25,7 +24,6 @@ require (
 	github.com/knadh/koanf/providers/file v1.2.0
 	github.com/knadh/koanf/v2 v2.2.2
 	github.com/lmittmann/tint v1.1.2
-	github.com/matoous/go-nanoid v1.5.1
 	github.com/mattn/go-isatty v0.0.20
 	github.com/oapi-codegen/runtime v1.1.2
 	github.com/rs/cors v1.11.1

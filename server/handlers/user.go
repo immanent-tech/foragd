@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
+	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
@@ -18,6 +19,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/server/forms"
 	"github.com/joshuar/go-feed-me/validation"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/pages"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -34,10 +36,23 @@ func (a *API) GetSettings() http.HandlerFunc {
 			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
-		resp := models.NewResponse(
-			models.WithResponseTemplate(pages.NewSettingsPage("subscriptions", user, &models.EditUserRequest{}).Template(req)),
-		)
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		// Render appropriate content.
+		var template templ.Component
+		page := pages.NewSettingsPage("subscriptions", user, &models.EditUserRequest{})
+		switch {
+		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+			// Just show content.
+			template = page.Content()
+		default:
+			// Show full page.
+			template = templates.RenderPage(
+				"Settings - Go Feed Me",
+				layouts.Drawer(page.Content()),
+			)
+		}
+		chain.Then(RenderResponse(
+			models.NewResponse(models.WithResponseTemplate(template)),
+		)).ServeHTTP(res, req)
 	}
 }
 
@@ -76,8 +91,8 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 				settings = append(settings, pages.ShowSubscriptionSettings(subscription))
 			}
 			template = templ.Join(settings...)
-		case http.MethodGet:
-			template = pages.NewSettingsPage("subscriptions", nil, nil).Template(req)
+			// case http.MethodGet:
+			// 	template = pages.NewSettingsPage("subscriptions", nil, nil).Template(req)
 		}
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
@@ -100,8 +115,8 @@ func (a *API) AccountSettings() http.HandlerFunc {
 		var template templ.Component
 		// Extract the search request.
 		switch req.Method {
-		case http.MethodGet:
-			template = pages.NewSettingsPage("account", user, &models.EditUserRequest{}).Template(req)
+		// case http.MethodGet:
+		// 	template = pages.NewSettingsPage("account", user, &models.EditUserRequest{}).Template(req)
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.EditUserRequest](req)
 			if err != nil || !valid {
@@ -110,7 +125,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 					Summary: "Could not edit account.",
 					Details: "There are problems with the input. Please check and try again.",
 				}
-				template := templ.Join(pages.NewSettingsPage("account", user, request).Template(req), partials.Notification(msg))
+				template := templ.Join(pages.NewSettingsPage("account", user, request).Content(), partials.Notification(msg))
 				resp := models.RespInternalServerError(err, template)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
@@ -125,7 +140,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 					Summary: "Could not update account settings.",
 					Details: "There was a problem editing account settings. Please try again.",
 				}
-				template := templ.Join(pages.NewSettingsPage("account", user, request).Template(req), partials.Notification(msg))
+				template := templ.Join(pages.NewSettingsPage("account", user, request).Content(), partials.Notification(msg))
 				resp := models.RespInternalServerError(err, template)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
@@ -135,7 +150,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 				Status:  models.UserMessageStatusSuccess,
 				Summary: "Account edits saved.",
 			}
-			template = templ.Join(pages.NewSettingsPage("account", user, request).Template(req), layouts.HeaderUserMenu(), partials.Notification(msg))
+			template = templ.Join(pages.NewSettingsPage("account", user, request).Content(), layouts.HeaderUserMenu(), partials.Notification(msg))
 		}
 		// Update the user in the context.
 		user, _ = a.DataAPI().GetUser(req.Context(), user.UserID)
@@ -145,25 +160,6 @@ func (a *API) AccountSettings() http.HandlerFunc {
 			models.WithResponseTemplate(template),
 		)
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(ctx))
-	}
-}
-
-// AppSettings handles managing app settings.
-func (a *API) AppSettings() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		chain := alice.New(
-			RouteLogger,
-		)
-		var template templ.Component
-		// Extract the search request.
-		switch req.Method {
-		case http.MethodGet:
-			template = pages.NewSettingsPage("app", nil, nil).Template(req)
-		}
-		resp := models.NewResponse(
-			models.WithResponseTemplate(template),
-		)
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}
 }
 

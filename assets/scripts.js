@@ -13,6 +13,3 @@ import _hyperscript from 'hyperscript.org/dist/_hyperscript.js'
 _hyperscript.browserInit()
 // custom element for timestamps
 import './timestamps.js'
-// CSS anchor positioning polyfill for browsers that don't support it natively.
-// https://caniuse.com/css-anchor-positioning
-// import '@oddbird/css-anchor-positioning'

@@ -10,7 +10,10 @@ import (
 	"github.com/a-h/templ"
 )
 
-var ContentFragment = FragmentKey{}
+var (
+	Content  = FragmentKey{}
+	FullPage = FragmentKey{}
+)
 
 type FragmentKey struct{}
 
