@@ -48,21 +48,53 @@ func (a *API) GetArticles() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		var template templ.Component
-		page := views.NewArticlesPage(articles, filters, pagination)
-		switch {
-		case req.Method == http.MethodPost:
-			template = page.List()
-		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			template = page.Content()
-		default:
+		if len(articles) == 0 {
+			template = layouts.EmptyContent()
+		} else {
+			template = views.NewArticlesPage(articles, filters, pagination).Content()
+		}
+		if !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req) {
 			template = templates.RenderPage(
 				"Go Feed Me - Articles",
-				layouts.Drawer(page.Content()),
+				layouts.Drawer(template),
 			)
 		}
 		chain.Then(RenderResponse(
 			models.NewResponse(models.WithResponseTemplate(template)),
 		)).ServeHTTP(res, req)
+	}
+}
+
+// PaginateArticles handles showing the next set of articles.
+func (a *API) PaginateArticles() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
+		// Extract filters from request.
+		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
+		if err != nil || !valid {
+			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+			return
+		}
+		// Get articles matching filters.
+		articles, pagination, err := a.filterArticles(req.Context(), filters)
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		if len(articles) > 0 {
+			// Render appropriate content.
+			template := views.NewArticlesPage(articles, filters, pagination).List()
+			chain.Then(RenderResponse(
+				models.NewResponse(models.WithResponseTemplate(template)),
+			)).ServeHTTP(res, req)
+		} else {
+			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+				res.WriteHeader(http.StatusNoContent)
+			}).ServeHTTP(res, req)
+		}
 	}
 }
 

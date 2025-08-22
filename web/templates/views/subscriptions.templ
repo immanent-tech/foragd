@@ -9,12 +9,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
-	"github.com/sebasvil20/templicons/i"
-	"github.com/sebasvil20/templicons/tabler"
-	"net/http"
 	"slices"
 )
 
@@ -32,7 +27,7 @@ func NewSubscriptionsPage(subscriptions models.SubscriptionsSlice, filters *mode
 	}
 }
 
-// Content is the content section of the subscriptions page.
+// Content renders subscription cards and filter/sorting controls.
 templ (page *SubscriptionsPage) Content() {
 	// Fragment: content filters
 	<div id="content-filters" class="hidden">
@@ -48,22 +43,12 @@ templ (page *SubscriptionsPage) Content() {
 		Filters:    page.filters,
 		Categories: page.subscriptions.GetCategoryCounts(),
 	}.Template()
-	if len(page.subscriptions) > 0 {
-		@layouts.CardGrid() {
-			@page.List()
-		}
-	} else {
-		@layouts.EmptyContent()
+	@layouts.CardGrid() {
+		@page.List()
 	}
-	<div id="content-loading" class="items-center justify-center">
-		@loading.Build(loading.Bars,
-			loading.AsHTMXIndicator(),
-			loading.WithThemeColor(color.Accent),
-		).Show()
-	</div>
 }
 
-// Cards is the list of subscriptions as cards within the subscriptions page.
+// List renders just subscription cards. Called when paginating through subscriptions.
 templ (page *SubscriptionsPage) List() {
 	for subscription := range slices.Values(page.subscriptions) {
 		@partials.NewSubscriptionContent(subscription).Card()
@@ -71,23 +56,5 @@ templ (page *SubscriptionsPage) List() {
 	if page.pagination != "" && len(page.subscriptions) == page.filters.GetCount() {
 		// Add pagination htmx props to last article.
 		@layouts.PaginationControl(ctx, "/subscriptions", page.pagination)
-	}
-}
-
-templ markAllSubscriptionsLink(mark models.Mark) {
-	@partials.NewAction("/subscriptions/mark/"+string(mark), partials.DisplayActionAsLink,
-		partials.ActionMethod(http.MethodPost),
-		partials.ActionInclude("#content-filters"),
-	) {
-		<div class="flex gap-2">
-			switch mark {
-				case models.MarkUnread:
-					@tabler.Bookmark(i.Props{Size: i.SizeXS})
-					Mark All Unread
-				case models.MarkRead:
-					@tabler.Bookmark()
-					Mark All Read
-			}
-		</div>
 	}
 }

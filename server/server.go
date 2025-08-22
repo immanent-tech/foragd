@@ -140,7 +140,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Route("/subscriptions", func(r chi.Router) {
 			r.Use(middlewares.AddFilters())
 			r.Get("/", handler.GetSubscriptions())
-			r.Post("/", handler.GetSubscriptions())
+			r.With(middlewares.RequireHTMX).Post("/", handler.PaginateSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkAllSubscriptions())
 		})
 		// r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handler.RemoveSubscriptions())
@@ -154,7 +154,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		r.Route("/articles", func(r chi.Router) {
 			r.Use(middlewares.AddFilters())
 			r.Get("/", handler.GetArticles())
-			r.With(middlewares.RequireHTMX).Post("/", handler.GetArticles())
+			r.With(middlewares.RequireHTMX).Post("/", handler.PaginateArticles())
 		})
 		// r.With(middlewares.RequireHTMX).Post("/articles/mark/{mark}", handler.MarkArticles())
 		r.Route("/subscription/{subscription}/article/{item}", func(r chi.Router) {

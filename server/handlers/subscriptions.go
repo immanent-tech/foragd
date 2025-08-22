@@ -61,7 +61,6 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			return
 		}
 		chain = chain.Append(SavePageState(filters))
-		var template templ.Component
 		// Get subscriptions matching filters.
 		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), filters)
 		if err != nil {
@@ -69,24 +68,64 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			return
 		}
 		// Render appropriate content.
-		page := views.NewSubscriptionsPage(subscriptions, filters, pagination)
-		switch {
-		case req.Method == http.MethodPost:
-			// Just show new cards.
-			template = page.List()
-		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			// Just show content.
-			template = page.Content()
-		default:
-			// Show full page.
+		var template templ.Component
+		if len(subscriptions) == 0 {
+			template = layouts.EmptyContent()
+		} else {
+			template = views.NewSubscriptionsPage(subscriptions, filters, pagination).Content()
+		}
+		if !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req) {
 			template = templates.RenderPage(
 				"Go Feed Me - Subscriptions",
-				layouts.Drawer(page.Content()),
+				layouts.Drawer(template),
 			)
 		}
 		chain.Then(RenderResponse(
 			models.NewResponse(models.WithResponseTemplate(template)),
 		)).ServeHTTP(res, req)
+	}
+}
+
+// PaginateSubscriptions handles showing the next set of subscriptions.
+func (a *API) PaginateSubscriptions() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		// Set up handler chain.
+		chain := alice.New(
+			RouteLogger,
+		)
+		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
+		if err != nil || !valid {
+			msg := &models.UserMessage{
+				Status:  models.UserMessageStatusWarning,
+				Summary: "There was a problem with the inputs. Please check and try again.",
+			}
+			chain.Then(RenderResponse(
+				models.NewResponse(
+					models.WithResponseError(err),
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+					models.WithResponseTemplate(pages.Error(msg)),
+				),
+			)).ServeHTTP(res, req)
+			return
+		}
+		// Get subscriptions matching filters.
+		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), filters)
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		// Render appropriate content.
+		if len(subscriptions) > 0 {
+			// Render appropriate content.
+			template := views.NewSubscriptionsPage(subscriptions, filters, pagination).List()
+			chain.Then(RenderResponse(
+				models.NewResponse(models.WithResponseTemplate(template)),
+			)).ServeHTTP(res, req)
+		} else {
+			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+				res.WriteHeader(http.StatusNoContent)
+			}).ServeHTTP(res, req)
+		}
 	}
 }
 

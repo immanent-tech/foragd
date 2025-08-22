@@ -8,9 +8,7 @@ import (
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/feedback/loading"
 	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 	"slices"
 )
 
@@ -28,7 +26,7 @@ func NewArticlesPage(articles models.Articles, filters *models.ArticleFilters, p
 	}
 }
 
-// content is the main content to show for a collection of articles.
+// Content renders article cards and filter/sorting controls.
 templ (page *ArticlesPage) Content() {
 	<div id="content-filters" class="hidden">
 		for name, value := range page.filters.Parameters() {
@@ -43,22 +41,12 @@ templ (page *ArticlesPage) Content() {
 		Filters:    page.filters,
 		Categories: page.articles.GetCategoryCounts(),
 	}.Template()
-	if len(page.articles) > 0 {
-		@layouts.CardGrid() {
-			@page.List()
-		}
-	} else {
-		@layouts.EmptyContent()
+	@layouts.CardGrid() {
+		@page.List()
 	}
-	<div id="content-loading" class="items-center justify-center">
-		@loading.Build(loading.Bars,
-			loading.AsHTMXIndicator(),
-			loading.WithThemeColor(color.Accent),
-		).Show()
-	</div>
 }
 
-// list will render the articles as items.
+// List renders just article cards. Called when paginating through subscriptions.
 templ (page *ArticlesPage) List() {
 	for article := range slices.Values(page.articles) {
 		@partials.NewArticleContent(article).Card()
@@ -80,7 +68,7 @@ func NewArticlePage(article *models.Article) *ArticlePage {
 	}
 }
 
-// content is the main content to show for a collection of articles.
+// Content renders an article.
 templ (page *ArticlePage) Content() {
 	@partials.NewArticleContent(page.article).Content()
 }
