@@ -82,7 +82,8 @@
     "home",
     "drawer",
     "header",
-    "articles"
+    "articles",
+    "assets"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
