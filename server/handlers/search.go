@@ -104,7 +104,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				template = page.Content()
 			default:
 				// Show full page.
-				template = templates.RenderPage(
+				template = templates.Page(
 					"Search Results - Go Feed Me",
 					layouts.Drawer(page.Content()),
 				)

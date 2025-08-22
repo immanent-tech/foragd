@@ -45,7 +45,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 			template = page.Content()
 		default:
 			// Show full page.
-			template = templates.RenderPage(
+			template = templates.Page(
 				"Settings - Go Feed Me",
 				layouts.Drawer(page.Content()),
 			)

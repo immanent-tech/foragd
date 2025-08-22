@@ -16,16 +16,18 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/providers/elastic/schema"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/pages"
 )
 
 // LoginSelect handles showing options for logging in with different providers.
 func LoginSelect() http.HandlerFunc {
 	page := &pages.Login{}
+	template := templates.Page("Login - Go Feed Me", page.Content())
 	return alice.New(
 		RouteLogger,
 	).Then(RenderResponse(models.NewResponse(
-		models.WithResponseTemplate(page.Template()),
+		models.WithResponseTemplate(template),
 	))).ServeHTTP
 }
 

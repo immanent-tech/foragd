@@ -44,7 +44,7 @@ func (a *API) Home() http.HandlerFunc {
 		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 			template = data.Template()
 		default:
-			template = templates.RenderPage("Go Feed Me - Home",
+			template = templates.Page("Go Feed Me - Home",
 				layouts.Drawer(data.Template()),
 			)
 		}

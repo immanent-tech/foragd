@@ -75,7 +75,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			template = views.NewSubscriptionsPage(subscriptions, filters, pagination).Content()
 		}
 		if !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req) {
-			template = templates.RenderPage(
+			template = templates.Page(
 				"Go Feed Me - Subscriptions",
 				layouts.Drawer(template),
 			)
@@ -167,7 +167,7 @@ func (a *API) GetSubscriptionArticles() http.HandlerFunc {
 		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 			template = page.Content()
 		default:
-			template = templates.RenderPage(
+			template = templates.Page(
 				"Articles - Go Feed Me",
 				layouts.Drawer(page.Content()),
 			)
@@ -267,7 +267,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 				return template
 			default:
 				// Show full page.
-				return templates.RenderPage(
+				return templates.Page(
 					"Edit Subscription - Go Feed Me",
 					layouts.Drawer(template),
 				)
@@ -419,7 +419,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 				return template
 			default:
 				// Show full page.
-				return templates.RenderPage(
+				return templates.Page(
 					"Add Subscription - Go Feed Me",
 					layouts.Drawer(template),
 				)
@@ -513,7 +513,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				return template
 			default:
 				// Show full page.
-				return templates.RenderPage(
+				return templates.Page(
 					"Import Subscriptions - Go Feed Me",
 					layouts.Drawer(template),
 				)
@@ -608,7 +608,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 				return template
 			default:
 				// Show full page.
-				return templates.RenderPage(
+				return templates.Page(
 					"Import Subscriptions - Go Feed Me",
 					layouts.Drawer(template),
 				)

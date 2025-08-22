@@ -3,23 +3,13 @@
 
 package pages
 
-import (
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
-)
+import "github.com/joshuar/go-feed-me/web/templates/partials"
 
 // Landing represents the landing page.
 type Landing struct{}
 
-// Template renders the landing page template.
-func (page *Landing) Template() templ.Component {
-	return templates.NewPage("Go Feed Me",
-		templates.WithBodyContent(page.layout()),
-	)
-}
-
 // Layout: https://tailwindcss.com/plus/ui-blocks/marketing/page-examples/landing-pages#component-c9ffe5deded27ba87841128323150da9
-templ (page *Landing) layout() {
+templ (page *Landing) Content() {
 	<div class="bg-base-content">
 		<!-- Header -->
 		<header class="absolute inset-x-0 top-0 z-50">

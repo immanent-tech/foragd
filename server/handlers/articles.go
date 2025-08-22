@@ -54,7 +54,7 @@ func (a *API) GetArticles() http.HandlerFunc {
 			template = views.NewArticlesPage(articles, filters, pagination).Content()
 		}
 		if !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req) {
-			template = templates.RenderPage(
+			template = templates.Page(
 				"Go Feed Me - Articles",
 				layouts.Drawer(template),
 			)
@@ -177,7 +177,7 @@ func (a *API) ViewArticle() http.HandlerFunc {
 		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 			template = page.Content()
 		default:
-			template = templates.RenderPage(
+			template = templates.Page(
 				articles[0].GetTitle()+" - Go Feed Me",
 				layouts.Drawer(page.Content()),
 			)

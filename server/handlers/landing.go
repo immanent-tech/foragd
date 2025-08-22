@@ -9,15 +9,17 @@ import (
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/pages"
 )
 
 // Landing handles displaying the landing page of the site.
 func Landing() http.HandlerFunc {
 	page := &pages.Landing{}
+	template := templates.Page("Go Feed Me", page.Content())
 	return alice.New(
 		RouteLogger,
 	).Then(RenderResponse(models.NewResponse(
-		models.WithResponseTemplate(page.Template()),
+		models.WithResponseTemplate(template),
 	))).ServeHTTP
 }

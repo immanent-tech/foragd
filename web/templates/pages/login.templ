@@ -4,7 +4,6 @@
 package pages
 
 import (
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 	"github.com/joshuar/go-templ-daisyui/input/fieldset"
 	"github.com/joshuar/go-templ-daisyui/navigation/link"
@@ -13,14 +12,8 @@ import (
 
 type Login struct{}
 
-func (page *Login) Template() templ.Component {
-	return templates.NewPage("Go Feed Me - Login",
-		templates.WithBodyContent(page.layout()),
-	)
-}
-
 // Base: https://tailwindcss.com/plus/ui-blocks/application-ui/forms/sign-in-forms#component-bc08eb211afa45fad7c9f89c1891f284
-templ (page *Login) layout() {
+templ (page *Login) Content() {
 	<div id={ partials.ContentID.String() }>
 		<div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
 			<div class="sm:mx-auto sm:w-full sm:max-w-md">
