@@ -6,32 +6,27 @@ package partials
 import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/server/session"
-	"github.com/joshuar/go-templ-daisyui"
-	"github.com/joshuar/go-templ-daisyui/navigation/link"
-	"net/http"
 )
 
 type Subscription struct {
 	*models.Subscription
-	classes []components.Class
 }
 
 // NewSubscriptionContent converts a subscription into an object that can be rendered in different ways within the app
 // UI.
 func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
-	card := &Subscription{
+	return &Subscription{
 		Subscription: subscription,
 	}
-	if !subscription.IsUnread() {
-		card.classes = append(card.classes, "brightness-50")
-	}
-	return card
 }
 
 // Card renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
 templ (s *Subscription) Card() {
 	<li id={ s.GetID() }>
-		<div class="relative border-base-content/20 hover:border-base-content/40 bg-base-200 overflow-hidden rounded-xl border p-4">
+		<div
+			class={ "relative border-base-content/20 hover:border-base-content/40 bg-base-200 overflow-hidden rounded-xl border p-4",
+		templ.KV("brightness-50",!s.IsUnread()) }
+		>
 			<dt class="flex items-center">
 				@s.ViewLink("flex", "items-center", "gap-x-4") {
 					<div class="size-12 flex-none">
@@ -110,7 +105,7 @@ templ (s *Subscription) actionsMenu() {
 				Feed Website
 			</a>
 			// Mark action.
-			@s.markLink(components.Class("app-context-menu-action")) {
+			@s.markLink("app-context-menu-action") {
 				switch s.IsUnread() {
 					case true:
 						@HeroIconMarkRead("size-4")
@@ -121,13 +116,13 @@ templ (s *Subscription) actionsMenu() {
 				}
 			}
 			// Edit action.
-			@s.editLink(components.Class("app-context-menu-action")) {
+			@s.editLink("app-context-menu-action") {
 				@HeroIconEdit("size-4")
 				Edit Subscription
 			}
 			// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 			<div id={ "favorite_" + s.GetID() }>
-				@s.favoriteLink(components.Class("app-context-menu-action")) {
+				@s.favoriteLink("app-context-menu-action") {
 					switch s.Favorite {
 						case true:
 							@HeroIconHeartFilled("size-4")
@@ -139,7 +134,7 @@ templ (s *Subscription) actionsMenu() {
 				}
 			</div>
 			// Unsubscribe action.
-			@s.unsubscribeLink(components.Class("app-context-menu-action")) {
+			@s.unsubscribeLink("app-context-menu-action") {
 				@HeroIconTrash("size-4")
 				Remove Subscription
 			}
@@ -186,89 +181,82 @@ templ (s *Subscription) ToggleFavorite() {
 }
 
 // markLink generates a link that will toggle the mark status (read/unread) of the subscription.
-templ (c *Subscription) markLink(classes ...components.Class) {
+templ (c *Subscription) markLink(classes ...string) {
 	{{ var mark string }}
 	if c.IsUnread() {
 		{{ mark = "read" }}
 	} else {
 		{{ mark = "unread" }}
 	}
-	@NewAction("/subscription/"+c.GetID()+"/mark/"+mark, DisplayActionAsLink,
-		ActionMethod(http.MethodPost),
-		ActionTarget("#"+c.GetID()),
-		ActionSwap("outerHTML"),
-		ActionInclude("[name='view']"),
-		ActionClasses(classes...),
-	) {
+	<a
+		hx-post={ "/subscription/" + c.GetID() + "/mark/" + mark }
+		hx-target={ "#" + c.GetID() }
+		hx-swap="outerHTML"
+		hx-include="[name='view']"
+		class={ "link link-hover", classes }
+	>
 		{ children... }
-	}
+	</a>
 }
 
 // editLink generates a link that will open a modal for editing the subscription.
-templ (c *Subscription) editLink(classes ...components.Class) {
-	@NewAction("/user/subscription/edit/"+c.GetID(), DisplayActionAsLink,
-		// ActionHyperScript("on htmx:afterOnLoad wait 10ms then add @open to "+ModalID.Target()),
-		// ActionTarget(ModalContainerID.Target()),
-		ActionSwap("innerHTML show:top"),
-		ActionPushURL(),
-		ActionClasses(classes...),
-	) {
+templ (c *Subscription) editLink(classes ...string) {
+	<a
+		hx-get={ "/user/subscription/edit/" + c.GetID() }
+		hx-swap="innerHTML show:top"
+		hx-push-url="true"
+		class={ "link link-hover", classes }
+	>
 		{ children... }
-	}
+	</a>
 }
 
 // favoriteLink generates a link that will toggle the favorite status of the subscription.
-templ (c *Subscription) favoriteLink(classes ...components.Class) {
-	{{ var method string }}
-	switch c.Favorite {
-		case true:
-			{{ method = http.MethodDelete }}
-		case false:
-			{{ method = http.MethodPut }}
-	}
-	@NewAction("/user/favorite/subscription/"+c.GetID(), DisplayActionAsLink,
-		ActionMethod(method),
-		ActionTarget("#favorite_"+c.GetID()),
-		ActionClasses(classes...),
-	) {
+templ (c *Subscription) favoriteLink(classes ...string) {
+	<a
+		if c.Favorite {
+			hx-delete={ "/user/favorite/subscription/" + c.GetID() }
+		} else {
+			hx-put={ "/user/favorite/subscription/" + c.GetID() }
+		}
+		hx-target={ "#favorite_" + c.GetID() }
+		class={ "link link-hover", classes }
+	>
 		{ children... }
-	}
+	</a>
 }
 
 // unsubscribeLink generates a link for unsubscribing from the subscription.
-templ (c *Subscription) unsubscribeLink(classes ...components.Class) {
-	@NewAction("/user/subscription/remove/"+c.GetID(), DisplayActionAsLink,
-		ActionHyperScript(`on htmx:afterOnLoad wait 10ms then call document.getElementById("unsubscribe").show()`),
-		// ActionAttribute("command", "show-modal"),
-		// ActionAttribute("commandfor", "unsubscribe"),
-		ActionTarget(ModalContainerID.Target()),
-		ActionClasses(classes...),
-	) {
+templ (c *Subscription) unsubscribeLink(classes ...string) {
+	<a
+		hx-get={ "/user/subscription/remove/" + c.GetID() }
+		hx-target={ ModalContainerID.Target() }
+		class={ "link link-hover", classes }
+		_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
+	>
 		{ children... }
-	}
+	</a>
 }
 
 // viewLink generates a link for viewing the subscription articles.
-templ (c *Subscription) ViewLink(classes ...components.Class) {
+templ (c *Subscription) ViewLink(classes ...string) {
 	{{ overrides := map[string]string{models.ParamSortBy: string(models.SortByLastUpdated), "subscriptions": c.GetID()} }}
 	if c.IsUnread() {
 		{{ overrides[models.ParamView] = string(models.ViewUnread) }}
 	} else {
 		{{ overrides[models.ParamView] = string(models.ViewRead) }}
 	}
-	@link.Build(
-		link.WithAttributes(templ.Attributes{
-			"hx-get":      "/articles",
-			"hx-include":  "#content-filters",
-			"hx-vals":     GenerateHXVals(overrides),
-			"hx-target":   ContentID.Target(),
-			"hx-push-url": "true",
-			"hx-swap":     "innerHTML show:top",
-		}),
-		link.WithClasses(classes...),
-	) {
+	<a
+		hx-get="/articles"
+		hx-include="#content-filters"
+		hx-vals={ GenerateHXVals(overrides) }
+		hx-target={ ContentID.Target() }
+		hx-push-url="true"
+		hx-swap="innerHTML show:top"
+		class={ "link link-hover", classes }
+	>
 		{ children... }
-	}
+	</a>
 }
 
 // UnsubscribeModal renders a modal that will action an unsubscribe request when the user has confirmed.

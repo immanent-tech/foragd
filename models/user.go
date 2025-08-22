@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/goforj/godump"
+
 	"github.com/joshuar/go-feed-me/validation"
 )
 
@@ -96,6 +98,7 @@ func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...It
 		return e.GetID() == subscriptionID
 	})
 	if idx != -1 {
+		godump.Dump(u.Subscriptions[idx])
 		switch mark {
 		case MarkRead:
 			u.Subscriptions[idx].MarkItemsRead(itemIDs...)
@@ -103,6 +106,7 @@ func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...It
 			u.Subscriptions[idx].MarkItemsUnread(itemIDs...)
 		}
 		u.Subscriptions[idx].UpdatedAt = time.Now().UTC()
+		godump.Dump(u.Subscriptions[idx])
 	}
 }
 
@@ -113,7 +117,7 @@ func (u *User) AddSubscriptions(subscriptions ...*SubscriptionMetadata) {
 	}
 }
 
-// AddSubscriptions adds to the user subscriptions the given metadata.
+// UpdateSubscription replaces existing subscription metadata in the user object with the given data.
 func (u *User) UpdateSubscription(update *SubscriptionMetadata) error {
 	idx := slices.IndexFunc(u.Subscriptions, func(e *SubscriptionMetadata) bool {
 		return e.GetID() == update.GetID()

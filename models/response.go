@@ -68,18 +68,6 @@ func (r *Response) IsNotFound() bool {
 	return false
 }
 
-// func (r *Response) String() string {
-// 	if r == nil {
-// 		return "unknown error"
-// 	}
-// 	switch {
-// 	case r.InternalError != nil:
-// 		return fmt.Sprintf("%d: %s", r.StatusCode, r.InternalError.Error())
-// 	default:
-// 		return http.StatusText(r.StatusCode)
-// 	}
-// }
-
 func (r *Response) Error() string {
 	if r == nil {
 		return "unknown error"

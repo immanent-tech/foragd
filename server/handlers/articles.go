@@ -6,13 +6,16 @@ package handlers
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"net/http"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/providers/elastic"
@@ -129,6 +132,11 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			return
 		}
 		// Mark off items under subscription states.
+		slogctx.FromCtx(req.Context()).Debug("Marking articles.",
+			slog.String("subscription_id", request.SubscriptionID),
+			slog.String("article_ids", strings.Join(request.Articles, ",")),
+			slog.String("mark", string(request.Mark)),
+		)
 		user.MarkItems(request.Mark, request.SubscriptionID, request.Articles...)
 		// Update the user object.
 		err = a.updateUser(req.Context(), map[string]any{

@@ -28,7 +28,7 @@ templ SetPageTitle(title string) {
 	}
 }
 
-// Show renders the page as a templ Component.
+// Page renders a full HTML page with the given body content and title.
 templ Page(title string, body templ.Component) {
 	@templ.Fragment(FullPage) {
 		<!DOCTYPE html>
