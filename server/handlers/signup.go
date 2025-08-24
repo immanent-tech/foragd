@@ -6,6 +6,7 @@ package handlers
 import (
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
 
@@ -25,9 +26,9 @@ func (a *API) ShowSignup() http.HandlerFunc {
 			RouteLogger,
 		)
 		// Show form for user signup.
-		template := pages.NewSignup(nil).Content()
+		var template templ.Component
 		if !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req) {
-			template = templates.Page("Sign up - Go Feed Me", template)
+			template = templates.Page("Sign up - Go Feed Me", pages.Signup(&models.UserSignupRequest{}))
 		}
 		resp := models.NewResponse(models.WithResponseTemplate(template))
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
@@ -43,30 +44,32 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 		)
 		// Process user signup.
 		// Extract the provider and request details.
-		newUser, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
+		request, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
 		if err != nil || !valid {
 			msg := models.NewWarningMessage(
 				"Invalid signup details.",
 				"Could not validate the values. Please check and try again.",
 			)
+			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
 			chain.Then(RenderResponse(models.NewResponse(
 				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 				models.WithResponseError(err),
-				models.WithResponseTemplate(partials.Notification(msg))))).ServeHTTP(res, req)
+				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 			return
 		}
 		// Create the new account on the provider backend.
 		var externalUserID string
-		externalUserID, err = a.UserAPI().Create(req.Context(), newUser)
+		externalUserID, err = a.UserAPI().Create(req.Context(), request)
 		if err != nil {
 			msg := models.NewErrorMessage(
 				"User creation failed.",
 				"The backend had issues trying to create a new user, please try again.",
 			)
+			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
 			chain.Then(RenderResponse(models.NewResponse(
 				models.WithResponseStatusCode(http.StatusInternalServerError),
 				models.WithResponseError(err),
-				models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
+				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 			return
 		}
 		// Create the local user account.
@@ -77,10 +80,11 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"User creation failed.",
 				"The backend had issues trying to create a new user, please try again.",
 			)
+			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
 			chain.Then(RenderResponse(models.NewResponse(
 				models.WithResponseStatusCode(http.StatusInternalServerError),
 				models.WithResponseError(err),
-				models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
+				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 			return
 		}
 		index := elastic.UserIndexFromCtx(req.Context())
@@ -89,10 +93,11 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"User creation failed.",
 				"The backend had issues trying to create a new user, please try again.",
 			)
+			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
 			chain.Then(RenderResponse(models.NewResponse(
 				models.WithResponseStatusCode(http.StatusInternalServerError),
 				models.WithResponseError(err),
-				models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
+				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 			return
 		}
 		err = elastic.CreateDoc(req.Context(), a.DataAPI().GetAPI(), index, user.GetID(), user)
@@ -101,18 +106,16 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"User creation failed.",
 				"The backend had issues trying to create a new user, please try again.",
 			)
+			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
 			chain.Then(RenderResponse(models.NewResponse(
 				models.WithResponseStatusCode(http.StatusInternalServerError),
 				models.WithResponseError(err),
-				models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
+				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 			return
 		}
-		msg := models.NewSuccessMessage(
-			"Account created!",
-			"",
-		)
+		template := templ.Join(pages.SignupForm(request), pages.SignupSuccessNotification())
 		resp := models.NewResponse(
-			models.WithResponseTemplate(partials.Notification(msg)),
+			models.WithResponseTemplate(template),
 		)
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 	}

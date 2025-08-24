@@ -5,62 +5,65 @@ package pages
 
 import (
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
 )
 
-type Signup struct {
-	Request *models.UserSignupRequest
-}
-
-func NewSignup(request *models.UserSignupRequest) *Signup {
-	signup := &Signup{
-		Request: &models.UserSignupRequest{},
-	}
-	if request != nil {
-		signup.Request = request
-	}
-	return signup
-}
-
-templ (page *Signup) Content() {
-	<div id={ partials.ContentID.String() }>
-		<div id="signup-hero" class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
+templ Signup(request *models.UserSignupRequest) {
+	<main>
+		<div class="flex min-h-full flex-col justify-center py-12 sm:px-6 lg:px-8">
 			<div class="sm:mx-auto sm:w-full sm:max-w-md mb-4">
 				<img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" alt="Your Company" class="mx-auto h-10 w-auto"/>
 				<h2 class="mt-6 text-center text-2xl/9 font-bold tracking-tight text-base-content">Create an account</h2>
 			</div>
 			<div class="sm:mx-auto sm:w-full sm:max-w-[480px]">
-				<div class="bg-base-200 border-base-content/20 px-6 py-12 shadow-sm sm:rounded-lg sm:px-12">
-					@templ.Fragment(templates.Content) {
-						<form hx-post="/signup" hx-target={ partials.ContentID.Target() } class="mt-10 space-y-6">
-							<div>
-								<label for="nickname" class="app-textinput-label font-medium text-sm/6">Nickname</label>
-								<div class="mt-2">
-									<input id="nickname" name="nickname" value={ page.Request.Nickname } class="app-textinput sm:text-sm/6"/>
-								</div>
-							</div>
-							<div>
-								<label for="email" class="app-textinput-label font-medium text-sm/6">Email address</label>
-								<div class="mt-2">
-									<input id="email" type="email" name="email" value={ page.Request.Email } required autocomplete="email" class="app-textinput validator sm:text-sm/6"/>
-									<span class="validator-hint hidden">Email address is required</span>
-								</div>
-							</div>
-							<div>
-								<label for="password" class="app-textinput-label font-medium text-sm/6">Password</label>
-								<div class="mt-2">
-									<input id="password" type="password" name="password" value={ page.Request.Password } required minlength="10" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{ 8,  }" autocomplete="current-password" class="app-textinput sm:text-sm/6"/>
-									<span class="validator-hint hidden">Password needs to be minimum 10 characters and include at least one: lowercase letter, uppercase letter and number</span>
-								</div>
-							</div>
-							<div>
-								<button type="submit" class="app-button text-sm/6">Sign in</button>
-							</div>
-						</form>
-					}
+				<div id="signup" class="bg-base-200/50 px-6 py-12 outline -outline-offset-1 outline-base-content/10 sm:rounded-lg sm:px-12">
+					@SignupForm(request)
 				</div>
 			</div>
 		</div>
-	</div>
+		<div aria-live="assertive" class="pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6 z-999">
+			<div id={ partials.NotificationsID.String() } class="flex w-full flex-col items-center space-y-4 sm:items-end"></div>
+		</div>
+	</main>
+}
+
+templ SignupForm(request *models.UserSignupRequest) {
+	<form id="signup-form" hx-post="/signup" hx-target="#signup" class="space-y-6">
+		<div>
+			<label for="nickname" class="block font-medium text-sm/6">Nickname</label>
+			<div class="mt-2">
+				<input id="nickname" name="nickname" value={ request.Nickname } class="input input-primary sm:text-sm/6"/>
+			</div>
+		</div>
+		<div>
+			<label for="email" class="block font-medium text-sm/6">Email address</label>
+			<div class="mt-2">
+				<input id="email" type="email" name="email" value={ request.Email } required autocomplete="email" class="input input-primary validator sm:text-sm/6"/>
+				<span class="validator-hint hidden">Email address is required</span>
+			</div>
+		</div>
+		<div>
+			<label for="password" class="block font-medium text-sm/6">Password</label>
+			<div class="mt-2">
+				<input id="password" type="password" name="password" value={ request.Password } required minlength="10" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{ 8,  }" autocomplete="current-password" class="input input-primary sm:text-sm/6"/>
+				<span class="validator-hint hidden">Password needs to be minimum 10 characters and include at least one: lowercase letter, uppercase letter and number</span>
+			</div>
+		</div>
+		<div>
+			<button type="submit" class="btn btn-primary btn-wide text-sm/6">Create account</button>
+		</div>
+	</form>
+}
+
+templ SignupSuccessNotification() {
+	@partials.Notification(&models.UserMessage{
+		Status:  models.UserMessageStatusSuccess,
+		Summary: "Account created!",
+	}) {
+		<div class="mt-3 flex space-x-7">
+			<a role="button" class="btn btn-success" href="/login">
+				Login now <span aria-hidden="true">&rarr;</span>
+			</a>
+		</div>
+	}
 }
