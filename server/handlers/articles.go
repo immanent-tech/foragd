@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -22,6 +21,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
@@ -115,11 +115,10 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			return
 		}
 		// Construct the request from parameters.
-		request := &models.MarkArticlesRequest{
+		request := &models.MarkArticleRequest{
 			SubscriptionID: chi.URLParam(req, "subscription"),
 			Mark:           models.Mark(chi.URLParam(req, "mark")),
-			Articles:       []models.ItemID{chi.URLParam(req, "item")},
-			View:           models.View(req.FormValue("view")),
+			ItemID:         chi.URLParam(req, "item"),
 		}
 		// Validate parameters.
 		valid, err := request.Valid()
@@ -132,12 +131,12 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			return
 		}
 		// Mark off items under subscription states.
-		slogctx.FromCtx(req.Context()).Debug("Marking articles.",
+		slogctx.FromCtx(req.Context()).Debug("Marking article.",
 			slog.String("subscription_id", request.SubscriptionID),
-			slog.String("article_ids", strings.Join(request.Articles, ",")),
+			slog.String("item_id", request.ItemID),
 			slog.String("mark", string(request.Mark)),
 		)
-		user.MarkItems(request.Mark, request.SubscriptionID, request.Articles...)
+		user.MarkItems(request.Mark, request.SubscriptionID, request.ItemID)
 		// Update the user object.
 		err = a.updateUser(req.Context(), map[string]any{
 			"subscriptions": user.Subscriptions,
@@ -147,17 +146,25 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			return
 		}
 
+		s, err := a.getArticles(req.Context(), request.ItemID)
+		if err != nil || len(s) == 0 || len(s) > 1 {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
 		var resp *models.Response
-		// If the view is "all" send back the updated subscription card.
-		if request.View == models.ViewAll {
-			s, err := a.getArticles(req.Context(), request.Articles...)
-			if err != nil || len(s) == 0 || len(s) > 1 {
-				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
-				return
-			}
-			card := partials.NewArticleContent(s[0])
+
+		// Generate appropriate swap content based on target header.
+		switch req.Header.Get(htmx.HeaderTarget) {
+		case "#" + request.ItemID:
+			// Swap target is card.
+			filters := session.ArticleFiltersFromSession(req.Context())
 			resp = models.NewResponse(
-				models.WithResponseTemplate(card.Card()),
+				models.WithResponseTemplate(partials.NewArticleContent(s[0]).Card(filters.GetView())),
+			)
+		case "#mark_" + request.ItemID:
+			// Swap target is link.
+			resp = models.NewResponse(
+				models.WithResponseTemplate(partials.NewArticleContent(s[0]).ToggleMark()),
 			)
 		}
 

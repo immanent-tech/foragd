@@ -260,22 +260,20 @@ func (r *SubscriptionRequest) GetNickname() string {
 type SubscriptionRequests []*SubscriptionRequest
 
 // NewSubscriptionMetadata creates a new subscription state with the given subscription and feed ids.
-func NewSubscriptionMetadata(userID UserID, feed *Feed, request *SubscriptionRequest) *SubscriptionMetadata {
+func NewSubscriptionMetadata(user *User, feed *Feed, request *SubscriptionRequest) *SubscriptionMetadata {
 	ts := time.Now().UTC()
 	// Create state based on feed and user data.
 	state := &SubscriptionMetadata{
 		SubscriptionID: NewID(SubscriptionPFX),
 		UpdatedAt:      ts,
 		CreatedAt:      ts,
+		MarkedReadAt:   user.GetMaxHistory(),
 		FeedID:         feed.GetID(),
 		Customisation: ObjectCustomisation{
 			Nickname:   feed.GetTitle(),
 			Categories: feed.GetCategories(),
 		},
-		State: ObjectState{
-			UpdatedAt: ts,
-		},
-		ItemStates: make(map[ItemID]ObjectState),
+		ItemStates: make(map[ItemID]ArticleState),
 	}
 	// Add any user customisations.
 	if request != nil {

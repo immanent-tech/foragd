@@ -49,7 +49,7 @@ templ (page *ArticlesPage) Content() {
 // List renders just article cards. Called when paginating through subscriptions.
 templ (page *ArticlesPage) List() {
 	for article := range slices.Values(page.articles) {
-		@partials.NewArticleContent(article).Card()
+		@partials.NewArticleContent(article).Card(page.filters.GetView())
 	}
 	// Add pagination element if pagination is required.
 	if page.pagination != "" && len(page.articles) == page.filters.GetCount() {

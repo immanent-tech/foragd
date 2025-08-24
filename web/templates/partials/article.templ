@@ -24,7 +24,7 @@ func NewArticleContent(article *models.Article) *Article {
 }
 
 // Card renders an article as a card, for displaying in a list.
-templ (a *Article) Card() {
+templ (a *Article) Card(view models.View) {
 	<li
 		id={ a.GetID() }
 		class={ "border-base-content/20 hover:border-base-content/40 bg-base-200 overflow-hidden rounded-xl border",
@@ -35,11 +35,13 @@ templ (a *Article) Card() {
 			if a.GetImage().URL != "" {
 				@a.ViewLink() {
 					<div class="relative w-full">
-						@image.Build(
-							a.GetImage().URL,
-							image.WithLazyLoading(),
-							image.WithExtraClasses("aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"),
-						)
+						<img
+							class="aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"
+							src={ a.GetImage().URL }
+							if a.GetImage().Title != "" {
+								alt={ a.GetImage().Title }
+							}
+						/>
 						<div class="absolute inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
 					</div>
 					<div class="flex max-w-xl grow flex-col justify-between">
@@ -62,7 +64,58 @@ templ (a *Article) Card() {
 			<div class="mt-8 w-full">
 				<div class="flex items-center justify-between">
 					@a.articleInfo()
-					@a.articleActions()
+					@ContextMenu(a.GetTitle() + " Actions") {
+						// View action.
+						@link.Build(
+							link.WithAttributes(templ.Attributes{"href": a.GetLink()}),
+							link.WithClasses(components.Class("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link")),
+						) {
+							@HeroIconExternalLink("size-4")
+							Original Article
+						}
+						// Mark action.
+						if view == models.ViewAll {
+							@a.markLink("#"+a.GetID(), "outerHTML", "flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
+								switch a.IsUnread() {
+									case true:
+										@HeroIconMarkRead("size-4")
+										Mark Read
+									case false:
+										@HeroIconMarkUnread("size-4")
+										Mark Unread
+								}
+							}
+						} else {
+							@a.markLink("#"+a.GetID(), "delete", "flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
+								switch a.IsUnread() {
+									case true:
+										@HeroIconMarkRead("size-4")
+										Mark Read
+									case false:
+										@HeroIconMarkUnread("size-4")
+										Mark Unread
+								}
+							}
+						}
+						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+						<div id={ "favorite_" + a.GetID() }>
+							@a.favoriteLink(components.Class("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link")) {
+								switch a.Favorite {
+									case true:
+										@HeroIconHeartFilled("size-4")
+										Remove Favorite
+									case false:
+										@HeroIconHeart("size-4")
+										Add Favorite
+								}
+							}
+						</div>
+						// Share action.
+						@a.shareLink("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
+							@HeroIconShare("size-4")
+							Share
+						}
+					}
 				</div>
 			</div>
 		</article>
@@ -81,7 +134,10 @@ templ (a *Article) SearchSuggestion() {
 
 // Content shows the full article content.
 templ (a *Article) Content() {
-	<div class="grid grid-cols-1 justify-items-center mb-16">
+	<div
+		id={ a.GetID() }
+		class="grid grid-cols-1 justify-items-center mb-16"
+	>
 		<div class="max-w-prose rounded-xl border border-base-content/20 bg-base-200 p-4">
 			<article class="prose dark:prose-invert prose-img:rounded-xl prose-figure:rounded-xl">
 				<a href={ a.GetLink() } class="link link-hover">
@@ -91,7 +147,47 @@ templ (a *Article) Content() {
 				</a>
 				<section id="article-info" class="flex items-center justify-between">
 					@a.articleInfo()
-					@a.articleActions()
+					@ContextMenu(a.GetTitle() + "Actions") {
+						// View action.
+						@link.Build(
+							link.WithAttributes(templ.Attributes{"href": a.GetLink()}),
+							link.WithClasses(components.Class("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link")),
+						) {
+							@HeroIconExternalLink("size-4")
+							Original Article
+						}
+						// Mark action.
+						<div id={ "mark_" + a.GetID() }>
+							@a.markLink("mark_"+a.GetID(), "innerHTML", "flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
+								switch a.IsUnread() {
+									case true:
+										@HeroIconMarkRead("size-4")
+										Mark Read
+									case false:
+										@HeroIconMarkUnread("size-4")
+										Mark Unread
+								}
+							}
+						</div>
+						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+						<div id={ "favorite_" + a.GetID() }>
+							@a.favoriteLink(components.Class("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link")) {
+								switch a.Favorite {
+									case true:
+										@HeroIconHeartFilled("size-4")
+										Remove Favorite
+									case false:
+										@HeroIconHeart("size-4")
+										Add Favorite
+								}
+							}
+						</div>
+						// Share action.
+						@a.shareLink("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
+							@HeroIconShare("size-4")
+							Share
+						}
+					}
 				</section>
 				<section id="article-text">
 					switch  {
@@ -121,9 +217,9 @@ templ (a *Article) Content() {
 		// After a delay or when the user scrolls this div into view, assume the article is read and mark it so.
 		<div
 			hx-post={ "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID() + "/mark/" + string(models.MarkRead) }
-			hx-swap="none"
+			hx-target={ "#mark_" + a.GetID() }
+			hx-swap="innerHTML"
 			hx-trigger="intersect once,load delay:20s"
-			hx-vals='{"view": "unread"}'
 			hx-push-url="false"
 			_="on htmx:afterRequest remove me"
 		></div>
@@ -140,61 +236,6 @@ templ (a *Article) articleInfo() {
 			{ strings.Join(a.GetAuthors(),",") }
 		</p>
 	</div>
-}
-
-// articleActions renders a menu containing actions to perform on the article (e.g., mark, favorite, share...).
-templ (a *Article) articleActions() {
-	// Actions menu.
-	<el-dropdown class="relative ml-auto">
-		<button class="relative block rounded-md text-base-content/80 hover:bg-primary hover:text-primary-content focus-visible:outline-primary focus-visible:outline-2 focus-visible:outline-offset-2">
-			// <span class="absolute -inset-2.5"></span>
-			<span class="sr-only">{ a.GetTitle() + " Actions" }</span>
-			@HeroIconContextMenu("size-5")
-		</button>
-		<el-menu
-			anchor="bottom end"
-			popover
-			class="w-52 bg-base-300 ring-base-content/20 origin-top-right rounded-md py-2 shadow-lg ring-1 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
-		>
-			// View action.
-			@link.Build(
-				link.WithAttributes(templ.Attributes{"href": a.GetLink()}),
-				link.WithClasses(components.Class("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link")),
-			) {
-				@HeroIconExternalLink("size-4")
-				Original Article
-			}
-			// Mark action.
-			@a.markLink(components.Class("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link")) {
-				switch a.IsUnread() {
-					case true:
-						@HeroIconMarkRead("size-4")
-						Mark Read
-					case false:
-						@HeroIconMarkUnread("size-4")
-						Mark Unread
-				}
-			}
-			// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-			<div id={ "favorite_" + a.GetID() }>
-				@a.favoriteLink(components.Class("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link")) {
-					switch a.Favorite {
-						case true:
-							@HeroIconHeartFilled("size-4")
-							Remove Favorite
-						case false:
-							@HeroIconHeart("size-4")
-							Add Favorite
-					}
-				}
-			</div>
-			// Share action.
-			@a.shareLink("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
-				@HeroIconShare("size-4")
-				Share
-			}
-		</el-menu>
-	</el-dropdown>
 }
 
 // ShowAsSummary shows a summarised version of the article.
@@ -265,23 +306,36 @@ templ (a *Article) ViewLink(classes ...components.Class) {
 	}
 }
 
+// ToggleFavorite renders an updated favorite link based on the article favorite status.
+templ (a *Article) ToggleMark() {
+	@a.markLink("mark_"+a.GetID(), "innerHTML", "flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
+		switch a.IsUnread() {
+			case true:
+				@HeroIconMarkRead("size-4")
+				Mark Read
+			case false:
+				@HeroIconMarkUnread("size-4")
+				Mark Unread
+		}
+	}
+}
+
 // markLink generates a link that will toggle the mark status (read/unread) of the subscription.
-templ (a *Article) markLink(classes ...components.Class) {
+templ (a *Article) markLink(target, swap string, classes ...string) {
 	{{ var mark string }}
 	if a.IsUnread() {
 		{{ mark = "read" }}
 	} else {
 		{{ mark = "unread" }}
 	}
-	@NewAction("/subscription/"+a.GetSubscriptionID()+"/article/"+a.GetID()+"/mark/"+mark, DisplayActionAsLink,
-		ActionMethod(http.MethodPost),
-		ActionTarget("#"+a.GetID()),
-		ActionSwap("outerHTML"),
-		ActionInclude("[name='view']"),
-		ActionClasses(classes...),
-	) {
+	<a
+		hx-post={ "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID() + "/mark/" + mark }
+		hx-target={ target }
+		hx-swap={ swap }
+		class={ classes }
+	>
 		{ children... }
-	}
+	</a>
 }
 
 // favoriteLink generates a link that will toggle the favorite status of the subscription.

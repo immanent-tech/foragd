@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goforj/godump"
-
 	"github.com/joshuar/go-feed-me/validation"
 )
 
@@ -86,7 +84,14 @@ func (u *User) IsSubscribedToFeed(id FeedID) bool {
 
 // MarkSubscriptions marks user subscriptions with the given ids with the given mark.
 func (u *User) MarkSubscriptions(mark Mark, ids ...SubscriptionID) {
-	markedAt := time.Now().UTC()
+	var markedAt time.Time
+	if mark == MarkRead {
+		// Set marked at to now when marking read.
+		markedAt = time.Now().UTC()
+	} else {
+		// Set marked at to max history when marking unread.
+		markedAt = u.GetMaxHistory()
+	}
 	for subscription := range slices.Values(u.GetSubscriptionMetadata().FilterByIDs(ids...)) {
 		subscription.Mark(mark, markedAt)
 	}
@@ -98,7 +103,6 @@ func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...It
 		return e.GetID() == subscriptionID
 	})
 	if idx != -1 {
-		godump.Dump(u.Subscriptions[idx])
 		switch mark {
 		case MarkRead:
 			u.Subscriptions[idx].MarkItemsRead(itemIDs...)
@@ -106,7 +110,6 @@ func (u *User) MarkItems(mark Mark, subscriptionID SubscriptionID, itemIDs ...It
 			u.Subscriptions[idx].MarkItemsUnread(itemIDs...)
 		}
 		u.Subscriptions[idx].UpdatedAt = time.Now().UTC()
-		godump.Dump(u.Subscriptions[idx])
 	}
 }
 
@@ -320,26 +323,15 @@ func (s *SubscriptionMetadata) GetFeedID() FeedID {
 	return s.FeedID
 }
 
-func (s *SubscriptionMetadata) IsRead() bool {
-	return s.State.IsRead()
-}
-
-// GetMarkedRead retrieves the timestamp when the user last marked the
-// subscription feed as read.
-func (s *SubscriptionMetadata) GetMarkedRead() time.Time {
-	return s.UpdatedAt
-}
-
 // MarkRead will mark the subscription as read. This involves setting the MarkedRead field to the given value and
 // removing any individual unread/read items.
 func (s *SubscriptionMetadata) Mark(mark Mark, markedAt time.Time) {
 	switch mark {
 	case MarkRead:
-		s.State.MarkRead(markedAt)
+		s.MarkedReadAt = markedAt
 	case MarkUnread:
-		s.State.MarkUnread(markedAt)
+		s.MarkedReadAt = markedAt
 	}
-	s.UpdatedAt = markedAt
 	s.ItemStates = nil
 }
 
@@ -348,7 +340,7 @@ func (s *SubscriptionMetadata) Mark(mark Mark, markedAt time.Time) {
 func (s *SubscriptionMetadata) GetUnreadItems() []ItemID {
 	ids := make([]ItemID, 0, len(s.ItemStates))
 	for id, state := range s.ItemStates {
-		if !state.IsRead() {
+		if !state.Read {
 			ids = append(ids, id)
 		}
 	}
@@ -360,7 +352,7 @@ func (s *SubscriptionMetadata) GetUnreadItems() []ItemID {
 func (s *SubscriptionMetadata) GetReadItems() []ItemID {
 	ids := make([]ItemID, 0, len(s.ItemStates))
 	for id, state := range s.ItemStates {
-		if state.IsRead() {
+		if state.Read {
 			ids = append(ids, id)
 		}
 	}
@@ -370,21 +362,21 @@ func (s *SubscriptionMetadata) GetReadItems() []ItemID {
 // GetItemState retrieves the item state (read/unread/saved) from the
 // subscription. By default it will return unread unless the user has explicitly
 // marked or saved the item.
-func (s *SubscriptionMetadata) GetItemState(id ItemID) *ObjectState {
+func (s *SubscriptionMetadata) GetItemState(id ItemID) *ArticleState {
 	// Retrieve any explicitly set state of the item.
 	if state, found := s.ItemStates[id]; found {
 		return &state
 	}
 	// If an item doesn't have an explicit state, its state should reflect the subscription state.
-	return &ObjectState{
-		Read:      s.State.IsRead(),
+	return &ArticleState{
+		Read:      false,
 		UpdatedAt: s.UpdatedAt,
 	}
 }
 
-func (s *SubscriptionMetadata) SetItemState(id ItemID, state *ObjectState) {
+func (s *SubscriptionMetadata) SetItemState(id ItemID, state *ArticleState) {
 	if s.ItemStates == nil {
-		s.ItemStates = make(map[ItemID]ObjectState)
+		s.ItemStates = make(map[ItemID]ArticleState)
 	}
 	s.ItemStates[id] = *state
 }
@@ -394,7 +386,7 @@ func (s *SubscriptionMetadata) MarkItemsRead(ids ...ItemID) {
 	for id := range slices.Values(ids) {
 		state := s.GetItemState(id)
 		if state == nil {
-			state = NewObjectState()
+			state = &ArticleState{}
 		}
 		state.MarkRead(time.Now().UTC())
 		s.SetItemState(id, state)
@@ -406,7 +398,7 @@ func (s *SubscriptionMetadata) MarkItemsUnread(ids ...ItemID) {
 	for id := range slices.Values(ids) {
 		state := s.GetItemState(id)
 		if state == nil {
-			state = NewObjectState()
+			state = &ArticleState{}
 		}
 		state.MarkUnread(time.Now().UTC())
 		s.SetItemState(id, state)

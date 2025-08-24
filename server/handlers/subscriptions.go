@@ -988,7 +988,7 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		// 	continue
 		// }
 		// Generate metadata and add to metadata slice.
-		metadata := models.NewSubscriptionMetadata(user.GetID(), feed, request)
+		metadata := models.NewSubscriptionMetadata(user, feed, request)
 		valid, err := metadata.Valid()
 		if err != nil || !valid {
 			slogctx.FromCtx(ctx).Debug("Invalid subscription metadata.",

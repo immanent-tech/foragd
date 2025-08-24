@@ -67,8 +67,8 @@ type Article struct {
 	// Item represents an individual item (e.g., an individual feed item).
 	Item Item `json:"item"`
 
-	// State tracks the state of an object.
-	State ObjectState `json:"state"`
+	// State tracks the state of an article.
+	State ArticleState `json:"state"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -135,11 +135,20 @@ type ArticleArchiveSourceType string
 
 // ArticleMetadata contains the stored data that represents an article.
 type ArticleMetadata struct {
-	// State tracks the state of an object.
-	State ObjectState `json:"state"`
+	// State tracks the state of an article.
+	State ArticleState `json:"state"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
+// ArticleState tracks the state of an article.
+type ArticleState struct {
+	// Read indicates whether the object has been read (true) or is unread (false).
+	Read bool `json:"read"`
+
+	// UpdatedAt records when the object was last updated in the database.
+	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
 }
 
 // Category represents a taxonomy applied to an object.
@@ -354,6 +363,18 @@ type JobState struct {
 // Mark applies the given mark action to objects.
 type Mark string
 
+// MarkArticleRequest represents a user request for marking an article as read or unread.
+type MarkArticleRequest struct {
+	// ItemID is the unique ID of an item.
+	ItemID ItemID `form:"item_id" json:"item_id" validate:"required,startswith=item_"`
+
+	// Mark applies the given mark action to objects.
+	Mark Mark `form:"mark" json:"mark" validate:"oneof=read unread"`
+
+	// SubscriptionID is the unique ID of a subscription.
+	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
+}
+
 // Nickname is an optional friendly name.
 type Nickname = string
 
@@ -376,11 +397,17 @@ type ObjectCommon struct {
 	Image    RemoteImage `json:"image,omitempty,omitzero"`
 	Language string      `json:"language,omitempty,omitzero"`
 
+	// Published is the datetime at which the feed or item was published.
+	Published time.Time `json:"published"`
+
 	// SourceType indicates what type of source the object came from.
 	SourceType ObjectCommonSourceType `json:"source_type"`
 
 	// Title is the title of the feed or item.
 	Title string `json:"title" validate:"required"`
+
+	// Updated is the datetime at which the feed or item was updated.
+	Updated time.Time `json:"updated,omitempty,omitzero"`
 
 	// URL is the URL to the webpage for the feed or item. For a feed, this is most likely the webpage the feed is sourced from. For an item, this is most likely the webpage containing the full item contents.
 	URL string `json:"url,omitempty,omitzero" validate:"omitempty,url"`
@@ -404,24 +431,6 @@ type ObjectCustomisation struct {
 // ObjectCustomisation_Image is a custom image to represent the object.
 type ObjectCustomisation_Image struct {
 	union json.RawMessage
-}
-
-// ObjectState tracks the state of an object.
-type ObjectState struct {
-	// Read indicates whether the object has been read (true) or is unread (false).
-	Read bool `json:"read"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
-}
-
-// ObjectTimestamps contains timestamps for objects.
-type ObjectTimestamps struct {
-	// Published is the datetime at which the feed or item was published.
-	Published time.Time `json:"published"`
-
-	// Updated is the datetime at which the feed or item was updated.
-	Updated time.Time `json:"updated,omitempty,omitzero"`
 }
 
 // RemoteImage is a link to an image to represent the object.
@@ -459,7 +468,7 @@ type Subscription struct {
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
 
-// SubscriptionMetadata defines model for SubscriptionMetadata.
+// SubscriptionMetadata contains the stored data that represents a subscription
 type SubscriptionMetadata struct {
 	// CreatedAt records when the object was created in the database.
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
@@ -471,10 +480,10 @@ type SubscriptionMetadata struct {
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
 
 	// ItemStates contains the states of items marked explicitly as read/unread/saved by the user.
-	ItemStates map[ItemID]ObjectState `json:"item_states,omitempty,omitzero"`
+	ItemStates map[ItemID]ArticleState `json:"item_states,omitempty,omitzero"`
 
-	// State tracks the state of an object.
-	State ObjectState `json:"state"`
+	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
+	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -507,22 +516,13 @@ type SubscriptionRequest struct {
 // Timestamp is when the document was created.
 type Timestamp = time.Time
 
-// Timestamps contains common (metadata) fields for database objects.
-type Timestamps struct {
-	// CreatedAt records when the object was created in the database.
-	CreatedAt CreatedAt `json:"created_at" validate:"required"`
-
-	// UpdatedAt records when the object was last updated in the database.
-	UpdatedAt UpdatedAt `json:"updated_at,omitempty" validate:"omitnil"`
-}
-
 // URL is a URL.
 type URL = string
 
 // UpdatedAt records when the object was last updated in the database.
 type UpdatedAt = time.Time
 
-// User defines model for User.
+// User is a user of the application.
 type User struct {
 	// AvatarURL is a link to an image file to user as an avatar for the user.
 	AvatarURL string `json:"avatar_url,omitempty,omitzero" validate:"omitempty,url"`

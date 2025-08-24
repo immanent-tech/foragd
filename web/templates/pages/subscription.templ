@@ -118,38 +118,42 @@ templ (page *AddSubscription) Content() {
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 							<label for="url" class="block font-medium">Feed URL</label>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input
-									id="url"
-									type="url"
-									required
-									name="url"
-									value={ page.request.URL }
-									placeholder="https://feed.lol/rss"
-									class={ templ.KV("app-textinput",page.request.URLErr == nil), templ.KV("app-textinput-error",page.request.URLErr !=nil) }
-								/>
-								if page.request.URLErr != nil {
-									<span class="text-error text-xs/4">Error: { page.request.URLErr.Error() }</span>
-								} else {
-									<span id="url-hint" class="text-base-content/50 text-xs/4">Required. The feed's URL or website.</span>
-								}
+								<fieldset class="fieldset">
+									<input
+										id="url"
+										type="url"
+										required
+										name="url"
+										value={ page.request.URL }
+										placeholder="https://feed.lol/rss"
+										class={ templ.KV("input input-primary",page.request.URLErr == nil), templ.KV("input input-error",page.request.URLErr !=nil) }
+									/>
+									if page.request.URLErr != nil {
+										<span class="label text-error text-xs/4">Error: { page.request.URLErr.Error() }</span>
+									} else {
+										<span id="url-hint" class="label text-base-content/50 text-xs/4">Required. The feed's URL or website.</span>
+									}
+								</fieldset>
 							</div>
 						</div>
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 							<label for="nickname" class="block font-medium">Nickname</label>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input
-									id="nickname"
-									type="text"
-									name="user_nickname"
-									value={ page.request.Nickname }
-									placeholder="My cool subscription"
-									class={ templ.KV("app-textinput",page.request.NicknameErr == nil), templ.KV("app-textinput-error",page.request.NicknameErr !=nil) }
-								/>
-								if page.request.NicknameErr != nil {
-									<span class="text-error text-xs/4">{ page.request.NicknameErr.Error() }</span>
-								} else {
-									<span id="nickname-hint" class="text-base-content/50 text-xs/4">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</span>
-								}
+								<fieldset class="fieldset">
+									<input
+										id="nickname"
+										type="text"
+										name="user_nickname"
+										value={ page.request.Nickname }
+										placeholder="My cool subscription"
+										class={ templ.KV("input input-primary",page.request.NicknameErr == nil), templ.KV("input input-error",page.request.NicknameErr !=nil) }
+									/>
+									if page.request.NicknameErr != nil {
+										<span class="label text-error text-xs/4">{ page.request.NicknameErr.Error() }</span>
+									} else {
+										<span id="nickname-hint" class="label text-base-content/50 text-xs/4">Optional. A Friendly name for the subscription. Will use the feed's name if not specified.</span>
+									}
+								</fieldset>
 							</div>
 						</div>
 					</form>
@@ -178,12 +182,12 @@ templ (page *AddSubscription) Content() {
 			<button
 				type="button"
 				onclick="history.back()"
-				class="app-button"
+				class="btn btn-primary"
 			>Back</button>
 			<button
 				type="submit"
 				form="add-subscription"
-				class="app-button"
+				class="btn btn-primary"
 			>Add</button>
 		</div>
 	</div>

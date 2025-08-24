@@ -13,33 +13,37 @@ templ AddCategoryForm(categories []models.Category, attributes templ.Attributes)
 	<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 		<label for="category" class="block font-medium">Add category</label>
 		<div class="mt-2 sm:col-span-2 sm:mt-0">
-			<form
-				{ attributes... }
-				hx-on::after-request="if(event.detail.successful) this.reset()"
-			>
-				<el-autocomplete>
-					<div class="flex">
-						<input
-							id="add-category"
-							type="text"
-							name="category"
-							placeholder="Cool Stuff"
-							class="app-textinput"
-						/>
-						<button type="submit" class="bg-primary/80 hover:bg-primary hover:text-primary-content focus-visible:outline-primary text-primary-content block rounded-md px-3 py-2 text-center text-sm font-semibold shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2">
-							@HeroIconAdd("size-4")
-						</button>
-					</div>
-					<el-options popover anchor="bottom start">
-						<div class="mt-2 grid grid-cols-1 bg-base-200 rounded p-4 pr-8 pl-3 text-base outline-1 -outline-offset-1 outline-neutral focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:text-sm/6 capitalize">
-							for category := range slices.Values(categories) {
-								<el-option value={ category }>{ category }</el-option>
-							}
+			<fieldset class="fieldset">
+				<form
+					{ attributes... }
+					hx-on::after-request="if(event.detail.successful) this.reset()"
+				>
+					<el-autocomplete>
+						<div class="flex">
+							<div class="join">
+								<input
+									id="add-category"
+									type="text"
+									name="category"
+									placeholder="Cool Stuff"
+									class="input input-primary join-item"
+								/>
+								<button type="submit" class="btn btn-primary join-item">
+									@HeroIconAdd("size-4")
+								</button>
+							</div>
 						</div>
-					</el-options>
-				</el-autocomplete>
-			</form>
-			<span id="category-hint" class="text-base-content/50 text-xs/4">Optional. Add a category to the subscription.</span>
+						<el-options popover anchor="bottom start">
+							<div class="mt-2 grid grid-cols-1 bg-base-200 rounded p-4 pr-8 pl-3 text-base outline-1 -outline-offset-1 outline-neutral focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:text-sm/6 capitalize">
+								for category := range slices.Values(categories) {
+									<el-option value={ category }>{ category }</el-option>
+								}
+							</div>
+						</el-options>
+					</el-autocomplete>
+				</form>
+				<span id="category-hint" class="label text-base-content/50 text-xs/4">Optional. Add a category to the subscription.</span>
+			</fieldset>
 		</div>
 	</div>
 }

@@ -14,12 +14,7 @@ import (
 	"time"
 )
 
-type Option[T any] func(T)
-
-var (
-	ErrInvalidID             = errors.New("error generating unique ID")
-	ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
-)
+var ErrInvalidDateTimeFormat = errors.New("datetime is invalid")
 
 var UnixEpoch = time.Unix(0, 0)
 
@@ -180,86 +175,6 @@ func GetCategoryCounts[T HasCategories](objects iter.Seq[T]) CategoryCounts {
 	}
 
 	return counts
-}
-
-type HasState interface {
-	IsUnread() bool
-}
-
-type IsFilterable interface {
-	HasCategories
-	HasState
-}
-
-// FilterByCategory will filter the list of subscriptions by the given
-// Categories. If no categories are provided, the full list is returned.
-func FilterByCategory[T IsFilterable](objects iter.Seq[T], categories ...Category) iter.Seq[T] {
-	var filtered iter.Seq[T]
-	if len(categories) > 0 {
-		filtered = FilterSlice(slices.Collect(objects), func(v T) bool {
-			var hasCategory bool
-			for subscriptionCategory := range slices.Values(v.GetCategories()) {
-				if slices.Contains(categories, subscriptionCategory) {
-					hasCategory = true
-				}
-			}
-			return hasCategory
-		})
-	}
-	return filtered
-}
-
-// FilterByView will filter subscriptions to those that match the view filter.
-func FilterByView[T IsFilterable](objects iter.Seq[T], view View) iter.Seq[T] {
-	var filtered iter.Seq[T]
-	switch view {
-	case ViewRead:
-		filtered = FilterSlice(slices.Collect(objects), func(v T) bool {
-			return !v.IsUnread()
-		})
-	case ViewUnread:
-		filtered = FilterSlice(slices.Collect(objects), func(v T) bool {
-			return v.IsUnread()
-		})
-	}
-	return filtered
-}
-
-// NewObjectState initialises a new ObjectState for use. It sets the updated at timestamp to the current time. All state
-// values (read, saved etc.) will be false.
-func NewObjectState() *ObjectState {
-	updated := time.Now().UTC()
-	return &ObjectState{
-		UpdatedAt: updated,
-	}
-}
-
-func (s *ObjectState) IsRead() bool {
-	if s == nil {
-		return false
-	}
-	return s.Read
-}
-
-func (s *ObjectState) GetLastUpdate() time.Time {
-	if s == nil {
-		return time.Now().Add(-DefaultMaxHistory)
-	}
-	return s.UpdatedAt
-}
-
-func (s *ObjectState) MarkRead(markedAt time.Time) {
-	s.Read = true
-	s.UpdatedAt = markedAt
-}
-
-func (s *ObjectState) MarkUnread(markedAt time.Time) {
-	s.Read = false
-	s.UpdatedAt = markedAt
-}
-
-type HasID[T ~string] interface {
-	GetID() T
 }
 
 func (c ObjectCustomisation) GetNickname() string {

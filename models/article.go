@@ -63,9 +63,9 @@ func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite
 		item.FeedTitle = state.Customisation.Nickname
 	}
 	// Update read status.
-	if item.GetPublishedDate().After(article.State.UpdatedAt) {
-		article.State.MarkUnread(item.GetPublishedDate())
-	}
+	// if item.GetPublishedDate().After(article.State.UpdatedAt) {
+	// 	article.State.MarkUnread(item.GetPublishedDate())
+	// }
 	// Validate the article.
 	valid, err := article.Valid()
 	if err != nil || !valid {
@@ -162,16 +162,28 @@ func (a *Article) GetFeedTitle() string {
 }
 
 func (a *Article) IsUnread() bool {
-	return !a.State.IsRead()
+	return !a.State.Read
 }
 
 // Sanitise will sanitise the input values.
-func (r *MarkArticlesRequest) Sanitise() error {
+func (r *MarkArticleRequest) Sanitise() error {
 	return nil
 }
 
+// MarkRead will set the article state to read.
+func (s *ArticleState) MarkRead(markedAt time.Time) {
+	s.Read = true
+	s.UpdatedAt = markedAt
+}
+
+// MarkUnread will set the article state to unread.
+func (s *ArticleState) MarkUnread(markedAt time.Time) {
+	s.Read = false
+	s.UpdatedAt = markedAt
+}
+
 // Valid returns a boolean indicating whether the object is valid.
-func (r *MarkArticlesRequest) Valid() (bool, error) {
+func (r *MarkArticleRequest) Valid() (bool, error) {
 	if r == nil {
 		return false, fmt.Errorf("request is invalid: %w", validation.ErrNilObject)
 	}
