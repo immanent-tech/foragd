@@ -39,18 +39,26 @@ func (a *API) Home() http.HandlerFunc {
 			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 			return
 		}
+		// Generate appropriate template.
 		var template templ.Component
+		if len(data.Subscriptions) == 0 {
+			template = pages.EmptyHome()
+		} else {
+			template = data.Template()
+		}
+		// Create appropriate response.
 		switch {
 		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			template = data.Template()
+			resp = models.NewResponse(
+				models.WithResponseTemplate(template),
+			)
 		default:
-			template = templates.Page("Go Feed Me - Home",
-				layouts.Drawer(data.Template()),
+			resp = models.NewResponse(
+				models.WithResponseTemplate(templates.Page("Go Feed Me - Home",
+					layouts.Drawer(template),
+				)),
 			)
 		}
-		resp = models.NewResponse(
-			models.WithResponseTemplate(template),
-		)
 		chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
