@@ -156,14 +156,12 @@ func (a *API) MarkArticle() http.HandlerFunc {
 		// Generate appropriate swap content based on target header.
 		switch req.Header.Get(htmx.HeaderTarget) {
 		case request.ItemID:
-			slog.Debug("swapping card")
 			// Swap target is card.
 			filters := session.ArticleFiltersFromSession(req.Context())
 			resp = models.NewResponse(
 				models.WithResponseTemplate(partials.NewArticleContent(s[0]).Card(filters.GetView())),
 			)
 		case "mark_" + request.ItemID:
-			slog.Debug("swapping link")
 			// Swap target is link.
 			resp = models.NewResponse(
 				models.WithResponseTemplate(partials.NewArticleContent(s[0]).ToggleMark()),

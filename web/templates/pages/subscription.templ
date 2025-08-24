@@ -38,7 +38,7 @@ templ (page *EditSubscriptionPage) Content() {
 						hx-indicator="#processing"
 					>
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-							<label for="nickname" class="app-textinput-label">Nickname</label>
+							<label for="nickname" class="block font-medium">Nickname</label>
 							<input type="hidden" id="subscription-id" name="subscription_id" value={ page.request.SubscriptionID }/>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
 								<input
@@ -48,10 +48,10 @@ templ (page *EditSubscriptionPage) Content() {
 									name="user_nickname"
 									value={ page.request.Nickname }
 									placeholder="My favorite feed"
-									class="app-textinput validator"
+									class="block font-medium validator"
 								/>
 								<span class="validator-hint hidden">Nickname is required</span>
-								<span id="url-hint" class="app-textinput-hint">Required. A friendly name for the subscription.</span>
+								<span id="url-hint" class="text-base-content/50 text-xs/4">Required. A friendly name for the subscription.</span>
 							</div>
 						</div>
 					</form>
@@ -64,7 +64,7 @@ templ (page *EditSubscriptionPage) Content() {
 					})
 					// Show current categories.
 					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-						<label class="app-textinput-label">Current Categories</label>
+						<label class="block font-medium">Current Categories</label>
 						<div class="col-span-full">
 							@partials.ManageCategories(page.request.Categories)
 						</div>
@@ -77,11 +77,11 @@ templ (page *EditSubscriptionPage) Content() {
 				Processing...
 				<span class="loading loading-spinner loading-md"></span>
 			</div>
-			<button type="button" onclick="history.back()" class="app-button">Back</button>
+			<button type="button" onclick="history.back()" class="btn btn-primary">Back</button>
 			<button
 				type="submit"
 				form="edit-subscription"
-				class="app-button"
+				class="btn btn-primary"
 			>Save</button>
 		</div>
 	</div>
@@ -216,18 +216,20 @@ templ (page *ImportPage) Content() {
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 							<label for="source" class="block font-medium">OPML file</label>
 							<div class="mt-2 sm:col-span-2 sm:mt-0">
-								<input id="source" type="file" required name="source" class="app-textinput"/>
-								<span class="validator-hint hidden">Make sure the file is a valid OPML file.</span>
-								<span id="source-hint" class="app-textinput-hint">Required.</span>
+								<fieldset class="fieldset">
+									<input id="source" type="file" required name="source" class="file-input file-input-primary"/>
+									<span class="validator-hint hidden">Make sure the file is a valid OPML file.</span>
+									<span id="source-hint" class="label text-base-content/50 text-xs/4">Required.</span>
+								</fieldset>
 							</div>
 						</div>
 						<div class="mt-6 flex items-center justify-end gap-x-6">
-							<button type="button" onclick="history.back()" class="app-button">
+							<button type="button" onclick="history.back()" class="btn btn-primary">
 								Back
 							</button>
 							<button
 								type="submit"
-								class="app-button"
+								class="btn btn-primary"
 							>
 								Import
 							</button>
@@ -265,7 +267,7 @@ templ ImportResults(results AddSubscriptionResults) {
 	<h2 class="text-base/7 font-semibold">Import Results</h2>
 	<p class="text-sm italic">Imported: { strconv.Itoa(len(successfulResults)) } Failed: { strconv.Itoa(len(failedResults)) }</p>
 	<button
-		class="app-button"
+		class="btn btn-primary"
 		hx-get="/subscriptions"
 		hx-target={ partials.ContentID.Target() }
 		hx-vals={ partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
@@ -307,7 +309,7 @@ templ ImportResults(results AddSubscriptionResults) {
 			}
 		</ul>
 	</div>
-	<button class="app-button fixed right-0 bottom-0 m-4" href="#">Back to top</button>
+	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" href="#">Back to top</button>
 }
 
 // ExportPage is a page for exporting subscriptions via an OPML file.
@@ -328,7 +330,7 @@ templ (page *ExportPage) Content() {
 						<button type="button" onclick="history.back()" class="text-sm/6 font-semibold">Back</button>
 						<a
 							role="button"
-							class="app-button"
+							class="btn btn-primary"
 							href="/user/export/opml"
 							download
 						>

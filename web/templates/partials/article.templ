@@ -279,7 +279,7 @@ func (c *Article) viewAttributes() templ.Attributes {
 
 // ToggleFavorite renders an updated favorite link based on the article favorite status.
 templ (a *Article) ToggleFavorite() {
-	@a.favoriteLink("app-context-menu-action") {
+	@a.favoriteLink("menu-item") {
 		switch a.Favorite {
 			case true:
 				@HeroIconHeartFilled("size-4")

@@ -72,12 +72,12 @@ templ (page *SearchResultsPage) Content() {
 			}
 		}
 	</ul>
-	<button class="app-button fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
+	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
 }
 
 templ AddFavoriteSearchButton() {
 	<button
-		class="app-button"
+		class="btn btn-primary btn-square"
 		hx-put="/user/favorite/search"
 		hx-target="#favorite-button"
 		hx-include="#search-request"
@@ -88,7 +88,7 @@ templ AddFavoriteSearchButton() {
 
 templ RemoveFavoriteSearchButton(id models.FavoriteID) {
 	<button
-		class="app-button"
+		class="btn btn-primary btn-square"
 		hx-delete="/user/favorite/search"
 		hx-target="#favorite-button"
 		hx-include="#search-request"

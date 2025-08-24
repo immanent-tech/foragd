@@ -60,29 +60,10 @@
   .app-context-menu {
     @apply bg-base-300 ring-base-content/20 app-default-transitions origin-top-right rounded-md py-2 shadow-lg ring-1;
   }
-  .app-context-menu-action {
-    @apply hover:text-accent flex items-center gap-x-2 px-3 py-1 text-xs/4;
-  }
-  /* Text Input Styles */
-  .app-textinput {
-    @apply focus:outline-primary outline-primary/30 *:bg-neutral placeholder:text-base-content/50 bg-base-content/5 block w-full rounded-md px-3 py-1.5 text-sm/6 outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2;
-  }
-  .app-textinput-error {
-    @apply outline-error *:bg-neutral placeholder:text-base-content/50 bg-base-content/5 block w-full rounded-md px-3 py-1.5 text-sm/6 outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2;
-  }
-  .app-textinput-label {
-    @apply block font-medium;
-  }
-  .app-textinput-hint {
-    @apply text-base-content/50 text-xs/4;
-  }
-  /*  Button Styles */
-  .app-button {
-    @apply bg-primary/80 hover:bg-primary focus-visible:outline-primary text-primary-content block rounded-md px-3 py-2 text-center text-sm shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2;
-  }
-  /* Selection Styles */
-  .app-select {
-    @apply outline-primary/30 focus:outline-primary bg-base-content/5 *:bg-base-content col-start-1 row-start-1 w-full appearance-none rounded-md py-1.5 pr-8 pl-3 text-sm outline-1 -outline-offset-1 focus:outline-2 focus:-outline-offset-2;
+
+  /* menu-item is a link/action in a context menu */
+  .menu-item {
+    @apply link link-hover hover:text-accent flex items-center gap-x-2 px-3 py-1 text-xs/4;
   }
 
   /* Controls/Filters */
