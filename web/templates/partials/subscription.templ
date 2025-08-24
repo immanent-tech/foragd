@@ -25,7 +25,7 @@ templ (s *Subscription) Card() {
 	<li id={ s.GetID() }>
 		<div
 			class={ "relative border-base-content/20 hover:border-base-content/40 bg-base-200 overflow-hidden rounded-xl border p-4",
-		templ.KV("brightness-50",!s.IsUnread()) }
+		templ.KV("opacity-50",!s.IsUnread()) }
 		>
 			<dt class="flex items-center">
 				@s.ViewLink("flex", "items-center", "gap-x-4") {

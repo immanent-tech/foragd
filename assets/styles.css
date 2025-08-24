@@ -56,10 +56,6 @@
   .dialog-backdrop {
     @apply bg-base-100/80 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0;
   }
-  /* Context Menus */
-  .app-context-menu {
-    @apply bg-base-300 ring-base-content/20 app-default-transitions origin-top-right rounded-md py-2 shadow-lg ring-1;
-  }
 
   /* menu-item is a link/action in a context menu */
   .menu-item {

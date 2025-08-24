@@ -29,7 +29,7 @@ templ (a *Article) Card(view models.View) {
 		id={ a.GetID() }
 		class={ "border-base-content/20 hover:border-base-content/40 bg-base-200 overflow-hidden rounded-xl border",
 			templ.KV("row-span-1", a.GetImage().URL == ""), templ.KV("md:row-span-2 md:col-span-1", a.GetImage().URL != ""),
-			templ.KV("brightness-50",!a.IsUnread()) }
+			templ.KV("opacity-50",!a.IsUnread()) }
 	>
 		<article class="flex flex-col items-start justify-between p-4">
 			if a.GetImage().URL != "" {
