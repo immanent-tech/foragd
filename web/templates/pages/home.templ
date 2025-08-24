@@ -23,31 +23,33 @@ type Home struct {
 // content renders the home page content.
 templ (page *Home) Template() {
 	// Favorites section: links to user favorites.
-	<div class="flex items-center">
-		<div class="relative flex justify-start">
-			<span class="pr-3 text-base text-nowrap font-semibold">Favorites</span>
+	if len(page.Favorites) > 0 {
+		<div class="flex items-center">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base text-nowrap font-semibold">Favorites</span>
+			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
 		</div>
-		<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
-	</div>
-	if len(page.Favorites.FilterByType(models.FavoriteTypeSearch)) > 0 {
-		<h2 class="text-xs font-medium text-base-content/80 italic my-4">Searches</h2>
-		<ul role="list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
-			for search := range slices.Values(page.Favorites.FilterByType(models.FavoriteTypeSearch)) {
-				<li class="col-span-1 flex rounded-md">
-					@partials.FavoriteLink(search, "group inactive-link")
-				</li>
-			}
-		</ul>
-	}
-	if len(page.Favorites.FilterByType(models.FavoriteTypeSubscription)) > 0 {
-		<h2 class="text-xs font-medium text-base-content/80 italic my-4">Subscriptions</h2>
-		<ul role="list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
-			for search := range slices.Values(page.Favorites.FilterByType(models.FavoriteTypeSubscription)) {
-				<li class="col-span-1 flex rounded-md">
-					@partials.FavoriteLink(search, "group inactive-link")
-				</li>
-			}
-		</ul>
+		if len(page.Favorites.FilterByType(models.FavoriteTypeSearch)) > 0 {
+			<h2 class="text-xs font-medium text-base-content/80 italic my-4">Searches</h2>
+			<ul role="list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+				for search := range slices.Values(page.Favorites.FilterByType(models.FavoriteTypeSearch)) {
+					<li class="col-span-1 flex rounded-md">
+						@partials.FavoriteLink(search, "group inactive-link")
+					</li>
+				}
+			</ul>
+		}
+		if len(page.Favorites.FilterByType(models.FavoriteTypeSubscription)) > 0 {
+			<h2 class="text-xs font-medium text-base-content/80 italic my-4">Subscriptions</h2>
+			<ul role="list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
+				for search := range slices.Values(page.Favorites.FilterByType(models.FavoriteTypeSubscription)) {
+					<li class="col-span-1 flex rounded-md">
+						@partials.FavoriteLink(search, "group inactive-link")
+					</li>
+				}
+			</ul>
+		}
 	}
 	// Dive In section: top categories and sample articles from them.
 	<div class="flex items-center mt-8">
