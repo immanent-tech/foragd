@@ -65,6 +65,21 @@ func (a *API) GetUser(ctx context.Context, id models.UserID) (*models.User, erro
 	return user, nil
 }
 
+func (a *API) DeleteUser(ctx context.Context, id models.UserID) error {
+	index := UserIndexFromCtx(ctx)
+	if index == "" {
+		return ErrFetchCtx
+	}
+	err := DeleteDoc(ctx, a.GetAPI(), index, id)
+	if err != nil {
+		slogctx.FromCtx(ctx).WarnContext(ctx, "Failed to delete user.",
+			slog.String("id", id),
+			slog.Any("error", err))
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+	return nil
+}
+
 // GetFeed retrieves a single feed with the given ID.
 func (a *API) GetFeed(ctx context.Context, id models.FeedID) (*models.Feed, error) {
 	index := FeedsIndexFromCtx(ctx)

@@ -238,7 +238,7 @@ templ (a *Article) ViewLink(classes ...string) {
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-swap="innerHTML show:top"
-		class={ classes }
+		class={ "link link-hover", classes }
 	>
 		{ children... }
 	</a>

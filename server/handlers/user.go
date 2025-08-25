@@ -16,8 +16,10 @@ import (
 	"github.com/justinas/alice"
 
 	"github.com/joshuar/go-feed-me/models"
+	"github.com/joshuar/go-feed-me/providers/auth0"
 	"github.com/joshuar/go-feed-me/providers/elastic"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/validation"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
@@ -50,6 +52,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 				layouts.Drawer(page.Content()),
 			)
 		}
+
 		chain.Then(RenderResponse(
 			models.NewResponse(models.WithResponseTemplate(template)),
 		)).ServeHTTP(res, req)
@@ -488,6 +491,42 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 		)
 		RenderResponse(resp).ServeHTTP(res, req)
 	}).ServeHTTP
+}
+
+// DeleteUser handles removing a user account from the local and backend databases. Once the account is removed, any
+// active session is destroyed and the browser is redirected back to the landing page.
+func (a *API) DeleteUser() http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		chain := alice.New(
+			RouteLogger,
+		)
+		// Get user account details.
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			return
+		}
+		// Delete account on the backend.
+		err := auth0.Delete(req.Context(), user)
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		// Delete account locally.
+		err = a.DataAPI().DeleteUser(req.Context(), user.GetID())
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+		// Remove session cookie.
+		err = session.Manager.Destroy(req.Context())
+		if err != nil {
+			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			return
+		}
+
+		http.Redirect(res, req, "/", http.StatusTemporaryRedirect)
+	}
 }
 
 func (a *API) updateUser(ctx context.Context, updates map[string]any) error {

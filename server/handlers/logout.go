@@ -9,19 +9,26 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
+	"github.com/joshuar/go-feed-me/providers/auth0"
 	"github.com/joshuar/go-feed-me/server/session"
 )
 
 // Logout handles logout requests.
 func Logout() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
+		// Delete the session cookie.
 		err := session.Manager.Destroy(req.Context())
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Logout failed.",
 				slog.Any("error", err))
 		}
-		slogctx.FromCtx(req.Context()).Debug("User logged out.")
-		res.Header().Set("Location", "/")
-		res.WriteHeader(http.StatusTemporaryRedirect)
+		// Generate logout URL.
+		logoutURL, err := auth0.GenerateLogoutURL(req)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Logout failed.",
+				slog.Any("error", err))
+		}
+		// Redirect user to logout URL.
+		http.Redirect(res, req, logoutURL, http.StatusTemporaryRedirect)
 	}
 }

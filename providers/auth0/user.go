@@ -20,6 +20,8 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/auth0/go-auth0/management"
+
 	"github.com/joshuar/go-feed-me/models"
 
 	"github.com/auth0/go-auth0/authentication"
@@ -32,6 +34,10 @@ const userDBConnection = "Username-Password-Authentication"
 
 type UserAPI struct {
 	api *authentication.Authentication
+}
+
+type ManagementAPI struct {
+	*management.Management
 }
 
 // NewUserAPI creates a new user API backend object for user account management.
@@ -57,6 +63,21 @@ func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 	return api, nil
 }
 
+func NewManagementAPI() (*ManagementAPI, error) {
+	api, err := management.New(
+		auth0Config.Domain,
+		management.WithClientCredentials(
+			context.Background(),
+			auth0Config.ClientID,
+			auth0Config.ClientSecret,
+		),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("auth0 management api connection failed: %w", err)
+	}
+	return &ManagementAPI{Management: api}, nil
+}
+
 // Create will create a new user account with the given details on the backend.
 func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest) (string, error) {
 	userData := database.SignupRequest{
@@ -75,4 +96,16 @@ func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest)
 	}
 
 	return user.ID, nil
+}
+
+func Delete(ctx context.Context, user *models.User) error {
+	api, err := NewManagementAPI()
+	if err != nil {
+		return fmt.Errorf("failed to delete user account from backend: %w", err)
+	}
+	err = api.User.Delete(ctx, "auth0|"+user.ExternalUserId)
+	if err != nil {
+		return fmt.Errorf("failed to delete user account from backend: %w", err)
+	}
+	return nil
 }
