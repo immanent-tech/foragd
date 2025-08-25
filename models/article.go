@@ -62,10 +62,10 @@ func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite
 	if state.Customisation.Nickname != "" {
 		item.FeedTitle = state.Customisation.Nickname
 	}
-	// Update read status.
-	// if item.GetPublishedDate().After(article.State.UpdatedAt) {
-	// 	article.State.MarkUnread(item.GetPublishedDate())
-	// }
+	// 	Update read status.
+	if item.GetPublishedDate().Before(state.MarkedReadAt) {
+		article.State.MarkRead(state.MarkedReadAt)
+	}
 	// Validate the article.
 	valid, err := article.Valid()
 	if err != nil || !valid {
