@@ -3,7 +3,10 @@
 
 package layouts
 
-import "github.com/joshuar/go-feed-me/web/templates/partials"
+import (
+	"github.com/joshuar/go-feed-me/server/session"
+	"github.com/joshuar/go-feed-me/web/templates/partials"
+)
 
 templ EmptyLayout() {
 	@Drawer(EmptyContent())
@@ -17,8 +20,24 @@ templ EmptyContent() {
 		<h3 class="mt-2 text-base font-semibold">No content to show</h3>
 		<p class="mt-1 text-sm text-base-content">Try adjusting your filters, or maybe you are all caught up?</p>
 		<div class="mt-6">
-			<button type="button" hx-get="/home" hx-push-url="true" hx-target={ partials.ContentID.Target() } class="btn btn-primary">
+			<button
+				type="button"
+				hx-get="/home"
+				hx-push-url="true"
+				hx-target={ partials.ContentID.Target() }
+				class="btn btn-primary"
+			>
 				Home
+			</button>
+			<button
+				type="button"
+				hx-get="/subscriptions"
+				hx-push-url="true"
+				hx-target={ partials.ContentID.Target() }
+				hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
+				class="btn btn-primary"
+			>
+				Subscriptions
 			</button>
 		</div>
 	</div>
