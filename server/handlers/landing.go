@@ -10,13 +10,12 @@ import (
 
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/pages"
+	"github.com/joshuar/go-feed-me/web/templates/layouts"
 )
 
 // Landing handles displaying the landing page of the site.
 func Landing() http.HandlerFunc {
-	page := &pages.Landing{}
-	template := templates.Page("Go Feed Me", page.Content())
+	template := templates.Page("Go Feed Me", layouts.Landing())
 	return alice.New(
 		RouteLogger,
 	).Then(RenderResponse(models.NewResponse(

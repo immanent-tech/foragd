@@ -53,6 +53,14 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
+  .landing-backdrop {
+    background: var(--color-primary);
+    background: radial-gradient(
+      circle,
+      var(--color-secondary) 0%,
+      var(--color-primary) 100%
+    );
+  }
   .dialog-backdrop {
     @apply bg-base-100/80 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0;
   }
