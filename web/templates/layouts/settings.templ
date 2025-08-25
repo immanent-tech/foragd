@@ -1,7 +1,7 @@
 // Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
 // SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-package pages
+package layouts
 
 import (
 	"github.com/joshuar/go-feed-me/models"
@@ -9,14 +9,12 @@ import (
 )
 
 type Settings struct {
-	CurrentPage     string
 	user            *models.User
 	editUserRequest *models.EditUserRequest
 }
 
-func NewSettingsPage(page string, user *models.User, editUser *models.EditUserRequest) *Settings {
+func NewSettingsPage(user *models.User, editUser *models.EditUserRequest) *Settings {
 	return &Settings{
-		CurrentPage:     page,
 		user:            user,
 		editUserRequest: editUser,
 	}
@@ -27,22 +25,22 @@ templ (page *Settings) Content() {
 		<div class="tabs tabs-lift">
 			<input id="subscriptions-tab" type="radio" name="settings" class="tab" aria-label="Subscriptions" checked="true"/>
 			<div class="tab-content bg-base-100 border-base-300 p-6">
-				@SubscriptionSettings()
+				@subscriptionSettingsTab()
 			</div>
 			<input id="app-tab" type="radio" name="settings" class="tab" aria-label="App"/>
 			<div class="tab-content bg-base-100 border-base-300 p-6">
-				@AppSettings()
+				@appSettingsTab()
 			</div>
-			<input id="billing-tab" type="radio" name="settings" class="tab" aria-label="Billing"/>
+			<input id="account-tab" type="radio" name="settings" class="tab" aria-label="Account"/>
 			<div class="tab-content bg-base-100 border-base-300 p-6">
-				@BillingSettings()
+				@accountSettingsTab()
 			</div>
 		</div>
 	</div>
 }
 
-// SubscriptionSettings shows settings for managing user subscriptions.
-templ SubscriptionSettings() {
+// subscriptionSettingsTab renders tab content for subscription-related settings.
+templ subscriptionSettingsTab() {
 	<div class="flex flex-col mt-2 gap-y-4">
 		<div class="pb-12">
 			<div class="flex flex-row gap-x-4">
@@ -89,18 +87,15 @@ templ SubscriptionSettings() {
 	<ul id="subscriptions-list" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"></ul>
 }
 
-templ ShowSubscriptionSettings(subscription *models.Subscription) {
-	@partials.NewSubscriptionContent(subscription).Settings()
-}
-
-templ BillingSettings() {
+// accountSettingsTab renders tab content for account-related settings.
+templ accountSettingsTab() {
 	<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 		<div>
 			<h2 class="text-base/7 font-semibold">Delete account</h2>
 			<p class="mt-1 text-sm/6 text-base-content/80">
 				No longer want to use our service? You can delete your account here. This action is not reversible. All
-				information related to this account will be deleted permanently. There is no confirmation once you click
-				this button.
+				information related to this account will be deleted permanently and you will be redirected back to the
+				landing page.
 			</p>
 		</div>
 		<form
@@ -115,8 +110,8 @@ templ BillingSettings() {
 	</div>
 }
 
-// AppSettings shows settings for the application.
-templ AppSettings() {
+// appSettingsTab renders tab content for app-related settings.
+templ appSettingsTab() {
 	<div class="divide-y divide-base-content/5">
 		<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 			<div class="col-span-full">

@@ -40,7 +40,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 		}
 		// Render appropriate content.
 		var template templ.Component
-		page := pages.NewSettingsPage("subscriptions", user, &models.EditUserRequest{})
+		page := layouts.NewSettingsPage(user, &models.EditUserRequest{})
 		switch {
 		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
 			// Just show content.
@@ -91,7 +91,7 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 			}
 			settings := make([]templ.Component, 0, len(subscriptions))
 			for subscription := range slices.Values(subscriptions) {
-				settings = append(settings, pages.ShowSubscriptionSettings(subscription))
+				settings = append(settings, partials.NewSubscriptionContent(subscription).Settings())
 			}
 			template = templ.Join(settings...)
 			// case http.MethodGet:
@@ -128,7 +128,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 					Summary: "Could not edit account.",
 					Details: "There are problems with the input. Please check and try again.",
 				}
-				template := templ.Join(pages.NewSettingsPage("account", user, request).Content(), partials.Notification(msg))
+				template := templ.Join(layouts.NewSettingsPage(user, request).Content(), partials.Notification(msg))
 				resp := models.RespInternalServerError(err, template)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
@@ -143,7 +143,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 					Summary: "Could not update account settings.",
 					Details: "There was a problem editing account settings. Please try again.",
 				}
-				template := templ.Join(pages.NewSettingsPage("account", user, request).Content(), partials.Notification(msg))
+				template := templ.Join(layouts.NewSettingsPage(user, request).Content(), partials.Notification(msg))
 				resp := models.RespInternalServerError(err, template)
 				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
 				return
@@ -153,7 +153,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 				Status:  models.UserMessageStatusSuccess,
 				Summary: "Account edits saved.",
 			}
-			template = templ.Join(pages.NewSettingsPage("account", user, request).Content(), layouts.HeaderUserMenu(), partials.Notification(msg))
+			template = templ.Join(layouts.NewSettingsPage(user, request).Content(), layouts.HeaderUserMenu(), partials.Notification(msg))
 		}
 		// Update the user in the context.
 		user, _ = a.DataAPI().GetUser(req.Context(), user.UserID)
