@@ -53,10 +53,13 @@ templ (page *SearchResultsPage) Content() {
 	<ul role="list">
 		// Subscription results.
 		if len(page.subscriptions) > 0 {
-			<div class="border-b border-base-content/10 pb-5 mt-4">
-				<h2 id="subscription-results" class="text-base font-semibold">Subscriptions</h2>
+			<div class="flex items-center">
+				<div class="relative flex justify-start">
+					<span class="pr-3 text-base font-semibold text-base-content">Subscriptions</span>
+				</div>
+				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
 			</div>
-			<ul role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+			<ul id="subscription-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-6">
 				for subscription := range slices.Values(page.subscriptions) {
 					@subscriptionSearchResult(subscription)
 				}
@@ -64,12 +67,17 @@ templ (page *SearchResultsPage) Content() {
 		}
 		// Article results.
 		if len(page.articles) > 0 {
-			<div class="border-b border-base-content/10 pb-5 mt-4">
-				<h2 id="article-results" class="text-base font-semibold">Articles</h2>
+			<div class="flex items-center">
+				<div class="relative flex justify-start">
+					<span class="pr-3 text-base font-semibold text-base-content">Articles</span>
+				</div>
+				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
 			</div>
-			for article := range slices.Values(page.articles) {
-				@articleSearchResult(article)
-			}
+			<ul id="article-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+				for article := range slices.Values(page.articles) {
+					@articleSearchResult(article)
+				}
+			</ul>
 		}
 	</ul>
 	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
