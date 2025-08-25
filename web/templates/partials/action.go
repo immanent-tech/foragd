@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"github.com/a-h/templ"
-	components "github.com/joshuar/go-templ-daisyui"
 )
 
 const (
@@ -39,7 +38,6 @@ type Action struct {
 	Method     string            `json:"method"`
 	Vars       map[string]string `json:"vars"`
 	display    DisplayType
-	classes    *components.Classes
 	sync.Mutex `json:"-"`
 }
 
@@ -50,7 +48,6 @@ func NewAction(path string, display DisplayType, options ...ActionOption) *Actio
 		Method:  http.MethodGet,
 		Vars:    make(map[string]string),
 		display: display,
-		classes: components.NewClasses(),
 	}
 	// Set default variables.
 	link.setVar(AttrHXTarget, ContentID.Target())
@@ -119,13 +116,6 @@ func ActionParams(value string) ActionOption {
 func ActionAttribute(key, value string) ActionOption {
 	return func(a *Action) {
 		a.setVar(key, value)
-	}
-}
-
-// ActionClasses option sets the given classes on the action.
-func ActionClasses(classes ...components.Class) ActionOption {
-	return func(a *Action) {
-		a.classes.Add(classes...)
 	}
 }
 

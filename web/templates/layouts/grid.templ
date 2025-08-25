@@ -7,28 +7,17 @@ import (
 	"context"
 	"fmt"
 	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/feedback/loading"
-	"github.com/joshuar/go-templ-daisyui/modifiers/color"
 )
-
-var GridID = attributes.ID("objects")
 
 // ObjectGrid renders the given card components in a grid container.
 templ CardGrid() {
 	<ul
 		role="list"
 		class="grid grid-flow-dense grid-cols-1 md:grid-cols-2 lg:grid-cols-4 justify-center gap-4 m-2"
-		id={ GridID.String() }
+		id="grid-objects"
 	>
 		{ children... }
 	</ul>
-	<div id="content-loading" class="items-center">
-		@loading.Build(loading.Bars,
-			loading.AsHTMXIndicator(),
-			loading.WithThemeColor(color.Accent),
-		).Show()
-	</div>
 }
 
 // PaginationControl generates an element that will cause a pagination request when scrolled into view.
@@ -38,7 +27,7 @@ templ PaginationControl(ctx context.Context, route string, pagination models.Pag
 		hx-include="#content-filters"
 		hx-vals={ fmt.Sprintf("{%q:%q}", models.ParamPagination, pagination) }
 		hx-trigger="intersect once"
-		hx-target={ GridID.Target() }
+		hx-target="#grid-objects"
 		hx-swap="beforeend"
 		hx-indicator="#content-loading"
 		preload

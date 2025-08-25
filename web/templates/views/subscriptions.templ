@@ -8,8 +8,6 @@ import (
 	"github.com/joshuar/go-feed-me/models"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
 	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-templ-daisyui/attributes"
-	"github.com/joshuar/go-templ-daisyui/input/hiddeninput"
 	"slices"
 )
 
@@ -32,10 +30,7 @@ templ (page *SubscriptionsPage) Content() {
 	// Fragment: content filters
 	<div id="content-filters" class="hidden">
 		for name, value := range page.filters.Parameters() {
-			@hiddeninput.Build(
-				hiddeninput.WithName(name),
-				hiddeninput.WithValue(attributes.Value(value)),
-			)
+			<input type="hidden" name={ name } value={ value }/>
 		}
 	</div>
 	@partials.ListControls{

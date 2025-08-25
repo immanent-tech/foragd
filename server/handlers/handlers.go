@@ -297,7 +297,7 @@ func RespInvalidInput(err error) *models.Response {
 		models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 		models.WithResponseError(err),
 		models.WithResponseTemplate(
-			partials.Alert(partials.MsgBadInput()),
+			partials.Notification(partials.MsgBadInput()),
 		),
 	)
 }
@@ -307,7 +307,7 @@ func RespBackendError(err error) *models.Response {
 		models.WithResponseStatusCode(http.StatusInternalServerError),
 		models.WithResponseError(err),
 		models.WithResponseTemplate(
-			partials.Alert(partials.MsgBackendErr()),
+			partials.Notification(partials.MsgBackendErr()),
 		),
 	)
 }
@@ -316,7 +316,7 @@ func RespForbidden() *models.Response {
 	return models.NewResponse(
 		models.WithResponseStatusCode(http.StatusForbidden),
 		models.WithResponseTemplate(
-			partials.Alert(partials.MsgBadInput()),
+			partials.Notification(partials.MsgBadInput()),
 		),
 	)
 }

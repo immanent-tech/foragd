@@ -2,8 +2,6 @@ module github.com/joshuar/go-feed-me
 
 go 1.24.5
 
-replace github.com/joshuar/go-templ-daisyui v0.0.0 => ./web/templates/components
-
 replace github.com/immanent-tech/go-syndication v0.0.0 => ./models/feeds
 
 replace github.com/immanent-tech/slog-elasticsearch v0.0.0 => ./logging/slog-elasticsearch
@@ -18,7 +16,6 @@ require (
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gorilla/sessions v1.4.0
 	github.com/gowebly/helpers v0.4.0
-	github.com/joshuar/go-templ-daisyui v0.0.0
 	github.com/knadh/koanf/parsers/toml v0.1.0
 	github.com/knadh/koanf/providers/env v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.0
@@ -29,7 +26,6 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/samber/slog-chi v1.15.0
 	github.com/samber/slog-multi v1.4.1
-	github.com/sebasvil20/templicons v1.1.0
 )
 
 require (

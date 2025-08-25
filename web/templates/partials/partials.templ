@@ -3,73 +3,16 @@
 
 package partials
 
-import (
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-templ-daisyui/feedback/alert"
-	"time"
-)
+import "time"
+
+templ Logo(classes ...string) {
+	<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class={ classes }>
+		<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path>
+	</svg>
+}
 
 // ShowTimestamp will display the given timestamp as a relative/human-friendly timestamp that will update as time
 // passes.
 templ ShowTimestamp(timestamp time.Time) {
 	<human-time datetime={ timestamp.Format("2006-01-02T15:04:05-0700") }>{ timestamp.Format("2006-01-02 15:04:05 -0700") }</human-time>
-}
-
-// ShowNotification displays the given message as a notification in the UI.
-templ ShowNotification(msg *models.UserMessage) {
-	<div id={ NotificationsID.String() } class="fixed top-0 right-0 left-0 mt-4 p-2 z-50" hx-swap-oob="true" hx-swap="outerHTML">
-		@alert.Build(
-			alert.AlertState(msgStatusToAlertState(msg.Status)),
-			alert.WithExtraAttributes(templ.Attributes{
-				"_": "on load wait 10s then transition opacity to 0 then remove me",
-			}),
-		).Show() {
-			if msg.HasDetails() {
-				<div>
-					<h3 class="font-bold">{ msg.Summary }</h3>
-					<p class="text-xs">{ msg.Details }</p>
-				</div>
-			} else {
-				<h3 class="font-bold">{ msg.Summary }</h3>
-			}
-		}
-	</div>
-}
-
-templ Alert(msg *models.UserMessage) {
-	@alert.Build(
-		alert.AlertState(msgStatusToAlertState(msg.Status)),
-		alert.WithExtraAttributes(templ.Attributes{
-			"_": "on load wait 10s then transition opacity to 0 then remove me",
-		}),
-	).Show() {
-		if msg.HasDetails() {
-			<div>
-				<h3 class="font-bold">{ msg.Summary }</h3>
-				<p class="text-xs">{ msg.Details }</p>
-			</div>
-		} else {
-			<h3 class="font-bold">{ msg.Summary }</h3>
-		}
-	}
-}
-
-func msgStatusToAlertState(status models.UserMessageStatus) alert.AlertState {
-	switch status {
-	case models.UserMessageStatusError:
-		return alert.Error
-	case models.UserMessageStatusWarning:
-		return alert.Warning
-	case models.UserMessageStatusInfo:
-		return alert.Info
-	case models.UserMessageStatusSuccess:
-		fallthrough
-	default:
-		return alert.Success
-	}
-}
-
-// Logo displays the app logo with the given class styling.
-templ Logo(classes string) {
-	<img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=600" alt="Go Feed Me" class={ classes }/>
 }

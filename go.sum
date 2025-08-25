@@ -441,8 +441,6 @@ github.com/samber/slog-multi v1.4.1/go.mod h1:im2Zi3mH/ivSY5XDj6LFcKToRIWPw1OcjS
 github.com/sdboyer/constext v0.0.0-20170321163424-836a14457353 h1:tnWWLf0nI2TI62Wd/ZOea4XYqE+y1sf2pdm+VItsc0c=
 github.com/sdboyer/constext v0.0.0-20170321163424-836a14457353/go.mod h1:5HStXbIikwtDAgAIqiQIqVgMn7mlvZa6PTpwiAVYGYg=
 github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529/go.mod h1:DxrIzT+xaE7yg65j358z/aeFdxmN0P9QXhEzd20vsDc=
-github.com/sebasvil20/templicons v1.1.0 h1:qA3bLvk0Y7arUAKJbu91untmbX4q2mzCeGD3HW5f3wc=
-github.com/sebasvil20/templicons v1.1.0/go.mod h1:/kjCL7N+jc7OJ6bo3XjZ4C9bAi1lcA9+DWlm0kRuTeA=
 github.com/segmentio/asm v1.2.0 h1:9BQrFxC+YOHJlTlHGkTrFWf59nbL3XnCoFLTwDCI7ys=
 github.com/segmentio/asm v1.2.0/go.mod h1:BqMnlJP91P8d+4ibuonYZw9mfnzI9HfxselHZr5aAcs=
 github.com/sergi/go-diff v1.1.0 h1:we8PVUC3FE2uYfodKH/nBHMSetSfHDR6scGdBi+erh0=

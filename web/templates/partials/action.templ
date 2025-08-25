@@ -5,12 +5,11 @@ package partials
 
 import (
 	"context"
-	"github.com/joshuar/go-templ-daisyui/actions/button"
 	"io"
 )
 
 templ (a *Action) link() {
-	<a class={ "link", "link-hover", a.classes.Show() } { a.Attributes()... }>
+	<a class={ "link", "link-hover" } { a.Attributes()... }>
 		{ children... }
 	</a>
 	// @link.Build(a.linkOptions...) {
@@ -19,9 +18,9 @@ templ (a *Action) link() {
 }
 
 templ (a *Action) button() {
-	@button.Build() {
+	<button class={ "btn" } { a.Attributes()... }>
 		{ children... }
-	}
+	</button>
 }
 
 // Render will display the action with its set options as the defined display type. Satisfies the templ.Component
