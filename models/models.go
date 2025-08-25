@@ -5,6 +5,7 @@
 package models
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"iter"
@@ -183,4 +184,14 @@ func (c ObjectCustomisation) GetNickname() string {
 
 func (c ObjectCustomisation) GetCategories() []Category {
 	return c.Categories
+}
+
+// GenerateHXVals generates a JSON-formatted object containing the given key-value pairs suitable for use as a hx-vals attribute.
+// See also: https://htmx.org/attributes/hx-vals/
+func GenerateHXVals(values map[string]string) string {
+	data, err := json.Marshal(values)
+	if err != nil {
+		return ""
+	}
+	return string(data)
 }

@@ -270,7 +270,7 @@ templ ImportResults(results AddSubscriptionResults) {
 		class="btn btn-primary"
 		hx-get="/subscriptions"
 		hx-target={ partials.ContentID.Target() }
-		hx-vals={ partials.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+		hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
 	>
 		Go to your subscriptions
 	</button>

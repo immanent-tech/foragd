@@ -250,7 +250,7 @@ templ (c *Subscription) ViewLink(classes ...string) {
 	<a
 		hx-get="/articles"
 		hx-include="#content-filters"
-		hx-vals={ GenerateHXVals(overrides) }
+		hx-vals={ models.GenerateHXVals(overrides) }
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
 		hx-swap="innerHTML show:top"
@@ -328,7 +328,7 @@ templ EditSubscriptionSuccessNotification(metadata *models.SubscriptionMetadata)
 				class="rounded-md text-sm font-medium hover:bg-accent/20 hover:text-accent-content focus:outline-2 focus:outline-offset-2 focus:outline-primary"
 				hx-get="/subscriptions"
 				hx-target={ ContentID.Target() }
-				hx-vals={ GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+				hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
 				hx-push-url="true"
 			>Go to subscriptions <span aria-hidden="true">&rarr;</span></button>
 		</div>

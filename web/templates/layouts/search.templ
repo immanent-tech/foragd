@@ -40,7 +40,7 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 			<a
 				href="#"
 				hx-get="/articles"
-				hx-vals={ partials.GenerateHXVals(values) }
+				hx-vals={ models.GenerateHXVals(values) }
 				hx-target={ partials.ContentID.Target() }
 				hx-push-url="true"
 				hx-swap="innerHTML show:top"

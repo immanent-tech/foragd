@@ -216,7 +216,7 @@ templ viewFilter(id string, view models.View, current models.View) {
 					if current == view {
 						checked
 					}
-					hx-vals={ GenerateHXVals(map[string]string{models.ParamView: string(view)}) }
+					hx-vals={ models.GenerateHXVals(map[string]string{models.ParamView: string(view)}) }
 				/>
 			</div>
 			<label for={ id } class="text-xs/4 font-medium capitalize">{ string(view) }</label>
@@ -238,7 +238,7 @@ templ categoryFilter(id string, category models.CategoryCount, current models.Ca
 						checked
 						_="on click toggle @checked on me"
 					} else {
-						hx-vals={ GenerateHXVals(map[string]string{models.ParamCategories: category.Category}) }
+						hx-vals={ models.GenerateHXVals(map[string]string{models.ParamCategories: category.Category}) }
 					}
 					class="radio radio-xs"
 				/>
@@ -262,7 +262,7 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 			hx-push-url="true"
 			hx-include="#content-filters"
 			hx-target={ ContentID.Target() }
-			hx-vals={ GenerateHXVals(map[string]string{models.ParamSortBy: string(sort.SortBy), models.ParamSortOrder: string(sort.SortOrder)}) }
+			hx-vals={ models.GenerateHXVals(map[string]string{models.ParamSortBy: string(sort.SortBy), models.ParamSortOrder: string(sort.SortOrder)}) }
 		/>
 		<label for={ sort.ID() } class="ml-3 text-xs/4 font-medium capitalize">{ sort.String() }</label>
 	</div>

@@ -154,7 +154,7 @@ templ categoryBadge(category models.CategoryCount) {
 		hx-get="/articles"
 		hx-push-url="true"
 		hx-target={ partials.ContentID.Target() }
-		hx-vals={ partials.GenerateHXVals(params) }
+		hx-vals={ models.GenerateHXVals(params) }
 		class="link link-hover"
 	>
 		<div class="flex gap-2 text-sm capitalize">

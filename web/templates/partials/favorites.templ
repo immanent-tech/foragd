@@ -60,7 +60,7 @@ templ FavoriteLink(fav *models.Favorite, classes string) {
 			<a
 				hx-get="/articles"
 				hx-target={ ContentID.Target() }
-				hx-vals={ GenerateHXVals(values) }
+				hx-vals={ models.GenerateHXVals(values) }
 				hx-push-url="true"
 				hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
 				class={ classes }
@@ -91,7 +91,7 @@ templ FavoriteLink(fav *models.Favorite, classes string) {
 				<a
 					hx-get="/search"
 					hx-target={ ContentID.Target() }
-					hx-vals={ GenerateHXVals(map[string]string{"text": search.Text}) }
+					hx-vals={ models.GenerateHXVals(map[string]string{"text": search.Text}) }
 					hx-push-url="true"
 					hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
 					class={ classes }
