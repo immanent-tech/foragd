@@ -525,7 +525,7 @@ func (a *API) DeleteUser() http.HandlerFunc {
 			return
 		}
 
-		http.Redirect(res, req, "/", http.StatusTemporaryRedirect)
+		http.Redirect(res, req, "/", http.StatusSeeOther)
 	}
 }
 

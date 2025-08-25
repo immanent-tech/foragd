@@ -205,7 +205,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 					r.With(middlewares.RequireHTMX).Put("/{theme}", handler.SetTheme())
 				})
 			})
-			r.With(middlewares.RequireHTMX).Delete("/", handler.DeleteUser())
+			r.With(middlewares.RequireHTMX).Get("/delete", handler.DeleteUser())
 		})
 	})
 

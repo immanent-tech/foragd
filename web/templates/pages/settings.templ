@@ -97,10 +97,14 @@ templ BillingSettings() {
 	<div class="grid max-w-7xl grid-cols-1 gap-x-8 gap-y-10 px-4 py-16 sm:px-6 md:grid-cols-3 lg:px-8">
 		<div>
 			<h2 class="text-base/7 font-semibold">Delete account</h2>
-			<p class="mt-1 text-sm/6 text-base-content/80">No longer want to use our service? You can delete your account here. This action is not reversible. All information related to this account will be deleted permanently.</p>
+			<p class="mt-1 text-sm/6 text-base-content/80">
+				No longer want to use our service? You can delete your account here. This action is not reversible. All
+				information related to this account will be deleted permanently. There is no confirmation once you click
+				this button.
+			</p>
 		</div>
 		<form
-			hx-get="/user"
+			hx-get="/user/delete"
 			hx-swap="none"
 			class="flex items-start md:col-span-2"
 		>
