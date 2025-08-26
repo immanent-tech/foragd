@@ -7,11 +7,13 @@ services:
   devcontainer:
     env_file:
       - .env
-    image: mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+    build:
+      context: .
+      dockerfile: Dockerfile
     volumes:
-      - ..:/workspace:Z,cached
+      - ..:/workspace:cached
       - /etc/localtime:/etc/localtime:ro,cached
-    command: sleep infinity
+    command: -c 'sleep infinity'
     user: vscode
     cap_add:
       - SYS_PTRACE
