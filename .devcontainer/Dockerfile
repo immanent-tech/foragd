@@ -4,7 +4,7 @@ FROM docker.io/alpine AS builder
 COPY --from=golang:1.25.0-alpine /usr/local/go/ /usr/local/go/
 
 # Install additional packages
-RUN apk update && apk add bash fish micro graphviz curl step-cli step-certificates git sudo
+RUN apk update && apk add bash fish micro graphviz curl step-cli step-certificates git sudo nodejs npm
 
 # Install golangci-lint
 RUN version=2.1.6 \
@@ -40,7 +40,7 @@ RUN <<EOF
     echo 'set --export PATH $BUN_INSTALL/bin $PATH' >> ~/.config/fish/config.fish
     echo 'set --export PULUMI_INSTALL "$HOME/.pulumi"' >> ~/.config/fish/config.fish
     echo 'set --export PATH $PULUMI_INSTALL/bin $PATH' >> ~/.config/fish/config.fish
-    echo 'set --export PATH /go/bin /usr/local/go/bin $PATH' >> ~/.config/fish/config.fish
+    echo 'set --export PATH "$HOME/go/bin" /go/bin /usr/local/go/bin $PATH' >> ~/.config/fish/config.fish
 EOF
 
 # The base container sets XDG_CACHE_HOME XDG_CONFIG_HOME specifically for the root user, we can't unset them in a way that vscode will pick up, so we set them to values for the new user.
