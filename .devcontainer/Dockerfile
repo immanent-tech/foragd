@@ -4,7 +4,7 @@ FROM docker.io/alpine AS builder
 COPY --from=golang:1.25.0-alpine /usr/local/go/ /usr/local/go/
 
 # Install additional packages
-RUN apk update && apk add bash fish micro graphviz curl step-cli step-certificates git sudo nodejs npm
+RUN apk update && apk add sudo openssh curl git bash fish micro graphviz step-cli step-certificates nodejs npm
 
 # Install golangci-lint
 RUN version=2.1.6 \
