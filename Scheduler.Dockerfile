@@ -1,7 +1,7 @@
-# Auto-generated Dockerfile file.
-# See https://gowebly.org for more information.
+# Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+# SPDX-License-Identifier: 	AGPL-3.0-or-later
 
-FROM golang:1.22-alpine AS builder
+FROM golang:1.25.0-alpine AS builder
 
 # Move to working directory (/build).
 WORKDIR /build
@@ -15,14 +15,13 @@ COPY . .
 
 # Set necessary environment variables and build your project.
 ENV CGO_ENABLED=0
-RUN go build -ldflags="-s -w" -o gowebly_chi
+RUN go build -ldflags="-s -w" -o go_feed_me
 
 FROM scratch
 
 # Copy project's binary and templates from /build to the scratch container.
-COPY --from=builder /build/gowebly_chi /
-
-
+COPY --from=builder /build/go_feed_me /
 
 # Set entry point.
-ENTRYPOINT ["/gowebly_chi"]
+ENTRYPOINT ["/go_feed_me"]
+CMD ["scheduler"]

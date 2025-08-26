@@ -1,6 +1,6 @@
 module github.com/joshuar/go-feed-me
 
-go 1.24.5
+go 1.25.0
 
 replace github.com/immanent-tech/go-syndication v0.0.0 => ./models/feeds
 
