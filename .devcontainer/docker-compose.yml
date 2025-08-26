@@ -294,25 +294,26 @@ services:
       retries: 120
     labels:
       - co.elastic.logs/module=kibana
-
-  # filebeat:
-  #   depends_on:
-  #     es01:
-  #       condition: service_healthy
-  #     es02:
-  #       condition: service_healthy
-  #     es03:
-  #       condition: service_healthy
-  #   hostname: filebeat
-  #   userns_mode: keep-id
-  #   networks:
-  #     - go-feed-me
-  #   image: docker.elastic.co/beats/filebeat:$STACK_VERSION
-  #   restart: always
-  #   volumes:
-  #     - ../../deployments/certs:/usr/share/filebeat/certs
-  #     - ../deployments/filebeat/config/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-  #     - filebeat-registry:/usr/share/filebeat/data
-  #     - ../deployments/filebeat/logs:/var/log/filebeat
-  #     - /run/user/1000/podman/podman.sock:/var/run/docker.sock:ro
-  #     - ../deployments/server.log:/var/log/server.log
+  metricbeat:
+    depends_on:
+      es01:
+        condition: service_healthy
+      es02:
+        condition: service_healthy
+      es03:
+        condition: service_healthy
+    hostname: metricbeat
+    image: docker.elastic.co/beats/metricbeat:$STACK_VERSION
+    restart: always
+    volumes:
+      - ../deployments/certs:/usr/share/metricbeat/config/certs
+      - ../deployments/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /proc:/hostfs/proc:ro
+      - /:/hostfs:ro
+      - /var/run/dbus/system_bus_socket,target=/hostfs/var/run/dbus/system_bus_socket:ro
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
+    environment:
+      - output.elasticsearch.hosts=["es01:9200"]
+      - DBUS_SYSTEM_BUS_ADDRESS='unix:path=/hostfs/var/run/dbus/system_bus_socket'
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
