@@ -1,17 +1,5 @@
-// Copyright (C) 2024 Joshua Rich <joshua.rich@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as
-// published by the Free Software Foundation, either version 3 of the
-// License, or (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// Copyright 2025 Joshua Rich <joshua.rich@gmail.com>.
+// SPDX-License-Identifier: 	AGPL-3.0-or-later
 
 package auth0
 
@@ -28,24 +16,26 @@ import (
 	"github.com/auth0/go-auth0/authentication/database"
 )
 
-var ErrAuth0Backend = errors.New("auth0 backend error")
-
 const userDBConnection = "Username-Password-Authentication"
 
+// UserAPI represents the Auth0 user API backend connection.
 type UserAPI struct {
-	api *authentication.Authentication
+	*authentication.Authentication
 }
 
+// ManagementAPI represents the Auth0 management API backend connection.
 type ManagementAPI struct {
 	*management.Management
 }
 
-// NewUserAPI creates a new user API backend object for user account management.
+// NewUserAPI creates a authentication API connection.
 func NewUserAPI(ctx context.Context) (*UserAPI, error) {
-	if err := loadConfigOnce(); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAuth0Backend, err)
+	// Load config.
+	err := loadConfigOnce()
+	if err != nil {
+		return nil, fmt.Errorf("auth0: load config: %w", err)
 	}
-
+	// Set up connection to auth0 backend.
 	authAPI, err := authentication.New(
 		ctx,
 		auth0Config.Domain,
@@ -53,16 +43,14 @@ func NewUserAPI(ctx context.Context) (*UserAPI, error) {
 		authentication.WithClientSecret(auth0Config.ClientSecret),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAuth0Backend, err)
+		return nil, fmt.Errorf("auth0: auth api backend: %w", err)
 	}
-
-	api := &UserAPI{
-		api: authAPI,
-	}
-
-	return api, nil
+	return &UserAPI{
+		Authentication: authAPI,
+	}, nil
 }
 
+// NewManagementAPI creates a new management API connection.
 func NewManagementAPI() (*ManagementAPI, error) {
 	api, err := management.New(
 		auth0Config.Domain,
@@ -73,12 +61,12 @@ func NewManagementAPI() (*ManagementAPI, error) {
 		),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("auth0 management api connection failed: %w", err)
+		return nil, fmt.Errorf("auth0: management api backend: %w", err)
 	}
 	return &ManagementAPI{Management: api}, nil
 }
 
-// Create will create a new user account with the given details on the backend.
+// Create will create a new user with the given details on the Auth0 backend.
 func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest) (string, error) {
 	userData := database.SignupRequest{
 		Connection: userDBConnection,
@@ -87,25 +75,27 @@ func (u *UserAPI) Create(ctx context.Context, details *models.UserSignupRequest)
 		Password:   details.Password,
 	}
 
-	user, err := u.api.Database.Signup(ctx, userData)
+	user, err := u.Database.Signup(ctx, userData)
 	if err != nil {
-		if authErr, ok := err.(*authentication.Error); ok {
-			return "", fmt.Errorf("auth0 backend error: %w", authErr)
+		auth0Err := &authentication.Error{}
+		if errors.Is(err, auth0Err) {
+			return "", fmt.Errorf("auth0: create user: %w", auth0Err)
 		}
-		return "", fmt.Errorf("auth0 backend error: %w", err)
+		return "", fmt.Errorf("auth0: create user: %w", err)
 	}
 
 	return user.ID, nil
 }
 
+// Delete will delete the given user from the Auth0 backend.
 func Delete(ctx context.Context, user *models.User) error {
 	api, err := NewManagementAPI()
 	if err != nil {
-		return fmt.Errorf("failed to delete user account from backend: %w", err)
+		return fmt.Errorf("auth0: delete user: %w", err)
 	}
-	err = api.User.Delete(ctx, "auth0|"+user.ExternalUserId)
+	err = api.User.Delete(ctx, user.ExternalUserId)
 	if err != nil {
-		return fmt.Errorf("failed to delete user account from backend: %w", err)
+		return fmt.Errorf("auth0: delete user: %w", err)
 	}
 	return nil
 }

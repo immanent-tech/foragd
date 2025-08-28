@@ -10,9 +10,9 @@
       "problemMatcher": []
     },
     {
-      "label": "gowebly: run",
+      "label": "run server",
       "type": "shell",
-      "command": "go run github.com/gowebly/gowebly/v3@latest run",
+      "command": "air -c .air.toml",
       "problemMatcher": [],
       "presentation": {
         "echo": true,

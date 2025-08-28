@@ -85,7 +85,8 @@
     "articles",
     "assets",
     "search",
-    "config"
+    "config",
+    "auth0"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,

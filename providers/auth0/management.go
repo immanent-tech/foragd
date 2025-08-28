@@ -9,6 +9,7 @@ import (
 	"net/url"
 )
 
+// GenerateLogoutURL generates the URL required for logging the user out from the Auth0 backend.
 func GenerateLogoutURL(req *http.Request) (string, error) {
 	logoutUrl, err := url.Parse("https://" + auth0Config.Domain + "/v2/logout")
 	if err != nil {
