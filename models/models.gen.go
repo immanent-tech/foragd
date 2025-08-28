@@ -271,6 +271,9 @@ type Feed struct {
 	Image    RemoteImage `json:"image,omitempty,omitzero"`
 	Language string      `json:"language,omitempty,omitzero"`
 
+	// LastFetched indicates when new items for the feed were last fetched.
+	LastFetched time.Time `json:"last_fetched"`
+
 	// Published is the datetime at which the feed or item was published.
 	Published time.Time `json:"published"`
 

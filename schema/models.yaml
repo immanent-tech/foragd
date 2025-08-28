@@ -410,6 +410,7 @@ components:
             - feed_id
             - source_urls
             - created_at
+            - last_fetched
           properties:
             feed_id:
               $ref: '#/components/schemas/FeedID'
@@ -424,6 +425,10 @@ components:
                 validate: 'required,dive,url'
             created_at:
               $ref: '#/components/schemas/CreatedAt'
+            last_fetched:
+              description: >
+                indicates when new items for the feed were last fetched.
+              x-go-type: time.Time
     Item:
       description: represents an individual item (e.g., an individual feed item).
       type: object

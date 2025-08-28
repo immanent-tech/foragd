@@ -75,9 +75,10 @@ func (s *Store) Commit(token string, b []byte, expiry time.Time) error {
 	err := elastic.UpdateDoc(sessionCtx, s.client.GetAPI(), s.index,
 		token,
 		map[string]any{
-			"token":  token,
-			"data":   b,
-			"expiry": expiry,
+			"token":      token,
+			"data":       b,
+			"expiry":     expiry,
+			"updated_at": time.Now().UTC(),
 		},
 		elastic.UpdateDocAsUpsert(),
 	)

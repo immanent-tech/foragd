@@ -9,7 +9,6 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
-	"maps"
 	"net/http"
 	"net/url"
 	"slices"
@@ -166,7 +165,7 @@ func (e *API) UpdateFeed(ctx context.Context, id models.FeedID, updated *feeds.F
 		return fmt.Errorf("UpdateFeed: %w", ErrFetchCtx)
 	}
 	updates := map[string]any{
-		"updated": time.Now().UTC(),
+		"last_fetched": time.Now().UTC(),
 	}
 	err := UpdateDoc(ctx, e.GetAPI(), index, id, updates)
 	if err != nil {
@@ -253,6 +252,7 @@ func (a *API) UpdateJobState(ctx context.Context, id string, updates map[string]
 	if index == "" {
 		return ErrFetchCtx
 	}
+	updates["updated_at"] = time.Now().UTC()
 	return UpdateDoc(ctx, a.GetAPI(), index, id, updates,
 		UpdateDocAsUpsert(),
 		WithRefresh("true"),
@@ -425,18 +425,6 @@ func CreateDoc[T ~string, O any](ctx context.Context, api *elasticsearch.TypedCl
 // UpdateDoc performs a partial doc update on the document with the given id in the given index. A non-nil error is
 // returned on a failure.
 func UpdateDoc[T ~string](ctx context.Context, api *elasticsearch.TypedClient, index string, id T, updates map[string]any, options ...Option[UpdateDocRequest]) error {
-	baseUpdates := map[string]any{
-		"updated_at": time.Now().UTC(),
-	}
-	if updates != nil {
-		// Add the updated_at field.
-		maps.Copy(updates, baseUpdates)
-	} else {
-		// Just update the updated_at field (i.e., `touch` the document).
-		updates = baseUpdates
-	}
-
-	// Update the user in the store with the new list of read items.
 	resp, err := NewUpdateDocRequest(api, index, string(id), updates, options...).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("%w: %w", ErrAPIRequestFailed, err)

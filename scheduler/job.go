@@ -181,7 +181,7 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 		items = append(items, models.NewItemFromSource(&i, job.FeedID, string(feed.SourceType)))
 	}
 	// Add any new items since the last feed update.
-	if len(items.FilterSince(details.Updated)) > 0 {
+	if len(items.FilterSince(details.LastFetched)) > 0 {
 		// Add any new items.
 		results, err := manager.db.AddItems(jobCtx, items...)
 		if err != nil {

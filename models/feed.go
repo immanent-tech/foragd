@@ -143,6 +143,7 @@ func NewFeedFromSource(source *feeds.Feed) *Feed {
 	return &Feed{
 		FeedID:       NewID(FeedPFX),
 		CreatedAt:    time.Now().UTC(),
+		LastFetched:  types.UnixEpoch,
 		Published:    source.GetPublishedDate(),
 		Updated:      source.GetUpdatedDate(),
 		Title:        source.GetTitle(),

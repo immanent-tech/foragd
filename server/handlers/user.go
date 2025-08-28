@@ -535,6 +535,7 @@ func (a *API) updateUser(ctx context.Context, updates map[string]any) error {
 	if !found {
 		return models.ErrUserCtx
 	}
+	updates["updated_at"] = time.Now().UTC()
 	index := elastic.UserIndexFromCtx(ctx)
 	err := elastic.UpdateDoc(ctx, a.DataAPI().GetAPI(), index, user.GetID(), updates,
 		elastic.WithRefresh("true"),

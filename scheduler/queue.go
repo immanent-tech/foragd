@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
@@ -75,6 +76,7 @@ func (jq *JobQueue) Push(job quartz.ScheduledJob) error {
 		"job_trigger_type": data.JobTriggerType,
 		"job_trigger":      data.JobTrigger,
 		"job_type":         data.JobType,
+		"updated_at":       time.Now().UTC(),
 	},
 		elastic.UpdateDocAsUpsert(),
 		elastic.WithRefresh("true"),
