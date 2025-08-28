@@ -25,13 +25,6 @@ static/*.ttf
 static/fontawesome
 *_templ.go
 
-
-# Generated folders.
-bin/
-dist-ssr/
-dist/
-pb_data/
-
 # Node modules.
 node_modules/
 
@@ -45,11 +38,6 @@ tmp/
 # Logs.
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
 # Ignore by extensions.
 *.exe
