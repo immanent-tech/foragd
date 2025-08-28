@@ -31,24 +31,24 @@ services:
     volumes:
       - ../deployments/stepca:/home/step
     environment:
-      - DOCKER_STEPCA_INIT_NAME=GOFEEDME
+      - DOCKER_STEPCA_INIT_NAME=gofeedme-dev
       - DOCKER_STEPCA_INIT_DNS_NAMES=localhost,stepca
       - DOCKER_STEPCA_INIT_REMOTE_MANAGEMENT=true
-      - DOCKER_STEPCA_INIT_PASSWORD=$DOCKER_STEPCA_INIT_PASSWORD
+      - DOCKER_STEPCA_INIT_PASSWORD=$STEPCA_INIT_PASSWORD
     ports:
       - $STEPCA_PORT:9000
   setup:
     env_file:
       - .env
-    image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
+    image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTIC_STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
     command: |
       bash -c '
-              if [ x$${ELASTIC_PASSWORD:-gofeedme} == x ]; then
-          echo "Set the ELASTIC_PASSWORD environment variable in the .env file";
+              if [ x$${ELASTICSEARCH_PASSWORD} == x ]; then
+          echo "Set the ELASTICSEARCH_PASSWORD environment variable in the .env file";
           exit 1;
-        elif [ x$${KIBANA_PASSWORD:-gofeedme} == x ]; then
+        elif [ x$${KIBANA_PASSWORD} == x ]; then
           echo "Set the KIBANA_PASSWORD environment variable in the .env file";
           exit 1;
         fi;
@@ -90,7 +90,7 @@ services:
         echo "Waiting for Elasticsearch availability";
         until curl -s --cacert config/certs/ca/ca.crt https://es01:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
         echo "Setting kibana_system password";
-        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:$${ELASTIC_PASSWORD:-gofeedme}" -H "Content-Type: application/json" https://es01:9200/_security/user/kibana_system/_password -d "{\"password\":\"$${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
+        until curl -s -X POST --cacert config/certs/ca/ca.crt -u "elastic:$${ELASTICSEARCH_PASSWORD:-gofeedme}" -H "Content-Type: application/json" https://es01:9200/_security/user/kibana_system/_password -d "{\"password\":\"$${KIBANA_PASSWORD}\"}" | grep -q "^{}"; do sleep 10; done;
         echo "All done!";
       '
     healthcheck:
@@ -106,17 +106,16 @@ services:
     hostname: es01
     env_file:
       - .env
-    image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
+    image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTIC_STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
-      - ../deployments/elasticsearch/es01/logs:/usr/share/elasticsearch/logs
       - es01data:/usr/share/elasticsearch/data
     ports:
-      - $ES_PORT:9200
+      - $ELASTICSEARCH_PORT:9200
     environment:
       - node.name=es01
-      - cluster.name=$CLUSTER_NAME
-      - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+      - cluster.name=gofeedme-dev
+      - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
       - cluster.initial_master_nodes=es01,es02,es03
       - discovery.seed_hosts=es02,es03
       - bootstrap.memory_lock=true
@@ -131,10 +130,7 @@ services:
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=basic
-      - cluster.routing.allocation.disk.watermark.low=0.95
-      - cluster.routing.allocation.disk.watermark.high=0.98
-      - cluster.routing.allocation.disk.watermark.flood_stage=0.99
-    mem_limit: $ES_MEM_LIMIT
+    mem_limit: $ELASTICSEARCH_MEM_LIMIT
     oom_kill_disable: true
     ulimits:
       memlock:
@@ -159,17 +155,16 @@ services:
     depends_on:
       - es01
     hostname: es02
-    image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
+    image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTIC_STACK_VERSION
     env_file:
       - .env
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
-      - ../deployments/elasticsearch/es02/logs:/usr/share/elasticsearch/logs
       - es02data:/usr/share/elasticsearch/data
     environment:
       - node.name=es02
-      - cluster.name=$CLUSTER_NAME
-      - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+      - cluster.name=gofeedme-dev
+      - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
       - cluster.initial_master_nodes=es01,es02,es03
       - discovery.seed_hosts=es01,es03
       - bootstrap.memory_lock=true
@@ -184,10 +179,7 @@ services:
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=basic
-      - cluster.routing.allocation.disk.watermark.low=0.95
-      - cluster.routing.allocation.disk.watermark.high=0.98
-      - cluster.routing.allocation.disk.watermark.flood_stage=0.99
-    mem_limit: $ES_MEM_LIMIT
+    mem_limit: $ELASTICSEARCH_MEM_LIMIT
     oom_kill_disable: true
     ulimits:
       memlock:
@@ -212,17 +204,16 @@ services:
     depends_on:
       - es02
     hostname: es03
-    image: docker.elastic.co/elasticsearch/elasticsearch:$STACK_VERSION
+    image: docker.elastic.co/elasticsearch/elasticsearch:$ELASTIC_STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/elasticsearch/config/certs
-      - ../deployments/elasticsearch/es03/logs:/usr/share/elasticsearch/logs
       - es03data:/usr/share/elasticsearch/data
     env_file:
       - .env
     environment:
       - node.name=es03
-      - cluster.name=$CLUSTER_NAME
-      - ELASTIC_PASSWORD=$ELASTIC_PASSWORD
+      - cluster.name=gofeedme-dev
+      - ELASTIC_PASSWORD=$ELASTICSEARCH_PASSWORD
       - cluster.initial_master_nodes=es01,es02,es03
       - discovery.seed_hosts=es01,es02
       - bootstrap.memory_lock=true
@@ -237,10 +228,7 @@ services:
       - xpack.security.transport.ssl.certificate_authorities=certs/ca/ca.crt
       - xpack.security.transport.ssl.verification_mode=certificate
       - xpack.license.self_generated.type=basic
-      - cluster.routing.allocation.disk.watermark.low=0.95
-      - cluster.routing.allocation.disk.watermark.high=0.98
-      - cluster.routing.allocation.disk.watermark.flood_stage=0.99
-    mem_limit: $ES_MEM_LIMIT
+    mem_limit: $ELASTICSEARCH_MEM_LIMIT
     oom_kill_disable: true
     ulimits:
       memlock:
@@ -272,10 +260,9 @@ services:
     hostname: kibana
     env_file:
       - .env
-    image: docker.elastic.co/kibana/kibana:$STACK_VERSION
+    image: docker.elastic.co/kibana/kibana:$ELASTIC_STACK_VERSION
     volumes:
       - ../deployments/certs:/usr/share/kibana/config/certs
-      - ../deployments/kibana/logs:/usr/share/kibana/logs
       - kibanadata:/usr/share/kibana/data
     ports:
       - $KIBANA_PORT:5601
@@ -305,7 +292,7 @@ services:
       es03:
         condition: service_healthy
     hostname: metricbeat
-    image: docker.elastic.co/beats/metricbeat:$STACK_VERSION
+    image: docker.elastic.co/beats/metricbeat:$ELASTIC_STACK_VERSION
     restart: always
     volumes:
       - ../deployments/certs:/usr/share/metricbeat/config/certs
@@ -318,4 +305,4 @@ services:
     environment:
       - output.elasticsearch.hosts=["es01:9200"]
       - DBUS_SYSTEM_BUS_ADDRESS='unix:path=/hostfs/var/run/dbus/system_bus_socket'
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
