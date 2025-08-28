@@ -62,7 +62,7 @@ var Init = sync.OnceValue(func() error {
 	}
 	// Merge config with any environment variables.
 	err = configSrc.Load(env.Provider(ConfigEnvPrefix, ".", func(s string) string {
-		return strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(s, ConfigEnvPrefix)), "_", ".")
+		return strings.Replace(strings.ToLower(strings.TrimPrefix(s, ConfigEnvPrefix)), "_", ".", 1)
 	}), nil)
 	if err != nil {
 		slog.Warn("No environment variables loaded.",
@@ -94,7 +94,7 @@ func Load(configPrefix, envPrefix string, cfg any) error {
 	}
 	// Merge config with any environment variables.
 	err = configSrc.Load(env.Provider(envPrefix, ".", func(s string) string {
-		return strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(s, envPrefix)), "_", ".")
+		return strings.Replace(strings.ToLower(strings.TrimPrefix(s, envPrefix)), "_", ".", 1)
 	}), nil)
 	if err != nil {
 		slog.Warn("No environment variables loaded.",
