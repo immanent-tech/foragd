@@ -10,6 +10,8 @@ import (
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
 
+	"github.com/joshuar/go-feed-me/validation"
+
 	"github.com/joshuar/go-feed-me/config"
 )
 
@@ -33,10 +35,10 @@ var elasticConfig = &Config{
 // DevelopmentConfig are the configuration options for elastic in production
 // deployments.
 type DevelopmentConfig struct {
-	CAFile   string   `toml:"ca_file"`
-	Username string   `toml:"username"`
-	Password string   `toml:"password"`
-	URLs     []string `toml:"urls"`
+	CAFile   string   `toml:"ca_file" validate:"required"`
+	Username string   `toml:"username" validate:"required"`
+	Password string   `toml:"password" validate:"required"`
+	URLs     []string `toml:"urls" validate:"required,unique"`
 }
 
 // ProductionConfig are the configuration options for elastic in production
@@ -64,6 +66,11 @@ func loadConfigOnce(environment string) (*elasticsearch.Config, error) {
 		if err != nil {
 			return nil, fmt.Errorf("elastic: unable to load config: %w", err)
 		}
+		valid, err := validation.ValidateStruct(elasticConfig)
+		if err != nil || !valid {
+			return nil, fmt.Errorf("elastic: unable to validate config: %w", err)
+		}
+
 		return clientConfig, nil
 	},
 	)()

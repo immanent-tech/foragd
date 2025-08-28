@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/joshuar/go-feed-me/config"
+	"github.com/joshuar/go-feed-me/validation"
 )
 
 const (
@@ -19,9 +20,9 @@ var auth0Config = &Config{}
 
 // Config structure.
 type Config struct {
-	Domain       string `toml:"domain"`
-	ClientID     string `toml:"client_id"`
-	ClientSecret string `toml:"client_secret"`
+	Domain       string `toml:"domain" validate:"required"`
+	ClientID     string `toml:"client_id" validate:"required"`
+	ClientSecret string `toml:"client_secret" validate:"required"`
 }
 
 // loadConfigOnce loads the auth0 configuration and ensures this is only done
@@ -32,6 +33,10 @@ func loadConfig() error {
 	err := config.Load(auth0ConfigPrefix, auth0ConfigEnvPrefix, auth0Config)
 	if err != nil {
 		return fmt.Errorf("auth0: unable to load config: %w", err)
+	}
+	valid, err := validation.ValidateStruct(auth0Config)
+	if err != nil || !valid {
+		return fmt.Errorf("auth0: unable to validate config: %w", err)
 	}
 	return nil
 }
