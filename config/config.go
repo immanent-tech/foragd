@@ -54,18 +54,24 @@ var appConfig = &Config{
 // method. This only happens once.
 var Init = sync.OnceValue(func() error {
 	// Load config file
-	if err := configSrc.Load(file.Provider(ConfigFile), toml.Parser()); err != nil {
-		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	err := configSrc.Load(file.Provider(ConfigFile), toml.Parser())
+	if err != nil {
+		slog.Warn("No config file found.",
+			slog.Any("error", err),
+		)
 	}
 	// Merge config with any environment variables.
-	if err := configSrc.Load(env.Provider(ConfigEnvPrefix, ".", func(s string) string {
-		return strings.Replace(strings.ToLower(
-			strings.TrimPrefix(s, ConfigEnvPrefix)), "_", ".", -1)
-	}), nil); err != nil {
-		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	err = configSrc.Load(env.Provider(ConfigEnvPrefix, ".", func(s string) string {
+		return strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(s, ConfigEnvPrefix)), "_", ".")
+	}), nil)
+	if err != nil {
+		slog.Warn("No environment variables loaded.",
+			slog.Any("error", err),
+		)
 	}
 	// Unmarshal config, overwriting defaults.
-	if err := configSrc.UnmarshalWithConf("app", appConfig, koanf.UnmarshalConf{Tag: "toml"}); err != nil {
+	err = configSrc.UnmarshalWithConf("app", appConfig, koanf.UnmarshalConf{Tag: "toml"})
+	if err != nil {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 
@@ -80,18 +86,24 @@ var Init = sync.OnceValue(func() error {
 // required.
 func Load(configPrefix, envPrefix string, cfg any) error {
 	// Load config file
-	if err := configSrc.Load(file.Provider(ConfigFile), toml.Parser()); err != nil {
-		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	err := configSrc.Load(file.Provider(ConfigFile), toml.Parser())
+	if err != nil {
+		slog.Warn("No config file found.",
+			slog.Any("error", err),
+		)
 	}
 	// Merge config with any environment variables.
-	if err := configSrc.Load(env.Provider(envPrefix, ".", func(s string) string {
-		return strings.Replace(strings.ToLower(
-			strings.TrimPrefix(s, envPrefix)), "_", ".", -1)
-	}), nil); err != nil {
-		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
+	err = configSrc.Load(env.Provider(envPrefix, ".", func(s string) string {
+		return strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(s, envPrefix)), "_", ".")
+	}), nil)
+	if err != nil {
+		slog.Warn("No environment variables loaded.",
+			slog.Any("error", err),
+		)
 	}
 	// Unmarshal config, overwriting defaults.
-	if err := configSrc.UnmarshalWithConf(configPrefix, cfg, koanf.UnmarshalConf{Tag: "toml"}); err != nil {
+	err = configSrc.UnmarshalWithConf(configPrefix, cfg, koanf.UnmarshalConf{Tag: "toml"})
+	if err != nil {
 		return fmt.Errorf("%w: %w", ErrLoadConfig, err)
 	}
 

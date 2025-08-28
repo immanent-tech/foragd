@@ -4,7 +4,6 @@
 package elastic
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"sync"
@@ -15,12 +14,12 @@ import (
 )
 
 const (
-	elasticConfigEnvPrefix = config.ConfigEnvPrefix + "_ELASTIC_"
+	elasticConfigEnvPrefix = config.ConfigEnvPrefix + "ELASTIC_"
 	elasticConfigPrefix    = "elastic"
 )
 
 var developmentConfig = &DevelopmentConfig{
-	CAFile:   "../deployments/certs/ca/ca.crt",
+	CAFile:   "deployments/certs/ca/ca.crt",
 	URLs:     []string{"https://es01:9200"},
 	Username: "elastic",
 	Password: "gofeedme",
@@ -55,18 +54,16 @@ type Config struct {
 
 // loadConfigOnce loads the elasticsearch configuration and ensures this is done
 // one-time only, no matter how many times it is called.
-func loadConfigOnce(ctx context.Context, environment string) (*elasticsearch.Config, error) {
+func loadConfigOnce(environment string) (*elasticsearch.Config, error) {
 	return sync.OnceValues(func() (*elasticsearch.Config, error) {
 		err := config.Load(elasticConfigPrefix, elasticConfigEnvPrefix, elasticConfig)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrConnectFailed, err)
+			return nil, fmt.Errorf("elastic: unable to load config: %w", err)
 		}
-
-		clientConfig, err := genConfig(ctx, environment)
+		clientConfig, err := genConfig(environment)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", config.ErrInvalidConfig, err)
+			return nil, fmt.Errorf("elastic: unable to load config: %w", err)
 		}
-
 		return clientConfig, nil
 	},
 	)()
@@ -74,7 +71,7 @@ func loadConfigOnce(ctx context.Context, environment string) (*elasticsearch.Con
 
 // genConfig will generate an Elasticsearch client config, required by the
 // underlying package for connecting to an Elasticsearch cluster.
-func genConfig(ctx context.Context, environment string) (*elasticsearch.Config, error) {
+func genConfig(environment string) (*elasticsearch.Config, error) {
 	var generated *elasticsearch.Config
 
 	switch environment {

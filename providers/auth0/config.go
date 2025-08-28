@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	auth0ConfigEnvPrefix = "GOFEEDME_AUTH0_"
+	auth0ConfigEnvPrefix = config.ConfigEnvPrefix + "AUTH0_"
 	auth0ConfigPrefix    = "auth0"
 )
 
@@ -31,8 +31,7 @@ var loadConfigOnce = sync.OnceValue(loadConfig)
 func loadConfig() error {
 	err := config.Load(auth0ConfigPrefix, auth0ConfigEnvPrefix, auth0Config)
 	if err != nil {
-		return fmt.Errorf("%w: %w", config.ErrLoadConfig, err)
+		return fmt.Errorf("auth0: unable to load config: %w", err)
 	}
-
 	return nil
 }
