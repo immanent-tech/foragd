@@ -6,11 +6,6 @@ COPY --from=golang:1.25.0-alpine /usr/local/go/ /usr/local/go/
 # Install additional packages
 RUN apk update && apk add sudo openssh curl git bash fish micro graphviz step-cli step-certificates nodejs npm
 
-# Install golangci-lint
-RUN version=2.1.6 \
-    && curl -fsSL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b /go/bin v$version \
-    && /go/bin/golangci-lint version
-
 # Install starship
 RUN cd /tmp && curl -sS https://starship.rs/install.sh | sh -s -- -y || exit -1
 
