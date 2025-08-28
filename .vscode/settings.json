@@ -84,7 +84,8 @@
     "header",
     "articles",
     "assets",
-    "search"
+    "search",
+    "config"
   ],
   "css.lint.idSelector": "warning",
   "editor.formatOnSave": true,
