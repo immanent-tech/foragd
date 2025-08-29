@@ -11,7 +11,7 @@ require (
 	github.com/alexedwards/scs/v2 v2.9.0
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/auth0/go-auth0 v1.26.0
-	github.com/go-chi/chi/v5 v5.2.2
+	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-playground/form/v4 v4.2.1
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/gorilla/sessions v1.4.0
@@ -24,7 +24,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20
 	github.com/oapi-codegen/runtime v1.1.2
 	github.com/rs/cors v1.11.1
-	github.com/samber/slog-chi v1.15.0
+	github.com/samber/slog-chi v1.16.0
 	github.com/samber/slog-multi v1.4.1
 )
 
