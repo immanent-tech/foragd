@@ -226,13 +226,19 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 	return resp, nil
 }
 
-func (e *API) CountNewItems(ctx context.Context, query query.Option) (int64, error) {
+// CountItems returns a count of items that match the given query.
+func (e *API) CountItems(ctx context.Context, query query.Option) (int64, error) {
 	index := ItemsIndexFromCtx(ctx)
 	if index == "" {
 		return 0, fmt.Errorf("CountNewItems: %w", ErrFetchCtx)
 	}
 
-	return 0, nil
+	count, err := Count(ctx, e.GetAPI(), index, query)
+	if err != nil {
+		return 0, fmt.Errorf("CountNewItems: %w", ErrFetchCtx)
+	}
+
+	return count, nil
 }
 
 // AddItems will bulk index the given items.

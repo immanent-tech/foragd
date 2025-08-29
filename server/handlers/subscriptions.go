@@ -102,7 +102,7 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 			prevCount    int64
 		)
 
-		prevCount, err = a.DataAPI().CountNewItems(req.Context(), query)
+		prevCount, err = a.DataAPI().CountItems(req.Context(), query)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
 				slog.Any("error", err))
@@ -119,7 +119,7 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 				return
 			default:
 				slogctx.FromCtx(req.Context()).Debug("Checking for subscription updates...")
-				currentCount, err = a.DataAPI().CountNewItems(req.Context(), query)
+				currentCount, err = a.DataAPI().CountItems(req.Context(), query)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
 						slog.Any("error", err))
