@@ -42,7 +42,7 @@ func (a *API) GetArticles() http.HandlerFunc {
 			return
 		}
 		// Save the filters to the session.
-		chain = chain.Append(SavePageState(filters))
+		chain = chain.Append(savePageState(filters))
 		// Get articles matching filters.
 		articles, pagination, err := a.filterArticles(req.Context(), filters)
 		if err != nil {
@@ -201,6 +201,29 @@ func (a *API) ViewArticle() http.HandlerFunc {
 			models.NewResponse(models.WithResponseTemplate(template)),
 		)).ServeHTTP(res, req)
 	}
+}
+
+func generateItemsQuery(ctx context.Context, filters models.Filters, subscriptions ...models.SubscriptionID) (query.Option, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, fmt.Errorf("generateItemsQuery: %w", ErrNoCtxData)
+	}
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	meta := user.GetSubscriptionMetadata().FilterByIDs(subscriptions...)
+	return query.Bool(
+		query.BoolQueryName("get_items"),
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", meta.GetFeedIDs()...),
+			// Must match any of the given categories.
+			query.Terms("categories.raw", filters.GetCategories()...),
+			// And should match one feed clause.
+			query.Bool(
+				query.Should(buildSubscriptionQueries(user, filters.GetView(), meta...)...),
+			),
+		),
+	), nil
 }
 
 func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters) (models.Articles, models.Pagination, error) {

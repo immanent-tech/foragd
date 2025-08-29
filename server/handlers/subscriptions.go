@@ -44,25 +44,12 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		// Set up handler chain.
 		chain := alice.New(
 			RouteLogger,
+			decodeSubscriptionFilters,
 		)
-		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
-		if err != nil || !valid {
-			msg := &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "There was a problem with the inputs. Please check and try again.",
-			}
-			chain.Then(RenderResponse(
-				models.NewResponse(
-					models.WithResponseError(err),
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseTemplate(pages.Error(msg)),
-				),
-			)).ServeHTTP(res, req)
-			return
-		}
-		chain = chain.Append(SavePageState(filters))
+		filters := subscriptionFiltersFromCtx(req.Context())
+		chain = chain.Append(savePageState(filters))
 		// Get subscriptions matching filters.
-		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), filters)
+		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
 		if err != nil {
 			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
 			return
@@ -72,7 +59,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		if len(subscriptions) == 0 {
 			template = layouts.EmptyContent()
 		} else {
-			template = views.NewSubscriptionsPage(subscriptions, filters, pagination).Content()
+			template = views.NewSubscriptionsPage(subscriptions, &filters, pagination).Content()
 		}
 		if !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req) {
 			template = templates.Page(
@@ -84,6 +71,73 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 			models.NewResponse(models.WithResponseTemplate(template)),
 		)).ServeHTTP(res, req)
 	}
+}
+
+func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
+	return alice.New(
+		RouteLogger,
+		decodeSubscriptionFilters,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Content-Type", "text/event-stream")
+		res.Header().Set("Cache-Control", "no-cache")
+		res.Header().Set("Connection", "keep-alive")
+		if f, ok := res.(http.Flusher); ok {
+			f.Flush()
+		} else {
+			slogctx.FromCtx(req.Context()).Warn("Cannot flush update stream!")
+			res.WriteHeader(http.StatusNoContent)
+		}
+		// Get filters and generate query.
+		filters := subscriptionFiltersFromCtx(req.Context())
+		query, err := generateItemsQuery(req.Context(), &filters)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
+				slog.Any("error", err))
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		var (
+			currentCount int64
+			prevCount    int64
+		)
+
+		prevCount, err = a.DataAPI().CountNewItems(req.Context(), query)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
+				slog.Any("error", err))
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		for {
+			select {
+			case <-req.Context().Done():
+				slogctx.FromCtx(req.Context()).Debug("Stopping subscription updates.")
+				res.Header().Set("Connection", "close")
+				res.WriteHeader(http.StatusRequestTimeout)
+				return
+			default:
+				slogctx.FromCtx(req.Context()).Debug("Checking for subscription updates...")
+				currentCount, err = a.DataAPI().CountNewItems(req.Context(), query)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
+						slog.Any("error", err))
+					continue
+				}
+				// Show updates toast if new items found.
+				if currentCount > prevCount {
+					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
+					partials.UpdatesToast().Render(req.Context(), res)
+					if f, ok := res.(http.Flusher); ok {
+						f.Flush()
+					}
+				}
+				prevCount = currentCount
+				time.Sleep(time.Second * 10)
+			}
+		}
+	}).ServeHTTP
 }
 
 // PaginateSubscriptions handles showing the next set of subscriptions.
@@ -1035,4 +1089,20 @@ func (r addSubscriptionRequests) createNewSubscriptions(ctx context.Context, api
 		return nil, fmt.Errorf("createNewSubscriptions: %w", err)
 	}
 	return results, nil
+}
+
+func decodeSubscriptionFilters(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
+		if err != nil || !valid {
+			slogctx.FromCtx(req.Context()).Warn("Invalid subscription filters. Using defaults.",
+				slog.Any("error", err),
+			)
+			ctx = subscriptionFiltersToCtx(ctx, models.NewSubscriptionFilters())
+		} else {
+			ctx = subscriptionFiltersToCtx(ctx, *filters)
+		}
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
 }

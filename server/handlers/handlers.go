@@ -41,7 +41,6 @@ var BaseChain = alice.New(
 // Keys for objects stored within the context and passed between handlers.
 const (
 	titleCtxKey contextKey = "title"
-	respCtxKey  contextKey = "response"
 )
 
 type contextKey string
@@ -99,13 +98,6 @@ func RenderResponse(resp *models.Response) http.Handler {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
 				return
-			}
-			// Update the page title.
-			if title := pageTitleFromCtx(req.Context()); title != "" {
-				err := htmxResp.RenderTempl(req.Context(), res, templates.SetPageTitle(title))
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
-				}
 			}
 		} else {
 			err := resp.Render(req.Context(), res)
@@ -177,13 +169,6 @@ func Render(resp *models.Response, fragments ...templates.FragmentKey) http.Hand
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
 				return
-			}
-			// Update the page title.
-			if title := pageTitleFromCtx(req.Context()); title != "" {
-				err := htmxResp.RenderTempl(req.Context(), res, templates.SetPageTitle(title))
-				if err != nil {
-					slogctx.FromCtx(req.Context()).Error("Failed to update page title.", slog.Any("error", err))
-				}
 			}
 		} else {
 			slog.Debug("full render")
@@ -281,8 +266,8 @@ func SetupRedirect(path string) func(next http.Handler) http.Handler {
 	}
 }
 
-// SavePageState saves the current page state in the session.
-func SavePageState(filters any) func(next http.Handler) http.Handler {
+// savePageState saves the current page state in the session.
+func savePageState(filters any) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 			// Generate state.

@@ -30,7 +30,7 @@ func (a *API) Home() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
 			RouteLogger,
-			SavePageState(nil),
+			savePageState(nil),
 		)
 		ctx := req.Context()
 		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")

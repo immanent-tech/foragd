@@ -226,6 +226,15 @@ func (e *API) ItemsAggregation(ctx context.Context, query query.Option, aggregat
 	return resp, nil
 }
 
+func (e *API) CountNewItems(ctx context.Context, query query.Option) (int64, error) {
+	index := ItemsIndexFromCtx(ctx)
+	if index == "" {
+		return 0, fmt.Errorf("CountNewItems: %w", ErrFetchCtx)
+	}
+
+	return 0, nil
+}
+
 // AddItems will bulk index the given items.
 func (e *API) AddItems(ctx context.Context, items ...*models.Item) (map[models.ItemID]*bulk.OperationResponse, error) {
 	index := ItemsIndexFromCtx(ctx)

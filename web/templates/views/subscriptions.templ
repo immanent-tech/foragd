@@ -66,6 +66,7 @@ templ (page *SubscriptionsPage) Content() {
 			</ol>
 		</nav>
 	</div>
+	<div id="update-notifications" sse-connect={ "/subscriptions/updates?" + page.filters.Query() } sse-swap="message" class="toast toast-center"></div>
 	@partials.ListControls{
 		Path:       "/subscriptions",
 		Filters:    page.filters,

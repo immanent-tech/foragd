@@ -73,7 +73,7 @@ templ Page(title string, body templ.Component) {
 			</head>
 			<body
 				class="h-full"
-				hx-ext="response-targets,preload,ajax-header"
+				hx-ext="response-targets,preload,ajax-header,sse"
 				_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
 				hx-target-404={ partials.ContentID.Target() }
 			>

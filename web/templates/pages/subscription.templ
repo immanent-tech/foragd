@@ -114,6 +114,7 @@ templ (page *AddSubscription) Content() {
 						hx-target={ partials.ContentID.Target() }
 						hx-include="[name='user_categories']"
 						hx-indicator="#processing"
+						hx-on::after-request="if(event.detail.successful) this.reset()"
 					>
 						<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 							<label for="url" class="block font-medium">Feed URL</label>

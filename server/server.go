@@ -142,6 +142,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 			r.Get("/", handler.GetSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/", handler.PaginateSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkAllSubscriptions())
+			r.Get("/updates", handler.GetSubscriptionUpdates())
 		})
 		// r.With(middlewares.RequireHTMX).Post("/subscriptions/remove", handler.RemoveSubscriptions())
 		// Subscription route.
@@ -212,6 +213,9 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 	s.server = &http.Server{
 		Handler:           router,
 		Addr:              fmt.Sprintf(":%d", ServerConfig.Port),
+		ReadTimeout:       0,
+		WriteTimeout:      0,
+		IdleTimeout:       0,
 		ReadHeaderTimeout: ServerReadTimeout,
 	}
 }

@@ -7,11 +7,13 @@ import (
 	"context"
 
 	"github.com/angelofallars/htmx-go"
+
+	"github.com/joshuar/go-feed-me/models"
 )
 
 const (
-	templateCtxKey contextKey = "templates"
-	htmxRespCtxKey contextKey = "htmxResp"
+	htmxRespCtxKey            contextKey = "htmxResp"
+	subscriptionFiltersCtxKey contextKey = "subscriptionFilters"
 )
 
 // htmxRespToCtx adds the given htmx.Response object to the context.
@@ -27,15 +29,13 @@ func htmxRespFromCtx(ctx context.Context) htmx.Response {
 	return htmx.NewResponse()
 }
 
-// pageTitleToCtx stores the page title in the context.
-func pageTitleToCtx(ctx context.Context, title string) context.Context {
-	return context.WithValue(ctx, titleCtxKey, title)
+func subscriptionFiltersToCtx(ctx context.Context, filters models.SubscriptionFilters) context.Context {
+	return context.WithValue(ctx, subscriptionFiltersCtxKey, filters)
 }
 
-// pageTitleFromCtx retrieves the page title from the context.
-func pageTitleFromCtx(ctx context.Context) string {
-	if title, ok := ctx.Value(titleCtxKey).(string); ok {
-		return title
+func subscriptionFiltersFromCtx(ctx context.Context) models.SubscriptionFilters {
+	if filters, ok := ctx.Value(subscriptionFiltersCtxKey).(models.SubscriptionFilters); ok {
+		return filters
 	}
-	return ""
+	return models.NewSubscriptionFilters()
 }

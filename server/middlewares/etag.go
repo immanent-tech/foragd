@@ -13,5 +13,12 @@ import (
 //
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag
 func Etag(next http.Handler) http.Handler {
-	return etag.Handler(next, false)
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if ct := req.Header.Get("Accept"); ct == "text/event-stream" {
+			// Don't use etags for SSE/eventstream responses.
+			next.ServeHTTP(res, req)
+		} else {
+			etag.Handler(next, false).ServeHTTP(res, req)
+		}
+	})
 }

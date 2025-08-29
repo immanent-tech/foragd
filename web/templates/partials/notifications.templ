@@ -97,3 +97,10 @@ templ ServerErrorNotification(msg *models.UserMessage) {
 		</div>
 	}
 }
+
+// UpdatesToast renders a toast notification to inform the user that updated content is available.
+templ UpdatesToast() {
+	<div class="alert alert-info">
+		<span>New updates available.</span>
+	</div>
+}
