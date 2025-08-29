@@ -33,7 +33,8 @@ const (
 // Server represents the application server. It contains the underlying server object, the handlers, and embedded FS
 // for static content.
 type Server struct {
-	server *http.Server
+	*http.Server
+
 	static embed.FS
 }
 
@@ -65,16 +66,6 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 	svr.setupRoutes(api)
 
 	return svr, nil
-}
-
-// Shutdown will ensure a graceful shutdown of the server.
-func (s *Server) Shutdown(ctx context.Context) error {
-	return s.server.Shutdown(ctx)
-}
-
-// ListenAndServeTLS starts the server listening on https with the given cert and key.
-func (s *Server) ListenAndServeTLS(cert, key string) error {
-	return s.server.ListenAndServeTLS(cert, key)
 }
 
 //nolint:funlen // it doesn't make sense to split up handler definitions.
@@ -205,7 +196,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		})
 	})
 
-	s.server = &http.Server{
+	s.Server = &http.Server{
 		Handler:           router,
 		Addr:              fmt.Sprintf(":%d", ServerConfig.Port),
 		ReadTimeout:       0,
