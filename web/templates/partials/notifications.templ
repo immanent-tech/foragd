@@ -101,19 +101,20 @@ templ ServerErrorNotification(msg *models.UserMessage) {
 // UpdatesToast renders a toast notification to inform the user that updated content is available.
 templ UpdatesToast() {
 	<div
+		id="updates-toast"
 		role="alert"
-		class="alert alert-info alert-soft link link-hover z-999"
+		class="alert alert-info alert-soft z-999"
 	>
 		<span>New updates available.</span>
 		<div>
 			<button
-				class="btn btn-sm btn-info"
+				class="btn btn-sm btn-info/80"
 				hx-get="#"
 				hx-target={ ContentID.Target() }
 			>
 				Refresh
 			</button>
-			<button class="btn btn-sm btn-square btn-info" _="on click remove nearest .alert">
+			<button class="btn btn-sm btn-square btn-info/80" _="on click remove #updates-toast">
 				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
 					<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
 				</svg>
