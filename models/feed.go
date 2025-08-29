@@ -99,10 +99,16 @@ func (f *Feed) GetLanguage() string {
 }
 
 func (f *Feed) GetPublishedDate() time.Time {
+	if f.Published.IsZero() || f.Published.Equal(types.UnixEpoch) {
+		return f.LastFetched
+	}
 	return f.Published
 }
 
 func (f *Feed) GetUpdatedDate() time.Time {
+	if f.Updated.IsZero() || f.Updated.Equal(types.UnixEpoch) {
+		return f.LastFetched
+	}
 	return f.Updated
 }
 
