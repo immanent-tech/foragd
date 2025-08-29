@@ -52,11 +52,11 @@ func Run(ctx context.Context) error {
 		return fmt.Errorf("failed to start scheduler: %w", err)
 	}
 
-	logger := &logger{Logger: slogctx.FromCtx(ctx)}
+	// logger := &logger{Logger: slogctx.FromCtx(ctx)}
 	scheduler, err := quartz.NewStdScheduler(
 		quartz.WithOutdatedThreshold(defaultOutdatedThreshold),
 		quartz.WithQueue(jobQueue, &sync.Mutex{}),
-		quartz.WithLogger(logger),
+		// quartz.WithLogger(logger),
 	)
 	if err != nil {
 		return fmt.Errorf("failed to start scheduler: %w", err)
