@@ -23,7 +23,7 @@ func (a *API) ShowSignup() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Show form for user signup.
 		var template templ.Component
@@ -31,7 +31,7 @@ func (a *API) ShowSignup() http.HandlerFunc {
 			template = templates.Page("Sign up - Go Feed Me", pages.Signup(&models.UserSignupRequest{}))
 		}
 		resp := models.NewResponse(models.WithResponseTemplate(template))
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		chain.Then(render(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -40,7 +40,7 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Process user signup.
 		// Extract the provider and request details.
@@ -51,7 +51,7 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"Could not validate the values. Please check and try again.",
 			)
 			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
-			chain.Then(RenderResponse(models.NewResponse(
+			chain.Then(render(models.NewResponse(
 				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 				models.WithResponseError(err),
 				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
@@ -66,7 +66,7 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"The backend had issues trying to create a new user, please try again.",
 			)
 			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
-			chain.Then(RenderResponse(models.NewResponse(
+			chain.Then(render(models.NewResponse(
 				models.WithResponseStatusCode(http.StatusInternalServerError),
 				models.WithResponseError(err),
 				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
@@ -81,7 +81,7 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"The backend had issues trying to create a new user, please try again.",
 			)
 			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
-			chain.Then(RenderResponse(models.NewResponse(
+			chain.Then(render(models.NewResponse(
 				models.WithResponseStatusCode(http.StatusInternalServerError),
 				models.WithResponseError(err),
 				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
@@ -94,7 +94,7 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"The backend had issues trying to create a new user, please try again.",
 			)
 			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
-			chain.Then(RenderResponse(models.NewResponse(
+			chain.Then(render(models.NewResponse(
 				models.WithResponseStatusCode(http.StatusInternalServerError),
 				models.WithResponseError(err),
 				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
@@ -107,7 +107,7 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"The backend had issues trying to create a new user, please try again.",
 			)
 			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
-			chain.Then(RenderResponse(models.NewResponse(
+			chain.Then(render(models.NewResponse(
 				models.WithResponseStatusCode(http.StatusInternalServerError),
 				models.WithResponseError(err),
 				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
@@ -117,6 +117,6 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		chain.Then(render(resp)).ServeHTTP(res, req)
 	}
 }

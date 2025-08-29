@@ -29,14 +29,14 @@ import (
 func (a *API) Home() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 			savePageState(nil),
 		)
 		ctx := req.Context()
 		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
 		data, resp := a.getHomePageData(ctx)
 		if resp != nil && !resp.IsNotFound() {
-			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+			chain.Then(render(resp)).ServeHTTP(res, req)
 			return
 		}
 		// Generate appropriate template.
@@ -59,7 +59,7 @@ func (a *API) Home() http.HandlerFunc {
 				)),
 			)
 		}
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(ctx))
+		chain.Then(render(resp)).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
 

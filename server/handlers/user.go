@@ -31,11 +31,11 @@ import (
 func (a *API) GetSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			chain.Then(render(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
 		// Render appropriate content.
@@ -53,7 +53,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 			)
 		}
 
-		chain.Then(RenderResponse(
+		chain.Then(render(
 			models.NewResponse(models.WithResponseTemplate(template)),
 		)).ServeHTTP(res, req)
 	}
@@ -63,7 +63,7 @@ func (a *API) GetSettings() http.HandlerFunc {
 func (a *API) SubscriptionsSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		var template templ.Component
 		// Extract the search request.
@@ -71,7 +71,7 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 			if err != nil || !valid {
-				chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+				chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
 				return
 			}
 			// Find matching subscriptions.
@@ -79,13 +79,13 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 			if request.Text != "" {
 				subscriptions, err = a.findSubscriptions(req.Context(), request)
 				if err != nil {
-					chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+					chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 					return
 				}
 			} else {
 				subscriptions, err = a.getSubscriptions(req.Context())
 				if err != nil {
-					chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+					chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 					return
 				}
 			}
@@ -100,7 +100,7 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		chain.Then(render(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -108,11 +108,11 @@ func (a *API) SubscriptionsSettings() http.HandlerFunc {
 func (a *API) AccountSettings() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			chain.Then(render(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
 		var template templ.Component
@@ -130,7 +130,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 				}
 				template := templ.Join(layouts.NewSettingsPage(user, request).Content(), partials.Notification(msg))
 				resp := models.RespInternalServerError(err, template)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(render(resp)).ServeHTTP(res, req)
 				return
 			}
 			// Apply updates.
@@ -145,7 +145,7 @@ func (a *API) AccountSettings() http.HandlerFunc {
 				}
 				template := templ.Join(layouts.NewSettingsPage(user, request).Content(), partials.Notification(msg))
 				resp := models.RespInternalServerError(err, template)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(render(resp)).ServeHTTP(res, req)
 				return
 			}
 			// Report success.
@@ -162,19 +162,19 @@ func (a *API) AccountSettings() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req.WithContext(ctx))
+		chain.Then(render(resp)).ServeHTTP(res, req.WithContext(ctx))
 	}
 }
 
 // SetTheme handles setting a theme selected by the user.
 func (a *API) SetTheme() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		theme := chi.URLParam(req, "theme")
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			RenderResponse(RespForbidden()).ServeHTTP(res, req)
+			render(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		settings := user.GetSettings()
@@ -184,7 +184,7 @@ func (a *API) SetTheme() http.HandlerFunc {
 			"updated_at": time.Now().UTC(),
 		})
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		res.WriteHeader(http.StatusOK)
@@ -194,17 +194,17 @@ func (a *API) SetTheme() http.HandlerFunc {
 // AddFavoriteSubscription handles adding a new favorite subscription for a user.
 func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "subscription")
 		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
 		if !valid || err != nil {
-			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
+			render(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			RenderResponse(RespForbidden()).ServeHTTP(res, req)
+			render(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		// Get the subscription state.
@@ -212,26 +212,26 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		// Create a new favorite subscription.
 		err = user.AddFavoriteSubscription(id, metadata.Customisation.Nickname)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		err = a.updateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Update the favorite button.
 		var template templ.Component
 		// currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
-			RenderResponse(RespBackendError(nil)).ServeHTTP(res, req)
+			render(RespBackendError(nil)).ServeHTTP(res, req)
 			return
 		}
 		subscriptions, err := a.getSubscriptions(req.Context(), id)
 		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		template = templ.Join(
@@ -241,24 +241,24 @@ func (a *API) AddFavoriteSubscription() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
-		RenderResponse(resp).ServeHTTP(res, req)
+		render(resp).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
 // RemoveFavoriteSubscription handles removing a favorite subscription for a user.
 func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "subscription")
 		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
 		if !valid || err != nil {
-			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
+			render(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			RenderResponse(RespForbidden()).ServeHTTP(res, req)
+			render(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		user.RemoveFavorite(id)
@@ -266,19 +266,19 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 			"favorites": user.Favorites,
 		})
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Update the favorite button.
 		var template templ.Component
 		// currentURL, found := htmx.GetCurrentURL(req)
 		if !found {
-			RenderResponse(RespBackendError(nil)).ServeHTTP(res, req)
+			render(RespBackendError(nil)).ServeHTTP(res, req)
 			return
 		}
 		subscriptions, err := a.getSubscriptions(req.Context(), id)
 		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		template = templ.Join(
@@ -288,54 +288,54 @@ func (a *API) RemoveFavoriteSubscription() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
-		RenderResponse(resp).ServeHTTP(res, req)
+		render(resp).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
 // AddFavoriteArticle handles adding a new favorite article for a user.
 func (a *API) AddFavoriteArticle() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "item")
 		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
 		if !valid || err != nil {
-			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
+			render(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
 		// Get the article details.
 		articles, err := a.getArticles(req.Context(), id)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		if len(articles) != 1 {
-			RenderResponse(RespBackendError(ErrInvalidContent)).ServeHTTP(res, req)
+			render(RespBackendError(ErrInvalidContent)).ServeHTTP(res, req)
 			return
 		}
 		article := articles[0]
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			RenderResponse(RespForbidden()).ServeHTTP(res, req)
+			render(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		// Create a new favorite article.
 		err = user.AddFavoriteArticle(article.GetTitle(), article)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		err = a.updateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Archive the article.
 		err = a.archiveArticle(req.Context(), article)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		article.Favorite = true
@@ -347,24 +347,24 @@ func (a *API) AddFavoriteArticle() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
-		RenderResponse(resp).ServeHTTP(res, req)
+		render(resp).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
 // RemoveFavoriteArticle handles removing a favorite article for a user.
 func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		id := chi.URLParam(req, "item")
 		valid, err := validation.ValidateVariable(id, "required,startswith=item_")
 		if !valid || err != nil {
-			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
+			render(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			RenderResponse(RespForbidden()).ServeHTTP(res, req)
+			render(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		user.RemoveFavorite(id)
@@ -372,21 +372,21 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 			"favorites": user.Favorites,
 		})
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		err = a.unarchiveArticle(req.Context(), id)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		articles, err := a.getArticles(req.Context(), id)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		if len(articles) != 1 {
-			RenderResponse(RespBackendError(ErrInvalidContent)).ServeHTTP(res, req)
+			render(RespBackendError(ErrInvalidContent)).ServeHTTP(res, req)
 			return
 		}
 		article := articles[0]
@@ -398,43 +398,43 @@ func (a *API) RemoveFavoriteArticle() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
-		RenderResponse(resp).ServeHTTP(res, req)
+		render(resp).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
 // AddFavoriteSearch handles adding a new favorite search for a user.
 func (a *API) AddFavoriteSearch() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the search details.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
+			render(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
 		// Add the favorite.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			RenderResponse(RespForbidden()).ServeHTTP(res, req)
+			render(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		err = user.AddFavoriteSearch("Search: "+request.Text, request)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		err = a.updateUser(req.Context(), map[string]any{
 			"favorites": user.Favorites,
 		})
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Update the favorite button.
 		id := request.ID()
 		if id == "" {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		fav := user.GetFavorites().Get(id)
@@ -446,31 +446,31 @@ func (a *API) AddFavoriteSearch() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
-		RenderResponse(resp).ServeHTTP(res, req)
+		render(resp).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
 // RemoveFavoriteSearch handles removing a favorite article for a user.
 func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the search details.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
+			render(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
 		// Derive the favorite id.
 		id := request.ID()
 		if id == "" {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Remove the favorite.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			RenderResponse(RespForbidden()).ServeHTTP(res, req)
+			render(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		user.RemoveFavorite(id)
@@ -478,7 +478,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 			"favorites": user.Favorites,
 		})
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Update the favorite button and list of favorites.
@@ -489,7 +489,7 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 		resp := models.NewResponse(
 			models.WithResponseTemplate(template),
 		)
-		RenderResponse(resp).ServeHTTP(res, req)
+		render(resp).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
@@ -498,30 +498,30 @@ func (a *API) RemoveFavoriteSearch() http.HandlerFunc {
 func (a *API) DeleteUser() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Get user account details.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			chain.Then(render(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
 		// Delete account on the backend.
 		err := auth0.Delete(req.Context(), user)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Delete account locally.
 		err = a.DataAPI().DeleteUser(req.Context(), user.GetID())
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Remove session cookie.
 		err = session.Manager.Destroy(req.Context())
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 

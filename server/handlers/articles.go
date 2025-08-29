@@ -34,7 +34,7 @@ import (
 // GetArticles handles showing a filtered collection of articles as cards.
 func (a *API) GetArticles() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 		decodeArticleFilters,
 		saveArticleFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -44,7 +44,7 @@ func (a *API) GetArticles() http.HandlerFunc {
 		// Get articles matching filters.
 		articles, pagination, err := a.filterArticles(req.Context(), &filters)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Render appropriate content.
@@ -60,7 +60,7 @@ func (a *API) GetArticles() http.HandlerFunc {
 				layouts.Drawer(template),
 			)
 		}
-		RenderResponse(
+		render(
 			models.NewResponse(models.WithResponseTemplate(template)),
 		).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -68,7 +68,7 @@ func (a *API) GetArticles() http.HandlerFunc {
 
 func (a *API) GetArticleUpdates() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 		decodeArticleFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "text/event-stream")
@@ -146,24 +146,24 @@ func (a *API) PaginateArticles() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Extract filters from request.
 		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
 		if err != nil || !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		// Get articles matching filters.
 		articles, pagination, err := a.filterArticles(req.Context(), filters)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		if len(articles) > 0 {
 			// Render appropriate content.
 			template := views.NewArticlesPage(articles, filters, pagination).List()
-			chain.Then(RenderResponse(
+			chain.Then(render(
 				models.NewResponse(models.WithResponseTemplate(template)),
 			)).ServeHTTP(res, req)
 		} else {
@@ -179,12 +179,12 @@ func (a *API) MarkArticle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Extract user data.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			chain.Then(render(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
 		// Construct the request from parameters.
@@ -196,11 +196,11 @@ func (a *API) MarkArticle() http.HandlerFunc {
 		// Validate parameters.
 		valid, err := request.Valid()
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		if !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		// Mark off items under subscription states.
@@ -215,13 +215,13 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			"subscriptions": user.Subscriptions,
 		})
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 
 		s, err := a.getArticles(req.Context(), request.ItemID)
 		if err != nil || len(s) == 0 || len(s) > 1 {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		var resp *models.Response
@@ -241,7 +241,7 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			)
 		}
 
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		chain.Then(render(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -249,13 +249,13 @@ func (a *API) MarkArticle() http.HandlerFunc {
 func (a *API) ViewArticle() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// subscriptionID := chi.URLParam(req, "subscription")
 		itemID := chi.URLParam(req, "item")
 		articles, err := a.getArticles(req.Context(), itemID)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Render appropriate content.
@@ -270,7 +270,7 @@ func (a *API) ViewArticle() http.HandlerFunc {
 				layouts.Drawer(page.Content()),
 			)
 		}
-		chain.Then(RenderResponse(
+		chain.Then(render(
 			models.NewResponse(models.WithResponseTemplate(template)),
 		)).ServeHTTP(res, req)
 	}

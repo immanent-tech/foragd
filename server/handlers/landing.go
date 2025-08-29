@@ -17,8 +17,8 @@ import (
 func Landing() http.HandlerFunc {
 	template := templates.Page("Go Feed Me", layouts.Landing())
 	return alice.New(
-		RouteLogger,
-	).Then(RenderResponse(models.NewResponse(
+		routeLogger,
+	).Then(render(models.NewResponse(
 		models.WithResponseTemplate(template),
 	))).ServeHTTP
 }

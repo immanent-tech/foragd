@@ -25,8 +25,8 @@ func LoginSelect() http.HandlerFunc {
 	page := &pages.Login{}
 	template := templates.Page("Login - Go Feed Me", page.Content())
 	return alice.New(
-		RouteLogger,
-	).Then(RenderResponse(models.NewResponse(
+		routeLogger,
+	).Then(render(models.NewResponse(
 		models.WithResponseTemplate(template),
 	))).ServeHTTP
 }
@@ -34,7 +34,7 @@ func LoginSelect() http.HandlerFunc {
 // Login handles login requests.
 func (a *API) Login() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		provider := chi.URLParam(req, "provider")
 		a.auth.SetProviderName(req.Context(), provider)
@@ -42,7 +42,7 @@ func (a *API) Login() http.HandlerFunc {
 		if err != nil {
 			url, err := a.auth.GetAuthURL(req)
 			if err != nil {
-				RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+				render(RespBackendError(err)).ServeHTTP(res, req)
 				return
 			}
 			slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
@@ -61,13 +61,13 @@ func (a *API) Login() http.HandlerFunc {
 // LoginCallback handles processing the response from a login provider.
 func (a *API) LoginCallback() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		provider := chi.URLParam(req, "provider")
 		a.auth.SetProviderName(req.Context(), provider)
 		err := a.auth.CompleteUserAuth(res, req)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("User logged in.")

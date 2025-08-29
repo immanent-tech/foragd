@@ -7,8 +7,6 @@ import (
 	"net/http"
 
 	"github.com/angelofallars/htmx-go"
-
-	"github.com/joshuar/go-feed-me/server/handlers"
 )
 
 // SetupHTMX middleware performs general setup for serving htmx-powered content.
@@ -27,7 +25,7 @@ func SetupHTMX(next http.Handler) http.Handler {
 func RequireHTMX(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if !htmx.IsHTMX(req) {
-			handlers.RenderResponse(handlers.RespForbidden()).ServeHTTP(res, req)
+			http.Error(res, "HTMX Required", http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(res, req)

@@ -43,7 +43,7 @@ import (
 // GetSubscriptions handles showing a filtered collection of subscriptions as cards.
 func (a *API) GetSubscriptions() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 		decodeSubscriptionFilters,
 		saveSubscriptionFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -52,7 +52,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		// Get subscriptions matching filters.
 		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
 		if err != nil {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Render appropriate content.
@@ -68,7 +68,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 				layouts.Drawer(template),
 			)
 		}
-		RenderResponse(
+		render(
 			models.NewResponse(models.WithResponseTemplate(template)),
 		).ServeHTTP(res, req)
 	}).ServeHTTP
@@ -76,7 +76,7 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 
 func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 	return alice.New(
-		RouteLogger,
+		routeLogger,
 		decodeSubscriptionFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		res.Header().Set("Content-Type", "text/event-stream")
@@ -154,7 +154,7 @@ func (a *API) PaginateSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
 		if err != nil || !valid {
@@ -162,7 +162,7 @@ func (a *API) PaginateSubscriptions() http.HandlerFunc {
 				Status:  models.UserMessageStatusWarning,
 				Summary: "There was a problem with the inputs. Please check and try again.",
 			}
-			chain.Then(RenderResponse(
+			chain.Then(render(
 				models.NewResponse(
 					models.WithResponseError(err),
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
@@ -174,14 +174,14 @@ func (a *API) PaginateSubscriptions() http.HandlerFunc {
 		// Get subscriptions matching filters.
 		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), filters)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Render appropriate content.
 		if len(subscriptions) > 0 {
 			// Render appropriate content.
 			template := views.NewSubscriptionsPage(subscriptions, filters, pagination).List()
-			chain.Then(RenderResponse(
+			chain.Then(render(
 				models.NewResponse(models.WithResponseTemplate(template)),
 			)).ServeHTTP(res, req)
 		} else {
@@ -197,19 +197,19 @@ func (a *API) GetSubscriptionArticles() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Get the subscription ID.
 		id := chi.URLParam(req, models.URLParamSubscription)
 		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
 		if !valid || err != nil {
-			RenderResponse(RespInvalidInput(err)).ServeHTTP(res, req)
+			render(RespInvalidInput(err)).ServeHTTP(res, req)
 			return
 		}
 		// Get the filters.
 		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
 		if err != nil || !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		filters.Subscriptions = append(filters.Subscriptions, id)
@@ -218,7 +218,7 @@ func (a *API) GetSubscriptionArticles() http.HandlerFunc {
 		// Get articles matching filters.
 		articles, pagination, err := a.filterArticles(req.Context(), filters)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Render appropriate content.
@@ -235,7 +235,7 @@ func (a *API) GetSubscriptionArticles() http.HandlerFunc {
 				layouts.Drawer(page.Content()),
 			)
 		}
-		chain.Then(RenderResponse(
+		chain.Then(render(
 			models.NewResponse(models.WithResponseTemplate(template)),
 		)).ServeHTTP(res, req)
 	}
@@ -245,7 +245,7 @@ func (a *API) GetSubscriptionArticles() http.HandlerFunc {
 func (a *API) MarkSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Construct the request from parameters.
 		request := &models.MarkSubscriptionsRequest{
@@ -256,7 +256,7 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 		// Mark subscription.
 		err := a.markSubscriptions(req.Context(), request)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		var resp *models.Response
@@ -264,7 +264,7 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 		if view == models.ViewAll {
 			s, err := a.getSubscriptions(req.Context(), request.Subscriptions...)
 			if err != nil || len(s) == 0 || len(s) > 1 {
-				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
 			card := partials.NewSubscriptionContent(s[0])
@@ -273,7 +273,7 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 			)
 		}
 
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		chain.Then(render(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -281,11 +281,11 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			chain.Then(render(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
 		// Construct the request from parameters.
@@ -302,7 +302,7 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 		// Mark subscriptions.
 		err := a.markSubscriptions(req.Context(), request)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		// Redirect depending on the current view.
@@ -312,7 +312,7 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 		case models.ViewAll:
 			chain = chain.Append(SetupRedirect("/subscriptions"))
 		}
-		chain.Then(RenderResponse(nil)).ServeHTTP(res, req)
+		chain.Then(render(nil)).ServeHTTP(res, req)
 	}
 }
 
@@ -321,7 +321,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Function to generate appropriate layout.
 		buildTemplate := func(template templ.Component) templ.Component {
@@ -341,7 +341,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		// Retrieve user object.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+			chain.Then(render(RespForbidden())).ServeHTTP(res, req)
 			return
 		}
 		var template templ.Component
@@ -372,7 +372,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 				resp := models.RespInternalServerError(err,
 					buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.Notification(msg))),
 				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(render(resp)).ServeHTTP(res, req)
 				return
 			}
 			// Update the subscription metadata.
@@ -389,7 +389,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 				resp := models.RespInternalServerError(err,
 					buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.Notification(msg))),
 				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(render(resp)).ServeHTTP(res, req)
 				return
 			}
 			// Update the user.
@@ -405,12 +405,12 @@ func (a *API) EditSubscription() http.HandlerFunc {
 				resp := models.RespInternalServerError(err,
 					buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.Notification(msg))),
 				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(render(resp)).ServeHTTP(res, req)
 				return
 			}
 			template = buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.EditSubscriptionSuccessNotification(metadata)))
 		}
-		chain.Then(RenderResponse(
+		chain.Then(render(
 			models.NewResponse(models.WithResponseTemplate(template)),
 		)).ServeHTTP(res, req)
 	}
@@ -422,7 +422,7 @@ func (a *API) RemoveSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up the handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		switch req.Method {
 		case http.MethodGet:
@@ -430,20 +430,20 @@ func (a *API) RemoveSubscription() http.HandlerFunc {
 			id := chi.URLParam(req, "subscription")
 			subscriptions, err := a.getSubscriptions(req.Context(), id)
 			if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
 			resp := models.NewResponse(
 				models.WithResponseTemplate(partials.NewSubscriptionContent(subscriptions[0]).UnsubscribeModal()),
 			)
-			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+			chain.Then(render(resp)).ServeHTTP(res, req)
 		case http.MethodPost:
 			// Perform unsubscribe action.
 			id := chi.URLParam(req, "subscription")
 			// Retrieve user object.
 			user, found := models.UserFromCtx(req.Context())
 			if !found {
-				chain.Then(RenderResponse(RespForbidden())).ServeHTTP(res, req)
+				chain.Then(render(RespForbidden())).ServeHTTP(res, req)
 				return
 			}
 			// Remove metadata for given subscriptions from user.
@@ -453,7 +453,7 @@ func (a *API) RemoveSubscription() http.HandlerFunc {
 				"subscriptions": user.GetSubscriptionMetadata(),
 			})
 			if err != nil {
-				chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+				chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 				return
 			}
 			// Show success notification.
@@ -464,7 +464,7 @@ func (a *API) RemoveSubscription() http.HandlerFunc {
 			resp := models.NewResponse(
 				models.WithResponseTemplate(partials.Notification(msg)),
 			)
-			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+			chain.Then(render(resp)).ServeHTTP(res, req)
 		}
 	}
 }
@@ -473,7 +473,7 @@ func (a *API) RemoveSubscription() http.HandlerFunc {
 func (a *API) AddSubscription() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Function to generate appropriate layout.
 		buildTemplate := func(template templ.Component) templ.Component {
@@ -493,7 +493,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			resp := models.NewResponse(
 				models.WithResponseTemplate(buildTemplate(pages.NewAddSubscription(nil).Content())),
 			)
-			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+			chain.Then(render(resp)).ServeHTTP(res, req)
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 			if err != nil || !valid {
@@ -502,7 +502,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"There are problems with the details. Please check and try again.",
 				)
 				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
-				chain.Then(RenderResponse(models.NewResponse(
+				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
@@ -519,7 +519,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
 				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
-				chain.Then(RenderResponse(models.NewResponse(
+				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
@@ -532,7 +532,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
 				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
-				chain.Then(RenderResponse(models.NewResponse(
+				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
@@ -546,7 +546,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
 				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
-				chain.Then(RenderResponse(models.NewResponse(
+				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
@@ -558,7 +558,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			resp := models.NewResponse(
 				models.WithResponseTemplate(template),
 			)
-			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+			chain.Then(render(resp)).ServeHTTP(res, req)
 		}
 	}
 }
@@ -567,7 +567,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 func (a *API) ImportSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Function to generate appropriate layout.
 		buildTemplate := func(template templ.Component) templ.Component {
@@ -599,7 +599,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					"Failed to read OPML file.",
 					"The OPML could not be read. Is it a valid OPML file? Please check the contents, correct any issues and try again.",
 				)
-				chain.Then(RenderResponse(models.NewResponse(
+				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(partials.Notification(msg))))).ServeHTTP(res, req)
@@ -611,7 +611,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					"Failed to extract subscriptions from OPML file.",
 					"There was a problem reading the individual feed entries in the OPML file. Please check the contents, correct any issues and try again.",
 				)
-				chain.Then(RenderResponse(models.NewResponse(
+				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(partials.Notification(msg))))).ServeHTTP(res, req)
@@ -626,7 +626,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					"Error processing OPML file.",
 					"The backend had issues processing the OPML file and adding subscriptions, please try again.",
 				)
-				chain.Then(RenderResponse(models.NewResponse(
+				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
@@ -638,7 +638,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					"Error processing OPML file.",
 					"The backend had issues processing the OPML file and adding subscriptions, please try again.",
 				)
-				chain.Then(RenderResponse(models.NewResponse(
+				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
@@ -654,7 +654,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				models.WithResponseTemplate(template),
 			)
 		}
-		chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+		chain.Then(render(resp)).ServeHTTP(res, req)
 	}
 }
 
@@ -662,7 +662,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 func (a *API) ExportSubscriptions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Function to generate appropriate layout.
 		buildTemplate := func(template templ.Component) templ.Component {
@@ -683,7 +683,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 			resp := models.NewResponse(
 				models.WithResponseTemplate(buildTemplate(pages.NewExportPage().Content())),
 			)
-			chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+			chain.Then(render(resp)).ServeHTTP(res, req)
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":
 			// Get all subscriptions.
 			subscriptions, err := a.getSubscriptions(req.Context())
@@ -692,7 +692,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 					"Error exporting OPML file.",
 					"The backend had issues generating the OPML file, please try again.",
 				)
-				chain.Then(RenderResponse(models.NewResponse(
+				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
@@ -720,7 +720,7 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 					"Error exporting OPML file.",
 					"The backend had issues generating the OPML file, please try again.",
 				)
-				chain.Then(RenderResponse(models.NewResponse(
+				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
@@ -739,7 +739,7 @@ func (a *API) AdjustSubscriptionCategories() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		switch req.Method {
 		case http.MethodPost:
@@ -754,7 +754,7 @@ func (a *API) AdjustSubscriptionCategories() http.HandlerFunc {
 				resp := models.NewResponse(
 					models.WithResponseTemplate(partials.AddCategory(category)),
 				)
-				chain.Then(RenderResponse(resp)).ServeHTTP(res, req)
+				chain.Then(render(resp)).ServeHTTP(res, req)
 			}
 		case http.MethodDelete:
 			// Remove a category.

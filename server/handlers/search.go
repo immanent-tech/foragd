@@ -31,12 +31,12 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		if request.Text == "" {
@@ -46,7 +46,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 		// Get results.
 		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
 		if len(subscriptions) > 0 || len(articles) > 0 {
@@ -55,8 +55,8 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 				models.WithResponseTemplate(layouts.SearchSuggestions(request, subscriptions, articles)),
 			)
 			alice.New(
-				RouteLogger,
-			).Then(RenderResponse(resp)).ServeHTTP(res, req)
+				routeLogger,
+			).Then(render(resp)).ServeHTTP(res, req)
 		} else {
 			// No suggestions, indicate no change.
 			res.WriteHeader(http.StatusNoContent)
@@ -69,22 +69,22 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		// Set up handler chain.
 		chain := alice.New(
-			RouteLogger,
+			routeLogger,
 		)
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			RenderResponse(RespForbidden()).ServeHTTP(res, req)
+			render(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
+			chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
 			return
 		}
 		id := request.ID()
 		if id == "" {
-			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Retrieve favorite data for this search
@@ -92,7 +92,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		// Find subscriptions and articles that match search request.
 		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		} else if len(subscriptions) > 0 || len(articles) > 0 {
 			var template templ.Component
@@ -109,7 +109,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 					layouts.Drawer(page.Content()),
 				)
 			}
-			chain.Then(RenderResponse(
+			chain.Then(render(
 				models.NewResponse(models.WithResponseTemplate(template)),
 			)).ServeHTTP(res, req.WithContext(htmxRespToCtx(req.Context(), htmx.NewResponse().ReplaceURL("/search?"+request.Query()))))
 		}
