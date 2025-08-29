@@ -74,6 +74,10 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 	}).ServeHTTP
 }
 
+// GetSubscriptionUpdates handles checking for updates to subscriptions and showing a notification to the user to
+// refresh the content.
+//
+//nolint:gocognit
 func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
@@ -128,7 +132,7 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 				// Show updates toast if new items found.
 				if currentCount > prevCount {
 					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
-					var b bytes.Buffer
+					var b bytes.Buffer //nolint:varnamelen
 					template := bufio.NewWriter(&b)
 					err := partials.UpdatesToast().Render(req.Context(), template)
 					if err != nil {
@@ -136,8 +140,16 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 							slog.Any("error", err))
 						continue
 					}
-					template.Flush()
-					fmt.Fprintf(res, "data: %s\n\n", b.String())
+					err = template.Flush()
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Error("Failed to flush SSE message buffer.",
+							slog.Any("error", err))
+					}
+					_, err = fmt.Fprintf(res, "data: %s\n\n", b.String())
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Error("Failed to send update SSE message.",
+							slog.Any("error", err))
+					}
 					if f, ok := res.(http.Flusher); ok {
 						f.Flush()
 					}
@@ -151,45 +163,41 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 
 // PaginateSubscriptions handles showing the next set of subscriptions.
 func (a *API) PaginateSubscriptions() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
+	return alice.New(
+		routeLogger,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
 		if err != nil || !valid {
 			msg := &models.UserMessage{
 				Status:  models.UserMessageStatusWarning,
 				Summary: "There was a problem with the inputs. Please check and try again.",
 			}
-			chain.Then(render(
+			render(
 				models.NewResponse(
 					models.WithResponseError(err),
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseTemplate(pages.Error(msg)),
 				),
-			)).ServeHTTP(res, req)
+			).ServeHTTP(res, req)
 			return
 		}
 		// Get subscriptions matching filters.
 		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), filters)
 		if err != nil {
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
+			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Render appropriate content.
 		if len(subscriptions) > 0 {
 			// Render appropriate content.
 			template := views.NewSubscriptionsPage(subscriptions, filters, pagination).List()
-			chain.Then(render(
+			render(
 				models.NewResponse(models.WithResponseTemplate(template)),
-			)).ServeHTTP(res, req)
+			).ServeHTTP(res, req)
 		} else {
-			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-				res.WriteHeader(http.StatusNoContent)
-			}).ServeHTTP(res, req)
+			res.WriteHeader(http.StatusNoContent)
 		}
-	}
+	}).ServeHTTP
 }
 
 // GetSubscriptionArticles shows the articles for a subscription.

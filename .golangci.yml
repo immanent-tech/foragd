@@ -5,6 +5,7 @@ linters:
     - contextcheck
     - cyclop
     - depguard
+    - dupl
     - exhaustive
     - exhaustruct
     - gochecknoglobals

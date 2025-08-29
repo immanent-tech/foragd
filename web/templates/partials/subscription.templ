@@ -204,7 +204,6 @@ templ (c *Subscription) editLink(classes ...string) {
 	<a
 		hx-get={ "/user/subscription/edit/" + c.GetID() }
 		hx-target={ ContentID.Target() }
-		hx-swap="innerHTML show:top"
 		hx-push-url="true"
 		class={ "link link-hover", classes }
 	>
@@ -253,7 +252,6 @@ templ (c *Subscription) ViewLink(classes ...string) {
 		hx-vals={ models.GenerateHXVals(overrides) }
 		hx-target={ ContentID.Target() }
 		hx-push-url="true"
-		hx-swap="innerHTML show:top"
 		class={ "link link-hover", classes }
 	>
 		{ children... }
