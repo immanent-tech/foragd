@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -41,6 +42,8 @@ var BaseChain = alice.New(
 // Keys for objects stored within the context and passed between handlers.
 const (
 	titleCtxKey contextKey = "title"
+	// defaultUpdateInterval is the default interval for checking for updates (i.e., for update notifications).
+	defaultUpdateInterval = time.Minute
 )
 
 type contextKey string

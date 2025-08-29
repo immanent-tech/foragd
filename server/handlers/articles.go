@@ -4,10 +4,13 @@
 package handlers
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
@@ -30,23 +33,18 @@ import (
 
 // GetArticles handles showing a filtered collection of articles as cards.
 func (a *API) GetArticles() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			RouteLogger,
-		)
+	return alice.New(
+		RouteLogger,
+		decodeArticleFilters,
+		saveArticleFilters,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Extract filters from request.
-		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
-		if err != nil || !valid {
-			chain.Then(RenderResponse(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
-		}
-		// Save the filters to the session.
-		chain = chain.Append(savePageState(filters))
+		filters := articleFiltersFromCtx(req.Context())
+		slogctx.FromCtx(req.Context()).Debug("Showing articles.", slog.String("filters", filters.Query()))
 		// Get articles matching filters.
-		articles, pagination, err := a.filterArticles(req.Context(), filters)
+		articles, pagination, err := a.filterArticles(req.Context(), &filters)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Render appropriate content.
@@ -54,7 +52,7 @@ func (a *API) GetArticles() http.HandlerFunc {
 		if len(articles) == 0 {
 			template = layouts.EmptyContent()
 		} else {
-			template = views.NewArticlesPage(articles, filters, pagination).Content()
+			template = views.NewArticlesPage(articles, &filters, pagination).Content()
 		}
 		if !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req) {
 			template = templates.Page(
@@ -62,10 +60,85 @@ func (a *API) GetArticles() http.HandlerFunc {
 				layouts.Drawer(template),
 			)
 		}
-		chain.Then(RenderResponse(
+		RenderResponse(
 			models.NewResponse(models.WithResponseTemplate(template)),
-		)).ServeHTTP(res, req)
-	}
+		).ServeHTTP(res, req)
+	}).ServeHTTP
+}
+
+func (a *API) GetArticleUpdates() http.HandlerFunc {
+	return alice.New(
+		RouteLogger,
+		decodeArticleFilters,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.Header().Set("Content-Type", "text/event-stream")
+		res.Header().Set("Cache-Control", "no-cache")
+		res.Header().Set("Connection", "keep-alive")
+		if f, ok := res.(http.Flusher); ok {
+			f.Flush()
+		} else {
+			slogctx.FromCtx(req.Context()).Warn("Cannot flush update stream!")
+			res.WriteHeader(http.StatusNoContent)
+		}
+		// Get filters and generate query.
+		filters := articleFiltersFromCtx(req.Context())
+		query, err := generateItemsQuery(req.Context(), &filters, filters.Subscriptions...)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Cannot generate query for updates.",
+				slog.Any("error", err))
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		var (
+			currentCount int64
+			prevCount    int64
+		)
+		prevCount, err = a.DataAPI().CountItems(req.Context(), query)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
+				slog.Any("error", err))
+			res.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		for {
+			select {
+			case <-req.Context().Done():
+				slogctx.FromCtx(req.Context()).Debug("Stopping article updates.")
+				res.Header().Set("Connection", "close")
+				res.WriteHeader(http.StatusRequestTimeout)
+				return
+			default:
+				slogctx.FromCtx(req.Context()).Debug("Checking for article updates.", slog.String("filters", filters.Query()))
+				currentCount, err = a.DataAPI().CountItems(req.Context(), query)
+				if err != nil {
+					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
+						slog.Any("error", err))
+					continue
+				}
+				// Show updates toast if new items found.
+				if currentCount > prevCount {
+					slogctx.FromCtx(req.Context()).Debug("Article updates found.")
+					var b bytes.Buffer
+					template := bufio.NewWriter(&b)
+					err := partials.UpdatesToast().Render(req.Context(), template)
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
+							slog.Any("error", err))
+						continue
+					}
+					template.Flush()
+					fmt.Fprintf(res, "data: %s\n\n", b.String())
+					if f, ok := res.(http.Flusher); ok {
+						f.Flush()
+					}
+				}
+				prevCount = currentCount
+				time.Sleep(defaultUpdateInterval)
+			}
+		}
+	}).ServeHTTP
 }
 
 // PaginateArticles handles showing the next set of articles.
@@ -351,4 +424,29 @@ func (a *API) unarchiveArticle(ctx context.Context, id models.ItemID) error {
 		return fmt.Errorf("unable to remove archived article: %w", err)
 	}
 	return nil
+}
+
+func decodeArticleFilters(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		ctx := req.Context()
+		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
+		if err != nil || !valid {
+			slogctx.FromCtx(req.Context()).Warn("Invalid article filters. Using defaults.",
+				slog.Any("error", err),
+			)
+			ctx = articleFiltersToCtx(ctx, models.NewArticleFilters())
+		} else {
+			ctx = articleFiltersToCtx(ctx, *filters)
+		}
+		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+// savePageState saves the current page state in the session.
+func saveArticleFilters(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Generate state.
+		session.FiltersToSession(req.Context(), articleFiltersFromCtx(req.Context()))
+		next.ServeHTTP(res, req)
+	})
 }

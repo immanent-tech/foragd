@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/xml"
@@ -30,6 +31,7 @@ import (
 	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
 	"github.com/joshuar/go-feed-me/providers/elastic/query"
 	"github.com/joshuar/go-feed-me/server/forms"
+	"github.com/joshuar/go-feed-me/server/session"
 	"github.com/joshuar/go-feed-me/validation"
 	"github.com/joshuar/go-feed-me/web/templates"
 	"github.com/joshuar/go-feed-me/web/templates/layouts"
@@ -40,18 +42,17 @@ import (
 
 // GetSubscriptions handles showing a filtered collection of subscriptions as cards.
 func (a *API) GetSubscriptions() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			RouteLogger,
-			decodeSubscriptionFilters,
-		)
+	return alice.New(
+		RouteLogger,
+		decodeSubscriptionFilters,
+		saveSubscriptionFilters,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := subscriptionFiltersFromCtx(req.Context())
-		chain = chain.Append(savePageState(filters))
+		slogctx.FromCtx(req.Context()).Debug("Showing subscriptions.", slog.String("filters", filters.Query()))
 		// Get subscriptions matching filters.
 		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
 		if err != nil {
-			chain.Then(RenderResponse(RespBackendError(err))).ServeHTTP(res, req)
+			RenderResponse(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
 		// Render appropriate content.
@@ -67,10 +68,10 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 				layouts.Drawer(template),
 			)
 		}
-		chain.Then(RenderResponse(
+		RenderResponse(
 			models.NewResponse(models.WithResponseTemplate(template)),
-		)).ServeHTTP(res, req)
-	}
+		).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
 func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
@@ -101,7 +102,6 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 			currentCount int64
 			prevCount    int64
 		)
-
 		prevCount, err = a.DataAPI().CountItems(req.Context(), query)
 		if err != nil {
 			slogctx.FromCtx(req.Context()).Error("Cannot get updates count.",
@@ -118,7 +118,7 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 				res.WriteHeader(http.StatusRequestTimeout)
 				return
 			default:
-				slogctx.FromCtx(req.Context()).Debug("Checking for subscription updates...")
+				slogctx.FromCtx(req.Context()).Debug("Checking for subscription updates...", slog.String("filters", filters.Query()))
 				currentCount, err = a.DataAPI().CountItems(req.Context(), query)
 				if err != nil {
 					slogctx.FromCtx(req.Context()).Warn("Cannot get updates count.",
@@ -128,13 +128,22 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 				// Show updates toast if new items found.
 				if currentCount > prevCount {
 					slogctx.FromCtx(req.Context()).Debug("Subscription updates found.")
-					partials.UpdatesToast().Render(req.Context(), res)
+					var b bytes.Buffer
+					template := bufio.NewWriter(&b)
+					err := partials.UpdatesToast().Render(req.Context(), template)
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
+							slog.Any("error", err))
+						continue
+					}
+					template.Flush()
+					fmt.Fprintf(res, "data: %s\n\n", b.String())
 					if f, ok := res.(http.Flusher); ok {
 						f.Flush()
 					}
 				}
 				prevCount = currentCount
-				time.Sleep(time.Second * 10)
+				time.Sleep(defaultUpdateInterval)
 			}
 		}
 	}).ServeHTTP
@@ -1104,5 +1113,13 @@ func decodeSubscriptionFilters(next http.Handler) http.Handler {
 			ctx = subscriptionFiltersToCtx(ctx, *filters)
 		}
 		next.ServeHTTP(res, req.WithContext(ctx))
+	})
+}
+
+// savePageState saves the current page state in the session.
+func saveSubscriptionFilters(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		session.FiltersToSession(req.Context(), subscriptionFiltersFromCtx(req.Context()))
+		next.ServeHTTP(res, req)
 	})
 }

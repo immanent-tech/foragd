@@ -14,6 +14,7 @@ import (
 const (
 	htmxRespCtxKey            contextKey = "htmxResp"
 	subscriptionFiltersCtxKey contextKey = "subscriptionFilters"
+	articleFiltersCtxKey      contextKey = "articleFilters"
 )
 
 // htmxRespToCtx adds the given htmx.Response object to the context.
@@ -38,4 +39,15 @@ func subscriptionFiltersFromCtx(ctx context.Context) models.SubscriptionFilters 
 		return filters
 	}
 	return models.NewSubscriptionFilters()
+}
+
+func articleFiltersToCtx(ctx context.Context, filters models.ArticleFilters) context.Context {
+	return context.WithValue(ctx, articleFiltersCtxKey, filters)
+}
+
+func articleFiltersFromCtx(ctx context.Context) models.ArticleFilters {
+	if filters, ok := ctx.Value(articleFiltersCtxKey).(models.ArticleFilters); ok {
+		return filters
+	}
+	return models.NewArticleFilters()
 }
