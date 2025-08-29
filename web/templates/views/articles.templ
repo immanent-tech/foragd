@@ -70,7 +70,7 @@ templ (page *ArticlesPage) Content() {
 			</ol>
 		</nav>
 	</div>
-	<div id="update-notifications" sse-connect={ "/articles/updates?" + page.filters.Query() } sse-swap="message" class="toast toast-center"></div>
+	<div id="update-notifications" sse-connect={ "/articles/updates?" + page.filters.Query() } sse-swap="message" class="toast toast-center z-50"></div>
 	@partials.ListControls{
 		Path:       "/articles",
 		Filters:    page.filters,
