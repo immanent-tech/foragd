@@ -176,6 +176,10 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("job %s failed: %w", job.Description(), err)
 	}
+	slogctx.FromCtx(ctx).Debug("Checking for new items.",
+		slog.String("feed", details.GetTitle()),
+		slog.Time("since", details.LastFetched),
+	)
 	items := make(models.Items, 0, len(feed.GetItems()))
 	for i := range slices.Values(feed.GetItems()) {
 		items = append(items, models.NewItemFromSource(&i, job.FeedID, string(feed.SourceType)))
@@ -183,13 +187,14 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 	// Add any new items since the last feed update.
 	if len(items.FilterSince(details.LastFetched)) > 0 {
 		// Add any new items.
-		results, err := manager.db.AddItems(jobCtx, items...)
+		results, err := manager.db.AddItems(jobCtx, items.FilterSince(details.LastFetched)...)
 		if err != nil {
 			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 		} else {
 			for _, result := range results {
 				if !result.Created() {
 					slogctx.FromCtx(jobCtx).WarnContext(jobCtx, "Failing to index an item.",
+						slog.String("feed", details.GetTitle()),
 						slog.Any("error", result),
 					)
 				}
@@ -200,9 +205,9 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 		if err != nil {
 			return fmt.Errorf("%w: %w", ErrExecuteJobFailed, err)
 		} else {
-			slogctx.FromCtx(jobCtx).DebugContext(jobCtx, "Job execution finished.",
-				slog.String("job", job.Description()),
-				slog.Int("items_added", len(items)),
+			slogctx.FromCtx(ctx).Debug("Added new items.",
+				slog.String("feed", details.GetTitle()),
+				slog.Int("count", len(items.FilterSince(details.LastFetched))),
 			)
 		}
 	}
