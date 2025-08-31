@@ -9,8 +9,8 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/providers/auth0"
-	"github.com/joshuar/go-feed-me/server/session"
+	"github.com/immanent-tech/go-feed-me/providers/auth0"
+	"github.com/immanent-tech/go-feed-me/server/session"
 )
 
 // Logout handles logout requests.

@@ -4,8 +4,8 @@
 package handlers
 
 import (
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic/query"
+	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 )
 
 // BuildSubscriptionQueries generates a slices of queries for the given subscriptions, based on the given filters.

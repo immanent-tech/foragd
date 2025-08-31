@@ -14,7 +14,7 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/validation"
+	"github.com/immanent-tech/go-feed-me/validation"
 )
 
 // Articles is a slices of individual articles.

@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/joshuar/go-feed-me/config"
-	"github.com/joshuar/go-feed-me/validation"
+	"github.com/immanent-tech/go-feed-me/config"
+	"github.com/immanent-tech/go-feed-me/validation"
 )
 
 const (

@@ -20,8 +20,8 @@ import (
 	"github.com/markbates/goth/providers/auth0"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/server/session"
+	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/server/session"
 )
 
 func init() {

@@ -19,16 +19,16 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
-	"github.com/joshuar/go-feed-me/providers/elastic/query"
-	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/server/session"
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
-	"github.com/joshuar/go-feed-me/web/templates/views"
+	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
+	"github.com/immanent-tech/go-feed-me/server/forms"
+	"github.com/immanent-tech/go-feed-me/server/session"
+	"github.com/immanent-tech/go-feed-me/web/templates"
+	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
+	"github.com/immanent-tech/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/go-feed-me/web/templates/views"
 )
 
 // GetArticles handles showing a filtered collection of articles as cards.

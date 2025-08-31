@@ -10,7 +10,7 @@ import (
 
 	"github.com/auth0/go-auth0/management"
 
-	"github.com/joshuar/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/models"
 
 	"github.com/auth0/go-auth0/authentication"
 	"github.com/auth0/go-auth0/authentication/database"

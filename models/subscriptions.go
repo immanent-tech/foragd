@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joshuar/go-feed-me/validation"
+	"github.com/immanent-tech/go-feed-me/validation"
 )
 
 var ErrInvalidSubscriptionState = errors.New("invalid subscription state")

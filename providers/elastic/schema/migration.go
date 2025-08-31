@@ -11,8 +11,8 @@ import (
 	"github.com/elastic/go-elasticsearch/v9"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/config"
-	"github.com/joshuar/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/go-feed-me/config"
+	"github.com/immanent-tech/go-feed-me/providers/elastic"
 )
 
 var validMigrations = []string{"users", "feeds", "items", "scheduler", "sessions", "logs", "ingest"}

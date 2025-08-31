@@ -17,10 +17,10 @@ import (
 	gowebly "github.com/gowebly/helpers"
 	slogchi "github.com/samber/slog-chi"
 
-	"github.com/joshuar/go-feed-me/config"
-	"github.com/joshuar/go-feed-me/server/handlers"
-	"github.com/joshuar/go-feed-me/server/middlewares"
-	"github.com/joshuar/go-feed-me/server/session"
+	"github.com/immanent-tech/go-feed-me/config"
+	"github.com/immanent-tech/go-feed-me/server/handlers"
+	"github.com/immanent-tech/go-feed-me/server/middlewares"
+	"github.com/immanent-tech/go-feed-me/server/session"
 )
 
 const (

@@ -14,12 +14,12 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/config"
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/providers/elastic/index"
-	"github.com/joshuar/go-feed-me/providers/elastic/query"
-	"github.com/joshuar/go-feed-me/providers/elastic/schema"
+	"github.com/immanent-tech/go-feed-me/config"
+	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/index"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
 )
 
 var allOptions = []string{"feeds", "scheduler"}

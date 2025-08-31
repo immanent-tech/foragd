@@ -10,12 +10,12 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
 
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/pages"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/go-feed-me/server/forms"
+	"github.com/immanent-tech/go-feed-me/web/templates"
+	"github.com/immanent-tech/go-feed-me/web/templates/pages"
+	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
 
 // ShowSignup handles showing a signup page.

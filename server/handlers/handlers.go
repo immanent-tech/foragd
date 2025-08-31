@@ -17,10 +17,10 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/server/session"
-	"github.com/joshuar/go-feed-me/web/templates/pages"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/server/session"
+	"github.com/immanent-tech/go-feed-me/web/templates/pages"
+	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
 
 var (

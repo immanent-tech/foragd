@@ -14,7 +14,7 @@ import (
 
 	"github.com/go-playground/validator/v10"
 
-	"github.com/joshuar/go-feed-me/validation"
+	"github.com/immanent-tech/go-feed-me/validation"
 )
 
 var ErrParseFilters = errors.New("error parsing filters")

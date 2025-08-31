@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/joshuar/go-feed-me/validation"
+	"github.com/immanent-tech/go-feed-me/validation"
 )
 
 const DefaultUserTheme = "dracula"

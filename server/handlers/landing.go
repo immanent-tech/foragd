@@ -8,9 +8,9 @@ import (
 
 	"github.com/justinas/alice"
 
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
+	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/web/templates"
+	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 )
 
 // Landing handles displaying the landing page of the site.

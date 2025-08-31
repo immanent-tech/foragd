@@ -12,7 +12,7 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/scheduler"
+	"github.com/immanent-tech/go-feed-me/scheduler"
 )
 
 // SchedulerCmd defines the `scheduler` command, for running the job scheduler.

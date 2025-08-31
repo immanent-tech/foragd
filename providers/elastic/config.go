@@ -10,9 +10,9 @@ import (
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v9"
 
-	"github.com/joshuar/go-feed-me/validation"
+	"github.com/immanent-tech/go-feed-me/validation"
 
-	"github.com/joshuar/go-feed-me/config"
+	"github.com/immanent-tech/go-feed-me/config"
 )
 
 const (

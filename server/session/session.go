@@ -14,9 +14,9 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/markbates/goth/gothic"
 
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/server/session/store"
+	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/go-feed-me/server/session/store"
 )
 
 const (

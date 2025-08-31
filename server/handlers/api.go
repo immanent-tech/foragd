@@ -7,10 +7,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/joshuar/go-feed-me/providers/auth0"
-	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/server/auth"
-	"github.com/joshuar/go-feed-me/server/session"
+	"github.com/immanent-tech/go-feed-me/providers/auth0"
+	"github.com/immanent-tech/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/go-feed-me/server/auth"
+	"github.com/immanent-tech/go-feed-me/server/session"
 )
 
 // API contains the various API backends used by handlers.

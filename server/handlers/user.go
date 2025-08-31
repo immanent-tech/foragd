@@ -15,16 +15,16 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/justinas/alice"
 
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/auth0"
-	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/server/forms"
-	"github.com/joshuar/go-feed-me/server/session"
-	"github.com/joshuar/go-feed-me/validation"
-	"github.com/joshuar/go-feed-me/web/templates"
-	"github.com/joshuar/go-feed-me/web/templates/layouts"
-	"github.com/joshuar/go-feed-me/web/templates/pages"
-	"github.com/joshuar/go-feed-me/web/templates/partials"
+	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/providers/auth0"
+	"github.com/immanent-tech/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/go-feed-me/server/forms"
+	"github.com/immanent-tech/go-feed-me/server/session"
+	"github.com/immanent-tech/go-feed-me/validation"
+	"github.com/immanent-tech/go-feed-me/web/templates"
+	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
+	"github.com/immanent-tech/go-feed-me/web/templates/pages"
+	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
 
 // GetSettings handles retrieving and rendering the user settings page.

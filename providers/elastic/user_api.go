@@ -12,7 +12,7 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/models"
 )
 
 var (

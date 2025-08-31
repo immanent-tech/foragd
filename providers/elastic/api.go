@@ -27,12 +27,12 @@ import (
 	feeds "github.com/immanent-tech/go-syndication"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/logging"
-	"github.com/joshuar/go-feed-me/models"
-	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
-	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
-	"github.com/joshuar/go-feed-me/providers/elastic/query"
-	"github.com/joshuar/go-feed-me/providers/elastic/results"
+	"github.com/immanent-tech/go-feed-me/logging"
+	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/bulk"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/results"
 )
 
 var ErrNotFound = errors.New("not found")

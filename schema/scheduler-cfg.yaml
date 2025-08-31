@@ -14,7 +14,7 @@ output-options:
   prefer-skip-optional-pointer: true
   prefer-skip-optional-pointer-with-omitzero: true
 import-mapping:
-  models.yaml: github.com/joshuar/go-feed-me/models
-  api.yaml: github.com/joshuar/go-feed-me/models
+  models.yaml: github.com/immanent-tech/go-feed-me/models
+  api.yaml: github.com/immanent-tech/go-feed-me/models
 compatibility:
   always-prefix-enum-values: true

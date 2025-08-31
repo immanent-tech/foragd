@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"time"
 
-	externalRef0 "github.com/joshuar/go-feed-me/models"
+	externalRef0 "github.com/immanent-tech/go-feed-me/models"
 	"github.com/oapi-codegen/runtime"
 	"github.com/reugn/go-quartz/quartz"
 )

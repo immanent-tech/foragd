@@ -10,10 +10,10 @@ import (
 
 	"github.com/elastic/go-elasticsearch/v9/typedapi/core/search"
 
-	"github.com/joshuar/go-feed-me/providers/elastic/aggregations"
-	"github.com/joshuar/go-feed-me/providers/elastic/bulk"
-	"github.com/joshuar/go-feed-me/providers/elastic/query"
-	"github.com/joshuar/go-feed-me/providers/elastic/results"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/bulk"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/results"
 )
 
 var ErrBackend = errors.New("backend API error")

@@ -1,4 +1,4 @@
-module github.com/joshuar/go-feed-me
+module github.com/immanent-tech/go-feed-me
 
 go 1.25.0
 

@@ -17,8 +17,8 @@ import (
 
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/joshuar/go-feed-me/config"
-	"github.com/joshuar/go-feed-me/server"
+	"github.com/immanent-tech/go-feed-me/config"
+	"github.com/immanent-tech/go-feed-me/server"
 )
 
 const (

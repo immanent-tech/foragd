@@ -78,7 +78,7 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - github.com/joshuar/go-feed-me
+        - github.com/immanent-tech/go-feed-me
 run:
   timeout: '1m'
   issues-exit-code: 1

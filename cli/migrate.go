@@ -10,8 +10,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/joshuar/go-feed-me/providers/elastic"
-	"github.com/joshuar/go-feed-me/providers/elastic/schema"
+	"github.com/immanent-tech/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
 )
 
 // MigrateCmd defines the `migrate` command, which performs data-store migrations for schema changes.
