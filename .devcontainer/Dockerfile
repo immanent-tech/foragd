@@ -1,7 +1,7 @@
 FROM docker.io/alpine AS builder
 
 # Copy go from official image
-COPY --from=golang:1.25.0-alpine /usr/local/go/ /usr/local/go/
+COPY --from=docker.io/golang:1.25.0-alpine /usr/local/go/ /usr/local/go/
 
 # Install additional packages
 RUN apk update && apk add sudo openssh curl git bash fish micro graphviz step-cli step-certificates nodejs npm
@@ -16,7 +16,7 @@ ARG USER_GID=$USER_UID
 
 RUN addgroup --gid $USER_GID $USER_NAME \
     && adduser --uid $USER_UID --ingroup $USER_NAME --shell /usr/bin/fish $USER_NAME \
-        --disabled-password --gecos "" \
+    --disabled-password --gecos "" \
     && mkdir -p /etc/sudoers.d \
     && echo "$USER_NAME ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/$USER_NAME \
     && chmod 0440 /etc/sudoers.d/$USER_NAME

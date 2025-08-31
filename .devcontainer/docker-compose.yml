@@ -283,26 +283,27 @@ services:
       retries: 120
     labels:
       - co.elastic.logs/module=kibana
-  metricbeat:
-    depends_on:
-      es01:
-        condition: service_healthy
-      es02:
-        condition: service_healthy
-      es03:
-        condition: service_healthy
-    hostname: metricbeat
-    image: docker.elastic.co/beats/metricbeat:$ELASTIC_STACK_VERSION
-    restart: always
-    volumes:
-      - ../deployments/certs:/usr/share/metricbeat/config/certs
-      - ../deployments/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
-      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
-      - /proc:/hostfs/proc:ro
-      - /:/hostfs:ro
-      - /var/run/dbus/system_bus_socket,target=/hostfs/var/run/dbus/system_bus_socket:ro
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
-    environment:
-      - output.elasticsearch.hosts=["es01:9200"]
-      - DBUS_SYSTEM_BUS_ADDRESS='unix:path=/hostfs/var/run/dbus/system_bus_socket'
-      - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+
+  # metricbeat:
+  #   depends_on:
+  #     es01:
+  #       condition: service_healthy
+  #     es02:
+  #       condition: service_healthy
+  #     es03:
+  #       condition: service_healthy
+  #   hostname: metricbeat
+  #   image: docker.elastic.co/beats/metricbeat:$ELASTIC_STACK_VERSION
+  #   restart: always
+  #   volumes:
+  #     - ../deployments/certs:/usr/share/metricbeat/config/certs
+  #     - ../deployments/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+  #     - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+  #     - /proc:/hostfs/proc:ro
+  #     - /:/hostfs:ro
+  #     - /var/run/dbus/system_bus_socket,target=/hostfs/var/run/dbus/system_bus_socket:ro
+  #     - /run/user/1000/podman/podman.sock:/var/run/docker.sock
+  #   environment:
+  #     - output.elasticsearch.hosts=["es01:9200"]
+  #     - DBUS_SYSTEM_BUS_ADDRESS='unix:path=/hostfs/var/run/dbus/system_bus_socket'
+  #     - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
