@@ -123,7 +123,11 @@
   "go.lintTool": "golangci-lint",
   "go.useLanguageServer": true,
   "gopls": {
-    "ui.semanticTokens": true
+    "ui.semanticTokens": true,
+    // you can optionally turn on these features for more colors
+    // see https://go.dev/issue/45753 and https://go.dev/issue/45792
+    "ui.noSemanticString": true, // delegates string syntax highlighting to vscode
+    "ui.noSemanticNumber": true // delegates number syntax highlighting to vscode
   },
   "licenser.author": "Joshua Rich <joshua.rich@gmail.com>",
   "licenser.license": "AGPLv3",

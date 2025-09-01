@@ -16,9 +16,7 @@ import (
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-feed-me/models"
-	"github.com/immanent-tech/go-feed-me/providers/elastic"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
-	"github.com/immanent-tech/go-feed-me/providers/elastic/results"
 	"github.com/immanent-tech/go-feed-me/server/forms"
 	"github.com/immanent-tech/go-feed-me/web/templates"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
@@ -44,7 +42,7 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 			return
 		}
 		// Get results.
-		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
+		subscriptions, articles, err := a.getSearchSuggestions(req.Context(), request.Text)
 		if err != nil {
 			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
@@ -90,7 +88,7 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		// Retrieve favorite data for this search
 		fav := user.GetFavorites().FilterByType(models.FavoriteTypeSearch).Get(id)
 		// Find subscriptions and articles that match search request.
-		subscriptions, articles, err := a.matchObjectsToSearchRequest(req.Context(), request)
+		subscriptions, articles, err := a.getSearchResults(req.Context(), request.Text)
 		if err != nil {
 			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
@@ -116,37 +114,43 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 	}
 }
 
-func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.SearchRequest) ([]*partials.Subscription, []*partials.Article, error) {
-	// Retrieve user object.
+// getSearchSuggestions will find suggestions for the global search from available subscriptions and articles.
+func (a *API) getSearchSuggestions(ctx context.Context, searchTerms string) ([]*partials.Subscription, []*partials.Article, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
 		return nil, nil, models.ErrNoUserCtx
 	}
-
-	// Perform search.
-	msearchResults, err := a.findSuggestions(ctx, request.Text)
-	if err != nil {
-		return nil, nil, fmt.Errorf("matchObjectsToSearchRequest: %w", err)
-	}
-	// Extract the matches.
-	var (
-		items models.Items
+	// Get article suggestions.
+	feedIDs := user.GetSubscriptionMetadata().GetFeedIDs()
+	itemsQuery := query.Bool(
+		query.Filter(
+			query.Terms("feed_id", feedIDs...),
+		),
+		query.Must(
+			query.Bool(
+				query.Should(
+					query.SearchAsYouType(searchTerms, "title"),
+					query.SearchAsYouType(searchTerms, "description"),
+					query.SearchAsYouType(searchTerms, "categories"),
+				),
+			),
+		),
 	)
-	items, err = results.GetHits[*models.Item]("items", msearchResults)
+	itemResults, _, err := a.DataAPI().SearchItems(ctx, itemsQuery, 10, &models.SortLastUpdatedDesc, nil)
 	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Error fetching item hits.", slog.Any("error", err))
+		return nil, nil, fmt.Errorf("findSuggestions: %w", err)
 	}
-	// Generate articles.
-	details, err := models.GenerateArticles(ctx, items)
+	details, err := models.GenerateArticles(ctx, itemResults)
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Error generating articles from items.", slog.Any("error", err))
 	}
-	articles := make([]*partials.Article, 0, len(items))
+	articles := make([]*partials.Article, 0, len(itemResults))
 	for article := range slices.Values(details) {
 		articles = append(articles, partials.NewArticleContent(article))
 	}
+
 	// Generate subscriptions from data sources.
-	metadataMatches := user.GetSubscriptionMetadata().Search(request.Text)
+	metadataMatches := user.GetSubscriptionMetadata().Search(searchTerms)
 	subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
@@ -159,87 +163,62 @@ func (a *API) matchObjectsToSearchRequest(ctx context.Context, request *models.S
 	for s := range slices.Values(subscriptionMatches) {
 		subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
 	}
+
 	return subscriptions, articles, nil
 }
 
-func (a *API) findSuggestions(ctx context.Context, searchTerms string) (results.MSearchResults, error) {
+// getSearchResults will find suggestions for the global search from available subscriptions and articles.
+func (a *API) getSearchResults(ctx context.Context, searchTerms string) ([]*partials.Subscription, []*partials.Article, error) {
 	user, found := models.UserFromCtx(ctx)
 	if !found {
-		return nil, models.ErrNoUserCtx
+		return nil, nil, models.ErrNoUserCtx
 	}
-
-	// subscriptionsQuery := &query.MsearchSearch{
-	// 	Name:  "subscriptions",
-	// 	Index: elastic.SubscriptionsIndexFromCtx(ctx),
-	// 	Query: query.Build(
-	// 		query.Bool(
-	// 			query.Filter(
-	// 				query.Term("user_id", user.GetID()),
-	// 			),
-	// 			query.Must(
-	// 				query.Bool(
-	// 					query.Should(
-	// 						query.SearchAsYouType(searchTerms, "customisation.title"),
-	// 						query.SearchAsYouType(searchTerms, "customisation.categories"),
-	// 					),
-	// 				),
-	// 			),
-	// 		),
-	// 	),
-	// }
-
-	// feedIDs := slices.Collect(maps.Keys(user.GetSubscriptionsByFeedID()))
-	// feedsQuery := &query.MsearchSearch{
-	// 	Name:  "feeds",
-	// 	Index: elastic.FeedsIndexFromCtx(ctx),
-	// 	Query: query.Build(
-	// 		query.Bool(
-	// 			query.Filter(
-	// 				query.Terms("feed_id", feedIDs...),
-	// 			),
-	// 			query.Must(
-	// 				query.Bool(
-	// 					query.Should(
-	// 						query.SearchAsYouType(searchTerms, "title"),
-	// 						query.SearchAsYouType(searchTerms, "description"),
-	// 						query.SearchAsYouType(searchTerms, "content"),
-	// 						query.SearchAsYouType(searchTerms, "categories"),
-	// 					),
-	// 				),
-	// 			),
-	// 		),
-	// 	),
-	// }
-
+	// Get article suggestions.
 	feedIDs := user.GetSubscriptionMetadata().GetFeedIDs()
-	articlesQuery := &query.MsearchSearch{
-		Name:  "items",
-		Index: elastic.ItemsIndexFromCtx(ctx),
-		Query: query.Build(
+	itemsQuery := query.Bool(
+		query.Filter(
+			query.Terms("feed_id", feedIDs...),
+		),
+		query.Must(
 			query.Bool(
-				query.Filter(
-					query.Terms("feed_id", feedIDs...),
-				),
-				query.Must(
-					query.Bool(
-						query.Should(
-							query.SearchAsYouType(searchTerms, "title"),
-							query.SearchAsYouType(searchTerms, "description"),
-							query.SearchAsYouType(searchTerms, "content"),
-							query.SearchAsYouType(searchTerms, "categories"),
-						),
-					),
+				query.Should(
+					query.Match("title", searchTerms),
+					query.Match("description", searchTerms),
+					query.Match("content", searchTerms),
+					query.Match("categories", searchTerms),
 				),
 			),
 		),
-	}
-
-	results, err := elastic.MultiSearch(ctx, a.DataAPI().GetAPI(), articlesQuery)
+	)
+	itemResults, _, err := a.DataAPI().SearchItems(ctx, itemsQuery, 10, &models.SortLastUpdatedDesc, nil)
 	if err != nil {
-		return nil, fmt.Errorf("findSuggestions: %w", err)
+		return nil, nil, fmt.Errorf("findSuggestions: %w", err)
+	}
+	details, err := models.GenerateArticles(ctx, itemResults)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Error generating articles from items.", slog.Any("error", err))
+	}
+	articles := make([]*partials.Article, 0, len(itemResults))
+	for article := range slices.Values(details) {
+		articles = append(articles, partials.NewArticleContent(article))
 	}
 
-	return results, nil
+	// Generate subscriptions from data sources.
+	metadataMatches := user.GetSubscriptionMetadata().Search(searchTerms)
+	subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
+	if err != nil {
+		slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
+	}
+	// Truncate subscription matches to 3 results.
+	if len(subscriptionMatches) > 3 {
+		subscriptionMatches = subscriptionMatches[:3]
+	}
+	subscriptions := make([]*partials.Subscription, 0, len(subscriptionMatches))
+	for s := range slices.Values(subscriptionMatches) {
+		subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
+	}
+
+	return subscriptions, articles, nil
 }
 
 func (a *API) findSubscriptions(ctx context.Context, request *models.SearchRequest) (models.SubscriptionsSlice, error) {
