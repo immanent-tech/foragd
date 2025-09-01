@@ -77,10 +77,11 @@ func migrateUsers(ctx context.Context, api *elasticsearch.TypedClient, destructi
 	// Delete index if destructive set.
 	if destructive {
 		_, err := api.Indices.Delete(userIndex).Do(ctx)
-		if err != nil && !elastic.ParseError(err).IsNotFound() {
+		if err != nil {
 			return fmt.Errorf("could not delete users index: %w", err)
+		} else {
+			slogctx.FromCtx(ctx).Debug("Deleted existing users index...")
 		}
-		slogctx.FromCtx(ctx).Debug("Deleted existing users index...")
 	}
 	// Make sure the index doesn't exist before continuing.
 	found, err := api.Indices.Exists(userIndex).Do(ctx)
