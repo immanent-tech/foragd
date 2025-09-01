@@ -6,6 +6,7 @@ package schema
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v9"
@@ -30,15 +31,18 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 
 		switch migration {
 		case "users":
-			err = migrateUsers(ctx, api, destructive)
+			err = indexMigration(ctx, api, UsersSchemaPrefix, destructive)
 		case "feeds":
-			err = migrateFeeds(ctx, api, destructive)
+			err = indexMigration(ctx, api, FeedsSchemaPrefix, destructive)
 		case "items":
 			err = migrateFeedItems(ctx, api, destructive)
 		case "scheduler":
-			err = migrateScheduler(ctx, api, destructive)
+			err = indexMigration(ctx, api, SchedulerJobsPrefix, destructive)
+			if err == nil {
+				err = indexMigration(ctx, api, SchedulerStatePrefix, destructive)
+			}
 		case "sessions":
-			err = migrateSession(ctx, api, destructive)
+			err = indexMigration(ctx, api, SessionsSchemaPrefix, destructive)
 		case "logs":
 			err = migrateLogs(ctx, api, destructive)
 		case "ingest":
@@ -53,89 +57,59 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 	return nil
 }
 
-// migrateUsers contains migration actions for migrating users indices and
-// settings.
-func migrateUsers(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
-	err := elastic.PutComponentTemplate(ctx, api, UsersSchemaPrefix, NewComponentTemplateRequest(userComponentTemplate()))
-	if err != nil {
-		return fmt.Errorf("could not create users component template: %w", err)
-	}
-	slogctx.FromCtx(ctx).Debug("Added users component template...")
+// indexMigration performs a migration of a standard index, including component & index templates as well as the index
+// itself.
+func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix string, destructive bool) error {
+	schemaPrefix := prefix
 
-	err = elastic.PutIndexTemplate(ctx, api, UsersSchemaPrefix,
+	slogctx.FromCtx(ctx).Debug("Performing migration...",
+		slog.String("schema", schemaPrefix))
+
+	componentTemplate := schemaPrefix + "_component_template"
+	indexTemplate := schemaPrefix + "_index_template"
+	index := schemaPrefix + "_" + config.Environment()
+
+	// Create component template.
+	slogctx.FromCtx(ctx).Debug("Creating component template...",
+		slog.String("name", componentTemplate))
+	err := elastic.PutComponentTemplate(ctx, api, componentTemplate, NewComponentTemplateRequest(userComponentTemplate()))
+	if err != nil {
+		return fmt.Errorf("could not create component template %s: %w", componentTemplate, err)
+	}
+
+	// Create index template.
+	slogctx.FromCtx(ctx).Debug("Creating index template...",
+		slog.String("name", indexTemplate))
+	err = elastic.PutIndexTemplate(ctx, api, indexTemplate,
 		NewIndexTemplateRequest(
-			WithIndexPatterns(UsersSchemaPrefix+"_*"),
-			WithComponentTemplates(UsersSchemaPrefix),
+			WithIndexPatterns(prefix+"_*"),
+			WithComponentTemplates(componentTemplate),
 		),
 	)
 	if err != nil {
-		return fmt.Errorf("could not create users index template: %w", err)
+		return fmt.Errorf("could not create index template %s: %w", indexTemplate, err)
 	}
-	slogctx.FromCtx(ctx).Debug("Added users index template...")
 
-	userIndex := UsersSchemaPrefix + "_" + config.Environment()
+	slogctx.FromCtx(ctx).Debug("Creating index...",
+		slog.String("name", index))
+	found, err := api.Indices.Exists(index).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("could not determine %s index state: %w", index, err)
+	}
 	// Delete index if destructive set.
-	if destructive {
-		_, err := api.Indices.Delete(userIndex).Do(ctx)
+	if destructive && found {
+		// Make sure the index doesn't exist before continuing.
+		_, err := api.Indices.Delete(index).Do(ctx)
 		if err != nil {
-			return fmt.Errorf("could not delete users index: %w", err)
-		} else {
-			slogctx.FromCtx(ctx).Debug("Deleted existing users index...")
+			return fmt.Errorf("could not delete index %s: %w", index, err)
 		}
+		found = false
 	}
-	// Make sure the index doesn't exist before continuing.
-	found, err := api.Indices.Exists(userIndex).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not determine users index state: %w", err)
-	}
-	// Create index if not found.
+	// Create index if necessary.
 	if !found {
-		_, err = elastic.NewIndexRequest(api, userIndex).Do(ctx)
+		_, err = elastic.NewIndexRequest(api, index).Do(ctx)
 		if err != nil {
-			return fmt.Errorf("could not create users index: %w", err)
-		}
-		slogctx.FromCtx(ctx).Debug("Created new users index...")
-	}
-
-	return nil
-}
-
-// migrateFeeds contains migration actions for migrating feeds indices and
-// settings.
-func migrateFeeds(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
-	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
-
-	err := elastic.PutComponentTemplate(ctx, api, FeedsSchemaPrefix, NewComponentTemplateRequest(feedsComponentTemplate()))
-	if err != nil {
-		return fmt.Errorf("unable to create feeds component template: %w", err)
-	}
-
-	err = elastic.PutIndexTemplate(ctx, api, FeedsSchemaPrefix,
-		NewIndexTemplateRequest(
-			WithIndexPatterns(FeedsSchemaPrefix+"_*"),
-			WithComponentTemplates(FeedsSchemaPrefix),
-		),
-	)
-	if err != nil {
-		return fmt.Errorf("unable to create feeds index template: %w", err)
-	}
-
-	feedsIndex := FeedsSchemaPrefix + "_" + config.Environment()
-	// Delete index if destructive set.
-	if destructive {
-		_, err := api.Indices.Delete(feedsIndex).Do(ctx)
-		if err != nil && !elastic.ParseError(err).IsNotFound() {
-			return fmt.Errorf("unable to remove feeds index template: %w", err)
-		}
-	}
-	found, err := api.Indices.Exists(feedsIndex).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not determine feeds index state: %w", err)
-	}
-	if !found {
-		_, err = elastic.NewIndexRequest(api, feedsIndex).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("unable to create feeds index template: %w", err)
+			return fmt.Errorf("could not create index %s: %w", index, err)
 		}
 	}
 
@@ -215,155 +189,6 @@ func migrateFeedItems(ctx context.Context, api *elasticsearch.TypedClient, destr
 	return nil
 }
 
-// migrateScheduler contains migration actions for migrating scheduler
-// index mappings & settings and ILM policy.
-func migrateScheduler(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
-	slogctx.FromCtx(ctx).Debug("Migrating feed items...")
-
-	var (
-		err   error
-		found bool
-	)
-
-	// scheduler jobs indicies
-	err = elastic.PutComponentTemplate(ctx, api, SchedulerJobsPrefix, NewComponentTemplateRequest(schedulerJobsComponentTemplate()))
-	if err != nil {
-		return fmt.Errorf("could not create scheduler jobs component template: %w", err)
-	}
-	err = elastic.PutIndexTemplate(ctx, api, SchedulerJobsPrefix,
-		NewIndexTemplateRequest(
-			WithIndexPatterns(SchedulerJobsPrefix+"_*"),
-			WithComponentTemplates(SchedulerJobsPrefix),
-			WithPriority(500),
-		),
-	)
-	if err != nil {
-		return fmt.Errorf("could not create scheduler jobs index template: %w", err)
-	}
-	jobQueueIndex := SchedulerJobsPrefix + "_" + config.Environment()
-	// Delete index if destructive set.
-	if destructive {
-		_, err := api.Indices.Delete(jobQueueIndex).Do(ctx)
-		if err != nil && !elastic.ParseError(err).IsNotFound() {
-			return fmt.Errorf("could not delete scheduler jobs index: %w", err)
-		}
-	}
-	// Make sure the index doesn't exist before continuing.
-	found, err = api.Indices.Exists(jobQueueIndex).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("unable to check for job queue index: %w", err)
-	}
-	// Create a job queue index if not found.
-	if !found {
-		_, err = elastic.NewIndexRequest(api, jobQueueIndex).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("could not create job queue index: %w", err)
-		}
-	}
-
-	// scheduler jobs indicies
-	err = elastic.PutComponentTemplate(ctx, api, SchedulerStatePrefix, NewComponentTemplateRequest(schedulerStateComponentTemplate()))
-	if err != nil {
-		return fmt.Errorf("could not create scheduler state component template: %w", err)
-	}
-	err = elastic.PutIndexTemplate(ctx, api, SchedulerStatePrefix,
-		NewIndexTemplateRequest(
-			WithIndexPatterns(SchedulerStatePrefix+"_*"),
-			WithComponentTemplates(SchedulerStatePrefix),
-			WithPriority(500),
-		),
-	)
-	if err != nil {
-		return fmt.Errorf("could not create scheduler state index template: %w", err)
-	}
-	jobStateIndex := SchedulerStatePrefix + "_" + config.Environment()
-	// Delete index if destructive set.
-	if destructive {
-		_, err := api.Indices.Delete(jobStateIndex).Do(ctx)
-		if err != nil && !elastic.ParseError(err).IsNotFound() {
-			return fmt.Errorf("could not delete scheduler state index: %w", err)
-		}
-	}
-	// Make sure the index doesn't exist before continuing.
-	found, err = api.Indices.Exists(jobStateIndex).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not determine scheduler state index state: %w", err)
-	}
-	// Create a job queue index if not found.
-	if !found {
-		_, err = elastic.NewIndexRequest(api, jobStateIndex).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("could not create scheduler state index: %w", err)
-		}
-	}
-
-	return nil
-}
-
-// migrateSession contains migration actions for migrating session indices and
-// settings.
-func migrateSession(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
-	slogctx.FromCtx(ctx).Debug("Migrating feeds...")
-
-	err := elastic.PutComponentTemplate(ctx, api, SessionsSchemaPrefix, NewComponentTemplateRequest(sessionsComponentTemplate()))
-	if err != nil {
-		return fmt.Errorf("could not create session component template: %w", err)
-	}
-
-	err = elastic.PutIndexTemplate(ctx, api, SessionsSchemaPrefix,
-		NewIndexTemplateRequest(
-			WithIndexPatterns(SessionsSchemaPrefix+"_*"),
-			WithComponentTemplates(SessionsSchemaPrefix),
-			WithPriority(500),
-		),
-	)
-	if err != nil {
-		return fmt.Errorf("could not create session index template: %w", err)
-	}
-
-	sessionIndex := SessionsSchemaPrefix + "_" + config.Environment()
-	// Delete index if destructive set.
-	if destructive {
-		_, err := api.Indices.Delete(sessionIndex).Do(ctx)
-		if err != nil && !elastic.ParseError(err).IsNotFound() {
-			return fmt.Errorf("could not remove session index: %w", err)
-		}
-	}
-	// Make sure the index doesn't exist before continuing.
-	found, err := api.Indices.Exists(sessionIndex).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not determine session index state: %w", err)
-	}
-	// Create a job queue index if not found.
-	if !found {
-		_, err = elastic.NewIndexRequest(api, sessionIndex).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("could not create session index: %w", err)
-		}
-	}
-
-	return nil
-}
-
-// migrateIngest will migrate the ingest pipelines.
-func migrateIngest(ctx context.Context, api *elasticsearch.TypedClient) error {
-	slogctx.FromCtx(ctx).Debug("Migrating ingest pipeline...")
-
-	_, err := api.Ingest.DeletePipeline(ingestPipelineID).Do(ctx)
-	if err != nil && !elastic.ParseError(err).IsNotFound() {
-		return fmt.Errorf("could not delete ingest pipeline: %w", err)
-	}
-	slogctx.FromCtx(ctx).Debug("Deleted existing ingest pipeline.")
-
-	_, err = api.Ingest.PutPipeline(ingestPipelineID).Request(ingestPipelineFeeds()).Do(ctx)
-	if err != nil {
-		return fmt.Errorf("could not create ingest pipeline: %w", err)
-	}
-	slogctx.FromCtx(ctx).Debug("Added ingest pipeline.")
-
-	return nil
-}
-
 // migrateLogs contains migration actions for migrating logs (datastream).
 func migrateLogs(ctx context.Context, api *elasticsearch.TypedClient, destructive bool) error {
 	slogctx.FromCtx(ctx).Debug("Migrating logs datastream...")
@@ -397,6 +222,25 @@ func migrateLogs(ctx context.Context, api *elasticsearch.TypedClient, destructiv
 	if err != nil {
 		return fmt.Errorf("unable to migrate logs datastream: %w", err)
 	}
+
+	return nil
+}
+
+// migrateIngest will migrate the ingest pipelines.
+func migrateIngest(ctx context.Context, api *elasticsearch.TypedClient) error {
+	slogctx.FromCtx(ctx).Debug("Migrating ingest pipeline...")
+
+	_, err := api.Ingest.DeletePipeline(ingestPipelineID).Do(ctx)
+	if err != nil && !elastic.ParseError(err).IsNotFound() {
+		return fmt.Errorf("could not delete ingest pipeline: %w", err)
+	}
+	slogctx.FromCtx(ctx).Debug("Deleted existing ingest pipeline.")
+
+	_, err = api.Ingest.PutPipeline(ingestPipelineID).Request(ingestPipelineFeeds()).Do(ctx)
+	if err != nil {
+		return fmt.Errorf("could not create ingest pipeline: %w", err)
+	}
+	slogctx.FromCtx(ctx).Debug("Added ingest pipeline.")
 
 	return nil
 }
