@@ -44,6 +44,20 @@ func Match(field string, value string) Option {
 	}
 }
 
+// MultiMatch adds a "MultiMatch" query on the given field with the given value.
+//
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-multi-match-query
+func MultiMatch(value string, fields ...string) Option {
+	return func(query *types.Query) {
+		if value != "" {
+			query.MultiMatch = &types.MultiMatchQuery{
+				Fields: fields,
+				Query:  value,
+			}
+		}
+	}
+}
+
 func MoreLikeThisString(value string, fields ...string) Option {
 	return func(query *types.Query) {
 		mlt := types.NewMoreLikeThisQuery()

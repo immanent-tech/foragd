@@ -182,10 +182,7 @@ func (a *API) getSearchResults(ctx context.Context, searchTerms string) ([]*part
 		query.Must(
 			query.Bool(
 				query.Should(
-					query.Match("title", searchTerms),
-					query.Match("description", searchTerms),
-					query.Match("content", searchTerms),
-					query.Match("categories", searchTerms),
+					query.MultiMatch(searchTerms, "title", "description", "content", "categories"),
 				),
 			),
 		),
