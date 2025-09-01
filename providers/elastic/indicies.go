@@ -5,7 +5,7 @@ package elastic
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/elastic/go-elasticsearch/v9"
@@ -21,7 +21,7 @@ type CreateIndexOption Option[*CreateIndexRequest]
 func PutComponentTemplate(ctx context.Context, api *elasticsearch.TypedClient, name string, template *putcomponenttemplate.Request) error {
 	_, err := api.Cluster.PutComponentTemplate(name).Request(template).Do(ctx)
 	if err != nil {
-		return errors.Join(ErrPutILMPolicyFailed, err)
+		return fmt.Errorf("put component template: %w", err)
 	}
 
 	return nil
@@ -30,7 +30,7 @@ func PutComponentTemplate(ctx context.Context, api *elasticsearch.TypedClient, n
 func PutIndexTemplate(ctx context.Context, api *elasticsearch.TypedClient, name string, template *putindextemplate.Request) error {
 	_, err := api.Indices.PutIndexTemplate(name).Request(template).Do(ctx)
 	if err != nil {
-		return errors.Join(ErrPutILMPolicyFailed, err)
+		return fmt.Errorf("put index template: %w", err)
 	}
 
 	return nil

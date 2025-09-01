@@ -63,51 +63,92 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix string, schema types.IndexState, destructive bool) error {
 	schemaPrefix := prefix
 
-	slogctx.FromCtx(ctx).Debug("Performing migration...",
+	slogctx.FromCtx(ctx).Debug("Performing appropriate migrations...",
 		slog.String("schema", schemaPrefix))
 
 	componentTemplate := schemaPrefix + "_component_template"
 	indexTemplate := schemaPrefix + "_index_template"
 	index := schemaPrefix + "_" + config.Environment()
 
+	if destructive {
+		slogctx.FromCtx(ctx).Debug("Deleting existing schemas...",
+			slog.String("schema", schemaPrefix))
+		// Check for and delete the index.
+		found, err := api.Indices.Exists(index).Do(ctx)
+		if err != nil {
+			return fmt.Errorf("could not determine %s index state: %w", index, err)
+		}
+		if found {
+			_, err := api.Indices.Delete(index).Do(ctx)
+			if err != nil {
+				return fmt.Errorf("could not delete index %s: %w", index, err)
+			}
+		}
+		// Check for and delete the index template.
+		found, err = api.Indices.ExistsIndexTemplate(indexTemplate).Do(ctx)
+		if err != nil {
+			return fmt.Errorf("could not determine %s index template state: %w", indexTemplate, err)
+		}
+		if found {
+			_, err := api.Indices.DeleteIndexTemplate(indexTemplate).Do(ctx)
+			if err != nil {
+				return fmt.Errorf("could not delete component template %s: %w", indexTemplate, err)
+			}
+		}
+		// Check for and delete the component template.
+		found, err = api.Cluster.ExistsComponentTemplate(componentTemplate).Do(ctx)
+		if err != nil {
+			return fmt.Errorf("could not determine %s component template state: %w", index, err)
+		}
+		if found {
+			_, err := api.Cluster.DeleteComponentTemplate(componentTemplate).Do(ctx)
+			if err != nil {
+				return fmt.Errorf("could not delete component template %s: %w", componentTemplate, err)
+			}
+		}
+	}
+
 	// Create component template.
-	slogctx.FromCtx(ctx).Debug("Creating component template...",
-		slog.String("name", componentTemplate))
-	err := elastic.PutComponentTemplate(ctx, api, componentTemplate, NewComponentTemplateRequest(schema))
+	found, err := api.Cluster.ExistsComponentTemplate(componentTemplate).Do(ctx)
 	if err != nil {
-		return fmt.Errorf("could not create component template %s: %w", componentTemplate, err)
+		return fmt.Errorf("could not determine %s component template state: %w", index, err)
+	}
+	if !found {
+		slogctx.FromCtx(ctx).Debug("Creating component template...",
+			slog.String("name", componentTemplate))
+		err = elastic.PutComponentTemplate(ctx, api, componentTemplate, NewComponentTemplateRequest(schema))
+		if err != nil {
+			return fmt.Errorf("could not create component template %s: %w", componentTemplate, err)
+		}
 	}
 
 	// Create index template.
-	slogctx.FromCtx(ctx).Debug("Creating index template...",
-		slog.String("name", indexTemplate))
-	err = elastic.PutIndexTemplate(ctx, api, indexTemplate,
-		NewIndexTemplateRequest(
-			WithIndexPatterns(prefix+"_*"),
-			WithComponentTemplates(componentTemplate),
-		),
-	)
+	found, err = api.Indices.ExistsIndexTemplate(indexTemplate).Do(ctx)
 	if err != nil {
-		return fmt.Errorf("could not create index template %s: %w", indexTemplate, err)
+		return fmt.Errorf("could not determine %s index template state: %w", indexTemplate, err)
+	}
+	if !found {
+		slogctx.FromCtx(ctx).Debug("Creating index template...",
+			slog.String("name", indexTemplate))
+		err = elastic.PutIndexTemplate(ctx, api, indexTemplate,
+			NewIndexTemplateRequest(
+				WithIndexPatterns(prefix+"_*"),
+				WithComponentTemplates(componentTemplate),
+			),
+		)
+		if err != nil {
+			return fmt.Errorf("could not create index template %s: %w", indexTemplate, err)
+		}
 	}
 
-	slogctx.FromCtx(ctx).Debug("Creating index...",
-		slog.String("name", index))
-	found, err := api.Indices.Exists(index).Do(ctx)
+	// Create index.
+	found, err = api.Indices.Exists(index).Do(ctx)
 	if err != nil {
 		return fmt.Errorf("could not determine %s index state: %w", index, err)
 	}
-	// Delete index if destructive set.
-	if destructive && found {
-		// Make sure the index doesn't exist before continuing.
-		_, err := api.Indices.Delete(index).Do(ctx)
-		if err != nil {
-			return fmt.Errorf("could not delete index %s: %w", index, err)
-		}
-		found = false
-	}
-	// Create index if necessary.
 	if !found {
+		slogctx.FromCtx(ctx).Debug("Creating index...",
+			slog.String("name", index))
 		_, err = elastic.NewIndexRequest(api, index).Do(ctx)
 		if err != nil {
 			return fmt.Errorf("could not create index %s: %w", index, err)
