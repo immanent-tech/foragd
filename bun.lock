@@ -7,8 +7,8 @@
         "@catppuccin/daisyui": "^2.1.1",
         "@oddbird/css-anchor-positioning": "^0.6.1",
         "@tabler/icons": "^3.34.1",
-        "@tailwindplus/elements": "^1.0.10",
-        "daisyui": "^5.0.52",
+        "@tailwindplus/elements": "^1.0.12",
+        "daisyui": "^5.0.54",
         "date-fns": "^4.1.0",
         "htmx-ext-ajax-header": "^2.0.2",
         "htmx-ext-preload": "^2.1.1",
@@ -430,7 +430,7 @@
 
     "cssesc": ["cssesc@3.0.0", "", { "bin": { "cssesc": "bin/cssesc" } }, "sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg=="],
 
-    "daisyui": ["daisyui@5.0.54", "", {}, "sha512-03iuq06+lLq/VczY/+YpADgLXVC1HYO63PNiH6A9hn/+f6IkVoONVc+Jh08xizkLQQCVVMMUBp+KeIdcWSBLcg=="],
+    "daisyui": ["daisyui@5.1.3", "", {}, "sha512-3J3GyuBJ+cc77pDGXuR2KjbzALv+zH9z0pX/0zj54FmMxufhoOIGBYjlxu2dJKKnEyuBqDc8fDiGXa+/Q+GMTw=="],
 
     "date-fns": ["date-fns@4.1.0", "", {}, "sha512-Ukq0owbQXxa/U3EGtsdVBkR1w7KOQ5gIBqdH2hkvknzZPYvBxb/aa6E8L7tmjFtkwZBu3UXBbjIgPo/Ez4xaNg=="],
 
