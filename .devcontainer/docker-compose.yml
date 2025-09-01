@@ -150,6 +150,7 @@ services:
       retries: 120
     labels:
       - co.elastic.logs/module=elasticsearch
+    stop_grace_period: 1m
 
   es02:
     depends_on:
@@ -199,6 +200,7 @@ services:
       retries: 120
     labels:
       - co.elastic.logs/module=elasticsearch
+    stop_grace_period: 1m
 
   es03:
     depends_on:
@@ -248,6 +250,7 @@ services:
       retries: 120
     labels:
       - co.elastic.logs/module=elasticsearch
+    stop_grace_period: 1m
 
   kibana:
     depends_on:
@@ -283,6 +286,7 @@ services:
       retries: 120
     labels:
       - co.elastic.logs/module=kibana
+    stop_grace_period: 1m
 
   # metricbeat:
   #   depends_on:
