@@ -10,6 +10,7 @@ import (
 	"slices"
 
 	"github.com/elastic/go-elasticsearch/v9"
+	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-feed-me/config"
@@ -31,18 +32,18 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 
 		switch migration {
 		case "users":
-			err = indexMigration(ctx, api, UsersSchemaPrefix, destructive)
+			err = indexMigration(ctx, api, UsersSchemaPrefix, userComponentTemplate(), destructive)
 		case "feeds":
-			err = indexMigration(ctx, api, FeedsSchemaPrefix, destructive)
+			err = indexMigration(ctx, api, FeedsSchemaPrefix, feedsComponentTemplate(), destructive)
 		case "items":
 			err = migrateFeedItems(ctx, api, destructive)
 		case "scheduler":
-			err = indexMigration(ctx, api, SchedulerJobsPrefix, destructive)
+			err = indexMigration(ctx, api, SchedulerJobsPrefix, schedulerJobsComponentTemplate(), destructive)
 			if err == nil {
-				err = indexMigration(ctx, api, SchedulerStatePrefix, destructive)
+				err = indexMigration(ctx, api, SchedulerStatePrefix, schedulerStateComponentTemplate(), destructive)
 			}
 		case "sessions":
-			err = indexMigration(ctx, api, SessionsSchemaPrefix, destructive)
+			err = indexMigration(ctx, api, SessionsSchemaPrefix, sessionsComponentTemplate(), destructive)
 		case "logs":
 			err = migrateLogs(ctx, api, destructive)
 		case "ingest":
@@ -59,7 +60,7 @@ func Migration(ctx context.Context, api *elasticsearch.TypedClient, destructive 
 
 // indexMigration performs a migration of a standard index, including component & index templates as well as the index
 // itself.
-func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix string, destructive bool) error {
+func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix string, schema types.IndexState, destructive bool) error {
 	schemaPrefix := prefix
 
 	slogctx.FromCtx(ctx).Debug("Performing migration...",
@@ -72,7 +73,7 @@ func indexMigration(ctx context.Context, api *elasticsearch.TypedClient, prefix 
 	// Create component template.
 	slogctx.FromCtx(ctx).Debug("Creating component template...",
 		slog.String("name", componentTemplate))
-	err := elastic.PutComponentTemplate(ctx, api, componentTemplate, NewComponentTemplateRequest(userComponentTemplate()))
+	err := elastic.PutComponentTemplate(ctx, api, componentTemplate, NewComponentTemplateRequest(schema))
 	if err != nil {
 		return fmt.Errorf("could not create component template %s: %w", componentTemplate, err)
 	}
