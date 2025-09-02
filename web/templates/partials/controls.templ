@@ -109,7 +109,7 @@ templ (c ListControls) Template() {
 							<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
 						</svg>
 					</button>
-					<el-popover popover id="sort-menu" anchor="bottom end" popover class="controls-popover">
+					<el-popover popover id="sort-menu" anchor="bottom start" popover class="controls-popover">
 						<fieldset>
 							<div class="space-y-4">
 								@sortOption(c.Path, models.SortLastUpdatedDesc, c.Filters.GetSort())
@@ -212,14 +212,14 @@ templ viewFilter(id string, view models.View, current models.View) {
 					type="radio"
 					name={ models.ParamView }
 					value={ string(view) }
-					class="radio radio-xs"
+					class={ "radio radio-sm",templ.KV("radio-primary",current == view) }
 					if current == view {
 						checked
 					}
 					hx-vals={ models.GenerateHXVals(map[string]string{models.ParamView: string(view)}) }
 				/>
 			</div>
-			<label for={ id } class="text-xs/4 font-medium capitalize">{ string(view) }</label>
+			<label for={ id } class="text-sm/6 font-medium capitalize">{ string(view) }</label>
 		</div>
 	</div>
 }
@@ -240,10 +240,10 @@ templ categoryFilter(id string, category models.CategoryCount, current models.Ca
 					} else {
 						hx-vals={ models.GenerateHXVals(map[string]string{models.ParamCategories: category.Category}) }
 					}
-					class="radio radio-xs"
+					class={ "radio radio-sm", templ.KV("radio-primary",current.HasCategory(category.Category)) }
 				/>
 			</div>
-			<label for={ id } class="text-xs/4 font-medium capitalize">{ category.Category }</label>
+			<label for={ id } class="text-sm/6 hover:text-accent font-medium capitalize">{ category.Category }</label>
 		</div>
 	</div>
 }
@@ -254,7 +254,7 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 		<input
 			id={ sort.ID() }
 			type="radio"
-			class="radio radio-xs"
+			class={ "radio radio-sm", templ.KV("radio-primary", current.IsEqual(sort)) }
 			if current.IsEqual(sort) {
 				checked
 			}
@@ -264,6 +264,6 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ models.GenerateHXVals(map[string]string{models.ParamSortBy: string(sort.SortBy), models.ParamSortOrder: string(sort.SortOrder)}) }
 		/>
-		<label for={ sort.ID() } class="ml-3 text-xs/4 font-medium capitalize">{ sort.String() }</label>
+		<label for={ sort.ID() } class="ml-3 hover:text-accent text-sm/6 font-medium capitalize">{ sort.String() }</label>
 	</div>
 }

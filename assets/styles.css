@@ -33,11 +33,6 @@
   }
 }
 
-/* content-width defines the base styles and layout constraints for content */
-@utility content-width {
-  @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
-}
-
 @utility active-link {
   @apply link link-hover bg-accent/20 text-accent-content flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
 }
@@ -53,6 +48,10 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
+  .drawer-content-area {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
   .landing-backdrop {
     background: var(--color-primary);
     background: radial-gradient(
@@ -84,7 +83,7 @@
 
   /* menu-item is a link/action in a context menu */
   .menu-item {
-    @apply link link-hover hover:text-accent flex items-center gap-x-2 px-3 py-1 text-xs/4;
+    @apply link link-hover hover:text-accent flex items-center gap-x-2 px-3 py-1 text-sm/6;
   }
 
   /* Controls/Filters */
