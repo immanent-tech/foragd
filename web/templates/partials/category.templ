@@ -10,10 +10,10 @@ import (
 
 // AddCategoryForm renders a form that can be used to add categories to a subscription.
 templ AddCategoryForm(categories []models.Category, attributes templ.Attributes) {
-	<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-		<label for="category" class="block font-medium">Add category</label>
-		<div class="mt-2 sm:col-span-2 sm:mt-0">
-			<fieldset class="fieldset">
+	<div class="mt-8 grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 md:col-span-2">
+		<div class="col-span-full">
+			<label for="category" class="block font-medium">Add category</label>
+			<div class="mt-2">
 				<form
 					{ attributes... }
 					hx-on::after-request="if(event.detail.successful) this.reset()"
@@ -28,8 +28,10 @@ templ AddCategoryForm(categories []models.Category, attributes templ.Attributes)
 									placeholder="Cool Stuff"
 									class="input input-primary join-item"
 								/>
-								<button type="submit" class="btn btn-primary join-item">
-									@HeroIconAdd("size-4")
+								<button class="btn btn-primary join-item">
+									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path>
+									</svg>
 								</button>
 							</div>
 						</div>
@@ -42,8 +44,8 @@ templ AddCategoryForm(categories []models.Category, attributes templ.Attributes)
 						</el-options>
 					</el-autocomplete>
 				</form>
-				<span id="category-hint" class="label text-base-content/50 text-xs/4">Optional. Add a category to the subscription.</span>
-			</fieldset>
+				<p id="category-hint" class="text-base-content/50 text-xs/4">Optional. Add a category to the subscription.</p>
+			</div>
 		</div>
 	</div>
 }

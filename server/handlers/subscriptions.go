@@ -499,7 +499,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 		switch req.Method {
 		case http.MethodGet:
 			resp := models.NewResponse(
-				models.WithResponseTemplate(buildTemplate(pages.NewAddSubscription(nil).Content())),
+				models.WithResponseTemplate(buildTemplate(pages.AddSubscription(&models.SubscriptionRequest{}))),
 			)
 			chain.Then(render(resp)).ServeHTTP(res, req)
 		case http.MethodPost:
@@ -509,7 +509,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"Invalid subscription details.",
 					"There are problems with the details. Please check and try again.",
 				)
-				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
+				template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(msg)))
 				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(err),
@@ -526,7 +526,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"Error processing request.",
 					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
-				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
+				template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(msg)))
 				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
@@ -539,7 +539,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"Error processing request.",
 					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
-				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
+				template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(msg)))
 				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
@@ -553,7 +553,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					"Error processing request.",
 					"The backend had issues processing the request and adding a subscription, please try again.",
 				)
-				template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(msg)))
+				template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(msg)))
 				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
@@ -562,7 +562,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			} else {
 				result = createResult
 			}
-			template := buildTemplate(templ.Join(pages.NewAddSubscription(request).Content(), partials.Notification(result[request].Message)))
+			template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(result[request].Message)))
 			resp := models.NewResponse(
 				models.WithResponseTemplate(template),
 			)
