@@ -255,7 +255,7 @@ templ (a *Article) Content() {
 			hx-post={ "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID() + "/mark/" + string(models.MarkRead) }
 			hx-target={ "#mark_" + a.GetID() }
 			hx-swap="innerHTML"
-			hx-trigger="intersect once,load delay:20s"
+			hx-trigger="revealed delay:10s"
 			hx-push-url="false"
 			_="on htmx:afterRequest remove me"
 		></div>
