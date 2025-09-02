@@ -533,16 +533,13 @@ func (a *API) AddSubscription() http.HandlerFunc {
 					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 				return
 			}
+
 			// If results returned from matching is non-nil, something went wrong.
 			if result[request] != nil {
-				msg := models.NewErrorMessage(
-					"Error processing request.",
-					"The backend had issues processing the request and adding a subscription, please try again.",
-				)
-				template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(msg)))
+				template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(result[request].Message)))
 				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
+					models.WithResponseError(errors.New(result[request].Message.String())), //nolint:err113 // TODO: work out a better way
 					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 				return
 			}
