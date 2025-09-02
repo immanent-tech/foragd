@@ -65,6 +65,23 @@
     @apply bg-base-100/80 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0;
   }
 
+  .responsive-img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: var(--aspect-ratio);
+    object-fit: cover;
+    /* Prevent haptic touch previews */
+    -webkit-touch-callout: none;
+    -webkit-user-drag: none;
+  }
+
+  .responsive-video {
+    max-width: fit-content;
+    height: auto;
+    aspect-ratio: var(--aspect-ratio);
+    object-fit: cover;
+  }
+
   /* menu-item is a link/action in a context menu */
   .menu-item {
     @apply link link-hover hover:text-accent flex items-center gap-x-2 px-3 py-1 text-xs/4;

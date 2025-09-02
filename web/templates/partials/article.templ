@@ -175,15 +175,11 @@ templ (a *Article) Content() {
 						</ol>
 					</nav>
 				</div>
-				<div class="mt-2 md:flex md:items-center md:justify-between">
-					<div class="min-w-0 flex-1">
-						<a href={ a.GetLink() }>
-							<h2 class="text-2xl/7 font-bold sm:truncate sm:text-3xl sm:tracking-tight">{ a.GetTitle() }</h2>
-						</a>
-					</div>
-				</div>
 			</div>
-			<article class="prose dark:prose-invert prose-img:rounded-xl prose-figure:rounded-xl">
+			<article class="prose md:prose-lg lg:prose-xl dark:prose-invert prose-img:rounded-xl prose-img:object-scale-down prose-figure:rounded-xl prose-figure:object-scale-down prose-video:object-scale-down prose-video:max-w-screen">
+				<a href={ a.GetLink() } class="link link-hover">
+					<h2 class="text-2xl/7 font-bold text-pretty sm:text-3xl sm:tracking-tight">{ a.GetTitle() }</h2>
+				</a>
 				<section id="article-info" class="flex items-center justify-between">
 					@a.articleInfo()
 					@ContextMenu(a.GetTitle() + "Actions") {
@@ -255,7 +251,7 @@ templ (a *Article) Content() {
 			hx-post={ "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID() + "/mark/" + string(models.MarkRead) }
 			hx-target={ "#mark_" + a.GetID() }
 			hx-swap="innerHTML"
-			hx-trigger="revealed delay:10s"
+			hx-trigger="intersect once,load delay:10s"
 			hx-push-url="false"
 			_="on htmx:afterRequest remove me"
 		></div>
