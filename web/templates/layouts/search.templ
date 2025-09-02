@@ -142,7 +142,6 @@ templ GlobalSearch() {
 				type="text"
 				name="text"
 				hx-push-url="false"
-				autofocus
 				placeholder="Search..."
 				class="col-start-1 row-start-1 block size-full outline-hidden pr-4 pl-6 text-base sm:text-sm/6 placeholder:text-base-content/50"
 				hx-on::after-request="if(event.detail.successful) document.getElementById('global-search').value = ''"
