@@ -4,7 +4,7 @@
 package auth
 
 import (
-	"errors"
+	"fmt"
 	"sync"
 
 	"github.com/immanent-tech/go-feed-me/config"
@@ -16,10 +16,7 @@ const (
 )
 
 // Default auth0Config values.
-var (
-	auth0Config   = &Config{}
-	ErrLoadConfig = errors.New("error loading config")
-)
+var auth0Config = &Config{}
 
 // Config structure.
 type Config struct {
@@ -38,8 +35,9 @@ func (c *Config) domainURL() string {
 var loadConfigOnce = sync.OnceValue(loadConfig)
 
 func loadConfig() error {
-	if err := config.Load(auth0ConfigPrefix, auth0ConfigEnvPrefix, auth0Config); err != nil {
-		return errors.Join(config.ErrLoadConfig, err)
+	err := config.Load(auth0ConfigPrefix, auth0ConfigEnvPrefix, auth0Config)
+	if err != nil {
+		return fmt.Errorf("auth0: unable to load config: %w", err)
 	}
 
 	return nil

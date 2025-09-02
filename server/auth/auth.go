@@ -38,7 +38,7 @@ var (
 	// ErrInvalidData indicates that the authentication data is invalid.
 	ErrInvalidData = errors.New("invalid authentication data")
 	// ErrAuth indicates the authentication request failed. The wrapped error will contain specific details.
-	ErrAuth = errors.New("authentication failed")
+	ErrAuth = errors.New("authenticator")
 )
 
 // UserAuth contains provider independent details about user authentication.
@@ -65,6 +65,22 @@ func (u *UserAuth) GetEmail() string {
 // Authenticator manages user authentication to a provider.
 type Authenticator struct{}
 
+// NewAuthenticator sets up a new authenticator instance for authenticating user sessions.
+func NewAuthenticator(ctx context.Context) (*Authenticator, error) {
+	err := loadConfigOnce()
+	if err != nil {
+		return nil, fmt.Errorf("authenticator: %w", err)
+	}
+	authenticator := &Authenticator{}
+	goth.UseProviders(
+		auth0.New(auth0Config.ClientID, auth0Config.ClientSecret, auth0Config.domainURL(), auth0Config.Domain),
+	)
+	gothic.Store = authenticator
+	gothic.GetProviderName = authenticator.GetProviderName
+	// gothic.CompleteUserAuth = authenticator.CompleteUserAuth
+	return authenticator, nil
+}
+
 // Get returns a cached user session from the store.
 func (a *Authenticator) Get(req *http.Request, name string) (*sessions.Session, error) {
 	slogctx.FromCtx(req.Context()).Debug("Fetching session.", slog.String("name", name))
@@ -73,7 +89,7 @@ func (a *Authenticator) Get(req *http.Request, name string) (*sessions.Session, 
 		var err error
 		currentSession, err = a.New(req, name)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", ErrInvalidData, err)
+			return nil, fmt.Errorf("authenticator: unable to retrieve user session: %w", err)
 		}
 	}
 	slogctx.FromCtx(req.Context()).Debug("Found existing session.", slog.String("name", name))
@@ -110,12 +126,12 @@ func (a *Authenticator) Save(req *http.Request, _ http.ResponseWriter, s *sessio
 func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Request) error {
 	providerName, err := gothic.GetProviderName(req)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAuth, err)
+		return fmt.Errorf("authenticator: unable to determine provider: %w", err)
 	}
 
 	provider, err := goth.GetProvider(providerName)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAuth, err)
+		return fmt.Errorf("authenticator: unable to retrieve provider %s: %w", providerName, err)
 	}
 
 	value := session.Manager.GetString(req.Context(), providerName)
@@ -126,12 +142,12 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 	// defer a.Logout().ServeHTTP(res, req)
 	sess, err := provider.UnmarshalSession(value)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAuth, err)
+		return fmt.Errorf("authenticator: unable to unmarshal session: %w", err)
 	}
 
 	err = validateState(req, sess)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAuth, err)
+		return fmt.Errorf("authenticator: validate session state failed: %w", err)
 	}
 
 	user, err := provider.FetchUser(sess)
@@ -143,21 +159,24 @@ func (a *Authenticator) CompleteUserAuth(res http.ResponseWriter, req *http.Requ
 
 	params := req.URL.Query()
 	if params.Encode() == "" && req.Method == http.MethodPost {
-		req.ParseForm()
+		err := req.ParseForm()
+		if err != nil {
+			return fmt.Errorf("authenticator: unable to parse parameters: %w", err)
+		}
 		params = req.Form
 	}
 
 	// get new token and retry fetch
 	_, err = sess.Authorize(provider, params)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAuth, err)
+		return fmt.Errorf("authenticator: authorize session failed: %w", err)
 	}
 
 	session.Manager.Put(req.Context(), providerName, sess.Marshal())
 
 	gu, err := provider.FetchUser(sess)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAuth, err)
+		return fmt.Errorf("authenticator: fetch user details failed: %w", err)
 	}
 	a.StoreUserAuth(req.Context(), UserAuth{User: gu})
 	return nil
@@ -169,22 +188,22 @@ func (a *Authenticator) GetAuthURL(req *http.Request) (string, error) {
 	// Get provider name.
 	providerName, err := gothic.GetProviderName(req)
 	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrAuth, err)
+		return "", fmt.Errorf("authenticator: unable to determine provider: %w", err)
 	}
 	// Get provider.
 	provider, err := goth.GetProvider(providerName)
 	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrAuth, err)
+		return "", fmt.Errorf("authenticator: unable to retrieve provider %s: %w", providerName, err)
 	}
 	// Setup authentication through provider.
 	sess, err := provider.BeginAuth(gothic.SetState(req))
 	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrAuth, err)
+		return "", fmt.Errorf("authenticator: could not initiate authentication with provider: %w", err)
 	}
 	// Get the provider authentication URL.
 	url, err := sess.GetAuthURL()
 	if err != nil {
-		return "", fmt.Errorf("%w: %w", ErrAuth, err)
+		return "", fmt.Errorf("authenticator: could not retrieve auth URL: %w", err)
 	}
 	slogctx.FromCtx(req.Context()).Debug("Initialised provider", slog.String("provider", providerName))
 	session.Manager.Put(req.Context(), providerName, sess.Marshal())
@@ -211,6 +230,7 @@ func (a *Authenticator) StoreUserAuth(ctx context.Context, user UserAuth) {
 	slogctx.FromCtx(ctx).Debug("Stored user auth.")
 }
 
+// GetUserID retrieves the user ID of the currently authenticated user.
 func (a *Authenticator) GetUserID(ctx context.Context) models.UserID {
 	auth, found := a.GetUserAuth(ctx)
 	if !found {
@@ -219,7 +239,7 @@ func (a *Authenticator) GetUserID(ctx context.Context) models.UserID {
 	return auth.GetUserID()
 }
 
-// GetUserAuth retrieves the user authentication session session store.
+// GetUserAuth retrieves the user authentication session store.
 func (a *Authenticator) GetUserAuth(ctx context.Context) (UserAuth, bool) {
 	user, found := session.Manager.Get(ctx, "user").(UserAuth)
 	if !found {
@@ -228,34 +248,17 @@ func (a *Authenticator) GetUserAuth(ctx context.Context) (UserAuth, bool) {
 	return user, true
 }
 
-func NewAuthenticator(ctx context.Context) (*Authenticator, error) {
-	if err := loadConfigOnce(); err != nil {
-		return nil, fmt.Errorf("%w: %w", ErrAuth, err)
-	}
-
-	authenticator := &Authenticator{}
-
-	goth.UseProviders(
-		auth0.New(auth0Config.ClientID, auth0Config.ClientSecret, auth0Config.domainURL(), auth0Config.Domain),
-	)
-	gothic.Store = authenticator
-	gothic.GetProviderName = authenticator.GetProviderName
-	// gothic.CompleteUserAuth = authenticator.CompleteUserAuth
-
-	return authenticator, nil
-}
-
 // validateState ensures that the state token param from the original
 // AuthURL matches the one included in the current (callback) request.
 func validateState(req *http.Request, sess goth.Session) error {
 	rawAuthURL, err := sess.GetAuthURL()
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAuth, err)
+		return fmt.Errorf("validate state: %w", err)
 	}
 
 	authURL, err := url.Parse(rawAuthURL)
 	if err != nil {
-		return fmt.Errorf("%w: %w", ErrAuth, err)
+		return fmt.Errorf("validate state: %w", err)
 	}
 
 	reqState := gothic.GetState(req)
