@@ -51,6 +51,27 @@ func routeLogger(next http.Handler) http.Handler {
 	})
 }
 
+func logError(err error) func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+			var apiErr interface {
+				error
+				HTTPStatus() int
+			}
+			if errors.As(err, &apiErr) {
+				switch {
+				case apiErr.HTTPStatus() < 400:
+					slogctx.FromCtx(req.Context()).DebugContext(req.Context(), apiErr.Error())
+				case apiErr.HTTPStatus() < 500:
+					slogctx.FromCtx(req.Context()).WarnContext(req.Context(), apiErr.Error())
+				default:
+					slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), apiErr.Error())
+				}
+			}
+		})
+	}
+}
+
 // render handles rendering a response. If the response contains a template, that will be rendered in the http
 // response. If the response contains an error, it will be logged.
 func render(resp *models.Response) http.Handler {
@@ -86,7 +107,7 @@ func render(resp *models.Response) http.Handler {
 			return
 		}
 		// Write the response template.
-		if htmx.IsHTMX(req) { //nolint:nestif // TODO: can this logic be simplified?
+		if htmx.IsHTMX(req) {
 			err := htmxResp.RenderTempl(req.Context(), res, resp)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
@@ -102,6 +123,16 @@ func render(resp *models.Response) http.Handler {
 			}
 		}
 	})
+}
+
+func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		err := f(res, req)
+		if err != nil {
+			logError(err)
+			http.Error(res, err.Error(), models.HTTPStatus(err))
+		}
+	}
 }
 
 // SetupRedirect handler will add a HX-Location header to the request when the given path is non-nil and the request has
@@ -143,17 +174,6 @@ func SetupRedirect(path string) func(next http.Handler) http.Handler {
 				)
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
-		})
-	}
-}
-
-// savePageState saves the current page state in the session.
-func savePageState(filters any) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			// Generate state.
-			session.FiltersToSession(req.Context(), filters)
-			next.ServeHTTP(res, req)
 		})
 	}
 }

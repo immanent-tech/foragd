@@ -688,3 +688,17 @@ components:
           $ref: '#/components/schemas/UpdatedAt'
         job_data:
           x-go-type: json.RawMessage
+    APIError:
+      description: >
+        represents an error returned from any API within the service/application.
+      type: object
+      properties:
+        internal_error:
+          description: >
+            is the low-level, internal error.
+          x-go-type: error
+        status_code:
+          description: >
+            is the status code associated with the error. Usually, this is a HTTP status code.
+          type: integer
+

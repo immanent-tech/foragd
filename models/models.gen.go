@@ -59,6 +59,15 @@ const (
 	StateUnread State = "unread"
 )
 
+// APIError represents an error returned from any API within the service/application.
+type APIError struct {
+	// InternalError is the low-level, internal error.
+	InternalError error `json:"internal_error,omitempty,omitzero"`
+
+	// StatusCode is the status code associated with the error. Usually, this is a HTTP status code.
+	StatusCode int `json:"status_code,omitempty,omitzero"`
+}
+
 // Article defines model for Article.
 type Article struct {
 	// Favorite indicates whether this subscription has been marked as a Favorite by the user.
