@@ -62,7 +62,7 @@ templ FavoriteLink(fav *models.Favorite, classes string) {
 				hx-target={ ContentID.Target() }
 				hx-vals={ models.GenerateHXVals(values) }
 				hx-push-url="true"
-				hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+				_="on click toggle @open on #mobile-sidebar-dialog"
 				class={ classes }
 			>
 				<div class="flex items-center gap-x-2">
@@ -76,7 +76,7 @@ templ FavoriteLink(fav *models.Favorite, classes string) {
 				hx-get={ "/article/" + fav.GetID() }
 				hx-target={ ContentID.Target() }
 				hx-push-url="true"
-				hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+				_="on click toggle @open on #mobile-sidebar-dialog"
 				class={ classes }
 			>
 				<div class="flex items-center gap-x-2">
@@ -93,7 +93,7 @@ templ FavoriteLink(fav *models.Favorite, classes string) {
 					hx-target={ ContentID.Target() }
 					hx-vals={ models.GenerateHXVals(map[string]string{"text": search.Text}) }
 					hx-push-url="true"
-					hx-on::after-request="if(event.detail.successful) document.getElementById('drawer-sidebar').hide()"
+					_="on click toggle @open on #mobile-sidebar-dialog"
 					class={ classes }
 				>
 					<div class="flex items-center gap-x-2">
