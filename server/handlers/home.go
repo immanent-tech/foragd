@@ -10,7 +10,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/justinas/alice"
@@ -27,25 +26,27 @@ import (
 
 // Home handles displaying the user's home page.
 func (a *API) Home() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		chain := alice.New(
-			routeLogger,
-			savePageState(nil),
-		)
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		ctx := req.Context()
 		ctx = context.WithValue(ctx, titleCtxKey, "Go Feed Me Home")
+		user, found := models.UserFromCtx(ctx)
+		if !found {
+			return models.ErrUserNotFound
+		}
+		if len(user.GetSubscriptionMetadata()) == 0 {
+			render(
+				models.NewResponse(models.WithResponseTemplate(pages.NewUserHome())),
+			).ServeHTTP(res, req)
+		}
 		data, resp := a.getHomePageData(ctx)
 		if resp != nil && !resp.IsNotFound() {
-			chain.Then(render(resp)).ServeHTTP(res, req)
-			return
+			// render(resp).ServeHTTP(res, req)
+			return resp
 		}
 		// Generate appropriate template.
-		var template templ.Component
-		if len(data.Subscriptions) == 0 {
-			template = pages.EmptyHome()
-		} else {
-			template = data.Template()
-		}
+		template := data.Template()
 		// Create appropriate response.
 		switch {
 		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
@@ -59,8 +60,9 @@ func (a *API) Home() http.HandlerFunc {
 				)),
 			)
 		}
-		chain.Then(render(resp)).ServeHTTP(res, req.WithContext(ctx))
-	}
+		render(resp).ServeHTTP(res, req.WithContext(ctx))
+		return nil
+	})).ServeHTTP
 }
 
 // getHomePageData retrieves the data required to construct the homepage content.

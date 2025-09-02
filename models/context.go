@@ -11,11 +11,7 @@ import (
 var ErrUserCtx = errors.New("could not fetch user details from context")
 
 const (
-	userCtxKey          contextKey = "user"
-	filtersCtxKey       contextKey = "filters"
-	sessionAPICtxKey    contextKey = "sessionAPI"
-	pageViewStateCtxKey contextKey = "pageViewState"
-	backlinkCtxKey      contextKey = "backlink"
+	userCtxKey contextKey = "user"
 )
 
 type contextKey string
@@ -36,22 +32,3 @@ func UserFromCtx(ctx context.Context) (*User, bool) {
 	}
 	return user, true
 }
-
-// // FiltersToCtx stores the current filters in the context.
-// func FiltersToCtx(ctx context.Context, filters Filters) context.Context {
-// 	return context.WithValue(ctx, filtersCtxKey, filters)
-// }
-
-// // FiltersFromCtx retrieves the current filters from the context. If there are no filters stored in the context, the
-// // default filters will be returned.
-// func FiltersFromCtx(ctx context.Context) Filters {
-// 	var (
-// 		filters Filters
-// 		found   bool
-// 	)
-// 	filters, found = ctx.Value(filtersCtxKey).(Filters)
-// 	if !found {
-// 		filters = *NewFilters()
-// 	}
-// 	return filters
-// }
