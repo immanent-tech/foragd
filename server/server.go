@@ -6,7 +6,6 @@ package server
 import (
 	"context"
 	"embed"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -38,38 +37,45 @@ type Server struct {
 	static embed.FS
 }
 
-var ErrStartServer = errors.New("start server failed")
-
 // NewServer sets up a new server.
 func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 	var svr Server
 	svr.static = static
 	// Load the server config.
-	if err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, ServerConfig); err != nil {
+	err := config.Load(serverConfigPrefix, serverConfigEnvPrefix, ServerConfig)
+	if err != nil {
 		return svr, fmt.Errorf("unable to load server config: %w", err)
 	}
 	// If no secret is set, create a new secret.
 	if ServerConfig.Secret == "" {
 		secret, err := randomBase16String(32)
 		if err != nil {
-			return svr, fmt.Errorf("%w: %w", ErrLoadConfig, err)
+			return svr, fmt.Errorf("unable to generate server secret: %w", err)
 		}
 
 		ServerConfig.Secret = secret
 	}
-
+	// Set up handlers api.
 	api, err := handlers.SetupAPI(ctx)
 	if err != nil {
-		return svr, fmt.Errorf("%w: %w", ErrStartServer, err)
+		return svr, fmt.Errorf("unable to set up handlers api: %w", err)
 	}
+	// Set up routes.
+	router := setupRoutes(api, static)
 
-	svr.setupRoutes(api)
+	svr.Server = &http.Server{
+		Handler:           router,
+		Addr:              fmt.Sprintf(":%d", ServerConfig.Port),
+		ReadTimeout:       0,
+		WriteTimeout:      0,
+		IdleTimeout:       0,
+		ReadHeaderTimeout: ServerReadTimeout,
+	}
 
 	return svr, nil
 }
 
-//nolint:funlen // it doesn't make sense to split up handler definitions.
-func (s *Server) setupRoutes(handler *handlers.API) {
+func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 	// Set up a new chi router.
 	router := chi.NewRouter()
 	router.Use(
@@ -90,7 +96,7 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 	//
 	// Static content.
 	router.Group(func(r chi.Router) {
-		r.Handle("/static/*", gowebly.StaticFileServerHandler(http.FS(s.static)))
+		r.Handle("/static/*", gowebly.StaticFileServerHandler(http.FS(static)))
 	})
 	// Error handling.
 	router.NotFound(handlers.NotFound())
@@ -196,12 +202,5 @@ func (s *Server) setupRoutes(handler *handlers.API) {
 		})
 	})
 
-	s.Server = &http.Server{
-		Handler:           router,
-		Addr:              fmt.Sprintf(":%d", ServerConfig.Port),
-		ReadTimeout:       0,
-		WriteTimeout:      0,
-		IdleTimeout:       0,
-		ReadHeaderTimeout: ServerReadTimeout,
-	}
+	return router
 }
