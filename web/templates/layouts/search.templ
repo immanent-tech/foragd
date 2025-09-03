@@ -31,47 +31,6 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Search...</span>
 		</a>
 	</el-command-group>
-	// Subscription suggestions.
-	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="subscriptions-group-label">
-		<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
-		for subscription := range slices.Values(subscriptions) {
-			{{ values := session.ArticleFiltersFromSession(ctx).Parameters() }}
-			{{ values[models.ParamSubscriptions] = subscription.GetID() }}
-			<a
-				href="#"
-				hx-get="/articles"
-				hx-vals={ models.GenerateHXVals(values) }
-				hx-target={ partials.ContentID.Target() }
-				hx-push-url="true"
-				hidden
-				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-				_="on click or keyup['Enter'] add @hidden to #global-search-suggestions"
-			>
-				@partials.HeroIconSubscription("size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]")
-				<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
-				<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-			</a>
-		}
-	</el-command-group>
-	// Article suggestions.
-	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="articles-group-label">
-		<div id="articles-group-label" class="text-base-content/80 px-3 py-2">Articles</div>
-		for article := range slices.Values(articles) {
-			<a
-				href="#"
-				hx-get={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() }
-				hx-target={ partials.ContentID.Target() }
-				hx-push-url="true"
-				hidden
-				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
-				_="on click or keyup['Enter'] add @hidden to #global-search-suggestions"
-			>
-				@partials.HeroIconArticle("size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]")
-				<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
-				<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
-			</a>
-		}
-	</el-command-group>
 	// Page suggestions.
 	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="pages-group-label">
 		<div id="pages-group-label" class="text-base-content/80 px-3 py-2">Pages</div>
@@ -129,6 +88,47 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 			<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
 		</a>
 	</el-command-group>
+	// Subscription suggestions.
+	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="subscriptions-group-label">
+		<div id="subscriptions-group-label" class="text-base-content/80 px-3 py-2">Subscriptions</div>
+		for subscription := range slices.Values(subscriptions) {
+			{{ values := session.ArticleFiltersFromSession(ctx).Parameters() }}
+			{{ values[models.ParamSubscriptions] = subscription.GetID() }}
+			<a
+				href="#"
+				hx-get="/articles"
+				hx-vals={ models.GenerateHXVals(values) }
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+				hidden
+				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+				_="on click or keyup['Enter'] add @hidden to #global-search-suggestions"
+			>
+				@partials.HeroIconSubscription("size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]")
+				<span class="ml-3 flex-auto truncate">{ subscription.GetTitle() } </span>
+				<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+			</a>
+		}
+	</el-command-group>
+	// Article suggestions.
+	<el-command-group hidden class="block p-2 text-sm text-base-content" aria-labelledby="articles-group-label">
+		<div id="articles-group-label" class="text-base-content/80 px-3 py-2">Articles</div>
+		for article := range slices.Values(articles) {
+			<a
+				href="#"
+				hx-get={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() }
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+				hidden
+				class="group flex cursor-default items-center rounded-md px-3 py-2 select-none focus:outline-hidden aria-selected:bg-primary aria-selected:text-primary-content"
+				_="on click or keyup['Enter'] add @hidden to #global-search-suggestions"
+			>
+				@partials.HeroIconArticle("size-6 flex-none text-base-content group-aria-selected:text-primary-content forced-colors:group-aria-selected:text-[Highlight]")
+				<span class="ml-3 flex-auto truncate">{ article.GetTitle() } </span>
+				<span aria-hidden="true" class="ml-3 hidden flex-none text-primary-content/50 group-aria-selected:inline">Jump to...</span>
+			</a>
+		}
+	</el-command-group>
 }
 
 // GlobalSearch renders a command palette element for powering global search within the app.
@@ -165,12 +165,12 @@ templ GlobalSearch() {
 			class="absolute w-full left-0 sm:left-21 lg:left-5 sm:w-(--input-width) block max-h-80 lg:max-h-160 scroll-py-2 overflow-y-auto rounded-md shadow-lg bg-base-300 text-base sm:text-sm/6"
 			_="on keyup['Escape'] set #global-search.value to '' then add @hidden to #global-search-suggestions"
 		></el-command-list>
-		<el-no-results
-			hidden
-			class="absolute w-(--input-width) block px-6 py-14 text-center sm:px-14 rounded-md shadow-lg bg-base-300"
-		>
-			@partials.HeroIconQuestionMark("mx-auto size-6 text-base-content")
-			<p class="mt-4 text-sm text-base-content">No suggestions found.</p>
-		</el-no-results>
+		// <el-no-results
+		// 	hidden
+		// 	class="absolute w-(--input-width) block px-6 py-14 text-center sm:px-14 rounded-md shadow-lg bg-base-300"
+		// >
+		// 	@partials.HeroIconQuestionMark("mx-auto size-6 text-base-content")
+		// 	<p class="mt-4 text-sm text-base-content">No suggestions found.</p>
+		// </el-no-results>
 	</el-command-palette>
 }
