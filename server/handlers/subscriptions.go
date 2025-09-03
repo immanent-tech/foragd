@@ -547,7 +547,7 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			} else {
 				result = createResult
 			}
-			template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(result[request].Message)))
+			template := pages.AddSubscriptionSuccess(result[request])
 			resp := models.NewResponse(
 				models.WithResponseTemplate(template),
 			)
