@@ -67,10 +67,29 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 
 // AddSubscription is a page for adding a new subscription.
 templ AddSubscription(request *models.SubscriptionRequest) {
-	<div class="space-y-12 sm:space-y-16">
+	<div class="space-y-12 sm:space-y-16 pb-16">
 		<div>
-			<h2 class="text-base/7 font-semibold">Add a new subscription</h2>
-			<p class="mt-1 max-w-2xl text-sm/6 text-base-content/80">Fill out the following details and hit enter/click add.</p>
+			<div>
+				<h2 class="text-base/7 font-semibold">Add a new subscription</h2>
+				<p class="mt-1 max-w-2xl text-sm/6 text-base-content/80">Fill out the following details and hit enter/click add.</p>
+			</div>
+			if request.HasError() {
+				<div role="alert" class="alert alert-error alert-outline mt-12">
+					<div class="px-4 py-5 sm:p-6 space-y-4">
+						<h3 class="text-base font-semibold text-error-content">Invalid Details</h3>
+						<div class="mt-2 max-w-xl text-sm text-error-content/50">
+							<p>There is a problem with the details. Please check and try again.</p>
+						</div>
+						<button
+							type="button"
+							class="btn btn-error btn-soft"
+							hx-get="/user/support"
+							hx-target={ partials.ContentID.Target() }
+							hx-push-url="true"
+						>Contact support <span aria-hidden="true">&rarr;</span></button>
+					</div>
+				</div>
+			}
 			<div class="form-fieldset">
 				<form
 					id="add-subscription"
@@ -86,7 +105,7 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 							<p id="url-hint" class="input-hint">Required. The feed's URL or website.</p>
 						</div>
 						<div class="mt-2 sm:col-span-2 sm:mt-0">
-							<input id="url" required type="text" name="url" value={ request.URL } placeholder="https://my-favorite-site/feed" class="input-text w-full"/>
+							<input id="url" required type="url" name="url" value={ request.URL } placeholder="https://my-favorite-site/feed" class="input-text w-full"/>
 							if request.URLErr != nil {
 								<p class="input-hint-error">Error: { request.URLErr.Error() }</p>
 							}
@@ -137,6 +156,21 @@ templ AddSubscription(request *models.SubscriptionRequest) {
 					class="btn btn-primary"
 				>Add</button>
 			</div>
+		</div>
+	</div>
+}
+
+templ AddSubscriptionSuccess(result *models.AddSubscriptionResult) {
+	<div role="alert" class="alert alert-success alert-outline mt-12">
+		<div class="px-4 py-5 sm:p-6 space-y-4">
+			<h3 class="text-base font-semibold text-success-content">Subscription Added!</h3>
+			<button
+				type="button"
+				class="btn btn-success btn-soft"
+				hx-get="/user/support"
+				hx-target={ partials.ContentID.Target() }
+				hx-push-url="true"
+			>Contact support <span aria-hidden="true">&rarr;</span></button>
 		</div>
 	</div>
 }

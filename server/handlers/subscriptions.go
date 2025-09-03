@@ -505,15 +505,10 @@ func (a *API) AddSubscription() http.HandlerFunc {
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 			if err != nil || !valid {
-				msg := models.NewWarningMessage(
-					"Invalid subscription details.",
-					"There are problems with the details. Please check and try again.",
-				)
-				template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(msg)))
 				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(err),
-					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
+					models.WithResponseTemplate(pages.AddSubscription(request))))).ServeHTTP(res, req)
 				return
 			}
 			requests := addSubscriptionRequests{
@@ -522,35 +517,28 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			// Match the request to either and existing or new feed.
 			result, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
 			if err != nil {
-				msg := models.NewErrorMessage(
-					"Error processing request.",
-					"The backend had issues processing the request and adding a subscription, please try again.",
-				)
-				template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(msg)))
+				msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
+				template := templ.Join(pages.AddSubscription(request), partials.Notification(msg))
 				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(err),
 					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 				return
 			}
-
 			// If results returned from matching is non-nil, something went wrong.
 			if result[request] != nil {
-				template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(result[request].Message)))
 				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
 					models.WithResponseError(errors.New(result[request].Message.String())), //nolint:err113 // TODO: work out a better way
-					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
+					models.WithResponseTemplate(pages.AddSubscription(request))))).ServeHTTP(res, req)
 				return
 			}
 			// Create the new subscription.
 			createResult, err := requests.createNewSubscriptions(req.Context(), a)
 			if err != nil {
-				msg := models.NewErrorMessage(
-					"Error processing request.",
-					"The backend had issues processing the request and adding a subscription, please try again.",
-				)
-				template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(msg)))
+				msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
+				template := templ.Join(pages.AddSubscription(request), partials.Notification(msg))
+				// template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(msg)))
 				chain.Then(render(models.NewResponse(
 					models.WithResponseStatusCode(http.StatusInternalServerError),
 					models.WithResponseError(err),
@@ -956,14 +944,13 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 	for request := range r {
 		existingFeed := existingFeeds.FindByURL(request.GetURL())
 		switch {
-		case existingFeed == nil: // No existing feed, create a new one.
+		case existingFeed == nil:
+			// No existing feed, create a new one.
 			newFeed, err := models.NewFeedFromURL(ctx, request.GetURL())
 			if err != nil {
-				results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
-					Status:  models.UserMessageStatusError,
-					Summary: "Unable to parse URL as a feed",
-					Details: fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL()),
-				})
+				msg := fmt.Sprintf("The feed URL %q cannot be parsed as a feed source or is not a valid URL.", request.GetURL())
+				request.URLErr = errors.New(msg)
+				results[request] = models.NewSubscriptionResult(nil, models.NewErrorMessage(msg, ""))
 				continue
 			}
 			feedsNeeded[request] = newFeed
@@ -971,12 +958,13 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 				slog.String("url", request.GetURL()),
 				slog.String("feed", newFeed.GetTitle()),
 			)
-		case user.IsSubscribedToFeed(existingFeed.GetID()): // User already subscribed, ignore request.
-			results[request] = models.NewSubscriptionResult(nil, &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "Already subscribed to " + existingFeed.GetTitle(),
-			})
-		default: // Existing feed.
+		case user.IsSubscribedToFeed(existingFeed.GetID()):
+			// User already subscribed, ignore request.
+			msg := "Already subscribed to " + existingFeed.GetTitle()
+			request.URLErr = errors.New(msg)
+			results[request] = models.NewSubscriptionResult(nil, models.NewWarningMessage(msg, ""))
+		default:
+			// Existing feed.
 			r[request] = existingFeed
 			slogctx.FromCtx(ctx).Debug("Existing feed for subscription.",
 				slog.String("url", request.GetURL()),
@@ -984,7 +972,6 @@ func (r addSubscriptionRequests) matchFeedsToSubscriptionRequests(ctx context.Co
 			)
 		}
 	}
-
 	// Add new feeds for requests without an existing feed.
 	if len(feedsNeeded) > 0 {
 		newFeedsNeededResults, err := feedsNeeded.createNewFeeds(ctx, api)

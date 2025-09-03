@@ -257,6 +257,11 @@ func (r *SubscriptionRequest) GetNickname() string {
 	return ""
 }
 
+// HasError wil return true if the subscription request has errors associated with any of its fields.
+func (r *SubscriptionRequest) HasError() bool {
+	return r.NicknameErr != nil || r.CategoriesErr != nil || r.URLErr != nil
+}
+
 type SubscriptionRequests []*SubscriptionRequest
 
 // NewSubscriptionMetadata creates a new subscription state with the given subscription and feed ids.

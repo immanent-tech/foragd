@@ -77,7 +77,7 @@
     @apply text-base-content/50 py-2 text-xs/4;
   }
   .input-hint-error {
-    @apply text-error/50 py-2 text-xs/4;
+    @apply text-error py-2 text-xs/4;
   }
   /* input-text is the style applied to input boxes */
   .input-text {
