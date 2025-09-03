@@ -187,7 +187,9 @@ func (a *API) SetTheme() http.HandlerFunc {
 			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
 		}
-		res.WriteHeader(http.StatusOK)
+		render(models.NewResponse(
+			models.WithResponseTemplate(layouts.AppSettingsTab(user)),
+		)).ServeHTTP(res, req)
 	}).ServeHTTP
 }
 
