@@ -64,6 +64,29 @@
     @apply bg-base-100/80 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0;
   }
 
+  /* form-fieldset is the style applied to a set of inputs on a form  */
+  .form-fieldset {
+    @apply border-base-content/10 sm:divide-base-content/10 sm:border-t-base-content/10 mt-10 space-y-8 pb-12 sm:space-y-0 sm:divide-y sm:border-t sm:pb-0;
+  }
+  /* input-label is the style applied to the label of inputs */
+  .input-label {
+    @apply block text-sm/6 font-medium sm:pt-1.5;
+  }
+  /* input-hint is the style applied to hints for inputs */
+  .input-hint {
+    @apply text-base-content/50 py-2 text-xs/4;
+  }
+  .input-hint-error {
+    @apply text-error/50 py-2 text-xs/4;
+  }
+  /* input-text is the style applied to input boxes */
+  .input-text {
+    @apply input input-primary bg-base-content/10;
+  }
+  .input-text-error {
+    @apply input input-error bg-base-content/10;
+  }
+
   .responsive-img {
     width: 100%;
     height: auto;

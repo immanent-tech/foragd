@@ -368,7 +368,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 				request.SuggestedCategories = categories
 			}
 			// Generate page template.
-			template = buildTemplate(pages.NewEditSubscriptionPage(request).Content())
+			template = buildTemplate(pages.EditSubscription(request))
 		case http.MethodPut: // PUT: save subscription request.
 			request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
 			if err != nil || !valid {
@@ -378,7 +378,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 					Details: "There are problems with the input. Please check and try again.",
 				}
 				resp := models.RespInternalServerError(err,
-					buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.Notification(msg))),
+					buildTemplate(templ.Join(pages.EditSubscription(request), partials.Notification(msg))),
 				)
 				chain.Then(render(resp)).ServeHTTP(res, req)
 				return
@@ -395,7 +395,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 					Details: "The backend reported an issue while trying to save your edits. Please try again.",
 				}
 				resp := models.RespInternalServerError(err,
-					buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.Notification(msg))),
+					buildTemplate(templ.Join(pages.EditSubscription(request), partials.Notification(msg))),
 				)
 				chain.Then(render(resp)).ServeHTTP(res, req)
 				return
@@ -411,12 +411,12 @@ func (a *API) EditSubscription() http.HandlerFunc {
 					Details: "The backend reported an issue while trying to save your edits. Please try again.",
 				}
 				resp := models.RespInternalServerError(err,
-					buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.Notification(msg))),
+					buildTemplate(templ.Join(pages.EditSubscription(request), partials.Notification(msg))),
 				)
 				chain.Then(render(resp)).ServeHTTP(res, req)
 				return
 			}
-			template = buildTemplate(templ.Join(pages.NewEditSubscriptionPage(request).Content(), partials.EditSubscriptionSuccessNotification(metadata)))
+			template = buildTemplate(templ.Join(pages.EditSubscription(request), partials.EditSubscriptionSuccessNotification(metadata)))
 		}
 		chain.Then(render(
 			models.NewResponse(models.WithResponseTemplate(template)),
@@ -592,7 +592,7 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 		// GET: show import modal.
 		case http.MethodGet:
 			resp = models.NewResponse(
-				models.WithResponseTemplate(buildTemplate(pages.NewImportPage().Content())),
+				models.WithResponseTemplate(buildTemplate(pages.ImportSubscriptions())),
 			)
 		// POST: process import.
 		case http.MethodPost:
