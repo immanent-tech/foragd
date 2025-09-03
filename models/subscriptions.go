@@ -84,7 +84,7 @@ func (s *Subscription) GetAuthors() []string {
 }
 
 func (s *Subscription) GetUpdatedDate() time.Time {
-	return s.Feed.GetUpdatedDate()
+	return s.Feed.LastFetched
 }
 
 func (s *Subscription) GetImage() *RemoteImage {
