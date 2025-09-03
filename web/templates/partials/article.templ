@@ -133,8 +133,8 @@ templ (a *Article) Content() {
 							Back
 						</a>
 					</nav>
-					<nav aria-label="Breadcrumb" class="hidden sm:flex">
-						<ol role="list" class="flex items-center space-x-4">
+					<nav aria-label="Breadcrumb" class="hidden sm:flex min-w-0">
+						<ol role="list" class="flex items-center space-x-4 min-w-0">
 							<li>
 								<div class="flex">
 									<a
@@ -143,11 +143,11 @@ templ (a *Article) Content() {
 										hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
 										hx-push-url="true"
 										class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
-									>Subscriptions</a>
+									><p>Subscriptions</p></a>
 								</div>
 							</li>
-							<li>
-								<div class="flex items-center">
+							<li class="min-w-0">
+								<div class="flex items-center min-w-0">
 									<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5 shrink-0 text-base-content/50">
 										<path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
 									</svg>
@@ -158,27 +158,27 @@ templ (a *Article) Content() {
 										hx-target={ ContentID.Target() }
 										hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
 										hx-push-url="true"
-										class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content"
+										class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"
 									>
-										{ a.GetFeedTitle() }
+										<p class="truncate min-w-0">{ a.GetFeedTitle() }</p>
 									</a>
 								</div>
 							</li>
-							<li>
+							<li class="min-w-0">
 								<div class="flex items-center">
 									<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5 shrink-0 text-base-content/50">
 										<path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
 									</svg>
-									<a href="#" aria-current="page" class="ml-4 text-sm font-medium text-base-content/50 hover:text-base-content">{ a.GetTitle() }</a>
+									<a href="#" aria-current="page" class="ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"><p class="truncate min-w-0">{ a.GetTitle() }</p></a>
 								</div>
 							</li>
 						</ol>
 					</nav>
 				</div>
 			</div>
-			<article class="prose md:prose-lg lg:prose-xl dark:prose-invert prose-img:rounded-xl prose-img:object-scale-down prose-figure:rounded-xl prose-figure:object-scale-down prose-video:object-scale-down prose-video:max-w-screen">
+			<article class="prose dark:prose-invert prose-img:rounded-xl prose-img:object-scale-down prose-figure:rounded-xl prose-figure:object-scale-down prose-video:object-scale-down prose-video:max-w-screen">
 				<a href={ a.GetLink() } class="link link-hover">
-					<h2 class="text-2xl/7 font-bold text-pretty sm:text-3xl sm:tracking-tight">{ a.GetTitle() }</h2>
+					<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ a.GetTitle() }</h2>
 				</a>
 				<section id="article-info" class="flex items-center justify-between">
 					@a.articleInfo()
