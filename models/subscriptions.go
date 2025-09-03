@@ -314,6 +314,11 @@ func (s *EditSubscriptionRequest) Sanitise() error {
 	return nil
 }
 
+// HasError wil return true if the subscription request has errors associated with any of its fields.
+func (r *EditSubscriptionRequest) HasError() bool {
+	return r.NicknameErr != nil || r.CategoriesErr != nil || r.ImageErr != nil
+}
+
 // Valid returns a boolean indicating whether the object is valid.
 func (r *MarkSubscriptionsRequest) Valid() (bool, error) {
 	if r == nil {

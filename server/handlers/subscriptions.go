@@ -372,15 +372,10 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		case http.MethodPut: // PUT: save subscription request.
 			request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
 			if err != nil || !valid {
-				msg := &models.UserMessage{
-					Status:  models.UserMessageStatusError,
-					Summary: "Invalid or missing inputs.",
-					Details: "There are problems with the input. Please check and try again.",
-				}
-				resp := models.RespInternalServerError(err,
-					buildTemplate(templ.Join(pages.EditSubscription(request), partials.Notification(msg))),
-				)
-				chain.Then(render(resp)).ServeHTTP(res, req)
+				chain.Then(render(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(pages.EditSubscription(request))))).ServeHTTP(res, req)
 				return
 			}
 			// Update the subscription metadata.
@@ -389,15 +384,12 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			metadata.Customisation.Categories = request.Categories
 			err = user.UpdateSubscription(metadata)
 			if err != nil {
-				msg := &models.UserMessage{
-					Status:  models.UserMessageStatusError,
-					Summary: "Could not edit subscription.",
-					Details: "The backend reported an issue while trying to save your edits. Please try again.",
-				}
-				resp := models.RespInternalServerError(err,
-					buildTemplate(templ.Join(pages.EditSubscription(request), partials.Notification(msg))),
-				)
-				chain.Then(render(resp)).ServeHTTP(res, req)
+				msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
+				template := templ.Join(pages.EditSubscription(request), partials.Notification(msg))
+				chain.Then(render(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 				return
 			}
 			// Update the user.
@@ -405,18 +397,15 @@ func (a *API) EditSubscription() http.HandlerFunc {
 				"subscriptions": user.GetSubscriptionMetadata(),
 			})
 			if err != nil {
-				msg := &models.UserMessage{
-					Status:  models.UserMessageStatusError,
-					Summary: "Could not edit subscription.",
-					Details: "The backend reported an issue while trying to save your edits. Please try again.",
-				}
-				resp := models.RespInternalServerError(err,
-					buildTemplate(templ.Join(pages.EditSubscription(request), partials.Notification(msg))),
-				)
-				chain.Then(render(resp)).ServeHTTP(res, req)
+				msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
+				template := templ.Join(pages.EditSubscription(request), partials.Notification(msg))
+				chain.Then(render(models.NewResponse(
+					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+					models.WithResponseError(err),
+					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
 				return
 			}
-			template = buildTemplate(templ.Join(pages.EditSubscription(request), partials.EditSubscriptionSuccessNotification(metadata)))
+			template = buildTemplate(templ.Join(pages.EditSubscription(request), pages.EditSubscriptionSuccessNotification(metadata)))
 		}
 		chain.Then(render(
 			models.NewResponse(models.WithResponseTemplate(template)),

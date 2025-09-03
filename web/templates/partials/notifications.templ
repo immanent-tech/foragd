@@ -4,15 +4,25 @@
 package partials
 
 import (
+	"context"
 	"github.com/immanent-tech/go-feed-me/models"
 	nanoid "github.com/matoous/go-nanoid/v2"
 )
+
+const notificationIDCtxKey partialsCtxKey = "notificationID"
+
+func GetNotificationIDFromCtx(ctx context.Context) string {
+	id, _ := ctx.Value(notificationIDCtxKey).(string)
+	return id
+}
 
 // Notification renders a notification with the given user message.
 templ Notification(msg *models.UserMessage) {
 	// Generate a random id for this notification (to allow hyperscript to remove by id).
 	{{ id, _ := nanoid.New() }}
 	{{ id = "notification-" + id }}
+	// Add the id to the context to allow children to know this notification's id.
+	{{ ctx = context.WithValue(ctx, notificationIDCtxKey, id) }}
 	<div hx-swap-oob={ "beforeend:" + NotificationsID.Target() }>
 		<div
 			id={ id }
