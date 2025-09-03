@@ -58,12 +58,18 @@ func MultiMatch(value string, fields ...string) Option {
 	}
 }
 
-func MoreLikeThisString(value string, fields ...string) Option {
+// MoreLikeThisDoc adds a "More Like This" query on the given fields that match the given documents.
+//
+// https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-mlt-query
+func MoreLikeThisDoc(fields []string, ids []string) Option {
 	return func(query *types.Query) {
+		likeDocs := make([]types.Like, 0, len(ids))
+		for id := range slices.Values(ids) {
+			likeDocs = append(likeDocs, types.LikeDocument{Id_: &id})
+		}
 		mlt := types.NewMoreLikeThisQuery()
-		mlt.Like = []types.Like{types.Like(value)}
+		mlt.Like = likeDocs
 		mlt.Fields = fields
-
 		query.MoreLikeThis = mlt
 	}
 }

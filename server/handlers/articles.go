@@ -27,6 +27,7 @@ import (
 	"github.com/immanent-tech/go-feed-me/server/session"
 	"github.com/immanent-tech/go-feed-me/web/templates"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
+	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 	"github.com/immanent-tech/go-feed-me/web/templates/views"
 )
@@ -276,27 +277,20 @@ func (a *API) ViewArticle() http.HandlerFunc {
 	}
 }
 
-func generateItemsQuery(ctx context.Context, filters models.Filters, subscriptions ...models.SubscriptionID) (query.Option, error) {
-	user, found := models.UserFromCtx(ctx)
-	if !found {
-		return nil, fmt.Errorf("generateItemsQuery: %w", ErrNoCtxData)
-	}
-	// Search through items matching any given feeds filters, excluding any read
-	// items.
-	meta := user.GetSubscriptionMetadata().FilterByIDs(subscriptions...)
-	return query.Bool(
-		query.BoolQueryName("get_items"),
-		query.Filter(
-			// Must match any of the given feed IDs.
-			query.Terms("feed_id", meta.GetFeedIDs()...),
-			// Must match any of the given categories.
-			query.Terms("categories.raw", filters.GetCategories()...),
-			// And should match one feed clause.
-			query.Bool(
-				query.Should(buildSubscriptionQueries(user, filters.GetView(), meta...)...),
-			),
-		),
-	), nil
+// FindSimilarArticles handles finding other articles that are "similar" to a set of given articles.
+func (a *API) FindSimilarArticles() http.HandlerFunc {
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		itemID := chi.URLParam(req, "item")
+		articles, err := a.getSimilarArticles(req.Context(), itemID)
+		if err != nil {
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		template := pages.SimilarArticles(articles)
+		render(models.NewResponse(models.WithResponseTemplate(template))).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
 }
 
 func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters) (models.Articles, models.Pagination, error) {
@@ -353,6 +347,21 @@ func (a *API) getArticles(ctx context.Context, itemIDs ...models.ItemID) (models
 	articles, err := models.GenerateArticles(ctx, items)
 	if err != nil {
 		return nil, fmt.Errorf("getArticles: %w", err)
+	}
+
+	return articles, nil
+}
+
+func (a *API) getSimilarArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
+	fields := []string{"title", "description"}
+	query := query.MoreLikeThisDoc(fields, itemIDs)
+	items, _, err := a.DataAPI().SearchItems(ctx, query, 10, nil, nil)
+	if err != nil {
+		return nil, fmt.Errorf("getSimilarArticles: search failed: %w", err)
+	}
+	articles, err := models.GenerateArticles(ctx, items)
+	if err != nil {
+		return nil, fmt.Errorf("getSimilarArticles: generate articles failed: %w", err)
 	}
 
 	return articles, nil
@@ -449,4 +458,27 @@ func saveArticleFilters(next http.Handler) http.Handler {
 		session.FiltersToSession(req.Context(), articleFiltersFromCtx(req.Context()))
 		next.ServeHTTP(res, req)
 	})
+}
+
+func generateItemsQuery(ctx context.Context, filters models.Filters, subscriptions ...models.SubscriptionID) (query.Option, error) {
+	user, found := models.UserFromCtx(ctx)
+	if !found {
+		return nil, fmt.Errorf("generateItemsQuery: %w", ErrNoCtxData)
+	}
+	// Search through items matching any given feeds filters, excluding any read
+	// items.
+	meta := user.GetSubscriptionMetadata().FilterByIDs(subscriptions...)
+	return query.Bool(
+		query.BoolQueryName("get_items"),
+		query.Filter(
+			// Must match any of the given feed IDs.
+			query.Terms("feed_id", meta.GetFeedIDs()...),
+			// Must match any of the given categories.
+			query.Terms("categories.raw", filters.GetCategories()...),
+			// And should match one feed clause.
+			query.Bool(
+				query.Should(buildSubscriptionQueries(user, filters.GetView(), meta...)...),
+			),
+		),
+	), nil
 }

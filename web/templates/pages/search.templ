@@ -136,3 +136,23 @@ templ articleSearchResult(article *partials.Article) {
 		</p>
 	</li>
 }
+
+// SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
+templ SimilarArticles(articles models.Articles) {
+	<ul role="list">
+		if len(articles) > 0 {
+			<div class="flex items-center">
+				<div class="relative flex justify-start">
+					<span class="pr-3 text-base font-semibold text-base-content">Similar Articles</span>
+				</div>
+				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+			</div>
+			<ul id="article-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+				for article := range slices.Values(articles) {
+					@articleSearchResult(partials.NewArticleContent(article))
+				}
+			</ul>
+		}
+	</ul>
+	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
+}
