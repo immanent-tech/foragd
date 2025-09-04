@@ -84,59 +84,47 @@ templ (s *Subscription) title() {
 
 // actionsMenu renders a dropdown menu containing actions specific to the subscription (e.g. mark, share, favorite).
 templ (s *Subscription) actionsMenu() {
-	// Actions menu.
-	<el-dropdown class="relative ml-auto">
-		<button class="relative block text-base-content/80 hover:text-accent">
-			<span class="absolute -inset-2.5"></span>
-			<span class="sr-only">Open actions</span>
-			@HeroIconContextMenu("size-5")
-		</button>
-		<el-menu
-			anchor="bottom end"
-			popover
-			class="w-52 bg-base-300 ring-base-content/20 origin-top-right rounded-md py-2 shadow-lg ring-1 transition transition-discrete [--anchor-gap:--spacing(0.5)] focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
-		>
-			// View action.
-			<a href={ s.GetLink() } class="menu-item">
-				@HeroIconExternalLink("size-4")
-				Feed Website
-			</a>
-			// Mark action.
-			@s.markLink("menu-item") {
-				switch s.IsUnread() {
+	@ContextMenu(s.GetTitle() + " Actions") {
+		// View action.
+		<a href={ s.GetLink() } class="menu-item">
+			@HeroIconExternalLink("size-4")
+			Feed Website
+		</a>
+		// Mark action.
+		@s.markLink("menu-item") {
+			switch s.IsUnread() {
+				case true:
+					@HeroIconMarkRead("size-4")
+					Mark Read
+				case false:
+					@HeroIconMarkUnread("size-4")
+					Mark Unread
+			}
+		}
+		// Edit action.
+		@s.editLink("menu-item") {
+			@HeroIconEdit("size-4")
+			Edit Subscription
+		}
+		// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+		<div id={ "favorite_" + s.GetID() }>
+			@s.favoriteLink("menu-item") {
+				switch s.Favorite {
 					case true:
-						@HeroIconMarkRead("size-4")
-						Mark Read
+						@HeroIconHeartFilled("size-4")
+						Remove Favorite
 					case false:
-						@HeroIconMarkUnread("size-4")
-						Mark Unread
+						@HeroIconHeart("size-4")
+						Add Favorite
 				}
 			}
-			// Edit action.
-			@s.editLink("menu-item") {
-				@HeroIconEdit("size-4")
-				Edit Subscription
-			}
-			// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-			<div id={ "favorite_" + s.GetID() }>
-				@s.favoriteLink("menu-item") {
-					switch s.Favorite {
-						case true:
-							@HeroIconHeartFilled("size-4")
-							Remove Favorite
-						case false:
-							@HeroIconHeart("size-4")
-							Add Favorite
-					}
-				}
-			</div>
-			// Unsubscribe action.
-			@s.unsubscribeLink("menu-item") {
-				@HeroIconTrash("size-4")
-				Remove Subscription
-			}
-		</el-menu>
-	</el-dropdown>
+		</div>
+		// Unsubscribe action.
+		@s.unsubscribeLink("menu-item") {
+			@HeroIconTrash("size-4")
+			Remove Subscription
+		}
+	}
 }
 
 templ (c *Subscription) image() {

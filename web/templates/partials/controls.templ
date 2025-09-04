@@ -103,7 +103,8 @@ templ (c ListControls) Template() {
 				<h2 id="filter-heading" class="sr-only">Filters</h2>
 				<div class="flex items-center justify-between">
 					// Sort Options.
-					<button class="group inline-flex justify-center text-sm font-medium hover:text-accent" popovertarget="sort-menu" type="button">
+					<button class="group inline-flex justify-center btn btn-ghost hover:text-accent" popovertarget="sort-menu" type="button">
+						<span class="sr-only">Sort options</span>
 						Sort
 						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent">
 							<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
@@ -121,14 +122,18 @@ templ (c ListControls) Template() {
 							</div>
 						</fieldset>
 					</el-popover>
-					<button type="button" command="show-modal" commandfor="mobile-filters" class="inline-block text-sm font-medium hover:text-accent sm:hidden">Filters</button>
+					<button type="button" command="show-modal" commandfor="mobile-filters" class="inline-block btn btn-ghost hover:text-accent sm:hidden">
+						<span class="sr-only">Filter options</span>
+						Filters
+					</button>
 					// Desktop Filters.
 					<el-popover-group class="hidden sm:flex sm:items-baseline sm:space-x-8">
 						// Category Filters (desktop).
 						if len(c.Categories.GetTopCategories(10)) > 0 {
 							<div class="relative inline-block text-left">
 								<div>
-									<button popovertarget="desktop-menu-category" class="group inline-flex items-center justify-center text-sm font-medium hover:text-accent">
+									<button popovertarget="desktop-menu-category" class="group inline-flex items-center justify-center btn btn-ghost hover:text-accent">
+										<span class="sr-only">Category filters</span>
 										<span>Category</span>
 										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent">
 											<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
@@ -162,7 +167,8 @@ templ (c ListControls) Template() {
 						// View Filters (desktop).
 						<div class="relative inline-block text-left">
 							<div>
-								<button popovertarget="desktop-menu-view" class="group inline-flex items-center justify-center text-sm font-medium hover:text-accent">
+								<button popovertarget="desktop-menu-view" class="group inline-flex items-center justify-center btn btn-ghost hover:text-accent">
+									<span class="sr-only">View filters</span>
 									<span>View</span>
 									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent">
 										<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>

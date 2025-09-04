@@ -21,7 +21,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 			<ul id="subscription-favorites-list">
 				for fav := range slices.Values(subscriptions) {
 					<li>
-						@FavoriteLink(fav, "group inactive-link")
+						@FavoriteLink(fav, "group drawer-sidebar-link")
 					</li>
 				}
 			</ul>
@@ -32,7 +32,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 			<ul id="articles-favorites-list">
 				for fav := range slices.Values(articles) {
 					<li>
-						@FavoriteLink(fav, "group inactive-link")
+						@FavoriteLink(fav, "group drawer-sidebar-link")
 					</li>
 				}
 			</ul>
@@ -43,7 +43,7 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 			<ul id="searches-favorites-list">
 				for fav := range slices.Values(searches) {
 					<li>
-						@FavoriteLink(fav, "group inactive-link")
+						@FavoriteLink(fav, "group drawer-sidebar-link")
 					</li>
 				}
 			</ul>

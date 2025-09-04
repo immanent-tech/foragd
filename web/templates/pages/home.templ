@@ -36,7 +36,7 @@ templ (page *Home) Template() {
 			<ul role="list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
 				for search := range slices.Values(page.Favorites.FilterByType(models.FavoriteTypeSearch)) {
 					<li class="col-span-1 flex rounded-md">
-						@partials.FavoriteLink(search, "group inactive-link")
+						@partials.FavoriteLink(search, "group drawer-sidebar-link")
 					</li>
 				}
 			</ul>
@@ -46,7 +46,7 @@ templ (page *Home) Template() {
 			<ul role="list" class="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 lg:grid-cols-4">
 				for search := range slices.Values(page.Favorites.FilterByType(models.FavoriteTypeSubscription)) {
 					<li class="col-span-1 flex rounded-md">
-						@partials.FavoriteLink(search, "group inactive-link")
+						@partials.FavoriteLink(search, "group drawer-sidebar-link")
 					</li>
 				}
 			</ul>

@@ -39,14 +39,6 @@
   @apply link link-hover bg-accent/20 text-accent-content flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
 }
 
-@utility inactive-link {
-  @apply link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
-}
-
-@utility app-default-transitions {
-  @apply transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in;
-}
-
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
@@ -61,6 +53,10 @@
   .drawer-sidebar {
     @apply w-72;
   }
+  .drawer-sidebar-link {
+    @apply link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
+  }
+
   .drawer-content-area {
     @apply mx-auto mb-12 max-w-svw px-4 sm:max-w-7xl sm:px-6 lg:px-8;
   }
