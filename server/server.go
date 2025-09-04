@@ -165,7 +165,7 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 				r.With(middlewares.RequireHTMX).Post("/add", handler.AddSubscription())
 				// Edit subscription.
 				r.Get("/edit/{subscription}", handler.EditSubscription())
-				r.With(middlewares.RequireHTMX).Put("/edit/{subscription}", handler.EditSubscription())
+				r.With(middlewares.RequireHTMX).Put("/edit/{subscription}", handler.SaveSubscription())
 				// Remove subscription (unsubscribe).
 				r.Get("/remove/{subscription}", handler.RemoveSubscription())
 				r.With(middlewares.RequireHTMX).Post("/remove/{subscription}", handler.RemoveSubscription())

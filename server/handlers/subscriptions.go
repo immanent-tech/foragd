@@ -324,93 +324,86 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 	}
 }
 
-// EditSubscription handles fetching and presenting the customisation data for a subscription, for the user to edit.
+// EditSubscription handles presenting the user with a form for editing a subscription.
 func (a *API) EditSubscription() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
-		// Function to generate appropriate layout.
-		buildTemplate := func(template templ.Component) templ.Component {
-			switch {
-			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-				return template
-			default:
-				// Show full page.
-				return templates.Page(
-					"Edit Subscription - Go Feed Me",
-					layouts.Drawer(template),
-				)
-			}
-		}
+	return alice.New(
+		routeLogger,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.URLParamSubscription)
 		// Retrieve user object.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			chain.Then(render(RespForbidden())).ServeHTTP(res, req)
+			render(RespForbidden()).ServeHTTP(res, req)
 			return
 		}
-		var template templ.Component
-		switch req.Method {
-		case http.MethodGet: // GET: display edit subscription form.
-			metadata := user.GetSubscriptionMetadata().GetByID(id)
-			request := &models.EditSubscriptionRequest{
-				SubscriptionID: id,
-				Nickname:       metadata.Customisation.Nickname,
-				Categories:     metadata.Customisation.Categories,
-			}
-			// Get top categories across items in subscription feed and add as suggested categories for the
-			// subscription.
-			categories, resp := a.getItemTopCategories(req.Context(), metadata.GetFeedID())
-			if resp == nil {
-				request.SuggestedCategories = categories
-			}
-			// Generate page template.
-			template = buildTemplate(pages.EditSubscription(request))
-		case http.MethodPut: // PUT: save subscription request.
-			request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
-			if err != nil || !valid {
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(pages.EditSubscription(request))))).ServeHTTP(res, req)
-				return
-			}
-			// Update the subscription metadata.
-			metadata := user.GetSubscriptionMetadata().GetByID(request.SubscriptionID)
-			metadata.Customisation.Nickname = request.Nickname
-			metadata.Customisation.Categories = request.Categories
-			err = user.UpdateSubscription(metadata)
-			if err != nil {
-				msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
-				template := templ.Join(pages.EditSubscription(request), partials.Notification(msg))
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
-				return
-			}
-			// Update the user.
-			err = a.updateUser(req.Context(), map[string]any{
-				"subscriptions": user.GetSubscriptionMetadata(),
-			})
-			if err != nil {
-				msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
-				template := templ.Join(pages.EditSubscription(request), partials.Notification(msg))
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
-				return
-			}
-			template = buildTemplate(templ.Join(pages.EditSubscription(request), pages.EditSubscriptionSuccessNotification(metadata)))
+		metadata := user.GetSubscriptionMetadata().GetByID(id)
+		request := &models.EditSubscriptionRequest{
+			SubscriptionID: id,
+			Nickname:       metadata.Customisation.Nickname,
+			Categories:     metadata.Customisation.Categories,
 		}
-		chain.Then(render(
-			models.NewResponse(models.WithResponseTemplate(template)),
-		)).ServeHTTP(res, req)
-	}
+		// Get top categories across items in subscription feed and add as suggested categories for the
+		// subscription.
+		categories, resp := a.getItemTopCategories(req.Context(), metadata.GetFeedID())
+		if resp == nil {
+			request.SuggestedCategories = categories
+		}
+		// Generate page template.
+		template := pages.EditSubscription(request)
+		render(models.NewResponse(models.WithResponseTemplate(template))).ServeHTTP(res, req)
+	}).ServeHTTP
+}
+
+// SaveSubscription handles saving the edits made by a user to a subscription.
+func (a *API) SaveSubscription() http.HandlerFunc {
+	return alice.New(
+		routeLogger,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Retrieve user object.
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			render(RespForbidden()).ServeHTTP(res, req)
+			return
+		}
+		request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
+		if err != nil || !valid {
+			render(models.NewResponse(
+				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+				models.WithResponseError(err),
+				models.WithResponseTemplate(pages.EditSubscription(request)))).ServeHTTP(res, req)
+			return
+		}
+		// Update the subscription metadata.
+		metadata := user.GetSubscriptionMetadata().GetByID(request.SubscriptionID)
+		metadata.Customisation.Nickname = request.Nickname
+		metadata.Customisation.Categories = request.Categories
+		err = user.UpdateSubscription(metadata)
+		if err != nil {
+			msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
+			template := templ.Join(pages.EditSubscription(request), partials.Notification(msg))
+			render(models.NewResponse(
+				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+				models.WithResponseError(err),
+				models.WithResponseTemplate(template))).ServeHTTP(res, req)
+			return
+		}
+		// Update the user.
+		err = a.updateUser(req.Context(), map[string]any{
+			"subscriptions": user.GetSubscriptionMetadata(),
+		})
+		if err != nil {
+			msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
+			template := templ.Join(pages.EditSubscription(request), partials.Notification(msg))
+			render(models.NewResponse(
+				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
+				models.WithResponseError(err),
+				models.WithResponseTemplate(template))).ServeHTTP(res, req)
+			return
+		}
+		template := templ.Join(pages.EditSubscription(request), pages.EditSubscriptionSuccessNotification(metadata))
+		render(models.NewResponse(models.WithResponseTemplate(template))).ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
 // RemoveSubscription handles presenting the user with confirmation and then actioning a subscription removal
