@@ -42,11 +42,20 @@ func (a *API) Login() http.HandlerFunc {
 		if err != nil {
 			url, err := a.Auth.GetAuthURL(req)
 			if err != nil {
-				render(RespBackendError(err)).ServeHTTP(res, req)
+				resp := models.NewResponse(
+					models.WithResponseError(err),
+					models.WithResponseTemplate(pages.Error(
+						models.NewErrorMessage("Unable to log in.", ""),
+					)),
+					models.WithResponseStatusCode(http.StatusForbidden),
+				)
+				render(resp).ServeHTTP(res, req)
 				return
 			}
 			slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
-				slog.String("provider", provider))
+				slog.String("provider", provider),
+				slog.String("url", url),
+			)
 			http.Redirect(res, req, url, http.StatusTemporaryRedirect)
 			return
 		}
@@ -67,13 +76,21 @@ func (a *API) LoginCallback() http.HandlerFunc {
 		a.Auth.SetProviderName(req.Context(), provider)
 		err := a.Auth.CompleteUserAuth(res, req)
 		if err != nil {
-			render(RespBackendError(err)).ServeHTTP(res, req)
+			resp := models.NewResponse(
+				models.WithResponseError(err),
+				models.WithResponseTemplate(pages.Error(
+					models.NewErrorMessage("Unable to log in.", ""),
+				)),
+				models.WithResponseStatusCode(http.StatusForbidden),
+			)
+			render(resp).ServeHTTP(res, req)
 			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("User logged in.")
 		req.Header.Add("Content-Type", "")
 		// Sync user data from the backend.
 		a.syncUser(req.Context())
+		slogctx.FromCtx(req.Context()).Debug("Redirecting")
 		http.Redirect(res, req, "/home", http.StatusTemporaryRedirect)
 	}).ServeHTTP
 }
