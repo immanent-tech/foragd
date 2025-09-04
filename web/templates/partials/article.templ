@@ -62,12 +62,12 @@ templ (a *Article) Card(view models.View) {
 					@a.articleInfo()
 					@ContextMenu(a.GetTitle() + " Actions") {
 						// View action.
-						<a href={ a.GetLink() } class="flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link">
+						<a href={ a.GetLink() } class="menu-item">
 							@HeroIconExternalLink("size-4")
 							Original Article
 						</a>
 						// Find similar action.
-						<a hx-post={ "/subscription/" + a.GetFeedID() + "/article/" + a.GetID() + "/similar" } hx-target={ ContentID.Target() } class="flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link">
+						<a hx-post={ "/subscription/" + a.GetFeedID() + "/article/" + a.GetID() + "/similar" } hx-target={ ContentID.Target() } class="menu-item">
 							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
 								<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
 							</svg>
@@ -75,7 +75,7 @@ templ (a *Article) Card(view models.View) {
 						</a>
 						// Mark action.
 						if view == models.ViewAll {
-							@a.markLink("#"+a.GetID(), "outerHTML", "flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
+							@a.markLink("#"+a.GetID(), "outerHTML", "menu-item") {
 								switch a.IsUnread() {
 									case true:
 										@HeroIconMarkRead("size-4")
@@ -86,7 +86,7 @@ templ (a *Article) Card(view models.View) {
 								}
 							}
 						} else {
-							@a.markLink("#"+a.GetID(), "delete", "flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
+							@a.markLink("#"+a.GetID(), "delete", "menu-item") {
 								switch a.IsUnread() {
 									case true:
 										@HeroIconMarkRead("size-4")
@@ -99,7 +99,7 @@ templ (a *Article) Card(view models.View) {
 						}
 						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 						<div id={ "favorite_" + a.GetID() }>
-							@a.favoriteLink("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
+							@a.favoriteLink("menu-item") {
 								switch a.Favorite {
 									case true:
 										@HeroIconHeartFilled("size-4")
@@ -111,7 +111,7 @@ templ (a *Article) Card(view models.View) {
 							}
 						</div>
 						// Share action.
-						@a.shareLink("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
+						@a.shareLink("menu-item") {
 							@HeroIconShare("size-4")
 							Share
 						}
@@ -255,10 +255,10 @@ templ (a *Article) Content() {
 // articleInfo renders additional information about the article, ideal to put under the title.
 templ (a *Article) articleInfo() {
 	<div class="flex flex-none text-sm/6 gap-x-4 items-center">
-		<p>
+		<p class="text-base-content/80">
 			@ShowTimestamp(a.GetUpdatedDate())
 		</p>
-		<p class="italic">
+		<p class="text-base-content/80 italic">
 			{ strings.Join(a.GetAuthors(),",") }
 		</p>
 	</div>
