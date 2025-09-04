@@ -21,44 +21,55 @@ func NewArticleContent(article *models.Article) *Article {
 
 // Card renders an article as a card, for displaying in a list.
 templ (a *Article) Card(view models.View) {
-	<li
-		id={ a.GetID() }
-		class={ "border-base-content/20 hover:border-base-content/40 bg-base-200 overflow-hidden rounded-xl border",
-			templ.KV("row-span-1", a.GetImage().URL == ""), templ.KV("md:row-span-2 md:col-span-1", a.GetImage().URL != ""),
+	<li id={ a.GetID() }>
+		<div
+			class={ "card-base",
+		templ.KV("row-span-1", a.GetImage().URL == ""), templ.KV("md:row-span-2 md:col-span-1", a.GetImage().URL != ""),
 			templ.KV("opacity-50",!a.IsUnread()) }
-	>
-		<article class="flex flex-col items-start justify-between p-4">
-			if a.GetImage().URL != "" {
-				@a.ViewLink() {
-					<div class="relative w-full">
-						<img
-							class="aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"
-							src={ a.GetImage().URL }
-							if a.GetImage().Title != "" {
-								alt={ a.GetImage().Title }
-							}
-						/>
-						<div class="inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
-					</div>
-					<div class="flex max-w-xl grow flex-col justify-between">
+		>
+			// Header.
+			<div class="px-4 py-5 sm:px-6">
+				if a.GetImage().URL != "" {
+					@a.ViewLink() {
+						<div class="relative w-full">
+							<img
+								class="aspect-video w-full rounded-2xl bg-base-content-10 object-cover sm:aspect-2/1 lg:aspect-3/2"
+								src={ a.GetImage().URL }
+								if a.GetImage().Title != "" {
+									alt={ a.GetImage().Title }
+								}
+							/>
+							<div class="inset-0 rounded-2xl inset-ring inset-ring-base-content/20"></div>
+						</div>
+						<div class="flex max-w-xl grow flex-col justify-between">
+							<div class="group relative grow">
+								<h3 class="mt-3 text-lg/6 font-semibold text-pretty">
+									{ a.GetTitle() }
+								</h3>
+							</div>
+						</div>
+					}
+				} else {
+					@a.ViewLink() {
 						<div class="group relative grow">
-							<h3 class="mt-3 text-lg/6 font-semibold">
+							<h3 class="mt-3 text-lg/6 font-semibold text-pretty">
 								{ a.GetTitle() }
 							</h3>
 						</div>
-					</div>
+					}
 				}
-			} else {
-				@a.ViewLink() {
-					<div class="group relative grow">
-						<h3 class="mt-3 text-lg/6 font-semibold">
-							{ a.GetTitle() }
-						</h3>
-					</div>
+			</div>
+			// Body.
+			<div class="px-4 py-5 sm:p-6">
+				if a.GetDescription() != "" {
+					<article class="prose prose-sm prose-img:hidden prose-figure:hidden dark:prose-invert line-clamp-3">
+						@templ.Raw(a.GetDescription())
+					</article>
 				}
-			}
-			<div class="mt-8 w-full">
-				<div class="flex items-center justify-between">
+			</div>
+			// Footer.
+			<div class="px-4 py-4 sm:px-6">
+				<div class="flex">
 					@a.articleInfo()
 					@ContextMenu(a.GetTitle() + " Actions") {
 						// View action.
@@ -118,12 +129,13 @@ templ (a *Article) Card(view models.View) {
 					}
 				</div>
 			</div>
-		</article>
+		</div>
 	</li>
 }
 
 // Content shows the full article content.
 templ (a *Article) Content() {
+	// Mobile breadcrumbs/navigation.
 	<div class="breadcrumbs-mobile">
 		<ul>
 			<li aria-label="Back">
@@ -166,12 +178,9 @@ templ (a *Article) Content() {
 			</li>
 		</ul>
 	</div>
-	<div
-		id={ a.GetID() }
-		class="grid grid-cols-1 items-center w-full sm:max-w-prose rounded-xl bg-base-200 p-4 mb-16"
-	>
-		// Mobile breadcrumbs/navigation.
-		<article class="article-text">
+	// Article.
+	<div class="flex justify-center not-only:bg-base-200 border border-base-content/20 rounded-xl">
+		<article id={ a.GetID() } class="prose dark:prose-invert px-4 py-4 sm:px-6">
 			<a href={ a.GetLink() } class="link link-hover">
 				<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ a.GetTitle() }</h2>
 			</a>

@@ -56,16 +56,8 @@
     @apply breadcrumbs text-base-content/80 hidden min-w-0 truncate text-sm font-medium sm:flex;
   }
 
-  .drawer-sidebar {
-    @apply w-72;
-  }
-
   .drawer-sidebar-link {
     @apply link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
-  }
-
-  .drawer-content-area {
-    @apply mx-auto mb-12 max-w-svw px-4 sm:max-w-7xl sm:px-6 lg:px-8;
   }
 
   .landing-backdrop {
@@ -101,6 +93,10 @@
   }
   .input-text-error {
     @apply input input-error bg-base-content/10;
+  }
+
+  .card-base {
+    @apply bg-base-200 border-base-content/20 hover:border-base-content/40 overflow-hidden rounded-lg border shadow-sm dark:shadow-none;
   }
 
   .responsive-img {
@@ -142,9 +138,5 @@
         translate: 0 10px;
       }
     }
-  }
-
-  .article-text {
-    @apply prose dark:prose-invert;
   }
 }
