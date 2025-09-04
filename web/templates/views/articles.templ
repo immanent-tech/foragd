@@ -33,7 +33,7 @@ templ (page *ArticlesPage) Content() {
 		}
 	</div>
 	// Mobile breadcrumbs/navigation.
-	<div class="breadcrumbs text-sm font-medium text-base-content/80 sm:hidden">
+	<div class="breadcrumbs-mobile">
 		<ul>
 			<li aria-label="Back">
 				<a _="on click call history.back()" class="link link-hover flex items-center text-sm font-medium text-base-content/50 hover:text-base-content">
@@ -46,9 +46,9 @@ templ (page *ArticlesPage) Content() {
 		</ul>
 	</div>
 	// Desktop breadcrumbs/navigation.
-	<div class="breadcrumbs text-sm font-medium text-base-content/80 hidden sm:flex">
+	<div class="breadcrumbs-desktop">
 		<ul>
-			<li>
+			<li aria-label="Subscriptions">
 				<a
 					hx-get="/subscriptions"
 					hx-target={ partials.ContentID.Target() }
