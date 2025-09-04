@@ -60,7 +60,7 @@ func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite
 	}
 	// Add any appropriate feed customisation data.
 	if state.Customisation.Nickname != "" {
-		item.FeedTitle = state.Customisation.Nickname
+		article.Item.FeedTitle = state.Customisation.Nickname
 	}
 	// 	Update read status.
 	if item.GetPublishedDate().Before(state.MarkedReadAt) {
