@@ -103,32 +103,24 @@ templ (c ListControls) Template() {
 				<h2 id="filter-heading" class="sr-only">Filters</h2>
 				<div class="flex items-center justify-between">
 					// Sort Options.
-					<div class="flex-1 align-start">
-						<button class="group inline-flex justify-center text-sm font-medium hover:text-accent" popovertarget="sort-menu" type="button">
-							Sort
-							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent">
-								<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-							</svg>
-						</button>
-						<el-popover popover id="sort-menu" anchor="bottom start" popover class="controls-popover">
-							<fieldset>
-								<div class="space-y-4">
-									@sortOption(c.Path, models.SortLastUpdatedDesc, c.Filters.GetSort())
-									@sortOption(c.Path, models.SortLastUpdatedAsc, c.Filters.GetSort())
-									if c.Path == "/subscriptions" {
-										@sortOption(c.Path, models.SortUnreadCountDesc, c.Filters.GetSort())
-										@sortOption(c.Path, models.SortUnreadCountAsc, c.Filters.GetSort())
-									}
-								</div>
-							</fieldset>
-						</el-popover>
-					</div>
-					<button class="inline-block text-sm font-medium hover:text-accent">
-						<span>Mark All read</span>
+					<button class="group inline-flex justify-center text-sm font-medium hover:text-accent" popovertarget="sort-menu" type="button">
+						Sort
 						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent">
 							<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
 						</svg>
 					</button>
+					<el-popover popover id="sort-menu" anchor="bottom start" popover class="controls-popover">
+						<fieldset>
+							<div class="space-y-4">
+								@sortOption(c.Path, models.SortLastUpdatedDesc, c.Filters.GetSort())
+								@sortOption(c.Path, models.SortLastUpdatedAsc, c.Filters.GetSort())
+								if c.Path == "/subscriptions" {
+									@sortOption(c.Path, models.SortUnreadCountDesc, c.Filters.GetSort())
+									@sortOption(c.Path, models.SortUnreadCountAsc, c.Filters.GetSort())
+								}
+							</div>
+						</fieldset>
+					</el-popover>
 					<button type="button" command="show-modal" commandfor="mobile-filters" class="inline-block text-sm font-medium hover:text-accent sm:hidden">Filters</button>
 					// Desktop Filters.
 					<el-popover-group class="hidden sm:flex sm:items-baseline sm:space-x-8">

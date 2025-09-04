@@ -40,10 +40,7 @@ templ Drawer(content templ.Component) {
 	</el-dialog>
 	// Desktop: static sidebar.
 	<div class="hidden bg-base-200 lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-		<div
-			class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 bg-base-200/10 px-6 pb-4"
-			_="on intersection(intersecting) call document.getElementById('navigation-menu-desktop').show()"
-		>
+		<div class="flex grow flex-col gap-y-5 overflow-y-auto border-r border-base-content/10 bg-base-200/10 px-6 pb-4">
 			// TODO: replace me!
 			<div class="flex h-16 shrink-0 items-center">
 				@partials.Logo("h-8 w-auto")
@@ -51,7 +48,7 @@ templ Drawer(content templ.Component) {
 			@DrawerSidebar("flex flex-1 flex-col", "desktop")
 		</div>
 	</div>
-	<div class="lg:pl-72 pb:16">
+	<div class="lg:pl-72">
 		@Header()
 		<main id={ partials.ContentID.String() } class="drawer-content-area">
 			@content

@@ -26,7 +26,9 @@
     'cv03' 1,
     'cv04' 1,
     'cv11' 1;
+  --sidebar-width: var(--w-sm);
 }
+
 @supports (font-variation-settings: normal) {
   :root {
     font-family: InterVariable, sans-serif;
@@ -48,8 +50,11 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
+  .drawer-sidebar {
+    @apply w-72;
+  }
   .drawer-content-area {
-    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto mb-12 max-w-7xl px-4 sm:px-6 lg:px-8;
   }
 
   .landing-backdrop {

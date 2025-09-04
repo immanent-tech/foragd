@@ -32,43 +32,39 @@ templ (page *ArticlesPage) Content() {
 			<input type="hidden" name={ name } value={ value }/>
 		}
 	</div>
-	// Breadcrumbs/Navigation.
-	<div>
-		<nav aria-label="Back" class="sm:hidden">
-			<a _="on click call history.back()" class="link link-hover flex items-center text-sm font-medium text-base-content/50 hover:text-base-content">
-				<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1 -ml-1 size-5 shrink-0 text-base-content/50">
-					<path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" fill-rule="evenodd"></path>
-				</svg>
-				Back
-			</a>
-		</nav>
-		<nav aria-label="Breadcrumb" class="hidden sm:flex">
-			<ol role="list" class="flex items-center space-x-4">
+	// Mobile breadcrumbs/navigation.
+	<div class="breadcrumbs text-sm font-medium text-base-content/80 sm:hidden">
+		<ul>
+			<li aria-label="Back">
+				<a _="on click call history.back()" class="link link-hover flex items-center text-sm font-medium text-base-content/50 hover:text-base-content">
+					<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1 -ml-1 size-5 shrink-0 text-base-content/50">
+						<path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+					</svg>
+					Back
+				</a>
+			</li>
+		</ul>
+	</div>
+	// Desktop breadcrumbs/navigation.
+	<div class="breadcrumbs text-sm font-medium text-base-content/80 hidden sm:flex">
+		<ul>
+			<li>
+				<a
+					hx-get="/subscriptions"
+					hx-target={ partials.ContentID.Target() }
+					hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+					hx-push-url="true"
+					class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
+				>Subscriptions</a>
+			</li>
+			if len(page.filters.Subscriptions) > 0 {
 				<li>
-					<div class="flex">
-						<a
-							hx-get="/subscriptions"
-							hx-target={ partials.ContentID.Target() }
-							hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
-							hx-push-url="true"
-							class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
-						>Subscriptions</a>
-					</div>
+					<a href="#" class="ml-4 link link-hover text-sm font-medium text-base-content/50 hover:text-base-content">
+						{ page.articles[0].GetFeedTitle() }
+					</a>
 				</li>
-				if len(page.filters.Subscriptions) > 0 {
-					<li>
-						<div class="flex items-center">
-							<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="size-5 shrink-0 text-base-content/50">
-								<path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
-							</svg>
-							<a href="#" class="ml-4 link link-hover text-sm font-medium text-base-content/50 hover:text-base-content">
-								{ page.articles[0].GetFeedTitle() }
-							</a>
-						</div>
-					</li>
-				}
-			</ol>
-		</nav>
+			}
+		</ul>
 	</div>
 	<div id="update-notifications" sse-connect={ "/articles/updates?" + page.filters.Query() } sse-swap="message" class="toast toast-center z-50"></div>
 	@partials.ListControls{
