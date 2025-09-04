@@ -6,17 +6,27 @@ package server
 import (
 	"context"
 	"embed"
+	"errors"
 	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"strconv"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	gowebly "github.com/gowebly/helpers"
 	slogchi "github.com/samber/slog-chi"
+	slogctx "github.com/veqryn/slog-context"
 
 	"github.com/immanent-tech/go-feed-me/config"
+	"github.com/immanent-tech/go-feed-me/providers/auth0"
+	"github.com/immanent-tech/go-feed-me/providers/elastic"
+	"github.com/immanent-tech/go-feed-me/server/auth"
 	"github.com/immanent-tech/go-feed-me/server/handlers"
 	"github.com/immanent-tech/go-feed-me/server/middlewares"
 	"github.com/immanent-tech/go-feed-me/server/session"
@@ -56,7 +66,7 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 		ServerConfig.Secret = secret
 	}
 	// Set up handlers api.
-	api, err := handlers.SetupAPI(ctx)
+	api, err := setupAPI(ctx)
 	if err != nil {
 		return svr, fmt.Errorf("unable to set up handlers api: %w", err)
 	}
@@ -65,7 +75,7 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 
 	svr.Server = &http.Server{
 		Handler:           router,
-		Addr:              fmt.Sprintf(":%d", ServerConfig.Port),
+		Addr:              net.JoinHostPort(ServerConfig.Host, strconv.Itoa(ServerConfig.Port)),
 		ReadTimeout:       0,
 		WriteTimeout:      0,
 		IdleTimeout:       0,
@@ -75,6 +85,76 @@ func NewServer(ctx context.Context, static embed.FS) (Server, error) {
 	return svr, nil
 }
 
+// Start will start the server. It runs a background goroutine to safely shutdown the server when its context is
+// cancelled.
+func (s *Server) Start(ctx context.Context) error {
+	slogctx.FromCtx(ctx).Info("Starting server...",
+		slog.String("address", s.Addr),
+		slog.String("environment", config.Environment()))
+
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	// Listen for shutdown events and process them.
+	go func() {
+		wg.Done()
+
+		stop := make(chan os.Signal, 1)
+
+		signal.Notify(stop, os.Interrupt)
+		<-stop
+
+		err := s.Shutdown(context.Background())
+		// Can't do much here except for logging any errors
+		if err != nil {
+			slog.Error("Error occurred when trying to shut down server.",
+				slog.Any("error", err),
+			)
+		}
+	}()
+
+	// And we serve HTTP until the world ends.
+	err := s.ListenAndServeTLS(ServerConfig.CertFile, ServerConfig.KeyFile)
+	if errors.Is(err, http.ErrServerClosed) { // graceful shutdown
+		slogctx.FromCtx(ctx).Info("commencing server shutdown...")
+		wg.Wait()
+	} else if err != nil {
+		return fmt.Errorf("error shutting down server: %w", err)
+	}
+
+	return nil
+}
+
+// SetupAPI creates the object containing the various backend APIs needed by handlers.
+func setupAPI(ctx context.Context) (*handlers.API, error) {
+	// Load the auth0UserAPI backend.
+	auth0UserAPI, err := auth0.NewUserAPI(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to set up auth0 api: %w", err)
+	}
+	// Load the Elastic backend
+	elasticAPI, err := elastic.Connect(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("unable to set up elastic api: %w", err)
+	}
+	// Set up the session manager.
+	err = session.NewSessionManager(ctx, elasticAPI)
+	if err != nil {
+		return nil, fmt.Errorf("unable to set up session api: %w", err)
+	}
+	// Set up authentication manager.
+	authAPI, err := auth.NewAuthenticator(ctx, ServerConfig.Host, ServerConfig.Port)
+	if err != nil {
+		return nil, fmt.Errorf("unable to set up authentication api: %w", err)
+	}
+	return &handlers.API{
+		User:    auth0UserAPI,
+		Elastic: elasticAPI,
+		Auth:    authAPI,
+	}, nil
+}
+
+//nolint:funlen
 func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 	// Set up a new chi router.
 	router := chi.NewRouter()

@@ -66,14 +66,14 @@ func (u *UserAuth) GetEmail() string {
 type Authenticator struct{}
 
 // NewAuthenticator sets up a new authenticator instance for authenticating user sessions.
-func NewAuthenticator(ctx context.Context) (*Authenticator, error) {
+func NewAuthenticator(ctx context.Context, host string, port int) (*Authenticator, error) {
 	err := loadConfigOnce()
 	if err != nil {
 		return nil, fmt.Errorf("authenticator: %w", err)
 	}
 	authenticator := &Authenticator{}
 	goth.UseProviders(
-		auth0.New(auth0Config.ClientID, auth0Config.ClientSecret, auth0Config.domainURL(), auth0Config.Domain),
+		auth0.New(auth0Config.ClientID, auth0Config.ClientSecret, auth0Config.generateCallbackURL(host, port), auth0Config.Domain),
 	)
 	gothic.Store = authenticator
 	gothic.GetProviderName = authenticator.GetProviderName

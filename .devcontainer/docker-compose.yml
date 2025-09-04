@@ -21,7 +21,7 @@ services:
       - seccomp:unconfined
     hostname: devcontainer
     ports:
-      - $GOFEEDME_SERVER_PORT:$GOFEEDME_SERVER_PORT
+      - $GOFEEDME_server_port:$GOFEEDME_server_port
   stepca:
     env_file:
       - .env

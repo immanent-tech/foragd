@@ -5,6 +5,8 @@ package auth
 
 import (
 	"fmt"
+	"net"
+	"strconv"
 	"sync"
 
 	"github.com/immanent-tech/go-feed-me/config"
@@ -25,9 +27,11 @@ type Config struct {
 	ClientSecret string `toml:"client_secret"`
 }
 
-func (c *Config) domainURL() string {
-	// serverURI + "/login/auth0/callback"
-	return "https://localhost:7000/login/auth0/callback"
+func (c *Config) generateCallbackURL(host string, port int) string {
+	if host == "" {
+		host = "localhost"
+	}
+	return fmt.Sprintf("https://%s/login/auth0/callback", net.JoinHostPort(host, strconv.Itoa(port)))
 }
 
 // loadConfigOnce loads the auth0 configuration and ensures this is only done

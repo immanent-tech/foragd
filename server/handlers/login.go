@@ -37,10 +37,10 @@ func (a *API) Login() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		provider := chi.URLParam(req, "provider")
-		a.auth.SetProviderName(req.Context(), provider)
-		err := a.auth.CompleteUserAuth(res, req)
+		a.Auth.SetProviderName(req.Context(), provider)
+		err := a.Auth.CompleteUserAuth(res, req)
 		if err != nil {
-			url, err := a.auth.GetAuthURL(req)
+			url, err := a.Auth.GetAuthURL(req)
 			if err != nil {
 				render(RespBackendError(err)).ServeHTTP(res, req)
 				return
@@ -64,8 +64,8 @@ func (a *API) LoginCallback() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		provider := chi.URLParam(req, "provider")
-		a.auth.SetProviderName(req.Context(), provider)
-		err := a.auth.CompleteUserAuth(res, req)
+		a.Auth.SetProviderName(req.Context(), provider)
+		err := a.Auth.CompleteUserAuth(res, req)
 		if err != nil {
 			render(RespBackendError(err)).ServeHTTP(res, req)
 			return
@@ -81,7 +81,7 @@ func (a *API) LoginCallback() http.HandlerFunc {
 // syncUser tries to sync relevant user data from the auth backend to the local data.
 func (a *API) syncUser(ctx context.Context) {
 	// Get the backend data.
-	userAuth, found := a.auth.GetUserAuth(ctx)
+	userAuth, found := a.Auth.GetUserAuth(ctx)
 	if !found {
 		slogctx.FromCtx(ctx).Error("Could not sync user data, user auth not found.")
 		return

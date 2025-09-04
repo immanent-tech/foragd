@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	serverConfigEnvPrefix = config.ConfigEnvPrefix + "_SERVER"
+	serverConfigEnvPrefix = config.ConfigEnvPrefix
 	serverConfigPrefix    = "server"
 )
 
@@ -33,7 +33,14 @@ var defaultCSP = []string{
 
 // Define default server configuration options.
 var ServerConfig = &Config{
-	Port:         7000,
+	// Host is the hostname to listen on.
+	Host: "",
+	// Port is the port to listen on.
+	Port: 7000,
+	// CertFile points to the file containing a server certificate.
+	CertFile: "localhost.crt",
+	// KeyFile points to the file containing a server key.
+	KeyFile:      "localhost.key",
 	ReadTimeout:  5 * time.Second,
 	WriteTimeout: 10 * time.Second,
 	CSP:          defaultCSP,
@@ -43,11 +50,14 @@ var ErrLoadConfig = errors.New("error loading config")
 
 // Config contains the server configuration options.
 type Config struct {
-	Secret       string        `toml:"app.secret"`
-	CSP          []string      `toml:"server.csp"`
-	Port         int           `toml:"server.port"`
-	ReadTimeout  time.Duration `toml:"server.read_timeout"`
-	WriteTimeout time.Duration `toml:"server.write_timeout"`
+	Secret       string        `toml:"app_secret"`
+	CSP          []string      `toml:"server_csp"`
+	Port         int           `toml:"server_port"`
+	Host         string        `toml:"server_host"`
+	CertFile     string        `toml:"server_crt"`
+	KeyFile      string        `toml:"server_key"`
+	ReadTimeout  time.Duration `toml:"server_read_timeout"`
+	WriteTimeout time.Duration `toml:"server_write_timeout"`
 }
 
 func randomBase16String(length int) (string, error) {
