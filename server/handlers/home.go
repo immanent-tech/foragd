@@ -75,6 +75,7 @@ func (a *API) getHomePageData(ctx context.Context) (*pages.Home, *models.Respons
 	if !found {
 		return data, models.RespErrUnauthorized()
 	}
+	data.User = user
 	data.Favorites = user.GetFavorites()
 	// User has no subscriptions, show empty page
 	if len(user.GetSubscriptionMetadata()) == 0 {
