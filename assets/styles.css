@@ -50,11 +50,19 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
+  .breadcrumbs-mobile {
+    @apply breadcrumbs text-base-content/80 text-sm font-medium sm:hidden;
+  }
+
+  .breadcrumbs-desktop {
+    @apply breadcrumbs text-base-content/80 hidden min-w-0 truncate text-sm font-medium sm:flex;
+  }
+
   .drawer-sidebar {
     @apply w-72;
   }
   .drawer-content-area {
-    @apply mx-auto mb-12 max-w-7xl px-4 sm:px-6 lg:px-8;
+    @apply mx-auto mb-12 max-w-svw px-4 sm:max-w-7xl sm:px-6 lg:px-8;
   }
 
   .landing-backdrop {
@@ -131,5 +139,9 @@
         translate: 0 10px;
       }
     }
+  }
+
+  .article-text {
+    @apply prose dark:prose-invert;
   }
 }

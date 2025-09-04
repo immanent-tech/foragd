@@ -124,143 +124,141 @@ templ (a *Article) Card(view models.View) {
 
 // Content shows the full article content.
 templ (a *Article) Content() {
+	<div class="breadcrumbs-mobile">
+		<ul>
+			<li aria-label="Back">
+				<a _="on click call history.back()" class="link link-hover flex items-center text-sm font-medium text-base-content/50 hover:text-base-content">
+					<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1 -ml-1 size-5 shrink-0 text-base-content/50">
+						<path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" fill-rule="evenodd"></path>
+					</svg>
+					Back
+				</a>
+			</li>
+		</ul>
+	</div>
+	// Desktop breadcrumbs/navigation.
+	<div class="breadcrumbs-desktop">
+		<ul>
+			<li aria-label="Subscriptions">
+				<a
+					hx-get="/subscriptions"
+					hx-target={ ContentID.Target() }
+					hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
+					hx-push-url="true"
+					class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
+				>Subscriptions</a>
+			</li>
+			<li aria-label="Articles">
+				{{ viewSubscriptionVals := session.ArticleFiltersFromSession(ctx).Parameters() }}
+				{{ viewSubscriptionVals[models.ParamSubscriptions] = a.GetSubscriptionID() }}
+				<a
+					hx-get="/articles"
+					hx-target={ ContentID.Target() }
+					hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
+					hx-push-url="true"
+					class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"
+				>
+					<p class="truncate min-w-0">{ a.GetFeedTitle() }</p>
+				</a>
+			</li>
+			<li class="min-w-0">
+				<a href="#" aria-current="page" class="ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"><p class="truncate min-w-0">{ a.GetTitle() }</p></a>
+			</li>
+		</ul>
+	</div>
 	<div
 		id={ a.GetID() }
-		class="grid grid-cols-1 justify-items-center mb-16"
+		class="grid grid-cols-1 items-center w-full sm:max-w-prose rounded-xl border border-base-content/20 bg-base-200 p-4 mb-16"
 	>
-		<div class="max-w-prose rounded-xl border border-base-content/20 bg-base-200 p-4">
-			// Mobile breadcrumbs/navigation.
-			<div class="breadcrumbs text-sm font-medium text-base-content/80 sm:hidden">
-				<ul>
-					<li aria-label="Back">
-						<a _="on click call history.back()" class="link link-hover flex items-center text-sm font-medium text-base-content/50 hover:text-base-content">
-							<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1 -ml-1 size-5 shrink-0 text-base-content/50">
-								<path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" fill-rule="evenodd"></path>
-							</svg>
-							Back
-						</a>
-					</li>
-				</ul>
-			</div>
-			// Desktop breadcrumbs/navigation.
-			<div class="breadcrumbs text-sm font-medium text-base-content/80 hidden sm:flex truncate min-w-0">
-				<ul>
-					<li>
-						<a
-							hx-get="/subscriptions"
-							hx-target={ ContentID.Target() }
-							hx-vals={ models.GenerateHXVals(session.SubscriptionFiltersFromSession(ctx).Parameters()) }
-							hx-push-url="true"
-							class="link link-hover text-sm font-medium text-base-content/50 hover:text-base-content"
-						>Subscriptions</a>
-					</li>
-					<li>
-						{{ viewSubscriptionVals := session.ArticleFiltersFromSession(ctx).Parameters() }}
-						{{ viewSubscriptionVals[models.ParamSubscriptions] = a.GetSubscriptionID() }}
-						<a
-							hx-get="/articles"
-							hx-target={ ContentID.Target() }
-							hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
-							hx-push-url="true"
-							class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"
-						>
-							<p class="truncate min-w-0">{ a.GetFeedTitle() }</p>
-						</a>
-					</li>
-					<li class="min-w-0">
-						<a href="#" aria-current="page" class="ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"><p class="truncate min-w-0">{ a.GetTitle() }</p></a>
-					</li>
-				</ul>
-			</div>
-			<article class="article-text">
-				<a href={ a.GetLink() } class="link link-hover">
-					<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ a.GetTitle() }</h2>
-				</a>
-				<section id="article-info" class="flex items-center justify-between">
-					@a.articleInfo()
-					@ContextMenu(a.GetTitle() + "Actions") {
-						// View action.
-						<a href={ a.GetLink() } class="link link-hover flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link">
-							@HeroIconExternalLink("size-4")
-							Original Article
-						</a>
-						// Mark action.
-						<div id={ "mark_" + a.GetID() }>
-							@a.markLink("mark_"+a.GetID(), "innerHTML", "flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
-								switch a.IsUnread() {
-									case true:
-										@HeroIconMarkRead("size-4")
-										Mark Read
-									case false:
-										@HeroIconMarkUnread("size-4")
-										Mark Unread
-								}
+		// Mobile breadcrumbs/navigation.
+		<article class="article-text">
+			<a href={ a.GetLink() } class="link link-hover">
+				<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ a.GetTitle() }</h2>
+			</a>
+			<section id="article-info" class="flex items-center justify-between">
+				@a.articleInfo()
+				@ContextMenu(a.GetTitle() + "Actions") {
+					// View action.
+					<a href={ a.GetLink() } class="menu-item">
+						@HeroIconExternalLink("size-4")
+						Original Article
+					</a>
+					// Mark action.
+					<div id={ "mark_" + a.GetID() }>
+						@a.markLink("mark_"+a.GetID(), "innerHTML", "menu-item") {
+							switch a.IsUnread() {
+								case true:
+									@HeroIconMarkRead("size-4")
+									Mark Read
+								case false:
+									@HeroIconMarkUnread("size-4")
+									Mark Unread
 							}
-						</div>
-						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-						<div id={ "favorite_" + a.GetID() }>
-							@a.favoriteLink("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
-								switch a.Favorite {
-									case true:
-										@HeroIconHeartFilled("size-4")
-										Remove Favorite
-									case false:
-										@HeroIconHeart("size-4")
-										Add Favorite
-								}
-							}
-						</div>
-						// Share action.
-						@a.shareLink("flex items-center gap-x-2 px-3 py-1 text-xs/4 inactive-link") {
-							@HeroIconShare("size-4")
-							Share
 						}
+					</div>
+					// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+					<div id={ "favorite_" + a.GetID() }>
+						@a.favoriteLink("menu-item") {
+							switch a.Favorite {
+								case true:
+									@HeroIconHeartFilled("size-4")
+									Remove Favorite
+								case false:
+									@HeroIconHeart("size-4")
+									Add Favorite
+							}
+						}
+					</div>
+					// Share action.
+					@a.shareLink("menu-item") {
+						@HeroIconShare("size-4")
+						Share
 					}
-				</section>
-				<section id="article-text">
-					switch  {
-						case a.GetContent() != "":
-							@templ.Raw(a.GetContent())
-						case a.GetDescription() != "":
-							@templ.Raw(a.GetDescription())
-					}
-				</section>
-			</article>
-		</div>
-		// TODO: display a category cloud of the article's categories underneath it, all linked to categories.
-		// <ul
-		// 	role="list"
-		// 	class="grid grid-cols-6 auto-rows-max justify-center gap-x-4 max-w-prose rounded-xl border border-gray-200 bg-base-200 p-4 mt-2"
-		// >
-		// 	for category := range slices.Values(a.GetCategories()) {
-		// 		<li>
-		// 			if len(category) > 10 {
-		// 				<span class="inline-flex items-center rounded-md bg-accent/30 px-2 py-1 mx-2 my-1 text-xs text-nowrap col-span-2 font-medium">{ category }</span>
-		// 			} else {
-		// 				<span class="inline-flex items-center rounded-md bg-accent/30 px-2 py-1 mx-2 my-1 text-xs text-nowrap font-medium">{ category }</span>
-		// 			}
-		// 		</li>
-		// 	}
-		// </ul>
-		// After a delay or when the user scrolls this div into view, assume the article is read and mark it so.
-		<div
-			hx-post={ "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID() + "/mark/" + string(models.MarkRead) }
-			hx-target={ "#mark_" + a.GetID() }
-			hx-swap="innerHTML"
-			hx-trigger="intersect once,load delay:10s"
-			hx-push-url="false"
-			_="on htmx:afterRequest remove me"
-		></div>
+				}
+			</section>
+			<section id="article-text">
+				switch  {
+					case a.GetContent() != "":
+						@templ.Raw(a.GetContent())
+					case a.GetDescription() != "":
+						@templ.Raw(a.GetDescription())
+				}
+			</section>
+		</article>
 	</div>
+	// TODO: display a category cloud of the article's categories underneath it, all linked to categories.
+	// <ul
+	// 	role="list"
+	// 	class="grid grid-cols-6 auto-rows-max justify-center gap-x-4 max-w-prose rounded-xl border border-gray-200 bg-base-200 p-4 mt-2"
+	// >
+	// 	for category := range slices.Values(a.GetCategories()) {
+	// 		<li>
+	// 			if len(category) > 10 {
+	// 				<span class="inline-flex items-center rounded-md bg-accent/30 px-2 py-1 mx-2 my-1 text-xs text-nowrap col-span-2 font-medium">{ category }</span>
+	// 			} else {
+	// 				<span class="inline-flex items-center rounded-md bg-accent/30 px-2 py-1 mx-2 my-1 text-xs text-nowrap font-medium">{ category }</span>
+	// 			}
+	// 		</li>
+	// 	}
+	// </ul>
+	// After a delay or when the user scrolls this div into view, assume the article is read and mark it so.
+	<div
+		hx-post={ "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID() + "/mark/" + string(models.MarkRead) }
+		hx-target={ "#mark_" + a.GetID() }
+		hx-swap="innerHTML"
+		hx-trigger="intersect once,load delay:10s"
+		hx-push-url="false"
+		_="on htmx:afterRequest remove me"
+	></div>
 }
 
 // articleInfo renders additional information about the article, ideal to put under the title.
 templ (a *Article) articleInfo() {
-	<div class="flex flex-none text-xs gap-x-4 items-center">
-		<div class="text-base-content">
+	<div class="flex flex-none text-sm/6 gap-x-4 items-center">
+		<p>
 			@ShowTimestamp(a.GetUpdatedDate())
-		</div>
-		<p class="italic text-base-content">
+		</p>
+		<p class="italic">
 			{ strings.Join(a.GetAuthors(),",") }
 		</p>
 	</div>
