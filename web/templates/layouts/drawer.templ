@@ -15,7 +15,7 @@ templ Drawer(content templ.Component) {
 	// Mobile: drawer sidebar.
 	<el-dialog id="mobile-sidebar-dialog">
 		<dialog id={ sidebarID } class="backdrop:bg-transparent lg:hidden">
-			<el-dialog-backdrop class="dialog-backdrop"></el-dialog-backdrop>
+			<el-dialog-backdrop class="drawer-backdrop"></el-dialog-backdrop>
 			<div tabindex="0" class="fixed inset-0 flex focus:outline-none">
 				<el-dialog-panel class="group/dialog-panel relative mr-16 flex w-full max-w-xs flex-1 transform transition duration-300 ease-in-out data-closed:-translate-x-full">
 					<div class="absolute top-0 left-full flex w-16 justify-center pt-5 duration-300 ease-in-out group-data-closed/dialog-panel:opacity-0">

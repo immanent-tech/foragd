@@ -42,10 +42,16 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
+  /* modal-transition applies nice transitions for modal dialogs */
+  .modal-transition {
+    @apply transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in;
+  }
+
+  /* breadcrumbs-mobile is the style applied to breadcrumbs on mobile layouts */
   .breadcrumbs-mobile {
     @apply breadcrumbs text-base-content/80 text-sm font-medium sm:hidden;
   }
-
+  /* breadcrumbs-desktop is the style applied to breadcrumbs on desktop layouts */
   .breadcrumbs-desktop {
     @apply breadcrumbs text-base-content/80 hidden min-w-0 truncate text-sm font-medium sm:flex;
   }
@@ -53,6 +59,7 @@
   .drawer-sidebar {
     @apply w-72;
   }
+
   .drawer-sidebar-link {
     @apply link link-hover hover:text-accent flex gap-x-3 rounded-md p-2 text-sm/6 font-semibold;
   }
@@ -69,7 +76,7 @@
       var(--color-primary) 100%
     );
   }
-  .dialog-backdrop {
+  .drawer-backdrop {
     @apply bg-base-100/80 fixed inset-0 transition-opacity duration-300 ease-linear data-closed:opacity-0;
   }
 
