@@ -72,18 +72,21 @@ templ FavoriteLink(fav *models.Favorite, classes string) {
 			</a>
 		case models.FavoriteTypeArticle:
 			// FavoriteArticle.
-			<a
-				hx-get={ "/article/" + fav.GetID() }
-				hx-target={ ContentID.Target() }
-				hx-push-url="true"
-				_="on click toggle @open on #mobile-sidebar-dialog"
-				class={ classes }
-			>
-				<div class="flex items-center gap-x-2">
-					@HeroIconArticle("size-4")
-					{ fav.String() }
-				</div>
-			</a>
+			{{ article, err := fav.ObjectData.AsFavoriteArticle() }}
+			if err == nil {
+				<a
+					hx-get={ "/subscription/" + article.SubscriptionID + "/article/" + fav.GetID() }
+					hx-target={ ContentID.Target() }
+					hx-push-url="true"
+					_="on click toggle @open on #mobile-sidebar-dialog"
+					class={ classes }
+				>
+					<div class="flex items-center gap-x-2">
+						@HeroIconArticle("size-4")
+						{ fav.String() }
+					</div>
+				</a>
+			}
 		case models.FavoriteTypeSearch:
 			// FavoriteArticle.
 			{{ search, err := fav.ObjectData.AsFavoriteSearch() }}
