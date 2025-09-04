@@ -168,7 +168,7 @@ templ (a *Article) Content() {
 	</div>
 	<div
 		id={ a.GetID() }
-		class="grid grid-cols-1 items-center w-full sm:max-w-prose rounded-xl border border-base-content/20 bg-base-200 p-4 mb-16"
+		class="grid grid-cols-1 items-center w-full sm:max-w-prose rounded-xl bg-base-200 p-4 mb-16"
 	>
 		// Mobile breadcrumbs/navigation.
 		<article class="article-text">
@@ -179,7 +179,7 @@ templ (a *Article) Content() {
 				@a.articleInfo()
 				@ContextMenu(a.GetTitle() + "Actions") {
 					// View action.
-					<a href={ a.GetLink() } class="menu-item">
+					<a href={ a.GetLink() } class="link link-hover menu-item">
 						@HeroIconExternalLink("size-4")
 						Original Article
 					</a>
@@ -255,7 +255,7 @@ templ (a *Article) Content() {
 // articleInfo renders additional information about the article, ideal to put under the title.
 templ (a *Article) articleInfo() {
 	<div class="flex flex-none text-sm/6 gap-x-4 items-center">
-		<p class="text-base-content/80">
+		<p class="text-base-content/80 capitalize">
 			@ShowTimestamp(a.GetUpdatedDate())
 		</p>
 		<p class="text-base-content/80 italic">
@@ -293,7 +293,7 @@ templ (a *Article) ViewLink(classes ...string) {
 
 // ToggleFavorite renders an updated favorite link based on the article favorite status.
 templ (a *Article) ToggleMark() {
-	@a.markLink("#mark_"+a.GetID(), "innerHTML", "flex items-center gap-x-2 px-3 py-1 text-xs/4 drawer-sidebar-link") {
+	@a.markLink("#mark_"+a.GetID(), "innerHTML", "menu-item") {
 		switch a.IsUnread() {
 			case true:
 				@HeroIconMarkRead("size-4")
@@ -342,7 +342,7 @@ templ (a *Article) favoriteLink(classes ...string) {
 templ (a *Article) shareLink(classes string) {
 	<a
 		_={ "on click set currentValue to (my innerHTML) then writeText('" + a.GetLink() + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
-		class={ classes }
+		class={ "link link-hover", classes }
 	>
 		{ children... }
 	</a>
