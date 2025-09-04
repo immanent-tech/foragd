@@ -179,12 +179,12 @@ templ (a *Article) Content() {
 		</ul>
 	</div>
 	// Article.
-	<div class="flex justify-center not-only:bg-base-200 border border-base-content/20 rounded-xl">
-		<article id={ a.GetID() } class="prose dark:prose-invert px-4 py-4 sm:px-6">
+	<div class="flex justify-center bg-base-200 border border-base-content/20 rounded-xl">
+		<article id={ a.GetID() } class="prose prose-sm sm:prose-lg w-full dark:prose-invert px-4 py-4 sm:px-6">
 			<a href={ a.GetLink() } class="link link-hover">
 				<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ a.GetTitle() }</h2>
 			</a>
-			<section id="article-info" class="flex items-center justify-between">
+			<div id="article-info" class="flex items-center justify-between">
 				@a.articleInfo()
 				@ContextMenu(a.GetTitle() + "Actions") {
 					// View action.
@@ -224,15 +224,15 @@ templ (a *Article) Content() {
 						Share
 					}
 				}
-			</section>
-			<section id="article-text">
+			</div>
+			<div id="article-text">
 				switch  {
 					case a.GetContent() != "":
 						@templ.Raw(a.GetContent())
 					case a.GetDescription() != "":
 						@templ.Raw(a.GetDescription())
 				}
-			</section>
+			</div>
 		</article>
 	</div>
 	// TODO: display a category cloud of the article's categories underneath it, all linked to categories.
