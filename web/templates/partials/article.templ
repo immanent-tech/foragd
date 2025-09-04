@@ -143,7 +143,7 @@ templ (a *Article) Content() {
 				</ul>
 			</div>
 			// Desktop breadcrumbs/navigation.
-			<div class="breadcrumbs text-sm font-medium text-base-content/80 hidden sm:flex">
+			<div class="breadcrumbs text-sm font-medium text-base-content/80 hidden sm:flex truncate min-w-0">
 				<ul>
 					<li>
 						<a
@@ -172,7 +172,7 @@ templ (a *Article) Content() {
 					</li>
 				</ul>
 			</div>
-			<article class="prose dark:prose-invert prose-img:rounded-xl prose-img:object-scale-down prose-figure:rounded-xl prose-figure:object-scale-down prose-video:object-scale-down prose-video:max-w-screen">
+			<article class="article-text">
 				<a href={ a.GetLink() } class="link link-hover">
 					<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ a.GetTitle() }</h2>
 				</a>
