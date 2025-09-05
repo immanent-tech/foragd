@@ -125,7 +125,7 @@ templ (c *Subscription) image() {
 	if c.GetImage().URL != "" {
 		// If the source has an image, use that as the avatar.
 		<div class="avatar">
-			<div class="rounded-box bg-base-content/10 size-12 p-1">
+			<div class="rounded-box size-12">
 				<img
 					src={ c.GetImage().URL }
 					if c.GetImage().Title != "" {
