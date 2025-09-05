@@ -14,39 +14,30 @@ templ FavoritesList(favorites models.FavoritesSlice) {
 	{{ subscriptions := favorites.FilterByType(models.FavoriteTypeSubscription) }}
 	{{ articles := favorites.FilterByType(models.FavoriteTypeArticle) }}
 	{{ searches := favorites.FilterByType(models.FavoriteTypeSearch) }}
-	<ul id="favorites-list" hx-swap-oob="true" class="mt-1 px-2">
+	<ul id="favorites-list" class="-mx-2 mt-2 space-y-1">
 		if len(subscriptions) > 0 {
 			// Show favorite subscriptions.
-			<li class="text-xs/4 font-semibold text-base-content/80">Subscriptions</li>
-			<ul id="subscription-favorites-list">
-				for fav := range slices.Values(subscriptions) {
-					<li>
-						@FavoriteLink(fav, "group drawer-sidebar-link")
-					</li>
-				}
-			</ul>
+			for fav := range slices.Values(subscriptions) {
+				<li>
+					@FavoriteLink(fav, "group drawer-sidebar-link")
+				</li>
+			}
 		}
 		if len(articles) > 0 {
 			// Show favorite articles.
-			<li class="text-xs/4 font-semibold text-base-content/80">Articles</li>
-			<ul id="articles-favorites-list">
-				for fav := range slices.Values(articles) {
-					<li>
-						@FavoriteLink(fav, "group drawer-sidebar-link")
-					</li>
-				}
-			</ul>
+			for fav := range slices.Values(articles) {
+				<li>
+					@FavoriteLink(fav, "group drawer-sidebar-link")
+				</li>
+			}
 		}
 		if len(searches) > 0 {
 			// Show favorite searches.
-			<li class="text-xs/4 font-semibold text-base-content/80">Searches</li>
-			<ul id="searches-favorites-list">
-				for fav := range slices.Values(searches) {
-					<li>
-						@FavoriteLink(fav, "group drawer-sidebar-link")
-					</li>
-				}
-			</ul>
+			for fav := range slices.Values(searches) {
+				<li>
+					@FavoriteLink(fav, "group drawer-sidebar-link")
+				</li>
+			}
 		}
 	</ul>
 }

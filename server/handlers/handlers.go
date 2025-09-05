@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -19,6 +20,8 @@ import (
 
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/server/session"
+	"github.com/immanent-tech/go-feed-me/web/templates"
+	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
@@ -116,6 +119,49 @@ func render(resp *models.Response) http.Handler {
 			}
 		} else {
 			err := resp.Render(req.Context(), res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
+		}
+	})
+}
+
+// render handles rendering a response. If the response contains a template, that will be rendered in the http
+// response. If the response contains an error, it will be logged.
+func renderTemplate(template templ.Component, title string) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get any existing htmx response writer.
+		htmxResp := htmxRespFromCtx(req.Context())
+		if template == nil {
+			// If there is no response, return 204: No Content.
+			res.WriteHeader(http.StatusNoContent)
+			err := htmxResp.Write(res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), "Problem writing response.",
+					slog.Any("error", err),
+				)
+			}
+			return
+		}
+		// Write the response template.
+		if htmx.IsHTMX(req) {
+			if htmx.IsHistoryRestoreRequest(req) {
+				template = templates.Page(title, layouts.Drawer(template))
+			} else if title != "" {
+				// Update the page title if set.
+				template = templ.Join(template, templates.SetPageTitle(title))
+			}
+			err := htmxResp.RenderTempl(req.Context(), res, template)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
+		} else {
+			template = templates.Page(title, layouts.Drawer(template))
+			err := template.Render(req.Context(), res)
 			if err != nil {
 				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
 				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)

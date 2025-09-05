@@ -70,7 +70,7 @@ templ DrawerSidebar(classes, layout string) {
 	// 		@partials.Logo("h-8 w-auto")
 	// 	}
 	// </div>
-	<nav class={ classes }>
+	<nav aria-label="Sidebar" class={ classes }>
 		<ul role="list" class="flex flex-1 flex-col gap-y-7">
 			<li>
 				<ul role="list" class="-mx-2 space-y-1">
@@ -118,30 +118,15 @@ templ DrawerSidebar(classes, layout string) {
 							Articles
 						</a>
 					</li>
-					<li>
-						<button
-							type="button"
-							command="--toggle"
-							commandfor={ "favorites-menu-" + layout }
-							aria-expanded="false"
-							aria-controls={ "favorites-menu-" + layout }
-							class="flex w-full items-center drawer-sidebar-link"
-						>
-							<span class="sr-only">Toggle favourites submenu</span>
-							Favorites
-							<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="ml-auto size-5 shrink-0 not-in-aria-expanded:text-base-content in-aria-expanded:rotate-90 in-aria-expanded:text-base-content">
-								<path d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd" fill-rule="evenodd"></path>
-							</svg>
-						</button>
-						{{ user, found := models.UserFromCtx(ctx) }}
-						if found {
-							<el-disclosure id={ "favorites-menu-" + layout } hidden class="contents transition transition-discrete duration-1000 data-closed:opacity-0">
-								@partials.FavoritesList(user.GetFavorites())
-							</el-disclosure>
-						}
-					</li>
 				</ul>
 			</li>
+			{{ user, found := models.UserFromCtx(ctx) }}
+			if found {
+				<li>
+					<div class="text-sm/6 font-semibold text-base-content/80">Favorites</div>
+					@partials.FavoritesList(user.GetFavorites())
+				</li>
+			}
 		</ul>
 	</nav>
 }

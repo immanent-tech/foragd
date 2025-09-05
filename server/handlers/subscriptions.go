@@ -48,7 +48,6 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		saveSubscriptionFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		filters := subscriptionFiltersFromCtx(req.Context())
-		slogctx.FromCtx(req.Context()).Debug("Showing subscriptions.", slog.String("filters", filters.Query()))
 		// Get subscriptions matching filters.
 		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
 		if err != nil {

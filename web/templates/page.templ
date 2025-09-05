@@ -57,8 +57,9 @@ templ Page(title string, body templ.Component) {
 				<meta
 					name="htmx-config"
 					content='{
-				"selfRequestsOnly":"true",
-				"allowNestedOobSwaps":"true",
+				"selfRequestsOnly":true,
+				"allowNestedOobSwaps":true,
+				"historyRestoreAsHxRequest":false,
 				"historyCacheSize":0,
 				"responseHandling":[
             		{"code":"204", "swap": false},

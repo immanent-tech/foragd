@@ -10,7 +10,6 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -19,8 +18,6 @@ import (
 	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/results"
-	"github.com/immanent-tech/go-feed-me/web/templates"
-	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 )
 
@@ -36,31 +33,14 @@ func (a *API) Home() http.HandlerFunc {
 			return models.ErrUserNotFound
 		}
 		if len(user.GetSubscriptionMetadata()) == 0 {
-			render(
-				models.NewResponse(models.WithResponseTemplate(pages.NewUserHome())),
-			).ServeHTTP(res, req)
+			renderTemplate(pages.NewUserHome(), "Home - Go Feed Me").ServeHTTP(res, req)
+			return nil
 		}
 		data, resp := a.getHomePageData(ctx)
 		if resp != nil && !resp.IsNotFound() {
-			// render(resp).ServeHTTP(res, req)
-			return resp
+			return resp.InternalError
 		}
-		// Generate appropriate template.
-		template := data.Template()
-		// Create appropriate response.
-		switch {
-		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			resp = models.NewResponse(
-				models.WithResponseTemplate(template),
-			)
-		default:
-			resp = models.NewResponse(
-				models.WithResponseTemplate(templates.Page("Go Feed Me - Home",
-					layouts.Drawer(template),
-				)),
-			)
-		}
-		render(resp).ServeHTTP(res, req.WithContext(ctx))
+		renderTemplate(data.Template(), "Home - Go Feed Me").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
