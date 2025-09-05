@@ -20,35 +20,28 @@ func NewSubscriptionContent(subscription *models.Subscription) *Subscription {
 // Card renders a subscription in a card format, suitable for showing together with other subscriptions in a list/grid.
 templ (s *Subscription) Card() {
 	<li id={ s.GetID() }>
-		<div
-			class={ "relative border-base-content/20 hover:border-base-content/40 bg-base-200 overflow-hidden rounded-xl border p-4",
-		templ.KV("opacity-50",!s.IsUnread()) }
-		>
-			<dt class="flex items-center">
+		<div class={ "card-base", templ.KV("opacity-50",!s.IsUnread()) }>
+			<div class="flex items-center px-4 py-5 sm:px-6">
 				@s.ViewLink("flex", "items-center", "gap-x-4") {
 					<div class="size-12 flex-none">
 						@s.image()
 					</div>
-					<div class="text-base font-medium">{ s.GetTitle() }</div>
+					<h3 class="text-lg/6 font-semibold">{ s.GetTitle() }</h3>
+				}
+				if s.IsUnread() {
+					<div class="ml-4 badge badge-soft">{ s.GetUnreadCount() }</div>
 				}
 				@s.actionsMenu()
-			</dt>
-			<dd class="pt-4">
-				<dt>
-					if s.GetDescription() != "" {
-						<p class="text-xs/4 line-clamp-2 sm:line-clamp-4">{ s.GetDescription() }</p>
-					}
-				</dt>
-				<dd>
-					if s.IsUnread() {
-						<p class="text-sm/6 font-semibold">{ s.GetUnreadCount() } Unread</p>
-					}
-					<p class="text-xs/4">
-						Updated&nbsp;
-						@ShowTimestamp(s.GetUpdatedDate())
-					</p>
-				</dd>
-			</dd>
+			</div>
+			<div class="px-4 py-5 sm:p-6">
+				if s.GetDescription() != "" {
+					<article class="prose prose-sm dark:prose-invert line-clamp-2 sm:line-clamp-4">{ s.GetDescription() }</article>
+				}
+			</div>
+			<div class="px-4 py-4 sm:px-6 text-base-content/80 text-sm/6">
+				Updated&nbsp;
+				@ShowTimestamp(s.GetUpdatedDate())
+			</div>
 		</div>
 	</li>
 }
