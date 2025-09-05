@@ -12,6 +12,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
+	"github.com/goforj/godump"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -89,10 +90,11 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		fav := user.GetFavorites().FilterByType(models.FavoriteTypeSearch).Get(id)
 		// Find subscriptions and articles that match search request.
 		subscriptions, articles, err := a.getSearchResults(req.Context(), request.Text)
-		if err != nil {
+		switch {
+		case err != nil:
 			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
-		} else if len(subscriptions) > 0 || len(articles) > 0 {
+		case len(subscriptions) > 0 || len(articles) > 0:
 			var template templ.Component
 			// Render appropriate content.
 			page := pages.NewSearchResultsPage(fav, request, subscriptions, articles)
@@ -105,6 +107,22 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 				template = templates.Page(
 					"Search Results - Go Feed Me",
 					layouts.Drawer(page.Content()),
+				)
+			}
+			chain.Then(render(
+				models.NewResponse(models.WithResponseTemplate(template)),
+			)).ServeHTTP(res, req.WithContext(htmxRespToCtx(req.Context(), htmx.NewResponse().ReplaceURL("/search?"+request.Query()))))
+		default:
+			var template templ.Component
+			switch {
+			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
+				// Just show content.
+				template = pages.NoSearchResults()
+			default:
+				// Show full page.
+				template = templates.Page(
+					"Search Results - Go Feed Me",
+					layouts.Drawer(pages.NoSearchResults()),
 				)
 			}
 			chain.Then(render(
@@ -179,10 +197,19 @@ func (a *API) getSearchResults(ctx context.Context, searchTerms string) ([]*part
 		query.Filter(
 			query.Terms("feed_id", feedIDs...),
 		),
+		// Must match either: search term in any of the fields, or, matches directly as a search-as-you-type (same as
+		// search suggestion).
 		query.Must(
 			query.Bool(
 				query.Should(
 					query.MultiMatch(searchTerms, "title", "description", "content", "categories"),
+					query.Bool(
+						query.Should(
+							query.SearchAsYouType(searchTerms, "title"),
+							query.SearchAsYouType(searchTerms, "description"),
+							query.SearchAsYouType(searchTerms, "categories"),
+						),
+					),
 				),
 			),
 		),
@@ -201,20 +228,22 @@ func (a *API) getSearchResults(ctx context.Context, searchTerms string) ([]*part
 	}
 
 	// Generate subscriptions from data sources.
+	subscriptions := make([]*partials.Subscription, 0)
 	metadataMatches := user.GetSubscriptionMetadata().Search(searchTerms)
-	subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
-	if err != nil {
-		slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
+	if len(metadataMatches) > 0 {
+		subscriptionMatches, err := a.getSubscriptions(ctx, metadataMatches.GetIDs()...)
+		if err != nil {
+			slogctx.FromCtx(ctx).Warn("Error getting subscriptions.", slog.Any("error", err))
+		}
+		godump.Dump(subscriptionMatches)
+		// Truncate subscription matches to 3 results.
+		if len(subscriptionMatches) > 3 {
+			subscriptionMatches = subscriptionMatches[:3]
+		}
+		for s := range slices.Values(subscriptionMatches) {
+			subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
+		}
 	}
-	// Truncate subscription matches to 3 results.
-	if len(subscriptionMatches) > 3 {
-		subscriptionMatches = subscriptionMatches[:3]
-	}
-	subscriptions := make([]*partials.Subscription, 0, len(subscriptionMatches))
-	for s := range slices.Values(subscriptionMatches) {
-		subscriptions = append(subscriptions, partials.NewSubscriptionContent(s))
-	}
-
 	return subscriptions, articles, nil
 }
 

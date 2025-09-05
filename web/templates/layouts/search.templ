@@ -132,11 +132,12 @@ templ SearchSuggestions(request *models.SearchRequest, subscriptions []*partials
 }
 
 // GlobalSearch renders a command palette element for powering global search within the app.
-// col-start-1 row-start-1 block size-full bg-base-200 pl-8 text-base text-white outline-hidden placeholder:text-gray-500 sm:text-sm/6
 templ GlobalSearch() {
 	<el-command-palette>
 		<div class="grid grid-cols-1">
-			@partials.HeroIconSearch("pointer-events-none col-start-1 row-start-1 self-center text-base-content size-5")
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="pointer-events-none col-start-1 row-start-1 self-center size-5">
+				<path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"></path>
+			</svg>
 			<input
 				id="global-search"
 				type="text"
@@ -145,16 +146,28 @@ templ GlobalSearch() {
 				placeholder="Search..."
 				class="col-start-1 row-start-1 block size-full outline-hidden pr-4 pl-6 text-base sm:text-sm/6 placeholder:text-base-content/50"
 				hx-on::after-request="if(event.detail.successful) document.getElementById('global-search').value = ''"
+				_="on keyup if the event's key is 'Escape' set my value to '' then add @hidden to #global-search-suggestions then trigger closeSearch"
 			/>
 			<button
 				type="button"
 				class="row-start-1 col-start-1 mr-4 self-center justify-self-end"
 				_="on click set #global-search.value to '' then add @hidden to #global-search-suggestions"
 			>
-				@partials.HeroIconClose("text-base-content size-5")
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+					<path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"></path>
+				</svg>
 			</button>
+			// Trigger full search when enter key pressed in search input.
 			<div
-				hx-trigger="input changed from:#global-search delay:500ms"
+				hx-trigger="keyup[Enter] from:#global-search"
+				hx-get="/search"
+				hx-target={ partials.ContentID.Target() }
+				hx-include="[name='text']"
+				hx-push-url="true"
+			></div>
+			// Trigger suggestion display after delay when search input contains text.
+			<div
+				hx-trigger="input changed from:#global-search delay:100ms"
 				hx-get="/search/suggestions"
 				hx-target="#global-search-suggestions"
 				hx-include="[name='text']"
@@ -166,10 +179,13 @@ templ GlobalSearch() {
 			_="on keyup['Escape'] set #global-search.value to '' then add @hidden to #global-search-suggestions"
 		></el-command-list>
 		// <el-no-results
+		// 	_="on closeSearch hide me"
 		// 	hidden
 		// 	class="absolute w-(--input-width) block px-6 py-14 text-center sm:px-14 rounded-md shadow-lg bg-base-300"
 		// >
-		// 	@partials.HeroIconQuestionMark("mx-auto size-6 text-base-content")
+		// 	<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mx-auto size-6">
+		// 		<path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"></path>
+		// 	</svg>
 		// 	<p class="mt-4 text-sm text-base-content">No suggestions found.</p>
 		// </el-no-results>
 	</el-command-palette>

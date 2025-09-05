@@ -418,12 +418,8 @@ func (s *SubscriptionMetadata) Valid() (bool, error) {
 // SubscriptionMetadataSlice is a slice of subscription metadata.
 type SubscriptionMetadataSlice []*SubscriptionMetadata
 
-// FilterByIDs returns a new slice containing the metadata for subscriptions with the given ids only. If no ids are
-// provided, it returns the unfiltered slice.
+// FilterByIDs returns a new slice containing the metadata for subscriptions with the given ids only.
 func (s SubscriptionMetadataSlice) FilterByIDs(ids ...SubscriptionID) SubscriptionMetadataSlice {
-	if len(ids) == 0 {
-		return s
-	}
 	return slices.Collect(
 		FilterSlice(s, func(e *SubscriptionMetadata) bool {
 			return slices.Contains(ids, e.GetID())

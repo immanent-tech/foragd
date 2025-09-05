@@ -793,7 +793,12 @@ func (a *API) getSubscriptions(ctx context.Context, ids ...models.SubscriptionID
 	}
 	allFavorites := user.GetFavorites().FilterByType(models.FavoriteTypeSubscription)
 	// Get the subscription states.
-	allMetadata := user.GetSubscriptionMetadata().FilterByIDs(ids...)
+	var allMetadata models.SubscriptionMetadataSlice
+	if len(ids) > 0 {
+		allMetadata = user.GetSubscriptionMetadata().FilterByIDs(ids...)
+	} else {
+		allMetadata = user.GetSubscriptionMetadata()
+	}
 	// Get unread counts.
 	unreadCounts, err := a.getSubscriptionUnreadCounts(ctx, allMetadata)
 	if err != nil {

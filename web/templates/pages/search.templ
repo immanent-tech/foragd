@@ -7,6 +7,7 @@ import (
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 	"slices"
+	"time"
 )
 
 type SearchResultsPage struct {
@@ -53,21 +54,21 @@ templ (page *SearchResultsPage) Content() {
 	<ul role="list">
 		// Subscription results.
 		if len(page.subscriptions) > 0 {
-			<div class="flex items-center">
+			<div class="flex items-center mt-8">
 				<div class="relative flex justify-start">
 					<span class="pr-3 text-base font-semibold text-base-content">Subscriptions</span>
 				</div>
 				<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
 			</div>
-			<ul id="subscription-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+			<ul id="subscription-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-3">
 				for subscription := range slices.Values(page.subscriptions) {
-					@subscriptionSearchResult(subscription)
+					@showSearchResult(subscription)
 				}
 			</ul>
 		}
 		// Article results.
 		if len(page.articles) > 0 {
-			<div class="flex items-center">
+			<div class="flex items-center mt-8">
 				<div class="relative flex justify-start">
 					<span class="pr-3 text-base font-semibold text-base-content">Articles</span>
 				</div>
@@ -75,7 +76,7 @@ templ (page *SearchResultsPage) Content() {
 			</div>
 			<ul id="article-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 				for article := range slices.Values(page.articles) {
-					@articleSearchResult(article)
+					@showSearchResult(article)
 				}
 			</ul>
 		}
@@ -105,35 +106,56 @@ templ RemoveFavoriteSearchButton(id models.FavoriteID) {
 	</button>
 }
 
-templ subscriptionSearchResult(subscription *partials.Subscription) {
-	<li class="col-span-1">
-		<div class="flex items-center">
-			<div class="flex flex-1">
-				@subscription.ViewLink() {
-					<h3 id={ subscription.GetID() } class="text-sm/6 font-semibold py-2">{ subscription.GetTitle() }</h3>
-				}
-			</div>
-			<div class="flex text-xs/4">
-				{ subscription.GetUnreadCount() } Unread
-			</div>
-		</div>
-		<p class="text-xs/4">
-			@partials.ShowTimestamp(subscription.GetUpdatedDate())
-		</p>
-	</li>
+type searchResult interface {
+	GetImage() *models.RemoteImage
+	GetTitle() string
+	GetUpdatedDate() time.Time
+	GetDescription() string
+	ViewLink(classes ...string) templ.Component
 }
 
-templ articleSearchResult(article *partials.Article) {
-	<li class="py-5">
-		@article.ViewLink() {
-			<h3 id={ article.GetID() } class="text-sm/6 font-semibold py-2">{ article.GetTitle() }</h3>
+templ showSearchResult(result searchResult) {
+	<li>
+		<div class="flex gap-x-4 py-5">
+			// Show article image or placeholder thumbnail.
+			if result.GetImage().URL != "" {
+				<div class="avatar">
+					<div class="rounded-box size-12">
+						<img
+							src={ result.GetImage().URL }
+							if result.GetImage().Title != "" {
+								alt={ result.GetImage().Title }
+							}
+						/>
+					</div>
+				</div>
+			} else {
+				<div class="avatar avatar-placeholder">
+					<div class="bg-neutral text-neutral-content w-12 mask mask-squircle">
+						<span class="text-3xl capitalize">{ result.GetTitle()[0:1] }</span>
+					</div>
+				</div>
+			}
+			<div class="flex-auto">
+				// Show article title.
+				<div class="flex items-baseline justify-between gap-x-4">
+					@result.ViewLink() {
+						<p class="text-sm/6 font-semibold text-pretty line-clamp-2">{ result.GetTitle() }</p>
+					}
+					<p class="flex-none text-xs text-base-content/80">
+						@partials.ShowTimestamp(result.GetUpdatedDate())
+					</p>
+				</div>
+			</div>
+		</div>
+		// Show article description (if exists).
+		if result.GetDescription() != "" {
+			<div class="flex">
+				<article class="mt-1 prose prose-sm prose-img:hidden prose-figure:hidden dark:prose-invert line-clamp-2">
+					@templ.Raw(result.GetDescription())
+				</article>
+			</div>
 		}
-		<p class="text-xs/4">
-			{ article.GetFeedTitle() }
-		</p>
-		<p class="text-xs/4">
-			@partials.ShowTimestamp(article.GetUpdatedDate())
-		</p>
 	</li>
 }
 
@@ -149,10 +171,21 @@ templ SimilarArticles(articles models.Articles) {
 			</div>
 			<ul id="article-results" role="list" class="grid grid-cols-1 gap-6 sm:grid-cols-2">
 				for article := range slices.Values(articles) {
-					@articleSearchResult(partials.NewArticleContent(article))
+					@showSearchResult(partials.NewArticleContent(article))
 				}
 			</ul>
 		}
 	</ul>
 	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
+}
+
+// NoSearchResults renders an informational message for when no search results were returned.
+templ NoSearchResults() {
+	<div class="text-center">
+		<h1 class="mt-4 text-2xl font-semibold tracking-tight text-balance sm:text-4xl">Nothing found 😕</h1>
+		<p class="mt-6 text-lg font-medium text-pretty text-base-content sm:text-xl/8">Looks like there are no matches for that search.</p>
+		<div class="mt-10 flex items-center justify-center gap-x-6">
+			<a href="/home" role="button" class="btn btn-primary">Go to home</a>
+		</div>
+	</div>
 }
