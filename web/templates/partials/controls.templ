@@ -57,17 +57,19 @@ templ (c ListControls) Template() {
 												@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, c.Filters.GetCategories())
 											}
 											<a
-												class="link link-hover text-xs capitalize flex gap-3 self-center"
+												class="link link-hover"
 												hx-get={ c.Path }
 												hx-push-url="true"
 												hx-target={ ContentID.Target() }
 												hx-include="#content-filters"
 												hx-params={ "not " + models.ParamCategories }
 											>
-												<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-													<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-												</svg>
-												Clear
+												<div class="flex items-center">
+													<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+													</svg>
+													<p class="ml-3 controls-label">Clear</p>
+												</div>
 											</a>
 										</div>
 									</el-disclosure>
@@ -98,31 +100,37 @@ templ (c ListControls) Template() {
 				</div>
 			</dialog>
 		</el-dialog>
-		<div class="mx-auto max-w-3xl px-4 text-center sm:px-6 lg:max-w-7xl lg:px-8">
-			<section aria-labelledby="filter-heading" class="py-6">
-				<h2 id="filter-heading" class="sr-only">Filters</h2>
+		<div>
+			<div class="py-6">
 				<div class="flex items-center justify-between">
 					// Sort Options.
-					<button class="group inline-flex justify-center btn btn-ghost hover:text-accent" popovertarget="sort-menu" type="button">
-						<span class="sr-only">Sort options</span>
-						Sort
-						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent">
-							<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-						</svg>
-					</button>
-					<el-popover popover id="sort-menu" anchor="bottom start" popover class="controls-popover">
-						<fieldset>
-							<div class="space-y-4">
-								@sortOption(c.Path, models.SortLastUpdatedDesc, c.Filters.GetSort())
-								@sortOption(c.Path, models.SortLastUpdatedAsc, c.Filters.GetSort())
-								if c.Path == "/subscriptions" {
-									@sortOption(c.Path, models.SortUnreadCountDesc, c.Filters.GetSort())
-									@sortOption(c.Path, models.SortUnreadCountAsc, c.Filters.GetSort())
-								}
-							</div>
-						</fieldset>
-					</el-popover>
-					<button type="button" command="show-modal" commandfor="mobile-filters" class="inline-block btn btn-ghost hover:text-accent sm:hidden">
+					<div class="group inline-block">
+						<button
+							class="controls-button"
+							popovertarget="sort-menu"
+							type="button"
+						>
+							<span class="sr-only">Sort options</span>
+							Sort
+							<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
+								<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+							</svg>
+						</button>
+						<el-popover popover id="sort-menu" anchor="bottom start" popover class="controls-popover">
+							<fieldset>
+								<div class="space-y-4">
+									@sortOption(c.Path, models.SortLastUpdatedDesc, c.Filters.GetSort())
+									@sortOption(c.Path, models.SortLastUpdatedAsc, c.Filters.GetSort())
+									if c.Path == "/subscriptions" {
+										@sortOption(c.Path, models.SortUnreadCountDesc, c.Filters.GetSort())
+										@sortOption(c.Path, models.SortUnreadCountAsc, c.Filters.GetSort())
+									}
+								</div>
+							</fieldset>
+						</el-popover>
+					</div>
+					// Button to reveal filters sidebar on mobile.
+					<button type="button" command="show-modal" commandfor="mobile-filters" class="sm:hidden controls-button">
 						<span class="sr-only">Filter options</span>
 						Filters
 					</button>
@@ -131,61 +139,65 @@ templ (c ListControls) Template() {
 						// Category Filters (desktop).
 						if len(c.Categories.GetTopCategories(10)) > 0 {
 							<div class="relative inline-block text-left">
-								<div>
-									<button popovertarget="desktop-menu-category" class="group inline-flex items-center justify-center btn btn-ghost hover:text-accent">
+								<div class="group">
+									<button popovertarget="desktop-menu-category" class="controls-button">
 										<span class="sr-only">Category filters</span>
 										<span>Category</span>
-										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent">
+										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
 											<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
 										</svg>
 									</button>
+									<el-popover id="desktop-menu-category" anchor="bottom end" popover class="controls-popover">
+										<div class="space-y-4">
+											@c.controlForm("space-y-4") {
+												<input type="hidden" name={ models.ParamView } value={ string(c.Filters.GetView()) }/>
+												// Top 10 categories only.
+												for idx, category := range c.Categories.GetTopCategories(10) {
+													@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, c.Filters.GetCategories())
+												}
+											}
+											<a
+												class="link link-hover"
+												hx-get={ c.Path }
+												hx-push-url="true"
+												hx-target={ ContentID.Target() }
+												hx-include="#content-filters"
+												hx-params={ "not " + models.ParamCategories }
+											>
+												<div class="flex items-center">
+													<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+														<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
+													</svg>
+													<p class="ml-3 controls-label">Clear</p>
+												</div>
+											</a>
+										</div>
+									</el-popover>
 								</div>
-								<el-popover id="desktop-menu-category" anchor="bottom end" popover class="controls-popover">
-									@c.controlForm("space-y-4") {
-										<input type="hidden" name={ models.ParamView } value={ string(c.Filters.GetView()) }/>
-										// Top 10 categories only.
-										for idx, category := range c.Categories.GetTopCategories(10) {
-											@categoryFilter("filter-mobile-category-"+strconv.Itoa(idx), category, c.Filters.GetCategories())
-										}
-									}
-									<a
-										class="link link-hover text-xs capitalize flex gap-3 mt-4 self-center"
-										hx-get={ c.Path }
-										hx-push-url="true"
-										hx-target={ ContentID.Target() }
-										hx-include="#content-filters"
-										hx-params={ "not " + models.ParamCategories }
-									>
-										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
-											<path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path>
-										</svg>
-										Clear
-									</a>
-								</el-popover>
 							</div>
 						}
 						// View Filters (desktop).
 						<div class="relative inline-block text-left">
-							<div>
-								<button popovertarget="desktop-menu-view" class="group inline-flex items-center justify-center btn btn-ghost hover:text-accent">
+							<div class="group">
+								<button popovertarget="desktop-menu-view" class="controls-button">
 									<span class="sr-only">View filters</span>
 									<span>View</span>
-									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0 group-hover:text-accent">
+									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
 										<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
 									</svg>
 								</button>
+								<el-popover id="desktop-menu-view" anchor="bottom end" popover class="controls-popover">
+									@c.controlForm("space-y-4") {
+										@viewFilter("filter-view-unread", models.ViewUnread, c.Filters.GetView())
+										@viewFilter("filter-view-read", models.ViewRead, c.Filters.GetView())
+										@viewFilter("filter-view-all", models.ViewAll, c.Filters.GetView())
+									}
+								</el-popover>
 							</div>
-							<el-popover id="desktop-menu-view" anchor="bottom end" popover class="controls-popover">
-								@c.controlForm("space-y-4") {
-									@viewFilter("filter-view-unread", models.ViewUnread, c.Filters.GetView())
-									@viewFilter("filter-view-read", models.ViewRead, c.Filters.GetView())
-									@viewFilter("filter-view-all", models.ViewAll, c.Filters.GetView())
-								}
-							</el-popover>
 						</div>
 					</el-popover-group>
 				</div>
-			</section>
+			</div>
 		</div>
 	</div>
 }
@@ -210,47 +222,39 @@ templ (c *ListControls) controlForm(classes ...string) {
 
 // viewFilter renders a checkbox for a view filter.
 templ viewFilter(id string, view models.View, current models.View) {
-	<div class="flex">
-		<div class="flex h-5 shrink-0 items-center gap-3">
-			<div class="group grid size-4 grid-cols-1">
-				<input
-					id={ id }
-					type="radio"
-					name={ models.ParamView }
-					value={ string(view) }
-					class={ "radio radio-sm",templ.KV("radio-primary",current == view) }
-					if current == view {
-						checked
-					}
-					hx-vals={ models.GenerateHXVals(map[string]string{models.ParamView: string(view)}) }
-				/>
-			</div>
-			<label for={ id } class="text-sm/6 hover:text-accent focus:text-accent font-medium capitalize">{ string(view) }</label>
-		</div>
+	<div class="flex items-center">
+		<input
+			id={ id }
+			type="radio"
+			name={ models.ParamView }
+			value={ string(view) }
+			class={ "radio radio-sm",templ.KV("radio-accent",current == view) }
+			if current == view {
+				checked
+			}
+			hx-vals={ models.GenerateHXVals(map[string]string{models.ParamView: string(view)}) }
+		/>
+		<label for={ id } class="ml-3 controls-label">{ string(view) }</label>
 	</div>
 }
 
 // categoryFilter renders a checkbox for a category filter.
 templ categoryFilter(id string, category models.CategoryCount, current models.Categories) {
 	<div class="flex items-center">
-		<div class="flex h-5 shrink-0 items-center gap-3">
-			<div class="group grid size-4 grid-cols-1">
-				<input
-					id={ id }
-					type="radio"
-					name={ models.ParamCategories }
-					value={ category.Category }
-					if current.HasCategory(category.Category) {
-						checked
-						_="on click toggle @checked on me"
-					} else {
-						hx-vals={ models.GenerateHXVals(map[string]string{models.ParamCategories: category.Category}) }
-					}
-					class={ "radio radio-sm", templ.KV("radio-primary",current.HasCategory(category.Category)) }
-				/>
-			</div>
-			<label for={ id } class="text-sm/6 hover:text-accent focus:text-accent font-medium capitalize">{ category.Category }</label>
-		</div>
+		<input
+			id={ id }
+			type="radio"
+			name={ models.ParamCategories }
+			value={ category.Category }
+			if current.HasCategory(category.Category) {
+				checked
+				_="on click toggle @checked on me"
+			} else {
+				hx-vals={ models.GenerateHXVals(map[string]string{models.ParamCategories: category.Category}) }
+			}
+			class={ "radio radio-sm", templ.KV("radio-accent",current.HasCategory(category.Category)) }
+		/>
+		<label for={ id } class="ml-3 controls-label">{ category.Category }</label>
 	</div>
 }
 
@@ -260,7 +264,7 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 		<input
 			id={ sort.ID() }
 			type="radio"
-			class={ "radio radio-sm", templ.KV("radio-primary", current.IsEqual(sort)) }
+			class={ "radio radio-sm", templ.KV("radio-accent", current.IsEqual(sort)) }
 			if current.IsEqual(sort) {
 				checked
 			}
@@ -270,6 +274,8 @@ templ sortOption(path string, sort models.Sort, current models.Sort) {
 			hx-target={ ContentID.Target() }
 			hx-vals={ models.GenerateHXVals(map[string]string{models.ParamSortBy: string(sort.SortBy), models.ParamSortOrder: string(sort.SortOrder)}) }
 		/>
-		<label for={ sort.ID() } class="ml-3 hover:text-accent focus:text-accent text-sm/6 font-medium capitalize">{ sort.String() }</label>
+		<label for={ sort.ID() } class="ml-3 controls-label">
+			{ sort.String() }
+		</label>
 	</div>
 }

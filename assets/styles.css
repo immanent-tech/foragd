@@ -42,6 +42,17 @@
 /* Custom Component Classes */
 /* See also: https://tailwindcss.com/docs/adding-custom-styles#adding-component-classes */
 @layer components {
+  .controls-label {
+    @apply text-sm font-medium capitalize hover:underline;
+  }
+  .controls-button {
+    @apply group-has-open:bg-accent/50 hover:bg-accent/50 inline-flex justify-center gap-x-1.5 rounded-md px-3 py-2 text-sm font-semibold shadow-xs inset-ring-1 inset-ring-gray-300 dark:shadow-none;
+  }
+  /* Controls/Filters */
+  .controls-popover {
+    @apply bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
+  }
+
   /* modal-transition applies nice transitions for modal dialogs */
   .modal-transition {
     @apply transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in;
@@ -119,11 +130,6 @@
   /* menu-item is a link/action in a context menu */
   .menu-item {
     @apply link link-hover hover:text-accent flex items-center gap-x-2 px-3 py-1 text-sm/6;
-  }
-
-  /* Controls/Filters */
-  .controls-popover {
-    @apply bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in;
   }
 
   .toast {
