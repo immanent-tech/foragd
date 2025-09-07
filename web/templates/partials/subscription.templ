@@ -79,12 +79,25 @@ templ (s *Subscription) title() {
 templ (s *Subscription) actionsMenu() {
 	@ContextMenu(s.GetTitle() + " Actions") {
 		// View action.
-		<a href={ s.GetLink() } class="menu-item">
+		<a href={ s.GetLink() } target="_blank" rel="noopener" class="menu-item">
 			@HeroIconExternalLink("size-4")
 			Feed Website
 		</a>
 		// Mark action.
-		@s.markLink("menu-item") {
+		// markLink generates a link that will toggle the mark status (read/unread) of the subscription.
+		{{ var mark string }}
+		if s.IsUnread() {
+			{{ mark = "read" }}
+		} else {
+			{{ mark = "unread" }}
+		}
+		<a
+			hx-post={ "/subscription/" + s.GetID() + "/mark/" + mark }
+			hx-target={ "#" + s.GetID() }
+			hx-swap="outerHTML"
+			hx-include="[name='view']"
+			class="link link-hover menu-item"
+		>
 			switch s.IsUnread() {
 				case true:
 					@HeroIconMarkRead("size-4")
@@ -93,12 +106,19 @@ templ (s *Subscription) actionsMenu() {
 					@HeroIconMarkUnread("size-4")
 					Mark Unread
 			}
-		}
+		</a>
 		// Edit action.
-		@s.editLink("menu-item") {
-			@HeroIconEdit("size-4")
+		<a
+			hx-get={ "/user/subscription/edit/" + s.GetID() }
+			hx-target={ ContentID.Target() }
+			hx-push-url="true"
+			class="link link-hover menu-item"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+				<path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path>
+			</svg>
 			Edit Subscription
-		}
+		</a>
 		// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 		<div id={ "favorite_" + s.GetID() }>
 			@s.favoriteLink("menu-item") {
@@ -113,10 +133,17 @@ templ (s *Subscription) actionsMenu() {
 			}
 		</div>
 		// Unsubscribe action.
-		@s.unsubscribeLink("menu-item") {
-			@HeroIconTrash("size-4")
+		<a
+			hx-get={ "/user/subscription/remove/" + s.GetID() }
+			hx-target={ ModalContainerID.Target() }
+			class="link link-hover menu-item"
+			_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
+		>
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+				<path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"></path>
+			</svg>
 			Remove Subscription
-		}
+		</a>
 	}
 }
 
@@ -158,37 +185,6 @@ templ (s *Subscription) ToggleFavorite() {
 	}
 }
 
-// markLink generates a link that will toggle the mark status (read/unread) of the subscription.
-templ (c *Subscription) markLink(classes ...string) {
-	{{ var mark string }}
-	if c.IsUnread() {
-		{{ mark = "read" }}
-	} else {
-		{{ mark = "unread" }}
-	}
-	<a
-		hx-post={ "/subscription/" + c.GetID() + "/mark/" + mark }
-		hx-target={ "#" + c.GetID() }
-		hx-swap="outerHTML"
-		hx-include="[name='view']"
-		class={ "link link-hover", classes }
-	>
-		{ children... }
-	</a>
-}
-
-// editLink generates a link that will open a modal for editing the subscription.
-templ (c *Subscription) editLink(classes ...string) {
-	<a
-		hx-get={ "/user/subscription/edit/" + c.GetID() }
-		hx-target={ ContentID.Target() }
-		hx-push-url="true"
-		class={ "link link-hover", classes }
-	>
-		{ children... }
-	</a>
-}
-
 // favoriteLink generates a link that will toggle the favorite status of the subscription.
 templ (c *Subscription) favoriteLink(classes ...string) {
 	<a
@@ -199,18 +195,6 @@ templ (c *Subscription) favoriteLink(classes ...string) {
 		}
 		hx-target={ "#favorite_" + c.GetID() }
 		class={ "link link-hover", classes }
-	>
-		{ children... }
-	</a>
-}
-
-// unsubscribeLink generates a link for unsubscribing from the subscription.
-templ (c *Subscription) unsubscribeLink(classes ...string) {
-	<a
-		hx-get={ "/user/subscription/remove/" + c.GetID() }
-		hx-target={ ModalContainerID.Target() }
-		class={ "link link-hover", classes }
-		_="on htmx:afterOnLoad wait 10ms then call document.getElementById('unsubscribe').show()"
 	>
 		{ children... }
 	</a>
