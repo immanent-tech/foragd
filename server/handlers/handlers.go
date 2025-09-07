@@ -176,7 +176,9 @@ func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.Han
 		err := f(res, req)
 		if err != nil {
 			logError(err)
-			http.Error(res, err.Error(), models.HTTPStatus(err))
+			template := partials.Error(models.NewErrorMessage("Something went wrong", ""))
+			renderTemplate(template, "").ServeHTTP(res, req)
+			// http.Error(res, err.Error(), models.HTTPStatus(err))
 		}
 	}
 }

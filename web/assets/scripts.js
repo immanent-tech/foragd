@@ -13,3 +13,5 @@ import _hyperscript from 'hyperscript.org/dist/_hyperscript.js'
 _hyperscript.browserInit()
 // custom element for timestamps
 import './timestamps.js'
+// tailwindplus
+// import '@tailwindplus/elements';

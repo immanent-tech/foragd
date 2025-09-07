@@ -19,7 +19,7 @@ import (
 	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
 )
 
-//go:embed all:static
+//go:embed all:web/content
 var static embed.FS
 
 // CLI contains all of the commands and common options.

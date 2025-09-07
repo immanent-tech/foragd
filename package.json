@@ -5,10 +5,10 @@
   "license": "AGPL-3.0-or-later",
   "browserslist": "> 0.5%, last 2 versions, not dead",
   "scripts": {
-    "build:parcel": "parcel build ./assets/scripts.js ./assets/styles.css --dist-dir ./static --no-scope-hoist",
-    "build:parcel:dev": "parcel build ./assets/scripts.js ./assets/styles.css --dist-dir ./static --no-optimize --log-level verbose --no-scope-hoist",
-    "build:js": "bun build ./assets/scripts.js --sourcemap=external --outdir=./static",
-    "build:css": "postcss ./assets/styles.css -o ./static/styles.css"
+    "build:parcel": "parcel build ./web/assets/scripts.js ./web/assets/styles.css --dist-dir ./web/content --no-scope-hoist",
+    "build:parcel:dev": "parcel build ./web/assets/scripts.js ./web/assets/styles.css --dist-dir ./web/content --no-optimize --log-level verbose --no-scope-hoist",
+    "build:js": "bun build ./web/assets/scripts.js --sourcemap=external --outdir=./web/content",
+    "build:css": "postcss ./web/assets/styles.css -o ./web/content/styles.css"
   },
   "dependencies": {
     "@catppuccin/daisyui": "^2.1.1",

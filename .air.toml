@@ -1,6 +1,3 @@
-# Auto-generated config file for Air live-reloading tool.
-# See https://gowebly.org for more information.
-
 root = "."
 tmp_dir = "tmp"
 
@@ -17,11 +14,11 @@ exclude_dir = [
   "bin",
   "dist",
   "node_modules",
-  "static",
   "tmp",
   "tests",
   "test",
   "vendor",
+  "web/content",
 ]
 exclude_regex = ["_test\\.go", "_templ\\.go"]
 exclude_unchanged = false

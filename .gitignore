@@ -16,13 +16,13 @@ go.work
 # Don't include local server configuration.
 server.toml
 # Don't include generated files.
-static/*.css
-static/*.css.map
-static/*.js
-static/*.js.map
-static/*.woff2
-static/*.ttf
-static/fontawesome
+web/content/*.css
+web/content/*.css.map
+web/content/*.js
+web/content/*.js.map
+web/content/*.woff2
+web/content/*.ttf
+web/content/fontawesome
 *_templ.go
 
 # Node modules.

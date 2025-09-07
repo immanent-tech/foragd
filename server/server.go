@@ -176,7 +176,7 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 	//
 	// Static content.
 	router.Group(func(r chi.Router) {
-		r.Handle("/static/*", gowebly.StaticFileServerHandler(http.FS(static)))
+		r.Handle("/web/content/*", gowebly.StaticFileServerHandler(http.FS(static)))
 	})
 	// Error handling.
 	router.NotFound(handlers.NotFound())
