@@ -73,7 +73,7 @@ templ (a *Article) Card(view models.View) {
 					@a.articleInfo()
 					@ContextMenu(a.GetTitle() + " Actions") {
 						// View action.
-						<a href={ a.GetLink() } class="menu-item">
+						<a href={ a.GetLink() } target="_blank" rel="noopener" class="menu-item">
 							@HeroIconExternalLink("size-4")
 							Original Article
 						</a>
@@ -181,14 +181,14 @@ templ (a *Article) Content() {
 	// Article.
 	<div class="flex justify-center bg-base-200 border border-base-content/20 rounded-xl">
 		<article id={ a.GetID() } class="prose prose-sm sm:prose-lg w-full dark:prose-invert px-4 py-4 sm:px-6">
-			<a href={ a.GetLink() } class="link link-hover">
+			<a href={ a.GetLink() } target="_blank" rel="noopener" class="link link-hover">
 				<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ a.GetTitle() }</h2>
 			</a>
 			<div id="article-info" class="flex items-center justify-between">
 				@a.articleInfo()
 				@ContextMenu(a.GetTitle() + "Actions") {
 					// View action.
-					<a href={ a.GetLink() } class="link link-hover menu-item">
+					<a href={ a.GetLink() } target="_blank" rel="noopener" class="link link-hover menu-item">
 						@HeroIconExternalLink("size-4")
 						Original Article
 					</a>
