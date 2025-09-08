@@ -8,12 +8,11 @@ import (
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
 
-var (
-	Content  = FragmentKey{}
-	FullPage = FragmentKey{}
+const (
+	FragmentContent FragmentKey = "content"
 )
 
-type FragmentKey struct{}
+type FragmentKey string
 
 // DefaultPageTitle is the default <title> tag value if none is set.
 var DefaultPageTitle = "Go Feed Me"
@@ -30,33 +29,32 @@ templ SetPageTitle(title string) {
 
 // Page renders a full HTML page with the given body content and title.
 templ Page(title string, body templ.Component) {
-	@templ.Fragment(FullPage) {
-		<!DOCTYPE html>
-		<html lang="en" class="h-full">
-			<head>
-				<meta charset="UTF-8"/>
-				// https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Viewport_meta_element#interactive-widget
-				<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
-				<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
-				// <link rel="dns-prefetch" href="//fonts.googleapis.com"/>
-				// <link rel="dns-prefetch" href="//fonts.gstatic.com"/>
-				// <link rel="preconnect" href="//fonts.googleapis.com" crossorigin/>
-				// <link rel="preconnect" href="//fonts.gstatic.com" crossorigin/>
-				<link rel="manifest" href="/web/content/manifest.json"/>
-				<link rel="apple-touch-icon" href="/web/content/apple-touch-icon.png"/>
-				<link rel="shortcut icon" href="/web/content/favicon.ico" type="image/x-icon"/>
-				<link rel="icon" href="/web/content/favicon.svg" type="image/svg+xml"/>
-				<link rel="icon" href="/web/content/favicon.png" sizes="any"/>
-				<link href="/web/content/fonts/inter/inter.css" rel="stylesheet"/>
-				// <link rel="preconnect" href="https://rsms.me/"/>
-				// <link rel="stylesheet" href="https://rsms.me/inter/inter.css"/>
-				<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
-				<script src="/web/content/scripts.js"></script>
-				<link href="/web/content/styles.css" rel="stylesheet"/>
-				// Site-wide htmx config.
-				<meta
-					name="htmx-config"
-					content='{
+	<!DOCTYPE html>
+	<html lang="en" class="h-full">
+		<head>
+			<meta charset="UTF-8"/>
+			// https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Viewport_meta_element#interactive-widget
+			<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"/>
+			<meta http-equiv="X-UA-Compatible" content="ie=edge"/>
+			// <link rel="dns-prefetch" href="//fonts.googleapis.com"/>
+			// <link rel="dns-prefetch" href="//fonts.gstatic.com"/>
+			// <link rel="preconnect" href="//fonts.googleapis.com" crossorigin/>
+			// <link rel="preconnect" href="//fonts.gstatic.com" crossorigin/>
+			<link rel="manifest" href="/web/content/manifest.json"/>
+			<link rel="apple-touch-icon" href="/web/content/apple-touch-icon.png"/>
+			<link rel="shortcut icon" href="/web/content/favicon.ico" type="image/x-icon"/>
+			<link rel="icon" href="/web/content/favicon.svg" type="image/svg+xml"/>
+			<link rel="icon" href="/web/content/favicon.png" sizes="any"/>
+			<link href="/web/content/fonts/inter/inter.css" rel="stylesheet"/>
+			// <link rel="preconnect" href="https://rsms.me/"/>
+			// <link rel="stylesheet" href="https://rsms.me/inter/inter.css"/>
+			<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
+			<script src="/web/content/scripts.js"></script>
+			<link href="/web/content/styles.css" rel="stylesheet"/>
+			// Site-wide htmx config.
+			<meta
+				name="htmx-config"
+				content='{
 				"selfRequestsOnly":true,
 				"allowNestedOobSwaps":true,
 				"historyRestoreAsHxRequest":false,
@@ -70,28 +68,27 @@ templ Page(title string, body templ.Component) {
             		{"code":"...", "swap": true}
         		]
 			}'
-				/>
-				@SetPageTitle(title)
-			</head>
-			<body
-				class="h-full"
-				hx-ext="response-targets,preload,ajax-header,sse"
-				_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
-				hx-target-404={ partials.ContentID.Target() }
-			>
-				<input
-					id="page-theme"
-					type="checkbox"
-					value={ models.GetUserTheme(ctx) }
-					class="toggle theme-controller hidden"
-					checked="checked"
-				/>
-				<div id={ partials.ModalContainerID.String() } hx-target-error="#modal-errors"></div>
-				if body != nil {
-					@body
-				}
-				{ children... }
-			</body>
-		</html>
-	}
+			/>
+			@SetPageTitle(title)
+		</head>
+		<body
+			class="h-full"
+			hx-ext="response-targets,preload,ajax-header,sse"
+			_="on every htmx:beforeSend in <button:not(.no-disable)/> tell it toggle [@disabled='true'] until htmx:afterOnLoad"
+			hx-target-404={ partials.ContentID.Target() }
+		>
+			<input
+				id="page-theme"
+				type="checkbox"
+				value={ models.GetUserTheme(ctx) }
+				class="toggle theme-controller hidden"
+				checked="checked"
+			/>
+			<div id={ partials.ModalContainerID.String() } hx-target-error="#modal-errors"></div>
+			if body != nil {
+				@body
+			}
+			{ children... }
+		</body>
+	</html>
 }

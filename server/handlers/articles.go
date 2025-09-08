@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
@@ -25,7 +24,6 @@ import (
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 	"github.com/immanent-tech/go-feed-me/server/forms"
 	"github.com/immanent-tech/go-feed-me/server/session"
-	"github.com/immanent-tech/go-feed-me/web/templates"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
@@ -38,35 +36,25 @@ func (a *API) GetArticles() http.HandlerFunc {
 		routeLogger,
 		decodeArticleFilters,
 		saveArticleFilters,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract filters from request.
 		filters := articleFiltersFromCtx(req.Context())
 		slogctx.FromCtx(req.Context()).Debug("Showing articles.", slog.String("filters", filters.Query()))
 		// Get articles matching filters.
 		articles, pagination, err := a.filterArticles(req.Context(), &filters)
 		if err != nil {
-			render(RespBackendError(err)).ServeHTTP(res, req)
-			return
+			return fmt.Errorf("unable to get articles: %w", err)
 		}
 		// Render appropriate content.
-		var template templ.Component
-		if len(articles) == 0 {
-			template = layouts.EmptyContent()
-		} else {
-			template = views.NewArticlesPage(articles, &filters, pagination).Content()
-		}
-		if !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req) {
-			template = templates.Page(
-				"Go Feed Me - Articles",
-				layouts.Drawer(template),
-			)
-		}
-		render(
-			models.NewResponse(models.WithResponseTemplate(template)),
-		).ServeHTTP(res, req)
-	}).ServeHTTP
+		template := layouts.ArticlesGrid(articles, &filters, pagination)
+		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
 }
 
+// GetArticleUpdates handles showing a notification when new article content is available.
+//
+//nolint:gocognit
 func (a *API) GetArticleUpdates() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
@@ -129,8 +117,17 @@ func (a *API) GetArticleUpdates() http.HandlerFunc {
 							slog.Any("error", err))
 						continue
 					}
-					template.Flush()
-					fmt.Fprintf(res, "data: %s\n\n", b.String())
+					err = template.Flush()
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
+							slog.Any("error", err))
+					}
+					_, err = fmt.Fprintf(res, "data: %s\n\n", b.String())
+					if err != nil {
+						slogctx.FromCtx(req.Context()).Warn("Unable to render template.",
+							slog.Any("error", err))
+						continue
+					}
 					if f, ok := res.(http.Flusher); ok {
 						f.Flush()
 					}
@@ -144,35 +141,24 @@ func (a *API) GetArticleUpdates() http.HandlerFunc {
 
 // PaginateArticles handles showing the next set of articles.
 func (a *API) PaginateArticles() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
-		// Extract filters from request.
-		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
-		if err != nil || !valid {
-			chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
-		}
+	return alice.New(
+		routeLogger,
+		decodeArticleFilters,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Get filters and generate query.
+		filters := articleFiltersFromCtx(req.Context())
 		// Get articles matching filters.
-		articles, pagination, err := a.filterArticles(req.Context(), filters)
+		articles, pagination, err := a.filterArticles(req.Context(), &filters)
 		if err != nil {
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
+			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		if len(articles) > 0 {
-			// Render appropriate content.
-			template := views.NewArticlesPage(articles, filters, pagination).List()
-			chain.Then(render(
-				models.NewResponse(models.WithResponseTemplate(template)),
-			)).ServeHTTP(res, req)
+			renderPartial(layouts.ArticlesList(articles, &filters, pagination), "").ServeHTTP(res, req)
 		} else {
-			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-				res.WriteHeader(http.StatusNoContent)
-			}).ServeHTTP(res, req)
+			res.WriteHeader(http.StatusNoContent)
 		}
-	}
+	}).ServeHTTP
 }
 
 // MarkArticle handles marking a articles as read or unread.
@@ -219,62 +205,81 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-
+		// Get updated articles.
 		s, err := a.getArticles(req.Context(), request.ItemID)
 		if err != nil || len(s) == 0 || len(s) > 1 {
 			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
 			return
 		}
-		var resp *models.Response
-
 		// Generate appropriate swap content based on target header.
 		switch req.Header.Get(htmx.HeaderTarget) {
 		case request.ItemID:
 			// Swap target is card.
 			filters := session.ArticleFiltersFromSession(req.Context())
-			resp = models.NewResponse(
-				models.WithResponseTemplate(partials.NewArticleContent(s[0]).Card(filters.GetView())),
-			)
+			renderPartial(partials.NewArticleContent(s[0]).Card(filters.GetView()), "").ServeHTTP(res, req)
 		case "mark_" + request.ItemID:
 			// Swap target is link.
-			resp = models.NewResponse(
-				models.WithResponseTemplate(partials.NewArticleContent(s[0]).ToggleMark()),
-			)
+			renderPartial(partials.NewArticleContent(s[0]).ToggleMark(), "").ServeHTTP(res, req)
 		}
-
-		chain.Then(render(resp)).ServeHTTP(res, req)
 	}
+}
+
+// MarkAllArticles handles marking all articles in a subscription as appropriate.
+func (a *API) MarkAllArticles() http.HandlerFunc {
+	return alice.New(
+		routeLogger,
+		decodeArticleFilters,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Extract filters from request.
+		filters := articleFiltersFromCtx(req.Context())
+		slogctx.FromCtx(req.Context()).Debug("Marking articles.", slog.String("filters", filters.Query()))
+		// Set the appropriate mark.
+		var mark models.Mark
+		switch filters.GetView() {
+		case models.ViewUnread:
+			mark = models.MarkRead
+		default:
+			mark = models.MarkUnread
+		}
+		// Construct the request from parameters.
+		request := &models.MarkSubscriptionsRequest{
+			Mark:          mark,
+			Subscriptions: filters.Subscriptions,
+		}
+		// Mark subscriptions.
+		err := a.markSubscriptions(req.Context(), request)
+		if err != nil {
+			return fmt.Errorf("unable to mark subscriptions: %w", err)
+		}
+		// Get articles matching filters.
+		articles, pagination, err := a.filterArticles(req.Context(), &filters)
+		if err != nil {
+			return fmt.Errorf("unable to mark subscriptions: %w", err)
+		}
+		// Render appropriate content.
+		template := layouts.ArticlesGrid(articles, &filters, pagination)
+		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
+
+		return nil
+	})).ServeHTTP
 }
 
 // ViewArticle handles viewing the content of an article.
 func (a *API) ViewArticle() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		chain := alice.New(
-			routeLogger,
-		)
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// subscriptionID := chi.URLParam(req, "subscription")
 		itemID := chi.URLParam(req, "item")
 		articles, err := a.getArticles(req.Context(), itemID)
 		if err != nil {
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-			return
+			return fmt.Errorf("unable to view article: %w", err)
 		}
 		// Render appropriate content.
-		var template templ.Component
-		page := views.NewArticlePage(articles[0])
-		switch {
-		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			template = page.Content()
-		default:
-			template = templates.Page(
-				articles[0].GetTitle()+" - Go Feed Me",
-				layouts.Drawer(page.Content()),
-			)
-		}
-		chain.Then(render(
-			models.NewResponse(models.WithResponseTemplate(template)),
-		)).ServeHTTP(res, req)
-	}
+		template := views.NewArticlePage(articles[0]).Content()
+		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
 }
 
 // FindSimilarArticles handles finding other articles that are "similar" to a set of given articles.

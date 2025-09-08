@@ -4,11 +4,12 @@
 package handlers
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/justinas/alice"
+	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/web/templates"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 )
@@ -18,7 +19,12 @@ func Landing() http.HandlerFunc {
 	template := templates.Page("Go Feed Me", layouts.Landing())
 	return alice.New(
 		routeLogger,
-	).Then(render(models.NewResponse(
-		models.WithResponseTemplate(template),
-	))).ServeHTTP
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		err := template.Render(req.Context(), res)
+		if err != nil {
+			slogctx.FromCtx(req.Context()).Error("Failed to render page.", slog.Any("error", err))
+			http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+			return
+		}
+	}).ServeHTTP
 }

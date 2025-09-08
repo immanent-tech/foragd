@@ -14,11 +14,9 @@ import (
 	"maps"
 	"net/http"
 	"slices"
-	"strings"
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/immanent-tech/go-syndication/opml"
@@ -32,12 +30,9 @@ import (
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 	"github.com/immanent-tech/go-feed-me/server/forms"
 	"github.com/immanent-tech/go-feed-me/server/session"
-	"github.com/immanent-tech/go-feed-me/validation"
-	"github.com/immanent-tech/go-feed-me/web/templates"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
-	"github.com/immanent-tech/go-feed-me/web/templates/views"
 )
 
 // GetSubscriptions handles showing a filtered collection of subscriptions as cards.
@@ -46,31 +41,18 @@ func (a *API) GetSubscriptions() http.HandlerFunc {
 		routeLogger,
 		decodeSubscriptionFilters,
 		saveSubscriptionFilters,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		filters := subscriptionFiltersFromCtx(req.Context())
 		// Get subscriptions matching filters.
 		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
 		if err != nil {
-			render(RespBackendError(err)).ServeHTTP(res, req)
-			return
+			return models.NewAPIError(fmt.Errorf("unable to get subscriptions: %w", err), http.StatusInternalServerError)
 		}
 		// Render appropriate content.
-		var template templ.Component
-		if len(subscriptions) == 0 {
-			template = layouts.EmptyContent()
-		} else {
-			template = views.NewSubscriptionsPage(subscriptions, &filters, pagination).Content()
-		}
-		if !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req) {
-			template = templates.Page(
-				"Go Feed Me - Subscriptions",
-				layouts.Drawer(template),
-			)
-		}
-		render(
-			models.NewResponse(models.WithResponseTemplate(template)),
-		).ServeHTTP(res, req)
-	}).ServeHTTP
+		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
+		renderPage(layouts.Drawer(template), "Subscriptions - Go Feed Me").ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
 }
 
 // GetSubscriptionUpdates handles checking for updates to subscriptions and showing a notification to the user to
@@ -164,96 +146,29 @@ func (a *API) GetSubscriptionUpdates() http.HandlerFunc {
 func (a *API) PaginateSubscriptions() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
+		decodeSubscriptionFilters,
 	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-		filters, valid, err := forms.DecodeForm[*models.SubscriptionFilters](req)
-		if err != nil || !valid {
-			msg := &models.UserMessage{
-				Status:  models.UserMessageStatusWarning,
-				Summary: "There was a problem with the inputs. Please check and try again.",
-			}
-			render(
-				models.NewResponse(
-					models.WithResponseError(err),
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseTemplate(pages.Error(msg)),
-				),
-			).ServeHTTP(res, req)
-			return
-		}
+		filters := subscriptionFiltersFromCtx(req.Context())
 		// Get subscriptions matching filters.
-		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), filters)
+		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
 		if err != nil {
-			render(RespBackendError(err)).ServeHTTP(res, req)
+			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		// Render appropriate content.
 		if len(subscriptions) > 0 {
-			// Render appropriate content.
-			template := views.NewSubscriptionsPage(subscriptions, filters, pagination).List()
-			render(
-				models.NewResponse(models.WithResponseTemplate(template)),
-			).ServeHTTP(res, req)
+			renderPartial(layouts.SubscriptionsList(subscriptions, &filters, pagination), "").ServeHTTP(res, req)
 		} else {
 			res.WriteHeader(http.StatusNoContent)
 		}
 	}).ServeHTTP
 }
 
-// GetSubscriptionArticles shows the articles for a subscription.
-func (a *API) GetSubscriptionArticles() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
-		// Get the subscription ID.
-		id := chi.URLParam(req, models.URLParamSubscription)
-		valid, err := validation.ValidateVariable(id, "required,startswith=sub_")
-		if !valid || err != nil {
-			render(RespInvalidInput(err)).ServeHTTP(res, req)
-			return
-		}
-		// Get the filters.
-		filters, valid, err := forms.DecodeForm[*models.ArticleFilters](req)
-		if err != nil || !valid {
-			chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
-		}
-		filters.Subscriptions = append(filters.Subscriptions, id)
-		// // Save the filters to the session.
-		// chain = chain.Append(SavePageState(filters))
-		// Get articles matching filters.
-		articles, pagination, err := a.filterArticles(req.Context(), filters)
-		if err != nil {
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-			return
-		}
-		// Render appropriate content.
-		var template templ.Component
-		page := views.NewArticlesPage(articles, filters, pagination)
-		switch {
-		case req.Method == http.MethodPost:
-			template = page.List()
-		case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-			template = page.Content()
-		default:
-			template = templates.Page(
-				"Articles - Go Feed Me",
-				layouts.Drawer(page.Content()),
-			)
-		}
-		chain.Then(render(
-			models.NewResponse(models.WithResponseTemplate(template)),
-		)).ServeHTTP(res, req)
-	}
-}
-
 // MarkSubscription handles marking a subscription as read or unread.
 func (a *API) MarkSubscription() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		chain := alice.New(
-			routeLogger,
-		)
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Construct the request from parameters.
 		request := &models.MarkSubscriptionsRequest{
 			Mark:          models.Mark(chi.URLParam(req, "mark")),
@@ -263,78 +178,122 @@ func (a *API) MarkSubscription() http.HandlerFunc {
 		// Mark subscription.
 		err := a.markSubscriptions(req.Context(), request)
 		if err != nil {
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-			return
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to mark subscription",
+					"Something went wrong, please try again",
+				),
+			), "")
+			return models.NewAPIError(
+				fmt.Errorf("unable to mark subscription: %w", err),
+				http.StatusInternalServerError)
 		}
-		var resp *models.Response
 		// If the view is "all" send back the updated subscription card.
 		if view == models.ViewAll {
 			s, err := a.getSubscriptions(req.Context(), request.Subscriptions...)
 			if err != nil || len(s) == 0 || len(s) > 1 {
-				chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-				return
+				renderPartial(partials.Notification(
+					models.NewErrorMessage(
+						"Unable to refresh subscription",
+						"Something went wrong, please try again",
+					),
+				), "")
+				return models.NewAPIError(
+					fmt.Errorf("unable to mark subscription: %w", err),
+					http.StatusInternalServerError)
 			}
-			card := partials.NewSubscriptionContent(s[0])
-			resp = models.NewResponse(
-				models.WithResponseTemplate(card.Card()),
-			)
+			renderPartial(partials.NewSubscriptionContent(s[0]).Card(), "").ServeHTTP(res, req)
+		} else {
+			res.WriteHeader(http.StatusOK)
 		}
-
-		chain.Then(render(resp)).ServeHTTP(res, req)
-	}
+		return nil
+	})).ServeHTTP
 }
 
 // MarkAllSubscriptions handles marking all subscriptions as read or unread.
 func (a *API) MarkAllSubscriptions() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		chain := alice.New(
-			routeLogger,
-		)
+	return alice.New(
+		routeLogger,
+		decodeSubscriptionFilters,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Extract filters from request.
+		filters := subscriptionFiltersFromCtx(req.Context())
+		slogctx.FromCtx(req.Context()).Debug("Marking subscriptions.", slog.String("filters", filters.Query()))
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			chain.Then(render(RespForbidden())).ServeHTTP(res, req)
-			return
+			return ErrNoCtxData
+		}
+		// Set the appropriate mark.
+		var mark models.Mark
+		switch filters.GetView() {
+		case models.ViewUnread:
+			mark = models.MarkRead
+		default:
+			mark = models.MarkUnread
 		}
 		// Construct the request from parameters.
 		request := &models.MarkSubscriptionsRequest{
-			Mark: models.Mark(chi.URLParam(req, "mark")),
+			Mark: mark,
 		}
-		subscriptions := strings.Split(req.FormValue("subscriptions"), ",")
-		if len(subscriptions) == 0 {
+		if len(filters.Subscriptions) == 0 {
 			request.Subscriptions = user.GetSubscriptionMetadata().GetIDs()
 		} else {
-			request.Subscriptions = subscriptions
+			request.Subscriptions = filters.Subscriptions
 		}
-		view := models.View(req.FormValue("view"))
 		// Mark subscriptions.
 		err := a.markSubscriptions(req.Context(), request)
 		if err != nil {
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-			return
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to mark subscriptions",
+					"Something went wrong, please try again",
+				),
+			), "")
+			return models.NewAPIError(
+				fmt.Errorf("unable to mark subscription: %w", err),
+				http.StatusInternalServerError)
 		}
-		// Redirect depending on the current view.
-		switch view {
-		case models.ViewRead, models.ViewUnread:
-			chain = chain.Append(SetupRedirect("/home"))
-		case models.ViewAll:
-			chain = chain.Append(SetupRedirect("/subscriptions"))
+		// Get updated subscriptions.
+		subscriptions, pagination, err := a.filterSubscriptions(req.Context(), &filters)
+		if err != nil {
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to refresh subscriptions",
+					"Something went wrong, please try again",
+				),
+			), "")
+			return models.NewAPIError(
+				fmt.Errorf("unable to mark subscription: %w", err),
+				http.StatusInternalServerError)
 		}
-		chain.Then(render(nil)).ServeHTTP(res, req)
-	}
+		// Render appropriate content.
+		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
+		renderPage(layouts.Drawer(template), "Subscriptions - Go Feed Me").ServeHTTP(res, req)
+
+		// // Redirect depending on the current view.
+		// switch filters.GetView() {
+		// case models.ViewRead, models.ViewUnread:
+		// 	chain = chain.Append(SetupRedirect("/home"))
+		// case models.ViewAll:
+		// 	chain = chain.Append(SetupRedirect("/subscriptions"))
+		// }
+		// chain.Then(render(nil)).ServeHTTP(res, req)
+
+		return nil
+	})).ServeHTTP
 }
 
 // EditSubscription handles presenting the user with a form for editing a subscription.
 func (a *API) EditSubscription() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve the subscription ID from the URL parameter.
 		id := chi.URLParam(req, models.URLParamSubscription)
 		// Retrieve user object.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			render(RespForbidden()).ServeHTTP(res, req)
-			return
+			return ErrNoCtxData
 		}
 		metadata := user.GetSubscriptionMetadata().GetByID(id)
 		request := &models.EditSubscriptionRequest{
@@ -349,29 +308,27 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			request.SuggestedCategories = categories
 		}
 		// Generate page template.
+		title := "Editing " + request.Nickname + " - Go Feed Me"
 		template := pages.EditSubscription(request)
-		render(models.NewResponse(models.WithResponseTemplate(template))).ServeHTTP(res, req)
-	}).ServeHTTP
+		renderPage(layouts.Drawer(template), title).ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
 }
 
 // SaveSubscription handles saving the edits made by a user to a subscription.
 func (a *API) SaveSubscription() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
-	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Retrieve user object.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			render(RespForbidden()).ServeHTTP(res, req)
-			return
+			return ErrNoCtxData
 		}
 		request, valid, err := forms.DecodeForm[*models.EditSubscriptionRequest](req)
 		if err != nil || !valid {
-			render(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(pages.EditSubscription(request)))).ServeHTTP(res, req)
-			return
+			renderPage(layouts.Drawer(pages.EditSubscription(request)), "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Update the subscription metadata.
 		metadata := user.GetSubscriptionMetadata().GetByID(request.SubscriptionID)
@@ -379,118 +336,92 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		metadata.Customisation.Categories = request.Categories
 		err = user.UpdateSubscription(metadata)
 		if err != nil {
-			msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
+			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 			template := templ.Join(pages.EditSubscription(request), partials.Notification(msg))
-			render(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(template))).ServeHTTP(res, req)
-			return
+			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Update the user.
 		err = a.updateUser(req.Context(), map[string]any{
 			"subscriptions": user.GetSubscriptionMetadata(),
 		})
 		if err != nil {
-			msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
+			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 			template := templ.Join(pages.EditSubscription(request), partials.Notification(msg))
-			render(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(template))).ServeHTTP(res, req)
-			return
+			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		template := templ.Join(pages.EditSubscription(request), pages.EditSubscriptionSuccessNotification(metadata))
-		render(models.NewResponse(models.WithResponseTemplate(template))).ServeHTTP(res, req)
-	}).ServeHTTP
+		renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
 }
 
-// RemoveSubscription handles presenting the user with confirmation and then actioning a subscription removal
-// (unsubscribe) request.
-func (a *API) RemoveSubscription() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up the handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
-		switch req.Method {
-		case http.MethodGet:
-			// Show a modal to confirm unsubscribe request.
-			id := chi.URLParam(req, "subscription")
-			subscriptions, err := a.getSubscriptions(req.Context(), id)
-			if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
-				chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-				return
-			}
-			resp := models.NewResponse(
-				models.WithResponseTemplate(partials.NewSubscriptionContent(subscriptions[0]).UnsubscribeModal()),
-			)
-			chain.Then(render(resp)).ServeHTTP(res, req)
-		case http.MethodPost:
-			// Perform unsubscribe action.
-			id := chi.URLParam(req, "subscription")
-			// Retrieve user object.
-			user, found := models.UserFromCtx(req.Context())
-			if !found {
-				chain.Then(render(RespForbidden())).ServeHTTP(res, req)
-				return
-			}
-			// Remove metadata for given subscriptions from user.
-			user.RemoveSubscriptions(id)
-			// Update the user.
-			err := a.updateUser(req.Context(), map[string]any{
-				"subscriptions": user.GetSubscriptionMetadata(),
-			})
-			if err != nil {
-				chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-				return
-			}
-			// Show success notification.
-			msg := &models.UserMessage{
-				Summary: "Unsubscribed.",
-				Status:  models.UserMessageStatusSuccess,
-			}
-			resp := models.NewResponse(
-				models.WithResponseTemplate(partials.Notification(msg)),
-			)
-			chain.Then(render(resp)).ServeHTTP(res, req)
+// GetRemoveSubscriptionConfirmation handles showing a confirmation dialog for removing (unsubscribing) from a
+// subscription.
+func (a *API) GetRemoveSubscriptionConfirmation() http.HandlerFunc {
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Show a modal to confirm unsubscribe request.
+		id := chi.URLParam(req, "subscription")
+		subscriptions, err := a.getSubscriptions(req.Context(), id)
+		if err != nil || len(subscriptions) == 0 || len(subscriptions) > 1 {
+			msg := models.NewErrorMessage("An error occurred processing the request", "Please try again.")
+			template := partials.Notification(msg)
+			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
-	}
+		renderPartial(partials.NewSubscriptionContent(subscriptions[0]).UnsubscribeModal(), "").ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+// ProcessRemoveSubscription handles processing a remove (unsubscribe) subscription request.
+func (a *API) ProcessRemoveSubscription() http.HandlerFunc {
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		// Perform unsubscribe action.
+		id := chi.URLParam(req, "subscription")
+		// Retrieve user object.
+		user, found := models.UserFromCtx(req.Context())
+		if !found {
+			return ErrNoCtxData
+		}
+		// Remove metadata for given subscriptions from user.
+		user.RemoveSubscriptions(id)
+		// Update the user.
+		err := a.updateUser(req.Context(), map[string]any{
+			"subscriptions": user.GetSubscriptionMetadata(),
+		})
+		if err != nil {
+			msg := models.NewErrorMessage("Unable to remove subscription", "Please try again.")
+			template := partials.Notification(msg)
+			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
+		}
+		// Show success notification.
+		msg := models.NewSuccessMessage("Unsubscribed!", "")
+		renderPartial(partials.Notification(msg), "").ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
 }
 
 // AddSubscription handles adding a new subscription requested by the user.
 func (a *API) AddSubscription() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		chain := alice.New(
-			routeLogger,
-		)
-		// Function to generate appropriate layout.
-		buildTemplate := func(template templ.Component) templ.Component {
-			switch {
-			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-				return template
-			default:
-				// Show full page.
-				return templates.Page(
-					"Add Subscription - Go Feed Me",
-					layouts.Drawer(template),
-				)
-			}
-		}
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		case http.MethodGet:
-			resp := models.NewResponse(
-				models.WithResponseTemplate(buildTemplate(pages.AddSubscription(&models.SubscriptionRequest{}))),
-			)
-			chain.Then(render(resp)).ServeHTTP(res, req)
+			template := pages.AddSubscription(&models.SubscriptionRequest{})
+			renderPage(layouts.Drawer(template), "Add Subscription - Go Feed Me").ServeHTTP(res, req)
 		case http.MethodPost:
 			request, valid, err := forms.DecodeForm[*models.SubscriptionRequest](req)
 			if err != nil || !valid {
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(pages.AddSubscription(request))))).ServeHTTP(res, req)
-				return
+				renderPage(layouts.Drawer(pages.AddSubscription(request)), "").ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			requests := addSubscriptionRequests{
 				request: &models.Feed{},
@@ -498,86 +429,56 @@ func (a *API) AddSubscription() http.HandlerFunc {
 			// Match the request to either and existing or new feed.
 			result, err := requests.matchFeedsToSubscriptionRequests(req.Context(), a)
 			if err != nil {
-				msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
+				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 				template := templ.Join(pages.AddSubscription(request), partials.Notification(msg))
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
-				return
+				renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			// If results returned from matching is non-nil, something went wrong.
 			if result[request] != nil {
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseError(errors.New(result[request].Message.String())), //nolint:err113 // TODO: work out a better way
-					models.WithResponseTemplate(pages.AddSubscription(request))))).ServeHTTP(res, req)
-				return
+				template := pages.AddSubscription(request)
+				renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+				res.WriteHeader(http.StatusUnprocessableEntity)
+				return nil
 			}
 			// Create the new subscription.
 			createResult, err := requests.createNewSubscriptions(req.Context(), a)
 			if err != nil {
-				msg := models.NewErrorMessage("A backend error occurred trying to process the request", "Please try again.")
+				msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")
 				template := templ.Join(pages.AddSubscription(request), partials.Notification(msg))
-				// template := buildTemplate(templ.Join(pages.AddSubscription(request), partials.Notification(msg)))
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(template)))).ServeHTTP(res, req)
-				return
+				renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			} else {
 				result = createResult
 			}
 			template := pages.AddSubscriptionSuccess(result[request])
-			resp := models.NewResponse(
-				models.WithResponseTemplate(template),
-			)
-			chain.Then(render(resp)).ServeHTTP(res, req)
+			renderPage(layouts.Drawer(template), "").ServeHTTP(res, req)
 		}
-	}
+		return nil
+	})).ServeHTTP
 }
 
 // ImportSubscriptions handles assisting the user with importing subscriptions from an external source.
 func (a *API) ImportSubscriptions() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		chain := alice.New(
-			routeLogger,
-		)
-		// Function to generate appropriate layout.
-		buildTemplate := func(template templ.Component) templ.Component {
-			switch {
-			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-				return template
-			default:
-				// Show full page.
-				return templates.Page(
-					"Import Subscriptions - Go Feed Me",
-					layouts.Drawer(template),
-				)
-			}
-		}
-		var resp *models.Response
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		// GET: show import modal.
 		case http.MethodGet:
-			resp = models.NewResponse(
-				models.WithResponseTemplate(buildTemplate(pages.ImportSubscriptions())),
-			)
+			template := pages.ImportSubscriptions()
+			renderPage(layouts.Drawer(template), "Import Subscriptions - Go Feed Me").ServeHTTP(res, req)
 		// POST: process import.
 		case http.MethodPost:
 			requests := make(addSubscriptionRequests)
 			opmlFile := &models.OPMLFile{}
 			opmlFile, valid, err := forms.DecodeMultipartFile(req, "source", opmlFile)
 			if err != nil || !valid {
-				msg := models.NewWarningMessage(
-					"Failed to read OPML file.",
-					"The OPML could not be read. Is it a valid OPML file? Please check the contents, correct any issues and try again.",
-				)
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.Notification(msg))))).ServeHTTP(res, req)
-				return
+				msg := models.NewErrorMessage(
+					"Failed to read OPML file",
+					"The OPML could not be read. Is it a valid OPML file? Please check the contents, correct any issues and try again.")
+				renderPartial(partials.Notification(msg), "").ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			r, err := opmlFile.GenerateRequests()
 			if err != nil {
@@ -585,11 +486,8 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					"Failed to extract subscriptions from OPML file.",
 					"There was a problem reading the individual feed entries in the OPML file. Please check the contents, correct any issues and try again.",
 				)
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.Notification(msg))))).ServeHTTP(res, req)
-				return
+				renderPartial(partials.Notification(msg), "").ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			for newRequest := range slices.Values(r) {
 				requests[newRequest] = &models.Feed{}
@@ -600,11 +498,8 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					"Error processing OPML file.",
 					"The backend had issues processing the OPML file and adding subscriptions, please try again.",
 				)
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
-				return
+				renderPartial(partials.Notification(msg), "").ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			createResults, err := requests.createNewSubscriptions(req.Context(), a)
 			if err != nil {
@@ -612,11 +507,8 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 					"Error processing OPML file.",
 					"The backend had issues processing the OPML file and adding subscriptions, please try again.",
 				)
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
-				return
+				renderPartial(partials.Notification(msg), "").ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			maps.Copy(createResults, matchResults)
 			msg := models.NewInfoMessage(
@@ -624,40 +516,22 @@ func (a *API) ImportSubscriptions() http.HandlerFunc {
 				"Please consult the results and check for any issues.",
 			)
 			template := templ.Join(pages.ImportResults(createResults), partials.Notification(msg))
-			resp = models.NewResponse(
-				models.WithResponseTemplate(template),
-			)
+			renderPartial(template, "").ServeHTTP(res, req)
 		}
-		chain.Then(render(resp)).ServeHTTP(res, req)
-	}
+		return nil
+	})).ServeHTTP
 }
 
 // ExportSubscriptions handles configuring and performing an export of user subscriptions.
 func (a *API) ExportSubscriptions() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		chain := alice.New(
-			routeLogger,
-		)
-		// Function to generate appropriate layout.
-		buildTemplate := func(template templ.Component) templ.Component {
-			switch {
-			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-				return template
-			default:
-				// Show full page.
-				return templates.Page(
-					"Import Subscriptions - Go Feed Me",
-					layouts.Drawer(template),
-				)
-			}
-		}
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		switch {
 		// GET: show import modal.
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export":
-			resp := models.NewResponse(
-				models.WithResponseTemplate(buildTemplate(pages.NewExportPage().Content())),
-			)
-			chain.Then(render(resp)).ServeHTTP(res, req)
+			template := pages.NewExportPage().Content()
+			renderPage(layouts.Drawer(template), "Export Subscriptions - Go Feed Me").ServeHTTP(res, req)
 		case chi.RouteContext(req.Context()).RoutePattern() == "/user/export/opml":
 			// Get all subscriptions.
 			subscriptions, err := a.getSubscriptions(req.Context())
@@ -666,11 +540,8 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 					"Error exporting OPML file.",
 					"The backend had issues generating the OPML file, please try again.",
 				)
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
-				return
+				renderPartial(partials.ServerErrorNotification(msg), "").ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			// Create outlines for all subscriptions.
 			outlines := make([]opml.Outline, 0, len(subscriptions))
@@ -694,17 +565,15 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 					"Error exporting OPML file.",
 					"The backend had issues generating the OPML file, please try again.",
 				)
-				chain.Then(render(models.NewResponse(
-					models.WithResponseStatusCode(http.StatusInternalServerError),
-					models.WithResponseError(err),
-					models.WithResponseTemplate(partials.ServerErrorNotification(msg))))).ServeHTTP(res, req)
-				return
+				renderPartial(partials.ServerErrorNotification(msg), "").ServeHTTP(res, req)
+				return models.NewAPIError(err, http.StatusUnprocessableEntity)
 			}
 			// Serve the opml content via http.ServeContent.
 			res.Header().Set("Content-Type", "text/x-opml+xml; charset=utf-8")
 			http.ServeContent(res, req, "go-feed-me-export.opml", time.Now(), bytes.NewReader(data))
 		}
-	}
+		return nil
+	})).ServeHTTP
 }
 
 // AdjustSubscriptionCategories handles adding and removing categories from a subscription, either when editing or

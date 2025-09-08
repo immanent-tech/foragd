@@ -129,13 +129,69 @@ templ (c ListControls) Template() {
 							</fieldset>
 						</el-popover>
 					</div>
-					// Button to reveal filters sidebar on mobile.
-					<button type="button" command="show-modal" commandfor="mobile-filters" class="sm:hidden controls-button">
-						<span class="sr-only">Filter options</span>
-						Filters
-					</button>
+					{{ var mark string }}
+					if c.Filters.GetView() == models.ViewUnread {
+						{{ mark = "read" }}
+					} else {
+						{{ mark = "unread" }}
+					}
+					<div class="sm:hidden space-x-4">
+						switch c.Path {
+							case "/articles":
+								<button
+									type="button"
+									class="controls-button"
+									hx-put="/articles"
+									hx-include="#content-filters"
+									hx-target={ ContentID.Target() }
+								>
+									<span class="sr-only">Mark all { mark }</span>
+									Mark all { mark }
+								</button>
+							case "/subscriptions":
+								<button
+									type="button"
+									class="controls-button"
+									hx-put="/subscriptions"
+									hx-include="#content-filters"
+									hx-target={ ContentID.Target() }
+								>
+									<span class="sr-only">Mark all { mark }</span>
+									Mark all { mark }
+								</button>
+						}
+						// Button to reveal filters sidebar on mobile.
+						<button type="button" command="show-modal" commandfor="mobile-filters" class="controls-button">
+							<span class="sr-only">Filter options</span>
+							Filters
+						</button>
+					</div>
 					// Desktop Filters.
 					<el-popover-group class="hidden sm:flex sm:items-baseline sm:space-x-8">
+						switch c.Path {
+							case "/articles":
+								<button
+									type="button"
+									class="controls-button"
+									hx-put="/articles"
+									hx-include="#content-filters"
+									hx-target={ ContentID.Target() }
+								>
+									<span class="sr-only">Mark all { mark }</span>
+									Mark all { mark }
+								</button>
+							case "/subscriptions":
+								<button
+									type="button"
+									class="controls-button"
+									hx-put="/subscriptions"
+									hx-include="#content-filters"
+									hx-target={ ContentID.Target() }
+								>
+									<span class="sr-only">Mark all { mark }</span>
+									Mark all { mark }
+								</button>
+						}
 						// Category Filters (desktop).
 						if len(c.Categories.GetTopCategories(10)) > 0 {
 							<div class="relative inline-block text-left">

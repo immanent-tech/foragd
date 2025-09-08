@@ -20,6 +20,7 @@ var ErrUserNotFound = NewAPIError(
 	http.StatusForbidden,
 )
 
+// NewAPIError creates a new API error with the given internal error  and status code.
 func NewAPIError(err error, status int) error {
 	return APIError{
 		InternalError: err,
@@ -27,8 +28,10 @@ func NewAPIError(err error, status int) error {
 	}
 }
 
-func (e APIError) Error() string   { return e.InternalError.Error() }
-func (e APIError) Unwrap() error   { return e.InternalError }
+func (e APIError) Error() string { return e.InternalError.Error() }
+func (e APIError) Unwrap() error { return e.InternalError }
+
+// HTTPStatus returns the status code of the API error.
 func (e APIError) HTTPStatus() int { return e.StatusCode }
 
 // HTTPStatus returns the HTTP status included in err. If err is nil, this

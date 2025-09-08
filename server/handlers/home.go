@@ -18,6 +18,7 @@ import (
 	"github.com/immanent-tech/go-feed-me/providers/elastic/aggregations"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/results"
+	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 )
 
@@ -33,14 +34,16 @@ func (a *API) Home() http.HandlerFunc {
 			return models.ErrUserNotFound
 		}
 		if len(user.GetSubscriptionMetadata()) == 0 {
-			renderTemplate(pages.NewUserHome(), "Home - Go Feed Me").ServeHTTP(res, req)
+			template := pages.NewUserHome()
+			renderPage(layouts.Drawer(template), "Home - Go Feed Me").ServeHTTP(res, req)
 			return nil
 		}
 		data, resp := a.getHomePageData(ctx)
 		if resp != nil && !resp.IsNotFound() {
 			return resp.InternalError
 		}
-		renderTemplate(data.Template(), "Home - Go Feed Me").ServeHTTP(res, req)
+		template := data.Template()
+		renderPage(layouts.Drawer(template), "Home - Go Feed Me").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }

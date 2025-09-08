@@ -216,8 +216,8 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 		// Subscription routes.
 		r.Route("/subscriptions", func(r chi.Router) {
 			r.Get("/", handler.GetSubscriptions())
+			r.With(middlewares.RequireHTMX).Put("/", handler.MarkAllSubscriptions())
 			r.With(middlewares.RequireHTMX).Post("/", handler.PaginateSubscriptions())
-			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkAllSubscriptions())
 			r.Get("/updates", handler.GetSubscriptionUpdates())
 		})
 		// Subscription route.
@@ -228,6 +228,7 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 		// Article routes.
 		r.Route("/articles", func(r chi.Router) {
 			r.Get("/", handler.GetArticles())
+			r.With(middlewares.RequireHTMX).Put("/", handler.MarkAllArticles())
 			r.With(middlewares.RequireHTMX).Post("/", handler.PaginateArticles())
 			r.Get("/updates", handler.GetArticleUpdates())
 		})
@@ -247,8 +248,8 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 				r.Get("/edit/{subscription}", handler.EditSubscription())
 				r.With(middlewares.RequireHTMX).Put("/edit/{subscription}", handler.SaveSubscription())
 				// Remove subscription (unsubscribe).
-				r.Get("/remove/{subscription}", handler.RemoveSubscription())
-				r.With(middlewares.RequireHTMX).Post("/remove/{subscription}", handler.RemoveSubscription())
+				r.Get("/remove/{subscription}", handler.GetRemoveSubscriptionConfirmation())
+				r.With(middlewares.RequireHTMX).Post("/remove/{subscription}", handler.ProcessRemoveSubscription())
 				// Category management for add/edit subscription.
 				r.With(middlewares.RequireHTMX).Post("/category", handler.AdjustSubscriptionCategories())
 				r.With(middlewares.RequireHTMX).Delete("/category", handler.AdjustSubscriptionCategories())

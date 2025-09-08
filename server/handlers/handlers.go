@@ -21,7 +21,6 @@ import (
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/server/session"
 	"github.com/immanent-tech/go-feed-me/web/templates"
-	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
@@ -52,27 +51,6 @@ func routeLogger(next http.Handler) http.Handler {
 		ctx = slogctx.With(ctx, slog.Group("req", slog.String("id", middleware.GetReqID(ctx))))
 		next.ServeHTTP(res, req.WithContext(ctx))
 	})
-}
-
-func logError(err error) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-			var apiErr interface {
-				error
-				HTTPStatus() int
-			}
-			if errors.As(err, &apiErr) {
-				switch {
-				case apiErr.HTTPStatus() < 400:
-					slogctx.FromCtx(req.Context()).DebugContext(req.Context(), apiErr.Error())
-				case apiErr.HTTPStatus() < 500:
-					slogctx.FromCtx(req.Context()).WarnContext(req.Context(), apiErr.Error())
-				default:
-					slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), apiErr.Error())
-				}
-			}
-		})
-	}
 }
 
 // render handles rendering a response. If the response contains a template, that will be rendered in the http
@@ -128,57 +106,31 @@ func render(resp *models.Response) http.Handler {
 	})
 }
 
-// render handles rendering a response. If the response contains a template, that will be rendered in the http
-// response. If the response contains an error, it will be logged.
-func renderTemplate(template templ.Component, title string) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Get any existing htmx response writer.
-		htmxResp := htmxRespFromCtx(req.Context())
-		if template == nil {
-			// If there is no response, return 204: No Content.
-			res.WriteHeader(http.StatusNoContent)
-			err := htmxResp.Write(res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), "Problem writing response.",
-					slog.Any("error", err),
-				)
-			}
-			return
-		}
-		// Write the response template.
-		if htmx.IsHTMX(req) {
-			if htmx.IsHistoryRestoreRequest(req) {
-				template = templates.Page(title, layouts.Drawer(template))
-			} else if title != "" {
-				// Update the page title if set.
-				template = templ.Join(template, templates.SetPageTitle(title))
-			}
-			err := htmxResp.RenderTempl(req.Context(), res, template)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-				return
-			}
-		} else {
-			template = templates.Page(title, layouts.Drawer(template))
-			err := template.Render(req.Context(), res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-				return
-			}
-		}
-	})
-}
-
 func handlerWithError(f func(http.ResponseWriter, *http.Request) error) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
 		err := f(res, req)
 		if err != nil {
-			logError(err)
-			template := partials.Error(models.NewErrorMessage("Something went wrong", ""))
-			renderTemplate(template, "").ServeHTTP(res, req)
-			// http.Error(res, err.Error(), models.HTTPStatus(err))
+			var apiErr interface {
+				error
+				HTTPStatus() int
+			}
+			if errors.As(err, &apiErr) {
+				switch {
+				case apiErr.HTTPStatus() < 400:
+					slogctx.FromCtx(req.Context()).DebugContext(req.Context(), apiErr.Error())
+				case apiErr.HTTPStatus() < 500:
+					slogctx.FromCtx(req.Context()).WarnContext(req.Context(), apiErr.Error())
+				default:
+					slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), apiErr.Error())
+				}
+				res.WriteHeader(apiErr.HTTPStatus())
+			} else {
+				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(),
+					"Unknown API Error.",
+					slog.Any("error", err),
+				)
+				http.Error(res, err.Error(), http.StatusInternalServerError)
+			}
 		}
 	}
 }
@@ -265,4 +217,58 @@ func NotFound() http.HandlerFunc {
 			routeLogger,
 		).Then(render(resp)).ServeHTTP(res, req)
 	}
+}
+
+// renderPage will render the given template as a full page. It handles htmx and non-htmx requests, rendering the
+// appropriate full or partial HTML response as appropriate.
+func renderPage(template templ.Component, title string) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if template == nil {
+			// If there is no response, return 204: No Content.
+			res.WriteHeader(http.StatusNoContent)
+			return
+		}
+		// Write the response template.
+		if IsHTMX(req) {
+			if IsHistoryRestoreRequest(req) {
+				templ.Handler(templates.Page(title, template)).ServeHTTP(res, req)
+				return
+			} else if title != "" {
+				// Update the page title if set.
+				template = templ.Join(template, templates.SetPageTitle(title))
+			}
+			target := templates.FragmentKey(req.Header.Get(htmx.HeaderTarget))
+			if target == "" {
+				target = templates.FragmentContent
+			}
+			templ.Handler(template, templ.WithFragments(target)).ServeHTTP(res, req)
+		} else {
+			template = templates.Page(title, template)
+			err := template.Render(req.Context(), res)
+			if err != nil {
+				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
+				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
+				return
+			}
+		}
+	})
+}
+
+// renderPartial will render the given template, optionally updating the page title if one is given.
+func renderPartial(template templ.Component, title string) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if title != "" {
+			// Update the page title if set.
+			template = templ.Join(template, templates.SetPageTitle(title))
+		}
+		templ.Handler(template).ServeHTTP(res, req)
+	})
+}
+
+func IsHTMX(req *http.Request) bool {
+	return req.Header.Get("HX-Request") == "true"
+}
+
+func IsHistoryRestoreRequest(req *http.Request) bool {
+	return req.Header.Get("HX-History-Restore-Request") == "true"
 }
