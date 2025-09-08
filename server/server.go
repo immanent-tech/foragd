@@ -235,7 +235,7 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 		r.Route("/subscription/{subscription}/article/{item}", func(r chi.Router) {
 			r.Get("/", handler.ViewArticle())
 			r.With(middlewares.RequireHTMX).Post("/mark/{mark}", handler.MarkArticle())
-			r.With(middlewares.RequireHTMX).Post("/similar", handler.FindSimilarArticles())
+			r.Get("/similar", handler.FindSimilarArticles())
 		})
 		// User routes.
 		r.Route("/user", func(r chi.Router) {

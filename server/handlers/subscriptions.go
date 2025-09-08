@@ -579,38 +579,28 @@ func (a *API) ExportSubscriptions() http.HandlerFunc {
 // AdjustSubscriptionCategories handles adding and removing categories from a subscription, either when editing or
 // adding.
 func (a *API) AdjustSubscriptionCategories() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		switch req.Method {
 		case http.MethodPost:
 			// Add a category.
 			currentCategories, _, _ := forms.DecodeForm[*partials.AddSubscriptionCategories](req)
 			category := req.FormValue("category")
 			if category == "" || (currentCategories != nil && slices.Contains(currentCategories.Categories, category)) {
-				chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-					res.WriteHeader(http.StatusNoContent)
-				}).ServeHTTP(res, req)
+				res.WriteHeader(http.StatusNoContent)
 			} else {
-				resp := models.NewResponse(
-					models.WithResponseTemplate(partials.AddCategory(category)),
-				)
-				chain.Then(render(resp)).ServeHTTP(res, req)
+				renderPartial(partials.AddCategory(category), "").ServeHTTP(res, req)
 			}
 		case http.MethodDelete:
 			// Remove a category.
-			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-				res.WriteHeader(http.StatusOK)
-			}).ServeHTTP(res, req)
+			res.WriteHeader(http.StatusOK)
 		default:
 			// Unsupported, do nothing.
-			chain.ThenFunc(func(res http.ResponseWriter, req *http.Request) {
-				res.WriteHeader(http.StatusNoContent)
-			}).ServeHTTP(res, req)
+			res.WriteHeader(http.StatusNoContent)
 		}
-	}
+		return nil
+	})).ServeHTTP
 }
 
 func (a *API) getSubscriptionUnreadCounts(ctx context.Context, subscriptionMetadata models.SubscriptionMetadataSlice) (*aggregations.TermsAggregationResults, error) {

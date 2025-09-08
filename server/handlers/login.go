@@ -16,19 +16,18 @@ import (
 	"github.com/immanent-tech/go-feed-me/providers/elastic"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/schema"
-	"github.com/immanent-tech/go-feed-me/web/templates"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
+	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
 
 // LoginSelect handles showing options for logging in with different providers.
 func LoginSelect() http.HandlerFunc {
-	page := &pages.Login{}
-	template := templates.Page("Login - Go Feed Me", page.Content())
 	return alice.New(
 		routeLogger,
-	).Then(render(models.NewResponse(
-		models.WithResponseTemplate(template),
-	))).ServeHTTP
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
+		page := &pages.Login{}
+		renderPage(page.Content(), "Login - Go Feed Me").ServeHTTP(res, req)
+	}).ServeHTTP
 }
 
 // Login handles login requests.
@@ -42,14 +41,8 @@ func (a *API) Login() http.HandlerFunc {
 		if err != nil {
 			url, err := a.Auth.GetAuthURL(req)
 			if err != nil {
-				resp := models.NewResponse(
-					models.WithResponseError(err),
-					models.WithResponseTemplate(pages.Error(
-						models.NewErrorMessage("Unable to log in.", ""),
-					)),
-					models.WithResponseStatusCode(http.StatusForbidden),
-				)
-				render(resp).ServeHTTP(res, req)
+				template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
+				renderPage(template, "").ServeHTTP(res, req)
 				return
 			}
 			slogctx.FromCtx(req.Context()).Debug("Authentication required, redirecting to provider.",
@@ -76,14 +69,8 @@ func (a *API) LoginCallback() http.HandlerFunc {
 		a.Auth.SetProviderName(req.Context(), provider)
 		err := a.Auth.CompleteUserAuth(res, req)
 		if err != nil {
-			resp := models.NewResponse(
-				models.WithResponseError(err),
-				models.WithResponseTemplate(pages.Error(
-					models.NewErrorMessage("Unable to log in.", ""),
-				)),
-				models.WithResponseStatusCode(http.StatusForbidden),
-			)
-			render(resp).ServeHTTP(res, req)
+			template := partials.Error(models.NewErrorMessage("Unable to log in.", ""))
+			renderPage(template, "").ServeHTTP(res, req)
 			return
 		}
 		slogctx.FromCtx(req.Context()).Debug("User logged in.")

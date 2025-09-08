@@ -163,16 +163,13 @@ func (a *API) PaginateArticles() http.HandlerFunc {
 
 // MarkArticle handles marking a articles as read or unread.
 func (a *API) MarkArticle() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Extract user data.
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			chain.Then(render(RespForbidden())).ServeHTTP(res, req)
-			return
+			return models.ErrUserNotFound
 		}
 		// Construct the request from parameters.
 		request := &models.MarkArticleRequest{
@@ -182,13 +179,16 @@ func (a *API) MarkArticle() http.HandlerFunc {
 		}
 		// Validate parameters.
 		valid, err := request.Valid()
-		if err != nil {
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-			return
-		}
-		if !valid {
-			chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
+		if !valid || err != nil {
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to mark subscription",
+					"The request looks invalid. Please check and try again.",
+				),
+			), "")
+			return models.NewAPIError(
+				fmt.Errorf("unable to mark subscription: %w", err),
+				http.StatusUnprocessableEntity)
 		}
 		// Mark off items under subscription states.
 		slogctx.FromCtx(req.Context()).Debug("Marking article.",
@@ -202,14 +202,28 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			"subscriptions": user.Subscriptions,
 		})
 		if err != nil {
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-			return
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to mark subscription",
+					"Could not update user data.",
+				),
+			), "")
+			return models.NewAPIError(
+				fmt.Errorf("unable to mark subscription: %w", err),
+				http.StatusUnprocessableEntity)
 		}
 		// Get updated articles.
 		s, err := a.getArticles(req.Context(), request.ItemID)
 		if err != nil || len(s) == 0 || len(s) > 1 {
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-			return
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to mark subscription",
+					"Could not refresh articles.",
+				),
+			), "")
+			return models.NewAPIError(
+				fmt.Errorf("unable to mark subscription: %w", err),
+				http.StatusUnprocessableEntity)
 		}
 		// Generate appropriate swap content based on target header.
 		switch req.Header.Get(htmx.HeaderTarget) {
@@ -221,7 +235,8 @@ func (a *API) MarkArticle() http.HandlerFunc {
 			// Swap target is link.
 			renderPartial(partials.NewArticleContent(s[0]).ToggleMark(), "").ServeHTTP(res, req)
 		}
-	}
+		return nil
+	})).ServeHTTP
 }
 
 // MarkAllArticles handles marking all articles in a subscription as appropriate.
@@ -290,10 +305,18 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 		itemID := chi.URLParam(req, "item")
 		articles, err := a.getSimilarArticles(req.Context(), itemID)
 		if err != nil {
-			return models.NewAPIError(err, http.StatusInternalServerError)
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to find similar articles",
+					"The backend reported an issue. Please try again.",
+				),
+			), "")
+			return models.NewAPIError(
+				fmt.Errorf("unable to find similar articles subscription: %w", err),
+				http.StatusUnprocessableEntity)
 		}
 		template := pages.SimilarArticles(articles)
-		render(models.NewResponse(models.WithResponseTemplate(template))).ServeHTTP(res, req)
+		renderPage(layouts.Drawer(template), "Similar Articles - Go Feed Me").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
 }
