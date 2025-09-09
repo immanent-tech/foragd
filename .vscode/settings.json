@@ -120,7 +120,7 @@
     "--output.text.print-issued-lines=false",
     "--show-stats=false"
   ],
-  "go.lintTool": "golangci-lint",
+  "go.lintTool": "golangci-lint-v2",
   "go.useLanguageServer": true,
   "gopls": {
     "ui.semanticTokens": true
