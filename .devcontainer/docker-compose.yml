@@ -22,6 +22,11 @@ services:
     hostname: devcontainer
     ports:
       - $GOFEEDME_server_port:$GOFEEDME_server_port
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+      nproc: 65535
   stepca:
     env_file:
       - .env
