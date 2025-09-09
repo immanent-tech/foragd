@@ -52,24 +52,29 @@ templ (page *Home) Template() {
 			</ul>
 		}
 	}
-	if len(page.Subscriptions) > 0 {
-		// Dive In section: top categories and sample articles from them.
+	// Show any top category hits.
+	if len(page.TopCategories) > 0 {
 		<div class="flex items-center mt-8">
 			<div class="relative flex justify-start">
-				<span class="pr-3 text-base text-nowrap font-semibold">Dive In</span>
+				<span class="pr-3 text-base text-nowrap font-semibold">Top Categories</span>
 			</div>
 			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
 		</div>
-		// Show any top category hits.
-		if page.TopCategories != nil {
-			<div class="flex justify-center gap-2 p-2 m-2">
-				<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
-					for category := range slices.Values(page.TopCategories) {
-						@categoryBadge(category)
-					}
-				</div>
+		<div class="flex justify-center gap-2 p-2 m-2">
+			<div id="top-categories" class="flex flex-row flex-wrap place-content-center p-2 gap-2">
+				for category := range slices.Values(page.TopCategories) {
+					@categoryBadge(category)
+				}
 			</div>
-		}
+		</div>
+	}
+	if len(page.TopArticles) > 0 {
+		<div class="flex items-center mt-8">
+			<div class="relative flex justify-start">
+				<span class="pr-3 text-base text-nowrap font-semibold">Top Articles</span>
+			</div>
+			<div aria-hidden="true" class="w-full border-t border-base-content/15"></div>
+		</div>
 		// Show any top article hits.
 		if len(page.TopArticles) != 0 {
 			@layouts.Grid() {
@@ -78,6 +83,8 @@ templ (page *Home) Template() {
 				}
 			}
 		}
+	}
+	if len(page.RareCategories) > 0 {
 		// Interesting Picks section: rare/semantic categories and articles.
 		if page.RareCategories != nil {
 			<div class="flex items-center mt-8">
