@@ -91,7 +91,7 @@ templ (a *Article) Card(view models.View) {
 						</a>
 						// Mark action.
 						if view == models.ViewAll {
-							@a.markLink("#"+a.GetID(), "outerHTML", "menu-item") {
+							@articleMarkLink(a.Article, "#"+a.GetID(), "outerHTML", "menu-item") {
 								switch a.IsUnread() {
 									case true:
 										@HeroIconMarkRead("size-4")
@@ -102,7 +102,7 @@ templ (a *Article) Card(view models.View) {
 								}
 							}
 						} else {
-							@a.markLink("#"+a.GetID(), "delete", "menu-item") {
+							@articleMarkLink(a.Article, "#"+a.GetID(), "delete", "menu-item") {
 								switch a.IsUnread() {
 									case true:
 										@HeroIconMarkRead("size-4")
@@ -115,7 +115,7 @@ templ (a *Article) Card(view models.View) {
 						}
 						// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 						<div id={ "favorite_" + a.GetID() }>
-							@a.favoriteLink("menu-item") {
+							@articleFavoriteLink(a.Article, "menu-item") {
 								switch a.Favorite {
 									case true:
 										@HeroIconHeartFilled("size-4")
@@ -127,7 +127,7 @@ templ (a *Article) Card(view models.View) {
 							}
 						</div>
 						// Share action.
-						@a.shareLink("menu-item") {
+						@articleShareLink(a.Article, "menu-item") {
 							@HeroIconShare("size-4")
 							Share
 						}
@@ -138,8 +138,8 @@ templ (a *Article) Card(view models.View) {
 	</li>
 }
 
-// Content shows the full article content.
-templ (a *Article) Content() {
+// ViewArticle renders the complete content of an article.
+templ ViewArticle(article *models.Article) {
 	// Mobile breadcrumbs/navigation.
 	<div class="breadcrumbs-mobile">
 		<ul>
@@ -167,7 +167,7 @@ templ (a *Article) Content() {
 			</li>
 			<li aria-label="Articles">
 				{{ viewSubscriptionVals := session.ArticleFiltersFromSession(ctx).Parameters() }}
-				{{ viewSubscriptionVals[models.ParamSubscriptions] = a.GetSubscriptionID() }}
+				{{ viewSubscriptionVals[models.ParamSubscriptions] = article.GetSubscriptionID() }}
 				<a
 					hx-get="/articles"
 					hx-target={ ContentID.Target() }
@@ -175,32 +175,39 @@ templ (a *Article) Content() {
 					hx-push-url="true"
 					class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"
 				>
-					<p class="truncate min-w-0">{ a.GetFeedTitle() }</p>
+					<p class="truncate min-w-0">{ article.GetFeedTitle() }</p>
 				</a>
 			</li>
 			<li class="min-w-0">
-				<a href="#" aria-current="page" class="ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"><p class="truncate min-w-0">{ a.GetTitle() }</p></a>
+				<a href="#" aria-current="page" class="ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"><p class="truncate min-w-0">{ article.GetTitle() }</p></a>
 			</li>
 		</ul>
 	</div>
 	// Article.
-	<div class="flex justify-center bg-base-200 border border-base-content/20 rounded-xl">
-		<article id={ a.GetID() } class="prose prose-sm sm:prose-lg w-full dark:prose-invert px-4 py-4 sm:px-6">
-			<a href={ a.GetLink() } target="_blank" rel="noopener" class="link link-hover">
-				<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ a.GetTitle() }</h2>
+	<div class="flex justify-center">
+		<article id={ article.GetID() } class="prose prose-sm sm:prose-lg w-full dark:prose-invert px-4 py-4 sm:px-6">
+			<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover">
+				<h2 class="text-xl font-bold text-pretty sm:text-2xl sm:tracking-tight">{ article.GetTitle() }</h2>
 			</a>
 			<div id="article-info" class="flex items-center justify-between">
-				@a.articleInfo()
-				@ContextMenu(a.GetTitle() + "Actions") {
+				<div class="flex flex-none text-sm/6 gap-x-4 items-center">
+					<p class="text-base-content/80 capitalize">
+						@ShowTimestamp(article.GetUpdatedDate())
+					</p>
+					<p class="text-base-content/80 italic">
+						{ strings.Join(article.GetAuthors(),",") }
+					</p>
+				</div>
+				@ContextMenu(article.GetTitle() + "Actions") {
 					// View action.
-					<a href={ a.GetLink() } target="_blank" rel="noopener" class="link link-hover menu-item">
+					<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover menu-item">
 						@HeroIconExternalLink("size-4")
 						Original Article
 					</a>
 					// Mark action.
-					<div id={ "mark_" + a.GetID() }>
-						@a.markLink("mark_"+a.GetID(), "innerHTML", "menu-item") {
-							switch a.IsUnread() {
+					<div id={ "mark_" + article.GetID() }>
+						@articleMarkLink(article, "mark_"+article.GetID(), "innerHTML", "menu-item") {
+							switch article.IsUnread() {
 								case true:
 									@HeroIconMarkRead("size-4")
 									Mark Read
@@ -211,9 +218,9 @@ templ (a *Article) Content() {
 						}
 					</div>
 					// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-					<div id={ "favorite_" + a.GetID() }>
-						@a.favoriteLink("menu-item") {
-							switch a.Favorite {
+					<div id={ "favorite_" + article.GetID() }>
+						@articleFavoriteLink(article, "menu-item") {
+							switch article.Favorite {
 								case true:
 									@HeroIconHeartFilled("size-4")
 									Remove Favorite
@@ -224,7 +231,7 @@ templ (a *Article) Content() {
 						}
 					</div>
 					// Share action.
-					@a.shareLink("menu-item") {
+					@articleShareLink(article, "menu-item") {
 						@HeroIconShare("size-4")
 						Share
 					}
@@ -232,10 +239,10 @@ templ (a *Article) Content() {
 			</div>
 			<div id="article-text">
 				switch  {
-					case a.GetContent() != "":
-						@templ.Raw(a.GetContent())
-					case a.GetDescription() != "":
-						@templ.Raw(a.GetDescription())
+					case article.GetContent() != "":
+						@templ.Raw(article.GetContent())
+					case article.GetDescription() != "":
+						@templ.Raw(article.GetDescription())
 				}
 			</div>
 		</article>
@@ -257,8 +264,8 @@ templ (a *Article) Content() {
 	// </ul>
 	// After a delay or when the user scrolls this div into view, assume the article is read and mark it so.
 	<div
-		hx-post={ "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID() + "/mark/" + string(models.MarkRead) }
-		hx-target={ "#mark_" + a.GetID() }
+		hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + string(models.MarkRead) }
+		hx-target={ "#mark_" + article.GetID() }
 		hx-swap="innerHTML"
 		hx-trigger="intersect once,load delay:10s"
 		hx-push-url="false"
@@ -280,7 +287,7 @@ templ (a *Article) articleInfo() {
 
 // ToggleFavorite renders an updated favorite link based on the article favorite status.
 templ (a *Article) ToggleFavorite() {
-	@a.favoriteLink("menu-item") {
+	@articleFavoriteLink(a.Article, "menu-item") {
 		switch a.Favorite {
 			case true:
 				@HeroIconHeartFilled("size-4")
@@ -307,7 +314,7 @@ templ (a *Article) ViewLink(classes ...string) {
 
 // ToggleFavorite renders an updated favorite link based on the article favorite status.
 templ (a *Article) ToggleMark() {
-	@a.markLink("#mark_"+a.GetID(), "innerHTML", "menu-item") {
+	@articleMarkLink(a.Article, "#mark_"+a.GetID(), "innerHTML", "menu-item") {
 		switch a.IsUnread() {
 			case true:
 				@HeroIconMarkRead("size-4")
@@ -320,15 +327,15 @@ templ (a *Article) ToggleMark() {
 }
 
 // markLink generates a link that will toggle the mark status (read/unread) of the subscription.
-templ (a *Article) markLink(target, swap string, classes ...string) {
+templ articleMarkLink(article *models.Article, target, swap string, classes ...string) {
 	{{ var mark string }}
-	if a.IsUnread() {
+	if article.IsUnread() {
 		{{ mark = "read" }}
 	} else {
 		{{ mark = "unread" }}
 	}
 	<a
-		hx-post={ "/subscription/" + a.GetSubscriptionID() + "/article/" + a.GetID() + "/mark/" + mark }
+		hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() + "/mark/" + mark }
 		hx-target={ target }
 		hx-swap={ swap }
 		class={ "link link-hover", classes }
@@ -338,14 +345,14 @@ templ (a *Article) markLink(target, swap string, classes ...string) {
 }
 
 // favoriteLink generates a link that will toggle the favorite status of the subscription.
-templ (a *Article) favoriteLink(classes ...string) {
+templ articleFavoriteLink(article *models.Article, classes ...string) {
 	<a
-		if a.Favorite {
-			hx-delete={ "/user/favorite/article/" + a.GetID() }
+		if article.Favorite {
+			hx-delete={ "/user/favorite/article/" + article.GetID() }
 		} else {
-			hx-put={ "/user/favorite/article/" + a.GetID() }
+			hx-put={ "/user/favorite/article/" + article.GetID() }
 		}
-		hx-target={ "#favorite_" + a.GetID() }
+		hx-target={ "#favorite_" + article.GetID() }
 		class={ "link link-hover", classes }
 	>
 		{ children... }
@@ -353,9 +360,9 @@ templ (a *Article) favoriteLink(classes ...string) {
 }
 
 // shareLink generates a link that can be used for sharing the article externally
-templ (a *Article) shareLink(classes string) {
+templ articleShareLink(article *models.Article, classes string) {
 	<a
-		_={ "on click set currentValue to (my innerHTML) then writeText('" + a.GetLink() + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
+		_={ "on click set currentValue to (my innerHTML) then writeText('" + article.GetLink() + "') on navigator.clipboard put 'Copied!' into me wait 1s put currentValue into me" }
 		class={ "link link-hover", classes }
 	>
 		{ children... }

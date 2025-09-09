@@ -27,7 +27,6 @@ import (
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
-	"github.com/immanent-tech/go-feed-me/web/templates/views"
 )
 
 // GetArticles handles showing a filtered collection of articles as cards.
@@ -291,7 +290,7 @@ func (a *API) ViewArticle() http.HandlerFunc {
 			return fmt.Errorf("unable to view article: %w", err)
 		}
 		// Render appropriate content.
-		template := views.NewArticlePage(articles[0]).Content()
+		template := partials.ViewArticle(articles[0])
 		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP

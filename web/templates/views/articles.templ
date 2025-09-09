@@ -88,18 +88,3 @@ templ (page *ArticlesPage) List() {
 		@layouts.PaginationControl(ctx, "/articles", page.pagination)
 	}
 }
-
-type ArticlePage struct {
-	article *models.Article
-}
-
-func NewArticlePage(article *models.Article) *ArticlePage {
-	return &ArticlePage{
-		article: article,
-	}
-}
-
-// Content renders an article.
-templ (page *ArticlePage) Content() {
-	@partials.NewArticleContent(page.article).Content()
-}
