@@ -106,7 +106,7 @@ templ (c ListControls) Template() {
 					// Sort Options.
 					<div class="group inline-block">
 						<button
-							class="controls-button"
+							class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
 							popovertarget="sort-menu"
 							type="button"
 						>
@@ -116,7 +116,7 @@ templ (c ListControls) Template() {
 								<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
 							</svg>
 						</button>
-						<el-popover popover id="sort-menu" anchor="bottom start" popover class="controls-popover">
+						<el-popover popover id="sort-menu" anchor="bottom start" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 							<fieldset>
 								<div class="space-y-4">
 									@sortOption(c.Path, models.SortLastUpdatedDesc, c.Filters.GetSort())
@@ -140,7 +140,7 @@ templ (c ListControls) Template() {
 							case "/articles":
 								<button
 									type="button"
-									class="controls-button"
+									class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
 									hx-put="/articles"
 									hx-include="#content-filters"
 									hx-target={ ContentID.Target() }
@@ -151,7 +151,7 @@ templ (c ListControls) Template() {
 							case "/subscriptions":
 								<button
 									type="button"
-									class="controls-button"
+									class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
 									hx-put="/subscriptions"
 									hx-include="#content-filters"
 									hx-target={ ContentID.Target() }
@@ -161,7 +161,7 @@ templ (c ListControls) Template() {
 								</button>
 						}
 						// Button to reveal filters sidebar on mobile.
-						<button type="button" command="show-modal" commandfor="mobile-filters" class="controls-button">
+						<button type="button" command="show-modal" commandfor="mobile-filters" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
 							<span class="sr-only">Filter options</span>
 							Filters
 						</button>
@@ -172,7 +172,7 @@ templ (c ListControls) Template() {
 							case "/articles":
 								<button
 									type="button"
-									class="controls-button"
+									class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
 									hx-put="/articles"
 									hx-include="#content-filters"
 									hx-target={ ContentID.Target() }
@@ -183,7 +183,7 @@ templ (c ListControls) Template() {
 							case "/subscriptions":
 								<button
 									type="button"
-									class="controls-button"
+									class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline"
 									hx-put="/subscriptions"
 									hx-include="#content-filters"
 									hx-target={ ContentID.Target() }
@@ -196,14 +196,14 @@ templ (c ListControls) Template() {
 						if len(c.Categories.GetTopCategories(10)) > 0 {
 							<div class="relative inline-block text-left">
 								<div class="group">
-									<button popovertarget="desktop-menu-category" class="controls-button">
+									<button popovertarget="desktop-menu-category" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
 										<span class="sr-only">Category filters</span>
 										<span>Category</span>
 										<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
 											<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
 										</svg>
 									</button>
-									<el-popover id="desktop-menu-category" anchor="bottom end" popover class="controls-popover">
+									<el-popover id="desktop-menu-category" anchor="bottom end" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 										<div class="space-y-4">
 											@c.controlForm("space-y-4") {
 												<input type="hidden" name={ models.ParamView } value={ string(c.Filters.GetView()) }/>
@@ -235,14 +235,14 @@ templ (c ListControls) Template() {
 						// View Filters (desktop).
 						<div class="relative inline-block text-left">
 							<div class="group">
-								<button popovertarget="desktop-menu-view" class="controls-button">
+								<button popovertarget="desktop-menu-view" class="group-has-open:bg-accent/50 hover:bg-accent/50 btn btn-outline">
 									<span class="sr-only">View filters</span>
 									<span>View</span>
 									<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="-mr-1 ml-1 size-5 shrink-0">
 										<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
 									</svg>
 								</button>
-								<el-popover id="desktop-menu-view" anchor="bottom end" popover class="controls-popover">
+								<el-popover id="desktop-menu-view" anchor="bottom end" popover class="bg-base-300 ring-base-content/10 origin-top-right overflow-visible rounded-md p-4 shadow-2xl ring-1 transition transition-discrete [--anchor-gap:--spacing(2)] backdrop:bg-transparent open:block focus:outline-hidden data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in">
 									@c.controlForm("space-y-4") {
 										@viewFilter("filter-view-unread", models.ViewUnread, c.Filters.GetView())
 										@viewFilter("filter-view-read", models.ViewRead, c.Filters.GetView())
