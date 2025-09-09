@@ -67,7 +67,7 @@ templ (page *SubscriptionsPage) Content() {
 		Filters:    page.filters,
 		Categories: page.subscriptions.GetCategoryCounts(),
 	}.Template()
-	@layouts.CardGrid() {
+	@layouts.Grid() {
 		@page.List()
 	}
 }

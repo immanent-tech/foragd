@@ -72,7 +72,7 @@ templ (page *Home) Template() {
 		}
 		// Show any top article hits.
 		if len(page.TopArticles) != 0 {
-			@layouts.CardGrid() {
+			@layouts.Grid() {
 				for article := range slices.Values(page.TopArticles) {
 					@partials.NewArticleContent(article).Card(models.ViewUnread)
 				}

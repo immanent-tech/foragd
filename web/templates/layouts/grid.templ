@@ -12,11 +12,11 @@ import (
 	"slices"
 )
 
-// ObjectGrid renders the given card components in a grid container.
-templ CardGrid() {
+// Grid layout renders children in a responsive grid.
+templ Grid() {
 	<ul
 		role="list"
-		class="grid grid-flow-dense grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-baseline gap-2 sm:gap-4"
+		class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4"
 		id="grid-objects"
 	>
 		{ children... }
@@ -79,7 +79,7 @@ templ SubscriptionsGrid(subscriptions models.SubscriptionsSlice, filters *models
 		Categories: subscriptions.GetCategoryCounts(),
 	}.Template()
 	if len(subscriptions) >0 {
-		@CardGrid() {
+		@Grid() {
 			@SubscriptionsList(subscriptions, filters, pagination)
 		}
 	} else {
@@ -144,7 +144,7 @@ templ ArticlesGrid(articles models.Articles, filters *models.ArticleFilters, pag
 		Categories: articles.GetCategoryCounts(),
 	}.Template()
 	if len(articles) > 0 {
-		@CardGrid() {
+		@Grid() {
 			@ArticlesList(articles, filters, pagination)
 		}
 	} else {
