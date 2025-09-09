@@ -18,7 +18,6 @@ import (
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
-	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/server/session"
 	"github.com/immanent-tech/go-feed-me/web/templates"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
@@ -41,6 +40,12 @@ const (
 
 type contextKey string
 
+func NotFound() http.HandlerFunc {
+	return alice.New(
+		routeLogger,
+	).Then(renderPage(pages.NotFound(), "Not Found")).ServeHTTP
+}
+
 // routeLogger decorates the logger in the request context with routing information.
 func routeLogger(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
@@ -50,59 +55,6 @@ func routeLogger(next http.Handler) http.Handler {
 		)
 		ctx = slogctx.With(ctx, slog.Group("req", slog.String("id", middleware.GetReqID(ctx))))
 		next.ServeHTTP(res, req.WithContext(ctx))
-	})
-}
-
-// render handles rendering a response. If the response contains a template, that will be rendered in the http
-// response. If the response contains an error, it will be logged.
-func render(resp *models.Response) http.Handler {
-	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		// Get any existing htmx response writer.
-		htmxResp := htmxRespFromCtx(req.Context())
-		if resp == nil {
-			// If there is no response, return 200: OK.
-			res.WriteHeader(http.StatusOK)
-			err := htmxResp.Write(res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), "Problem writing response.",
-					slog.Any("error", err),
-				)
-			}
-			return
-		}
-		// If the response contains an error, log it.
-		if resp.InternalError != nil {
-			switch {
-			case resp.StatusCode < 400:
-				slogctx.FromCtx(req.Context()).DebugContext(req.Context(), resp.InternalError.Error())
-			case resp.StatusCode < 500:
-				slogctx.FromCtx(req.Context()).WarnContext(req.Context(), resp.InternalError.Error())
-			default:
-				slogctx.FromCtx(req.Context()).ErrorContext(req.Context(), resp.InternalError.Error())
-			}
-		}
-		// Write the response status code.
-		res.WriteHeader(resp.StatusCode)
-		// If there is no template to render, return.
-		if resp.Template == nil {
-			return
-		}
-		// Write the response template.
-		if htmx.IsHTMX(req) {
-			err := htmxResp.RenderTempl(req.Context(), res, resp)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-				return
-			}
-		} else {
-			err := resp.Render(req.Context(), res)
-			if err != nil {
-				slogctx.FromCtx(req.Context()).Error("Failed to render page template.", slog.Any("error", err))
-				http.Error(res, "Failed to render page template.", http.StatusInternalServerError)
-				return
-			}
-		}
 	})
 }
 
@@ -175,47 +127,6 @@ func SetupRedirect(path string) func(next http.Handler) http.Handler {
 			}
 			next.ServeHTTP(res, req.WithContext(ctx))
 		})
-	}
-}
-
-func RespInvalidInput(err error) *models.Response {
-	return models.NewResponse(
-		models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-		models.WithResponseError(err),
-		models.WithResponseTemplate(
-			partials.Notification(partials.MsgBadInput()),
-		),
-	)
-}
-
-func RespBackendError(err error) *models.Response {
-	return models.NewResponse(
-		models.WithResponseStatusCode(http.StatusInternalServerError),
-		models.WithResponseError(err),
-		models.WithResponseTemplate(
-			partials.Notification(partials.MsgBackendErr()),
-		),
-	)
-}
-
-func RespForbidden() *models.Response {
-	return models.NewResponse(
-		models.WithResponseStatusCode(http.StatusForbidden),
-		models.WithResponseTemplate(
-			partials.Notification(partials.MsgBadInput()),
-		),
-	)
-}
-
-func NotFound() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		resp := models.NewResponse(
-			models.WithResponseTemplate(pages.NotFound()),
-			models.WithResponseStatusCode(http.StatusNotFound),
-		)
-		alice.New(
-			routeLogger,
-		).Then(render(resp)).ServeHTTP(res, req)
 	}
 }
 

@@ -10,11 +10,17 @@ import (
 )
 
 // FavoritesList renders the given favorites in a list, grouped by type.
-templ FavoritesList(favorites models.FavoritesSlice) {
+templ FavoritesList(favorites models.FavoritesSlice, swap models.HTMXFlag) {
 	{{ subscriptions := favorites.FilterByType(models.FavoriteTypeSubscription) }}
 	{{ articles := favorites.FilterByType(models.FavoriteTypeArticle) }}
 	{{ searches := favorites.FilterByType(models.FavoriteTypeSearch) }}
-	<ul id="favorites-list" class="-mx-2 mt-2 space-y-1">
+	<ul
+		id="favorites-list"
+		class="-mx-2 mt-2 space-y-1"
+		if swap {
+			hx-swap-oob="true"
+		}
+	>
 		if len(subscriptions) > 0 {
 			// Show favorite subscriptions.
 			for fav := range slices.Values(subscriptions) {

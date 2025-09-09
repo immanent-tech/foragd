@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"slices"
 
-	"github.com/a-h/templ"
 	"github.com/angelofallars/htmx-go"
 	"github.com/goforj/godump"
 	"github.com/justinas/alice"
@@ -19,7 +18,6 @@ import (
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 	"github.com/immanent-tech/go-feed-me/server/forms"
-	"github.com/immanent-tech/go-feed-me/web/templates"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
@@ -27,15 +25,14 @@ import (
 
 // GetSearchSuggestions performs a search with the user input and presents suggestions back to the user.
 func (a *API) GetSearchSuggestions() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
-		// Extract the search request.
+	return alice.New(
+		routeLogger,
+	).ThenFunc(func(res http.ResponseWriter, req *http.Request) {
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Invalid search suggestion input.",
+				slog.Any("error", err))
+			res.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
 		if request.Text == "" {
@@ -45,46 +42,45 @@ func (a *API) GetSearchSuggestions() http.HandlerFunc {
 		// Get results.
 		subscriptions, articles, err := a.getSearchSuggestions(req.Context(), request.Text)
 		if err != nil {
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
+			slogctx.FromCtx(req.Context()).Debug("Unable to retrieve suggestion data.",
+				slog.Any("error", err))
+			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		if len(subscriptions) > 0 || len(articles) > 0 {
 			// Render suggestions.
-			resp := models.NewResponse(
-				models.WithResponseTemplate(layouts.SearchSuggestions(request, subscriptions, articles)),
-			)
-			alice.New(
-				routeLogger,
-			).Then(render(resp)).ServeHTTP(res, req)
+			renderPartial(layouts.SearchSuggestions(request, subscriptions, articles), "").ServeHTTP(res, req)
 		} else {
 			// No suggestions, indicate no change.
 			res.WriteHeader(http.StatusNoContent)
 		}
-	}
+	}).ServeHTTP
 }
 
 // GetSearchResults performs a search with the user input and renders a page with the search results.
 func (a *API) GetSearchResults() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		user, found := models.UserFromCtx(req.Context())
 		if !found {
-			render(RespForbidden()).ServeHTTP(res, req)
-			return
+			renderPage(layouts.Drawer(partials.Error(models.NewErrorMessage("No user data", ""))), "").ServeHTTP(res, req)
+			return models.ErrUserNotFound
 		}
 		// Extract the search request.
 		request, valid, err := forms.DecodeForm[*models.SearchRequest](req)
 		if err != nil || !valid {
-			chain.Then(render(RespInvalidInput(err))).ServeHTTP(res, req)
-			return
+			msg := models.NewErrorMessage("Invalid search request",
+				"Unable to parse search request. Please check and try again.")
+			renderPage(layouts.Drawer(partials.Error(msg)), "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		id := request.ID()
 		if id == "" {
-			render(RespBackendError(err)).ServeHTTP(res, req)
-			return
+			msg := models.NewErrorMessage("Invalid search request",
+				"Unable to parse search request. Please check and try again.")
+			renderPage(layouts.Drawer(partials.Error(msg)), "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Retrieve favorite data for this search
 		fav := user.GetFavorites().FilterByType(models.FavoriteTypeSearch).Get(id)
@@ -92,44 +88,22 @@ func (a *API) GetSearchResults() http.HandlerFunc {
 		subscriptions, articles, err := a.getSearchResults(req.Context(), request.Text)
 		switch {
 		case err != nil:
-			chain.Then(render(RespBackendError(err))).ServeHTTP(res, req)
-			return
+			msg := models.NewErrorMessage("Could not generate search results",
+				"This could be a temporary problem, please try again.")
+			renderPage(layouts.Drawer(partials.Error(msg)), "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		case len(subscriptions) > 0 || len(articles) > 0:
-			var template templ.Component
 			// Render appropriate content.
-			page := pages.NewSearchResultsPage(fav, request, subscriptions, articles)
-			switch {
-			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-				// Just show content.
-				template = page.Content()
-			default:
-				// Show full page.
-				template = templates.Page(
-					"Search Results - Go Feed Me",
-					layouts.Drawer(page.Content()),
-				)
-			}
-			chain.Then(render(
-				models.NewResponse(models.WithResponseTemplate(template)),
-			)).ServeHTTP(res, req.WithContext(htmxRespToCtx(req.Context(), htmx.NewResponse().ReplaceURL("/search?"+request.Query()))))
+			template := pages.NewSearchResultsPage(fav, request, subscriptions, articles).Content()
+			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
+			renderPage(layouts.Drawer(template), "Search Results - Go Feed Me").ServeHTTP(res, req)
 		default:
-			var template templ.Component
-			switch {
-			case htmx.IsHTMX(req) && !htmx.IsHistoryRestoreRequest(req):
-				// Just show content.
-				template = pages.NoSearchResults()
-			default:
-				// Show full page.
-				template = templates.Page(
-					"Search Results - Go Feed Me",
-					layouts.Drawer(pages.NoSearchResults()),
-				)
-			}
-			chain.Then(render(
-				models.NewResponse(models.WithResponseTemplate(template)),
-			)).ServeHTTP(res, req.WithContext(htmxRespToCtx(req.Context(), htmx.NewResponse().ReplaceURL("/search?"+request.Query()))))
+			template := pages.NoSearchResults()
+			res.Header().Add(htmx.HeaderReplaceUrl, "/search?"+request.Query())
+			renderPage(layouts.Drawer(template), "Search Results - Go Feed Me").ServeHTTP(res, req)
 		}
-	}
+		return nil
+	})).ServeHTTP
 }
 
 // getSearchSuggestions will find suggestions for the global search from available subscriptions and articles.

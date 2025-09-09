@@ -126,7 +126,7 @@ templ DrawerSidebar(classes, layout string) {
 			if found {
 				<li>
 					<div class="text-sm/6 font-semibold text-base-content/80">Favorites</div>
-					@partials.FavoritesList(user.GetFavorites())
+					@partials.FavoritesList(user.GetFavorites(), models.OOBSwapFalse)
 				</li>
 			}
 		</ul>

@@ -7,41 +7,29 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/angelofallars/htmx-go"
 	"github.com/justinas/alice"
 
 	"github.com/immanent-tech/go-feed-me/models"
 	"github.com/immanent-tech/go-feed-me/providers/elastic"
 	"github.com/immanent-tech/go-feed-me/server/forms"
-	"github.com/immanent-tech/go-feed-me/web/templates"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 )
 
 // ShowSignup handles showing a signup page.
 func (a *API) ShowSignup() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
-		// Show form for user signup.
-		var template templ.Component
-		if !htmx.IsHTMX(req) || htmx.IsHistoryRestoreRequest(req) {
-			template = templates.Page("Sign up - Go Feed Me", pages.Signup(&models.UserSignupRequest{}))
-		}
-		resp := models.NewResponse(models.WithResponseTemplate(template))
-		chain.Then(render(resp)).ServeHTTP(res, req)
-	}
+	return alice.New(
+		routeLogger,
+	).Then(
+		renderPage(pages.Signup(&models.UserSignupRequest{}), "Sign up - Go Feed Me"),
+	).ServeHTTP
 }
 
 // ProcessSignup handles processing a user sign up request.
 func (a *API) ProcessSignup() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		// Set up handler chain.
-		chain := alice.New(
-			routeLogger,
-		)
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		// Process user signup.
 		// Extract the provider and request details.
 		request, valid, err := forms.DecodeForm[*models.UserSignupRequest](req)
@@ -51,11 +39,8 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"Could not validate the values. Please check and try again.",
 			)
 			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
-			chain.Then(render(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusUnprocessableEntity),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
-			return
+			renderPage(template, "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
 		// Create the new account on the provider backend.
 		var externalUserID string
@@ -66,11 +51,8 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"The backend had issues trying to create a new user, please try again.",
 			)
 			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
-			chain.Then(render(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusInternalServerError),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
-			return
+			renderPage(template, "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		// Create the local user account.
 		user := models.NewUser(externalUserID, "auth0")
@@ -81,11 +63,8 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"The backend had issues trying to create a new user, please try again.",
 			)
 			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
-			chain.Then(render(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusInternalServerError),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
-			return
+			renderPage(template, "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		index := elastic.UserIndexFromCtx(req.Context())
 		if index == "" {
@@ -94,11 +73,8 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"The backend had issues trying to create a new user, please try again.",
 			)
 			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
-			chain.Then(render(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusInternalServerError),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
-			return
+			renderPage(template, "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		err = elastic.CreateDoc(req.Context(), a.DataAPI().GetAPI(), index, user.GetID(), user)
 		if err != nil {
@@ -107,16 +83,11 @@ func (a *API) ProcessSignup() http.HandlerFunc {
 				"The backend had issues trying to create a new user, please try again.",
 			)
 			template := templ.Join(pages.SignupForm(request), partials.Notification(msg))
-			chain.Then(render(models.NewResponse(
-				models.WithResponseStatusCode(http.StatusInternalServerError),
-				models.WithResponseError(err),
-				models.WithResponseTemplate(template)))).ServeHTTP(res, req)
-			return
+			renderPage(template, "").ServeHTTP(res, req)
+			return models.NewAPIError(err, http.StatusInternalServerError)
 		}
 		template := templ.Join(pages.SignupForm(request), pages.SignupSuccessNotification())
-		resp := models.NewResponse(
-			models.WithResponseTemplate(template),
-		)
-		chain.Then(render(resp)).ServeHTTP(res, req)
-	}
+		renderPage(template, "").ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
 }

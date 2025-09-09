@@ -412,7 +412,8 @@ func (a *API) getItemTopCategories(ctx context.Context, feeds ...models.FeedID) 
 	)
 	topCategories.StringTermsAggregate, err = aggregations.ExtractAggregation[*types.StringTermsAggregate](aggsResult.Aggregations, "TopCategories")
 	if err != nil {
-		return nil, RespBackendError(fmt.Errorf("could not extract category counts: %w", err))
+		return nil, models.NewResponse(
+			models.WithResponseError(fmt.Errorf("could not extract category counts: %w", err)))
 	}
 
 	return topCategories.BucketNames(), nil
