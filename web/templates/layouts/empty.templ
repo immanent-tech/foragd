@@ -13,15 +13,15 @@ templ EmptyContent() {
 		<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="mx-auto size-12 text-base-content">
 			<path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"></path>
 		</svg>
-		<h3 class="mt-2 text-base font-semibold">No content to show</h3>
-		<p class="mt-1 text-sm text-base-content">Try adjusting your filters, or maybe you are all caught up?</p>
+		<h3 class="mt-2 text-base font-semibold">Nothing to show</h3>
+		<p class="mt-1 text-sm text-base-content">Try adjusting your filters/search, or maybe you are all caught up?</p>
 		<div class="mt-6">
 			<button
 				type="button"
 				hx-get="/home"
 				hx-push-url="true"
 				hx-target={ partials.ContentID.Target() }
-				class="btn btn-primary"
+				class="btn btn-outline hover:bg-accent"
 			>
 				Home
 			</button>
@@ -31,7 +31,7 @@ templ EmptyContent() {
 				hx-push-url="true"
 				hx-target={ partials.ContentID.Target() }
 				hx-vals={ session.SubscriptionFiltersFromSession(ctx).HXVals() }
-				class="btn btn-primary"
+				class="btn btn-outline hover:bg-accent"
 			>
 				Subscriptions
 			</button>

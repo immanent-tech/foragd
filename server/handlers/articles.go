@@ -302,7 +302,19 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 		routeLogger,
 	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
 		itemID := chi.URLParam(req, "item")
-		articles, err := a.getSimilarArticles(req.Context(), itemID)
+		// Build the More Like This query.
+		// TODO: tweak values and fields for optimum results matching...
+		var (
+			minTermFreq   = 1
+			maxQueryTerms = 12
+		)
+		mlt := query.NewMoreLikeThisQuery("similar_to_" + itemID)
+		mlt.LikeDocs(itemID)
+		mlt.Fields = []string{"title", "categories.raw", "author"}
+		mlt.MinTermFreq = &minTermFreq
+		mlt.MaxQueryTerms = &maxQueryTerms
+		// Query for similar articles.
+		items, _, err := a.DataAPI().SearchItems(req.Context(), mlt.ToQueryOption(), 10, nil, nil)
 		if err != nil {
 			renderPartial(partials.Notification(
 				models.NewErrorMessage(
@@ -314,6 +326,20 @@ func (a *API) FindSimilarArticles() http.HandlerFunc {
 				fmt.Errorf("unable to find similar articles subscription: %w", err),
 				http.StatusUnprocessableEntity)
 		}
+		// Generate article data.
+		articles, err := models.GenerateArticles(req.Context(), items)
+		if err != nil {
+			renderPartial(partials.Notification(
+				models.NewErrorMessage(
+					"Unable to find similar articles",
+					"The backend reported an issue. Please try again.",
+				),
+			), "")
+			return models.NewAPIError(
+				fmt.Errorf("unable to find similar articles subscription: %w", err),
+				http.StatusUnprocessableEntity)
+		}
+		// Show results.
 		template := pages.SimilarArticles(articles)
 		renderPage(layouts.Drawer(template), "Similar Articles - Go Feed Me").ServeHTTP(res, req)
 		return nil
@@ -374,21 +400,6 @@ func (a *API) getArticles(ctx context.Context, itemIDs ...models.ItemID) (models
 	articles, err := models.GenerateArticles(ctx, items)
 	if err != nil {
 		return nil, fmt.Errorf("getArticles: %w", err)
-	}
-
-	return articles, nil
-}
-
-func (a *API) getSimilarArticles(ctx context.Context, itemIDs ...models.ItemID) (models.Articles, error) {
-	fields := []string{"title", "description"}
-	query := query.MoreLikeThisDoc(fields, itemIDs)
-	items, _, err := a.DataAPI().SearchItems(ctx, query, 10, nil, nil)
-	if err != nil {
-		return nil, fmt.Errorf("getSimilarArticles: search failed: %w", err)
-	}
-	articles, err := models.GenerateArticles(ctx, items)
-	if err != nil {
-		return nil, fmt.Errorf("getSimilarArticles: generate articles failed: %w", err)
 	}
 
 	return articles, nil

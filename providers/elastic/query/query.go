@@ -58,19 +58,36 @@ func MultiMatch(value string, fields ...string) Option {
 	}
 }
 
-// MoreLikeThisDoc adds a "More Like This" query on the given fields that match the given documents.
+// MoreLikeThisQuery represents a "More Like This" query.
 //
 // https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-mlt-query
-func MoreLikeThisDoc(fields []string, ids []string) Option {
+type MoreLikeThisQuery struct {
+	*types.MoreLikeThisQuery
+}
+
+// NewMoreLikeThisQuery creates a new object for generating a More Like This query. It can be used to build/add options
+// for the query.
+func NewMoreLikeThisQuery(id string) *MoreLikeThisQuery {
+	mlt := &MoreLikeThisQuery{
+		MoreLikeThisQuery: types.NewMoreLikeThisQuery(),
+	}
+	mlt.QueryName_ = &id
+	return mlt
+}
+
+// LikeDocs adds the given document IDs to the More Like This query for matching.
+func (mlt *MoreLikeThisQuery) LikeDocs(ids ...string) {
+	likeDocs := make([]types.Like, 0, len(ids))
+	for id := range slices.Values(ids) {
+		likeDocs = append(likeDocs, types.LikeDocument{Id_: &id})
+	}
+	mlt.Like = append(mlt.Like, likeDocs...)
+}
+
+// ToQueryOption adds the More Like This query to the query object.
+func (mlt *MoreLikeThisQuery) ToQueryOption() Option {
 	return func(query *types.Query) {
-		likeDocs := make([]types.Like, 0, len(ids))
-		for id := range slices.Values(ids) {
-			likeDocs = append(likeDocs, types.LikeDocument{Id_: &id})
-		}
-		mlt := types.NewMoreLikeThisQuery()
-		mlt.Like = likeDocs
-		mlt.Fields = fields
-		query.MoreLikeThis = mlt
+		query.MoreLikeThis = mlt.MoreLikeThisQuery
 	}
 }
 

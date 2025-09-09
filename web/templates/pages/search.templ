@@ -5,6 +5,7 @@ package pages
 
 import (
 	"github.com/immanent-tech/go-feed-me/models"
+	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
 	"slices"
 	"time"
@@ -161,8 +162,8 @@ templ showSearchResult(result searchResult) {
 
 // SimilarArticles renders a page of articles that are the result of a search for similar articles to a given input set.
 templ SimilarArticles(articles models.Articles) {
-	<ul role="list">
-		if len(articles) > 0 {
+	if len(articles) > 0 {
+		<ul role="list">
 			<div class="flex items-center">
 				<div class="relative flex justify-start">
 					<span class="pr-3 text-base font-semibold text-base-content">Similar Articles</span>
@@ -174,9 +175,11 @@ templ SimilarArticles(articles models.Articles) {
 					@showSearchResult(partials.NewArticleContent(article))
 				}
 			</ul>
-		}
-	</ul>
-	<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
+		</ul>
+		<button class="btn btn-neutral fixed right-0 bottom-0 m-4" hidden _="on intersect remove @hidden from me" href="#">Back to top</button>
+	} else {
+		@layouts.EmptyContent()
+	}
 }
 
 // NoSearchResults renders an informational message for when no search results were returned.
