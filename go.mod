@@ -31,6 +31,8 @@ require (
 require (
 	github.com/Masterminds/semver v0.0.0-20190925130524-317e8cce5480 // indirect
 	github.com/Masterminds/vcs v1.13.3 // indirect
+	github.com/andybalholm/cascadia v1.3.3 // indirect
+	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310 // indirect
 	github.com/aymerick/douceur v0.2.0 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
@@ -40,6 +42,8 @@ require (
 	github.com/go-http-utils/fresh v0.0.0-20161124030543-7231e26a4b27 // indirect
 	github.com/go-http-utils/headers v0.0.0-20181008091004-fed159eddc2a // indirect
 	github.com/go-json-experiment/json v0.0.0-20250714165856-be8212f5270d // indirect
+	github.com/go-shiori/dom v0.0.0-20230515143342-73569d674e1c // indirect
+	github.com/gogs/chardet v0.0.0-20211120154057-b7413eaefb8f // indirect
 	github.com/golang/dep v0.5.4 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-github/v30 v30.1.0 // indirect
@@ -54,7 +58,7 @@ require (
 	github.com/jmank88/nuts v0.4.0 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
 	github.com/magiconair/properties v1.8.1 // indirect
-	github.com/mattn/go-runewidth v0.0.9 // indirect
+	github.com/mattn/go-runewidth v0.0.10 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
 	github.com/nightlyone/lockfile v1.0.0 // indirect
@@ -65,6 +69,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/recoilme/pudge v1.0.3 // indirect
 	github.com/rhysd/go-github-selfupdate v1.2.3 // indirect
+	github.com/rivo/uniseg v0.1.0 // indirect
 	github.com/samber/slog-common v0.19.0 // indirect
 	github.com/sdboyer/constext v0.0.0-20170321163424-836a14457353 // indirect
 	github.com/shopspring/decimal v1.2.0 // indirect
@@ -74,9 +79,9 @@ require (
 	github.com/speakeasy-api/jsonpath v0.6.0 // indirect
 	github.com/spf13/afero v1.1.2 // indirect
 	github.com/spf13/cast v1.3.0 // indirect
-	github.com/spf13/cobra v1.7.0 // indirect
+	github.com/spf13/cobra v1.8.1 // indirect
 	github.com/spf13/jwalterweatherman v1.0.0 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/spf13/pflag v1.0.6 // indirect
 	github.com/spf13/viper v1.7.1 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
@@ -107,6 +112,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-resty/resty/v2 v2.16.5 // indirect
+	github.com/go-shiori/go-readability v0.0.0-20250217085726-9f5bf5ca7612
 	github.com/go-viper/mapstructure/v2 v2.3.0 // indirect
 	github.com/goccy/go-json v0.10.5 // indirect
 	github.com/goforj/godump v1.6.0

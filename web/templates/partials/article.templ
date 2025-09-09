@@ -173,9 +173,9 @@ templ ViewArticle(article *models.Article) {
 					hx-target={ ContentID.Target() }
 					hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
 					hx-push-url="true"
-					class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0"
+					class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0 truncate"
 				>
-					<p class="truncate min-w-0">{ article.GetFeedTitle() }</p>
+					{ article.GetFeedTitle() }
 				</a>
 			</li>
 			<li class="min-w-0">
@@ -198,47 +198,80 @@ templ ViewArticle(article *models.Article) {
 						{ strings.Join(article.GetAuthors(),",") }
 					</p>
 				</div>
-				@ContextMenu(article.GetTitle() + "Actions") {
-					// View action.
-					<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover menu-item">
-						@HeroIconExternalLink("size-4")
-						Original Article
-					</a>
-					// Mark action.
-					<div id={ "mark_" + article.GetID() }>
-						@articleMarkLink(article, "mark_"+article.GetID(), "innerHTML", "menu-item") {
-							switch article.IsUnread() {
-								case true:
-									@HeroIconMarkRead("size-4")
-									Mark Read
-								case false:
-									@HeroIconMarkUnread("size-4")
-									Mark Unread
+				<div class="flex gap-x-2">
+					<form
+						hx-post={ "/subscription/" + article.GetSubscriptionID() + "/article/" + article.GetID() }
+						hx-target={ ContentID.Target() }
+					>
+						<input
+							type="hidden"
+							name="show_remote_content"
+							if article.Content != "" {
+								value="false"
+							} else {
+								value="true"
+							}
+						/>
+						<div class="tooltip" data-tip="Toggle remote content">
+							<button
+								type="submit"
+								class="btn btn-sm btn-ghost btn-square"
+							>
+								<span class="sr-only">Toggle remote content</span>
+								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-article size-4">
+									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+									<path d="M3 4m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path>
+									<path d="M7 8h10"></path><path d="M7 12h10"></path><path d="M7 16h10"></path>
+								</svg>
+							</button>
+						</div>
+					</form>
+					<div class="tooltip" data-tip="Article actions">
+						@ContextMenu(article.GetTitle() + "Actions") {
+							// View action.
+							<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover menu-item">
+								@HeroIconExternalLink("size-4")
+								Original Article
+							</a>
+							// Mark action.
+							<div id={ "mark_" + article.GetID() }>
+								@articleMarkLink(article, "mark_"+article.GetID(), "innerHTML", "menu-item") {
+									switch article.IsUnread() {
+										case true:
+											@HeroIconMarkRead("size-4")
+											Mark Read
+										case false:
+											@HeroIconMarkUnread("size-4")
+											Mark Unread
+									}
+								}
+							</div>
+							// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
+							<div id={ "favorite_" + article.GetID() }>
+								@articleFavoriteLink(article, "menu-item") {
+									switch article.Favorite {
+										case true:
+											@HeroIconHeartFilled("size-4")
+											Remove Favorite
+										case false:
+											@HeroIconHeart("size-4")
+											Add Favorite
+									}
+								}
+							</div>
+							// Share action.
+							@articleShareLink(article, "menu-item") {
+								@HeroIconShare("size-4")
+								Share
 							}
 						}
 					</div>
-					// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
-					<div id={ "favorite_" + article.GetID() }>
-						@articleFavoriteLink(article, "menu-item") {
-							switch article.Favorite {
-								case true:
-									@HeroIconHeartFilled("size-4")
-									Remove Favorite
-								case false:
-									@HeroIconHeart("size-4")
-									Add Favorite
-							}
-						}
-					</div>
-					// Share action.
-					@articleShareLink(article, "menu-item") {
-						@HeroIconShare("size-4")
-						Share
-					}
-				}
+				</div>
 			</div>
 			<div id="article-text">
 				switch  {
+					case article.Content != "":
+						@templ.Raw(article.Content)
 					case article.GetContent() != "":
 						@templ.Raw(article.GetContent())
 					case article.GetDescription() != "":

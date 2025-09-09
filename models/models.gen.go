@@ -70,6 +70,9 @@ type APIError struct {
 
 // Article defines model for Article.
 type Article struct {
+	// Content contains the article content, when it has been fetched remotely.
+	Content string `json:"content,omitempty,omitzero"`
+
 	// Favorite indicates whether this subscription has been marked as a Favorite by the user.
 	Favorite bool `json:"-"`
 

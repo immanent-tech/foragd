@@ -106,7 +106,7 @@
     "**/Thumbs.db": true
   },
   "go.alternateTools": {
-    "customFormatter": "golangci-lint"
+    "customFormatter": "golangci-lint-v2"
   },
   "go.formatFlags": ["fmt", "--stdin"],
   "go.formatTool": "custom",

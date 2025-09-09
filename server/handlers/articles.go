@@ -15,6 +15,7 @@ import (
 	"github.com/angelofallars/htmx-go"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-shiori/go-readability"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -24,6 +25,7 @@ import (
 	"github.com/immanent-tech/go-feed-me/providers/elastic/query"
 	"github.com/immanent-tech/go-feed-me/server/forms"
 	"github.com/immanent-tech/go-feed-me/server/session"
+	"github.com/immanent-tech/go-feed-me/validation"
 	"github.com/immanent-tech/go-feed-me/web/templates/layouts"
 	"github.com/immanent-tech/go-feed-me/web/templates/pages"
 	"github.com/immanent-tech/go-feed-me/web/templates/partials"
@@ -287,10 +289,48 @@ func (a *API) ViewArticle() http.HandlerFunc {
 		itemID := chi.URLParam(req, "item")
 		articles, err := a.getArticles(req.Context(), itemID)
 		if err != nil {
+			renderPartial(partials.Error(
+				models.NewErrorMessage("Unable to fetch article content", ""),
+			), "").ServeHTTP(res, req)
 			return fmt.Errorf("unable to view article: %w", err)
 		}
 		// Render appropriate content.
 		template := partials.ViewArticle(articles[0])
+		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
+		return nil
+	})).ServeHTTP
+}
+
+func (a *API) ToggleArticleRemoteContent() http.HandlerFunc {
+	return alice.New(
+		routeLogger,
+	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
+		itemID := chi.URLParam(req, "item")
+		articles, err := a.getArticles(req.Context(), itemID)
+		if err != nil {
+			renderPartial(partials.Error(
+				models.NewErrorMessage("Unable to fetch article content", ""),
+			), "").ServeHTTP(res, req)
+			return fmt.Errorf("unable to view article: %w", err)
+		}
+		article := articles[0]
+		// Fetch remote content if requested.
+		var content string
+		showRemoteContent := req.FormValue("show_remote_content")
+		if showRemoteContent == "true" {
+			slogctx.FromCtx(req.Context()).Debug("Fetching article remote content.")
+			content, err = fetchArticleRemoteContent(article.GetLink())
+		}
+		if err != nil {
+			renderPartial(partials.Notification(
+				models.NewErrorMessage("Unable to fetch article remote content", ""),
+			), "").ServeHTTP(res, req)
+		} else {
+			article.Content = content
+		}
+
+		// Render appropriate content.
+		template := partials.ViewArticle(article)
 		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
 		return nil
 	})).ServeHTTP
@@ -472,6 +512,15 @@ func (a *API) unarchiveArticle(ctx context.Context, id models.ItemID) error {
 		return fmt.Errorf("unable to remove archived article: %w", err)
 	}
 	return nil
+}
+
+func fetchArticleRemoteContent(url string) (string, error) {
+	remote, err := readability.FromURL(url, 30*time.Second)
+	if err != nil {
+		return "", fmt.Errorf("failed to parse content for %s, %w", url, err)
+	}
+	content := validation.SanitizeString(remote.Content)
+	return content, nil
 }
 
 func decodeArticleFilters(next http.Handler) http.Handler {

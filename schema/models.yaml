@@ -646,6 +646,10 @@ components:
               type: boolean
               x-oapi-codegen-extra-tags:
                 json: '-'
+            content:
+              description: >
+                contains the article content, when it has been fetched remotely.
+              type: string
     ArticleArchive:
       description: >
         represents an item that has been archived to avoid deletion (i.e. favorited by a user).
