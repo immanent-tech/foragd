@@ -372,34 +372,6 @@ components:
           x-go-type-skip-optional-pointer: true
         image:
           $ref: '#/components/schemas/RemoteImage'
-    ObjectCustomisation:
-      description: >
-        contains object fields that can be customised (overridden) by a user
-      type: object
-      properties:
-        nickname:
-          description: >
-            is an optional alias or label for an object.
-          type: string
-          x-oapi-codegen-extra-tags:
-            form: 'user_nickname'
-          x-go-type-skip-optional-pointer: true
-        categories:
-          description: >
-            is a custom list of categories for an object.
-          type: array
-          items:
-            $ref: '#/components/schemas/Category'
-          x-oapi-codegen-extra-tags:
-            form: 'user_categories'
-            validate: 'omitempty,unique'
-          x-go-type-skip-optional-pointer: true
-        image:
-          description: >
-            is a custom image to represent the object.
-          oneOf:
-            - $ref: '#/components/schemas/RemoteImage'
-            - $ref: '#/components/schemas/StoredImage'
     Feed:
       description: represents a feed object.
       type: object
@@ -480,11 +452,52 @@ components:
         feed_id:
           $ref: '#/components/schemas/FeedID'
         customisation:
-          $ref: '#/components/schemas/ObjectCustomisation'
+          $ref: '#/components/schemas/SubscriptionCustomisation'
+        settings:
+          $ref: '#/components/schemas/SubscriptionSettings'
         item_states:
           description: >
             contains the states of items marked explicitly as read/unread/saved by the user.
           x-go-type: 'map[ItemID]ArticleState'
+    SubscriptionCustomisation:
+      description: >
+        contains object fields that can be customised (overridden) by a user
+      type: object
+      properties:
+        nickname:
+          description: >
+            is an optional alias or label for an object.
+          type: string
+          x-oapi-codegen-extra-tags:
+            form: 'user_nickname'
+          x-go-type-skip-optional-pointer: true
+        categories:
+          description: >
+            is a custom list of categories for an object.
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+          x-oapi-codegen-extra-tags:
+            form: 'user_categories'
+            validate: 'omitempty,unique'
+          x-go-type-skip-optional-pointer: true
+        image:
+          description: >
+            is a custom image to represent the object.
+          oneOf:
+            - $ref: '#/components/schemas/RemoteImage'
+            - $ref: '#/components/schemas/StoredImage'
+    SubscriptionSettings:
+      description: >
+        contains options that control how the subscription is stored/displayed.
+      type: object
+      properties:
+        show_remote_article_content:
+          description: >
+            toggles whether articles in the subscription should be always displayed with remote content.
+          type: boolean
+          x-oapi-codegen-extra-tags:
+            form: "show_remote_article_content"
     Subscription:
       description: >
         represents a feed a user has subscribed to.
@@ -564,7 +577,8 @@ components:
         is the request details for editing a subscription.
       type: object
       allOf:
-        - $ref: '#/components/schemas/ObjectCustomisation'
+        - $ref: '#/components/schemas/SubscriptionCustomisation'
+        - $ref: '#/components/schemas/SubscriptionSettings'
         - type: object
           required:
             - subscription_id
@@ -614,6 +628,16 @@ components:
           $ref: '#/components/schemas/SubscriptionID'
         state:
           $ref: '#/components/schemas/ArticleState'
+    ArticleSettings:
+      description: >
+        contains settings related to the display of the article.
+      type: object
+      properties:
+        show_remote_content:
+          description: >
+            indicates whether the remote article content should be displayed instead of any content from the feed item
+            itself.
+          type: boolean
     ArticleState:
       description: >
         tracks the state of an article.
@@ -634,6 +658,7 @@ components:
       type: object
       allOf:
         - $ref: '#/components/schemas/ArticleMetadata'
+        - $ref: '#/components/schemas/ArticleSettings'
         - type: object
           required:
             - item
@@ -646,9 +671,9 @@ components:
               type: boolean
               x-oapi-codegen-extra-tags:
                 json: '-'
-            content:
+            remote_content:
               description: >
-                contains the article content, when it has been fetched remotely.
+                contains the article remote content, when it has been fetched.
               type: string
     ArticleArchive:
       description: >

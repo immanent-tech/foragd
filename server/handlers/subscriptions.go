@@ -19,6 +19,7 @@ import (
 	"github.com/a-h/templ"
 	"github.com/elastic/go-elasticsearch/v9/typedapi/types"
 	"github.com/go-chi/chi/v5"
+	"github.com/goforj/godump"
 	"github.com/immanent-tech/go-syndication/opml"
 	"github.com/justinas/alice"
 	slogctx "github.com/veqryn/slog-context"
@@ -296,10 +297,12 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			return ErrNoCtxData
 		}
 		metadata := user.GetSubscriptionMetadata().GetByID(id)
+		// Convert metadata into edit request data.
 		request := &models.EditSubscriptionRequest{
-			SubscriptionID: id,
-			Nickname:       metadata.Customisation.Nickname,
-			Categories:     metadata.Customisation.Categories,
+			SubscriptionID:           id,
+			Nickname:                 metadata.Customisation.Nickname,
+			Categories:               metadata.Customisation.Categories,
+			ShowRemoteArticleContent: metadata.Settings.ShowRemoteArticleContent,
 		}
 		// Get top categories across items in subscription feed and add as suggested categories for the
 		// subscription.
@@ -308,7 +311,7 @@ func (a *API) EditSubscription() http.HandlerFunc {
 			request.SuggestedCategories = categories
 		}
 		// Generate page template.
-		title := "Editing " + request.Nickname + " - Go Feed Me"
+		title := "Editing " + request.GetNickname() + " - Go Feed Me"
 		template := pages.EditSubscription(request)
 		renderPage(layouts.Drawer(template), title).ServeHTTP(res, req)
 		return nil
@@ -330,10 +333,12 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 			renderPage(layouts.Drawer(pages.EditSubscription(request)), "").ServeHTTP(res, req)
 			return models.NewAPIError(err, http.StatusUnprocessableEntity)
 		}
+		godump.Dump(request)
 		// Update the subscription metadata.
 		metadata := user.GetSubscriptionMetadata().GetByID(request.SubscriptionID)
-		metadata.Customisation.Nickname = request.Nickname
-		metadata.Customisation.Categories = request.Categories
+		metadata.Customisation.Nickname = request.GetNickname()
+		metadata.Customisation.Categories = request.GetCategories()
+		metadata.Settings.ShowRemoteArticleContent = request.ShowRemoteArticleContent
 		err = user.UpdateSubscription(metadata)
 		if err != nil {
 			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")

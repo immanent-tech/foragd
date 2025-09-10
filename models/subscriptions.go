@@ -274,7 +274,7 @@ func NewSubscriptionMetadata(user *User, feed *Feed, request *SubscriptionReques
 		CreatedAt:      ts,
 		MarkedReadAt:   user.GetMaxHistory(),
 		FeedID:         feed.GetID(),
-		Customisation: ObjectCustomisation{
+		Customisation: SubscriptionCustomisation{
 			Nickname:   feed.GetTitle(),
 			Categories: feed.GetCategories(),
 		},
@@ -290,6 +290,21 @@ func NewSubscriptionMetadata(user *User, feed *Feed, request *SubscriptionReques
 		}
 	}
 	return state
+}
+
+// GetID retrieves the subscription ID.
+func (s *EditSubscriptionRequest) GetID() SubscriptionID {
+	return s.SubscriptionID
+}
+
+// GetNickname retrieves the nickname assigned to the subscription.
+func (s *EditSubscriptionRequest) GetNickname() string {
+	return s.Nickname
+}
+
+// GetCategories retrieves the categories assigned to the subscription.
+func (s *EditSubscriptionRequest) GetCategories() Categories {
+	return s.Categories
 }
 
 // Valid returns a boolean indicating if the Subscription contains valid data (true). If it contains invalid data

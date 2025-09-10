@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/angelofallars/htmx-go"
@@ -294,41 +295,27 @@ func (a *API) ViewArticle() http.HandlerFunc {
 			), "").ServeHTTP(res, req)
 			return fmt.Errorf("unable to view article: %w", err)
 		}
-		// Render appropriate content.
-		template := partials.ViewArticle(articles[0])
-		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
-		return nil
-	})).ServeHTTP
-}
-
-func (a *API) ToggleArticleRemoteContent() http.HandlerFunc {
-	return alice.New(
-		routeLogger,
-	).ThenFunc(handlerWithError(func(res http.ResponseWriter, req *http.Request) error {
-		itemID := chi.URLParam(req, "item")
-		articles, err := a.getArticles(req.Context(), itemID)
-		if err != nil {
-			renderPartial(partials.Error(
-				models.NewErrorMessage("Unable to fetch article content", ""),
-			), "").ServeHTTP(res, req)
-			return fmt.Errorf("unable to view article: %w", err)
-		}
 		article := articles[0]
-		// Fetch remote content if requested.
-		var content string
-		showRemoteContent := req.FormValue("show_remote_content")
-		if showRemoteContent == "true" {
+		// For POST method, get the "show_remote_content" value and override the article value.
+		if req.Method == http.MethodPost {
+			showRemoteContent, err := strconv.ParseBool(req.FormValue("show_remote_content"))
+			if err != nil {
+				article.ShowRemoteContent = showRemoteContent
+			}
+		}
+		// Fetch and set remote content if required.
+		if article.ShowRemoteContent {
 			slogctx.FromCtx(req.Context()).Debug("Fetching article remote content.")
-			content, err = fetchArticleRemoteContent(article.GetLink())
+			content, err := fetchArticleRemoteContent(article.GetLink())
+			if err != nil {
+				renderPartial(partials.Notification(
+					models.NewErrorMessage("Unable to fetch article remote content", ""),
+				), "").ServeHTTP(res, req)
+				article.ShowRemoteContent = false
+			} else {
+				article.RemoteContent = content
+			}
 		}
-		if err != nil {
-			renderPartial(partials.Notification(
-				models.NewErrorMessage("Unable to fetch article remote content", ""),
-			), "").ServeHTTP(res, req)
-		} else {
-			article.Content = content
-		}
-
 		// Render appropriate content.
 		template := partials.ViewArticle(article)
 		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)

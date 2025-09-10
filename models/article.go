@@ -66,6 +66,10 @@ func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite
 	if item.GetPublishedDate().Before(state.MarkedReadAt) {
 		article.State.MarkRead(state.MarkedReadAt)
 	}
+	// Toggle showing remote article content.
+	if state.Settings.ShowRemoteArticleContent {
+		article.ShowRemoteContent = true
+	}
 	// Validate the article.
 	valid, err := article.Valid()
 	if err != nil || !valid {

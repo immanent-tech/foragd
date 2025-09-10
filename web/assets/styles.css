@@ -82,7 +82,7 @@
   }
   /* input-label is the style applied to the label of inputs */
   .input-label {
-    @apply block text-sm/6 font-medium sm:pt-1.5;
+    @apply label block text-sm/6 font-medium sm:pt-1.5;
   }
   /* input-hint is the style applied to hints for inputs */
   .input-hint {

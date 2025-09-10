@@ -204,13 +204,12 @@ templ ViewArticle(article *models.Article) {
 						hx-target={ ContentID.Target() }
 					>
 						<input
-							type="hidden"
+							type="checkbox"
 							name="show_remote_content"
-							if article.Content != "" {
-								value="false"
-							} else {
-								value="true"
+							if article.ShowRemoteContent {
+								checked="checked"
 							}
+							class="hidden"
 						/>
 						<div class="tooltip" data-tip="Toggle remote content">
 							<button
@@ -270,8 +269,8 @@ templ ViewArticle(article *models.Article) {
 			</div>
 			<div id="article-text">
 				switch  {
-					case article.Content != "":
-						@templ.Raw(article.Content)
+					case article.ShowRemoteContent:
+						@templ.Raw(article.RemoteContent)
 					case article.GetContent() != "":
 						@templ.Raw(article.GetContent())
 					case article.GetDescription() != "":

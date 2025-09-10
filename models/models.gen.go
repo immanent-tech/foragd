@@ -70,14 +70,17 @@ type APIError struct {
 
 // Article defines model for Article.
 type Article struct {
-	// Content contains the article content, when it has been fetched remotely.
-	Content string `json:"content,omitempty,omitzero"`
-
 	// Favorite indicates whether this subscription has been marked as a Favorite by the user.
 	Favorite bool `json:"-"`
 
 	// Item represents an individual item (e.g., an individual feed item).
 	Item Item `json:"item"`
+
+	// RemoteContent contains the article remote content, when it has been fetched.
+	RemoteContent string `json:"remote_content,omitempty,omitzero"`
+
+	// ShowRemoteContent indicates whether the remote article content should be displayed instead of any content from the feed item itself.
+	ShowRemoteContent bool `json:"show_remote_content,omitempty,omitzero"`
 
 	// State tracks the state of an article.
 	State ArticleState `json:"state"`
@@ -154,6 +157,12 @@ type ArticleMetadata struct {
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
 }
 
+// ArticleSettings contains settings related to the display of the article.
+type ArticleSettings struct {
+	// ShowRemoteContent indicates whether the remote article content should be displayed instead of any content from the feed item itself.
+	ShowRemoteContent bool `json:"show_remote_content,omitempty,omitzero"`
+}
+
 // ArticleState tracks the state of an article.
 type ArticleState struct {
 	// Read indicates whether the object has been read (true) or is unread (false).
@@ -198,6 +207,9 @@ type EditSubscriptionRequest struct {
 
 	// NicknameErr is an error associated with the nickname field.
 	NicknameErr error `form:"-" json:"-"`
+
+	// ShowRemoteArticleContent toggles whether articles in the subscription should be always displayed with remote content.
+	ShowRemoteArticleContent bool `form:"show_remote_article_content" json:"show_remote_article_content,omitempty,omitzero"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -431,23 +443,6 @@ type ObjectCommon struct {
 // ObjectCommonSourceType indicates what type of source the object came from.
 type ObjectCommonSourceType string
 
-// ObjectCustomisation contains object fields that can be customised (overridden) by a user
-type ObjectCustomisation struct {
-	// Categories is a custom list of categories for an object.
-	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
-
-	// Image is a custom image to represent the object.
-	Image ObjectCustomisation_Image `json:"image,omitempty,omitzero"`
-
-	// Nickname is an optional alias or label for an object.
-	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero"`
-}
-
-// ObjectCustomisation_Image is a custom image to represent the object.
-type ObjectCustomisation_Image struct {
-	union json.RawMessage
-}
-
 // RemoteImage is a link to an image to represent the object.
 type RemoteImage struct {
 	// URL is a URL.
@@ -480,6 +475,23 @@ type Subscription struct {
 	UnreadCount int `json:"-" validate:"gte=0"`
 }
 
+// SubscriptionCustomisation contains object fields that can be customised (overridden) by a user
+type SubscriptionCustomisation struct {
+	// Categories is a custom list of categories for an object.
+	Categories []Category `form:"user_categories" json:"categories,omitempty,omitzero" validate:"omitempty,unique"`
+
+	// Image is a custom image to represent the object.
+	Image SubscriptionCustomisation_Image `json:"image,omitempty,omitzero"`
+
+	// Nickname is an optional alias or label for an object.
+	Nickname string `form:"user_nickname" json:"nickname,omitempty,omitzero"`
+}
+
+// SubscriptionCustomisation_Image is a custom image to represent the object.
+type SubscriptionCustomisation_Image struct {
+	union json.RawMessage
+}
+
 // SubscriptionID is the unique ID of a subscription.
 type SubscriptionID = string
 
@@ -489,7 +501,7 @@ type SubscriptionMetadata struct {
 	CreatedAt CreatedAt `json:"created_at" validate:"required"`
 
 	// Customisation contains object fields that can be customised (overridden) by a user
-	Customisation ObjectCustomisation `json:"customisation,omitempty,omitzero"`
+	Customisation SubscriptionCustomisation `json:"customisation,omitempty,omitzero"`
 
 	// FeedID is the unique ID of a feed.
 	FeedID FeedID `form:"feed_id" json:"feed_id" validate:"required,startswith=feed_"`
@@ -499,6 +511,9 @@ type SubscriptionMetadata struct {
 
 	// MarkedReadAt indicates when the subscription was last marked read. Any articles older than this timestamp are considered read, any newer unread.
 	MarkedReadAt time.Time `json:"marked_read_at,omitempty,omitzero"`
+
+	// Settings contains options that control how the subscription is stored/displayed.
+	Settings SubscriptionSettings `json:"settings,omitempty,omitzero"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -526,6 +541,12 @@ type SubscriptionRequest struct {
 
 	// NicknameErr is an error associated with the nickname field.
 	NicknameErr error `form:"-" json:"-"`
+}
+
+// SubscriptionSettings contains options that control how the subscription is stored/displayed.
+type SubscriptionSettings struct {
+	// ShowRemoteArticleContent toggles whether articles in the subscription should be always displayed with remote content.
+	ShowRemoteArticleContent bool `form:"show_remote_article_content" json:"show_remote_article_content,omitempty,omitzero"`
 }
 
 // Timestamp is when the document was created.
@@ -721,22 +742,22 @@ func (t *Favorite_ObjectData) UnmarshalJSON(b []byte) error {
 	return err
 }
 
-// AsRemoteImage returns the union data inside the ObjectCustomisation_Image as a RemoteImage
-func (t ObjectCustomisation_Image) AsRemoteImage() (RemoteImage, error) {
+// AsRemoteImage returns the union data inside the SubscriptionCustomisation_Image as a RemoteImage
+func (t SubscriptionCustomisation_Image) AsRemoteImage() (RemoteImage, error) {
 	var body RemoteImage
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromRemoteImage overwrites any union data inside the ObjectCustomisation_Image as the provided RemoteImage
-func (t *ObjectCustomisation_Image) FromRemoteImage(v RemoteImage) error {
+// FromRemoteImage overwrites any union data inside the SubscriptionCustomisation_Image as the provided RemoteImage
+func (t *SubscriptionCustomisation_Image) FromRemoteImage(v RemoteImage) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeRemoteImage performs a merge with any union data inside the ObjectCustomisation_Image, using the provided RemoteImage
-func (t *ObjectCustomisation_Image) MergeRemoteImage(v RemoteImage) error {
+// MergeRemoteImage performs a merge with any union data inside the SubscriptionCustomisation_Image, using the provided RemoteImage
+func (t *SubscriptionCustomisation_Image) MergeRemoteImage(v RemoteImage) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -747,22 +768,22 @@ func (t *ObjectCustomisation_Image) MergeRemoteImage(v RemoteImage) error {
 	return err
 }
 
-// AsStoredImage returns the union data inside the ObjectCustomisation_Image as a StoredImage
-func (t ObjectCustomisation_Image) AsStoredImage() (StoredImage, error) {
+// AsStoredImage returns the union data inside the SubscriptionCustomisation_Image as a StoredImage
+func (t SubscriptionCustomisation_Image) AsStoredImage() (StoredImage, error) {
 	var body StoredImage
 	err := json.Unmarshal(t.union, &body)
 	return body, err
 }
 
-// FromStoredImage overwrites any union data inside the ObjectCustomisation_Image as the provided StoredImage
-func (t *ObjectCustomisation_Image) FromStoredImage(v StoredImage) error {
+// FromStoredImage overwrites any union data inside the SubscriptionCustomisation_Image as the provided StoredImage
+func (t *SubscriptionCustomisation_Image) FromStoredImage(v StoredImage) error {
 	b, err := json.Marshal(v)
 	t.union = b
 	return err
 }
 
-// MergeStoredImage performs a merge with any union data inside the ObjectCustomisation_Image, using the provided StoredImage
-func (t *ObjectCustomisation_Image) MergeStoredImage(v StoredImage) error {
+// MergeStoredImage performs a merge with any union data inside the SubscriptionCustomisation_Image, using the provided StoredImage
+func (t *SubscriptionCustomisation_Image) MergeStoredImage(v StoredImage) error {
 	b, err := json.Marshal(v)
 	if err != nil {
 		return err
@@ -773,12 +794,12 @@ func (t *ObjectCustomisation_Image) MergeStoredImage(v StoredImage) error {
 	return err
 }
 
-func (t ObjectCustomisation_Image) MarshalJSON() ([]byte, error) {
+func (t SubscriptionCustomisation_Image) MarshalJSON() ([]byte, error) {
 	b, err := t.union.MarshalJSON()
 	return b, err
 }
 
-func (t *ObjectCustomisation_Image) UnmarshalJSON(b []byte) error {
+func (t *SubscriptionCustomisation_Image) UnmarshalJSON(b []byte) error {
 	err := t.union.UnmarshalJSON(b)
 	return err
 }

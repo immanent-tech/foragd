@@ -14,7 +14,7 @@ import (
 templ EditSubscription(request *models.EditSubscriptionRequest) {
 	<div class="space-y-12 sm:space-y-16">
 		<div>
-			<h2 class="text-base/7 font-semibold">Edit { request.Nickname }</h2>
+			<h2 class="text-base/7 font-semibold">Edit { request.GetNickname() }</h2>
 			<p class="mt-1 max-w-2xl text-sm/6">This information will be used in various places when displaying subscription information.</p>
 			if request.HasError() {
 				<div role="alert" class="alert alert-error alert-outline mt-12">
@@ -26,20 +26,37 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					</div>
 				</div>
 			}
-			<div class="form-fieldset">
+			<fieldset class="fieldset border-base-300 rounded-box border p-4">
+				<legend class="fieldset-legend text-base/7">Settings</legend>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
+					<label class="label input-label">
+						<input
+							type="checkbox"
+							if request.ShowRemoteArticleContent {
+								checked="checked"
+							}
+							name="show_remote_article_content"
+							class="toggle toggle-sm toggle-primary"
+						/>
+						Always show remote article content
+					</label>
+				</div>
+			</fieldset>
+			<fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-4">
+				<legend class="fieldset-legend text-base/7">Customisation</legend>
 				<form
 					id="edit-subscription"
-					hx-put={ "/user/subscription/edit/" + request.SubscriptionID }
-					hx-include="[name='user_categories']"
+					hx-put={ "/user/subscription/edit/" + request.GetID() }
+					hx-include="[name='user_categories'],[name='show_remote_article_content']"
 					hx-target={ partials.ContentID.Target() }
 					hx-target-error={ partials.ContentID.Target() }
 					hx-indicator="#processing"
 				>
-					<input type="hidden" name="subscription_id" value={ request.SubscriptionID }/>
+					<input type="hidden" name="subscription_id" value={ request.GetID() }/>
 					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 						<label for="username" class="input-label">Nickname</label>
 						<div class="mt-2 sm:col-span-2 sm:mt-0">
-							<input id="nickname" required type="text" name="user_nickname" value={ request.Nickname } placeholder="My Subscription" class="input-text"/>
+							<input id="nickname" required type="text" name="user_nickname" value={ request.GetNickname() } placeholder="My Subscription" class="input-text"/>
 						</div>
 					</div>
 				</form>
@@ -55,11 +72,11 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
 						<label class="input-label">Current Categories</label>
 						<div class="mt-2 sm:col-span-2 sm:mt-0">
-							@partials.ManageCategories(request.Categories)
+							@partials.ManageCategories(request.GetCategories())
 						</div>
 					</div>
 				</div>
-			</div>
+			</fieldset>
 		</div>
 	</div>
 	<div class="mt-6 flex items-center justify-end gap-x-6">

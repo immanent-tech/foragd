@@ -178,14 +178,6 @@ func GetCategoryCounts[T HasCategories](objects iter.Seq[T]) CategoryCounts {
 	return counts
 }
 
-func (c ObjectCustomisation) GetNickname() string {
-	return c.Nickname
-}
-
-func (c ObjectCustomisation) GetCategories() []Category {
-	return c.Categories
-}
-
 // GenerateHXVals generates a JSON-formatted object containing the given key-value pairs suitable for use as a hx-vals attribute.
 // See also: https://htmx.org/attributes/hx-vals/
 func GenerateHXVals(values map[string]string) string {
