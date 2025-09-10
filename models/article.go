@@ -67,8 +67,8 @@ func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite
 		article.State.MarkRead(state.MarkedReadAt)
 	}
 	// Toggle showing remote article content.
-	if state.Settings.ShowRemoteArticleContent {
-		article.ShowRemoteContent = true
+	if state.Settings.ShowFullArticleContent {
+		article.ShowFullContent = true
 	}
 	// Validate the article.
 	valid, err := article.Valid()
@@ -137,8 +137,17 @@ func (a *Article) GetDescription() string {
 	return a.Item.GetDescription()
 }
 
+// GetContent returns the main content of the article. This will be either the full content fetched remotely (if
+// requested), the "content" field of the item (if not empty), or the description (if any).
 func (a *Article) GetContent() string {
-	return a.Item.GetContent()
+	switch {
+	case a.ShowFullContent:
+		return a.Content
+	case a.Item.GetContent() != "":
+		return a.Item.GetContent()
+	default:
+		return a.Item.GetDescription()
+	}
 }
 
 func (a *Article) GetImage() *RemoteImage {
@@ -165,6 +174,7 @@ func (a *Article) GetFeedTitle() string {
 	return a.Item.FeedTitle
 }
 
+// IsUnread returns a boolean indicating whether the user has not read this article.
 func (a *Article) IsUnread() bool {
 	return !a.State.Read
 }

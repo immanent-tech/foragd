@@ -204,19 +204,20 @@ templ ViewArticle(article *models.Article) {
 						hx-target={ ContentID.Target() }
 					>
 						<input
-							type="checkbox"
-							name="show_remote_content"
-							if article.ShowRemoteContent {
-								checked="checked"
+							type="hidden"
+							name={ models.ParamFullArticleContent }
+							if article.ShowFullContent {
+								value="false"
+							} else {
+								value="true"
 							}
-							class="hidden"
 						/>
-						<div class="tooltip" data-tip="Toggle remote content">
+						<div class="tooltip" data-tip="Toggle full content">
 							<button
 								type="submit"
 								class="btn btn-sm btn-ghost btn-square"
 							>
-								<span class="sr-only">Toggle remote content</span>
+								<span class="sr-only">Toggle full content</span>
 								<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-article size-4">
 									<path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
 									<path d="M3 4m0 2a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2z"></path>
@@ -269,8 +270,6 @@ templ ViewArticle(article *models.Article) {
 			</div>
 			<div id="article-text">
 				switch  {
-					case article.ShowRemoteContent:
-						@templ.Raw(article.RemoteContent)
 					case article.GetContent() != "":
 						@templ.Raw(article.GetContent())
 					case article.GetDescription() != "":

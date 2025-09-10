@@ -492,12 +492,12 @@ components:
         contains options that control how the subscription is stored/displayed.
       type: object
       properties:
-        show_remote_article_content:
+        show_full_article_content:
           description: >
             toggles whether articles in the subscription should be always displayed with remote content.
           type: boolean
           x-oapi-codegen-extra-tags:
-            form: "show_remote_article_content"
+            form: "show_full_article_content"
     Subscription:
       description: >
         represents a feed a user has subscribed to.
@@ -633,10 +633,10 @@ components:
         contains settings related to the display of the article.
       type: object
       properties:
-        show_remote_content:
+        show_full_content:
           description: >
-            indicates whether the remote article content should be displayed instead of any content from the feed item
-            itself.
+            indicates whether the full article content should be fetched and displayed instead of any content from the
+            feed item itself.
           type: boolean
     ArticleState:
       description: >
@@ -671,9 +671,9 @@ components:
               type: boolean
               x-oapi-codegen-extra-tags:
                 json: '-'
-            remote_content:
+            content:
               description: >
-                contains the article remote content, when it has been fetched.
+                contains the full article content, when it has been fetched from the origin link.
               type: string
     ArticleArchive:
       description: >

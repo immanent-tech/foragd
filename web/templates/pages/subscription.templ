@@ -32,10 +32,10 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 					<label class="label input-label">
 						<input
 							type="checkbox"
-							if request.ShowRemoteArticleContent {
+							if request.ShowFullArticleContent {
 								checked="checked"
 							}
-							name="show_remote_article_content"
+							name="show_full_article_content"
 							class="toggle toggle-sm toggle-primary"
 						/>
 						Always show remote article content
@@ -47,7 +47,7 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 				<form
 					id="edit-subscription"
 					hx-put={ "/user/subscription/edit/" + request.GetID() }
-					hx-include="[name='user_categories'],[name='show_remote_article_content']"
+					hx-include="[name='user_categories'],[name='show_full_article_content']"
 					hx-target={ partials.ContentID.Target() }
 					hx-target-error={ partials.ContentID.Target() }
 					hx-indicator="#processing"

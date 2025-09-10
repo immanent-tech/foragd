@@ -299,10 +299,10 @@ func (a *API) EditSubscription() http.HandlerFunc {
 		metadata := user.GetSubscriptionMetadata().GetByID(id)
 		// Convert metadata into edit request data.
 		request := &models.EditSubscriptionRequest{
-			SubscriptionID:           id,
-			Nickname:                 metadata.Customisation.Nickname,
-			Categories:               metadata.Customisation.Categories,
-			ShowRemoteArticleContent: metadata.Settings.ShowRemoteArticleContent,
+			SubscriptionID:         id,
+			Nickname:               metadata.Customisation.Nickname,
+			Categories:             metadata.Customisation.Categories,
+			ShowFullArticleContent: metadata.Settings.ShowFullArticleContent,
 		}
 		// Get top categories across items in subscription feed and add as suggested categories for the
 		// subscription.
@@ -338,7 +338,7 @@ func (a *API) SaveSubscription() http.HandlerFunc {
 		metadata := user.GetSubscriptionMetadata().GetByID(request.SubscriptionID)
 		metadata.Customisation.Nickname = request.GetNickname()
 		metadata.Customisation.Categories = request.GetCategories()
-		metadata.Settings.ShowRemoteArticleContent = request.ShowRemoteArticleContent
+		metadata.Settings.ShowFullArticleContent = request.ShowFullArticleContent
 		err = user.UpdateSubscription(metadata)
 		if err != nil {
 			msg := models.NewErrorMessage("An error occurred trying to save the subscription", "Please try again.")

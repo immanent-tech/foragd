@@ -70,17 +70,17 @@ type APIError struct {
 
 // Article defines model for Article.
 type Article struct {
+	// Content contains the full article content, when it has been fetched from the origin link.
+	Content string `json:"content,omitempty,omitzero"`
+
 	// Favorite indicates whether this subscription has been marked as a Favorite by the user.
 	Favorite bool `json:"-"`
 
 	// Item represents an individual item (e.g., an individual feed item).
 	Item Item `json:"item"`
 
-	// RemoteContent contains the article remote content, when it has been fetched.
-	RemoteContent string `json:"remote_content,omitempty,omitzero"`
-
-	// ShowRemoteContent indicates whether the remote article content should be displayed instead of any content from the feed item itself.
-	ShowRemoteContent bool `json:"show_remote_content,omitempty,omitzero"`
+	// ShowFullContent indicates whether the full article content should be fetched and displayed instead of any content from the feed item itself.
+	ShowFullContent bool `json:"show_full_content,omitempty,omitzero"`
 
 	// State tracks the state of an article.
 	State ArticleState `json:"state"`
@@ -159,8 +159,8 @@ type ArticleMetadata struct {
 
 // ArticleSettings contains settings related to the display of the article.
 type ArticleSettings struct {
-	// ShowRemoteContent indicates whether the remote article content should be displayed instead of any content from the feed item itself.
-	ShowRemoteContent bool `json:"show_remote_content,omitempty,omitzero"`
+	// ShowFullContent indicates whether the full article content should be fetched and displayed instead of any content from the feed item itself.
+	ShowFullContent bool `json:"show_full_content,omitempty,omitzero"`
 }
 
 // ArticleState tracks the state of an article.
@@ -208,8 +208,8 @@ type EditSubscriptionRequest struct {
 	// NicknameErr is an error associated with the nickname field.
 	NicknameErr error `form:"-" json:"-"`
 
-	// ShowRemoteArticleContent toggles whether articles in the subscription should be always displayed with remote content.
-	ShowRemoteArticleContent bool `form:"show_remote_article_content" json:"show_remote_article_content,omitempty,omitzero"`
+	// ShowFullArticleContent toggles whether articles in the subscription should be always displayed with remote content.
+	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content,omitempty,omitzero"`
 
 	// SubscriptionID is the unique ID of a subscription.
 	SubscriptionID SubscriptionID `form:"subscription_id" json:"subscription_id" validate:"required,startswith=sub_"`
@@ -545,8 +545,8 @@ type SubscriptionRequest struct {
 
 // SubscriptionSettings contains options that control how the subscription is stored/displayed.
 type SubscriptionSettings struct {
-	// ShowRemoteArticleContent toggles whether articles in the subscription should be always displayed with remote content.
-	ShowRemoteArticleContent bool `form:"show_remote_article_content" json:"show_remote_article_content,omitempty,omitzero"`
+	// ShowFullArticleContent toggles whether articles in the subscription should be always displayed with remote content.
+	ShowFullArticleContent bool `form:"show_full_article_content" json:"show_full_article_content,omitempty,omitzero"`
 }
 
 // Timestamp is when the document was created.

@@ -296,24 +296,26 @@ func (a *API) ViewArticle() http.HandlerFunc {
 			return fmt.Errorf("unable to view article: %w", err)
 		}
 		article := articles[0]
-		// For POST method, get the "show_remote_content" value and override the article value.
+		// For POST method, get the "show_full_content" value and override the article value.
 		if req.Method == http.MethodPost {
-			showRemoteContent, err := strconv.ParseBool(req.FormValue("show_remote_content"))
+			fullContent, err := strconv.ParseBool(req.FormValue(models.ParamFullArticleContent))
 			if err != nil {
-				article.ShowRemoteContent = showRemoteContent
+				article.ShowFullContent = false
+			} else {
+				article.ShowFullContent = fullContent
 			}
 		}
 		// Fetch and set remote content if required.
-		if article.ShowRemoteContent {
+		if article.ShowFullContent {
 			slogctx.FromCtx(req.Context()).Debug("Fetching article remote content.")
 			content, err := fetchArticleRemoteContent(article.GetLink())
 			if err != nil {
 				renderPartial(partials.Notification(
 					models.NewErrorMessage("Unable to fetch article remote content", ""),
 				), "").ServeHTTP(res, req)
-				article.ShowRemoteContent = false
+				article.ShowFullContent = false
 			} else {
-				article.RemoteContent = content
+				article.Content = content
 			}
 		}
 		// Render appropriate content.
