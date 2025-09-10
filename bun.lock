@@ -8,13 +8,13 @@
         "@oddbird/css-anchor-positioning": "^0.6.1",
         "@tabler/icons": "^3.34.1",
         "@tailwindplus/elements": "^1.0.12",
-        "daisyui": "^5.1.8",
+        "daisyui": "^5.1.9",
         "date-fns": "^4.1.0",
         "htmx-ext-ajax-header": "^2.0.2",
         "htmx-ext-preload": "^2.1.1",
         "htmx-ext-response-targets": "^2.0.3",
         "htmx-ext-sse": "^2.2.3",
-        "htmx.org": "^2.0.6",
+        "htmx.org": "^2.0.7",
         "hyperscript.org": "^0.9.14",
         "idiomorph": "^0.7.3",
         "tailwindcss": "^4.1.13",
@@ -29,7 +29,7 @@
         "@tailwindcss/typography": "^0.5.16",
         "eslint": "^9.35.0",
         "eslint-config-prettier": "^10.1.8",
-        "globals": "^16.3.0",
+        "globals": "^16.4.0",
         "htmx-ext-debug": "^2.0.1",
         "parcel": "^2.15.4",
         "postcss": "^8.5.6",
@@ -504,7 +504,7 @@
 
     "glob-parent": ["glob-parent@6.0.2", "", { "dependencies": { "is-glob": "^4.0.3" } }, "sha512-XxwI8EOhVQgWp6iDL+3b0r86f4d6AX6zSU55HfB4ydCEuXLXc5FcYeOu+nnGftS4TEju/11rt4KJPTMgbfmv4A=="],
 
-    "globals": ["globals@16.3.0", "", {}, "sha512-bqWEnJ1Nt3neqx2q5SFfGS8r/ahumIakg3HcwtNlrVlwXIeNumWn/c7Pn/wKzGhf6SaW6H6uWXLqC30STCMchQ=="],
+    "globals": ["globals@16.4.0", "", {}, "sha512-ob/2LcVVaVGCYN+r14cnwnoDPUufjiYgSqRhiFD0Q1iI4Odora5RE8Iv1D24hAz5oMophRGkGz+yuvQmmUMnMw=="],
 
     "graceful-fs": ["graceful-fs@4.2.11", "", {}, "sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ=="],
 
