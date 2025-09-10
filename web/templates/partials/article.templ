@@ -184,6 +184,7 @@ templ ViewArticle(article *models.Article) {
 		</ul>
 	</div>
 	// Article.
+	@ContentLoadingIndicator()
 	<div class="flex justify-center">
 		<article id={ article.GetID() } class="prose prose-sm sm:prose-lg w-full dark:prose-invert px-4 py-4 sm:px-6">
 			<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover">
