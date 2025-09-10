@@ -1,0 +1,28 @@
+filebeat.inputs:
+- type: filestream
+  id: default-filestream
+  paths:
+    - ingest_data/*.log
+
+filebeat.autodiscover:
+  providers:
+    - type: docker
+      hints.enabled: true
+
+processors:
+- add_docker_metadata: ~
+
+setup.kibana:
+  host: http://kibana:5601
+  username: ${ELASTIC_USER}
+  password: ${ELASTIC_PASSWORD}
+
+output.elasticsearch:
+  hosts:
+    - https://es01:9200
+    - https://es02:9200
+    - https://es03:9200
+  username: ${ELASTIC_USER}
+  password: ${ELASTIC_PASSWORD}
+  ssl.enabled: true
+  ssl.certificate_authorities: "config/certs/ca/ca.crt"

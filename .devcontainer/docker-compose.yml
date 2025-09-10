@@ -280,6 +280,7 @@ services:
       - ELASTICSEARCH_USERNAME=kibana_system
       - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
       - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=config/certs/ca/ca.crt
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY}
     healthcheck:
       test:
         [
@@ -293,26 +294,45 @@ services:
       - co.elastic.logs/module=kibana
     stop_grace_period: 1m
 
-  # metricbeat:
-  #   depends_on:
-  #     es01:
-  #       condition: service_healthy
-  #     es02:
-  #       condition: service_healthy
-  #     es03:
-  #       condition: service_healthy
-  #   hostname: metricbeat
-  #   image: docker.elastic.co/beats/metricbeat:$ELASTIC_STACK_VERSION
-  #   restart: always
-  #   volumes:
-  #     - ../deployments/certs:/usr/share/metricbeat/config/certs
-  #     - ../deployments/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
-  #     - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
-  #     - /proc:/hostfs/proc:ro
-  #     - /:/hostfs:ro
-  #     - /var/run/dbus/system_bus_socket,target=/hostfs/var/run/dbus/system_bus_socket:ro
-  #     - /run/user/1000/podman/podman.sock:/var/run/docker.sock
-  #   environment:
-  #     - output.elasticsearch.hosts=["es01:9200"]
-  #     - DBUS_SYSTEM_BUS_ADDRESS='unix:path=/hostfs/var/run/dbus/system_bus_socket'
-  #     - ELASTICSEARCH_PASSWORD=${ELASTICSEARCH_PASSWORD}
+  metricbeat:
+    depends_on:
+      es01:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    hostname: metricbeat
+    image: docker.elastic.co/beats/metricbeat:$ELASTIC_STACK_VERSION
+    restart: always
+    user: root
+    volumes:
+      - ../deployments/certs:/usr/share/metricbeat/config/certs
+      - metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - /proc:/hostfs/proc,ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup,ro
+      - /var/run/dbus/system_bus_socket,target=/hostfs/var/run/dbus/system_bus_socket:ro
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
+    cgroup: host
+    environment:
+      - DBUS_SYSTEM_BUS_ADDRESS='unix:path=/hostfs/var/run/dbus/system_bus_socket'
+      - ELASTIC_USER=elastic
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
+    command:
+      - --strict.perms=false
+
+  filebeat:
+    depends_on:
+      es01:
+        condition: service_healthy
+    image: docker.elastic.co/beats/filebeat:$ELASTIC_STACK_VERSION
+    user: root
+    volumes:
+      - ../deployments/certs:/usr/share/filebeat/config/certs
+      - filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - './filebeat_ingest_data/:/usr/share/filebeat/ingest_data/'
+      - '../../../.local/share/containers:/var/lib/docker/containers:ro'
+      - /run/user/1000/podman/podman.sock:/var/run/docker.sock
+    environment:
+      - ELASTIC_USER=elastic
+      - ELASTIC_PASSWORD=${ELASTICSEARCH_PASSWORD}
+    command:
+      - --strict.perms=false
