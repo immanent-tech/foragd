@@ -29,6 +29,11 @@ RUN curl -fsSL https://get.pulumi.com | sh
 # Install bun
 RUN curl -fsSL https://bun.com/install | bash
 
+# Install Go tools.
+set --export PATH "$HOME/go/bin" /go/bin /usr/local/go/bin $PATH
+go install github.com/air-verse/air@latest
+go install github.com/a-h/templ/cmd/templ@latest
+
 RUN <<EOF
     mkdir -p ~/.config/fish
     echo 'set --export BUN_INSTALL "$HOME/.bun"' >> ~/.config/fish/config.fish
