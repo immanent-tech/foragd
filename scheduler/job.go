@@ -182,8 +182,9 @@ func (job *UpdateFeedJob) Execute(ctx context.Context) error {
 	)
 	items := make(models.Items, 0, len(feed.GetItems()))
 	for i := range slices.Values(feed.GetItems()) {
-		items = append(items, models.NewItemFromSource(&i, job.FeedID, string(feed.SourceType)))
+		items = append(items, models.NewItemFromSource(&i, details))
 	}
+
 	// Add any new items since the last feed update.
 	if len(items.FilterSince(details.LastFetched)) > 0 {
 		// Add any new items.

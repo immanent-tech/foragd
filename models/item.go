@@ -4,17 +4,12 @@
 package models
 
 import (
-	"errors"
 	"maps"
 	"slices"
 	"time"
 
 	feeds "github.com/immanent-tech/go-syndication"
 )
-
-// var _ types.ObjectCommon = (*Item)(nil)
-
-var ErrGetItem = errors.New("could not retrieve item")
 
 // Items is a slice of items.
 type Items []*Item
@@ -108,12 +103,22 @@ func (i *Item) GetLanguage() string {
 	return i.Language
 }
 
-func (i *Item) GetPublishedDate() time.Time {
-	return i.Published
+// GetUpdatedDate returns a timestamp indicating when the item was last updated. This will be either, the updated
+// timestamp, or, the published timestamp, or the indexing timestamp, whichever is found and
+// is a valid value, in that order.
+func (i *Item) GetUpdatedDate() time.Time {
+	if valid, _ := ValidateDatetime(i.Updated); valid {
+		return i.Updated
+	} else if valid, _ := ValidateDatetime(i.Published); valid {
+		return i.Published
+	}
+	return i.Timestamp
 }
 
-func (i *Item) GetUpdatedDate() time.Time {
-	return i.Updated
+// IsNewer returns a boolean indicating whether this item has been updated or
+// published after the given time.
+func (i *Item) IsNewer(since time.Time) bool {
+	return i.GetUpdatedDate().After(since)
 }
 
 func (i *Item) GetRights() string {
@@ -124,33 +129,17 @@ func (i *Item) GetContent() string {
 	return i.Content
 }
 
-func (i *Item) GetTimestamp() time.Time {
-	if valid, _ := ValidateDatetime(i.GetUpdatedDate()); valid {
-		return i.GetUpdatedDate()
-	} else if valid, _ := ValidateDatetime(i.GetPublishedDate()); valid {
-		return i.GetUpdatedDate()
-	} else {
-		return i.Timestamp
-	}
-}
-
-// IsNewer returns a boolean indicating whether this item has been updated or
-// published after the given time.
-func (i *Item) IsNewer(since time.Time) bool {
-	return i.GetTimestamp().After(since)
-}
-
-// newFeedFromSource converts the raw types.FeedSource into a Feed object.
-func NewItemFromSource(source *feeds.Item, feedID FeedID, sourceType string) *Item {
+// NewItemFromSource generates an Item from the underlying feed data.
+func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 	item := &Item{
 		ItemID:       NewID(ItemPFX),
-		FeedID:       feedID,
+		FeedID:       feed.GetID(),
 		Timestamp:    time.Now().UTC(),
 		Published:    source.GetPublishedDate(),
 		Updated:      source.GetUpdatedDate(),
 		Title:        source.GetTitle(),
 		Description:  source.GetDescription(),
-		SourceType:   ItemSourceType(sourceType),
+		SourceType:   ItemSourceType(feed.SourceType),
 		URL:          source.GetLink(),
 		Authors:      source.GetAuthors(),
 		Contributors: source.GetContributors(),
@@ -163,6 +152,11 @@ func NewItemFromSource(source *feeds.Item, feedID FeedID, sourceType string) *It
 		},
 		Content:   source.GetContent(),
 		FeedTitle: source.FeedTitle,
+	}
+
+	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.
+	if valid, _ := ValidateDatetime(item.Published); !valid {
+		item.Published = feed.GetUpdatedDate()
 	}
 
 	return item
