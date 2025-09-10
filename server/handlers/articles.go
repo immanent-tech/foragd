@@ -382,20 +382,22 @@ func (a *API) filterArticles(ctx context.Context, filters *models.ArticleFilters
 	if !found {
 		return nil, "", models.ErrUserCtx
 	}
-
 	// Search through items matching any given feeds filters, excluding any read
 	// items.
-	subscriptions := user.GetSubscriptionMetadata().FilterByIDs(filters.Subscriptions...)
+	subscriptions := user.GetSubscriptionMetadata()
+	if len(filters.Subscriptions) > 0 {
+		subscriptions = subscriptions.FilterByIDs(filters.Subscriptions...)
+	}
 	query := query.Bool(
-		query.BoolQueryName("get_items"),
+		query.BoolQueryName("item-filters-"+filters.Query()),
 		query.Filter(
 			// Must match any of the given feed IDs.
 			query.Terms("feed_id", subscriptions.GetFeedIDs()...),
 			// Must match any of the given categories.
-			query.Terms("categories.raw", filters.Categories...),
+			query.Terms("categories.raw", filters.GetCategories()...),
 			// And should match one feed clause.
 			query.Bool(
-				query.Should(buildSubscriptionQueries(user, filters.View, subscriptions...)...),
+				query.Should(buildSubscriptionQueries(user, filters.GetView(), subscriptions...)...),
 			),
 		),
 	)

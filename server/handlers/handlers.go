@@ -115,6 +115,10 @@ func SetRedirect(ctx context.Context, path string, res http.ResponseWriter) {
 			Values: values,
 		})
 	htmxResp = htmxResp.PushURL(pushURLPath)
+	slogctx.FromCtx(ctx).Debug("Redirecting.",
+		slog.String("path", pushURLPath),
+		slog.Any("parameters", values),
+	)
 	err := htmxResp.Write(res)
 	if err != nil {
 		slogctx.FromCtx(ctx).Warn("Unable to set redirect.",
