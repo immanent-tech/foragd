@@ -19,13 +19,14 @@ func NewArticleContent(article *models.Article) *Article {
 	}
 }
 
+// templ.KV("row-span-1", a.GetImage().URL == ""), templ.KV("md:row-span-2 md:col-span-1", a.GetImage().URL != ""),
+// 	templ.KV("opacity-50",!a.IsUnread()) }
+
 // Card renders an article as a card, for displaying in a list.
 templ (a *Article) Card(view models.View) {
 	<li id={ a.GetID() }>
 		<div
-			class={ "card-base",
-		templ.KV("row-span-1", a.GetImage().URL == ""), templ.KV("md:row-span-2 md:col-span-1", a.GetImage().URL != ""),
-			templ.KV("opacity-50",!a.IsUnread()) }
+			class={ "card-base", templ.KV("opacity-50",!a.IsUnread()) }
 		>
 			// Header.
 			<div class="px-4 py-5 sm:px-6">

@@ -22,7 +22,7 @@ templ (s *Subscription) Card() {
 	<li id={ s.GetID() }>
 		<div class={ "card-base", templ.KV("opacity-50",!s.IsUnread()) }>
 			<div class="flex items-center px-4 py-5 sm:px-6">
-				@s.ViewLink("flex", "items-center", "gap-x-4") {
+				@s.ViewLink("flex", "flex-1", "items-center", "gap-x-4") {
 					<div class="size-12 flex-none">
 						@s.image()
 					</div>
@@ -31,13 +31,15 @@ templ (s *Subscription) Card() {
 				if s.IsUnread() {
 					<div class="ml-4 badge badge-soft">{ s.GetUnreadCount() }</div>
 				}
-				<div class="tooltip" data-tip="Subscription actions">
-					@s.actionsMenu()
+				<div class="flex flex-none">
+					<div class="tooltip" data-tip="Subscription actions">
+						@s.actionsMenu()
+					</div>
 				</div>
 			</div>
 			<div class="px-4 py-5 sm:p-6">
 				if s.GetDescription() != "" {
-					<article class="prose prose-sm dark:prose-invert line-clamp-2 sm:line-clamp-4">{ s.GetDescription() }</article>
+					<p class="text-sm/6 text-ellipsis text-pretty line-clamp-2 sm:line-clamp-4">{ s.GetDescription() }</p>
 				}
 			</div>
 			<div class="px-4 py-4 sm:px-6 text-base-content/80 text-sm/6">
