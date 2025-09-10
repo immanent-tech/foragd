@@ -271,14 +271,13 @@ func (a *API) MarkAllSubscriptions() http.HandlerFunc {
 		template := layouts.SubscriptionsGrid(subscriptions, &filters, pagination)
 		renderPage(layouts.Drawer(template), "Subscriptions - Go Feed Me").ServeHTTP(res, req)
 
-		// // Redirect depending on the current view.
-		// switch filters.GetView() {
-		// case models.ViewRead, models.ViewUnread:
-		// 	chain = chain.Append(SetupRedirect("/home"))
-		// case models.ViewAll:
-		// 	chain = chain.Append(SetupRedirect("/subscriptions"))
-		// }
-		// chain.Then(render(nil)).ServeHTTP(res, req)
+		// Redirect depending on the current view.
+		switch filters.GetView() {
+		case models.ViewRead, models.ViewUnread:
+			SetRedirect(req.Context(), "/home", res)
+		case models.ViewAll:
+			SetRedirect(req.Context(), "/subscriptions", res)
+		}
 
 		return nil
 	})).ServeHTTP

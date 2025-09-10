@@ -277,6 +277,8 @@ func (a *API) MarkAllArticles() http.HandlerFunc {
 		template := layouts.ArticlesGrid(articles, &filters, pagination)
 		renderPage(layouts.Drawer(template), "Articles - Go Feed Me").ServeHTTP(res, req)
 
+		SetRedirect(req.Context(), "/subscriptions", res)
+
 		return nil
 	})).ServeHTTP
 }
