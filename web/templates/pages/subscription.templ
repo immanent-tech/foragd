@@ -14,8 +14,7 @@ import (
 templ EditSubscription(request *models.EditSubscriptionRequest) {
 	<div class="space-y-12 sm:space-y-16">
 		<div>
-			<h2 class="text-base/7 font-semibold">Edit { request.GetNickname() }</h2>
-			<p class="mt-1 max-w-2xl text-sm/6">This information will be used in various places when displaying subscription information.</p>
+			<h2 class="text-base/7 font-semibold">Editing subscription: { request.GetNickname() }</h2>
 			if request.HasError() {
 				<div role="alert" class="alert alert-error alert-outline mt-12">
 					<div class="px-4 py-5 sm:p-6 space-y-4">
@@ -28,21 +27,39 @@ templ EditSubscription(request *models.EditSubscriptionRequest) {
 			}
 			<fieldset class="fieldset border-base-300 rounded-box border p-4">
 				<legend class="fieldset-legend text-base/7">Settings</legend>
-				<div class="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:py-6">
-					<label class="label input-label">
-						<input
-							type="checkbox"
-							if request.ShowFullArticleContent {
-								checked="checked"
-							}
-							name="show_full_article_content"
-							class="toggle toggle-sm toggle-primary"
-						/>
-						Always show remote article content
-					</label>
+				<div class="sm:grid sm:grid-cols-3 sm:items-start gap-x-4 sm:py-6">
+					<div class="flex items-center">
+						<label class="label input-label">
+							<input
+								type="checkbox"
+								if request.ShowFullArticleContent {
+									checked="checked"
+								}
+								name="show_full_article_content"
+								class="toggle toggle-sm toggle-primary"
+							/>
+							Always show full article content
+						</label>
+						<div class="dropdown dropdown-end">
+							<div tabindex="0" role="button" class="btn btn-circle btn-ghost btn-xs text-info">
+								<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6 text-info">
+									<path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z"></path>
+								</svg>
+							</div>
+							<div
+								tabindex="0"
+								class="card card-sm dropdown-content bg-base-100 rounded-box z-1 w-64 shadow-sm"
+							>
+								<div tabindex="0" class="card-body">
+									<p>If articles in the subscription are only showing a summary, set this toggle to attempt to fetch the full content from the website.</p>
+									<p>Note: fetching full content is based on a heuristic that tries to locate the article content on the page. It does not always produce optimal results.</p>
+								</div>
+							</div>
+						</div>
+					</div>
 				</div>
 			</fieldset>
-			<fieldset class="fieldset bg-base-200 border-base-300 rounded-box border p-4">
+			<fieldset class="fieldset border-base-300 rounded-box border p-4">
 				<legend class="fieldset-legend text-base/7">Customisation</legend>
 				<form
 					id="edit-subscription"
