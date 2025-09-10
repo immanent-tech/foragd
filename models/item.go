@@ -63,50 +63,70 @@ func (i Items) GetCategoryCounts() CategoryCounts {
 	return counts
 }
 
+// GetID returns the item ID.
 func (i *Item) GetID() ItemID {
 	return i.ItemID
 }
 
+// GetFeedID returns the ID of the feed the item belongs to.
 func (i *Item) GetFeedID() FeedID {
 	return i.FeedID
 }
 
+// GetLink returns the URL that should point to a page containing the full item content.
 func (i *Item) GetLink() URL {
 	return i.URL
 }
 
+// GetTitle returns the item's title.
 func (i *Item) GetTitle() string {
 	return i.Title
 }
 
+// GetDescription returns the summary of the item content, if any.
 func (i *Item) GetDescription() string {
 	return i.Description
 }
 
+// GetAuthors returns a slice of the item's authors, if any.
 func (i *Item) GetAuthors() []string {
 	return i.Authors
 }
 
+// GetContributors returns a slice of the item's contributors, if any.
 func (i *Item) GetContributors() []string {
 	return i.Contributors
 }
 
+// GetCategories returns a slice of the item's categories, if any.
 func (i *Item) GetCategories() []string {
 	return i.Categories
 }
 
+// GetImage returns an image that can represent the item, if any.
 func (i *Item) GetImage() *RemoteImage {
 	return &i.Image
 }
 
+// GetLanguage returns the language of the item, if set.
 func (i *Item) GetLanguage() string {
 	return i.Language
 }
 
-// GetUpdatedDate returns a timestamp indicating when the item was last updated. This will be either, the updated
+// GetRights returns the copyright associated with the item, if any.
+func (i *Item) GetRights() string {
+	return i.Copyright
+}
+
+// GetContent returns the full item content, if set.
+func (i *Item) GetContent() string {
+	return i.Content
+}
+
+// GetTimestamp returns a timestamp indicating when the item was last updated. This will be either, the updated
 // timestamp, or, the published timestamp, or the indexing timestamp, whichever is found and
 // is a valid value, in that order.
-func (i *Item) GetUpdatedDate() time.Time {
+func (i *Item) GetTimestamp() time.Time {
 	if valid, _ := ValidateDatetime(i.Updated); valid {
 		return i.Updated
 	} else if valid, _ := ValidateDatetime(i.Published); valid {
@@ -118,15 +138,7 @@ func (i *Item) GetUpdatedDate() time.Time {
 // IsNewer returns a boolean indicating whether this item has been updated or
 // published after the given time.
 func (i *Item) IsNewer(since time.Time) bool {
-	return i.GetUpdatedDate().After(since)
-}
-
-func (i *Item) GetRights() string {
-	return i.Copyright
-}
-
-func (i *Item) GetContent() string {
-	return i.Content
+	return i.GetTimestamp().After(since)
 }
 
 // NewItemFromSource generates an Item from the underlying feed data.
@@ -156,7 +168,7 @@ func NewItemFromSource(source *feeds.Item, feed *Feed) *Item {
 
 	// Check for a valid published timestamp. If not valid, set the published timestamp to the feed's updated timestamp.
 	if valid, _ := ValidateDatetime(item.Published); !valid {
-		item.Published = feed.GetUpdatedDate()
+		item.Published = feed.GetTimestamp()
 	}
 
 	return item

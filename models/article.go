@@ -63,7 +63,7 @@ func GenerateArticle(item *Item, state *SubscriptionMetadata, favorite *Favorite
 		article.Item.FeedTitle = state.Customisation.Nickname
 	}
 	// 	Update read status.
-	if item.GetUpdatedDate().Before(state.MarkedReadAt) {
+	if item.GetTimestamp().Before(state.MarkedReadAt) {
 		article.State.MarkRead(state.MarkedReadAt)
 	}
 	// Toggle showing remote article content.
@@ -159,7 +159,7 @@ func (a *Article) GetAuthors() []string {
 }
 
 func (a *Article) GetUpdatedDate() time.Time {
-	return a.Item.GetUpdatedDate()
+	return a.Item.GetTimestamp()
 }
 
 func (a *Article) GetLink() string {

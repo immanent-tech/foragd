@@ -98,10 +98,10 @@ func (f *Feed) GetLanguage() string {
 	return f.Language
 }
 
-// GetUpdatedDate returns a timestamp indicating when the feed was last updated. This will be either, the updated
+// GetTimestamp returns a timestamp indicating when the feed was last updated. This will be either, the updated
 // timestamp in the feed, or, the published timestamp in the feed, or the last fetched timestamp, whichever is found and
 // is a valid value, in that order.
-func (f *Feed) GetUpdatedDate() time.Time {
+func (f *Feed) GetTimestamp() time.Time {
 	if !f.Updated.IsZero() && !f.Updated.Equal(types.UnixEpoch) {
 		return f.Updated
 	}
