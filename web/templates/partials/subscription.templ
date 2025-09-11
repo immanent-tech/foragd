@@ -84,7 +84,9 @@ templ (s *Subscription) actionsMenu() {
 	@ContextMenu(s.GetTitle() + " Actions") {
 		// View action.
 		<a href={ s.GetLink() } target="_blank" rel="noopener" class="menu-item">
-			@HeroIconExternalLink("size-4")
+			<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"></path>
+			</svg>
 			Feed Website
 		</a>
 		// Mark action.
@@ -104,10 +106,14 @@ templ (s *Subscription) actionsMenu() {
 		>
 			switch s.IsUnread() {
 				case true:
-					@HeroIconMarkRead("size-4")
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path>
+					</svg>
 					Mark Read
 				case false:
-					@HeroIconMarkUnread("size-4")
+					<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M12.75 19.5v-.75a7.5 7.5 0 0 0-7.5-7.5H4.5m0-6.75h.75c7.87 0 14.25 6.38 14.25 14.25v.75M6 18.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z"></path>
+					</svg>
 					Mark Unread
 			}
 		</a>
@@ -125,16 +131,7 @@ templ (s *Subscription) actionsMenu() {
 		</a>
 		// Favorite action. Wrapped in a div that can be targeted for hx-swapping.
 		<div id={ "favorite_" + s.GetID() }>
-			@s.favoriteLink("menu-item") {
-				switch s.Favorite {
-					case true:
-						@HeroIconHeartFilled("size-4")
-						Remove Favorite
-					case false:
-						@HeroIconHeart("size-4")
-						Add Favorite
-				}
-			}
+			@s.favoriteLink("menu-item")
 		</div>
 		// Unsubscribe action.
 		<a
@@ -177,30 +174,32 @@ templ (c *Subscription) image() {
 
 // ToggleFavorite renders an updated favorite link based on the subscriptions favorite status.
 templ (s *Subscription) ToggleFavorite() {
-	@s.favoriteLink("menu-item") {
-		switch s.Favorite {
-			case true:
-				@HeroIconHeartFilled("size-4")
-				Remove Favorite
-			case false:
-				@HeroIconHeart("size-4")
-				Add Favorite
-		}
-	}
+	@s.favoriteLink("menu-item")
 }
 
 // favoriteLink generates a link that will toggle the favorite status of the subscription.
-templ (c *Subscription) favoriteLink(classes ...string) {
+templ (s *Subscription) favoriteLink(classes ...string) {
 	<a
-		if c.Favorite {
-			hx-delete={ "/user/favorite/subscription/" + c.GetID() }
+		if s.Favorite {
+			hx-delete={ "/user/favorite/subscription/" + s.GetID() }
 		} else {
-			hx-put={ "/user/favorite/subscription/" + c.GetID() }
+			hx-put={ "/user/favorite/subscription/" + s.GetID() }
 		}
-		hx-target={ "#favorite_" + c.GetID() }
+		hx-target={ "#favorite_" + s.GetID() }
 		class={ "link link-hover", classes }
 	>
-		{ children... }
+		switch s.Favorite {
+			case true:
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="size-4">
+					<path d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z"></path>
+				</svg>
+				Remove Favorite
+			case false:
+				<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-4">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"></path>
+				</svg>
+				Add Favorite
+		}
 	</a>
 }
 
