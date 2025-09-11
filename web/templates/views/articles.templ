@@ -78,7 +78,6 @@ templ (page *ArticlesPage) Content() {
 		Filters:    page.filters,
 		Categories: page.articles.GetCategoryCounts(),
 	}.Template()
-	@partials.ContentLoadingIndicator()
 	@layouts.Grid() {
 		@page.List()
 	}

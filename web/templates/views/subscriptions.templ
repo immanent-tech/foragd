@@ -67,7 +67,6 @@ templ (page *SubscriptionsPage) Content() {
 		Filters:    page.filters,
 		Categories: page.subscriptions.GetCategoryCounts(),
 	}.Template()
-	@partials.ContentLoadingIndicator()
 	@layouts.Grid() {
 		@page.List()
 	}

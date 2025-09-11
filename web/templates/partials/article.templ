@@ -81,15 +81,23 @@ templ (a *Article) Card(view models.View) {
 
 // ViewArticle renders the complete content of an article.
 templ ViewArticle(article *models.Article) {
+	{{ viewSubscriptionVals := session.ArticleFiltersFromSession(ctx).Parameters() }}
+	{{ viewSubscriptionVals[models.ParamSubscriptions] = article.GetSubscriptionID() }}
 	// Mobile breadcrumbs/navigation.
 	<div class="breadcrumbs-mobile">
 		<ul>
 			<li aria-label="Back">
-				<a _="on click call history.back()" class="link link-hover flex items-center text-sm font-medium text-base-content/50 hover:text-base-content">
+				<a
+					hx-get="/articles"
+					hx-target={ ContentID.Target() }
+					hx-vals={ models.GenerateHXVals(viewSubscriptionVals) }
+					hx-push-url="true"
+					class="link link-hover ml-4 text-sm font-medium text-base-content/50 hover:text-base-content min-w-0 truncate"
+				>
 					<svg viewBox="0 0 20 20" fill="currentColor" data-slot="icon" aria-hidden="true" class="mr-1 -ml-1 size-5 shrink-0 text-base-content/50">
 						<path d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" fill-rule="evenodd"></path>
 					</svg>
-					Back
+					Back to articles
 				</a>
 			</li>
 		</ul>
@@ -107,8 +115,6 @@ templ ViewArticle(article *models.Article) {
 				>Subscriptions</a>
 			</li>
 			<li aria-label="Articles">
-				{{ viewSubscriptionVals := session.ArticleFiltersFromSession(ctx).Parameters() }}
-				{{ viewSubscriptionVals[models.ParamSubscriptions] = article.GetSubscriptionID() }}
 				<a
 					hx-get="/articles"
 					hx-target={ ContentID.Target() }
@@ -125,7 +131,6 @@ templ ViewArticle(article *models.Article) {
 		</ul>
 	</div>
 	// Article.
-	@ContentLoadingIndicator()
 	<div class="flex justify-center">
 		<article id={ article.GetID() } class="prose prose-sm sm:prose-lg w-full dark:prose-invert px-4 py-4 sm:px-6">
 			<a href={ article.GetLink() } target="_blank" rel="noopener" class="link link-hover">

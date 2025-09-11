@@ -16,12 +16,3 @@ templ Logo(classes ...string) {
 templ ShowTimestamp(timestamp time.Time) {
 	<human-time datetime={ timestamp.Format("2006-01-02T15:04:05-0700") }>{ timestamp.Format("2006-01-02 15:04:05 -0700") }</human-time>
 }
-
-// ContentLoadingIndicator is used as a HTMX indicator on content pages. While a HTMX request is processing, this
-// element will be displayed.
-templ ContentLoadingIndicator() {
-	<div class="text-center htmx-indicator">
-		<span class="loading loading-bars loading-xl"></span>
-		<h3 class="mt-2 text-base font-semibold">Loading content...</h3>
-	</div>
-}
