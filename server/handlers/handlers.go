@@ -40,10 +40,27 @@ const (
 
 type contextKey string
 
+// NotFound handles showing a page for a 404 response.
 func NotFound() http.HandlerFunc {
 	return alice.New(
 		routeLogger,
 	).Then(renderPage(pages.NotFound(), "Not Found")).ServeHTTP
+}
+
+// StaticFileServerHandler handles serving content from the embedded filesystem containing static assets (i.e., images,
+// etc.).
+func StaticFileServerHandler(fs http.FileSystem) http.Handler {
+	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		// Check, if the requested file is existing.
+		_, err := fs.Open(req.URL.Path)
+		if err != nil {
+			// If file is not found, return HTTP 404 error.
+			http.NotFound(res, req)
+			return
+		}
+		// File is found, return to standard http.FileServer.
+		http.FileServer(fs).ServeHTTP(res, req)
+	})
 }
 
 // routeLogger decorates the logger in the request context with routing information.

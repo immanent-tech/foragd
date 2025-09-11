@@ -19,7 +19,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	gowebly "github.com/gowebly/helpers"
 	slogchi "github.com/samber/slog-chi"
 	slogctx "github.com/veqryn/slog-context"
 
@@ -176,7 +175,7 @@ func setupRoutes(handler *handlers.API, static embed.FS) *chi.Mux {
 	//
 	// Static content.
 	router.Group(func(r chi.Router) {
-		r.Handle("/web/content/*", gowebly.StaticFileServerHandler(http.FS(static)))
+		r.Handle("/web/content/*", handlers.StaticFileServerHandler(http.FS(static)))
 	})
 	// Error handling.
 	router.NotFound(handlers.NotFound())
